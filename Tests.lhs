@@ -1,19 +1,15 @@
 #!/usr/bin/env runghc
 
-select fn();
-select fn(1);
-select fn('test');
-
 create table test (
   fielda text,
   fieldb int
 );
 
 select * from test;
+select a,b from test;
 insert
 update
 delete
-select 1+1;
 
 > import Test.HUnit
 > import Test.QuickCheck
@@ -32,6 +28,8 @@ select 1+1;
 >   defaultMain [
 >         checkParse "select 1;" (Select $ IntegerLiteral 1)
 >        ,checkParse "select 1+1;"
+>           (Select $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))
+>        ,checkParse "select 1+1+1;"
 >           (Select $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))
 >        ,checkParse "select 'test';" (Select $ StringLiteral "test")
 >        ,checkParse "select fn();" (Select $ FunctionCall "fn" [])
@@ -61,12 +59,21 @@ select 1+1;
 
 > instance Arbitrary Expression where
 >     arbitrary = oneof [
->                  liftM Identifier arbitrary
+>                  liftM Identifier aIdentifier
 >                 ,liftM IntegerLiteral arbitrary
->                 ,liftM StringLiteral arbitrary
->                 ,liftM2 FunctionCall arbitrary arbitrary
->                 ,liftM3 BinaryOperatorCall arbitrary arbitrary arbitrary
+>                 ,liftM StringLiteral $ listOf1 $ arbitrary
+>                 ,liftM2 FunctionCall aIdentifier arbitrary
+>                 ,liftM3 BinaryOperatorCall aBinaryOp arbitrary arbitrary
 >                 ]
+
+> aString :: Gen [Char]
+> aString = listOf1 $ choose ('\32', '\128')
+
+> aIdentifier :: Gen [Char]
+> aIdentifier = listOf1 $ choose ('\97', '\122')
+
+> aBinaryOp :: Gen [Char]
+> aBinaryOp = elements ["+", "-"]
 
 > parseThrowError :: String -> Select
 > parseThrowError s = case parseSql s of

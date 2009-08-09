@@ -64,7 +64,7 @@
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > identifier = do
 >   i <- word
->   return $ StringLiteral i
+>   return $ Identifier i
 
 > word :: Parser String
 > word = many1 letter
