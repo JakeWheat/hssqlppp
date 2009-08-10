@@ -29,7 +29,11 @@
 >   deriving (Show, Eq)
 
 > data Expression = Exp Op Expression Expression
->            | Val Integer
+>            | IntegerL Integer
+>            | StringL String
+>            | BooleanL Bool
+>            | Identifier String
+>            | FunctionCall String [Expression]
 >            | Empty
 >   deriving (Show,Eq)
 
