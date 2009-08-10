@@ -78,6 +78,12 @@ select object_name,object_type from public_database_objects
 >                                   [(Select (SelectList ["a"]) "tbl"
 >                                            (Just (Where $ BinaryOperatorCall Eql
 >                                                  (Identifier "b") (IntegerL 2))))]
+>                       ,checkParse "select a from tbl\n\
+>                                   \except\n\
+>                                   \select a from tbl1;"
+>                                   [(ExceptSelect
+>                                     (Select (SelectList ["a"]) "tbl" Nothing)
+>                                     (Select (SelectList ["a"]) "tbl1" Nothing))]
 >                       ]
 >        ,testGroup "multiple statements" [
 >                         checkParse "select 1;\nselect 2;" [(SelectE $ IntegerL 1)

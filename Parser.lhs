@@ -43,14 +43,17 @@ Parsing top level statements
 
 > statement :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
 > statement = do
->   select
->   <|> insert
->   <|> update
->   <|> delete
->   <|> try createTable
->   <|> try createFunction
->   <|> try createView
->   <|> nullStatement
+>   s <- (try exceptSelect
+>         <|> select
+>         <|> insert
+>         <|> update
+>         <|> delete
+>         <|> try createTable
+>         <|> try createFunction
+>         <|> try createView
+>         <|> nullStatement)
+>   semi
+>   return s
 
 statement types
 
@@ -62,7 +65,6 @@ statement types
 >   atts <- parens $ commaSep1 identifierString
 >   keyword "values"
 >   exps <- parens $ commaSep1 expr
->   semi
 >   return $ Insert tableName atts exps
 
 > update :: Text.Parsec.Prim.ParsecT String () Identity Statement
@@ -72,7 +74,6 @@ statement types
 >   keyword "set"
 >   scs <- commaSep1 setClause
 >   wh <- maybeP whereClause
->   semi
 >   return $ Update tableName scs wh
 
 > delete :: Text.Parsec.Prim.ParsecT String () Identity Statement
@@ -81,7 +82,6 @@ statement types
 >   keyword "from"
 >   tableName <- identifierString
 >   wh <- maybeP whereClause
->   semi
 >   return $ Delete tableName wh
 
 > createTable :: Text.Parsec.Prim.ParsecT String () Identity Statement
@@ -90,14 +90,20 @@ statement types
 >   keyword "table"
 >   n <- identifierString
 >   atts <- parens $ commaSep1 tableAtt
->   semi
 >   return $ CreateTable n atts
 
 > select :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > select = do
 >   keyword "select"
->   (do try selExpression
->    <|> selQuerySpec)
+>   (do try selQuerySpec
+>    <|> selExpression)
+
+> exceptSelect :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> exceptSelect = do
+>   s1 <- select
+>   keyword "except"
+>   s2 <- select
+>   return $ ExceptSelect s1 s2
 
 > createFunction :: GenParser Char () Statement
 > createFunction = do
@@ -114,7 +120,6 @@ statement types
 >   keyword "language"
 >   keyword "plpgsql"
 >   keyword "volatile"
->   semi
 >   return $ CreateFunction fnName params retType stmts
 
 > createView :: Text.Parsec.Prim.ParsecT String () Identity Statement
@@ -129,13 +134,11 @@ statement types
 > nullStatement :: Text.Parsec.Prim.ParsecT String u Identity Statement
 > nullStatement = do
 >   keyword "null"
->   semi
 >   return NullStatement
 
 > selExpression :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
 > selExpression = do
 >   e <- expr
->   semi
 >   return $ SelectE e
 
 Statement components
@@ -183,9 +186,8 @@ Statement components
 >          return Star
 >         ) <|> selectList
 >   keyword "from"
->   tb <- word
+>   tb <- identifierString
 >   wh <- maybeP whereClause
->   semi
 >   return $ Select sl tb wh
 
 > selectList :: Text.Parsec.Prim.ParsecT String () Identity SelectList
@@ -285,8 +287,8 @@ Utility parsers
 >   whitespace
 >   return $ s : p
 
-> word :: Parser String
-> word = lexeme (many1 letter)
+ > word :: Parser String
+ > word = lexeme (many1 letter)
 
 > maybeP :: GenParser tok st a
 >           -> Text.Parsec.Prim.ParsecT [tok] st Identity (Maybe a)

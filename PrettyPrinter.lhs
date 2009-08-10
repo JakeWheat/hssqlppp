@@ -22,13 +22,14 @@ Conversion routines - convert Sql asts into Docs
 = Statements
 
 > convStatement :: Statement -> Doc
+
 > convStatement (SelectE e) = text "select" <+> convExp e <> statementEnd
-> convStatement (Select l tb wh) = text "select" <+> convSelList l
->                               $+$ nest 2 (
->                                           text "from" <+> text tb
->                                           $+$ convWhere wh
->                                           )
->                                       <> statementEnd
+
+> convStatement s@(Select _ _ _) = convSelectFragment s <> statementEnd
+> convStatement (ExceptSelect s1 s2) = convSelectFragment s1
+>                                      $+$ text "except"
+>                                      $+$ convSelectFragment s2 <> statementEnd
+
 > convStatement (CreateTable t atts) =
 >     text "create table"
 >     <+> text t <+> lparen
@@ -63,12 +64,20 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (CreateView name sel) =
 >     text "create view" <+> text name <+> text "as"
->     $+$ (nest 2 (convStatement sel))
+>     $+$ (nest 2 (convSelectFragment sel)) <> statementEnd
 
 > statementEnd :: Doc
 > statementEnd = semi <> newline
 
 = Statement components
+
+> convSelectFragment :: Statement -> Doc
+> convSelectFragment (Select l tb wh) =
+>   text "select" <+> convSelList l
+>   $+$ nest 2 (
+>     text "from" <+> text tb
+>     $+$ convWhere wh)
+
 
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
