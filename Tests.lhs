@@ -1,10 +1,5 @@
 #!/usr/bin/env runghc
 
-create table test (
-  fielda text,
-  fieldb int
-);
-
 select * from test;
 select a,b from test;
 insert
@@ -16,7 +11,9 @@ delete
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
-> import Test.Framework.Providers.QuickCheck2
+
+ > import Test.Framework.Providers.QuickCheck2
+
 > import Control.Monad
 
 > import Grammar
@@ -26,20 +23,26 @@ delete
 > main :: IO ()
 > main = do
 >   defaultMain [
->         checkParse "select 1;" [(Select $ IntegerLiteral 1)]
+>         checkParse "select 1;" [(SelectE $ IntegerLiteral 1)]
 >        ,checkParse "select 1+1;"
->           [(Select $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
+>           [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
 >        ,checkParse "select 1 + 1;"
->           [(Select $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
+>           [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
 >        ,checkParse "select 1+1+1;"
->           [(Select $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
->        ,checkParse "select 'test';" [(Select $ StringLiteral "test")]
->        ,checkParse "select fn();" [(Select $ FunctionCall "fn" [])]
->        ,checkParse "select fn(1);" [(Select $ FunctionCall "fn" [IntegerLiteral 1])]
->        ,checkParse "select fn('test');" [(Select $ FunctionCall "fn" [StringLiteral "test"])]
+>           [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
+>        ,checkParse "select 'test';" [(SelectE $ StringLiteral "test")]
+>        ,checkParse "select fn();" [(SelectE $ FunctionCall "fn" [])]
+>        ,checkParse "select fn(1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
+>        ,checkParse "select fn (1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
+>        ,checkParse "select fn( 1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
+>        ,checkParse "select fn(1 );" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
+>        ,checkParse "select fn(1) ;" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
+>        ,checkParse "select fn('test');" [(SelectE $ FunctionCall "fn" [StringLiteral "test"])]
 >        ,checkParse "select fn(1, 'test');"
->           [(Select $ FunctionCall "fn" [IntegerLiteral 1, StringLiteral "test"])]
->        ,testProperty "random  statement" prop_select_ppp
+>           [(SelectE $ FunctionCall "fn" [IntegerLiteral 1, StringLiteral "test"])]
+>        ,checkParse "select 1;\nselect 2;" [(SelectE $ IntegerLiteral 1)
+>                                           ,(SelectE $ IntegerLiteral 2)
+>                                           ]
 >        ,checkParse "create table test (\n\
 >                    \  fielda text,\n\
 >                    \  fieldb int\n\
@@ -47,9 +50,9 @@ delete
 >                                            AttributeDef "fielda" "text"
 >                                           ,AttributeDef "fieldb" "int"
 >                                           ])]
->        ,checkParse "select 1;\nselect 2;" [(Select $ IntegerLiteral 1)
->                                           ,(Select $ IntegerLiteral 2)
->                                           ]
+>        ,checkParse "select * from tbl;" [(Select Star "tbl")]
+>        ,checkParse "select a,b from tbl;" [(Select (SelectList ["a","b"]) "tbl")]
+>        -- ,testProperty "random  statement" prop_select_ppp
 >        ]
 
 > checkParse :: String -> [Statement] -> Test.Framework.Test
@@ -68,7 +71,7 @@ delete
 
 > instance Arbitrary Statement where
 >     arbitrary = oneof [
->                  liftM Select arbitrary
+>                  liftM SelectE arbitrary
 >                 ,liftM2 CreateTable aIdentifier arbitrary
 >                 ]
 

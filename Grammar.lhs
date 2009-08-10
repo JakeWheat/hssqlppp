@@ -1,9 +1,13 @@
 
 > module Grammar where
 
-> data Statement = Select Expression
+> data Statement = SelectE Expression
+>                | Select SelectList String
 >                | CreateTable String [AttributeDef]
 >                  deriving (Eq,Show)
+
+> data SelectList = SelectList [String] | Star
+>                   deriving (Eq,Show)
 
 > data Expression = Identifier String
 >                 | IntegerLiteral Integer

@@ -5,15 +5,20 @@
 > import Grammar
 
 > printSql :: [Statement] -> String
-> printSql ast = render $ vcat $ (map convStatement ast)
+> printSql ast = render $ (vcat $ (map convStatement ast)) <> text "\n"
 
 > convStatement :: Statement -> Doc
-> convStatement (Select e) = text "select" <+> convExp e <> semi
+> convStatement (SelectE e) = text "select" <+> convExp e <> semi
+> convStatement (Select l tb) = text "select" <+> convSelList l <+> text tb <> semi
 > convStatement (CreateTable t atts) =
 >     text "create table"
 >     <+> text t <+> lparen
 >     <+> hcat (csv (map convAttDef atts))
 >     <+> rparen <> semi
+
+> convSelList :: SelectList -> Doc
+> convSelList (SelectList l) = hcat $ csv (map text l)
+> convSelList (Star) = text "*"
 
 > convAttDef :: AttributeDef -> Doc
 > convAttDef (AttributeDef n t) = text n <+> text t
