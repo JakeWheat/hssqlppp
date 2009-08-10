@@ -43,8 +43,7 @@ Parsing top level statements
 
 > statement :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
 > statement = do
->   s <- (try exceptSelect
->         <|> select
+>   s <- (try genSelect
 >         <|> insert
 >         <|> update
 >         <|> delete
@@ -92,6 +91,11 @@ statement types
 >   atts <- parens $ commaSep1 tableAtt
 >   return $ CreateTable n atts
 
+> genSelect :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
+> genSelect = do
+>   (try exceptSelect)
+>   <|> select
+
 > select :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > select = do
 >   keyword "select"
@@ -128,7 +132,7 @@ statement types
 >   keyword "view"
 >   vName <- identifierString
 >   keyword "as"
->   sel <- select
+>   sel <- genSelect
 >   return $ CreateView vName sel
 
 > nullStatement :: Text.Parsec.Prim.ParsecT String u Identity Statement
@@ -225,7 +229,8 @@ expressions
 >        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
 >        ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
 >       ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
->        ,binary "-" (BinaryOperatorCall Minus) AssocLeft]
+>        ,binary "-" (BinaryOperatorCall Minus) AssocLeft
+>        ,binary "and" (BinaryOperatorCall And) AssocLeft]
 >       ]
 >     where
 >       binary s f assoc

@@ -26,9 +26,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (SelectE e) = text "select" <+> convExp e <> statementEnd
 
 > convStatement s@(Select _ _ _) = convSelectFragment s <> statementEnd
-> convStatement (ExceptSelect s1 s2) = convSelectFragment s1
->                                      $+$ text "except"
->                                      $+$ convSelectFragment s2 <> statementEnd
+> convStatement s@(ExceptSelect _ _) = convSelectFragment s <> statementEnd
 
 > convStatement (CreateTable t atts) =
 >     text "create table"
@@ -78,6 +76,12 @@ Conversion routines - convert Sql asts into Docs
 >     text "from" <+> text tb
 >     $+$ convWhere wh)
 
+> convSelectFragment (ExceptSelect s1 s2) =
+>   convSelectFragment s1
+>   $+$ text "except"
+>   $+$ convSelectFragment s2
+
+> convSelectFragment a = error $ "no convSelectFragment for " ++ show a
 
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex

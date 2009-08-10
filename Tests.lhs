@@ -1,13 +1,6 @@
 #!/usr/bin/env runghc
 
 
-select object_name,object_type from public_database_objects
-+  where object_type = 'base_relvar'
-+  except
-+        select object_name,object_type from module_objects
-+        where module_name = 'catalog' and object_type='base_relvar';
-
-
 > import Test.HUnit
 
 > import Test.QuickCheck
@@ -23,6 +16,14 @@ select object_name,object_type from public_database_objects
 > import Grammar
 > import Parser
 > import PrettyPrinter
+
+> x = "--create view chaos_base_relvars as\n\
+>   \select object_name,object_type from public_database_objects\n\
+>   \where object_type = 'base_relvar'\n\
+>   \except\n\
+>   \      select object_name,object_type from module_objects\n\
+>   \      where module_name = 'catalog' and object_type='base_relvar';"
+
 
 > main :: IO ()
 > main = do
@@ -78,12 +79,27 @@ select object_name,object_type from public_database_objects
 >                                   [(Select (SelectList ["a"]) "tbl"
 >                                            (Just (Where $ BinaryOperatorCall Eql
 >                                                  (Identifier "b") (IntegerL 2))))]
+>                       ,checkParse "select a from tbl where b=2 and c=3;"
+>                                   [(Select (SelectList ["a"]) "tbl"
+>                                            (Just (Where $
+>                                                   BinaryOperatorCall And
+>                                                    (BinaryOperatorCall Eql
+>                                                    (Identifier "b") (IntegerL 2))
+>                                                    (BinaryOperatorCall Eql
+>                                                    (Identifier "c") (IntegerL 3))
+>                                                   )))]
 >                       ,checkParse "select a from tbl\n\
 >                                   \except\n\
 >                                   \select a from tbl1;"
 >                                   [(ExceptSelect
 >                                     (Select (SelectList ["a"]) "tbl" Nothing)
 >                                     (Select (SelectList ["a"]) "tbl1" Nothing))]
+>                       ,checkParse "select a from tbl where true\n\
+>                                   \except\n\
+>                                   \select a from tbl1 where true;"
+>                                   [(ExceptSelect
+>                                     (Select (SelectList ["a"]) "tbl" (Just $ Where $ BooleanL True))
+>                                     (Select (SelectList ["a"]) "tbl1" (Just $ Where $ BooleanL True)))]
 >                       ]
 >        ,testGroup "multiple statements" [
 >                         checkParse "select 1;\nselect 2;" [(SelectE $ IntegerL 1)

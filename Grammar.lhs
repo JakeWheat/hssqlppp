@@ -40,7 +40,7 @@ Statement components
 
 Expressions
 
-> data Op = Plus | Minus | Mult | Div | Pow | Mod | Neg | Eql
+> data Op = Plus | Minus | Mult | Div | Pow | Mod | Neg | Eql | And
 >   deriving (Show,Eq)
 
 > opToSymbol :: Op -> [Char]
@@ -53,6 +53,7 @@ Expressions
 >                         Mod -> "%"
 >                         Neg -> "-"
 >                         Eql -> "="
+>                         And -> "and"
 
 > data Expression = BinaryOperatorCall Op Expression Expression
 >            | IntegerL Integer
