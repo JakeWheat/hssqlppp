@@ -21,7 +21,19 @@
 > statement :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
 > statement = do
 >   select
+>   <|> insert
 >   <|> createTable
+
+> insert :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> insert = do
+>   lexeme (string "insert")
+>   lexeme (string "into")
+>   tableName <- identifierString
+>   atts <- parens $ commaSep1 identifierString
+>   lexeme (string "values")
+>   exps <- parens $ commaSep1 expression
+>   semi
+>   return $ Insert tableName atts exps
 
 > createTable :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > createTable = do

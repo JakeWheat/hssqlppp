@@ -1,10 +1,35 @@
 #!/usr/bin/env runghc
 
-select * from test;
-select a,b from test;
 insert
 update
 delete
+create table base_relvar_metadata (
+  relvar_name text,
+  type text check (type in('readonly', 'data', 'stack'))
+);
+
+  insert into base_relvar_metadata (relvar_name, type)
+    values (vname, vtype);
+
+create function set_relvar_type(vname text, vtype text) returns void as $$
+begin
+  insert into base_relvar_metadata (relvar_name, type)
+    values (vname, vtype);
+end;
+$$ language plpgsql volatile;
+
+create view chaos_base_relvars as
+  select object_name,object_type from public_database_objects
+  where object_type = 'base_relvar'
+  except
+        select object_name,object_type from module_objects
+        where module_name = 'catalog' and object_type='base_relvar';
+
+ update wizard_spell_choices_mr
+        set imaginary = false
+        where wizard_name = get_current_wizard();
+
+  delete from wizard_spell_choices_mr where wizard_name = get_current_wizard();
 
 > import Test.HUnit
 > import Test.QuickCheck
@@ -23,35 +48,49 @@ delete
 > main :: IO ()
 > main = do
 >   defaultMain [
->         checkParse "select 1;" [(SelectE $ IntegerLiteral 1)]
->        ,checkParse "select 1+1;"
->           [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
->        ,checkParse "select 1 + 1;"
->           [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
->        ,checkParse "select 1+1+1;"
->           [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
->        ,checkParse "select 'test';" [(SelectE $ StringLiteral "test")]
->        ,checkParse "select fn();" [(SelectE $ FunctionCall "fn" [])]
->        ,checkParse "select fn(1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
->        ,checkParse "select fn (1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
->        ,checkParse "select fn( 1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
->        ,checkParse "select fn(1 );" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
->        ,checkParse "select fn(1) ;" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
->        ,checkParse "select fn('test');" [(SelectE $ FunctionCall "fn" [StringLiteral "test"])]
->        ,checkParse "select fn(1, 'test');"
->           [(SelectE $ FunctionCall "fn" [IntegerLiteral 1, StringLiteral "test"])]
->        ,checkParse "select 1;\nselect 2;" [(SelectE $ IntegerLiteral 1)
->                                           ,(SelectE $ IntegerLiteral 2)
->                                           ]
->        ,checkParse "create table test (\n\
->                    \  fielda text,\n\
->                    \  fieldb int\n\
->                    \);" [(CreateTable "test" [
->                                            AttributeDef "fielda" "text"
->                                           ,AttributeDef "fieldb" "int"
->                                           ])]
->        ,checkParse "select * from tbl;" [(Select Star "tbl")]
->        ,checkParse "select a,b from tbl;" [(Select (SelectList ["a","b"]) "tbl")]
+>          testGroup "select expression" [
+>                        checkParse "select 1;" [(SelectE $ IntegerLiteral 1)]
+>                       ,checkParse "select 1+1;"
+>                        [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
+>                       ,checkParse "select 1 + 1;"
+>                        [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
+>                       ,checkParse "select 1+1+1;"
+>                        [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
+>                       ,checkParse "select 'test';" [(SelectE $ StringLiteral "test")]
+>                       ,checkParse "select fn();" [(SelectE $ FunctionCall "fn" [])]
+>                       ,checkParse "select fn(1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
+>                       ,checkParse "select fn (1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
+>                       ,checkParse "select fn( 1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
+>                       ,checkParse "select fn(1 );" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
+>                       ,checkParse "select fn(1) ;" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
+>                       ,checkParse "select fn('test');" [(SelectE $ FunctionCall "fn" [StringLiteral "test"])]
+>                       ,checkParse "select fn(1, 'test');"
+>                        [(SelectE $ FunctionCall "fn" [IntegerLiteral 1, StringLiteral "test"])]
+>                       ,checkParse "select 1;\nselect 2;" [(SelectE $ IntegerLiteral 1)
+>                                                          ,(SelectE $ IntegerLiteral 2)
+>                                                          ]
+>                       ]
+>        ,testGroup "create" [
+>                        checkParse "create table test (\n\
+>                                    \  fielda text,\n\
+>                                    \  fieldb int\n\
+>                                    \);" [(CreateTable "test" [
+>                                                            AttributeDef "fielda" "text"
+>                                                           ,AttributeDef "fieldb" "int"
+>                                                           ])]
+>                        ]
+>        ,testGroup "select from table" [
+>                        checkParse "select * from tbl;" [(Select Star "tbl")]
+>                       ,checkParse "select a,b from tbl;" [(Select (SelectList ["a","b"]) "tbl")]
+>                       ]
+>        ,testGroup "insert" [
+>                        checkParse "insert into testtable\n\
+>                                   \(columna,columnb)\n\
+>                                   \values (1,2);\n" [(Insert "testtable"
+>                                                              ["columna", "columnb"]
+>                                                              [IntegerLiteral 1,
+>                                                               IntegerLiteral 2])]
+>                       ]
 >        -- ,testProperty "random  statement" prop_select_ppp
 >        ]
 

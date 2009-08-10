@@ -16,6 +16,11 @@
 >     <+> text t <+> lparen
 >     <+> hcat (csv (map convAttDef atts))
 >     <+> rparen <> semi
+> convStatement (Insert tb atts exps) = text "insert into" <+> text tb
+>                                       <+> lparen <> hcat (csv (map text atts)) <> rparen
+>                                       <+> text "values"
+>                                       <+> lparen <> hcat (csv $ map convExp exps) <> rparen
+>                                       <> semi
 
 > convSelList :: SelectList -> Doc
 > convSelList (SelectList l) = hcat $ csv (map text l)

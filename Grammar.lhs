@@ -4,6 +4,7 @@
 > data Statement = SelectE Expression
 >                | Select SelectList String
 >                | CreateTable String [AttributeDef]
+>                | Insert String [String] [Expression]
 >                  deriving (Eq,Show)
 
 > data SelectList = SelectList [String] | Star
