@@ -6,7 +6,7 @@
 SQL top level statements
 
 > data Statement = SelectE Expression
->                | Select SelectList String
+>                | Select SelectList String (Maybe Where)
 >                | CreateTable String [AttributeDef]
 >                | CreateView String Statement
 >                | Insert String [String] [Expression]

@@ -72,8 +72,12 @@ select object_name,object_type from public_database_objects
 >                        [(SelectE $ FunctionCall "fn" [IntegerL 1, StringL "test"])]
 >                       ]
 >        ,testGroup "select from table" [
->                        checkParse "select * from tbl;" [(Select Star "tbl")]
->                       ,checkParse "select a,b from tbl;" [(Select (SelectList ["a","b"]) "tbl")]
+>                        checkParse "select * from tbl;" [(Select Star "tbl" Nothing)]
+>                       ,checkParse "select a,b from tbl;" [(Select (SelectList ["a","b"]) "tbl" Nothing)]
+>                       ,checkParse "select a from tbl where b=2;"
+>                                   [(Select (SelectList ["a"]) "tbl"
+>                                            (Just (Where $ BinaryOperatorCall Eql
+>                                                  (Identifier "b") (IntegerL 2))))]
 >                       ]
 >        ,testGroup "multiple statements" [
 >                         checkParse "select 1;\nselect 2;" [(SelectE $ IntegerL 1)
@@ -146,7 +150,7 @@ select object_name,object_type from public_database_objects
 >                        ,checkParse "create view v1 as\n\
 >                                    \select a,b from t;"
 >                                    [(CreateView "v1"
->                                        (Select (SelectList ["a","b"]) "t"))]
+>                                        (Select (SelectList ["a","b"]) "t" Nothing))]
 >                        ]
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp
@@ -229,7 +233,7 @@ arbitrary instances
 > instance Arbitrary Statement where
 >     arbitrary = oneof [
 >                  liftM SelectE arbitrary
->                 ,liftM2 Select arbitrary aIdentifier
+>                 ,liftM3 Select arbitrary aIdentifier arbitrary
 >                 ,liftM2 CreateTable aIdentifier arbitrary
 >                 ,liftM3 Insert aIdentifier arbitrary arbitrary
 >                 ,liftM3 Update aIdentifier arbitrary arbitrary

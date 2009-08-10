@@ -23,8 +23,12 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement :: Statement -> Doc
 > convStatement (SelectE e) = text "select" <+> convExp e <> statementEnd
-> convStatement (Select l tb) = text "select" <+> convSelList l
->                               <+> text "from" <+> text tb <> statementEnd
+> convStatement (Select l tb wh) = text "select" <+> convSelList l
+>                               $+$ nest 2 (
+>                                           text "from" <+> text tb
+>                                           $+$ convWhere wh
+>                                           )
+>                                       <> statementEnd
 > convStatement (CreateTable t atts) =
 >     text "create table"
 >     <+> text t <+> lparen
@@ -39,15 +43,11 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (Update tb scs wh) = text "update" <+> text tb <+> text "set"
 >                                    <+> hcatCsvMap convSetClause scs
->                                    <+> case wh of
->                                         Nothing -> empty
->                                         Just w -> convWhere w
+>                                    <+> convWhere wh
 >                                    <> statementEnd
 
 > convStatement (Delete tbl wh) = text "delete from" <+> text tbl
->                                 <+> case wh of
->                                            Nothing -> empty
->                                            Just w -> convWhere w
+>                                 <+> convWhere wh
 >                                 <> statementEnd
 
 > convStatement (CreateFunction name args retType stmts) =
@@ -73,8 +73,9 @@ Conversion routines - convert Sql asts into Docs
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
 
-> convWhere :: Where -> Doc
-> convWhere (Where ex) = text "where" <+> convExp ex
+> convWhere :: Maybe Where -> Doc
+> convWhere (Just (Where ex)) = text "where" <+> convExp ex
+> convWhere Nothing = empty
 
 > convSelList :: SelectList -> Doc
 > convSelList (SelectList l) = hcatCsvMap text l

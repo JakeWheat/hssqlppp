@@ -184,8 +184,9 @@ Statement components
 >         ) <|> selectList
 >   keyword "from"
 >   tb <- word
+>   wh <- maybeP whereClause
 >   semi
->   return $ Select sl tb
+>   return $ Select sl tb wh
 
 > selectList :: Text.Parsec.Prim.ParsecT String () Identity SelectList
 > selectList = do
