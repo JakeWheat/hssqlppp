@@ -25,16 +25,26 @@
  >                 | BinaryOperatorCall String Expression Expression
  >                   deriving (Eq,Show)
 
-> data Op = Plus | Minus | Mult | Div | Pow | Mod | Neg
->   deriving (Show, Eq)
+> data Op = Plus | Minus | Mult | Div | Pow | Mod | Neg | Eql
+>   deriving (Show,Eq)
 
-> data Expression = Exp Op Expression Expression
+> opToSymbol :: Op -> [Char]
+> opToSymbol op = case op of
+>                         Plus -> "+"
+>                         Minus -> "-"
+>                         Mult -> "*"
+>                         Div -> "/"
+>                         Pow -> "^"
+>                         Mod -> "%"
+>                         Neg -> "-"
+>                         Eql -> "="
+
+> data Expression = BinaryOperatorCall Op Expression Expression
 >            | IntegerL Integer
 >            | StringL String
 >            | BooleanL Bool
 >            | Identifier String
 >            | FunctionCall String [Expression]
->            | Empty
 >   deriving (Show,Eq)
 
 

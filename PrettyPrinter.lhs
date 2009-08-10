@@ -43,11 +43,11 @@
 
 > convExp :: Expression -> Doc
 > convExp (Identifier i) = text i
-> convExp (IntegerLiteral n) = integer n
-> convExp (StringLiteral s) = quotes $ text s
+> convExp (IntegerL n) = integer n
+> convExp (StringL s) = quotes $ text s
 > convExp (FunctionCall i as) = text i <> lparen <> hcat (csv (map convExp as)) <> rparen
-> convExp (BinaryOperatorCall op a b) = convExp a <+> text op <+> convExp b
-> convExp (BooleanLiteral b) = bool b
+> convExp (BinaryOperatorCall op a b) = convExp a <+> text (opToSymbol op) <+> convExp b
+> convExp (BooleanL b) = bool b
 
 > csv :: [Doc] -> [Doc]
 > csv l = punctuate comma l

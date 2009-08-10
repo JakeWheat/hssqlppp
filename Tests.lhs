@@ -32,14 +32,16 @@ create view chaos_base_relvars as
   delete from wizard_spell_choices_mr where wizard_name = get_current_wizard();
 
 > import Test.HUnit
-> import Test.QuickCheck
+
+ > import Test.QuickCheck
+
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
 
  > import Test.Framework.Providers.QuickCheck2
 
-> import Control.Monad
+ > import Control.Monad
 
 > import Grammar
 > import Parser
@@ -48,26 +50,39 @@ create view chaos_base_relvars as
 > main :: IO ()
 > main = do
 >   defaultMain [
->          testGroup "select expression" [
->                        checkParse "select 1;" [(SelectE $ IntegerLiteral 1)]
+>         testGroup "parse expression" [
+>                        checkParseExpression "1" (IntegerL 1)
+>                       ,checkParseExpression " 1 + 1 " (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))
+>                       ,checkParseExpression "1+1+1" (BinaryOperatorCall Plus (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1)) (IntegerL 1))
+>                       ,checkParseExpression "'test'" (StringL "test")
+>                       ,checkParseExpression "fn()" (FunctionCall "fn" [])
+>                       ,checkParseExpression "fn(1)" (FunctionCall "fn" [IntegerL 1])
+>                       ,checkParseExpression "fn('test')" (FunctionCall "fn" [StringL "test"])
+>                       ,checkParseExpression "fn(1,'test')" (FunctionCall "fn" [IntegerL 1, StringL "test"])
+>                       ,checkParseExpression "true" (BooleanL True)
+>                       ,checkParseExpression "false" (BooleanL False)
+>                       ]
+
+>         ,testGroup "select expression" [
+>                        checkParse "select 1;" [(SelectE $ IntegerL 1)]
 >                       ,checkParse "select 1+1;"
->                        [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
+>                        [(SelectE $ BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))]
 >                       ,checkParse "select 1 + 1;"
->                        [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
+>                        [(SelectE $ BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))]
 >                       ,checkParse "select 1+1+1;"
->                        [(SelectE $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
->                       ,checkParse "select 'test';" [(SelectE $ StringLiteral "test")]
+>                        [SelectE (BinaryOperatorCall Plus (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1)) (IntegerL 1))]
+>                       ,checkParse "select 'test';" [(SelectE $ StringL "test")]
 >                       ,checkParse "select fn();" [(SelectE $ FunctionCall "fn" [])]
->                       ,checkParse "select fn(1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
->                       ,checkParse "select fn (1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
->                       ,checkParse "select fn( 1);" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
->                       ,checkParse "select fn(1 );" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
->                       ,checkParse "select fn(1) ;" [(SelectE $ FunctionCall "fn" [IntegerLiteral 1])]
->                       ,checkParse "select fn('test');" [(SelectE $ FunctionCall "fn" [StringLiteral "test"])]
+>                       ,checkParse "select fn(1);" [(SelectE $ FunctionCall "fn" [IntegerL 1])]
+>                       ,checkParse "select fn (1);" [(SelectE $ FunctionCall "fn" [IntegerL 1])]
+>                       ,checkParse "select fn( 1);" [(SelectE $ FunctionCall "fn" [IntegerL 1])]
+>                       ,checkParse "select fn(1 );" [(SelectE $ FunctionCall "fn" [IntegerL 1])]
+>                       ,checkParse "select fn(1) ;" [(SelectE $ FunctionCall "fn" [IntegerL 1])]
+>                       ,checkParse "select fn('test');" [(SelectE $ FunctionCall "fn" [StringL "test"])]
 >                       ,checkParse "select fn(1, 'test');"
->                        [(SelectE $ FunctionCall "fn" [IntegerLiteral 1, StringLiteral "test"])]
->                       ,checkParse "select 1;\nselect 2;" [(SelectE $ IntegerLiteral 1)
->                                                          ,(SelectE $ IntegerLiteral 2)
+>                        [(SelectE $ FunctionCall "fn" [IntegerL 1, StringL "test"])]
+>                       ,checkParse "select 1;\nselect 2;" [(SelectE $ IntegerL 1)
+>                                                          ,(SelectE $ IntegerL 2)
 >                                                          ]
 >                       ]
 >        ,testGroup "create" [
@@ -88,21 +103,21 @@ create view chaos_base_relvars as
 >                                   \(columna,columnb)\n\
 >                                   \values (1,2);\n" [(Insert "testtable"
 >                                                              ["columna", "columnb"]
->                                                              [IntegerLiteral 1,
->                                                               IntegerLiteral 2])]
+>                                                              [IntegerL 1,
+>                                                               IntegerL 2])]
 >                       ]
 >        ,testGroup "update" [
 >                        checkParse "update tb\n\
 >                                   \  set x = 1, y = 2;"
->                                   [Update "tb" [SetClause "x" (IntegerLiteral 1)
->                                                ,SetClause "y" (IntegerLiteral 2)]
+>                                   [Update "tb" [SetClause "x" (IntegerL 1)
+>                                                ,SetClause "y" (IntegerL 2)]
 >                                      Nothing]
 >                       ,checkParse "update tb\n\
 >                                   \  set x = 1, y = 2 where z = true;"
->                                   [Update "tb" [SetClause "x" (IntegerLiteral 1)
->                                                ,SetClause "y" (IntegerLiteral 2)]
->                                      (Just $ Where $ BinaryOperatorCall "="
->                                                      (Identifier "z") (BooleanLiteral True))]
+>                                   [Update "tb" [SetClause "x" (IntegerL 1)
+>                                                ,SetClause "y" (IntegerL 2)]
+>                                      (Just $ Where $ BinaryOperatorCall Eql
+>                                                      (Identifier "z") (BooleanL True))]
 
 >                       ]
 >        -- ,testProperty "random  statement" prop_select_ppp
@@ -121,6 +136,12 @@ create view chaos_base_relvars as
 >               Right l -> l
 >   assertEqual ("reparse " ++ pp) ast ast''
 
+
+> checkParseExpression :: String -> Expression -> Test.Framework.Test
+> checkParseExpression src ast = testCase ("parse " ++ src) $ do
+>   assertEqual ("parse " ++ src) ast (parseExpression src)
+
+
  > instance Arbitrary Char where
  >     arbitrary     = choose ('\32', '\128')
  >     coarbitrary c = variant (ord c `rem` 4)
@@ -128,45 +149,45 @@ create view chaos_base_relvars as
  > instance Arbitrary Identifier where
  >     arbitrary = liftM Identifier $ listOf' $ choose ('\97', '\122')
 
-> instance Arbitrary Statement where
->     arbitrary = oneof [
->                  liftM SelectE arbitrary
->                 ,liftM2 CreateTable aIdentifier arbitrary
->                 ]
+ > instance Arbitrary Statement where
+ >     arbitrary = oneof [
+ >                  liftM SelectE arbitrary
+ >                 ,liftM2 CreateTable aIdentifier arbitrary
+ >                 ]
 
-> instance Arbitrary AttributeDef where
->     arbitrary = liftM2 AttributeDef aIdentifier aIdentifier
+ > instance Arbitrary AttributeDef where
+ >     arbitrary = liftM2 AttributeDef aIdentifier aIdentifier
 
-> instance Arbitrary Expression where
->     arbitrary = oneof [
->                  liftM Identifier aIdentifier
->                 ,liftM IntegerLiteral arbitrary
->                 ,liftM StringLiteral $ listOf1 $ arbitrary
->                 ,liftM2 FunctionCall aIdentifier arbitrary
->                 ,liftM3 BinaryOperatorCall aBinaryOp arbitrary arbitrary
->                 ]
+ > instance Arbitrary Expression where
+ >     arbitrary = oneof [
+ >                  liftM Identifier aIdentifier
+ >                 ,liftM IntegerL arbitrary
+ >                 ,liftM StringL $ listOf1 $ arbitrary
+ >                 ,liftM2 FunctionCall aIdentifier arbitrary
+ >                 ,liftM3 BinaryOperatorCall aBinaryOp arbitrary arbitrary
+ >                 ]
 
-> aString :: Gen [Char]
-> aString = listOf1 $ choose ('\32', '\128')
+ > aString :: Gen [Char]
+ > aString = listOf1 $ choose ('\32', '\128')
 
-> aIdentifier :: Gen [Char]
-> aIdentifier = listOf1 $ choose ('\97', '\122')
+ > aIdentifier :: Gen [Char]
+ > aIdentifier = listOf1 $ choose ('\97', '\122')
 
-> aBinaryOp :: Gen [Char]
-> aBinaryOp = elements ["+", "-"]
+ > aBinaryOp :: Gen [Char]
+ > aBinaryOp = elements ["+", "-"]
 
-> parseThrowError :: String -> [Statement]
-> parseThrowError s = case parseSql s of
->               Left er -> error $ show er
->               Right l -> l
+ > parseThrowError :: String -> [Statement]
+ > parseThrowError s = case parseSql s of
+ >               Left er -> error $ show er
+ >               Right l -> l
 
-> prop_select_ppp :: [Statement] -> Bool
-> prop_select_ppp s = (parseThrowError (printSql s)) == s
+ > prop_select_ppp :: [Statement] -> Bool
+ > prop_select_ppp s = (parseThrowError (printSql s)) == s
 
-> listOf' :: Gen a -> Gen [a]
-> listOf' gen = sized $ \n ->
->   do k <- choose (1,n)
->      vectorOf' k gen
+ > listOf' :: Gen a -> Gen [a]
+ > listOf' gen = sized $ \n ->
+ >   do k <- choose (1,n)
+ >      vectorOf' k gen
 
-> vectorOf' :: Int -> Gen a -> Gen [a]
-> vectorOf' k gen = sequence [ gen | _ <- [0..k] ]
+ > vectorOf' :: Int -> Gen a -> Gen [a]
+ > vectorOf' k gen = sequence [ gen | _ <- [0..k] ]
