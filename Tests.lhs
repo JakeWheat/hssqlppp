@@ -26,21 +26,33 @@ delete
 > main :: IO ()
 > main = do
 >   defaultMain [
->         checkParse "select 1;" (Select $ IntegerLiteral 1)
+>         checkParse "select 1;" [(Select $ IntegerLiteral 1)]
 >        ,checkParse "select 1+1;"
->           (Select $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))
+>           [(Select $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
+>        ,checkParse "select 1 + 1;"
+>           [(Select $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
 >        ,checkParse "select 1+1+1;"
->           (Select $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))
->        ,checkParse "select 'test';" (Select $ StringLiteral "test")
->        ,checkParse "select fn();" (Select $ FunctionCall "fn" [])
->        ,checkParse "select fn(1);" (Select $ FunctionCall "fn" [IntegerLiteral 1])
->        ,checkParse "select fn('test');" (Select $ FunctionCall "fn" [StringLiteral "test"])
+>           [(Select $ BinaryOperatorCall "+" (IntegerLiteral 1) (IntegerLiteral 1))]
+>        ,checkParse "select 'test';" [(Select $ StringLiteral "test")]
+>        ,checkParse "select fn();" [(Select $ FunctionCall "fn" [])]
+>        ,checkParse "select fn(1);" [(Select $ FunctionCall "fn" [IntegerLiteral 1])]
+>        ,checkParse "select fn('test');" [(Select $ FunctionCall "fn" [StringLiteral "test"])]
 >        ,checkParse "select fn(1, 'test');"
->           (Select $ FunctionCall "fn" [IntegerLiteral 1, StringLiteral "test"])
->        ,testProperty "basic select function call" prop_select_ppp
+>           [(Select $ FunctionCall "fn" [IntegerLiteral 1, StringLiteral "test"])]
+>        ,testProperty "random  statement" prop_select_ppp
+>        ,checkParse "create table test (\n\
+>                    \  fielda text,\n\
+>                    \  fieldb int\n\
+>                    \);" [(CreateTable "test" [
+>                                            AttributeDef "fielda" "text"
+>                                           ,AttributeDef "fieldb" "int"
+>                                           ])]
+>        ,checkParse "select 1;\nselect 2;" [(Select $ IntegerLiteral 1)
+>                                           ,(Select $ IntegerLiteral 2)
+>                                           ]
 >        ]
 
-> checkParse :: String -> Select -> Test.Framework.Test
+> checkParse :: String -> [Statement] -> Test.Framework.Test
 > checkParse src ast = testCase ("parse " ++ src) $ do
 >   let ast' = case parseSql src of
 >               Left er -> error $ show er
@@ -54,8 +66,14 @@ delete
  > instance Arbitrary Identifier where
  >     arbitrary = liftM Identifier $ listOf' $ choose ('\97', '\122')
 
-> instance Arbitrary Select where
->     arbitrary = liftM Select arbitrary
+> instance Arbitrary Statement where
+>     arbitrary = oneof [
+>                  liftM Select arbitrary
+>                 ,liftM2 CreateTable aIdentifier arbitrary
+>                 ]
+
+> instance Arbitrary AttributeDef where
+>     arbitrary = liftM2 AttributeDef aIdentifier aIdentifier
 
 > instance Arbitrary Expression where
 >     arbitrary = oneof [
@@ -75,12 +93,12 @@ delete
 > aBinaryOp :: Gen [Char]
 > aBinaryOp = elements ["+", "-"]
 
-> parseThrowError :: String -> Select
+> parseThrowError :: String -> [Statement]
 > parseThrowError s = case parseSql s of
 >               Left er -> error $ show er
 >               Right l -> l
 
-> prop_select_ppp :: Select -> Bool
+> prop_select_ppp :: [Statement] -> Bool
 > prop_select_ppp s = (parseThrowError (printSql s)) == s
 
 > listOf' :: Gen a -> Gen [a]

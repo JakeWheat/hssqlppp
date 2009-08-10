@@ -8,15 +8,42 @@
 
 > import Grammar
 
-> parseSql :: String -> Either ParseError Select
-> parseSql s = parse select "(unknown)" s
+> parseSql :: String -> Either ParseError [Statement]
+> parseSql s = parse statements "(unknown)" s
 
-> select :: Text.Parsec.Prim.ParsecT String () Identity Select
-> select = do
->   string "select"
+> statements = do
 >   whitespace
+>   s <- many statement
+>   eof
+>   return s
+
+> statement :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
+> statement = do
+>   try select
+>   <|>  createTable
+
+> createTable :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> createTable = do
+>   lexeme (string "create" <?> "create")
+>   lexeme (string "table" <?> "table")
+>   n <- identifierString <?> "identifier"
+>   lexeme $ char '('
+>   atts <- commaSep tableAtt
+>   lexeme $ char ')'
+>   lexeme $ char ';'
+>   return $ CreateTable n atts
+
+> tableAtt :: Text.Parsec.Prim.ParsecT String () Identity AttributeDef
+> tableAtt = do
+>   name <- identifierString <?> "identifier"
+>   typ <- identifierString <?> "identifier"
+>   return $ AttributeDef name typ
+
+> select :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> select = do
+>   lexeme $ string "select"
 >   e <- expression
->   char ';'
+>   lexeme $ char ';'
 >   return $ Select e
 
 > expression :: Text.Parsec.Prim.ParsecT [Char] () Identity Expression
@@ -30,50 +57,49 @@
 > binaryOperator :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > binaryOperator = do
 >   e1 <- integerLiteral
->   op <- many1 (oneOf "+-")
+>   op <- lexeme $ many1 $ oneOf "+-"
 >   e2 <- integerLiteral
 >   return $ BinaryOperatorCall op e1 e2
 
 > functionCall :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > functionCall = do
->   name <- word
->   whitespace
->   char '('
+>   name <- identifierString
+>   lexeme $ char '('
 >   args <- commaSep expression
->   char ')'
+>   lexeme $ char ')'
 >   return $ FunctionCall name args
 
-> commaSep p  = p `sepBy` (do
->                          whitespace
->                          char ','
->                          whitespace)
+> commaSep p  = p `sepBy` (lexeme $ char ',')
 
 > stringLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > stringLiteral = do
->   --whitespace
 >   char '\''
 >   name <- many1 (noneOf "'")
->   char '\''
+>   lexeme $ char '\''
 >   return $ StringLiteral name
 
 > integerLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > integerLiteral = do
->   i <- integer
->   return $ IntegerLiteral i
+>   liftM IntegerLiteral $ integer
 
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
-> identifier = do
->   i <- word
->   return $ Identifier i
+> identifier = liftM Identifier $ lexeme word
+
+> identifierString :: Parser String
+> identifierString = word
 
 > word :: Parser String
-> word = many1 letter
+> word = lexeme (many1 letter)
 
 > integer :: Text.Parsec.Prim.ParsecT String u Identity Integer
-> integer = P.integer lexer
+> integer = lexeme $ P.integer lexer
 
-> whitespace :: Text.Parsec.Prim.ParsecT String u Identity ()
-> whitespace = P.whiteSpace lexer
+> whitespace = spaces
 
 > lexer :: P.GenTokenParser String u Identity
 > lexer = P.makeTokenParser haskellDef
+
+> lexeme = P.lexeme lexer
+
+
+Select (BinaryOperatorCall "+" (BinaryOperatorCall "+" (StringLiteral "x") (BinaryOperatorCall "-" (BinaryOperatorCall "-" (IntegerLiteral 1) (IntegerLiteral 1)) (StringLiteral "T"))) (BinaryOperatorCall "-" (BinaryOperatorCall "-" (StringLiteral "3") (BinaryOperatorCall "+" (IntegerLiteral 1) (FunctionCall "e" []))) (FunctionCall "me" [Identifier "vc",StringLiteral "&)"])))

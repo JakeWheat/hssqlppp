@@ -1,8 +1,9 @@
 
 > module Grammar where
 
-> data Select = Select Expression
->               deriving (Eq,Show)
+> data Statement = Select Expression
+>                | CreateTable String [AttributeDef]
+>                  deriving (Eq,Show)
 
 > data Expression = Identifier String
 >                 | IntegerLiteral Integer
@@ -10,3 +11,6 @@
 >                 | FunctionCall String [Expression]
 >                 | BinaryOperatorCall String Expression Expression
 >                   deriving (Eq,Show)
+
+> data AttributeDef = AttributeDef String String
+>                     deriving (Eq,Show)
