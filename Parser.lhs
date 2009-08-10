@@ -158,9 +158,9 @@ expressions
 >       ]
 >     where
 >       binary s f assoc
->          = Infix (do{ string s; return f}) assoc
+>          = Infix (symbol s >> return f) assoc
 >       prefix s f
->          = Prefix (do{ string s; return f})
+>          = Prefix (symbol s >> return f)
 >
 
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression

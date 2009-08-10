@@ -63,13 +63,13 @@ create view chaos_base_relvars as
 >                       ,checkParseExpression "hello1234" (Identifier "hello1234")
 >                       ,checkParseExpression "1 + tst1" (BinaryOperatorCall Plus
 >                                                           (IntegerL 1)
->                                                           (StringL "tst1"))
+>                                                           (Identifier "tst1"))
 >                       ,checkParseExpression "tst1 + 1" (BinaryOperatorCall Plus
 >                                                         (Identifier "tst1")
 >                                                         (IntegerL 1))
 >                       ,checkParseExpression "tst + tst1" (BinaryOperatorCall Plus
->                                                           (StringL "tst")
->                                                           (StringL "tst1"))
+>                                                           (Identifier "tst")
+>                                                           (Identifier "tst1"))
 >                       ,checkParseExpression "fn()" (FunctionCall "fn" [])
 >                       ,checkParseExpression "fn(1)" (FunctionCall "fn" [IntegerL 1])
 >                       ,checkParseExpression "fn('test')" (FunctionCall "fn" [StringL "test"])
