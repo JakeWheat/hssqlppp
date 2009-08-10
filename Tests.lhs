@@ -55,9 +55,14 @@ create view chaos_base_relvars as
 >                        checkParseExpression "1" (IntegerL 1)
 >                       ,checkParseExpression " 1 + 1 " (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))
 >                       ,checkParseExpression "1+1+1" (BinaryOperatorCall Plus (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1)) (IntegerL 1))
+>                       ,checkParseExpression "(1)" (IntegerL 1)
 >                       ,checkParseExpression "'test'" (StringL "test")
 >                       ,checkParseExpression "''" (StringL "")
 >                       ,checkParseExpression "hello" (Identifier "hello")
+>                       ,checkParseExpression "''''" (StringL "'")
+>                       ,checkParseExpression "'test'''" (StringL "test'")
+>                       ,checkParseExpression "'''test'" (StringL "'test")
+>                       ,checkParseExpression "'te''st'" (StringL "te'st")
 >                       ,checkParseExpression "helloTest" (Identifier "helloTest")
 >                       ,checkParseExpression "hello_test" (Identifier "hello_test")
 >                       ,checkParseExpression "hello1234" (Identifier "hello1234")
@@ -129,8 +134,8 @@ create view chaos_base_relvars as
 >                                                      (Identifier "z") (BooleanL True))]
 >                       ]
 
->        ,testProperty "random expression" prop_expression_ppp
->        -- ,testProperty "random  statement" prop_select_ppp
+>        --,testProperty "random expression" prop_expression_ppp
+>        ,testProperty "random statements" prop_statements_ppp
 >        ]
 
 ================================================================================
@@ -176,8 +181,8 @@ parsing them
 
 property
 
- > prop_select_ppp :: [Statement] -> Bool
- > prop_select_ppp s = (parseThrowError (printSql s)) == s
+> prop_statements_ppp :: [Statement] -> Bool
+> prop_statements_ppp s = (parseSqlThrow (printSql s)) == s
 
 > prop_expression_ppp :: Expression -> Bool
 > prop_expression_ppp s = (parseExpressionThrow (printExpression s)) == s
@@ -187,6 +192,13 @@ property
 >     case parseExpression s of
 >       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
 >       Right l -> l
+
+> parseSqlThrow :: String -> [Statement]
+> parseSqlThrow s =
+>     case parseSql s of
+>       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
+>       Right l -> l
+
 
 arbitrary instances
 
@@ -200,33 +212,33 @@ arbitrary instances
 >                 ,liftM2 FunctionCall aIdentifier arbitrary
 >                 ]
 
+> instance Arbitrary Statement where
+>     arbitrary = oneof [
+>                  liftM SelectE arbitrary
+>                 ,liftM2 Select arbitrary aIdentifier
+>                 ,liftM2 CreateTable aIdentifier arbitrary
+>                 ,liftM3 Insert aIdentifier arbitrary arbitrary
+>                 ,liftM3 Update aIdentifier arbitrary arbitrary
+>                 ]
+
+
 > instance Arbitrary Op where
 >     arbitrary = elements [Plus, Minus, Mult, Div, Pow, Mod, Eql]
 
- > instance Arbitrary Char where
- >     arbitrary     = choose ('\32', '\128')
- >     coarbitrary c = variant (ord c `rem` 4)
+> instance Arbitrary SelectList where
+>     arbitrary = oneof [
+>                  liftM SelectList arbitrary
+>                 ,return Star
+>                 ]
 
- > instance Arbitrary Identifier where
- >     arbitrary = liftM Identifier $ listOf' $ choose ('\97', '\122')
+> instance Arbitrary AttributeDef where
+>     arbitrary = liftM2 AttributeDef aIdentifier aIdentifier
 
- > instance Arbitrary Statement where
- >     arbitrary = oneof [
- >                  liftM SelectE arbitrary
- >                 ,liftM2 CreateTable aIdentifier arbitrary
- >                 ]
+> instance Arbitrary SetClause where
+>     arbitrary = liftM2 SetClause aIdentifier arbitrary
 
- > instance Arbitrary AttributeDef where
- >     arbitrary = liftM2 AttributeDef aIdentifier aIdentifier
-
- > instance Arbitrary Expression where
- >     arbitrary = oneof [
- >                  liftM Identifier aIdentifier
- >                 ,liftM IntegerL arbitrary
- >                 ,liftM StringL $ listOf1 $ arbitrary
- >                 ,liftM2 FunctionCall aIdentifier arbitrary
- >                 ,liftM3 BinaryOperatorCall aBinaryOp arbitrary arbitrary
- >                 ]
+> instance Arbitrary Where where
+>     arbitrary = liftM Where arbitrary
 
 some gen helpers
 
@@ -239,14 +251,3 @@ some gen helpers
 >   suffix <- listOf $ elements $ letter ++ ['_'] ++ ['0' .. '9']
 >   return (start : suffix)
 >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
-
- > aBinaryOp :: Gen [Char]
- > aBinaryOp = elements ["+", "-"]
-
- > listOf' :: Gen a -> Gen [a]
- > listOf' gen = sized $ \n ->
- >   do k <- choose (1,n)
- >      vectorOf' k gen
-
- > vectorOf' :: Int -> Gen a -> Gen [a]
- > vectorOf' k gen = sequence [ gen | _ <- [0..k] ]
