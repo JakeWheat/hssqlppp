@@ -61,6 +61,12 @@ delete
 >               Left er -> error $ show er
 >               Right l -> l
 >   assertEqual ("parse " ++ src) ast ast'
+>   -- pretty print then parse to check
+>   let pp = printSql ast
+>   let ast'' = case parseSql pp of
+>               Left er -> error $ "reparse " ++ show er ++ "\n" ++ pp ++ "\n"
+>               Right l -> l
+>   assertEqual ("reparse " ++ pp) ast ast''
 
  > instance Arbitrary Char where
  >     arbitrary     = choose ('\32', '\128')

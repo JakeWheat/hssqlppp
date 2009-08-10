@@ -9,7 +9,8 @@
 
 > convStatement :: Statement -> Doc
 > convStatement (SelectE e) = text "select" <+> convExp e <> semi
-> convStatement (Select l tb) = text "select" <+> convSelList l <+> text tb <> semi
+> convStatement (Select l tb) = text "select" <+> convSelList l
+>                               <+> text "from" <+> text tb <> semi
 > convStatement (CreateTable t atts) =
 >     text "create table"
 >     <+> text t <+> lparen
