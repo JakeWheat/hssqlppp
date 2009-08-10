@@ -18,6 +18,9 @@ Parse fully formed sql
 > parseSql :: String -> Either ParseError [Statement]
 > parseSql s = parse statements "(unknown)" s
 
+> parseSqlFile :: String -> IO (Either ParseError [Statement])
+> parseSqlFile f = parseFromFile statements f
+
 Parse expression fragment, used for testing purposes
 
 > parseExpression :: String -> Either ParseError Expression
@@ -206,7 +209,9 @@ expressions
 Utility parsers
 
 > whitespace :: Text.Parsec.Prim.ParsecT String u Identity ()
-> whitespace = spaces --skipMany space ?
+> whitespace = skipMany ((space >> return ())
+>                        <|> blockComment
+>                        <|> lineComment)
 
 > keyword :: String -> Text.Parsec.Prim.ParsecT String u Identity String
 > keyword k = lexeme $ string k
@@ -228,13 +233,28 @@ Utility parsers
 >       return $ Just a)
 >   <|> return Nothing
 
+> blockComment :: Text.Parsec.Prim.ParsecT [Char] st Identity ()
+> blockComment = do
+>   try (char '/' >> char '*')
+>   manyTill anyChar (try (string "*/"))
+>   return ()
+
+> lineComment :: Text.Parsec.Prim.ParsecT [Char] st Identity ()
+> lineComment = do
+>   try (char '-' >> char '-')
+>   manyTill anyChar ((try (char '\n') >> return ()) <|> eof)
+>   return ()
+
 ================================================================================
 
 pass through stuff from parsec
 
 > lexer :: P.GenTokenParser String u Identity
 > lexer = P.makeTokenParser (haskellDef
->                            { reservedOpNames = ["*","/","+","-"]
+>                            { reservedOpNames = ["*","/","+","-"],
+>                              commentStart = "/*",
+>                              commentEnd = "*/",
+>                              commentLine = "--"
 >                            })
 
 > lexeme :: Text.Parsec.Prim.ParsecT String u Identity a

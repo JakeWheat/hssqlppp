@@ -1,15 +1,9 @@
 #!/usr/bin/env runghc
 
-insert
-update
-delete
 create table base_relvar_metadata (
   relvar_name text,
   type text check (type in('readonly', 'data', 'stack'))
 );
-
-  insert into base_relvar_metadata (relvar_name, type)
-    values (vname, vtype);
 
 create function set_relvar_type(vname text, vtype text) returns void as $$
 begin
@@ -99,6 +93,25 @@ create view chaos_base_relvars as
 >                                                           ,(SelectE $ IntegerL 2)
 >                                                           ]
 >                         ]
+>        ,testGroup "comments" [
+>                        checkParse "" []
+>                       ,checkParse "-- this is a test" []
+>                       ,checkParse "/* this is\n\
+>                                    \a test*/" []
+>                       ,checkParse "select 1;\n\
+>                                    \-- this is a test\n\
+>                                    \select -- this is a test\n\
+>                                    \2;" [(SelectE $ IntegerL 1)
+>                                                           ,(SelectE $ IntegerL 2)
+>                                                           ]
+>                       ,checkParse "select 1;\n\
+>                                   \/* this is\n\
+>                                   \a test*/\n\
+>                                   \select /* this is a test*/2;"
+>                                   [(SelectE $ IntegerL 1)
+>                                   ,(SelectE $ IntegerL 2)
+>                                   ]
+>                       ]
 >        ,testGroup "create" [
 >                        checkParse "create table test (\n\
 >                                    \  fielda text,\n\
