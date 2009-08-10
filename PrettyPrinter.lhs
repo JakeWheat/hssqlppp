@@ -28,8 +28,8 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (CreateTable t atts) =
 >     text "create table"
 >     <+> text t <+> lparen
->     <+> hcat (csv (map convAttDef atts))
->     <+> rparen <> statementEnd
+>     $+$ nest 2 (vcat (csv (map convAttDef atts)))
+>     $+$ rparen <> statementEnd
 
 > convStatement (Insert tb atts exps) = text "insert into" <+> text tb
 >                                       <+> parens (hcatCsvMap text atts)
