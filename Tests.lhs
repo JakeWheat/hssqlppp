@@ -123,6 +123,12 @@ create view chaos_base_relvars as
 >        -- ,testProperty "random  statement" prop_select_ppp
 >        ]
 
+================================================================================
+
+Unit test helpers
+
+parse and then pretty print and parse a statement
+
 > checkParse :: String -> [Statement] -> Test.Framework.Test
 > checkParse src ast = testCase ("parse " ++ src) $ do
 >   let ast' = case parseSql src of
@@ -137,10 +143,27 @@ create view chaos_base_relvars as
 >   assertEqual ("reparse " ++ pp) ast ast''
 
 
+parse and then pretty print and parse an expression
+
 > checkParseExpression :: String -> Expression -> Test.Framework.Test
 > checkParseExpression src ast = testCase ("parse " ++ src) $ do
 >   assertEqual ("parse " ++ src) ast (parseExpression src)
 
+
+================================================================================
+
+Properties
+
+Scaffolding to generate random asts which are checked by pretty printing then
+parsing them
+
+property
+
+ > prop_select_ppp :: [Statement] -> Bool
+ > prop_select_ppp s = (parseThrowError (printSql s)) == s
+
+
+arbitrary instances
 
  > instance Arbitrary Char where
  >     arbitrary     = choose ('\32', '\128')
@@ -167,6 +190,8 @@ create view chaos_base_relvars as
  >                 ,liftM3 BinaryOperatorCall aBinaryOp arbitrary arbitrary
  >                 ]
 
+some gen helpers
+
  > aString :: Gen [Char]
  > aString = listOf1 $ choose ('\32', '\128')
 
@@ -175,14 +200,6 @@ create view chaos_base_relvars as
 
  > aBinaryOp :: Gen [Char]
  > aBinaryOp = elements ["+", "-"]
-
- > parseThrowError :: String -> [Statement]
- > parseThrowError s = case parseSql s of
- >               Left er -> error $ show er
- >               Right l -> l
-
- > prop_select_ppp :: [Statement] -> Bool
- > prop_select_ppp s = (parseThrowError (printSql s)) == s
 
  > listOf' :: Gen a -> Gen [a]
  > listOf' gen = sized $ \n ->

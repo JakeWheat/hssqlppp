@@ -4,8 +4,19 @@
 > import Text.PrettyPrint
 > import Grammar
 
+================================================================================
+
+Public help functions
+
 > printSql :: [Statement] -> String
 > printSql ast = render $ (vcat $ (map convStatement ast)) <> text "\n"
+
+
+================================================================================
+
+Conversion routines - convert Sql asts into Docs
+
+= Statements
 
 > convStatement :: Statement -> Doc
 > convStatement (SelectE e) = text "select" <+> convExp e <> semi
@@ -28,6 +39,8 @@
 >                                         Just w -> convWhere w
 >                                    <> semi
 
+= Statement components
+
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
 
@@ -41,6 +54,8 @@
 > convAttDef :: AttributeDef -> Doc
 > convAttDef (AttributeDef n t) = text n <+> text t
 
+= Expressions
+
 > convExp :: Expression -> Doc
 > convExp (Identifier i) = text i
 > convExp (IntegerL n) = integer n
@@ -48,6 +63,8 @@
 > convExp (FunctionCall i as) = text i <> lparen <> hcat (csv (map convExp as)) <> rparen
 > convExp (BinaryOperatorCall op a b) = convExp a <+> text (opToSymbol op) <+> convExp b
 > convExp (BooleanL b) = bool b
+
+= Utils
 
 > csv :: [Doc] -> [Doc]
 > csv l = punctuate comma l
