@@ -21,6 +21,18 @@
 >                                       <+> text "values"
 >                                       <+> lparen <> hcat (csv $ map convExp exps) <> rparen
 >                                       <> semi
+> convStatement (Update tb scs wh) = text "update" <+> text tb <+> text "set"
+>                                    <+> (hcat $ csv $ map convSetClause scs)
+>                                    <> case wh of
+>                                         Nothing -> empty
+>                                         Just w -> convWhere w
+>                                    <> semi
+
+> convSetClause :: SetClause -> Doc
+> convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
+
+> convWhere :: Where -> Doc
+> convWhere (Where ex) = text "where" <+> convExp ex
 
 > convSelList :: SelectList -> Doc
 > convSelList (SelectList l) = hcat $ csv (map text l)
@@ -35,6 +47,12 @@
 > convExp (StringLiteral s) = quotes $ text s
 > convExp (FunctionCall i as) = text i <> lparen <> hcat (csv (map convExp as)) <> rparen
 > convExp (BinaryOperatorCall op a b) = convExp a <+> text op <+> convExp b
+> convExp (BooleanLiteral b) = bool b
 
 > csv :: [Doc] -> [Doc]
 > csv l = punctuate comma l
+
+> bool :: Bool -> Doc
+> bool b = case b of
+>            True -> text "true"
+>            False -> text "false"

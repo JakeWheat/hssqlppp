@@ -91,6 +91,20 @@ create view chaos_base_relvars as
 >                                                              [IntegerLiteral 1,
 >                                                               IntegerLiteral 2])]
 >                       ]
+>        ,testGroup "update" [
+>                        checkParse "update tb\n\
+>                                   \  set x = 1, y = 2;"
+>                                   [Update "tb" [SetClause "x" (IntegerLiteral 1)
+>                                                ,SetClause "y" (IntegerLiteral 2)]
+>                                      Nothing]
+>                       ,checkParse "update tb\n\
+>                                   \  set x = 1, y = 2 where z = true;"
+>                                   [Update "tb" [SetClause "x" (IntegerLiteral 1)
+>                                                ,SetClause "y" (IntegerLiteral 2)]
+>                                      (Just $ Where $ BinaryOperatorCall "="
+>                                                      (Identifier "z") (BooleanLiteral True))]
+
+>                       ]
 >        -- ,testProperty "random  statement" prop_select_ppp
 >        ]
 

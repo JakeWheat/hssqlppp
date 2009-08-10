@@ -5,6 +5,9 @@
 > import Text.ParserCombinators.Parsec.Language
 > import qualified Text.Parsec.Prim
 > import Control.Monad.Identity
+> import Text.ParserCombinators.Parsec.Expr
+> import Text.ParserCombinators.Parsec.Language (haskellStyle)
+
 
 > import Grammar
 
@@ -22,6 +25,7 @@
 > statement = do
 >   select
 >   <|> insert
+>   <|> update
 >   <|> createTable
 
 > insert :: Text.Parsec.Prim.ParsecT String () Identity Statement
@@ -34,6 +38,36 @@
 >   exps <- parens $ commaSep1 expression
 >   semi
 >   return $ Insert tableName atts exps
+ 
+> update :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> update = do
+>   keyword "update"
+>   tableName <- identifierString
+>   keyword "set"
+>   scs <- commaSep1 setClause
+>   wh <- maybeP whereClause
+>   semi
+>   return $ Update tableName scs wh
+
+> setClause :: Text.Parsec.Prim.ParsecT String () Identity SetClause
+> setClause = do
+>   ref <- identifierString
+>   symbol "="
+>   ex <- expression
+>   return $ SetClause ref ex
+
+> whereClause :: Text.Parsec.Prim.ParsecT String () Identity Where
+> whereClause = do
+>   keyword "where"
+>   ex <- expression
+>   return $ Where ex
+
+> maybeP :: GenParser tok st a
+>           -> Text.Parsec.Prim.ParsecT [tok] st Identity (Maybe a)
+> maybeP p = do
+>   (do a <- try p
+>       return $ Just a)
+>   <|> return Nothing
 
 > createTable :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > createTable = do
@@ -77,19 +111,19 @@
 >   semi
 >   return $ SelectE e
 
-> expression :: Text.Parsec.Prim.ParsecT [Char] () Identity Expression
-> expression = do
->   try binaryOperator
->     <|> try functionCall
->     <|> identifier
->     <|> stringLiteral
->     <|> integerLiteral
+ > expression :: Text.Parsec.Prim.ParsecT [Char] () Identity Expression
+ > expression = do
+ >   try binaryOperator
+ >     <|> try functionCall
+ >     <|> identifierExpr
+ >     <|> stringLiteral
+ >     <|> integerLiteral
 
-> binaryOperator :: Text.Parsec.Prim.ParsecT String u Identity Expression
+> binaryOperator :: GenParser Char () Expression
 > binaryOperator = do
->   e1 <- integerLiteral
->   op <- lexeme $ many1 $ oneOf "+-"
->   e2 <- integerLiteral
+>   e1 <- expression
+>   op <- lexeme $ many1 $ oneOf "+-="
+>   e2 <- expression
 >   return $ BinaryOperatorCall op e1 e2
 
 > functionCall :: Text.Parsec.Prim.ParsecT String () Identity Expression
@@ -109,8 +143,8 @@
 > integerLiteral = do
 >   liftM IntegerLiteral $ integer
 
-> identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
-> identifier = liftM Identifier $ lexeme word
+> identifierExpr :: Text.Parsec.Prim.ParsecT String () Identity Expression
+> identifierExpr = liftM Identifier $ lexeme word
 
 > keyword :: String -> Text.Parsec.Prim.ParsecT String u Identity String
 > keyword k = lexeme $ string k
@@ -127,8 +161,21 @@
 > whitespace :: Text.Parsec.Prim.ParsecT String u Identity ()
 > whitespace = spaces
 
+===============================================================================
+
 > lexer :: P.GenTokenParser String u Identity
-> lexer = P.makeTokenParser haskellDef
+> lexer = P.makeTokenParser (haskellDef
+>                            { reservedOpNames = ["*","/","+","-"]
+>                            })
+
+> natural   = P.natural lexer
+
+> identifier= P.identifier lexer
+
+> reserved  = P.reserved lexer
+> reservedOp= P.reservedOp lexer
+
+
 
 > lexeme :: Text.Parsec.Prim.ParsecT String u Identity a
 >           -> Text.Parsec.Prim.ParsecT String u Identity a
@@ -152,3 +199,63 @@
 
 > symbol :: String -> Text.Parsec.Prim.ParsecT String u Identity String
 > symbol = P.symbol lexer
+
+================================================================================
+
+--  > expr    :: Parser Integer
+
+-- > expr    = buildExpressionParser table factor
+-- >         <?> "expression"
+
+-- > table   = [[op "*" (BinaryOperatorCall "*") AssocLeft
+-- >            ,op "/" (BinaryOperatorCall "/") AssocLeft]
+-- >           ,[op "+" (BinaryOperatorCall "+") AssocLeft,
+-- >             op "-" (BinaryOperatorCall "-") AssocLeft]
+-- >           ]
+-- >         where
+-- >           op s f assoc
+-- >              = Infix (do{ reservedOp s; return f} <?> "operator") assoc
+
+--  table =
+--     [[prefix "-" (Statement Mult (Val (-1)))],
+--       [binary "^" (Statement Pow) AssocRight],
+--       [binary "*" (Statement Mult) AssocLeft, binary "/" (Statement Div) AssocLeft, binary "%" (Statement Mod) AssocLeft],
+--       [binary "+" (Statement Plus) AssocLeft, binary "-" (Statement Minus) AssocLeft]
+--        ]          
+--     where
+--       binary s f assoc
+--          = Infix (do{ string s; return f}) assoc
+--       prefix s f 
+--          = Prefix (do{ string s; return f})
+
+
+
+-- > factor  =   parens expr
+-- >         <|> natural
+-- >         <?> "simple expression"
+
+--  > number  :: Parser Integer
+
+-- > number  = do{ ds <- many1 digit
+-- >             ; return (read ds)
+-- >             }
+-- >         <?> "number"
+
+-- > runLex :: Show a => Parser a -> String -> IO ()
+-- > runLex p input
+-- >         = run (do{ whiteSpace
+-- >                  ; x <- p
+-- >                  ; eof
+-- >                  ; return x
+-- >                  }) input
+
+-- > run p input
+-- >         = case (parse p "" input) of
+-- >             Left err -> do{ putStr "parse error at "
+-- >                           ; print err
+-- >                           }
+-- >             Right x  -> print x
+
+-- > whiteSpace= P.whiteSpace lexer
+
+
