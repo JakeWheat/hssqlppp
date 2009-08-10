@@ -148,8 +148,9 @@ expressions
 >   -- and built AST with.
 > table :: [[Operator Char u Expression]]
 > table =
->       [[prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))]
->       ,[binary "^" (BinaryOperatorCall Pow) AssocRight]
+>       [ --[prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))]
+>       --,
+>        [binary "^" (BinaryOperatorCall Pow) AssocRight]
 >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
 >        ,binary "/" (BinaryOperatorCall Div) AssocLeft
 >        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
@@ -160,8 +161,8 @@ expressions
 >     where
 >       binary s f assoc
 >          = Infix (symbol s >> return f) assoc
->       prefix s f
->          = Prefix (symbol s >> return f)
+>       --prefix s f
+>       --   = Prefix (symbol s >> return f)
 >
 
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression

@@ -31,12 +31,12 @@ Conversion routines - convert Sql asts into Docs
 >     <+> hcat (csv (map convAttDef atts))
 >     <+> rparen <> semi
 > convStatement (Insert tb atts exps) = text "insert into" <+> text tb
->                                       <+> lparen <> hcat (csv (map text atts)) <> rparen
+>                                       <+> parens (hcatCsvMap text atts)
 >                                       <+> text "values"
->                                       <+> lparen <> hcat (csv $ map convExp exps) <> rparen
+>                                       <+> parens (hcatCsvMap convExp exps)
 >                                       <> semi
 > convStatement (Update tb scs wh) = text "update" <+> text tb <+> text "set"
->                                    <+> (hcat $ csv $ map convSetClause scs)
+>                                    <+> hcatCsvMap convSetClause scs
 >                                    <> case wh of
 >                                         Nothing -> empty
 >                                         Just w -> convWhere w
@@ -51,7 +51,7 @@ Conversion routines - convert Sql asts into Docs
 > convWhere (Where ex) = text "where" <+> convExp ex
 
 > convSelList :: SelectList -> Doc
-> convSelList (SelectList l) = hcat $ csv (map text l)
+> convSelList (SelectList l) = hcatCsvMap text l
 > convSelList (Star) = text "*"
 
 > convAttDef :: AttributeDef -> Doc
@@ -63,14 +63,21 @@ Conversion routines - convert Sql asts into Docs
 > convExp (Identifier i) = text i
 > convExp (IntegerL n) = integer n
 > convExp (StringL s) = quotes $ text s
-> convExp (FunctionCall i as) = text i <> lparen <> hcat (csv (map convExp as)) <> rparen
-> convExp (BinaryOperatorCall op a b) = convExp a <+> text (opToSymbol op) <+> convExp b
+> convExp (FunctionCall i as) = text i <> parens (hcatCsvMap convExp as)
+> convExp (BinaryOperatorCall op a b) = parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
 
 = Utils
 
 > csv :: [Doc] -> [Doc]
 > csv l = punctuate comma l
+
+> hcatCsv :: [Doc] -> Doc
+> hcatCsv l = hcat $ csv l
+
+> hcatCsvMap :: (a -> Doc) -> [a] -> Doc
+> hcatCsvMap ex l = hcatCsv (map ex l)
+
 
 > bool :: Bool -> Doc
 > bool b = case b of

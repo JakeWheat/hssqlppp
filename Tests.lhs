@@ -129,7 +129,7 @@ create view chaos_base_relvars as
 >                                                      (Identifier "z") (BooleanL True))]
 >                       ]
 
-> --        ,testProperty "random expression" prop_expression_ppp
+>        ,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random  statement" prop_select_ppp
 >        ]
 
@@ -194,7 +194,7 @@ arbitrary instances
 >     arbitrary = oneof [
 >                  liftM3 BinaryOperatorCall arbitrary arbitrary arbitrary
 >                 ,liftM IntegerL arbitrary
->                 ,liftM StringL arbitrary
+>                 ,liftM StringL aString
 >                 ,liftM BooleanL arbitrary
 >                 ,liftM Identifier aIdentifier
 >                 ,liftM2 FunctionCall aIdentifier arbitrary
@@ -230,8 +230,8 @@ arbitrary instances
 
 some gen helpers
 
- > aString :: Gen [Char]
- > aString = listOf1 $ choose ('\32', '\128')
+> aString :: Gen [Char]
+> aString = listOf1 $ choose ('\32', '\126')
 
 > aIdentifier :: Gen [Char]
 > aIdentifier = do
