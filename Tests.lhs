@@ -117,9 +117,18 @@ create view chaos_base_relvars as
 >                                    \  fielda text,\n\
 >                                    \  fieldb int\n\
 >                                    \);" [(CreateTable "test" [
->                                                            AttributeDef "fielda" "text"
->                                                           ,AttributeDef "fieldb" "int"
+>                                                            AttributeDef "fielda" "text" Nothing
+>                                                           ,AttributeDef "fieldb" "int" Nothing
 >                                                           ])]
+>                        ,checkParse "create table test (\n\
+>                                    \type text check (type in('a', 'b')));"
+>                                    [(CreateTable "test" [
+>                                                       AttributeDef "type" "text"
+>                                                         (Just (InPredicate
+>                                                               "type"
+>                                                               [StringL "a"
+>                                                               ,StringL "b"]))])]
+
 >                        ]
 >        ,testGroup "select from table" [
 >                        checkParse "select * from tbl;" [(Select Star "tbl")]
@@ -246,7 +255,7 @@ arbitrary instances
 >                 ]
 
 > instance Arbitrary AttributeDef where
->     arbitrary = liftM2 AttributeDef aIdentifier aIdentifier
+>     arbitrary = liftM3 AttributeDef aIdentifier aIdentifier arbitrary
 
 > instance Arbitrary SetClause where
 >     arbitrary = liftM2 SetClause aIdentifier arbitrary

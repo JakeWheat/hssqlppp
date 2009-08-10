@@ -26,7 +26,7 @@ Stement components
 > data SelectList = SelectList [String] | Star
 >                   deriving (Eq,Show)
 
-> data AttributeDef = AttributeDef String String
+> data AttributeDef = AttributeDef String String (Maybe Expression)
 >                     deriving (Eq,Show)
 
 ================================================================================
@@ -52,6 +52,7 @@ Expressions
 >            | StringL String
 >            | BooleanL Bool
 >            | Identifier String
+>            | InPredicate String [Expression]
 >            | FunctionCall String [Expression]
 >   deriving (Show,Eq)
 

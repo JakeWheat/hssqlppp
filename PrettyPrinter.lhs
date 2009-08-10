@@ -60,7 +60,10 @@ Conversion routines - convert Sql asts into Docs
 > convSelList (Star) = text "*"
 
 > convAttDef :: AttributeDef -> Doc
-> convAttDef (AttributeDef n t) = text n <+> text t
+> convAttDef (AttributeDef n t ch) = text n <+> text t
+>                                    <+> case ch of
+>                                          Nothing -> empty
+>                                          Just e -> text "check" <+> convExp e
 
 = Expressions
 
@@ -71,6 +74,7 @@ Conversion routines - convert Sql asts into Docs
 > convExp (FunctionCall i as) = text i <> parens (hcatCsvMap convExp as)
 > convExp (BinaryOperatorCall op a b) = parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
+> convExp (InPredicate att expr) = text att <+> text "in" <+> parens (hcatCsvMap convExp expr)
 
 = Utils
 

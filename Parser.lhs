@@ -121,7 +121,10 @@ Statement components
 > tableAtt = do
 >   name <- identifierString
 >   typ <- identifierString
->   return $ AttributeDef name typ
+>   check <- maybeP (do
+>                     keyword "check"
+>                     expr)
+>   return $ AttributeDef name typ check
 
 > selQuerySpec :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > selQuerySpec = do
@@ -152,6 +155,7 @@ expressions
 >           <|> stringLiteral
 >           <|> integer
 >           <|> try booleanLiteral
+>           <|> try inPredicate
 >           <|> try functionCall
 >           <|> identifier
 >           <?> "simple expression"
@@ -176,6 +180,14 @@ expressions
 >       --prefix s f
 >       --   = Prefix (symbol s >> return f)
 >
+
+> inPredicate :: Text.Parsec.Prim.ParsecT [Char] () Identity Expression
+> inPredicate = do
+>   vexp <- identifierString
+>   keyword "in"
+>   e <- parens $ commaSep1 expr
+>   return $ InPredicate vexp e
+>   
 
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > identifier = liftM Identifier identifierString
