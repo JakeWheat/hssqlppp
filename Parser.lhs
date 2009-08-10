@@ -152,6 +152,7 @@ expressions
 >       ,[binary "^" (BinaryOperatorCall Pow) AssocRight]
 >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
 >        ,binary "/" (BinaryOperatorCall Div) AssocLeft
+>        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
 >        ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
 >       ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
 >        ,binary "-" (BinaryOperatorCall Minus) AssocLeft]
