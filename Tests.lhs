@@ -142,8 +142,15 @@ parse and then pretty print and parse an expression
 
 > checkParseExpression :: String -> Expression -> Test.Framework.Test
 > checkParseExpression src ast = testCase ("parse " ++ src) $ do
->   assertEqual ("parse " ++ src) ast (parseExpression src)
-
+>   let ast' = case parseExpression src of
+>               Left er -> error $ show er
+>               Right l -> l
+>   assertEqual ("parse " ++ src) ast ast'
+>   let pp = printExpression ast
+>   let ast'' = case parseExpression pp of
+>               Left er -> error $ "reparse " ++ show er ++ "\n" ++ pp ++ "\n"
+>               Right l -> l
+>   assertEqual ("reparse " ++ pp) ast ast''
 
 ================================================================================
 

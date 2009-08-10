@@ -20,10 +20,8 @@ Parse fully formed sql
 
 Parse expression fragment, used for testing purposes
 
-> parseExpression :: String -> Expression
-> parseExpression s = case parse expr' "" s of
->   Right ast -> ast
->   Left e -> error $ show e
+> parseExpression :: String -> Either ParseError Expression
+> parseExpression s = parse expr' "" s
 >   where expr' = do
 >                 x <- expr
 >                 eof

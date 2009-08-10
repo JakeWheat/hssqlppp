@@ -6,10 +6,13 @@
 
 ================================================================================
 
-Public help functions
+Public functions
 
 > printSql :: [Statement] -> String
 > printSql ast = render $ (vcat $ (map convStatement ast)) <> text "\n"
+
+> printExpression :: Expression -> String
+> printExpression ast = render $ convExp ast
 
 
 ================================================================================
