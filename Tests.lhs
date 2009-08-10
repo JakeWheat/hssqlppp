@@ -33,15 +33,15 @@ create view chaos_base_relvars as
 
 > import Test.HUnit
 
- > import Test.QuickCheck
+> import Test.QuickCheck
 
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
 
- > import Test.Framework.Providers.QuickCheck2
+> import Test.Framework.Providers.QuickCheck2
 
- > import Control.Monad
+> import Control.Monad
 
 > import Grammar
 > import Parser
@@ -56,6 +56,20 @@ create view chaos_base_relvars as
 >                       ,checkParseExpression " 1 + 1 " (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))
 >                       ,checkParseExpression "1+1+1" (BinaryOperatorCall Plus (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1)) (IntegerL 1))
 >                       ,checkParseExpression "'test'" (StringL "test")
+>                       ,checkParseExpression "''" (StringL "")
+>                       ,checkParseExpression "hello" (Identifier "hello")
+>                       ,checkParseExpression "helloTest" (Identifier "helloTest")
+>                       ,checkParseExpression "hello_test" (Identifier "hello_test")
+>                       ,checkParseExpression "hello1234" (Identifier "hello1234")
+>                       ,checkParseExpression "1 + tst1" (BinaryOperatorCall Plus
+>                                                           (IntegerL 1)
+>                                                           (StringL "tst1"))
+>                       ,checkParseExpression "tst1 + 1" (BinaryOperatorCall Plus
+>                                                         (Identifier "tst1")
+>                                                         (IntegerL 1))
+>                       ,checkParseExpression "tst + tst1" (BinaryOperatorCall Plus
+>                                                           (StringL "tst")
+>                                                           (StringL "tst1"))
 >                       ,checkParseExpression "fn()" (FunctionCall "fn" [])
 >                       ,checkParseExpression "fn(1)" (FunctionCall "fn" [IntegerL 1])
 >                       ,checkParseExpression "fn('test')" (FunctionCall "fn" [StringL "test"])
@@ -115,6 +129,7 @@ create view chaos_base_relvars as
 >                                                      (Identifier "z") (BooleanL True))]
 >                       ]
 
+> --        ,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random  statement" prop_select_ppp
 >        ]
 
@@ -164,8 +179,29 @@ property
  > prop_select_ppp :: [Statement] -> Bool
  > prop_select_ppp s = (parseThrowError (printSql s)) == s
 
+> prop_expression_ppp :: Expression -> Bool
+> prop_expression_ppp s = (parseExpressionThrow (printExpression s)) == s
+
+> parseExpressionThrow :: String -> Expression
+> parseExpressionThrow s =
+>     case parseExpression s of
+>       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
+>       Right l -> l
 
 arbitrary instances
+
+> instance Arbitrary Expression where
+>     arbitrary = oneof [
+>                  liftM3 BinaryOperatorCall arbitrary arbitrary arbitrary
+>                 ,liftM IntegerL arbitrary
+>                 ,liftM StringL arbitrary
+>                 ,liftM BooleanL arbitrary
+>                 ,liftM Identifier aIdentifier
+>                 ,liftM2 FunctionCall aIdentifier arbitrary
+>                 ]
+
+> instance Arbitrary Op where
+>     arbitrary = elements [Plus, Minus, Mult, Div, Pow, Mod, Eql]
 
  > instance Arbitrary Char where
  >     arbitrary     = choose ('\32', '\128')
@@ -197,8 +233,12 @@ some gen helpers
  > aString :: Gen [Char]
  > aString = listOf1 $ choose ('\32', '\128')
 
- > aIdentifier :: Gen [Char]
- > aIdentifier = listOf1 $ choose ('\97', '\122')
+> aIdentifier :: Gen [Char]
+> aIdentifier = do
+>   start <- elements $ letter
+>   suffix <- listOf $ elements $ letter ++ ['_'] ++ ['0' .. '9']
+>   return (start : suffix)
+>               where letter = ['A'..'Z'] ++ ['a' .. 'z']
 
  > aBinaryOp :: Gen [Char]
  > aBinaryOp = elements ["+", "-"]

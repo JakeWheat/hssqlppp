@@ -137,10 +137,11 @@ expressions
 
 > factor :: GenParser Char () Expression
 > factor  = parens expr
+>           <|> stringLiteral
 >           <|> integer
 >           <|> try booleanLiteral
->           <|> stringLiteral
->           <|> functionCall
+>           <|> try functionCall
+>           <|> identifier
 >           <?> "simple expression"
 
 >   -- Specifies operator, associativity, precendence, and constructor to execute
@@ -162,11 +163,14 @@ expressions
 >          = Prefix (do{ string s; return f})
 >
 
+> identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
+> identifier = liftM Identifier identifierString
+
 > booleanLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > booleanLiteral = do
 >   x <- ((lexeme $ string "true")
 >         <|> (lexeme $ string "false"))
->   return $ BooleanL (if x == "true" then True else False)
+>   return $ BooleanL (x == "true")
 
 > integer :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > integer = liftM IntegerL $ lexeme $ P.integer lexer
@@ -174,7 +178,7 @@ expressions
 > stringLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > stringLiteral = do
 >   char '\''
->   name <- many1 (noneOf "'")
+>   name <- many (noneOf "'")
 >   lexeme $ char '\''
 >   return $ StringL name
 
@@ -197,7 +201,11 @@ Utility parsers
 > keyword k = lexeme $ string k
 
 > identifierString :: Parser String
-> identifierString = word
+> identifierString = do
+>   s <- letter
+>   p <- many (alphaNum <|> char '_')
+>   whitespace
+>   return $ s : p
 
 > word :: Parser String
 > word = lexeme (many1 letter)
