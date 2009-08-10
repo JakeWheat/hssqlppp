@@ -8,7 +8,8 @@
 > import qualified Text.Parsec.Prim
 > import Control.Monad.Identity
 > import Text.ParserCombinators.Parsec.Expr
-> import Text.ParserCombinators.Parsec.Language (haskellStyle)
+
+ > import Text.ParserCombinators.Parsec.Language (haskellStyle)
 
 
 > import Grammar
@@ -28,18 +29,26 @@
 >                            })
 
 >   -- Recognizes a factor in an expression
+> factor :: GenParser Char () Expression
 > factor  = parens expr
->           <|> number
+>           <|> integer
+>           <|> try booleanLiteral
+>           <|> stringLiteral
+>           <|> functionCall
 >           <?> "simple expression"
 
->   -- Recognizes a number
-> number  :: Parser Expression
-> number  = do{ ds <- many1 digit
->               ; return (IntegerL (read ds))
->               }
->           <?> "number"
+> booleanLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
+> booleanLiteral = do
+>   x <- ((lexeme $ string "true")
+>         <|> (lexeme $ string "false"))
+>   return $ BooleanL (if x == "true" then True else False)
+
+> integer :: Text.Parsec.Prim.ParsecT String u Identity Expression
+> integer = liftM IntegerL $ lexeme $ P.integer lexer
+
 >   -- Specifies operator, associativity, precendence, and constructor to execute
 >   -- and built AST with.
+> table :: [[Operator Char u Expression]]
 > table =
 >       [[prefix "-" (Exp Mult (IntegerL (-1)))]
 >       ,[binary "^" (Exp Pow) AssocRight]
@@ -56,9 +65,41 @@
 >          = Prefix (do{ string s; return f})
 >
 
+> stringLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
+> stringLiteral = do
+>   char '\''
+>   name <- many1 (noneOf "'")
+>   lexeme $ char '\''
+>   return $ StringL name
+
+> functionCall :: Text.Parsec.Prim.ParsecT String () Identity Expression
+> functionCall = do
+>   name <- identifierString
+>   args <- parens $ commaSep factor
+>   return $ FunctionCall name args
+
+
 > -- Parses a string into an AST, using the parser defined above
+> parse :: String -> Expression
 > parse s = case P.parse expr "" s of
 >   Right ast -> ast
 >   Left e -> error $ show e
 >
 
+> lexeme :: Text.Parsec.Prim.ParsecT String u Identity a
+>           -> Text.Parsec.Prim.ParsecT String u Identity a
+> lexeme = P.lexeme lexer
+
+> identifierString :: Parser String
+> identifierString = word
+
+> word :: Parser String
+> word = lexeme (many1 letter)
+
+> commaSep :: Text.Parsec.Prim.ParsecT String u Identity a
+>             -> Text.Parsec.Prim.ParsecT String u Identity [a]
+> commaSep = P.commaSep lexer
+
+> commaSep1 :: Text.Parsec.Prim.ParsecT String u Identity a
+>             -> Text.Parsec.Prim.ParsecT String u Identity [a]
+> commaSep1 = P.commaSep lexer
