@@ -26,33 +26,33 @@
 
 > insert :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > insert = do
->   lexeme (string "insert")
->   lexeme (string "into")
+>   keyword "insert"
+>   keyword "into"
 >   tableName <- identifierString
 >   atts <- parens $ commaSep1 identifierString
->   lexeme (string "values")
+>   keyword "values"
 >   exps <- parens $ commaSep1 expression
 >   semi
 >   return $ Insert tableName atts exps
 
 > createTable :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > createTable = do
->   lexeme (string "create") -- <?> "create")
->   lexeme (string "table") -- <?> "table")
->   n <- identifierString -- <?> "identifier"
+>   keyword "create"
+>   keyword "table"
+>   n <- identifierString
 >   atts <- parens $ commaSep1 tableAtt
 >   semi
 >   return $ CreateTable n atts
 
 > tableAtt :: Text.Parsec.Prim.ParsecT String () Identity AttributeDef
 > tableAtt = do
->   name <- identifierString -- <?> "identifier"
->   typ <- identifierString -- <?> "identifier"
+>   name <- identifierString
+>   typ <- identifierString
 >   return $ AttributeDef name typ
 
 > select :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > select = do
->   lexeme $ string "select"
+>   keyword "select"
 >   (do try selExpression
 >    <|> selQuerySpec)
 
@@ -62,7 +62,7 @@
 >          symbol "*"
 >          return Star
 >         ) <|> selectList
->   lexeme $ string "from"
+>   keyword "from"
 >   tb <- word
 >   semi
 >   return $ Select sl tb
@@ -111,6 +111,9 @@
 
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > identifier = liftM Identifier $ lexeme word
+
+> keyword :: String -> Text.Parsec.Prim.ParsecT String u Identity String
+> keyword k = lexeme $ string k
 
 > identifierString :: Parser String
 > identifierString = word
