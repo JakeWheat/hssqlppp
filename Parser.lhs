@@ -43,13 +43,16 @@ Parsing top level statements
 
 > statement :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
 > statement = do
->   s <- (try genSelect
+>   s <- (
+>         genSelect
 >         <|> insert
 >         <|> update
 >         <|> delete
->         <|> try createTable
->         <|> try createFunction
->         <|> try createView
+>         <|> (do
+>               keyword "create"
+>               (createTable
+>                <|> createFunction
+>                <|> createView))
 >         <|> nullStatement)
 >   semi
 >   return s
@@ -85,7 +88,6 @@ statement types
 
 > createTable :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > createTable = do
->   keyword "create"
 >   keyword "table"
 >   n <- identifierString
 >   atts <- parens $ commaSep1 tableAtt
@@ -111,7 +113,6 @@ statement types
 
 > createFunction :: GenParser Char () Statement
 > createFunction = do
->   keyword "create"
 >   keyword "function"
 >   fnName <- identifierString
 >   params <- parens $ commaSep param
@@ -128,7 +129,6 @@ statement types
 
 > createView :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > createView = do
->   keyword "create"
 >   keyword "view"
 >   vName <- identifierString
 >   keyword "as"

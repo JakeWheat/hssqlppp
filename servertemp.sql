@@ -58,22 +58,22 @@ part of the tests, will check all the relvars which aren't defined in
 system.sql are tagged.
 */
 
--- create function check_code_some_tags() returns boolean as $$
--- declare
---   r record;
---   success boolean;
--- begin
---   success := true;
---   for r in select object_name from chaos_base_relvars
---     except select relvar_name from base_relvar_metadata loop
---     success := false;
---       raise notice
---         'table % is not tagged with one of readonly, data, stack',
---         r.object_name;
---   end loop;
---   return success;
--- end;
--- $$ language plpgsql volatile;
+create function check_code_some_tags() returns boolean as $$
+declare
+  r record;
+  success boolean;
+begin
+  success := true;
+  for r in select object_name from chaos_base_relvars
+    except select relvar_name from base_relvar_metadata loop
+    success := false;
+      raise notice
+        'table % is not tagged with one of readonly, data, stack',
+        r.object_name;
+  end loop;
+  return success;
+end;
+$$ language plpgsql volatile;
 
 -- /*
 
