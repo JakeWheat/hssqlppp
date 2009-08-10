@@ -43,6 +43,7 @@ Parsing top level statements
 >   select
 >   <|> insert
 >   <|> update
+>   <|> delete
 >   <|> createTable
 
 statement types
@@ -68,6 +69,15 @@ statement types
 >   semi
 >   return $ Update tableName scs wh
 
+> delete :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> delete = do
+>   keyword "delete"
+>   keyword "from"
+>   tableName <- identifierString
+>   wh <- maybeP whereClause
+>   semi
+>   return $ Delete tableName wh
+
 > createTable :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > createTable = do
 >   keyword "create"
@@ -88,7 +98,6 @@ statement types
 >   e <- expr
 >   semi
 >   return $ SelectE e
-
 
 Statement components
 

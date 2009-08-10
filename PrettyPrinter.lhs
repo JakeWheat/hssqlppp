@@ -37,10 +37,15 @@ Conversion routines - convert Sql asts into Docs
 >                                       <> semi
 > convStatement (Update tb scs wh) = text "update" <+> text tb <+> text "set"
 >                                    <+> hcatCsvMap convSetClause scs
->                                    <> case wh of
+>                                    <+> case wh of
 >                                         Nothing -> empty
 >                                         Just w -> convWhere w
 >                                    <> semi
+> convStatement (Delete tbl wh) = text "delete from" <+> text tbl
+>                                 <+> case wh of
+>                                            Nothing -> empty
+>                                            Just w -> convWhere w
+>                                 <> semi
 
 = Statement components
 

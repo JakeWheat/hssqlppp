@@ -10,6 +10,7 @@ SQL top level statements
 >                | CreateTable String [AttributeDef]
 >                | Insert String [String] [Expression]
 >                | Update String [SetClause] (Maybe Where)
+>                | Delete String (Maybe Where)
 >                  deriving (Eq,Show)
 
 ================================================================================
