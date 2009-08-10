@@ -134,6 +134,10 @@ create view chaos_base_relvars as
 >                                    \end;\n\
 >                                    \$$ language plpgsql volatile;"
 >                                    [(CreateFunction "fn" [] "void" [NullStatement])]
+>                        ,checkParse "create view v1 as\n\
+>                                    \select a,b from t;"
+>                                    [(CreateView "v1"
+>                                        (Select (SelectList ["a","b"]) "t"))]
 >                        ]
 >        ,testGroup "select from table" [
 >                        checkParse "select * from tbl;" [(Select Star "tbl")]

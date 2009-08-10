@@ -61,6 +61,10 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement NullStatement = text "null" <> statementEnd
 
+> convStatement (CreateView name sel) =
+>     text "create view" <+> text name <+> text "as"
+>     $+$ (nest 2 (convStatement sel))
+
 > statementEnd :: Doc
 > statementEnd = semi <> newline
 

@@ -8,6 +8,7 @@ SQL top level statements
 > data Statement = SelectE Expression
 >                | Select SelectList String
 >                | CreateTable String [AttributeDef]
+>                | CreateView String Statement
 >                | Insert String [String] [Expression]
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)

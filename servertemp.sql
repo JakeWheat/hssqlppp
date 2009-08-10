@@ -47,16 +47,16 @@ select set_relvar_type('base_relvar_metadata', 'readonly');
 This view is only used in the check_code_some_tags function.
 */
 
--- create view chaos_base_relvars as
---   select object_name,object_type from public_database_objects
---   where object_type = 'base_relvar'
---   except
---         select object_name,object_type from module_objects
---         where module_name = 'catalog' and object_type='base_relvar';
--- /*
--- part of the tests, will check all the relvars which aren't defined in
--- system.sql are tagged.
--- */
+create view chaos_base_relvars as
+  select object_name,object_type from public_database_objects
+  where object_type = 'base_relvar'
+  except
+        select object_name,object_type from module_objects
+        where module_name = 'catalog' and object_type='base_relvar';
+/*
+part of the tests, will check all the relvars which aren't defined in
+system.sql are tagged.
+*/
 
 -- create function check_code_some_tags() returns boolean as $$
 -- declare

@@ -49,6 +49,7 @@ Parsing top level statements
 >   <|> delete
 >   <|> try createTable
 >   <|> try createFunction
+>   <|> try createView
 >   <|> nullStatement
 
 statement types
@@ -116,19 +117,14 @@ statement types
 >   semi
 >   return $ CreateFunction fnName params retType stmts
 
-> functionBody :: Text.Parsec.Prim.ParsecT [Char] () Identity [Statement]
-> functionBody = do
->   keyword "begin"
->   stmts <- many statement
->   keyword "end"
->   semi
->   return stmts
-
-> param :: Text.Parsec.Prim.ParsecT String () Identity ParamDef
-> param = do
->   name <- identifierString
->   tp <- identifierString
->   return $ ParamDef name tp
+> createView :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> createView = do
+>   keyword "create"
+>   keyword "view"
+>   vName <- identifierString
+>   keyword "as"
+>   sel <- select
+>   return $ CreateView vName sel
 
 > nullStatement :: Text.Parsec.Prim.ParsecT String u Identity Statement
 > nullStatement = do
@@ -143,6 +139,20 @@ statement types
 >   return $ SelectE e
 
 Statement components
+
+> functionBody :: Text.Parsec.Prim.ParsecT [Char] () Identity [Statement]
+> functionBody = do
+>   keyword "begin"
+>   stmts <- many statement
+>   keyword "end"
+>   semi
+>   return stmts
+
+> param :: Text.Parsec.Prim.ParsecT String () Identity ParamDef
+> param = do
+>   name <- identifierString
+>   tp <- identifierString
+>   return $ ParamDef name tp
 
 > setClause :: Text.Parsec.Prim.ParsecT String () Identity SetClause
 > setClause = do
