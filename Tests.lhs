@@ -50,6 +50,7 @@ create view chaos_base_relvars as
 > main :: IO ()
 > main = do
 >   defaultMain [
+
 >         testGroup "parse expression" [
 >                        checkParseExpression "1" (IntegerL 1)
 >                       ,checkParseExpression " 1 + 1 " (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))
@@ -61,30 +62,24 @@ create view chaos_base_relvars as
 >                       ,checkParseExpression "fn(1,'test')" (FunctionCall "fn" [IntegerL 1, StringL "test"])
 >                       ,checkParseExpression "true" (BooleanL True)
 >                       ,checkParseExpression "false" (BooleanL False)
+>                       ,checkParseExpression "fn (1)" (FunctionCall "fn" [IntegerL 1])
+>                       ,checkParseExpression "fn( 1)" (FunctionCall "fn" [IntegerL 1])
+>                       ,checkParseExpression "fn(1 )" (FunctionCall "fn" [IntegerL 1])
+>                       ,checkParseExpression "fn(1) " (FunctionCall "fn" [IntegerL 1])
+>                       ,checkParseExpression "fn('test')" (FunctionCall "fn" [StringL "test"])
 >                       ]
-
->         ,testGroup "select expression" [
+>        ,testGroup "select expression" [
 >                        checkParse "select 1;" [(SelectE $ IntegerL 1)]
->                       ,checkParse "select 1+1;"
->                        [(SelectE $ BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))]
->                       ,checkParse "select 1 + 1;"
->                        [(SelectE $ BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))]
->                       ,checkParse "select 1+1+1;"
->                        [SelectE (BinaryOperatorCall Plus (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1)) (IntegerL 1))]
+>                       ,checkParse "select 1+1;" [(SelectE $ BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))]
 >                       ,checkParse "select 'test';" [(SelectE $ StringL "test")]
->                       ,checkParse "select fn();" [(SelectE $ FunctionCall "fn" [])]
->                       ,checkParse "select fn(1);" [(SelectE $ FunctionCall "fn" [IntegerL 1])]
->                       ,checkParse "select fn (1);" [(SelectE $ FunctionCall "fn" [IntegerL 1])]
->                       ,checkParse "select fn( 1);" [(SelectE $ FunctionCall "fn" [IntegerL 1])]
->                       ,checkParse "select fn(1 );" [(SelectE $ FunctionCall "fn" [IntegerL 1])]
->                       ,checkParse "select fn(1) ;" [(SelectE $ FunctionCall "fn" [IntegerL 1])]
->                       ,checkParse "select fn('test');" [(SelectE $ FunctionCall "fn" [StringL "test"])]
 >                       ,checkParse "select fn(1, 'test');"
 >                        [(SelectE $ FunctionCall "fn" [IntegerL 1, StringL "test"])]
->                       ,checkParse "select 1;\nselect 2;" [(SelectE $ IntegerL 1)
->                                                          ,(SelectE $ IntegerL 2)
->                                                          ]
 >                       ]
+>        ,testGroup "multiple statements" [
+>                         checkParse "select 1;\nselect 2;" [(SelectE $ IntegerL 1)
+>                                                           ,(SelectE $ IntegerL 2)
+>                                                           ]
+>                         ]
 >        ,testGroup "create" [
 >                        checkParse "create table test (\n\
 >                                    \  fielda text,\n\
@@ -118,8 +113,8 @@ create view chaos_base_relvars as
 >                                                ,SetClause "y" (IntegerL 2)]
 >                                      (Just $ Where $ BinaryOperatorCall Eql
 >                                                      (Identifier "z") (BooleanL True))]
-
 >                       ]
+
 >        -- ,testProperty "random  statement" prop_select_ppp
 >        ]
 
