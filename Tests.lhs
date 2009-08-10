@@ -1,29 +1,12 @@
 #!/usr/bin/env runghc
 
-create table base_relvar_metadata (
-  relvar_name text,
-  type text check (type in('readonly', 'data', 'stack'))
-);
 
-create function set_relvar_type(vname text, vtype text) returns void as $$
-begin
-  insert into base_relvar_metadata (relvar_name, type)
-    values (vname, vtype);
-end;
-$$ language plpgsql volatile;
+select object_name,object_type from public_database_objects
++  where object_type = 'base_relvar'
++  except
++        select object_name,object_type from module_objects
++        where module_name = 'catalog' and object_type='base_relvar';
 
-create view chaos_base_relvars as
-  select object_name,object_type from public_database_objects
-  where object_type = 'base_relvar'
-  except
-        select object_name,object_type from module_objects
-        where module_name = 'catalog' and object_type='base_relvar';
-
- update wizard_spell_choices_mr
-        set imaginary = false
-        where wizard_name = get_current_wizard();
-
-  delete from wizard_spell_choices_mr where wizard_name = get_current_wizard();
 
 > import Test.HUnit
 
@@ -112,6 +95,32 @@ create view chaos_base_relvars as
 >                                   ,(SelectE $ IntegerL 2)
 >                                   ]
 >                       ]
+>        ,testGroup "select from table" [
+>                        checkParse "select * from tbl;" [(Select Star "tbl")]
+>                       ,checkParse "select a,b from tbl;" [(Select (SelectList ["a","b"]) "tbl")]
+>                       ]
+>        ,testGroup "rud" [
+>                        checkParse "insert into testtable\n\
+>                                   \(columna,columnb)\n\
+>                                   \values (1,2);\n" [(Insert "testtable"
+>                                                              ["columna", "columnb"]
+>                                                              [IntegerL 1,
+>                                                               IntegerL 2])]
+>                       ,checkParse "update tb\n\
+>                                   \  set x = 1, y = 2;"
+>                                   [Update "tb" [SetClause "x" (IntegerL 1)
+>                                                ,SetClause "y" (IntegerL 2)]
+>                                      Nothing]
+>                       ,checkParse "update tb\n\
+>                                   \  set x = 1, y = 2 where z = true;"
+>                                   [Update "tb" [SetClause "x" (IntegerL 1)
+>                                                ,SetClause "y" (IntegerL 2)]
+>                                      (Just $ Where $ BinaryOperatorCall Eql
+>                                                      (Identifier "z") (BooleanL True))]
+>                       ,checkParse "delete from tbl1 where x = true;"
+>                                   [Delete "tbl1" (Just $ Where $ BinaryOperatorCall Eql
+>                                                      (Identifier "x") (BooleanL True))]
+>                                   ]
 >        ,testGroup "create" [
 >                        checkParse "create table test (\n\
 >                                    \  fielda text,\n\
@@ -139,33 +148,6 @@ create view chaos_base_relvars as
 >                                    [(CreateView "v1"
 >                                        (Select (SelectList ["a","b"]) "t"))]
 >                        ]
->        ,testGroup "select from table" [
->                        checkParse "select * from tbl;" [(Select Star "tbl")]
->                       ,checkParse "select a,b from tbl;" [(Select (SelectList ["a","b"]) "tbl")]
->                       ]
->        ,testGroup "rud" [
->                        checkParse "insert into testtable\n\
->                                   \(columna,columnb)\n\
->                                   \values (1,2);\n" [(Insert "testtable"
->                                                              ["columna", "columnb"]
->                                                              [IntegerL 1,
->                                                               IntegerL 2])]
->                       ,checkParse "update tb\n\
->                                   \  set x = 1, y = 2;"
->                                   [Update "tb" [SetClause "x" (IntegerL 1)
->                                                ,SetClause "y" (IntegerL 2)]
->                                      Nothing]
->                       ,checkParse "update tb\n\
->                                   \  set x = 1, y = 2 where z = true;"
->                                   [Update "tb" [SetClause "x" (IntegerL 1)
->                                                ,SetClause "y" (IntegerL 2)]
->                                      (Just $ Where $ BinaryOperatorCall Eql
->                                                      (Identifier "z") (BooleanL True))]
->                       ,checkParse "delete from tbl1 where x = true;"
->                                   [Delete "tbl1" (Just $ Where $ BinaryOperatorCall Eql
->                                                      (Identifier "x") (BooleanL True))]
->                                   ]
-
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp
 >        ]
