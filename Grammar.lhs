@@ -11,11 +11,13 @@ SQL top level statements
 >                | Insert String [String] [Expression]
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)
+>                | CreateFunction String [ParamDef] String [Statement]
+>                | NullStatement
 >                  deriving (Eq,Show)
 
 ================================================================================
 
-Stement components
+Statement components
 
 > data SetClause = SetClause String Expression
 >                  deriving (Eq,Show)
@@ -27,6 +29,9 @@ Stement components
 >                   deriving (Eq,Show)
 
 > data AttributeDef = AttributeDef String String (Maybe Expression)
+>                     deriving (Eq,Show)
+
+> data ParamDef = ParamDef String String
 >                     deriving (Eq,Show)
 
 ================================================================================

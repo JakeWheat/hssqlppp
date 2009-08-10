@@ -128,7 +128,12 @@ create view chaos_base_relvars as
 >                                                               "type"
 >                                                               [StringL "a"
 >                                                               ,StringL "b"]))])]
-
+>                        ,checkParse "create function fn() returns void as $$\n\
+>                                    \begin\n\
+>                                    \  null;\n\
+>                                    \end;\n\
+>                                    \$$ language plpgsql volatile;"
+>                                    [(CreateFunction "fn" [] "void" [NullStatement])]
 >                        ]
 >        ,testGroup "select from table" [
 >                        checkParse "select * from tbl;" [(Select Star "tbl")]

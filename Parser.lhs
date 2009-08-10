@@ -47,7 +47,9 @@ Parsing top level statements
 >   <|> insert
 >   <|> update
 >   <|> delete
->   <|> createTable
+>   <|> try createTable
+>   <|> try createFunction
+>   <|> nullStatement
 
 statement types
 
@@ -95,6 +97,44 @@ statement types
 >   keyword "select"
 >   (do try selExpression
 >    <|> selQuerySpec)
+
+> createFunction :: GenParser Char () Statement
+> createFunction = do
+>   keyword "create"
+>   keyword "function"
+>   fnName <- identifierString
+>   params <- parens $ commaSep param
+>   keyword "returns"
+>   retType <- identifierString
+>   keyword "as"
+>   symbol "$$"
+>   stmts <- functionBody
+>   symbol "$$"
+>   keyword "language"
+>   keyword "plpgsql"
+>   keyword "volatile"
+>   semi
+>   return $ CreateFunction fnName params retType stmts
+
+> functionBody :: Text.Parsec.Prim.ParsecT [Char] () Identity [Statement]
+> functionBody = do
+>   keyword "begin"
+>   stmts <- many statement
+>   keyword "end"
+>   semi
+>   return stmts
+
+> param :: Text.Parsec.Prim.ParsecT String () Identity ParamDef
+> param = do
+>   name <- identifierString
+>   tp <- identifierString
+>   return $ ParamDef name tp
+
+> nullStatement :: Text.Parsec.Prim.ParsecT String u Identity Statement
+> nullStatement = do
+>   keyword "null"
+>   semi
+>   return NullStatement
 
 > selExpression :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
 > selExpression = do
@@ -187,7 +227,6 @@ expressions
 >   keyword "in"
 >   e <- parens $ commaSep1 expr
 >   return $ InPredicate vexp e
->   
 
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > identifier = liftM Identifier identifierString

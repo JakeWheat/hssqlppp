@@ -22,30 +22,47 @@ Conversion routines - convert Sql asts into Docs
 = Statements
 
 > convStatement :: Statement -> Doc
-> convStatement (SelectE e) = text "select" <+> convExp e <> semi
+> convStatement (SelectE e) = text "select" <+> convExp e <> statementEnd
 > convStatement (Select l tb) = text "select" <+> convSelList l
->                               <+> text "from" <+> text tb <> semi
+>                               <+> text "from" <+> text tb <> statementEnd
 > convStatement (CreateTable t atts) =
 >     text "create table"
 >     <+> text t <+> lparen
 >     <+> hcat (csv (map convAttDef atts))
->     <+> rparen <> semi
+>     <+> rparen <> statementEnd
+
 > convStatement (Insert tb atts exps) = text "insert into" <+> text tb
 >                                       <+> parens (hcatCsvMap text atts)
 >                                       <+> text "values"
 >                                       <+> parens (hcatCsvMap convExp exps)
->                                       <> semi
+>                                       <> statementEnd
+
 > convStatement (Update tb scs wh) = text "update" <+> text tb <+> text "set"
 >                                    <+> hcatCsvMap convSetClause scs
 >                                    <+> case wh of
 >                                         Nothing -> empty
 >                                         Just w -> convWhere w
->                                    <> semi
+>                                    <> statementEnd
+
 > convStatement (Delete tbl wh) = text "delete from" <+> text tbl
 >                                 <+> case wh of
 >                                            Nothing -> empty
 >                                            Just w -> convWhere w
->                                 <> semi
+>                                 <> statementEnd
+
+> convStatement (CreateFunction name args retType stmts) =
+>     text "create function" <+> text name
+>     <+> parens (hcatCsvMap convParamDef args)
+>     <+> text "returns" <+> text retType <+> text "as" <+> text "$$"
+>     $+$ text "begin"
+>     $+$ (nest 2 (vcat $ map convStatement stmts))
+>     $+$ text "end;"
+>     $+$ text "$$ language plpgsql volatile" <> statementEnd
+
+> convStatement NullStatement = text "null" <> statementEnd
+
+> statementEnd :: Doc
+> statementEnd = semi <> newline
 
 = Statement components
 
@@ -64,6 +81,9 @@ Conversion routines - convert Sql asts into Docs
 >                                    <+> case ch of
 >                                          Nothing -> empty
 >                                          Just e -> text "check" <+> convExp e
+
+> convParamDef :: ParamDef -> Doc
+> convParamDef (ParamDef n t) = text n <+> text t
 
 = Expressions
 
@@ -92,3 +112,6 @@ Conversion routines - convert Sql asts into Docs
 > bool b = case b of
 >            True -> text "true"
 >            False -> text "false"
+
+> newline :: Doc
+> newline = text "\n"
