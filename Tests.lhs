@@ -71,6 +71,10 @@ select object_name,object_type from public_database_objects
 >                       ,checkParse "select fn(1, 'test');"
 >                        [(SelectE $ FunctionCall "fn" [IntegerL 1, StringL "test"])]
 >                       ]
+>        ,testGroup "select from table" [
+>                        checkParse "select * from tbl;" [(Select Star "tbl")]
+>                       ,checkParse "select a,b from tbl;" [(Select (SelectList ["a","b"]) "tbl")]
+>                       ]
 >        ,testGroup "multiple statements" [
 >                         checkParse "select 1;\nselect 2;" [(SelectE $ IntegerL 1)
 >                                                           ,(SelectE $ IntegerL 2)
@@ -94,10 +98,6 @@ select object_name,object_type from public_database_objects
 >                                   [(SelectE $ IntegerL 1)
 >                                   ,(SelectE $ IntegerL 2)
 >                                   ]
->                       ]
->        ,testGroup "select from table" [
->                        checkParse "select * from tbl;" [(Select Star "tbl")]
->                       ,checkParse "select a,b from tbl;" [(Select (SelectList ["a","b"]) "tbl")]
 >                       ]
 >        ,testGroup "rud" [
 >                        checkParse "insert into testtable\n\
