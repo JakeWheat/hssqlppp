@@ -132,8 +132,13 @@ plpgsql
 > convWhere Nothing = empty
 
 > convSelList :: SelectList -> Doc
-> convSelList (SelectList l) = hcatCsvMap text l
+> convSelList (SelectList l) = hcatCsvMap convSelItem l
 > convSelList (Star) = text "*"
+
+> convSelItem :: SelectItem -> Doc
+> convSelItem (SelectItem ex nm) = case ex of
+>                                    Identifier a | a == nm -> text nm
+>                                    _ -> parens (convExp ex) <+> text "as" <+> text nm
 
 > convAttDef :: AttributeDef -> Doc
 > convAttDef (AttributeDef n t ch) = text n <+> text t

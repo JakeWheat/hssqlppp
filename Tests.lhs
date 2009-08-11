@@ -62,6 +62,8 @@
 >                       ,checkParseExpression "not null" (BinaryOperatorCall Not (NullL) (NullL))
 >                       ,checkParseExpression "a is null" (BinaryOperatorCall IsNull (NullL) (Identifier "a"))
 >                       ,checkParseExpression "a is not null" (BinaryOperatorCall IsNotNull (NullL) (Identifier "a"))
+>                       ,checkParseExpression "'stuff'::text" (BinaryOperatorCall
+>                                                                Cast (StringL "stuff") (Identifier "text"))
 >                       ]
 >        ,testGroup "select expression" [
 >                        checkParse "select 1;" [(SelectE $ IntegerL 1)]
@@ -72,13 +74,16 @@
 >                       ]
 >        ,testGroup "select from table" [
 >                        checkParse "select * from tbl;" [(Select Star "tbl" Nothing)]
->                       ,checkParse "select a,b from tbl;" [(Select (SelectList ["a","b"]) "tbl" Nothing)]
+>                       ,checkParse "select a,b from tbl;" [(Select
+>                                                            (SelectList [
+>                                                              simplesi "a"
+>                                                             ,simplesi "b"]) "tbl" Nothing)]
 >                       ,checkParse "select a from tbl where b=2;"
->                                   [(Select (SelectList ["a"]) "tbl"
+>                                   [(Select (SelectList [simplesi "a"]) "tbl"
 >                                            (Just (Where $ BinaryOperatorCall Eql
 >                                                  (Identifier "b") (IntegerL 2))))]
 >                       ,checkParse "select a from tbl where b=2 and c=3;"
->                                   [(Select (SelectList ["a"]) "tbl"
+>                                   [(Select (SelectList [simplesi "a"]) "tbl"
 >                                            (Just (Where $
 >                                                   BinaryOperatorCall And
 >                                                    (BinaryOperatorCall Eql
@@ -90,14 +95,18 @@
 >                                   \except\n\
 >                                   \select a from tbl1;"
 >                                   [(ExceptSelect
->                                     (Select (SelectList ["a"]) "tbl" Nothing)
->                                     (Select (SelectList ["a"]) "tbl1" Nothing))]
+>                                     (Select (SelectList [simplesi "a"]) "tbl" Nothing)
+>                                     (Select (SelectList [simplesi "a"]) "tbl1" Nothing))]
 >                       ,checkParse "select a from tbl where true\n\
 >                                   \except\n\
 >                                   \select a from tbl1 where true;"
 >                                   [(ExceptSelect
->                                     (Select (SelectList ["a"]) "tbl" (Just $ Where $ BooleanL True))
->                                     (Select (SelectList ["a"]) "tbl1" (Just $ Where $ BooleanL True)))]
+>                                     (Select (SelectList [simplesi "a"]) "tbl" (Just $ Where $ BooleanL True))
+>                                     (Select (SelectList [simplesi "a"]) "tbl1" (Just $ Where $ BooleanL True)))]
+>                       ,checkParse "select a as b from tbl;"
+>                                   [(Select (SelectList [SelectItem (Identifier "a") "b"]) "tbl" Nothing)]
+>                       ,checkParse "select a + b as b from tbl;"
+>                                   [(Select (SelectList [SelectItem (BinaryOperatorCall Plus (Identifier "a") (Identifier "b")) "b"]) "tbl" Nothing)]
 >                       ]
 >        ,testGroup "multiple statements" [
 >                         checkParse "select 1;\nselect 2;" [(SelectE $ IntegerL 1)
@@ -106,7 +115,7 @@
 >                         ]
 >        ,testGroup "more expressions" [
 >                       checkParseExpression "(select a from tbl where id = 3)"
->                          (ScalarSubQuery $ Select (SelectList ["a"]) "tbl"
+>                          (ScalarSubQuery $ Select (SelectList [simplesi "a"]) "tbl"
 >                             (Just $ Where $ BinaryOperatorCall Eql (Identifier "id") (IntegerL 3)))
 >                       ]
 >        ,testGroup "comments" [
@@ -175,7 +184,7 @@
 >                        ,checkParse "create view v1 as\n\
 >                                    \select a,b from t;"
 >                                    [(CreateView "v1"
->                                        (Select (SelectList ["a","b"]) "t" Nothing))]
+>                                        (Select (SelectList [simplesi "a", simplesi "b"]) "t" Nothing))]
 >                        ,checkParse "create domain td as text check (value in ('t1', 't2'));"
 >                                    [(CreateDomain "td" "text"
 >                                        (Just (InPredicate
@@ -218,12 +227,12 @@
 >                       ,checkParse "for r in select a from tbl loop\n\
 >                                   \null;\n\
 >                                   \end loop;"
->                                    [ForStatement "r" (Select (SelectList ["a"]) "tbl" Nothing)
+>                                    [ForStatement "r" (Select (SelectList [simplesi "a"]) "tbl" Nothing)
 >                                         [NullStatement]]
 >                       ,checkParse "for r in select a from tbl where true loop\n\
 >                                   \null;\n\
 >                                   \end loop;"
->                                    [ForStatement "r" (Select (SelectList ["a"]) "tbl"
+>                                    [ForStatement "r" (Select (SelectList [simplesi "a"]) "tbl"
 >                                                         (Just $ Where $ BooleanL True))
 >                                         [NullStatement]]
 >                       ,checkParse "perform test();"
@@ -284,73 +293,73 @@ parsing them
 
 property
 
-> prop_statements_ppp :: [Statement] -> Bool
-> prop_statements_ppp s = parseSqlThrow (printSql s) == s
+-- > prop_statements_ppp :: [Statement] -> Bool
+-- > prop_statements_ppp s = parseSqlThrow (printSql s) == s
 
-> prop_expression_ppp :: Expression -> Bool
-> prop_expression_ppp s = parseExpressionThrow (printExpression s) == s
+-- > prop_expression_ppp :: Expression -> Bool
+-- > prop_expression_ppp s = parseExpressionThrow (printExpression s) == s
 
-> parseExpressionThrow :: String -> Expression
-> parseExpressionThrow s =
->     case parseExpression s of
->       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
->       Right l -> l
+-- > parseExpressionThrow :: String -> Expression
+-- > parseExpressionThrow s =
+-- >     case parseExpression s of
+-- >       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
+-- >       Right l -> l
 
-> parseSqlThrow :: String -> [Statement]
-> parseSqlThrow s =
->     case parseSql s of
->       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
->       Right l -> l
-
-
-arbitrary instances
-
-> instance Arbitrary Expression where
->     arbitrary = oneof [
->                  liftM3 BinaryOperatorCall arbitrary arbitrary arbitrary
->                 ,liftM IntegerL arbitrary
->                 ,liftM StringL aString
->                 ,liftM BooleanL arbitrary
->                 ,liftM Identifier aIdentifier
->                 ,liftM2 FunctionCall aIdentifier arbitrary
->                 ]
-
-> instance Arbitrary Statement where
->     arbitrary = oneof [
->                  liftM SelectE arbitrary
->                 ,liftM3 Select arbitrary aIdentifier arbitrary
->                 ,liftM2 CreateTable aIdentifier arbitrary
->                 ,liftM3 Insert aIdentifier arbitrary arbitrary
->                 ,liftM3 Update aIdentifier arbitrary arbitrary
->                 ]
+-- > parseSqlThrow :: String -> [Statement]
+-- > parseSqlThrow s =
+-- >     case parseSql s of
+-- >       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
+-- >       Right l -> l
 
 
-> instance Arbitrary Op where
->     arbitrary = elements [Plus, Minus, Mult, Div, Pow, Mod, Eql]
+-- arbitrary instances
 
-> instance Arbitrary SelectList where
->     arbitrary = oneof [
->                  liftM SelectList arbitrary
->                 ,return Star
->                 ]
+-- > instance Arbitrary Expression where
+-- >     arbitrary = oneof [
+-- >                  liftM3 BinaryOperatorCall arbitrary arbitrary arbitrary
+-- >                 ,liftM IntegerL arbitrary
+-- >                 ,liftM StringL aString
+-- >                 ,liftM BooleanL arbitrary
+-- >                 ,liftM Identifier aIdentifier
+-- >                 ,liftM2 FunctionCall aIdentifier arbitrary
+-- >                 ]
 
-> instance Arbitrary AttributeDef where
->     arbitrary = liftM3 AttributeDef aIdentifier aIdentifier arbitrary
+-- > instance Arbitrary Statement where
+-- >     arbitrary = oneof [
+-- >                  liftM SelectE arbitrary
+-- >                 ,liftM3 Select arbitrary aIdentifier arbitrary
+-- >                 ,liftM2 CreateTable aIdentifier arbitrary
+-- >                 ,liftM3 Insert aIdentifier arbitrary arbitrary
+-- >                 ,liftM3 Update aIdentifier arbitrary arbitrary
+-- >                 ]
 
-> instance Arbitrary SetClause where
->     arbitrary = liftM2 SetClause aIdentifier arbitrary
 
-> instance Arbitrary Where where
->     arbitrary = liftM Where arbitrary
+-- > instance Arbitrary Op where
+-- >     arbitrary = elements [Plus, Minus, Mult, Div, Pow, Mod, Eql]
 
-some gen helpers
+-- > instance Arbitrary SelectList where
+-- >     arbitrary = oneof [
+-- >                  liftM SelectList arbitrary
+-- >                 ,return Star
+-- >                 ]
 
-> aString :: Gen String
-> aString = listOf1 $ choose ('\32', '\126')
+-- > instance Arbitrary AttributeDef where
+-- >     arbitrary = liftM3 AttributeDef aIdentifier aIdentifier arbitrary
 
-> aIdentifier :: Gen String
-> aIdentifier = do
->   start <- elements letter
->   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
->   return (start : suffix)
->               where letter = ['A'..'Z'] ++ ['a' .. 'z']
+-- > instance Arbitrary SetClause where
+-- >     arbitrary = liftM2 SetClause aIdentifier arbitrary
+
+-- > instance Arbitrary Where where
+-- >     arbitrary = liftM Where arbitrary
+
+-- some gen helpers
+
+-- > aString :: Gen String
+-- > aString = listOf1 $ choose ('\32', '\126')
+
+-- > aIdentifier :: Gen String
+-- > aIdentifier = do
+-- >   start <- elements letter
+-- >   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
+-- >   return (start : suffix)
+-- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']

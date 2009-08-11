@@ -33,8 +33,14 @@ Statement components
 > data Where = Where Expression
 >                    deriving (Eq,Show)
 
-> data SelectList = SelectList [String] | Star
+> data SelectList = SelectList [SelectItem] | Star
 >                   deriving (Eq,Show)
+
+> data SelectItem = SelectItem Expression String
+>                   deriving (Eq,Show)
+
+> simplesi :: String -> SelectItem
+> simplesi s = SelectItem (Identifier s) s
 
 > data AttributeDef = AttributeDef String String (Maybe Expression)
 >                     deriving (Eq,Show)
@@ -54,6 +60,7 @@ Expressions
 
 > data Op = Plus | Minus | Mult | Div | Pow | Mod | Eql
 >         | And | Conc | Like | Not | IsNull | IsNotNull
+>         | Cast
 >           deriving (Show,Eq)
 
 > opToSymbol :: Op -> String
@@ -71,6 +78,7 @@ Expressions
 >                         Not -> "not"
 >                         IsNull -> "is null"
 >                         IsNotNull -> "is not null"
+>                         Cast -> "::"
 
 > data Expression = BinaryOperatorCall Op Expression Expression
 >                 | IntegerL Integer

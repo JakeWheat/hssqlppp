@@ -284,7 +284,18 @@ Statement components
 >   return $ Select sl tb wh
 
 > selectList :: Text.Parsec.Prim.ParsecT String () Identity SelectList
-> selectList = liftM SelectList $ commaSep1 identifierString
+> selectList = liftM SelectList $ commaSep1 selectItem
+
+> selectItem :: Text.Parsec.Prim.ParsecT String () Identity SelectItem
+> selectItem = do
+>   (try (do
+>        ex <- expr
+>        keyword "as"
+>        i <- identifierString
+>        return $ SelectItem ex i)
+>    ) <|> do
+>        i <- identifierString
+>        return $ SelectItem (Identifier i) i
 
 ================================================================================
 
@@ -319,7 +330,8 @@ expressions
 > table =
 >       [[--prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))
 >         prefix "not" (BinaryOperatorCall Not (NullL))]
->       ,[binary "^" (BinaryOperatorCall Pow) AssocRight]
+>       ,[binary "::" (BinaryOperatorCall Cast) AssocLeft
+>        ,binary "^" (BinaryOperatorCall Pow) AssocRight]
 >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
 >        ,binary "/" (BinaryOperatorCall Div) AssocLeft
 >        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
@@ -401,8 +413,13 @@ Utility parsers
 >                        <|> blockComment
 >                        <|> lineComment)
 
-> keyword :: String -> Text.Parsec.Prim.ParsecT String u Identity String
-> keyword = lexeme . string
+ > keyword :: String -> Text.Parsec.Prim.ParsecT String u Identity String
+
+> keyword :: String -> Text.Parsec.Prim.ParsecT String u Identity ()
+> keyword k = do
+>   lexeme $ do
+>     string k
+>     notFollowedBy alphaNum
 
 > identifierString :: Parser String
 > identifierString = do

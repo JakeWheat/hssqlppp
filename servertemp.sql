@@ -207,6 +207,7 @@ create view enterable_piece_types as
   select 'magic_castle'
   union
   select 'dark_citadel';
+
 /*
 === data
 
