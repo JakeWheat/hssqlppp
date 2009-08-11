@@ -5,8 +5,7 @@
 
 SQL top level statements
 
-> data Statement = SelectE Expression
->                | Select SelectList String (Maybe Where)
+> data Statement = Select SelectList (Maybe String) (Maybe Where)
 >                | CombineSelect CombineType Statement Statement
 >                | CreateTable String [AttributeDef]
 >                | CreateView String Statement
@@ -36,11 +35,9 @@ Statement components
 > data SelectList = SelectList [SelectItem] | Star
 >                   deriving (Eq,Show)
 
-> data SelectItem = SelectItem Expression String
+> data SelectItem = SelExp Expression
+>                 | SelectItem Expression String
 >                   deriving (Eq,Show)
-
-> simplesi :: String -> SelectItem
-> simplesi s = SelectItem (Identifier s) s
 
 > data AttributeDef = AttributeDef String String (Maybe Expression)
 >                     deriving (Eq,Show)

@@ -23,8 +23,6 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement :: Statement -> Doc
 
-> convStatement (SelectE e) = text "select" <+> convExp e <> statementEnd
-
 > convStatement s@(Select _ _ _) = convSelectFragment s <> statementEnd
 > convStatement s@(CombineSelect _ _ _) = convSelectFragment s <> statementEnd
 
@@ -114,7 +112,9 @@ plpgsql
 > convSelectFragment (Select l tb wh) =
 >   text "select" <+> convSelList l
 >   $+$ nest 2 (
->     text "from" <+> text tb
+>     case tb of
+>       Nothing -> empty
+>       Just tbn -> text "from" <+> text tbn
 >     $+$ convWhere wh)
 
 > convSelectFragment (CombineSelect tp s1 s2) =
@@ -138,9 +138,8 @@ plpgsql
 > convSelList (Star) = text "*"
 
 > convSelItem :: SelectItem -> Doc
-> convSelItem (SelectItem ex nm) = case ex of
->                                    Identifier a | a == nm -> text nm
->                                    _ -> parens (convExp ex) <+> text "as" <+> text nm
+> convSelItem (SelectItem ex nm) = (convExp ex) <+> text "as" <+> text nm
+> convSelItem (SelExp e) = convExp e
 
 > convAttDef :: AttributeDef -> Doc
 > convAttDef (AttributeDef n t ch) = text n <+> text t

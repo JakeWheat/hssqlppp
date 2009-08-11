@@ -107,7 +107,7 @@ statement types
 > select :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > select = do
 >   keyword "select"
->   s1 <- (try selQuerySpec <|> selExpression)
+>   s1 <- selQuerySpec
 >   (do
 >     (try (do keyword "except"
 >              s2 <- select
@@ -181,11 +181,6 @@ statement types
 >   keyword "perform"
 >   ex <- expr
 >   return $ Perform ex
-
-> selExpression :: Text.Parsec.Prim.ParsecT String () Identity Statement
-> selExpression = do
->   e <- expr
->   return $ SelectE e
 
 plpgsql stements
 
@@ -281,8 +276,9 @@ Statement components
 >          symbol "*"
 >          return Star
 >         ) <|> selectList
->   keyword "from"
->   tb <- identifierString
+>   tb <- maybeP (do
+>                 keyword "from"
+>                 identifierString)
 >   wh <- maybeP whereClause
 >   return $ Select sl tb wh
 
@@ -291,14 +287,13 @@ Statement components
 
 > selectItem :: Text.Parsec.Prim.ParsecT String () Identity SelectItem
 > selectItem = do
->   (try (do
 >        ex <- expr
->        keyword "as"
->        i <- identifierString
->        return $ SelectItem ex i)
->    ) <|> do
->        i <- identifierString
->        return $ SelectItem (Identifier i) i
+>        i <- maybeP (do
+>                     keyword "as"
+>                     identifierString)
+>        return $ case i of
+>                   Nothing -> SelExp ex
+>                   Just iden -> SelectItem ex iden
 
 ================================================================================
 

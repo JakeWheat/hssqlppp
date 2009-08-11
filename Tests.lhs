@@ -66,24 +66,26 @@
 >                                                                Cast (StringL "stuff") (Identifier "text"))
 >                       ]
 >        ,testGroup "select expression" [
->                        checkParse "select 1;" [(SelectE $ IntegerL 1)]
->                       ,checkParse "select 1+1;" [(SelectE $ BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))]
->                       ,checkParse "select 'test';" [(SelectE $ StringL "test")]
->                       ,checkParse "select fn(1, 'test');"
->                        [(SelectE $ FunctionCall "fn" [IntegerL 1, StringL "test"])]
+>                        checkParse "select 1;" [selectE (SelectList [SelExp (IntegerL 1)])]
+>                       --,checkParse "select 1+1;" [(selectE $ BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))]
+>                       --,checkParse "select 'test';" [(selectE $ StringL "test")]
+>                       --,checkParse "select fn(1, 'test');"
+>                       -- [(selectE $ FunctionCall "fn" [IntegerL 1, StringL "test"])]
+>                       --,checkParse "select 3 as tst, 4 as tst1;" [selectE [SelectItem (IntegerL 3) "tst"
+>                       --                                                   ,SelectItem (IntegerL 4) "tst1"]]
 >                       ]
 >        ,testGroup "select from table" [
->                        checkParse "select * from tbl;" [(Select Star "tbl" Nothing)]
+>                        checkParse "select * from tbl;" [(Select Star (Just "tbl") Nothing)]
 >                       ,checkParse "select a,b from tbl;" [(Select
 >                                                            (SelectList [
->                                                              simplesi "a"
->                                                             ,simplesi "b"]) "tbl" Nothing)]
+>                                                              selI "a"
+>                                                             ,selI "b"]) (Just "tbl") Nothing)]
 >                       ,checkParse "select a from tbl where b=2;"
->                                   [(Select (SelectList [simplesi "a"]) "tbl"
+>                                   [(Select (SelectList [selI "a"]) (Just "tbl")
 >                                            (Just (Where $ BinaryOperatorCall Eql
 >                                                  (Identifier "b") (IntegerL 2))))]
 >                       ,checkParse "select a from tbl where b=2 and c=3;"
->                                   [(Select (SelectList [simplesi "a"]) "tbl"
+>                                   [(Select (SelectList [selI "a"]) (Just "tbl")
 >                                            (Just (Where $
 >                                                   BinaryOperatorCall And
 >                                                    (BinaryOperatorCall Eql
@@ -95,52 +97,52 @@
 >                                   \except\n\
 >                                   \select a from tbl1;"
 >                                   [(CombineSelect Except
->                                     (Select (SelectList [simplesi "a"]) "tbl" Nothing)
->                                     (Select (SelectList [simplesi "a"]) "tbl1" Nothing))]
+>                                     (Select (SelectList [selI "a"]) (Just "tbl") Nothing)
+>                                     (Select (SelectList [selI "a"]) (Just "tbl1") Nothing))]
 >                       ,checkParse "select a from tbl where true\n\
 >                                   \except\n\
 >                                   \select a from tbl1 where true;"
 >                                   [(CombineSelect Except
->                                     (Select (SelectList [simplesi "a"]) "tbl" (Just $ Where $ BooleanL True))
->                                     (Select (SelectList [simplesi "a"]) "tbl1" (Just $ Where $ BooleanL True)))]
+>                                     (Select (SelectList [selI "a"]) (Just "tbl") (Just $ Where $ BooleanL True))
+>                                     (Select (SelectList [selI "a"]) (Just "tbl1") (Just $ Where $ BooleanL True)))]
 >                       ,checkParse "select a from tbl\n\
 >                                   \union\n\
 >                                   \select a from tbl1;"
 >                                   [(CombineSelect Union
->                                     (Select (SelectList [simplesi "a"]) "tbl" Nothing)
->                                     (Select (SelectList [simplesi "a"]) "tbl1" Nothing))]
+>                                     (Select (SelectList [selI "a"]) (Just "tbl") Nothing)
+>                                     (Select (SelectList [selI "a"]) (Just "tbl1") Nothing))]
 >                       ,checkParse "select a as b from tbl;"
->                                   [(Select (SelectList [SelectItem (Identifier "a") "b"]) "tbl" Nothing)]
+>                                   [(Select (SelectList [SelectItem (Identifier "a") "b"]) (Just "tbl") Nothing)]
 >                       ,checkParse "select a + b as b from tbl;"
->                                   [(Select (SelectList [SelectItem (BinaryOperatorCall Plus (Identifier "a") (Identifier "b")) "b"]) "tbl" Nothing)]
+>                                   [(Select (SelectList [SelectItem (BinaryOperatorCall Plus (Identifier "a") (Identifier "b")) "b"]) (Just "tbl") Nothing)]
 >                       ]
 >        ,testGroup "multiple statements" [
->                         checkParse "select 1;\nselect 2;" [(SelectE $ IntegerL 1)
->                                                           ,(SelectE $ IntegerL 2)
+>                         checkParse "select 1;\nselect 2;" [selectE $ SelectList [SelExp (IntegerL 1)]
+>                                                           ,selectE $ SelectList [SelExp (IntegerL 2)]
 >                                                           ]
 >                         ]
 >        ,testGroup "more expressions" [
 >                       checkParseExpression "(select a from tbl where id = 3)"
->                          (ScalarSubQuery $ Select (SelectList [simplesi "a"]) "tbl"
+>                          (ScalarSubQuery $ Select (SelectList [selI "a"]) (Just "tbl")
 >                             (Just $ Where $ BinaryOperatorCall Eql (Identifier "id") (IntegerL 3)))
 >                       ]
 >        ,testGroup "comments" [
 >                        checkParse "" []
 >                       ,checkParse "-- this is a test" []
 >                       ,checkParse "/* this is\n\
->                                    \a test*/" []
+>                                   \a test*/" []
 >                       ,checkParse "select 1;\n\
->                                    \-- this is a test\n\
->                                    \select -- this is a test\n\
->                                    \2;" [(SelectE $ IntegerL 1)
->                                                           ,(SelectE $ IntegerL 2)
->                                                           ]
+>                                   \-- this is a test\n\
+>                                   \select -- this is a test\n\
+>                                   \2;" [selectE $ SelectList [SelExp (IntegerL 1)]
+>                                        ,selectE $ SelectList [SelExp (IntegerL 2)]
+>                                        ]
 >                       ,checkParse "select 1;\n\
 >                                   \/* this is\n\
 >                                   \a test*/\n\
 >                                   \select /* this is a test*/2;"
->                                   [(SelectE $ IntegerL 1)
->                                   ,(SelectE $ IntegerL 2)
+>                                   [selectE $ SelectList [SelExp (IntegerL 1)]
+>                                   ,selectE $ SelectList [SelExp (IntegerL 2)]
 >                                   ]
 >                       ]
 >        ,testGroup "rud" [
@@ -190,7 +192,7 @@
 >                        ,checkParse "create view v1 as\n\
 >                                    \select a,b from t;"
 >                                    [(CreateView "v1"
->                                        (Select (SelectList [simplesi "a", simplesi "b"]) "t" Nothing))]
+>                                        (Select (SelectList [selI "a", selI "b"]) (Just "t") Nothing))]
 >                        ,checkParse "create domain td as text check (value in ('t1', 't2'));"
 >                                    [(CreateDomain "td" "text"
 >                                        (Just (InPredicate
@@ -233,12 +235,12 @@
 >                       ,checkParse "for r in select a from tbl loop\n\
 >                                   \null;\n\
 >                                   \end loop;"
->                                    [ForStatement "r" (Select (SelectList [simplesi "a"]) "tbl" Nothing)
+>                                    [ForStatement "r" (Select (SelectList [selI "a"]) (Just "tbl") Nothing)
 >                                         [NullStatement]]
 >                       ,checkParse "for r in select a from tbl where true loop\n\
 >                                   \null;\n\
 >                                   \end loop;"
->                                    [ForStatement "r" (Select (SelectList [simplesi "a"]) "tbl"
+>                                    [ForStatement "r" (Select (SelectList [selI "a"]) (Just "tbl")
 >                                                         (Just $ Where $ BooleanL True))
 >                                         [NullStatement]]
 >                       ,checkParse "perform test();"
@@ -255,6 +257,12 @@
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp
 >        ]
+
+> selI :: String -> SelectItem
+> selI i = SelExp (Identifier i)
+
+> selectE :: SelectList -> Statement
+> selectE selList = Select selList Nothing Nothing
 
 ================================================================================
 
@@ -332,7 +340,7 @@ property
 
 -- > instance Arbitrary Statement where
 -- >     arbitrary = oneof [
--- >                  liftM SelectE arbitrary
+-- >                  liftM selectE arbitrary
 -- >                 ,liftM3 Select arbitrary aIdentifier arbitrary
 -- >                 ,liftM2 CreateTable aIdentifier arbitrary
 -- >                 ,liftM3 Insert aIdentifier arbitrary arbitrary
@@ -369,3 +377,13 @@ property
 -- >   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
+
+
+
+
+> x = "create view enterable_piece_types as\n\
+> \  select 'magic_tree'::text as ptype\n\
+> \  union\n\
+> \  select 'magic_castle'\n\
+> \  union\n\
+> \  select 'dark_citadel';"
