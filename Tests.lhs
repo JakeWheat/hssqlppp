@@ -94,15 +94,21 @@
 >                       ,checkParse "select a from tbl\n\
 >                                   \except\n\
 >                                   \select a from tbl1;"
->                                   [(ExceptSelect
+>                                   [(CombineSelect Except
 >                                     (Select (SelectList [simplesi "a"]) "tbl" Nothing)
 >                                     (Select (SelectList [simplesi "a"]) "tbl1" Nothing))]
 >                       ,checkParse "select a from tbl where true\n\
 >                                   \except\n\
 >                                   \select a from tbl1 where true;"
->                                   [(ExceptSelect
+>                                   [(CombineSelect Except
 >                                     (Select (SelectList [simplesi "a"]) "tbl" (Just $ Where $ BooleanL True))
 >                                     (Select (SelectList [simplesi "a"]) "tbl1" (Just $ Where $ BooleanL True)))]
+>                       ,checkParse "select a from tbl\n\
+>                                   \union\n\
+>                                   \select a from tbl1;"
+>                                   [(CombineSelect Union
+>                                     (Select (SelectList [simplesi "a"]) "tbl" Nothing)
+>                                     (Select (SelectList [simplesi "a"]) "tbl1" Nothing))]
 >                       ,checkParse "select a as b from tbl;"
 >                                   [(Select (SelectList [SelectItem (Identifier "a") "b"]) "tbl" Nothing)]
 >                       ,checkParse "select a + b as b from tbl;"

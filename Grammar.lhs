@@ -7,7 +7,7 @@ SQL top level statements
 
 > data Statement = SelectE Expression
 >                | Select SelectList String (Maybe Where)
->                | ExceptSelect Statement Statement
+>                | CombineSelect CombineType Statement Statement
 >                | CreateTable String [AttributeDef]
 >                | CreateView String Statement
 >                | Insert String [String] [Expression]
@@ -54,6 +54,9 @@ Statement components
 > data RaiseType = RNotice | RError
 >                  deriving (Eq, Show)
 
+> data CombineType = Except | Union
+>                    deriving (Eq, Show)
+
 ================================================================================
 
 Expressions
@@ -91,5 +94,3 @@ Expressions
 >                 | FunctionCall String [Expression]
 >                 | ScalarSubQuery Statement
 >                   deriving (Show,Eq)
-
-

@@ -26,7 +26,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (SelectE e) = text "select" <+> convExp e <> statementEnd
 
 > convStatement s@(Select _ _ _) = convSelectFragment s <> statementEnd
-> convStatement s@(ExceptSelect _ _) = convSelectFragment s <> statementEnd
+> convStatement s@(CombineSelect _ _ _) = convSelectFragment s <> statementEnd
 
 > convStatement (CreateTable t atts) =
 >     text "create table"
@@ -117,9 +117,11 @@ plpgsql
 >     text "from" <+> text tb
 >     $+$ convWhere wh)
 
-> convSelectFragment (ExceptSelect s1 s2) =
+> convSelectFragment (CombineSelect tp s1 s2) =
 >   convSelectFragment s1
->   $+$ text "except"
+>   $+$ (case tp of
+>          Except -> text "except"
+>          Union -> text "union")
 >   $+$ convSelectFragment s2
 
 > convSelectFragment a = error $ "no convSelectFragment for " ++ show a

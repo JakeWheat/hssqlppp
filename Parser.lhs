@@ -111,7 +111,10 @@ statement types
 >   (do
 >     (try (do keyword "except"
 >              s2 <- select
->              return $ ExceptSelect s1 s2))
+>              return $ CombineSelect Except s1 s2))
+>     <|> (try (do keyword "union"
+>                  s3 <- select
+>                  return $ CombineSelect Union s1 s3))
 >     <|> (return s1))
 
  > exceptSelect :: Text.Parsec.Prim.ParsecT String () Identity Statement
