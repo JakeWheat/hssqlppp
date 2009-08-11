@@ -17,32 +17,6 @@
 > import Parser
 > import PrettyPrinter
 
-> x = "create function protect_readonly_relvars() returns void as $$\n\
-> \declare\n\
-> \  r record;\n\
-> \begin\n\
-> \  for r in select relvar_name, type\n\
-> \           from base_relvar_metadata\n\
-> \           loop\n\
-> \  --for r in select relvar_name, type\n\
-> \  --         from base_relvar_metadata\n\
-> \  --         where type='readonly' loop\n\
-> \    perform create_update_transition_tuple_constraint(\n\
-> \      r.relvar_name, r.relvar_name || '_u_readonly', 'false');\n\
-> \    perform create_delete_transition_tuple_constraint(\n\
-> \      r.relvar_name, r.relvar_name || '_d_readonly', 'false');\n\
-> \    perform create_insert_transition_tuple_constraint(\n\
-> \      r.relvar_name, r.relvar_name || '_i_readonly', 'false');\n\
-> \    -- get module\n\
-> \    perform set_module_for_preceding_objects(\n\
-> \    (select module_name from module_objects\n\
-> \          where object_type = 'base_relvar'\n\
-> \            and object_name = r.relvar_name));\n\
-> \  end loop;\n\
-> \end;\n\
-> \$$ language plpgsql volatile;"
-
-
 > main :: IO ()
 > main =
 >   defaultMain [
@@ -85,8 +59,9 @@
 >                       ,checkParseExpression "'a' || 'b'" (BinaryOperatorCall Conc (StringL "a")
 >                                                           (StringL "b"))
 >                       ,checkParseExpression "null" (NullL)
->                       ,checkParseExpression "not null" (BinaryOperatorCall Not (BooleanL True) (NullL))
-
+>                       ,checkParseExpression "not null" (BinaryOperatorCall Not (NullL) (NullL))
+>                       ,checkParseExpression "a is null" (BinaryOperatorCall IsNull (NullL) (Identifier "a"))
+>                       ,checkParseExpression "a is not null" (BinaryOperatorCall IsNotNull (NullL) (Identifier "a"))
 >                       ]
 >        ,testGroup "select expression" [
 >                        checkParse "select 1;" [(SelectE $ IntegerL 1)]
@@ -191,6 +166,12 @@
 >                                                               "type"
 >                                                               [StringL "a"
 >                                                               ,StringL "b"]))])]
+>                        ,checkParse "create table tb (\n\
+>                                    \a text not null,\n\
+>                                    \b boolean null);"
+>                                    [(CreateTable "tb" [AttributeDef "a" "text"
+>                                                          (Just (BinaryOperatorCall Not NullL NullL))
+>                                                       ,AttributeDef "b" "boolean" (Just NullL)])]
 >                        ,checkParse "create view v1 as\n\
 >                                    \select a,b from t;"
 >                                    [(CreateView "v1"

@@ -5,7 +5,7 @@
 > import Text.ParserCombinators.Parsec.Language
 > import qualified Text.Parsec.Prim
 > import Control.Monad.Identity
-> import Text.ParserCombinators.Parsec.Expr
+> import Text.Parsec.Expr
 > import Data.Maybe
 
 > import Grammar
@@ -257,10 +257,20 @@ Statement components
 > tableAtt = do
 >   name <- identifierString
 >   typ <- identifierString
+>   nl <- maybeP ((do
+>                   try (keyword "null")
+>                   return NullL)
+>                 <|>
+>                 (do
+>                   keyword "not"
+>                   keyword "null"
+>                   return $ BinaryOperatorCall Not (NullL) (NullL)))
 >   check <- maybeP (do
 >                     keyword "check"
 >                     expr)
->   return $ AttributeDef name typ check
+>   return $ if isJust nl
+>              then AttributeDef name typ nl
+>              else AttributeDef name typ check
 
 > selQuerySpec :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > selQuerySpec = do
@@ -281,9 +291,8 @@ Statement components
 expressions
 
 > expr :: Parser Expression
-> expr =
->   buildExpressionParser table factor
->   <?> "expression"
+> expr = buildExpressionParser table factor
+>        <?> "expression"
 
 > factor :: GenParser Char () Expression
 > factor  = try scalarSubQuery
@@ -305,15 +314,18 @@ expressions
 
 >   -- Specifies operator, associativity, precendence, and constructor to execute
 >   -- and built AST with.
-> table :: [[Operator Char u Expression]]
+
+> table :: [[Operator [Char] u Identity Expression]]
 > table =
 >       [[--prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))
->         prefix "not" (BinaryOperatorCall Not (BooleanL True))]
+>         prefix "not" (BinaryOperatorCall Not (NullL))]
 >       ,[binary "^" (BinaryOperatorCall Pow) AssocRight]
 >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
 >        ,binary "/" (BinaryOperatorCall Div) AssocLeft
 >        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
 >        ,binary "like" (BinaryOperatorCall Like) AssocLeft
+>        ,postfix "is not null" (BinaryOperatorCall IsNotNull (NullL))
+>        ,postfix "is null" (BinaryOperatorCall IsNull (NullL))
 >        ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
 >       ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
 >        ,binary "-" (BinaryOperatorCall Minus) AssocLeft
@@ -325,6 +337,8 @@ expressions
 >          = Infix (try (symbol s >> return f))
 >       prefix s f
 >          = Prefix (try (symbol s >> return f))
+>       postfix s f
+>          = Postfix (try (symbol s >> return f))
 >
 
 > inPredicate :: Text.Parsec.Prim.ParsecT String () Identity Expression

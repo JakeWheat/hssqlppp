@@ -162,58 +162,58 @@ select new_module('piece_prototypes', 'server');
 create domain ranged_weapon_type as text
   check (value in ('projectile', 'fire'));
 
--- create table piece_prototypes_mr (
---   ptype text not null,
---   flying boolean null,
---   speed int null,
---   agility int null,
---   undead boolean null,
---   ridable boolean null,
---   ranged_weapon_type ranged_weapon_type null,
---   range int null,
---   ranged_attack_strength int null,
---   attack_strength int null,
---   physical_defense int null,
---   magic_defense int null
--- );
--- select add_key('piece_prototypes_mr', 'ptype');
--- select set_relvar_type('piece_prototypes_mr', 'readonly');
+create table piece_prototypes_mr (
+  ptype text not null,
+  flying boolean null,
+  speed int null,
+  agility int null,
+  undead boolean null,
+  ridable boolean null,
+  ranged_weapon_type ranged_weapon_type null,
+  range int null,
+  ranged_attack_strength int null,
+  attack_strength int null,
+  physical_defense int null,
+  magic_defense int null
+);
+select add_key('piece_prototypes_mr', 'ptype');
+select set_relvar_type('piece_prototypes_mr', 'readonly');
 
--- create view piece_prototypes as
---   select ptype from piece_prototypes_mr;
+create view piece_prototypes as
+  select ptype from piece_prototypes_mr;
 
--- create view creature_prototypes as
---   select ptype, flying, speed, agility
---     from piece_prototypes_mr
---     where flying is not null
---     and speed is not null
---      and agility is not null;
+create view creature_prototypes as
+  select ptype, flying, speed, agility
+    from piece_prototypes_mr
+    where flying is not null
+    and speed is not null
+     and agility is not null;
 
--- create view monster_prototypes as
---   select ptype, flying, speed, agility, undead, ridable
---     from piece_prototypes_mr
---     where undead is not null and ridable is not null;
+create view monster_prototypes as
+  select ptype, flying, speed, agility, undead, ridable
+    from piece_prototypes_mr
+    where undead is not null and ridable is not null;
 
--- create view object_piece_types as
---   select ptype from piece_prototypes_mr where speed is null;
+create view object_piece_types as
+  select ptype from piece_prototypes_mr where speed is null;
 
--- create view ridable_prototypes as
---   select ptype from piece_prototypes_mr
---     where ridable;
+create view ridable_prototypes as
+  select ptype from piece_prototypes_mr
+    where ridable;
 
--- create view enterable_piece_types as
---   select 'magic_tree'::text as ptype
---   union
---   select 'magic_castle'
---   union
---   select 'dark_citadel';
--- /*
--- === data
+create view enterable_piece_types as
+  select 'magic_tree'::text as ptype
+  union
+  select 'magic_castle'
+  union
+  select 'dark_citadel';
+/*
+=== data
 
--- TODO: find a way to represent data like this in the source in a much
--- more readable format.
+TODO: find a way to represent data like this in the source in a much
+more readable format.
 
--- */
+*/
 
 
 -- copy piece_prototypes_mr(ptype,flying,speed,agility,undead,ridable,

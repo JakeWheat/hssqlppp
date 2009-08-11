@@ -160,6 +160,8 @@ plpgsql
 > convExp (FunctionCall i as) = text i <> parens (hcatCsvMap convExp as)
 > convExp (BinaryOperatorCall op a b) = case op of
 >                                       Not -> parens (text (opToSymbol op) <+> convExp b)
+>                                       IsNull -> parens (convExp b <+> text "is null")
+>                                       IsNotNull -> parens (convExp b <+> text "is not null")
 >                                       _ -> parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
 > convExp (InPredicate att expr) = text att <+> text "in" <+> parens (hcatCsvMap convExp expr)

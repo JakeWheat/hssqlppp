@@ -52,7 +52,8 @@ Statement components
 
 Expressions
 
-> data Op = Plus | Minus | Mult | Div | Pow | Mod | Eql | And | Conc | Like | Not
+> data Op = Plus | Minus | Mult | Div | Pow | Mod | Eql
+>         | And | Conc | Like | Not | IsNull | IsNotNull
 >           deriving (Show,Eq)
 
 > opToSymbol :: Op -> String
@@ -68,6 +69,8 @@ Expressions
 >                         Conc -> "||"
 >                         Like -> "like"
 >                         Not -> "not"
+>                         IsNull -> "is null"
+>                         IsNotNull -> "is not null"
 
 > data Expression = BinaryOperatorCall Op Expression Expression
 >                 | IntegerL Integer
