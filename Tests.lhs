@@ -184,6 +184,19 @@
 >                                      [VarDef "a" "int"]
 >                                      [NullStatement])]
 >                       ]
+>        ,testGroup "plpgsqlStatements" [
+>                        checkParse "success := true;"
+>                                    [Assignment "success" (BooleanL True)]
+>                       ,checkParse "return true;"
+>                                    [Return (BooleanL True)]
+>                       ,checkParse "raise notice 'stuff %', 1;"
+>                                    [Raise RNotice "stuff %" [IntegerL 1]]
+>                       ,checkParse "for r in select a from tbl loop\n\
+>                                   \null;\n\
+>                                   \end loop;"
+>                                    [ForStatement "r" (Select (SelectList ["a"]) "tbl" Nothing)
+>                                         [NullStatement]]
+>                       ]
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp
 >        ]

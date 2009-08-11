@@ -14,7 +14,11 @@ SQL top level statements
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)
 >                | CreateFunction String [ParamDef] String [VarDef] [Statement]
+>                | Assignment String Expression
+>                | Return Expression
+>                | Raise RaiseType String [Expression]
 >                | NullStatement
+>                | ForStatement String Statement [Statement]
 >                  deriving (Eq,Show)
 
 ================================================================================
@@ -38,6 +42,9 @@ Statement components
 
 > data VarDef = VarDef String String
 >                     deriving (Eq,Show)
+
+> data RaiseType = RNotice | RError
+>                  deriving (Eq, Show)
 
 ================================================================================
 

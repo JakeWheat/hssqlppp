@@ -45,15 +45,19 @@ Parsing top level statements
 > statement :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
 > statement = do
 >   s <- (
->         genSelect
->         <|> insert
->         <|> update
->         <|> delete
->         <|> (do
+>         try genSelect
+>         <|> try insert
+>         <|> try update
+>         <|> try delete
+>         <|> try (do
 >               keyword "create"
 >               (createTable
 >                <|> createFunction
 >                <|> createView))
+>         <|> try assignment
+>         <|> try returnSt
+>         <|> try raise
+>         <|> try forStatement
 >         <|> nullStatement)
 >   semi
 >   return s
@@ -141,10 +145,47 @@ statement types
 >   keyword "null"
 >   return NullStatement
 
+> forStatement :: GenParser Char () Statement
+> forStatement = do
+>   keyword "for"
+>   i <- identifierString
+>   keyword "in"
+>   st <- genSelect
+>   keyword "loop"
+>   stmts <- many statement
+>   keyword "end"
+>   keyword "loop"
+>   return $ ForStatement i st stmts
+
 > selExpression :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
 > selExpression = do
 >   e <- expr
 >   return $ SelectE e
+
+plpgsql stements
+
+> assignment :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> assignment = do
+>   n <- identifierString
+>   symbol ":="
+>   ex <- expr
+>   return $ Assignment n ex
+
+> returnSt :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> returnSt = do
+>   keyword "return"
+>   ex <- expr
+>   return $ Return ex
+
+> raise :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> raise = do
+>   keyword "raise"
+>   keyword "notice"
+>   s <- stringPar
+>   exps <- maybeP (do
+>                    symbol ","
+>                    commaSep expr)
+>   return $ Raise RNotice s (fromMaybe [] exps)
 
 Statement components
 
@@ -276,10 +317,15 @@ expressions
 
 > stringLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > stringLiteral = do
+>   liftM StringL stringPar
+
+> stringPar :: Text.Parsec.Prim.ParsecT String u Identity String
+> stringPar = do
 >   char '\''
 >   name <- many (noneOf "'")
 >   lexeme $ char '\''
->   return $ StringL name
+>   return name
+
 
 > functionCall :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > functionCall = do

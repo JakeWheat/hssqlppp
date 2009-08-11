@@ -63,14 +63,41 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ text "end;"
 >     $+$ text "$$ language plpgsql volatile" <> statementEnd
 
-> convStatement NullStatement = text "null" <> statementEnd
-
 > convStatement (CreateView name sel) =
 >     text "create view" <+> text name <+> text "as"
 >     $+$ (nest 2 (convSelectFragment sel)) <> statementEnd
 
+plpgsql
+
+> convStatement NullStatement = text "null" <> statementEnd
+
+> convStatement (Assignment name val) =
+>     text name <+> text ":=" <+> convExp val <> statementEnd
+
+> convStatement (Return ex) =
+>     text "return" <+> convExp ex <> statementEnd
+
+> convStatement (Raise rt st exps) =
+>     text "raise"
+>     <+> case rt of
+>                 RNotice -> text "notice"
+>                 RError -> text "error"
+>     <+> quotes (text st)
+>     <> (if not (null exps)
+>          then do
+>            comma
+>            <+> hcatCsvMap convExp exps
+>          else empty)
+>     <> statementEnd
+
+> convStatement (ForStatement i sel stmts) =
+>     text "for" <+> text i <+> text "in" <+> convSelectFragment sel <+> text "loop"
+>     $+$ (nest 2 (vcat $ map convStatement stmts))
+>     $+$ text "end loop" <> statementEnd
+
 > statementEnd :: Doc
 > statementEnd = semi <> newline
+
 
 = Statement components
 
