@@ -18,6 +18,32 @@
 > import PrettyPrinter
 
 
+> x = "create function protect_readonly_relvars() returns void as $$\n\
+> \declare\n\
+> \  r record;\n\
+> \begin\n\
+> \  for r in select relvar_name, type\n\
+> \           from base_relvar_metadata\n\
+> \           loop\n\
+> \  --for r in select relvar_name, type\n\
+> \  --         from base_relvar_metadata\n\
+> \  --         where type='readonly' loop\n\
+> \    perform create_update_transition_tuple_constraint(\n\
+> \      r.relvar_name, r.relvar_name || '_u_readonly', 'false');\n\
+> \    perform create_delete_transition_tuple_constraint(\n\
+> \      r.relvar_name, r.relvar_name || '_d_readonly', 'false');\n\
+> \    perform create_insert_transition_tuple_constraint(\n\
+> \      r.relvar_name, r.relvar_name || '_i_readonly', 'false');\n\
+> \    -- get module\n\
+> \    perform set_module_for_preceding_objects(\n\
+> \    (select module_name from module_objects\n\
+> \          where object_type = 'base_relvar'\n\
+> \            and object_name = r.relvar_name));\n\
+> \  end loop;\n\
+> \end;\n\
+> \$$ language plpgsql volatile;"
+
+
 > main :: IO ()
 > main =
 >   defaultMain [
@@ -204,8 +230,22 @@
 >                                   \end loop;"
 >                                    [ForStatement "r" (Select (SelectList ["a"]) "tbl" Nothing)
 >                                         [NullStatement]]
+>                       ,checkParse "for r in select a from tbl where true loop\n\
+>                                   \null;\n\
+>                                   \end loop;"
+>                                    [ForStatement "r" (Select (SelectList ["a"]) "tbl"
+>                                                         (Just $ Where $ BooleanL True))
+>                                         [NullStatement]]
 >                       ,checkParse "perform test();"
 >                                    [Perform $ FunctionCall "test" []]
+>                       ,checkParse "perform test(a,b);"
+>                                    [Perform $ FunctionCall "test" [Identifier "a", Identifier "b"]]
+>                       ,checkParse "perform test(r.relvar_name || '_and_stuff');"
+>                                    [Perform $ FunctionCall "test" [
+>                                       BinaryOperatorCall Conc (QualifiedIdentifier
+>                                                                  "r" "relvar_name")
+>                                                               (StringL "_and_stuff")]]
+
 >                       ]
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp

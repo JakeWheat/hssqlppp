@@ -45,7 +45,7 @@ Parsing top level statements
 > statement :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > statement = do
 >   s <- (
->         try genSelect
+>         try select
 >         <|> try insert
 >         <|> try update
 >         <|> try delete
@@ -99,21 +99,26 @@ statement types
 >   atts <- parens $ commaSep1 tableAtt
 >   return $ CreateTable n atts
 
-> genSelect :: Text.Parsec.Prim.ParsecT String () Identity Statement
-> genSelect =
->   try exceptSelect <|> select
+ > genSelect :: Text.Parsec.Prim.ParsecT String () Identity Statement
+ > genSelect =
+ >   try exceptSelect <|> select
 
 > select :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > select = do
 >   keyword "select"
->   (try selQuerySpec <|> selExpression)
+>   s1 <- (try selQuerySpec <|> selExpression)
+>   (do
+>     (try (do keyword "except"
+>              s2 <- select
+>              return $ ExceptSelect s1 s2))
+>     <|> (return s1))
 
-> exceptSelect :: Text.Parsec.Prim.ParsecT String () Identity Statement
-> exceptSelect = do
->   s1 <- select
->   keyword "except"
->   s2 <- select
->   return $ ExceptSelect s1 s2
+ > exceptSelect :: Text.Parsec.Prim.ParsecT String () Identity Statement
+ > exceptSelect = do
+ >   s1 <- select
+ >   keyword "except"
+ >   s2 <- select
+ >   return $ ExceptSelect s1 s2
 
 > createFunction :: GenParser Char () Statement
 > createFunction = do
@@ -136,7 +141,7 @@ statement types
 >   keyword "view"
 >   vName <- identifierString
 >   keyword "as"
->   sel <- genSelect
+>   sel <- select
 >   return $ CreateView vName sel
 
 > nullStatement :: Text.Parsec.Prim.ParsecT String u Identity Statement
@@ -149,7 +154,7 @@ statement types
 >   keyword "for"
 >   i <- identifierString
 >   keyword "in"
->   st <- genSelect
+>   st <- select
 >   keyword "loop"
 >   stmts <- many statement
 >   keyword "end"
@@ -234,6 +239,7 @@ Statement components
 > whereClause = do
 >   keyword "where"
 >   ex <- expr
+>   --maybeP $ lookAhead $ keyword "loop"
 >   return $ Where ex
 
 > tableAtt :: Text.Parsec.Prim.ParsecT String () Identity AttributeDef
@@ -254,6 +260,7 @@ Statement components
 >   keyword "from"
 >   tb <- identifierString
 >   wh <- maybeP whereClause
+>   --maybeP $ lookAhead $ keyword "loop"
 >   return $ Select sl tb wh
 
 > selectList :: Text.Parsec.Prim.ParsecT String () Identity SelectList
@@ -277,12 +284,12 @@ expressions
 >           <|> try inPredicate
 >           <|> try functionCall
 >           <|> try qualifiedIdentifier
->           <|> identifier
+>           <|> try identifier
 >           <?> "simple expression"
 
 > scalarSubQuery :: GenParser Char () Expression
 > scalarSubQuery = do
->   x <- parens genSelect
+>   x <- parens select
 >   return $ ScalarSubQuery x
 
 >   -- Specifies operator, associativity, precendence, and constructor to execute
@@ -317,7 +324,12 @@ expressions
 >   return $ InPredicate vexp e
 
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
-> identifier = liftM Identifier identifierString
+> identifier = do
+>   -- (do
+>   --  try (keyword "loop")
+>   --  fail "loop not valid")
+>   -- <|> 
+>   liftM Identifier identifierString
 
 > qualifiedIdentifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > qualifiedIdentifier = do
@@ -350,6 +362,7 @@ expressions
 > functionCall :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > functionCall = do
 >   name <- identifierString
+>   --when (name=="loop") $ fail "loop not valid"
 >   args <- parens $ commaSep expr
 >   return $ FunctionCall name args
 
@@ -403,6 +416,7 @@ pass through stuff from parsec
 > lexer :: P.GenTokenParser String u Identity
 > lexer = P.makeTokenParser (haskellDef
 >                            { reservedOpNames = ["*","/","+","-"],
+>                              --reservedNames = ["loop"],
 >                              commentStart = "/*",
 >                              commentEnd = "*/",
 >                              commentLine = "--"

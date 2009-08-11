@@ -83,27 +83,27 @@ how they are implemented). This might catch some programming error.
 
  */
 
-create function protect_readonly_relvars() returns void as $$
-declare
-  r record;
-begin
-  for r in select relvar_name, type
-           from base_relvar_metadata
-           where type='readonly' loop
-    perform create_update_transition_tuple_constraint(
-      r.relvar_name, r.relvar_name || '_u_readonly', 'false');
-    perform create_delete_transition_tuple_constraint(
-      r.relvar_name, r.relvar_name || '_d_readonly', 'false');
-    perform create_insert_transition_tuple_constraint(
-      r.relvar_name, r.relvar_name || '_i_readonly', 'false');
-    -- get module
-    perform set_module_for_preceding_objects(
-    (select module_name from module_objects
-          where object_type = 'base_relvar'
-            and object_name = r.relvar_name));
-  end loop;
-end;
-$$ language plpgsql volatile;
+-- create function protect_readonly_relvars() returns void as $$
+-- declare
+--   r record;
+-- begin
+--   for r in select relvar_name, type
+--            from base_relvar_metadata
+--            where type='readonly' loop
+--     perform create_update_transition_tuple_constraint(
+--       r.relvar_name, r.relvar_name || '_u_readonly', 'false');
+--     perform create_delete_transition_tuple_constraint(
+--       r.relvar_name, r.relvar_name || '_d_readonly', 'false');
+--     perform create_insert_transition_tuple_constraint(
+--       r.relvar_name, r.relvar_name || '_i_readonly', 'false');
+--     -- get module
+--     perform set_module_for_preceding_objects(
+--     (select module_name from module_objects
+--           where object_type = 'base_relvar'
+--             and object_name = r.relvar_name));
+--   end loop;
+-- end;
+-- $$ language plpgsql volatile;
 
 /*
 
@@ -120,100 +120,100 @@ to listen from haskell yet so is unused at the moment.
 
 */
 
-create function set_notifies_on_all_data_tables() returns void as $$
-declare
-  r record;
-begin
-  for r in select relvar_name from base_relvar_metadata where type='data'
-  except
-  select relvar_name from triggers where trigger_name like '%_changed' loop
-    perform notify_on_changed(r.relvar_name);
-  end loop;
-end;
-$$ language plpgsql volatile;
+-- create function set_notifies_on_all_data_tables() returns void as $$
+-- declare
+--   r record;
+-- begin
+--   for r in select relvar_name from base_relvar_metadata where type='data'
+--   except
+--   select relvar_name from triggers where trigger_name like '%_changed' loop
+--     perform notify_on_changed(r.relvar_name);
+--   end loop;
+-- end;
+-- $$ language plpgsql volatile;
 
 select set_module_for_preceding_objects('metadata');
 
--- /*
--- ================================================================================
+/*
+================================================================================
 
--- = read only data
+= read only data
 
--- This section defines all the constant data which doesn't change either
--- during a game or from one game to the next. These are the piece
--- prototypes, and the spells.
+This section defines all the constant data which doesn't change either
+during a game or from one game to the next. These are the piece
+prototypes, and the spells.
 
--- == piece prototypes
+== piece prototypes
 
--- === ddl
+=== ddl
 
--- Each type of piece starts with the same stats. Once a piece is on the
--- board, some of these stats can be changed.
+Each type of piece starts with the same stats. Once a piece is on the
+board, some of these stats can be changed.
 
--- So - use a kind of prototype system.  The template for each creature
--- is held in a read only table, and when a new creature is created on
--- the board, its stats are copied from this table, and then they can
--- change if needed.
+So - use a kind of prototype system.  The template for each creature
+is held in a read only table, and when a new creature is created on
+the board, its stats are copied from this table, and then they can
+change if needed.
 
--- */
--- select new_module('piece_prototypes', 'server');
+*/
+select new_module('piece_prototypes', 'server');
 
--- --creature ranged weapons can be either projectiles or fireballs
--- create domain ranged_weapon_type as text
---   check (value in ('projectile', 'fire'));
+--creature ranged weapons can be either projectiles or fireballs
+create domain ranged_weapon_type as text
+  check (value in ('projectile', 'fire'));
 
--- create table piece_prototypes_mr (
---   ptype text not null,
---   flying boolean null,
---   speed int null,
---   agility int null,
---   undead boolean null,
---   ridable boolean null,
---   ranged_weapon_type ranged_weapon_type null,
---   range int null,
---   ranged_attack_strength int null,
---   attack_strength int null,
---   physical_defense int null,
---   magic_defense int null
--- );
--- select add_key('piece_prototypes_mr', 'ptype');
--- select set_relvar_type('piece_prototypes_mr', 'readonly');
+create table piece_prototypes_mr (
+  ptype text not null,
+  flying boolean null,
+  speed int null,
+  agility int null,
+  undead boolean null,
+  ridable boolean null,
+  ranged_weapon_type ranged_weapon_type null,
+  range int null,
+  ranged_attack_strength int null,
+  attack_strength int null,
+  physical_defense int null,
+  magic_defense int null
+);
+select add_key('piece_prototypes_mr', 'ptype');
+select set_relvar_type('piece_prototypes_mr', 'readonly');
 
--- create view piece_prototypes as
---   select ptype from piece_prototypes_mr;
+create view piece_prototypes as
+  select ptype from piece_prototypes_mr;
 
--- create view creature_prototypes as
---   select ptype, flying, speed, agility
---     from piece_prototypes_mr
---     where flying is not null
---     and speed is not null
---      and agility is not null;
+create view creature_prototypes as
+  select ptype, flying, speed, agility
+    from piece_prototypes_mr
+    where flying is not null
+    and speed is not null
+     and agility is not null;
 
--- create view monster_prototypes as
---   select ptype, flying, speed, agility, undead, ridable
---     from piece_prototypes_mr
---     where undead is not null and ridable is not null;
+create view monster_prototypes as
+  select ptype, flying, speed, agility, undead, ridable
+    from piece_prototypes_mr
+    where undead is not null and ridable is not null;
 
--- create view object_piece_types as
---   select ptype from piece_prototypes_mr where speed is null;
+create view object_piece_types as
+  select ptype from piece_prototypes_mr where speed is null;
 
--- create view ridable_prototypes as
---   select ptype from piece_prototypes_mr
---     where ridable;
+create view ridable_prototypes as
+  select ptype from piece_prototypes_mr
+    where ridable;
 
--- create view enterable_piece_types as
---   select 'magic_tree'::text as ptype
---   union
---   select 'magic_castle'
---   union
---   select 'dark_citadel';
--- /*
--- === data
+create view enterable_piece_types as
+  select 'magic_tree'::text as ptype
+  union
+  select 'magic_castle'
+  union
+  select 'dark_citadel';
+/*
+=== data
 
--- TODO: find a way to represent data like this in the source in a much
--- more readable format.
+TODO: find a way to represent data like this in the source in a much
+more readable format.
 
--- */
+*/
 
 
 -- copy piece_prototypes_mr(ptype,flying,speed,agility,undead,ridable,
