@@ -327,28 +327,30 @@ expressions
 > table :: [[Operator [Char] u Identity Expression]]
 > table =
 >       [[--prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))
->         prefix "not" (BinaryOperatorCall Not (NullL))]
+>         prefixk "not" (BinaryOperatorCall Not (NullL))]
 >       ,[binary "::" (BinaryOperatorCall Cast) AssocLeft
 >        ,binary "^" (BinaryOperatorCall Pow) AssocRight]
 >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
 >        ,binary "/" (BinaryOperatorCall Div) AssocLeft
 >        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
 >        ,binary "like" (BinaryOperatorCall Like) AssocLeft
->        ,postfix "is not null" (BinaryOperatorCall IsNotNull (NullL))
->        ,postfix "is null" (BinaryOperatorCall IsNull (NullL))
+>        ,postfixk "is not null" (BinaryOperatorCall IsNotNull (NullL))
+>        ,postfixk "is null" (BinaryOperatorCall IsNull (NullL))
 >        ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
 >       ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
 >        ,binary "-" (BinaryOperatorCall Minus) AssocLeft
->        ,binary "and" (BinaryOperatorCall And) AssocLeft
+>        ,binaryk "and" (BinaryOperatorCall And) AssocLeft
 >        ,binary "||" (BinaryOperatorCall Conc) AssocLeft]
 >       ]
 >     where
 >       binary s f
 >          = Infix (try (symbol s >> return f))
->       prefix s f
->          = Prefix (try (symbol s >> return f))
->       postfix s f
->          = Postfix (try (symbol s >> return f))
+>       binaryk s f
+>          = Infix (try (keyword s >> return f))
+>       prefixk s f
+>          = Prefix (try (keyword s >> return f))
+>       postfixk s f
+>          = Postfix (try (keyword s >> return f))
 >
 
 > inPredicate :: Text.Parsec.Prim.ParsecT String () Identity Expression
