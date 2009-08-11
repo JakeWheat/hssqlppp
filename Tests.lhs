@@ -17,7 +17,6 @@
 > import Parser
 > import PrettyPrinter
 
-
 > x = "create function protect_readonly_relvars() returns void as $$\n\
 > \declare\n\
 > \  r record;\n\
@@ -85,6 +84,9 @@
 >                       ,checkParseExpression "fn('test')" (FunctionCall "fn" [StringL "test"])
 >                       ,checkParseExpression "'a' || 'b'" (BinaryOperatorCall Conc (StringL "a")
 >                                                           (StringL "b"))
+>                       ,checkParseExpression "null" (NullL)
+>                       ,checkParseExpression "not null" (BinaryOperatorCall Not (BooleanL True) (NullL))
+
 >                       ]
 >        ,testGroup "select expression" [
 >                        checkParse "select 1;" [(SelectE $ IntegerL 1)]
@@ -193,7 +195,14 @@
 >                                    \select a,b from t;"
 >                                    [(CreateView "v1"
 >                                        (Select (SelectList ["a","b"]) "t" Nothing))]
+>                        ,checkParse "create domain td as text check (value in ('t1', 't2'));"
+>                                    [(CreateDomain "td" "text"
+>                                        (Just (InPredicate
+>                                               "value"
+>                                               [StringL "t1"
+>                                               ,StringL "t2"])))]
 >                        ]
+
 >        ,testGroup "functions" [
 >                         checkParse "create function fn() returns void as $$\n\
 >                                    \declare\n\

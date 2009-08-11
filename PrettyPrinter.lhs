@@ -67,6 +67,10 @@ Conversion routines - convert Sql asts into Docs
 >     text "create view" <+> text name <+> text "as"
 >     $+$ nest 2 (convSelectFragment sel) <> statementEnd
 
+> convStatement (CreateDomain name tp ex) =
+>     text "create domain" <+> text name <+> text "as"
+>     <+> text tp <+> checkExp ex <> statementEnd
+
 plpgsql
 
 > convStatement NullStatement = text "null" <> statementEnd
@@ -133,9 +137,12 @@ plpgsql
 
 > convAttDef :: AttributeDef -> Doc
 > convAttDef (AttributeDef n t ch) = text n <+> text t
->                                    <+> case ch of
->                                          Nothing -> empty
->                                          Just e -> text "check" <+> convExp e
+>                                    <+> checkExp ch
+
+> checkExp :: Maybe Expression -> Doc
+> checkExp c = case c of
+>                       Nothing -> empty
+>                       Just e -> text "check" <+> convExp e
 
 > convParamDef :: ParamDef -> Doc
 > convParamDef (ParamDef n t) = text n <+> text t
@@ -151,10 +158,13 @@ plpgsql
 > convExp (IntegerL n) = integer n
 > convExp (StringL s) = quotes $ text s
 > convExp (FunctionCall i as) = text i <> parens (hcatCsvMap convExp as)
-> convExp (BinaryOperatorCall op a b) = parens (convExp a <+> text (opToSymbol op) <+> convExp b)
+> convExp (BinaryOperatorCall op a b) = case op of
+>                                       Not -> parens (text (opToSymbol op) <+> convExp b)
+>                                       _ -> parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
 > convExp (InPredicate att expr) = text att <+> text "in" <+> parens (hcatCsvMap convExp expr)
 > convExp (ScalarSubQuery s) = parens (convSelectFragment s)
+> convExp NullL = text "null"
 
 = Utils
 

@@ -14,6 +14,7 @@ SQL top level statements
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)
 >                | CreateFunction String [ParamDef] String [VarDef] [Statement]
+>                | CreateDomain String String (Maybe Expression)
 >                | Assignment String Expression
 >                | Return Expression
 >                | Raise RaiseType String [Expression]
@@ -51,8 +52,8 @@ Statement components
 
 Expressions
 
-> data Op = Plus | Minus | Mult | Div | Pow | Mod | Neg | Eql | And | Conc | Like
->   deriving (Show,Eq)
+> data Op = Plus | Minus | Mult | Div | Pow | Mod | Eql | And | Conc | Like | Not
+>           deriving (Show,Eq)
 
 > opToSymbol :: Op -> String
 > opToSymbol op = case op of
@@ -62,21 +63,22 @@ Expressions
 >                         Div -> "/"
 >                         Pow -> "^"
 >                         Mod -> "%"
->                         Neg -> "-"
 >                         Eql -> "="
 >                         And -> "and"
 >                         Conc -> "||"
 >                         Like -> "like"
+>                         Not -> "not"
 
 > data Expression = BinaryOperatorCall Op Expression Expression
->            | IntegerL Integer
->            | StringL String
->            | BooleanL Bool
->            | Identifier String
->            | QualifiedIdentifier String String
->            | InPredicate String [Expression]
->            | FunctionCall String [Expression]
->            | ScalarSubQuery Statement
->   deriving (Show,Eq)
+>                 | IntegerL Integer
+>                 | StringL String
+>                 | NullL
+>                 | BooleanL Bool
+>                 | Identifier String
+>                 | QualifiedIdentifier String String
+>                 | InPredicate String [Expression]
+>                 | FunctionCall String [Expression]
+>                 | ScalarSubQuery Statement
+>                   deriving (Show,Eq)
 
 

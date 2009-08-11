@@ -53,7 +53,8 @@ Parsing top level statements
 >               keyword "create"
 >               (createTable
 >                <|> createFunction
->                <|> createView))
+>                <|> createView
+>                <|> createDomain))
 >         <|> try assignment
 >         <|> try returnSt
 >         <|> try raise
@@ -143,6 +144,17 @@ statement types
 >   keyword "as"
 >   sel <- select
 >   return $ CreateView vName sel
+
+> createDomain :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> createDomain = do
+>   keyword "domain"
+>   nm <- identifierString
+>   keyword "as"
+>   tp <- identifierString
+>   check <- maybeP (do
+>                     keyword "check"
+>                     expr)
+>   return $ CreateDomain nm tp check
 
 > nullStatement :: Text.Parsec.Prim.ParsecT String u Identity Statement
 > nullStatement = do
@@ -239,7 +251,6 @@ Statement components
 > whereClause = do
 >   keyword "where"
 >   ex <- expr
->   --maybeP $ lookAhead $ keyword "loop"
 >   return $ Where ex
 
 > tableAtt :: Text.Parsec.Prim.ParsecT String () Identity AttributeDef
@@ -260,7 +271,6 @@ Statement components
 >   keyword "from"
 >   tb <- identifierString
 >   wh <- maybeP whereClause
->   --maybeP $ lookAhead $ keyword "loop"
 >   return $ Select sl tb wh
 
 > selectList :: Text.Parsec.Prim.ParsecT String () Identity SelectList
@@ -282,6 +292,7 @@ expressions
 >           <|> integer
 >           <|> try booleanLiteral
 >           <|> try inPredicate
+>           <|> try nullL
 >           <|> try functionCall
 >           <|> try qualifiedIdentifier
 >           <|> try identifier
@@ -296,9 +307,9 @@ expressions
 >   -- and built AST with.
 > table :: [[Operator Char u Expression]]
 > table =
->       [ --[prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))]
->       --,
->        [binary "^" (BinaryOperatorCall Pow) AssocRight]
+>       [[--prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))
+>         prefix "not" (BinaryOperatorCall Not (BooleanL True))]
+>       ,[binary "^" (BinaryOperatorCall Pow) AssocRight]
 >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
 >        ,binary "/" (BinaryOperatorCall Div) AssocLeft
 >        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
@@ -311,9 +322,9 @@ expressions
 >       ]
 >     where
 >       binary s f
->          = Infix (symbol s >> return f)
->       --prefix s f
->       --   = Prefix (symbol s >> return f)
+>          = Infix (try (symbol s >> return f))
+>       prefix s f
+>          = Prefix (try (symbol s >> return f))
 >
 
 > inPredicate :: Text.Parsec.Prim.ParsecT String () Identity Expression
@@ -323,13 +334,13 @@ expressions
 >   e <- parens $ commaSep1 expr
 >   return $ InPredicate vexp e
 
+> nullL :: Text.Parsec.Prim.ParsecT String u Identity Expression
+> nullL = do
+>   keyword "null"
+>   return NullL
+
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
-> identifier = do
->   -- (do
->   --  try (keyword "loop")
->   --  fail "loop not valid")
->   -- <|> 
->   liftM Identifier identifierString
+> identifier = liftM Identifier identifierString
 
 > qualifiedIdentifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > qualifiedIdentifier = do
@@ -362,7 +373,6 @@ expressions
 > functionCall :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > functionCall = do
 >   name <- identifierString
->   --when (name=="loop") $ fail "loop not valid"
 >   args <- parens $ commaSep expr
 >   return $ FunctionCall name args
 
@@ -416,7 +426,6 @@ pass through stuff from parsec
 > lexer :: P.GenTokenParser String u Identity
 > lexer = P.makeTokenParser (haskellDef
 >                            { reservedOpNames = ["*","/","+","-"],
->                              --reservedNames = ["loop"],
 >                              commentStart = "/*",
 >                              commentEnd = "*/",
 >                              commentLine = "--"
