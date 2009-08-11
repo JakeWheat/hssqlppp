@@ -13,7 +13,7 @@ SQL top level statements
 >                | Insert String [String] [Expression]
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)
->                | CreateFunction String [ParamDef] String [Statement]
+>                | CreateFunction String [ParamDef] String [VarDef] [Statement]
 >                | NullStatement
 >                  deriving (Eq,Show)
 
@@ -34,6 +34,9 @@ Statement components
 >                     deriving (Eq,Show)
 
 > data ParamDef = ParamDef String String
+>                     deriving (Eq,Show)
+
+> data VarDef = VarDef String String
 >                     deriving (Eq,Show)
 
 ================================================================================

@@ -17,14 +17,6 @@
 > import Parser
 > import PrettyPrinter
 
-> x = "--create view chaos_base_relvars as\n\
->   \select object_name,object_type from public_database_objects\n\
->   \where object_type = 'base_relvar'\n\
->   \except\n\
->   \      select object_name,object_type from module_objects\n\
->   \      where module_name = 'catalog' and object_type='base_relvar';"
-
-
 > main :: IO ()
 > main = do
 >   defaultMain [
@@ -163,17 +155,35 @@
 >                                                               "type"
 >                                                               [StringL "a"
 >                                                               ,StringL "b"]))])]
->                        ,checkParse "create function fn() returns void as $$\n\
->                                    \begin\n\
->                                    \  null;\n\
->                                    \end;\n\
->                                    \$$ language plpgsql volatile;"
->                                    [(CreateFunction "fn" [] "void" [NullStatement])]
 >                        ,checkParse "create view v1 as\n\
 >                                    \select a,b from t;"
 >                                    [(CreateView "v1"
 >                                        (Select (SelectList ["a","b"]) "t" Nothing))]
 >                        ]
+>        ,testGroup "functions" [
+>                         checkParse "create function fn() returns void as $$\n\
+>                                    \declare\n\
+>                                    \  a int;\n\
+>                                    \  b text;\n\
+>                                    \begin\n\
+>                                    \  null;\n\
+>                                    \end;\n\
+>                                    \$$ language plpgsql volatile;"
+>                                    [(CreateFunction "fn" [] "void"
+>                                      [VarDef "a" "int"
+>                                      ,VarDef "b" "text"]
+>                                      [NullStatement])]
+>                        ,checkParse "create function fn() returns void as $$\n\
+>                                    \declare\n\
+>                                    \  a int;\n\
+>                                    \begin\n\
+>                                    \  null;\n\
+>                                    \end;\n\
+>                                    \$$ language plpgsql volatile;"
+>                                    [(CreateFunction "fn" [] "void"
+>                                      [VarDef "a" "int"]
+>                                      [NullStatement])]
+>                       ]
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp
 >        ]

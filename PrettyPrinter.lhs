@@ -49,10 +49,15 @@ Conversion routines - convert Sql asts into Docs
 >                                 <+> convWhere wh
 >                                 <> statementEnd
 
-> convStatement (CreateFunction name args retType stmts) =
+> convStatement (CreateFunction name args retType decls stmts) =
 >     text "create function" <+> text name
 >     <+> parens (hcatCsvMap convParamDef args)
 >     <+> text "returns" <+> text retType <+> text "as" <+> text "$$"
+>     <> (if not (null decls)
+>           then
+>             text "" $+$ text "declare"
+>             $+$ nest 2 (hcat $ map convVarDef decls)
+>           else empty)
 >     $+$ text "begin"
 >     $+$ (nest 2 (vcat $ map convStatement stmts))
 >     $+$ text "end;"
@@ -103,6 +108,9 @@ Conversion routines - convert Sql asts into Docs
 > convParamDef :: ParamDef -> Doc
 > convParamDef (ParamDef n t) = text n <+> text t
 
+> convVarDef :: VarDef -> Doc
+> convVarDef (VarDef n t) = text n <+> text t <+> semi
+
 = Expressions
 
 > convExp :: Expression -> Doc
@@ -124,7 +132,6 @@ Conversion routines - convert Sql asts into Docs
 
 > hcatCsvMap :: (a -> Doc) -> [a] -> Doc
 > hcatCsvMap ex l = hcatCsv (map ex l)
-
 
 > bool :: Bool -> Doc
 > bool b = case b of

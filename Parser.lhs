@@ -6,6 +6,7 @@
 > import qualified Text.Parsec.Prim
 > import Control.Monad.Identity
 > import Text.ParserCombinators.Parsec.Expr
+> import Data.Maybe
 
 > import Grammar
 
@@ -120,12 +121,12 @@ statement types
 >   retType <- identifierString
 >   keyword "as"
 >   symbol "$$"
->   stmts <- functionBody
+>   (decls, stmts) <- functionBody
 >   symbol "$$"
 >   keyword "language"
 >   keyword "plpgsql"
 >   keyword "volatile"
->   return $ CreateFunction fnName params retType stmts
+>   return $ CreateFunction fnName params retType decls stmts
 
 > createView :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > createView = do
@@ -147,13 +148,28 @@ statement types
 
 Statement components
 
-> functionBody :: Text.Parsec.Prim.ParsecT [Char] () Identity [Statement]
-> functionBody = do
->   keyword "begin"
->   stmts <- many statement
->   keyword "end"
+> functionBody :: Text.Parsec.Prim.ParsecT [Char] () Identity ([VarDef], [Statement])
+> functionBody =
+>   (do
+>      keyword "declare"
+>      decls <- manyTill (try varDef) (try $ keyword "begin")
+>      stmts <- many statement
+>      keyword "end"
+>      semi
+>      return (decls,stmts)
+>   ) <|> (do
+>      keyword "begin"
+>      stmts <- many statement
+>      keyword "end"
+>      semi
+>      return ([],stmts))
+
+> varDef :: Text.Parsec.Prim.ParsecT String () Identity VarDef
+> varDef = do
+>   name <- identifierString
+>   tp <- identifierString
 >   semi
->   return stmts
+>   return $ VarDef name tp
 
 > param :: Text.Parsec.Prim.ParsecT String () Identity ParamDef
 > param = do
@@ -337,6 +353,10 @@ pass through stuff from parsec
 > commaSep1 :: Text.Parsec.Prim.ParsecT String u Identity a
 >             -> Text.Parsec.Prim.ParsecT String u Identity [a]
 > commaSep1 = P.commaSep lexer
+
+> semiSep :: Text.Parsec.Prim.ParsecT String u Identity a
+>             -> Text.Parsec.Prim.ParsecT String u Identity [a]
+> semiSep = P.semiSep lexer
 
 
 > semi :: Text.Parsec.Prim.ParsecT String u Identity String
