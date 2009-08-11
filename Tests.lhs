@@ -17,8 +17,9 @@
 > import Parser
 > import PrettyPrinter
 
+
 > main :: IO ()
-> main = do
+> main =
 >   defaultMain [
 
 >         testGroup "parse expression" [
@@ -254,10 +255,10 @@ parsing them
 property
 
 > prop_statements_ppp :: [Statement] -> Bool
-> prop_statements_ppp s = (parseSqlThrow (printSql s)) == s
+> prop_statements_ppp s = parseSqlThrow (printSql s) == s
 
 > prop_expression_ppp :: Expression -> Bool
-> prop_expression_ppp s = (parseExpressionThrow (printExpression s)) == s
+> prop_expression_ppp s = parseExpressionThrow (printExpression s) == s
 
 > parseExpressionThrow :: String -> Expression
 > parseExpressionThrow s =
@@ -314,12 +315,12 @@ arbitrary instances
 
 some gen helpers
 
-> aString :: Gen [Char]
+> aString :: Gen String
 > aString = listOf1 $ choose ('\32', '\126')
 
-> aIdentifier :: Gen [Char]
+> aIdentifier :: Gen String
 > aIdentifier = do
->   start <- elements $ letter
->   suffix <- listOf $ elements $ letter ++ ['_'] ++ ['0' .. '9']
+>   start <- elements letter
+>   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
 >   return (start : suffix)
 >               where letter = ['A'..'Z'] ++ ['a' .. 'z']

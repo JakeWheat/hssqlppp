@@ -51,10 +51,10 @@ Statement components
 
 Expressions
 
-> data Op = Plus | Minus | Mult | Div | Pow | Mod | Neg | Eql | And | Conc
+> data Op = Plus | Minus | Mult | Div | Pow | Mod | Neg | Eql | And | Conc | Like
 >   deriving (Show,Eq)
 
-> opToSymbol :: Op -> [Char]
+> opToSymbol :: Op -> String
 > opToSymbol op = case op of
 >                         Plus -> "+"
 >                         Minus -> "-"
@@ -66,6 +66,7 @@ Expressions
 >                         Eql -> "="
 >                         And -> "and"
 >                         Conc -> "||"
+>                         Like -> "like"
 
 > data Expression = BinaryOperatorCall Op Expression Expression
 >            | IntegerL Integer

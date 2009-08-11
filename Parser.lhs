@@ -17,10 +17,10 @@ Top level parsing functions
 Parse fully formed sql
 
 > parseSql :: String -> Either ParseError [Statement]
-> parseSql s = parse statements "(unknown)" s
+> parseSql = parse statements "(unknown)"
 
 > parseSqlFile :: String -> IO (Either ParseError [Statement])
-> parseSqlFile f = parseFromFile statements f
+> parseSqlFile = parseFromFile statements
 
 Parse expression fragment, used for testing purposes
 
@@ -35,14 +35,14 @@ Parse expression fragment, used for testing purposes
 
 Parsing top level statements
 
-> statements :: Text.Parsec.Prim.ParsecT [Char] () Identity [Statement]
+> statements :: Text.Parsec.Prim.ParsecT String () Identity [Statement]
 > statements = do
 >   whitespace
 >   s <- many statement
 >   eof
 >   return s
 
-> statement :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
+> statement :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > statement = do
 >   s <- (
 >         try genSelect
@@ -99,16 +99,14 @@ statement types
 >   atts <- parens $ commaSep1 tableAtt
 >   return $ CreateTable n atts
 
-> genSelect :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
-> genSelect = do
->   (try exceptSelect)
->   <|> select
+> genSelect :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> genSelect =
+>   try exceptSelect <|> select
 
 > select :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > select = do
 >   keyword "select"
->   (do try selQuerySpec
->    <|> selExpression)
+>   (try selQuerySpec <|> selExpression)
 
 > exceptSelect :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > exceptSelect = do
@@ -164,7 +162,7 @@ statement types
 >   ex <- expr
 >   return $ Perform ex
 
-> selExpression :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
+> selExpression :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > selExpression = do
 >   e <- expr
 >   return $ SelectE e
@@ -196,7 +194,7 @@ plpgsql stements
 
 Statement components
 
-> functionBody :: Text.Parsec.Prim.ParsecT [Char] () Identity ([VarDef], [Statement])
+> functionBody :: Text.Parsec.Prim.ParsecT String () Identity ([VarDef], [Statement])
 > functionBody =
 >   (do
 >      keyword "declare"
@@ -259,8 +257,7 @@ Statement components
 >   return $ Select sl tb wh
 
 > selectList :: Text.Parsec.Prim.ParsecT String () Identity SelectList
-> selectList = do
->   liftM SelectList $ commaSep1 identifierString
+> selectList = liftM SelectList $ commaSep1 identifierString
 
 ================================================================================
 
@@ -272,7 +269,7 @@ expressions
 >   <?> "expression"
 
 > factor :: GenParser Char () Expression
-> factor  = (try scalarSubQuery)
+> factor  = try scalarSubQuery
 >           <|> parens expr
 >           <|> stringLiteral
 >           <|> integer
@@ -298,6 +295,7 @@ expressions
 >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
 >        ,binary "/" (BinaryOperatorCall Div) AssocLeft
 >        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
+>        ,binary "like" (BinaryOperatorCall Like) AssocLeft
 >        ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
 >       ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
 >        ,binary "-" (BinaryOperatorCall Minus) AssocLeft
@@ -305,13 +303,13 @@ expressions
 >        ,binary "||" (BinaryOperatorCall Conc) AssocLeft]
 >       ]
 >     where
->       binary s f assoc
->          = Infix (symbol s >> return f) assoc
+>       binary s f
+>          = Infix (symbol s >> return f)
 >       --prefix s f
 >       --   = Prefix (symbol s >> return f)
 >
 
-> inPredicate :: Text.Parsec.Prim.ParsecT [Char] () Identity Expression
+> inPredicate :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > inPredicate = do
 >   vexp <- identifierString
 >   keyword "in"
@@ -331,16 +329,15 @@ expressions
 
 > booleanLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > booleanLiteral = do
->   x <- ((lexeme $ string "true")
->         <|> (lexeme $ string "false"))
+>   x <- lexeme (string "true")
+>        <|> lexeme (string "false")
 >   return $ BooleanL (x == "true")
 
 > integer :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > integer = liftM IntegerL $ lexeme $ P.integer lexer
 
 > stringLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
-> stringLiteral = do
->   liftM StringL stringPar
+> stringLiteral = liftM StringL stringPar
 
 > stringPar :: Text.Parsec.Prim.ParsecT String u Identity String
 > stringPar = do
@@ -368,7 +365,7 @@ Utility parsers
 >                        <|> lineComment)
 
 > keyword :: String -> Text.Parsec.Prim.ParsecT String u Identity String
-> keyword k = lexeme $ string k
+> keyword = lexeme . string
 
 > identifierString :: Parser String
 > identifierString = do
@@ -382,18 +379,18 @@ Utility parsers
 
 > maybeP :: GenParser tok st a
 >           -> Text.Parsec.Prim.ParsecT [tok] st Identity (Maybe a)
-> maybeP p = do
+> maybeP p =
 >   (do a <- try p
 >       return $ Just a)
 >   <|> return Nothing
 
-> blockComment :: Text.Parsec.Prim.ParsecT [Char] st Identity ()
+> blockComment :: Text.Parsec.Prim.ParsecT String st Identity ()
 > blockComment = do
 >   try (char '/' >> char '*')
 >   manyTill anyChar (try (string "*/"))
 >   return ()
 
-> lineComment :: Text.Parsec.Prim.ParsecT [Char] st Identity ()
+> lineComment :: Text.Parsec.Prim.ParsecT String st Identity ()
 > lineComment = do
 >   try (char '-' >> char '-')
 >   manyTill anyChar ((try (char '\n') >> return ()) <|> eof)

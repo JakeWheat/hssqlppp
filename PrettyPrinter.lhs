@@ -9,10 +9,10 @@
 Public functions
 
 > printSql :: [Statement] -> String
-> printSql ast = render $ (vcat $ (map convStatement ast)) <> text "\n"
+> printSql ast = render $ vcat (map convStatement ast) <> text "\n"
 
 > printExpression :: Expression -> String
-> printExpression ast = render $ convExp ast
+> printExpression = render . convExp
 
 
 ================================================================================
@@ -59,13 +59,13 @@ Conversion routines - convert Sql asts into Docs
 >             $+$ nest 2 (vcat $ map convVarDef decls)
 >           else empty)
 >     $+$ text "begin"
->     $+$ (nest 2 (vcat $ map convStatement stmts))
+>     $+$ nest 2 (vcat $ map convStatement stmts)
 >     $+$ text "end;"
 >     $+$ text "$$ language plpgsql volatile" <> statementEnd
 
 > convStatement (CreateView name sel) =
 >     text "create view" <+> text name <+> text "as"
->     $+$ (nest 2 (convSelectFragment sel)) <> statementEnd
+>     $+$ nest 2 (convSelectFragment sel) <> statementEnd
 
 plpgsql
 
@@ -84,7 +84,7 @@ plpgsql
 >                 RError -> text "error"
 >     <+> quotes (text st)
 >     <> (if not (null exps)
->          then do
+>          then
 >            comma
 >            <+> hcatCsvMap convExp exps
 >          else empty)
@@ -92,7 +92,7 @@ plpgsql
 
 > convStatement (ForStatement i sel stmts) =
 >     text "for" <+> text i <+> text "in" <+> convSelectFragment sel <+> text "loop"
->     $+$ (nest 2 (vcat $ map convStatement stmts))
+>     $+$ nest 2 (vcat $ map convStatement stmts)
 >     $+$ text "end loop" <> statementEnd
 
 > convStatement (Perform f@(FunctionCall _ _)) =
@@ -159,18 +159,16 @@ plpgsql
 = Utils
 
 > csv :: [Doc] -> [Doc]
-> csv l = punctuate comma l
+> csv = punctuate comma
 
 > hcatCsv :: [Doc] -> Doc
-> hcatCsv l = hcat $ csv l
+> hcatCsv = hcat . csv
 
 > hcatCsvMap :: (a -> Doc) -> [a] -> Doc
-> hcatCsvMap ex l = hcatCsv (map ex l)
+> hcatCsvMap ex = hcatCsv . map ex
 
 > bool :: Bool -> Doc
-> bool b = case b of
->            True -> text "true"
->            False -> text "false"
+> bool b = if b then text "true" else text "false"
 
 > newline :: Doc
 > newline = text "\n"

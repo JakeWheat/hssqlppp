@@ -120,19 +120,19 @@ to listen from haskell yet so is unused at the moment.
 
 */
 
--- create function set_notifies_on_all_data_tables() returns void as $$
--- declare
---   r record;
--- begin
---   for r in select relvar_name from base_relvar_metadata where type='data'
---   except
---   select relvar_name from triggers where trigger_name like '%_changed' loop
---     perform notify_on_changed(r.relvar_name);
---   end loop;
--- end;
--- $$ language plpgsql volatile;
+create function set_notifies_on_all_data_tables() returns void as $$
+declare
+  r record;
+begin
+  for r in select relvar_name from base_relvar_metadata where type='data'
+  except
+  select relvar_name from triggers where trigger_name like '%_changed' loop
+    perform notify_on_changed(r.relvar_name);
+  end loop;
+end;
+$$ language plpgsql volatile;
 
--- select set_module_for_preceding_objects('metadata');
+select set_module_for_preceding_objects('metadata');
 
 -- /*
 -- ================================================================================

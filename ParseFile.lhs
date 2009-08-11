@@ -14,7 +14,7 @@
 >   case x of
 >        Left er -> error $ show er
 >        Right l -> do
->            putStrLn $ show l
+>            print l
 >            putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
 >            putStrLn $ printSql l
 >            --check roundtrip
