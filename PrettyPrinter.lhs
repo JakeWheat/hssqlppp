@@ -95,6 +95,11 @@ plpgsql
 >     $+$ (nest 2 (vcat $ map convStatement stmts))
 >     $+$ text "end loop" <> statementEnd
 
+> convStatement (Perform f@(FunctionCall _ _)) =
+>     text "perform" <+> convExp f <> statementEnd
+> convStatement (Perform x) =
+>    error $ "convStatement not supported for " ++ show x
+
 > statementEnd :: Doc
 > statementEnd = semi <> newline
 
@@ -149,6 +154,7 @@ plpgsql
 > convExp (BinaryOperatorCall op a b) = parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
 > convExp (InPredicate att expr) = text att <+> text "in" <+> parens (hcatCsvMap convExp expr)
+> convExp (ScalarSubQuery s) = parens (convSelectFragment s)
 
 = Utils
 

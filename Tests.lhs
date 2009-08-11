@@ -56,6 +56,8 @@
 >                       ,checkParseExpression "fn(1 )" (FunctionCall "fn" [IntegerL 1])
 >                       ,checkParseExpression "fn(1) " (FunctionCall "fn" [IntegerL 1])
 >                       ,checkParseExpression "fn('test')" (FunctionCall "fn" [StringL "test"])
+>                       ,checkParseExpression "'a' || 'b'" (BinaryOperatorCall Conc (StringL "a")
+>                                                           (StringL "b"))
 >                       ]
 >        ,testGroup "select expression" [
 >                        checkParse "select 1;" [(SelectE $ IntegerL 1)]
@@ -98,6 +100,11 @@
 >                                                           ,(SelectE $ IntegerL 2)
 >                                                           ]
 >                         ]
+>        ,testGroup "more expressions" [
+>                       checkParseExpression "(select a from tbl where id = 3)"
+>                          (ScalarSubQuery $ Select (SelectList ["a"]) "tbl"
+>                             (Just $ Where $ BinaryOperatorCall Eql (Identifier "id") (IntegerL 3)))
+>                       ]
 >        ,testGroup "comments" [
 >                        checkParse "" []
 >                       ,checkParse "-- this is a test" []
@@ -196,6 +203,8 @@
 >                                   \end loop;"
 >                                    [ForStatement "r" (Select (SelectList ["a"]) "tbl" Nothing)
 >                                         [NullStatement]]
+>                       ,checkParse "perform test();"
+>                                    [Perform $ FunctionCall "test" []]
 >                       ]
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp

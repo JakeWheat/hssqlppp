@@ -58,6 +58,7 @@ Parsing top level statements
 >         <|> try returnSt
 >         <|> try raise
 >         <|> try forStatement
+>         <|> try perform
 >         <|> nullStatement)
 >   semi
 >   return s
@@ -156,6 +157,12 @@ statement types
 >   keyword "end"
 >   keyword "loop"
 >   return $ ForStatement i st stmts
+
+> perform :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> perform = do
+>   keyword "perform"
+>   ex <- expr
+>   return $ Perform ex
 
 > selExpression :: Text.Parsec.Prim.ParsecT [Char] () Identity Statement
 > selExpression = do
@@ -265,7 +272,8 @@ expressions
 >   <?> "expression"
 
 > factor :: GenParser Char () Expression
-> factor  = parens expr
+> factor  = (try scalarSubQuery)
+>           <|> parens expr
 >           <|> stringLiteral
 >           <|> integer
 >           <|> try booleanLiteral
@@ -274,6 +282,11 @@ expressions
 >           <|> try qualifiedIdentifier
 >           <|> identifier
 >           <?> "simple expression"
+
+> scalarSubQuery :: GenParser Char () Expression
+> scalarSubQuery = do
+>   x <- parens genSelect
+>   return $ ScalarSubQuery x
 
 >   -- Specifies operator, associativity, precendence, and constructor to execute
 >   -- and built AST with.
@@ -288,7 +301,8 @@ expressions
 >        ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
 >       ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
 >        ,binary "-" (BinaryOperatorCall Minus) AssocLeft
->        ,binary "and" (BinaryOperatorCall And) AssocLeft]
+>        ,binary "and" (BinaryOperatorCall And) AssocLeft
+>        ,binary "||" (BinaryOperatorCall Conc) AssocLeft]
 >       ]
 >     where
 >       binary s f assoc
@@ -339,7 +353,7 @@ expressions
 > functionCall :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > functionCall = do
 >   name <- identifierString
->   args <- parens $ commaSep factor
+>   args <- parens $ commaSep expr
 >   return $ FunctionCall name args
 
 

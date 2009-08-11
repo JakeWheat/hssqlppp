@@ -75,50 +75,50 @@ begin
 end;
 $$ language plpgsql volatile;
 
--- /*
+/*
 
--- After we've loaded the sql, we can protect all the readonly relvars
--- from being updated again using transition constraints (see below for
--- how they are implemented). This might catch some programming error.
+After we've loaded the sql, we can protect all the readonly relvars
+from being updated again using transition constraints (see below for
+how they are implemented). This might catch some programming error.
 
---  */
+ */
 
--- create function protect_readonly_relvars() returns void as $$
--- declare
---   r record;
--- begin
---   for r in select relvar_name, type
---            from base_relvar_metadata
---            where type='readonly' loop
---     perform create_update_transition_tuple_constraint(
---       r.relvar_name, r.relvar_name || '_u_readonly', 'false');
---     perform create_delete_transition_tuple_constraint(
---       r.relvar_name, r.relvar_name || '_d_readonly', 'false');
---     perform create_insert_transition_tuple_constraint(
---       r.relvar_name, r.relvar_name || '_i_readonly', 'false');
---     -- get module
---     perform set_module_for_preceding_objects(
---     (select module_name from module_objects
---           where object_type = 'base_relvar'
---             and object_name = r.relvar_name));
---   end loop;
--- end;
--- $$ language plpgsql volatile;
+create function protect_readonly_relvars() returns void as $$
+declare
+  r record;
+begin
+  for r in select relvar_name, type
+           from base_relvar_metadata
+           where type='readonly' loop
+    perform create_update_transition_tuple_constraint(
+      r.relvar_name, r.relvar_name || '_u_readonly', 'false');
+    perform create_delete_transition_tuple_constraint(
+      r.relvar_name, r.relvar_name || '_d_readonly', 'false');
+    perform create_insert_transition_tuple_constraint(
+      r.relvar_name, r.relvar_name || '_i_readonly', 'false');
+    -- get module
+    perform set_module_for_preceding_objects(
+    (select module_name from module_objects
+          where object_type = 'base_relvar'
+            and object_name = r.relvar_name));
+  end loop;
+end;
+$$ language plpgsql volatile;
 
--- /*
+/*
 
--- todo: find way to enforce stack tables empty outside transaction, or
--- some sort of partial tests on this
+todo: find way to enforce stack tables empty outside transaction, or
+some sort of partial tests on this
 
--- */
+*/
 
--- /*
--- == callback notes
+/*
+== callback notes
 
--- add a notify on each table when it is changed. Haven't worked out how
--- to listen from haskell yet so is unused at the moment.
+add a notify on each table when it is changed. Haven't worked out how
+to listen from haskell yet so is unused at the moment.
 
--- */
+*/
 
 -- create function set_notifies_on_all_data_tables() returns void as $$
 -- declare

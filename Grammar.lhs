@@ -18,6 +18,7 @@ SQL top level statements
 >                | Return Expression
 >                | Raise RaiseType String [Expression]
 >                | NullStatement
+>                | Perform Expression
 >                | ForStatement String Statement [Statement]
 >                  deriving (Eq,Show)
 
@@ -50,7 +51,7 @@ Statement components
 
 Expressions
 
-> data Op = Plus | Minus | Mult | Div | Pow | Mod | Neg | Eql | And
+> data Op = Plus | Minus | Mult | Div | Pow | Mod | Neg | Eql | And | Conc
 >   deriving (Show,Eq)
 
 > opToSymbol :: Op -> [Char]
@@ -64,6 +65,7 @@ Expressions
 >                         Neg -> "-"
 >                         Eql -> "="
 >                         And -> "and"
+>                         Conc -> "||"
 
 > data Expression = BinaryOperatorCall Op Expression Expression
 >            | IntegerL Integer
@@ -73,6 +75,7 @@ Expressions
 >            | QualifiedIdentifier String String
 >            | InPredicate String [Expression]
 >            | FunctionCall String [Expression]
+>            | ScalarSubQuery Statement
 >   deriving (Show,Eq)
 
 
