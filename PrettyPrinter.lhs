@@ -53,10 +53,10 @@ Conversion routines - convert Sql asts into Docs
 >     text "create function" <+> text name
 >     <+> parens (hcatCsvMap convParamDef args)
 >     <+> text "returns" <+> text retType <+> text "as" <+> text "$$"
->     <> (if not (null decls)
+>     $+$ (if not (null decls)
 >           then
->             text "" $+$ text "declare"
->             $+$ nest 2 (hcat $ map convVarDef decls)
+>             text "declare"
+>             $+$ nest 2 (vcat $ map convVarDef decls)
 >           else empty)
 >     $+$ text "begin"
 >     $+$ (nest 2 (vcat $ map convStatement stmts))
@@ -136,12 +136,13 @@ plpgsql
 > convParamDef (ParamDef n t) = text n <+> text t
 
 > convVarDef :: VarDef -> Doc
-> convVarDef (VarDef n t) = text n <+> text t <+> semi
+> convVarDef (VarDef n t) = text n <+> text t <> semi
 
 = Expressions
 
 > convExp :: Expression -> Doc
 > convExp (Identifier i) = text i
+> convExp (QualifiedIdentifier q i) = text q <> text "." <> text i
 > convExp (IntegerL n) = integer n
 > convExp (StringL s) = quotes $ text s
 > convExp (FunctionCall i as) = text i <> parens (hcatCsvMap convExp as)

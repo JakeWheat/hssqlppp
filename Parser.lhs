@@ -271,6 +271,7 @@ expressions
 >           <|> try booleanLiteral
 >           <|> try inPredicate
 >           <|> try functionCall
+>           <|> try qualifiedIdentifier
 >           <|> identifier
 >           <?> "simple expression"
 
@@ -305,6 +306,14 @@ expressions
 
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > identifier = liftM Identifier identifierString
+
+> qualifiedIdentifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
+> qualifiedIdentifier = do
+>   q <- identifierString
+>   symbol "."
+>   i <- identifierString
+>   return $ QualifiedIdentifier q i
+
 
 > booleanLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > booleanLiteral = do

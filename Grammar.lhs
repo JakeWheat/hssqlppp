@@ -70,6 +70,7 @@ Expressions
 >            | StringL String
 >            | BooleanL Bool
 >            | Identifier String
+>            | QualifiedIdentifier String String
 >            | InPredicate String [Expression]
 >            | FunctionCall String [Expression]
 >   deriving (Show,Eq)
