@@ -242,6 +242,12 @@
 >                                               "value"
 >                                               [StringL "t1"
 >                                               ,StringL "t2"])))]
+>                        ,checkParse "create type tp1 as (\n\
+>                                    \  f1 text,\n\
+>                                    \  f2 text\n\
+>                                    \);"
+>                                    [CreateType "tp1" [TypeAttDef "f1" "text"
+>                                                      ,TypeAttDef "f2" "text"]]
 >                        ]
 
 >        ,testGroup "functions" [

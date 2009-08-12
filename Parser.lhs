@@ -53,7 +53,8 @@ Parsing top level statements
 >         <|> try delete
 >         <|> try (do
 >               keyword "create"
->               (createTable
+>               (try createTable
+>                <|> createType
 >                <|> createFunction
 >                <|> createView
 >                <|> createDomain))
@@ -123,6 +124,15 @@ statement types
 >   n <- identifierString
 >   atts <- parens $ commaSep1 tableAtt
 >   return $ CreateTable n atts
+
+> createType :: ParsecT String () Identity Statement
+> createType = do
+>   keyword "type"
+>   n <- identifierString
+>   keyword "as"
+>   atts <- parens $ commaSep1 typeAtt
+>   return $ CreateType n atts
+
 
 > select :: ParsecT String () Identity Statement
 > select = do
@@ -286,12 +296,12 @@ Statement components
 >              then AttributeDef name typ def nl
 >              else AttributeDef name typ def check
 
+> typeAtt :: ParsecT String () Identity TypeAttributeDef
+> typeAtt = liftM2 TypeAttDef identifierString identifierString
+
+
 > selQuerySpec :: ParsecT String () Identity Statement
-> selQuerySpec = do
->   sl <- selectList
->   tb <- maybeP from
->   wh <- maybeP whereClause
->   return $ Select sl tb wh
+> selQuerySpec = liftM3 Select selectList (maybeP from) (maybeP whereClause)
 
 > from :: GenParser Char () From
 > from = do
@@ -363,9 +373,7 @@ expressions
 >           <?> "simple expression"
 
 > scalarSubQuery :: GenParser Char () Expression
-> scalarSubQuery = do
->   x <- parens select
->   return $ ScalarSubQuery x
+> scalarSubQuery = liftM ScalarSubQuery $ parens select
 
 >   -- Specifies operator, associativity, precendence, and constructor to execute
 >   -- and built AST with.
@@ -481,10 +489,7 @@ expressions
 
 
 > functionCall :: ParsecT String () Identity Expression
-> functionCall = do
->   name <- identifierString
->   args <- parens $ commaSep expr
->   return $ FunctionCall name args
+> functionCall = liftM2 FunctionCall identifierString (parens $ commaSep expr)
 
 > windowFn :: GenParser Char () Expression
 > windowFn = do
@@ -506,13 +511,11 @@ Utility parsers
 >                        <|> blockComment
 >                        <|> lineComment)
 
- > keyword :: String -> ParsecT String u Identity String
-
 > keyword :: String -> ParsecT String u Identity ()
 > keyword k = do
->   lexeme $ do
+>   (lexeme $ do
 >     string k
->     notFollowedBy alphaNum
+>     notFollowedBy alphaNum) <?> k
 
 > identifierString :: Parser String
 > identifierString =

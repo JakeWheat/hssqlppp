@@ -70,6 +70,11 @@ Conversion routines - convert Sql asts into Docs
 >     text "create domain" <+> text name <+> text "as"
 >     <+> text tp <+> checkExp ex <> statementEnd
 
+> convStatement (CreateType name atts) =
+>     text "create type" <+> text name <+> text "as" <+> lparen
+>     $+$ nest 2 (vcat (csv (map (\(TypeAttDef n t) -> text n <+> text t)  atts)))
+>     $+$ rparen <> statementEnd
+
 plpgsql
 
 > convStatement NullStatement = text "null" <> statementEnd

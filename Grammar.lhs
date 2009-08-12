@@ -9,6 +9,7 @@ SQL top level statements
 >                | CombineSelect CombineType Statement Statement
 >                | CreateTable String [AttributeDef]
 >                | CreateView String Statement
+>                | CreateType String [TypeAttributeDef]
 >                | Insert String (Maybe [String]) [Expression]
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)
@@ -53,6 +54,9 @@ Statement components
 
 > data AttributeDef = AttributeDef String String (Maybe Expression) (Maybe Expression)
 >                     deriving (Eq,Show)
+
+> data TypeAttributeDef = TypeAttDef String String
+>                         deriving (Eq,Show)
 
 > data ParamDef = ParamDef String String
 >                     deriving (Eq,Show)
