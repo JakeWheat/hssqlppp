@@ -137,10 +137,18 @@ plpgsql
 > convTref :: TableRef -> Doc
 > convTref (Tref f) = text f
 > convTref (TrefAlias f a) = text f <+> text a
-> convTref (JoinedTref t1 jt t2 ex) =
+> convTref (JoinedTref t1 nat jt t2 ex) =
 >     convTref t1
->     <+> (case jt of
->           Inner -> text "inner join")
+>     <+> case nat of
+>           True -> text "natural"
+>           False -> empty
+>     <+> text (case jt of
+>                       Inner -> "inner"
+>                       Cross -> "cross"
+>                       LeftOuter -> "left outer"
+>                       RightOuter -> "right outer"
+>                       FullOuter -> "full outer")
+>     <+> text "join"
 >     <+> convTref t2
 >     <+> maybeConv (\e -> text "on" $+$ nest 2 (convExp e)) ex
 

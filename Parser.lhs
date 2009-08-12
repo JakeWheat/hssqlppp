@@ -310,7 +310,8 @@ Statement components
 >        b <- maybeP (do
 >                     whitespace
 >                     x <- identifierString
->                     if x `elem` ["where", "except", "union", "loop", "inner", "on"]
+>                     if x `elem` ["where", "except", "union", "loop", "inner", "on"
+>                                 ,"left", "right", "full", "cross", "natural"]
 >                       then fail "not keyword"
 >                       else return x)
 >        let tr1 = case b of
@@ -323,13 +324,31 @@ Statement components
 
 > joinPart :: TableRef -> GenParser Char () TableRef
 > joinPart tr1 = do
->   keyword "inner"
+>   nat <- maybeP $ keyword "natural"
+>   typ <- ((do
+>             keyword "inner"
+>             return Inner) <|>
+>            (do
+>              keyword "left"
+>              keyword "outer"
+>              return LeftOuter) <|>
+>            (do
+>              keyword "right"
+>              keyword "outer"
+>              return RightOuter) <|>
+>            (do
+>              keyword "full"
+>              keyword "outer"
+>              return FullOuter) <|>
+>            (do
+>              keyword "cross"
+>              return Cross))
 >   keyword "join"
 >   tr2 <- tref
 >   ex <- maybeP (do
 >                  keyword "on"
 >                  expr)
->   let jp1 = JoinedTref tr1 Inner tr2 ex
+>   let jp1 = JoinedTref tr1 (isJust nat) typ tr2 ex
 >   jp2 <- maybeP $ joinPart jp1
 >   case jp2 of
 >     Nothing -> return jp1

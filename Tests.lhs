@@ -138,11 +138,26 @@
 >                                           (Just $ From $ TrefAlias "tbl" "a") Nothing]
 >                       ,checkParse "select a from b inner join c on b.a=c.a;"
 >                                   [Select (SelectList [SelExp (Identifier "a")])
->                                      (Just $ From $ JoinedTref (Tref "b") Inner (Tref "c")
+>                                      (Just $ From $ JoinedTref (Tref "b") False Inner (Tref "c")
 >                                      (Just $ (BinaryOperatorCall Eql
 >                                                 (qi "b" "a")
 >                                                 (qi "c" "a"))))
 >                                      Nothing]
+>                       ,checkParse "select a from b natural inner join c;"
+>                        [Select (SelectList [SelExp (Identifier "a")])
+>                         (Just (From (JoinedTref (Tref "b") True Inner (Tref "c") Nothing))) Nothing]
+>                       ,checkParse "select a from b left outer join c;"
+>                        [Select (SelectList [SelExp (Identifier "a")])
+>                         (Just (From (JoinedTref (Tref "b") False LeftOuter (Tref "c") Nothing))) Nothing]
+>                       ,checkParse "select a from b full outer join c;"
+>                        [Select (SelectList [SelExp (Identifier "a")])
+>                         (Just (From (JoinedTref (Tref "b") False FullOuter (Tref "c") Nothing))) Nothing]
+>                       ,checkParse "select a from b right outer join c;"
+>                        [Select (SelectList [SelExp (Identifier "a")])
+>                         (Just (From (JoinedTref (Tref "b") False RightOuter (Tref "c") Nothing))) Nothing]
+>                       ,checkParse "select a from b cross join c;"
+>                        [Select (SelectList [SelExp (Identifier "a")])
+>                         (Just (From (JoinedTref (Tref "b") False Cross (Tref "c") Nothing))) Nothing]
 >                       ,checkParse "select a from b\n\
 >                                   \    inner join c\n\
 >                                   \      on true\n\
@@ -151,9 +166,9 @@
 >                                   [Select
 >                                    (SelectList [SelExp (Identifier "a")])
 >                                    (Just (From (JoinedTref
->                                                 (JoinedTref (Tref "b") Inner (Tref "c")
+>                                                 (JoinedTref (Tref "b") False Inner (Tref "c")
 >                                                  (Just (BooleanL True)))
->                                                 Inner
+>                                                 False Inner
 >                                                 (Tref "d")
 >                                                 (Just (BinaryOperatorCall Eql
 >                                                        (IntegerL 1) (IntegerL 1))))))

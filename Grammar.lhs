@@ -39,10 +39,10 @@ Statement components
 
 > data TableRef = Tref String
 >               | TrefAlias String String
->               | JoinedTref TableRef JoinType TableRef (Maybe Expression)
+>               | JoinedTref TableRef Bool JoinType TableRef (Maybe Expression)
 >                 deriving (Eq,Show)
 
-> data JoinType = Inner
+> data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 >                 deriving (Eq,Show)
 
 > data SelectList = SelectList [SelectItem]
