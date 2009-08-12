@@ -76,17 +76,17 @@
 >                       ]
 >        ,testGroup "select from table" [
 >                        checkParse "select * from tbl;" [(Select (SelectList [
->                                                              selI "*"]) (Just $ From "tbl") Nothing)]
+>                                                              selI "*"]) (Just $ From $ Tref "tbl") Nothing)]
 >                       ,checkParse "select a,b from tbl;" [(Select
 >                                                            (SelectList [
 >                                                              selI "a"
->                                                             ,selI "b"]) (Just $ From "tbl") Nothing)]
+>                                                             ,selI "b"]) (Just $ From $ Tref "tbl") Nothing)]
 >                       ,checkParse "select a from tbl where b=2;"
->                                   [(Select (SelectList [selI "a"]) (Just $ From "tbl")
+>                                   [(Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl")
 >                                            (Just (Where $ BinaryOperatorCall Eql
 >                                                  (Identifier "b") (IntegerL 2))))]
 >                       ,checkParse "select a from tbl where b=2 and c=3;"
->                                   [(Select (SelectList [selI "a"]) (Just $ From "tbl")
+>                                   [(Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl")
 >                                            (Just (Where $
 >                                                   BinaryOperatorCall And
 >                                                    (BinaryOperatorCall Eql
@@ -98,27 +98,34 @@
 >                                   \except\n\
 >                                   \select a from tbl1;"
 >                                   [(CombineSelect Except
->                                     (Select (SelectList [selI "a"]) (Just $ From "tbl") Nothing)
->                                     (Select (SelectList [selI "a"]) (Just $ From "tbl1") Nothing))]
+>                                     (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl") Nothing)
+>                                     (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl1") Nothing))]
 >                       ,checkParse "select a from tbl where true\n\
 >                                   \except\n\
 >                                   \select a from tbl1 where true;"
 >                                   [(CombineSelect Except
->                                     (Select (SelectList [selI "a"]) (Just $ From "tbl") (Just $ Where $ BooleanL True))
->                                     (Select (SelectList [selI "a"]) (Just $ From "tbl1") (Just $ Where $ BooleanL True)))]
+>                                     (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl") (Just $ Where $ BooleanL True))
+>                                     (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl1") (Just $ Where $ BooleanL True)))]
 >                       ,checkParse "select a from tbl\n\
 >                                   \union\n\
 >                                   \select a from tbl1;"
 >                                   [(CombineSelect Union
->                                     (Select (SelectList [selI "a"]) (Just $ From "tbl") Nothing)
->                                     (Select (SelectList [selI "a"]) (Just $ From "tbl1") Nothing))]
+>                                     (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl") Nothing)
+>                                     (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl1") Nothing))]
 >                       ,checkParse "select a as b from tbl;"
->                                   [(Select (SelectList [SelectItem (Identifier "a") "b"]) (Just $ From "tbl") Nothing)]
+>                                   [(Select (SelectList [SelectItem (Identifier "a") "b"]) (Just $ From $ Tref "tbl") Nothing)]
 >                       ,checkParse "select a + b as b from tbl;"
->                                   [(Select (SelectList [SelectItem (BinaryOperatorCall Plus (Identifier "a") (Identifier "b")) "b"]) (Just $ From "tbl") Nothing)]
+>                                   [(Select (SelectList [SelectItem (BinaryOperatorCall Plus (Identifier "a") (Identifier "b")) "b"]) (Just $ From $ Tref "tbl") Nothing)]
 >                       ,checkParse "select a.* from tbl a;"
->                                   [Select (SelectList [SelExp (QualifiedIdentifier "a" "*")])
->                                           (Just $ FromAlias "tbl" "a") Nothing]
+>                                   [Select (SelectList [SelExp (qi "a" "*")])
+>                                           (Just $ From $ TrefAlias "tbl" "a") Nothing]
+>                       ,checkParse "select a from b inner join c on b.a=c.a;"
+>                                   [Select (SelectList [SelExp (Identifier "a")])
+>                                      (Just $ From $ JoinedTref (Tref "b") Inner (Tref "c")
+>                                      (Just $ (BinaryOperatorCall Eql
+>                                                 (qi "b" "a")
+>                                                 (qi "c" "a"))))
+>                                      Nothing]
 >                       ]
 >        ,testGroup "multiple statements" [
 >                         checkParse "select 1;\nselect 2;" [selectE $ SelectList [SelExp (IntegerL 1)]
@@ -127,7 +134,7 @@
 >                         ]
 >        ,testGroup "more expressions" [
 >                       checkParseExpression "(select a from tbl where id = 3)"
->                          (ScalarSubQuery $ Select (SelectList [selI "a"]) (Just $ From "tbl")
+>                          (ScalarSubQuery $ Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl")
 >                             (Just $ Where $ BinaryOperatorCall Eql (Identifier "id") (IntegerL 3)))
 >                       ]
 >        ,testGroup "comments" [
@@ -204,7 +211,7 @@
 >                        ,checkParse "create view v1 as\n\
 >                                    \select a,b from t;"
 >                                    [(CreateView "v1"
->                                        (Select (SelectList [selI "a", selI "b"]) (Just $ From "t") Nothing))]
+>                                        (Select (SelectList [selI "a", selI "b"]) (Just $ From $ Tref "t") Nothing))]
 >                        ,checkParse "create domain td as text check (value in ('t1', 't2'));"
 >                                    [(CreateDomain "td" "text"
 >                                        (Just (InPredicate
@@ -247,12 +254,12 @@
 >                       ,checkParse "for r in select a from tbl loop\n\
 >                                   \null;\n\
 >                                   \end loop;"
->                                    [ForStatement "r" (Select (SelectList [selI "a"]) (Just $ From "tbl") Nothing)
+>                                    [ForStatement "r" (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl") Nothing)
 >                                         [NullStatement]]
 >                       ,checkParse "for r in select a from tbl where true loop\n\
 >                                   \null;\n\
 >                                   \end loop;"
->                                    [ForStatement "r" (Select (SelectList [selI "a"]) (Just $ From "tbl")
+>                                    [ForStatement "r" (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl")
 >                                                         (Just $ Where $ BooleanL True))
 >                                         [NullStatement]]
 >                       ,checkParse "perform test();"
@@ -261,8 +268,7 @@
 >                                    [Perform $ FunctionCall "test" [Identifier "a", Identifier "b"]]
 >                       ,checkParse "perform test(r.relvar_name || '_and_stuff');"
 >                                    [Perform $ FunctionCall "test" [
->                                       BinaryOperatorCall Conc (QualifiedIdentifier
->                                                                  "r" "relvar_name")
+>                                       BinaryOperatorCall Conc (qi "r" "relvar_name")
 >                                                               (StringL "_and_stuff")]]
 
 >                       ]
@@ -275,6 +281,9 @@
 
 > selectE :: SelectList -> Statement
 > selectE selList = Select selList Nothing Nothing
+
+> qi :: String -> String -> Expression
+> qi a b = BinaryOperatorCall Qual (Identifier a) (Identifier b)
 
 ================================================================================
 

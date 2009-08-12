@@ -306,20 +306,38 @@ Statement components
 >   wh <- maybeP whereClause
 >   return $ Select sl tb wh
 
-> from :: Text.Parsec.Prim.ParsecT String () Identity From
+> from :: GenParser Char () From
 > from = do
 >        keyword "from"
+>        liftM From tref
+
+> tref :: Text.Parsec.Prim.ParsecT String () Identity TableRef
+> tref = do
 >        a <- identifierString
 >        b <- maybeP (do
->                     --char ' '
 >                     whitespace
 >                     x <- identifierString
->                     if x `elem` ["where", "except", "union", "loop"]
+>                     if x `elem` ["where", "except", "union", "loop", "inner", "on"]
 >                       then fail "not keyword"
 >                       else return x)
->        case b of
->          Nothing -> return $ From a
->          Just b1 -> return $ FromAlias a b1
+>        jn <- maybeP joinPart
+>        let tr1 = case b of
+>                         Nothing -> Tref a
+>                         Just b1 -> TrefAlias a b1
+>        case jn of
+>          Nothing -> return tr1
+>          Just (jt,tr2,ex) -> return  $ JoinedTref tr1 jt tr2 ex
+
+> joinPart :: GenParser Char () (JoinType, TableRef, Maybe Expression)
+> joinPart = do
+>   keyword "inner"
+>   keyword "join"
+>   tr2 <- tref
+>   ex <- maybeP (do
+>                  keyword "on"
+>                  expr)
+>   return (Inner,tr2,ex)
+
 
 > selectList :: Text.Parsec.Prim.ParsecT String () Identity SelectList
 > selectList = liftM SelectList $ commaSep1 selectItem
@@ -351,7 +369,6 @@ expressions
 >           <|> try inPredicate
 >           <|> try nullL
 >           <|> try functionCall
->           <|> try qualifiedIdentifier
 >           <|> try identifier
 >           <?> "simple expression"
 
@@ -366,7 +383,8 @@ expressions
 > table :: [[Operator [Char] u Identity Expression]]
 > table =
 >       [[--prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))
->         prefixk "not" (BinaryOperatorCall Not (NullL))]
+>         prefixk "not" (BinaryOperatorCall Not (NullL))
+>        ,binary "." (BinaryOperatorCall Qual) AssocLeft]
 >       ,[binary "::" (BinaryOperatorCall Cast) AssocLeft
 >        ,binary "^" (BinaryOperatorCall Pow) AssocRight]
 >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
@@ -406,14 +424,6 @@ expressions
 
 > identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > identifier = liftM Identifier identifierString
-
-> qualifiedIdentifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
-> qualifiedIdentifier = do
->   q <- identifierString
->   symbol "."
->   i <- identifierString
->   return $ QualifiedIdentifier q i
-
 
 > booleanLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
 > booleanLiteral = do

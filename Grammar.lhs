@@ -33,8 +33,17 @@ Statement components
 > data Where = Where Expression
 >                    deriving (Eq,Show)
 
-> data From = From String | FromAlias String String
+> data From = From TableRef
 >             deriving (Eq,Show)
+
+> data TableRef = Tref String
+>               | TrefAlias String String
+>               | JoinedTref TableRef JoinType TableRef (Maybe Expression)
+>                 deriving (Eq,Show)
+
+> data JoinType = Inner
+>                 deriving (Eq,Show)
+
 > data SelectList = SelectList [SelectItem]
 >                   deriving (Eq,Show)
 
@@ -63,7 +72,7 @@ Expressions
 
 > data Op = Plus | Minus | Mult | Div | Pow | Mod | Eql
 >         | And | Conc | Like | Not | IsNull | IsNotNull
->         | Cast
+>         | Cast | Qual
 >           deriving (Show,Eq)
 
 > opToSymbol :: Op -> String
@@ -82,6 +91,7 @@ Expressions
 >                         IsNull -> "is null"
 >                         IsNotNull -> "is not null"
 >                         Cast -> "::"
+>                         Qual -> "."
 
 > data Expression = BinaryOperatorCall Op Expression Expression
 >                 | IntegerL Integer
@@ -89,7 +99,7 @@ Expressions
 >                 | NullL
 >                 | BooleanL Bool
 >                 | Identifier String
->                 | QualifiedIdentifier String String
+>                 -- | QualifiedIdentifier String String
 >                 | InPredicate String [Expression]
 >                 | FunctionCall String [Expression]
 >                 | ScalarSubQuery Statement

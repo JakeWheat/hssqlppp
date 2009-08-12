@@ -128,8 +128,19 @@ plpgsql
 > convSelectFragment a = error $ "no convSelectFragment for " ++ show a
 
 > convFrom :: From -> Doc
-> convFrom (From f) = text "from" <+> text f
-> convFrom (FromAlias f a) = text "from" <+> text f <+> text a
+> convFrom (From tr) = text "from" <+> convTref tr
+
+> convTref :: TableRef -> Doc
+> convTref (Tref f) = text f
+> convTref (TrefAlias f a) = text f <+> text a
+> convTref (JoinedTref t1 jt t2 ex) =
+>     convTref t1
+>     <+> (case jt of
+>           Inner -> text "inner join")
+>     <+> convTref t2
+>     <+> case ex of
+>           Nothing -> empty
+>           Just e -> text "on" $+$ nest 2 (convExp e)
 
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
@@ -164,14 +175,15 @@ plpgsql
 
 > convExp :: Expression -> Doc
 > convExp (Identifier i) = text i
-> convExp (QualifiedIdentifier q i) = text q <> text "." <> text i
+> --convExp (QualifiedIdentifier q i) = text q <> text "." <> text i
 > convExp (IntegerL n) = integer n
 > convExp (StringL s) = quotes $ text s
 > convExp (FunctionCall i as) = text i <> parens (hcatCsvMap convExp as)
 > convExp (BinaryOperatorCall op a b) = case op of
 >                                       Not -> parens (text (opToSymbol op) <+> convExp b)
->                                       IsNull -> parens (convExp b <+> text "is null")
->                                       IsNotNull -> parens (convExp b <+> text "is not null")
+>                                       IsNull -> parens (convExp b <+> text (opToSymbol op))
+>                                       IsNotNull -> parens (convExp b <+> text (opToSymbol op))
+>                                       Qual -> parens (convExp a <> text (opToSymbol op) <> convExp b)
 >                                       _ -> parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
 > convExp (InPredicate att expr) = text att <+> text "in" <+> parens (hcatCsvMap convExp expr)
