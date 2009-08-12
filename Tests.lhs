@@ -61,6 +61,13 @@
 >                       ,checkParseExpression "'stuff'::text" (BinaryOperatorCall
 >                                                                Cast (StringL "stuff") (Identifier "text"))
 >                       ,checkParseExpression "array[1,2]" (ArrayL [IntegerL 1, IntegerL 2])
+>                       ,checkParseExpression "case when a then 3\n\
+>                                             \     when b then 4\n\
+>                                             \     else 5\n\
+>                                             \end"
+>                                             (Case [When (Identifier "a") (IntegerL 3)
+>                                                   ,When (Identifier "b") (IntegerL 4)]
+>                                              (Else (IntegerL 5)))
 >                       ]
 >        ,testGroup  "string parsing" [
 >                         checkParseExpression "''" (StringL "")

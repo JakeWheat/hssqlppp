@@ -363,6 +363,7 @@ expressions
 >           <|> stringLiteral
 >           <|> stringLD
 >           <|> integer
+>           <|> try caseParse
 >           <|> try booleanLiteral
 >           <|> try inPredicate
 >           <|> try nullL
@@ -501,6 +502,22 @@ expressions
 >                         commaSep1 expr))
 >   return $ WindowFn fn os
 
+> caseParse :: ParsecT [Char] () Identity Expression
+> caseParse = do
+>   keyword "case"
+>   wh <- many whenParse
+>   keyword "else"
+>   ex <- expr
+>   keyword "end"
+>   return $ Case wh (Else ex)
+
+> whenParse :: ParsecT String () Identity When
+> whenParse = do
+>   keyword "when"
+>   e1 <- expr
+>   keyword "then"
+>   e2 <- expr
+>   return $ When e1 e2
 
 ================================================================================
 

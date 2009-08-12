@@ -110,4 +110,10 @@ Expressions
 >                 | ScalarSubQuery Statement
 >                 | ArrayL [Expression]
 >                 | WindowFn Expression (Maybe [Expression])
+>                 | Case [When] Else
+>                   deriving (Show,Eq)
+
+> data When = When Expression Expression
+>                   deriving (Show,Eq)
+> data Else = Else Expression
 >                   deriving (Show,Eq)

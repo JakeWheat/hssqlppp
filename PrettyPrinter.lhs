@@ -196,6 +196,13 @@ plpgsql
 > convExp (ArrayL es) = text "array" <> brackets (csvExp es)
 > convExp (WindowFn fn order) = convExp fn <+> text "over"
 >                                     <+> maybeConv (\x -> parens (text "order by" <+> csvExp x)) order
+> convExp (Case whens (Else els)) = text "case"
+>                            $+$ nest 2 (vcat (map convWhen whens)
+>                                        $+$ text "else" <+> convExp els)
+>                            $+$ text "end"
+
+> convWhen :: When -> Doc
+> convWhen (When ex1 ex2) = text "when" <+> convExp ex1 <+> text "then" <+> convExp ex2
 
 = Utils
 
