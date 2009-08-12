@@ -143,6 +143,21 @@
 >                                                 (qi "b" "a")
 >                                                 (qi "c" "a"))))
 >                                      Nothing]
+>                       ,checkParse "select a from b\n\
+>                                   \    inner join c\n\
+>                                   \      on true\n\
+>                                   \    inner join d\n\
+>                                   \      on 1=1;"
+>                                   [Select
+>                                    (SelectList [SelExp (Identifier "a")])
+>                                    (Just (From (JoinedTref
+>                                                 (JoinedTref (Tref "b") Inner (Tref "c")
+>                                                  (Just (BooleanL True)))
+>                                                 Inner
+>                                                 (Tref "d")
+>                                                 (Just (BinaryOperatorCall Eql
+>                                                        (IntegerL 1) (IntegerL 1))))))
+>                                    Nothing]
 >                       ,checkParse "select row_number() over(order by a) as place from tbl;"
 >                                   [Select (SelectList [SelectItem
 >                                                        (WindowFn

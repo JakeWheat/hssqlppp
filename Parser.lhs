@@ -77,19 +77,15 @@ statement types
 >   x <- getLinesTillMatches "\\.\n"
 >   whitespace
 >   return $ Copy x
-
-
-> getLinesTillMatches :: [Char] -> ParsecT [Char] u Identity [Char]
-> getLinesTillMatches s = do
->   x <- getALine
->   if x == s
->     then return x
->     else liftM (x++) $ getLinesTillMatches s
-
-> getALine :: ParsecT [Char] u Identity [Char]
-> getALine = do
->   x <- manyTill anyChar (try newline)
->   return $ x ++ "\n"
+>   where
+>     getLinesTillMatches s = do
+>                             x <- getALine
+>                             if x == s
+>                               then return x
+>                               else liftM (x++) $ getLinesTillMatches s
+>     getALine = do
+>                x <- manyTill anyChar (try newline)
+>                return $ x ++ "\n"
 
 > insert :: ParsecT String () Identity Statement
 > insert = do
@@ -317,23 +313,27 @@ Statement components
 >                     if x `elem` ["where", "except", "union", "loop", "inner", "on"]
 >                       then fail "not keyword"
 >                       else return x)
->        jn <- maybeP joinPart
 >        let tr1 = case b of
 >                         Nothing -> Tref a
 >                         Just b1 -> TrefAlias a b1
+>        jn <- maybeP $ joinPart tr1
 >        case jn of
 >          Nothing -> return tr1
->          Just (jt,tr2,ex) -> return  $ JoinedTref tr1 jt tr2 ex
+>          Just jn1 -> return jn1
 
-> joinPart :: GenParser Char () (JoinType, TableRef, Maybe Expression)
-> joinPart = do
+> joinPart :: TableRef -> GenParser Char () TableRef
+> joinPart tr1 = do
 >   keyword "inner"
 >   keyword "join"
 >   tr2 <- tref
 >   ex <- maybeP (do
 >                  keyword "on"
 >                  expr)
->   return (Inner,tr2,ex)
+>   let jp1 = JoinedTref tr1 Inner tr2 ex
+>   jp2 <- maybeP $ joinPart jp1
+>   case jp2 of
+>     Nothing -> return jp1
+>     Just j -> return j
 
 
 > selectList :: ParsecT String () Identity SelectList
