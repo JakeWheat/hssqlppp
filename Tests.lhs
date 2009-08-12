@@ -127,6 +127,15 @@
 >                                                 (qi "b" "a")
 >                                                 (qi "c" "a"))))
 >                                      Nothing]
+>                       ,checkParse "select row_number() over(order by a) as place from tbl;"
+>                                   [Select (SelectList [SelectItem
+>                                                        (WindowFn
+>                                                         (FunctionCall "row_number" [])
+>                                                         (Just [Identifier "a"]))
+>                                                        ("place")])
+>                                      (Just $ From $ Tref "tbl")
+>                                      Nothing]
+
 >                       ]
 >        ,testGroup "multiple statements" [
 >                         checkParse "select 1;\nselect 2;" [selectE $ SelectList [SelExp (IntegerL 1)]

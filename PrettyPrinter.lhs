@@ -33,11 +33,9 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ rparen <> statementEnd
 
 > convStatement (Insert tb atts exps) = text "insert into" <+> text tb
->                                       <+> case atts of
->                                             Nothing -> empty
->                                             Just a -> parens (hcatCsvMap text a)
+>                                       <+> maybeConv (\x -> parens (hcatCsvMap text x)) atts
 >                                       <+> text "values"
->                                       <+> parens (hcatCsvMap convExp exps)
+>                                       <+> parens (csvExp exps)
 >                                       <> statementEnd
 
 > convStatement (Update tb scs wh) = text "update" <+> text tb <+> text "set"
@@ -90,7 +88,7 @@ plpgsql
 >     <> (if not (null exps)
 >          then
 >            comma
->            <+> hcatCsvMap convExp exps
+>            <+> csvExp exps
 >          else empty)
 >     <> statementEnd
 
@@ -117,9 +115,7 @@ plpgsql
 > convSelectFragment (Select l tb wh) =
 >   text "select" <+> convSelList l
 >   $+$ nest 2 (
->     case tb of
->       Nothing -> empty
->       Just tbn -> convFrom tbn
+>     maybeConv convFrom tb
 >     $+$ convWhere wh)
 > convSelectFragment (CombineSelect tp s1 s2) =
 >   convSelectFragment s1
@@ -140,9 +136,7 @@ plpgsql
 >     <+> (case jt of
 >           Inner -> text "inner join")
 >     <+> convTref t2
->     <+> case ex of
->           Nothing -> empty
->           Just e -> text "on" $+$ nest 2 (convExp e)
+>     <+> maybeConv (\e -> text "on" $+$ nest 2 (convExp e)) ex
 
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
@@ -160,15 +154,11 @@ plpgsql
 
 > convAttDef :: AttributeDef -> Doc
 > convAttDef (AttributeDef n t def ch) = text n <+> text t
->                                        <+> (case def of
->                                               Nothing -> empty
->                                               Just e -> text "default" <+> convExp e)
+>                                        <+> maybeConv (\e -> text "default" <+> convExp e) def
 >                                        <+> checkExp ch
 
 > checkExp :: Maybe Expression -> Doc
-> checkExp c = case c of
->                       Nothing -> empty
->                       Just e -> text "check" <+> convExp e
+> checkExp c = maybeConv (\e -> text "check" <+> convExp e) c
 
 > convParamDef :: ParamDef -> Doc
 > convParamDef (ParamDef n t) = text n <+> text t
@@ -183,7 +173,7 @@ plpgsql
 > --convExp (QualifiedIdentifier q i) = text q <> text "." <> text i
 > convExp (IntegerL n) = integer n
 > convExp (StringL s) = quotes $ text s
-> convExp (FunctionCall i as) = text i <> parens (hcatCsvMap convExp as)
+> convExp (FunctionCall i as) = text i <> parens (csvExp as)
 > convExp (BinaryOperatorCall op a b) = case op of
 >                                       Not -> parens (text (opToSymbol op) <+> convExp b)
 >                                       IsNull -> parens (convExp b <+> text (opToSymbol op))
@@ -191,12 +181,23 @@ plpgsql
 >                                       Qual -> parens (convExp a <> text (opToSymbol op) <> convExp b)
 >                                       _ -> parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
-> convExp (InPredicate att expr) = text att <+> text "in" <+> parens (hcatCsvMap convExp expr)
+> convExp (InPredicate att expr) = text att <+> text "in" <+> parens (csvExp expr)
 > convExp (ScalarSubQuery s) = parens (convSelectFragment s)
 > convExp NullL = text "null"
-> convExp (ArrayL es) = text "array" <> brackets (hcatCsvMap convExp es)
+> convExp (ArrayL es) = text "array" <> brackets (csvExp es)
+> convExp (WindowFn fn order) = convExp fn <+> text "over"
+>                                     <+> maybeConv (\x -> parens (text "order by" <+> csvExp x)) order
 
 = Utils
+
+> csvExp :: [Expression] -> Doc
+> csvExp = hcatCsvMap convExp
+
+> maybeConv :: (t -> Doc) -> Maybe t -> Doc
+> maybeConv f c =
+>     case c of
+>       Nothing -> empty
+>       Just a -> f a
 
 > csv :: [Doc] -> [Doc]
 > csv = punctuate comma

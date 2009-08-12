@@ -372,6 +372,7 @@ expressions
 >           <|> try inPredicate
 >           <|> try nullL
 >           <|> try array
+>           <|> try windowFn
 >           <|> try functionCall
 >           <|> try identifier
 >           <?> "simple expression"
@@ -460,6 +461,15 @@ expressions
 >   args <- parens $ commaSep expr
 >   return $ FunctionCall name args
 
+> windowFn :: GenParser Char () Expression
+> windowFn = do
+>   fn <- functionCall
+>   keyword "over"
+>   os <- parens (maybeP (do
+>                         keyword "order"
+>                         keyword "by"
+>                         commaSep1 expr))
+>   return $ WindowFn fn os
 
 
 ================================================================================

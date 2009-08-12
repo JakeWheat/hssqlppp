@@ -104,4 +104,5 @@ Expressions
 >                 | FunctionCall String [Expression]
 >                 | ScalarSubQuery Statement
 >                 | ArrayL [Expression]
+>                 | WindowFn Expression (Maybe [Expression])
 >                   deriving (Show,Eq)
