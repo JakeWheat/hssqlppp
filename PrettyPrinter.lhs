@@ -1,4 +1,3 @@
-
 > module PrettyPrinter where
 
 > import Text.PrettyPrint
@@ -48,19 +47,20 @@ Conversion routines - convert Sql asts into Docs
 >                                 <+> convWhere wh
 >                                 <> statementEnd
 
-> convStatement (CreateFunction name args retType decls stmts) =
+> convStatement (CreateFunction lang name args retType qt body vol) =
 >     text "create function" <+> text name
 >     <+> parens (hcatCsvMap convParamDef args)
->     <+> text "returns" <+> text retType <+> text "as" <+> text "$$"
->     $+$ (if not (null decls)
->           then
->             text "declare"
->             $+$ nest 2 (vcat $ map convVarDef decls)
->           else empty)
->     $+$ text "begin"
->     $+$ nest 2 (vcat $ map convStatement stmts)
->     $+$ text "end;"
->     $+$ text "$$ language plpgsql volatile" <> statementEnd
+>     <+> text "returns" <+> text retType <+> text "as" <+> text qt
+>     $+$ convFnBody body
+>     $+$ text qt <+> text "language"
+>     <+> text (case lang of
+>                         Sql -> "sql"
+>                         Plpgsql -> "plpgsql")
+>     <+> text (case vol of
+>                        Volatile -> "volatile"
+>                        Stable -> "stable"
+>                        Immutable -> "immutable")
+>     <> statementEnd
 
 > convStatement (CreateView name sel) =
 >     text "create view" <+> text name <+> text "as"
@@ -139,7 +139,7 @@ plpgsql
 > convTref (TrefAlias f a) = text f <+> text a
 > convTref (JoinedTref t1 nat jt t2 ex) =
 >     convTref t1
->     <+> case nat of
+>     $+$ case nat of
 >           True -> text "natural"
 >           False -> empty
 >     <+> text (case jt of
@@ -150,7 +150,7 @@ plpgsql
 >                       FullOuter -> "full outer")
 >     <+> text "join"
 >     <+> convTref t2
->     <+> maybeConv (\e -> text "on" $+$ nest 2 (convExp e)) ex
+>     <+> maybeConv (\e -> nest 2 (text "on" <+> convExp e)) ex
 > convTref (SubTref sub alias) =
 >     parens (convSelectFragment sub)
 >     <+> text "as" <+> text alias
@@ -179,9 +179,22 @@ plpgsql
 
 > convParamDef :: ParamDef -> Doc
 > convParamDef (ParamDef n t) = text n <+> text t
+> convParamDef  (ParamDefTp t) = text t
 
 > convVarDef :: VarDef -> Doc
 > convVarDef (VarDef n t) = text n <+> text t <> semi
+
+> convFnBody :: FnBody -> Doc
+> convFnBody (SqlFnBody sts) = nest 2 (vcat $ map convStatement sts)
+> convFnBody (PlpgsqlFnBody decls sts) =
+>     (if not (null decls)
+>           then
+>             text "declare"
+>             $+$ nest 2 (vcat $ map convVarDef decls)
+>           else empty)
+>     $+$ text "begin"
+>     $+$ nest 2 (vcat $ map convStatement sts)
+>     $+$ text "end;"
 
 = Expressions
 

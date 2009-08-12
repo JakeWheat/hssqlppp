@@ -151,13 +151,39 @@ statement types
 >   keyword "returns"
 >   retType <- identifierString
 >   keyword "as"
->   symbol "$$"
->   (decls, stmts) <- functionBody
->   symbol "$$"
+>   body <- stringChoose
 >   keyword "language"
->   keyword "plpgsql"
->   keyword "volatile"
->   return $ CreateFunction fnName params retType decls stmts
+>   lang <- (keyword "plpgsql" >> return Plpgsql)
+>           <|> (keyword "sql" >> return Sql)
+
+>   case parse (functionBody lang) "" (extrStr body) of
+>     Left e -> error $ show e
+>     Right body' -> do
+>                     vol <- (keyword "volatile" >> return Volatile)
+>                            <|> (keyword "stable" >> return Stable)
+>                            <|> (keyword "immmutable" >> return Immutable)
+>                     return $ CreateFunction lang fnName params retType (quoteOfString body) body' vol
+
+> functionBody :: Language -> ParsecT String () Identity FnBody
+> functionBody Sql = liftM SqlFnBody $ (whitespace >> many statement)
+> functionBody Plpgsql =
+>   (do
+>      whitespace
+>      keyword "declare"
+>      decls <- manyTill (try varDef) (try $ keyword "begin")
+>      stmts <- many statement
+>      keyword "end"
+>      semi
+>      eof
+>      return $ PlpgsqlFnBody decls stmts
+>   ) <|> (do
+>      whitespace
+>      keyword "begin"
+>      stmts <- many statement
+>      keyword "end"
+>      semi
+>      eof
+>      return $ PlpgsqlFnBody [] stmts)
 
 > createView :: ParsecT String () Identity Statement
 > createView = do
@@ -227,22 +253,6 @@ plpgsql stements
 >   return $ Raise RNotice s (fromMaybe [] exps)
 
 Statement components
-
-> functionBody :: ParsecT String () Identity ([VarDef], [Statement])
-> functionBody =
->   (do
->      keyword "declare"
->      decls <- manyTill (try varDef) (try $ keyword "begin")
->      stmts <- many statement
->      keyword "end"
->      semi
->      return (decls,stmts)
->   ) <|> (do
->      keyword "begin"
->      stmts <- many statement
->      keyword "end"
->      semi
->      return ([],stmts))
 
 > varDef :: ParsecT String () Identity VarDef
 > varDef = do
@@ -467,6 +477,19 @@ expressions
 
 > stringLiteral :: ParsecT String u Identity Expression
 > stringLiteral = liftM StringL stringPar
+
+> stringChoose :: ParsecT String () Identity Expression
+> stringChoose = (liftM StringL stringPar) <|> stringLD
+
+> extrStr :: Expression -> String
+> extrStr (StringLD _ s) = s
+> extrStr (StringL s) = s
+> extrStr x = error $ "extrStr not supported for this type " ++ show x
+
+> quoteOfString :: Expression -> String
+> quoteOfString (StringLD tag _) = "$" ++ tag ++ "$"
+> quoteOfString (StringL _) = "'"
+> quoteOfString x = error $ "quoteType not supported for this type " ++ show x
 
 > stringLD :: ParsecT String () Identity Expression
 > stringLD = do

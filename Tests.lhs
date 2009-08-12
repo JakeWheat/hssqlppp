@@ -305,20 +305,24 @@
 >                                    \  null;\n\
 >                                    \end;\n\
 >                                    \$$ language plpgsql volatile;"
->                                    [(CreateFunction "fn" [] "void"
->                                      [VarDef "a" "int"
->                                      ,VarDef "b" "text"]
->                                      [NullStatement])]
->                        ,checkParse "create function fn() returns void as $$\n\
+>                                    [CreateFunction Plpgsql "fn" [] "void" "$$"
+>                                       (PlpgsqlFnBody [VarDef "a" "int"
+>                                                      ,VarDef "b" "text"]
+>                                        [NullStatement])
+>                                       Volatile
+>                                      ]
+>                        ,checkParse "create function fn() returns void as '\n\
 >                                    \declare\n\
 >                                    \  a int;\n\
 >                                    \begin\n\
 >                                    \  null;\n\
 >                                    \end;\n\
->                                    \$$ language plpgsql volatile;"
->                                    [(CreateFunction "fn" [] "void"
->                                      [VarDef "a" "int"]
->                                      [NullStatement])]
+>                                    \' language plpgsql stable;"
+>                                    [CreateFunction Plpgsql "fn" [] "void" "'"
+>                                      (PlpgsqlFnBody [VarDef "a" "int"]
+>                                                     [NullStatement])
+>                                      Stable
+>                                      ]
 >                       ]
 >        ,testGroup "plpgsqlStatements" [
 >                        checkParse "success := true;"

@@ -872,108 +872,108 @@ stiff, monster, blob : blob on top
 select set_module_for_preceding_objects('pieces');
 /*
 
--- ================================================================================
+================================================================================
 
--- = turn sequence
+= turn sequence
 
--- see readme for overview of turn sequence
+see readme for overview of turn sequence
 
--- For the player, there are three phases, but for the computer there are
--- four phases, the extra one is the autonomous phase in between casting
--- and moving. In this phase magic fire and gooey blob spread, castles
--- may disappear, and wizards may receive a new spell from a magic tree.
+For the player, there are three phases, but for the computer there are
+four phases, the extra one is the autonomous phase in between casting
+and moving. In this phase magic fire and gooey blob spread, castles
+may disappear, and wizards may receive a new spell from a magic tree.
 
--- There are lots of constraints in this section. For an app like this
--- where all the updates are through stored procs which carefully check
--- their preconditions, and there are never any multiple updates, this is
--- a bit excessive. The main takeaway is that you need deferred
--- constraints or multiple updates for most constraints that involve more
--- that one table.
+There are lots of constraints in this section. For an app like this
+where all the updates are through stored procs which carefully check
+their preconditions, and there are never any multiple updates, this is
+a bit excessive. The main takeaway is that you need deferred
+constraints or multiple updates for most constraints that involve more
+that one table.
 
--- == ddl
--- */
--- select new_module('turn_sequence', 'server');
+== ddl
+*/
+select new_module('turn_sequence', 'server');
 
--- /*
--- use this to simulate multiple updates:
--- for a constraint which refers to multiple tables which get updated
--- during an action_next_phase call, this will be set to true,
--- false at all other times, so using this can defer constraint checking
--- till the end of the action_next_phase call after all the relevant
--- turn phase relvars have been updated. Don't forget to put
--- in_next_phase_hack_table in the relvar list for the constraint.
+/*
+use this to simulate multiple updates:
+for a constraint which refers to multiple tables which get updated
+during an action_next_phase call, this will be set to true,
+false at all other times, so using this can defer constraint checking
+till the end of the action_next_phase call after all the relevant
+turn phase relvars have been updated. Don't forget to put
+in_next_phase_hack_table in the relvar list for the constraint.
 
--- */
--- select create_var('in_next_phase_hack', 'boolean');
--- insert into in_next_phase_hack_table values (false);
--- select set_relvar_type('in_next_phase_hack_table', 'stack');
+*/
+select create_var('in_next_phase_hack', 'boolean');
+insert into in_next_phase_hack_table values (false);
+select set_relvar_type('in_next_phase_hack_table', 'stack');
 
--- select create_var('creating_new_game', 'boolean');
--- insert into creating_new_game_table values (true);
--- select set_relvar_type('creating_new_game_table', 'stack');
+select create_var('creating_new_game', 'boolean');
+insert into creating_new_game_table values (true);
+select set_relvar_type('creating_new_game_table', 'stack');
 
--- --Turn number, starts at 0 goes up 1 each full turn, just used to provide
--- --info on how long the game has been going.
--- select create_var('turn_number', 'int');
--- select set_relvar_type('turn_number_table', 'data');
+--Turn number, starts at 0 goes up 1 each full turn, just used to provide
+--info on how long the game has been going.
+select create_var('turn_number', 'int');
+select set_relvar_type('turn_number_table', 'data');
 
--- --if not creating new game cardinality = 1
+--if not creating new game cardinality = 1
 
--- select create_update_transition_tuple_constraint(
---   'turn_number_table',
---   'turn_number_change_valid',
---   '(NEW.turn_number = OLD.turn_number + 1)');
+select create_update_transition_tuple_constraint(
+  'turn_number_table',
+  'turn_number_change_valid',
+  '(NEW.turn_number = OLD.turn_number + 1)');
 
--- create function no_deletes_inserts_except_new_game(relvar_name text)
---   returns void as $$
--- begin
---   perform create_delete_transition_tuple_constraint(
---     relvar_name,
---     relvar_name || '_no_delete',
---     'exists(select 1 from creating_new_game_table
---       where creating_new_game = true)');
---   perform create_insert_transition_tuple_constraint(
---     relvar_name,
---     relvar_name || '_no_insert',
---     'exists(select 1 from creating_new_game_table
---       where creating_new_game = true)');
+create function no_deletes_inserts_except_new_game(relvar_name text)
+  returns void as $$
+begin
+  perform create_delete_transition_tuple_constraint(
+    relvar_name,
+    relvar_name || '_no_delete',
+    'exists(select 1 from creating_new_game_table
+      where creating_new_game = true)');
+  perform create_insert_transition_tuple_constraint(
+    relvar_name,
+    relvar_name || '_no_insert',
+    'exists(select 1 from creating_new_game_table
+      where creating_new_game = true)');
 
--- end;
--- $$ language plpgsql volatile;
+end;
+$$ language plpgsql volatile;
 
--- select no_deletes_inserts_except_new_game('turn_number_table');
+select no_deletes_inserts_except_new_game('turn_number_table');
 
--- /*
--- turn phase
--- must follow choose-cast-auto-move-choose-etc.
+/*
+turn phase
+must follow choose-cast-auto-move-choose-etc.
 
--- wizard spell choices
--- added row must be for current wizard, and in current wizard's spell book
---   in choose phase
--- removed row must be for current wizard
---   in cast phase
+wizard spell choices
+added row must be for current wizard, and in current wizard's spell book
+  in choose phase
+removed row must be for current wizard
+  in cast phase
 
--- spell parts to cast
--- pieces to move
--- squares left to walk
+spell parts to cast
+pieces to move
+squares left to walk
 
--- */
+*/
 
--- create view next_wizard as
--- select wizard_name, new_wizard_name from
---   (select wizard_name as new_wizard_name, place
---      from live_wizards) as a inner join
---   (select wizard_name,
---      (place + 1) %
---        (select max(place) + 1 from live_wizards)
---       as old_place from live_wizards) as b
---   on (place = old_place);
+create view next_wizard as
+select wizard_name, new_wizard_name from
+  (select wizard_name as new_wizard_name, place
+     from live_wizards) as a inner join
+  (select wizard_name,
+     (place + 1) %
+       (select max(place) + 1 from live_wizards)
+      as old_place from live_wizards) as b
+  on (place = old_place);
 
 
--- create function next_wizard(text) returns text as $$
---   select new_wizard_name from next_wizard
---     where wizard_name = $1;
--- $$ language sql stable;
+create function next_wizard(text) returns text as $$
+  select new_wizard_name from next_wizard
+    where wizard_name = $1;
+$$ language sql stable;
 
 -- /*select next_wizard('Buddha');
 -- select next_wizard('Kong Fuzi');

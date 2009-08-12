@@ -13,7 +13,16 @@ SQL top level statements
 >                | Insert String (Maybe [String]) [Expression]
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)
->                | CreateFunction String [ParamDef] String [VarDef] [Statement]
+>                | CreateFunction Language String [ParamDef] String String FnBody Volatility
+
+ >                    language :: Language
+ >                   ,name :: String
+ >                   ,args :: [ParamDef]
+ >                   ,retType :: String
+ >                   ,body :: FnBody
+                     quotetpye
+ >                   ,volatility :: Volatility}
+
 >                | CreateDomain String String (Maybe Expression)
 >                | Assignment String Expression
 >                | Return Expression
@@ -27,6 +36,9 @@ SQL top level statements
 ================================================================================
 
 Statement components
+
+> data FnBody = SqlFnBody [Statement] | PlpgsqlFnBody [VarDef] [Statement]
+>               deriving (Eq,Show)
 
 > data SetClause = SetClause String Expression
 >                  deriving (Eq,Show)
@@ -60,6 +72,7 @@ Statement components
 >                         deriving (Eq,Show)
 
 > data ParamDef = ParamDef String String
+>               | ParamDefTp String
 >                     deriving (Eq,Show)
 
 > data VarDef = VarDef String String
@@ -70,6 +83,12 @@ Statement components
 
 > data CombineType = Except | Union
 >                    deriving (Eq, Show)
+
+> data Volatility = Volatile | Stable | Immutable
+>                   deriving (Eq, Show)
+
+> data Language = Sql | Plpgsql
+>                 deriving (Eq, Show)
 
 ================================================================================
 
