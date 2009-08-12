@@ -33,7 +33,9 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ rparen <> statementEnd
 
 > convStatement (Insert tb atts exps) = text "insert into" <+> text tb
->                                       <+> parens (hcatCsvMap text atts)
+>                                       <+> case atts of
+>                                             Nothing -> empty
+>                                             Just a -> parens (hcatCsvMap text a)
 >                                       <+> text "values"
 >                                       <+> parens (hcatCsvMap convExp exps)
 >                                       <> statementEnd
@@ -189,6 +191,7 @@ plpgsql
 > convExp (InPredicate att expr) = text att <+> text "in" <+> parens (hcatCsvMap convExp expr)
 > convExp (ScalarSubQuery s) = parens (convSelectFragment s)
 > convExp NullL = text "null"
+> convExp (ArrayL es) = text "array" <> brackets (hcatCsvMap convExp es)
 
 = Utils
 

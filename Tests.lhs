@@ -64,6 +64,7 @@
 >                       ,checkParseExpression "a is not null" (BinaryOperatorCall IsNotNull (NullL) (Identifier "a"))
 >                       ,checkParseExpression "'stuff'::text" (BinaryOperatorCall
 >                                                                Cast (StringL "stuff") (Identifier "text"))
+>                       ,checkParseExpression "array[1,2]" (ArrayL [IntegerL 1, IntegerL 2])
 >                       ]
 >        ,testGroup "select expression" [
 >                        checkParse "select 1;" [selectE (SelectList [SelExp (IntegerL 1)])]
@@ -160,7 +161,7 @@
 >                        checkParse "insert into testtable\n\
 >                                   \(columna,columnb)\n\
 >                                   \values (1,2);\n" [(Insert "testtable"
->                                                              ["columna", "columnb"]
+>                                                              (Just ["columna", "columnb"])
 >                                                              [IntegerL 1,
 >                                                               IntegerL 2])]
 >                       ,checkParse "update tb\n\
@@ -398,4 +399,3 @@ property
 -- >   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
-

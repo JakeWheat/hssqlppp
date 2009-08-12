@@ -9,7 +9,7 @@ SQL top level statements
 >                | CombineSelect CombineType Statement Statement
 >                | CreateTable String [AttributeDef]
 >                | CreateView String Statement
->                | Insert String [String] [Expression]
+>                | Insert String (Maybe [String]) [Expression]
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)
 >                | CreateFunction String [ParamDef] String [VarDef] [Statement]
@@ -103,4 +103,5 @@ Expressions
 >                 | InPredicate String [Expression]
 >                 | FunctionCall String [Expression]
 >                 | ScalarSubQuery Statement
+>                 | ArrayL [Expression]
 >                   deriving (Show,Eq)

@@ -100,7 +100,7 @@ statement types
 >   keyword "insert"
 >   keyword "into"
 >   tableName <- identifierString
->   atts <- parens $ commaSep1 identifierString
+>   atts <- maybeP (parens $ commaSep1 identifierString)
 >   keyword "values"
 >   exps <- parens $ commaSep1 expr
 >   return $ Insert tableName atts exps
@@ -368,6 +368,7 @@ expressions
 >           <|> try booleanLiteral
 >           <|> try inPredicate
 >           <|> try nullL
+>           <|> try array
 >           <|> try functionCall
 >           <|> try identifier
 >           <?> "simple expression"
@@ -409,6 +410,11 @@ expressions
 >       postfixk s f
 >          = Postfix (try (keyword s >> return f))
 >
+
+> array :: GenParser Char () Expression
+> array = do
+>   keyword "array"
+>   liftM ArrayL $ squares $ commaSep expr
 
 > inPredicate :: Text.Parsec.Prim.ParsecT String () Identity Expression
 > inPredicate = do
@@ -539,6 +545,10 @@ pass through stuff from parsec
 > parens :: Text.Parsec.Prim.ParsecT String u Identity a
 >           -> Text.Parsec.Prim.ParsecT String u Identity a
 > parens = P.parens lexer
+
+> squares :: Text.Parsec.Prim.ParsecT String u Identity a
+>           -> Text.Parsec.Prim.ParsecT String u Identity a
+> squares = P.squares lexer
 
 > symbol :: String -> Text.Parsec.Prim.ParsecT String u Identity String
 > symbol = P.symbol lexer
