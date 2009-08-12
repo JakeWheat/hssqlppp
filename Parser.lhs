@@ -156,7 +156,7 @@ statement types
 >   lang <- (keyword "plpgsql" >> return Plpgsql)
 >           <|> (keyword "sql" >> return Sql)
 
->   case parse (functionBody lang) "" (extrStr body) of
+>   case parse (functionBody lang) ("function " ++ fnName) (extrStr body) of
 >     Left e -> error $ show e
 >     Right body' -> do
 >                     vol <- (keyword "volatile" >> return Volatile)
@@ -166,9 +166,8 @@ statement types
 
 > functionBody :: Language -> ParsecT String () Identity FnBody
 > functionBody Sql = liftM SqlFnBody $ (whitespace >> many statement)
-> functionBody Plpgsql =
->   (do
->      whitespace
+> functionBody Plpgsql = whitespace >>
+>   ((do
 >      keyword "declare"
 >      decls <- manyTill (try varDef) (try $ keyword "begin")
 >      stmts <- many statement
@@ -177,13 +176,12 @@ statement types
 >      eof
 >      return $ PlpgsqlFnBody decls stmts
 >   ) <|> (do
->      whitespace
 >      keyword "begin"
 >      stmts <- many statement
 >      keyword "end"
 >      semi
 >      eof
->      return $ PlpgsqlFnBody [] stmts)
+>      return $ PlpgsqlFnBody [] stmts))
 
 > createView :: ParsecT String () Identity Statement
 > createView = do
@@ -264,8 +262,10 @@ Statement components
 > param :: ParsecT String () Identity ParamDef
 > param = do
 >   name <- identifierString
->   tp <- identifierString
->   return $ ParamDef name tp
+>   t <- maybeP identifierString
+>   case t of
+>     Just tp -> return $ ParamDef name tp
+>     Nothing -> return $ ParamDefTp name
 
 > setClause :: ParsecT String () Identity SetClause
 > setClause = do
@@ -397,7 +397,8 @@ expressions
 > factor  = try scalarSubQuery
 >           <|> parens expr
 >           <|> stringLiteral
->           <|> stringLD
+>           <|> try stringLD
+>           <|> try positionalArg
 >           <|> integer
 >           <|> try caseParse
 >           <|> try booleanLiteral
@@ -408,6 +409,12 @@ expressions
 >           <|> try functionCall
 >           <|> try identifier
 >           <?> "simple expression"
+
+> positionalArg :: ParsecT String u Identity Expression
+> positionalArg = do
+>   char '$'
+>   i <- lexeme $ P.integer lexer
+>   return $ PositionalArg ((fromInteger i)::Int)
 
 > scalarSubQuery :: GenParser Char () Expression
 > scalarSubQuery = liftM ScalarSubQuery $ parens select

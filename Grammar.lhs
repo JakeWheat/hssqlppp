@@ -123,6 +123,7 @@ Expressions
 >                 | StringL String
 >                 | StringLD String String
 >                 | NullL
+>                 | PositionalArg Int
 >                 | BooleanL Bool
 >                 | Identifier String
 >                 -- | QualifiedIdentifier String String

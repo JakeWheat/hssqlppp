@@ -68,6 +68,7 @@
 >                                             (Case [When (Identifier "a") (IntegerL 3)
 >                                                   ,When (Identifier "b") (IntegerL 4)]
 >                                              (Else (IntegerL 5)))
+>                       ,checkParseExpression "$1" (PositionalArg 1)
 >                       ]
 >        ,testGroup  "string parsing" [
 >                         checkParseExpression "''" (StringL "")
@@ -297,7 +298,17 @@
 >                        ]
 
 >        ,testGroup "functions" [
->                         checkParse "create function fn() returns void as $$\n\
+>                         checkParse "create function t1(text) returns text as $$\n\
+>                                     \select a from t1 where b = $1;\n\
+>                                     \$$ language sql stable;"
+>                                     [CreateFunction Sql "t1"
+>                                      [ParamDefTp "text"] "text" "$$"
+>                                      (SqlFnBody
+>                                       [Select (SelectList [SelExp (Identifier "a")])
+>                                        (Just (From (Tref "t1")))
+>                                        (Just (Where (BinaryOperatorCall Eql
+>                                                      (Identifier "b") (PositionalArg 1))))]) Stable]
+>                        ,checkParse "create function fn() returns void as $$\n\
 >                                    \declare\n\
 >                                    \  a int;\n\
 >                                    \  b text;\n\

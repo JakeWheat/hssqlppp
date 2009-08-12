@@ -224,6 +224,7 @@ plpgsql
 >                            $+$ nest 2 (vcat (map convWhen whens)
 >                                        $+$ text "else" <+> convExp els)
 >                            $+$ text "end"
+> convExp (PositionalArg a) = text "$" <> int a
 
 > convWhen :: When -> Doc
 > convWhen (When ex1 ex2) = text "when" <+> convExp ex1 <+> text "then" <+> convExp ex2
