@@ -51,7 +51,7 @@ Statement components
 >                 | SelectItem Expression String
 >                   deriving (Eq,Show)
 
-> data AttributeDef = AttributeDef String String (Maybe Expression)
+> data AttributeDef = AttributeDef String String (Maybe Expression) (Maybe Expression)
 >                     deriving (Eq,Show)
 
 > data ParamDef = ParamDef String String

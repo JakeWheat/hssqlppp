@@ -192,13 +192,13 @@
 >                                    \  fielda text,\n\
 >                                    \  fieldb int\n\
 >                                    \);" [(CreateTable "test" [
->                                                            AttributeDef "fielda" "text" Nothing
->                                                           ,AttributeDef "fieldb" "int" Nothing
+>                                                            AttributeDef "fielda" "text" Nothing Nothing
+>                                                           ,AttributeDef "fieldb" "int" Nothing Nothing
 >                                                           ])]
 >                        ,checkParse "create table test (\n\
 >                                    \type text check (type in('a', 'b')));"
 >                                    [(CreateTable "test" [
->                                                       AttributeDef "type" "text"
+>                                                       AttributeDef "type" "text" Nothing
 >                                                         (Just (InPredicate
 >                                                               "type"
 >                                                               [StringL "a"
@@ -206,9 +206,14 @@
 >                        ,checkParse "create table tb (\n\
 >                                    \a text not null,\n\
 >                                    \b boolean null);"
->                                    [(CreateTable "tb" [AttributeDef "a" "text"
+>                                    [(CreateTable "tb" [AttributeDef "a" "text" Nothing
 >                                                          (Just (BinaryOperatorCall Not NullL NullL))
->                                                       ,AttributeDef "b" "boolean" (Just NullL)])]
+>                                                       ,AttributeDef "b" "boolean"  Nothing (Just NullL)])]
+>                        ,checkParse "create table tbl (\n\
+>                                    \  fld boolean default false);"
+>                                    [CreateTable "tbl" [AttributeDef "fld" "boolean"
+>                                                           (Just $ BooleanL False)
+>                                                           Nothing]]
 >                        ,checkParse "create view v1 as\n\
 >                                    \select a,b from t;"
 >                                    [(CreateView "v1"

@@ -159,8 +159,11 @@ plpgsql
 > convSelItem (SelExp e) = convExp e
 
 > convAttDef :: AttributeDef -> Doc
-> convAttDef (AttributeDef n t ch) = text n <+> text t
->                                    <+> checkExp ch
+> convAttDef (AttributeDef n t def ch) = text n <+> text t
+>                                        <+> (case def of
+>                                               Nothing -> empty
+>                                               Just e -> text "default" <+> convExp e)
+>                                        <+> checkExp ch
 
 > checkExp :: Maybe Expression -> Doc
 > checkExp c = case c of

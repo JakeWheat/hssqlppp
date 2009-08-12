@@ -292,12 +292,15 @@ Statement components
 >                   keyword "not"
 >                   keyword "null"
 >                   return $ BinaryOperatorCall Not (NullL) (NullL)))
+>   def <- maybeP (do
+>                   keyword "default"
+>                   expr)
 >   check <- maybeP (do
 >                     keyword "check"
 >                     expr)
 >   return $ if isJust nl
->              then AttributeDef name typ nl
->              else AttributeDef name typ check
+>              then AttributeDef name typ def nl
+>              else AttributeDef name typ def check
 
 > selQuerySpec :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > selQuerySpec = do
