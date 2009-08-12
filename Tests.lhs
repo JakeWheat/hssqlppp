@@ -29,10 +29,6 @@
 >                       ,checkParseExpression "'test'" (StringL "test")
 >                       ,checkParseExpression "''" (StringL "")
 >                       ,checkParseExpression "hello" (Identifier "hello")
->                       --,checkParseExpression "''''" (StringL "'")
->                       --,checkParseExpression "'test'''" (StringL "test'")
->                       --,checkParseExpression "'''test'" (StringL "'test")
->                       --,checkParseExpression "'te''st'" (StringL "te'st")
 >                       ,checkParseExpression "helloTest" (Identifier "helloTest")
 >                       ,checkParseExpression "hello_test" (Identifier "hello_test")
 >                       ,checkParseExpression "hello1234" (Identifier "hello1234")
@@ -66,6 +62,19 @@
 >                                                                Cast (StringL "stuff") (Identifier "text"))
 >                       ,checkParseExpression "array[1,2]" (ArrayL [IntegerL 1, IntegerL 2])
 >                       ]
+>        ,testGroup  "string parsing" [
+>                         checkParseExpression "''" (StringL "")
+>                        ,checkParseExpression "''''" (StringL "'")
+>                        ,checkParseExpression "'test'''" (StringL "test'")
+>                        ,checkParseExpression "'''test'" (StringL "'test")
+>                        ,checkParseExpression "'te''st'" (StringL "te'st")
+>                        ,checkParseExpression "$$test$$" (StringL "test")
+>                        ,checkParseExpression "$$te'st$$" (StringL "te'st")
+>                        ,checkParseExpression "$st$test$st$" (StringL "test")
+>                        ,checkParseExpression "$st$te$$yup$$st$st$" (StringL "te$$yup$$st")
+>                        ,checkParseExpression "'spl$$it'" (StringL "spl$$it")
+>                        ]
+
 >        ,testGroup "select expression" [
 >                        checkParse "select 1;" [selectE (SelectList [SelExp (IntegerL 1)])]
 >                       --,checkParse "select 1+1;" [(selectE $ BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))]

@@ -3,6 +3,7 @@
 
 > import Text.PrettyPrint
 > import Grammar
+> import Data.List (stripPrefix)
 
 ================================================================================
 
@@ -172,7 +173,7 @@ plpgsql
 > convExp (Identifier i) = text i
 > --convExp (QualifiedIdentifier q i) = text q <> text "." <> text i
 > convExp (IntegerL n) = integer n
-> convExp (StringL s) = quotes $ text s
+> convExp (StringL s) = quotes $ text $ replace "'" "''" s
 > convExp (FunctionCall i as) = text i <> parens (csvExp as)
 > convExp (BinaryOperatorCall op a b) = case op of
 >                                       Not -> parens (text (opToSymbol op) <+> convExp b)
@@ -213,3 +214,10 @@ plpgsql
 
 > newline :: Doc
 > newline = text "\n"
+
+> replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
+> replace _ _ [] = []
+> replace old new xs@(y:ys) =
+>   case stripPrefix old xs of
+>     Nothing -> y : replace old new ys
+>     Just ys' -> new ++ replace old new ys'

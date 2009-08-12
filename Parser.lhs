@@ -1,12 +1,13 @@
 > module Parser where
 
-> import Text.ParserCombinators.Parsec
-> import qualified Text.ParserCombinators.Parsec.Token as P
-> import Text.ParserCombinators.Parsec.Language
+> import Text.Parsec
+> import qualified Text.Parsec.Token as P
+> import Text.Parsec.Language
 > import qualified Text.Parsec.Prim
 > import Control.Monad.Identity
 > import Text.Parsec.Expr
 > import Data.Maybe
+> import Text.Parsec.String
 
 > import Grammar
 
@@ -35,14 +36,14 @@ Parse expression fragment, used for testing purposes
 
 Parsing top level statements
 
-> statements :: Text.Parsec.Prim.ParsecT String () Identity [Statement]
+> statements :: ParsecT String () Identity [Statement]
 > statements = do
 >   whitespace
 >   s <- many statement
 >   eof
 >   return s
 
-> statement :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> statement :: ParsecT String () Identity Statement
 > statement = do
 >   (do
 >    s <- (
@@ -68,7 +69,7 @@ Parsing top level statements
 
 statement types
 
-> copy :: Text.Parsec.Prim.ParsecT [Char] u Identity Statement
+> copy :: ParsecT [Char] u Identity Statement
 > copy = do
 >   keyword "copy"
 >   --x <- manyTill anyChar (try (string "END OF COPY"))
@@ -77,25 +78,19 @@ statement types
 >   return $ Copy x
 
 
-> getLinesTillMatches :: [Char] -> Text.Parsec.Prim.ParsecT [Char] u Identity [Char]
-
- > getLinesTillMatches :: (Num a) =>
- >                        [Char]
- >                            -> a
- >                            -> Text.Parsec.Prim.ParsecT [Char] u Identity [Char]
-
+> getLinesTillMatches :: [Char] -> ParsecT [Char] u Identity [Char]
 > getLinesTillMatches s = do
 >   x <- getALine
 >   if x == s
 >     then return x
 >     else liftM (x++) $ getLinesTillMatches s
 
-> getALine :: Text.Parsec.Prim.ParsecT [Char] u Identity [Char]
+> getALine :: ParsecT [Char] u Identity [Char]
 > getALine = do
 >   x <- manyTill anyChar (try newline)
 >   return $ x ++ "\n"
 
-> insert :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> insert :: ParsecT String () Identity Statement
 > insert = do
 >   keyword "insert"
 >   keyword "into"
@@ -105,7 +100,7 @@ statement types
 >   exps <- parens $ commaSep1 expr
 >   return $ Insert tableName atts exps
 
-> update :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> update :: ParsecT String () Identity Statement
 > update = do
 >   keyword "update"
 >   tableName <- identifierString
@@ -114,7 +109,7 @@ statement types
 >   wh <- maybeP whereClause
 >   return $ Update tableName scs wh
 
-> delete :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> delete :: ParsecT String () Identity Statement
 > delete = do
 >   keyword "delete"
 >   keyword "from"
@@ -122,18 +117,14 @@ statement types
 >   wh <- maybeP whereClause
 >   return $ Delete tableName wh
 
-> createTable :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> createTable :: ParsecT String () Identity Statement
 > createTable = do
 >   keyword "table"
 >   n <- identifierString
 >   atts <- parens $ commaSep1 tableAtt
 >   return $ CreateTable n atts
 
- > genSelect :: Text.Parsec.Prim.ParsecT String () Identity Statement
- > genSelect =
- >   try exceptSelect <|> select
-
-> select :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> select :: ParsecT String () Identity Statement
 > select = do
 >   keyword "select"
 >   s1 <- selQuerySpec
@@ -145,13 +136,6 @@ statement types
 >                  s3 <- select
 >                  return $ CombineSelect Union s1 s3))
 >     <|> (return s1))
-
- > exceptSelect :: Text.Parsec.Prim.ParsecT String () Identity Statement
- > exceptSelect = do
- >   s1 <- select
- >   keyword "except"
- >   s2 <- select
- >   return $ ExceptSelect s1 s2
 
 > createFunction :: GenParser Char () Statement
 > createFunction = do
@@ -169,7 +153,7 @@ statement types
 >   keyword "volatile"
 >   return $ CreateFunction fnName params retType decls stmts
 
-> createView :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> createView :: ParsecT String () Identity Statement
 > createView = do
 >   keyword "view"
 >   vName <- identifierString
@@ -177,7 +161,7 @@ statement types
 >   sel <- select
 >   return $ CreateView vName sel
 
-> createDomain :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> createDomain :: ParsecT String () Identity Statement
 > createDomain = do
 >   keyword "domain"
 >   nm <- identifierString
@@ -188,7 +172,7 @@ statement types
 >                     expr)
 >   return $ CreateDomain nm tp check
 
-> nullStatement :: Text.Parsec.Prim.ParsecT String u Identity Statement
+> nullStatement :: ParsecT String u Identity Statement
 > nullStatement = do
 >   keyword "null"
 >   return NullStatement
@@ -205,7 +189,7 @@ statement types
 >   keyword "loop"
 >   return $ ForStatement i st stmts
 
-> perform :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> perform :: ParsecT String () Identity Statement
 > perform = do
 >   keyword "perform"
 >   ex <- expr
@@ -213,20 +197,20 @@ statement types
 
 plpgsql stements
 
-> assignment :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> assignment :: ParsecT String () Identity Statement
 > assignment = do
 >   n <- identifierString
 >   symbol ":="
 >   ex <- expr
 >   return $ Assignment n ex
 
-> returnSt :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> returnSt :: ParsecT String () Identity Statement
 > returnSt = do
 >   keyword "return"
 >   ex <- expr
 >   return $ Return ex
 
-> raise :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> raise :: ParsecT String () Identity Statement
 > raise = do
 >   keyword "raise"
 >   keyword "notice"
@@ -238,7 +222,7 @@ plpgsql stements
 
 Statement components
 
-> functionBody :: Text.Parsec.Prim.ParsecT String () Identity ([VarDef], [Statement])
+> functionBody :: ParsecT String () Identity ([VarDef], [Statement])
 > functionBody =
 >   (do
 >      keyword "declare"
@@ -254,33 +238,33 @@ Statement components
 >      semi
 >      return ([],stmts))
 
-> varDef :: Text.Parsec.Prim.ParsecT String () Identity VarDef
+> varDef :: ParsecT String () Identity VarDef
 > varDef = do
 >   name <- identifierString
 >   tp <- identifierString
 >   semi
 >   return $ VarDef name tp
 
-> param :: Text.Parsec.Prim.ParsecT String () Identity ParamDef
+> param :: ParsecT String () Identity ParamDef
 > param = do
 >   name <- identifierString
 >   tp <- identifierString
 >   return $ ParamDef name tp
 
-> setClause :: Text.Parsec.Prim.ParsecT String () Identity SetClause
+> setClause :: ParsecT String () Identity SetClause
 > setClause = do
 >   ref <- identifierString
 >   symbol "="
 >   ex <- expr
 >   return $ SetClause ref ex
 
-> whereClause :: Text.Parsec.Prim.ParsecT String () Identity Where
+> whereClause :: ParsecT String () Identity Where
 > whereClause = do
 >   keyword "where"
 >   ex <- expr
 >   return $ Where ex
 
-> tableAtt :: Text.Parsec.Prim.ParsecT String () Identity AttributeDef
+> tableAtt :: ParsecT String () Identity AttributeDef
 > tableAtt = do
 >   name <- identifierString
 >   typ <- identifierString
@@ -302,7 +286,7 @@ Statement components
 >              then AttributeDef name typ def nl
 >              else AttributeDef name typ def check
 
-> selQuerySpec :: Text.Parsec.Prim.ParsecT String () Identity Statement
+> selQuerySpec :: ParsecT String () Identity Statement
 > selQuerySpec = do
 >   sl <- selectList
 >   tb <- maybeP from
@@ -314,7 +298,7 @@ Statement components
 >        keyword "from"
 >        liftM From tref
 
-> tref :: Text.Parsec.Prim.ParsecT String () Identity TableRef
+> tref :: ParsecT String () Identity TableRef
 > tref = do
 >        a <- identifierString
 >        b <- maybeP (do
@@ -342,10 +326,10 @@ Statement components
 >   return (Inner,tr2,ex)
 
 
-> selectList :: Text.Parsec.Prim.ParsecT String () Identity SelectList
+> selectList :: ParsecT String () Identity SelectList
 > selectList = liftM SelectList $ commaSep1 selectItem
 
-> selectItem :: Text.Parsec.Prim.ParsecT String () Identity SelectItem
+> selectItem :: ParsecT String () Identity SelectItem
 > selectItem = do
 >        ex <- expr
 >        i <- maybeP (do
@@ -420,42 +404,67 @@ expressions
 >   keyword "array"
 >   liftM ArrayL $ squares $ commaSep expr
 
-> inPredicate :: Text.Parsec.Prim.ParsecT String () Identity Expression
+> inPredicate :: ParsecT String () Identity Expression
 > inPredicate = do
 >   vexp <- identifierString
 >   keyword "in"
 >   e <- parens $ commaSep1 expr
 >   return $ InPredicate vexp e
 
-> nullL :: Text.Parsec.Prim.ParsecT String u Identity Expression
+> nullL :: ParsecT String u Identity Expression
 > nullL = do
 >   keyword "null"
 >   return NullL
 
-> identifier :: Text.Parsec.Prim.ParsecT String () Identity Expression
+> identifier :: ParsecT String () Identity Expression
 > identifier = liftM Identifier identifierString
 
-> booleanLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
+> booleanLiteral :: ParsecT String u Identity Expression
 > booleanLiteral = do
 >   x <- lexeme (string "true")
 >        <|> lexeme (string "false")
 >   return $ BooleanL (x == "true")
 
-> integer :: Text.Parsec.Prim.ParsecT String u Identity Expression
+> integer :: ParsecT String u Identity Expression
 > integer = liftM IntegerL $ lexeme $ P.integer lexer
 
-> stringLiteral :: Text.Parsec.Prim.ParsecT String u Identity Expression
+> stringLiteral :: ParsecT String u Identity Expression
 > stringLiteral = liftM StringL stringPar
 
-> stringPar :: Text.Parsec.Prim.ParsecT String u Identity String
+> stringPar :: ParsecT String u Identity [Char]
 > stringPar = do
 >   char '\''
->   name <- many (noneOf "'")
->   lexeme $ char '\''
+>   name <- readQuoteEscape
+
+-- >   name <- manyTill anyChar $ lookAhead $ try $ do
+-- >                                               char '\''
+-- >                                               noneOf "'"
+-- >                                               return ()
+
+ >   ((try $ do
+ >         char '\''
+ >         fail "it's gone wrong again")
+ >    <|> return $ replace "''" "'" name))
+
+>   whitespace
 >   return name
 
+> readQuoteEscape :: ParsecT String u Identity [Char]
+> readQuoteEscape = do
+>   x <- anyChar
+>   if x == '\''
+>      then do
+>          (try $ do
+>             char '\''
+>             l <- readQuoteEscape
+>             return $ x:l)
+>          <|> return ""
+>      else do
+>          l <- readQuoteEscape
+>          return $ x:l
 
-> functionCall :: Text.Parsec.Prim.ParsecT String () Identity Expression
+
+> functionCall :: ParsecT String () Identity Expression
 > functionCall = do
 >   name <- identifierString
 >   args <- parens $ commaSep expr
@@ -476,14 +485,14 @@ expressions
 
 Utility parsers
 
-> whitespace :: Text.Parsec.Prim.ParsecT String u Identity ()
+> whitespace :: ParsecT String u Identity ()
 > whitespace = skipMany ((space >> return ())
 >                        <|> blockComment
 >                        <|> lineComment)
 
- > keyword :: String -> Text.Parsec.Prim.ParsecT String u Identity String
+ > keyword :: String -> ParsecT String u Identity String
 
-> keyword :: String -> Text.Parsec.Prim.ParsecT String u Identity ()
+> keyword :: String -> ParsecT String u Identity ()
 > keyword k = do
 >   lexeme $ do
 >     string k
@@ -501,23 +510,20 @@ Utility parsers
 >       whitespace
 >       return $ s : p
 
- > word :: Parser String
- > word = lexeme (many1 letter)
-
 > maybeP :: GenParser tok st a
->           -> Text.Parsec.Prim.ParsecT [tok] st Identity (Maybe a)
+>           -> ParsecT [tok] st Identity (Maybe a)
 > maybeP p =
 >   (do a <- try p
 >       return $ Just a)
 >   <|> return Nothing
 
-> blockComment :: Text.Parsec.Prim.ParsecT String st Identity ()
+> blockComment :: ParsecT String st Identity ()
 > blockComment = do
 >   try (char '/' >> char '*')
 >   manyTill anyChar (try (string "*/"))
 >   return ()
 
-> lineComment :: Text.Parsec.Prim.ParsecT String st Identity ()
+> lineComment :: ParsecT String st Identity ()
 > lineComment = do
 >   try (char '-' >> char '-')
 >   manyTill anyChar ((try (char '\n') >> return ()) <|> eof)
@@ -529,39 +535,39 @@ pass through stuff from parsec
 
 > lexer :: P.GenTokenParser String u Identity
 > lexer = P.makeTokenParser (haskellDef
->                            { reservedOpNames = ["*","/","+","-"],
->                              commentStart = "/*",
->                              commentEnd = "*/",
->                              commentLine = "--"
+>                            { P.reservedOpNames = ["*","/","+","-"],
+>                              P.commentStart = "/*",
+>                              P.commentEnd = "*/",
+>                              P.commentLine = "--"
 >                            })
 
-> lexeme :: Text.Parsec.Prim.ParsecT String u Identity a
->           -> Text.Parsec.Prim.ParsecT String u Identity a
+> lexeme :: ParsecT String u Identity a
+>           -> ParsecT String u Identity a
 > lexeme = P.lexeme lexer
 
-> commaSep :: Text.Parsec.Prim.ParsecT String u Identity a
->             -> Text.Parsec.Prim.ParsecT String u Identity [a]
+> commaSep :: ParsecT String u Identity a
+>             -> ParsecT String u Identity [a]
 > commaSep = P.commaSep lexer
 
-> commaSep1 :: Text.Parsec.Prim.ParsecT String u Identity a
->             -> Text.Parsec.Prim.ParsecT String u Identity [a]
+> commaSep1 :: ParsecT String u Identity a
+>             -> ParsecT String u Identity [a]
 > commaSep1 = P.commaSep lexer
 
-> semiSep :: Text.Parsec.Prim.ParsecT String u Identity a
->             -> Text.Parsec.Prim.ParsecT String u Identity [a]
+> semiSep :: ParsecT String u Identity a
+>             -> ParsecT String u Identity [a]
 > semiSep = P.semiSep lexer
 
 
-> semi :: Text.Parsec.Prim.ParsecT String u Identity String
+> semi :: ParsecT String u Identity String
 > semi = P.semi lexer
 
-> parens :: Text.Parsec.Prim.ParsecT String u Identity a
->           -> Text.Parsec.Prim.ParsecT String u Identity a
+> parens :: ParsecT String u Identity a
+>           -> ParsecT String u Identity a
 > parens = P.parens lexer
 
-> squares :: Text.Parsec.Prim.ParsecT String u Identity a
->           -> Text.Parsec.Prim.ParsecT String u Identity a
+> squares :: ParsecT String u Identity a
+>           -> ParsecT String u Identity a
 > squares = P.squares lexer
 
-> symbol :: String -> Text.Parsec.Prim.ParsecT String u Identity String
+> symbol :: String -> ParsecT String u Identity String
 > symbol = P.symbol lexer
