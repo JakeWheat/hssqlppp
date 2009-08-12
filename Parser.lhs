@@ -306,17 +306,24 @@ Statement components
 
 > tref :: ParsecT String () Identity TableRef
 > tref = do
->        a <- identifierString
->        b <- maybeP (do
->                     whitespace
->                     x <- identifierString
->                     if x `elem` ["where", "except", "union", "loop", "inner", "on"
->                                 ,"left", "right", "full", "cross", "natural"]
->                       then fail "not keyword"
->                       else return x)
->        let tr1 = case b of
->                         Nothing -> Tref a
->                         Just b1 -> TrefAlias a b1
+>        tr1 <- (do
+>                sub <- parens select
+>                keyword "as"
+>                alias <- identifierString
+>                return $ SubTref sub alias
+>               ) <|>
+>               (do
+>                a <- identifierString
+>                b <- maybeP (do
+>                             whitespace
+>                             x <- identifierString
+>                             if x `elem` ["where", "except", "union", "loop", "inner", "on"
+>                                         ,"left", "right", "full", "cross", "natural"]
+>                               then fail "not keyword"
+>                               else return x)
+>                return $ case b of
+>                                Nothing -> Tref a
+>                                Just b1 -> TrefAlias a b1)
 >        jn <- maybeP $ joinPart tr1
 >        case jn of
 >          Nothing -> return tr1

@@ -151,6 +151,9 @@ plpgsql
 >     <+> text "join"
 >     <+> convTref t2
 >     <+> maybeConv (\e -> text "on" $+$ nest 2 (convExp e)) ex
+> convTref (SubTref sub alias) =
+>     parens (convSelectFragment sub)
+>     <+> text "as" <+> text alias
 
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex

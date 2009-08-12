@@ -181,7 +181,16 @@
 >                                                        ("place")])
 >                                      (Just $ From $ Tref "tbl")
 >                                      Nothing]
-
+>                       ,checkParse "select * from a natural inner join (select * from b) as a;"
+>                                   [Select
+>                                    (SelectList [SelExp (Identifier "*")])
+>                                    (Just (From (JoinedTref (Tref "a") True Inner
+>                                                 (SubTref (Select
+>                                                           (SelectList [SelExp (Identifier "*")])
+>                                                           (Just (From (Tref "b")))
+>                                                           Nothing) "a")
+>                                                 Nothing)))
+>                                    Nothing]
 >                       ]
 >        ,testGroup "multiple statements" [
 >                         checkParse "select 1;\nselect 2;" [selectE $ SelectList [SelExp (IntegerL 1)]

@@ -40,6 +40,7 @@ Statement components
 > data TableRef = Tref String
 >               | TrefAlias String String
 >               | JoinedTref TableRef Bool JoinType TableRef (Maybe Expression)
+>               | SubTref Statement String
 >                 deriving (Eq,Show)
 
 > data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
