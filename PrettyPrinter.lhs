@@ -117,17 +117,19 @@ plpgsql
 >   $+$ nest 2 (
 >     case tb of
 >       Nothing -> empty
->       Just tbn -> text "from" <+> text tbn
+>       Just tbn -> convFrom tbn
 >     $+$ convWhere wh)
-
 > convSelectFragment (CombineSelect tp s1 s2) =
 >   convSelectFragment s1
 >   $+$ (case tp of
 >          Except -> text "except"
 >          Union -> text "union")
 >   $+$ convSelectFragment s2
-
 > convSelectFragment a = error $ "no convSelectFragment for " ++ show a
+
+> convFrom :: From -> Doc
+> convFrom (From f) = text "from" <+> text f
+> convFrom (FromAlias f a) = text "from" <+> text f <+> text a
 
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
@@ -138,7 +140,6 @@ plpgsql
 
 > convSelList :: SelectList -> Doc
 > convSelList (SelectList l) = hcatCsvMap convSelItem l
-> convSelList (Star) = text "*"
 
 > convSelItem :: SelectItem -> Doc
 > convSelItem (SelectItem ex nm) = (convExp ex) <+> text "as" <+> text nm

@@ -5,7 +5,7 @@
 
 SQL top level statements
 
-> data Statement = Select SelectList (Maybe String) (Maybe Where)
+> data Statement = Select SelectList (Maybe From) (Maybe Where)
 >                | CombineSelect CombineType Statement Statement
 >                | CreateTable String [AttributeDef]
 >                | CreateView String Statement
@@ -33,7 +33,9 @@ Statement components
 > data Where = Where Expression
 >                    deriving (Eq,Show)
 
-> data SelectList = SelectList [SelectItem] | Star
+> data From = From String | FromAlias String String
+>             deriving (Eq,Show)
+> data SelectList = SelectList [SelectItem]
 >                   deriving (Eq,Show)
 
 > data SelectItem = SelExp Expression

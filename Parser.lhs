@@ -301,15 +301,25 @@ Statement components
 
 > selQuerySpec :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > selQuerySpec = do
->   sl <- (do
->          symbol "*"
->          return Star
->         ) <|> selectList
->   tb <- maybeP (do
->                 keyword "from"
->                 identifierString)
+>   sl <- selectList
+>   tb <- maybeP from
 >   wh <- maybeP whereClause
 >   return $ Select sl tb wh
+
+> from :: Text.Parsec.Prim.ParsecT String () Identity From
+> from = do
+>        keyword "from"
+>        a <- identifierString
+>        b <- maybeP (do
+>                     --char ' '
+>                     whitespace
+>                     x <- identifierString
+>                     if x `elem` ["where", "except", "union", "loop"]
+>                       then fail "not keyword"
+>                       else return x)
+>        case b of
+>          Nothing -> return $ From a
+>          Just b1 -> return $ FromAlias a b1
 
 > selectList :: Text.Parsec.Prim.ParsecT String () Identity SelectList
 > selectList = liftM SelectList $ commaSep1 selectItem
@@ -451,11 +461,16 @@ Utility parsers
 >     notFollowedBy alphaNum
 
 > identifierString :: Parser String
-> identifierString = do
->   s <- letter
->   p <- many (alphaNum <|> char '_')
->   whitespace
->   return $ s : p
+> identifierString =
+>   (do
+>     string "*"
+>     whitespace
+>     return "*")
+>   <|> do
+>       s <- letter
+>       p <- many (alphaNum <|> char '_')
+>       whitespace
+>       return $ s : p
 
  > word :: Parser String
  > word = lexeme (many1 letter)
