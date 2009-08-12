@@ -77,7 +77,7 @@ Expressions
 
 > data Op = Plus | Minus | Mult | Div | Pow | Mod | Eql
 >         | And | Conc | Like | Not | IsNull | IsNotNull
->         | Cast | Qual
+>         | Cast | Qual | NotEql
 >           deriving (Show,Eq)
 
 > opToSymbol :: Op -> String
@@ -97,6 +97,7 @@ Expressions
 >                         IsNotNull -> "is not null"
 >                         Cast -> "::"
 >                         Qual -> "."
+>                         NotEql -> "<>"
 
 > data Expression = BinaryOperatorCall Op Expression Expression
 >                 | IntegerL Integer

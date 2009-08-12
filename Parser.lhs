@@ -415,6 +415,7 @@ expressions
 >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
 >        ,binary "/" (BinaryOperatorCall Div) AssocLeft
 >        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
+>        ,binary "<>" (BinaryOperatorCall NotEql) AssocLeft
 >        ,binary "like" (BinaryOperatorCall Like) AssocLeft
 >        ,postfixk "is not null" (BinaryOperatorCall IsNotNull (NullL))
 >        ,postfixk "is null" (BinaryOperatorCall IsNull (NullL))
