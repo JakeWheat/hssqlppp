@@ -44,7 +44,8 @@ Parsing top level statements
 
 > statement :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > statement = do
->   s <- (
+>   (do
+>    s <- (
 >         try select
 >         <|> try insert
 >         <|> try update
@@ -61,10 +62,38 @@ Parsing top level statements
 >         <|> try forStatement
 >         <|> try perform
 >         <|> nullStatement)
->   semi
->   return s
+>    semi
+>    return s)
+>    <|> copy
 
 statement types
+
+> copy :: Text.Parsec.Prim.ParsecT [Char] u Identity Statement
+> copy = do
+>   keyword "copy"
+>   --x <- manyTill anyChar (try (string "END OF COPY"))
+>   x <- getLinesTillMatches "\\.\n"
+>   whitespace
+>   return $ Copy x
+
+
+> getLinesTillMatches :: [Char] -> Text.Parsec.Prim.ParsecT [Char] u Identity [Char]
+
+ > getLinesTillMatches :: (Num a) =>
+ >                        [Char]
+ >                            -> a
+ >                            -> Text.Parsec.Prim.ParsecT [Char] u Identity [Char]
+
+> getLinesTillMatches s = do
+>   x <- getALine
+>   if x == s
+>     then return x
+>     else liftM (x++) $ getLinesTillMatches s
+
+> getALine :: Text.Parsec.Prim.ParsecT [Char] u Identity [Char]
+> getALine = do
+>   x <- manyTill anyChar (try newline)
+>   return $ x ++ "\n"
 
 > insert :: Text.Parsec.Prim.ParsecT String () Identity Statement
 > insert = do

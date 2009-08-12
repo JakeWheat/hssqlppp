@@ -217,117 +217,117 @@ more readable format.
 */
 
 
--- copy piece_prototypes_mr(ptype,flying,speed,agility,undead,ridable,
--- ranged_weapon_type,ranged_attack_strength,range,attack_strength,
--- physical_defense,magic_defense) from stdin;
--- bat	t	5	4	f	f	\N	\N	\N	1	1	9
--- bear	f	2	2	f	f	\N	\N	\N	6	7	6
--- centaur	f	4	5	f	t	projectile	2	4	1	3	5
--- crocodile	f	1	2	f	f	\N	\N	\N	5	6	2
--- dark_citadel	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
--- dire_wolf	f	3	2	f	f	\N	\N	\N	3	2	7
--- eagle	t	6	2	f	f	\N	\N	\N	3	3	8
--- elf	f	1	7	f	f	projectile	2	6	1	2	5
--- faun	f	1	8	f	f	\N	\N	\N	3	2	7
--- ghost	t	2	6	t	f	\N	\N	\N	1	3	9
--- giant	f	2	5	f	f	\N	\N	\N	9	7	6
--- giant_rat	f	3	2	f	f	\N	\N	\N	1	1	8
--- goblin	f	1	4	f	f	\N	\N	\N	2	4	4
--- golden_dragon	t	3	5	f	f	fire	5	4	9	9	5
--- gooey_blob	\N	\N	\N	\N	\N	\N	\N	\N	\N	1	\N
--- gorilla	f	1	2	f	f	\N	\N	\N	6	5	4
--- green_dragon	t	3	4	f	f	fire	4	6	5	8	4
--- gryphon	t	5	6	f	t	\N	\N	\N	3	5	5
--- harpy	t	5	5	f	f	\N	\N	\N	4	2	8
--- horse	f	4	1	f	t	\N	\N	\N	1	3	8
--- hydra	f	1	6	f	f	\N	\N	\N	7	8	4
--- king_cobra	f	1	1	f	f	\N	\N	\N	4	1	6
--- lion	f	4	3	f	f	\N	\N	\N	6	4	8
--- magic_castle	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
--- magic_fire	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
--- magic_tree	\N	\N	\N	\N	\N	\N	\N	\N	\N	5	\N
--- manticore	t	5	8	f	t	projectile	1	3	3	6	6
--- ogre	f	1	6	f	f	\N	\N	\N	4	7	3
--- orc	f	1	4	f	f	\N	\N	\N	2	1	4
--- pegasus	t	5	7	f	t	\N	\N	\N	2	4	6
--- red_dragon	t	3	5	f	f	fire	3	5	7	9	4
--- shadow_tree	\N	\N	\N	\N	\N	\N	\N	\N	2	4	\N
--- skeleton	f	1	4	t	f	\N	\N	\N	3	2	3
--- spectre	f	1	4	t	f	\N	\N	\N	4	2	6
--- unicorn	f	4	7	f	t	\N	\N	\N	5	4	9
--- vampire	t	4	5	t	f	\N	\N	\N	6	8	6
--- wall	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
--- wizard	f	1	3	\N	\N	\N	\N	\N	3	3	5
--- wraith	f	2	5	t	f	\N	\N	\N	5	5	4
--- zombie	f	1	3	t	f	\N	\N	\N	1	1	2
--- \.
+copy piece_prototypes_mr(ptype,flying,speed,agility,undead,ridable,
+ranged_weapon_type,ranged_attack_strength,range,attack_strength,
+physical_defense,magic_defense) from stdin;
+bat	t	5	4	f	f	\N	\N	\N	1	1	9
+bear	f	2	2	f	f	\N	\N	\N	6	7	6
+centaur	f	4	5	f	t	projectile	2	4	1	3	5
+crocodile	f	1	2	f	f	\N	\N	\N	5	6	2
+dark_citadel	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
+dire_wolf	f	3	2	f	f	\N	\N	\N	3	2	7
+eagle	t	6	2	f	f	\N	\N	\N	3	3	8
+elf	f	1	7	f	f	projectile	2	6	1	2	5
+faun	f	1	8	f	f	\N	\N	\N	3	2	7
+ghost	t	2	6	t	f	\N	\N	\N	1	3	9
+giant	f	2	5	f	f	\N	\N	\N	9	7	6
+giant_rat	f	3	2	f	f	\N	\N	\N	1	1	8
+goblin	f	1	4	f	f	\N	\N	\N	2	4	4
+golden_dragon	t	3	5	f	f	fire	5	4	9	9	5
+gooey_blob	\N	\N	\N	\N	\N	\N	\N	\N	\N	1	\N
+gorilla	f	1	2	f	f	\N	\N	\N	6	5	4
+green_dragon	t	3	4	f	f	fire	4	6	5	8	4
+gryphon	t	5	6	f	t	\N	\N	\N	3	5	5
+harpy	t	5	5	f	f	\N	\N	\N	4	2	8
+horse	f	4	1	f	t	\N	\N	\N	1	3	8
+hydra	f	1	6	f	f	\N	\N	\N	7	8	4
+king_cobra	f	1	1	f	f	\N	\N	\N	4	1	6
+lion	f	4	3	f	f	\N	\N	\N	6	4	8
+magic_castle	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
+magic_fire	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
+magic_tree	\N	\N	\N	\N	\N	\N	\N	\N	\N	5	\N
+manticore	t	5	8	f	t	projectile	1	3	3	6	6
+ogre	f	1	6	f	f	\N	\N	\N	4	7	3
+orc	f	1	4	f	f	\N	\N	\N	2	1	4
+pegasus	t	5	7	f	t	\N	\N	\N	2	4	6
+red_dragon	t	3	5	f	f	fire	3	5	7	9	4
+shadow_tree	\N	\N	\N	\N	\N	\N	\N	\N	2	4	\N
+skeleton	f	1	4	t	f	\N	\N	\N	3	2	3
+spectre	f	1	4	t	f	\N	\N	\N	4	2	6
+unicorn	f	4	7	f	t	\N	\N	\N	5	4	9
+vampire	t	4	5	t	f	\N	\N	\N	6	8	6
+wall	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
+wizard	f	1	3	\N	\N	\N	\N	\N	3	3	5
+wraith	f	2	5	t	f	\N	\N	\N	5	5	4
+zombie	f	1	3	t	f	\N	\N	\N	1	1	2
+\.
 
--- select set_module_for_preceding_objects('piece_prototypes');
--- /*
+select set_module_for_preceding_objects('piece_prototypes');
+/*
 
--- == spells
+== spells
 
--- Spells come in a number of flavours, the user interface breaks them
--- down into the same groups that the original chaos instructions did:
+Spells come in a number of flavours, the user interface breaks them
+down into the same groups that the original chaos instructions did:
 
--- wizard spells: upgrade your wizard in some way, most add weaponry
+wizard spells: upgrade your wizard in some way, most add weaponry
 
--- attacking spells: are cast directly on enemy wizards and their
---           monsters to kill them or destroy all of a wizards creations.
+attacking spells: are cast directly on enemy wizards and their
+          monsters to kill them or destroy all of a wizards creations.
 
--- object spells: create object pieces
+object spells: create object pieces
 
--- miscellaneous spells: various spells not in the other categories
+miscellaneous spells: various spells not in the other categories
 
--- monster spells: summon monsters for a wizard's army
+monster spells: summon monsters for a wizard's army
 
--- The code breaks the spells down differently: target spells need a
--- square to be chosen to cast them on activate spells are all the other
--- spells.
+The code breaks the spells down differently: target spells need a
+square to be chosen to cast them on activate spells are all the other
+spells.
 
--- Target spells are further be broken down into summon spells which
--- create new pieces on the board, and all the other target spells.
+Target spells are further be broken down into summon spells which
+create new pieces on the board, and all the other target spells.
 
--- casting chance notes:
+casting chance notes:
 
--- Each time you cast a spell it can affect the world alignment, which in
--- turn affects the spell casting chances.
+Each time you cast a spell it can affect the world alignment, which in
+turn affects the spell casting chances.
 
--- === ddl
--- */
--- select new_module('spells', 'server');
+=== ddl
+*/
+select new_module('spells', 'server');
 
--- create domain spell_category as text
---        check (value in ('object', 'attacking',
---        'wizard', 'miscellaneous', 'monster'));
+create domain spell_category as text
+       check (value in ('object', 'attacking',
+       'wizard', 'miscellaneous', 'monster'));
 
--- --what kind of squares can spells be cast on?
+--what kind of squares can spells be cast on?
 
--- create domain spell_square_category as text
---   check (value in (
---     'empty',
---     'empty_or_corpse_only',
---     'attackable', --attackable - not in castle, incidental corpses allowed
---     'creature_on_top', --creature on top - no blob,
---                        --castle, wood, incidental corpses allowed
---     'monster_on_top',
---     'corpse_only',
---     'empty_and_not_adjacent_to_tree'
--- ));
+create domain spell_square_category as text
+  check (value in (
+    'empty',
+    'empty_or_corpse_only',
+    'attackable', --attackable - not in castle, incidental corpses allowed
+    'creature_on_top', --creature on top - no blob,
+                       --castle, wood, incidental corpses allowed
+    'monster_on_top',
+    'corpse_only',
+    'empty_and_not_adjacent_to_tree'
+));
 
--- create table spells_mr (
---   spell_name text not null,
---   base_chance int not null,
---   alignment int not null,
---   spell_category spell_category not null,
---   description text not null,
---   activate boolean null,
---   target boolean null,
---   range int null,
---   num int null,
---   ptype text null,
---   valid_square_category spell_square_category null
--- );
+create table spells_mr (
+  spell_name text not null,
+  base_chance int not null,
+  alignment int not null,
+  spell_category spell_category not null,
+  description text not null,
+  activate boolean null,
+  target boolean null,
+  range int null,
+  num int null,
+  ptype text null,
+  valid_square_category spell_square_category null
+);
 
 -- select add_key('spells_mr', 'spell_name');
 -- select set_relvar_type('spells_mr', 'readonly');

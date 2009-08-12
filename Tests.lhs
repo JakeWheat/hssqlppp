@@ -167,6 +167,14 @@
 >                                   [Delete "tbl1" (Just $ Where $ BinaryOperatorCall Eql
 >                                                      (Identifier "x") (BooleanL True))]
 >                                   ]
+>        ,checkParse "copy tbl(a,b) from stdin;\n\
+>                    \bat	t\n\
+>                    \bear	f\n\
+>                    \\\.\n"
+>                    [Copy "tbl(a,b) from stdin;\n\
+>                    \bat	t\n\
+>                    \bear	f\n\
+>                    \\\.\n"]
 >        ,testGroup "create" [
 >                        checkParse "create table test (\n\
 >                                    \  fielda text,\n\
@@ -319,11 +327,11 @@ property
 -- >       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
 -- >       Right l -> l
 
--- > parseSqlThrow :: String -> [Statement]
--- > parseSqlThrow s =
--- >     case parseSql s of
--- >       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
--- >       Right l -> l
+> parseSqlThrow :: String -> [Statement]
+> parseSqlThrow s =
+>     case parseSql s of
+>       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
+>       Right l -> l
 
 
 -- arbitrary instances
@@ -378,12 +386,3 @@ property
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
 
-
-
-
-> x = "create view enterable_piece_types as\n\
-> \  select 'magic_tree'::text as ptype\n\
-> \  union\n\
-> \  select 'magic_castle'\n\
-> \  union\n\
-> \  select 'dark_citadel';"

@@ -102,6 +102,9 @@ plpgsql
 > convStatement (Perform x) =
 >    error $ "convStatement not supported for " ++ show x
 
+> convStatement (Copy x) =
+>     text "copy" <+> text x
+
 > statementEnd :: Doc
 > statementEnd = semi <> newline
 

@@ -20,6 +20,7 @@ SQL top level statements
 >                | NullStatement
 >                | Perform Expression
 >                | ForStatement String Statement [Statement]
+>                | Copy String
 >                  deriving (Eq,Show)
 
 ================================================================================
