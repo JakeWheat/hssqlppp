@@ -68,10 +68,10 @@
 >                        ,checkParseExpression "'test'''" (StringL "test'")
 >                        ,checkParseExpression "'''test'" (StringL "'test")
 >                        ,checkParseExpression "'te''st'" (StringL "te'st")
->                        ,checkParseExpression "$$test$$" (StringL "test")
->                        ,checkParseExpression "$$te'st$$" (StringL "te'st")
->                        ,checkParseExpression "$st$test$st$" (StringL "test")
->                        ,checkParseExpression "$st$te$$yup$$st$st$" (StringL "te$$yup$$st")
+>                        ,checkParseExpression "$$test$$" (StringLD "" "test")
+>                        ,checkParseExpression "$$te'st$$" (StringLD "" "te'st")
+>                        ,checkParseExpression "$st$test$st$" (StringLD "st" "test")
+>                        ,checkParseExpression "$outer$te$$yup$$st$outer$" (StringLD "outer" "te$$yup$$st")
 >                        ,checkParseExpression "'spl$$it'" (StringL "spl$$it")
 >                        ]
 

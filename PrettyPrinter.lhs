@@ -174,6 +174,9 @@ plpgsql
 > --convExp (QualifiedIdentifier q i) = text q <> text "." <> text i
 > convExp (IntegerL n) = integer n
 > convExp (StringL s) = quotes $ text $ replace "'" "''" s
+> convExp (StringLD t s) = tag <> text s <> tag
+>     where tag = text "$" <> text t <> text "$"
+
 > convExp (FunctionCall i as) = text i <> parens (csvExp as)
 > convExp (BinaryOperatorCall op a b) = case op of
 >                                       Not -> parens (text (opToSymbol op) <+> convExp b)

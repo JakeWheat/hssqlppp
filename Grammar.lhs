@@ -96,6 +96,7 @@ Expressions
 > data Expression = BinaryOperatorCall Op Expression Expression
 >                 | IntegerL Integer
 >                 | StringL String
+>                 | StringLD String String
 >                 | NullL
 >                 | BooleanL Bool
 >                 | Identifier String

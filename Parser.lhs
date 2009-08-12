@@ -351,6 +351,7 @@ expressions
 > factor  = try scalarSubQuery
 >           <|> parens expr
 >           <|> stringLiteral
+>           <|> stringLD
 >           <|> integer
 >           <|> try booleanLiteral
 >           <|> try inPredicate
@@ -430,6 +431,21 @@ expressions
 
 > stringLiteral :: ParsecT String u Identity Expression
 > stringLiteral = liftM StringL stringPar
+
+> stringLD :: ParsecT String () Identity Expression
+> stringLD = do
+>   char '$'
+>   tag <- ((do
+>            lookAhead $ char '$'
+>            return "") <|>
+>            identifierString)
+>   char '$'
+>   s <- manyTill anyChar (try $ do
+>                                char '$'
+>                                string tag
+>                                char '$')
+>   whitespace
+>   return $ StringLD tag s
 
 > stringPar :: ParsecT String u Identity [Char]
 > stringPar = do
