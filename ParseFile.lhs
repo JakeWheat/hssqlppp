@@ -12,14 +12,18 @@
 >   putStrLn $ "parsing " ++ show f
 >   x <- parseSqlFile f
 >   case x of
->        Left er -> error $ show er
+>        Left er -> do
+>            fs <- readFile f
+>            error $ showEr er fs
 >        Right l -> do
 >            print l
 >            putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
 >            putStrLn $ printSql l
 >            --check roundtrip
 >            case parseSql (printSql l) of
->              Left er -> error $ "roundtrip failed: " ++ show er
+>              Left er -> do
+>                     fs <- readFile f
+>                     error $ "roundtrip failed: " ++ showEr er fs
 >              Right l' -> if l == l'
 >                            then putStrLn "roundtrip ok"
 >                            else putStrLn "roundtrip failed: different ast"

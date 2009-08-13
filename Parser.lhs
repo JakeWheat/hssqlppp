@@ -8,6 +8,7 @@
 > import Text.Parsec.Expr
 > import Data.Maybe
 > import Text.Parsec.String
+> import Text.Parsec.Error
 
 > import Grammar
 
@@ -171,7 +172,7 @@ statement types
 >   case parse (functionBody lang) ("function " ++ fnName) (extrStr body) of
 >     Left e -> do
 >       sp <- getPosition
->       error $ "in " ++ show sp ++ ", " ++ show e
+>       error $ "in " ++ show sp ++ ", " ++ showEr e (extrStr body)
 >     Right body' -> do
 >                     vol <- (keyword "volatile" >> return Volatile)
 >                            <|> (keyword "stable" >> return Stable)
@@ -439,6 +440,7 @@ expressions
 
 > factor :: GenParser Char () Expression
 > factor  = try scalarSubQuery
+>           <|> try rowCtor
 >           <|> parens expr
 >           <|> stringLiteral
 >           <|> try stringLD
@@ -463,6 +465,23 @@ expressions
 
 > scalarSubQuery :: GenParser Char () Expression
 > scalarSubQuery = liftM ScalarSubQuery $ parens select
+
+> rowCtor :: ParsecT [Char] () Identity Expression
+> rowCtor = do
+>   (do
+>     keyword "row"
+>     liftM Row $ parens $ commaSep expr)
+>   <|> (liftM Row $ parens $ commaSep2 expr)
+
+> commaSep2 :: ParsecT String u Identity t -> ParsecT String u Identity [t]
+> commaSep2 p = sepBy2 p (symbol ",")
+
+> sepBy2 :: (Stream s m t1) => ParsecT s u m t -> ParsecT s u m a -> ParsecT s u m [t]
+> sepBy2 p sep = do
+>   x <- p
+>   sep
+>   xs <- sepBy1 p sep
+>   return (x:xs)
 
 >   -- Specifies operator, associativity, precendence, and constructor to execute
 >   -- and built AST with.
@@ -501,28 +520,6 @@ expressions
 >          ]
 >         ,[prefixk "not" (BinaryOperatorCall Not (NullL))]
 >         ,[binaryk "and" (BinaryOperatorCall And) AssocLeft]]
-
--- > table :: [[Operator [Char] u Identity Expression]]
--- > table =
--- >       [[--prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))
--- >         prefixk "not" (BinaryOperatorCall Not (NullL))
--- >        ,binary "." (BinaryOperatorCall Qual) AssocLeft]
--- >       ,[binary "::" (BinaryOperatorCall Cast) AssocLeft
--- >        ,binary "^" (BinaryOperatorCall Pow) AssocRight]
--- >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
--- >        ,binary "/" (BinaryOperatorCall Div) AssocLeft
--- >        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
--- >        ,binary "<>" (BinaryOperatorCall NotEql) AssocLeft
--- >        ,binary "like" (BinaryOperatorCall Like) AssocLeft
--- >        ,postfixk "is not null" (BinaryOperatorCall IsNotNull (NullL))
--- >        ,postfixk "is null" (BinaryOperatorCall IsNull (NullL))
--- >        ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
--- >       ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
--- >        ,binary "-" (BinaryOperatorCall Minus) AssocLeft
--- >        ,binaryk "and" (BinaryOperatorCall And) AssocLeft
--- >        ,binary "||" (BinaryOperatorCall Conc) AssocLeft]
--- >       ]
-
 >     where
 >       binary s f
 >          = Infix (try (symbol s >> return f))
@@ -641,14 +638,55 @@ expressions
 > windowFn = do
 >   fn <- functionCall
 >   keyword "over"
->   os <- parens (maybeP orderBy)
->   return $ WindowFn fn os
+
+ >   os <- parens orderBy
+ >   return $ WindowFn fn Nothing (Just os)
+
+>   symbol "("
+>   (ps,os) <- (try $ do
+>                       p <- partitionBy
+>                       symbol ","
+>                       q <- orderBy
+>                       return (Just p, Just q)
+>                      ) <|> (do
+>                             p <- partitionBy
+>                             return (Just p, Nothing)
+>                      ) <|> (do
+
+>                             q <- orderBy
+>                             return (Nothing, Just q))
+>   symbol ")"
+
+-->                      ) <|> (return (Nothing,Nothing)))
+
+>   return $ WindowFn fn ps os
 
 > orderBy :: GenParser Char () [Expression]
 > orderBy = do
 >           keyword "order"
 >           keyword "by"
 >           commaSep1 expr
+
+> partitionBy :: GenParser Char () [Expression]
+> partitionBy = do
+>           keyword "partition"
+>           keyword "by"
+>           do
+>             x <- p
+>             do
+>                 (do
+>                     lookAhead (do
+>                                 sep
+>                                 keyword "order")
+>                     fail "no order"
+>                     )
+>                 sep
+>                 xs <- sepEndBy p sep
+>                 return (x:xs)
+>               <|> return [x]
+>             where
+>                 p = expr
+>                 sep = expr
 
 > caseParse :: ParsecT [Char] () Identity Expression
 > caseParse = do
@@ -757,3 +795,26 @@ pass through stuff from parsec
 
 > symbol :: String -> ParsecT String u Identity String
 > symbol = P.symbol lexer
+
+> showEr :: ParseError -> String -> String
+> showEr er src =
+>     let  pos  = errorPos er
+>          lineNo = sourceLine pos
+>          ls = lines src
+>          line = safeGet ls(lineNo - 1)
+>          preline = safeGet ls (lineNo - 2)
+>          postline = safeGet ls lineNo
+>          colNo = sourceColumn pos
+>          highlightLine = (take (colNo -1) (repeat ' ')) ++ "^"
+>     in "\n---------------------\n" ++ show er
+>        ++ "\n------------\nCheck it out:\n" ++ preline ++ "\n"
+>        ++ line ++ "\n" ++ highlightLine ++ "\n" ++ postline
+>        ++ "\n-----------------\n"
+>          where
+>            safeGet a i = if i < 0
+>                            then ""
+>                            else if i >= length a
+>                                   then ""
+>                                   else a !! i
+
+show

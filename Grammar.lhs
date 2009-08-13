@@ -137,11 +137,13 @@ Expressions
 >                 | BooleanL Bool
 >                 | Identifier String
 >                 -- | QualifiedIdentifier String String
+>                 | Row [Expression]
 >                 | InPredicate String InList
 >                 | FunctionCall String [Expression]
 >                 | ScalarSubQuery Statement
 >                 | ArrayL [Expression]
->                 | WindowFn Expression (Maybe [Expression])
+>                 | WindowFn Expression (Maybe [Expression]) (Maybe [Expression])
+>                   -- windowfn selectitem partitionby orderby
 >                 | Case [When] (Maybe Else)
 >                 | Exists Statement
 >                   deriving (Show,Eq)

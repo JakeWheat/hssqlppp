@@ -3,6 +3,7 @@
 > import Text.PrettyPrint
 > import Grammar
 > import Data.List (stripPrefix)
+> import Data.Maybe
 
 ================================================================================
 
@@ -239,8 +240,18 @@ plpgsql
 > convExp (ScalarSubQuery s) = parens (convSelectFragment True s)
 > convExp NullL = text "null"
 > convExp (ArrayL es) = text "array" <> brackets (csvExp es)
-> convExp (WindowFn fn order) = convExp fn <+> text "over"
->                                     <+> maybeConv (\x -> parens (text "order by" <+> csvExp x)) order
+> convExp (WindowFn fn partition order) =
+>   convExp fn <+> text "over"
+>   <+> (if (isJust partition) || (isJust order)
+>        then
+>           parens (maybeConv (\x -> text "partition by"
+>                                    <+> csvExp x) partition
+>                   <+> (if (isJust partition) && (isJust order)
+>                          then text ","
+>                          else empty)
+>                   <+> maybeConv (\x -> text "order by"
+>                                        <+> csvExp x) order)
+>        else empty)
 > convExp (Case whens els) = text "case"
 >                            $+$ nest 2 (vcat (map convWhen whens)
 >                              $+$ case els of
@@ -249,6 +260,7 @@ plpgsql
 >                            $+$ text "end"
 > convExp (PositionalArg a) = text "$" <> int a
 > convExp (Exists s) = text "exists" <+> parens (convSelectFragment True s)
+> convExp (Row r) = text "row" <> parens (hcatCsvMap convExp r)
 
 > convWhen :: When -> Doc
 > convWhen (When ex1 ex2) = text "when" <+> convExp ex1 <+> text "then" <+> convExp ex2

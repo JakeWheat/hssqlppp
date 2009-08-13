@@ -32,6 +32,10 @@
 >                  (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))
 >                  (IntegerL 1))
 >      ,p "(1)" (IntegerL 1)
+>      ,p "row ()" (Row [])
+>      ,p "row (1)" (Row [IntegerL 1])
+>      ,p "row (1,2)" (Row [IntegerL 1,IntegerL 2])
+>      ,p "(1,2)" (Row [IntegerL 1,IntegerL 2])
 >      ,p "'test'" (StringL "test")
 >      ,p "''" (StringL "")
 >      ,p "hello" (Identifier "hello")
@@ -105,18 +109,18 @@
 >     ,testGroup "select from table"
 >     (mapSql [
 >       p "select * from tbl;"
->       [selectFrom (SelectList [selI "*"]) (Tref "tbl")]
+>       [selectFrom (selIL ["*"]) (Tref "tbl")]
 >      ,p "select a,b from tbl;"
->       [selectFrom (SelectList [selI "a",selI "b"]) (Tref "tbl")]
+>       [selectFrom (selIL ["a", "b"]) (Tref "tbl")]
 >      ,p "select a from tbl where b=2;"
 >       [selectFromWhere
->         (SelectList [selI "a"])
+>         (selIL ["a"])
 >         (Tref "tbl")
 >         (BinaryOperatorCall Eql
 >          (Identifier "b") (IntegerL 2))]
 >      ,p "select a from tbl where b=2 and c=3;"
 >       [selectFromWhere
->         (SelectList [selI "a"])
+>         (selIL ["a"])
 >         (Tref "tbl")
 >         (BinaryOperatorCall And
 >          (BinaryOperatorCall Eql
@@ -127,20 +131,20 @@
 >         \except\n\
 >         \select a from tbl1;"
 >       [CombineSelect Except
->        (selectFrom (SelectList [selI "a"]) (Tref "tbl"))
->        (selectFrom (SelectList [selI "a"]) (Tref "tbl1"))]
+>        (selectFrom (selIL ["a"]) (Tref "tbl"))
+>        (selectFrom (selIL ["a"]) (Tref "tbl1"))]
 >      ,p "select a from tbl where true\n\
 >         \except\n\
 >         \select a from tbl1 where true;"
 >       [CombineSelect Except
->        (selectFromWhere (SelectList [selI "a"]) (Tref "tbl") (BooleanL True))
->        (selectFromWhere (SelectList [selI "a"]) (Tref "tbl1") (BooleanL True))]
+>        (selectFromWhere (selIL ["a"]) (Tref "tbl") (BooleanL True))
+>        (selectFromWhere (selIL ["a"]) (Tref "tbl1") (BooleanL True))]
 >      ,p "select a from tbl\n\
 >         \union\n\
 >         \select a from tbl1;"
 >       [CombineSelect Union
->        (selectFrom (SelectList [selI "a"]) (Tref "tbl"))
->        (selectFrom (SelectList [selI "a"]) (Tref "tbl1"))]
+>        (selectFrom (selIL ["a"]) (Tref "tbl"))
+>        (selectFrom (selIL ["a"]) (Tref "tbl1"))]
 >      ,p "select a as b from tbl;"
 >       [selectFrom (SelectList [SelectItem (Identifier "a") "b"]) (Tref "tbl")]
 >      ,p "select a + b as b from tbl;"
@@ -153,28 +157,28 @@
 >       [selectFrom (SelectList [SelExp (qi "a" "*")]) (TrefAlias "tbl" "a")]
 >      ,p "select a from b inner join c on b.a=c.a;"
 >       [selectFrom
->        (SelectList [SelExp (Identifier "a")])
+>        (selIL ["a"])
 >        (JoinedTref (Tref "b") False Inner (Tref "c")
 >           (Just $ BinaryOperatorCall Eql (qi "b" "a") (qi "c" "a")))]
 >      ,p "select a from b natural inner join c;"
 >       [selectFrom
->        (SelectList [SelExp (Identifier "a")])
+>        (selIL ["a"])
 >        (JoinedTref (Tref "b") True Inner (Tref "c") Nothing)]
 >      ,p "select a from b left outer join c;"
 >       [selectFrom
->        (SelectList [SelExp (Identifier "a")])
+>        (selIL ["a"])
 >        (JoinedTref (Tref "b") False LeftOuter (Tref "c") Nothing)]
 >      ,p "select a from b full outer join c;"
 >       [selectFrom
->        (SelectList [SelExp (Identifier "a")])
+>        (selIL ["a"])
 >        (JoinedTref (Tref "b") False FullOuter (Tref "c") Nothing)]
 >      ,p "select a from b right outer join c;"
 >       [selectFrom
->        (SelectList [SelExp (Identifier "a")])
+>        (selIL ["a"])
 >        (JoinedTref (Tref "b") False RightOuter (Tref "c") Nothing)]
 >      ,p "select a from b cross join c;"
 >       [selectFrom
->        (SelectList [SelExp (Identifier "a")])
+>        (selIL ["a"])
 >        (JoinedTref (Tref "b") False Cross (Tref "c") Nothing)]
 >      ,p "select a from b\n\
 >         \    inner join c\n\
@@ -192,27 +196,45 @@
 >       [selectFrom (SelectList [SelectItem
 >                                (WindowFn
 >                                 (FunctionCall "row_number" [])
+>                                 Nothing
 >                                 (Just [Identifier "a"]))
+>                                "place"])
+>        (Tref "tbl")]
+>      ,p "select row_number()\n\
+>         \over(partition by (a,b), order by c) as place\n\
+>         \from tbl;"
+>       [selectFrom (SelectList [SelectItem
+>                                (WindowFn
+>                                 (FunctionCall "row_number" [])
+>                                 (Just [Row [Identifier "a",Identifier "b"]])
+>                                 (Just [Identifier "c"]))
 >                                "place"])
 >        (Tref "tbl")]
 >      ,p "select * from a natural inner join (select * from b) as a;"
 >       [selectFrom
->        (SelectList [SelExp (Identifier "*")])
+>        (selIL ["*"])
 >        (JoinedTref (Tref "a") True
 >         Inner (SubTref (selectFrom
->                         (SelectList [SelExp (Identifier "*")])
+>                         (selIL ["*"])
 >                         (Tref "b")) "a")
 >         Nothing)]
 >      ,p "select * from a order by c;"
 >       [Select
->        (SelectList [SelExp (Identifier "*")])
+>        (selIL ["*"])
 >        (Just (From (Tref "a")))
 >        Nothing (Just [Identifier "c"]) Nothing]
 >      ,p "select * from a order by c limit 1;"
 >       [Select
->        (SelectList [SelExp (Identifier "*")])
+>        (selIL ["*"])
 >        (Just (From (Tref "a")))
 >        Nothing (Just [Identifier "c"]) (Just (IntegerL 1))]
+>      ,p "select a from (select b from c) as d;"
+>         [selectFrom
+>          (selIL ["a"])
+>          (SubTref (selectFrom
+>                    (selIL ["b"])
+>                    (Tref "c"))
+>           "d")]
 >      ])
 
 ================================================================================
@@ -463,6 +485,7 @@
 >           mapExpr = map $ uncurry checkParseExpression
 >           mapSql = map $ uncurry checkParse
 >           p a b = (a,b)
+>           selIL as = SelectList $ map selI as
 >           selI = SelExp . Identifier
 >           selectE selList = Select selList Nothing Nothing Nothing Nothing
 >           qi a b = BinaryOperatorCall Qual (Identifier a) (Identifier b)
@@ -480,28 +503,27 @@ parse and then pretty print and parse a statement
 > checkParse :: String -> [Statement] -> Test.Framework.Test
 > checkParse src ast = testCase ("parse " ++ src) $ do
 >   let ast' = case parseSql src of
->               Left er -> error $ show er
+>               Left er -> error $ showEr er src
 >               Right l -> l
 >   assertEqual ("parse " ++ src) ast ast'
 >   -- pretty print then parse to check
 >   let pp = printSql ast
 >   let ast'' = case parseSql pp of
->               Left er -> error $ "reparse " ++ show er ++ "\n" ++ pp ++ "\n"
+>               Left er -> error $ "reparse " ++ showEr er pp ++ "\n" ++ pp ++ "\n"
 >               Right l -> l
 >   assertEqual ("reparse " ++ pp) ast ast''
-
 
 parse and then pretty print and parse an expression
 
 > checkParseExpression :: String -> Expression -> Test.Framework.Test
 > checkParseExpression src ast = testCase ("parse " ++ src) $ do
 >   let ast' = case parseExpression src of
->               Left er -> error $ show er
+>               Left er -> error $ showEr er src
 >               Right l -> l
 >   assertEqual ("parse " ++ src) ast ast'
 >   let pp = printExpression ast
 >   let ast'' = case parseExpression pp of
->               Left er -> error $ "reparse " ++ show er ++ "\n" ++ pp ++ "\n"
+>               Left er -> error $ "reparse " ++ showEr er pp ++ "\n" ++ pp ++ "\n"
 >               Right l -> l
 >   assertEqual ("reparse " ++ pp) ast ast''
 
@@ -529,7 +551,7 @@ property
 > parseSqlThrow :: String -> [Statement]
 > parseSqlThrow s =
 >     case parseSql s of
->       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
+>       Left er -> error $ "parse " ++ showEr er s ++ "****" ++ s ++ "****"
 >       Right l -> l
 
 
@@ -585,13 +607,8 @@ property
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
 
-
-> x = "--create view pieces_with_priorities as\n\
-> \  select ptype,allegiance,tag,x,y,\n\
-> \    case\n\
-> \      when allegiance='dead' then 3\n\
-> \      when ptype='wizard' then 2\n\
-> \      when ptype in (select ptype from monster_prototypes) then 1\n\
-> \      else 0\n\
-> \    end as sp\n\
-> \    from pieces;"
+> x = "create view pieces_on_top as\n\
+> \  select x,y,ptype,allegiance,tag,sp from\n\
+> \    (select row_number() over(partition by (x,y) order by sp) as rn,\n\
+> \            x, y, ptype, allegiance, tag, sp\n\
+> \      from pieces_with_priorities) as pwp where rn = 1;"
