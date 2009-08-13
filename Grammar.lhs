@@ -57,9 +57,12 @@ Statement components
 
 > data TableRef = Tref String
 >               | TrefAlias String String
->               | JoinedTref TableRef Bool JoinType TableRef (Maybe Expression)
+>               | JoinedTref TableRef Bool JoinType TableRef (Maybe JoinExpression)
 >               | SubTref Statement String
 >                 deriving (Eq,Show)
+
+> data JoinExpression = JoinOn Expression | JoinUsing [String]
+>                       deriving (Eq,Show)
 
 > data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 >                 deriving (Eq,Show)

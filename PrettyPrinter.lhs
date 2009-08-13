@@ -168,10 +168,14 @@ plpgsql
 >                       FullOuter -> "full outer")
 >     <+> text "join"
 >     <+> convTref t2
->     <+> maybeConv (\e -> nest 2 (text "on" <+> convExp e)) ex
+>     <+> maybeConv (\e -> nest 2 (convJoinExpression e)) ex
 > convTref (SubTref sub alias) =
 >     parens (convSelectFragment True sub)
 >     <+> text "as" <+> text alias
+
+> convJoinExpression :: JoinExpression -> Doc
+> convJoinExpression (JoinOn e) = text "on" <+> convExp e
+> convJoinExpression (JoinUsing ids) = text "using" <+> parens (hcatCsvMap text ids)
 
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex

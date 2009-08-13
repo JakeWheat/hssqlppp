@@ -373,7 +373,8 @@ Statement components
 >                                         ,"cross"
 >                                         ,"natural"
 >                                         ,"order"
->                                         ,"limit"]
+>                                         ,"limit"
+>                                         ,"using"]
 >                               then fail "not keyword"
 >                               else return x)
 >                return $ case b of
@@ -407,10 +408,14 @@ Statement components
 >              return Cross))
 >   keyword "join"
 >   tr2 <- tref
->   ex <- maybeP (do
+>   onex <- maybeP (do
 >                  keyword "on"
->                  expr)
->   let jp1 = JoinedTref tr1 (isJust nat) typ tr2 ex
+>                  liftM JoinOn expr)
+>   usingx <- maybeP (keyword "using" >>
+>                     (liftM JoinUsing $ parens $ commaSep1 identifierString))
+>   let jp1 = JoinedTref tr1 (isJust nat) typ tr2 $ case onex of
+>                                                             Just a -> Just a
+>                                                             Nothing -> usingx
 >   jp2 <- maybeP $ joinPart jp1
 >   case jp2 of
 >     Nothing -> return jp1

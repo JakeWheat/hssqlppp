@@ -159,7 +159,13 @@
 >       [selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") False Inner (Tref "c")
->           (Just $ BinaryOperatorCall Eql (qi "b" "a") (qi "c" "a")))]
+>           (Just (JoinOn
+>            (BinaryOperatorCall Eql (qi "b" "a") (qi "c" "a")))))]
+>      ,p "select a from b inner join c using(d,e);"
+>       [selectFrom
+>        (selIL ["a"])
+>        (JoinedTref (Tref "b") False Inner (Tref "c")
+>           (Just (JoinUsing ["d","e"])))]
 >      ,p "select a from b natural inner join c;"
 >       [selectFrom
 >        (selIL ["a"])
@@ -188,9 +194,10 @@
 >       [selectFrom
 >        (SelectList [SelExp (Identifier "a")])
 >        (JoinedTref
->         (JoinedTref (Tref "b") False Inner (Tref "c") (Just (BooleanL True)))
+>         (JoinedTref (Tref "b") False Inner (Tref "c")
+>          (Just $ JoinOn (BooleanL True)))
 >         False Inner (Tref "d")
->         (Just (BinaryOperatorCall Eql
+>         (Just  $ JoinOn (BinaryOperatorCall Eql
 >                (IntegerL 1) (IntegerL 1))))]
 >      ,p "select row_number() over(order by a) as place from tbl;"
 >       [selectFrom (SelectList [SelectItem
