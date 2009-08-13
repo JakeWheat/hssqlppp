@@ -209,7 +209,7 @@ statement types
 > createDomain = do
 >   keyword "domain"
 >   nm <- identifierString
->   keyword "as"
+>   maybeP (keyword "as")
 >   tp <- identifierString
 >   check <- maybeP (do
 >                     keyword "check"
@@ -272,9 +272,12 @@ plpgsql stements
 >   e <- expr
 >   keyword "then"
 >   st <- many statement
+>   elsSts <- maybeP (do
+>                      keyword "else"
+>                      many statement)
 >   keyword "end"
 >   keyword "if"
->   return $ If e st
+>   return $ If e st elsSts
 
 Statement components
 

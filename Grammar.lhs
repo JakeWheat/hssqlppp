@@ -33,7 +33,7 @@ SQL top level statements
 >                | Perform Expression
 >                | ForStatement String Statement [Statement]
 >                | Copy String
->                | If Expression [Statement]
+>                | If Expression [Statement] (Maybe [Statement])
 >                  deriving (Eq,Show)
 
 ================================================================================

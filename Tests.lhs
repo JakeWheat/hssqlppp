@@ -445,7 +445,16 @@
 >         \  update c set d = e;\n\
 >         \end if;"
 >       [If (BinaryOperatorCall  Eql (Identifier "a") (Identifier "b"))
->               [Update "c" [SetClause "d" (Identifier "e")] Nothing]]
+>               [Update "c" [SetClause "d" (Identifier "e")] Nothing]
+>        Nothing]
+>      ,p "if true then\n\
+>         \  null;\n\
+>         \else\n\
+>         \  null;\n\
+>         \end if;"
+>       [If (BooleanL True)
+>        [NullStatement]
+>        (Just [NullStatement])]
 >      ])
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp

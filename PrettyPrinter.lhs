@@ -121,9 +121,10 @@ plpgsql
 > convStatement (SelectInto i s) = text "select into " <+> hcatCsvMap text i
 >                                  <+> convSelectFragment False s <> statementEnd
 
-> convStatement (If ex sts) =
+> convStatement (If ex sts els) =
 >    text "if" <+> convExp ex <+> text "then"
 >    $+$ nest 2 (vcat$ map convStatement sts)
+>    $+$ maybeConv (\e -> text "else" $+$ (vcat$ map convStatement e)) els
 >    $+$ text "end if" <> statementEnd
 
 > statementEnd :: Doc

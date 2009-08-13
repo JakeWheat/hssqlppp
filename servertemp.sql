@@ -1414,163 +1414,163 @@ $$ language plpgsql volatile;
 -- 1 tuple iff current moving piece walks, empty otherwise
 
 
--- /*
--- ================================================================================
+/*
+================================================================================
 
--- = Actions
--- */
--- select new_module('actions', 'server');
--- /*
--- == Testing
+= Actions
+*/
+select new_module('actions', 'server');
+/*
+== Testing
 
--- for testing purposes sometimes want to make a given nondeterministic
--- action always fail or always succeed.
+for testing purposes sometimes want to make a given nondeterministic
+action always fail or always succeed.
 
--- The categories are:
--- castle disappear
--- gooey blob spread
--- attack
--- ranged attack
--- resist: decree, lightning, subversion
--- cast spell
+The categories are:
+castle disappear
+gooey blob spread
+attack
+ranged attack
+resist: decree, lightning, subversion
+cast spell
 
--- you have to set the override each time you want to override something
+you have to set the override each time you want to override something
 
--- */
+*/
 
--- create domain random_test text check (value in
---        ('disappear', 'spread', 'attack',
---         'ranged_attack', 'resist', 'cast',
---         'bonus','break_engaged'));
+create domain random_test text check (value in
+       ('disappear', 'spread', 'attack',
+        'ranged_attack', 'resist', 'cast',
+        'bonus','break_engaged'));
 
--- create table test_action_overrides (
---   override random_test,
---   setting bool
--- );
--- select set_relvar_type('test_action_overrides', 'data');
+create table test_action_overrides (
+  override random_test,
+  setting bool
+);
+select set_relvar_type('test_action_overrides', 'data');
 
--- create function action_rig_action_success(poverride random_test,
---        psetting boolean) returns void as $$
--- begin
---   insert into test_action_overrides (override, setting)
---     values (poverride, psetting);
--- end;
--- $$ language plpgsql volatile;
+create function action_rig_action_success(poverride random_test,
+       psetting boolean) returns void as $$
+begin
+  insert into test_action_overrides (override, setting)
+    values (poverride, psetting);
+end;
+$$ language plpgsql volatile;
 
--- select add_key('test_action_overrides', 'override');
+select add_key('test_action_overrides', 'override');
 
--- /*
--- == random numbers
--- run all random tests through this, so that we can hook into them
--- during testing.
--- */
--- create function check_random_success(t random_test, successPercentage int)
---   returns boolean as $$
--- declare
---   o boolean;
--- begin
---   o := (select setting from test_action_overrides
---        where override = t);
---   if o is null then --normal random
---     return (random() * 100) < successPercentage;
---   else --overriden
---     delete from test_action_overrides
---       where override = t;
---     return o;
---   end if;
--- end;
--- $$ language plpgsql volatile;
+/*
+== random numbers
+run all random tests through this, so that we can hook into them
+during testing.
+*/
+create function check_random_success(t random_test, successPercentage int)
+  returns boolean as $$
+declare
+  o boolean;
+begin
+  o := (select setting from test_action_overrides
+       where override = t);
+  if o is null then --normal random
+    return (random() * 100) < successPercentage;
+  else --overriden
+    delete from test_action_overrides
+      where override = t;
+    return o;
+  end if;
+end;
+$$ language plpgsql volatile;
 
--- create function min(integer, integer) returns integer as $$
---   select min(n) from (select $1 as n union select $2 as n) as a;
--- $$ language sql immutable;
+create function min(integer, integer) returns integer as $$
+  select min(n) from (select $1 as n union select $2 as n) as a;
+$$ language sql immutable;
 
--- create function max(integer, integer) returns integer as $$
---   select max(n) from (select $1 as n union select $2 as n) as a;
--- $$ language sql immutable;
+create function max(integer, integer) returns integer as $$
+  select max(n) from (select $1 as n union select $2 as n) as a;
+$$ language sql immutable;
 
--- create function limit_chance(integer) returns integer as $$
---   select max(10, min($1, 100));
--- $$ language sql immutable;
+create function limit_chance(integer) returns integer as $$
+  select max(10, min($1, 100));
+$$ language sql immutable;
 
--- /*
--- == action validity
+/*
+== action validity
 
--- */
--- select new_module('squares_valid', 'actions');
+*/
+select new_module('squares_valid', 'actions');
 
--- /*
--- === pieces on top
+/*
+=== pieces on top
 
--- The topmost piece on each square is the one you interact with most of
--- the time, e.g. when selecting, attacking, etc.
+The topmost piece on each square is the one you interact with most of
+the time, e.g. when selecting, attacking, etc.
 
--- The exception to this rule is when you select a wizard that is in a
--- magic tree or castle or mounted on a monster.
+The exception to this rule is when you select a wizard that is in a
+magic tree or castle or mounted on a monster.
 
--- The pieces_on_top view also determines what sprite is shown in a
--- square in the ui
+The pieces_on_top view also determines what sprite is shown in a
+square in the ui
 
--- */
+*/
 
--- create view pieces_with_priorities as
---   select ptype,allegiance,tag,x,y,
---     case
---       when allegiance='dead' then 3
---       when ptype='wizard' then 2
---       when ptype in (select ptype from monster_prototypes) then 1
---       else 0
---     end as sp
---     from pieces;
+create view pieces_with_priorities as
+  select ptype,allegiance,tag,x,y,
+    case
+      when allegiance='dead' then 3
+      when ptype='wizard' then 2
+      when ptype in (select ptype from monster_prototypes) then 1
+      else 0
+    end as sp
+    from pieces;
 
--- --restrict this view taking only the top piece from each square to get
--- --the final result
+--restrict this view taking only the top piece from each square to get
+--the final result
 
--- create view pieces_on_top as
---   select x,y,ptype,allegiance,tag,sp from
---     (select row_number() over(partition by (x,y) order by sp) as rn,
---             x, y, ptype, allegiance, tag, sp
---       from pieces_with_priorities) as pwp where rn = 1;
+create view pieces_on_top as
+  select x,y,ptype,allegiance,tag,sp from
+    (select row_number() over(partition by (x,y) order by sp) as rn,
+            x, y, ptype, allegiance, tag, sp
+      from pieces_with_priorities) as pwp where rn = 1;
 
--- --create a full view to help with updates
+--create a full view to help with updates
 
--- -- question: why does pieces_view natural inner join pieces_on_top
--- -- return too many rows?
+-- question: why does pieces_view natural inner join pieces_on_top
+-- return too many rows?
 
--- create view pieces_on_top_view as
---   select p.* from pieces_mr p
---     inner join pieces_on_top
---     using (ptype,allegiance,tag);
+create view pieces_on_top_view as
+  select p.* from pieces_mr p
+    inner join pieces_on_top
+    using (ptype,allegiance,tag);
 
--- /*
--- === selectable squares and pieces
+/*
+=== selectable squares and pieces
 
--- We can't use the pieces on top for the selection because of
--- the exceptions re castles, magic wood and mounted wizards,
--- so create a similar view so we can determine the piece that
--- gets selected by square, this part is just the pieces on top
--- combined with all the wizards even if they are not on top.
+We can't use the pieces on top for the selection because of
+the exceptions re castles, magic wood and mounted wizards,
+so create a similar view so we can determine the piece that
+gets selected by square, this part is just the pieces on top
+combined with all the wizards even if they are not on top.
 
--- This is finished off using the pieces_to_move relvar.
+This is finished off using the pieces_to_move relvar.
 
--- */
--- create view moving_pieces as
---   select ptype, allegiance, tag,x,y from pieces_mr
---     where speed is not null
---       or attack_strength is not null
---       or ranged_attack_strength is not null;
+*/
+create view moving_pieces as
+  select ptype, allegiance, tag,x,y from pieces_mr
+    where speed is not null
+      or attack_strength is not null
+      or ranged_attack_strength is not null;
 
--- create view selectable_pieces_with_priorities as
---   select ptype,allegiance,tag,x,y,
---     case
---       when ptype='wizard' then 0
---       else 1
---     end as sp
---     from moving_pieces
---     where (x,y) not in(select x,y from pieces
---                      where ptype = 'gooey_blob');
+create view selectable_pieces_with_priorities as
+  select ptype,allegiance,tag,x,y,
+    case
+      when ptype='wizard' then 0
+      else 1
+    end as sp
+    from moving_pieces
+    where (x,y) not in(select x,y from pieces
+                     where ptype = 'gooey_blob');
 
--- /*
+/*
 
 -- === internals
 -- */
