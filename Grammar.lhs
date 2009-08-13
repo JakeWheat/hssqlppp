@@ -11,7 +11,7 @@ SQL top level statements
 >                | CreateTable String [AttributeDef]
 >                | CreateView String Statement
 >                | CreateType String [TypeAttributeDef]
->                | Insert String (Maybe [String]) [Expression]
+>                | Insert String (Maybe [String]) InsertData
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)
 >                | CreateFunction Language String [ParamDef] String String FnBody Volatility
@@ -38,6 +38,9 @@ SQL top level statements
 ================================================================================
 
 Statement components
+
+> data InsertData = InsertData [[Expression]] | InsertQuery Statement
+>               deriving (Eq,Show)
 
 > data FnBody = SqlFnBody [Statement] | PlpgsqlFnBody [VarDef] [Statement]
 >               deriving (Eq,Show)

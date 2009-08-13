@@ -290,19 +290,27 @@
 >       [Insert
 >         "testtable"
 >         (Just ["columna", "columnb"])
->         [IntegerL 1, IntegerL 2]]
->
-
- >       p "insert into a\n\
- >          \    select b from c"
- >       [Insert
- >        "a"
-
+>         (InsertData [[IntegerL 1, IntegerL 2]])]
+>      ,p "insert into testtable\n\
+>         \(columna,columnb)\n\
+>         \values (1,2), (3,4);\n"
+>       [Insert
+>         "testtable"
+>         (Just ["columna", "columnb"])
+>         (InsertData [[IntegerL 1, IntegerL 2]
+>                     ,[IntegerL 3, IntegerL 4]])]
+>      ,p "insert into a\n\
+>          \    select b from c;"
+>       [Insert "a" Nothing
+>        (InsertQuery (Select
+>                      (SelectList [selI "b"])
+>                      (Just $ From $ Tref "c")
+>                      Nothing))]
 >      ,p "update tb\n\
 >         \  set x = 1, y = 2;"
->                    [Update "tb" [SetClause "x" (IntegerL 1)
->                                 ,SetClause "y" (IntegerL 2)]
->                     Nothing]
+>       [Update "tb" [SetClause "x" (IntegerL 1)
+>                    ,SetClause "y" (IntegerL 2)]
+>        Nothing]
 >      ,p "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
 >       [Update "tb" [SetClause "x" (IntegerL 1)

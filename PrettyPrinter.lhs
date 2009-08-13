@@ -32,11 +32,17 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ nest 2 (vcat (csv (map convAttDef atts)))
 >     $+$ rparen <> statementEnd
 
-> convStatement (Insert tb atts exps) = text "insert into" <+> text tb
->                                       <+> maybeConv (\x -> parens (hcatCsvMap text x)) atts
->                                       <+> text "values"
->                                       <+> parens (csvExp exps)
->                                       <> statementEnd
+> convStatement (Insert tb atts idata) =
+>   text "insert into" <+> text tb
+>   <+> maybeConv (\x -> parens (hcatCsvMap text x)) atts
+>   $+$ (case idata of
+>          InsertData expss -> do
+>                              text "values"
+>                              <+> vcat (csv $ map
+>                                        (\es -> parens (csvExp es)) expss)
+>          InsertQuery st -> do
+>                            convSelectFragment True st)
+>   <> statementEnd
 
 > convStatement (Update tb scs wh) = text "update" <+> text tb <+> text "set"
 >                                    <+> hcatCsvMap convSetClause scs

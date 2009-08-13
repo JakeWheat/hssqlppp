@@ -94,9 +94,14 @@ statement types
 >   keyword "into"
 >   tableName <- identifierString
 >   atts <- maybeP (parens $ commaSep1 identifierString)
->   keyword "values"
->   exps <- parens $ commaSep1 expr
->   return $ Insert tableName atts exps
+>   ida <- (do
+>           keyword "values"
+>           exps <- commaSep1 $ parens $ commaSep1 expr
+>           return $ InsertData exps) <|>
+>          (do
+>           s1 <- select
+>           return $ InsertQuery s1)
+>   return $ Insert tableName atts ida
 
 > update :: ParsecT String () Identity Statement
 > update = do
