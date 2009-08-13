@@ -57,11 +57,11 @@
 >      ,p "fn('test')" (FunctionCall "fn" [StringL "test"])
 >      ,p "'a' || 'b'" (BinaryOperatorCall Conc (StringL "a")
 >                                              (StringL "b"))
->      ,p "null" (NullL)
->      ,p "not null" (BinaryOperatorCall Not (NullL) (NullL))
->      ,p "a is null" (BinaryOperatorCall IsNull (NullL) (Identifier "a"))
+>      ,p "null" NullL
+>      ,p "not null" (BinaryOperatorCall Not NullL NullL)
+>      ,p "a is null" (BinaryOperatorCall IsNull NullL (Identifier "a"))
 >      ,p "a is not null" (BinaryOperatorCall
->                          IsNotNull (NullL) (Identifier "a"))
+>                          IsNotNull NullL (Identifier "a"))
 >      ,p "'stuff'::text" (BinaryOperatorCall
 >                          Cast (StringL "stuff") (Identifier "text"))
 >      ,p "array[1,2]" (ArrayL [IntegerL 1, IntegerL 2])
@@ -174,7 +174,7 @@
 >       [Select
 >        (SelectList [SelExp (Identifier "a")])
 >        (Just $ From $ JoinedTref (Tref "b") False Inner (Tref "c")
->           (Just $ (BinaryOperatorCall Eql (qi "b" "a") (qi "c" "a"))))
+>           (Just $ BinaryOperatorCall Eql (qi "b" "a") (qi "c" "a")))
 >        Nothing]
 >      ,p "select a from b natural inner join c;"
 >       [Select
@@ -223,7 +223,7 @@
 >                            (WindowFn
 >                             (FunctionCall "row_number" [])
 >                             (Just [Identifier "a"]))
->                            ("place")])
+>                            "place"])
 >        (Just $ From $ Tref "tbl")
 >        Nothing]
 >      ,p "select * from a natural inner join (select * from b) as a;"
@@ -463,13 +463,13 @@
 >        -- ,testProperty "random statements" prop_statements_ppp
 >     ]
 >         where
->           mapExpr = map (\(a,b) -> checkParseExpression a b)
->           mapSql = map (\(a,b) -> checkParse a b)
+>           mapExpr = map $ uncurry checkParseExpression
+>           mapSql = map $ uncurry checkParse
 >           p a b = (a,b)
 
 
 > selI :: String -> SelectItem
-> selI i = SelExp (Identifier i)
+> selI = SelExp . Identifier
 
 > selectE :: SelectList -> Statement
 > selectE selList = Select selList Nothing Nothing
