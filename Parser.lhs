@@ -333,7 +333,11 @@ Statement components
 
 
 > selQuerySpec :: ParsecT String () Identity Statement
-> selQuerySpec = liftM3 Select selectList (maybeP from) (maybeP whereClause)
+> selQuerySpec = liftM5 Select selectList (maybeP from) (maybeP whereClause)
+>                (maybeP orderBy) (maybeP limit)
+
+> limit :: GenParser Char () Expression
+> limit = keyword "limit" >> expr
 
 > from :: GenParser Char () From
 > from = do
@@ -353,8 +357,19 @@ Statement components
 >                b <- maybeP (do
 >                             whitespace
 >                             x <- identifierString
->                             if x `elem` ["where", "except", "union", "loop", "inner", "on"
->                                         ,"left", "right", "full", "cross", "natural"]
+>                             if x `elem` ["where"
+>                                         ,"except"
+>                                         ,"union"
+>                                         ,"loop"
+>                                         ,"inner"
+>                                         ,"on"
+>                                         ,"left"
+>                                         ,"right"
+>                                         ,"full"
+>                                         ,"cross"
+>                                         ,"natural"
+>                                         ,"order"
+>                                         ,"limit"]
 >                               then fail "not keyword"
 >                               else return x)
 >                return $ case b of
@@ -621,11 +636,14 @@ expressions
 > windowFn = do
 >   fn <- functionCall
 >   keyword "over"
->   os <- parens (maybeP (do
->                         keyword "order"
->                         keyword "by"
->                         commaSep1 expr))
+>   os <- parens (maybeP orderBy)
 >   return $ WindowFn fn os
+
+> orderBy :: GenParser Char () [Expression]
+> orderBy = do
+>           keyword "order"
+>           keyword "by"
+>           commaSep1 expr
 
 > caseParse :: ParsecT [Char] () Identity Expression
 > caseParse = do

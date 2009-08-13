@@ -74,9 +74,7 @@
 >          (Just $ Else (IntegerL 5)))
 >      ,p "$1" (PositionalArg 1)
 >      ,p "exists (select 1 from a)"
->             (Exists (Select
->                      (SelectList [SelExp (IntegerL 1)])
->                      (Just $ From $ Tref "a") Nothing))
+>       (Exists (selectFrom (SelectList [SelExp (IntegerL 1)]) (Tref "a")))
 >      ])
 
 ================================================================================
@@ -106,136 +104,115 @@
 
 >     ,testGroup "select from table"
 >     (mapSql [
->       p "select * from tbl;" [Select
->                                (SelectList [selI "*"])
->                                (Just $ From $ Tref "tbl")
->                                Nothing]
->      ,p "select a,b from tbl;" [Select
->                                  (SelectList [selI "a",selI "b"])
->                                  (Just $ From $ Tref "tbl")
->                                  Nothing]
+>       p "select * from tbl;"
+>       [selectFrom (SelectList [selI "*"]) (Tref "tbl")]
+>      ,p "select a,b from tbl;"
+>       [selectFrom (SelectList [selI "a",selI "b"]) (Tref "tbl")]
 >      ,p "select a from tbl where b=2;"
->       [Select
+>       [selectFromWhere
 >         (SelectList [selI "a"])
->         (Just $ From $ Tref "tbl")
->         (Just (Where $ BinaryOperatorCall Eql
->                            (Identifier "b") (IntegerL 2)))]
+>         (Tref "tbl")
+>         (BinaryOperatorCall Eql
+>          (Identifier "b") (IntegerL 2))]
 >      ,p "select a from tbl where b=2 and c=3;"
->       [Select
+>       [selectFromWhere
 >         (SelectList [selI "a"])
->         (Just $ From $ Tref "tbl")
->         (Just (Where $ BinaryOperatorCall And
->                            (BinaryOperatorCall Eql
->                             (Identifier "b") (IntegerL 2))
->                            (BinaryOperatorCall Eql
->                             (Identifier "c") (IntegerL 3))))]
+>         (Tref "tbl")
+>         (BinaryOperatorCall And
+>          (BinaryOperatorCall Eql
+>           (Identifier "b") (IntegerL 2))
+>          (BinaryOperatorCall Eql
+>           (Identifier "c") (IntegerL 3)))]
 >      ,p "select a from tbl\n\
 >         \except\n\
 >         \select a from tbl1;"
 >       [CombineSelect Except
->        (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl") Nothing)
->        (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl1") Nothing)]
+>        (selectFrom (SelectList [selI "a"]) (Tref "tbl"))
+>        (selectFrom (SelectList [selI "a"]) (Tref "tbl1"))]
 >      ,p "select a from tbl where true\n\
 >         \except\n\
 >         \select a from tbl1 where true;"
 >       [CombineSelect Except
->        (Select
->         (SelectList [selI "a"])
->         (Just $ From $ Tref "tbl")
->         (Just $ Where $ BooleanL True))
->        (Select
->         (SelectList [selI "a"])
->         (Just $ From $ Tref "tbl1")
->         (Just $ Where $ BooleanL True))]
+>        (selectFromWhere (SelectList [selI "a"]) (Tref "tbl") (BooleanL True))
+>        (selectFromWhere (SelectList [selI "a"]) (Tref "tbl1") (BooleanL True))]
 >      ,p "select a from tbl\n\
 >         \union\n\
 >         \select a from tbl1;"
 >       [CombineSelect Union
->        (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl") Nothing)
->        (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl1") Nothing)]
+>        (selectFrom (SelectList [selI "a"]) (Tref "tbl"))
+>        (selectFrom (SelectList [selI "a"]) (Tref "tbl1"))]
 >      ,p "select a as b from tbl;"
->       [Select
->        (SelectList [SelectItem (Identifier "a") "b"])
->        (Just $ From $ Tref "tbl")
->        Nothing]
+>       [selectFrom (SelectList [SelectItem (Identifier "a") "b"]) (Tref "tbl")]
 >      ,p "select a + b as b from tbl;"
->       [Select
+>       [selectFrom
 >        (SelectList [SelectItem
 >                     (BinaryOperatorCall Plus
 >                      (Identifier "a") (Identifier "b")) "b"])
->        (Just $ From $ Tref "tbl")
->        Nothing]
+>        (Tref "tbl")]
 >      ,p "select a.* from tbl a;"
->       [Select
->        (SelectList [SelExp (qi "a" "*")])
->        (Just $ From $ TrefAlias "tbl" "a")
->        Nothing]
+>       [selectFrom (SelectList [SelExp (qi "a" "*")]) (TrefAlias "tbl" "a")]
 >      ,p "select a from b inner join c on b.a=c.a;"
->       [Select
+>       [selectFrom
 >        (SelectList [SelExp (Identifier "a")])
->        (Just $ From $ JoinedTref (Tref "b") False Inner (Tref "c")
->           (Just $ BinaryOperatorCall Eql (qi "b" "a") (qi "c" "a")))
->        Nothing]
+>        (JoinedTref (Tref "b") False Inner (Tref "c")
+>           (Just $ BinaryOperatorCall Eql (qi "b" "a") (qi "c" "a")))]
 >      ,p "select a from b natural inner join c;"
->       [Select
+>       [selectFrom
 >        (SelectList [SelExp (Identifier "a")])
->        (Just (From (JoinedTref (Tref "b") True Inner (Tref "c") Nothing)))
->        Nothing]
+>        (JoinedTref (Tref "b") True Inner (Tref "c") Nothing)]
 >      ,p "select a from b left outer join c;"
->       [Select (SelectList [SelExp (Identifier "a")])
->        (Just (From (JoinedTref (Tref "b") False
->                     LeftOuter (Tref "c") Nothing)))
->        Nothing]
+>       [selectFrom
+>        (SelectList [SelExp (Identifier "a")])
+>        (JoinedTref (Tref "b") False LeftOuter (Tref "c") Nothing)]
 >      ,p "select a from b full outer join c;"
->       [Select
+>       [selectFrom
 >        (SelectList [SelExp (Identifier "a")])
->        (Just (From (JoinedTref (Tref "b") False
->                     FullOuter (Tref "c") Nothing)))
->        Nothing]
+>        (JoinedTref (Tref "b") False FullOuter (Tref "c") Nothing)]
 >      ,p "select a from b right outer join c;"
->       [Select
+>       [selectFrom
 >        (SelectList [SelExp (Identifier "a")])
->        (Just (From (JoinedTref (Tref "b") False
->                     RightOuter (Tref "c") Nothing)))
->        Nothing]
+>        (JoinedTref (Tref "b") False RightOuter (Tref "c") Nothing)]
 >      ,p "select a from b cross join c;"
->       [Select
+>       [selectFrom
 >        (SelectList [SelExp (Identifier "a")])
->        (Just (From (JoinedTref (Tref "b") False
->                     Cross (Tref "c") Nothing)))
->        Nothing]
+>        (JoinedTref (Tref "b") False Cross (Tref "c") Nothing)]
 >      ,p "select a from b\n\
 >         \    inner join c\n\
 >         \      on true\n\
 >         \    inner join d\n\
 >         \      on 1=1;"
->       [Select
+>       [selectFrom
 >        (SelectList [SelExp (Identifier "a")])
->        (Just (From (JoinedTref
->                     (JoinedTref (Tref "b") False
->                      Inner (Tref "c") (Just (BooleanL True)))
->                     False Inner (Tref "d")
->                     (Just (BinaryOperatorCall Eql
->                            (IntegerL 1) (IntegerL 1))))))
->        Nothing]
+>        (JoinedTref
+>         (JoinedTref (Tref "b") False Inner (Tref "c") (Just (BooleanL True)))
+>         False Inner (Tref "d")
+>         (Just (BinaryOperatorCall Eql
+>                (IntegerL 1) (IntegerL 1))))]
 >      ,p "select row_number() over(order by a) as place from tbl;"
->       [Select (SelectList [SelectItem
->                            (WindowFn
->                             (FunctionCall "row_number" [])
->                             (Just [Identifier "a"]))
->                            "place"])
->        (Just $ From $ Tref "tbl")
->        Nothing]
+>       [selectFrom (SelectList [SelectItem
+>                                (WindowFn
+>                                 (FunctionCall "row_number" [])
+>                                 (Just [Identifier "a"]))
+>                                "place"])
+>        (Tref "tbl")]
 >      ,p "select * from a natural inner join (select * from b) as a;"
+>       [selectFrom
+>        (SelectList [SelExp (Identifier "*")])
+>        (JoinedTref (Tref "a") True
+>         Inner (SubTref (selectFrom
+>                         (SelectList [SelExp (Identifier "*")])
+>                         (Tref "b")) "a")
+>         Nothing)]
+>      ,p "select * from a order by c;"
 >       [Select
 >        (SelectList [SelExp (Identifier "*")])
->        (Just (From (JoinedTref (Tref "a") True
->                     Inner(SubTref (Select
->                                    (SelectList [SelExp (Identifier "*")])
->                                    (Just (From (Tref "b")))
->                                    Nothing) "a")
->                     Nothing)))
->        Nothing]
+>        (Just (From (Tref "a")))
+>        Nothing (Just [Identifier "c"]) Nothing]
+>      ,p "select * from a order by c limit 1;"
+>       [Select
+>        (SelectList [SelExp (Identifier "*")])
+>        (Just (From (Tref "a")))
+>        Nothing (Just [Identifier "c"]) (Just (IntegerL 1))]
 >      ])
 
 ================================================================================
@@ -254,7 +231,8 @@
 >       (ScalarSubQuery $ Select
 >        (SelectList [selI "a"])
 >        (Just $ From $ Tref "tbl")
->        (Just $ Where $ BinaryOperatorCall Eql (Identifier "id") (IntegerL 3)))
+>        (Just $ Where $ BinaryOperatorCall Eql (Identifier "id") (IntegerL 3))
+>        Nothing Nothing)
 >      ])
 
 ================================================================================
@@ -305,7 +283,7 @@
 >        (InsertQuery (Select
 >                      (SelectList [selI "b"])
 >                      (Just $ From $ Tref "c")
->                      Nothing))]
+>                      Nothing Nothing Nothing))]
 >      ,p "update tb\n\
 >         \  set x = 1, y = 2;"
 >       [Update "tb" [SetClause "x" (IntegerL 1)
@@ -371,7 +349,7 @@
 >        (Select
 >         (SelectList [selI "a", selI "b"])
 >         (Just $ From $ Tref "t")
->         Nothing)]
+>         Nothing Nothing Nothing)]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
 >       [CreateDomain "td" "text"
 >        (Just (InPredicate "value" [StringL "t1" ,StringL "t2"]))]
@@ -396,7 +374,8 @@
 >          (SelectList [SelExp (Identifier "a")])
 >          (Just (From (Tref "t1")))
 >          (Just (Where (BinaryOperatorCall Eql
->                        (Identifier "b") (PositionalArg 1))))])
+>                        (Identifier "b") (PositionalArg 1))))
+>          Nothing Nothing])
 >        Stable]
 >      ,p "create function fn() returns void as $$\n\
 >         \declare\n\
@@ -439,7 +418,7 @@
 >       [ForStatement "r" (Select
 >                          (SelectList [selI "a"])
 >                          (Just $ From $ Tref "tbl")
->                          Nothing)
+>                          Nothing Nothing Nothing)
 >        [NullStatement]]
 >      ,p "for r in select a from tbl where true loop\n\
 >         \null;\n\
@@ -447,7 +426,8 @@
 >       [ForStatement "r" (Select
 >                          (SelectList [selI "a"])
 >                          (Just $ From $ Tref "tbl")
->                          (Just $ Where $ BooleanL True))
+>                          (Just $ Where $ BooleanL True)
+>                          Nothing Nothing)
 >        [NullStatement]]
 >      ,p "perform test();"
 >       [Perform $ FunctionCall "test" []]
@@ -460,7 +440,7 @@
 >      ,p "select into a,b c,d from e;"
 >       [SelectInto ["a", "b"]
 >                       (Select (SelectList [selI "c", selI "d"])
->                                   (Just $ From $ Tref "e") Nothing)]
+>                                   (Just $ From $ Tref "e") Nothing Nothing Nothing)]
 >      ,p "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
@@ -474,16 +454,13 @@
 >           mapExpr = map $ uncurry checkParseExpression
 >           mapSql = map $ uncurry checkParse
 >           p a b = (a,b)
-
-
-> selI :: String -> SelectItem
-> selI = SelExp . Identifier
-
-> selectE :: SelectList -> Statement
-> selectE selList = Select selList Nothing Nothing
-
-> qi :: String -> String -> Expression
-> qi a b = BinaryOperatorCall Qual (Identifier a) (Identifier b)
+>           selI = SelExp . Identifier
+>           selectE selList = Select selList Nothing Nothing Nothing Nothing
+>           qi a b = BinaryOperatorCall Qual (Identifier a) (Identifier b)
+>           selectFrom selList frm =
+>             Select selList (Just $ From frm) Nothing Nothing Nothing
+>           selectFromWhere selList frm whr =
+>             Select selList (Just $ From frm) (Just $ Where whr) Nothing Nothing
 
 ================================================================================
 
@@ -598,20 +575,3 @@ property
 -- >   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
-
-> x = "--this function is used to initialise the turn phase data.\n\
-> \create function init_turn_stuff() returns void as $$\n\
-> \begin\n\
-> \  --this should catch attempts to start a game\n\
-> \  --which has already been started\n\
-> \  if exists(select 1 from turn_number_table) then\n\
-> \    raise exception 'new game started when turn number table not empty';\n\
-> \  end if;\n\
-> \  insert into turn_number_table values (0);\n\
-> \  insert into turn_phase_table\n\
-> \    values ('choose');\n\
-> \  insert into current_wizard_table\n\
-> \    select wizard_name from live_wizards\n\
-> \    order by place limit 1;\n\
-> \end;\n\
-> \$$ language plpgsql volatile;"

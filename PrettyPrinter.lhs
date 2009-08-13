@@ -23,7 +23,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement :: Statement -> Doc
 
-> convStatement s@(Select _ _ _) = convSelectFragment True s <> statementEnd
+> convStatement s@(Select _ _ _ _ _) = convSelectFragment True s <> statementEnd
 > convStatement s@(CombineSelect _ _ _) = convSelectFragment True s <> statementEnd
 
 > convStatement (CreateTable t atts) =
@@ -132,11 +132,13 @@ plpgsql
 = Statement components
 
 > convSelectFragment :: Bool -> Statement -> Doc
-> convSelectFragment writeSelect (Select l tb wh) =
+> convSelectFragment writeSelect (Select l tb wh ord lim) =
 >   text (if writeSelect then "select" else "") <+> convSelList l
 >   $+$ nest 2 (
 >     maybeConv convFrom tb
 >     $+$ convWhere wh)
+>   <+> maybeConv (\exps -> text "order by" <+> (hcatCsvMap convExp exps)) ord
+>   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 > convSelectFragment writeSelect (CombineSelect tp s1 s2) =
 >   convSelectFragment writeSelect s1
 >   $+$ (case tp of

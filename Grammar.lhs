@@ -5,7 +5,8 @@
 
 SQL top level statements
 
-> data Statement = Select SelectList (Maybe From) (Maybe Where)
+> data Statement = Select SelectList (Maybe From) (Maybe Where) (Maybe [Expression]) (Maybe Expression)
+>                -- selectlist from where orderby limit
 >                | CombineSelect CombineType Statement Statement
 >                | SelectInto [String] Statement
 >                | CreateTable String [AttributeDef]
