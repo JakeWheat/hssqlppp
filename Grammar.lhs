@@ -137,7 +137,7 @@ Expressions
 >                 | BooleanL Bool
 >                 | Identifier String
 >                 -- | QualifiedIdentifier String String
->                 | InPredicate String [Expression]
+>                 | InPredicate String InList
 >                 | FunctionCall String [Expression]
 >                 | ScalarSubQuery Statement
 >                 | ArrayL [Expression]
@@ -145,6 +145,9 @@ Expressions
 >                 | Case [When] (Maybe Else)
 >                 | Exists Statement
 >                   deriving (Show,Eq)
+
+> data InList = InList [Expression] | InSelect Statement
+>               deriving (Show,Eq)
 
 > data When = When Expression Expression
 >                   deriving (Show,Eq)

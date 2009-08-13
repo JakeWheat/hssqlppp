@@ -231,7 +231,11 @@ plpgsql
 >                                       Qual -> parens (convExp a <> text (opToSymbol op) <> convExp b)
 >                                       _ -> parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
-> convExp (InPredicate att expr) = text att <+> text "in" <+> parens (csvExp expr)
+> convExp (InPredicate att lst) =
+>   text att <+> text "in"
+>   <+> parens (case lst of
+>                        InList expr -> csvExp expr
+>                        InSelect sel -> convSelectFragment True sel)
 > convExp (ScalarSubQuery s) = parens (convSelectFragment True s)
 > convExp NullL = text "null"
 > convExp (ArrayL es) = text "array" <> brackets (csvExp es)

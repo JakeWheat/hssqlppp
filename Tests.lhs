@@ -327,8 +327,8 @@
 >        "test" [AttributeDef "type" "text" Nothing
 >                (Just (InPredicate
 >                       "type"
->                       [StringL "a"
->                       ,StringL "b"]))]]
+>                       (InList [StringL "a"
+>                               ,StringL "b"])))]]
 >      ,p "create table tb (\n\
 >         \a text not null,\n\
 >         \b boolean null);"
@@ -352,7 +352,7 @@
 >         Nothing Nothing Nothing)]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
 >       [CreateDomain "td" "text"
->        (Just (InPredicate "value" [StringL "t1" ,StringL "t2"]))]
+>        (Just (InPredicate "value" (InList [StringL "t1" ,StringL "t2"])))]
 >      ,p "create type tp1 as (\n\
 >         \  f1 text,\n\
 >         \  f2 text\n\
@@ -584,3 +584,14 @@ property
 -- >   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
+
+
+> x = "--create view pieces_with_priorities as\n\
+> \  select ptype,allegiance,tag,x,y,\n\
+> \    case\n\
+> \      when allegiance='dead' then 3\n\
+> \      when ptype='wizard' then 2\n\
+> \      when ptype in (select ptype from monster_prototypes) then 1\n\
+> \      else 0\n\
+> \    end as sp\n\
+> \    from pieces;"

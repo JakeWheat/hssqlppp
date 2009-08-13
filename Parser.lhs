@@ -548,7 +548,9 @@ expressions
 > inPredicate = do
 >   vexp <- identifierString
 >   keyword "in"
->   e <- parens $ commaSep1 expr
+>   e <- parens ((liftM InSelect select)
+>                <|>
+>                (liftM InList $ commaSep1 expr))
 >   return $ InPredicate vexp e
 
 > nullL :: ParsecT String u Identity Expression
