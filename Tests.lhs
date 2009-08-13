@@ -106,65 +106,65 @@
 
 >     ,testGroup "select from table"
 >     (mapSql [
->       p "select * from tbl;" [(Select
+>       p "select * from tbl;" [Select
 >                                (SelectList [selI "*"])
 >                                (Just $ From $ Tref "tbl")
->                                Nothing)]
->      ,p "select a,b from tbl;" [(Select
+>                                Nothing]
+>      ,p "select a,b from tbl;" [Select
 >                                  (SelectList [selI "a",selI "b"])
 >                                  (Just $ From $ Tref "tbl")
->                                  Nothing)]
+>                                  Nothing]
 >      ,p "select a from tbl where b=2;"
->       [(Select
+>       [Select
 >         (SelectList [selI "a"])
 >         (Just $ From $ Tref "tbl")
 >         (Just (Where $ BinaryOperatorCall Eql
->                            (Identifier "b") (IntegerL 2))))]
+>                            (Identifier "b") (IntegerL 2)))]
 >      ,p "select a from tbl where b=2 and c=3;"
->       [(Select
+>       [Select
 >         (SelectList [selI "a"])
 >         (Just $ From $ Tref "tbl")
 >         (Just (Where $ BinaryOperatorCall And
 >                            (BinaryOperatorCall Eql
 >                             (Identifier "b") (IntegerL 2))
 >                            (BinaryOperatorCall Eql
->                             (Identifier "c") (IntegerL 3)))))]
+>                             (Identifier "c") (IntegerL 3))))]
 >      ,p "select a from tbl\n\
 >         \except\n\
 >         \select a from tbl1;"
->       [(CombineSelect Except
->         (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl") Nothing)
->         (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl1") Nothing))]
+>       [CombineSelect Except
+>        (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl") Nothing)
+>        (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl1") Nothing)]
 >      ,p "select a from tbl where true\n\
 >         \except\n\
 >         \select a from tbl1 where true;"
->       [(CombineSelect Except
->         (Select
->          (SelectList [selI "a"])
->          (Just $ From $ Tref "tbl")
->          (Just $ Where $ BooleanL True))
->         (Select
->          (SelectList [selI "a"])
->          (Just $ From $ Tref "tbl1")
->          (Just $ Where $ BooleanL True)))]
+>       [CombineSelect Except
+>        (Select
+>         (SelectList [selI "a"])
+>         (Just $ From $ Tref "tbl")
+>         (Just $ Where $ BooleanL True))
+>        (Select
+>         (SelectList [selI "a"])
+>         (Just $ From $ Tref "tbl1")
+>         (Just $ Where $ BooleanL True))]
 >      ,p "select a from tbl\n\
 >         \union\n\
 >         \select a from tbl1;"
->       [(CombineSelect Union
->         (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl") Nothing)
->         (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl1") Nothing))]
+>       [CombineSelect Union
+>        (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl") Nothing)
+>        (Select (SelectList [selI "a"]) (Just $ From $ Tref "tbl1") Nothing)]
 >      ,p "select a as b from tbl;"
->       [(Select
->         (SelectList [SelectItem (Identifier "a") "b"])
->         (Just $ From $ Tref "tbl")
->         Nothing)]
+>       [Select
+>        (SelectList [SelectItem (Identifier "a") "b"])
+>        (Just $ From $ Tref "tbl")
+>        Nothing]
 >      ,p "select a + b as b from tbl;"
->       [(Select
->         (SelectList [SelectItem
->                      (BinaryOperatorCall Plus
->                       (Identifier "a") (Identifier "b")) "b"])
->         (Just $ From $ Tref "tbl")
->         Nothing)]
+>       [Select
+>        (SelectList [SelectItem
+>                     (BinaryOperatorCall Plus
+>                      (Identifier "a") (Identifier "b")) "b"])
+>        (Just $ From $ Tref "tbl")
+>        Nothing]
 >      ,p "select a.* from tbl a;"
 >       [Select
 >        (SelectList [SelExp (qi "a" "*")])
@@ -286,15 +286,17 @@
 >     (mapSql [
 >       p "insert into testtable\n\
 >         \(columna,columnb)\n\
->         \values (1,2);\n" [(Insert
->                             "testtable"
->                             (Just ["columna", "columnb"])
->                             [IntegerL 1, IntegerL 2])]
+>         \values (1,2);\n"
+>       [Insert
+>         "testtable"
+>         (Just ["columna", "columnb"])
+>         [IntegerL 1, IntegerL 2]]
 >
 
- \  insert into current_wizard_table\n\
- \    select wizard_name from live_wizards\n\
- \    order by place limit 1;\n\
+ >       p "insert into a\n\
+ >          \    select b from c"
+ >       [Insert
+ >        "a"
 
 >      ,p "update tb\n\
 >         \  set x = 1, y = 2;"
@@ -303,21 +305,21 @@
 >                     Nothing]
 >      ,p "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
->         [Update "tb" [SetClause "x" (IntegerL 1)
->                      ,SetClause "y" (IntegerL 2)]
->          (Just $ Where $ BinaryOperatorCall Eql
->           (Identifier "z") (BooleanL True))]
+>       [Update "tb" [SetClause "x" (IntegerL 1)
+>                    ,SetClause "y" (IntegerL 2)]
+>        (Just $ Where $ BinaryOperatorCall Eql
+>         (Identifier "z") (BooleanL True))]
 >      ,p "delete from tbl1 where x = true;"
->             [Delete "tbl1" (Just $ Where $ BinaryOperatorCall Eql
->                             (Identifier "x") (BooleanL True))]
+>       [Delete "tbl1" (Just $ Where $ BinaryOperatorCall Eql
+>                                (Identifier "x") (BooleanL True))]
 >      ,p "copy tbl(a,b) from stdin;\n\
 >         \bat	t\n\
 >         \bear	f\n\
 >         \\\.\n"
->         [Copy "tbl(a,b) from stdin;\n\
+>       [Copy "tbl(a,b) from stdin;\n\
 >         \bat	t\n\
 >         \bear	f\n\
->               \\\.\n"]
+>             \\\.\n"]
 >      ])
 
 ================================================================================
@@ -328,27 +330,27 @@
 >         \  fielda text,\n\
 >         \  fieldb int\n\
 >         \);"
->       [(CreateTable
->         "test"
->         [AttributeDef "fielda" "text" Nothing Nothing
->         ,AttributeDef "fieldb" "int" Nothing Nothing
->         ])]
+>       [CreateTable
+>        "test"
+>        [AttributeDef "fielda" "text" Nothing Nothing
+>        ,AttributeDef "fieldb" "int" Nothing Nothing
+>        ]]
 >      ,p "create table test (\n\
 >         \type text check (type in('a', 'b')));"
->       [(CreateTable
->         "test" [AttributeDef "type" "text" Nothing
->                 (Just (InPredicate
->                        "type"
->                        [StringL "a"
->                        ,StringL "b"]))])]
+>       [CreateTable
+>        "test" [AttributeDef "type" "text" Nothing
+>                (Just (InPredicate
+>                       "type"
+>                       [StringL "a"
+>                       ,StringL "b"]))]]
 >      ,p "create table tb (\n\
 >         \a text not null,\n\
 >         \b boolean null);"
->       [(CreateTable
->         "tb"
->         [AttributeDef "a" "text" Nothing
->          (Just (BinaryOperatorCall Not NullL NullL))
->         ,AttributeDef "b" "boolean"  Nothing (Just NullL)])]
+>       [CreateTable
+>        "tb"
+>        [AttributeDef "a" "text" Nothing
+>         (Just (BinaryOperatorCall Not NullL NullL))
+>        ,AttributeDef "b" "boolean"  Nothing (Just NullL)]]
 >      ,p "create table tbl (\n\
 >         \  fld boolean default false);"
 >       [CreateTable "tbl" [AttributeDef "fld" "boolean"
@@ -356,15 +358,15 @@
 >                           Nothing]]
 >      ,p "create view v1 as\n\
 >         \select a,b from t;"
->       [(CreateView
->         "v1"
->         (Select
->          (SelectList [selI "a", selI "b"])
->          (Just $ From $ Tref "t")
->          Nothing))]
+>       [CreateView
+>        "v1"
+>        (Select
+>         (SelectList [selI "a", selI "b"])
+>         (Just $ From $ Tref "t")
+>         Nothing)]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
->       [(CreateDomain "td" "text"
->         (Just (InPredicate "value" [StringL "t1" ,StringL "t2"])))]
+>       [CreateDomain "td" "text"
+>        (Just (InPredicate "value" [StringL "t1" ,StringL "t2"]))]
 >      ,p "create type tp1 as (\n\
 >         \  f1 text,\n\
 >         \  f2 text\n\
