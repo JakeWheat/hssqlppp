@@ -642,24 +642,32 @@ expressions
  >   os <- parens orderBy
  >   return $ WindowFn fn Nothing (Just os)
 
->   symbol "("
->   (ps,os) <- (try $ do
->                       p <- partitionBy
->                       symbol ","
->                       q <- orderBy
->                       return (Just p, Just q)
->                      ) <|> (do
->                             p <- partitionBy
->                             return (Just p, Nothing)
->                      ) <|> (do
-
->                             q <- orderBy
->                             return (Nothing, Just q))
->   symbol ")"
-
--->                      ) <|> (return (Nothing,Nothing)))
-
+>   (ps, os) <- parens (do
+>                       ps <- maybeP partitionBy
+>                       os <- maybeP orderBy
+>                       return (ps,os))
 >   return $ WindowFn fn ps os
+
+         
+
+-- >   symbol "("
+-- >   (ps,os) <- (try $ do
+-- >                       p <- partitionBy
+-- >                       symbol ","
+-- >                       q <- orderBy
+-- >                       return (Just p, Just q)
+-- >                      ) <|> (do
+-- >                             p <- partitionBy
+-- >                             return (Just p, Nothing)
+-- >                      ) <|> (do
+
+-- >                             q <- orderBy
+-- >                             return (Nothing, Just q))
+-- >   symbol ")"
+
+-- -->                      ) <|> (return (Nothing,Nothing)))
+
+-- >   return $ WindowFn fn ps os
 
 > orderBy :: GenParser Char () [Expression]
 > orderBy = do
@@ -671,22 +679,24 @@ expressions
 > partitionBy = do
 >           keyword "partition"
 >           keyword "by"
->           do
->             x <- p
->             do
->                 (do
->                     lookAhead (do
->                                 sep
->                                 keyword "order")
->                     fail "no order"
->                     )
->                 sep
->                 xs <- sepEndBy p sep
->                 return (x:xs)
->               <|> return [x]
->             where
->                 p = expr
->                 sep = expr
+>           commaSep1 expr
+
+-- >           do
+-- >             x <- p
+-- >             do
+-- >                 (do
+-- >                     lookAhead (do
+-- >                                 sep
+-- >                                 keyword "order")
+-- >                     fail "no order"
+-- >                     )
+-- >                 sep
+-- >                 xs <- sepEndBy p sep
+-- >                 return (x:xs)
+-- >               <|> return [x]
+-- >             where
+-- >                 p = expr
+-- >                 sep = expr
 
 > caseParse :: ParsecT [Char] () Identity Expression
 > caseParse = do

@@ -246,9 +246,6 @@ plpgsql
 >        then
 >           parens (maybeConv (\x -> text "partition by"
 >                                    <+> csvExp x) partition
->                   <+> (if (isJust partition) && (isJust order)
->                          then text ","
->                          else empty)
 >                   <+> maybeConv (\x -> text "order by"
 >                                        <+> csvExp x) order)
 >        else empty)

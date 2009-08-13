@@ -201,7 +201,7 @@
 >                                "place"])
 >        (Tref "tbl")]
 >      ,p "select row_number()\n\
->         \over(partition by (a,b), order by c) as place\n\
+>         \over(partition by (a,b) order by c) as place\n\
 >         \from tbl;"
 >       [selectFrom (SelectList [SelectItem
 >                                (WindowFn
