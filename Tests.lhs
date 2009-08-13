@@ -69,6 +69,10 @@
 >                                                   ,When (Identifier "b") (IntegerL 4)]
 >                                              (Just $ Else (IntegerL 5)))
 >                       ,checkParseExpression "$1" (PositionalArg 1)
+>                       ,checkParseExpression "exists (select 1 from a)"
+>                                             (Exists (Select
+>                                                          (SelectList [SelExp (IntegerL 1)])
+>                                                          (Just $ From $ Tref "a") Nothing))
 >                       ]
 >        ,testGroup  "string parsing" [
 >                         checkParseExpression "''" (StringL "")
@@ -93,8 +97,9 @@
 >                       --                                                   ,SelectItem (IntegerL 4) "tst1"]]
 >                       ]
 >        ,testGroup "select from table" [
->                        checkParse "select * from tbl;" [(Select (SelectList [
->                                                              selI "*"]) (Just $ From $ Tref "tbl") Nothing)]
+>                        checkParse "select * from tbl;" [(Select
+>                                                          (SelectList [selI "*"])
+>                                                          (Just $ From $ Tref "tbl") Nothing)]
 >                       ,checkParse "select a,b from tbl;" [(Select
 >                                                            (SelectList [
 >                                                              selI "a"
@@ -499,22 +504,19 @@ property
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
 
-> x = "create function adjust_world_alignment() returns void as $$\n\
-> \declare\n\
-> \  abs_change float;\n\
+> x = "--this function is used to initialise the turn phase data.\n\
+> \create function init_turn_stuff() returns void as $$\n\
 > \begin\n\
-> \  --select into abs_change\n\
-> \  -- min(abs(get_cast_alignment()) / 2, 2);\n\
-> \  --update world_alignment_table\n\
-> \  --  set world_alignment = world_alignment\n\
-> \  --    + trunc(abs_change) * sign(get_cast_alignment());\n\
-> \  --get fractional part\n\
-> \  --if (random() < abs_change - trunc(abs_change)) then\n\
-> \  if a then\n\
-> \    update world_alignment_table\n\
-> \      set world_alignment = world_alignment +\n\
-> \        sign(get_cast_alignment());\n\
+> \  --this should catch attempts to start a game\n\
+> \  --which has already been started\n\
+> \  if exists(select 1 from turn_number_table) then\n\
+> \    raise exception 'new game started when turn number table not empty';\n\
 > \  end if;\n\
-> \  --update cast_alignment_table set cast_alignment = 0;\n\
+> \  insert into turn_number_table values (0);\n\
+> \  insert into turn_phase_table\n\
+> \    values ('choose');\n\
+> \  insert into current_wizard_table\n\
+> \    select wizard_name from live_wizards\n\
+> \    order by place limit 1;\n\
 > \end;\n\
 > \$$ language plpgsql volatile;"

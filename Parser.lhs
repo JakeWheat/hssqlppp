@@ -252,12 +252,14 @@ plpgsql stements
 > raise :: ParsecT String () Identity Statement
 > raise = do
 >   keyword "raise"
->   keyword "notice"
+>   tp <- ((keyword "notice" >> return RNotice)
+>          <|> (try (keyword "exception" >> return RException))
+>          <|> (keyword "error" >> return RError))
 >   s <- stringPar
 >   exps <- maybeP (do
 >                    symbol ","
 >                    commaSep expr)
->   return $ Raise RNotice s (fromMaybe [] exps)
+>   return $ Raise tp s (fromMaybe [] exps)
 
 > ifStatement :: ParsecT String () Identity Statement
 > ifStatement = do
@@ -420,6 +422,7 @@ expressions
 >           <|> try positionalArg
 >           <|> integer
 >           <|> try caseParse
+>           <|> try exists
 >           <|> try booleanLiteral
 >           <|> try inPredicate
 >           <|> try nullL
@@ -512,6 +515,11 @@ expressions
 > array = do
 >   keyword "array"
 >   liftM ArrayL $ squares $ commaSep expr
+
+> exists :: ParsecT [Char] () Identity Expression
+> exists = do
+>   keyword "exists"
+>   liftM Exists $ parens select
 
 > inPredicate :: ParsecT String () Identity Expression
 > inPredicate = do

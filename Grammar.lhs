@@ -80,7 +80,7 @@ Statement components
 > data VarDef = VarDef String String
 >                     deriving (Eq,Show)
 
-> data RaiseType = RNotice | RError
+> data RaiseType = RNotice | RException | RError
 >                  deriving (Eq, Show)
 
 > data CombineType = Except | Union
@@ -139,6 +139,7 @@ Expressions
 >                 | ArrayL [Expression]
 >                 | WindowFn Expression (Maybe [Expression])
 >                 | Case [When] (Maybe Else)
+>                 | Exists Statement
 >                   deriving (Show,Eq)
 
 > data When = When Expression Expression

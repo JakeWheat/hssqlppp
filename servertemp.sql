@@ -1292,126 +1292,126 @@ $$ language plpgsql volatile;
 
 
 
--- /*
+/*
 
--- pieces to move and selected piece are local to move phase for each
--- wizard
+pieces to move and selected piece are local to move phase for each
+wizard
 
--- Piece in this table from current wizard's army hasn't yet moved
--- in this turn.
+Piece in this table from current wizard's army hasn't yet moved
+in this turn.
 
--- TODO: i think switching this from pieces to move to pieces_moved will
--- be a bit more straightforward
+TODO: i think switching this from pieces to move to pieces_moved will
+be a bit more straightforward
 
--- */
--- create table pieces_to_move (
---     ptype text,
---     allegiance text,
---     tag int
--- );
--- select add_key('pieces_to_move', array['ptype', 'allegiance', 'tag']);
--- --cascade delete here:
--- select add_foreign_key('pieces_to_move', array['ptype', 'allegiance', 'tag'],
---                        'pieces');
--- select add_foreign_key('pieces_to_move', 'allegiance',
---                        'current_wizard_table', 'current_wizard');
--- select set_relvar_type('pieces_to_move', 'data');
--- select add_constraint('pieces_to_move_empty',
--- $$((select turn_phase = 'move' from turn_phase_table) or
--- not exists (select 1 from pieces_to_move))$$,
--- array['pieces_to_move', 'turn_phase_table']);
+*/
+create table pieces_to_move (
+    ptype text,
+    allegiance text,
+    tag int
+);
+select add_key('pieces_to_move', array['ptype', 'allegiance', 'tag']);
+--cascade delete here:
+select add_foreign_key('pieces_to_move', array['ptype', 'allegiance', 'tag'],
+                       'pieces');
+select add_foreign_key('pieces_to_move', 'allegiance',
+                       'current_wizard_table', 'current_wizard');
+select set_relvar_type('pieces_to_move', 'data');
+select add_constraint('pieces_to_move_empty',
+$$((select turn_phase = 'move' from turn_phase_table) or
+not exists (select 1 from pieces_to_move))$$,
+array['pieces_to_move', 'turn_phase_table']);
 
--- create domain move_phase as text
---   check (value in ('motion', 'attack', 'ranged_attack'));
+create domain move_phase as text
+  check (value in ('motion', 'attack', 'ranged_attack'));
 
--- create table selected_piece (
---   ptype text,
---   allegiance text,
---   tag int,
---   move_phase move_phase,
---   engaged boolean
--- ); -- 0 to 1 tuple when in move phase,
--- -- piece key from current wizards army, empty otherwise
--- select add_key('selected_piece', array['ptype', 'allegiance', 'tag']);
--- select add_foreign_key('selected_piece', array['ptype', 'allegiance', 'tag'],
---                        'pieces');
--- select add_foreign_key('selected_piece', 'allegiance',
---                        'current_wizard_table', 'current_wizard');
--- select constrain_to_zero_or_one_tuple('selected_piece');
--- select set_relvar_type('selected_piece', 'data');
+create table selected_piece (
+  ptype text,
+  allegiance text,
+  tag int,
+  move_phase move_phase,
+  engaged boolean
+); -- 0 to 1 tuple when in move phase,
+-- piece key from current wizards army, empty otherwise
+select add_key('selected_piece', array['ptype', 'allegiance', 'tag']);
+select add_foreign_key('selected_piece', array['ptype', 'allegiance', 'tag'],
+                       'pieces');
+select add_foreign_key('selected_piece', 'allegiance',
+                       'current_wizard_table', 'current_wizard');
+select constrain_to_zero_or_one_tuple('selected_piece');
+select set_relvar_type('selected_piece', 'data');
 
 
--- /*
+/*
 
--- squares left to walk is local to the current moving piece during
--- its walking phase, not used if piece is not a walker.
+squares left to walk is local to the current moving piece during
+its walking phase, not used if piece is not a walker.
 
--- TODO: this doesn't take into account e.g. move of 3 squares, move
--- diagonal, second diagonal move all move used up, can't do three
--- diagonal moves.
+TODO: this doesn't take into account e.g. move of 3 squares, move
+diagonal, second diagonal move all move used up, can't do three
+diagonal moves.
 
--- */
--- select create_var('remaining_walk', 'int');
--- select set_relvar_type('remaining_walk_table', 'data');
--- select create_var('remaining_walk_hack', 'boolean');
--- select set_relvar_type('remaining_walk_hack_table', 'stack');
--- insert into remaining_walk_hack_table values (false);
+*/
+select create_var('remaining_walk', 'int');
+select set_relvar_type('remaining_walk_table', 'data');
+select create_var('remaining_walk_hack', 'boolean');
+select set_relvar_type('remaining_walk_hack_table', 'stack');
+insert into remaining_walk_hack_table values (false);
 
--- select add_constraint('remaining_walk_only_motion',
--- $$ ((not exists(select 1 from remaining_walk_table)) or
---    exists(select 1 from creating_new_game_table
---       where creating_new_game = true) or
---    (select remaining_walk_hack
---      from remaining_walk_hack_table) or
---    (exists(select 1 from selected_piece)
---       and (select move_phase = 'motion' from selected_piece)
---       and exists (select 1 from creature_pieces
---                   natural inner join selected_piece)
---       and (select not flying from creature_pieces
---            natural inner join selected_piece))) $$,
---   array['selected_piece', 'pieces', 'remaining_walk_table',
---         'remaining_walk_hack_table', 'creating_new_game_table']);
+select add_constraint('remaining_walk_only_motion',
+$$ ((not exists(select 1 from remaining_walk_table)) or
+   exists(select 1 from creating_new_game_table
+      where creating_new_game = true) or
+   (select remaining_walk_hack
+     from remaining_walk_hack_table) or
+   (exists(select 1 from selected_piece)
+      and (select move_phase = 'motion' from selected_piece)
+      and exists (select 1 from creature_pieces
+                  natural inner join selected_piece)
+      and (select not flying from creature_pieces
+           natural inner join selected_piece))) $$,
+  array['selected_piece', 'pieces', 'remaining_walk_table',
+        'remaining_walk_hack_table', 'creating_new_game_table']);
 
--- --this function is used to initialise the turn phase data.
--- create function init_turn_stuff() returns void as $$
--- begin
---   --this should catch attempts to start a game
---   --which has already been started
---   if exists(select 1 from turn_number_table) then
---     raise exception 'new game started when turn number table not empty';
---   end if;
---   insert into turn_number_table values (0);
---   insert into turn_phase_table
---     values ('choose');
---   insert into current_wizard_table
---     select wizard_name from live_wizards
---     order by place limit 1;
--- end;
--- $$ language plpgsql volatile;
+--this function is used to initialise the turn phase data.
+create function init_turn_stuff() returns void as $$
+begin
+  --this should catch attempts to start a game
+  --which has already been started
+  if exists(select 1 from turn_number_table) then
+    raise exception 'new game started when turn number table not empty';
+  end if;
+  insert into turn_number_table values (0);
+  insert into turn_phase_table
+    values ('choose');
+  insert into current_wizard_table
+    select wizard_name from live_wizards
+    order by place limit 1;
+end;
+$$ language plpgsql volatile;
 
--- /*
+/*
 
--- table to cache if the game is over: someone has one or it's a draw.
--- (This also makes it possible to have a draw when there are wizards
--- remaining.)
+table to cache if the game is over: someone has one or it's a draw.
+(This also makes it possible to have a draw when there are wizards
+remaining.)
 
--- */
+*/
 
--- select create_var('game_completed', 'boolean');
--- select set_relvar_type('game_completed_table', 'data');
--- select add_constraint('game_completed_wizards',
---        $$(not exists(select 1 from game_completed_table)
---            or (select count(1) <= 1 from live_wizards))$$,
---        array['game_completed_table']);
+select create_var('game_completed', 'boolean');
+select set_relvar_type('game_completed_table', 'data');
+select add_constraint('game_completed_wizards',
+       $$(not exists(select 1 from game_completed_table)
+           or (select count(1) <= 1 from live_wizards))$$,
+       array['game_completed_table']);
 
--- create function game_completed() returns void as $$
--- begin
---   insert into game_completed_table
---     select true where not exists (select 1 from game_completed_table);
--- end;
--- $$ language plpgsql volatile;
+create function game_completed() returns void as $$
+begin
+  insert into game_completed_table
+    select true where not exists (select 1 from game_completed_table);
+end;
+$$ language plpgsql volatile;
 
--- -- 1 tuple iff current moving piece walks, empty otherwise
+-- 1 tuple iff current moving piece walks, empty otherwise
 
 
 -- /*

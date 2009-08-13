@@ -89,6 +89,7 @@ plpgsql
 >     text "raise"
 >     <+> case rt of
 >                 RNotice -> text "notice"
+>                 RException -> text "exception"
 >                 RError -> text "error"
 >     <+> quotes (text st)
 >     <> (if not (null exps)
@@ -234,9 +235,11 @@ plpgsql
 >                                    Just (Else e) -> text "else" <+> convExp e)
 >                            $+$ text "end"
 > convExp (PositionalArg a) = text "$" <> int a
+> convExp (Exists s) = text "exists" <+> parens (convSelectFragment True s)
 
 > convWhen :: When -> Doc
 > convWhen (When ex1 ex2) = text "when" <+> convExp ex1 <+> text "then" <+> convExp ex2
+
 
 = Utils
 
