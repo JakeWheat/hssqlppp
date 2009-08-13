@@ -442,25 +442,61 @@ expressions
 >   -- and built AST with.
 
 > table :: [[Operator [Char] u Identity Expression]]
-> table =
->       [[--prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))
->         prefixk "not" (BinaryOperatorCall Not (NullL))
->        ,binary "." (BinaryOperatorCall Qual) AssocLeft]
->       ,[binary "::" (BinaryOperatorCall Cast) AssocLeft
->        ,binary "^" (BinaryOperatorCall Pow) AssocRight]
->       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
->        ,binary "/" (BinaryOperatorCall Div) AssocLeft
->        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
->        ,binary "<>" (BinaryOperatorCall NotEql) AssocLeft
->        ,binary "like" (BinaryOperatorCall Like) AssocLeft
->        ,postfixk "is not null" (BinaryOperatorCall IsNotNull (NullL))
->        ,postfixk "is null" (BinaryOperatorCall IsNull (NullL))
->        ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
->       ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
->        ,binary "-" (BinaryOperatorCall Minus) AssocLeft
->        ,binaryk "and" (BinaryOperatorCall And) AssocLeft
->        ,binary "||" (BinaryOperatorCall Conc) AssocLeft]
->       ]
+> table = [[binary "." (BinaryOperatorCall Qual) AssocLeft]
+>         ,[binary "::" (BinaryOperatorCall Cast) AssocLeft]
+>          --missing []
+>          --missing unary -
+>         ,[binary "^" (BinaryOperatorCall Pow) AssocLeft]
+>         ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
+>          ,binary "/" (BinaryOperatorCall Div) AssocLeft
+>          ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
+>         ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
+>          ,binary "-" (BinaryOperatorCall Minus) AssocLeft]
+>          --should be is isnull and notnull
+>         ,[postfixk "is not null" (BinaryOperatorCall IsNotNull (NullL))
+>          ,postfixk "is null" (BinaryOperatorCall IsNull (NullL))]
+>          --other operators added in this list:
+>         ,[binary "<=" (BinaryOperatorCall Lte) AssocRight
+>          ,binary ">=" (BinaryOperatorCall Gte) AssocRight
+>          ,binary "||" (BinaryOperatorCall Conc) AssocLeft]
+>          --in should be here
+>          --between
+>          --overlaps
+>         ,[binary "like" (BinaryOperatorCall Like) AssocNone
+>           --moved <> temporarily since it doesn't parse when it
+>           --is in the correct place, possibly cos it starts
+>           --the same as '<' TODO: fix this properly
+>          ,binary "<>" (BinaryOperatorCall NotEql) AssocNone]
+>          --(also ilike similar)
+>         ,[binary "<" (BinaryOperatorCall Lt) AssocNone
+>          ,binary ">" (BinaryOperatorCall Gt) AssocNone]
+>         ,[binary "=" (BinaryOperatorCall Eql) AssocRight
+>           -- <> should be here
+>          ]
+>         ,[prefixk "not" (BinaryOperatorCall Not (NullL))]
+>         ,[binaryk "and" (BinaryOperatorCall And) AssocLeft]]
+
+-- > table :: [[Operator [Char] u Identity Expression]]
+-- > table =
+-- >       [[--prefix "-" (BinaryOperatorCall Mult (IntegerL (-1)))
+-- >         prefixk "not" (BinaryOperatorCall Not (NullL))
+-- >        ,binary "." (BinaryOperatorCall Qual) AssocLeft]
+-- >       ,[binary "::" (BinaryOperatorCall Cast) AssocLeft
+-- >        ,binary "^" (BinaryOperatorCall Pow) AssocRight]
+-- >       ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
+-- >        ,binary "/" (BinaryOperatorCall Div) AssocLeft
+-- >        ,binary "=" (BinaryOperatorCall Eql) AssocLeft
+-- >        ,binary "<>" (BinaryOperatorCall NotEql) AssocLeft
+-- >        ,binary "like" (BinaryOperatorCall Like) AssocLeft
+-- >        ,postfixk "is not null" (BinaryOperatorCall IsNotNull (NullL))
+-- >        ,postfixk "is null" (BinaryOperatorCall IsNull (NullL))
+-- >        ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
+-- >       ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
+-- >        ,binary "-" (BinaryOperatorCall Minus) AssocLeft
+-- >        ,binaryk "and" (BinaryOperatorCall And) AssocLeft
+-- >        ,binary "||" (BinaryOperatorCall Conc) AssocLeft]
+-- >       ]
+
 >     where
 >       binary s f
 >          = Infix (try (symbol s >> return f))

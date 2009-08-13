@@ -98,7 +98,7 @@ Expressions
 
 > data Op = Plus | Minus | Mult | Div | Pow | Mod | Eql
 >         | And | Conc | Like | Not | IsNull | IsNotNull
->         | Cast | Qual | NotEql
+>         | Cast | Qual | NotEql | Lt | Gt | Lte |Gte
 >           deriving (Show,Eq)
 
 > opToSymbol :: Op -> String
@@ -119,6 +119,10 @@ Expressions
 >                         Cast -> "::"
 >                         Qual -> "."
 >                         NotEql -> "<>"
+>                         Lt -> "<"
+>                         Gt -> ">"
+>                         Lte -> "<="
+>                         Gte -> ">="
 
 > data Expression = BinaryOperatorCall Op Expression Expression
 >                 | IntegerL Integer
