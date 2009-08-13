@@ -7,6 +7,7 @@ SQL top level statements
 
 > data Statement = Select SelectList (Maybe From) (Maybe Where)
 >                | CombineSelect CombineType Statement Statement
+>                | SelectInto [String] Statement
 >                | CreateTable String [AttributeDef]
 >                | CreateView String Statement
 >                | CreateType String [TypeAttributeDef]
@@ -31,6 +32,7 @@ SQL top level statements
 >                | Perform Expression
 >                | ForStatement String Statement [Statement]
 >                | Copy String
+>                | If Expression [Statement]
 >                  deriving (Eq,Show)
 
 ================================================================================
@@ -132,7 +134,7 @@ Expressions
 >                 | ScalarSubQuery Statement
 >                 | ArrayL [Expression]
 >                 | WindowFn Expression (Maybe [Expression])
->                 | Case [When] Else
+>                 | Case [When] (Maybe Else)
 >                   deriving (Show,Eq)
 
 > data When = When Expression Expression

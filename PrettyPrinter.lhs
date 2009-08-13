@@ -23,8 +23,8 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement :: Statement -> Doc
 
-> convStatement s@(Select _ _ _) = convSelectFragment s <> statementEnd
-> convStatement s@(CombineSelect _ _ _) = convSelectFragment s <> statementEnd
+> convStatement s@(Select _ _ _) = convSelectFragment True s <> statementEnd
+> convStatement s@(CombineSelect _ _ _) = convSelectFragment True s <> statementEnd
 
 > convStatement (CreateTable t atts) =
 >     text "create table"
@@ -64,7 +64,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (CreateView name sel) =
 >     text "create view" <+> text name <+> text "as"
->     $+$ nest 2 (convSelectFragment sel) <> statementEnd
+>     $+$ nest 2 (convSelectFragment True sel) <> statementEnd
 
 > convStatement (CreateDomain name tp ex) =
 >     text "create domain" <+> text name <+> text "as"
@@ -99,7 +99,7 @@ plpgsql
 >     <> statementEnd
 
 > convStatement (ForStatement i sel stmts) =
->     text "for" <+> text i <+> text "in" <+> convSelectFragment sel <+> text "loop"
+>     text "for" <+> text i <+> text "in" <+> convSelectFragment True sel <+> text "loop"
 >     $+$ nest 2 (vcat $ map convStatement stmts)
 >     $+$ text "end loop" <> statementEnd
 
@@ -111,25 +111,32 @@ plpgsql
 > convStatement (Copy x) =
 >     text "copy" <+> text x
 
+> convStatement (SelectInto i s) = text "select into " <+> hcatCsvMap text i
+>                                  <+> convSelectFragment False s <> statementEnd
+
+> convStatement (If ex sts) =
+>    text "if" <+> convExp ex <+> text "then"
+>    $+$ nest 2 (vcat$ map convStatement sts)
+>    $+$ text "end if" <> statementEnd
+
 > statementEnd :: Doc
 > statementEnd = semi <> newline
 
-
 = Statement components
 
-> convSelectFragment :: Statement -> Doc
-> convSelectFragment (Select l tb wh) =
->   text "select" <+> convSelList l
+> convSelectFragment :: Bool -> Statement -> Doc
+> convSelectFragment writeSelect (Select l tb wh) =
+>   text (if writeSelect then "select" else "") <+> convSelList l
 >   $+$ nest 2 (
 >     maybeConv convFrom tb
 >     $+$ convWhere wh)
-> convSelectFragment (CombineSelect tp s1 s2) =
->   convSelectFragment s1
+> convSelectFragment writeSelect (CombineSelect tp s1 s2) =
+>   convSelectFragment writeSelect s1
 >   $+$ (case tp of
 >          Except -> text "except"
 >          Union -> text "union")
->   $+$ convSelectFragment s2
-> convSelectFragment a = error $ "no convSelectFragment for " ++ show a
+>   $+$ convSelectFragment True s2
+> convSelectFragment _ a = error $ "no convSelectFragment for " ++ show a
 
 > convFrom :: From -> Doc
 > convFrom (From tr) = text "from" <+> convTref tr
@@ -152,7 +159,7 @@ plpgsql
 >     <+> convTref t2
 >     <+> maybeConv (\e -> nest 2 (text "on" <+> convExp e)) ex
 > convTref (SubTref sub alias) =
->     parens (convSelectFragment sub)
+>     parens (convSelectFragment True sub)
 >     <+> text "as" <+> text alias
 
 > convSetClause :: SetClause -> Doc
@@ -215,14 +222,16 @@ plpgsql
 >                                       _ -> parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
 > convExp (InPredicate att expr) = text att <+> text "in" <+> parens (csvExp expr)
-> convExp (ScalarSubQuery s) = parens (convSelectFragment s)
+> convExp (ScalarSubQuery s) = parens (convSelectFragment True s)
 > convExp NullL = text "null"
 > convExp (ArrayL es) = text "array" <> brackets (csvExp es)
 > convExp (WindowFn fn order) = convExp fn <+> text "over"
 >                                     <+> maybeConv (\x -> parens (text "order by" <+> csvExp x)) order
-> convExp (Case whens (Else els)) = text "case"
+> convExp (Case whens els) = text "case"
 >                            $+$ nest 2 (vcat (map convWhen whens)
->                                        $+$ text "else" <+> convExp els)
+>                              $+$ case els of
+>                                    Nothing -> empty
+>                                    Just (Else e) -> text "else" <+> convExp e)
 >                            $+$ text "end"
 > convExp (PositionalArg a) = text "$" <> int a
 

@@ -67,7 +67,7 @@
 >                                             \end"
 >                                             (Case [When (Identifier "a") (IntegerL 3)
 >                                                   ,When (Identifier "b") (IntegerL 4)]
->                                              (Else (IntegerL 5)))
+>                                              (Just $ Else (IntegerL 5)))
 >                       ,checkParseExpression "$1" (PositionalArg 1)
 >                       ]
 >        ,testGroup  "string parsing" [
@@ -361,6 +361,15 @@
 >                                    [Perform $ FunctionCall "test" [
 >                                       BinaryOperatorCall Conc (qi "r" "relvar_name")
 >                                                               (StringL "_and_stuff")]]
+>                       ,checkParse "select into a,b c,d from e;"
+>                                   [SelectInto ["a", "b"]
+>                                    (Select (SelectList [selI "c", selI "d"])
+>                                     (Just $ From $ Tref "e") Nothing)]
+>                       ,checkParse "if a=b then\n\
+>                                   \  update c set d = e;\n\
+>                                   \end if;"
+>                                   [If (BinaryOperatorCall  Eql (Identifier "a") (Identifier "b"))
+>                                       [Update "c" [SetClause "d" (Identifier "e")] Nothing]]
 
 >                       ]
 >        --,testProperty "random expression" prop_expression_ppp

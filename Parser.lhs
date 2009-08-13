@@ -59,6 +59,7 @@ Parsing top level statements
 >                <|> createView
 >                <|> createDomain))
 >         <|> try assignment
+>         <|> try ifStatement
 >         <|> try returnSt
 >         <|> try raise
 >         <|> try forStatement
@@ -133,7 +134,13 @@ statement types
 > select :: ParsecT String () Identity Statement
 > select = do
 >   keyword "select"
->   s1 <- selQuerySpec
+>   i <- maybeP (do
+>                 keyword "into"
+>                 commaSep1 identifierString)
+>   s1t <- selQuerySpec
+>   let s1 = case i of
+>              Nothing -> s1t
+>              Just i1 -> SelectInto i1 s1t
 >   (do
 >     (try (do keyword "except"
 >              s2 <- select
@@ -157,11 +164,13 @@ statement types
 >           <|> (keyword "sql" >> return Sql)
 
 >   case parse (functionBody lang) ("function " ++ fnName) (extrStr body) of
->     Left e -> error $ show e
+>     Left e -> do
+>       sp <- getPosition
+>       error $ "in " ++ show sp ++ ", " ++ show e
 >     Right body' -> do
 >                     vol <- (keyword "volatile" >> return Volatile)
 >                            <|> (keyword "stable" >> return Stable)
->                            <|> (keyword "immmutable" >> return Immutable)
+>                            <|> (keyword "immutable" >> return Immutable)
 >                     return $ CreateFunction lang fnName params retType (quoteOfString body) body' vol
 
 > functionBody :: Language -> ParsecT String () Identity FnBody
@@ -249,6 +258,16 @@ plpgsql stements
 >                    symbol ","
 >                    commaSep expr)
 >   return $ Raise RNotice s (fromMaybe [] exps)
+
+> ifStatement :: ParsecT String () Identity Statement
+> ifStatement = do
+>   keyword "if"
+>   e <- expr
+>   keyword "then"
+>   st <- many statement
+>   keyword "end"
+>   keyword "if"
+>   return $ If e st
 
 Statement components
 
@@ -563,10 +582,12 @@ expressions
 > caseParse = do
 >   keyword "case"
 >   wh <- many whenParse
->   keyword "else"
->   ex <- expr
+>   ex <- maybeP (do
+>                  keyword "else"
+>                  e <- expr
+>                  return $ Else e)
 >   keyword "end"
->   return $ Case wh (Else ex)
+>   return $ Case wh ex
 
 > whenParse :: ParsecT String () Identity When
 > whenParse = do
