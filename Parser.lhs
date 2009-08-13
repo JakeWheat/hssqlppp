@@ -445,6 +445,7 @@ expressions
 
 > factor :: GenParser Char () Expression
 > factor  = try scalarSubQuery
+>           <|> try inPredicate
 >           <|> try rowCtor
 >           <|> parens expr
 >           <|> stringLiteral
@@ -454,7 +455,6 @@ expressions
 >           <|> try caseParse
 >           <|> try exists
 >           <|> try booleanLiteral
->           <|> try inPredicate
 >           <|> try nullL
 >           <|> try array
 >           <|> try windowFn
@@ -524,7 +524,8 @@ expressions
 >           -- <> should be here
 >          ]
 >         ,[prefixk "not" (BinaryOperatorCall Not (NullL))]
->         ,[binaryk "and" (BinaryOperatorCall And) AssocLeft]]
+>         ,[binaryk "and" (BinaryOperatorCall And) AssocLeft
+>          ,binaryk "or" (BinaryOperatorCall Or) AssocLeft]]
 >     where
 >       binary s f
 >          = Infix (try (symbol s >> return f))
@@ -548,12 +549,16 @@ expressions
 
 > inPredicate :: ParsecT String () Identity Expression
 > inPredicate = do
->   vexp <- identifierString
+>   vexp <- (try rowCtor) <|> liftM Identifier identifierString
+>   n <- maybeP $ keyword "not"
 >   keyword "in"
 >   e <- parens ((liftM InSelect select)
 >                <|>
 >                (liftM InList $ commaSep1 expr))
->   return $ InPredicate vexp e
+>   return $ let p = InPredicate vexp e
+>            in case n of
+>                 Nothing -> p
+>                 Just _ -> BinaryOperatorCall Not NullL p
 
 > nullL :: ParsecT String u Identity Expression
 > nullL = do

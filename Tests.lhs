@@ -79,6 +79,14 @@
 >      ,p "$1" (PositionalArg 1)
 >      ,p "exists (select 1 from a)"
 >       (Exists (selectFrom (SelectList [SelExp (IntegerL 1)]) (Tref "a")))
+>      ,p "t in (1,2)"
+>       (InPredicate (Identifier "t") (InList [IntegerL 1,IntegerL 2]))
+>      ,p "t not in (1,2)"
+>       (BinaryOperatorCall Not NullL $ InPredicate (Identifier "t")
+>        (InList [IntegerL 1,IntegerL 2]))
+>      ,p "(t,u) in (1,2)"
+>       (InPredicate (Row [Identifier "t",Identifier "u"])
+>        (InList [IntegerL 1,IntegerL 2]))
 >      ])
 
 ================================================================================
@@ -355,7 +363,7 @@
 >       [CreateTable
 >        "test" [AttributeDef "type" "text" Nothing
 >                (Just (InPredicate
->                       "type"
+>                       (Identifier "type")
 >                       (InList [StringL "a"
 >                               ,StringL "b"])))]]
 >      ,p "create table tb (\n\
@@ -381,7 +389,8 @@
 >         Nothing Nothing Nothing)]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
 >       [CreateDomain "td" "text"
->        (Just (InPredicate "value" (InList [StringL "t1" ,StringL "t2"])))]
+>        (Just (InPredicate (Identifier "value")
+>               (InList [StringL "t1" ,StringL "t2"])))]
 >      ,p "create type tp1 as (\n\
 >         \  f1 text,\n\
 >         \  f2 text\n\

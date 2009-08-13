@@ -104,7 +104,7 @@ Statement components
 Expressions
 
 > data Op = Plus | Minus | Mult | Div | Pow | Mod | Eql
->         | And | Conc | Like | Not | IsNull | IsNotNull
+>         | And | Or | Conc | Like | Not | IsNull | IsNotNull
 >         | Cast | Qual | NotEql | Lt | Gt | Lte |Gte
 >           deriving (Show,Eq)
 
@@ -118,6 +118,7 @@ Expressions
 >                         Mod -> "%"
 >                         Eql -> "="
 >                         And -> "and"
+>                         Or -> "or"
 >                         Conc -> "||"
 >                         Like -> "like"
 >                         Not -> "not"
@@ -141,7 +142,7 @@ Expressions
 >                 | Identifier String
 >                 -- | QualifiedIdentifier String String
 >                 | Row [Expression]
->                 | InPredicate String InList
+>                 | InPredicate Expression InList
 >                 | FunctionCall String [Expression]
 >                 | ScalarSubQuery Statement
 >                 | ArrayL [Expression]

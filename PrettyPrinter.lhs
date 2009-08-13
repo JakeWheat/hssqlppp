@@ -237,7 +237,7 @@ plpgsql
 >                                       _ -> parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
 > convExp (InPredicate att lst) =
->   text att <+> text "in"
+>   convExp att <+> text "in"
 >   <+> parens (case lst of
 >                        InList expr -> csvExp expr
 >                        InSelect sel -> convSelectFragment True sel)
