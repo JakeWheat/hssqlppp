@@ -1,0 +1,35 @@
+Name:                Sqlppp
+Version:             0.0
+Description:         Sql parser and pretty printer
+License:             BSD3
+License-file:        LICENSE
+Author:              Jake Wheat
+Maintainer:          jakewheatblog@gmail.com
+Build-Type:          Simple
+Cabal-Version:       >=1.2
+
+extra-source-files:  README,
+                     TODO,
+                     LICENSE
+Library
+  Build-Depends:     base,
+                     mtl,
+                     parsec >= 3,
+                     pretty
+  Exposed-modules:   Parser, PrettyPrinter
+
+
+Executable ParseFile
+  Main-is:           ParseFile.lhs
+  Build-Depends:     base,
+                     haskell98
+  Other-Modules:     Parser, PrettyPrinter
+
+Executable Tests
+  Main-is:           Tests.lhs
+  Build-Depends:     base,
+                     HUnit,
+                     test-framework,
+                     test-framework-hunit
+
+  Other-Modules:     Parser, PrettyPrinter
