@@ -70,10 +70,10 @@ Conversion routines - convert Sql asts into Docs
 
 == ddl
 
-> convStatement (CreateTable t atts) =
+> convStatement (CreateTable t atts cons) =
 >     text "create table"
 >     <+> text t <+> lparen
->     $+$ nest 2 (vcat (csv (map convAttDef atts)))
+>     $+$ nest 2 (vcat (csv (map convAttDef atts ++ map convCon cons)))
 >     $+$ rparen <> statementEnd
 
 > convStatement (CreateFunction lang name args retType qt body vol) =
@@ -145,10 +145,6 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (Copy x) =
 >     text "copy" <+> text x
-
-> convStatement (SelectInto i s) =
->   text "select into " <+> hcatCsvMap text i
->   <+> convSelectFragment False s <> statementEnd
 
 > convStatement (If conds els) =
 >    text "if" <+> (convCond $ head conds)
@@ -226,8 +222,10 @@ Conversion routines - convert Sql asts into Docs
 > convWhere (Just (Where ex)) = text "where" <+> convExp ex
 > convWhere Nothing = empty
 
-> convSelList :: [SelectItem] -> Doc
-> convSelList l = hcatCsvMap convSelItem l
+> convSelList :: SelectList -> Doc
+> convSelList (SelectList ex into) =
+>   hcatCsvMap convSelItem ex
+>   <+> maybeConv (\i -> text "into" <+> hcatCsvMap text i) into
 
 > convSelItem :: SelectItem -> Doc
 > convSelItem (SelectItem ex nm) = (convExp ex) <+> text "as" <+> text nm
@@ -235,7 +233,7 @@ Conversion routines - convert Sql asts into Docs
 
 == ddl
 
-> convReturning :: Maybe [SelectItem] -> Doc
+> convReturning :: Maybe SelectList -> Doc
 > convReturning l = case l of
 >                 Nothing -> empty
 >                 Just ls -> nest 2 (text "returning" <+> convSelList ls)
@@ -244,13 +242,21 @@ Conversion routines - convert Sql asts into Docs
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
 
 > convAttDef :: AttributeDef -> Doc
-> convAttDef (AttributeDef n t def ch) =
+> convAttDef (AttributeDef n t def nul) =
 >   text n <+> text t
 >   <+> maybeConv (\e -> text "default" <+> convExp e) def
->   <+> checkExp ch
+>   <+> maybeConv (\e -> text (case e of NullConstraint -> "null"
+>                                        NotNullConstraint -> "not null")) nul
 
 > checkExp :: Maybe Expression -> Doc
 > checkExp c = maybeConv (\e -> text "check" <+> convExp e) c
+
+> convCon :: Constraint -> Doc
+> convCon (UniqueConstraint c) = text "unique" <+> parens (hcatCsvMap text c)
+
+ >                 | PrimaryKeyConstraint [String]
+ >                 | CheckConstraint (Maybe String) Expression
+ >                 | ReferenceConstraint [String] [String]
 
 == plpgsql
 

@@ -174,7 +174,7 @@ first statement, pretty simple
 
 >     ,testGroup "select expression"
 >     (mapSql [
->       p "select 1;" [selectE [SelExp (IntegerL 1)]]
+>       p "select 1;" [selectE (SelectList [SelExp (IntegerL 1)] Nothing)]
 >      ])
 
 ================================================================================
@@ -302,12 +302,12 @@ test a whole bunch more select statements
 >         Nothing)]
 >      ,p "select * from a order by c;"
 >       [Select
->        (selIL ["*"])
+>        (sl (selIL ["*"]))
 >        (Just (From (Tref "a")))
 >        Nothing (Just [Identifier "c"]) Nothing]
 >      ,p "select * from a order by c limit 1;"
 >       [Select
->        (selIL ["*"])
+>        (sl (selIL ["*"]))
 >        (Just (From (Tref "a")))
 >        Nothing (Just [Identifier "c"]) (Just (IntegerL 1))]
 >      ,p "select a from (select b from c) as d;"
@@ -331,8 +331,8 @@ one sanity check for parsing multiple statements
 
 >     ,testGroup "multiple statements"
 >     (mapSql [
->       p "select 1;\nselect 2;" [selectE [SelExp (IntegerL 1)]
->                                ,selectE [SelExp (IntegerL 2)]]
+>       p "select 1;\nselect 2;" [selectE $ sl [SelExp (IntegerL 1)]
+>                                ,selectE $ sl [SelExp (IntegerL 2)]]
 >      ])
 
 ================================================================================
@@ -352,15 +352,15 @@ statements when they program?
 >      ,p "select 1;\n\
 >         \-- this is a test\n\
 >         \select -- this is a test\n\
->         \2;" [selectE [SelExp (IntegerL 1)]
->              ,selectE [SelExp (IntegerL 2)]
+>         \2;" [selectE $ sl [SelExp (IntegerL 1)]
+>              ,selectE $ sl [SelExp (IntegerL 2)]
 >              ]
 >      ,p "select 1;\n\
 >         \/* this is\n\
 >         \a test*/\n\
 >         \select /* this is a test*/2;"
->                     [selectE [SelExp (IntegerL 1)]
->                     ,selectE [SelExp (IntegerL 2)]
+>                     [selectE $ sl [SelExp (IntegerL 1)]
+>                     ,selectE $ sl [SelExp (IntegerL 2)]
 >                     ]
 >      ])
 
@@ -400,7 +400,7 @@ insert from select
 >          \    select b from c;"
 >       [Insert "a" Nothing
 >        (InsertQuery (Select
->                      [selI "b"]
+>                      (sl [selI "b"])
 >                      (Just $ From $ Tref "c")
 >                      Nothing Nothing Nothing))
 >        Nothing]
@@ -412,7 +412,7 @@ insert from select
 >         "testtable"
 >         (Just ["columna", "columnb"])
 >         (InsertData [[IntegerL 1, IntegerL 2]])
->         (Just [selI "id"])]
+>         (Just $ sl [selI "id"])]
 
 updates
 
@@ -432,7 +432,13 @@ updates
 >         \  set x = 1, y = 2 returning id;"
 >       [Update "tb" [SetClause "x" (IntegerL 1)
 >                    ,SetClause "y" (IntegerL 2)]
->        Nothing (Just [selI "id"])]
+>        Nothing (Just $ sl [selI "id"])]
+>      ,p "update pieces\n\
+>         \set a=b returning tag into r.tag;"
+>       [Update "pieces" [SetClause "a" (Identifier "b")]
+>        Nothing (Just (SelectList
+>                       [SelExp (Identifier "tag")]
+>                       (Just ["r.tag"])))]
 
 delete
 
@@ -443,7 +449,7 @@ delete
 >      ,p "delete from tbl1 where x = true returning id;"
 >       [Delete "tbl1" (Just $ Where $ BinOpCall Eql
 >                                (Identifier "x") (BooleanL True))
->        (Just [selI "id"])]
+>        (Just $ sl [selI "id"])]
 >      ,p "copy tbl(a,b) from stdin;\n\
 >         \bat	t\n\
 >         \bear	f\n\
@@ -474,28 +480,12 @@ create table tests
 >        "test"
 >        [AttributeDef "fielda" "text" Nothing Nothing
 >        ,AttributeDef "fieldb" "int" Nothing Nothing
->        ]]
->      ,p "create table test (\n\
->         \type text check (type in('a', 'b')));"
->       [CreateTable
->        "test" [AttributeDef "type" "text" Nothing
->                (Just (InPredicate
->                       (Identifier "type")
->                       (InList [StringL "a"
->                               ,StringL "b"])))]]
->      ,p "create table tb (\n\
->         \a text not null,\n\
->         \b boolean null);"
->       [CreateTable
->        "tb"
->        [AttributeDef "a" "text" Nothing
->         (Just (UnOpCall Not NullL))
->        ,AttributeDef "b" "boolean"  Nothing (Just NullL)]]
+>        ]
+>        []]
 >      ,p "create table tbl (\n\
 >         \  fld boolean default false);"
 >       [CreateTable "tbl" [AttributeDef "fld" "boolean"
->                           (Just $ BooleanL False)
->                           Nothing]]
+>                           (Just $ BooleanL False) Nothing][]]
 >      ,p "create view v1 as\n\
 >         \select a,b from t;"
 
@@ -504,7 +494,7 @@ other creates
 >       [CreateView
 >        "v1"
 >        (Select
->         [selI "a", selI "b"]
+>         (sl [selI "a", selI "b"])
 >         (Just $ From $ Tref "t")
 >         Nothing Nothing Nothing)]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
@@ -519,6 +509,57 @@ other creates
 >                         ,TypeAttDef "f2" "text"]]
 >      ])
 
+constraints
+
+>     ,testGroup "constraints"
+>     (mapSql [
+
+nulls
+
+>       p "create table t1 (\n\
+>         \ a text null\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "a" "text"
+>                            Nothing (Just NullConstraint)]
+>          []]
+>      ,p "create table t1 (\n\
+>         \ a text not null\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "a" "text"
+>                            Nothing (Just NotNullConstraint)]
+>          []]
+
+unique row
+
+>      ,p "create table t1 (\n\
+>         \ x int,\n\
+>         \ y int,\n\
+>         \ unique (x,y)\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing Nothing
+>                           ,AttributeDef "y" "int" Nothing Nothing]
+>          [UniqueConstraint ["x","y"]]]
+
+check ordering
+
+>      ,p "create table t1 (\n\
+>         \ x int,\n\
+>         \ unique (x),\n\
+>         \ y int\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing Nothing
+>                           ,AttributeDef "y" "int" Nothing Nothing]
+>          [UniqueConstraint ["x"]]]
+>      ])
+
+unique inline
+
+primary key inline, row
+
+check inline, row
+
+reference inline, row
+
 ================================================================================
 
 test functions
@@ -531,7 +572,7 @@ test functions
 >       [CreateFunction Sql "t1" [ParamDefTp "text"] (Identifier "text") "$$"
 >        (SqlFnBody
 >         [Select
->          [SelExp (Identifier "a")]
+>          (sl [SelExp (Identifier "a")])
 >          (Just (From (Tref "t1")))
 >          (Just (Where (BinOpCall Eql
 >                        (Identifier "b") (PositionalArg 1))))
@@ -600,13 +641,11 @@ simple statements
 >                     BinOpCall Conc (qi "r" "relvar_name")
 >                                            (StringL "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
->       [SelectInto ["a", "b"]
->                       (Select [selI "c", selI "d"]
->                        (Just $ From $ Tref "e") Nothing Nothing Nothing)]
+>       [Select (SelectList [selI "c", selI "d"] (Just ["a", "b"]))
+>                   (Just $ From $ Tref "e") Nothing Nothing Nothing]
 >      ,p "select c,d into a,b from e;"
->       [SelectInto ["a", "b"]
->                       (Select [selI "c", selI "d"]
->                        (Just $ From $ Tref "e") Nothing Nothing Nothing)]
+>       [Select (SelectList [selI "c", selI "d"] (Just ["a", "b"]))
+>                   (Just $ From $ Tref "e") Nothing Nothing Nothing]
 >      ,p "execute s;"
 >       [Execute (Identifier "s")]
 
@@ -616,7 +655,7 @@ complicated statements
 >         \null;\n\
 >         \end loop;"
 >       [ForStatement "r" (Select
->                          [selI "a"]
+>                          (sl [selI "a"])
 >                          (Just $ From $ Tref "tbl")
 >                          Nothing Nothing Nothing)
 >        [NullStatement]]
@@ -624,7 +663,7 @@ complicated statements
 >         \null;\n\
 >         \end loop;"
 >       [ForStatement "r" (Select
->                          [selI "a"]
+>                          (sl [selI "a"])
 >                          (Just $ From $ Tref "tbl")
 >                          (Just $ Where $ BooleanL True)
 >                          Nothing Nothing)
@@ -660,12 +699,15 @@ complicated statements
 >           p a b = (a,b)
 >           selIL as = map selI as
 >           selI = SelExp . Identifier
+>           sl a = SelectList a Nothing
 >           selectE selList = Select selList Nothing Nothing Nothing Nothing
 >           qi a b = BinOpCall Qual (Identifier a) (Identifier b)
 >           selectFrom selList frm =
->             Select selList (Just $ From frm) Nothing Nothing Nothing
+>             Select (SelectList selList Nothing)
+>                    (Just $ From frm) Nothing Nothing Nothing
 >           selectFromWhere selList frm whr =
->             Select selList (Just $ From frm) (Just $ Where whr) Nothing Nothing
+>             Select (SelectList selList Nothing)
+>                    (Just $ From frm) (Just $ Where whr) Nothing Nothing
 
 ================================================================================
 

@@ -88,29 +88,26 @@ function or inside a sql function
 > statement :: ParsecT String () Identity Statement
 > statement = do
 >   (do
->    s <- (
->         try select
->         <|> try insert
->         <|> try update
->         <|> try delete
->         <|> (do
->               try (keyword "create")
->               ((try createTable)
->                <|> createType
->                <|> createFunction
->                <|> createView
->                <|> createDomain))
->         <|> (do
->               try (keyword "drop")
->               (dropFunction))
->         <|> try execute
->         <|> try assignment
->         <|> try ifStatement
->         <|> try returnSt
->         <|> try raise
->         <|> try forStatement
->         <|> try perform
->         <|> nullStatement)
+>    s <- choice [
+>          try select
+>         ,try insert
+>         ,try update
+>         ,try delete
+>         ,(try (keyword "create") >>
+>           choice [createTable
+>                  ,createType
+>                  ,createFunction
+>                  ,createView
+>                  ,createDomain])
+>         ,(try (keyword "drop") >> dropFunction)
+>         ,try execute
+>         ,try assignment
+>         ,try ifStatement
+>         ,try returnSt
+>         ,try raise
+>         ,try forStatement
+>         ,try perform
+>         ,nullStatement]
 >    semi
 >    return s)
 >    <|> copy
@@ -121,19 +118,18 @@ statement is optional. We only bother with sql statements
 > statementOptionalSemi :: ParsecT String () Identity Statement
 > statementOptionalSemi = do
 >   (do
->    s <- (
->         try select
->         <|> try insert
->         <|> try update
->         <|> try delete
->         <|> (do
+>    s <- choice [try select
+>         ,try insert
+>         ,try update
+>         ,try delete
+>         ,(do
 >               keyword "create"
->               (try createTable
->                <|> createType
->                <|> createFunction
->                <|> createView
->                <|> createDomain))
->         <|> copy)
+>               choice [try createTable
+>                ,createType
+>                ,createFunction
+>                ,createView
+>                ,createDomain])
+>         ,copy]
 >    maybeP semi
 >    eof
 >    return s)
@@ -157,21 +153,21 @@ recurses to support parsing excepts, unions, etc
 > select = do
 >   keyword "select"
 >   s1 <- selQuerySpec
->   (do
+>   choice [
 
 don't know if this does associativity in the correct order for
 statements with multiple excepts/ intersects and no parens
 
->     (try (do keyword "except"
+>     try $ do keyword "except"
 >              s2 <- select
->              return $ CombineSelect Except s1 s2))
->     <|> (try (do keyword "intersect"
->                  s3 <- select
->                  return $ CombineSelect Intersect s1 s3))
->     <|> (try (do keyword "union"
->                  s3 <- select
->                  return $ CombineSelect Union s1 s3))
->     <|> (return s1))
+>              return $ CombineSelect Except s1 s2
+>    ,try $ do keyword "intersect"
+>              s3 <- select
+>              return $ CombineSelect Intersect s1 s3
+>    ,try $ do keyword "union"
+>              s3 <- select
+>              return $ CombineSelect Union s1 s3
+>    ,return s1]
 
 = insert, update and delete
 
@@ -239,10 +235,46 @@ one with just a \. in the first two columns
 
 > createTable :: ParsecT String () Identity Statement
 > createTable = do
->   keyword "table"
+>   try $ keyword "table"
 >   n <- identifierString
->   atts <- parens $ commaSep1 tableAtt
->   return $ CreateTable n atts
+
+parse our unordered list of attribute defs or constraints
+
+>   (cons, atts) <- parens $ parseABsep1
+>                   (try tableConstr)
+>                   tableAtt
+>                   (symbol ",")
+
+each attribute entry is actually a pair:
+attribute,maybe constraint
+so split out the attributes
+and append the maybe constraints with the other constraints
+
+>   let (atts1,consextra) = unzip atts
+>   return $ CreateTable n atts1 (catMaybes consextra ++ cons)
+
+couldn't work how to to perms so just did this hack instead
+e.g.
+a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
+
+> parseABsep1 :: (Stream s m t) =>
+>                ParsecT s u m a1
+>             -> ParsecT s u m a
+>             -> ParsecT s u m sep
+>             -> ParsecT s u m ([a1], [a])
+
+> parseABsep1 p1 p2 sep = do
+>   rs <- sepBy1 parseAorB sep
+>   let (r1, r2) = unzip rs
+>   return (catMaybes r1, catMaybes r2)
+>   where
+>     parseAorB = choice [
+>                   do
+>                   x <- p1
+>                   return (Just x,Nothing)
+>                  ,do
+>                   y <- p2
+>                   return (Nothing, Just y)]
 
 > createType :: ParsecT String () Identity Statement
 > createType = do
@@ -278,9 +310,10 @@ from that error and rethrow it
 >       sp <- getPosition
 >       error $ "in " ++ show sp ++ ", " ++ showEr e (extrStr body)
 >     Right body' -> do
->                     vol <- (keyword "volatile" >> return Volatile)
->                            <|> (keyword "stable" >> return Stable)
->                            <|> (keyword "immutable" >> return Immutable)
+>                     vol <- choice [
+>                             keyword "volatile" >> return Volatile
+>                            ,keyword "stable" >> return Stable
+>                            ,keyword "immutable" >> return Immutable]
 >                     return $ CreateFunction lang fnName params
 >                                retType (quoteOfString body) body' vol
 
@@ -318,15 +351,12 @@ select bits
 
 > selQuerySpec :: ParsecT String () Identity Statement
 > selQuerySpec = do
->   (sl, into) <- selectList
+>   sl <- selectList
 >   fr <- maybeP from
 >   wh <- maybeP whereClause
 >   ord <- maybeP orderBy
 >   li <- maybeP limit
->   return $ let s = Select sl fr wh ord li
->            in case into of
->                 Nothing -> s
->                 Just i -> SelectInto i s
+>   return $ Select sl fr wh ord li
 
 > orderBy :: GenParser Char () [Expression]
 > orderBy = do
@@ -359,13 +389,13 @@ then cope with joins recursively using joinpart below
 
 > tref :: ParsecT String () Identity TableRef
 > tref = do
->        tr1 <- (do
+>        tr1 <- choice [
+>                do
 >                sub <- parens select
 >                keyword "as"
 >                alias <- identifierString
 >                return $ SubTref sub alias
->               ) <|>
->               (do
+>               ,do
 >                  fc <- try $ functionCall
 >                  alias <- maybeP $ do
 >                             keyword "as"
@@ -373,8 +403,7 @@ then cope with joins recursively using joinpart below
 >                  case alias of
 >                    Nothing -> return $ TrefFun fc
 >                    Just a -> return $ TrefFunAlias fc a
->               ) <|>
->               (do
+>               ,do
 >                a <- identifierString
 >                b <- maybeP (do
 >                             whitespace
@@ -403,7 +432,7 @@ this then lots of things don't parse.
 >                               else return x)
 >                return $ case b of
 >                                Nothing -> Tref a
->                                Just b1 -> TrefAlias a b1)
+>                                Just b1 -> TrefAlias a b1]
 >        jn <- maybeP $ joinPart tr1
 >        case jn of
 >          Nothing -> return tr1
@@ -420,24 +449,12 @@ multiple joins
 look for the join flavour first
 
 >   nat <- maybeP $ keyword "natural"
->   typ <- ((do
->             keyword "inner"
->             return Inner) <|>
->            (do
->              keyword "left"
->              keyword "outer"
->              return LeftOuter) <|>
->            (do
->              keyword "right"
->              keyword "outer"
->              return RightOuter) <|>
->            (do
->              keyword "full"
->              keyword "outer"
->              return FullOuter) <|>
->            (do
->              keyword "cross"
->              return Cross))
+>   typ <- choice [
+>             keyword "inner" >> return Inner
+>            ,keyword "left" >> keyword "outer" >> return LeftOuter
+>            ,keyword "right" >> keyword "outer" >> return RightOuter
+>            ,keyword "full" >> keyword "outer" >> return FullOuter
+>            ,keyword "cross" >> return Cross]
 >   keyword "join"
 
 recurse back to tref to read the table
@@ -466,18 +483,18 @@ selectlist and selectitem: the bit between select and from
 check for into either before the whole list of select columns
 or after the while list
 
-> selectList :: ParsecT String () Identity ([SelectItem], Maybe [String])
+> selectList :: ParsecT String () Identity SelectList
 > selectList = do
 >   i1 <- readInto
 >   sl <- commaSep1 selectItem
 >   i2 <- case i1 of
 >           Just _ -> return i1
 >           Nothing -> readInto
->   return (sl, i2)
+>   return $ SelectList sl i2
 >   where
 >     readInto = maybeP $ do
 >                         keyword "into"
->                         commaSep1 identifierString
+>                         commaSep1 identifierStringMaybeDot
 
 
 > selectItem :: ParsecT String () Identity SelectItem
@@ -490,10 +507,10 @@ or after the while list
 >                   Nothing -> SelExp ex
 >                   Just iden -> SelectItem ex iden
 
-> returning :: ParsecT String () Identity [SelectItem]
+> returning :: ParsecT String () Identity SelectList
 > returning = do
 >   keyword "returning"
->   commaSep1 selectItem
+>   selectList
 
 == update
 
@@ -510,27 +527,33 @@ set clause - the set a = 3, b=4 part of a update statement
 
 tableatt - an single attribute line in a create table
 
-> tableAtt :: ParsecT String () Identity AttributeDef
+> tableAtt :: ParsecT String () Identity (AttributeDef, Maybe Constraint)
 > tableAtt = do
 >   name <- identifierString
 >   typ <- identifierString
->   nl <- maybeP ((do
->                   try (keyword "null")
->                   return NullL)
->                 <|>
->                 (do
->                   keyword "not"
->                   keyword "null"
->                   return $ UnOpCall Not NullL))
 >   def <- maybeP (do
 >                   keyword "default"
 >                   expr)
->   check <- maybeP (do
->                     keyword "check"
->                     expr)
->   return $ if isJust nl
->              then AttributeDef name typ def nl
->              else AttributeDef name typ def check
+>   nl <- maybeP $
+>           (try (keyword "null" >> return NullConstraint))
+>           <|> (keyword "not" >> keyword "null"
+>                >> return NotNullConstraint)
+
+>   constr <- maybeP $ inlineConstraint name
+>   return (AttributeDef name typ def nl, constr)
+
+> tableConstr :: ParsecT String () Identity Constraint
+> tableConstr = do
+>   (try $ do
+>      keyword "unique"
+>      liftM UniqueConstraint $ parens $ commaSep1 identifierString)
+
+> inlineConstraint :: String -> ParsecT String u Identity Constraint
+> inlineConstraint c = do
+>   (do
+>    keyword "unique"
+>    return $ UniqueConstraint [c])
+
 
 typeatt: like a cut down version of tableatt, used in create type
 
@@ -583,9 +606,10 @@ null statement is plpgsql nop, written 'null;'
 > raise :: ParsecT String () Identity Statement
 > raise = do
 >   keyword "raise"
->   tp <- ((keyword "notice" >> return RNotice)
->          <|> (try (keyword "exception" >> return RException))
->          <|> (keyword "error" >> return RError))
+>   tp <- choice [
+>          keyword "notice" >> return RNotice
+>         ,try (keyword "exception" >> return RException)
+>         ,keyword "error" >> return RError]
 >   s <- stringLiteral
 >   exps <- maybeP (do
 >                    symbol ","
@@ -703,7 +727,7 @@ work
 >        <?> "expression"
 
 > factor :: GenParser Char () Expression
-> factor  =
+> factor = choice [
 
 order these so the ones which can be valid prefixes of others
 appear further down the list
@@ -714,49 +738,48 @@ predicate before row constructor, since an in predicate can start with
 a row constructor, then finally vanilla parens
 
 >           try scalarSubQuery
->           <|> try inPredicate
->           <|> try rowCtor
->           <|> parens expr
+>          ,try inPredicate
+>          ,try rowCtor
+>          ,parens expr
 
 we have two things which can start with a $,
 do the position arg first, then we can unconditionally
 try the dollar quoted string next
 
->           <|> try positionalArg
+>          ,try positionalArg
 
 string using quotes don't start like anything else and we've
 already tried the other thing which starts with a $, so can
 parse without a try
 
->           <|> stringLiteral
+>          ,stringLiteral
 
 anything starting with a number has to be a number, so this
 could probably appear anywhere in the list
 
->           <|> integerLit
+>          ,integerLit
 
 put the factors which start with keywords before the ones which start
 with a function, I think these all need try because functions can
 start with the same letters as these keywords, and they have to be
 tried after these. This claim might be wrong
 
->           <|> try caseParse
->           <|> try exists
->           <|> try booleanLiteral
->           <|> try nullL
->           <|> try array
+>          ,try caseParse
+>          ,try exists
+>          ,try booleanLiteral
+>          ,try nullL
+>          ,try array
 
 now the ones starting with a function name, since a function call
 looks like the start of a window expression, try the window expression
 first
 
->           <|> try windowFn
+>          ,try windowFn
 
 try function call before identifier for same reason
 
->           <|> try functionCall
->           <|> try identifier
->           <?> "simple expression"
+>          ,try functionCall
+>          ,try identifier]
 
 == operator table
 
@@ -1039,6 +1062,18 @@ identifier which happens to start with a complete keyword
 >   <|> do
 >       s <- letter
 >       p <- many (alphaNum <|> char '_')
+>       whitespace
+>       return (s : p)
+
+> identifierStringMaybeDot :: Parser String
+> identifierStringMaybeDot =
+>   (do
+>     string "*"
+>     whitespace
+>     return "*")
+>   <|> do
+>       s <- letter
+>       p <- many (alphaNum <|> char '_' <|> char '.')
 >       whitespace
 >       return $ s : p
 

@@ -25,16 +25,15 @@ instead put any statement - this type checks but is totally invalid.
 
 > data Statement =
 >                  -- selectlist from where orderby limit
->                  Select [SelectItem] (Maybe From) (Maybe Where) (Maybe [Expression]) (Maybe Expression)
+>                  Select SelectList (Maybe From) (Maybe Where) (Maybe [Expression]) (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement
->                | SelectInto [String] Statement
 
->                | Insert String (Maybe [String]) InsertData (Maybe [SelectItem])
->                | Update String [SetClause] (Maybe Where) (Maybe [SelectItem])
->                | Delete String (Maybe Where) (Maybe [SelectItem])
+>                | Insert String (Maybe [String]) InsertData (Maybe SelectList)
+>                | Update String [SetClause] (Maybe Where) (Maybe SelectList)
+>                | Delete String (Maybe Where) (Maybe SelectList)
 >                | Copy String
 
->                | CreateTable String [AttributeDef]
+>                | CreateTable String [AttributeDef] [Constraint]
 >                | CreateView String Statement
 >                | CreateType String [TypeAttributeDef]
 >                  -- language name args rettype bodyquoteused body vol
@@ -86,12 +85,35 @@ Statement components
 > data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 >                 deriving (Eq,Show)
 
+select columns, into columns
+
+> data SelectList = SelectList [SelectItem] (Maybe [String])
+>                   deriving (Eq,Show)
+
 > data SelectItem = SelExp Expression
 >                 | SelectItem Expression String
 >                   deriving (Eq,Show)
 
-> data AttributeDef = AttributeDef String String (Maybe Expression) (Maybe Expression)
+name type default null constraint
+
+> data AttributeDef = AttributeDef String String (Maybe Expression) (Maybe NullConstraint)
 >                     deriving (Eq,Show)
+
+> data NullConstraint = NullConstraint | NotNullConstraint
+>                       deriving (Eq,Show)
+
+> data Constraint =
+
+pull all the constraints out to a separate list instead of leaving
+them attached to columns. don't try to fix up the check constraints
+(by subsituting value or rewriting it as a standalone constraint),
+just save the column name with the check constraint for now
+
+>                   UniqueConstraint [String]
+>                 | PrimaryKeyConstraint [String]
+>                 | CheckConstraint (Maybe String) Expression
+>                 | ReferenceConstraint [String] [String]
+>                   deriving (Eq,Show)
 
 > data TypeAttributeDef = TypeAttDef String String
 >                         deriving (Eq,Show)
