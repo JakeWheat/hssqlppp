@@ -156,20 +156,14 @@ recurses to support parsing excepts, unions, etc
 > select :: ParsecT String () Identity Statement
 > select = do
 >   keyword "select"
->   i <- maybeP (do
->                 keyword "into"
->                 commaSep1 identifierString)
->   s1t <- selQuerySpec
->   let s1 = case i of
->              Nothing -> s1t
->              Just i1 -> SelectInto i1 s1t
+>   s1 <- selQuerySpec
 >   (do
+
+don't know if this does associativity in the correct order for
+statements with multiple excepts/ intersects and no parens
+
 >     (try (do keyword "except"
 >              s2 <- select
-
-don't know if this does except 'associativity' in the correct order for
-statements with multiple excepts and no parens
-
 >              return $ CombineSelect Except s1 s2))
 >     <|> (try (do keyword "intersect"
 >                  s3 <- select
@@ -320,8 +314,16 @@ from that error and rethrow it
 select bits
 
 > selQuerySpec :: ParsecT String () Identity Statement
-> selQuerySpec = liftM5 Select selectList (maybeP from) (maybeP whereClause)
->                (maybeP orderBy) (maybeP limit)
+> selQuerySpec = do
+>   (sl, into) <- selectList
+>   fr <- maybeP from
+>   wh <- maybeP whereClause
+>   ord <- maybeP orderBy
+>   li <- maybeP limit
+>   return $ let s = Select sl fr wh ord li
+>            in case into of
+>                 Nothing -> s
+>                 Just i -> SelectInto i s
 
 > orderBy :: GenParser Char () [Expression]
 > orderBy = do
@@ -458,9 +460,22 @@ see if there's another join waiting
 >     Just j -> return j
 
 selectlist and selectitem: the bit between select and from
+check for into either before the whole list of select columns
+or after the while list
 
-> selectList :: ParsecT String () Identity SelectList
-> selectList = liftM SelectList $ commaSep1 selectItem
+> selectList :: ParsecT String () Identity (SelectList, Maybe [String])
+> selectList = do
+>   i1 <- readInto
+>   sl <- commaSep1 selectItem
+>   i2 <- case i1 of
+>           Just _ -> return i1
+>           Nothing -> readInto
+>   return (SelectList sl, i2)
+>   where
+>     readInto = maybeP $ do
+>                         keyword "into"
+>                         commaSep1 identifierString
+
 
 > selectItem :: ParsecT String () Identity SelectItem
 > selectItem = do

@@ -2400,7 +2400,7 @@ create view spell_cast_chance as
     --world alignment same as spell alignment
     --  proportionately more easy
     select spell_name, sign(alignment) as salign,
-      limit_chance(base_chance + (@ get_world_alignment()) * 10),
+      limit_chance(base_chance + (get_world_alignment() * 10)),
       'same' as alignment from spells
     union
     --world alignment opposite, spell slightly harder

@@ -1,7 +1,11 @@
 get all chaos sql files parsing
 identify the biggest missing bits
 work on error reporting
+ idea: instead of using try outside the parsers
+       use it inside them and just try the first keyword
 lex things properly?
+
+
 
 make the parse tree nodes more parse tree like?
 add source locations for all tokens in the parse tree

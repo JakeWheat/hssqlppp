@@ -580,6 +580,10 @@ simple statements
 >       [SelectInto ["a", "b"]
 >                       (Select (SelectList [selI "c", selI "d"])
 >                        (Just $ From $ Tref "e") Nothing Nothing Nothing)]
+>      ,p "select c,d into a,b from e;"
+>       [SelectInto ["a", "b"]
+>                       (Select (SelectList [selI "c", selI "d"])
+>                        (Just $ From $ Tref "e") Nothing Nothing Nothing)]
 >      ,p "execute s;"
 >       [Execute (Identifier "s")]
 
@@ -755,4 +759,3 @@ property
 -- >   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
-
