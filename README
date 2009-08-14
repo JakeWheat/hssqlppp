@@ -1,0 +1,50 @@
+A very rough parser and pretty printer for postgresql sql and plpgsql
+
+Partially supports:
+basic select statements, from, where, order by, limit
+  joins
+  except, union
+  simple window functions
+  some case expressions
+plpgsql select into, but not sql select into
+create table plus simple check constraints, no keys
+create view
+insert, multirows and select flavours
+basic update and delete
+create function for sql and plpgsql functions
+simple create domain
+plpgsql statements, etc:
+        assignment
+        return
+        raise
+        null
+        perform
+        forif
+
+Many things are missing at the moment, in particular
+  parsing sql whilst rejecting plpgsql constructs
+  group by, having, cte, window keyword, intersect
+  joins in updates
+  most constraints
+  alter and drop statements
+  transaction commands
+  triggers and trigger functions
+  execute
+  returning
+  loop
+  case statement
+  while
+  for, integer variant
+  error trapping
+  cursors
+This is a non-exhaustive list
+
+The parse tree node types aren't well designed - this is bad if you
+want to use this code to parse or generate sql in another project right
+now.
+
+No thought has been put into error messages.
+No work has been done on correctly rejecting invalid sql.
+No thought has been given in respects to supporting other sql dialects.
+
+(There is no ideological reason why none of these things have been done.)

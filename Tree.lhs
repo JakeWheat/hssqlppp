@@ -11,9 +11,9 @@ don't know if the parse tree and the input to the pretty printer should use
 the same data types, particularly for a language as funky as sql.
 
 The parser will not parse as many parse trees that correspond to invalid
-sql as the grammer types can represent.
+sql as the tree types can represent.
 
-> module Grammar where
+> module Tree where
 
 ================================================================================
 
@@ -28,24 +28,28 @@ instead put any statement - this type checks but is totally invalid.
 >                  Select SelectList (Maybe From) (Maybe Where) (Maybe [Expression]) (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement
 >                | SelectInto [String] Statement
->                | CreateTable String [AttributeDef]
->                | CreateView String Statement
->                | CreateType String [TypeAttributeDef]
+
 >                | Insert String (Maybe [String]) InsertData
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)
+>                | Copy String
+
+>                | CreateTable String [AttributeDef]
+>                | CreateView String Statement
+>                | CreateType String [TypeAttributeDef]
 >                  -- language name args rettype bodyquoteused body vol
 >                | CreateFunction Language String [ParamDef] String String FnBody Volatility
 >                  -- name type checkexpression
 >                | CreateDomain String String (Maybe Expression)
+
 >                | Assignment String Expression
 >                | Return Expression
 >                | Raise RaiseType String [Expression]
 >                | NullStatement
 >                | Perform Expression
 >                | ForStatement String Statement [Statement]
->                | Copy String
 >                | If Expression [Statement] (Maybe [Statement])
+
 >                  deriving (Eq,Show)
 
 ================================================================================

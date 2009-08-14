@@ -22,14 +22,15 @@ the lexeme style.
 > import Text.Parsec
 > import qualified Text.Parsec.Token as P
 > import Text.Parsec.Language
-> import qualified Text.Parsec.Prim
-> import Control.Monad.Identity
 > import Text.Parsec.Expr
-> import Data.Maybe
 > import Text.Parsec.String
 > import Text.Parsec.Error
 
-> import Grammar
+> import Data.Maybe
+> import Control.Monad.Identity
+
+
+> import Tree
 
 see
 http://savage.net.au/SQL/sql-2003-2.bnf.html
@@ -38,7 +39,7 @@ http://savage.net.au/SQL/sql-92.bnf.html
 for some online sql grammar guides
 and
 http://www.postgresql.org/docs/8.4/interactive/sql-syntax.html
-for some notes on postgresql syntax (the rest of that manual is also helpful
+for some notes on postgresql syntax (the rest of that manual is also helpful)
 
 ================================================================================
 
@@ -109,6 +110,29 @@ function or inside a sql function
 >    semi
 >    return s)
 >    <|> copy
+
+quick hack to support sql functions where the semicolon on the last
+statement is optional. We only bother with sql statements
+
+> statementOptionalSemi :: ParsecT String () Identity Statement
+> statementOptionalSemi = do
+>   (do
+>    s <- (
+>         try select
+>         <|> try insert
+>         <|> try update
+>         <|> try delete
+>         <|> try (do
+>               keyword "create"
+>               (try createTable
+>                <|> createType
+>                <|> createFunction
+>                <|> createView
+>                <|> createDomain))
+>         <|> copy)
+>    maybeP semi
+>    eof
+>    return s)
 
 ================================================================================
 
@@ -545,12 +569,19 @@ if statement, no support for elsif yet
 
 > functionBody :: Language -> ParsecT String () Identity FnBody
 
-sql function is just a list of statements
+sql function is just a list of statements, the last one has the
+trailing semicolon optional
 
-> functionBody Sql = liftM SqlFnBody $ (whitespace >> many statement)
+> functionBody Sql = do
+>   whitespace
+>   a <- (many (try statement))
+>   b <- maybeP statementOptionalSemi
+>   return $ SqlFnBody $ case b of
+>                               Nothing -> a
+>                               Just e -> a ++ [e]
 
-plpgsql function has an optional declare section, plus
-the statements are enclosed in begin ... end;
+plpgsql function has an optional declare section, plus the statements
+are enclosed in begin ... end;
 
 > functionBody Plpgsql = whitespace >>
 >   ((do

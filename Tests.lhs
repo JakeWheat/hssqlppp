@@ -22,13 +22,14 @@ The only ddl supported is creates, no alters or drops at the moment.
 
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
+
 > import Data.Char
 
  > import Test.Framework.Providers.QuickCheck2
 
  > import Control.Monad
 
-> import Grammar
+> import Tree
 > import Parser
 > import PrettyPrinter
 

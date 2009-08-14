@@ -1,0 +1,18 @@
+get all chaos sql files parsing
+identify the biggest missing bits
+work on error reporting
+lex things properly?
+
+make the parse tree nodes more parse tree like?
+add source locations for all tokens in the parse tree
+
+?write a separate ast which the pretty printer uses, better for code
+   generation and more typesafe than the parse tree, plus a convertor
+   from the parse tree to the ast.
+
+?add type checking and facility to add other static checks
+
+?add a macro system
+
+find something that supports better error messages, particularly
+something which can report multiple errors

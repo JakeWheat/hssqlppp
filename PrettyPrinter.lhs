@@ -12,9 +12,9 @@ It uses the hughes pj pretty printer
 >     where
 
 > import Text.PrettyPrint
-> import Grammar
 > import Data.List (stripPrefix)
 > import Data.Maybe
+> import Tree
 
 ================================================================================
 
