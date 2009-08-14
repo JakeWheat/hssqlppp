@@ -41,7 +41,7 @@ instead put any statement - this type checks but is totally invalid.
 >                | CreateFunction Language String [ParamDef] Expression String FnBody Volatility
 >                  -- name type checkexpression
 >                | CreateDomain String String (Maybe Expression)
-
+>                | DropFunction String [String]
 >                | Assignment String Expression
 >                | Return (Maybe Expression)
 >                | Raise RaiseType String [Expression]

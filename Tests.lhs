@@ -547,6 +547,8 @@ test functions
 >       [CreateFunction Plpgsql "fn" [] (Identifier "void") "'"
 >        (PlpgsqlFnBody [VarDef "a" "int" (Just $ IntegerL 3)] [NullStatement])
 >        Stable]
+>      ,p "drop function test(text);"
+>       [DropFunction "test" ["text"]]
 >      ])
 
 ================================================================================

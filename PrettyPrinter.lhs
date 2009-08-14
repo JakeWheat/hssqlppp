@@ -87,6 +87,9 @@ Conversion routines - convert Sql asts into Docs
 >                        Stable -> "stable"
 >                        Immutable -> "immutable")
 >     <> statementEnd
+> convStatement (DropFunction name types) =
+>   text "drop function" <+> text name
+>   <> parens (hcatCsvMap text types) <> statementEnd
 
 > convStatement (CreateView name sel) =
 >     text "create view" <+> text name <+> text "as"

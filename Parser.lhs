@@ -93,13 +93,16 @@ function or inside a sql function
 >         <|> try insert
 >         <|> try update
 >         <|> try delete
->         <|> try (do
->               keyword "create"
->               (try createTable
+>         <|> (do
+>               try (keyword "create")
+>               ((try createTable)
 >                <|> createType
 >                <|> createFunction
 >                <|> createView
 >                <|> createDomain))
+>         <|> (do
+>               try (keyword "drop")
+>               (dropFunction))
 >         <|> try execute
 >         <|> try assignment
 >         <|> try ifStatement
@@ -123,7 +126,7 @@ statement is optional. We only bother with sql statements
 >         <|> try insert
 >         <|> try update
 >         <|> try delete
->         <|> try (do
+>         <|> (do
 >               keyword "create"
 >               (try createTable
 >                <|> createType
@@ -302,6 +305,13 @@ from that error and rethrow it
 >                     keyword "check"
 >                     expr)
 >   return $ CreateDomain nm tp check
+
+> dropFunction :: ParsecT String () Identity Statement
+> dropFunction = do
+>   keyword "function"
+>   nm <- identifierString
+>   ts <- parens $ many identifierString
+>   return $ DropFunction nm ts
 
 ================================================================================
 
