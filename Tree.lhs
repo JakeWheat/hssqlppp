@@ -102,13 +102,13 @@ Statement components
 >               | ParamDefTp String
 >                     deriving (Eq,Show)
 
-> data VarDef = VarDef String String
+> data VarDef = VarDef String String (Maybe Expression)
 >                     deriving (Eq,Show)
 
 > data RaiseType = RNotice | RException | RError
 >                  deriving (Eq, Show)
 
-> data CombineType = Except | Union
+> data CombineType = Except | Union | Intersect
 >                    deriving (Eq, Show)
 
 > data Volatility = Volatile | Stable | Immutable

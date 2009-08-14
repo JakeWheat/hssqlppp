@@ -523,8 +523,8 @@ test functions
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
 >       [CreateFunction Plpgsql "fn" [] (Identifier "void") "$$"
->        (PlpgsqlFnBody [VarDef "a" "int"
->                       ,VarDef "b" "text"]
+>        (PlpgsqlFnBody [VarDef "a" "int" Nothing
+>                       ,VarDef "b" "text" Nothing]
 >         [NullStatement])
 >        Volatile]
 >      ,p "create function fn() returns void as '\n\
@@ -535,7 +535,17 @@ test functions
 >         \end;\n\
 >         \' language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" [] (Identifier "void") "'"
->        (PlpgsqlFnBody [VarDef "a" "int"] [NullStatement])
+>        (PlpgsqlFnBody [VarDef "a" "int" Nothing] [NullStatement])
+>        Stable]
+>      ,p "create function fn() returns void as '\n\
+>         \declare\n\
+>         \  a int := 3;\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end;\n\
+>         \' language plpgsql stable;"
+>       [CreateFunction Plpgsql "fn" [] (Identifier "void") "'"
+>        (PlpgsqlFnBody [VarDef "a" "int" (Just $ IntegerL 3)] [NullStatement])
 >        Stable]
 >      ])
 
@@ -732,3 +742,4 @@ property
 -- >   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
+

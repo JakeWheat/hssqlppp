@@ -171,7 +171,8 @@ Conversion routines - convert Sql asts into Docs
 >   convSelectFragment writeSelect s1
 >   $+$ (case tp of
 >          Except -> text "except"
->          Union -> text "union")
+>          Union -> text "union"
+>          Intersect -> text "intersect")
 >   $+$ convSelectFragment True s2
 > convSelectFragment _ a = error $ "no convSelectFragment for " ++ show a
 
@@ -255,7 +256,8 @@ Conversion routines - convert Sql asts into Docs
 > convParamDef  (ParamDefTp t) = text t
 
 > convVarDef :: VarDef -> Doc
-> convVarDef (VarDef n t) = text n <+> text t <> semi
+> convVarDef (VarDef n t v) =
+>   text n <+> text t <+>  maybeConv (\x -> text ":=" <+> convExp x) v <> semi
 
 = Expressions
 

@@ -167,6 +167,9 @@ don't know if this does except 'associativity' in the correct order for
 statements with multiple excepts and no parens
 
 >              return $ CombineSelect Except s1 s2))
+>     <|> (try (do keyword "intersect"
+>                  s3 <- select
+>                  return $ CombineSelect Intersect s1 s3))
 >     <|> (try (do keyword "union"
 >                  s3 <- select
 >                  return $ CombineSelect Union s1 s3))
@@ -368,6 +371,7 @@ this then lots of things don't parse.
 >                             if x `elem` ["where"
 >                                         ,"except"
 >                                         ,"union"
+>                                         ,"intersect"
 >                                         ,"loop"
 >                                         ,"inner"
 >                                         ,"on"
@@ -633,8 +637,11 @@ variable declarations in a plpgsql function
 > varDef = do
 >   name <- identifierString
 >   tp <- identifierString
+>   val <- maybeP (do
+>                  symbol ":="
+>                  expr)
 >   semi
->   return $ VarDef name tp
+>   return $ VarDef name tp val
 
 ================================================================================
 
@@ -739,7 +746,8 @@ http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTA
 >           --moved <> temporarily since it doesn't parse when it
 >           --is in the correct place, possibly cos it starts
 >           --the same as '<' TODO: fix this properly
->          ,binary "<>" (BinaryOperatorCall NotEql) AssocNone]
+>          ,binary "<>" (BinaryOperatorCall NotEql) AssocNone
+>          ,binary "!=" (BinaryOperatorCall NotEql) AssocNone]
 >          --(also ilike similar)
 >         ,[binary "<" (BinaryOperatorCall Lt) AssocNone
 >          ,binary ">" (BinaryOperatorCall Gt) AssocNone]
