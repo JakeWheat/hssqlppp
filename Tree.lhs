@@ -47,6 +47,7 @@ instead put any statement - this type checks but is totally invalid.
 >                | Raise RaiseType String [Expression]
 >                | NullStatement
 >                | Perform Expression
+>                | Execute Expression
 >                | ForStatement String Statement [Statement]
 >                | If [(Expression, [Statement])] (Maybe [Statement])
 

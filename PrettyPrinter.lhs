@@ -152,6 +152,7 @@ Conversion routines - convert Sql asts into Docs
 >     where
 >       convCond (ex, sts) = convExp ex <+> text "then"
 >                            $+$ nest 2 (vcat$ map convStatement sts)
+> convStatement (Execute s) = text "execute" <+> convExp s <> statementEnd
 
 > statementEnd :: Doc
 > statementEnd = semi <> newline

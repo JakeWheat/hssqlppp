@@ -578,6 +578,8 @@ simple statements
 >       [SelectInto ["a", "b"]
 >                       (Select (SelectList [selI "c", selI "d"])
 >                        (Just $ From $ Tref "e") Nothing Nothing Nothing)]
+>      ,p "execute s;"
+>       [Execute (Identifier "s")]
 
 complicated statements
 

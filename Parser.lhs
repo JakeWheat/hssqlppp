@@ -100,6 +100,7 @@ function or inside a sql function
 >                <|> createFunction
 >                <|> createView
 >                <|> createDomain))
+>         <|> try execute
 >         <|> try assignment
 >         <|> try ifStatement
 >         <|> try returnSt
@@ -527,6 +528,11 @@ null statement is plpgsql nop, written 'null;'
 >   keyword "perform"
 >   ex <- expr
 >   return $ Perform ex
+
+> execute :: ParsecT String () Identity Statement
+> execute = do
+>   keyword "execute"
+>   liftM Execute expr
 
 > assignment :: ParsecT String () Identity Statement
 > assignment = do
@@ -1096,13 +1102,13 @@ of this module having to do a load of work to get this information.
 >          lineNo = sourceLine pos
 >          ls = lines src
 >          line = safeGet ls(lineNo - 1)
->          preline = safeGet ls (lineNo - 2)
->          postline = safeGet ls lineNo
+>          prelines = map (safeGet ls) [(lineNo - 10) .. (lineNo - 2)]
+>          postlines = map (safeGet ls) [lineNo .. (lineNo + 10)]
 >          colNo = sourceColumn pos
 >          highlightLine = (take (colNo -1) (repeat ' ')) ++ "^"
 >     in "\n---------------------\n" ++ show er
->        ++ "\n------------\nCheck it out:\n" ++ preline ++ "\n"
->        ++ line ++ "\n" ++ highlightLine ++ "\n" ++ postline
+>        ++ "\n------------\nCheck it out:\n" ++ unlines prelines ++ "\n"
+>        ++ line ++ "\n" ++ highlightLine ++ "\nERROR HERE\n" ++ unlines postlines
 >        ++ "\n-----------------\n"
 >          where
 >            safeGet a i = if i < 0
