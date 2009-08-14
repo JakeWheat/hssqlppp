@@ -259,7 +259,7 @@ a string
 >   fnName <- identifierString
 >   params <- parens $ commaSep param
 >   keyword "returns"
->   retType <- identifierString
+>   retType <- typeName
 >   keyword "as"
 >   body <- stringLiteral
 >   keyword "language"
@@ -490,6 +490,14 @@ typeatt: like a cut down version of tableatt, used in create type
 > typeAtt :: ParsecT String () Identity TypeAttributeDef
 > typeAtt = liftM2 TypeAttDef identifierString identifierString
 
+> typeName :: ParsecT String () Identity Expression
+> typeName = do
+>   t <- identifierString
+>   pr <- maybeP $ parens $ integer
+>   case pr of
+>     Nothing -> return $ Identifier t
+>     Just p -> return $ FunctionCall t [IntegerL p]
+
 ================================================================================
 
 = plpgsql statements
@@ -710,9 +718,11 @@ http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTA
 >         ,[postfixk "is not null" (BinaryOperatorCall IsNotNull (NullL))
 >          ,postfixk "is null" (BinaryOperatorCall IsNull (NullL))]
 >          --other operators all added in this list according to the pg docs:
->         ,[binary "<=" (BinaryOperatorCall Lte) AssocRight
+>         ,[binary "<->" (BinaryOperatorCall DistBetween) AssocNone
+>          ,binary "<=" (BinaryOperatorCall Lte) AssocRight
 >          ,binary ">=" (BinaryOperatorCall Gte) AssocRight
->          ,binary "||" (BinaryOperatorCall Conc) AssocLeft]
+>          ,binary "||" (BinaryOperatorCall Conc) AssocLeft
+>          ]
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
@@ -920,7 +930,6 @@ fn() over ([partition bit]? [order bit]?)
 >           keyword "partition"
 >           keyword "by"
 >           commaSep1 expr
-
 
 > functionCall :: ParsecT String () Identity Expression
 > functionCall = liftM2 FunctionCall identifierString (parens $ commaSep expr)

@@ -94,6 +94,9 @@ some operator tests
 >                                              (StringL "b"))
 >      ,p "'stuff'::text" (BinaryOperatorCall
 >                          Cast (StringL "stuff") (Identifier "text"))
+>      ,p "245::float(24)" (BinaryOperatorCall
+>                          Cast (IntegerL 245)
+>                           (FunctionCall "float" [IntegerL 24]))
 
 some function call tests
 
@@ -496,7 +499,7 @@ test functions
 >       p "create function t1(text) returns text as $$\n\
 >         \select a from t1 where b = $1;\n\
 >         \$$ language sql stable;"
->       [CreateFunction Sql "t1" [ParamDefTp "text"] "text" "$$"
+>       [CreateFunction Sql "t1" [ParamDefTp "text"] (Identifier "text") "$$"
 >        (SqlFnBody
 >         [Select
 >          (SelectList [SelExp (Identifier "a")])
@@ -513,7 +516,7 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction Plpgsql "fn" [] "void" "$$"
+>       [CreateFunction Plpgsql "fn" [] (Identifier "void") "$$"
 >        (PlpgsqlFnBody [VarDef "a" "int"
 >                       ,VarDef "b" "text"]
 >         [NullStatement])
@@ -525,7 +528,7 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction Plpgsql "fn" [] "void" "'"
+>       [CreateFunction Plpgsql "fn" [] (Identifier "void") "'"
 >        (PlpgsqlFnBody [VarDef "a" "int"] [NullStatement])
 >        Stable]
 >      ])

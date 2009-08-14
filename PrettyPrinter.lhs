@@ -76,7 +76,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (CreateFunction lang name args retType qt body vol) =
 >     text "create function" <+> text name
 >     <+> parens (hcatCsvMap convParamDef args)
->     <+> text "returns" <+> text retType <+> text "as" <+> text qt
+>     <+> text "returns" <+> convExp retType <+> text "as" <+> text qt
 >     $+$ convFnBody body
 >     $+$ text qt <+> text "language"
 >     <+> text (case lang of

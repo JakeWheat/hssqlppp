@@ -38,7 +38,7 @@ instead put any statement - this type checks but is totally invalid.
 >                | CreateView String Statement
 >                | CreateType String [TypeAttributeDef]
 >                  -- language name args rettype bodyquoteused body vol
->                | CreateFunction Language String [ParamDef] String String FnBody Volatility
+>                | CreateFunction Language String [ParamDef] Expression String FnBody Volatility
 >                  -- name type checkexpression
 >                | CreateDomain String String (Maybe Expression)
 
@@ -121,7 +121,8 @@ Expressions
 
 > data Op = Plus | Minus | Mult | Div | Pow | Mod | Eql
 >         | And | Or | Conc | Like | Not | IsNull | IsNotNull
->         | Cast | Qual | NotEql | Lt | Gt | Lte |Gte
+>         | Cast | Qual | NotEql | Lt | Gt | Lte | Gte
+>         | DistBetween
 >           deriving (Show,Eq)
 
 > opToSymbol :: Op -> String
@@ -147,6 +148,7 @@ Expressions
 >                         Gt -> ">"
 >                         Lte -> "<="
 >                         Gte -> ">="
+>                         DistBetween -> "<->"
 
 Similarly to the statement type, all expressions
 are chucked into one even though there are many restrictions
