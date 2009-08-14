@@ -1,5 +1,20 @@
 #!/usr/bin/env runghc
 
+Copyright 2009 Jake Wheat
+
+The automated tests, uses hunit to check a bunch of text expressions
+and sql statements parse to the correct tree, and then checks pretty
+printing and then reparsing gives the same tree. The code was mostly
+written in a tdd style, which the coverage of the tests reflects.
+
+Also had some quickcheck stuff, but it got disabled since it failed
+depressingly often and the code has now gone very stale. The idea with
+this was to generate random parse trees, pretty print then parse them,
+and check the new parse tree was the same as the original.
+
+There are no tests for invalid sql at the moment.
+
+The only ddl supported is creates, no alters or drops at the moment.
 
 > import Test.HUnit
 
@@ -23,52 +38,86 @@
 
 ================================================================================
 
+uses a whole bunch of shortcuts (at the bottom of main) to make this
+code more concise. Could probably use a few more.
+
 >     testGroup "parse expression"
 >     (mapExpr [
+
+start with some really basic expressions, we just use the expression
+parser rather than the full sql statement parser. (the expression parser
+requires a single expression followed by eof.)
+
 >       p "1" (IntegerL 1)
 >      ,p " 1 + 1 " (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))
 >      ,p "1+1+1" (BinaryOperatorCall
 >                  Plus
 >                  (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))
 >                  (IntegerL 1))
+
+check some basic parens use wrt naked values and row constructors
+these tests reflect how pg seems to intrepret the variants.
+
 >      ,p "(1)" (IntegerL 1)
 >      ,p "row ()" (Row [])
 >      ,p "row (1)" (Row [IntegerL 1])
 >      ,p "row (1,2)" (Row [IntegerL 1,IntegerL 2])
 >      ,p "(1,2)" (Row [IntegerL 1,IntegerL 2])
+
+test some more really basic expressions
+
 >      ,p "'test'" (StringL "test")
 >      ,p "''" (StringL "")
 >      ,p "hello" (Identifier "hello")
 >      ,p "helloTest" (Identifier "helloTest")
 >      ,p "hello_test" (Identifier "hello_test")
 >      ,p "hello1234" (Identifier "hello1234")
+>      ,p "true" (BooleanL True)
+>      ,p "false" (BooleanL False)
+>      ,p "null" NullL
+>      ,p "array[1,2]" (ArrayL [IntegerL 1, IntegerL 2])
+
+
+we just produce a parse tree, so no type checking or anything like
+that is done
+
+some operator tests
+
 >      ,p "1 + tst1" (BinaryOperatorCall
 >                     Plus (IntegerL 1) (Identifier "tst1"))
 >      ,p "tst1 + 1" (BinaryOperatorCall
 >                     Plus (Identifier "tst1") (IntegerL 1))
 >      ,p "tst + tst1" (BinaryOperatorCall
 >                       Plus (Identifier "tst") (Identifier "tst1"))
+>      ,p "'a' || 'b'" (BinaryOperatorCall Conc (StringL "a")
+>                                              (StringL "b"))
+>      ,p "'stuff'::text" (BinaryOperatorCall
+>                          Cast (StringL "stuff") (Identifier "text"))
+
+some function call tests
+
 >      ,p "fn()" (FunctionCall "fn" [])
 >      ,p "fn(1)" (FunctionCall "fn" [IntegerL 1])
 >      ,p "fn('test')" (FunctionCall "fn" [StringL "test"])
 >      ,p "fn(1,'test')" (FunctionCall "fn" [IntegerL 1, StringL "test"])
->      ,p "true" (BooleanL True)
->      ,p "false" (BooleanL False)
+>      ,p "fn('test')" (FunctionCall "fn" [StringL "test"])
+
+simple whitespace sanity checks
+
 >      ,p "fn (1)" (FunctionCall "fn" [IntegerL 1])
 >      ,p "fn( 1)" (FunctionCall "fn" [IntegerL 1])
 >      ,p "fn(1 )" (FunctionCall "fn" [IntegerL 1])
 >      ,p "fn(1) " (FunctionCall "fn" [IntegerL 1])
->      ,p "fn('test')" (FunctionCall "fn" [StringL "test"])
->      ,p "'a' || 'b'" (BinaryOperatorCall Conc (StringL "a")
->                                              (StringL "b"))
->      ,p "null" NullL
+
+null stuff
+
 >      ,p "not null" (BinaryOperatorCall Not NullL NullL)
 >      ,p "a is null" (BinaryOperatorCall IsNull NullL (Identifier "a"))
 >      ,p "a is not null" (BinaryOperatorCall
 >                          IsNotNull NullL (Identifier "a"))
->      ,p "'stuff'::text" (BinaryOperatorCall
->                          Cast (StringL "stuff") (Identifier "text"))
->      ,p "array[1,2]" (ArrayL [IntegerL 1, IntegerL 2])
+
+some slightly more complex stuff
+
 >      ,p "case when a then 3\n\
 >         \     when b then 4\n\
 >         \     else 5\n\
@@ -76,9 +125,16 @@
 >         (Case [When (Identifier "a") (IntegerL 3)
 >               ,When (Identifier "b") (IntegerL 4)]
 >          (Just $ Else (IntegerL 5)))
+
+positional args used in sql and sometimes plpgsql functions
+
 >      ,p "$1" (PositionalArg 1)
+
 >      ,p "exists (select 1 from a)"
 >       (Exists (selectFrom (SelectList [SelExp (IntegerL 1)]) (Tref "a")))
+
+in variants, including using row constructors
+
 >      ,p "t in (1,2)"
 >       (InPredicate (Identifier "t") (InList [IntegerL 1,IntegerL 2]))
 >      ,p "t not in (1,2)"
@@ -90,6 +146,9 @@
 >      ])
 
 ================================================================================
+
+test some string parsing, want to check single quote behaviour,
+and dollar quoting, including nesting.
 
 >     ,testGroup "string parsing"
 >     (mapExpr [
@@ -107,12 +166,16 @@
 
 ================================================================================
 
+first statement, pretty simple
+
 >     ,testGroup "select expression"
 >     (mapSql [
 >       p "select 1;" [selectE (SelectList [SelExp (IntegerL 1)])]
 >      ])
 
 ================================================================================
+
+test a whole bunch more select statements
 
 >     ,testGroup "select from table"
 >     (mapSql [
@@ -254,6 +317,8 @@
 
 ================================================================================
 
+one sanity check for parsing multiple statements
+
 >     ,testGroup "multiple statements"
 >     (mapSql [
 >       p "select 1;\nselect 2;" [selectE $ SelectList [SelExp (IntegerL 1)]
@@ -262,17 +327,7 @@
 
 ================================================================================
 
->     ,testGroup "more expressions"
->     (mapExpr [
->       p "(select a from tbl where id = 3)"
->       (ScalarSubQuery $ Select
->        (SelectList [selI "a"])
->        (Just $ From $ Tref "tbl")
->        (Just $ Where $ BinaryOperatorCall Eql (Identifier "id") (IntegerL 3))
->        Nothing Nothing)
->      ])
-
-================================================================================
+test comment behaviour
 
 >     ,testGroup "comments"
 >     (mapSql [
@@ -280,6 +335,10 @@
 >      ,p "-- this is a test" []
 >      ,p "/* this is\n\
 >         \a test*/" []
+
+maybe some people actually put block comments inside parts of
+statements when they program?
+
 >      ,p "select 1;\n\
 >         \-- this is a test\n\
 >         \select -- this is a test\n\
@@ -297,8 +356,13 @@
 
 ================================================================================
 
->     ,testGroup "rud"
+dml statements
+
+>     ,testGroup "dml"
 >     (mapSql [
+
+simple insert
+
 >       p "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2);\n"
@@ -306,6 +370,9 @@
 >         "testtable"
 >         (Just ["columna", "columnb"])
 >         (InsertData [[IntegerL 1, IntegerL 2]])]
+
+multi row insert
+
 >      ,p "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2), (3,4);\n"
@@ -314,6 +381,9 @@
 >         (Just ["columna", "columnb"])
 >         (InsertData [[IntegerL 1, IntegerL 2]
 >                     ,[IntegerL 3, IntegerL 4]])]
+
+insert from select
+
 >      ,p "insert into a\n\
 >          \    select b from c;"
 >       [Insert "a" Nothing
@@ -321,6 +391,9 @@
 >                      (SelectList [selI "b"])
 >                      (Just $ From $ Tref "c")
 >                      Nothing Nothing Nothing))]
+
+updates
+
 >      ,p "update tb\n\
 >         \  set x = 1, y = 2;"
 >       [Update "tb" [SetClause "x" (IntegerL 1)
@@ -333,12 +406,18 @@
 >        (Just $ Where $ BinaryOperatorCall Eql
 >         (Identifier "z") (BooleanL True))]
 >      ,p "delete from tbl1 where x = true;"
+
+delete
+
 >       [Delete "tbl1" (Just $ Where $ BinaryOperatorCall Eql
 >                                (Identifier "x") (BooleanL True))]
 >      ,p "copy tbl(a,b) from stdin;\n\
 >         \bat	t\n\
 >         \bear	f\n\
 >         \\\.\n"
+
+copy, bit crap at the moment
+
 >       [Copy "tbl(a,b) from stdin;\n\
 >         \bat	t\n\
 >         \bear	f\n\
@@ -347,8 +426,13 @@
 
 ================================================================================
 
+some ddl
+
 >     ,testGroup "create"
 >     (mapSql [
+
+create table tests
+
 >       p "create table test (\n\
 >         \  fielda text,\n\
 >         \  fieldb int\n\
@@ -381,6 +465,9 @@
 >                           Nothing]]
 >      ,p "create view v1 as\n\
 >         \select a,b from t;"
+
+other creates
+
 >       [CreateView
 >        "v1"
 >        (Select
@@ -400,6 +487,8 @@
 >      ])
 
 ================================================================================
+
+test functions
 
 >     ,testGroup "functions"
 >     (mapSql [
@@ -442,14 +531,34 @@
 
 ================================================================================
 
+test non sql plpgsql statements
+
 >     ,testGroup "plpgsqlStatements"
 >     (mapSql [
+
+simple statements
+
 >       p "success := true;"
 >       [Assignment "success" (BooleanL True)]
 >      ,p "return true;"
 >       [Return (BooleanL True)]
 >      ,p "raise notice 'stuff %', 1;"
 >       [Raise RNotice "stuff %" [IntegerL 1]]
+>      ,p "perform test();"
+>       [Perform $ FunctionCall "test" []]
+>      ,p "perform test(a,b);"
+>       [Perform $ FunctionCall "test" [Identifier "a", Identifier "b"]]
+>      ,p "perform test(r.relvar_name || '_and_stuff');"
+>       [Perform $ FunctionCall "test" [
+>                     BinaryOperatorCall Conc (qi "r" "relvar_name")
+>                                            (StringL "_and_stuff")]]
+>      ,p "select into a,b c,d from e;"
+>       [SelectInto ["a", "b"]
+>                       (Select (SelectList [selI "c", selI "d"])
+>                        (Just $ From $ Tref "e") Nothing Nothing Nothing)]
+
+complicated statements
+
 >      ,p "for r in select a from tbl loop\n\
 >         \null;\n\
 >         \end loop;"
@@ -467,18 +576,6 @@
 >                          (Just $ Where $ BooleanL True)
 >                          Nothing Nothing)
 >        [NullStatement]]
->      ,p "perform test();"
->       [Perform $ FunctionCall "test" []]
->      ,p "perform test(a,b);"
->       [Perform $ FunctionCall "test" [Identifier "a", Identifier "b"]]
->      ,p "perform test(r.relvar_name || '_and_stuff');"
->       [Perform $ FunctionCall "test" [
->                     BinaryOperatorCall Conc (qi "r" "relvar_name")
->                                            (StringL "_and_stuff")]]
->      ,p "select into a,b c,d from e;"
->       [SelectInto ["a", "b"]
->                       (Select (SelectList [selI "c", selI "d"])
->                                   (Just $ From $ Tref "e") Nothing Nothing Nothing)]
 >      ,p "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
@@ -543,9 +640,17 @@ parse and then pretty print and parse an expression
 >               Right l -> l
 >   assertEqual ("reparse " ++ pp) ast ast''
 
+> parseSqlThrow :: String -> [Statement]
+> parseSqlThrow s =
+>     case parseSql s of
+>       Left er -> error $ "parse " ++ showEr er s ++ "****" ++ s ++ "****"
+>       Right l -> l
+
 ================================================================================
 
 Properties
+
+WELL STALE
 
 Scaffolding to generate random asts which are checked by pretty printing then
 parsing them
@@ -564,11 +669,6 @@ property
 -- >       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
 -- >       Right l -> l
 
-> parseSqlThrow :: String -> [Statement]
-> parseSqlThrow s =
->     case parseSql s of
->       Left er -> error $ "parse " ++ showEr er s ++ "****" ++ s ++ "****"
->       Right l -> l
 
 
 -- arbitrary instances
@@ -622,9 +722,3 @@ property
 -- >   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
-
-> x = "create view pieces_on_top as\n\
-> \  select x,y,ptype,allegiance,tag,sp from\n\
-> \    (select row_number() over(partition by (x,y) order by sp) as rn,\n\
-> \            x, y, ptype, allegiance, tag, sp\n\
-> \      from pieces_with_priorities) as pwp where rn = 1;"

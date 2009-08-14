@@ -1,3 +1,17 @@
+Copyright 2009 Jake Wheat
+
+This file contains the data types for the sql parse tree nodes
+No real thought or taste has gone into the decisions on how to structure
+these.
+They contain no source line/column references.
+Lots of invalid sql is allowed.
+The code currently uses this both to represent the parse tree for sql
+and as the tree nodes which are used to generate sql using the pretty printer
+don't know if the parse tree and the input to the pretty printer should use
+the same data types, particularly for a language as funky as sql.
+
+The parser will not parse as many parse trees that correspond to invalid
+sql as the grammer types can represent.
 
 > module Grammar where
 
@@ -5,8 +19,13 @@
 
 SQL top level statements
 
-> data Statement = Select SelectList (Maybe From) (Maybe Where) (Maybe [Expression]) (Maybe Expression)
->                -- selectlist from where orderby limit
+everything is chucked in here, in particular this means that many places where
+a select can appear inside another statement (e.g. a subselect), you can
+instead put any statement - this type checks but is totally invalid.
+
+> data Statement =
+>                  -- selectlist from where orderby limit
+>                  Select SelectList (Maybe From) (Maybe Where) (Maybe [Expression]) (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement
 >                | SelectInto [String] Statement
 >                | CreateTable String [AttributeDef]
@@ -15,16 +34,9 @@ SQL top level statements
 >                | Insert String (Maybe [String]) InsertData
 >                | Update String [SetClause] (Maybe Where)
 >                | Delete String (Maybe Where)
+>                  -- language name args rettype bodyquoteused body vol
 >                | CreateFunction Language String [ParamDef] String String FnBody Volatility
-
- >                    language :: Language
- >                   ,name :: String
- >                   ,args :: [ParamDef]
- >                   ,retType :: String
- >                   ,body :: FnBody
-                     quotetpye
- >                   ,volatility :: Volatility}
-
+>                  -- name type checkexpression
 >                | CreateDomain String String (Maybe Expression)
 >                | Assignment String Expression
 >                | Return Expression
@@ -131,6 +143,10 @@ Expressions
 >                         Gt -> ">"
 >                         Lte -> "<="
 >                         Gte -> ">="
+
+Similarly to the statement type, all expressions
+are chucked into one even though there are many restrictions
+on which expressions can appear in different places.
 
 > data Expression = BinaryOperatorCall Op Expression Expression
 >                 | IntegerL Integer

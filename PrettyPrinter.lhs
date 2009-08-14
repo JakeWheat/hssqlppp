@@ -1,4 +1,15 @@
-> module PrettyPrinter where
+Copyright 2009 Jake Wheat
+
+The pretty printer which prints parse tree nodes from Grammar.lhs
+It uses the hughes pj pretty printer
+
+> module PrettyPrinter (
+>                       --convert a sql parse tree to text
+>                       printSql
+>                       --convert a single expression parse node to text
+>                      ,printExpression
+>                      )
+>     where
 
 > import Text.PrettyPrint
 > import Grammar
@@ -24,14 +35,14 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement :: Statement -> Doc
 
-> convStatement s@(Select _ _ _ _ _) = convSelectFragment True s <> statementEnd
-> convStatement s@(CombineSelect _ _ _) = convSelectFragment True s <> statementEnd
+== selects
 
-> convStatement (CreateTable t atts) =
->     text "create table"
->     <+> text t <+> lparen
->     $+$ nest 2 (vcat (csv (map convAttDef atts)))
->     $+$ rparen <> statementEnd
+> convStatement s@(Select _ _ _ _ _) =
+>   convSelectFragment True s <> statementEnd
+> convStatement s@(CombineSelect _ _ _) =
+>   convSelectFragment True s <> statementEnd
+
+== dml
 
 > convStatement (Insert tb atts idata) =
 >   text "insert into" <+> text tb
@@ -53,6 +64,14 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (Delete tbl wh) = text "delete from" <+> text tbl
 >                                 <+> convWhere wh
 >                                 <> statementEnd
+
+== ddl
+
+> convStatement (CreateTable t atts) =
+>     text "create table"
+>     <+> text t <+> lparen
+>     $+$ nest 2 (vcat (csv (map convAttDef atts)))
+>     $+$ rparen <> statementEnd
 
 > convStatement (CreateFunction lang name args retType qt body vol) =
 >     text "create function" <+> text name
@@ -79,10 +98,11 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (CreateType name atts) =
 >     text "create type" <+> text name <+> text "as" <+> lparen
->     $+$ nest 2 (vcat (csv (map (\(TypeAttDef n t) -> text n <+> text t)  atts)))
+>     $+$ nest 2 (vcat (csv
+>           (map (\(TypeAttDef n t) -> text n <+> text t)  atts)))
 >     $+$ rparen <> statementEnd
 
-plpgsql
+== plpgsql
 
 > convStatement NullStatement = text "null" <> statementEnd
 
@@ -107,7 +127,8 @@ plpgsql
 >     <> statementEnd
 
 > convStatement (ForStatement i sel stmts) =
->     text "for" <+> text i <+> text "in" <+> convSelectFragment True sel <+> text "loop"
+>     text "for" <+> text i <+> text "in"
+>     <+> convSelectFragment True sel <+> text "loop"
 >     $+$ nest 2 (vcat $ map convStatement stmts)
 >     $+$ text "end loop" <> statementEnd
 
@@ -119,8 +140,9 @@ plpgsql
 > convStatement (Copy x) =
 >     text "copy" <+> text x
 
-> convStatement (SelectInto i s) = text "select into " <+> hcatCsvMap text i
->                                  <+> convSelectFragment False s <> statementEnd
+> convStatement (SelectInto i s) =
+>   text "select into " <+> hcatCsvMap text i
+>   <+> convSelectFragment False s <> statementEnd
 
 > convStatement (If ex sts els) =
 >    text "if" <+> convExp ex <+> text "then"
@@ -131,7 +153,11 @@ plpgsql
 > statementEnd :: Doc
 > statementEnd = semi <> newline
 
+================================================================================
+
 = Statement components
+
+== selects
 
 > convSelectFragment :: Bool -> Statement -> Doc
 > convSelectFragment writeSelect (Select l tb wh ord lim) =
@@ -175,10 +201,8 @@ plpgsql
 
 > convJoinExpression :: JoinExpression -> Doc
 > convJoinExpression (JoinOn e) = text "on" <+> convExp e
-> convJoinExpression (JoinUsing ids) = text "using" <+> parens (hcatCsvMap text ids)
-
-> convSetClause :: SetClause -> Doc
-> convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
+> convJoinExpression (JoinUsing ids) =
+>   text "using" <+> parens (hcatCsvMap text ids)
 
 > convWhere :: Maybe Where -> Doc
 > convWhere (Just (Where ex)) = text "where" <+> convExp ex
@@ -191,20 +215,21 @@ plpgsql
 > convSelItem (SelectItem ex nm) = (convExp ex) <+> text "as" <+> text nm
 > convSelItem (SelExp e) = convExp e
 
+== ddl
+
+> convSetClause :: SetClause -> Doc
+> convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
+
 > convAttDef :: AttributeDef -> Doc
-> convAttDef (AttributeDef n t def ch) = text n <+> text t
->                                        <+> maybeConv (\e -> text "default" <+> convExp e) def
->                                        <+> checkExp ch
+> convAttDef (AttributeDef n t def ch) =
+>   text n <+> text t
+>   <+> maybeConv (\e -> text "default" <+> convExp e) def
+>   <+> checkExp ch
 
 > checkExp :: Maybe Expression -> Doc
 > checkExp c = maybeConv (\e -> text "check" <+> convExp e) c
 
-> convParamDef :: ParamDef -> Doc
-> convParamDef (ParamDef n t) = text n <+> text t
-> convParamDef  (ParamDefTp t) = text t
-
-> convVarDef :: VarDef -> Doc
-> convVarDef (VarDef n t) = text n <+> text t <> semi
+== plpgsql
 
 > convFnBody :: FnBody -> Doc
 > convFnBody (SqlFnBody sts) = nest 2 (vcat $ map convStatement sts)
@@ -218,23 +243,30 @@ plpgsql
 >     $+$ nest 2 (vcat $ map convStatement sts)
 >     $+$ text "end;"
 
+> convParamDef :: ParamDef -> Doc
+> convParamDef (ParamDef n t) = text n <+> text t
+> convParamDef  (ParamDefTp t) = text t
+
+> convVarDef :: VarDef -> Doc
+> convVarDef (VarDef n t) = text n <+> text t <> semi
+
 = Expressions
 
 > convExp :: Expression -> Doc
 > convExp (Identifier i) = text i
-> --convExp (QualifiedIdentifier q i) = text q <> text "." <> text i
 > convExp (IntegerL n) = integer n
 > convExp (StringL s) = quotes $ text $ replace "'" "''" s
 > convExp (StringLD t s) = tag <> text s <> tag
 >     where tag = text "$" <> text t <> text "$"
 
 > convExp (FunctionCall i as) = text i <> parens (csvExp as)
-> convExp (BinaryOperatorCall op a b) = case op of
->                                       Not -> parens (text (opToSymbol op) <+> convExp b)
->                                       IsNull -> parens (convExp b <+> text (opToSymbol op))
->                                       IsNotNull -> parens (convExp b <+> text (opToSymbol op))
->                                       Qual -> parens (convExp a <> text (opToSymbol op) <> convExp b)
->                                       _ -> parens (convExp a <+> text (opToSymbol op) <+> convExp b)
+> convExp (BinaryOperatorCall op a b) =
+>   case op of
+>           Not -> parens (text (opToSymbol op) <+> convExp b)
+>           IsNull -> parens (convExp b <+> text (opToSymbol op))
+>           IsNotNull -> parens (convExp b <+> text (opToSymbol op))
+>           Qual -> parens (convExp a <> text (opToSymbol op) <> convExp b)
+>           _ -> parens (convExp a <+> text (opToSymbol op) <+> convExp b)
 > convExp (BooleanL b) = bool b
 > convExp (InPredicate att lst) =
 >   convExp att <+> text "in"
@@ -264,13 +296,18 @@ plpgsql
 > convExp (Row r) = text "row" <> parens (hcatCsvMap convExp r)
 
 > convWhen :: When -> Doc
-> convWhen (When ex1 ex2) = text "when" <+> convExp ex1 <+> text "then" <+> convExp ex2
+> convWhen (When ex1 ex2) =
+>   text "when" <+> convExp ex1 <+> text "then" <+> convExp ex2
 
 
 = Utils
 
+convert a list of expressions to horizontal csv
+
 > csvExp :: [Expression] -> Doc
 > csvExp = hcatCsvMap convExp
+
+run conversion function if Just, return empty if nothing
 
 > maybeConv :: (t -> Doc) -> Maybe t -> Doc
 > maybeConv f c =
@@ -283,6 +320,9 @@ plpgsql
 
 > hcatCsv :: [Doc] -> Doc
 > hcatCsv = hcat . csv
+
+map the converter ex over a list
+then hcatcsv the results
 
 > hcatCsvMap :: (a -> Doc) -> [a] -> Doc
 > hcatCsvMap ex = hcatCsv . map ex
