@@ -538,7 +538,7 @@ null statement is plpgsql nop, written 'null;'
 > returnSt :: ParsecT String () Identity Statement
 > returnSt = do
 >   keyword "return"
->   ex <- expr
+>   ex <- maybeP expr
 >   return $ Return ex
 
 > raise :: ParsecT String () Identity Statement
@@ -577,12 +577,19 @@ if statement, no support for elsif yet
 >   e <- expr
 >   keyword "then"
 >   st <- many statement
+>   sts <- many (try $ do
+>                keyword "elseif"
+>                e1 <- expr
+>                keyword "then"
+>                st1 <- many statement
+>                return (e1, st1)
+>                )
 >   elsSts <- maybeP (do
 >                      keyword "else"
 >                      many statement)
 >   keyword "end"
 >   keyword "if"
->   return $ If e st elsSts
+>   return $ If ((e,st):sts) elsSts
 
 ================================================================================
 

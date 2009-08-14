@@ -110,7 +110,7 @@ Conversion routines - convert Sql asts into Docs
 >     text name <+> text ":=" <+> convExp val <> statementEnd
 
 > convStatement (Return ex) =
->     text "return" <+> convExp ex <> statementEnd
+>     text "return" <+> maybeConv convExp ex <> statementEnd
 
 > convStatement (Raise rt st exps) =
 >     text "raise"
@@ -144,11 +144,14 @@ Conversion routines - convert Sql asts into Docs
 >   text "select into " <+> hcatCsvMap text i
 >   <+> convSelectFragment False s <> statementEnd
 
-> convStatement (If ex sts els) =
->    text "if" <+> convExp ex <+> text "then"
->    $+$ nest 2 (vcat$ map convStatement sts)
+> convStatement (If conds els) =
+>    text "if" <+> (convCond $ head conds)
+>    $+$ vcat (map (\c -> text "elseif" <+> convCond c) $ tail conds)
 >    $+$ maybeConv (\e -> text "else" $+$ (vcat$ map convStatement e)) els
 >    $+$ text "end if" <> statementEnd
+>     where
+>       convCond (ex, sts) = convExp ex <+> text "then"
+>                            $+$ nest 2 (vcat$ map convStatement sts)
 
 > statementEnd :: Doc
 > statementEnd = semi <> newline

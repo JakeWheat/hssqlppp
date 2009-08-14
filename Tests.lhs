@@ -561,7 +561,9 @@ simple statements
 >       p "success := true;"
 >       [Assignment "success" (BooleanL True)]
 >      ,p "return true;"
->       [Return (BooleanL True)]
+>       [Return $ Just (BooleanL True)]
+>      ,p "return;"
+>       [Return Nothing]
 >      ,p "raise notice 'stuff %', 1;"
 >       [Raise RNotice "stuff %" [IntegerL 1]]
 >      ,p "perform test();"
@@ -599,17 +601,24 @@ complicated statements
 >      ,p "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
->       [If (BinaryOperatorCall  Eql (Identifier "a") (Identifier "b"))
->               [Update "c" [SetClause "d" (Identifier "e")] Nothing]
+>       [If [((BinaryOperatorCall  Eql (Identifier "a") (Identifier "b"))
+>           ,[Update "c" [SetClause "d" (Identifier "e")] Nothing])]
 >        Nothing]
 >      ,p "if true then\n\
 >         \  null;\n\
 >         \else\n\
 >         \  null;\n\
 >         \end if;"
->       [If (BooleanL True)
->        [NullStatement]
+>       [If [((BooleanL True),[NullStatement])]
 >        (Just [NullStatement])]
+>      ,p "if true then\n\
+>         \  null;\n\
+>         \elseif false then\n\
+>         \  return;\n\
+>         \end if;"
+>       [If [((BooleanL True), [NullStatement])
+>           ,((BooleanL False), [Return Nothing])]
+>        Nothing]
 >      ])
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp

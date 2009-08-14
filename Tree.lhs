@@ -43,12 +43,12 @@ instead put any statement - this type checks but is totally invalid.
 >                | CreateDomain String String (Maybe Expression)
 
 >                | Assignment String Expression
->                | Return Expression
+>                | Return (Maybe Expression)
 >                | Raise RaiseType String [Expression]
 >                | NullStatement
 >                | Perform Expression
 >                | ForStatement String Statement [Statement]
->                | If Expression [Statement] (Maybe [Statement])
+>                | If [(Expression, [Statement])] (Maybe [Statement])
 
 >                  deriving (Eq,Show)
 
