@@ -135,7 +135,7 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ nest 2 (vcat $ map convStatement stmts)
 >     $+$ text "end loop" <> statementEnd
 
-> convStatement (Perform f@(FunctionCall _ _)) =
+> convStatement (Perform f@(FunCall _ _)) =
 >     text "perform" <+> convExp f <> statementEnd
 > convStatement (Perform x) =
 >    error $ "convStatement not supported for " ++ show x
@@ -206,10 +206,10 @@ Conversion routines - convert Sql asts into Docs
 > convTref (SubTref sub alias) =
 >     parens (convSelectFragment True sub)
 >     <+> text "as" <+> text alias
-> convTref (TrefFun f@(FunctionCall _ _)) = convExp f
+> convTref (TrefFun f@(FunCall _ _)) = convExp f
 > convTref (TrefFun x) =
 >     error $ "node not supported in function tref: " ++ show x
-> convTref (TrefFunAlias f@(FunctionCall _ _) a) =
+> convTref (TrefFunAlias f@(FunCall _ _) a) =
 >     convExp f <+> text "as" <+> text a
 > convTref (TrefFunAlias x _) =
 >     error $ "node not supported in function tref: " ++ show x
@@ -275,14 +275,18 @@ Conversion routines - convert Sql asts into Docs
 > convExp (StringLD t s) = tag <> text s <> tag
 >     where tag = text "$" <> text t <> text "$"
 
-> convExp (FunctionCall i as) = text i <> parens (csvExp as)
-> convExp (BinaryOperatorCall op a b) =
->   case op of
->           Not -> parens (text (opToSymbol op) <+> convExp b)
->           IsNull -> parens (convExp b <+> text (opToSymbol op))
->           IsNotNull -> parens (convExp b <+> text (opToSymbol op))
->           Qual -> parens (convExp a <> text (opToSymbol op) <> convExp b)
->           _ -> parens (convExp a <+> text (opToSymbol op) <+> convExp b)
+> convExp (FunCall i as) = text i <> parens (csvExp as)
+
+> convExp (BinOpCall op a b) =
+>   parens (convExp a <+> text (binOpToSymbol op) <+> convExp b)
+
+> convExp (UnOpCall op a) =
+>     case op of
+>           Not -> parens (text (unOpToSymbol op) <+> convExp a)
+>           IsNull -> parens (convExp a <+> text (unOpToSymbol op))
+>           IsNotNull -> parens (convExp a <+> text (unOpToSymbol op))
+
+
 > convExp (BooleanL b) = bool b
 > convExp (InPredicate att lst) =
 >   convExp att <+> text "in"

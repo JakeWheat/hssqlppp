@@ -513,7 +513,7 @@ tableatt - an single attribute line in a create table
 >                 (do
 >                   keyword "not"
 >                   keyword "null"
->                   return $ BinaryOperatorCall Not (NullL) (NullL)))
+>                   return $ UnOpCall Not NullL))
 >   def <- maybeP (do
 >                   keyword "default"
 >                   expr)
@@ -535,7 +535,7 @@ typeatt: like a cut down version of tableatt, used in create type
 >   pr <- maybeP $ parens $ integer
 >   case pr of
 >     Nothing -> return $ Identifier t
->     Just p -> return $ FunctionCall t [IntegerL p]
+>     Just p -> return $ FunCall t [IntegerL p]
 
 ================================================================================
 
@@ -758,43 +758,43 @@ pg's operator table is on this page:
 http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTAX-OPERATORS
 
 > table :: [[Operator [Char] u Identity Expression]]
-> table = [[binary "." (BinaryOperatorCall Qual) AssocLeft]
->         ,[binary "::" (BinaryOperatorCall Cast) AssocLeft]
+> table = [[binary "." (BinOpCall Qual) AssocLeft]
+>         ,[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
 >          --missing unary -
->         ,[binary "^" (BinaryOperatorCall Pow) AssocLeft]
->         ,[binary "*" (BinaryOperatorCall Mult) AssocLeft
->          ,binary "/" (BinaryOperatorCall Div) AssocLeft
->          ,binary "%" (BinaryOperatorCall Mod) AssocLeft]
->         ,[binary "+" (BinaryOperatorCall Plus) AssocLeft
->          ,binary "-" (BinaryOperatorCall Minus) AssocLeft]
+>         ,[binary "^" (BinOpCall Pow) AssocLeft]
+>         ,[binary "*" (BinOpCall Mult) AssocLeft
+>          ,binary "/" (BinOpCall Div) AssocLeft
+>          ,binary "%" (BinOpCall Mod) AssocLeft]
+>         ,[binary "+" (BinOpCall Plus) AssocLeft
+>          ,binary "-" (BinOpCall Minus) AssocLeft]
 >          --should be is isnull and notnull
->         ,[postfixk "is not null" (BinaryOperatorCall IsNotNull (NullL))
->          ,postfixk "is null" (BinaryOperatorCall IsNull (NullL))]
+>         ,[postfixk "is not null" (UnOpCall IsNotNull)
+>          ,postfixk "is null" (UnOpCall IsNull)]
 >          --other operators all added in this list according to the pg docs:
->         ,[binary "<->" (BinaryOperatorCall DistBetween) AssocNone
->          ,binary "<=" (BinaryOperatorCall Lte) AssocRight
->          ,binary ">=" (BinaryOperatorCall Gte) AssocRight
->          ,binary "||" (BinaryOperatorCall Conc) AssocLeft
+>         ,[binary "<->" (BinOpCall DistBetween) AssocNone
+>          ,binary "<=" (BinOpCall Lte) AssocRight
+>          ,binary ">=" (BinOpCall Gte) AssocRight
+>          ,binary "||" (BinOpCall Conc) AssocLeft
 >          ]
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
->         ,[binary "like" (BinaryOperatorCall Like) AssocNone
+>         ,[binary "like" (BinOpCall Like) AssocNone
 >           --moved <> temporarily since it doesn't parse when it
 >           --is in the correct place, possibly cos it starts
 >           --the same as '<' TODO: fix this properly
->          ,binary "<>" (BinaryOperatorCall NotEql) AssocNone
->          ,binary "!=" (BinaryOperatorCall NotEql) AssocNone]
+>          ,binary "<>" (BinOpCall NotEql) AssocNone
+>          ,binary "!=" (BinOpCall NotEql) AssocNone]
 >          --(also ilike similar)
->         ,[binary "<" (BinaryOperatorCall Lt) AssocNone
->          ,binary ">" (BinaryOperatorCall Gt) AssocNone]
->         ,[binary "=" (BinaryOperatorCall Eql) AssocRight
+>         ,[binary "<" (BinOpCall Lt) AssocNone
+>          ,binary ">" (BinOpCall Gt) AssocNone]
+>         ,[binary "=" (BinOpCall Eql) AssocRight
 >           -- <> should be here
 >          ]
->         ,[prefixk "not" (BinaryOperatorCall Not (NullL))]
->         ,[binaryk "and" (BinaryOperatorCall And) AssocLeft
->          ,binaryk "or" (BinaryOperatorCall Or) AssocLeft]]
+>         ,[prefixk "not" (UnOpCall Not)]
+>         ,[binaryk "and" (BinOpCall And) AssocLeft
+>          ,binaryk "or" (BinOpCall Or) AssocLeft]]
 >     where
 
 use different parsers for symbols and keywords to get the right
@@ -829,7 +829,7 @@ then a list of expressions or a subselect
 >   return $ let p = InPredicate vexp e
 >            in case n of
 >                 Nothing -> p
->                 Just _ -> BinaryOperatorCall Not NullL p
+>                 Just _ -> UnOpCall Not p
 
 row ctor: one of
 row ()
@@ -987,7 +987,7 @@ fn() over ([partition bit]? [order bit]?)
 >           commaSep1 expr
 
 > functionCall :: ParsecT String () Identity Expression
-> functionCall = liftM2 FunctionCall identifierString (parens $ commaSep expr)
+> functionCall = liftM2 FunCall identifierString (parens $ commaSep expr)
 
 > identifier :: ParsecT String () Identity Expression
 > identifier = liftM Identifier identifierString

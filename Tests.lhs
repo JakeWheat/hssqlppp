@@ -50,10 +50,10 @@ parser rather than the full sql statement parser. (the expression parser
 requires a single expression followed by eof.)
 
 >       p "1" (IntegerL 1)
->      ,p " 1 + 1 " (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))
->      ,p "1+1+1" (BinaryOperatorCall
+>      ,p " 1 + 1 " (BinOpCall Plus (IntegerL 1) (IntegerL 1))
+>      ,p "1+1+1" (BinOpCall
 >                  Plus
->                  (BinaryOperatorCall Plus (IntegerL 1) (IntegerL 1))
+>                  (BinOpCall Plus (IntegerL 1) (IntegerL 1))
 >                  (IntegerL 1))
 
 check some basic parens use wrt naked values and row constructors
@@ -84,41 +84,41 @@ that is done
 
 some operator tests
 
->      ,p "1 + tst1" (BinaryOperatorCall
+>      ,p "1 + tst1" (BinOpCall
 >                     Plus (IntegerL 1) (Identifier "tst1"))
->      ,p "tst1 + 1" (BinaryOperatorCall
+>      ,p "tst1 + 1" (BinOpCall
 >                     Plus (Identifier "tst1") (IntegerL 1))
->      ,p "tst + tst1" (BinaryOperatorCall
+>      ,p "tst + tst1" (BinOpCall
 >                       Plus (Identifier "tst") (Identifier "tst1"))
->      ,p "'a' || 'b'" (BinaryOperatorCall Conc (StringL "a")
+>      ,p "'a' || 'b'" (BinOpCall Conc (StringL "a")
 >                                              (StringL "b"))
->      ,p "'stuff'::text" (BinaryOperatorCall
+>      ,p "'stuff'::text" (BinOpCall
 >                          Cast (StringL "stuff") (Identifier "text"))
->      ,p "245::float(24)" (BinaryOperatorCall
+>      ,p "245::float(24)" (BinOpCall
 >                          Cast (IntegerL 245)
->                           (FunctionCall "float" [IntegerL 24]))
+>                           (FunCall "float" [IntegerL 24]))
 
 some function call tests
 
->      ,p "fn()" (FunctionCall "fn" [])
->      ,p "fn(1)" (FunctionCall "fn" [IntegerL 1])
->      ,p "fn('test')" (FunctionCall "fn" [StringL "test"])
->      ,p "fn(1,'test')" (FunctionCall "fn" [IntegerL 1, StringL "test"])
->      ,p "fn('test')" (FunctionCall "fn" [StringL "test"])
+>      ,p "fn()" (FunCall "fn" [])
+>      ,p "fn(1)" (FunCall "fn" [IntegerL 1])
+>      ,p "fn('test')" (FunCall "fn" [StringL "test"])
+>      ,p "fn(1,'test')" (FunCall "fn" [IntegerL 1, StringL "test"])
+>      ,p "fn('test')" (FunCall "fn" [StringL "test"])
 
 simple whitespace sanity checks
 
->      ,p "fn (1)" (FunctionCall "fn" [IntegerL 1])
->      ,p "fn( 1)" (FunctionCall "fn" [IntegerL 1])
->      ,p "fn(1 )" (FunctionCall "fn" [IntegerL 1])
->      ,p "fn(1) " (FunctionCall "fn" [IntegerL 1])
+>      ,p "fn (1)" (FunCall "fn" [IntegerL 1])
+>      ,p "fn( 1)" (FunCall "fn" [IntegerL 1])
+>      ,p "fn(1 )" (FunCall "fn" [IntegerL 1])
+>      ,p "fn(1) " (FunCall "fn" [IntegerL 1])
 
 null stuff
 
->      ,p "not null" (BinaryOperatorCall Not NullL NullL)
->      ,p "a is null" (BinaryOperatorCall IsNull NullL (Identifier "a"))
->      ,p "a is not null" (BinaryOperatorCall
->                          IsNotNull NullL (Identifier "a"))
+>      ,p "not null" (UnOpCall Not NullL)
+>      ,p "a is null" (UnOpCall IsNull (Identifier "a"))
+>      ,p "a is not null" (UnOpCall
+>                          IsNotNull (Identifier "a"))
 
 some slightly more complex stuff
 
@@ -142,7 +142,7 @@ in variants, including using row constructors
 >      ,p "t in (1,2)"
 >       (InPredicate (Identifier "t") (InList [IntegerL 1,IntegerL 2]))
 >      ,p "t not in (1,2)"
->       (BinaryOperatorCall Not NullL $ InPredicate (Identifier "t")
+>       (UnOpCall Not $ InPredicate (Identifier "t")
 >        (InList [IntegerL 1,IntegerL 2]))
 >      ,p "(t,u) in (1,2)"
 >       (InPredicate (Row [Identifier "t",Identifier "u"])
@@ -191,16 +191,16 @@ test a whole bunch more select statements
 >       [selectFromWhere
 >         (selIL ["a"])
 >         (Tref "tbl")
->         (BinaryOperatorCall Eql
+>         (BinOpCall Eql
 >          (Identifier "b") (IntegerL 2))]
 >      ,p "select a from tbl where b=2 and c=3;"
 >       [selectFromWhere
 >         (selIL ["a"])
 >         (Tref "tbl")
->         (BinaryOperatorCall And
->          (BinaryOperatorCall Eql
+>         (BinOpCall And
+>          (BinOpCall Eql
 >           (Identifier "b") (IntegerL 2))
->          (BinaryOperatorCall Eql
+>          (BinOpCall Eql
 >           (Identifier "c") (IntegerL 3)))]
 >      ,p "select a from tbl\n\
 >         \except\n\
@@ -225,7 +225,7 @@ test a whole bunch more select statements
 >      ,p "select a + b as b from tbl;"
 >       [selectFrom
 >        (SelectList [SelectItem
->                     (BinaryOperatorCall Plus
+>                     (BinOpCall Plus
 >                      (Identifier "a") (Identifier "b")) "b"])
 >        (Tref "tbl")]
 >      ,p "select a.* from tbl a;"
@@ -235,7 +235,7 @@ test a whole bunch more select statements
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") False Inner (Tref "c")
 >           (Just (JoinOn
->            (BinaryOperatorCall Eql (qi "b" "a") (qi "c" "a")))))]
+>            (BinOpCall Eql (qi "b" "a") (qi "c" "a")))))]
 >      ,p "select a from b inner join c using(d,e);"
 >       [selectFrom
 >        (selIL ["a"])
@@ -272,12 +272,12 @@ test a whole bunch more select statements
 >         (JoinedTref (Tref "b") False Inner (Tref "c")
 >          (Just $ JoinOn (BooleanL True)))
 >         False Inner (Tref "d")
->         (Just  $ JoinOn (BinaryOperatorCall Eql
+>         (Just  $ JoinOn (BinOpCall Eql
 >                (IntegerL 1) (IntegerL 1))))]
 >      ,p "select row_number() over(order by a) as place from tbl;"
 >       [selectFrom (SelectList [SelectItem
 >                                (WindowFn
->                                 (FunctionCall "row_number" [])
+>                                 (FunCall "row_number" [])
 >                                 Nothing
 >                                 (Just [Identifier "a"]))
 >                                "place"])
@@ -287,7 +287,7 @@ test a whole bunch more select statements
 >         \from tbl;"
 >       [selectFrom (SelectList [SelectItem
 >                                (WindowFn
->                                 (FunctionCall "row_number" [])
+>                                 (FunCall "row_number" [])
 >                                 (Just [Row [Identifier "a",Identifier "b"]])
 >                                 (Just [Identifier "c"]))
 >                                "place"])
@@ -318,11 +318,11 @@ test a whole bunch more select statements
 >                    (Tref "c"))
 >           "d")]
 >      ,p "select * from gen();"
->         [selectFrom (selIL ["*"]) (TrefFun $ FunctionCall "gen" [])]
+>         [selectFrom (selIL ["*"]) (TrefFun $ FunCall "gen" [])]
 >      ,p "select * from gen() as t;"
 >       [selectFrom
 >        (selIL ["*"])
->        (TrefFunAlias (FunctionCall "gen" []) "t")]
+>        (TrefFunAlias (FunCall "gen" []) "t")]
 >      ])
 
 ================================================================================
@@ -413,13 +413,13 @@ updates
 >         \  set x = 1, y = 2 where z = true;"
 >       [Update "tb" [SetClause "x" (IntegerL 1)
 >                    ,SetClause "y" (IntegerL 2)]
->        (Just $ Where $ BinaryOperatorCall Eql
+>        (Just $ Where $ BinOpCall Eql
 >         (Identifier "z") (BooleanL True))]
 >      ,p "delete from tbl1 where x = true;"
 
 delete
 
->       [Delete "tbl1" (Just $ Where $ BinaryOperatorCall Eql
+>       [Delete "tbl1" (Just $ Where $ BinOpCall Eql
 >                                (Identifier "x") (BooleanL True))]
 >      ,p "copy tbl(a,b) from stdin;\n\
 >         \bat	t\n\
@@ -466,7 +466,7 @@ create table tests
 >       [CreateTable
 >        "tb"
 >        [AttributeDef "a" "text" Nothing
->         (Just (BinaryOperatorCall Not NullL NullL))
+>         (Just (UnOpCall Not NullL))
 >        ,AttributeDef "b" "boolean"  Nothing (Just NullL)]]
 >      ,p "create table tbl (\n\
 >         \  fld boolean default false);"
@@ -510,7 +510,7 @@ test functions
 >         [Select
 >          (SelectList [SelExp (Identifier "a")])
 >          (Just (From (Tref "t1")))
->          (Just (Where (BinaryOperatorCall Eql
+>          (Just (Where (BinOpCall Eql
 >                        (Identifier "b") (PositionalArg 1))))
 >          Nothing Nothing])
 >        Stable]
@@ -569,12 +569,12 @@ simple statements
 >      ,p "raise notice 'stuff %', 1;"
 >       [Raise RNotice "stuff %" [IntegerL 1]]
 >      ,p "perform test();"
->       [Perform $ FunctionCall "test" []]
+>       [Perform $ FunCall "test" []]
 >      ,p "perform test(a,b);"
->       [Perform $ FunctionCall "test" [Identifier "a", Identifier "b"]]
+>       [Perform $ FunCall "test" [Identifier "a", Identifier "b"]]
 >      ,p "perform test(r.relvar_name || '_and_stuff');"
->       [Perform $ FunctionCall "test" [
->                     BinaryOperatorCall Conc (qi "r" "relvar_name")
+>       [Perform $ FunCall "test" [
+>                     BinOpCall Conc (qi "r" "relvar_name")
 >                                            (StringL "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
 >       [SelectInto ["a", "b"]
@@ -609,7 +609,7 @@ complicated statements
 >      ,p "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
->       [If [((BinaryOperatorCall  Eql (Identifier "a") (Identifier "b"))
+>       [If [((BinOpCall  Eql (Identifier "a") (Identifier "b"))
 >           ,[Update "c" [SetClause "d" (Identifier "e")] Nothing])]
 >        Nothing]
 >      ,p "if true then\n\
@@ -638,7 +638,7 @@ complicated statements
 >           selIL as = SelectList $ map selI as
 >           selI = SelExp . Identifier
 >           selectE selList = Select selList Nothing Nothing Nothing Nothing
->           qi a b = BinaryOperatorCall Qual (Identifier a) (Identifier b)
+>           qi a b = BinOpCall Qual (Identifier a) (Identifier b)
 >           selectFrom selList frm =
 >             Select selList (Just $ From frm) Nothing Nothing Nothing
 >           selectFromWhere selList frm whr =
@@ -712,12 +712,12 @@ property
 
 -- > instance Arbitrary Expression where
 -- >     arbitrary = oneof [
--- >                  liftM3 BinaryOperatorCall arbitrary arbitrary arbitrary
+-- >                  liftM3 BinOpCall arbitrary arbitrary arbitrary
 -- >                 ,liftM IntegerL arbitrary
 -- >                 ,liftM StringL aString
 -- >                 ,liftM BooleanL arbitrary
 -- >                 ,liftM Identifier aIdentifier
--- >                 ,liftM2 FunctionCall aIdentifier arbitrary
+-- >                 ,liftM2 FunCall aIdentifier arbitrary
 -- >                 ]
 
 -- > instance Arbitrary Statement where

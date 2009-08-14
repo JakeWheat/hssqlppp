@@ -122,14 +122,17 @@ Statement components
 
 Expressions
 
-> data Op = Plus | Minus | Mult | Div | Pow | Mod | Eql
->         | And | Or | Conc | Like | Not | IsNull | IsNotNull
+> data BinOp = Plus | Minus | Mult | Div | Pow | Mod | Eql
+>         | And | Or | Conc | Like 
 >         | Cast | Qual | NotEql | Lt | Gt | Lte | Gte
 >         | DistBetween
 >           deriving (Show,Eq)
 
-> opToSymbol :: Op -> String
-> opToSymbol op = case op of
+> data UnOp = Not | IsNull | IsNotNull
+>             deriving (Show,Eq)
+
+> binOpToSymbol :: BinOp -> String
+> binOpToSymbol op = case op of
 >                         Plus -> "+"
 >                         Minus -> "-"
 >                         Mult -> "*"
@@ -141,9 +144,6 @@ Expressions
 >                         Or -> "or"
 >                         Conc -> "||"
 >                         Like -> "like"
->                         Not -> "not"
->                         IsNull -> "is null"
->                         IsNotNull -> "is not null"
 >                         Cast -> "::"
 >                         Qual -> "."
 >                         NotEql -> "<>"
@@ -153,28 +153,36 @@ Expressions
 >                         Gte -> ">="
 >                         DistBetween -> "<->"
 
+> unOpToSymbol :: UnOp -> String
+> unOpToSymbol op = case op of
+>                         Not -> "not"
+>                         IsNull -> "is null"
+>                         IsNotNull -> "is not null"
+
+
 Similarly to the statement type, all expressions
 are chucked into one even though there are many restrictions
 on which expressions can appear in different places.
 
-> data Expression = BinaryOperatorCall Op Expression Expression
->                 | IntegerL Integer
+> data Expression =
+>                   IntegerL Integer
 >                 | StringL String
 >                 | StringLD String String
 >                 | NullL
->                 | PositionalArg Int
 >                 | BooleanL Bool
+>                 | PositionalArg Int
 >                 | Identifier String
->                 -- | QualifiedIdentifier String String
 >                 | Row [Expression]
->                 | InPredicate Expression InList
->                 | FunctionCall String [Expression]
->                 | ScalarSubQuery Statement
 >                 | ArrayL [Expression]
->                 | WindowFn Expression (Maybe [Expression]) (Maybe [Expression])
->                   -- windowfn selectitem partitionby orderby
 >                 | Case [When] (Maybe Else)
 >                 | Exists Statement
+>                 | BinOpCall BinOp Expression Expression
+>                 | UnOpCall UnOp Expression
+>                 | FunCall String [Expression]
+>                 | InPredicate Expression InList
+>                 | WindowFn Expression (Maybe [Expression]) (Maybe [Expression])
+>                   -- windowfn selectitem partitionby orderby
+>                 | ScalarSubQuery Statement
 >                   deriving (Show,Eq)
 
 > data InList = InList [Expression] | InSelect Statement
