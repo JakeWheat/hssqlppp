@@ -191,7 +191,8 @@ multiple rows to insert and insert from select statements
 >          (do
 >           s1 <- select
 >           return $ InsertQuery s1)
->   return $ Insert tableName atts ida
+>   rt <- maybeP returning
+>   return $ Insert tableName atts ida rt
 
 > update :: ParsecT String () Identity Statement
 > update = do
@@ -200,7 +201,8 @@ multiple rows to insert and insert from select statements
 >   keyword "set"
 >   scs <- commaSep1 setClause
 >   wh <- maybeP whereClause
->   return $ Update tableName scs wh
+>   rt <- maybeP returning
+>   return $ Update tableName scs wh rt
 
 > delete :: ParsecT String () Identity Statement
 > delete = do
@@ -208,7 +210,8 @@ multiple rows to insert and insert from select statements
 >   keyword "from"
 >   tableName <- identifierString
 >   wh <- maybeP whereClause
->   return $ Delete tableName wh
+>   rt <- maybeP returning
+>   return $ Delete tableName wh rt
 
 = copy statement
 
@@ -463,14 +466,14 @@ selectlist and selectitem: the bit between select and from
 check for into either before the whole list of select columns
 or after the while list
 
-> selectList :: ParsecT String () Identity (SelectList, Maybe [String])
+> selectList :: ParsecT String () Identity ([SelectItem], Maybe [String])
 > selectList = do
 >   i1 <- readInto
 >   sl <- commaSep1 selectItem
 >   i2 <- case i1 of
 >           Just _ -> return i1
 >           Nothing -> readInto
->   return (SelectList sl, i2)
+>   return (sl, i2)
 >   where
 >     readInto = maybeP $ do
 >                         keyword "into"
@@ -486,6 +489,11 @@ or after the while list
 >        return $ case i of
 >                   Nothing -> SelExp ex
 >                   Just iden -> SelectItem ex iden
+
+> returning :: ParsecT String () Identity [SelectItem]
+> returning = do
+>   keyword "returning"
+>   commaSep1 selectItem
 
 == update
 

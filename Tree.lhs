@@ -25,13 +25,13 @@ instead put any statement - this type checks but is totally invalid.
 
 > data Statement =
 >                  -- selectlist from where orderby limit
->                  Select SelectList (Maybe From) (Maybe Where) (Maybe [Expression]) (Maybe Expression)
+>                  Select [SelectItem] (Maybe From) (Maybe Where) (Maybe [Expression]) (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement
 >                | SelectInto [String] Statement
 
->                | Insert String (Maybe [String]) InsertData
->                | Update String [SetClause] (Maybe Where)
->                | Delete String (Maybe Where)
+>                | Insert String (Maybe [String]) InsertData (Maybe [SelectItem])
+>                | Update String [SetClause] (Maybe Where) (Maybe [SelectItem])
+>                | Delete String (Maybe Where) (Maybe [SelectItem])
 >                | Copy String
 
 >                | CreateTable String [AttributeDef]
@@ -86,9 +86,6 @@ Statement components
 > data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 >                 deriving (Eq,Show)
 
-> data SelectList = SelectList [SelectItem]
->                   deriving (Eq,Show)
-
 > data SelectItem = SelExp Expression
 >                 | SelectItem Expression String
 >                   deriving (Eq,Show)
@@ -123,7 +120,7 @@ Statement components
 Expressions
 
 > data BinOp = Plus | Minus | Mult | Div | Pow | Mod | Eql
->         | And | Or | Conc | Like 
+>         | And | Or | Conc | Like
 >         | Cast | Qual | NotEql | Lt | Gt | Lte | Gte
 >         | DistBetween
 >           deriving (Show,Eq)

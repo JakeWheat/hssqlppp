@@ -44,7 +44,7 @@ Conversion routines - convert Sql asts into Docs
 
 == dml
 
-> convStatement (Insert tb atts idata) =
+> convStatement (Insert tb atts idata rt) =
 >   text "insert into" <+> text tb
 >   <+> maybeConv (\x -> parens (hcatCsvMap text x)) atts
 >   $+$ (case idata of
@@ -54,15 +54,18 @@ Conversion routines - convert Sql asts into Docs
 >                                        (\es -> parens (csvExp es)) expss)
 >          InsertQuery st -> do
 >                            convSelectFragment True st)
+>   $+$ convReturning rt
 >   <> statementEnd
 
-> convStatement (Update tb scs wh) = text "update" <+> text tb <+> text "set"
+> convStatement (Update tb scs wh rt) = text "update" <+> text tb <+> text "set"
 >                                    <+> hcatCsvMap convSetClause scs
 >                                    <+> convWhere wh
+>                                    $+$ convReturning rt
 >                                    <> statementEnd
 
-> convStatement (Delete tbl wh) = text "delete from" <+> text tbl
+> convStatement (Delete tbl wh rt) = text "delete from" <+> text tbl
 >                                 <+> convWhere wh
+>                                 $+$ convReturning rt
 >                                 <> statementEnd
 
 == ddl
@@ -223,14 +226,19 @@ Conversion routines - convert Sql asts into Docs
 > convWhere (Just (Where ex)) = text "where" <+> convExp ex
 > convWhere Nothing = empty
 
-> convSelList :: SelectList -> Doc
-> convSelList (SelectList l) = hcatCsvMap convSelItem l
+> convSelList :: [SelectItem] -> Doc
+> convSelList l = hcatCsvMap convSelItem l
 
 > convSelItem :: SelectItem -> Doc
 > convSelItem (SelectItem ex nm) = (convExp ex) <+> text "as" <+> text nm
 > convSelItem (SelExp e) = convExp e
 
 == ddl
+
+> convReturning :: Maybe [SelectItem] -> Doc
+> convReturning l = case l of
+>                 Nothing -> empty
+>                 Just ls -> nest 2 (text "returning" <+> convSelList ls)
 
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex

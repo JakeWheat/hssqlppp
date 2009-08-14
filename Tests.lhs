@@ -135,7 +135,7 @@ positional args used in sql and sometimes plpgsql functions
 >      ,p "$1" (PositionalArg 1)
 
 >      ,p "exists (select 1 from a)"
->       (Exists (selectFrom (SelectList [SelExp (IntegerL 1)]) (Tref "a")))
+>       (Exists (selectFrom [SelExp (IntegerL 1)] (Tref "a")))
 
 in variants, including using row constructors
 
@@ -174,7 +174,7 @@ first statement, pretty simple
 
 >     ,testGroup "select expression"
 >     (mapSql [
->       p "select 1;" [selectE (SelectList [SelExp (IntegerL 1)])]
+>       p "select 1;" [selectE [SelExp (IntegerL 1)]]
 >      ])
 
 ================================================================================
@@ -221,15 +221,15 @@ test a whole bunch more select statements
 >        (selectFrom (selIL ["a"]) (Tref "tbl"))
 >        (selectFrom (selIL ["a"]) (Tref "tbl1"))]
 >      ,p "select a as b from tbl;"
->       [selectFrom (SelectList [SelectItem (Identifier "a") "b"]) (Tref "tbl")]
+>       [selectFrom [SelectItem (Identifier "a") "b"] (Tref "tbl")]
 >      ,p "select a + b as b from tbl;"
 >       [selectFrom
->        (SelectList [SelectItem
->                     (BinOpCall Plus
->                      (Identifier "a") (Identifier "b")) "b"])
+>        [SelectItem
+>         (BinOpCall Plus
+>          (Identifier "a") (Identifier "b")) "b"]
 >        (Tref "tbl")]
 >      ,p "select a.* from tbl a;"
->       [selectFrom (SelectList [SelExp (qi "a" "*")]) (TrefAlias "tbl" "a")]
+>       [selectFrom [SelExp (qi "a" "*")] (TrefAlias "tbl" "a")]
 >      ,p "select a from b inner join c on b.a=c.a;"
 >       [selectFrom
 >        (selIL ["a"])
@@ -267,7 +267,7 @@ test a whole bunch more select statements
 >         \    inner join d\n\
 >         \      on 1=1;"
 >       [selectFrom
->        (SelectList [SelExp (Identifier "a")])
+>        [SelExp (Identifier "a")]
 >        (JoinedTref
 >         (JoinedTref (Tref "b") False Inner (Tref "c")
 >          (Just $ JoinOn (BooleanL True)))
@@ -275,22 +275,22 @@ test a whole bunch more select statements
 >         (Just  $ JoinOn (BinOpCall Eql
 >                (IntegerL 1) (IntegerL 1))))]
 >      ,p "select row_number() over(order by a) as place from tbl;"
->       [selectFrom (SelectList [SelectItem
->                                (WindowFn
->                                 (FunCall "row_number" [])
->                                 Nothing
->                                 (Just [Identifier "a"]))
->                                "place"])
+>       [selectFrom [SelectItem
+>                    (WindowFn
+>                     (FunCall "row_number" [])
+>                     Nothing
+>                     (Just [Identifier "a"]))
+>                    "place"]
 >        (Tref "tbl")]
 >      ,p "select row_number()\n\
 >         \over(partition by (a,b) order by c) as place\n\
 >         \from tbl;"
->       [selectFrom (SelectList [SelectItem
->                                (WindowFn
->                                 (FunCall "row_number" [])
->                                 (Just [Row [Identifier "a",Identifier "b"]])
->                                 (Just [Identifier "c"]))
->                                "place"])
+>       [selectFrom [SelectItem
+>                    (WindowFn
+>                     (FunCall "row_number" [])
+>                     (Just [Row [Identifier "a",Identifier "b"]])
+>                     (Just [Identifier "c"]))
+>                    "place"]
 >        (Tref "tbl")]
 >      ,p "select * from a natural inner join (select * from b) as a;"
 >       [selectFrom
@@ -331,8 +331,8 @@ one sanity check for parsing multiple statements
 
 >     ,testGroup "multiple statements"
 >     (mapSql [
->       p "select 1;\nselect 2;" [selectE $ SelectList [SelExp (IntegerL 1)]
->                                ,selectE $ SelectList [SelExp (IntegerL 2)]]
+>       p "select 1;\nselect 2;" [selectE [SelExp (IntegerL 1)]
+>                                ,selectE [SelExp (IntegerL 2)]]
 >      ])
 
 ================================================================================
@@ -352,15 +352,15 @@ statements when they program?
 >      ,p "select 1;\n\
 >         \-- this is a test\n\
 >         \select -- this is a test\n\
->         \2;" [selectE $ SelectList [SelExp (IntegerL 1)]
->              ,selectE $ SelectList [SelExp (IntegerL 2)]
+>         \2;" [selectE [SelExp (IntegerL 1)]
+>              ,selectE [SelExp (IntegerL 2)]
 >              ]
 >      ,p "select 1;\n\
 >         \/* this is\n\
 >         \a test*/\n\
 >         \select /* this is a test*/2;"
->                     [selectE $ SelectList [SelExp (IntegerL 1)]
->                     ,selectE $ SelectList [SelExp (IntegerL 2)]
+>                     [selectE [SelExp (IntegerL 1)]
+>                     ,selectE [SelExp (IntegerL 2)]
 >                     ]
 >      ])
 
@@ -379,7 +379,8 @@ simple insert
 >       [Insert
 >         "testtable"
 >         (Just ["columna", "columnb"])
->         (InsertData [[IntegerL 1, IntegerL 2]])]
+>         (InsertData [[IntegerL 1, IntegerL 2]])
+>         Nothing]
 
 multi row insert
 
@@ -390,7 +391,8 @@ multi row insert
 >         "testtable"
 >         (Just ["columna", "columnb"])
 >         (InsertData [[IntegerL 1, IntegerL 2]
->                     ,[IntegerL 3, IntegerL 4]])]
+>                     ,[IntegerL 3, IntegerL 4]])
+>         Nothing]
 
 insert from select
 
@@ -398,9 +400,19 @@ insert from select
 >          \    select b from c;"
 >       [Insert "a" Nothing
 >        (InsertQuery (Select
->                      (SelectList [selI "b"])
+>                      [selI "b"]
 >                      (Just $ From $ Tref "c")
->                      Nothing Nothing Nothing))]
+>                      Nothing Nothing Nothing))
+>        Nothing]
+
+>      ,p "insert into testtable\n\
+>         \(columna,columnb)\n\
+>         \values (1,2) returning id;\n"
+>       [Insert
+>         "testtable"
+>         (Just ["columna", "columnb"])
+>         (InsertData [[IntegerL 1, IntegerL 2]])
+>         (Just [selI "id"])]
 
 updates
 
@@ -408,19 +420,30 @@ updates
 >         \  set x = 1, y = 2;"
 >       [Update "tb" [SetClause "x" (IntegerL 1)
 >                    ,SetClause "y" (IntegerL 2)]
->        Nothing]
+>        Nothing Nothing]
 >      ,p "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
 >       [Update "tb" [SetClause "x" (IntegerL 1)
 >                    ,SetClause "y" (IntegerL 2)]
 >        (Just $ Where $ BinOpCall Eql
->         (Identifier "z") (BooleanL True))]
->      ,p "delete from tbl1 where x = true;"
+>         (Identifier "z") (BooleanL True))
+>        Nothing]
+>      ,p "update tb\n\
+>         \  set x = 1, y = 2 returning id;"
+>       [Update "tb" [SetClause "x" (IntegerL 1)
+>                    ,SetClause "y" (IntegerL 2)]
+>        Nothing (Just [selI "id"])]
 
 delete
 
+>      ,p "delete from tbl1 where x = true;"
 >       [Delete "tbl1" (Just $ Where $ BinOpCall Eql
->                                (Identifier "x") (BooleanL True))]
+>                                (Identifier "x") (BooleanL True))
+>        Nothing]
+>      ,p "delete from tbl1 where x = true returning id;"
+>       [Delete "tbl1" (Just $ Where $ BinOpCall Eql
+>                                (Identifier "x") (BooleanL True))
+>        (Just [selI "id"])]
 >      ,p "copy tbl(a,b) from stdin;\n\
 >         \bat	t\n\
 >         \bear	f\n\
@@ -481,7 +504,7 @@ other creates
 >       [CreateView
 >        "v1"
 >        (Select
->         (SelectList [selI "a", selI "b"])
+>         [selI "a", selI "b"]
 >         (Just $ From $ Tref "t")
 >         Nothing Nothing Nothing)]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
@@ -508,7 +531,7 @@ test functions
 >       [CreateFunction Sql "t1" [ParamDefTp "text"] (Identifier "text") "$$"
 >        (SqlFnBody
 >         [Select
->          (SelectList [SelExp (Identifier "a")])
+>          [SelExp (Identifier "a")]
 >          (Just (From (Tref "t1")))
 >          (Just (Where (BinOpCall Eql
 >                        (Identifier "b") (PositionalArg 1))))
@@ -578,11 +601,11 @@ simple statements
 >                                            (StringL "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
 >       [SelectInto ["a", "b"]
->                       (Select (SelectList [selI "c", selI "d"])
+>                       (Select [selI "c", selI "d"]
 >                        (Just $ From $ Tref "e") Nothing Nothing Nothing)]
 >      ,p "select c,d into a,b from e;"
 >       [SelectInto ["a", "b"]
->                       (Select (SelectList [selI "c", selI "d"])
+>                       (Select [selI "c", selI "d"]
 >                        (Just $ From $ Tref "e") Nothing Nothing Nothing)]
 >      ,p "execute s;"
 >       [Execute (Identifier "s")]
@@ -593,7 +616,7 @@ complicated statements
 >         \null;\n\
 >         \end loop;"
 >       [ForStatement "r" (Select
->                          (SelectList [selI "a"])
+>                          [selI "a"]
 >                          (Just $ From $ Tref "tbl")
 >                          Nothing Nothing Nothing)
 >        [NullStatement]]
@@ -601,7 +624,7 @@ complicated statements
 >         \null;\n\
 >         \end loop;"
 >       [ForStatement "r" (Select
->                          (SelectList [selI "a"])
+>                          [selI "a"]
 >                          (Just $ From $ Tref "tbl")
 >                          (Just $ Where $ BooleanL True)
 >                          Nothing Nothing)
@@ -610,7 +633,7 @@ complicated statements
 >         \  update c set d = e;\n\
 >         \end if;"
 >       [If [((BinOpCall  Eql (Identifier "a") (Identifier "b"))
->           ,[Update "c" [SetClause "d" (Identifier "e")] Nothing])]
+>           ,[Update "c" [SetClause "d" (Identifier "e")] Nothing Nothing])]
 >        Nothing]
 >      ,p "if true then\n\
 >         \  null;\n\
@@ -635,7 +658,7 @@ complicated statements
 >           mapExpr = map $ uncurry checkParseExpression
 >           mapSql = map $ uncurry checkParse
 >           p a b = (a,b)
->           selIL as = SelectList $ map selI as
+>           selIL as = map selI as
 >           selI = SelExp . Identifier
 >           selectE selList = Select selList Nothing Nothing Nothing Nothing
 >           qi a b = BinOpCall Qual (Identifier a) (Identifier b)
