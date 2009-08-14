@@ -96,22 +96,22 @@ select columns, into columns
 
 name type default null constraint
 
-> data AttributeDef = AttributeDef String String (Maybe Expression) (Maybe NullConstraint)
+> data AttributeDef = AttributeDef String String (Maybe Expression) [InlineConstraint]
 >                     deriving (Eq,Show)
 
-> data NullConstraint = NullConstraint | NotNullConstraint
+Constraints which appear attached to an individual field
+
+> data InlineConstraint = NullConstraint
+>                       | NotNullConstraint
+>                       | InlineCheckConstraint Expression
+>                       | InlineUniqueConstraint
 >                       deriving (Eq,Show)
 
-> data Constraint =
+constraints which appear on a separate row in the create table
 
-pull all the constraints out to a separate list instead of leaving
-them attached to columns. don't try to fix up the check constraints
-(by subsituting value or rewriting it as a standalone constraint),
-just save the column name with the check constraint for now
-
->                   UniqueConstraint [String]
+> data Constraint = UniqueConstraint [String]
 >                 | PrimaryKeyConstraint [String]
->                 | CheckConstraint (Maybe String) Expression
+>                 | CheckConstraint Expression
 >                 | ReferenceConstraint [String] [String]
 >                   deriving (Eq,Show)
 

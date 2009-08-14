@@ -73,6 +73,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (CreateTable t atts cons) =
 >     text "create table"
 >     <+> text t <+> lparen
+
 >     $+$ nest 2 (vcat (csv (map convAttDef atts ++ map convCon cons)))
 >     $+$ rparen <> statementEnd
 
@@ -242,11 +243,16 @@ Conversion routines - convert Sql asts into Docs
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
 
 > convAttDef :: AttributeDef -> Doc
-> convAttDef (AttributeDef n t def nul) =
+> convAttDef (AttributeDef n t def cons) =
 >   text n <+> text t
 >   <+> maybeConv (\e -> text "default" <+> convExp e) def
->   <+> maybeConv (\e -> text (case e of NullConstraint -> "null"
->                                        NotNullConstraint -> "not null")) nul
+>   <+> hsep (map (\e -> (case e of
+>                           NullConstraint -> text "null"
+>                           NotNullConstraint -> text "not null"
+>                           InlineCheckConstraint ew ->
+>                               text "check" <+> parens (convExp ew)
+>                           InlineUniqueConstraint -> text "unique"
+>                   )) cons)
 
 > checkExp :: Maybe Expression -> Doc
 > checkExp c = maybeConv (\e -> text "check" <+> convExp e) c

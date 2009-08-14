@@ -244,14 +244,7 @@ parse our unordered list of attribute defs or constraints
 >                   (try tableConstr)
 >                   tableAtt
 >                   (symbol ",")
-
-each attribute entry is actually a pair:
-attribute,maybe constraint
-so split out the attributes
-and append the maybe constraints with the other constraints
-
->   let (atts1,consextra) = unzip atts
->   return $ CreateTable n atts1 (catMaybes consextra ++ cons)
+>   return $ CreateTable n atts cons
 
 couldn't work how to to perms so just did this hack instead
 e.g.
@@ -527,20 +520,15 @@ set clause - the set a = 3, b=4 part of a update statement
 
 tableatt - an single attribute line in a create table
 
-> tableAtt :: ParsecT String () Identity (AttributeDef, Maybe Constraint)
+> tableAtt :: ParsecT String () Identity AttributeDef
 > tableAtt = do
 >   name <- identifierString
 >   typ <- identifierString
 >   def <- maybeP (do
 >                   keyword "default"
 >                   expr)
->   nl <- maybeP $
->           (try (keyword "null" >> return NullConstraint))
->           <|> (keyword "not" >> keyword "null"
->                >> return NotNullConstraint)
-
->   constr <- maybeP $ inlineConstraint name
->   return (AttributeDef name typ def nl, constr)
+>   constr <- sepBy inlineConstraint whitespace
+>   return $ AttributeDef name typ def constr
 
 > tableConstr :: ParsecT String () Identity Constraint
 > tableConstr = do
@@ -548,11 +536,14 @@ tableatt - an single attribute line in a create table
 >      keyword "unique"
 >      liftM UniqueConstraint $ parens $ commaSep1 identifierString)
 
-> inlineConstraint :: String -> ParsecT String u Identity Constraint
-> inlineConstraint c = do
->   (do
->    keyword "unique"
->    return $ UniqueConstraint [c])
+> inlineConstraint :: ParsecT String () Identity InlineConstraint
+> inlineConstraint =
+>   choice [
+>           keyword "unique" >> return InlineUniqueConstraint
+>          ,keyword "check" >> liftM InlineCheckConstraint (parens expr)
+>          ,try (keyword "null") >> return NullConstraint
+>          ,keyword "not" >> keyword "null"  >> return NotNullConstraint
+>          ]
 
 
 typeatt: like a cut down version of tableatt, used in create type

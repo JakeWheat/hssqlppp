@@ -478,14 +478,14 @@ create table tests
 >         \);"
 >       [CreateTable
 >        "test"
->        [AttributeDef "fielda" "text" Nothing Nothing
->        ,AttributeDef "fieldb" "int" Nothing Nothing
+>        [AttributeDef "fielda" "text" Nothing []
+>        ,AttributeDef "fieldb" "int" Nothing []
 >        ]
 >        []]
 >      ,p "create table tbl (\n\
 >         \  fld boolean default false);"
 >       [CreateTable "tbl" [AttributeDef "fld" "boolean"
->                           (Just $ BooleanL False) Nothing][]]
+>                           (Just $ BooleanL False) []][]]
 >      ,p "create view v1 as\n\
 >         \select a,b from t;"
 
@@ -520,13 +520,13 @@ nulls
 >         \ a text null\n\
 >         \);"
 >         [CreateTable "t1" [AttributeDef "a" "text"
->                            Nothing (Just NullConstraint)]
+>                            Nothing [NullConstraint]]
 >          []]
 >      ,p "create table t1 (\n\
 >         \ a text not null\n\
 >         \);"
 >         [CreateTable "t1" [AttributeDef "a" "text"
->                            Nothing (Just NotNullConstraint)]
+>                            Nothing [NotNullConstraint]]
 >          []]
 
 unique row
@@ -536,8 +536,8 @@ unique row
 >         \ y int,\n\
 >         \ unique (x,y)\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing Nothing
->                           ,AttributeDef "y" "int" Nothing Nothing]
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
+>                           ,AttributeDef "y" "int" Nothing []]
 >          [UniqueConstraint ["x","y"]]]
 
 check ordering
@@ -547,18 +547,49 @@ check ordering
 >         \ unique (x),\n\
 >         \ y int\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing Nothing
->                           ,AttributeDef "y" "int" Nothing Nothing]
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
+>                           ,AttributeDef "y" "int" Nothing []]
 >          [UniqueConstraint ["x"]]]
->      ])
 
 unique inline
+
+>      ,p "create table t1 (\n\
+>         \ x int unique\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>                            [InlineUniqueConstraint]][]]
 
 primary key inline, row
 
 check inline, row
 
+>      ,p "create table t (\n\
+>         \f text check (f in('a', 'b'))\n\
+>         \);"
+>         [CreateTable "t"
+>          [AttributeDef "f" "text" Nothing
+>           [InlineCheckConstraint (InPredicate
+>                                   (Identifier "f")
+>                                   (InList [StringL "a", StringL "b"]))]] []]
+
+inline, whole loead
+
+>      ,p "create table t (\n\
+>         \f text not null unique check (f in('a', 'b'))\n\
+>         \);"
+>         [CreateTable "t"
+>          [AttributeDef "f" "text" Nothing
+>           [NotNullConstraint
+>            ,InlineUniqueConstraint
+>            ,InlineCheckConstraint (InPredicate
+>                                    (Identifier "f")
+>                                    (InList [StringL "a"
+>                                            ,StringL "b"]))]] []]
+
+
 reference inline, row
+
+>      ])
 
 ================================================================================
 
