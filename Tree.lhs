@@ -75,6 +75,8 @@ Statement components
 >               | TrefAlias String String
 >               | JoinedTref TableRef Bool JoinType TableRef (Maybe JoinExpression)
 >               | SubTref Statement String
+>               | TrefFun Expression
+>               | TrefFunAlias Expression String
 >                 deriving (Eq,Show)
 
 > data JoinExpression = JoinOn Expression | JoinUsing [String]

@@ -347,6 +347,15 @@ then cope with joins recursively using joinpart below
 >                return $ SubTref sub alias
 >               ) <|>
 >               (do
+>                  fc <- try $ functionCall
+>                  alias <- maybeP $ do
+>                             keyword "as"
+>                             identifierString
+>                  case alias of
+>                    Nothing -> return $ TrefFun fc
+>                    Just a -> return $ TrefFunAlias fc a
+>               ) <|>
+>               (do
 >                a <- identifierString
 >                b <- maybeP (do
 >                             whitespace

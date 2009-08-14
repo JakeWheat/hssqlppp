@@ -317,6 +317,12 @@ test a whole bunch more select statements
 >                    (selIL ["b"])
 >                    (Tref "c"))
 >           "d")]
+>      ,p "select * from gen();"
+>         [selectFrom (selIL ["*"]) (TrefFun $ FunctionCall "gen" [])]
+>      ,p "select * from gen() as t;"
+>       [selectFrom
+>        (selIL ["*"])
+>        (TrefFunAlias (FunctionCall "gen" []) "t")]
 >      ])
 
 ================================================================================

@@ -198,6 +198,13 @@ Conversion routines - convert Sql asts into Docs
 > convTref (SubTref sub alias) =
 >     parens (convSelectFragment True sub)
 >     <+> text "as" <+> text alias
+> convTref (TrefFun f@(FunctionCall _ _)) = convExp f
+> convTref (TrefFun x) =
+>     error $ "node not supported in function tref: " ++ show x
+> convTref (TrefFunAlias f@(FunctionCall _ _) a) =
+>     convExp f <+> text "as" <+> text a
+> convTref (TrefFunAlias x _) =
+>     error $ "node not supported in function tref: " ++ show x
 
 > convJoinExpression :: JoinExpression -> Doc
 > convJoinExpression (JoinOn e) = text "on" <+> convExp e
