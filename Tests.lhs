@@ -147,7 +147,18 @@ in variants, including using row constructors
 >      ,p "(t,u) in (1,2)"
 >       (InPredicate (Row [Identifier "t",Identifier "u"])
 >        (InList [IntegerL 1,IntegerL 2]))
+
+operator issues:
+<> appears below < in the precedence table, this caused
+<> to not parse properly
+
+>      ,p "a < b"
+>       (BinOpCall Lt (Identifier "a") (Identifier "b"))
+>      ,p "a <> b"
+>       (BinOpCall NotEql (Identifier "a") (Identifier "b"))
+
 >      ])
+
 
 ================================================================================
 
@@ -873,3 +884,4 @@ property
 -- >   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
 -- >   return (start : suffix)
 -- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']
+

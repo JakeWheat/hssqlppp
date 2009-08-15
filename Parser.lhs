@@ -802,7 +802,7 @@ pg's operator table is on this page:
 http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTAX-OPERATORS
 
 > table :: [[Operator [Char] u Identity Expression]]
-> table = [[singleDot (BinOpCall Qual) AssocLeft]
+> table = [[singleDot "." (BinOpCall Qual) AssocLeft]
 >         ,[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
 >          --missing unary -
@@ -827,7 +827,7 @@ http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTA
 >         ,[binary "like" (BinOpCall Like) AssocNone
 >          ,binary "!=" (BinOpCall NotEql) AssocNone]
 >          --(also ilike similar)
->         ,[binary "<" (BinOpCall Lt) AssocNone
+>         ,[lt "<" (BinOpCall Lt) AssocNone
 >          ,binary ">" (BinOpCall Gt) AssocNone]
 >         ,[binary "=" (BinOpCall Eql) AssocRight
 >          ,binary "<>" (BinOpCall NotEql) AssocNone
@@ -842,21 +842,36 @@ whitespace behaviour
 
 >       binary s f
 >          = Infix (try (operator s >> return f))
-
-main problem is that .. in for can't be parsed properly since the
-expression parser gets the . then barfs, so we put in a special
-case to only parse as . if it isn't followed by another .
-
->       singleDot f
->          =  Infix (try (lexeme (char '.'
->                                 >> notFollowedBy (char '.'))
->                         >> return f))
 >       binaryk s f
 >          = Infix (try (keyword s >> return f))
 >       prefixk s f
 >          = Prefix (try (keyword s >> return f))
 >       postfixk s f
 >          = Postfix (try (keyword s >> return f))
+
+some custom parsers
+
+main problem is that .. in for can't be parsed properly since the
+expression parser gets the . then barfs, so we put in a special
+case to only parse as . if it isn't followed by another .
+
+>       singleDot _ f
+>          =  Infix (dontFollowWith '.' '.' >> return f)
+
+fix problem parsing <> - don't parse as "<" if it is immediately
+followed by ">"
+
+>       lt _ f = Infix (dontFollowWith '<' '>' >> return f)
+
+>       dontFollowWith c1 c2 = try $ do
+>         char c1
+>         notFollowedBy $ char c2
+>         whitespace
+>         return ()
+
+the first argument to these is ignored, it is there so the symbol
+can appear in the operator table above for readability purposes
+
 >
 
 == factor parsers

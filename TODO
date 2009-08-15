@@ -1,11 +1,11 @@
 get all chaos sql files parsing
-identify the biggest missing bits
+identify the biggest missing bits and create table of supported and
+   unsupported elements
 work on error reporting
  idea: instead of using try outside the parsers
        use it inside them and just try the first keyword
 lex things properly?
-
-
+add tests for malformed sql
 
 make the parse tree nodes more parse tree like?
 add source locations for all tokens in the parse tree
@@ -20,3 +20,15 @@ add source locations for all tokens in the parse tree
 
 find something that supports better error messages, particularly
 something which can report multiple errors
+
+rough idea for new design:
+parse using parsec -> parse tree with a few suspect bits
+run one or more passes over this parse tree to catch missed syntax
+   errors -> good parse tree
+type check, etc. -> ast
+ast -> pretty printer
+how feasible is it to catch all syntax errors before type checking
+and producing an ast
+alternatively put, what syntax errors can be caught before producing
+the ast, and what can only be caught during or after the ast is
+   produced
