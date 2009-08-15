@@ -119,6 +119,10 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (Return ex) =
 >     text "return" <+> maybeConv convExp ex <> statementEnd
 
+> convStatement (ReturnNext ex) =
+>     text "return" <+> text "next" <+> convExp ex <> statementEnd
+
+
 > convStatement (Raise rt st exps) =
 >     text "raise"
 >     <+> case rt of
@@ -133,9 +137,15 @@ Conversion routines - convert Sql asts into Docs
 >          else empty)
 >     <> statementEnd
 
-> convStatement (ForStatement i sel stmts) =
+> convStatement (ForSelectStatement i sel stmts) =
 >     text "for" <+> text i <+> text "in"
 >     <+> convSelectFragment True sel <+> text "loop"
+>     $+$ nest 2 (vcat $ map convStatement stmts)
+>     $+$ text "end loop" <> statementEnd
+
+> convStatement (ForIntegerStatement var st en stmts) =
+>     text "for" <+> text var <+> text "in"
+>     <+> convExp st <+> text ".." <+> convExp en <+> text "loop"
 >     $+$ nest 2 (vcat $ map convStatement stmts)
 >     $+$ text "end loop" <> statementEnd
 

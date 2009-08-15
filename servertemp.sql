@@ -2727,6 +2727,7 @@ create type ipos as (
   y int
 );
 create function get_square_range(x int, y int, range int)
+
   returns setof ipos as $$
 declare
   p ipos;
@@ -2736,26 +2737,26 @@ begin
     return;
   end if;
   --top row
-  p.y = y - range;
+  p.y := y - range;
   for i in 0 .. (range * 2) loop
-    p.x = x - range + i;
+    p.x := x - range + i;
     return next p;
     p.index := p.index + 1;
   end loop;
   --sides
   for i in 1 .. (range * 2 + 1) - 2 loop
-    p.x = x - range;
-    p.y = y - range + i;
+    p.x := x - range;
+    p.y := y - range + i;
     return next p;
     p.index := p.index + 1;
-    p.x = x + range;
+    p.x := x + range;
     return next p;
     p.index := p.index + 1;
   end loop;
   --bottom row
-    p.y = y + range;
+    p.y := y + range;
   for i in 0 .. (range * 2) loop
-    p.x = x - range + i;
+    p.x := x - range + i;
     return next p;
     p.index := p.index + 1;
   end loop;

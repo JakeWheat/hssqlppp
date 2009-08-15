@@ -43,11 +43,13 @@ instead put any statement - this type checks but is totally invalid.
 >                | DropFunction String [String]
 >                | Assignment String Expression
 >                | Return (Maybe Expression)
+>                | ReturnNext Expression
 >                | Raise RaiseType String [Expression]
 >                | NullStatement
 >                | Perform Expression
 >                | Execute Expression
->                | ForStatement String Statement [Statement]
+>                | ForSelectStatement String Statement [Statement]
+>                | ForIntegerStatement String Expression Expression [Statement]
 >                | If [(Expression, [Statement])] (Maybe [Statement])
 
 >                  deriving (Eq,Show)

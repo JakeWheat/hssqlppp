@@ -592,7 +592,7 @@ null statement is plpgsql nop, written 'null;'
 
 > assignment :: ParsecT String () Identity Statement
 > assignment = do
->   n <- identifierString
+>   n <- identifierStringMaybeDot
 >   symbol ":="
 >   ex <- expr
 >   return $ Assignment n ex
@@ -600,8 +600,9 @@ null statement is plpgsql nop, written 'null;'
 > returnSt :: ParsecT String () Identity Statement
 > returnSt = do
 >   keyword "return"
->   ex <- maybeP expr
->   return $ Return ex
+>   ((try $ keyword "next" >> liftM ReturnNext expr)
+>    <|> (liftM Return $ maybeP expr))
+
 
 > raise :: ParsecT String () Identity Statement
 > raise = do
@@ -624,12 +625,24 @@ flavour at the moment
 >   keyword "for"
 >   i <- identifierString
 >   keyword "in"
->   st <- select
->   keyword "loop"
->   stmts <- many statement
->   keyword "end"
->   keyword "loop"
->   return $ ForStatement i st stmts
+>   choice [
+>     do
+>       st <- try select
+>       stmts <- theRest
+>       return $ ForSelectStatement i st stmts
+>    ,do
+>      st <- expr
+>      symbol ".."
+>      en <- expr
+>      stmts <- theRest
+>      return $ ForIntegerStatement i st en stmts]
+>   where
+>     theRest = do
+>       keyword "loop"
+>       stmts <- many statement
+>       keyword "end"
+>       keyword "loop"
+>       return stmts
 
 
 if statement, no support for elsif yet
@@ -789,7 +802,7 @@ pg's operator table is on this page:
 http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTAX-OPERATORS
 
 > table :: [[Operator [Char] u Identity Expression]]
-> table = [[binary "." (BinOpCall Qual) AssocLeft]
+> table = [[singleDot (BinOpCall Qual) AssocLeft]
 >         ,[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
 >          --missing unary -
@@ -812,16 +825,12 @@ http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTA
 >          --between
 >          --overlaps
 >         ,[binary "like" (BinOpCall Like) AssocNone
->           --moved <> temporarily since it doesn't parse when it
->           --is in the correct place, possibly cos it starts
->           --the same as '<' TODO: fix this properly
->          ,binary "<>" (BinOpCall NotEql) AssocNone
 >          ,binary "!=" (BinOpCall NotEql) AssocNone]
 >          --(also ilike similar)
 >         ,[binary "<" (BinOpCall Lt) AssocNone
 >          ,binary ">" (BinOpCall Gt) AssocNone]
 >         ,[binary "=" (BinOpCall Eql) AssocRight
->           -- <> should be here
+>          ,binary "<>" (BinOpCall NotEql) AssocNone
 >          ]
 >         ,[prefixk "not" (UnOpCall Not)]
 >         ,[binaryk "and" (BinOpCall And) AssocLeft
@@ -832,7 +841,16 @@ use different parsers for symbols and keywords to get the right
 whitespace behaviour
 
 >       binary s f
->          = Infix (try (symbol s >> return f))
+>          = Infix (try (operator s >> return f))
+
+main problem is that .. in for can't be parsed properly since the
+expression parser gets the . then barfs, so we put in a special
+case to only parse as . if it isn't followed by another .
+
+>       singleDot f
+>          =  Infix (try (lexeme (char '.'
+>                                 >> notFollowedBy (char '.'))
+>                         >> return f))
 >       binaryk s f
 >          = Infix (try (keyword s >> return f))
 >       prefixk s f
@@ -1043,6 +1061,9 @@ fn() over ([partition bit]? [order bit]?)
 > integer :: ParsecT String u Identity Integer
 > integer = lexeme $ P.integer lexer
 
+> operator :: String -> ParsecT String u Identity String
+> operator s = symbol s
+
 keyword has to not be immediately followed by letters or numbers
 (symbols and whitespace are ok) so we know that we aren't reading an
 identifier which happens to start with a complete keyword
@@ -1144,13 +1165,22 @@ when it is used to allow the built expression parser to deal
 with comments properly
 
 > lexer :: P.GenTokenParser String u Identity
-> lexer = P.makeTokenParser (haskellDef
->                            { P.reservedOpNames = ["*","/","+","-"],
->                              P.commentStart = "/*",
->                              P.commentEnd = "*/",
->                              P.commentLine = "--"
+> lexer = P.makeTokenParser (emptyDef {
+>                             P.commentStart = "/*"
+>                            ,P.commentEnd = "*/"
+>                            ,P.commentLine = "--"
+>                            ,P.nestedComments = False
+>                            ,P.identStart = letter <|> char '_'
+>                            ,P.identLetter    = alphaNum <|> oneOf "_"
+>                            ,P.opStart        = P.opLetter emptyDef
+>                            ,P.opLetter       = oneOf opLetters
+>                            ,P.reservedOpNames= []
+>                            ,P.reservedNames  = []
+>                            ,P.caseSensitive  = False
 >                            })
 
+> opLetters :: String
+> opLetters = ".:^*/%+-<>=|!"
 
 ================================================================================
 

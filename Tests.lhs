@@ -670,6 +670,8 @@ simple statements
 >       [Return $ Just (BooleanL True)]
 >      ,p "return;"
 >       [Return Nothing]
+>      ,p "return next 1;"
+>       [ReturnNext $ IntegerL 1]
 >      ,p "raise notice 'stuff %', 1;"
 >       [Raise RNotice "stuff %" [IntegerL 1]]
 >      ,p "perform test();"
@@ -694,7 +696,7 @@ complicated statements
 >      ,p "for r in select a from tbl loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForStatement "r" (Select
+>       [ForSelectStatement "r" (Select
 >                          (sl [selI "a"])
 >                          (Just $ From $ Tref "tbl")
 >                          Nothing Nothing Nothing)
@@ -702,12 +704,19 @@ complicated statements
 >      ,p "for r in select a from tbl where true loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForStatement "r" (Select
+>       [ForSelectStatement "r" (Select
 >                          (sl [selI "a"])
 >                          (Just $ From $ Tref "tbl")
 >                          (Just $ Where $ BooleanL True)
 >                          Nothing Nothing)
 >        [NullStatement]]
+>      ,p "for r in 1 .. 10 loop\n\
+>         \null;\n\
+>         \end loop;"
+>       [ForIntegerStatement "r"
+>        (IntegerL 1) (IntegerL 10)
+>        [NullStatement]]
+
 >      ,p "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
