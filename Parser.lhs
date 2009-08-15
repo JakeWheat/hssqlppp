@@ -314,18 +314,18 @@ then cope with joins recursively using joinpart below
 
 > tref :: ParsecT String () Identity TableRef
 > tref = parseOptionalSuffixThreaded getFirstTref joinPart
->          where
->            getFirstTref = choice [
->                            SubTref
->                            <$> parens select
->                            <*> (keyword "as" *> identifierString)
->                           ,parseOptionalSuffix
->                              TrefFun (try $ functionCall)
->                              TrefFunAlias (keyword "as" *> identifierString)
->                           ,parseOptionalSuffix
->                              Tref identifierString
->                              TrefAlias nonKeywordIdentifierString]
->            nonKeywordIdentifierString = do
+>   where
+>     getFirstTref = choice [
+>                     SubTref
+>                     <$> parens select
+>                     <*> (keyword "as" *> identifierString)
+>                    ,parseOptionalSuffix
+>                       TrefFun (try $ functionCall)
+>                       TrefFunAlias () (keyword "as" *> identifierString)
+>                    ,parseOptionalSuffix
+>                       Tref identifierString
+>                       TrefAlias () nonKeywordIdentifierString]
+>     nonKeywordIdentifierString = do
 >              x <- identifierString
 
 avoid all these keywords as aliases since they can appear immediately
@@ -402,7 +402,7 @@ or after the whole list
 > selectItem :: ParsecT String () Identity SelectItem
 > selectItem = parseOptionalSuffix
 >                SelExp expr
->                SelectItem (keyword "as" *> identifierString)
+>                SelectItem () (keyword "as" *> identifierString)
 
 > returning :: ParsecT String () Identity SelectList
 > returning = keyword "returning" *> selectList
@@ -455,7 +455,7 @@ typeatt: like a cut down version of tableatt, used in create type
 >   where
 >     parseBasicType = parseOptionalSuffix
 >                        Identifier identifierString
->                        makeFunCall (IntegerL <$> parens integer)
+>                        makeFunCall () (IntegerL <$> parens integer)
 >     makeFunCall a b = FunCall a [b]
 
 ================================================================================
@@ -546,54 +546,35 @@ sql function is just a list of statements, the last one has the
 trailing semicolon optional
 
 > functionBody Sql = do
->   whitespace
->   a <- (many (try statement))
->   b <- maybeP statementOptionalSemi
->   return $ SqlFnBody $ case b of
->                               Nothing -> a
->                               Just e -> a ++ [e]
+>   a <- whitespace *> (many (try statement))
+>   SqlFnBody <$> option a ((\b -> (a++[b])) <$> statementOptionalSemi)
 
 plpgsql function has an optional declare section, plus the statements
 are enclosed in begin ... end;
 
-> functionBody Plpgsql = whitespace >>
->   ((do
->      keyword "declare"
->      decls <- manyTill (try varDef) (try $ keyword "begin")
->      stmts <- many statement
->      keyword "end"
->      semi
->      eof
->      return $ PlpgsqlFnBody decls stmts
->   ) <|> (do
->      keyword "begin"
->      stmts <- many statement
->      keyword "end"
->      semi
->      eof
->      return $ PlpgsqlFnBody [] stmts))
+> functionBody Plpgsql =
+>   whitespace *>
+>   choice [
+>      PlpgsqlFnBody <$> (keyword "declare" *> readVarDefs) <*> restOfIt
+>     ,PlpgsqlFnBody [] <$> (keyword "begin" *> restOfIt)]
+>   where
+>     restOfIt = many statement <* keyword "end" <* semi <* eof
+>     readVarDefs = manyTill (try varDef) (try $ keyword "begin")
 
 params to a function
 
 > param :: ParsecT String () Identity ParamDef
-> param = do
->   name <- identifierString
->   t <- maybeP identifierString
->   case t of
->     Just tp -> return $ ParamDef name tp
->     Nothing -> return $ ParamDefTp name
+> param = parseOptionalSuffix
+>           ParamDefTp identifierString
+>           ParamDef () identifierString
 
 variable declarations in a plpgsql function
 
 > varDef :: ParsecT String () Identity VarDef
-> varDef = do
->   name <- identifierString
->   tp <- identifierString
->   val <- maybeP (do
->                  symbol ":="
->                  expr)
->   semi
->   return $ VarDef name tp val
+> varDef = VarDef
+>          <$> identifierString
+>          <*> identifierString
+>          <*> maybeP (symbol ":=" *> expr) <* semi
 
 ================================================================================
 
@@ -732,11 +713,8 @@ followed by ">"
 
 >       lt _ f = Infix (dontFollowWith '<' '>' >> return f)
 
->       dontFollowWith c1 c2 = try $ do
->         char c1
->         notFollowedBy $ char c2
->         whitespace
->         return ()
+>       dontFollowWith c1 c2 =
+>         try $ char c1 *> notFollowedBy (char c2) *> whitespace
 
 the first argument to these is ignored, it is there so the symbol
 can appear in the operator table above for readability purposes
@@ -752,17 +730,13 @@ in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
 
 > inPredicate :: ParsecT String () Identity Expression
-> inPredicate = do
->   vexp <- (try rowCtor) <|> liftM Identifier identifierString
->   n <- maybeP $ keyword "not"
->   keyword "in"
->   e <- parens ((liftM InSelect select)
->                <|>
->                (liftM InList $ commaSep1 expr))
->   return $ let p = InPredicate vexp e
->            in case n of
->                 Nothing -> p
->                 Just _ -> UnOpCall Not p
+> inPredicate =
+>   InPredicate
+>   <$> ((try rowCtor) <|> Identifier <$> identifierString)
+>   <*> option True (False <$ trykeyword "not")
+>   <*> (keyword "in" *> parens ((InSelect <$> select)
+>                                <|>
+>                                (InList <$> commaSep1 expr)))
 
 row ctor: one of
 row ()
@@ -1051,8 +1025,12 @@ so we can pass
 * IdentifierCtor
 * identifier (returns aval)
 * AliasedIdentifierCtor
+* () - looks like a place holder, probably a crap idea
 * parser for (as b) (returns bval)
-as the four args,
+as the args, which I like to write like:
+parseOptionalSuffix
+  IdentifierCtor identifier
+  AliasedIdentifierCtor () (parser for as b)
 and we get either
 * IdentifierCtor aval
 or
@@ -1063,12 +1041,14 @@ succeeds or not.
 probably this concept already exists under a better name in parsing
 theory
 
-> parseOptionalSuffix :: (r1 -> v)
->                     -> ParsecT [tok] u Identity r1
->                     -> (r1 -> r2 -> v)
->                     -> ParsecT [tok] u Identity r2
->                     -> ParsecT [tok] u Identity v
-> parseOptionalSuffix c1 p1 c2 p2 = do
+> parseOptionalSuffix :: (Stream s m t2) =>
+>                       (t1 -> b)
+>                    -> ParsecT s u m t1
+>                    -> (t1 -> a -> b)
+>                    -> ()
+>                    -> ParsecT s u m a
+>                    -> ParsecT s u m b
+> parseOptionalSuffix c1 p1 c2 _ p2 = do
 >   x <- p1
 >   option (c1 x) (c2 x <$> try p2)
 

@@ -326,8 +326,8 @@ Conversion routines - convert Sql asts into Docs
 
 
 > convExp (BooleanL b) = bool b
-> convExp (InPredicate att lst) =
->   convExp att <+> text "in"
+> convExp (InPredicate att t lst) =
+>   convExp att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
 >                        InList expr -> csvExp expr
 >                        InSelect sel -> convSelectFragment True sel)

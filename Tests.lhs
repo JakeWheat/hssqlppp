@@ -140,12 +140,11 @@ positional args used in sql and sometimes plpgsql functions
 in variants, including using row constructors
 
 >      ,p "t in (1,2)"
->       (InPredicate (Identifier "t") (InList [IntegerL 1,IntegerL 2]))
+>       (InPredicate (Identifier "t") True (InList [IntegerL 1,IntegerL 2]))
 >      ,p "t not in (1,2)"
->       (UnOpCall Not $ InPredicate (Identifier "t")
->        (InList [IntegerL 1,IntegerL 2]))
+>       (InPredicate (Identifier "t") False (InList [IntegerL 1,IntegerL 2]))
 >      ,p "(t,u) in (1,2)"
->       (InPredicate (Row [Identifier "t",Identifier "u"])
+>       (InPredicate (Row [Identifier "t",Identifier "u"]) True
 >        (InList [IntegerL 1,IntegerL 2]))
 
 operator issues:
@@ -510,7 +509,7 @@ other creates
 >         Nothing Nothing Nothing)]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
 >       [CreateDomain "td" "text"
->        (Just (InPredicate (Identifier "value")
+>        (Just (InPredicate (Identifier "value") True
 >               (InList [StringL "t1" ,StringL "t2"])))]
 >      ,p "create type tp1 as (\n\
 >         \  f1 text,\n\
@@ -580,7 +579,7 @@ check inline, row
 >         [CreateTable "t"
 >          [AttributeDef "f" "text" Nothing
 >           [InlineCheckConstraint (InPredicate
->                                   (Identifier "f")
+>                                   (Identifier "f") True
 >                                   (InList [StringL "a", StringL "b"]))]] []]
 
 inline, whole loead
@@ -593,7 +592,7 @@ inline, whole loead
 >           [NotNullConstraint
 >            ,InlineUniqueConstraint
 >            ,InlineCheckConstraint (InPredicate
->                                    (Identifier "f")
+>                                    (Identifier "f") True
 >                                    (InList [StringL "a"
 >                                            ,StringL "b"]))]] []]
 

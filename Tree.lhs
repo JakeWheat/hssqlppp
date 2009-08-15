@@ -203,7 +203,7 @@ on which expressions can appear in different places.
 >                 | BinOpCall BinOp Expression Expression
 >                 | UnOpCall UnOp Expression
 >                 | FunCall String [Expression]
->                 | InPredicate Expression InList
+>                 | InPredicate Expression Bool InList
 >                 | WindowFn Expression (Maybe [Expression]) (Maybe [Expression])
 >                   -- windowfn selectitem partitionby orderby
 >                 | ScalarSubQuery Statement
