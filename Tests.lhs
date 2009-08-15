@@ -639,10 +639,10 @@ test functions
 >         \begin\n\
 >         \  null;\n\
 >         \end;\n\
->         \' language plpgsql stable;"
+>         \' language plpgsql immutable;"
 >       [CreateFunction Plpgsql "fn" [] (Identifier "void") "'"
 >        (PlpgsqlFnBody [VarDef "a" "int" Nothing] [NullStatement])
->        Stable]
+>        Immutable]
 >      ,p "create function fn() returns void as '\n\
 >         \declare\n\
 >         \  a int := 3;\n\

@@ -263,7 +263,7 @@ from that error and rethrow it
 >     where
 >         pVol = matchAKeyword [("volatile", Volatile)
 >                              ,("stable", Stable)
->                              ,("immutuable", Immutable)]
+>                              ,("immutable", Immutable)]
 >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
 >                                                        ,("sql",Sql)]
 >         parseBody lang body fnName =
@@ -279,30 +279,20 @@ from that error and rethrow it
 
 
 > createView :: ParsecT String () Identity Statement
-> createView = do
->   try $ keyword "view"
->   vName <- identifierString
->   keyword "as"
->   sel <- select
->   return $ CreateView vName sel
+> createView = CreateView
+>              <$> (trykeyword "view" *> identifierString)
+>              <*> (keyword "as" *> select)
 
 > createDomain :: ParsecT String () Identity Statement
-> createDomain = do
->   try $ keyword "domain"
->   nm <- identifierString
->   maybeP (keyword "as")
->   tp <- identifierString
->   check <- maybeP (do
->                     keyword "check"
->                     expr)
->   return $ CreateDomain nm tp check
+> createDomain = CreateDomain
+>                <$> (trykeyword "domain" *> identifierString)
+>                <*> (maybeP (keyword "as") *> identifierString)
+>                <*> maybeP (keyword "check" *> expr)
 
 > dropFunction :: ParsecT String () Identity Statement
-> dropFunction = do
->   try $ keyword "function"
->   nm <- identifierString
->   ts <- parens $ many identifierString
->   return $ DropFunction nm ts
+> dropFunction = DropFunction
+>                <$> (trykeyword "function" *> identifierString)
+>                <*> parens (many identifierString)
 
 ================================================================================
 
@@ -311,33 +301,24 @@ from that error and rethrow it
 select bits
 
 > selQuerySpec :: ParsecT String () Identity Statement
-> selQuerySpec = do
->   sl <- selectList
->   fr <- maybeP from
->   wh <- maybeP whereClause
->   ord <- maybeP orderBy
->   li <- maybeP limit
->   return $ Select sl fr wh ord li
+> selQuerySpec = Select
+>                <$> selectList
+>                <*> maybeP from
+>                <*> maybeP whereClause
+>                <*> maybeP orderBy
+>                <*> maybeP limit
 
 > orderBy :: GenParser Char () [Expression]
-> orderBy = do
->           keyword "order"
->           keyword "by"
->           commaSep1 expr
+> orderBy = keyword "order" *> keyword "by" *> commaSep1 expr
 
 > from :: GenParser Char () From
-> from = do
->        keyword "from"
->        liftM From tref
+> from = From <$> (keyword "from" *> tref)
 
 > whereClause :: ParsecT String () Identity Where
-> whereClause = do
->   keyword "where"
->   ex <- expr
->   return $ Where ex
+> whereClause = Where <$> (keyword "where" *> expr)
 
 > limit :: GenParser Char () Expression
-> limit = keyword "limit" >> expr
+> limit = keyword "limit" *> expr
 
 == table refs
 used in the from part of a select
@@ -350,54 +331,94 @@ then cope with joins recursively using joinpart below
 
 > tref :: ParsecT String () Identity TableRef
 > tref = do
+>        
 >        tr1 <- choice [
->                do
->                sub <- parens select
->                keyword "as"
->                alias <- identifierString
->                return $ SubTref sub alias
->               ,do
->                  fc <- try $ functionCall
->                  alias <- maybeP $ do
->                             keyword "as"
->                             identifierString
->                  case alias of
->                    Nothing -> return $ TrefFun fc
->                    Just a -> return $ TrefFunAlias fc a
->               ,do
->                a <- identifierString
->                b <- maybeP (do
->                             whitespace
->                             x <- identifierString
+>                SubTref
+>                <$> parens select
+>                <*> (keyword "as" *> identifierString)
+>               ,parseOptionalSuffix
+>                            (try $ functionCall) TrefFun
+>                            (keyword "as" *> identifierString) TrefFunAlias
+>               ,parseOptionalSuffix
+>                            identifierString Tref
+>                            nonKeywordIdentifierString TrefAlias]
+>        jn <- maybeP $ joinPart tr1
+>        case jn of
+>          Nothing -> return tr1
+>          Just jn1 -> return jn1
+>          where
+>            nonKeywordIdentifierString = do
+>              x <- identifierString
 
 avoid all these keywords as aliases since they can appear immediately
 following a tableref as the next part of the statement, if we don't do
 this then lots of things don't parse.
 
->                             if x `elem` ["where"
->                                         ,"except"
->                                         ,"union"
->                                         ,"intersect"
->                                         ,"loop"
->                                         ,"inner"
->                                         ,"on"
->                                         ,"left"
->                                         ,"right"
->                                         ,"full"
->                                         ,"cross"
->                                         ,"natural"
->                                         ,"order"
->                                         ,"limit"
->                                         ,"using"]
->                               then fail "not keyword"
->                               else return x)
->                return $ case b of
->                                Nothing -> Tref a
->                                Just b1 -> TrefAlias a b1]
->        jn <- maybeP $ joinPart tr1
->        case jn of
->          Nothing -> return tr1
->          Just jn1 -> return jn1
+
+>              if x `elem` ["where"
+>                          ,"except"
+>                          ,"union"
+>                          ,"intersect"
+>                          ,"loop"
+>                          ,"inner"
+>                          ,"on"
+>                          ,"left"
+>                          ,"right"
+>                          ,"full"
+>                          ,"cross"
+>                          ,"natural"
+>                          ,"order"
+>                          ,"limit"
+>                          ,"using"]
+>                then fail "not keyword"
+>                else return x
+
+
+
+parseOptionalSuffix
+
+can't think of a good name,
+want to parse part a -> r1, then maybe parse part b -> r2
+if r2 is nothing then return c1 r1
+else return c2 r1 r2
+This is to parse the something which has an optional bunch of stuff
+on the end with one constructor which takes the mandatory first part
+and another constructor which takes the mandatory first part
+and the optional second part as args.
+
+e.g.
+parsing an identifier in a select list can be
+a
+or
+a as b
+so we can pass
+identifier (returns aval)
+IdentifierCtor
+parser for (as b) (returns bval)
+AliasedIdentifierCtor
+as the four args,
+and we get either
+IdentifierCtor aval
+or
+AliasedIdentifierCtor aval bval
+as the result depending on whether the "parser for (as b)"
+succeeds or not.
+
+probably this concept already exists under a better name in parsing
+theory
+
+> parseOptionalSuffix :: ParsecT String u Identity r1
+>                          -> (r1 -> v)
+>                          -> ParsecT String u Identity r2
+>                          -> (r1 -> r2 -> v)
+>                          -> ParsecT String u Identity v
+> parseOptionalSuffix p1 c1 p2 c2 = do
+>   x <- p1
+>   y <- maybeP p2
+>   case y of
+>     Nothing -> return $ c1 x
+>     Just z -> return $ c2 x z
+
 
 joinpart: parse a join after the first part of the tableref
 (which is a table name, aliased table name or subselect)
