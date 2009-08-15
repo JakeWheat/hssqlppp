@@ -32,17 +32,18 @@ for some notes on postgresql syntax (the rest of that manual is also helpful)
 >     where
 
 > import Text.Parsec hiding(many, optional, (<|>))
-
 > import qualified Text.Parsec.Token as P
 > import Text.Parsec.Language
 > import Text.Parsec.Expr
-
 > import Text.Parsec.String
 > import Text.Parsec.Error
+
 > import Control.Applicative
+> import Control.Monad.Identity
 
 > import Data.Maybe
-> import Control.Monad.Identity
+
+
 
 > import Tree
 
@@ -218,24 +219,6 @@ createtable
 >                            (symbol ","))
 >     where swap (a,b) = (b,a)
 
-couldn't work how to to perms so just did this hack instead
-e.g.
-a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
-
-> parseABsep1 :: (Stream s m t) =>
->                ParsecT s u m a1
->             -> ParsecT s u m a
->             -> ParsecT s u m sep
->             -> ParsecT s u m ([a1], [a])
-
-> parseABsep1 p1 p2 sep = do
->   (r1, r2) <- unzip <$> sepBy1 parseAorB sep
->   return (catMaybes r1, catMaybes r2)
->   where
->     parseAorB = choice [
->                   (\x -> (Just x,Nothing)) <$> p1
->                  ,(\y -> (Nothing, Just y)) <$> p2]
-
 > createType :: ParsecT String () Identity Statement
 > createType = CreateType
 >              <$> (trykeyword "type" *> identifierString <* keyword "as")
@@ -403,36 +386,26 @@ now try and read the join condition
 
 selectlist and selectitem: the bit between select and from
 check for into either before the whole list of select columns
-or after the while list
+or after the whole list
 
 > selectList :: ParsecT String () Identity SelectList
-> selectList = do
->   i1 <- readInto
->   sl <- commaSep1 selectItem
->   i2 <- case i1 of
->           Just _ -> return i1
->           Nothing -> readInto
->   return $ SelectList sl i2
+> selectList =
+>     choice [
+>         (flip SelectList)
+>         <$> (Just <$> try readInto) <*> itemList
+>        ,SelectList <$> itemList <*> (maybeP readInto)]
 >   where
->     readInto = maybeP $ do
->                         keyword "into"
->                         commaSep1 identifierStringMaybeDot
+>     readInto = (keyword "into" *> commaSep1 identifierStringMaybeDot)
+>     itemList = commaSep1 selectItem
 
 
 > selectItem :: ParsecT String () Identity SelectItem
-> selectItem = do
->        ex <- expr
->        i <- maybeP (do
->                     keyword "as"
->                     identifierString)
->        return $ case i of
->                   Nothing -> SelExp ex
->                   Just iden -> SelectItem ex iden
+> selectItem = parseOptionalSuffix
+>                SelExp expr
+>                SelectItem (keyword "as" *> identifierString)
 
 > returning :: ParsecT String () Identity SelectList
-> returning = do
->   keyword "returning"
->   selectList
+> returning = keyword "returning" *> selectList
 
 == update
 
@@ -442,63 +415,48 @@ or after the while list
 set clause - the set a = 3, b=4 part of a update statement
 
 > setClause :: ParsecT String () Identity SetClause
-> setClause = do
->   ref <- identifierString
->   symbol "="
->   ex <- expr
->   return $ SetClause ref ex
+> setClause = SetClause <$> identifierString
+>             <*> (symbol "=" *> expr)
 
 == ddl
 
 tableatt - an single attribute line in a create table
 
 > tableAtt :: ParsecT String () Identity AttributeDef
-> tableAtt = do
->   name <- identifierString
->   typ <- identifierString
->   def <- maybeP (do
->                   keyword "default"
->                   expr)
->   constr <- sepBy inlineConstraint whitespace
->   return $ AttributeDef name typ def constr
+> tableAtt = AttributeDef
+>            <$> identifierString
+>            <*> identifierString
+>            <*> maybeP (keyword "default" *> expr)
+>            <*> sepBy inlineConstraint whitespace
 
 > tableConstr :: ParsecT String () Identity Constraint
-> tableConstr = do
->   (try $ do
->      keyword "unique"
->      liftM UniqueConstraint $ columnNameList)
+> tableConstr = UniqueConstraint <$> try (keyword "unique" *> columnNameList)
 
 > inlineConstraint :: ParsecT String () Identity InlineConstraint
 > inlineConstraint =
 >   choice [
->           keyword "unique" >> return InlineUniqueConstraint
->          ,keyword "check" >> liftM InlineCheckConstraint (parens expr)
->          ,try (keyword "null") >> return NullConstraint
->          ,keyword "not" >> keyword "null"  >> return NotNullConstraint
+>           InlineUniqueConstraint <$ keyword "unique"
+>          ,InlineCheckConstraint <$> (keyword "check" *> parens expr)
+>          ,NullConstraint <$ trykeyword "null"
+>          ,NotNullConstraint <$ (keyword "not" *> keyword "null")
 >          ]
 
 
 typeatt: like a cut down version of tableatt, used in create type
 
 > typeAtt :: ParsecT String () Identity TypeAttributeDef
-> typeAtt = liftM2 TypeAttDef identifierString identifierString
+> typeAtt = TypeAttDef <$> identifierString <*> identifierString
 
 > retTypeName :: ParsecT String () Identity Expression
 > retTypeName =
 >   choice [
->     try $ do
->       keyword "setof"
->       i <- parseBasicType
->       return $ UnOpCall SetOf i
->    ,parseBasicType]
+>      (UnOpCall SetOf) <$> (keyword "setof" *> parseBasicType)
+>     ,parseBasicType]
 >   where
->     parseBasicType = do
->       t <- identifierString
->       pr <- maybeP $ parens $ integer
->       case pr of
->               Nothing -> return $ Identifier t
->               Just p -> return $ FunCall t [IntegerL p]
-
+>     parseBasicType = parseOptionalSuffix
+>                        Identifier identifierString
+>                        makeFunCall (IntegerL <$> parens integer)
+>     makeFunCall a b = FunCall a [b]
 
 ================================================================================
 
@@ -507,52 +465,36 @@ typeatt: like a cut down version of tableatt, used in create type
 null statement is plpgsql nop, written 'null;'
 
 > nullStatement :: ParsecT String u Identity Statement
-
-> nullStatement = do
->   try $ keyword "null"
->   return NullStatement
+> nullStatement = NullStatement <$ keyword "null"
 
 > perform :: ParsecT String () Identity Statement
-> perform = do
->   try $ keyword "perform"
->   ex <- expr
->   return $ Perform ex
+> perform = Perform <$> (trykeyword "perform" *> expr)
 
 > execute :: ParsecT String () Identity Statement
-> execute = do
->   try $ keyword "execute"
->   liftM Execute expr
+> execute = Execute <$> (trykeyword "execute" *> expr)
 
 > assignment :: ParsecT String () Identity Statement
-> assignment = do
->   -- put this bit in a try to attempt to get a better error if the
->   -- code looks like malformed assignment statement
->   n <- try $ do
->              n1 <- identifierStringMaybeDot
->              symbol ":="
->              return n1
->   ex <- expr
->   return $ Assignment n ex
+> assignment = Assignment
+>   -- put the := in the first try to attempt to get a better error if
+>   -- the code looks like malformed assignment statement
+>              <$> (try (identifierStringMaybeDot <* symbol ":="))
+>              <*> expr
 
 > returnSt :: ParsecT String () Identity Statement
-> returnSt = do
->   try $ keyword "return"
->   ((try $ keyword "next" >> liftM ReturnNext expr)
->    <|> (liftM Return $ maybeP expr))
-
+> returnSt = trykeyword "return" *>
+>            choice [
+>             ReturnNext <$> (trykeyword "next" *> expr)
+>            ,Return <$> maybeP expr]
 
 > raise :: ParsecT String () Identity Statement
-> raise = do
->   try $ keyword "raise"
->   tp <- choice [
->          keyword "notice" >> return RNotice
->         ,try (keyword "exception" >> return RException)
->         ,keyword "error" >> return RError]
->   s <- stringLiteral
->   exps <- maybeP (do
->                    symbol ","
->                    commaSep expr)
->   return $ Raise tp (extrStr s) (fromMaybe [] exps)
+> raise = Raise
+>         <$> (trykeyword "raise" *> raiseType)
+>         <*> (extrStr <$> stringLiteral)
+>         <*> option [] (symbol "," *> commaSep1 expr)
+>         where
+>           raiseType = matchAKeyword [("notice", RNotice)
+>                                      ,("exception", RException)
+>                                      ,("error", RError)]
 
 for statement, only supports for x in [select statement]
 flavour at the moment
@@ -1148,10 +1090,7 @@ theory
 >                     -> ParsecT [tok] u Identity v
 > parseOptionalSuffix c1 p1 c2 p2 = do
 >   x <- p1
->   y <- maybeP p2
->   case y of
->     Nothing -> return $ c1 x
->     Just z -> return $ c2 x z
+>   option (c1 x) ((c2 x) <$> try p2)
 
 parseOptionalSuffixThreaded
 
@@ -1173,8 +1112,25 @@ returns the previous result instead of nothing
 >                             -> ParsecT [tok] st Identity a
 > parseOptionalSuffixThreaded p1 p2 = do
 >   x <- p1
->   y <- maybeP (p2 x)
->   return $ fromMaybe x y
+>   option x (try $ p2 x)
+
+couldn't work how to to perms so just did this hack instead
+e.g.
+a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
+
+> parseABsep1 :: (Stream s m t) =>
+>                ParsecT s u m a1
+>             -> ParsecT s u m a
+>             -> ParsecT s u m sep
+>             -> ParsecT s u m ([a1], [a])
+
+> parseABsep1 p1 p2 sep = do
+>   (r1, r2) <- unzip <$> sepBy1 parseAorB sep
+>   return (catMaybes r1, catMaybes r2)
+>   where
+>     parseAorB = choice [
+>                   (\x -> (Just x,Nothing)) <$> p1
+>                  ,(\y -> (Nothing, Just y)) <$> p2]
 
 == whitespacey things
 
