@@ -330,25 +330,18 @@ a sub select e.g. select a from (select b from c)
 then cope with joins recursively using joinpart below
 
 > tref :: ParsecT String () Identity TableRef
-> tref = do
->        tr1 <- choice [
->                SubTref
->                <$> parens select
->                <*> (keyword "as" *> identifierString)
->               ,parseOptionalSuffix
->                            TrefFun (try $ functionCall)
->                            TrefFunAlias (keyword "as" *> identifierString)
->               ,parseOptionalSuffix
->                            Tref identifierString
->                            TrefAlias nonKeywordIdentifierString]
-
-if the suffix fails, return tr1
-else return what the suffix parser returns
-
->        parseOptionalSuffix
->           id (return tr1)
->           (\_ -> id) (joinPart tr1)
+> tref = parseOptionalSuffixThreaded getFirstTref joinPart
 >          where
+>            getFirstTref = choice [
+>                            SubTref
+>                            <$> parens select
+>                            <*> (keyword "as" *> identifierString)
+>                           ,parseOptionalSuffix
+>                              TrefFun (try $ functionCall)
+>                              TrefFunAlias (keyword "as" *> identifierString)
+>                           ,parseOptionalSuffix
+>                              Tref identifierString
+>                              TrefAlias nonKeywordIdentifierString]
 >            nonKeywordIdentifierString = do
 >              x <- identifierString
 
@@ -382,14 +375,14 @@ multiple joins
 
 > joinPart :: TableRef -> GenParser Char () TableRef
 > joinPart tr1 = do
-
->   jp1 <-
->     (JoinedTref tr1)
+>   parseOptionalSuffixThreaded readOneJoinPart joinPart
+>     where
+>       readOneJoinPart = (JoinedTref tr1)
 
 look for the join flavour first
 
->     <$> (isJust <$> maybeP (keyword "natural"))
->     <*> choice [
+>          <$> (isJust <$> maybeP (keyword "natural"))
+>          <*> choice [
 >             Inner <$ keyword "inner"
 >            ,LeftOuter <$ (keyword "left" *> keyword "outer")
 >            ,RightOuter <$ (keyword "right" *> keyword "outer")
@@ -398,26 +391,15 @@ look for the join flavour first
 
 recurse back to tref to read the table
 
->     <*> (keyword "join" *> tref)
+>          <*> (keyword "join" *> tref)
 
 now try and read the join condition
 
->     <*> choice [
+>          <*> choice [
 >              Just <$> (JoinOn <$> (keyword "on" *> expr))
 >             ,Just <$> (JoinUsing <$> (keyword "using" *> columnNameList))
 >             ,return Nothing]
 
-see if there's another join waiting
-
->   parseOptionalSuffix
->       id (return jp1)
->       (\_ -> id) (joinPart jp1)
-
-
-    jp2 <- maybeP $ joinPart jp1
-    case jp2 of
-      Nothing -> return jp1
-      Just j -> return j
 
 selectlist and selectitem: the bit between select and from
 check for into either before the whole list of select columns
@@ -1160,16 +1142,39 @@ probably this concept already exists under a better name in parsing
 theory
 
 > parseOptionalSuffix :: (r1 -> v)
->                     -> ParsecT String u Identity r1
+>                     -> ParsecT [tok] u Identity r1
 >                     -> (r1 -> r2 -> v)
->                     -> ParsecT String u Identity r2
->                     -> ParsecT String u Identity v
+>                     -> ParsecT [tok] u Identity r2
+>                     -> ParsecT [tok] u Identity v
 > parseOptionalSuffix c1 p1 c2 p2 = do
 >   x <- p1
 >   y <- maybeP p2
 >   case y of
 >     Nothing -> return $ c1 x
 >     Just z -> return $ c2 x z
+
+parseOptionalSuffixThreaded
+
+variant on the previous version, this we parse something, get a parse
+tree, then we pass this tree to the optional suffix parser, if it
+fails we keep the original parse tree, else the suffix parser embeds
+the original parse tree in the tree it returns which we use
+
+parser1 -> tree1
+(parser2 tree1) -> maybe tree2
+tree2 isnothing ? tree1 : tree2
+
+I'm pretty sure this is some standard monad operation but I don't know
+what. It's a bit like the maybe monad but when you get nothing it
+returns the previous result instead of nothing
+
+> parseOptionalSuffixThreaded :: ParsecT [tok] st Identity a
+>                             -> (a -> GenParser tok st a)
+>                             -> ParsecT [tok] st Identity a
+> parseOptionalSuffixThreaded p1 p2 = do
+>   x <- p1
+>   y <- maybeP (p2 x)
+>   return $ fromMaybe x y
 
 == whitespacey things
 
