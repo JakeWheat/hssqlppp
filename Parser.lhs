@@ -138,8 +138,7 @@ recurses to support parsing excepts, unions, etc
 
 > select :: ParsecT String () Identity Statement
 > select = do
->   trykeyword "select"
->   s1 <- selQuerySpec
+>   s1 <- trykeyword "select" *> selQuerySpec
 >   choice [
 
 don't know if this does associativity in the correct order for
@@ -197,9 +196,7 @@ one with just a \. in the first two columns
 >                             if x == s
 >                               then return x
 >                               else (x++) <$> getLinesTillMatches s
->     getALine = do
->                x <- manyTill anyChar (try newline)
->                return $ x ++ "\n"
+>     getALine = (++"\n") <$> manyTill anyChar (try newline)
 
 = ddl
 
@@ -214,9 +211,9 @@ parser, so we need the swap to feed them in the right order into
 createtable
 
 >   <*> parens (swap <$> parseABsep1
->                        (try tableConstr)
->                        tableAtt
->                        (symbol ","))
+>                          (try tableConstr)
+>                          tableAtt
+>                          (symbol ","))
 >     where swap (a,b) = (b,a)
 
 > createType :: ParsecT String () Identity Statement
@@ -532,7 +529,6 @@ bit too clever coming up
 >     elseif = trykeyword "elseif"
 >     --might as well these in as well after all that
 >     -- can't do <,> unfortunately, so use <.> instead
->     (<:>) a b = (:) <$> a <*> b
 >     (<.>) a b = (,) <$> a <*> b
 
 
@@ -749,17 +745,12 @@ notes:
 and () is a syntax error.
 
 > rowCtor :: ParsecT [Char] () Identity Expression
-> rowCtor = do
->   (do
->     keyword "row"
->     liftM Row $ parens $ commaSep expr)
->   <|> (liftM Row $ parens $ commaSep2 expr)
+> rowCtor = Row <$> choice [
+>            keyword "row" *> parens (commaSep expr)
+>           ,parens $ commaSep2 expr]
 
 > positionalArg :: ParsecT String u Identity Expression
-> positionalArg = do
->   char '$'
->   i <- integer
->   return $ PositionalArg ((fromInteger i)::Int)
+> positionalArg = PositionalArg <$> (char '$' *> (fromInteger <$> integer))
 
 string parsing
 
@@ -769,15 +760,9 @@ string parsing
 
 parse a string delimited by single quotes
 
->     stringQuotes = liftM StringL stringPar
->     stringPar = do
->                 char '\''
->                 name <- readQuoteEscape
-
-when we get to here, we've already read the quote at the end of the string
-
->                 whitespace
->                 return name
+>     stringQuotes = StringL <$> stringPar
+>     stringPar = char '\'' *> readQuoteEscape <* whitespace
+>     --readquoteescape reads the trailing '
 
 have to read two consecutive single quotes as a quote character
 instead of the end of the string, probably an easier way to do this
@@ -808,10 +793,8 @@ cope with $$ as well as $[identifier]$
 >                         return "") <|>
 >                        identifierString)
 >                char '$'
->                s <- manyTill anyChar (try $ do
->                                             char '$'
->                                             string tag
->                                             char '$')
+>                s <- manyTill anyChar
+>                       (try $ char '$' <* string tag <* char '$')
 >                whitespace
 >                return $ StringLD tag s
 
@@ -831,73 +814,49 @@ from a StringLD or StringL, and the delimiters which were used
 
 
 > integerLit :: ParsecT String u Identity Expression
-> integerLit = liftM IntegerL integer
+> integerLit = IntegerL <$> integer
 
 case - only supports 'case when condition' flavour and not 'case
 expression when value' currently
 
 > caseParse :: ParsecT [Char] () Identity Expression
-> caseParse = do
->   keyword "case"
->   wh <- many whenParse
->   ex <- maybeP (do
->                  keyword "else"
->                  e <- expr
->                  return $ Else e)
->   keyword "end"
->   return $ Case wh ex
+> caseParse = Case <$> (keyword "case" *> many whenParse)
+>                  <*> (maybeP (Else <$> (keyword "else" *> expr))
+>                       <* keyword "end")
 >   where
->     whenParse = do
->                 keyword "when"
->                 e1 <- expr
->                 keyword "then"
->                 e2 <- expr
->                 return $ When e1 e2
+>     whenParse = When <$> (keyword "when" *> expr)
+>                      <*> (keyword "then" *> expr)
 
 > exists :: ParsecT [Char] () Identity Expression
-> exists = do
->   keyword "exists"
->   liftM Exists $ parens select
+> exists = Exists <$> (keyword "exists" *> parens select)
 
 > booleanLiteral :: ParsecT String u Identity Expression
-> booleanLiteral = do
->   x <- lexeme (string "true")
->        <|> lexeme (string "false")
->   return $ BooleanL (x == "true")
+> booleanLiteral = BooleanL <$> (=="true")
+>                               <$> lexeme ((string "true")
+>                                            <|> string "false")
 
 > nullL :: ParsecT String u Identity Expression
-> nullL = do
->   keyword "null"
->   return NullL
+> nullL = NullL <$ keyword "null"
 
 > array :: GenParser Char () Expression
-> array = do
->   keyword "array"
->   liftM ArrayL $ squares $ commaSep expr
+> array = ArrayL <$> (keyword "array" *> squares (commaSep expr))
 
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
 
 > windowFn :: GenParser Char () Expression
-> windowFn = do
->   fn <- functionCall
->   keyword "over"
->   (ps, os) <- parens (do
->                       ps <- maybeP partitionBy
->                       os <- maybeP orderBy
->                       return (ps,os))
->   return $ WindowFn fn ps os
+> windowFn = WindowFn <$> (functionCall <* keyword "over")
+>                     <*> (symbol "(" *> (maybeP partitionBy))
+>                     <*> ((maybeP orderBy1) <* symbol ")")
 >   where
->     partitionBy = do
->           keyword "partition"
->           keyword "by"
->           commaSep1 expr
+>     orderBy1 = keyword "order" *> keyword "by" *> commaSep1 expr
+>     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
 
 > functionCall :: ParsecT String () Identity Expression
-> functionCall = liftM2 FunCall identifierString (parens $ commaSep expr)
+> functionCall = FunCall <$> identifierString <*> parens (commaSep expr)
 
 > identifier :: ParsecT String () Identity Expression
-> identifier = liftM Identifier identifierString
+> identifier = Identifier <$> identifierString
 
 
 ================================================================================
@@ -927,10 +886,8 @@ keyword has to not be immediately followed by letters or numbers
 identifier which happens to start with a complete keyword
 
 > keyword :: String -> ParsecT String u Identity ()
-> keyword k = do
->   (lexeme $ do
->     string k
->     notFollowedBy alphaNum) <?> k
+> keyword k = lexeme (string k *> notFollowedBy alphaNum)
+>             <?> k
 
 shorthand to simplyfy parsers, helps because you can then avoid parens
 or $
@@ -939,28 +896,14 @@ or $
 > trykeyword k = try $ keyword k
 
 > identifierString :: Parser String
-> identifierString =
->   (do
->     string "*"
->     whitespace
->     return "*")
->   <|> do
->       s <- letter
->       p <- many (alphaNum <|> char '_')
->       whitespace
->       return (s : p)
+> identifierString = lexeme (string "*" <|> letter <:> secondOnwards)
+>   where
+>     secondOnwards = many (alphaNum <|> char '_')
 
 > identifierStringMaybeDot :: Parser String
-> identifierStringMaybeDot =
->   (do
->     string "*"
->     whitespace
->     return "*")
->   <|> do
->       s <- letter
->       p <- many (alphaNum <|> char '_' <|> char '.')
->       whitespace
->       return $ s : p
+> identifierStringMaybeDot = lexeme (string "*" <|> letter <:> secondOnwards)
+>   where
+>     secondOnwards = many (alphaNum <|> char '_' <|> char '.')
 
 == combinatory things
 
@@ -982,11 +925,7 @@ or $
 
 > sepBy2 :: (Stream s m t1) =>
 >           ParsecT s u m t -> ParsecT s u m a -> ParsecT s u m [t]
-> sepBy2 p sep = do
->   x <- p
->   sep
->   xs <- sepBy1 p sep
->   return (x:xs)
+> sepBy2 p sep = (p <* sep) <:> (sepBy1 p sep)
 
 > commaSep :: ParsecT String u Identity a
 >             -> ParsecT String u Identity [a]
@@ -995,6 +934,13 @@ or $
 > commaSep1 :: ParsecT String u Identity a
 >             -> ParsecT String u Identity [a]
 > commaSep1 = P.commaSep lexer
+
+comes up a few times so put it here, doesn't seem too gratuitous
+
+> (<:>) :: (Applicative f) =>
+>          f a -> f [a] -> f [a]
+> (<:>) a b = (:) <$> a <*> b
+
 
 pass a list of pairs of strings and values
 try each pair k,v in turn,
@@ -1117,16 +1063,16 @@ not quite sure how comments are suppose to work, but these in the
 whitespace parser and in the lexer below seem to cover all the bases
 
 > blockComment :: ParsecT String st Identity ()
-> blockComment = do
->   try (char '/' >> char '*')
->   manyTill anyChar (try (string "*/"))
->   return ()
+> blockComment = st >> manyTill anyChar en >> return ()
+>     where
+>       st = try $ string "/*"
+>       en = try $ string "*/"
 
 > lineComment :: ParsecT String st Identity ()
-> lineComment = do
->   try (char '-' >> char '-')
->   manyTill anyChar ((try (char '\n') >> return ()) <|> eof)
->   return ()
+> lineComment = st >> manyTill anyChar en >> return ()
+>   where
+>     st = try $ string "--"
+>     en = (char '\n' >> return ()) <|> eof
 
 == lexerizer
 
