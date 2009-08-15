@@ -389,10 +389,15 @@ simple insert
 >       [Insert
 >         "testtable"
 >         (Just ["columna", "columnb"])
->         (InsertData [[IntegerL 1, IntegerL 2]])
+>         (Values [[IntegerL 1, IntegerL 2]])
 >         Nothing]
 
-multi row insert
+multi row insert, test the stand alone values statement first,
+maybe that should be in the select section?
+
+>      ,p "values (1,2), (3,4);"
+>      [Values [[IntegerL 1, IntegerL 2]
+>              ,[IntegerL 3, IntegerL 4]]]
 
 >      ,p "insert into testtable\n\
 >         \(columna,columnb)\n\
@@ -400,8 +405,8 @@ multi row insert
 >       [Insert
 >         "testtable"
 >         (Just ["columna", "columnb"])
->         (InsertData [[IntegerL 1, IntegerL 2]
->                     ,[IntegerL 3, IntegerL 4]])
+>         (Values [[IntegerL 1, IntegerL 2]
+>                 ,[IntegerL 3, IntegerL 4]])
 >         Nothing]
 
 insert from select
@@ -409,10 +414,7 @@ insert from select
 >      ,p "insert into a\n\
 >          \    select b from c;"
 >       [Insert "a" Nothing
->        (InsertQuery (Select
->                      (sl [selI "b"])
->                      (Just $ From $ Tref "c")
->                      Nothing Nothing Nothing))
+>        (selectFrom [selI "b"] (Tref "c"))
 >        Nothing]
 
 >      ,p "insert into testtable\n\
@@ -421,7 +423,7 @@ insert from select
 >       [Insert
 >         "testtable"
 >         (Just ["columna", "columnb"])
->         (InsertData [[IntegerL 1, IntegerL 2]])
+>         (Values [[IntegerL 1, IntegerL 2]])
 >         (Just $ sl [selI "id"])]
 
 updates

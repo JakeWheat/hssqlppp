@@ -27,11 +27,12 @@ instead put any statement - this type checks but is totally invalid.
 >                  -- selectlist from where orderby limit
 >                  Select SelectList (Maybe From) (Maybe Where) (Maybe [Expression]) (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement
-
->                | Insert String (Maybe [String]) InsertData (Maybe SelectList)
+>                  --table targetcolumns insertdata(values or select statement) returning
+>                | Insert String (Maybe [String]) Statement (Maybe SelectList)
 >                | Update String [SetClause] (Maybe Where) (Maybe SelectList)
 >                | Delete String (Maybe Where) (Maybe SelectList)
 >                | Copy String
+>                | Values [[Expression]]
 
 >                | CreateTable String [AttributeDef] [Constraint]
 >                | CreateView String Statement
@@ -58,9 +59,6 @@ instead put any statement - this type checks but is totally invalid.
 ================================================================================
 
 Statement components
-
-> data InsertData = InsertData [[Expression]] | InsertQuery Statement
->               deriving (Eq,Show)
 
 > data FnBody = SqlFnBody [Statement] | PlpgsqlFnBody [VarDef] [Statement]
 >               deriving (Eq,Show)

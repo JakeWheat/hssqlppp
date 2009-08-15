@@ -41,18 +41,14 @@ Conversion routines - convert Sql asts into Docs
 > convStatement s@(CombineSelect _ _ _) =
 >   convSelectFragment True s <> statementEnd
 
+> convStatement (Values expss) = convValues expss <> statementEnd
+
 == dml
 
 > convStatement (Insert tb atts idata rt) =
 >   text "insert into" <+> text tb
 >   <+> maybeConv (\x -> parens (hcatCsvMap text x)) atts
->   $+$ (case idata of
->          InsertData expss -> do
->                              text "values"
->                              <+> vcat (csv $ map
->                                        (\es -> parens (csvExp es)) expss)
->          InsertQuery st -> do
->                            convSelectFragment True st)
+>   $+$ convSelectFragment True idata
 >   $+$ convReturning rt
 >   <> statementEnd
 
@@ -195,6 +191,8 @@ Conversion routines - convert Sql asts into Docs
 >          Union -> text "union"
 >          Intersect -> text "intersect")
 >   $+$ convSelectFragment True s2
+> convSelectFragment _ (Values expss) = convValues expss
+
 > convSelectFragment _ a = error $ "no convSelectFragment for " ++ show a
 
 > convFrom :: From -> Doc
@@ -245,6 +243,12 @@ Conversion routines - convert Sql asts into Docs
 > convSelItem :: SelectItem -> Doc
 > convSelItem (SelectItem ex nm) = (convExp ex) <+> text "as" <+> text nm
 > convSelItem (SelExp e) = convExp e
+
+> convValues :: [[Expression]] -> Doc
+> convValues expss = text "values"
+>                    $$ nest 2 (vcat (csv $ map
+>                                     (\es -> parens (csvExp es)) expss))
+
 
 == ddl
 

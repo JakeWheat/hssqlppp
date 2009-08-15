@@ -81,6 +81,7 @@ easy fix by adding a flag or something.
 > statement :: ParsecT String () Identity Statement
 > statement = choice [
 >              select
+>             ,values
 >             ,insert
 >             ,update
 >             ,delete
@@ -149,6 +150,10 @@ statements with multiple excepts/ intersects and no parens
 >    ,try $ CombineSelect Union s1 <$> (keyword "union" *> select)
 >    ,return s1]
 
+> values :: ParsecT String () Identity Statement
+> values = Values <$> (trykeyword "values"
+>                      *> (commaSep1 $ parens $ commaSep1 expr))
+
 = insert, update and delete
 
 insert statement: supports option column name list,
@@ -160,14 +165,8 @@ multiple rows to insert and insert from select statements
 >               *> keyword "into"
 >               *> identifierString)
 >          <*> maybeP columnNameList
->          <*> stuffToInsert
+>          <*> (select <|> values)
 >          <*> maybeP returning
->       where
->         stuffToInsert = choice [
->                          InsertData
->                          <$> (keyword "values"
->                               *> (commaSep1 $ parens $ commaSep1 expr))
->                         ,InsertQuery <$> select]
 
 > update :: ParsecT String () Identity Statement
 > update = Update
