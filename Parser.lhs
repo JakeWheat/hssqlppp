@@ -331,21 +331,23 @@ then cope with joins recursively using joinpart below
 
 > tref :: ParsecT String () Identity TableRef
 > tref = do
->        
 >        tr1 <- choice [
 >                SubTref
 >                <$> parens select
 >                <*> (keyword "as" *> identifierString)
 >               ,parseOptionalSuffix
->                            (try $ functionCall) TrefFun
->                            (keyword "as" *> identifierString) TrefFunAlias
+>                            TrefFun (try $ functionCall)
+>                            TrefFunAlias (keyword "as" *> identifierString)
 >               ,parseOptionalSuffix
->                            identifierString Tref
->                            nonKeywordIdentifierString TrefAlias]
->        jn <- maybeP $ joinPart tr1
->        case jn of
->          Nothing -> return tr1
->          Just jn1 -> return jn1
+>                            Tref identifierString
+>                            TrefAlias nonKeywordIdentifierString]
+
+if the suffix fails, return tr1
+else return what the suffix parser returns
+
+>        parseOptionalSuffix
+>           id (return tr1)
+>           (\_ -> id) (joinPart tr1)
 >          where
 >            nonKeywordIdentifierString = do
 >              x <- identifierString
@@ -372,53 +374,6 @@ this then lots of things don't parse.
 >                          ,"using"]
 >                then fail "not keyword"
 >                else return x
-
-
-
-parseOptionalSuffix
-
-can't think of a good name,
-want to parse part a -> r1, then maybe parse part b -> r2
-if r2 is nothing then return c1 r1
-else return c2 r1 r2
-This is to parse the something which has an optional bunch of stuff
-on the end with one constructor which takes the mandatory first part
-and another constructor which takes the mandatory first part
-and the optional second part as args.
-
-e.g.
-parsing an identifier in a select list can be
-a
-or
-a as b
-so we can pass
-identifier (returns aval)
-IdentifierCtor
-parser for (as b) (returns bval)
-AliasedIdentifierCtor
-as the four args,
-and we get either
-IdentifierCtor aval
-or
-AliasedIdentifierCtor aval bval
-as the result depending on whether the "parser for (as b)"
-succeeds or not.
-
-probably this concept already exists under a better name in parsing
-theory
-
-> parseOptionalSuffix :: ParsecT String u Identity r1
->                          -> (r1 -> v)
->                          -> ParsecT String u Identity r2
->                          -> (r1 -> r2 -> v)
->                          -> ParsecT String u Identity v
-> parseOptionalSuffix p1 c1 p2 c2 = do
->   x <- p1
->   y <- maybeP p2
->   case y of
->     Nothing -> return $ c1 x
->     Just z -> return $ c2 x z
-
 
 joinpart: parse a join after the first part of the tableref
 (which is a table name, aliased table name or subselect)
@@ -1165,6 +1120,51 @@ if keyword k matches then return v
 > matchAKeyword [] = fail "no matches"
 > matchAKeyword ((k,v):kvs) = do
 >   v <$ trykeyword k <|> matchAKeyword kvs
+
+parseOptionalSuffix
+
+can't think of a good name,
+want to parse part a -> r1, then maybe parse part b -> r2
+if r2 is nothing then return c1 r1
+else return c2 r1 r2
+This is to parse the something which has an optional bunch of stuff
+on the end with one constructor which takes the mandatory first part
+and another constructor which takes the mandatory first part
+and the optional second part as args.
+
+e.g.
+parsing an identifier in a select list can be
+a
+or
+a as b
+so we can pass
+* IdentifierCtor
+* identifier (returns aval)
+* AliasedIdentifierCtor
+* parser for (as b) (returns bval)
+as the four args,
+and we get either
+* IdentifierCtor aval
+or
+* AliasedIdentifierCtor aval bval
+as the result depending on whether the "parser for (as b)"
+succeeds or not.
+
+probably this concept already exists under a better name in parsing
+theory
+
+> parseOptionalSuffix :: (r1 -> v)
+>                     -> ParsecT String u Identity r1
+>                     -> (r1 -> r2 -> v)
+>                     -> ParsecT String u Identity r2
+>                     -> ParsecT String u Identity v
+> parseOptionalSuffix c1 p1 c2 p2 = do
+>   x <- p1
+>   y <- maybeP p2
+>   case y of
+>     Nothing -> return $ c1 x
+>     Just z -> return $ c2 x z
+
 
 == whitespacey things
 
