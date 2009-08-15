@@ -642,6 +642,15 @@ test functions
 >       [CreateFunction Plpgsql "fn" [] (Identifier "void") "'"
 >        (PlpgsqlFnBody [VarDef "a" "int" (Just $ IntegerL 3)] [NullStatement])
 >        Stable]
+>      ,p "create function fn() returns setof int as $$\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>       [CreateFunction Plpgsql "fn" []
+>        (UnOpCall SetOf (Identifier "int")) "$$"
+>        (PlpgsqlFnBody [] [NullStatement])
+>        Stable]
 >      ,p "drop function test(text);"
 >       [DropFunction "test" ["text"]]
 >      ])

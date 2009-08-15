@@ -137,6 +137,7 @@ constraints which appear on a separate row in the create table
 > data Language = Sql | Plpgsql
 >                 deriving (Eq, Show)
 
+
 ================================================================================
 
 Expressions
@@ -147,7 +148,7 @@ Expressions
 >         | DistBetween
 >           deriving (Show,Eq)
 
-> data UnOp = Not | IsNull | IsNotNull
+> data UnOp = Not | IsNull | IsNotNull | SetOf
 >             deriving (Show,Eq)
 
 > binOpToSymbol :: BinOp -> String
@@ -177,6 +178,7 @@ Expressions
 >                         Not -> "not"
 >                         IsNull -> "is null"
 >                         IsNotNull -> "is not null"
+>                         SetOf -> "setof"
 
 
 Similarly to the statement type, all expressions

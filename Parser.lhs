@@ -288,7 +288,7 @@ a string
 >   fnName <- identifierString
 >   params <- parens $ commaSep param
 >   keyword "returns"
->   retType <- typeName
+>   retType <- retTypeName
 >   keyword "as"
 >   body <- stringLiteral
 >   keyword "language"
@@ -551,13 +551,22 @@ typeatt: like a cut down version of tableatt, used in create type
 > typeAtt :: ParsecT String () Identity TypeAttributeDef
 > typeAtt = liftM2 TypeAttDef identifierString identifierString
 
-> typeName :: ParsecT String () Identity Expression
-> typeName = do
->   t <- identifierString
->   pr <- maybeP $ parens $ integer
->   case pr of
->     Nothing -> return $ Identifier t
->     Just p -> return $ FunCall t [IntegerL p]
+> retTypeName :: ParsecT String () Identity Expression
+> retTypeName =
+>   choice [
+>     try $ do
+>       keyword "setof"
+>       i <- parseBasicType
+>       return $ UnOpCall SetOf i
+>    ,parseBasicType]
+>   where
+>     parseBasicType = do
+>       t <- identifierString
+>       pr <- maybeP $ parens $ integer
+>       case pr of
+>               Nothing -> return $ Identifier t
+>               Just p -> return $ FunCall t [IntegerL p]
+
 
 ================================================================================
 

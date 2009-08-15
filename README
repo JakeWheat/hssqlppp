@@ -8,7 +8,7 @@ basic select statements, from, where, order by, limit
   some case expressions
 plpgsql select into, but not sql select into
 create table
-constraints: not null, null, unique
+constraints: not null, null, unique (inline and row), inline check
 create view
 insert, multirows and select flavours
 update and delete, including returning
@@ -26,7 +26,7 @@ Many things are missing at the moment, in particular
   parsing sql whilst rejecting plpgsql constructs
   group by, having, cte, window keyword, intersect
   joins in updates
-  constraints: pk, check, references
+  constraints: pk, separate row check, references
   alter and drop statements
   transaction commands
   triggers and trigger functions

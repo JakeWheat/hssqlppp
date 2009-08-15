@@ -303,6 +303,7 @@ Conversion routines - convert Sql asts into Docs
 > convExp (UnOpCall op a) =
 >     case op of
 >           Not -> parens (text (unOpToSymbol op) <+> convExp a)
+>           SetOf -> text (unOpToSymbol op) <+> convExp a
 >           IsNull -> parens (convExp a <+> text (unOpToSymbol op))
 >           IsNotNull -> parens (convExp a <+> text (unOpToSymbol op))
 
