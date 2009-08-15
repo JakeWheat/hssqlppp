@@ -409,10 +409,15 @@ now try and read the join condition
 
 see if there's another join waiting
 
->   jp2 <- maybeP $ joinPart jp1
->   case jp2 of
->     Nothing -> return jp1
->     Just j -> return j
+>   parseOptionalSuffix
+>       id (return jp1)
+>       (\_ -> id) (joinPart jp1)
+
+
+    jp2 <- maybeP $ joinPart jp1
+    case jp2 of
+      Nothing -> return jp1
+      Just j -> return j
 
 selectlist and selectitem: the bit between select and from
 check for into either before the whole list of select columns
