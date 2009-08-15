@@ -32,3 +32,9 @@ and producing an ast
 alternatively put, what syntax errors can be caught before producing
 the ast, and what can only be caught during or after the ast is
    produced
+
+improve tests:
+identify each bit of syntax and make sure there is a test for it
+add some bigger tests: lots of sql statements, big functions
+look for possible corner cases and add tests
+get property checker working again

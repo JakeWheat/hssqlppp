@@ -26,6 +26,10 @@ the lexeme style.
 > import Text.Parsec.String
 > import Text.Parsec.Error
 
+> import Control.Applicative (
+>                             (<*)
+>                            ,(*>)
+>                             )
 > import Data.Maybe
 > import Control.Monad.Identity
 
@@ -89,10 +93,10 @@ function or inside a sql function
 > statement = do
 >   (do
 >    s <- choice [
->          try select
->         ,try insert
->         ,try update
->         ,try delete
+>          select
+>         ,insert
+>         ,update
+>         ,delete
 >         ,(try (keyword "create") >>
 >           choice [createTable
 >                  ,createType
@@ -100,13 +104,14 @@ function or inside a sql function
 >                  ,createView
 >                  ,createDomain])
 >         ,(try (keyword "drop") >> dropFunction)
->         ,try execute
->         ,try assignment
->         ,try ifStatement
->         ,try returnSt
->         ,try raise
->         ,try forStatement
->         ,try perform
+>         ,execute
+>         ,assignment
+>         ,ifStatement
+>         ,returnSt
+>         ,raise
+>         ,forStatement
+>         ,whileStatement
+>         ,perform
 >         ,nullStatement]
 >    semi
 >    return s)
@@ -118,13 +123,15 @@ statement is optional. We only bother with sql statements
 > statementOptionalSemi :: ParsecT String () Identity Statement
 > statementOptionalSemi = do
 >   (do
->    s <- choice [try select
->         ,try insert
->         ,try update
->         ,try delete
+>    s <- choice [
+>          select
+>         ,insert
+>         ,update
+>         ,delete
 >         ,(do
 >               keyword "create"
->               choice [try createTable
+>               choice [
+>                 createTable
 >                ,createType
 >                ,createFunction
 >                ,createView
@@ -151,7 +158,7 @@ recurses to support parsing excepts, unions, etc
 
 > select :: ParsecT String () Identity Statement
 > select = do
->   keyword "select"
+>   try (keyword "select")
 >   s1 <- selQuerySpec
 >   choice [
 
@@ -176,7 +183,7 @@ multiple rows to insert and insert from select statements
 
 > insert :: ParsecT String () Identity Statement
 > insert = do
->   keyword "insert"
+>   try $ keyword "insert"
 >   keyword "into"
 >   tableName <- identifierString
 >   atts <- maybeP (parens $ commaSep1 identifierString)
@@ -192,22 +199,21 @@ multiple rows to insert and insert from select statements
 
 > update :: ParsecT String () Identity Statement
 > update = do
->   keyword "update"
+>   try $ keyword "update"
 >   tableName <- identifierString
 >   keyword "set"
->   scs <- commaSep1 setClause
->   wh <- maybeP whereClause
->   rt <- maybeP returning
->   return $ Update tableName scs wh rt
+>   liftM3 (Update tableName)
+>              (commaSep1 setClause)
+>              (maybeP whereClause)
+>              (maybeP returning)
 
 > delete :: ParsecT String () Identity Statement
 > delete = do
->   keyword "delete"
+>   try $ keyword "delete"
 >   keyword "from"
->   tableName <- identifierString
->   wh <- maybeP whereClause
->   rt <- maybeP returning
->   return $ Delete tableName wh rt
+>   Delete `liftM` identifierString
+>              `ap` (maybeP whereClause)
+>              `ap` (maybeP returning)
 
 = copy statement
 
@@ -216,11 +222,8 @@ one with just a \. in the first two columns
 
 > copy :: ParsecT [Char] u Identity Statement
 > copy = do
->   keyword "copy"
->   --x <- manyTill anyChar (try (string "END OF COPY"))
->   x <- getLinesTillMatches "\\.\n"
->   whitespace
->   return $ Copy x
+>   try $ keyword "copy"
+>   liftM Copy $ lexeme $ getLinesTillMatches "\\.\n"
 >   where
 >     getLinesTillMatches s = do
 >                             x <- getALine
@@ -271,11 +274,9 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 
 > createType :: ParsecT String () Identity Statement
 > createType = do
->   keyword "type"
->   n <- identifierString
->   keyword "as"
->   atts <- parens $ commaSep1 typeAtt
->   return $ CreateType n atts
+>   n <- (try $ keyword "type") *> identifierString <* keyword "as"
+>   liftM (CreateType n) $ parens $ commaSep1 typeAtt
+
 
 create function, support sql functions and
 plpgsql functions. Actually parses the body in both cases
@@ -284,7 +285,7 @@ a string
 
 > createFunction :: GenParser Char () Statement
 > createFunction = do
->   keyword "function"
+>   try $ keyword "function"
 >   fnName <- identifierString
 >   params <- parens $ commaSep param
 >   keyword "returns"
@@ -312,7 +313,7 @@ from that error and rethrow it
 
 > createView :: ParsecT String () Identity Statement
 > createView = do
->   keyword "view"
+>   try $ keyword "view"
 >   vName <- identifierString
 >   keyword "as"
 >   sel <- select
@@ -320,7 +321,7 @@ from that error and rethrow it
 
 > createDomain :: ParsecT String () Identity Statement
 > createDomain = do
->   keyword "domain"
+>   try $ keyword "domain"
 >   nm <- identifierString
 >   maybeP (keyword "as")
 >   tp <- identifierString
@@ -331,7 +332,7 @@ from that error and rethrow it
 
 > dropFunction :: ParsecT String () Identity Statement
 > dropFunction = do
->   keyword "function"
+>   try $ keyword "function"
 >   nm <- identifierString
 >   ts <- parens $ many identifierString
 >   return $ DropFunction nm ts
@@ -576,37 +577,41 @@ null statement is plpgsql nop, written 'null;'
 
 > nullStatement :: ParsecT String u Identity Statement
 > nullStatement = do
->   keyword "null"
+>   try $ keyword "null"
 >   return NullStatement
 
 > perform :: ParsecT String () Identity Statement
 > perform = do
->   keyword "perform"
+>   try $ keyword "perform"
 >   ex <- expr
 >   return $ Perform ex
 
 > execute :: ParsecT String () Identity Statement
 > execute = do
->   keyword "execute"
+>   try $ keyword "execute"
 >   liftM Execute expr
 
 > assignment :: ParsecT String () Identity Statement
 > assignment = do
->   n <- identifierStringMaybeDot
->   symbol ":="
+>   -- put this bit in a try to attempt to get a better error if the
+>   -- code looks like malformed assignment statement
+>   n <- try $ do
+>              n1 <- identifierStringMaybeDot
+>              symbol ":="
+>              return n1
 >   ex <- expr
 >   return $ Assignment n ex
 
 > returnSt :: ParsecT String () Identity Statement
 > returnSt = do
->   keyword "return"
+>   try $ keyword "return"
 >   ((try $ keyword "next" >> liftM ReturnNext expr)
 >    <|> (liftM Return $ maybeP expr))
 
 
 > raise :: ParsecT String () Identity Statement
 > raise = do
->   keyword "raise"
+>   try $ keyword "raise"
 >   tp <- choice [
 >          keyword "notice" >> return RNotice
 >         ,try (keyword "exception" >> return RException)
@@ -622,7 +627,7 @@ flavour at the moment
 
 > forStatement :: GenParser Char () Statement
 > forStatement = do
->   keyword "for"
+>   try $ keyword "for"
 >   i <- identifierString
 >   keyword "in"
 >   choice [
@@ -644,12 +649,22 @@ flavour at the moment
 >       keyword "loop"
 >       return stmts
 
+> whileStatement :: ParsecT String () Identity Statement
+> whileStatement = do
+>   try $ keyword "while"
+>   ex <- expr
+>   keyword "loop"
+>   stmts <- many statement
+>   keyword "end"
+>   keyword "loop"
+>   return $ WhileStatement ex stmts
+
 
 if statement, no support for elsif yet
 
 > ifStatement :: ParsecT String () Identity Statement
 > ifStatement = do
->   keyword "if"
+>   try $ keyword "if"
 >   e <- expr
 >   keyword "then"
 >   st <- many statement
@@ -1130,7 +1145,6 @@ identifier which happens to start with a complete keyword
 >   (do a <- try p
 >       return $ Just a)
 >   <|> return Nothing
-
 
 > commaSep2 :: ParsecT String u Identity t -> ParsecT String u Identity [t]
 > commaSep2 p = sepBy2 p (symbol ",")

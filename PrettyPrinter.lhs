@@ -30,7 +30,6 @@ Public functions
 ================================================================================
 
 Conversion routines - convert Sql asts into Docs
-
 = Statements
 
 > convStatement :: Statement -> Doc
@@ -140,13 +139,18 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (ForSelectStatement i sel stmts) =
 >     text "for" <+> text i <+> text "in"
 >     <+> convSelectFragment True sel <+> text "loop"
->     $+$ nest 2 (vcat $ map convStatement stmts)
+>     $+$ convNestedStatements stmts
 >     $+$ text "end loop" <> statementEnd
 
 > convStatement (ForIntegerStatement var st en stmts) =
 >     text "for" <+> text var <+> text "in"
 >     <+> convExp st <+> text ".." <+> convExp en <+> text "loop"
->     $+$ nest 2 (vcat $ map convStatement stmts)
+>     $+$ convNestedStatements stmts
+>     $+$ text "end loop" <> statementEnd
+
+> convStatement (WhileStatement ex stmts) =
+>     text "while" <+> convExp ex <+> text "loop"
+>     $+$ convNestedStatements stmts
 >     $+$ text "end loop" <> statementEnd
 
 > convStatement (Perform f@(FunCall _ _)) =
@@ -160,11 +164,11 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (If conds els) =
 >    text "if" <+> (convCond $ head conds)
 >    $+$ vcat (map (\c -> text "elseif" <+> convCond c) $ tail conds)
->    $+$ maybeConv (\e -> text "else" $+$ (vcat$ map convStatement e)) els
+>    $+$ maybeConv (\e -> text "else" $+$ convNestedStatements e) els
 >    $+$ text "end if" <> statementEnd
 >     where
 >       convCond (ex, sts) = convExp ex <+> text "then"
->                            $+$ nest 2 (vcat$ map convStatement sts)
+>                            $+$ convNestedStatements sts
 > convStatement (Execute s) = text "execute" <+> convExp s <> statementEnd
 
 > statementEnd :: Doc
@@ -277,7 +281,7 @@ Conversion routines - convert Sql asts into Docs
 == plpgsql
 
 > convFnBody :: FnBody -> Doc
-> convFnBody (SqlFnBody sts) = nest 2 (vcat $ map convStatement sts)
+> convFnBody (SqlFnBody sts) = convNestedStatements sts
 > convFnBody (PlpgsqlFnBody decls sts) =
 >     (if not (null decls)
 >           then
@@ -285,7 +289,7 @@ Conversion routines - convert Sql asts into Docs
 >             $+$ nest 2 (vcat $ map convVarDef decls)
 >           else empty)
 >     $+$ text "begin"
->     $+$ nest 2 (vcat $ map convStatement sts)
+>     $+$ convNestedStatements sts
 >     $+$ text "end;"
 
 > convParamDef :: ParamDef -> Doc
@@ -295,6 +299,9 @@ Conversion routines - convert Sql asts into Docs
 > convVarDef :: VarDef -> Doc
 > convVarDef (VarDef n t v) =
 >   text n <+> text t <+>  maybeConv (\x -> text ":=" <+> convExp x) v <> semi
+
+> convNestedStatements :: [Statement] -> Doc
+> convNestedStatements s = nest 2 (vcat $ map convStatement s)
 
 = Expressions
 

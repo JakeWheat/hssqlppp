@@ -50,6 +50,7 @@ instead put any statement - this type checks but is totally invalid.
 >                | Execute Expression
 >                | ForSelectStatement String Statement [Statement]
 >                | ForIntegerStatement String Expression Expression [Statement]
+>                | WhileStatement Expression [Statement]
 >                | If [(Expression, [Statement])] (Maybe [Statement])
 
 >                  deriving (Eq,Show)
