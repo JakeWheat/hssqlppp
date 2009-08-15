@@ -175,10 +175,8 @@ multiple rows to insert and insert from select statements
 >          <*> maybeP returning
 
 > delete :: ParsecT String () Identity Statement
-> delete = do
->   try $ keyword "delete"
->   keyword "from"
->   Delete <$> identifierString
+> delete = Delete
+>          <$> (trykeyword "delete" *> keyword "from" *> identifierString)
 >          <*> (maybeP whereClause)
 >          <*> (maybeP returning)
 
@@ -189,14 +187,13 @@ one with just a \. in the first two columns
 
 > copy :: ParsecT [Char] u Identity Statement
 > copy = do
->   try $ keyword "copy"
->   liftM Copy $ lexeme $ getLinesTillMatches "\\.\n"
+>   Copy <$> (trykeyword "copy" *> (lexeme $ getLinesTillMatches "\\.\n"))
 >   where
 >     getLinesTillMatches s = do
 >                             x <- getALine
 >                             if x == s
 >                               then return x
->                               else liftM (x++) $ getLinesTillMatches s
+>                               else (x++) <$> getLinesTillMatches s
 >     getALine = do
 >                x <- manyTill anyChar (try newline)
 >                return $ x ++ "\n"
@@ -204,17 +201,20 @@ one with just a \. in the first two columns
 = ddl
 
 > createTable :: ParsecT String () Identity Statement
-> createTable = do
->   try $ keyword "table"
->   n <- identifierString
+> createTable =
+>   uncurry
+>   <$> (CreateTable <$> (trykeyword "table" *> identifierString))
 
-parse our unordered list of attribute defs or constraints
+parse our unordered list of attribute defs or constraints for each
+line, want to try the constraint parser first, then the attribute
+parser, so we need the swap to feed them in the right order into
+createtable
 
->   (cons, atts) <- parens $ parseABsep1
->                   (try tableConstr)
->                   tableAtt
->                   (symbol ",")
->   return $ CreateTable n atts cons
+>   <*> (parens $ swap <$> parseABsep1
+>                            (try tableConstr)
+>                            tableAtt
+>                            (symbol ","))
+>     where swap (a,b) = (b,a)
 
 couldn't work how to to perms so just did this hack instead
 e.g.
@@ -240,11 +240,9 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >                   return (Nothing, Just y)]
 
 > createType :: ParsecT String () Identity Statement
-> createType = do
->   CreateType `liftM` ((try (keyword "type"))
->                       *> identifierString
->                       <* keyword "as")
->                  `ap` (parens $ commaSep1 typeAtt)
+> createType = CreateType
+>              <$> (trykeyword "type" *> identifierString <* keyword "as")
+>              <*> (parens $ commaSep1 typeAtt)
 
 
 create function, support sql functions and
