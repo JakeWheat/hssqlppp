@@ -159,7 +159,7 @@ multiple rows to insert and insert from select statements
 >   Insert <$> (trykeyword "insert"
 >               *> keyword "into"
 >               *> identifierString)
->          <*> maybeP (parens $ commaSep1 identifierString)
+>          <*> maybeP columnNameList
 >          <*> stuffToInsert
 >          <*> maybeP returning
 >       where
@@ -383,31 +383,29 @@ multiple joins
 > joinPart :: TableRef -> GenParser Char () TableRef
 > joinPart tr1 = do
 
+>   jp1 <-
+>     (JoinedTref tr1)
+
 look for the join flavour first
 
->   nat <- maybeP $ keyword "natural"
->   typ <- choice [
->             keyword "inner" >> return Inner
->            ,keyword "left" >> keyword "outer" >> return LeftOuter
->            ,keyword "right" >> keyword "outer" >> return RightOuter
->            ,keyword "full" >> keyword "outer" >> return FullOuter
->            ,keyword "cross" >> return Cross]
->   keyword "join"
+>     <$> (isJust <$> maybeP (keyword "natural"))
+>     <*> choice [
+>             Inner <$ keyword "inner"
+>            ,LeftOuter <$ (keyword "left" *> keyword "outer")
+>            ,RightOuter <$ (keyword "right" *> keyword "outer")
+>            ,FullOuter <$ (keyword "full" >> keyword "outer")
+>            ,Cross <$ keyword "cross"]
 
 recurse back to tref to read the table
 
->   tr2 <- tref
+>     <*> (keyword "join" *> tref)
 
 now try and read the join condition
 
->   onex <- maybeP (do
->                  keyword "on"
->                  liftM JoinOn expr)
->   usingx <- maybeP (keyword "using" >>
->                     (liftM JoinUsing $ parens $ commaSep1 identifierString))
->   let jp1 = JoinedTref tr1 (isJust nat) typ tr2 $ case onex of
->                                                             Just a -> Just a
->                                                             Nothing -> usingx
+>     <*> choice [
+>              Just <$> (JoinOn <$> (keyword "on" *> expr))
+>             ,Just <$> (JoinUsing <$> (keyword "using" *> columnNameList))
+>             ,return Nothing]
 
 see if there's another join waiting
 
@@ -451,6 +449,9 @@ or after the while list
 
 == update
 
+> columnNameList :: ParsecT String () Identity [String]
+> columnNameList = parens $ commaSep1 identifierString
+
 set clause - the set a = 3, b=4 part of a update statement
 
 > setClause :: ParsecT String () Identity SetClause
@@ -478,7 +479,7 @@ tableatt - an single attribute line in a create table
 > tableConstr = do
 >   (try $ do
 >      keyword "unique"
->      liftM UniqueConstraint $ parens $ commaSep1 identifierString)
+>      liftM UniqueConstraint $ columnNameList)
 
 > inlineConstraint :: ParsecT String () Identity InlineConstraint
 > inlineConstraint =
@@ -1164,7 +1165,6 @@ theory
 >   case y of
 >     Nothing -> return $ c1 x
 >     Just z -> return $ c2 x z
-
 
 == whitespacey things
 
