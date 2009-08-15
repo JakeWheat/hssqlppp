@@ -47,7 +47,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (Insert tb atts idata rt) =
 >   text "insert into" <+> text tb
->   <+> maybeConv (\x -> parens (hcatCsvMap text x)) atts
+>   <+> maybeConv (parens . hcatCsvMap text) atts
 >   $+$ convSelectFragment True idata
 >   $+$ convReturning rt
 >   <> statementEnd
@@ -158,7 +158,7 @@ Conversion routines - convert Sql asts into Docs
 >     text "copy" <+> text x
 
 > convStatement (If conds els) =
->    text "if" <+> (convCond $ head conds)
+>    text "if" <+> convCond (head conds)
 >    $+$ vcat (map (\c -> text "elseif" <+> convCond c) $ tail conds)
 >    $+$ maybeConv (\e -> text "else" $+$ convNestedStatements e) els
 >    $+$ text "end if" <> statementEnd
@@ -182,7 +182,7 @@ Conversion routines - convert Sql asts into Docs
 >   $+$ nest 2 (
 >     maybeConv convFrom tb
 >     $+$ convWhere wh)
->   <+> maybeConv (\exps -> text "order by" <+> (hcatCsvMap convExp exps)) ord
+>   <+> maybeConv (\exps -> text "order by" <+> hcatCsvMap convExp exps) ord
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 > convSelectFragment writeSelect (CombineSelect tp s1 s2) =
 >   convSelectFragment writeSelect s1
@@ -203,9 +203,7 @@ Conversion routines - convert Sql asts into Docs
 > convTref (TrefAlias f a) = text f <+> text a
 > convTref (JoinedTref t1 nat jt t2 ex) =
 >     convTref t1
->     $+$ case nat of
->           True -> text "natural"
->           False -> empty
+>     $+$ (if nat then text "natural" else empty)
 >     <+> text (case jt of
 >                       Inner -> "inner"
 >                       Cross -> "cross"
@@ -214,7 +212,7 @@ Conversion routines - convert Sql asts into Docs
 >                       FullOuter -> "full outer")
 >     <+> text "join"
 >     <+> convTref t2
->     <+> maybeConv (\e -> nest 2 (convJoinExpression e)) ex
+>     <+> maybeConv (nest 2 . convJoinExpression) ex
 > convTref (SubTref sub alias) =
 >     parens (convSelectFragment True sub)
 >     <+> text "as" <+> text alias
@@ -241,13 +239,12 @@ Conversion routines - convert Sql asts into Docs
 >   <+> maybeConv (\i -> text "into" <+> hcatCsvMap text i) into
 
 > convSelItem :: SelectItem -> Doc
-> convSelItem (SelectItem ex nm) = (convExp ex) <+> text "as" <+> text nm
+> convSelItem (SelectItem ex nm) = convExp ex <+> text "as" <+> text nm
 > convSelItem (SelExp e) = convExp e
 
 > convValues :: [[Expression]] -> Doc
-> convValues expss = text "values"
->                    $$ nest 2 (vcat (csv $ map
->                                     (\es -> parens (csvExp es)) expss))
+> convValues expss =
+>   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
 
 
 == ddl
@@ -273,7 +270,7 @@ Conversion routines - convert Sql asts into Docs
 >                   )) cons)
 
 > checkExp :: Maybe Expression -> Doc
-> checkExp c = maybeConv (\e -> text "check" <+> convExp e) c
+> checkExp = maybeConv (\e -> text "check" <+> convExp e)
 
 > convCon :: Constraint -> Doc
 > convCon (UniqueConstraint c) = text "unique" <+> parens (hcatCsvMap text c)
@@ -305,7 +302,7 @@ Conversion routines - convert Sql asts into Docs
 >   text n <+> text t <+>  maybeConv (\x -> text ":=" <+> convExp x) v <> semi
 
 > convNestedStatements :: [Statement] -> Doc
-> convNestedStatements s = nest 2 (vcat $ map convStatement s)
+> convNestedStatements = nest 2 . vcat . map convStatement
 
 = Expressions
 
@@ -340,7 +337,7 @@ Conversion routines - convert Sql asts into Docs
 > convExp (ArrayL es) = text "array" <> brackets (csvExp es)
 > convExp (WindowFn fn partition order) =
 >   convExp fn <+> text "over"
->   <+> (if (isJust partition) || (isJust order)
+>   <+> (if isJust partition || isJust order
 >        then
 >           parens (maybeConv (\x -> text "partition by"
 >                                    <+> csvExp x) partition

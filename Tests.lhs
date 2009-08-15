@@ -392,8 +392,8 @@ simple insert
 >         (Values [[IntegerL 1, IntegerL 2]])
 >         Nothing]
 
-multi row insert, test the stand alone values statement first,
-maybe that should be in the select section?
+multi row insert, test the stand alone values statement first, maybe
+that should be in the select section?
 
 >      ,p "values (1,2), (3,4);"
 >      [Values [[IntegerL 1, IntegerL 2]
@@ -758,7 +758,7 @@ complicated statements
 >           mapExpr = map $ uncurry checkParseExpression
 >           mapSql = map $ uncurry checkParse
 >           p a b = (a,b)
->           selIL as = map selI as
+>           selIL = map selI
 >           selI = SelExp . Identifier
 >           sl a = SelectList a Nothing
 >           selectE selList = Select selList Nothing Nothing Nothing Nothing

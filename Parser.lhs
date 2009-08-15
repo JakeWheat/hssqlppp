@@ -141,10 +141,8 @@ recurses to support parsing excepts, unions, etc
 > select = do
 >   s1 <- trykeyword "select" *> selQuerySpec
 >   choice [
-
-don't know if this does associativity in the correct order for
-statements with multiple excepts/ intersects and no parens
-
+>     --don't know if this does associativity in the correct order for
+>     --statements with multiple excepts/ intersects and no parens
 >     try $ CombineSelect Except s1 <$> (keyword "except" *> select)
 >    ,try $ CombineSelect Intersect s1 <$> (keyword "intersect" *> select)
 >    ,try $ CombineSelect Union s1 <$> (keyword "union" *> select)
@@ -152,7 +150,7 @@ statements with multiple excepts/ intersects and no parens
 
 > values :: ParsecT String () Identity Statement
 > values = Values <$> (trykeyword "values"
->                      *> (commaSep1 $ parens $ commaSep1 expr))
+>                      *> commaSep1 (parens $ commaSep1 expr))
 
 = insert, update and delete
 
@@ -186,9 +184,8 @@ multiple rows to insert and insert from select statements
 copy: just reads the string in for now - read lines until we get to
 one with just a \. in the first two columns
 
-> copy :: ParsecT [Char] u Identity Statement
-> copy = do
->   Copy <$> (trykeyword "copy" *> (lexeme $ getLinesTillMatches "\\.\n"))
+> copy :: ParsecT String u Identity Statement
+> copy = Copy <$> (trykeyword "copy" *> lexeme (getLinesTillMatches "\\.\n"))
 >   where
 >     getLinesTillMatches s = do
 >                             x <- getALine
@@ -203,12 +200,10 @@ one with just a \. in the first two columns
 > createTable =
 >   uncurry
 >   <$> (CreateTable <$> (trykeyword "table" *> identifierString))
-
-parse our unordered list of attribute defs or constraints for each
-line, want to try the constraint parser first, then the attribute
-parser, so we need the swap to feed them in the right order into
-createtable
-
+>   --parse our unordered list of attribute defs or constraints for
+>   --each line, want to try the constraint parser first, then the
+>   --attribute parser, so we need the swap to feed them in the right
+>   --order into createtable
 >   <*> parens (swap <$> parseABsep1
 >                          (try tableConstr)
 >                          tableAtt
@@ -234,11 +229,7 @@ a string
 >   body <- keyword "as" *> stringLiteral
 >   lang <- readLang
 >   (q, b) <- parseBody lang body fnName
->   (CreateFunction lang fnName params retType q b) <$> pVol
-
-if we have an error parsing the body, collect all the needed info
-from that error and rethrow it
-
+>   CreateFunction lang fnName params retType q b <$> pVol
 >     where
 >         pVol = matchAKeyword [("volatile", Volatile)
 >                              ,("stable", Stable)
@@ -251,6 +242,9 @@ from that error and rethrow it
 >               ("function " ++ fnName)
 >               (extrStr body) of
 >                  Left e -> do
+>                            --if we have an error parsing the body,
+>                            --collect all the needed info from that
+>                            --error and rethrow it
 >                            sp <- getPosition
 >                            error $ "in " ++ show sp
 >                                      ++ ", " ++ showEr e (extrStr body)
@@ -316,19 +310,17 @@ then cope with joins recursively using joinpart below
 >                     <$> parens select
 >                     <*> (keyword "as" *> identifierString)
 >                    ,parseOptionalSuffix
->                       TrefFun (try $ functionCall)
+>                       TrefFun (try functionCall)
 >                       TrefFunAlias () (keyword "as" *> identifierString)
 >                    ,parseOptionalSuffix
 >                       Tref identifierString
 >                       TrefAlias () nonKeywordIdentifierString]
 >     nonKeywordIdentifierString = do
 >              x <- identifierString
-
-avoid all these keywords as aliases since they can appear immediately
-following a tableref as the next part of the statement, if we don't do
-this then lots of things don't parse.
-
-
+>              --avoid all these keywords as aliases since they can
+>              --appear immediately following a tableref as the next
+>              --part of the statement, if we don't do this then lots
+>              --of things don't parse.
 >              if x `elem` ["where"
 >                          ,"except"
 >                          ,"union"
@@ -349,17 +341,14 @@ this then lots of things don't parse.
 
 joinpart: parse a join after the first part of the tableref
 (which is a table name, aliased table name or subselect)
- - takes this tableref as an arg so it can recurse to
+; - takes this tableref as an arg so it can recurse to
 multiple joins
 
 > joinPart :: TableRef -> GenParser Char () TableRef
-> joinPart tr1 = do
->   parseOptionalSuffixThreaded readOneJoinPart joinPart
+> joinPart tr1 = parseOptionalSuffixThreaded readOneJoinPart joinPart
 >     where
->       readOneJoinPart = (JoinedTref tr1)
-
-look for the join flavour first
-
+>       readOneJoinPart = JoinedTref tr1
+>          --look for the join flavour first
 >          <$> (isJust <$> maybeP (keyword "natural"))
 >          <*> choice [
 >             Inner <$ keyword "inner"
@@ -367,13 +356,9 @@ look for the join flavour first
 >            ,RightOuter <$ (keyword "right" *> keyword "outer")
 >            ,FullOuter <$ (keyword "full" >> keyword "outer")
 >            ,Cross <$ keyword "cross"]
-
-recurse back to tref to read the table
-
+>          --recurse back to tref to read the table
 >          <*> (keyword "join" *> tref)
-
-now try and read the join condition
-
+>          --now try and read the join condition
 >          <*> choice [
 >              Just <$> (JoinOn <$> (keyword "on" *> expr))
 >             ,Just <$> (JoinUsing <$> (keyword "using" *> columnNameList))
@@ -387,11 +372,10 @@ or after the whole list
 > selectList :: ParsecT String () Identity SelectList
 > selectList =
 >     choice [
->         (flip SelectList)
->         <$> (Just <$> try readInto) <*> itemList
+>         flip SelectList <$> (Just <$> try readInto) <*> itemList
 >        ,SelectList <$> itemList <*> maybeP readInto]
 >   where
->     readInto = (keyword "into" *> commaSep1 identifierStringMaybeDot)
+>     readInto = keyword "into" *> commaSep1 identifierStringMaybeDot
 >     itemList = commaSep1 selectItem
 
 
@@ -471,9 +455,10 @@ null statement is plpgsql nop, written 'null;'
 
 > assignment :: ParsecT String () Identity Statement
 > assignment = Assignment
->   -- put the := in the first try to attempt to get a better error if
->   -- the code looks like malformed assignment statement
->              <$> (try (identifierStringMaybeDot <* symbol ":="))
+>              -- put the := in the first try to attempt to get a
+>              -- better error if the code looks like malformed
+>              -- assignment statement
+>              <$> try (identifierStringMaybeDot <* symbol ":=")
 >              <*> expr
 
 > returnSt :: ParsecT String () Identity Statement
@@ -541,7 +526,7 @@ sql function is just a list of statements, the last one has the
 trailing semicolon optional
 
 > functionBody Sql = do
->   a <- whitespace *> (many (try statement))
+>   a <- whitespace *> many (try statement)
 >   SqlFnBody <$> option a ((\b -> (a++[b])) <$> statementOptionalSemi)
 
 plpgsql function has an optional declare section, plus the statements
@@ -646,7 +631,7 @@ the 'missing' notes refer to pg operators which aren't yet supported
 pg's operator table is on this page:
 http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTAX-OPERATORS
 
-> table :: [[Operator [Char] u Identity Expression]]
+> table :: [[Operator String u Identity Expression]]
 > table = [[singleDot "." (BinOpCall Qual) AssocLeft]
 >         ,[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
@@ -681,10 +666,8 @@ http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTA
 >         ,[binaryk "and" (BinOpCall And) AssocLeft
 >          ,binaryk "or" (BinOpCall Or) AssocLeft]]
 >     where
-
-use different parsers for symbols and keywords to get the right
-whitespace behaviour
-
+>       --use different parsers for symbols and keywords to get the
+>       --right whitespace behaviour
 >       binary s f
 >          = Infix (try (operator s >> return f))
 >       binaryk s f
@@ -727,7 +710,7 @@ then a list of expressions or a subselect
 > inPredicate :: ParsecT String () Identity Expression
 > inPredicate =
 >   InPredicate
->   <$> ((try rowCtor) <|> Identifier <$> identifierString)
+>   <$> (try rowCtor <|> Identifier <$> identifierString)
 >   <*> option True (False <$ trykeyword "not")
 >   <*> (keyword "in" *> parens ((InSelect <$> select)
 >                                <|>
@@ -743,7 +726,7 @@ notes:
 (expr) parses to just expr rather than row(expr)
 and () is a syntax error.
 
-> rowCtor :: ParsecT [Char] () Identity Expression
+> rowCtor :: ParsecT String () Identity Expression
 > rowCtor = Row <$> choice [
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
@@ -756,45 +739,30 @@ string parsing
 > stringLiteral :: ParsecT String () Identity Expression
 > stringLiteral = stringQuotes <|> stringLD
 >   where
-
-parse a string delimited by single quotes
-
+>     --parse a string delimited by single quotes
 >     stringQuotes = StringL <$> stringPar
 >     stringPar = char '\'' *> readQuoteEscape <* whitespace
->     --readquoteescape reads the trailing '
+>     --(readquoteescape reads the trailing ')
 
 have to read two consecutive single quotes as a quote character
 instead of the end of the string, probably an easier way to do this
 other escapes (e.g. \n \t) are left unprocessed
 
 >     readQuoteEscape = do
->                         x <- anyChar
->                         if x == '\''
->                           then do
->                                (try $ do
->                                       char '\''
->                                       l <- readQuoteEscape
->                                       return $ x:l)
->                                <|> return ""
->                           else do
->                                l <- readQuoteEscape
->                                return $ x:l
+>                       x <- anyChar
+>                       if x == '\''
+>                         then try ((x:) <$> (char '\'' *> readQuoteEscape))
+>                              <|> return ""
+>                         else (x:) <$> readQuoteEscape
 
 parse a dollar quoted string
 
 >     stringLD = do
->                char '$'
->                tag <- ((do
-
-cope with $$ as well as $[identifier]$
-
->                         lookAhead $ char '$'
->                         return "") <|>
->                        identifierString)
->                char '$'
->                s <- manyTill anyChar
+>                -- cope with $$ as well as $[identifier]$
+>                tag <- char '$' *> ((char '$' *> return "")
+>                                    <|> (identifierString <* char '$'))
+>                s <- lexeme $ manyTill anyChar
 >                       (try $ char '$' <* string tag <* char '$')
->                whitespace
 >                return $ StringLD tag s
 
 couple of helper functions which extract the actual string
@@ -818,7 +786,7 @@ from a StringLD or StringL, and the delimiters which were used
 case - only supports 'case when condition' flavour and not 'case
 expression when value' currently
 
-> caseParse :: ParsecT [Char] () Identity Expression
+> caseParse :: ParsecT String () Identity Expression
 > caseParse = Case <$> (keyword "case" *> many whenParse)
 >                  <*> (maybeP (Else <$> (keyword "else" *> expr))
 >                       <* keyword "end")
@@ -826,13 +794,13 @@ expression when value' currently
 >     whenParse = When <$> (keyword "when" *> expr)
 >                      <*> (keyword "then" *> expr)
 
-> exists :: ParsecT [Char] () Identity Expression
+> exists :: ParsecT String () Identity Expression
 > exists = Exists <$> (keyword "exists" *> parens select)
 
 > booleanLiteral :: ParsecT String u Identity Expression
 > booleanLiteral = BooleanL <$> (=="true")
->                               <$> lexeme ((string "true")
->                                            <|> string "false")
+>                               <$> lexeme (string "true"
+>                                           <|> string "false")
 
 > nullL :: ParsecT String u Identity Expression
 > nullL = NullL <$ keyword "null"
@@ -845,8 +813,8 @@ fn() over ([partition bit]? [order bit]?)
 
 > windowFn :: GenParser Char () Expression
 > windowFn = WindowFn <$> (functionCall <* keyword "over")
->                     <*> (symbol "(" *> (maybeP partitionBy))
->                     <*> ((maybeP orderBy1) <* symbol ")")
+>                     <*> (symbol "(" *> maybeP partitionBy)
+>                     <*> (maybeP orderBy1 <* symbol ")")
 >   where
 >     orderBy1 = keyword "order" *> keyword "by" *> commaSep1 expr
 >     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
@@ -878,7 +846,7 @@ fn() over ([partition bit]? [order bit]?)
 > integer = lexeme $ P.integer lexer
 
 > operator :: String -> ParsecT String u Identity String
-> operator s = symbol s
+> operator = symbol
 
 keyword has to not be immediately followed by letters or numbers
 (symbols and whitespace are ok) so we know that we aren't reading an
@@ -888,11 +856,12 @@ identifier which happens to start with a complete keyword
 > keyword k = lexeme (string k *> notFollowedBy alphaNum)
 >             <?> k
 
-shorthand to simplyfy parsers, helps because you can then avoid parens
-or $
+shorthand to simplify parsers, helps because you can then avoid parens
+or $ which in turn doesn't clutter up things and interfere with the
+applicative operators
 
 > trykeyword :: String -> ParsecT String u Identity ()
-> trykeyword k = try $ keyword k
+> trykeyword = try . keyword
 
 > identifierString :: Parser String
 > identifierString = lexeme (string "*" <|> letter <:> secondOnwards)
@@ -917,14 +886,14 @@ or $
 
 > maybeP :: GenParser tok st a
 >           -> ParsecT [tok] st Identity (Maybe a)
-> maybeP p = (try $ optionMaybe p) <|> return Nothing
+> maybeP p = try (optionMaybe p) <|> return Nothing
 
 > commaSep2 :: ParsecT String u Identity t -> ParsecT String u Identity [t]
 > commaSep2 p = sepBy2 p (symbol ",")
 
 > sepBy2 :: (Stream s m t1) =>
 >           ParsecT s u m t -> ParsecT s u m a -> ParsecT s u m [t]
-> sepBy2 p sep = (p <* sep) <:> (sepBy1 p sep)
+> sepBy2 p sep = (p <* sep) <:> sepBy1 p sep
 
 > commaSep :: ParsecT String u Identity a
 >             -> ParsecT String u Identity [a]
@@ -934,7 +903,7 @@ or $
 >             -> ParsecT String u Identity [a]
 > commaSep1 = P.commaSep lexer
 
-comes up a few times so put it here, doesn't seem too gratuitous
+doesn't seem too gratuitous, comes up a few times
 
 > (<:>) :: (Applicative f) =>
 >          f a -> f [a] -> f [a]
@@ -947,8 +916,7 @@ if keyword k matches then return v
 
 > matchAKeyword :: [(String, a)] -> ParsecT String u Identity a
 > matchAKeyword [] = fail "no matches"
-> matchAKeyword ((k,v):kvs) = do
->   v <$ trykeyword k <|> matchAKeyword kvs
+> matchAKeyword ((k,v):kvs) = v <$ trykeyword k <|> matchAKeyword kvs
 
 parseOptionalSuffix
 
@@ -1039,9 +1007,9 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 
 prefix choice: run one parser (the prefix parser) then choice where
 each of the choice parsers takes the result of the prefix as an
-argument, not sure about this one, since you often end up having
-to write lambda functions for the choices and it doesn't end up
-any more concise
+argument, not sure about this one - you often end up having to write
+lambda functions for the choices and it doesn't end up any more
+concise
 
 > prefixChoice :: (Stream s m t1) =>
 >                 ParsecT s u m t
@@ -1058,8 +1026,9 @@ any more concise
 >                        <|> blockComment
 >                        <|> lineComment)
 
-not quite sure how comments are suppose to work, but these in the
-whitespace parser and in the lexer below seem to cover all the bases
+not quite sure how comment parsing is suppose to work, but these in
+the whitespace parser and in the lexer below seems to cover all the
+bases
 
 > blockComment :: ParsecT String st Identity ()
 > blockComment = st >> manyTill anyChar en >> return ()
@@ -1075,9 +1044,9 @@ whitespace parser and in the lexer below seem to cover all the bases
 
 == lexerizer
 
-bit piss poor at the moment, I think it only puts in real work
-when it is used to allow the built expression parser to deal
-with comments properly
+bit piss poor at the moment, I think it only puts in real work when it
+is used to allow the built expression parser to deal with comments
+properly
 
 > lexer :: P.GenTokenParser String u Identity
 > lexer = P.makeTokenParser (emptyDef {
@@ -1103,11 +1072,10 @@ with comments properly
 
 enhanced show for errors which, in addition to the usual parsec error
 message, displays the line containing the error with a little hat
-pointing to the exact column below it, and the previous and next lines
-for context (which works especially well for pretty printed sql which
-outputs blank lines between everything). This additional text could
-probably be added in the parse routines above to avoid all the clients
-of this module having to do a load of work to get this information.
+pointing to the exact column below it, and some previous and next
+lines for context. This additional text could probably be added in the
+parse routines above to avoid all the clients of this module having to
+do a load of work to get this information.
 
 > showEr :: ParseError -> String -> String
 > showEr er src =
@@ -1118,14 +1086,12 @@ of this module having to do a load of work to get this information.
 >          prelines = map (safeGet ls) [(lineNo - 10) .. (lineNo - 2)]
 >          postlines = map (safeGet ls) [lineNo .. (lineNo + 10)]
 >          colNo = sourceColumn pos
->          highlightLine = (take (colNo -1) (repeat ' ')) ++ "^"
+>          highlightLine = replicate (colNo - 1) ' ' ++ "^"
 >     in "\n---------------------\n" ++ show er
 >        ++ "\n------------\nCheck it out:\n" ++ unlines prelines ++ "\n"
 >        ++ line ++ "\n" ++ highlightLine ++ "\nERROR HERE\n" ++ unlines postlines
 >        ++ "\n-----------------\n"
 >          where
->            safeGet a i = if i < 0
+>            safeGet a i = if i < 0 || i >= length a
 >                            then ""
->                            else if i >= length a
->                                   then ""
->                                   else a !! i
+>                            else a !! i
