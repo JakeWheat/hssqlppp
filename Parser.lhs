@@ -145,9 +145,9 @@ recurses to support parsing excepts, unions, etc
 don't know if this does associativity in the correct order for
 statements with multiple excepts/ intersects and no parens
 
->     try $ (CombineSelect Except s1) <$> (keyword "except" *> select)
->    ,try $ (CombineSelect Intersect s1) <$> (keyword "intersect" *> select)
->    ,try $ (CombineSelect Union s1) <$> (keyword "union" *> select)
+>     try $ CombineSelect Except s1 <$> (keyword "except" *> select)
+>    ,try $ CombineSelect Intersect s1 <$> (keyword "intersect" *> select)
+>    ,try $ CombineSelect Union s1 <$> (keyword "union" *> select)
 >    ,return s1]
 
 = insert, update and delete
@@ -180,8 +180,8 @@ multiple rows to insert and insert from select statements
 > delete :: ParsecT String () Identity Statement
 > delete = Delete
 >          <$> (trykeyword "delete" *> keyword "from" *> identifierString)
->          <*> (maybeP whereClause)
->          <*> (maybeP returning)
+>          <*> maybeP whereClause
+>          <*> maybeP returning
 
 = copy statement
 
@@ -213,16 +213,16 @@ line, want to try the constraint parser first, then the attribute
 parser, so we need the swap to feed them in the right order into
 createtable
 
->   <*> (parens $ swap <$> parseABsep1
->                            (try tableConstr)
->                            tableAtt
->                            (symbol ","))
+>   <*> parens (swap <$> parseABsep1
+>                        (try tableConstr)
+>                        tableAtt
+>                        (symbol ","))
 >     where swap (a,b) = (b,a)
 
 > createType :: ParsecT String () Identity Statement
 > createType = CreateType
 >              <$> (trykeyword "type" *> identifierString <* keyword "as")
->              <*> (parens $ commaSep1 typeAtt)
+>              <*> parens (commaSep1 typeAtt)
 
 
 create function, support sql functions and
@@ -393,7 +393,7 @@ or after the whole list
 >     choice [
 >         (flip SelectList)
 >         <$> (Just <$> try readInto) <*> itemList
->        ,SelectList <$> itemList <*> (maybeP readInto)]
+>        ,SelectList <$> itemList <*> maybeP readInto]
 >   where
 >     readInto = (keyword "into" *> commaSep1 identifierStringMaybeDot)
 >     itemList = commaSep1 selectItem
@@ -450,7 +450,7 @@ typeatt: like a cut down version of tableatt, used in create type
 > retTypeName :: ParsecT String () Identity Expression
 > retTypeName =
 >   choice [
->      (UnOpCall SetOf) <$> (keyword "setof" *> parseBasicType)
+>      UnOpCall SetOf <$> (keyword "setof" *> parseBasicType)
 >     ,parseBasicType]
 >   where
 >     parseBasicType = parseOptionalSuffix
@@ -500,61 +500,41 @@ for statement, only supports for x in [select statement]
 flavour at the moment
 
 > forStatement :: GenParser Char () Statement
-> forStatement = do
->   try $ keyword "for"
->   i <- identifierString
->   keyword "in"
->   choice [
->     do
->       st <- try select
->       stmts <- theRest
->       return $ ForSelectStatement i st stmts
->    ,do
->      st <- expr
->      symbol ".."
->      en <- expr
->      stmts <- theRest
->      return $ ForIntegerStatement i st en stmts]
+> forStatement = prefixChoice
+>                  (trykeyword "for" *> identifierString <* keyword "in")
+>                  [(\i -> ForSelectStatement i <$> try select <*> theRest)
+>                  ,(\i -> ForIntegerStatement i
+>                          <$> expr
+>                          <*> (symbol ".." *> expr)
+>                          <*> theRest)]
 >   where
->     theRest = do
->       keyword "loop"
->       stmts <- many statement
->       keyword "end"
->       keyword "loop"
->       return stmts
+>     theRest = keyword "loop" *> many statement
+>               <* keyword "end" <* keyword "loop"
 
 > whileStatement :: ParsecT String () Identity Statement
-> whileStatement = do
->   try $ keyword "while"
->   ex <- expr
->   keyword "loop"
->   stmts <- many statement
->   keyword "end"
->   keyword "loop"
->   return $ WhileStatement ex stmts
+> whileStatement = WhileStatement
+>                  <$> (trykeyword "while" *> expr <* keyword "loop")
+>                  <*> many statement <* keyword "end" <* keyword "loop"
 
-
-if statement, no support for elsif yet
+bit too clever coming up
 
 > ifStatement :: ParsecT String () Identity Statement
-> ifStatement = do
->   try $ keyword "if"
->   e <- expr
->   keyword "then"
->   st <- many statement
->   sts <- many (try $ do
->                keyword "elseif"
->                e1 <- expr
->                keyword "then"
->                st1 <- many statement
->                return (e1, st1)
->                )
->   elsSts <- maybeP (do
->                      keyword "else"
->                      many statement)
->   keyword "end"
->   keyword "if"
->   return $ If ((e,st):sts) elsSts
+> ifStatement =
+>   If <$> (ifPart <:> elseifParts)
+>      <*> (elsePart <* endIf)
+>   where
+>     ifPart = (ifk *> expr) <.> (thn *> many statement)
+>     elseifParts = many ((elseif *> expr) <.> (thn *> many statement))
+>     elsePart = maybeP (keyword "else" *> many statement)
+>     endIf = keyword "end" <* keyword "if"
+>     thn = keyword "then"
+>     ifk = trykeyword "if"
+>     elseif = trykeyword "elseif"
+>     --might as well these in as well after all that
+>     -- can't do <,> unfortunately, so use <.> instead
+>     (<:>) a b = (:) <$> a <*> b
+>     (<.>) a b = (,) <$> a <*> b
+
 
 ================================================================================
 
@@ -1090,7 +1070,7 @@ theory
 >                     -> ParsecT [tok] u Identity v
 > parseOptionalSuffix c1 p1 c2 p2 = do
 >   x <- p1
->   option (c1 x) ((c2 x) <$> try p2)
+>   option (c1 x) (c2 x <$> try p2)
 
 parseOptionalSuffixThreaded
 
@@ -1131,6 +1111,20 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >     parseAorB = choice [
 >                   (\x -> (Just x,Nothing)) <$> p1
 >                  ,(\y -> (Nothing, Just y)) <$> p2]
+
+prefix choice: run one parser (the prefix parser) then choice where
+each of the choice parsers takes the result of the prefix as an
+argument, not sure about this one, since you often end up having
+to write lambda functions for the choices and it doesn't end up
+any more concise
+
+> prefixChoice :: (Stream s m t1) =>
+>                 ParsecT s u m t
+>              -> [t -> ParsecT s u m b]
+>              -> ParsecT s u m b
+> prefixChoice p1 p = do
+>   x <- p1
+>   choice (map (\q -> q x) p)
 
 == whitespacey things
 
