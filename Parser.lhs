@@ -160,12 +160,14 @@ multiple rows to insert and insert from select statements
 >               *> keyword "into"
 >               *> identifierString)
 >          <*> maybeP (parens $ commaSep1 identifierString)
->          <*> choice [
->                   InsertData
->                   <$> (keyword "values"
->                        *> (commaSep1 $ parens $ commaSep1 expr))
->                  ,InsertQuery <$> select]
+>          <*> stuffToInsert
 >          <*> maybeP returning
+>       where
+>         stuffToInsert = choice [
+>                          InsertData
+>                          <$> (keyword "values"
+>                               *> (commaSep1 $ parens $ commaSep1 expr))
+>                         ,InsertQuery <$> select]
 
 > update :: ParsecT String () Identity Statement
 > update = Update
@@ -227,17 +229,12 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >             -> ParsecT s u m ([a1], [a])
 
 > parseABsep1 p1 p2 sep = do
->   rs <- sepBy1 parseAorB sep
->   let (r1, r2) = unzip rs
+>   (r1, r2) <- unzip <$> sepBy1 parseAorB sep
 >   return (catMaybes r1, catMaybes r2)
 >   where
 >     parseAorB = choice [
->                   do
->                   x <- p1
->                   return (Just x,Nothing)
->                  ,do
->                   y <- p2
->                   return (Nothing, Just y)]
+>                   (\x -> (Just x,Nothing)) <$> p1
+>                  ,(\y -> (Nothing, Just y)) <$> p2]
 
 > createType :: ParsecT String () Identity Statement
 > createType = CreateType
@@ -252,31 +249,34 @@ a string
 
 > createFunction :: GenParser Char () Statement
 > createFunction = do
->   try $ keyword "function"
->   fnName <- identifierString
+>   fnName <- trykeyword "function" *> identifierString
 >   params <- parens $ commaSep param
->   keyword "returns"
->   retType <- retTypeName
->   keyword "as"
->   body <- stringLiteral
->   keyword "language"
->   lang <- (keyword "plpgsql" >> return Plpgsql)
->           <|> (keyword "sql" >> return Sql)
+>   retType <- keyword "returns" *> retTypeName
+>   body <- keyword "as" *> stringLiteral
+>   lang <- readLang
+>   (q, b) <- parseBody lang body fnName
+>   (CreateFunction lang fnName params retType q b) <$> pVol
 
 if we have an error parsing the body, collect all the needed info
 from that error and rethrow it
 
->   case parse (functionBody lang) ("function " ++ fnName) (extrStr body) of
->     Left e -> do
->       sp <- getPosition
->       error $ "in " ++ show sp ++ ", " ++ showEr e (extrStr body)
->     Right body' -> do
->                     vol <- choice [
->                             keyword "volatile" >> return Volatile
->                            ,keyword "stable" >> return Stable
->                            ,keyword "immutable" >> return Immutable]
->                     return $ CreateFunction lang fnName params
->                                retType (quoteOfString body) body' vol
+>     where
+>         pVol = matchAKeyword [("volatile", Volatile)
+>                              ,("stable", Stable)
+>                              ,("immutuable", Immutable)]
+>         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
+>                                                        ,("sql",Sql)]
+>         parseBody lang body fnName =
+>             case parse
+>               (functionBody lang)
+>               ("function " ++ fnName)
+>               (extrStr body) of
+>                  Left e -> do
+>                            sp <- getPosition
+>                            error $ "in " ++ show sp
+>                                      ++ ", " ++ showEr e (extrStr body)
+>                  Right body' -> return (quoteOfString body, body')
+
 
 > createView :: ParsecT String () Identity Statement
 > createView = do
@@ -1135,6 +1135,15 @@ or $
 > commaSep1 :: ParsecT String u Identity a
 >             -> ParsecT String u Identity [a]
 > commaSep1 = P.commaSep lexer
+
+pass a list of pairs of strings and values
+try each pair k,v in turn,
+if keyword k matches then return v
+
+> matchAKeyword :: [(String, a)] -> ParsecT String u Identity a
+> matchAKeyword [] = fail "no matches"
+> matchAKeyword ((k,v):kvs) = do
+>   v <$ trykeyword k <|> matchAKeyword kvs
 
 == whitespacey things
 
