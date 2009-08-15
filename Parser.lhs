@@ -2,8 +2,20 @@ Copyright 2009 Jake Wheat
 
 The main file for parsing sql, uses parsec (badly). Only uses a lexer
 in a few places which may both be wrong and a massive design flaw. Not
-sure if parsec is the right choice either. Whitespace is handled in
-the lexeme style.
+sure if parsec is the right choice either. Uses applicative parsing
+style, see
+http://book.realworldhaskell.org/read/using-parsec.html
+
+For syntax reference see
+http://savage.net.au/SQL/sql-2003-2.bnf.html
+and
+http://savage.net.au/SQL/sql-92.bnf.html
+for some online sql grammar guides
+and
+http://www.postgresql.org/docs/8.4/interactive/sql-syntax.html
+for some notes on postgresql syntax (the rest of that manual is also helpful)
+
+
 
 > module Parser(
 >               --parse fully formed sql statements from a string
@@ -19,37 +31,26 @@ the lexeme style.
 >              )
 >     where
 
-> import Text.Parsec
+> import Text.Parsec hiding(many, optional, (<|>))
+
 > import qualified Text.Parsec.Token as P
 > import Text.Parsec.Language
 > import Text.Parsec.Expr
+
 > import Text.Parsec.String
 > import Text.Parsec.Error
+> import Control.Applicative
 
-> import Control.Applicative (
->                             (<*)
->                            ,(*>)
->                             )
 > import Data.Maybe
 > import Control.Monad.Identity
 
-
 > import Tree
 
-see
-http://savage.net.au/SQL/sql-2003-2.bnf.html
-and
-http://savage.net.au/SQL/sql-92.bnf.html
-for some online sql grammar guides
-and
-http://www.postgresql.org/docs/8.4/interactive/sql-syntax.html
-for some notes on postgresql syntax (the rest of that manual is also helpful)
-
-================================================================================
+===============================================================================
 
 = Top level parsing functions
 
-Parse fully formed sql
+parse fully formed sql
 
 > parseSql :: String -> Either ParseError [Statement]
 > parseSql = parse statements "(unknown)"
@@ -61,85 +62,63 @@ Parse expression fragment, used for testing purposes
 
 > parseExpression :: String -> Either ParseError Expression
 > parseExpression s = parse expr' "" s
->   where expr' = do
->                 x <- expr
->                 eof
->                 return x
+>   where expr' = expr <* eof
 
 ================================================================================
 
 = Parsing top level statements
 
 > statements :: ParsecT String () Identity [Statement]
-> statements = do
->   whitespace
->   s <- many statement
->   eof
->   return s
+> statements = whitespace *> many statement <* eof
 
 parse a statement
 
-a lot of trys are used because there is a lot of overlap - the main
-problem with this is the error messages end up being a bit crap
-
-factoring it to work better will probably proper mangle the code
-readability-wise, maybe some sort of code generator can be used for
-this bit
-
 no attempt is made to reject plpgsql only statements outside of a
-function or inside a sql function
+function or inside a sql function, this would probably be a pretty
+easy fix by adding a flag or something.
 
 > statement :: ParsecT String () Identity Statement
-> statement = do
->   (do
->    s <- choice [
->          select
->         ,insert
->         ,update
->         ,delete
->         ,(try (keyword "create") >>
->           choice [createTable
->                  ,createType
->                  ,createFunction
->                  ,createView
->                  ,createDomain])
->         ,(try (keyword "drop") >> dropFunction)
->         ,execute
->         ,assignment
->         ,ifStatement
->         ,returnSt
->         ,raise
->         ,forStatement
->         ,whileStatement
->         ,perform
->         ,nullStatement]
->    semi
->    return s)
+> statement = choice [
+>              select
+>             ,insert
+>             ,update
+>             ,delete
+>             ,trykeyword "create" *>
+>                         choice [createTable
+>                                ,createType
+>                                ,createFunction
+>                                ,createView
+>                                ,createDomain]
+>             ,trykeyword "drop" *> dropFunction
+>             ,execute
+>             ,assignment
+>             ,ifStatement
+>             ,returnSt
+>             ,raise
+>             ,forStatement
+>             ,whileStatement
+>             ,perform
+>             ,nullStatement]
+>             <* semi
 >    <|> copy
 
 quick hack to support sql functions where the semicolon on the last
 statement is optional. We only bother with sql statements
 
 > statementOptionalSemi :: ParsecT String () Identity Statement
-> statementOptionalSemi = do
->   (do
->    s <- choice [
->          select
->         ,insert
->         ,update
->         ,delete
->         ,(do
->               keyword "create"
->               choice [
->                 createTable
->                ,createType
->                ,createFunction
->                ,createView
->                ,createDomain])
->         ,copy]
->    maybeP semi
->    eof
->    return s)
+> statementOptionalSemi = choice [
+>                          select
+>                         ,insert
+>                         ,update
+>                         ,delete
+>                         ,keyword "create" *> choice [
+>                                       createTable
+>                                      ,createType
+>                                      ,createFunction
+>                                      ,createView
+>                                      ,createDomain]
+>                         ,copy]
+>     <* maybeP semi <* eof
 
 ================================================================================
 
@@ -158,22 +137,16 @@ recurses to support parsing excepts, unions, etc
 
 > select :: ParsecT String () Identity Statement
 > select = do
->   try (keyword "select")
+>   trykeyword "select"
 >   s1 <- selQuerySpec
 >   choice [
 
 don't know if this does associativity in the correct order for
 statements with multiple excepts/ intersects and no parens
 
->     try $ do keyword "except"
->              s2 <- select
->              return $ CombineSelect Except s1 s2
->    ,try $ do keyword "intersect"
->              s3 <- select
->              return $ CombineSelect Intersect s1 s3
->    ,try $ do keyword "union"
->              s3 <- select
->              return $ CombineSelect Union s1 s3
+>     try $ (CombineSelect Except s1) <$> (keyword "except" *> select)
+>    ,try $ (CombineSelect Intersect s1) <$> (keyword "intersect" *> select)
+>    ,try $ (CombineSelect Union s1) <$> (keyword "union" *> select)
 >    ,return s1]
 
 = insert, update and delete
@@ -182,38 +155,32 @@ insert statement: supports option column name list,
 multiple rows to insert and insert from select statements
 
 > insert :: ParsecT String () Identity Statement
-> insert = do
->   try $ keyword "insert"
->   keyword "into"
->   tableName <- identifierString
->   atts <- maybeP (parens $ commaSep1 identifierString)
->   ida <- (do
->           keyword "values"
->           exps <- commaSep1 $ parens $ commaSep1 expr
->           return $ InsertData exps) <|>
->          (do
->           s1 <- select
->           return $ InsertQuery s1)
->   rt <- maybeP returning
->   return $ Insert tableName atts ida rt
+> insert =
+>   Insert <$> (trykeyword "insert"
+>               *> keyword "into"
+>               *> identifierString)
+>          <*> maybeP (parens $ commaSep1 identifierString)
+>          <*> choice [
+>                   InsertData
+>                   <$> (keyword "values"
+>                        *> (commaSep1 $ parens $ commaSep1 expr))
+>                  ,InsertQuery <$> select]
+>          <*> maybeP returning
 
 > update :: ParsecT String () Identity Statement
-> update = do
->   try $ keyword "update"
->   tableName <- identifierString
->   keyword "set"
->   liftM3 (Update tableName)
->              (commaSep1 setClause)
->              (maybeP whereClause)
->              (maybeP returning)
+> update = Update
+>          <$> (trykeyword "update" *> identifierString <* keyword "set")
+>          <*> commaSep1 setClause
+>          <*> maybeP whereClause
+>          <*> maybeP returning
 
 > delete :: ParsecT String () Identity Statement
 > delete = do
 >   try $ keyword "delete"
 >   keyword "from"
->   Delete `liftM` identifierString
->              `ap` (maybeP whereClause)
->              `ap` (maybeP returning)
+>   Delete <$> identifierString
+>          <*> (maybeP whereClause)
+>          <*> (maybeP returning)
 
 = copy statement
 
@@ -274,8 +241,10 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 
 > createType :: ParsecT String () Identity Statement
 > createType = do
->   n <- (try $ keyword "type") *> identifierString <* keyword "as"
->   liftM (CreateType n) $ parens $ commaSep1 typeAtt
+>   CreateType `liftM` ((try (keyword "type"))
+>                       *> identifierString
+>                       <* keyword "as")
+>                  `ap` (parens $ commaSep1 typeAtt)
 
 
 create function, support sql functions and
@@ -576,6 +545,7 @@ typeatt: like a cut down version of tableatt, used in create type
 null statement is plpgsql nop, written 'null;'
 
 > nullStatement :: ParsecT String u Identity Statement
+
 > nullStatement = do
 >   try $ keyword "null"
 >   return NullStatement
@@ -1104,6 +1074,12 @@ identifier which happens to start with a complete keyword
 >     string k
 >     notFollowedBy alphaNum) <?> k
 
+shorthand to simplyfy parsers, helps because you can then avoid parens
+or $
+
+> trykeyword :: String -> ParsecT String u Identity ()
+> trykeyword k = try $ keyword k
+
 > identifierString :: Parser String
 > identifierString =
 >   (do
@@ -1141,10 +1117,7 @@ identifier which happens to start with a complete keyword
 
 > maybeP :: GenParser tok st a
 >           -> ParsecT [tok] st Identity (Maybe a)
-> maybeP p =
->   (do a <- try p
->       return $ Just a)
->   <|> return Nothing
+> maybeP p = (try $ optionMaybe p) <|> return Nothing
 
 > commaSep2 :: ParsecT String u Identity t -> ParsecT String u Identity [t]
 > commaSep2 p = sepBy2 p (symbol ",")
