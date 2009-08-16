@@ -1,38 +1,48 @@
-get all chaos sql files parsing
+add support for partial expressions: e.g. used in case:
+case a
+   when = 3 then
+   ...
+and in check constraints
+
+create table x (
+  f text check (in ['a','b'])
+...
+
+add a exe to help checking the parse/pretty print round trip
+using postgresl - take a sql script, parse and pretty print it to a
+   separate file, then load the original and the pretty printed into
+   empty databases, check no errors, then to a pg dump of each to two
+   files then you can eyeball a diff to see how similar they
+   look. Probably will have to do some work on cutting down the amount
+   of parentheses that the pretty printer produces to make the diffs
+   useful
+
 identify the biggest missing bits and create table of supported and
    unsupported elements
 work on error reporting, add tests for malformed sql
 lex things properly?
 
-make the parse tree nodes more parse tree like
-add source locations for tokens in the parse tree
+put code in a well chosen module
 
-?write a separate ast which the pretty printer uses, better for code
-   generation and more typesafe than the parse tree, plus a convertor
-   from the parse tree to the ast.
+add switch to support other sql dialects in the future
 
-?add type checking and facility to add other static checks
+change the parsing to produce a parse tree with source locations for
+   tokens
+add support for passes over this tree to find additional errors which
+   the initial parsing misses
+transform this tree into an ast and add things like type checking
 
-?add a macro system for code generation, etc.
+add a macro system for code generation, etc.
 
 find a parser that supports better error messages, particularly
 something which can report multiple errors
-
-rough idea for new design:
-parse using parsec -> parse tree with a few suspect bits
-run one or more passes over this parse tree to catch missed syntax
-   errors -> good parse tree
-type check, etc. -> ast
-ast -> pretty printer
 
 improve tests:
 identify each bit of syntax and make sure there is a test for it
 add some bigger tests: lots of sql statements, big functions
 look for possible corner cases and add tests
 
-get some big bits of sql, parse them, pretty print them,
-load them into pg then do a dump. Run the original sql
-through pg and dump and diff the dumps. if they look the same
-then use the sql and parse tree produced as a test
-
-get property checker working again
+get property checker working again - one problem is that the pretty
+   printer will reject some parse trees (which the parser cannot
+   produce), and the parser will probably reject some invalid sql that
+   the pretty printer will happily produce from some parse trees.

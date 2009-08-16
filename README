@@ -3,7 +3,8 @@ A very rough parser and pretty printer for postgresql sql and plpgsql
 Partially supports:
 select statements (selectlists (*, qualified, aliased, expressions)
        window functions
-       from (with explicit joins(natural, inner, cross, left, right,
+       distinct
+       from (with explicit joins - natural, inner, cross, left, right,
        full outer, on and using, aliases, from functions)
        where, group by, order by, limit
        except, intersect, union
@@ -32,6 +33,7 @@ plpgsql statements:
         raise
         for (select and integer variants)
         while
+        case statement
 
 Many things are missing at the moment, in particular
   selects: having, cte, implicit joins, like expressions
@@ -40,11 +42,10 @@ Many things are missing at the moment, in particular
   alter and drop statements apart from drop function
   transaction commands
   triggers and trigger functions
-  loop
-  case statement
+  loop statement
   error trapping
   cursors
-This is a non-exhaustive list
+This is a non-exhaustive list.
 
 Other current downsides:
 
@@ -56,3 +57,20 @@ No work has been done on correctly rejecting invalid sql and no
 thought has been put into error messages and error reporting.
 
 No thought has been given in respects to supporting other sql dialects.
+
+
+Trying it out
+
+The main thing you can do is try to parse a file of sql and see what
+fails.  To do this run the ParseFile (.lhs) script and pass the
+filename of the sql file to it. It will attempt to parse the file, and
+if it succeeds, pretty print then reparse the pretty printed text.
+
+To add support for missing syntax or alter existing support/ fix bugs,
+I recommend first altering Tree.lhs to add/change the tree node data
+type(s), then altering the pretty printer to output these nodes,
+altering the parser to parse them (add new statements to sqlStatement
+or plPgsqlStatement function, new expressions to the factor function),
+and add one or more test cases to Tests.lhs. This already has
+structure set up to parse fully formed sql, text containing
+individual/ multiple plpgsql statements and a single expressions.
