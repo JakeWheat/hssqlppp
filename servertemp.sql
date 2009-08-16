@@ -2764,7 +2764,7 @@ end;
 $$ language plpgsql immutable;
 
 
-  /*
+/*  
   idea is to create a view with all the valid squares in it
   and to start with a square series of squares 1 square away from
   the wizard:
@@ -2793,8 +2793,7 @@ $$ language plpgsql immutable;
    0...1
    23456
    (the 012346 on the second to last and last rows
-     represent 10,11,12,13,14,15,16
-  */
+     represent 10,11,12,13,14,15,16*/
 
 create function cast_magic_wood() returns void as $$
 declare
@@ -2831,8 +2830,8 @@ begin
     end if;
     if pos_in_square = max_pos_in_square then
       range := range + 1;
-      pos_in_square = 0;
-      max_pos_in_square = (select max(index) from get_square_range(0,0,range));
+      pos_in_square := 0;
+      max_pos_in_square := (select max(index) from get_square_range(0,0,range));
     else
       pos_in_square := pos_in_square + 1;
     end if;
@@ -3370,7 +3369,7 @@ declare
   i int;
   c int;
   tg int;
-  killed_wizards text[] = '{}';
+  killed_wizards text[] := '{}';
 begin
   if get_disable_spreading() then
     return;

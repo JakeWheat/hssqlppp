@@ -24,11 +24,11 @@ a select can appear inside another statement (e.g. a subselect), you can
 instead put any statement - this type checks but is totally invalid.
 
 > data Statement =
->                  -- selectlist from where orderby limit
->                  Select SelectList (Maybe From) (Maybe Where) (Maybe [Expression]) (Maybe Expression)
+>                  -- selectlist from where groupby orderby limit
+>                  Select SelectList (Maybe From) (Maybe Where) [Expression] [Expression] (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement
 >                  --table targetcolumns insertdata(values or select statement) returning
->                | Insert String (Maybe [String]) Statement (Maybe SelectList)
+>                | Insert String [String] Statement (Maybe SelectList)
 >                | Update String [SetClause] (Maybe Where) (Maybe SelectList)
 >                | Delete String (Maybe Where) (Maybe SelectList)
 >                | Copy String
@@ -38,13 +38,14 @@ instead put any statement - this type checks but is totally invalid.
 >                | CreateView String Statement
 >                | CreateType String [TypeAttributeDef]
 >                  -- language name args rettype bodyquoteused body vol
->                | CreateFunction Language String [ParamDef] Expression String FnBody Volatility
+>                | CreateFunction Language String [ParamDef] TypeName String FnBody Volatility
 >                  -- name type checkexpression
 >                | CreateDomain String String (Maybe Expression)
 >                | DropFunction String [String]
 >                | Assignment String Expression
 >                | Return (Maybe Expression)
 >                | ReturnNext Expression
+>                | ReturnQuery Statement
 >                | Raise RaiseType String [Expression]
 >                | NullStatement
 >                | Perform Expression
@@ -52,7 +53,8 @@ instead put any statement - this type checks but is totally invalid.
 >                | ForSelectStatement String Statement [Statement]
 >                | ForIntegerStatement String Expression Expression [Statement]
 >                | WhileStatement Expression [Statement]
->                | If [(Expression, [Statement])] (Maybe [Statement])
+>                | ContinueStatement
+>                | If [(Expression, [Statement])] [Statement]
 
 >                  deriving (Eq,Show)
 
@@ -88,7 +90,7 @@ Statement components
 
 select columns, into columns
 
-> data SelectList = SelectList [SelectItem] (Maybe [String])
+> data SelectList = SelectList [SelectItem] [String]
 >                   deriving (Eq,Show)
 
 > data SelectItem = SelExp Expression
@@ -119,11 +121,11 @@ constraints which appear on a separate row in the create table
 > data TypeAttributeDef = TypeAttDef String String
 >                         deriving (Eq,Show)
 
-> data ParamDef = ParamDef String String
->               | ParamDefTp String
+> data ParamDef = ParamDef String TypeName
+>               | ParamDefTp TypeName
 >                     deriving (Eq,Show)
 
-> data VarDef = VarDef String String (Maybe Expression)
+> data VarDef = VarDef String TypeName (Maybe Expression)
 >                     deriving (Eq,Show)
 
 > data RaiseType = RNotice | RException | RError
@@ -138,6 +140,11 @@ constraints which appear on a separate row in the create table
 > data Language = Sql | Plpgsql
 >                 deriving (Eq, Show)
 
+> data TypeName = SimpleType String
+>               | PrecType String Integer
+>               | ArrayType TypeName
+>               | SetOfType TypeName
+>                 deriving (Eq, Show)
 
 ================================================================================
 
@@ -202,9 +209,10 @@ on which expressions can appear in different places.
 >                 | UnOpCall UnOp Expression
 >                 | FunCall String [Expression]
 >                 | InPredicate Expression Bool InList
->                 | WindowFn Expression (Maybe [Expression]) (Maybe [Expression])
+>                 | WindowFn Expression [Expression] [Expression]
 >                   -- windowfn selectitem partitionby orderby
 >                 | ScalarSubQuery Statement
+>                 | ArraySub Expression [Expression]
 >                   deriving (Show,Eq)
 
 > data InList = InList [Expression] | InSelect Statement

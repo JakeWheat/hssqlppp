@@ -36,7 +36,7 @@ Conversion routines - convert Sql asts into Docs
 
 == selects
 
-> convStatement s@(Select _ _ _ _ _) =
+> convStatement s@(Select _ _ _ _ _ _) =
 >   convSelectFragment True s <> statementEnd
 > convStatement s@(CombineSelect _ _ _) =
 >   convSelectFragment True s <> statementEnd
@@ -47,7 +47,9 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (Insert tb atts idata rt) =
 >   text "insert into" <+> text tb
->   <+> maybeConv (parens . hcatCsvMap text) atts
+>   <+> (if not (null atts)
+>          then parens $ hcatCsvMap text atts
+>          else empty)
 >   $+$ convSelectFragment True idata
 >   $+$ convReturning rt
 >   <> statementEnd
@@ -75,7 +77,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (CreateFunction lang name args retType qt body vol) =
 >     text "create function" <+> text name
 >     <+> parens (hcatCsvMap convParamDef args)
->     <+> text "returns" <+> convExp retType <+> text "as" <+> text qt
+>     <+> text "returns" <+> convTypeName retType <+> text "as" <+> text qt
 >     $+$ convFnBody body
 >     $+$ text qt <+> text "language"
 >     <+> text (case lang of
@@ -117,6 +119,8 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (ReturnNext ex) =
 >     text "return" <+> text "next" <+> convExp ex <> statementEnd
 
+> convStatement (ReturnQuery sel) =
+>     text "return" <+> text "query" <+> convSelectFragment True sel <> statementEnd
 
 > convStatement (Raise rt st exps) =
 >     text "raise"
@@ -124,7 +128,7 @@ Conversion routines - convert Sql asts into Docs
 >                 RNotice -> text "notice"
 >                 RException -> text "exception"
 >                 RError -> text "error"
->     <+> quotes (text st)
+>     <+> convExp (StringL st)
 >     <> (if not (null exps)
 >          then
 >            comma
@@ -149,6 +153,8 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ convNestedStatements stmts
 >     $+$ text "end loop" <> statementEnd
 
+> convStatement (ContinueStatement) = text "continue" <> statementEnd
+
 > convStatement (Perform f@(FunCall _ _)) =
 >     text "perform" <+> convExp f <> statementEnd
 > convStatement (Perform x) =
@@ -160,7 +166,9 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (If conds els) =
 >    text "if" <+> convCond (head conds)
 >    $+$ vcat (map (\c -> text "elseif" <+> convCond c) $ tail conds)
->    $+$ maybeConv (\e -> text "else" $+$ convNestedStatements e) els
+>    $+$ (if not (null els)
+>           then text "else" $+$ convNestedStatements els
+>           else empty)
 >    $+$ text "end if" <> statementEnd
 >     where
 >       convCond (ex, sts) = convExp ex <+> text "then"
@@ -177,12 +185,17 @@ Conversion routines - convert Sql asts into Docs
 == selects
 
 > convSelectFragment :: Bool -> Statement -> Doc
-> convSelectFragment writeSelect (Select l tb wh ord lim) =
+> convSelectFragment writeSelect (Select l tb wh grp ord lim) =
 >   text (if writeSelect then "select" else "") <+> convSelList l
 >   $+$ nest 2 (
 >     maybeConv convFrom tb
 >     $+$ convWhere wh)
->   <+> maybeConv (\exps -> text "order by" <+> hcatCsvMap convExp exps) ord
+>   <+> (if not (null grp)
+>          then text "group by" <+> hcatCsvMap convExp grp
+>          else empty)
+>   <+> (if not (null ord)
+>          then text "order by" <+> hcatCsvMap convExp ord
+>          else empty)
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 > convSelectFragment writeSelect (CombineSelect tp s1 s2) =
 >   convSelectFragment writeSelect s1
@@ -236,7 +249,9 @@ Conversion routines - convert Sql asts into Docs
 > convSelList :: SelectList -> Doc
 > convSelList (SelectList ex into) =
 >   hcatCsvMap convSelItem ex
->   <+> maybeConv (\i -> text "into" <+> hcatCsvMap text i) into
+>   <+> if not (null into)
+>         then text "into" <+> hcatCsvMap text into
+>         else empty
 
 > convSelItem :: SelectItem -> Doc
 > convSelItem (SelectItem ex nm) = convExp ex <+> text "as" <+> text nm
@@ -245,7 +260,6 @@ Conversion routines - convert Sql asts into Docs
 > convValues :: [[Expression]] -> Doc
 > convValues expss =
 >   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
-
 
 == ddl
 
@@ -294,15 +308,21 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ text "end;"
 
 > convParamDef :: ParamDef -> Doc
-> convParamDef (ParamDef n t) = text n <+> text t
-> convParamDef  (ParamDefTp t) = text t
+> convParamDef (ParamDef n t) = text n <+> convTypeName t
+> convParamDef  (ParamDefTp t) = convTypeName t
 
 > convVarDef :: VarDef -> Doc
 > convVarDef (VarDef n t v) =
->   text n <+> text t <+>  maybeConv (\x -> text ":=" <+> convExp x) v <> semi
+>   text n <+> convTypeName t <+>  maybeConv (\x -> text ":=" <+> convExp x) v <> semi
 
 > convNestedStatements :: [Statement] -> Doc
 > convNestedStatements = nest 2 . vcat . map convStatement
+
+> convTypeName :: TypeName -> Doc
+> convTypeName (SimpleType s) = text s
+> convTypeName (PrecType s i) = text s <> parens(integer i)
+> convTypeName (ArrayType t) = convTypeName t <> text "[]"
+> convTypeName (SetOfType t) = text "setof" <+> convTypeName t
 
 = Expressions
 
@@ -337,13 +357,18 @@ Conversion routines - convert Sql asts into Docs
 > convExp (ArrayL es) = text "array" <> brackets (csvExp es)
 > convExp (WindowFn fn partition order) =
 >   convExp fn <+> text "over"
->   <+> (if isJust partition || isJust order
+>   <+> (if hp || ho
 >        then
->           parens (maybeConv (\x -> text "partition by"
->                                    <+> csvExp x) partition
->                   <+> maybeConv (\x -> text "order by"
->                                        <+> csvExp x) order)
+>           parens ((if hp
+>                      then text "partition by" <+> csvExp partition
+>                      else empty)
+>                   <+> (if ho
+>                          then text "order by" <+> csvExp order
+>                          else empty))
 >        else empty)
+>   where
+>     hp = not (null partition)
+>     ho = not (null order)
 > convExp (Case whens els) = text "case"
 >                            $+$ nest 2 (vcat (map convWhen whens)
 >                              $+$ case els of
@@ -353,6 +378,8 @@ Conversion routines - convert Sql asts into Docs
 > convExp (PositionalArg a) = text "$" <> int a
 > convExp (Exists s) = text "exists" <+> parens (convSelectFragment True s)
 > convExp (Row r) = text "row" <> parens (hcatCsvMap convExp r)
+> convExp (ArraySub (Identifier i) s) = text i <> brackets (csvExp s)
+> convExp (ArraySub e s) = parens (convExp e) <> brackets (csvExp s)
 
 > convWhen :: When -> Doc
 > convWhen (When ex1 ex2) =

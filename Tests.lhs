@@ -76,8 +76,14 @@ test some more really basic expressions
 >      ,p "true" (BooleanL True)
 >      ,p "false" (BooleanL False)
 >      ,p "null" NullL
+
+array selector
+
 >      ,p "array[1,2]" (ArrayL [IntegerL 1, IntegerL 2])
 
+array subscripting
+
+>      ,p "a[1]" (ArraySub (Identifier "a") [IntegerL 1])
 
 we just produce a parse tree, so no type checking or anything like
 that is done
@@ -184,7 +190,7 @@ first statement, pretty simple
 
 >     ,testGroup "select expression"
 >     (mapSql [
->       p "select 1;" [selectE (SelectList [SelExp (IntegerL 1)] Nothing)]
+>       p "select 1;" [selectE (SelectList [SelExp (IntegerL 1)] [])]
 >      ])
 
 ================================================================================
@@ -288,8 +294,8 @@ test a whole bunch more select statements
 >       [selectFrom [SelectItem
 >                    (WindowFn
 >                     (FunCall "row_number" [])
->                     Nothing
->                     (Just [Identifier "a"]))
+>                     []
+>                     [Identifier "a"])
 >                    "place"]
 >        (Tref "tbl")]
 >      ,p "select row_number()\n\
@@ -298,8 +304,8 @@ test a whole bunch more select statements
 >       [selectFrom [SelectItem
 >                    (WindowFn
 >                     (FunCall "row_number" [])
->                     (Just [Row [Identifier "a",Identifier "b"]])
->                     (Just [Identifier "c"]))
+>                     [Row [Identifier "a",Identifier "b"]]
+>                     [Identifier "c"])
 >                    "place"]
 >        (Tref "tbl")]
 >      ,p "select * from a natural inner join (select * from b) as a;"
@@ -314,12 +320,12 @@ test a whole bunch more select statements
 >       [Select
 >        (sl (selIL ["*"]))
 >        (Just (From (Tref "a")))
->        Nothing (Just [Identifier "c"]) Nothing]
+>        Nothing [] [Identifier "c"] Nothing]
 >      ,p "select * from a order by c limit 1;"
 >       [Select
 >        (sl (selIL ["*"]))
 >        (Just (From (Tref "a")))
->        Nothing (Just [Identifier "c"]) (Just (IntegerL 1))]
+>        Nothing [] [Identifier "c"] (Just (IntegerL 1))]
 >      ,p "select a from (select b from c) as d;"
 >         [selectFrom
 >          (selIL ["a"])
@@ -333,6 +339,15 @@ test a whole bunch more select statements
 >       [selectFrom
 >        (selIL ["*"])
 >        (TrefFunAlias (FunCall "gen" []) "t")]
+>      ,p "select a, count(b) from c group by a;"
+>         [Select
+>          (sl [selI "a", SelExp (FunCall "count" [Identifier "b"])])
+>          (Just $ From $ Tref "c")
+>          Nothing
+>          [Identifier "a"]
+>          []
+>          Nothing]
+
 >      ])
 
 ================================================================================
@@ -388,7 +403,7 @@ simple insert
 >         \values (1,2);\n"
 >       [Insert
 >         "testtable"
->         (Just ["columna", "columnb"])
+>         ["columna", "columnb"]
 >         (Values [[IntegerL 1, IntegerL 2]])
 >         Nothing]
 
@@ -404,7 +419,7 @@ that should be in the select section?
 >         \values (1,2), (3,4);\n"
 >       [Insert
 >         "testtable"
->         (Just ["columna", "columnb"])
+>         ["columna", "columnb"]
 >         (Values [[IntegerL 1, IntegerL 2]
 >                 ,[IntegerL 3, IntegerL 4]])
 >         Nothing]
@@ -413,7 +428,7 @@ insert from select
 
 >      ,p "insert into a\n\
 >          \    select b from c;"
->       [Insert "a" Nothing
+>       [Insert "a" []
 >        (selectFrom [selI "b"] (Tref "c"))
 >        Nothing]
 
@@ -422,7 +437,7 @@ insert from select
 >         \values (1,2) returning id;\n"
 >       [Insert
 >         "testtable"
->         (Just ["columna", "columnb"])
+>         ["columna", "columnb"]
 >         (Values [[IntegerL 1, IntegerL 2]])
 >         (Just $ sl [selI "id"])]
 
@@ -450,7 +465,7 @@ updates
 >       [Update "pieces" [SetClause "a" (Identifier "b")]
 >        Nothing (Just (SelectList
 >                       [SelExp (Identifier "tag")]
->                       (Just ["r.tag"])))]
+>                       ["r.tag"]))]
 
 delete
 
@@ -498,17 +513,14 @@ create table tests
 >         \  fld boolean default false);"
 >       [CreateTable "tbl" [AttributeDef "fld" "boolean"
 >                           (Just $ BooleanL False) []][]]
->      ,p "create view v1 as\n\
->         \select a,b from t;"
 
 other creates
 
+>      ,p "create view v1 as\n\
+>         \select a,b from t;"
 >       [CreateView
 >        "v1"
->        (Select
->         (sl [selI "a", selI "b"])
->         (Just $ From $ Tref "t")
->         Nothing Nothing Nothing)]
+>        (selectFrom [selI "a", selI "b"] (Tref "t"))]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
 >       [CreateDomain "td" "text"
 >        (Just (InPredicate (Identifier "value") True
@@ -612,14 +624,12 @@ test functions
 >       p "create function t1(text) returns text as $$\n\
 >         \select a from t1 where b = $1;\n\
 >         \$$ language sql stable;"
->       [CreateFunction Sql "t1" [ParamDefTp "text"] (Identifier "text") "$$"
+>       [CreateFunction Sql "t1" [ParamDefTp $ SimpleType "text"]
+>        (SimpleType "text") "$$"
 >        (SqlFnBody
->         [Select
->          (sl [SelExp (Identifier "a")])
->          (Just (From (Tref "t1")))
->          (Just (Where (BinOpCall Eql
->                        (Identifier "b") (PositionalArg 1))))
->          Nothing Nothing])
+>         [selectFromWhere [SelExp (Identifier "a")] (Tref "t1")
+>          ((BinOpCall Eql
+>            (Identifier "b") (PositionalArg 1)))])
 >        Stable]
 >      ,p "create function fn() returns void as $$\n\
 >         \declare\n\
@@ -629,20 +639,37 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction Plpgsql "fn" [] (Identifier "void") "$$"
->        (PlpgsqlFnBody [VarDef "a" "int" Nothing
->                       ,VarDef "b" "text" Nothing]
+>       [CreateFunction Plpgsql "fn" [] (SimpleType "void") "$$"
+>        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") Nothing
+>                       ,VarDef "b" (SimpleType "text") Nothing]
 >         [NullStatement])
 >        Volatile]
->      ,p "create function fn() returns void as '\n\
+>      ,p "create function fn() returns void as $$\n\
 >         \declare\n\
 >         \  a int;\n\
+>         \  b text;\n\
 >         \begin\n\
 >         \  null;\n\
 >         \end;\n\
->         \' language plpgsql immutable;"
->       [CreateFunction Plpgsql "fn" [] (Identifier "void") "'"
->        (PlpgsqlFnBody [VarDef "a" "int" Nothing] [NullStatement])
+>         \$$ language plpgsql volatile;"
+>       [CreateFunction Plpgsql "fn" [] (SimpleType "void") "$$"
+>        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") Nothing
+>                       ,VarDef "b" (SimpleType "text") Nothing]
+>         [NullStatement])
+>        Volatile]
+>      ,p "create function fn(a text[]) returns int[] as $$\n\
+>         \declare\n\
+>         \  b xtype[] := '{}';\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end;\n\
+>         \$$ language plpgsql immutable;"
+>       [CreateFunction Plpgsql "fn"
+>        [ParamDef "a" $ ArrayType $ SimpleType "text"]
+>        (ArrayType $ SimpleType "int") "$$"
+>        (PlpgsqlFnBody
+>         [VarDef "b" (ArrayType $ SimpleType "xtype") (Just $ StringL "{}")]
+>         [NullStatement])
 >        Immutable]
 >      ,p "create function fn() returns void as '\n\
 >         \declare\n\
@@ -651,8 +678,9 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction Plpgsql "fn" [] (Identifier "void") "'"
->        (PlpgsqlFnBody [VarDef "a" "int" (Just $ IntegerL 3)] [NullStatement])
+>       [CreateFunction Plpgsql "fn" [] (SimpleType "void") "'"
+>        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") (Just $ IntegerL 3)]
+>         [NullStatement])
 >        Stable]
 >      ,p "create function fn() returns setof int as $$\n\
 >         \begin\n\
@@ -660,7 +688,16 @@ test functions
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" []
->        (UnOpCall SetOf (Identifier "int")) "$$"
+>        (SetOfType $ SimpleType "int") "$$"
+>        (PlpgsqlFnBody [] [NullStatement])
+>        Stable]
+>      ,p "create function fn() returns void as $$\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end\n\
+>         \$$ language plpgsql stable;"
+>       [CreateFunction Plpgsql "fn" []
+>        (SimpleType "void") "$$"
 >        (PlpgsqlFnBody [] [NullStatement])
 >        Stable]
 >      ,p "drop function test(text);"
@@ -684,6 +721,8 @@ simple statements
 >       [Return Nothing]
 >      ,p "return next 1;"
 >       [ReturnNext $ IntegerL 1]
+>      ,p "return query select a from b;"
+>       [ReturnQuery $ selectFrom [selI "a"] (Tref "b")]
 >      ,p "raise notice 'stuff %', 1;"
 >       [Raise RNotice "stuff %" [IntegerL 1]]
 >      ,p "perform test();"
@@ -695,32 +734,27 @@ simple statements
 >                     BinOpCall Conc (qi "r" "relvar_name")
 >                                            (StringL "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
->       [Select (SelectList [selI "c", selI "d"] (Just ["a", "b"]))
->                   (Just $ From $ Tref "e") Nothing Nothing Nothing]
+>       [Select (SelectList [selI "c", selI "d"] ["a", "b"])
+>                   (Just $ From $ Tref "e") Nothing [] [] Nothing]
 >      ,p "select c,d into a,b from e;"
->       [Select (SelectList [selI "c", selI "d"] (Just ["a", "b"]))
->                   (Just $ From $ Tref "e") Nothing Nothing Nothing]
+>       [Select (SelectList [selI "c", selI "d"] ["a", "b"])
+>                   (Just $ From $ Tref "e") Nothing [] [] Nothing]
 >      ,p "execute s;"
 >       [Execute (Identifier "s")]
+>      ,p "continue;" [ContinueStatement]
 
 complicated statements
 
 >      ,p "for r in select a from tbl loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForSelectStatement "r" (Select
->                          (sl [selI "a"])
->                          (Just $ From $ Tref "tbl")
->                          Nothing Nothing Nothing)
+>       [ForSelectStatement "r" (selectFrom  [selI "a"] (Tref "tbl"))
 >        [NullStatement]]
 >      ,p "for r in select a from tbl where true loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForSelectStatement "r" (Select
->                          (sl [selI "a"])
->                          (Just $ From $ Tref "tbl")
->                          (Just $ Where $ BooleanL True)
->                          Nothing Nothing)
+>       [ForSelectStatement "r"
+>        (selectFromWhere [selI "a"] (Tref "tbl") (BooleanL True))
 >        [NullStatement]]
 >      ,p "for r in 1 .. 10 loop\n\
 >         \null;\n\
@@ -734,14 +768,14 @@ complicated statements
 >         \end if;"
 >       [If [((BinOpCall  Eql (Identifier "a") (Identifier "b"))
 >           ,[Update "c" [SetClause "d" (Identifier "e")] Nothing Nothing])]
->        Nothing]
+>        []]
 >      ,p "if true then\n\
 >         \  null;\n\
 >         \else\n\
 >         \  null;\n\
 >         \end if;"
 >       [If [((BooleanL True),[NullStatement])]
->        (Just [NullStatement])]
+>        [NullStatement]]
 >      ,p "if true then\n\
 >         \  null;\n\
 >         \elseif false then\n\
@@ -749,7 +783,21 @@ complicated statements
 >         \end if;"
 >       [If [((BooleanL True), [NullStatement])
 >           ,((BooleanL False), [Return Nothing])]
->        Nothing]
+>        []]
+>      ,p "if true then\n\
+>         \  null;\n\
+>         \elseif false then\n\
+>         \  return;\n\
+>         \elseif false then\n\
+>         \  return;\n\
+>         \else\n\
+>         \  return;\n\
+>         \end if;"
+>       [If [((BooleanL True), [NullStatement])
+>           ,((BooleanL False), [Return Nothing])
+>           ,((BooleanL False), [Return Nothing])]
+>        [Return Nothing]]
+
 >      ])
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp
@@ -760,15 +808,15 @@ complicated statements
 >           p a b = (a,b)
 >           selIL = map selI
 >           selI = SelExp . Identifier
->           sl a = SelectList a Nothing
->           selectE selList = Select selList Nothing Nothing Nothing Nothing
+>           sl a = SelectList a []
+>           selectE selList = Select selList Nothing Nothing [] [] Nothing
 >           qi a b = BinOpCall Qual (Identifier a) (Identifier b)
 >           selectFrom selList frm =
->             Select (SelectList selList Nothing)
->                    (Just $ From frm) Nothing Nothing Nothing
+>             Select (SelectList selList [])
+>                    (Just $ From frm) Nothing [] [] Nothing
 >           selectFromWhere selList frm whr =
->             Select (SelectList selList Nothing)
->                    (Just $ From frm) (Just $ Where whr) Nothing Nothing
+>             Select (SelectList selList [])
+>                    (Just $ From frm) (Just $ Where whr) [] [] Nothing
 
 ================================================================================
 

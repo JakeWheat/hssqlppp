@@ -92,6 +92,7 @@ easy fix by adding a flag or something.
 >                                ,createView
 >                                ,createDomain]
 >             ,trykeyword "drop" *> dropFunction
+>             ,ContinueStatement <$ trykeyword "continue"
 >             ,execute
 >             ,assignment
 >             ,ifStatement
@@ -110,17 +111,19 @@ statement is optional. We only bother with sql statements
 > statementOptionalSemi :: ParsecT String () Identity Statement
 > statementOptionalSemi = choice [
 >                          select
+>                         ,values
 >                         ,insert
 >                         ,update
 >                         ,delete
->                         ,keyword "create" *> choice [
->                                       createTable
->                                      ,createType
->                                      ,createFunction
->                                      ,createView
->                                      ,createDomain]
+>                         ,trykeyword "create" *>
+>                          choice [
+>                           createTable
+>                          ,createType
+>                          ,createFunction
+>                          ,createView
+>                          ,createDomain]
 >                         ,copy]
->     <* maybeP semi <* eof
+>     <* optional semi <* eof
 
 ================================================================================
 
@@ -162,7 +165,7 @@ multiple rows to insert and insert from select statements
 >   Insert <$> (trykeyword "insert"
 >               *> keyword "into"
 >               *> identifierString)
->          <*> maybeP columnNameList
+>          <*> option [] (try columnNameList)
 >          <*> (select <|> values)
 >          <*> maybeP returning
 
@@ -225,7 +228,7 @@ a string
 > createFunction = do
 >   fnName <- trykeyword "function" *> identifierString
 >   params <- parens $ commaSep param
->   retType <- keyword "returns" *> retTypeName
+>   retType <- keyword "returns" *> typeName
 >   body <- keyword "as" *> stringLiteral
 >   lang <- readLang
 >   (q, b) <- parseBody lang body fnName
@@ -278,11 +281,15 @@ select bits
 >                <$> selectList
 >                <*> maybeP from
 >                <*> maybeP whereClause
->                <*> maybeP orderBy
+>                <*> option [] groupBy
+>                <*> option [] orderBy
 >                <*> maybeP limit
 
 > orderBy :: GenParser Char () [Expression]
-> orderBy = keyword "order" *> keyword "by" *> commaSep1 expr
+> orderBy = trykeyword "order" *> keyword "by" *> commaSep1 expr
+
+> groupBy :: GenParser Char () [Expression]
+> groupBy = trykeyword "group" *> keyword "by" *> commaSep1 expr
 
 > from :: GenParser Char () From
 > from = From <$> (keyword "from" *> tref)
@@ -315,7 +322,7 @@ then cope with joins recursively using joinpart below
 >                    ,parseOptionalSuffix
 >                       Tref identifierString
 >                       TrefAlias () nonKeywordIdentifierString]
->     nonKeywordIdentifierString = do
+>     nonKeywordIdentifierString = try $ do
 >              x <- identifierString
 >              --avoid all these keywords as aliases since they can
 >              --appear immediately following a tableref as the next
@@ -334,6 +341,7 @@ then cope with joins recursively using joinpart below
 >                          ,"cross"
 >                          ,"natural"
 >                          ,"order"
+>                          ,"group"
 >                          ,"limit"
 >                          ,"using"]
 >                then fail "not keyword"
@@ -360,8 +368,8 @@ multiple joins
 >          <*> (keyword "join" *> tref)
 >          --now try and read the join condition
 >          <*> choice [
->              Just <$> (JoinOn <$> (keyword "on" *> expr))
->             ,Just <$> (JoinUsing <$> (keyword "using" *> columnNameList))
+>              Just <$> (JoinOn <$> (trykeyword "on" *> expr))
+>             ,Just <$> (JoinUsing <$> (trykeyword "using" *> columnNameList))
 >             ,return Nothing]
 
 
@@ -372,10 +380,10 @@ or after the whole list
 > selectList :: ParsecT String () Identity SelectList
 > selectList =
 >     choice [
->         flip SelectList <$> (Just <$> try readInto) <*> itemList
->        ,SelectList <$> itemList <*> maybeP readInto]
+>         flip SelectList <$> readInto <*> itemList
+>        ,SelectList <$> itemList <*> option [] readInto]
 >   where
->     readInto = keyword "into" *> commaSep1 identifierStringMaybeDot
+>     readInto = trykeyword "into" *> commaSep1 identifierStringMaybeDot
 >     itemList = commaSep1 selectItem
 
 
@@ -427,16 +435,15 @@ typeatt: like a cut down version of tableatt, used in create type
 > typeAtt :: ParsecT String () Identity TypeAttributeDef
 > typeAtt = TypeAttDef <$> identifierString <*> identifierString
 
-> retTypeName :: ParsecT String () Identity Expression
-> retTypeName =
->   choice [
->      UnOpCall SetOf <$> (keyword "setof" *> parseBasicType)
->     ,parseBasicType]
->   where
->     parseBasicType = parseOptionalSuffix
->                        Identifier identifierString
->                        makeFunCall () (IntegerL <$> parens integer)
->     makeFunCall a b = FunCall a [b]
+> typeName :: ParsecT String () Identity TypeName
+> typeName = choice [
+>             SetOfType <$> (trykeyword "setof" *> typeName)
+>            ,do
+>              s <- identifierString
+>              choice [
+>                PrecType s <$> parens integer
+>               ,ArrayType (SimpleType s) <$ symbol "[]"
+>               ,return $ SimpleType s]]
 
 ================================================================================
 
@@ -465,6 +472,7 @@ null statement is plpgsql nop, written 'null;'
 > returnSt = trykeyword "return" *>
 >            choice [
 >             ReturnNext <$> (trykeyword "next" *> expr)
+>            ,ReturnQuery <$> (trykeyword "query" *> select)
 >            ,Return <$> maybeP expr]
 
 > raise :: ParsecT String () Identity Statement
@@ -506,8 +514,8 @@ bit too clever coming up
 >   where
 >     ifPart = (ifk *> expr) <.> (thn *> many statement)
 >     elseifParts = many ((elseif *> expr) <.> (thn *> many statement))
->     elsePart = maybeP (keyword "else" *> many statement)
->     endIf = keyword "end" <* keyword "if"
+>     elsePart = option [] (trykeyword "else" *> many statement)
+>     endIf = trykeyword "end" <* keyword "if"
 >     thn = keyword "then"
 >     ifk = trykeyword "if"
 >     elseif = trykeyword "elseif"
@@ -516,7 +524,7 @@ bit too clever coming up
 >     (<.>) a b = (,) <$> a <*> b
 
 
-================================================================================
+===============================================================================
 
 = statement components for plpgsql
 
@@ -538,23 +546,31 @@ are enclosed in begin ... end;
 >      PlpgsqlFnBody <$> (keyword "declare" *> readVarDefs) <*> restOfIt
 >     ,PlpgsqlFnBody [] <$> (keyword "begin" *> restOfIt)]
 >   where
->     restOfIt = many statement <* keyword "end" <* semi <* eof
+>     restOfIt = many statement <* keyword "end" <* optional semi <* eof
 >     readVarDefs = manyTill (try varDef) (try $ keyword "begin")
 
 params to a function
 
 > param :: ParsecT String () Identity ParamDef
-> param = parseOptionalSuffix
->           ParamDefTp identifierString
->           ParamDef () identifierString
+> param = choice [
+>          try (ParamDef <$> identifierString <*> typeName)
+>         ,ParamDefTp <$> typeName]
 
 variable declarations in a plpgsql function
 
 > varDef :: ParsecT String () Identity VarDef
 > varDef = VarDef
 >          <$> identifierString
->          <*> identifierString
+>          <*> typeName
 >          <*> maybeP (symbol ":=" *> expr) <* semi
+
+create function fn(a text[]) returns int[] as '
+declare
+  b xtype[] := '{}'
+begin
+  null;
+end;
+' language plpgsql immutable;:
 
 ================================================================================
 
@@ -611,7 +627,12 @@ tried after these. This claim might be wrong
 >          ,try exists
 >          ,try booleanLiteral
 >          ,try nullL
+
+do array before array sub, since array parses an array selector which
+looks exactly like an array subscript operator
+
 >          ,try array
+>          ,try arraySub
 
 now the ones starting with a function name, since a function call
 looks like the start of a window expression, try the window expression
@@ -808,16 +829,22 @@ expression when value' currently
 > array :: GenParser Char () Expression
 > array = ArrayL <$> (keyword "array" *> squares (commaSep expr))
 
+when you put expr instead of identifier in arraysub, it stack
+overflows, not sure why.
+
+> arraySub :: ParsecT [Char] () Identity Expression
+> arraySub = ArraySub <$> identifier <*> squares (commaSep1 expr)
+
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
 
 > windowFn :: GenParser Char () Expression
 > windowFn = WindowFn <$> (functionCall <* keyword "over")
->                     <*> (symbol "(" *> maybeP partitionBy)
->                     <*> (maybeP orderBy1 <* symbol ")")
+>                     <*> (symbol "(" *> option [] partitionBy)
+>                     <*> (option [] orderBy1 <* symbol ")")
 >   where
->     orderBy1 = keyword "order" *> keyword "by" *> commaSep1 expr
->     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
+>     orderBy1 = trykeyword "order" *> keyword "by" *> commaSep1 expr
+>     partitionBy = trykeyword "partition" *> keyword "by" *> commaSep1 expr
 
 > functionCall :: ParsecT String () Identity Expression
 > functionCall = FunCall <$> identifierString <*> parens (commaSep expr)
