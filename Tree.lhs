@@ -222,8 +222,8 @@ on which expressions can appear in different places.
 >                 | UnOpCall UnOp Expression
 >                 | FunCall String [Expression]
 >                 | InPredicate Expression Bool InList
->                   -- windowfn selectitem partitionby orderby
->                 | WindowFn Expression [Expression] [Expression]
+>                   -- windowfn selectitem partitionby orderby orderbyasc?
+>                 | WindowFn Expression [Expression] [Expression] Bool
 >                 | ScalarSubQuery Statement
 >                 | ArraySub Expression [Expression]
 >                   deriving (Show,Eq)

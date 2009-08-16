@@ -203,6 +203,7 @@ test a whole bunch more select statements
 >       [selectFrom (selIL ["*"]) (Tref "tbl")]
 >      ,p "select a,b from tbl;"
 >       [selectFrom (selIL ["a", "b"]) (Tref "tbl")]
+
 >      ,p "select a from tbl where b=2;"
 >       [selectFromWhere
 >         (selIL ["a"])
@@ -218,6 +219,7 @@ test a whole bunch more select statements
 >           (Identifier "b") (IntegerL 2))
 >          (BinOpCall Eql
 >           (Identifier "c") (IntegerL 3)))]
+
 >      ,p "select a from tbl\n\
 >         \except\n\
 >         \select a from tbl1;"
@@ -236,6 +238,7 @@ test a whole bunch more select statements
 >       [CombineSelect Union
 >        (selectFrom (selIL ["a"]) (Tref "tbl"))
 >        (selectFrom (selIL ["a"]) (Tref "tbl1"))]
+
 >      ,p "select a as b from tbl;"
 >       [selectFrom [SelectItem (Identifier "a") "b"] (Tref "tbl")]
 >      ,p "select a + b as b from tbl;"
@@ -246,17 +249,26 @@ test a whole bunch more select statements
 >        (Tref "tbl")]
 >      ,p "select a.* from tbl a;"
 >       [selectFrom [SelExp (qi "a" "*")] (TrefAlias "tbl" "a")]
+
 >      ,p "select a from b inner join c on b.a=c.a;"
 >       [selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") False Inner (Tref "c")
 >           (Just (JoinOn
 >            (BinOpCall Eql (qi "b" "a") (qi "c" "a")))))]
+>      ,p "select a from b inner join c as d on b.a=d.a;"
+>       [selectFrom
+>        (selIL ["a"])
+>        (JoinedTref (Tref "b") False Inner (TrefAlias "c" "d")
+>           (Just (JoinOn
+>            (BinOpCall Eql (qi "b" "a") (qi "d" "a")))))]
+
 >      ,p "select a from b inner join c using(d,e);"
 >       [selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") False Inner (Tref "c")
 >           (Just (JoinUsing ["d","e"])))]
+
 >      ,p "select a from b natural inner join c;"
 >       [selectFrom
 >        (selIL ["a"])
@@ -277,6 +289,7 @@ test a whole bunch more select statements
 >       [selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") False Cross (Tref "c") Nothing)]
+
 >      ,p "select a from b\n\
 >         \    inner join c\n\
 >         \      on true\n\
@@ -290,12 +303,29 @@ test a whole bunch more select statements
 >         False Inner (Tref "d")
 >         (Just  $ JoinOn (BinOpCall Eql
 >                (IntegerL 1) (IntegerL 1))))]
+
 >      ,p "select row_number() over(order by a) as place from tbl;"
 >       [selectFrom [SelectItem
 >                    (WindowFn
 >                     (FunCall "row_number" [])
 >                     []
->                     [Identifier "a"])
+>                     [Identifier "a"] True)
+>                    "place"]
+>        (Tref "tbl")]
+>      ,p "select row_number() over(order by a asc) as place from tbl;"
+>       [selectFrom [SelectItem
+>                    (WindowFn
+>                     (FunCall "row_number" [])
+>                     []
+>                     [Identifier "a"] True)
+>                    "place"]
+>        (Tref "tbl")]
+>      ,p "select row_number() over(order by a desc) as place from tbl;"
+>       [selectFrom [SelectItem
+>                    (WindowFn
+>                     (FunCall "row_number" [])
+>                     []
+>                     [Identifier "a"] False)
 >                    "place"]
 >        (Tref "tbl")]
 >      ,p "select row_number()\n\
@@ -305,9 +335,10 @@ test a whole bunch more select statements
 >                    (WindowFn
 >                     (FunCall "row_number" [])
 >                     [Row [Identifier "a",Identifier "b"]]
->                     [Identifier "c"])
+>                     [Identifier "c"] True)
 >                    "place"]
 >        (Tref "tbl")]
+
 >      ,p "select * from a natural inner join (select * from b) as a;"
 >       [selectFrom
 >        (selIL ["*"])
@@ -316,6 +347,7 @@ test a whole bunch more select statements
 >                         (selIL ["*"])
 >                         (Tref "b")) "a")
 >         Nothing)]
+
 >      ,p "select * from a order by c;"
 >       [Select
 >        (sl (selIL ["*"]))
@@ -326,6 +358,7 @@ test a whole bunch more select statements
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] [Identifier "c"] (Just (IntegerL 1))]
+
 >      ,p "select a from (select b from c) as d;"
 >         [selectFrom
 >          (selIL ["a"])
@@ -333,12 +366,14 @@ test a whole bunch more select statements
 >                    (selIL ["b"])
 >                    (Tref "c"))
 >           "d")]
+
 >      ,p "select * from gen();"
 >         [selectFrom (selIL ["*"]) (TrefFun $ FunCall "gen" [])]
 >      ,p "select * from gen() as t;"
 >       [selectFrom
 >        (selIL ["*"])
 >        (TrefFunAlias (FunCall "gen" []) "t")]
+
 >      ,p "select a, count(b) from c group by a;"
 >         [Select
 >          (sl [selI "a", SelExp (FunCall "count" [Identifier "b"])])

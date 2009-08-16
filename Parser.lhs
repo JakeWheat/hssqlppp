@@ -298,14 +298,16 @@ then cope with joins recursively using joinpart below
 >                       TrefFunAlias () (keyword "as" *> identifierString)
 >                    ,parseOptionalSuffix
 >                       Tref identifierString
->                       TrefAlias () nonKeywordIdentifierString]
+>                       TrefAlias () ((optional $ trykeyword "as")
+>                                     *> nonKeywordIdentifierString)]
 >     nonKeywordIdentifierString = try $ do
 >              x <- identifierString
 >              --avoid all these keywords as aliases since they can
 >              --appear immediately following a tableref as the next
 >              --part of the statement, if we don't do this then lots
 >              --of things don't parse.
->              if x `elem` ["where"
+>              if x `elem` ["as"
+>                          ,"where"
 >                          ,"except"
 >                          ,"union"
 >                          ,"intersect"
@@ -836,7 +838,11 @@ fn() over ([partition bit]? [order bit]?)
 > windowFn :: GenParser Char () Expression
 > windowFn = WindowFn <$> (functionCall <* keyword "over")
 >                     <*> (symbol "(" *> option [] partitionBy)
->                     <*> (option [] orderBy1 <* symbol ")")
+>                     <*> (option [] orderBy1)
+>                     <*> option True (try $ choice [
+>                                                True <$ keyword "asc"
+>                                               ,False <$ keyword "desc"])
+>                          <* symbol ")"
 >   where
 >     orderBy1 = trykeyword "order" *> keyword "by" *> commaSep1 expr
 >     partitionBy = trykeyword "partition" *> keyword "by" *> commaSep1 expr

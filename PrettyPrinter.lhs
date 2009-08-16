@@ -355,7 +355,7 @@ Conversion routines - convert Sql asts into Docs
 > convExp (ScalarSubQuery s) = parens (convSelectFragment True s)
 > convExp NullL = text "null"
 > convExp (ArrayL es) = text "array" <> brackets (csvExp es)
-> convExp (WindowFn fn partition order) =
+> convExp (WindowFn fn partition order asc) =
 >   convExp fn <+> text "over"
 >   <+> (if hp || ho
 >        then
@@ -364,6 +364,7 @@ Conversion routines - convert Sql asts into Docs
 >                      else empty)
 >                   <+> (if ho
 >                          then text "order by" <+> csvExp order
+>                               <+> text (if asc then "asc" else "desc")
 >                          else empty))
 >        else empty)
 >   where
