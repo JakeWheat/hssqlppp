@@ -14,14 +14,14 @@ and check the new parse tree was the same as the original.
 
 There are no tests for invalid sql at the moment.
 
-The only ddl supported is creates, no alters or drops at the moment.
-
 > import Test.HUnit
 
  > import Test.QuickCheck
 
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
+
+> import Text.Parsec.Error (ParseError)
 
 > import Data.Char
 
@@ -709,7 +709,7 @@ test functions
 test non sql plpgsql statements
 
 >     ,testGroup "plpgsqlStatements"
->     (mapSql [
+>     (mapPlpgsql [
 
 simple statements
 
@@ -805,6 +805,7 @@ complicated statements
 >         where
 >           mapExpr = map $ uncurry checkParseExpression
 >           mapSql = map $ uncurry checkParse
+>           mapPlpgsql = map $ uncurry checkParsePlpgsql
 >           p a b = (a,b)
 >           selIL = map selI
 >           selI = SelExp . Identifier
@@ -825,37 +826,40 @@ Unit test helpers
 parse and then pretty print and parse a statement
 
 > checkParse :: String -> [Statement] -> Test.Framework.Test
-> checkParse src ast = testCase ("parse " ++ src) $ do
->   let ast' = case parseSql src of
->               Left er -> error $ showEr er src
->               Right l -> l
->   assertEqual ("parse " ++ src) ast ast'
->   -- pretty print then parse to check
->   let pp = printSql ast
->   let ast'' = case parseSql pp of
->               Left er -> error $ "reparse " ++ showEr er pp ++ "\n" ++ pp ++ "\n"
->               Right l -> l
->   assertEqual ("reparse " ++ pp) ast ast''
+> checkParse src ast = parseUtil src ast parseSql printSql
 
 parse and then pretty print and parse an expression
 
 > checkParseExpression :: String -> Expression -> Test.Framework.Test
-> checkParseExpression src ast = testCase ("parse " ++ src) $ do
->   let ast' = case parseExpression src of
+> checkParseExpression src ast = parseUtil src ast
+>                                  parseExpression printExpression
+
+> checkParsePlpgsql :: String -> [Statement] -> Test.Framework.Test
+> checkParsePlpgsql src ast = parseUtil src ast parsePlpgsql printSql
+
+> parseUtil :: (Eq b, Show b) =>
+>              String
+>           -> b
+>           -> (String -> Either ParseError b)
+>           -> (b -> String)
+>           -> Test.Framework.Test
+> parseUtil src ast parser printer = testCase ("parse " ++ src) $ do
+>   let ast' = case parser src of
 >               Left er -> error $ showEr er src
 >               Right l -> l
 >   assertEqual ("parse " ++ src) ast ast'
->   let pp = printExpression ast
->   let ast'' = case parseExpression pp of
+>   -- pretty print then parse to check
+>   let pp = printer ast
+>   let ast'' = case parser pp of
 >               Left er -> error $ "reparse " ++ showEr er pp ++ "\n" ++ pp ++ "\n"
 >               Right l -> l
 >   assertEqual ("reparse " ++ pp) ast ast''
 
-> parseSqlThrow :: String -> [Statement]
-> parseSqlThrow s =
->     case parseSql s of
->       Left er -> error $ "parse " ++ showEr er s ++ "****" ++ s ++ "****"
->       Right l -> l
+ > parseSqlThrow :: String -> [Statement]
+ > parseSqlThrow s =
+ >     case parseSql s of
+ >       Left er -> error $ "parse " ++ showEr er s ++ "****" ++ s ++ "****"
+ >       Right l -> l
 
 ================================================================================
 

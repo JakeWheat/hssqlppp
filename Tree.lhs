@@ -6,8 +6,8 @@ these.
 They contain no source line/column references.
 Lots of invalid sql is allowed.
 The code currently uses this both to represent the parse tree for sql
-and as the tree nodes which are used to generate sql using the pretty printer
-don't know if the parse tree and the input to the pretty printer should use
+and as the tree nodes which are used to generate sql using the pretty printer.
+Don't know if the parse tree and the input to the pretty printer should use
 the same data types, particularly for a language as funky as sql.
 
 The parser will not parse as many parse trees that correspond to invalid
@@ -220,8 +220,8 @@ on which expressions can appear in different places.
 >                 | UnOpCall UnOp Expression
 >                 | FunCall String [Expression]
 >                 | InPredicate Expression Bool InList
->                 | WindowFn Expression [Expression] [Expression]
 >                   -- windowfn selectitem partitionby orderby
+>                 | WindowFn Expression [Expression] [Expression]
 >                 | ScalarSubQuery Statement
 >                 | ArraySub Expression [Expression]
 >                   deriving (Show,Eq)

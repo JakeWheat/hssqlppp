@@ -15,8 +15,6 @@ and
 http://www.postgresql.org/docs/8.4/interactive/sql-syntax.html
 for some notes on postgresql syntax (the rest of that manual is also helpful)
 
-
-
 > module Parser(
 >               --parse fully formed sql statements from a string
 >               parseSql
@@ -25,6 +23,8 @@ for some notes on postgresql syntax (the rest of that manual is also helpful)
 >               --parse an expression (one expression plus whitespace
 >               --only allowed
 >              ,parseExpression
+>              --parse fully formed plpgsql statements from a string
+>              ,parsePlpgsql
 >               --convert a parse error to string plus some source
 >               --with highlights
 >              ,showEr
@@ -54,76 +54,51 @@ for some notes on postgresql syntax (the rest of that manual is also helpful)
 parse fully formed sql
 
 > parseSql :: String -> Either ParseError [Statement]
-> parseSql = parse statements "(unknown)"
+> parseSql = parse sqlStatements "(unknown)"
 
 > parseSqlFile :: String -> IO (Either ParseError [Statement])
-> parseSqlFile = parseFromFile statements
+> parseSqlFile = parseFromFile sqlStatements
 
 Parse expression fragment, used for testing purposes
 
 > parseExpression :: String -> Either ParseError Expression
-> parseExpression s = parse expr' "" s
->   where expr' = expr <* eof
+> parseExpression s = parse (expr <* eof) "" s
+
+parse plpgsql statements, used for testing purposes
+
+> parsePlpgsql :: String -> Either ParseError [Statement]
+> parsePlpgsql s =  parse (whitespace
+>                          *> many plPgsqlStatement
+>                          <* eof) "(unknown)" s
 
 ================================================================================
 
 = Parsing top level statements
 
-> statements :: ParsecT String () Identity [Statement]
-> statements = whitespace *> many statement <* eof
+> sqlStatements :: ParsecT String () Identity [Statement]
+> sqlStatements = whitespace *> (many $ sqlStatement True) <* eof
 
 parse a statement
 
-no attempt is made to reject plpgsql only statements outside of a
-function or inside a sql function, this would probably be a pretty
-easy fix by adding a flag or something.
-
-> statement :: ParsecT String () Identity Statement
-> statement = choice [
->              select
->             ,values
->             ,insert
->             ,update
->             ,delete
->             ,trykeyword "create" *>
->                         choice [createTable
->                                ,createType
->                                ,createFunction
->                                ,createView
->                                ,createDomain]
->             ,trykeyword "drop" *> dropFunction
->             ,ContinueStatement <$ trykeyword "continue"
->             ,execute
->             ,assignment
->             ,ifStatement
->             ,returnSt
->             ,raise
->             ,forStatement
->             ,whileStatement
->             ,perform
->             ,nullStatement]
->             <* semi
+> sqlStatement :: Bool -> ParsecT String () Identity Statement
+> sqlStatement reqSemi = (choice [
+>                         select
+>                        ,values
+>                        ,insert
+>                        ,update
+>                        ,delete
+>                        ,trykeyword "create" *>
+>                                    choice [
+>                                       createTable
+>                                      ,createType
+>                                      ,createFunction
+>                                      ,createView
+>                                      ,createDomain]
+>                        ,trykeyword "drop" *> dropFunction
+>                        ]
+>     <* (if reqSemi then semi >> return () else optional semi >> return ()))
+>    --copy doesn't end with a semicolon
 >    <|> copy
-
-quick hack to support sql functions where the semicolon on the last
-statement is optional. We only bother with sql statements
-
-> statementOptionalSemi :: ParsecT String () Identity Statement
-> statementOptionalSemi = choice [
->                          select
->                         ,values
->                         ,insert
->                         ,update
->                         ,delete
->                         ,trykeyword "create" *>
->                          choice [
->                           createTable
->                          ,createType
->                          ,createFunction
->                          ,createView
->                          ,createDomain]
->                         ,copy]
->     <* optional semi <* eof
 
 ================================================================================
 
@@ -135,8 +110,10 @@ top level/sql statements first
 
 select parser, parses things starting with the keyword 'select'
 
-supports plpgsql 'select into' only for the variant which looks like
+supports plpgsql 'select into' only for the variants which look like
 'select into ([targets]) [columnNames] from ...
+or
+'select [columnNames] into ([targets]) from ...
 
 recurses to support parsing excepts, unions, etc
 
@@ -449,10 +426,28 @@ typeatt: like a cut down version of tableatt, used in create type
 
 = plpgsql statements
 
+> plPgsqlStatement :: ParsecT String () Identity Statement
+> plPgsqlStatement = sqlStatement True
+>                    <|> (choice [
+>                          continue
+>                         ,execute
+>                         ,assignment
+>                         ,ifStatement
+>                         ,returnSt
+>                         ,raise
+>                         ,forStatement
+>                         ,whileStatement
+>                         ,perform
+>                         ,nullStatement]
+>                         <* semi)
+
 null statement is plpgsql nop, written 'null;'
 
 > nullStatement :: ParsecT String u Identity Statement
 > nullStatement = NullStatement <$ keyword "null"
+
+> continue :: ParsecT String u Identity Statement
+> continue = ContinueStatement <$ trykeyword "continue"
 
 > perform :: ParsecT String () Identity Statement
 > perform = Perform <$> (trykeyword "perform" *> expr)
@@ -485,25 +480,22 @@ null statement is plpgsql nop, written 'null;'
 >                                      ,("exception", RException)
 >                                      ,("error", RError)]
 
-for statement, only supports for x in [select statement]
-flavour at the moment
-
 > forStatement :: GenParser Char () Statement
-> forStatement = prefixChoice
->                  (trykeyword "for" *> identifierString <* keyword "in")
->                  [(\i -> ForSelectStatement i <$> try select <*> theRest)
->                  ,(\i -> ForIntegerStatement i
->                          <$> expr
->                          <*> (symbol ".." *> expr)
->                          <*> theRest)]
+> forStatement = do
+>                start <- (trykeyword "for" *> identifierString <* keyword "in")
+>                choice [(ForSelectStatement start <$> try select <*> theRest)
+>                       ,(ForIntegerStatement start
+>                               <$> expr
+>                               <*> (symbol ".." *> expr)
+>                               <*> theRest)]
 >   where
->     theRest = keyword "loop" *> many statement
+>     theRest = keyword "loop" *> many plPgsqlStatement
 >               <* keyword "end" <* keyword "loop"
 
 > whileStatement :: ParsecT String () Identity Statement
 > whileStatement = WhileStatement
 >                  <$> (trykeyword "while" *> expr <* keyword "loop")
->                  <*> many statement <* keyword "end" <* keyword "loop"
+>                  <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
 
 bit too clever coming up
 
@@ -512,9 +504,9 @@ bit too clever coming up
 >   If <$> (ifPart <:> elseifParts)
 >      <*> (elsePart <* endIf)
 >   where
->     ifPart = (ifk *> expr) <.> (thn *> many statement)
->     elseifParts = many ((elseif *> expr) <.> (thn *> many statement))
->     elsePart = option [] (trykeyword "else" *> many statement)
+>     ifPart = (ifk *> expr) <.> (thn *> many plPgsqlStatement)
+>     elseifParts = many ((elseif *> expr) <.> (thn *> many plPgsqlStatement))
+>     elsePart = option [] (trykeyword "else" *> many plPgsqlStatement)
 >     endIf = trykeyword "end" <* keyword "if"
 >     thn = keyword "then"
 >     ifk = trykeyword "if"
@@ -534,11 +526,11 @@ sql function is just a list of statements, the last one has the
 trailing semicolon optional
 
 > functionBody Sql = do
->   a <- whitespace *> many (try statement)
->   SqlFnBody <$> option a ((\b -> (a++[b])) <$> statementOptionalSemi)
+>   a <- whitespace *> many (try $ sqlStatement True)
+>   SqlFnBody <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
 
 plpgsql function has an optional declare section, plus the statements
-are enclosed in begin ... end;
+are enclosed in begin ... end; (semi colon after end is optional
 
 > functionBody Plpgsql =
 >   whitespace *>
@@ -546,7 +538,7 @@ are enclosed in begin ... end;
 >      PlpgsqlFnBody <$> (keyword "declare" *> readVarDefs) <*> restOfIt
 >     ,PlpgsqlFnBody [] <$> (keyword "begin" *> restOfIt)]
 >   where
->     restOfIt = many statement <* keyword "end" <* optional semi <* eof
+>     restOfIt = many plPgsqlStatement <* keyword "end" <* optional semi <* eof
 >     readVarDefs = manyTill (try varDef) (try $ keyword "begin")
 
 params to a function
@@ -563,14 +555,6 @@ variable declarations in a plpgsql function
 >          <$> identifierString
 >          <*> typeName
 >          <*> maybeP (symbol ":=" *> expr) <* semi
-
-create function fn(a text[]) returns int[] as '
-declare
-  b xtype[] := '{}'
-begin
-  null;
-end;
-' language plpgsql immutable;:
 
 ================================================================================
 
@@ -947,35 +931,31 @@ if keyword k matches then return v
 
 parseOptionalSuffix
 
-can't think of a good name,
-want to parse part a -> r1, then maybe parse part b -> r2
-if r2 is nothing then return c1 r1
-else return c2 r1 r2
-This is to parse the something which has an optional bunch of stuff
-on the end with one constructor which takes the mandatory first part
-and another constructor which takes the mandatory first part
-and the optional second part as args.
+parse the start of something -> parseResultA,
+then parse an optional suffix -> parseResultB
+if this second parser succeeds, call fn2 parseResultA parseResultB
+else call fn1 parseResultA
 
 e.g.
 parsing an identifier in a select list can be
-a
+fieldName
 or
-a as b
+fieldName as alias
 so we can pass
 * IdentifierCtor
 * identifier (returns aval)
 * AliasedIdentifierCtor
 * () - looks like a place holder, probably a crap idea
 * parser for (as b) (returns bval)
-as the args, which I like to write like:
+as the args, which I like to ident like:
 parseOptionalSuffix
-  IdentifierCtor identifier
-  AliasedIdentifierCtor () (parser for as b)
+  IdentifierCtor identifierParser
+  AliasedIdentifierCtor () asAliasParser
 and we get either
-* IdentifierCtor aval
+* IdentifierCtor identifierValue
 or
-* AliasedIdentifierCtor aval bval
-as the result depending on whether the "parser for (as b)"
+* AliasedIdentifierCtor identifierValue aliasValue
+as the result depending on whether the asAliasParser
 succeeds or not.
 
 probably this concept already exists under a better name in parsing
@@ -994,18 +974,17 @@ theory
 
 parseOptionalSuffixThreaded
 
-variant on the previous version, this we parse something, get a parse
-tree, then we pass this tree to the optional suffix parser, if it
-fails we keep the original parse tree, else the suffix parser embeds
-the original parse tree in the tree it returns which we use
+parse the start of something -> parseResultA,
+then parse an optional suffix, passing parseResultA to this parser -> parseResultB
+return parseResultB is it succeeds, else return parseResultA
+
+sort of like a suffix operator parser where the suffixisable part
+is parsed, then if the suffix is there it wraps the suffixisable
+part in an enclosing tree node.
 
 parser1 -> tree1
 (parser2 tree1) -> maybe tree2
 tree2 isnothing ? tree1 : tree2
-
-I'm pretty sure this is some standard monad operation but I don't know
-what. It's a bit like the maybe monad but when you get nothing it
-returns the previous result instead of nothing
 
 > parseOptionalSuffixThreaded :: ParsecT [tok] st Identity a
 >                             -> (a -> GenParser tok st a)
@@ -1013,6 +992,22 @@ returns the previous result instead of nothing
 > parseOptionalSuffixThreaded p1 p2 = do
 >   x <- p1
 >   option x (try $ p2 x)
+
+I'm pretty sure this is some standard monad operation but I don't know
+what. It's a bit like the maybe monad but when you get nothing it
+returns the previous result instead of nothing
+(if you take the parsing stuff out you get:
+
+p1 :: (Monad m) =>
+      m b -> (b -> m (Maybe b)) -> m b
+p1 = do
+   x <- p1
+   y <- p2 x
+   case y of
+     Nothing -> return x
+     Just z -> return z
+
+=====
 
 couldn't work how to to perms so just did this hack instead
 e.g.
@@ -1031,20 +1026,6 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >     parseAorB = choice [
 >                   (\x -> (Just x,Nothing)) <$> p1
 >                  ,(\y -> (Nothing, Just y)) <$> p2]
-
-prefix choice: run one parser (the prefix parser) then choice where
-each of the choice parsers takes the result of the prefix as an
-argument, not sure about this one - you often end up having to write
-lambda functions for the choices and it doesn't end up any more
-concise
-
-> prefixChoice :: (Stream s m t1) =>
->                 ParsecT s u m t
->              -> [t -> ParsecT s u m b]
->              -> ParsecT s u m b
-> prefixChoice p1 p = do
->   x <- p1
->   choice (map (\q -> q x) p)
 
 == whitespacey things
 

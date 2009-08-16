@@ -1,46 +1,56 @@
 A very rough parser and pretty printer for postgresql sql and plpgsql
 
 Partially supports:
-basic select statements, from, where, order by, limit
-  joins
-  except, union, intersect
-  simple window functions
-  some case expressions
-plpgsql select into, but not sql select into
-create table
+select statements (selectlists (*, qualified, aliased, expressions)
+       window functions
+       from (with explicit joins(natural, inner, cross, left, right,
+       full outer, on and using, aliases, from functions)
+       where, group by, order by, limit
+       except, intersect, union
+
+expressions: subselects, in, row ctors, strings + dollar strings,
+             integers, case, exists, boolean literals, null, arrays
+             and subscripting (slightly limited), function calls,
+             identifiers
+
+insert (with multiple values and select support), update, delete with returning
+create table, type, view, domain
 constraints: not null, null, unique (inline and row), inline check
-create view
-insert, multirows and select flavours
-update and delete, including returning
+drop function
+sort of skips copy statements
 create function for sql and plpgsql functions
-simple create domain
-plpgsql statements, etc:
-        assignment
-        return
-        raise
+
+plpgsql statements:
+        select into
         null
+        continue
         perform
-        forif
+        execute
+        assignment
+        if
+        return, return next, return query
+        raise
+        for (select and integer variants)
+        while
 
 Many things are missing at the moment, in particular
-  parsing sql whilst rejecting plpgsql constructs
-  group by, having, cte, window keyword, intersect
+  selects: having, cte, implicit joins, like expressions
   joins in updates
   constraints: pk, separate row check, references
-  alter and drop statements
+  alter and drop statements apart from drop function
   transaction commands
   triggers and trigger functions
   loop
   case statement
-  while
-  for, integer variant
   error trapping
   cursors
 This is a non-exhaustive list
 
 Other current downsides:
 
-The parse tree node types aren't well designed.
+The parse tree node types aren't well designed, it produces a tree
+which is more like a ast than a parse tree, which contains no location
+information.
 
 No work has been done on correctly rejecting invalid sql and no
 thought has been put into error messages and error reporting.

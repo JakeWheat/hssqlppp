@@ -1,14 +1,11 @@
 get all chaos sql files parsing
 identify the biggest missing bits and create table of supported and
    unsupported elements
-work on error reporting
- idea: instead of using try outside the parsers
-       use it inside them and just try the first keyword
+work on error reporting, add tests for malformed sql
 lex things properly?
-add tests for malformed sql
 
-make the parse tree nodes more parse tree like?
-add source locations for all tokens in the parse tree
+make the parse tree nodes more parse tree like
+add source locations for tokens in the parse tree
 
 ?write a separate ast which the pretty printer uses, better for code
    generation and more typesafe than the parse tree, plus a convertor
@@ -16,9 +13,9 @@ add source locations for all tokens in the parse tree
 
 ?add type checking and facility to add other static checks
 
-?add a macro system
+?add a macro system for code generation, etc.
 
-find something that supports better error messages, particularly
+find a parser that supports better error messages, particularly
 something which can report multiple errors
 
 rough idea for new design:
@@ -27,14 +24,15 @@ run one or more passes over this parse tree to catch missed syntax
    errors -> good parse tree
 type check, etc. -> ast
 ast -> pretty printer
-how feasible is it to catch all syntax errors before type checking
-and producing an ast
-alternatively put, what syntax errors can be caught before producing
-the ast, and what can only be caught during or after the ast is
-   produced
 
 improve tests:
 identify each bit of syntax and make sure there is a test for it
 add some bigger tests: lots of sql statements, big functions
 look for possible corner cases and add tests
+
+get some big bits of sql, parse them, pretty print them,
+load them into pg then do a dump. Run the original sql
+through pg and dump and diff the dumps. if they look the same
+then use the sql and parse tree produced as a test
+
 get property checker working again
