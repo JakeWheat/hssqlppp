@@ -797,7 +797,15 @@ complicated statements
 >           ,((BooleanL False), [Return Nothing])
 >           ,((BooleanL False), [Return Nothing])]
 >        [Return Nothing]]
-
+>      ,p "case a\n\
+>         \  when b then null;\n\
+>         \  when c then null;\n\
+>         \  else null;\n\
+>         \end case;"
+>      [CaseStatement (Identifier "a")
+>       [(Identifier "b", [NullStatement])
+>       ,(Identifier "c", [NullStatement])]
+>       [NullStatement]]
 >      ])
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp

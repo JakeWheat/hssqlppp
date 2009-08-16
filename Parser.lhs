@@ -433,6 +433,7 @@ typeatt: like a cut down version of tableatt, used in create type
 >                         ,execute
 >                         ,assignment
 >                         ,ifStatement
+>                         ,caseStatement
 >                         ,returnSt
 >                         ,raise
 >                         ,forStatement
@@ -440,8 +441,6 @@ typeatt: like a cut down version of tableatt, used in create type
 >                         ,perform
 >                         ,nullStatement]
 >                         <* semi)
-
-null statement is plpgsql nop, written 'null;'
 
 > nullStatement :: ParsecT String u Identity Statement
 > nullStatement = NullStatement <$ keyword "null"
@@ -515,6 +514,15 @@ bit too clever coming up
 >     -- can't do <,> unfortunately, so use <.> instead
 >     (<.>) a b = (,) <$> a <*> b
 
+> caseStatement :: ParsecT String () Identity Statement
+> caseStatement =
+>     CaseStatement <$> (trykeyword "case" *> expr)
+>                   <*> (many whenSt)
+>                   <*> (option [] (keyword "else" *> many plPgsqlStatement))
+>                           <* keyword "end" <* keyword "case"
+>     where
+>       whenSt = (,) <$> (keyword "when" *> expr)
+>                  <*> (keyword "then" *> many plPgsqlStatement)
 
 ===============================================================================
 

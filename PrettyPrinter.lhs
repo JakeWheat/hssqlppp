@@ -170,6 +170,20 @@ Conversion routines - convert Sql asts into Docs
 >                            $+$ convNestedStatements sts
 > convStatement (Execute s) = text "execute" <+> convExp s <> statementEnd
 
+> convStatement (CaseStatement c conds els) =
+>     text "case" <+> convExp c
+>     $+$ nest 2 (
+>                 vcat (map (uncurry convWhenSt) conds)
+>                 $+$ convElseSt els
+>                 ) $+$ text "end case" <> statementEnd
+>     where
+>       convWhenSt ex sts = text "when" <+> convExp ex <+> text "then"
+>                           $+$ convNestedStatements sts
+>       convElseSt sts = ifNotEmpty
+>                         (\s -> text "else" $+$ convNestedStatements s)
+>                         sts
+
+
 > statementEnd :: Doc
 > statementEnd = semi <> newline
 

@@ -68,6 +68,8 @@ ddl
 >                | ForIntegerStatement String Expression Expression [Statement]
 >                | WhileStatement Expression [Statement]
 >                | ContinueStatement
+>                  --variable, list of when parts, else part
+>                | CaseStatement Expression [(Expression,[Statement])] [Statement]
 >                  --list is
 >                  --first if (condition, statements):elseifs(condition, statements)
 >                  --last bit is else statements
