@@ -132,9 +132,9 @@ some slightly more complex stuff
 >         \     when b then 4\n\
 >         \     else 5\n\
 >         \end"
->         (Case [When (Identifier "a") (IntegerL 3)
->               ,When (Identifier "b") (IntegerL 4)]
->          (Just $ Else (IntegerL 5)))
+>         (Case [(Identifier "a", IntegerL 3)
+>               ,(Identifier "b", IntegerL 4)]
+>          (Just $ IntegerL 5))
 
 positional args used in sql and sometimes plpgsql functions
 
@@ -319,12 +319,12 @@ test a whole bunch more select statements
 >      ,p "select * from a order by c;"
 >       [Select
 >        (sl (selIL ["*"]))
->        (Just (From (Tref "a")))
+>        (Just $ Tref "a")
 >        Nothing [] [Identifier "c"] Nothing]
 >      ,p "select * from a order by c limit 1;"
 >       [Select
 >        (sl (selIL ["*"]))
->        (Just (From (Tref "a")))
+>        (Just $ Tref "a")
 >        Nothing [] [Identifier "c"] (Just (IntegerL 1))]
 >      ,p "select a from (select b from c) as d;"
 >         [selectFrom
@@ -342,7 +342,7 @@ test a whole bunch more select statements
 >      ,p "select a, count(b) from c group by a;"
 >         [Select
 >          (sl [selI "a", SelExp (FunCall "count" [Identifier "b"])])
->          (Just $ From $ Tref "c")
+>          (Just $ Tref "c")
 >          Nothing
 >          [Identifier "a"]
 >          []
@@ -452,7 +452,7 @@ updates
 >         \  set x = 1, y = 2 where z = true;"
 >       [Update "tb" [SetClause "x" (IntegerL 1)
 >                    ,SetClause "y" (IntegerL 2)]
->        (Just $ Where $ BinOpCall Eql
+>        (Just $ BinOpCall Eql
 >         (Identifier "z") (BooleanL True))
 >        Nothing]
 >      ,p "update tb\n\
@@ -470,11 +470,11 @@ updates
 delete
 
 >      ,p "delete from tbl1 where x = true;"
->       [Delete "tbl1" (Just $ Where $ BinOpCall Eql
+>       [Delete "tbl1" (Just $ BinOpCall Eql
 >                                (Identifier "x") (BooleanL True))
 >        Nothing]
 >      ,p "delete from tbl1 where x = true returning id;"
->       [Delete "tbl1" (Just $ Where $ BinOpCall Eql
+>       [Delete "tbl1" (Just $ BinOpCall Eql
 >                                (Identifier "x") (BooleanL True))
 >        (Just $ sl [selI "id"])]
 >      ,p "copy tbl(a,b) from stdin;\n\
@@ -735,10 +735,10 @@ simple statements
 >                                            (StringL "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
 >       [Select (SelectList [selI "c", selI "d"] ["a", "b"])
->                   (Just $ From $ Tref "e") Nothing [] [] Nothing]
+>                   (Just $ Tref "e") Nothing [] [] Nothing]
 >      ,p "select c,d into a,b from e;"
 >       [Select (SelectList [selI "c", selI "d"] ["a", "b"])
->                   (Just $ From $ Tref "e") Nothing [] [] Nothing]
+>                   (Just $ Tref "e") Nothing [] [] Nothing]
 >      ,p "execute s;"
 >       [Execute (Identifier "s")]
 >      ,p "continue;" [ContinueStatement]
@@ -813,10 +813,10 @@ complicated statements
 >           qi a b = BinOpCall Qual (Identifier a) (Identifier b)
 >           selectFrom selList frm =
 >             Select (SelectList selList [])
->                    (Just $ From frm) Nothing [] [] Nothing
+>                    (Just frm) Nothing [] [] Nothing
 >           selectFromWhere selList frm whr =
 >             Select (SelectList selList [])
->                    (Just $ From frm) (Just $ Where whr) [] [] Nothing
+>                    (Just frm) (Just whr) [] [] Nothing
 
 ================================================================================
 

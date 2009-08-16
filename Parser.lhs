@@ -291,11 +291,11 @@ select bits
 > groupBy :: GenParser Char () [Expression]
 > groupBy = trykeyword "group" *> keyword "by" *> commaSep1 expr
 
-> from :: GenParser Char () From
-> from = From <$> (keyword "from" *> tref)
+> from :: GenParser Char () TableRef
+> from = (keyword "from" *> tref)
 
-> whereClause :: ParsecT String () Identity Where
-> whereClause = Where <$> (keyword "where" *> expr)
+> whereClause :: ParsecT String () Identity Expression
+> whereClause = (keyword "where" *> expr)
 
 > limit :: GenParser Char () Expression
 > limit = keyword "limit" *> expr
@@ -809,11 +809,11 @@ expression when value' currently
 
 > caseParse :: ParsecT String () Identity Expression
 > caseParse = Case <$> (keyword "case" *> many whenParse)
->                  <*> (maybeP (Else <$> (keyword "else" *> expr))
->                       <* keyword "end")
+>                  <*> (maybeP ((keyword "else" *> expr)))
+>                       <* keyword "end"
 >   where
->     whenParse = When <$> (keyword "when" *> expr)
->                      <*> (keyword "then" *> expr)
+>     whenParse = (,) <$> (keyword "when" *> expr)
+>                     <*> (keyword "then" *> expr)
 
 > exists :: ParsecT String () Identity Expression
 > exists = Exists <$> (keyword "exists" *> parens select)

@@ -24,15 +24,27 @@ a select can appear inside another statement (e.g. a subselect), you can
 instead put any statement - this type checks but is totally invalid.
 
 > data Statement =
->                  -- selectlist from where groupby orderby limit
->                  Select SelectList (Maybe From) (Maybe Where) [Expression] [Expression] (Maybe Expression)
+
+queries
+
+>                  -- selectlist from where
+>                  Select SelectList (Maybe TableRef) (Maybe Expression)
+>                             --groupby orderby limit
+>                             [Expression] [Expression] (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement
+>                | Values [[Expression]]
+
+dml
+
 >                  --table targetcolumns insertdata(values or select statement) returning
 >                | Insert String [String] Statement (Maybe SelectList)
->                | Update String [SetClause] (Maybe Where) (Maybe SelectList)
->                | Delete String (Maybe Where) (Maybe SelectList)
+>                  --tablename setitems where returning
+>                | Update String [SetClause] (Maybe Expression) (Maybe SelectList)
+>                  --tablename, where, returning
+>                | Delete String (Maybe Expression) (Maybe SelectList)
 >                | Copy String
->                | Values [[Expression]]
+
+ddl
 
 >                | CreateTable String [AttributeDef] [Constraint]
 >                | CreateView String Statement
@@ -42,6 +54,8 @@ instead put any statement - this type checks but is totally invalid.
 >                  -- name type checkexpression
 >                | CreateDomain String String (Maybe Expression)
 >                | DropFunction String [String]
+
+
 >                | Assignment String Expression
 >                | Return (Maybe Expression)
 >                | ReturnNext Expression
@@ -54,6 +68,9 @@ instead put any statement - this type checks but is totally invalid.
 >                | ForIntegerStatement String Expression Expression [Statement]
 >                | WhileStatement Expression [Statement]
 >                | ContinueStatement
+>                  --list is
+>                  --first if (condition, statements):elseifs(condition, statements)
+>                  --last bit is else statements
 >                | If [(Expression, [Statement])] [Statement]
 
 >                  deriving (Eq,Show)
@@ -67,12 +84,6 @@ Statement components
 
 > data SetClause = SetClause String Expression
 >                  deriving (Eq,Show)
-
-> data Where = Where Expression
->                    deriving (Eq,Show)
-
-> data From = From TableRef
->             deriving (Eq,Show)
 
 > data TableRef = Tref String
 >               | TrefAlias String String
@@ -113,9 +124,9 @@ Constraints which appear attached to an individual field
 constraints which appear on a separate row in the create table
 
 > data Constraint = UniqueConstraint [String]
->                 | PrimaryKeyConstraint [String]
->                 | CheckConstraint Expression
->                 | ReferenceConstraint [String] [String]
+>                 -- | PrimaryKeyConstraint [String]
+>                 -- | CheckConstraint Expression
+>                 -- | ReferenceConstraint [String] [String]
 >                   deriving (Eq,Show)
 
 > data TypeAttributeDef = TypeAttDef String String
@@ -203,7 +214,7 @@ on which expressions can appear in different places.
 >                 | Identifier String
 >                 | Row [Expression]
 >                 | ArrayL [Expression]
->                 | Case [When] (Maybe Else)
+>                 | Case [(Expression,Expression)] (Maybe Expression)
 >                 | Exists Statement
 >                 | BinOpCall BinOp Expression Expression
 >                 | UnOpCall UnOp Expression
@@ -217,8 +228,3 @@ on which expressions can appear in different places.
 
 > data InList = InList [Expression] | InSelect Statement
 >               deriving (Show,Eq)
-
-> data When = When Expression Expression
->                   deriving (Show,Eq)
-> data Else = Else Expression
->                   deriving (Show,Eq)
