@@ -469,7 +469,7 @@ typeatt: like a cut down version of tableatt, used in create type
 >              -- put the := in the first try to attempt to get a
 >              -- better error if the code looks like malformed
 >              -- assignment statement
->              <$> try (identifierStringMaybeDot <* symbol ":=")
+>              <$> try (identifierStringMaybeDot <* (symbol ":=" <|> symbol "="))
 >              <*> expr
 
 > returnSt :: ParsecT String () Identity Statement
@@ -572,7 +572,7 @@ variable declarations in a plpgsql function
 > varDef = VarDef
 >          <$> identifierString
 >          <*> typeName
->          <*> maybeP (symbol ":=" *> expr) <* semi
+>          <*> maybeP ((symbol ":=" <|> symbol "=")*> expr) <* semi
 
 ================================================================================
 
@@ -599,7 +599,6 @@ predicate before row constructor, since an in predicate can start with
 a row constructor, then finally vanilla parens
 
 >           try scalarSubQuery
->          ,try betweenExp
 >          ,try inPredicate
 >          ,try rowCtor
 >          ,parens expr
@@ -645,7 +644,9 @@ first
 
 try function call before identifier for same reason
 
+>          ,try castKeyword
 >          ,try functionCall
+>          ,try betweenExp
 >          ,try identifier]
 
 == operator table
@@ -674,6 +675,7 @@ http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTA
 >          ,binary "<=" (BinOpCall Lte) AssocRight
 >          ,binary ">=" (BinOpCall Gte) AssocRight
 >          ,binary "||" (BinOpCall Conc) AssocLeft
+>          ,prefix "@" (UnOpCall Abs)
 >          ]
 >          --in should be here, but is treated as a factor instead
 >          --between
@@ -694,6 +696,8 @@ http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTA
 >       --right whitespace behaviour
 >       binary s f
 >          = Infix (try (operator s >> return f))
+>       prefix s f
+>          = Prefix (try (operator s >> return f))
 >       binaryk s f
 >          = Infix (try (keyword s >> return f))
 >       prefixk s f
@@ -859,6 +863,10 @@ fn() over ([partition bit]? [order bit]?)
 
 > functionCall :: ParsecT String () Identity Expression
 > functionCall = FunCall <$> identifierString <*> parens (commaSep expr)
+
+> castKeyword :: ParsecT String () Identity Expression
+> castKeyword = CastKeyword <$> (keyword "cast" *> symbol "(" *> expr)
+>                           <*> (keyword "as" *> typeName <* symbol ")")
 
 > identifier :: ParsecT String () Identity Expression
 > identifier = Identifier <$> identifierString

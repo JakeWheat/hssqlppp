@@ -2397,7 +2397,7 @@ create view spell_cast_chance as
     --world alignment same as spell alignment
     --  proportionately more easy
     select spell_name, sign(alignment) as salign,
-      limit_chance(base_chance + (get_world_alignment() * 10)),
+      limit_chance(base_chance + (@ get_world_alignment()) * 10),
       'same' as alignment from spells
     union
     --world alignment opposite, spell slightly harder
@@ -2724,7 +2724,6 @@ create type ipos as (
   y int
 );
 create function get_square_range(x int, y int, range int)
-
   returns setof ipos as $$
 declare
   p ipos;
@@ -2734,26 +2733,26 @@ begin
     return;
   end if;
   --top row
-  p.y := y - range;
+  p.y = y - range;
   for i in 0 .. (range * 2) loop
-    p.x := x - range + i;
+    p.x = x - range + i;
     return next p;
     p.index := p.index + 1;
   end loop;
   --sides
   for i in 1 .. (range * 2 + 1) - 2 loop
-    p.x := x - range;
-    p.y := y - range + i;
+    p.x = x - range;
+    p.y = y - range + i;
     return next p;
     p.index := p.index + 1;
-    p.x := x + range;
+    p.x = x + range;
     return next p;
     p.index := p.index + 1;
   end loop;
   --bottom row
-    p.y := y + range;
+    p.y = y + range;
   for i in 0 .. (range * 2) loop
-    p.x := x - range + i;
+    p.x = x - range + i;
     return next p;
     p.index := p.index + 1;
   end loop;
@@ -2761,7 +2760,7 @@ end;
 $$ language plpgsql immutable;
 
 
-/*  
+  /*
   idea is to create a view with all the valid squares in it
   and to start with a square series of squares 1 square away from
   the wizard:
@@ -2790,7 +2789,8 @@ $$ language plpgsql immutable;
    0...1
    23456
    (the 012346 on the second to last and last rows
-     represent 10,11,12,13,14,15,16*/
+     represent 10,11,12,13,14,15,16
+  */
 
 create function cast_magic_wood() returns void as $$
 declare
@@ -2827,8 +2827,8 @@ begin
     end if;
     if pos_in_square = max_pos_in_square then
       range := range + 1;
-      pos_in_square := 0;
-      max_pos_in_square := (select max(index) from get_square_range(0,0,range));
+      pos_in_square = 0;
+      max_pos_in_square = (select max(index) from get_square_range(0,0,range));
     else
       pos_in_square := pos_in_square + 1;
     end if;
@@ -3366,7 +3366,7 @@ declare
   i int;
   c int;
   tg int;
-  killed_wizards text[] := '{}';
+  killed_wizards text[] = '{}';
 begin
   if get_disable_spreading() then
     return;

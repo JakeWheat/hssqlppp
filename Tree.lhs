@@ -170,7 +170,7 @@ Expressions
 >         | DistBetween
 >           deriving (Show,Eq)
 
-> data UnOp = Not | IsNull | IsNotNull | SetOf
+> data UnOp = Not | IsNull | IsNotNull | SetOf | Abs
 >             deriving (Show,Eq)
 
 > binOpToSymbol :: BinOp -> String
@@ -201,6 +201,7 @@ Expressions
 >                         IsNull -> "is null"
 >                         IsNotNull -> "is not null"
 >                         SetOf -> "setof"
+>                         Abs -> "@"
 
 
 Similarly to the statement type, all expressions
@@ -215,6 +216,7 @@ on which expressions can appear in different places.
 >                 | PlaceHolder
 >                 | BooleanL Bool
 >                 | PositionalArg Int
+>                 | CastKeyword Expression TypeName
 >                 | Identifier String
 >                 | Row [Expression]
 >                 | ArrayL [Expression]

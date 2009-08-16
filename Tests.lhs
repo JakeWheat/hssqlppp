@@ -106,6 +106,11 @@ some operator tests
 
 >      ,p "a between 1 and 3"
 >         (Between (Identifier "a") (IntegerL 1) (IntegerL 3))
+>      ,p "cast(a as text)"
+>         (CastKeyword (Identifier "a") (SimpleType "text"))
+>      ,p "@ a"
+>         (UnOpCall Abs (Identifier "a"))
+
 
 some function call tests
 
@@ -768,6 +773,8 @@ test non sql plpgsql statements
 simple statements
 
 >       p "success := true;"
+>       [Assignment "success" (BooleanL True)]
+>      ,p "success = true;"
 >       [Assignment "success" (BooleanL True)]
 >      ,p "return true;"
 >       [Return $ Just (BooleanL True)]

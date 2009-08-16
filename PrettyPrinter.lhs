@@ -351,7 +351,7 @@ Conversion routines - convert Sql asts into Docs
 >           SetOf -> text (unOpToSymbol op) <+> convExp a
 >           IsNull -> parens (convExp a <+> text (unOpToSymbol op))
 >           IsNotNull -> parens (convExp a <+> text (unOpToSymbol op))
-
+>           Abs -> parens (text (unOpToSymbol op) <+> convExp a)
 
 > convExp (BooleanL b) = bool b
 > convExp (InPredicate att t lst) =
@@ -390,6 +390,9 @@ Conversion routines - convert Sql asts into Docs
 > convExp (Between i e f) = convExp i <+> text "between" <+> parens (convExp e)
 >                           <+> text "and" <+> parens (convExp f)
 > convExp PlaceHolder = empty
+> convExp (CastKeyword ex t) = text "cast" <> parens (convExp ex
+>                                                     <+> text "as"
+>                                                     <+> convTypeName t)
 
 > convWhen :: (Expression, Expression) -> Doc
 > convWhen (ex1, ex2) =
