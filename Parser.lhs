@@ -380,8 +380,11 @@ or after the whole list
 set clause - the set a = 3, b=4 part of a update statement
 
 > setClause :: ParsecT String () Identity SetClause
-> setClause = SetClause <$> identifierString
->             <*> (symbol "=" *> expr)
+> setClause = choice
+>             [RowSetClause <$> parens (commaSep1 identifierString)
+>                           <*> (symbol "=" *> parens (commaSep1 expr))
+>             ,SetClause <$> identifierString
+>                        <*> (symbol "=" *> expr)]
 
 == ddl
 

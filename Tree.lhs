@@ -84,7 +84,7 @@ Statement components
 > data FnBody = SqlFnBody [Statement] | PlpgsqlFnBody [VarDef] [Statement]
 >               deriving (Eq,Show)
 
-> data SetClause = SetClause String Expression
+> data SetClause = SetClause String Expression | RowSetClause [String] [Expression]
 >                  deriving (Eq,Show)
 
 > data TableRef = Tref String

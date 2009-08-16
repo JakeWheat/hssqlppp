@@ -270,6 +270,9 @@ Conversion routines - convert Sql asts into Docs
 
 > convSetClause :: SetClause -> Doc
 > convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
+> convSetClause (RowSetClause atts exs) = parens (hcatCsvMap text atts)
+>                                         <+> text "="
+>                                         <+> parens (hcatCsvMap convExp exs)
 
 > convAttDef :: AttributeDef -> Doc
 > convAttDef (AttributeDef n t def cons) =

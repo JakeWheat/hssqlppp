@@ -466,6 +466,12 @@ updates
 >        Nothing (Just (SelectList
 >                       [SelExp (Identifier "tag")]
 >                       ["r.tag"]))]
+>      ,p "update tb\n\
+>         \  set (x,y) = (1,2);"
+>       [Update "tb" [RowSetClause
+>                     ["x","y"]
+>                     [IntegerL 1,IntegerL 2]]
+>        Nothing Nothing]
 
 delete
 
