@@ -12,13 +12,15 @@ select statements (selectlists (*, qualified, aliased, expressions)
 expressions: subselects, in, row ctors, strings + dollar strings,
              integers, case, exists, boolean literals, null, arrays
              and subscripting (slightly limited), function calls,
-             identifiers
+             identifiers, cast(x as y), between (quite limited),
+             substring(x from a for b)
 
+also partially supports:
 insert (with multiple values and select support), update, delete with returning
 create table, type, view, domain
 constraints: not null, null, unique (inline and row), inline check
 drop function
-sort of skips copy statements
+sort of skips copy statements instead of erroring
 create function for sql and plpgsql functions
 
 plpgsql statements:
@@ -62,7 +64,7 @@ No thought has been given in respects to supporting other sql dialects.
 Trying it out
 
 The main thing you can do is try to parse a file of sql and see what
-fails.  To do this run the ParseFile (.lhs) script and pass the
+fails. To do this run the ParseFile (.lhs) script and pass the
 filename of the sql file to it. It will attempt to parse the file, and
 if it succeeds, pretty print then reparse the pretty printed text.
 
@@ -72,5 +74,26 @@ type(s), then altering the pretty printer to output these nodes,
 altering the parser to parse them (add new statements to sqlStatement
 or plPgsqlStatement function, new expressions to the factor function),
 and add one or more test cases to Tests.lhs. This already has
-structure set up to parse fully formed sql, text containing
-individual/ multiple plpgsql statements and a single expressions.
+structure set up to parse:
+
+*  fully formed sql (including plpgsql inside create function
+   statements)
+*  individual/ multiple plpgsql statements without having to use
+   createfunction
+*  single expressions
+
+
+Homepage
+
+The project is hosted on launchpad
+http://launchpad.net/hssqlppp/
+
+You can get the latest code using bzr:
+bzr branch lp:~jakewheat/hssqlppp/trunk
+
+Contact
+
+Let me know if you're using/ interesting in using the library, if you
+have any problems or suggestions, etc.
+
+jakewheatmail@gmail.com
