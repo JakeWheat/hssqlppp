@@ -47,6 +47,7 @@ dml
 ddl
 
 >                | CreateTable String [AttributeDef] [Constraint]
+>                | CreateTableAs String Statement
 >                | CreateView String Statement
 >                | CreateType String [TypeAttributeDef]
 >                  -- language name args rettype bodyquoteused body vol

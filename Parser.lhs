@@ -177,18 +177,21 @@ one with just a \. in the first two columns
 = ddl
 
 > createTable :: ParsecT String () Identity Statement
-> createTable =
->   uncurry
->   <$> (CreateTable <$> (trykeyword "table" *> identifierString))
+> createTable = do
+>   tname <- (trykeyword "table" *> identifierString)
+>   choice [
+>      CreateTableAs tname <$> (trykeyword "as" *> select)
+>     ,uncurry (CreateTable tname) <$> readAttsAndCons]
 >   --parse our unordered list of attribute defs or constraints for
 >   --each line, want to try the constraint parser first, then the
 >   --attribute parser, so we need the swap to feed them in the right
 >   --order into createtable
->   <*> parens (swap <$> parseABsep1
->                          (try tableConstr)
->                          tableAtt
->                          (symbol ","))
->     where swap (a,b) = (b,a)
+>   where
+>     readAttsAndCons = parens (swap <$> parseABsep1
+>                                          (try tableConstr)
+>                                          tableAtt
+>                                          (symbol ","))
+>     swap (a,b) = (b,a)
 
 > createType :: ParsecT String () Identity Statement
 > createType = CreateType

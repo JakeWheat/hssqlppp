@@ -555,6 +555,10 @@ create table tests
 >       [CreateTable "tbl" [AttributeDef "fld" "boolean"
 >                           (Just $ BooleanL False) []][]]
 
+>      ,p "create table tbl as select 1;"
+>       [CreateTableAs "tbl"
+>        (selectE (SelectList [SelExp (IntegerL 1)] []))]
+
 other creates
 
 >      ,p "create view v1 as\n\

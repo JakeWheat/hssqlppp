@@ -75,6 +75,12 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ nest 2 (vcat (csv (map convAttDef atts ++ map convCon cons)))
 >     $+$ rparen <> statementEnd
 
+> convStatement (CreateTableAs t sel) =
+>     text "create table"
+>     <+> text t <+> text "as"
+>     $+$ convSelectFragment True sel
+>     <> statementEnd
+
 > convStatement (CreateFunction lang name args retType qt body vol) =
 >     text "create function" <+> text name
 >     <+> parens (hcatCsvMap convParamDef args)
