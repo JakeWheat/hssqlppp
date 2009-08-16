@@ -1,8 +1,5 @@
 /*
 
-This is the test file to check the parser and pretty printer
-have a reasonable coverage of sql
-
 Copyright 2009 Jake Wheat
 
 = Overview

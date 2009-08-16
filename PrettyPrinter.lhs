@@ -213,6 +213,7 @@ Conversion routines - convert Sql asts into Docs
 >   $+$ (case tp of
 >          Except -> text "except"
 >          Union -> text "union"
+>          UnionAll -> text "union" <+> text "all"
 >          Intersect -> text "intersect")
 >   $+$ convSelectFragment True s2
 > convSelectFragment _ (Values expss) = convValues expss
@@ -386,6 +387,9 @@ Conversion routines - convert Sql asts into Docs
 > convExp (Row r) = text "row" <> parens (hcatCsvMap convExp r)
 > convExp (ArraySub (Identifier i) s) = text i <> brackets (csvExp s)
 > convExp (ArraySub e s) = parens (convExp e) <> brackets (csvExp s)
+> convExp (Between i e f) = convExp i <+> text "between" <+> parens (convExp e)
+>                           <+> text "and" <+> parens (convExp f)
+> convExp PlaceHolder = empty
 
 > convWhen :: (Expression, Expression) -> Doc
 > convWhen (ex1, ex2) =

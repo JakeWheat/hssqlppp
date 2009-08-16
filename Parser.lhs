@@ -125,6 +125,8 @@ recurses to support parsing excepts, unions, etc
 >     --statements with multiple excepts/ intersects and no parens
 >     try $ CombineSelect Except s1 <$> (keyword "except" *> select)
 >    ,try $ CombineSelect Intersect s1 <$> (keyword "intersect" *> select)
+>    ,try $ CombineSelect UnionAll s1 <$> (keyword "union"
+>                                          *> keyword "all" *> select)
 >    ,try $ CombineSelect Union s1 <$> (keyword "union" *> select)
 >    ,return s1]
 
@@ -182,11 +184,11 @@ one with just a \. in the first two columns
 >   choice [
 >      CreateTableAs tname <$> (trykeyword "as" *> select)
 >     ,uncurry (CreateTable tname) <$> readAttsAndCons]
->   --parse our unordered list of attribute defs or constraints for
->   --each line, want to try the constraint parser first, then the
->   --attribute parser, so we need the swap to feed them in the right
->   --order into createtable
 >   where
+>     --parse our unordered list of attribute defs or constraints for
+>     --each line, want to try the constraint parser first, then the
+>     --attribute parser, so we need the swap to feed them in the
+>     --right order into createtable
 >     readAttsAndCons = parens (swap <$> parseABsep1
 >                                          (try tableConstr)
 >                                          tableAtt
@@ -439,9 +441,9 @@ typeatt: like a cut down version of tableatt, used in create type
 >                    <|> (choice [
 >                          continue
 >                         ,execute
+>                         ,caseStatement
 >                         ,assignment
 >                         ,ifStatement
->                         ,caseStatement
 >                         ,returnSt
 >                         ,raise
 >                         ,forStatement
@@ -597,6 +599,7 @@ predicate before row constructor, since an in predicate can start with
 a row constructor, then finally vanilla parens
 
 >           try scalarSubQuery
+>          ,try betweenExp
 >          ,try inPredicate
 >          ,try rowCtor
 >          ,parens expr
@@ -715,15 +718,13 @@ followed by ">"
 >       dontFollowWith c1 c2 =
 >         try $ char c1 *> notFollowedBy (char c2) *> whitespace
 
-the first argument to these is ignored, it is there so the symbol
-can appear in the operator table above for readability purposes
-
->
+the first argument to these twp above is ignored, it is there so the
+symbol can appear in the operator table above for readability purposes
 
 == factor parsers
 
 > scalarSubQuery :: GenParser Char () Expression
-> scalarSubQuery = liftM ScalarSubQuery $ parens select
+> scalarSubQuery = ScalarSubQuery <$> parens select
 
 in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
@@ -849,6 +850,12 @@ fn() over ([partition bit]? [order bit]?)
 >   where
 >     orderBy1 = trykeyword "order" *> keyword "by" *> commaSep1 expr
 >     partitionBy = trykeyword "partition" *> keyword "by" *> commaSep1 expr
+
+> betweenExp :: ParsecT String () Identity Expression
+> betweenExp = Between <$> identifier
+>                      <*> (trykeyword "between" *> dodgyParseInt)
+>                      <*> (keyword "and" *> dodgyParseInt)
+>              where dodgyParseInt = parens integerLit <|> integerLit
 
 > functionCall :: ParsecT String () Identity Expression
 > functionCall = FunCall <$> identifierString <*> parens (commaSep expr)
@@ -995,7 +1002,8 @@ theory
 parseOptionalSuffixThreaded
 
 parse the start of something -> parseResultA,
-then parse an optional suffix, passing parseResultA to this parser -> parseResultB
+then parse an optional suffix, passing parseResultA
+  to this parser -> parseResultB
 return parseResultB is it succeeds, else return parseResultA
 
 sort of like a suffix operator parser where the suffixisable part
@@ -1016,7 +1024,7 @@ tree2 isnothing ? tree1 : tree2
 I'm pretty sure this is some standard monad operation but I don't know
 what. It's a bit like the maybe monad but when you get nothing it
 returns the previous result instead of nothing
-(if you take the parsing stuff out you get:
+- if you take the parsing specific stuff out you get:
 
 p1 :: (Monad m) =>
       m b -> (b -> m (Maybe b)) -> m b

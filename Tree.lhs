@@ -145,7 +145,7 @@ constraints which appear on a separate row in the create table
 > data RaiseType = RNotice | RException | RError
 >                  deriving (Eq, Show)
 
-> data CombineType = Except | Union | Intersect
+> data CombineType = Except | Union | Intersect | UnionAll
 >                    deriving (Eq, Show)
 
 > data Volatility = Volatile | Stable | Immutable
@@ -212,6 +212,7 @@ on which expressions can appear in different places.
 >                 | StringL String
 >                 | StringLD String String
 >                 | NullL
+>                 | PlaceHolder
 >                 | BooleanL Bool
 >                 | PositionalArg Int
 >                 | Identifier String
@@ -227,6 +228,7 @@ on which expressions can appear in different places.
 >                 | WindowFn Expression [Expression] [Expression] Bool
 >                 | ScalarSubQuery Statement
 >                 | ArraySub Expression [Expression]
+>                 | Between Expression Expression Expression
 >                   deriving (Show,Eq)
 
 > data InList = InList [Expression] | InSelect Statement

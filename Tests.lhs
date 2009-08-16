@@ -104,6 +104,9 @@ some operator tests
 >                          Cast (IntegerL 245)
 >                           (FunCall "float" [IntegerL 24]))
 
+>      ,p "a between 1 and 3"
+>         (Between (Identifier "a") (IntegerL 1) (IntegerL 3))
+
 some function call tests
 
 >      ,p "fn()" (FunCall "fn" [])
@@ -236,6 +239,12 @@ test a whole bunch more select statements
 >         \union\n\
 >         \select a from tbl1;"
 >       [CombineSelect Union
+>        (selectFrom (selIL ["a"]) (Tref "tbl"))
+>        (selectFrom (selIL ["a"]) (Tref "tbl1"))]
+>      ,p "select a from tbl\n\
+>         \union all\n\
+>         \select a from tbl1;"
+>       [CombineSelect UnionAll
 >        (selectFrom (selIL ["a"]) (Tref "tbl"))
 >        (selectFrom (selIL ["a"]) (Tref "tbl1"))]
 
