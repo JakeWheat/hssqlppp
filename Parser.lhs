@@ -260,7 +260,8 @@ select bits
 
 > selQuerySpec :: ParsecT String () Identity Statement
 > selQuerySpec = Select
->                <$> selectList
+>                <$> option False (True <$ keyword "distinct")
+>                <*> selectList
 >                <*> maybeP from
 >                <*> maybeP whereClause
 >                <*> option [] groupBy
@@ -302,11 +303,13 @@ then cope with joins recursively using joinpart below
 >                       TrefFun (try functionCall)
 >                       TrefFunAlias () (keyword "as" *> identifierString)
 >                    ,parseOptionalSuffix
->                       Tref identifierString
+>                       Tref nonKeywordIdentifierStringMaybeDot
 >                       TrefAlias () ((optional $ trykeyword "as")
 >                                     *> nonKeywordIdentifierString)]
->     nonKeywordIdentifierString = try $ do
->              x <- identifierString
+>     nonKeywordIdentifierStringMaybeDot = nonKeyword identifierStringMaybeDot
+>     nonKeywordIdentifierString = nonKeyword identifierString
+>     nonKeyword iden = try $ do
+>              x <- iden
 >              --avoid all these keywords as aliases since they can
 >              --appear immediately following a tableref as the next
 >              --part of the statement, if we don't do this then lots
@@ -462,7 +465,11 @@ typeatt: like a cut down version of tableatt, used in create type
 > perform = Perform <$> (trykeyword "perform" *> expr)
 
 > execute :: ParsecT String () Identity Statement
-> execute = Execute <$> (trykeyword "execute" *> expr)
+> execute = parseOptionalSuffix
+>             Execute (trykeyword "execute" *> expr)
+>             ExecuteInto () readInto
+>     where
+>       readInto = trykeyword "into" *> commaSep1 identifierStringMaybeDot
 
 > assignment :: ParsecT String () Identity Statement
 > assignment = Assignment
@@ -598,7 +605,7 @@ subquerys since they're easy to distinguish from the others then do in
 predicate before row constructor, since an in predicate can start with
 a row constructor, then finally vanilla parens
 
->           try scalarSubQuery
+>           scalarSubQuery
 >          ,try inPredicate
 >          ,try rowCtor
 >          ,parens expr
@@ -625,15 +632,15 @@ with a function, I think these all need try because functions can
 start with the same letters as these keywords, and they have to be
 tried after these. This claim might be wrong
 
->          ,try caseParse
->          ,try exists
+>          ,caseParse
+>          ,exists
 >          ,try booleanLiteral
 >          ,try nullL
 
 do array before array sub, since array parses an array selector which
 looks exactly like an array subscript operator
 
->          ,try array
+>          ,array
 >          ,try arraySub
 
 now the ones starting with a function name, since a function call
@@ -644,9 +651,10 @@ first
 
 try function call before identifier for same reason
 
->          ,try castKeyword
->          ,try functionCall
+>          ,castKeyword
+>          ,substring
 >          ,try betweenExp
+>          ,try functionCall
 >          ,try identifier]
 
 == operator table
@@ -728,7 +736,9 @@ symbol can appear in the operator table above for readability purposes
 == factor parsers
 
 > scalarSubQuery :: GenParser Char () Expression
-> scalarSubQuery = ScalarSubQuery <$> parens select
+> scalarSubQuery = ScalarSubQuery
+>                  <$> ((try (symbol "(" *> lookAhead (keyword "select")))
+>                          *> select <* symbol ")")
 
 in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
@@ -767,7 +777,8 @@ string parsing
 >   where
 >     --parse a string delimited by single quotes
 >     stringQuotes = StringL <$> stringPar
->     stringPar = char '\'' *> readQuoteEscape <* whitespace
+>     stringPar = (optional $ char 'E') *> char '\''
+>                 *> readQuoteEscape <* whitespace
 >     --(readquoteescape reads the trailing ')
 
 have to read two consecutive single quotes as a quote character
@@ -813,7 +824,7 @@ case - only supports 'case when condition' flavour and not 'case
 expression when value' currently
 
 > caseParse :: ParsecT String () Identity Expression
-> caseParse = Case <$> (keyword "case" *> many whenParse)
+> caseParse = Case <$> (trykeyword "case" *> many whenParse)
 >                  <*> (maybeP ((keyword "else" *> expr)))
 >                       <* keyword "end"
 >   where
@@ -821,7 +832,7 @@ expression when value' currently
 >                     <*> (keyword "then" *> expr)
 
 > exists :: ParsecT String () Identity Expression
-> exists = Exists <$> (keyword "exists" *> parens select)
+> exists = Exists <$> (trykeyword "exists" *> parens select)
 
 > booleanLiteral :: ParsecT String u Identity Expression
 > booleanLiteral = BooleanL <$> (=="true")
@@ -832,7 +843,7 @@ expression when value' currently
 > nullL = NullL <$ keyword "null"
 
 > array :: GenParser Char () Expression
-> array = ArrayL <$> (keyword "array" *> squares (commaSep expr))
+> array = ArrayL <$> (trykeyword "array" *> squares (commaSep expr))
 
 when you put expr instead of identifier in arraysub, it stack
 overflows, not sure why.
@@ -857,16 +868,34 @@ fn() over ([partition bit]? [order bit]?)
 
 > betweenExp :: ParsecT String () Identity Expression
 > betweenExp = Between <$> identifier
->                      <*> (trykeyword "between" *> dodgyParseInt)
->                      <*> (keyword "and" *> dodgyParseInt)
->              where dodgyParseInt = parens integerLit <|> integerLit
+>                      <*> (trykeyword "between" *> dodgyParseElement)
+>                      <*> (keyword "and" *> dodgyParseElement)
+>              --can't use the full expression parser at this time
+>              --because of a conflict between the operator 'and' and
+>              --the 'and' part of a between
+>              --possible solution is to parse a between as binopcall
+>              --and (between a) b then fix it up with a second pass
+>              --just bodging it for now
+>              where
+>                dodgyParseElement =
+>                    choice [
+>                       functionCall
+>                      ,identifier
+>                      ,parens dodgyParseElement
+>                      ,integerLit]
 
 > functionCall :: ParsecT String () Identity Expression
 > functionCall = FunCall <$> identifierString <*> parens (commaSep expr)
 
 > castKeyword :: ParsecT String () Identity Expression
-> castKeyword = CastKeyword <$> (keyword "cast" *> symbol "(" *> expr)
+> castKeyword = CastKeyword <$> (trykeyword "cast" *> symbol "(" *> expr)
 >                           <*> (keyword "as" *> typeName <* symbol ")")
+
+> substring :: ParsecT [Char] () Identity Expression
+> substring = Substring
+>             <$> (trykeyword "substring" *> symbol "(" *> expr)
+>             <*> (keyword "from" *> expr)
+>             <*> (keyword "for" *> expr <* symbol ")")
 
 > identifier :: ParsecT String () Identity Expression
 > identifier = Identifier <$> identifierString
@@ -899,7 +928,7 @@ keyword has to not be immediately followed by letters or numbers
 identifier which happens to start with a complete keyword
 
 > keyword :: String -> ParsecT String u Identity ()
-> keyword k = lexeme (string k *> notFollowedBy alphaNum)
+> keyword k = lexeme (string k *> notFollowedBy (alphaNum <|> char '_'))
 >             <?> k
 
 shorthand to simplify parsers, helps because you can then avoid parens

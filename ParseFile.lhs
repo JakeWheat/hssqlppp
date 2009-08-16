@@ -31,10 +31,11 @@ authentic the sql is and how much has been silently dropped on the floor
 >            putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
 >            putStrLn $ printSql l
 >            --check roundtrip
->            case parseSql (printSql l) of
+>            let pp = printSql l
+>            case parseSql pp of
 >              Left er -> do
->                     fs <- readFile f
->                     error $ "roundtrip failed: " ++ showEr er fs
+>                     --fs <- readFile f
+>                     error $ "roundtrip failed: " ++ showEr er pp
 >              Right l' -> if l == l'
 >                            then putStrLn "roundtrip ok"
 >                            else putStrLn "roundtrip failed: different ast"

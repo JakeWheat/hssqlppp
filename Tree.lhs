@@ -27,8 +27,8 @@ instead put any statement - this type checks but is totally invalid.
 
 queries
 
->                  -- selectlist from where
->                  Select SelectList (Maybe TableRef) (Maybe Expression)
+>                  -- distinct? selectlist from where
+>                  Select Bool SelectList (Maybe TableRef) (Maybe Expression)
 >                             --groupby orderby limit
 >                             [Expression] [Expression] (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement
@@ -65,6 +65,7 @@ ddl
 >                | NullStatement
 >                | Perform Expression
 >                | Execute Expression
+>                | ExecuteInto Expression [String]
 >                | ForSelectStatement String Statement [Statement]
 >                | ForIntegerStatement String Expression Expression [Statement]
 >                | WhileStatement Expression [Statement]
@@ -217,6 +218,8 @@ on which expressions can appear in different places.
 >                 | BooleanL Bool
 >                 | PositionalArg Int
 >                 | CastKeyword Expression TypeName
+>                   -- sourcestring start length
+>                 | Substring Expression Expression Expression
 >                 | Identifier String
 >                 | Row [Expression]
 >                 | ArrayL [Expression]

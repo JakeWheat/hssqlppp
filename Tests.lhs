@@ -111,6 +111,13 @@ some operator tests
 >      ,p "@ a"
 >         (UnOpCall Abs (Identifier "a"))
 
+>      ,p "substring(a from 0 for 3)"
+>         (Substring (Identifier "a") (IntegerL 0) (IntegerL 3))
+
+>      ,p "substring(a from 0 for (5 - 3))"
+>         (Substring (Identifier "a") (IntegerL 0)
+>          (BinOpCall Minus (IntegerL 5) (IntegerL 3)))
+
 
 some function call tests
 
@@ -211,6 +218,12 @@ test a whole bunch more select statements
 >       [selectFrom (selIL ["*"]) (Tref "tbl")]
 >      ,p "select a,b from tbl;"
 >       [selectFrom (selIL ["a", "b"]) (Tref "tbl")]
+
+>      ,p "select a,b from inf.tbl;"
+>       [selectFrom (selIL ["a", "b"]) (Tref "inf.tbl")]
+
+>      ,p "select distinct * from tbl;"
+>       [Select True (SelectList (selIL ["*"]) []) (Just $ Tref "tbl") Nothing [] [] Nothing]
 
 >      ,p "select a from tbl where b=2;"
 >       [selectFromWhere
@@ -363,12 +376,12 @@ test a whole bunch more select statements
 >         Nothing)]
 
 >      ,p "select * from a order by c;"
->       [Select
+>       [Select False
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] [Identifier "c"] Nothing]
 >      ,p "select * from a order by c limit 1;"
->       [Select
+>       [Select False
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] [Identifier "c"] (Just (IntegerL 1))]
@@ -389,7 +402,7 @@ test a whole bunch more select statements
 >        (TrefFunAlias (FunCall "gen" []) "t")]
 
 >      ,p "select a, count(b) from c group by a;"
->         [Select
+>         [Select False
 >          (sl [selI "a", SelExp (FunCall "count" [Identifier "b"])])
 >          (Just $ Tref "c")
 >          Nothing
@@ -795,13 +808,17 @@ simple statements
 >                     BinOpCall Conc (qi "r" "relvar_name")
 >                                            (StringL "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
->       [Select (SelectList [selI "c", selI "d"] ["a", "b"])
+>       [Select False (SelectList [selI "c", selI "d"] ["a", "b"])
 >                   (Just $ Tref "e") Nothing [] [] Nothing]
 >      ,p "select c,d into a,b from e;"
->       [Select (SelectList [selI "c", selI "d"] ["a", "b"])
+>       [Select False (SelectList [selI "c", selI "d"] ["a", "b"])
 >                   (Just $ Tref "e") Nothing [] [] Nothing]
+
 >      ,p "execute s;"
 >       [Execute (Identifier "s")]
+>      ,p "execute s into r;"
+>       [ExecuteInto (Identifier "s") ["r"]]
+
 >      ,p "continue;" [ContinueStatement]
 
 complicated statements
@@ -879,13 +896,13 @@ complicated statements
 >           selIL = map selI
 >           selI = SelExp . Identifier
 >           sl a = SelectList a []
->           selectE selList = Select selList Nothing Nothing [] [] Nothing
+>           selectE selList = Select False selList Nothing Nothing [] [] Nothing
 >           qi a b = BinOpCall Qual (Identifier a) (Identifier b)
 >           selectFrom selList frm =
->             Select (SelectList selList [])
+>             Select False (SelectList selList [])
 >                    (Just frm) Nothing [] [] Nothing
 >           selectFromWhere selList frm whr =
->             Select (SelectList selList [])
+>             Select False (SelectList selList [])
 >                    (Just frm) (Just whr) [] [] Nothing
 
 ================================================================================

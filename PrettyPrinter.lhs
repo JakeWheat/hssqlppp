@@ -39,7 +39,7 @@ Conversion routines - convert Sql asts into Docs
 
 == selects
 
-> convStatement s@(Select _ _ _ _ _ _) =
+> convStatement s@(Select _ _ _ _ _ _ _) =
 >   convSelectFragment True s <> statementEnd
 > convStatement s@(CombineSelect _ _ _) =
 >   convSelectFragment True s <> statementEnd
@@ -175,6 +175,9 @@ Conversion routines - convert Sql asts into Docs
 >       convCond (ex, sts) = convExp ex <+> text "then"
 >                            $+$ convNestedStatements sts
 > convStatement (Execute s) = text "execute" <+> convExp s <> statementEnd
+> convStatement (ExecuteInto s is) = text "execute" <+> convExp s
+>                                    <+> text "into" <+> hcatCsvMap text is
+>                                    <> statementEnd
 
 > convStatement (CaseStatement c conds els) =
 >     text "case" <+> convExp c
@@ -200,8 +203,10 @@ Conversion routines - convert Sql asts into Docs
 == selects
 
 > convSelectFragment :: Bool -> Statement -> Doc
-> convSelectFragment writeSelect (Select l tb wh grp ord lim) =
->   text (if writeSelect then "select" else "") <+> convSelList l
+> convSelectFragment writeSelect (Select dis l tb wh grp ord lim) =
+>   text (if writeSelect then "select" else "")
+>   <+> (if dis then text "distinct" else empty)
+>   <+> convSelList l
 >   $+$ nest 2 (
 >               maybeConv (\tr -> text "from" <+> convTref tr) tb
 >               $+$ convWhere wh)
@@ -393,6 +398,10 @@ Conversion routines - convert Sql asts into Docs
 > convExp (CastKeyword ex t) = text "cast" <> parens (convExp ex
 >                                                     <+> text "as"
 >                                                     <+> convTypeName t)
+> convExp (Substring s b e) = text "substring"
+>                             <> parens (convExp s
+>                                        <+> text "from" <+> convExp b
+>                                        <+> text "for" <+> convExp e)
 
 > convWhen :: (Expression, Expression) -> Doc
 > convWhen (ex1, ex2) =
