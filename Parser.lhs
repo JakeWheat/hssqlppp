@@ -123,11 +123,11 @@ recurses to support parsing excepts, unions, etc
 >   choice [
 >     --don't know if this does associativity in the correct order for
 >     --statements with multiple excepts/ intersects and no parens
->     try $ CombineSelect Except s1 <$> (keyword "except" *> select)
->    ,try $ CombineSelect Intersect s1 <$> (keyword "intersect" *> select)
->    ,try $ CombineSelect UnionAll s1 <$> (keyword "union"
->                                          *> keyword "all" *> select)
->    ,try $ CombineSelect Union s1 <$> (keyword "union" *> select)
+>     CombineSelect Except s1 <$> (trykeyword "except" *> select)
+>    ,CombineSelect Intersect s1 <$> (trykeyword "intersect" *> select)
+>    ,CombineSelect UnionAll s1 <$> (try (keyword "union"
+>                                          *> keyword "all") *> select)
+>    ,CombineSelect Union s1 <$> (trykeyword "union" *> select)
 >    ,return s1]
 
 > values :: ParsecT String () Identity Statement
@@ -260,7 +260,7 @@ select bits
 
 > selQuerySpec :: ParsecT String () Identity Statement
 > selQuerySpec = Select
->                <$> option False (True <$ keyword "distinct")
+>                <$> option False (True <$ trykeyword "distinct")
 >                <*> selectList
 >                <*> maybeP from
 >                <*> maybeP whereClause
@@ -301,7 +301,7 @@ then cope with joins recursively using joinpart below
 >                     <*> (keyword "as" *> identifierString)
 >                    ,parseOptionalSuffix
 >                       TrefFun (try functionCall)
->                       TrefFunAlias () (keyword "as" *> identifierString)
+>                       TrefFunAlias () (trykeyword "as" *> identifierString)
 >                    ,parseOptionalSuffix
 >                       Tref nonKeywordIdentifierStringMaybeDot
 >                       TrefAlias () ((optional $ trykeyword "as")
@@ -346,11 +346,11 @@ multiple joins
 >          --look for the join flavour first
 >          <$> (isJust <$> maybeP (keyword "natural"))
 >          <*> choice [
->             Inner <$ keyword "inner"
->            ,LeftOuter <$ (keyword "left" *> keyword "outer")
->            ,RightOuter <$ (keyword "right" *> keyword "outer")
->            ,FullOuter <$ (keyword "full" >> keyword "outer")
->            ,Cross <$ keyword "cross"]
+>             Inner <$ trykeyword "inner"
+>            ,LeftOuter <$ try (keyword "left" *> keyword "outer")
+>            ,RightOuter <$ try (keyword "right" *> keyword "outer")
+>            ,FullOuter <$ try (keyword "full" >> keyword "outer")
+>            ,Cross <$ trykeyword "cross"]
 >          --recurse back to tref to read the table
 >          <*> (keyword "join" *> tref)
 >          --now try and read the join condition
@@ -377,10 +377,10 @@ or after the whole list
 > selectItem :: ParsecT String () Identity SelectItem
 > selectItem = parseOptionalSuffix
 >                SelExp expr
->                SelectItem () (keyword "as" *> identifierString)
+>                SelectItem () (trykeyword "as" *> identifierString)
 
 > returning :: ParsecT String () Identity SelectList
-> returning = keyword "returning" *> selectList
+> returning = trykeyword "returning" *> selectList
 
 == update
 
