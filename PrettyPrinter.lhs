@@ -39,7 +39,7 @@ Conversion routines - convert Sql asts into Docs
 
 == selects
 
-> convStatement s@(Select _ _ _ _ _ _ _ _) =
+> convStatement s@(Select _ _ _ _ _ _ _ _ _) =
 >   convSelectFragment True s <> statementEnd
 > convStatement s@(CombineSelect _ _ _) =
 >   convSelectFragment True s <> statementEnd
@@ -225,7 +225,7 @@ Conversion routines - convert Sql asts into Docs
 == selects
 
 > convSelectFragment :: Bool -> Statement -> Doc
-> convSelectFragment writeSelect (Select dis l tb wh grp ord orddir lim) =
+> convSelectFragment writeSelect (Select dis l tb wh grp ord orddir lim off) =
 >   text (if writeSelect then "select" else "")
 >   <+> (case dis of
 >          Dupes -> empty
@@ -238,6 +238,7 @@ Conversion routines - convert Sql asts into Docs
 >   <+> ifNotEmpty (\o -> text "order by" <+> hcatCsvMap convExp o
 >                   <+> convDir orddir) ord
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
+>   <+> maybeConv (\offs -> text "offset" <+> convExp offs) off
 > convSelectFragment writeSelect (CombineSelect tp s1 s2) =
 >   convSelectFragment writeSelect s1
 >   $+$ (case tp of

@@ -295,6 +295,9 @@ select bits
 >                                 Asc <$ keyword "asc"
 >                                ,Desc <$ keyword "desc"])
 >                <*> maybeP limit
+>                <*> maybeP offset
+>                where
+>                  offset = keyword "offset" *> expr
 
 > orderBy :: GenParser Char () [Expression]
 > orderBy = trykeyword "order" *> keyword "by" *> commaSep1 expr

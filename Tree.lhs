@@ -31,8 +31,8 @@ queries
 >                  Select Distinct SelectList (Maybe TableRef) (Maybe Expression)
 >                             --groupby orderby
 >                             [Expression] [Expression]
->                             --orderby direction limit
->                             Direction (Maybe Expression)
+>                             --orderby direction limit offset
+>                             Direction (Maybe Expression) (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement
 >                | Values [[Expression]]
 
