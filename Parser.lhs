@@ -15,6 +15,171 @@ and
 http://www.postgresql.org/docs/8.4/interactive/sql-syntax.html
 for some notes on postgresql syntax (the rest of that manual is also helpful)
 
+================================================================================
+
+Notes on coding style (assumes you are familiar with do notation)
+  to explain the rationale
+
+Here is a version of the delete parser which parses stuff like:
+delete [tablename] [where]? [returning]?
+
+ delete = trykeyword "delete" >> keyword "from" >>
+          Delete
+          <$> identifierString
+          <*> tryMaybeP whereClause
+          <*> tryMaybeP returning
+
+Looks like gobbledygook? This is equivalent to
+
+  delete = trykeyword "delete" >> keyword "from" >>
+           Delete `liftM`
+           `ap` identifierString
+           `ap` tryMaybeP whereClause
+           `ap` tryMaybeP returning
+
+which in turn is equivalent to
+
+ delete = trykeyword "delete" >> keyword "from" >>
+          liftM3 Delete
+                 identifierString
+                 (tryMaybeP whereClause)
+                 (tryMaybeP returning)
+
+which in do notation is:
+
+ delete = do
+          trykeyword "delete"
+          keyword "from"
+          i <- identifierString
+          w <- tryMaybeP whereClause
+          r <- tryMaybeP returning
+          return $ Delete i w r
+
+I think the top version is clearest, as long as you can understand it
+is a short hand for the bottom version.
+
+Some of the other operators used in addition to <$> and <*> are:
+
+<*
+
+ignores the return of the parser on the right e.g.
+
+p1 <* p2
+
+is equivalent to
+do
+  x <- p1
+  p2
+  return x
+
+*>
+
+ignores the return of the parser on the left,i.e. its just like >>
+except the precedence is different (which can be exploited to reduce
+the number of () needed)
+equivalent to
+do
+  p1
+  p2
+
+(which is
+do
+  p1
+  y <- p2
+  return y
+to see the symmetry better)
+
+<$
+returns the (non monadic) value on the left if the parser on the right succeeds
+e.g.
+
+True <$ keyword "distinct"
+
+is equivalent to
+do
+  keyword "distinct"
+  return True
+
+(alternatively could be written
+
+keyword "distinct" *> return True
+
+which is also good but slightly longer so I prefer the first)
+
+<:>
+made this one up as an applicative version of (:),
+to write an operator using applicative you do
+(:) <$> p1 <$> p2
+which is the same as:
+do
+  a <- p1
+  b <- p2
+  return (a:b)
+but using <:> instead of
+(:) <$> p1 <$> p2
+you can write
+p1 <:> p2
+don't know if the precedence of (<:>) is the same as (:) though
+
+Returning to the delete parser:
+
+ delete = trykeyword "delete" >> keyword "from" >>
+          Delete
+          <$> identifierString
+          <*> tryMaybeP whereClause
+          <*> tryMaybeP returning
+
+there are some other notable aspects, in the bit before the 'Delete'.
+
+* the code here is before the delete as a kind of filter, many of the
+  parsers look like this - in an attempt to make the parsers more
+  readable. The alternative code that this style replaced is this:
+
+ delete = Delete
+          <$> (trykeyword "delete" *> keyword "from" *> identifierString)
+          <*> tryMaybeP whereClause
+          <*> tryMaybeP returning
+
+  which I think is less readable.
+
+There are also a couple of tricks in this line which are connected to
+parsing the haskell code and precedence:
+
+if we use *> instead of >> at the top, we need (), this is why >> is chosen:
+
+ delete = trykeyword "delete" *> keyword "from" *>
+          (Delete
+          <$> identifierString
+          <*> tryMaybeP whereClause
+          <*> tryMaybeP returning)
+
+(The code prefers *> where *> and >> are interchangable without adding
+().)
+
+trykeyword could be replaced with:
+
+ delete = try (keyword "delete") >> keyword "from" >>
+          Delete
+          <$> identifierString
+          <*> tryMaybeP whereClause
+          <*> tryMaybeP returning
+
+but it's extra brackets (trykeyword is only shorthand like this used
+in the code, since it appears all over and loads of () and $ get added
+without it).
+
+Some further reference/reading:
+
+parsec tutorial:
+http://legacy.cs.uu.nl/daan/download/parsec/parsec.html
+
+parsec reference:
+http://hackage.haskell.org/package/parsec-3.0.0
+
+applicative parsing style taken from here:
+http://book.realworldhaskell.org/read/using-parsec.html
+(just over halfway down the page)
+
 > module Parser(
 >               --parse fully formed sql statements from a string
 >               parseSql
@@ -76,7 +241,7 @@ parse plpgsql statements, used for testing purposes
 
 > sqlStatements :: ParsecT String () Identity [Statement]
 > sqlStatements = whitespace >>
->                 (many $ sqlStatement True)
+>                 many (sqlStatement True)
 >                 <* eof
 
 parse a statement
@@ -137,15 +302,15 @@ recurses to support parsing excepts, unions, etc
 >     selQuerySpec = Select
 >                <$> option Dupes (Distinct <$ trykeyword "distinct")
 >                <*> selectList
->                <*> maybeP from
->                <*> maybeP whereClause
+>                <*> tryMaybeP from
+>                <*> tryMaybeP whereClause
 >                <*> option [] groupBy
 >                <*> option [] orderBy
 >                <*> option Asc (choice [
 >                                 Asc <$ keyword "asc"
 >                                ,Desc <$ keyword "desc"])
->                <*> maybeP limit
->                <*> maybeP offset
+>                <*> tryMaybeP limit
+>                <*> tryMaybeP offset
 >     from = (keyword "from" *> tref)
 >     groupBy = trykeyword "group" *> keyword "by"
 >               *> commaSep1 expr
@@ -236,15 +401,15 @@ multiple rows to insert and insert from select statements
 >   Insert <$> identifierString
 >          <*> option [] (try columnNameList)
 >          <*> (select <|> values)
->          <*> maybeP returning
+>          <*> tryMaybeP returning
 
 > update :: ParsecT String () Identity Statement
 > update = trykeyword "update" >>
 >          Update
 >          <$> identifierString
 >          <*> (keyword "set" *> commaSep1 setClause)
->          <*> maybeP whereClause
->          <*> maybeP returning
+>          <*> tryMaybeP whereClause
+>          <*> tryMaybeP returning
 >     where
 >       setClause = choice
 >             [RowSetClause <$> parens (commaSep1 identifierString)
@@ -253,11 +418,21 @@ multiple rows to insert and insert from select statements
 >                        <*> (symbol "=" *> expr)]
 
 > delete :: ParsecT String () Identity Statement
-> delete = trykeyword "delete" >> keyword "from" >>
->          Delete
->          <$> identifierString
->          <*> maybeP whereClause
->          <*> maybeP returning
+
+ > delete = trykeyword "delete" >> keyword "from" >>
+ >          Delete
+ >          <$> identifierString
+ >          <*> tryMaybeP whereClause
+ >          <*> tryMaybeP returning
+
+> delete = do
+>          trykeyword "delete"
+>          keyword "from"
+>          i <- identifierString
+>          w <- tryMaybeP whereClause
+>          r <- tryMaybeP returning
+>          return $ Delete i w r
+
 
 = copy statement
 
@@ -297,7 +472,7 @@ one with just a \. in the first two columns
 >     tableAtt = AttributeDef
 >                <$> identifierString
 >                <*> identifierString
->                <*> maybeP (keyword "default" *> expr)
+>                <*> tryMaybeP (keyword "default" *> expr)
 >                <*> sepBy rowConstraint whitespace
 >     tableConstr = UniqueConstraint
 >                   <$> try (keyword "unique" *> columnNameList)
@@ -365,8 +540,8 @@ a string
 > createDomain = trykeyword "domain" >>
 >                CreateDomain
 >                <$> identifierString
->                <*> (maybeP (keyword "as") *> identifierString)
->                <*> maybeP (keyword "check" *> expr)
+>                <*> (tryMaybeP (keyword "as") *> identifierString)
+>                <*> tryMaybeP (keyword "check" *> expr)
 
 > dropSomething :: ParsecT String () Identity Statement
 > dropSomething = DropSomething
@@ -489,7 +664,7 @@ or after the whole list
 >            choice [
 >             ReturnNext <$> (trykeyword "next" *> expr)
 >            ,ReturnQuery <$> (trykeyword "query" *> select)
->            ,Return <$> maybeP expr]
+>            ,Return <$> tryMaybeP expr]
 
 > raise :: ParsecT String () Identity Statement
 > raise = trykeyword "raise" >>
@@ -594,7 +769,7 @@ variable declarations in a plpgsql function
 > varDef = VarDef
 >          <$> identifierString
 >          <*> typeName
->          <*> maybeP ((symbol ":=" <|> symbol "=")*> expr) <* semi
+>          <*> tryMaybeP ((symbol ":=" <|> symbol "=")*> expr) <* semi
 
 ================================================================================
 
@@ -843,7 +1018,7 @@ expression when value' currently
 > caseParse :: ParsecT String () Identity Expression
 > caseParse = trykeyword "case" >>
 >             Case <$> many whenParse
->                  <*> (maybeP ((keyword "else" *> expr)))
+>                  <*> (tryMaybeP ((keyword "else" *> expr)))
 >                       <* keyword "end"
 >   where
 >     whenParse = (,) <$> (keyword "when" *> expr)
@@ -971,7 +1146,7 @@ of qualification with a second pass over the parse tree.
 >                     "*" <$ star
 >                    ,do
 >                      a <- nonStarPart
->                      b <- maybeP ((++) <$> symbol "." <*> identifierString)
+>                      b <- tryMaybeP ((++) <$> symbol "." <*> identifierString)
 >                      case b of Nothing -> return a
 >                                Just c -> return $ a ++ c]
 
@@ -996,9 +1171,9 @@ of qualification with a second pass over the parse tree.
 > squares = P.squares lexer
 
 
-> maybeP :: GenParser tok st a
+> tryMaybeP :: GenParser tok st a
 >           -> ParsecT [tok] st Identity (Maybe a)
-> maybeP p = try (optionMaybe p) <|> return Nothing
+> tryMaybeP p = try (optionMaybe p) <|> return Nothing
 
 > commaSep2 :: ParsecT String u Identity t -> ParsecT String u Identity [t]
 > commaSep2 p = sepBy2 p (symbol ",")
