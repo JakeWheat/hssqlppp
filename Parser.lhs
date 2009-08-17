@@ -131,6 +131,97 @@ recurses to support parsing excepts, unions, etc
 >                                          *> keyword "all") *> select)
 >    ,CombineSelect Union s1 <$> (trykeyword "union" *> select)
 >    ,return s1]
+>   where
+>     selQuerySpec = Select
+>                <$> option Dupes (Distinct <$ trykeyword "distinct")
+>                <*> selectList
+>                <*> maybeP from
+>                <*> maybeP whereClause
+>                <*> option [] groupBy
+>                <*> option [] orderBy
+>                <*> option Asc (choice [
+>                                 Asc <$ keyword "asc"
+>                                ,Desc <$ keyword "desc"])
+>                <*> maybeP limit
+>                <*> maybeP offset
+>     from = (keyword "from" *> tref)
+>     groupBy = trykeyword "group" *> keyword "by"
+>               *> commaSep1 expr
+>     orderBy = trykeyword "order" *> keyword "by"
+>               *> commaSep1 expr
+>     limit = keyword "limit" *> expr
+>     offset = keyword "offset" *> expr
+
+table refs
+have to cope with:
+a simple tableref i.e just a name
+an aliased table ref e.g. select a.b from tbl as a
+a sub select e.g. select a from (select b from c)
+ - these are handled in tref
+then cope with joins recursively using joinpart below
+
+>     tref = parseOptionalSuffixThreaded getFirstTref joinPart
+>     getFirstTref = choice [
+>                     SubTref
+>                     <$> parens select
+>                     <*> (keyword "as" *> identifierString)
+>                    ,parseOptionalSuffix
+>                       TrefFun (try functionCall)
+>                       TrefFunAlias () (trykeyword "as" *> identifierString)
+>                    ,parseOptionalSuffix
+>                       Tref nkwid
+>                       TrefAlias () ((optional $ trykeyword "as")
+>                                     *> nkwid)]
+>     nkwid = nonKeyword identifierString
+>     nonKeyword iden = try $ do
+>              x <- iden
+>              --avoid all these keywords as aliases since they can
+>              --appear immediately following a tableref as the next
+>              --part of the statement, if we don't do this then lots
+>              --of things don't parse.
+>              if x `elem` ["as"
+>                          ,"where"
+>                          ,"except"
+>                          ,"union"
+>                          ,"intersect"
+>                          ,"loop"
+>                          ,"inner"
+>                          ,"on"
+>                          ,"left"
+>                          ,"right"
+>                          ,"full"
+>                          ,"cross"
+>                          ,"natural"
+>                          ,"order"
+>                          ,"group"
+>                          ,"limit"
+>                          ,"using"]
+>                then fail "not keyword"
+>                else return x
+
+joinpart: parse a join after the first part of the tableref
+(which is a table name, aliased table name or subselect)
+; - takes this tableref as an arg so it can recurse to
+multiple joins
+
+>     joinPart tr1 = parseOptionalSuffixThreaded (readOneJoinPart tr1) joinPart
+>     readOneJoinPart tr1 = JoinedTref tr1
+>          --look for the join flavour first
+>          <$> (option Unnatural (Natural <$ trykeyword "natural"))
+>          <*> choice [
+>             Inner <$ trykeyword "inner"
+>            ,LeftOuter <$ try (keyword "left" *> keyword "outer")
+>            ,RightOuter <$ try (keyword "right" *> keyword "outer")
+>            ,FullOuter <$ try (keyword "full" >> keyword "outer")
+>            ,Cross <$ trykeyword "cross"]
+>          --recurse back to tref to read the table
+>          <*> (keyword "join" *> tref)
+>          --now try and read the join condition
+>          <*> choice [
+>              Just <$> (JoinOn <$> (trykeyword "on" *> expr))
+>             ,Just <$> (JoinUsing <$> (trykeyword "using" *> columnNameList))
+>             ,return Nothing]
+
 
 > values :: ParsecT String () Identity Statement
 > values = Values <$> (trykeyword "values"
@@ -156,6 +247,12 @@ multiple rows to insert and insert from select statements
 >          <*> commaSep1 setClause
 >          <*> maybeP whereClause
 >          <*> maybeP returning
+>     where
+>       setClause = choice
+>             [RowSetClause <$> parens (commaSep1 identifierString)
+>                           <*> (symbol "=" *> parens (commaSep1 expr))
+>             ,SetClause <$> identifierString
+>                        <*> (symbol "=" *> expr)]
 
 > delete :: ParsecT String () Identity Statement
 > delete = Delete
@@ -197,10 +294,30 @@ one with just a \. in the first two columns
 >                                          (symbol ","))
 >     swap (a,b) = (b,a)
 
+>     tableAtt = AttributeDef
+>                <$> identifierString
+>                <*> identifierString
+>                <*> maybeP (keyword "default" *> expr)
+>                <*> sepBy rowConstraint whitespace
+
+>     tableConstr = UniqueConstraint
+>                   <$> try (keyword "unique" *> columnNameList)
+
+>     rowConstraint =
+>        choice [
+>           RowUniqueConstraint <$ keyword "unique"
+>          ,RowCheckConstraint <$> (keyword "check" *> parens expr)
+>          ,NullConstraint <$ trykeyword "null"
+>          ,NotNullConstraint <$ (keyword "not" *> keyword "null")
+>          ]
+
+
 > createType :: ParsecT String () Identity Statement
 > createType = CreateType
 >              <$> (trykeyword "type" *> identifierString <* keyword "as")
 >              <*> parens (commaSep1 typeAtt)
+>   where
+>     typeAtt = TypeAttDef <$> identifierString <*> identifierString
 
 
 create function, support sql functions and
@@ -281,114 +398,8 @@ a string
 
 = component parsers for sql statements
 
-select bits
-
-> selQuerySpec :: ParsecT String () Identity Statement
-> selQuerySpec = Select
->                <$> option Dupes (Distinct <$ trykeyword "distinct")
->                <*> selectList
->                <*> maybeP from
->                <*> maybeP whereClause
->                <*> option [] groupBy
->                <*> option [] orderBy
->                <*> option Asc (choice [
->                                 Asc <$ keyword "asc"
->                                ,Desc <$ keyword "desc"])
->                <*> maybeP limit
->                <*> maybeP offset
->                where
->                  offset = keyword "offset" *> expr
-
-> orderBy :: GenParser Char () [Expression]
-> orderBy = trykeyword "order" *> keyword "by" *> commaSep1 expr
-
-> groupBy :: GenParser Char () [Expression]
-> groupBy = trykeyword "group" *> keyword "by" *> commaSep1 expr
-
-> from :: GenParser Char () TableRef
-> from = (keyword "from" *> tref)
-
 > whereClause :: ParsecT String () Identity Expression
 > whereClause = (keyword "where" *> expr)
-
-> limit :: GenParser Char () Expression
-> limit = keyword "limit" *> expr
-
-== table refs
-used in the from part of a select
-have to cope with:
-a simple tableref i.e just a name
-an aliased table ref e.g. select a.b from tbl as a
-a sub select e.g. select a from (select b from c)
- - these are handled in tref
-then cope with joins recursively using joinpart below
-
-> tref :: ParsecT String () Identity TableRef
-> tref = parseOptionalSuffixThreaded getFirstTref joinPart
->   where
->     getFirstTref = choice [
->                     SubTref
->                     <$> parens select
->                     <*> (keyword "as" *> identifierString)
->                    ,parseOptionalSuffix
->                       TrefFun (try functionCall)
->                       TrefFunAlias () (trykeyword "as" *> identifierString)
->                    ,parseOptionalSuffix
->                       Tref nkwid
->                       TrefAlias () ((optional $ trykeyword "as")
->                                     *> nkwid)]
->     nkwid = nonKeyword identifierString
->     nonKeyword iden = try $ do
->              x <- iden
->              --avoid all these keywords as aliases since they can
->              --appear immediately following a tableref as the next
->              --part of the statement, if we don't do this then lots
->              --of things don't parse.
->              if x `elem` ["as"
->                          ,"where"
->                          ,"except"
->                          ,"union"
->                          ,"intersect"
->                          ,"loop"
->                          ,"inner"
->                          ,"on"
->                          ,"left"
->                          ,"right"
->                          ,"full"
->                          ,"cross"
->                          ,"natural"
->                          ,"order"
->                          ,"group"
->                          ,"limit"
->                          ,"using"]
->                then fail "not keyword"
->                else return x
-
-joinpart: parse a join after the first part of the tableref
-(which is a table name, aliased table name or subselect)
-; - takes this tableref as an arg so it can recurse to
-multiple joins
-
-> joinPart :: TableRef -> GenParser Char () TableRef
-> joinPart tr1 = parseOptionalSuffixThreaded readOneJoinPart joinPart
->     where
->       readOneJoinPart = JoinedTref tr1
->          --look for the join flavour first
->          <$> (option Unnatural (Natural <$ trykeyword "natural"))
->          <*> choice [
->             Inner <$ trykeyword "inner"
->            ,LeftOuter <$ try (keyword "left" *> keyword "outer")
->            ,RightOuter <$ try (keyword "right" *> keyword "outer")
->            ,FullOuter <$ try (keyword "full" >> keyword "outer")
->            ,Cross <$ trykeyword "cross"]
->          --recurse back to tref to read the table
->          <*> (keyword "join" *> tref)
->          --now try and read the join condition
->          <*> choice [
->              Just <$> (JoinOn <$> (trykeyword "on" *> expr))
->             ,Just <$> (JoinUsing <$> (trykeyword "using" *> columnNameList))
->             ,return Nothing]
-
 
 selectlist and selectitem: the bit between select and from
 check for into either before the whole list of select columns
@@ -402,58 +413,15 @@ or after the whole list
 >   where
 >     readInto = trykeyword "into" *> commaSep1 identifierString
 >     itemList = commaSep1 selectItem
-
-
-> selectItem :: ParsecT String () Identity SelectItem
-> selectItem = parseOptionalSuffix
->                SelExp expr
->                SelectItem () (trykeyword "as" *> identifierString)
+>     selectItem = parseOptionalSuffix
+>                    SelExp expr
+>                    SelectItem () (trykeyword "as" *> identifierString)
 
 > returning :: ParsecT String () Identity SelectList
 > returning = trykeyword "returning" *> selectList
 
-== update
-
 > columnNameList :: ParsecT String () Identity [String]
 > columnNameList = parens $ commaSep1 identifierString
-
-set clause - the set a = 3, b=4 part of a update statement
-
-> setClause :: ParsecT String () Identity SetClause
-> setClause = choice
->             [RowSetClause <$> parens (commaSep1 identifierString)
->                           <*> (symbol "=" *> parens (commaSep1 expr))
->             ,SetClause <$> identifierString
->                        <*> (symbol "=" *> expr)]
-
-== ddl
-
-tableatt - an single attribute line in a create table
-
-> tableAtt :: ParsecT String () Identity AttributeDef
-> tableAtt = AttributeDef
->            <$> identifierString
->            <*> identifierString
->            <*> maybeP (keyword "default" *> expr)
->            <*> sepBy rowConstraint whitespace
-
-> tableConstr :: ParsecT String () Identity Constraint
-> tableConstr = UniqueConstraint <$> try (keyword "unique" *> columnNameList)
-
-> rowConstraint :: ParsecT String () Identity RowConstraint
-> rowConstraint =
->   choice [
->           RowUniqueConstraint <$ keyword "unique"
->          ,RowCheckConstraint <$> (keyword "check" *> parens expr)
->          ,NullConstraint <$ trykeyword "null"
->          ,NotNullConstraint <$ (keyword "not" *> keyword "null")
->          ]
-
-
-typeatt: like a cut down version of tableatt, used in create type
-
-> typeAtt :: ParsecT String () Identity TypeAttributeDef
-> typeAtt = TypeAttDef <$> identifierString <*> identifierString
 
 > typeName :: ParsecT String () Identity TypeName
 > typeName = choice [
