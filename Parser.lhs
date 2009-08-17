@@ -95,7 +95,7 @@ parse a statement
 >                                      ,createDomain]
 >                        ,trykeyword "drop" *>
 >                                    choice [
->                                       dropDomain
+>                                       dropSomething
 >                                      ,dropFunction]
 >                        ]
 >     <* (if reqSemi then semi >> return () else optional semi >> return ()))
@@ -249,16 +249,20 @@ a string
 >                <*> (maybeP (keyword "as") *> identifierString)
 >                <*> maybeP (keyword "check" *> expr)
 
-> dropDomain :: ParsecT String () Identity Statement
-> dropDomain = DropDomain
->              <$> (trykeyword "domain"
->                   *> option False
->                          (try $ True <$ (keyword "if"
->                                          *> keyword "exists")))
->              <*> commaSep1 identifierString
->              <*> option Restrict(choice [
->                                   Restrict <$ keyword "restrict"
->                                  ,Cascade <$ keyword "cascade"])
+> dropSomething :: ParsecT String () Identity Statement
+> dropSomething = DropSomething
+>                 <$> try (choice [
+>                           Domain <$ keyword "domain"
+>                          ,Type <$ trykeyword "type"
+>                          ,Table <$ keyword "table"
+>                          ,View <$ keyword "view"
+>                       ])
+>                 <*> option False (try $ True <$ (keyword "if"
+>                                               *> keyword "exists"))
+>                 <*> commaSep1 identifierString
+>                 <*> option Restrict(choice [
+>                                      Restrict <$ keyword "restrict"
+>                                     ,Cascade <$ keyword "cascade"])
 
 > dropFunction :: ParsecT String () Identity Statement
 > dropFunction = DropFunction

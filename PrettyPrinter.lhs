@@ -107,8 +107,14 @@ Conversion routines - convert Sql asts into Docs
 >     text "create domain" <+> text name <+> text "as"
 >     <+> text tp <+> checkExp ex <> statementEnd
 
-> convStatement (DropDomain ifExists names casc) =
->     text "drop domain" <+> (if ifExists then text "if exists" else empty)
+> convStatement (DropSomething dropType ifExists names casc) =
+>     text "drop"
+>     <+> text (case dropType of
+>                 Table -> "table"
+>                 View -> "view"
+>                 Domain -> "domain"
+>                 Type -> "type")
+>     <+> (if ifExists then text "if exists" else empty)
 >     <+> hcatCsvMap text names
 >     <+> text (case casc of
 >                 Cascade -> "cascade"

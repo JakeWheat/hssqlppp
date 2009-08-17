@@ -57,7 +57,7 @@ ddl
 
 >                | DropFunction String [String]
 >                  -- ifexists names cascadeorrestrict
->                | DropDomain Bool [String] Cascade
+>                | DropSomething DropType Bool [String] Cascade
 
 >                | Assignment String Expression
 >                | Return (Maybe Expression)
@@ -162,6 +162,12 @@ constraints which appear on a separate row in the create table
 >               | ArrayType TypeName
 >               | SetOfType TypeName
 >                 deriving (Eq, Show)
+
+> data DropType = Table
+>          | Domain
+>          | View
+>          | Type
+>            deriving (Eq, Show)
 
 > data Cascade = Cascade | Restrict
 >                 deriving (Eq, Show)

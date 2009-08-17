@@ -604,11 +604,19 @@ other creates
 >               (InList [StringL "t1" ,StringL "t2"])))]
 
 >      ,p "drop domain t;"
->       [DropDomain False ["t"] Restrict]
+>       [DropSomething Domain False ["t"] Restrict]
 >      ,p "drop domain if exists t,u cascade;"
->       [DropDomain True ["t", "u"] Cascade]
+>       [DropSomething Domain True ["t", "u"] Cascade]
 >      ,p "drop domain t restrict;"
->       [DropDomain False ["t"] Restrict]
+>       [DropSomething Domain False ["t"] Restrict]
+
+>      ,p "drop type t;"
+>       [DropSomething Type False ["t"] Restrict]
+>      ,p "drop table t;"
+>       [DropSomething Table False ["t"] Restrict]
+>      ,p "drop view t;"
+>       [DropSomething View False ["t"] Restrict]
+
 
 >      ,p "create type tp1 as (\n\
 >         \  f1 text,\n\
