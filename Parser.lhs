@@ -575,7 +575,9 @@ one with just a \. in the first two columns
 >                    <$> try (keyword "foreign" *> keyword "key"
 >                             *> parens (commaSep1 identifierString))
 >                    <*> (keyword "references" *> identifierString)
->                    <*> option [] (try $ parens $ commaSep1 identifierString)]
+>                    <*> option [] (parens $ commaSep1 identifierString)
+>                    <*> onDelete
+>                    <*> onUpdate]
 >     rowConstraint =
 >        choice [
 >           RowUniqueConstraint <$ keyword "unique"
@@ -586,8 +588,13 @@ one with just a \. in the first two columns
 >          ,RowReferenceConstraint
 >          <$> (trykeyword "references" *> identifierString)
 >          <*> option [] (try $ parens $ many1 identifierString)
-
+>          <*> onDelete
+>          <*> onUpdate
 >          ]
+>     onDelete = onSomething "delete"
+>     onUpdate = onSomething "update"
+>     onSomething k = option Restrict $ try $ keyword "on"
+>                    *> keyword k *> cascade
 
 
 > createType :: ParsecT String () Identity Statement

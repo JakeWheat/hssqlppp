@@ -340,10 +340,13 @@ Conversion routines - convert Sql asts into Docs
 >                               text "check" <+> parens (convExp ew)
 >                           RowUniqueConstraint -> text "unique"
 >                           RowPrimaryKeyConstraint -> text "primary key"
->                           RowReferenceConstraint tb att ->
+>                           RowReferenceConstraint tb att ondel onupd ->
 >                               text "references" <+> text tb
 >                               <+> ifNotEmpty
 >                                     (\at -> parens (hcatCsvMap text at)) att
+>                               <+> text "on delete" <+> convCasc ondel
+>                               <+> text "on update" <+> convCasc onupd
+
 >                   )) cons)
 
 > checkExp :: Maybe Expression -> Doc
@@ -354,10 +357,12 @@ Conversion routines - convert Sql asts into Docs
 > convCon (PrimaryKeyConstraint p) = text "primary key"
 >                                    <+> parens (hcatCsvMap text p)
 > convCon (CheckConstraint c) = text "check" <+> parens (convExp c)
-> convCon (ReferenceConstraint at tb rat) =
+> convCon (ReferenceConstraint at tb rat ondel onupd) =
 >   text "foreign key" <+> parens (hcatCsvMap text at)
 >   <+> text "references" <+> text tb
 >   <+> ifNotEmpty (\rats -> parens (hcatCsvMap text rats)) rat
+>   <+> text "on delete" <+> convCasc ondel
+>   <+> text "on update" <+> convCasc onupd
 
 > convIfExists :: IfExists -> Doc
 > convIfExists i = case i of

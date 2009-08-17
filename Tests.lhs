@@ -773,13 +773,15 @@ reference row, table
 >         \ x int references t2\n\
 >         \);"
 >         [CreateTable "t1" [AttributeDef "x" "int" Nothing
->                            [RowReferenceConstraint "t2" []]][]]
+>                            [RowReferenceConstraint "t2" []
+>                             Restrict Restrict]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int references t2(y)\n\
 >         \);"
 >         [CreateTable "t1" [AttributeDef "x" "int" Nothing
->                            [RowReferenceConstraint "t2" ["y"]]][]]
+>                            [RowReferenceConstraint "t2" ["y"]
+>                             Restrict Restrict]][]]
 
 
 >      ,p "create table t1 (\n\
@@ -789,7 +791,8 @@ reference row, table
 >         \);"
 >         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
 >                           ,AttributeDef "y" "int" Nothing []]
->          [ReferenceConstraint ["x", "y"] "t2" []]]
+>          [ReferenceConstraint ["x", "y"] "t2" []
+>           Restrict Restrict]]
 
 >      ,p "create table t1 (\n\
 >         \ x int,\n\
@@ -798,8 +801,32 @@ reference row, table
 >         \);"
 >         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
 >                           ,AttributeDef "y" "int" Nothing []]
->          [ReferenceConstraint ["x", "y"] "t2" ["z", "w"]]]
+>          [ReferenceConstraint ["x", "y"] "t2" ["z", "w"]
+>           Restrict Restrict]]
 
+>      ,p "create table t1 (\n\
+>         \ x int references t2 on delete cascade\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>                            [RowReferenceConstraint "t2" []
+>                             Cascade Restrict]][]]
+
+>      ,p "create table t1 (\n\
+>         \ x int references t2 on update cascade\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>                            [RowReferenceConstraint "t2" []
+>                             Restrict Cascade]][]]
+
+>      ,p "create table t1 (\n\
+>         \ x int,\n\
+>         \ y int,\n\
+>         \ foreign key (x,y) references t2 on delete cascade on update cascade\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
+>                           ,AttributeDef "y" "int" Nothing []]
+>          [ReferenceConstraint ["x", "y"] "t2" []
+>           Cascade Cascade]]
 
 >      ])
 

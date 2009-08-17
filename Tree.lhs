@@ -130,7 +130,7 @@ Constraints which appear attached to an individual field
 >                    | RowCheckConstraint Expression
 >                    | RowUniqueConstraint
 >                    | RowPrimaryKeyConstraint
->                    | RowReferenceConstraint String [String]
+>                    | RowReferenceConstraint String [String] Cascade Cascade
 >                       deriving (Eq,Show)
 
 constraints which appear on a separate row in the create table
@@ -138,7 +138,8 @@ constraints which appear on a separate row in the create table
 > data Constraint = UniqueConstraint [String]
 >                 | PrimaryKeyConstraint [String]
 >                 | CheckConstraint Expression
->                 | ReferenceConstraint [String] String [String]
+>                   -- sourcecols targettable targetcols ondelete onupdate
+>                 | ReferenceConstraint [String] String [String] Cascade Cascade
 >                   deriving (Eq,Show)
 
 > data TypeAttributeDef = TypeAttDef String String
