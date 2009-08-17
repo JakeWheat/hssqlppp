@@ -93,7 +93,10 @@ parse a statement
 >                                      ,createFunction
 >                                      ,createView
 >                                      ,createDomain]
->                        ,trykeyword "drop" *> dropFunction
+>                        ,trykeyword "drop" *>
+>                                    choice [
+>                                       dropDomain
+>                                      ,dropFunction]
 >                        ]
 >     <* (if reqSemi then semi >> return () else optional semi >> return ()))
 >    --copy doesn't end with a semicolon
@@ -245,6 +248,17 @@ a string
 >                <$> (trykeyword "domain" *> identifierString)
 >                <*> (maybeP (keyword "as") *> identifierString)
 >                <*> maybeP (keyword "check" *> expr)
+
+> dropDomain :: ParsecT String () Identity Statement
+> dropDomain = DropDomain
+>              <$> (trykeyword "domain"
+>                   *> option False
+>                          (try $ True <$ (keyword "if"
+>                                          *> keyword "exists")))
+>              <*> commaSep1 identifierString
+>              <*> option Restrict(choice [
+>                                   Restrict <$ keyword "restrict"
+>                                  ,Cascade <$ keyword "cascade"])
 
 > dropFunction :: ParsecT String () Identity Statement
 > dropFunction = DropFunction
@@ -699,6 +713,7 @@ syntactical novelty
 >          ,binary ">" (BinOpCall Gt) AssocNone]
 >         ,[binary "=" (BinOpCall Eql) AssocRight
 >          ,binary "<>" (BinOpCall NotEql) AssocNone
+>          ,binary "!=" (BinOpCall NotEql) AssocNone
 >          ]
 >         ,[prefixk "not" (UnOpCall Not)]
 >         ,[binaryk "and" (BinOpCall And) AssocLeft

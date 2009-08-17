@@ -107,6 +107,13 @@ Conversion routines - convert Sql asts into Docs
 >     text "create domain" <+> text name <+> text "as"
 >     <+> text tp <+> checkExp ex <> statementEnd
 
+> convStatement (DropDomain ifExists names casc) =
+>     text "drop domain" <+> (if ifExists then text "if exists" else empty)
+>     <+> hcatCsvMap text names
+>     <+> text (case casc of
+>                 Cascade -> "cascade"
+>                 Restrict -> "restrict") <> statementEnd
+
 > convStatement (CreateType name atts) =
 >     text "create type" <+> text name <+> text "as" <+> lparen
 >     $+$ nest 2 (vcat (csv
@@ -396,7 +403,6 @@ Conversion routines - convert Sql asts into Docs
 > convExp (ArraySub e s) = parens (convExp e) <> brackets (csvExp s)
 > convExp (Between i e f) = convExp i <+> text "between" <+> parens (convExp e)
 >                           <+> text "and" <+> parens (convExp f)
-> convExp PlaceHolder = empty
 > convExp (CastKeyword ex t) = text "cast" <> parens (convExp ex
 >                                                     <+> text "as"
 >                                                     <+> convTypeName t)

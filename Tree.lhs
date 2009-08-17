@@ -54,8 +54,10 @@ ddl
 >                | CreateFunction Language String [ParamDef] TypeName String FnBody Volatility
 >                  -- name type checkexpression
 >                | CreateDomain String String (Maybe Expression)
->                | DropFunction String [String]
 
+>                | DropFunction String [String]
+>                  -- ifexists names cascadeorrestrict
+>                | DropDomain Bool [String] Cascade
 
 >                | Assignment String Expression
 >                | Return (Maybe Expression)
@@ -161,6 +163,9 @@ constraints which appear on a separate row in the create table
 >               | SetOfType TypeName
 >                 deriving (Eq, Show)
 
+> data Cascade = Cascade | Restrict
+>                 deriving (Eq, Show)
+
 ================================================================================
 
 Expressions
@@ -215,7 +220,6 @@ on which expressions can appear in different places.
 >                 | StringL String
 >                 | StringLD String String
 >                 | NullL
->                 | PlaceHolder
 >                 | BooleanL Bool
 >                 | PositionalArg Int
 >                 | CastKeyword Expression TypeName

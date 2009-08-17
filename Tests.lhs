@@ -179,6 +179,8 @@ operator issues:
 >       (BinOpCall Lt (Identifier "a") (Identifier "b"))
 >      ,p "a <> b"
 >       (BinOpCall NotEql (Identifier "a") (Identifier "b"))
+>      ,p "a != b"
+>       (BinOpCall NotEql (Identifier "a") (Identifier "b"))
 
 >      ])
 
@@ -600,6 +602,14 @@ other creates
 >       [CreateDomain "td" "text"
 >        (Just (InPredicate (Identifier "value") True
 >               (InList [StringL "t1" ,StringL "t2"])))]
+
+>      ,p "drop domain t;"
+>       [DropDomain False ["t"] Restrict]
+>      ,p "drop domain if exists t,u cascade;"
+>       [DropDomain True ["t", "u"] Cascade]
+>      ,p "drop domain t restrict;"
+>       [DropDomain False ["t"] Restrict]
+
 >      ,p "create type tp1 as (\n\
 >         \  f1 text,\n\
 >         \  f2 text\n\
@@ -607,6 +617,10 @@ other creates
 >       [CreateType "tp1" [TypeAttDef "f1" "text"
 >                         ,TypeAttDef "f2" "text"]]
 >      ])
+
+drops
+
+> 
 
 constraints
 
