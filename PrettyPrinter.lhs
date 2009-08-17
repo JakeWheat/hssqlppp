@@ -341,6 +341,7 @@ Conversion routines - convert Sql asts into Docs
 > convExp :: Expression -> Doc
 > convExp (Identifier i) = text i
 > convExp (IntegerL n) = integer n
+> convExp (FloatL n) = double n
 > convExp (StringL s) = quotes $ text $ replace "'" "''" s
 > convExp (StringLD t s) = tag <> text s <> tag
 >     where tag = text "$" <> text t <> text "$"
@@ -357,6 +358,7 @@ Conversion routines - convert Sql asts into Docs
 >           IsNull -> parens (convExp a <+> text (unOpToSymbol op))
 >           IsNotNull -> parens (convExp a <+> text (unOpToSymbol op))
 >           Abs -> parens (text (unOpToSymbol op) <+> convExp a)
+>           Neg -> parens (text (unOpToSymbol op) <+> convExp a)
 
 > convExp (BooleanL b) = bool b
 > convExp (InPredicate att t lst) =

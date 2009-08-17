@@ -44,7 +44,6 @@ for some notes on postgresql syntax (the rest of that manual is also helpful)
 > import Data.Maybe
 
 
-
 > import Tree
 
 ===============================================================================
@@ -303,11 +302,10 @@ then cope with joins recursively using joinpart below
 >                       TrefFun (try functionCall)
 >                       TrefFunAlias () (trykeyword "as" *> identifierString)
 >                    ,parseOptionalSuffix
->                       Tref nonKeywordIdentifierStringMaybeDot
+>                       Tref nkwid
 >                       TrefAlias () ((optional $ trykeyword "as")
->                                     *> nonKeywordIdentifierString)]
->     nonKeywordIdentifierStringMaybeDot = nonKeyword identifierStringMaybeDot
->     nonKeywordIdentifierString = nonKeyword identifierString
+>                                     *> nkwid)]
+>     nkwid = nonKeyword identifierString
 >     nonKeyword iden = try $ do
 >              x <- iden
 >              --avoid all these keywords as aliases since they can
@@ -370,7 +368,7 @@ or after the whole list
 >         flip SelectList <$> readInto <*> itemList
 >        ,SelectList <$> itemList <*> option [] readInto]
 >   where
->     readInto = trykeyword "into" *> commaSep1 identifierStringMaybeDot
+>     readInto = trykeyword "into" *> commaSep1 identifierString
 >     itemList = commaSep1 selectItem
 
 
@@ -469,14 +467,14 @@ typeatt: like a cut down version of tableatt, used in create type
 >             Execute (trykeyword "execute" *> expr)
 >             ExecuteInto () readInto
 >     where
->       readInto = trykeyword "into" *> commaSep1 identifierStringMaybeDot
+>       readInto = trykeyword "into" *> commaSep1 identifierString
 
 > assignment :: ParsecT String () Identity Statement
 > assignment = Assignment
 >              -- put the := in the first try to attempt to get a
 >              -- better error if the code looks like malformed
 >              -- assignment statement
->              <$> try (identifierStringMaybeDot <* (symbol ":=" <|> symbol "="))
+>              <$> try (identifierString <* (symbol ":=" <|> symbol "="))
 >              <*> expr
 
 > returnSt :: ParsecT String () Identity Statement
@@ -623,8 +621,12 @@ parse without a try
 >          ,stringLiteral
 
 anything starting with a number has to be a number, so this
-could probably appear anywhere in the list
+could probably appear anywhere in the list. Do float first
+since the start of a float looks like an integer. Have to use
+try not just because float starts like an integer, but also
+to cope with .. operator
 
+>          ,try floatLit
 >          ,integerLit
 
 put the factors which start with keywords before the ones which start
@@ -659,16 +661,18 @@ try function call before identifier for same reason
 
 == operator table
 
-proper hacky, but seems to do the job
+proper hacky, but sort of does the job
 the 'missing' notes refer to pg operators which aren't yet supported
 pg's operator table is on this page:
 http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTAX-OPERATORS
 
+will probably need something more custom to handle full range of sql
+syntactical novelty
+
 > table :: [[Operator String u Identity Expression]]
-> table = [[singleDot "." (BinOpCall Qual) AssocLeft]
->         ,[binary "::" (BinOpCall Cast) AssocLeft]
+> table = [[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
->          --missing unary -
+>         ,[prefix "-" (UnOpCall Neg)]
 >         ,[binary "^" (BinOpCall Pow) AssocLeft]
 >         ,[binary "*" (BinOpCall Mult) AssocLeft
 >          ,binary "/" (BinOpCall Div) AssocLeft
@@ -714,13 +718,6 @@ http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTA
 >          = Postfix (try (keyword s >> return f))
 
 some custom parsers
-
-main problem is that .. in for can't be parsed properly since the
-expression parser gets the . then barfs, so we put in a special
-case to only parse as . if it isn't followed by another .
-
->       singleDot _ f
->          =  Infix (dontFollowWith '.' '.' >> return f)
 
 fix problem parsing <> - don't parse as "<" if it is immediately
 followed by ">"
@@ -816,6 +813,8 @@ from a StringLD or StringL, and the delimiters which were used
 > quoteOfString (StringL _) = "'"
 > quoteOfString x = error $ "quoteType not supported for this type " ++ show x
 
+> floatLit :: ParsecT String u Identity Expression
+> floatLit = FloatL <$> float
 
 > integerLit :: ParsecT String u Identity Expression
 > integerLit = IntegerL <$> integer
@@ -920,6 +919,9 @@ fn() over ([partition bit]? [order bit]?)
 > integer :: ParsecT String u Identity Integer
 > integer = lexeme $ P.integer lexer
 
+> float :: ParsecT String u Identity Double
+> float = lexeme $ P.float lexer
+
 > operator :: String -> ParsecT String u Identity String
 > operator = symbol
 
@@ -938,15 +940,27 @@ applicative operators
 > trykeyword :: String -> ParsecT String u Identity ()
 > trykeyword = try . keyword
 
+include dots in all identifier strings, - todo: check the validity
+of qualification with a second pass over the parse tree.
+
 > identifierString :: Parser String
-> identifierString = lexeme (string "*" <|> letter <:> secondOnwards)
+> identifierString = lexeme $ choice [
+>                     "*" <$ star
+>                    ,do
+>                      a <- nonStarPart
+>                      b <- maybeP ((++) <$> symbol "." <*> identifierString)
+>                      case b of Nothing -> return a
+>                                Just c -> return $ a ++ c]
+
 >   where
+>     star = symbol "*"
+>     nonStarPart = letter <:> secondOnwards
 >     secondOnwards = many (alphaNum <|> char '_')
 
-> identifierStringMaybeDot :: Parser String
-> identifierStringMaybeDot = lexeme (string "*" <|> letter <:> secondOnwards)
->   where
->     secondOnwards = many (alphaNum <|> char '_' <|> char '.')
+
+ >                               --make sure if we do allow a dot
+ >                               --it looks like it's part of a qualified id
+ >                           <|> (char '.' <* lookAhead (alphaNum <|> char '_')))
 
 == combinatory things
 

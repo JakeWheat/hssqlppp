@@ -167,11 +167,11 @@ Expressions
 
 > data BinOp = Plus | Minus | Mult | Div | Pow | Mod | Eql
 >         | And | Or | Conc | Like
->         | Cast | Qual | NotEql | Lt | Gt | Lte | Gte
+>         | Cast | NotEql | Lt | Gt | Lte | Gte
 >         | DistBetween
 >           deriving (Show,Eq)
 
-> data UnOp = Not | IsNull | IsNotNull | SetOf | Abs
+> data UnOp = Not | IsNull | IsNotNull | SetOf | Abs | Neg
 >             deriving (Show,Eq)
 
 > binOpToSymbol :: BinOp -> String
@@ -188,7 +188,6 @@ Expressions
 >                         Conc -> "||"
 >                         Like -> "like"
 >                         Cast -> "::"
->                         Qual -> "."
 >                         NotEql -> "<>"
 >                         Lt -> "<"
 >                         Gt -> ">"
@@ -203,6 +202,7 @@ Expressions
 >                         IsNotNull -> "is not null"
 >                         SetOf -> "setof"
 >                         Abs -> "@"
+>                         Neg -> "-"
 
 
 Similarly to the statement type, all expressions
@@ -211,6 +211,7 @@ on which expressions can appear in different places.
 
 > data Expression =
 >                   IntegerL Integer
+>                 | FloatL Double
 >                 | StringL String
 >                 | StringLD String String
 >                 | NullL

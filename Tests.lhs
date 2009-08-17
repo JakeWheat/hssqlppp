@@ -50,6 +50,9 @@ parser rather than the full sql statement parser. (the expression parser
 requires a single expression followed by eof.)
 
 >       p "1" (IntegerL 1)
+>      ,p "-1" (UnOpCall Neg (IntegerL 1))
+>      ,p "1.1" (FloatL 1.1)
+>      ,p "-1.1" (UnOpCall Neg (FloatL 1.1))
 >      ,p " 1 + 1 " (BinOpCall Plus (IntegerL 1) (IntegerL 1))
 >      ,p "1+1+1" (BinOpCall
 >                  Plus
@@ -275,20 +278,20 @@ test a whole bunch more select statements
 >          (Identifier "a") (Identifier "b")) "b"]
 >        (Tref "tbl")]
 >      ,p "select a.* from tbl a;"
->       [selectFrom [SelExp (qi "a" "*")] (TrefAlias "tbl" "a")]
+>       [selectFrom (selIL ["a.*"]) (TrefAlias "tbl" "a")]
 
 >      ,p "select a from b inner join c on b.a=c.a;"
 >       [selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") False Inner (Tref "c")
 >           (Just (JoinOn
->            (BinOpCall Eql (qi "b" "a") (qi "c" "a")))))]
+>            (BinOpCall Eql (Identifier "b.a") (Identifier "c.a")))))]
 >      ,p "select a from b inner join c as d on b.a=d.a;"
 >       [selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") False Inner (TrefAlias "c" "d")
 >           (Just (JoinOn
->            (BinOpCall Eql (qi "b" "a") (qi "d" "a")))))]
+>            (BinOpCall Eql (Identifier "b.a") (Identifier "d.a")))))]
 
 >      ,p "select a from b inner join c using(d,e);"
 >       [selectFrom
@@ -805,7 +808,7 @@ simple statements
 >       [Perform $ FunCall "test" [Identifier "a", Identifier "b"]]
 >      ,p "perform test(r.relvar_name || '_and_stuff');"
 >       [Perform $ FunCall "test" [
->                     BinOpCall Conc (qi "r" "relvar_name")
+>                     BinOpCall Conc (Identifier "r.relvar_name")
 >                                            (StringL "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
 >       [Select False (SelectList [selI "c", selI "d"] ["a", "b"])
@@ -897,7 +900,6 @@ complicated statements
 >           selI = SelExp . Identifier
 >           sl a = SelectList a []
 >           selectE selList = Select False selList Nothing Nothing [] [] Nothing
->           qi a b = BinOpCall Qual (Identifier a) (Identifier b)
 >           selectFrom selList frm =
 >             Select False (SelectList selList [])
 >                    (Just frm) Nothing [] [] Nothing
