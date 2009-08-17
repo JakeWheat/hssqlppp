@@ -336,6 +336,7 @@ parse a statement
 >                        ,insert
 >                        ,update
 >                        ,delete
+>                        ,truncateSt
 >                        ,trykeyword "create" *>
 >                                    choice [
 >                                       createTable
@@ -509,6 +510,22 @@ multiple rows to insert and insert from select statements
 >          <*> tryMaybeP whereClause
 >          <*> tryMaybeP returning
 
+> truncateSt :: ParsecT String () Identity Statement
+> truncateSt = trykeyword "truncate" >> optional (trykeyword "table") >>
+>            Truncate
+>            <$> commaSep1 identifierString
+>            <*> option ContinueIdentity (choice [
+>                                 ContinueIdentity <$ (keyword "continue"
+>                                                      <* keyword "identity")
+>                                ,RestartIdentity <$ (keyword "restart"
+>                                                     <* keyword "identity")])
+>            <*> cascade
+
+TRUNCATE [ TABLE ] [ ONLY ] name [, ... ]
+    [ RESTART IDENTITY | CONTINUE IDENTITY ] [ CASCADE | RESTRICT ]
+
+
+
 = copy statement
 
 copy: just reads the string in for now - read lines until we get to
@@ -648,9 +665,6 @@ a string
 >       ifExists = option Require
 >                  (try $ IfExists <$ (keyword "if"
 >                                      *> keyword "exists"))
->       cascade = option Restrict (choice [
->                                   Restrict <$ keyword "restrict"
->                                  ,Cascade <$ keyword "cascade"])
 
 ================================================================================
 
@@ -690,6 +704,11 @@ or after the whole list
 >                PrecType s <$> parens integer
 >               ,ArrayType (SimpleType s) <$ symbol "[]"
 >               ,return $ SimpleType s]]
+
+> cascade :: ParsecT String u Identity Cascade
+> cascade = option Restrict (choice [
+>                             Restrict <$ keyword "restrict"
+>                            ,Cascade <$ keyword "cascade"])
 
 ================================================================================
 

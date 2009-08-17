@@ -567,13 +567,19 @@ delete
 >       [Delete "tbl1" (Just $ BinOpCall Eql
 >                                (Identifier "x") (BooleanL True))
 >        (Just $ sl [selI "id"])]
+
+>     ,p "truncate test;"
+>        [Truncate ["test"] ContinueIdentity Restrict]
+
+>     ,p "truncate table test, test2 restart identity cascade;"
+>        [Truncate ["test","test2"] RestartIdentity Cascade]
+
+copy, bit crap at the moment
+
 >      ,p "copy tbl(a,b) from stdin;\n\
 >         \bat	t\n\
 >         \bear	f\n\
 >         \\\.\n"
-
-copy, bit crap at the moment
-
 >       [Copy "tbl(a,b) from stdin;\n\
 >         \bat	t\n\
 >         \bear	f\n\

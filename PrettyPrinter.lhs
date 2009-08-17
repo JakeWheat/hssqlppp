@@ -66,6 +66,15 @@ Conversion routines - convert Sql asts into Docs
 >                                 $+$ convReturning rt
 >                                 <> statementEnd
 
+> convStatement (Truncate names ri casc) =
+>     text "truncate"
+>     <+> hcatCsvMap text names
+>     <+> text (case ri of
+>                       RestartIdentity -> "restart identity"
+>                       ContinueIdentity -> "continue identity")
+>     <+> convCasc casc
+>     <> statementEnd
+
 == ddl
 
 > convStatement (CreateTable t atts cons) =
@@ -108,9 +117,7 @@ Conversion routines - convert Sql asts into Docs
 >   text "drop function"
 >   <+> convIfExists ifExists
 >   <+> hcatCsvMap doFunction fns
->   <+> text (case casc of
->                       Cascade -> "cascade"
->                       Restrict -> "restrict")
+>   <+> convCasc casc
 >   <> statementEnd
 >   where
 >     doFunction (name,types) = text name <> parens (hcatCsvMap text types)
@@ -124,9 +131,7 @@ Conversion routines - convert Sql asts into Docs
 >                 Type -> "type")
 >     <+> convIfExists ifExists
 >     <+> hcatCsvMap text names
->     <+> text (case casc of
->                 Cascade -> "cascade"
->                 Restrict -> "restrict")
+>     <+> convCasc casc
 >     <> statementEnd
 
 > convStatement (CreateType name atts) =
@@ -305,6 +310,11 @@ Conversion routines - convert Sql asts into Docs
 > convValues :: [[Expression]] -> Doc
 > convValues expss =
 >   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
+
+> convCasc :: Cascade -> Doc
+> convCasc casc = text $ case casc of
+>                                  Cascade -> "cascade"
+>                                  Restrict -> "restrict"
 
 == ddl
 

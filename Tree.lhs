@@ -45,6 +45,7 @@ dml
 >                  --tablename, where, returning
 >                | Delete String (Maybe Expression) (Maybe SelectList)
 >                | Copy String
+>                | Truncate [String] RestartIdentity Cascade
 
 ddl
 
@@ -186,6 +187,10 @@ constraints which appear on a separate row in the create table
 
 > data IfExists = Require | IfExists
 >                 deriving (Eq, Show)
+
+> data RestartIdentity = RestartIdentity | ContinueIdentity
+>                 deriving (Eq, Show)
+
 
 ================================================================================
 
