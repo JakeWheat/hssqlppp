@@ -390,6 +390,7 @@ recurses to support parsing excepts, unions, etc
 >                <*> tryMaybeP from
 >                <*> tryMaybeP whereClause
 >                <*> option [] groupBy
+>                <*> tryMaybeP having
 >                <*> option [] orderBy
 >                <*> option Asc (choice [
 >                                 Asc <$ keyword "asc"
@@ -399,6 +400,7 @@ recurses to support parsing excepts, unions, etc
 >     from = keyword "from" *> tref
 >     groupBy = trykeyword "group" *> keyword "by"
 >               *> commaSep1 expr
+>     having = trykeyword "having" *> expr
 >     orderBy = trykeyword "order" *> keyword "by"
 >               *> commaSep1 expr
 >     limit = keyword "limit" *> expr

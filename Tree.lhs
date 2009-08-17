@@ -29,8 +29,8 @@ queries
 
 >                  -- distinct? selectlist from where
 >                  Select Distinct SelectList (Maybe TableRef) (Maybe Expression)
->                             --groupby orderby
->                             [Expression] [Expression]
+>                             --groupby having orderby
+>                             [Expression] (Maybe Expression) [Expression]
 >                             --orderby direction limit offset
 >                             Direction (Maybe Expression) (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement

@@ -229,7 +229,7 @@ test a whole bunch more select statements
 
 >      ,p "select distinct * from tbl;"
 >       [Select Distinct (SelectList (selIL ["*"]) []) (Just $ Tref "tbl")
->        Nothing [] [] Asc Nothing Nothing]
+>        Nothing [] Nothing [] Asc Nothing Nothing]
 
 >      ,p "select a from tbl where b=2;"
 >       [selectFromWhere
@@ -385,31 +385,31 @@ test a whole bunch more select statements
 >       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
->        Nothing [] [Identifier "c"] Asc Nothing Nothing]
+>        Nothing [] Nothing [Identifier "c"] Asc Nothing Nothing]
 
 >      ,p "select * from a order by c,d asc;"
 >       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
->        Nothing [] [Identifier "c", Identifier "d"] Asc Nothing Nothing]
+>        Nothing [] Nothing [Identifier "c", Identifier "d"] Asc Nothing Nothing]
 
 >      ,p "select * from a order by c,d desc;"
 >       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
->        Nothing [] [Identifier "c", Identifier "d"] Desc Nothing Nothing]
+>        Nothing [] Nothing [Identifier "c", Identifier "d"] Desc Nothing Nothing]
 
 >      ,p "select * from a order by c limit 1;"
 >       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
->        Nothing [] [Identifier "c"] Asc (Just (IntegerL 1)) Nothing]
+>        Nothing [] Nothing [Identifier "c"] Asc (Just (IntegerL 1)) Nothing]
 
 >      ,p "select * from a order by c offset 3;"
 >       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
->        Nothing [] [Identifier "c"] Asc Nothing (Just $ IntegerL 3)]
+>        Nothing [] Nothing [Identifier "c"] Asc Nothing (Just $ IntegerL 3)]
 
 >      ,p "select a from (select b from c) as d;"
 >         [selectFrom
@@ -430,6 +430,13 @@ test a whole bunch more select statements
 >         [Select Dupes
 >          (sl [selI "a", SelExp (FunCall "count" [Identifier "b"])])
 >          (Just $ Tref "c") Nothing [Identifier "a"]
+>          Nothing [] Asc Nothing Nothing]
+
+>      ,p "select a, count(b) as cnt from c group by a having cnt > 4;"
+>         [Select Dupes
+>          (sl [selI "a", SelectItem (FunCall "count" [Identifier "b"]) "cnt"])
+>          (Just $ Tref "c") Nothing [Identifier "a"]
+>          (Just $ BinOpCall Gt (Identifier "cnt") (IntegerL 4))
 >          [] Asc Nothing Nothing]
 
 >      ])
@@ -955,10 +962,10 @@ simple statements
 >                                            (StringL "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
 >       [Select Dupes (SelectList [selI "c", selI "d"] ["a", "b"])
->                   (Just $ Tref "e") Nothing [] [] Asc Nothing Nothing]
+>                   (Just $ Tref "e") Nothing [] Nothing [] Asc Nothing Nothing]
 >      ,p "select c,d into a,b from e;"
 >       [Select Dupes (SelectList [selI "c", selI "d"] ["a", "b"])
->                   (Just $ Tref "e") Nothing [] [] Asc Nothing Nothing]
+>                   (Just $ Tref "e") Nothing [] Nothing [] Asc Nothing Nothing]
 
 >      ,p "execute s;"
 >       [Execute (Identifier "s")]
@@ -1042,13 +1049,13 @@ complicated statements
 >           selIL = map selI
 >           selI = SelExp . Identifier
 >           sl a = SelectList a []
->           selectE selList = Select Dupes selList Nothing Nothing [] [] Asc Nothing Nothing
+>           selectE selList = Select Dupes selList Nothing Nothing [] Nothing [] Asc Nothing Nothing
 >           selectFrom selList frm =
 >             Select Dupes (SelectList selList [])
->                    (Just frm) Nothing [] [] Asc Nothing Nothing
+>                    (Just frm) Nothing [] Nothing [] Asc Nothing Nothing
 >           selectFromWhere selList frm whr =
 >             Select Dupes (SelectList selList [])
->                    (Just frm) (Just whr) [] [] Asc Nothing Nothing
+>                    (Just frm) (Just whr) [] Nothing [] Asc Nothing Nothing
 
 ================================================================================
 
