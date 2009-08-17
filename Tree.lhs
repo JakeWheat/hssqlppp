@@ -77,7 +77,7 @@ ddl
 >                | WhileStatement Expression [Statement]
 >                | ContinueStatement
 >                  --variable, list of when parts, else part
->                | CaseStatement Expression [(Expression,[Statement])] [Statement]
+>                | CaseStatement Expression [([Expression],[Statement])] [Statement]
 >                  --list is
 >                  --first if (condition, statements):elseifs(condition, statements)
 >                  --last bit is else statements
@@ -257,7 +257,7 @@ on which expressions can appear in different places.
 >                 | Identifier String
 >                 | Row [Expression]
 >                 | ArrayL [Expression]
->                 | Case [(Expression,Expression)] (Maybe Expression)
+>                 | Case [([Expression],Expression)] (Maybe Expression)
 >                 | Exists Statement
 >                 | BinOpCall BinOp Expression Expression
 >                 | UnOpCall UnOp Expression

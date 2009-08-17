@@ -840,7 +840,7 @@ bit too clever coming up
 >                           <* keyword "end" <* keyword "case"
 >     where
 >       whenSt = keyword "when" >>
->                (,) <$> expr
+>                (,) <$> commaSep1 expr
 >                    <*> (keyword "then" *> many plPgsqlStatement)
 
 ===============================================================================
@@ -1138,7 +1138,7 @@ expression when value' currently
 >                  <*> tryMaybeP (keyword "else" *> expr)
 >                       <* keyword "end"
 >   where
->     whenParse = (,) <$> (keyword "when" *> expr)
+>     whenParse = (,) <$> (keyword "when" *> commaSep1 expr)
 >                     <*> (keyword "then" *> expr)
 
 > exists :: ParsecT String () Identity Expression

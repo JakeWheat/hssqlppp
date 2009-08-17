@@ -146,12 +146,12 @@ null stuff
 
 some slightly more complex stuff
 
->      ,p "case when a then 3\n\
->         \     when b then 4\n\
+>      ,p "case when a,b then 3\n\
+>         \     when c then 4\n\
 >         \     else 5\n\
 >         \end"
->         (Case [(Identifier "a", IntegerL 3)
->               ,(Identifier "b", IntegerL 4)]
+>         (Case [([Identifier "a", Identifier "b"], IntegerL 3)
+>               ,([Identifier "c"], IntegerL 4)]
 >          (Just $ IntegerL 5))
 
 positional args used in sql and sometimes plpgsql functions
@@ -1023,12 +1023,12 @@ complicated statements
 >        [Return Nothing]]
 >      ,p "case a\n\
 >         \  when b then null;\n\
->         \  when c then null;\n\
+>         \  when c,d then null;\n\
 >         \  else null;\n\
 >         \end case;"
 >      [CaseStatement (Identifier "a")
->       [(Identifier "b", [NullStatement])
->       ,(Identifier "c", [NullStatement])]
+>       [([Identifier "b"], [NullStatement])
+>       ,([Identifier "c", Identifier "d"], [NullStatement])]
 >       [NullStatement]]
 >      ])
 >        --,testProperty "random expression" prop_expression_ppp

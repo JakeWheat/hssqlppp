@@ -213,7 +213,7 @@ Conversion routines - convert Sql asts into Docs
 >                 $+$ convElseSt els
 >                 ) $+$ text "end case" <> statementEnd
 >     where
->       convWhenSt ex sts = text "when" <+> convExp ex <+> text "then"
+>       convWhenSt ex sts = text "when" <+> hcatCsvMap convExp ex <+> text "then"
 >                           $+$ convNestedStatements sts
 >       convElseSt sts = ifNotEmpty
 >                         (\s -> text "else" $+$ convNestedStatements s)
@@ -450,6 +450,11 @@ Conversion routines - convert Sql asts into Docs
 >   $+$ nest 2 (vcat (map convWhen whens)
 >               $+$ maybeConv (\e -> text "else" <+> convExp e) els)
 >   $+$ text "end"
+>       where
+>         convWhen (ex1, ex2) =
+>             text "when" <+> hcatCsvMap convExp ex1
+>             <+> text "then" <+> convExp ex2
+
 > convExp (PositionalArg a) = text "$" <> int a
 > convExp (Exists s) = text "exists" <+> parens (convSelectFragment True s)
 > convExp (Row r) = text "row" <> parens (hcatCsvMap convExp r)
@@ -464,11 +469,6 @@ Conversion routines - convert Sql asts into Docs
 >                             <> parens (convExp s
 >                                        <+> text "from" <+> convExp b
 >                                        <+> text "for" <+> convExp e)
-
-> convWhen :: (Expression, Expression) -> Doc
-> convWhen (ex1, ex2) =
->   text "when" <+> convExp ex1 <+> text "then" <+> convExp ex2
-
 
 = Utils
 
