@@ -619,35 +619,38 @@ a string
 >                <*> tryMaybeP (keyword "check" *> expr)
 
 > dropSomething :: ParsecT String () Identity Statement
-> dropSomething = DropSomething
->                 <$> try (choice [
->                           Domain <$ keyword "domain"
->                          ,Type <$ trykeyword "type"
->                          ,Table <$ keyword "table"
->                          ,View <$ keyword "view"
->                       ])
->                 <*> option Require (try $ IfExists <$ (keyword "if"
->                                                        *> keyword "exists"))
->                 <*> commaSep1 identifierString
->                 <*> option Restrict(choice [
->                                      Restrict <$ keyword "restrict"
->                                     ,Cascade <$ keyword "cascade"])
+> dropSomething = do
+>   x <- try (choice [
+>                  Domain <$ keyword "domain"
+>                 ,Type <$ trykeyword "type"
+>                 ,Table <$ keyword "table"
+>                 ,View <$ keyword "view"
+>             ])
+>   (i,e,r) <- parseDrop identifierString
+>   return $ DropSomething x i e r
 
 > dropFunction :: ParsecT String () Identity Statement
-> dropFunction = trykeyword "function" >>
->                DropFunction
->                <$> ifExists
->                <*> commaSep1 (try pFun)
->                <*> cascade
+> dropFunction = do
+>                trykeyword "function"
+>                (i,e,r) <- parseDrop pFun
+>                return $ DropFunction i e r
 >                where
->                  ifExists = option Require
->                               (try $ IfExists <$ (keyword "if"
->                                                   *> keyword "exists"))
->                  cascade = option Restrict (choice [
->                                      Restrict <$ keyword "restrict"
->                                     ,Cascade <$ keyword "cascade"])
 >                  pFun = (,) <$> identifierString
 >                             <*> parens (many identifierString)
+
+> parseDrop :: ParsecT String u Identity a
+>           -> ParsecT String u Identity (IfExists, [a], Cascade)
+> parseDrop p = (,,)
+>               <$> ifExists
+>               <*> commaSep1 p
+>               <*> cascade
+>     where
+>       ifExists = option Require
+>                  (try $ IfExists <$ (keyword "if"
+>                                      *> keyword "exists"))
+>       cascade = option Restrict (choice [
+>                                   Restrict <$ keyword "restrict"
+>                                  ,Cascade <$ keyword "cascade"])
 
 ================================================================================
 
