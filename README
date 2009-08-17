@@ -2,11 +2,10 @@ A very rough parser and pretty printer for postgresql sql and plpgsql
 
 Partially supports:
 select statements (selectlists (*, qualified, aliased, expressions)
-       window functions
-       distinct
+       distinct, basic window functions,
        from (with explicit joins - natural, inner, cross, left, right,
-       full outer, on and using, aliases, from functions)
-       where, group by, order by, limit
+       full outer, on and using), aliases, from functions
+       where, group by, having, order by, limit, offset
        except, intersect, union
 
 expressions: subselects, in, row ctors, strings + dollar strings,
@@ -16,9 +15,10 @@ expressions: subselects, in, row ctors, strings + dollar strings,
              substring(x from a for b)
 
 also partially supports:
-insert (with multiple values and select support), update, delete with returning
+insert (with multiple values and select support), update, delete (all
+three with returning)
 create table, type, view, domain
-constraints: not null, null, unique (inline and row), inline check
+all constraint types
 drop function, table, domain, type, view
 sort of skips copy statements instead of erroring
 create function for sql and plpgsql functions
@@ -38,9 +38,8 @@ plpgsql statements:
         case statement
 
 Many things are missing at the moment, in particular
-  selects: having, cte, implicit joins, like expressions
-  joins in updates
-  constraints: pk, separate row check, references
+  selects: cte, implicit joins, like expressions
+  joins in updates (delete from, update using)
   alter statements
   create and drop apart from table, view, domain, type, function
   transaction commands
