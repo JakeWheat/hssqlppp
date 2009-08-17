@@ -521,11 +521,6 @@ multiple rows to insert and insert from select statements
 >                                                     <* keyword "identity")])
 >            <*> cascade
 
-TRUNCATE [ TABLE ] [ ONLY ] name [, ... ]
-    [ RESTART IDENTITY | CONTINUE IDENTITY ] [ CASCADE | RESTRICT ]
-
-
-
 = copy statement
 
 copy: just reads the string in for now - read lines until we get to
@@ -566,11 +561,18 @@ one with just a \. in the first two columns
 >                <*> identifierString
 >                <*> tryMaybeP (keyword "default" *> expr)
 >                <*> sepBy rowConstraint whitespace
->     tableConstr = UniqueConstraint
->                   <$> try (keyword "unique" *> columnNameList)
+>     tableConstr = choice [
+>                    UniqueConstraint
+>                    <$> try (keyword "unique" *> columnNameList)
+>                    ,PrimaryKeyConstraint
+>                    <$> try (keyword "primary" *> keyword "key"
+>                             *> choice [
+>                                     (:[]) <$> identifierString
+>                                    ,parens (commaSep1 identifierString)])]
 >     rowConstraint =
 >        choice [
 >           RowUniqueConstraint <$ keyword "unique"
+>          ,RowPrimaryKeyConstraint <$ keyword "primary" <* keyword "key"
 >          ,RowCheckConstraint <$> (keyword "check" *> parens expr)
 >          ,NullConstraint <$ trykeyword "null"
 >          ,NotNullConstraint <$ (keyword "not" *> keyword "null")

@@ -625,6 +625,14 @@ other creates
 >       [CreateDomain "td" "text"
 >        (Just (InPredicate (Identifier "value") True
 >               (InList [StringL "t1" ,StringL "t2"])))]
+>      ,p "create type tp1 as (\n\
+>         \  f1 text,\n\
+>         \  f2 text\n\
+>         \);"
+>       [CreateType "tp1" [TypeAttDef "f1" "text"
+>                         ,TypeAttDef "f2" "text"]]
+
+drops
 
 >      ,p "drop domain t;"
 >       [DropSomething Domain Require ["t"] Restrict]
@@ -640,18 +648,7 @@ other creates
 >      ,p "drop view t;"
 >       [DropSomething View Require ["t"] Restrict]
 
-
->      ,p "create type tp1 as (\n\
->         \  f1 text,\n\
->         \  f2 text\n\
->         \);"
->       [CreateType "tp1" [TypeAttDef "f1" "text"
->                         ,TypeAttDef "f2" "text"]]
 >      ])
-
-drops
-
-> 
 
 constraints
 
@@ -703,7 +700,39 @@ unique row
 >         [CreateTable "t1" [AttributeDef "x" "int" Nothing
 >                            [RowUniqueConstraint]][]]
 
+>      ,p "create table t1 (\n\
+>         \ x int unique not null\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>                            [RowUniqueConstraint
+>                            ,NotNullConstraint]][]]
+
+quick sanity check
+
+>      ,p "create table t1 (\n\
+>         \ x int not null unique\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>                            [NotNullConstraint
+>                            ,RowUniqueConstraint]][]]
+
 primary key row, table
+
+>      ,p "create table t1 (\n\
+>         \ x int primary key\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>                            [RowPrimaryKeyConstraint]][]]
+
+>      ,p "create table t1 (\n\
+>         \ x int,\n\
+>         \ y int,\n\
+>         \ primary key (x,y)\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
+>                           ,AttributeDef "y" "int" Nothing []]
+>          [PrimaryKeyConstraint ["x", "y"]]]
+
 
 check row, table
 

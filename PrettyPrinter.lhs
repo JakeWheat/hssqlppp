@@ -339,6 +339,7 @@ Conversion routines - convert Sql asts into Docs
 >                           RowCheckConstraint ew ->
 >                               text "check" <+> parens (convExp ew)
 >                           RowUniqueConstraint -> text "unique"
+>                           RowPrimaryKeyConstraint ->  text "primary key"
 >                   )) cons)
 
 > checkExp :: Maybe Expression -> Doc
@@ -346,8 +347,9 @@ Conversion routines - convert Sql asts into Docs
 
 > convCon :: Constraint -> Doc
 > convCon (UniqueConstraint c) = text "unique" <+> parens (hcatCsvMap text c)
+> convCon (PrimaryKeyConstraint p) = text "primary key"
+>                                    <+> parens (hcatCsvMap text p)
 
- >                 | PrimaryKeyConstraint [String]
  >                 | CheckConstraint (Maybe String) Expression
  >                 | ReferenceConstraint [String] [String]
 
