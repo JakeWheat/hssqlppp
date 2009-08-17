@@ -349,8 +349,8 @@ Conversion routines - convert Sql asts into Docs
 > convCon (UniqueConstraint c) = text "unique" <+> parens (hcatCsvMap text c)
 > convCon (PrimaryKeyConstraint p) = text "primary key"
 >                                    <+> parens (hcatCsvMap text p)
+> convCon (CheckConstraint c) = text "check" <+> parens (convExp c)
 
- >                 | CheckConstraint (Maybe String) Expression
  >                 | ReferenceConstraint [String] [String]
 
 > convIfExists :: IfExists -> Doc

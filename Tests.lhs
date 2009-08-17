@@ -733,7 +733,6 @@ primary key row, table
 >                           ,AttributeDef "y" "int" Nothing []]
 >          [PrimaryKeyConstraint ["x", "y"]]]
 
-
 check row, table
 
 >      ,p "create table t (\n\
@@ -744,6 +743,15 @@ check row, table
 >           [RowCheckConstraint (InPredicate
 >                                   (Identifier "f") True
 >                                   (InList [StringL "a", StringL "b"]))]] []]
+
+>      ,p "create table t1 (\n\
+>         \ x int,\n\
+>         \ y int,\n\
+>         \ check (x>y)\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
+>                           ,AttributeDef "y" "int" Nothing []]
+>          [CheckConstraint (BinOpCall Gt (Identifier "x") (Identifier "y"))]]
 
 row, whole load of constraints, todo: add reference here
 

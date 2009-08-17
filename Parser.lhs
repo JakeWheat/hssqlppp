@@ -568,7 +568,9 @@ one with just a \. in the first two columns
 >                    <$> try (keyword "primary" *> keyword "key"
 >                             *> choice [
 >                                     (:[]) <$> identifierString
->                                    ,parens (commaSep1 identifierString)])]
+>                                    ,parens (commaSep1 identifierString)])
+>                    ,CheckConstraint
+>                    <$> try (keyword "check" *> parens (expr))]
 >     rowConstraint =
 >        choice [
 >           RowUniqueConstraint <$ keyword "unique"
