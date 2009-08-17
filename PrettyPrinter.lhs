@@ -106,7 +106,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (DropFunction ifExists fns casc) =
 >   text "drop function"
->   <+> (if ifExists then text "if exists" else empty)
+>   <+> convIfExists ifExists
 >   <+> hcatCsvMap doFunction fns
 >   <+> text (case casc of
 >                       Cascade -> "cascade"
@@ -122,7 +122,7 @@ Conversion routines - convert Sql asts into Docs
 >                 View -> "view"
 >                 Domain -> "domain"
 >                 Type -> "type")
->     <+> (if ifExists then text "if exists" else empty)
+>     <+> convIfExists ifExists
 >     <+> hcatCsvMap text names
 >     <+> text (case casc of
 >                 Cascade -> "cascade"
@@ -227,7 +227,9 @@ Conversion routines - convert Sql asts into Docs
 > convSelectFragment :: Bool -> Statement -> Doc
 > convSelectFragment writeSelect (Select dis l tb wh grp ord orddir lim) =
 >   text (if writeSelect then "select" else "")
->   <+> (if dis then text "distinct" else empty)
+>   <+> (case dis of
+>          Dupes -> empty
+>          Distinct -> text "distinct")
 >   <+> convSelList l
 >   $+$ nest 2 (
 >               maybeConv (\tr -> text "from" <+> convTref tr) tb
@@ -258,7 +260,9 @@ Conversion routines - convert Sql asts into Docs
 > convTref (TrefAlias f a) = text f <+> text a
 > convTref (JoinedTref t1 nat jt t2 ex) =
 >     convTref t1
->     $+$ (if nat then text "natural" else empty)
+>     $+$ (case nat of
+>            Natural -> text "natural"
+>            Unnatural -> empty)
 >     <+> text (case jt of
 >                       Inner -> "inner"
 >                       Cross -> "cross"
@@ -335,6 +339,11 @@ Conversion routines - convert Sql asts into Docs
  >                 | PrimaryKeyConstraint [String]
  >                 | CheckConstraint (Maybe String) Expression
  >                 | ReferenceConstraint [String] [String]
+
+> convIfExists :: IfExists -> Doc
+> convIfExists i = case i of
+>                         Require -> empty
+>                         IfExists -> text "if exists"
 
 == plpgsql
 

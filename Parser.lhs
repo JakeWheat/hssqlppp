@@ -257,8 +257,8 @@ a string
 >                          ,Table <$ keyword "table"
 >                          ,View <$ keyword "view"
 >                       ])
->                 <*> option False (try $ True <$ (keyword "if"
->                                                  *> keyword "exists"))
+>                 <*> option Require (try $ IfExists <$ (keyword "if"
+>                                                        *> keyword "exists"))
 >                 <*> commaSep1 identifierString
 >                 <*> option Restrict(choice [
 >                                      Restrict <$ keyword "restrict"
@@ -267,8 +267,8 @@ a string
 > dropFunction :: ParsecT String () Identity Statement
 > dropFunction = DropFunction
 >                <$> (trykeyword "function" *>
->                     option False (try $ True <$ (keyword "if"
->                                                  *> keyword "exists")))
+>                     option Require (try $ IfExists <$ (keyword "if"
+>                                                        *> keyword "exists")))
 >                <*> commaSep1 (try pFun)
 >                <*> option Restrict(choice [
 >                                      Restrict <$ keyword "restrict"
@@ -285,7 +285,7 @@ select bits
 
 > selQuerySpec :: ParsecT String () Identity Statement
 > selQuerySpec = Select
->                <$> option False (True <$ trykeyword "distinct")
+>                <$> option Dupes (Distinct <$ trykeyword "distinct")
 >                <*> selectList
 >                <*> maybeP from
 >                <*> maybeP whereClause
@@ -371,7 +371,7 @@ multiple joins
 >     where
 >       readOneJoinPart = JoinedTref tr1
 >          --look for the join flavour first
->          <$> (isJust <$> maybeP (keyword "natural"))
+>          <$> (option Unnatural (Natural <$ trykeyword "natural"))
 >          <*> choice [
 >             Inner <$ trykeyword "inner"
 >            ,LeftOuter <$ try (keyword "left" *> keyword "outer")

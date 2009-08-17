@@ -28,7 +28,7 @@ instead put any statement - this type checks but is totally invalid.
 queries
 
 >                  -- distinct? selectlist from where
->                  Select Bool SelectList (Maybe TableRef) (Maybe Expression)
+>                  Select Distinct SelectList (Maybe TableRef) (Maybe Expression)
 >                             --groupby orderby
 >                             [Expression] [Expression]
 >                             --orderby direction limit
@@ -58,9 +58,9 @@ ddl
 >                | CreateDomain String String (Maybe Expression)
 
 >                  -- ifexists (name,argtypes)* cascadeorrestrict
->                | DropFunction Bool [(String,[String])] Cascade
+>                | DropFunction IfExists [(String,[String])] Cascade
 >                  -- ifexists names cascadeorrestrict
->                | DropSomething DropType Bool [String] Cascade
+>                | DropSomething DropType IfExists [String] Cascade
 
 >                | Assignment String Expression
 >                | Return (Maybe Expression)
@@ -96,7 +96,7 @@ Statement components
 
 > data TableRef = Tref String
 >               | TrefAlias String String
->               | JoinedTref TableRef Bool JoinType TableRef (Maybe JoinExpression)
+>               | JoinedTref TableRef Natural JoinType TableRef (Maybe JoinExpression)
 >               | SubTref Statement String
 >               | TrefFun Expression
 >               | TrefFunAlias Expression String
@@ -176,6 +176,15 @@ constraints which appear on a separate row in the create table
 >                 deriving (Eq, Show)
 
 > data Direction = Asc | Desc
+>                 deriving (Eq, Show)
+
+> data Distinct = Distinct | Dupes
+>                 deriving (Eq, Show)
+
+> data Natural = Natural | Unnatural
+>                 deriving (Eq, Show)
+
+> data IfExists = Require | IfExists
 >                 deriving (Eq, Show)
 
 ================================================================================

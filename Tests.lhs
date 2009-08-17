@@ -228,7 +228,7 @@ test a whole bunch more select statements
 >       [selectFrom (selIL ["a", "b"]) (Tref "inf.tbl")]
 
 >      ,p "select distinct * from tbl;"
->       [Select True (SelectList (selIL ["*"]) []) (Just $ Tref "tbl")
+>       [Select Distinct (SelectList (selIL ["*"]) []) (Just $ Tref "tbl")
 >        Nothing [] [] Asc Nothing]
 
 >      ,p "select a from tbl where b=2;"
@@ -286,42 +286,42 @@ test a whole bunch more select statements
 >      ,p "select a from b inner join c on b.a=c.a;"
 >       [selectFrom
 >        (selIL ["a"])
->        (JoinedTref (Tref "b") False Inner (Tref "c")
+>        (JoinedTref (Tref "b") Unnatural Inner (Tref "c")
 >           (Just (JoinOn
 >            (BinOpCall Eql (Identifier "b.a") (Identifier "c.a")))))]
 >      ,p "select a from b inner join c as d on b.a=d.a;"
 >       [selectFrom
 >        (selIL ["a"])
->        (JoinedTref (Tref "b") False Inner (TrefAlias "c" "d")
+>        (JoinedTref (Tref "b") Unnatural Inner (TrefAlias "c" "d")
 >           (Just (JoinOn
 >            (BinOpCall Eql (Identifier "b.a") (Identifier "d.a")))))]
 
 >      ,p "select a from b inner join c using(d,e);"
 >       [selectFrom
 >        (selIL ["a"])
->        (JoinedTref (Tref "b") False Inner (Tref "c")
+>        (JoinedTref (Tref "b") Unnatural Inner (Tref "c")
 >           (Just (JoinUsing ["d","e"])))]
 
 >      ,p "select a from b natural inner join c;"
 >       [selectFrom
 >        (selIL ["a"])
->        (JoinedTref (Tref "b") True Inner (Tref "c") Nothing)]
+>        (JoinedTref (Tref "b") Natural Inner (Tref "c") Nothing)]
 >      ,p "select a from b left outer join c;"
 >       [selectFrom
 >        (selIL ["a"])
->        (JoinedTref (Tref "b") False LeftOuter (Tref "c") Nothing)]
+>        (JoinedTref (Tref "b") Unnatural LeftOuter (Tref "c") Nothing)]
 >      ,p "select a from b full outer join c;"
 >       [selectFrom
 >        (selIL ["a"])
->        (JoinedTref (Tref "b") False FullOuter (Tref "c") Nothing)]
+>        (JoinedTref (Tref "b") Unnatural FullOuter (Tref "c") Nothing)]
 >      ,p "select a from b right outer join c;"
 >       [selectFrom
 >        (selIL ["a"])
->        (JoinedTref (Tref "b") False RightOuter (Tref "c") Nothing)]
+>        (JoinedTref (Tref "b") Unnatural RightOuter (Tref "c") Nothing)]
 >      ,p "select a from b cross join c;"
 >       [selectFrom
 >        (selIL ["a"])
->        (JoinedTref (Tref "b") False Cross (Tref "c") Nothing)]
+>        (JoinedTref (Tref "b") Unnatural Cross (Tref "c") Nothing)]
 
 >      ,p "select a from b\n\
 >         \    inner join c\n\
@@ -331,9 +331,9 @@ test a whole bunch more select statements
 >       [selectFrom
 >        [SelExp (Identifier "a")]
 >        (JoinedTref
->         (JoinedTref (Tref "b") False Inner (Tref "c")
+>         (JoinedTref (Tref "b") Unnatural Inner (Tref "c")
 >          (Just $ JoinOn (BooleanL True)))
->         False Inner (Tref "d")
+>         Unnatural Inner (Tref "d")
 >         (Just  $ JoinOn (BinOpCall Eql
 >                (IntegerL 1) (IntegerL 1))))]
 
@@ -375,32 +375,32 @@ test a whole bunch more select statements
 >      ,p "select * from a natural inner join (select * from b) as a;"
 >       [selectFrom
 >        (selIL ["*"])
->        (JoinedTref (Tref "a") True
+>        (JoinedTref (Tref "a") Natural
 >         Inner (SubTref (selectFrom
 >                         (selIL ["*"])
 >                         (Tref "b")) "a")
 >         Nothing)]
 
 >      ,p "select * from a order by c;"
->       [Select False
+>       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] [Identifier "c"] Asc Nothing]
 
 >      ,p "select * from a order by c,d asc;"
->       [Select False
+>       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] [Identifier "c", Identifier "d"] Asc Nothing]
 
 >      ,p "select * from a order by c,d desc;"
->       [Select False
+>       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] [Identifier "c", Identifier "d"] Desc Nothing]
 
 >      ,p "select * from a order by c limit 1;"
->       [Select False
+>       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] [Identifier "c"] Asc (Just (IntegerL 1))]
@@ -421,7 +421,7 @@ test a whole bunch more select statements
 >        (TrefFunAlias (FunCall "gen" []) "t")]
 
 >      ,p "select a, count(b) from c group by a;"
->         [Select False
+>         [Select Dupes
 >          (sl [selI "a", SelExp (FunCall "count" [Identifier "b"])])
 >          (Just $ Tref "c") Nothing [Identifier "a"]
 >          [] Asc Nothing]
@@ -615,18 +615,18 @@ other creates
 >               (InList [StringL "t1" ,StringL "t2"])))]
 
 >      ,p "drop domain t;"
->       [DropSomething Domain False ["t"] Restrict]
+>       [DropSomething Domain Require ["t"] Restrict]
 >      ,p "drop domain if exists t,u cascade;"
->       [DropSomething Domain True ["t", "u"] Cascade]
+>       [DropSomething Domain IfExists ["t", "u"] Cascade]
 >      ,p "drop domain t restrict;"
->       [DropSomething Domain False ["t"] Restrict]
+>       [DropSomething Domain Require ["t"] Restrict]
 
 >      ,p "drop type t;"
->       [DropSomething Type False ["t"] Restrict]
+>       [DropSomething Type Require ["t"] Restrict]
 >      ,p "drop table t;"
->       [DropSomething Table False ["t"] Restrict]
+>       [DropSomething Table Require ["t"] Restrict]
 >      ,p "drop view t;"
->       [DropSomething View False ["t"] Restrict]
+>       [DropSomething View Require ["t"] Restrict]
 
 
 >      ,p "create type tp1 as (\n\
@@ -809,9 +809,9 @@ test functions
 >        (PlpgsqlFnBody [] [NullStatement])
 >        Stable]
 >      ,p "drop function test(text);"
->       [DropFunction False [("test",["text"])] Restrict]
+>       [DropFunction Require [("test",["text"])] Restrict]
 >      ,p "drop function if exists a(),test(text) cascade;"
->       [DropFunction True [("a",[])
+>       [DropFunction IfExists [("a",[])
 >                           ,("test",["text"])] Cascade]
 >      ])
 
@@ -847,10 +847,10 @@ simple statements
 >                     BinOpCall Conc (Identifier "r.relvar_name")
 >                                            (StringL "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
->       [Select False (SelectList [selI "c", selI "d"] ["a", "b"])
+>       [Select Dupes (SelectList [selI "c", selI "d"] ["a", "b"])
 >                   (Just $ Tref "e") Nothing [] [] Asc Nothing]
 >      ,p "select c,d into a,b from e;"
->       [Select False (SelectList [selI "c", selI "d"] ["a", "b"])
+>       [Select Dupes (SelectList [selI "c", selI "d"] ["a", "b"])
 >                   (Just $ Tref "e") Nothing [] [] Asc Nothing]
 
 >      ,p "execute s;"
@@ -935,12 +935,12 @@ complicated statements
 >           selIL = map selI
 >           selI = SelExp . Identifier
 >           sl a = SelectList a []
->           selectE selList = Select False selList Nothing Nothing [] [] Asc Nothing
+>           selectE selList = Select Dupes selList Nothing Nothing [] [] Asc Nothing
 >           selectFrom selList frm =
->             Select False (SelectList selList [])
+>             Select Dupes (SelectList selList [])
 >                    (Just frm) Nothing [] [] Asc Nothing
 >           selectFromWhere selList frm whr =
->             Select False (SelectList selList [])
+>             Select Dupes (SelectList selList [])
 >                    (Just frm) (Just whr) [] [] Asc Nothing
 
 ================================================================================
