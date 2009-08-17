@@ -39,7 +39,7 @@ Conversion routines - convert Sql asts into Docs
 
 == selects
 
-> convStatement s@(Select _ _ _ _ _ _ _) =
+> convStatement s@(Select _ _ _ _ _ _ _ _) =
 >   convSelectFragment True s <> statementEnd
 > convStatement s@(CombineSelect _ _ _) =
 >   convSelectFragment True s <> statementEnd
@@ -225,7 +225,7 @@ Conversion routines - convert Sql asts into Docs
 == selects
 
 > convSelectFragment :: Bool -> Statement -> Doc
-> convSelectFragment writeSelect (Select dis l tb wh grp ord lim) =
+> convSelectFragment writeSelect (Select dis l tb wh grp ord orddir lim) =
 >   text (if writeSelect then "select" else "")
 >   <+> (if dis then text "distinct" else empty)
 >   <+> convSelList l
@@ -233,7 +233,8 @@ Conversion routines - convert Sql asts into Docs
 >               maybeConv (\tr -> text "from" <+> convTref tr) tb
 >               $+$ convWhere wh)
 >   <+> ifNotEmpty (\g -> text "group by" <+> hcatCsvMap convExp g) grp
->   <+> ifNotEmpty (\o -> text "order by" <+> hcatCsvMap convExp o) ord
+>   <+> ifNotEmpty (\o -> text "order by" <+> hcatCsvMap convExp o
+>                   <+> convDir orddir) ord
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 > convSelectFragment writeSelect (CombineSelect tp s1 s2) =
 >   convSelectFragment writeSelect s1
@@ -246,6 +247,11 @@ Conversion routines - convert Sql asts into Docs
 > convSelectFragment _ (Values expss) = convValues expss
 
 > convSelectFragment _ a = error $ "no convSelectFragment for " ++ show a
+
+> convDir :: Direction -> Doc
+> convDir d = text $ case d of
+>                           Asc -> "asc"
+>                           Desc -> "desc"
 
 > convTref :: TableRef -> Doc
 > convTref (Tref f) = text f
@@ -400,7 +406,7 @@ Conversion routines - convert Sql asts into Docs
 >                      else empty)
 >                   <+> (if ho
 >                          then text "order by" <+> csvExp order
->                               <+> text (if asc then "asc" else "desc")
+>                               <+> convDir asc
 >                          else empty))
 >        else empty)
 >   where

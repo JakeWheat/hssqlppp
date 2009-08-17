@@ -228,7 +228,8 @@ test a whole bunch more select statements
 >       [selectFrom (selIL ["a", "b"]) (Tref "inf.tbl")]
 
 >      ,p "select distinct * from tbl;"
->       [Select True (SelectList (selIL ["*"]) []) (Just $ Tref "tbl") Nothing [] [] Nothing]
+>       [Select True (SelectList (selIL ["*"]) []) (Just $ Tref "tbl")
+>        Nothing [] [] Asc Nothing]
 
 >      ,p "select a from tbl where b=2;"
 >       [selectFromWhere
@@ -341,7 +342,7 @@ test a whole bunch more select statements
 >                    (WindowFn
 >                     (FunCall "row_number" [])
 >                     []
->                     [Identifier "a"] True)
+>                     [Identifier "a"] Asc)
 >                    "place"]
 >        (Tref "tbl")]
 >      ,p "select row_number() over(order by a asc) as place from tbl;"
@@ -349,7 +350,7 @@ test a whole bunch more select statements
 >                    (WindowFn
 >                     (FunCall "row_number" [])
 >                     []
->                     [Identifier "a"] True)
+>                     [Identifier "a"] Asc)
 >                    "place"]
 >        (Tref "tbl")]
 >      ,p "select row_number() over(order by a desc) as place from tbl;"
@@ -357,7 +358,7 @@ test a whole bunch more select statements
 >                    (WindowFn
 >                     (FunCall "row_number" [])
 >                     []
->                     [Identifier "a"] False)
+>                     [Identifier "a"] Desc)
 >                    "place"]
 >        (Tref "tbl")]
 >      ,p "select row_number()\n\
@@ -367,7 +368,7 @@ test a whole bunch more select statements
 >                    (WindowFn
 >                     (FunCall "row_number" [])
 >                     [Row [Identifier "a",Identifier "b"]]
->                     [Identifier "c"] True)
+>                     [Identifier "c"] Asc)
 >                    "place"]
 >        (Tref "tbl")]
 
@@ -384,12 +385,25 @@ test a whole bunch more select statements
 >       [Select False
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
->        Nothing [] [Identifier "c"] Nothing]
+>        Nothing [] [Identifier "c"] Asc Nothing]
+
+>      ,p "select * from a order by c,d asc;"
+>       [Select False
+>        (sl (selIL ["*"]))
+>        (Just $ Tref "a")
+>        Nothing [] [Identifier "c", Identifier "d"] Asc Nothing]
+
+>      ,p "select * from a order by c,d desc;"
+>       [Select False
+>        (sl (selIL ["*"]))
+>        (Just $ Tref "a")
+>        Nothing [] [Identifier "c", Identifier "d"] Desc Nothing]
+
 >      ,p "select * from a order by c limit 1;"
 >       [Select False
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
->        Nothing [] [Identifier "c"] (Just (IntegerL 1))]
+>        Nothing [] [Identifier "c"] Asc (Just (IntegerL 1))]
 
 >      ,p "select a from (select b from c) as d;"
 >         [selectFrom
@@ -409,11 +423,8 @@ test a whole bunch more select statements
 >      ,p "select a, count(b) from c group by a;"
 >         [Select False
 >          (sl [selI "a", SelExp (FunCall "count" [Identifier "b"])])
->          (Just $ Tref "c")
->          Nothing
->          [Identifier "a"]
->          []
->          Nothing]
+>          (Just $ Tref "c") Nothing [Identifier "a"]
+>          [] Asc Nothing]
 
 >      ])
 
@@ -837,10 +848,10 @@ simple statements
 >                                            (StringL "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
 >       [Select False (SelectList [selI "c", selI "d"] ["a", "b"])
->                   (Just $ Tref "e") Nothing [] [] Nothing]
+>                   (Just $ Tref "e") Nothing [] [] Asc Nothing]
 >      ,p "select c,d into a,b from e;"
 >       [Select False (SelectList [selI "c", selI "d"] ["a", "b"])
->                   (Just $ Tref "e") Nothing [] [] Nothing]
+>                   (Just $ Tref "e") Nothing [] [] Asc Nothing]
 
 >      ,p "execute s;"
 >       [Execute (Identifier "s")]
@@ -924,13 +935,13 @@ complicated statements
 >           selIL = map selI
 >           selI = SelExp . Identifier
 >           sl a = SelectList a []
->           selectE selList = Select False selList Nothing Nothing [] [] Nothing
+>           selectE selList = Select False selList Nothing Nothing [] [] Asc Nothing
 >           selectFrom selList frm =
 >             Select False (SelectList selList [])
->                    (Just frm) Nothing [] [] Nothing
+>                    (Just frm) Nothing [] [] Asc Nothing
 >           selectFromWhere selList frm whr =
 >             Select False (SelectList selList [])
->                    (Just frm) (Just whr) [] [] Nothing
+>                    (Just frm) (Just whr) [] [] Asc Nothing
 
 ================================================================================
 

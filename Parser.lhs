@@ -291,6 +291,9 @@ select bits
 >                <*> maybeP whereClause
 >                <*> option [] groupBy
 >                <*> option [] orderBy
+>                <*> option Asc (choice [
+>                                 Asc <$ keyword "asc"
+>                                ,Desc <$ keyword "desc"])
 >                <*> maybeP limit
 
 > orderBy :: GenParser Char () [Expression]
@@ -884,9 +887,9 @@ fn() over ([partition bit]? [order bit]?)
 > windowFn = WindowFn <$> (functionCall <* keyword "over")
 >                     <*> (symbol "(" *> option [] partitionBy)
 >                     <*> (option [] orderBy1)
->                     <*> option True (try $ choice [
->                                                True <$ keyword "asc"
->                                               ,False <$ keyword "desc"])
+>                     <*> option Asc (try $ choice [
+>                                                Asc <$ keyword "asc"
+>                                               ,Desc <$ keyword "desc"])
 >                          <* symbol ")"
 >   where
 >     orderBy1 = trykeyword "order" *> keyword "by" *> commaSep1 expr

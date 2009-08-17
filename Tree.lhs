@@ -29,8 +29,10 @@ queries
 
 >                  -- distinct? selectlist from where
 >                  Select Bool SelectList (Maybe TableRef) (Maybe Expression)
->                             --groupby orderby limit
->                             [Expression] [Expression] (Maybe Expression)
+>                             --groupby orderby
+>                             [Expression] [Expression]
+>                             --orderby direction limit
+>                             Direction (Maybe Expression)
 >                | CombineSelect CombineType Statement Statement
 >                | Values [[Expression]]
 
@@ -173,6 +175,9 @@ constraints which appear on a separate row in the create table
 > data Cascade = Cascade | Restrict
 >                 deriving (Eq, Show)
 
+> data Direction = Asc | Desc
+>                 deriving (Eq, Show)
+
 ================================================================================
 
 Expressions
@@ -242,7 +247,7 @@ on which expressions can appear in different places.
 >                 | FunCall String [Expression]
 >                 | InPredicate Expression Bool InList
 >                   -- windowfn selectitem partitionby orderby orderbyasc?
->                 | WindowFn Expression [Expression] [Expression] Bool
+>                 | WindowFn Expression [Expression] [Expression] Direction
 >                 | ScalarSubQuery Statement
 >                 | ArraySub Expression [Expression]
 >                 | Between Expression Expression Expression

@@ -68,7 +68,6 @@ create database
 create index
 create rule
 create trigger + plpgsql support
-drops for all supported creates
 grant,revoke
 listen, notify, unlisten
 prepare, execute

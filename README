@@ -19,7 +19,7 @@ also partially supports:
 insert (with multiple values and select support), update, delete with returning
 create table, type, view, domain
 constraints: not null, null, unique (inline and row), inline check
-drop function
+drop function, table, domain, type, view
 sort of skips copy statements instead of erroring
 create function for sql and plpgsql functions
 
@@ -41,7 +41,8 @@ Many things are missing at the moment, in particular
   selects: having, cte, implicit joins, like expressions
   joins in updates
   constraints: pk, separate row check, references
-  alter and drop statements apart from drop function
+  alter statements
+  create and drop apart from table, view, domain, type, function
   transaction commands
   triggers and trigger functions
   loop statement
