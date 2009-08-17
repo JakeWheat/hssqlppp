@@ -258,7 +258,7 @@ a string
 >                          ,View <$ keyword "view"
 >                       ])
 >                 <*> option False (try $ True <$ (keyword "if"
->                                               *> keyword "exists"))
+>                                                  *> keyword "exists"))
 >                 <*> commaSep1 identifierString
 >                 <*> option Restrict(choice [
 >                                      Restrict <$ keyword "restrict"
@@ -266,8 +266,16 @@ a string
 
 > dropFunction :: ParsecT String () Identity Statement
 > dropFunction = DropFunction
->                <$> (trykeyword "function" *> identifierString)
->                <*> parens (many identifierString)
+>                <$> (trykeyword "function" *>
+>                     option False (try $ True <$ (keyword "if"
+>                                                  *> keyword "exists")))
+>                <*> commaSep1 (try pFun)
+>                <*> option Restrict(choice [
+>                                      Restrict <$ keyword "restrict"
+>                                     ,Cascade <$ keyword "cascade"])
+>                where
+>                  pFun = (,) <$> identifierString
+>                             <*> parens (many identifierString)
 
 ================================================================================
 

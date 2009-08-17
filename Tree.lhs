@@ -55,7 +55,8 @@ ddl
 >                  -- name type checkexpression
 >                | CreateDomain String String (Maybe Expression)
 
->                | DropFunction String [String]
+>                  -- ifexists (name,argtypes)* cascadeorrestrict
+>                | DropFunction Bool [(String,[String])] Cascade
 >                  -- ifexists names cascadeorrestrict
 >                | DropSomething DropType Bool [String] Cascade
 

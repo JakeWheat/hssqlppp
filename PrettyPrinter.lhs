@@ -95,9 +95,6 @@ Conversion routines - convert Sql asts into Docs
 >                        Stable -> "stable"
 >                        Immutable -> "immutable")
 >     <> statementEnd
-> convStatement (DropFunction name types) =
->   text "drop function" <+> text name
->   <> parens (hcatCsvMap text types) <> statementEnd
 
 > convStatement (CreateView name sel) =
 >     text "create view" <+> text name <+> text "as"
@@ -106,6 +103,17 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (CreateDomain name tp ex) =
 >     text "create domain" <+> text name <+> text "as"
 >     <+> text tp <+> checkExp ex <> statementEnd
+
+> convStatement (DropFunction ifExists fns casc) =
+>   text "drop function"
+>   <+> (if ifExists then text "if exists" else empty)
+>   <+> hcatCsvMap doFunction fns
+>   <+> text (case casc of
+>                       Cascade -> "cascade"
+>                       Restrict -> "restrict")
+>   <> statementEnd
+>   where
+>     doFunction (name,types) = text name <> parens (hcatCsvMap text types)
 
 > convStatement (DropSomething dropType ifExists names casc) =
 >     text "drop"
@@ -118,7 +126,8 @@ Conversion routines - convert Sql asts into Docs
 >     <+> hcatCsvMap text names
 >     <+> text (case casc of
 >                 Cascade -> "cascade"
->                 Restrict -> "restrict") <> statementEnd
+>                 Restrict -> "restrict")
+>     <> statementEnd
 
 > convStatement (CreateType name atts) =
 >     text "create type" <+> text name <+> text "as" <+> lparen
