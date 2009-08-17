@@ -17,11 +17,12 @@ for some notes on postgresql syntax (the rest of that manual is also helpful)
 
 ================================================================================
 
-Notes on coding style (assumes you are familiar with do notation)
-  to explain the rationale
+Notes on coding style if the code looks like gobbledygook (assumes you
+are familiar with do notation). Mostly uninteresting if you can easily
+understand the first code snippet below.
 
 Here is a version of the delete parser which parses stuff like:
-delete [tablename] [where]? [returning]?
+delete from [tablename] [where]? [returning]?
 
  delete = trykeyword "delete" >> keyword "from" >>
           Delete
@@ -29,7 +30,8 @@ delete [tablename] [where]? [returning]?
           <*> tryMaybeP whereClause
           <*> tryMaybeP returning
 
-Looks like gobbledygook? This is equivalent to
+We transform this in several stages through to vanilla do notation,
+this is equivalent to
 
   delete = trykeyword "delete" >> keyword "from" >>
            Delete `liftM`
@@ -37,15 +39,16 @@ Looks like gobbledygook? This is equivalent to
            `ap` tryMaybeP whereClause
            `ap` tryMaybeP returning
 
-which in turn is equivalent to
+(which in turn is equivalent to
 
  delete = trykeyword "delete" >> keyword "from" >>
           liftM3 Delete
                  identifierString
                  (tryMaybeP whereClause)
                  (tryMaybeP returning)
+maybe this is a backward step)
 
-which in do notation is:
+finally, in do notation it is:
 
  delete = do
           trykeyword "delete"
@@ -55,7 +58,10 @@ which in do notation is:
           r <- tryMaybeP returning
           return $ Delete i w r
 
-I think the top version is clearest, as long as you can understand it
+Which is what you'd write if you didn't know liftM or Applicative (or
+what I wrote before I learnt to use Applicative).
+
+I think the top version is clearest as long as you can understand it
 is a short hand for the bottom version.
 
 Some of the other operators used in addition to <$> and <*> are:
@@ -77,12 +83,15 @@ do
 ignores the return of the parser on the left,i.e. its just like >>
 except the precedence is different (which can be exploited to reduce
 the number of () needed)
-equivalent to
+
+p1 *> p2
+
+is equivalent to
 do
   p1
   p2
 
-(which is
+(which is the same as
 do
   p1
   y <- p2
@@ -100,11 +109,12 @@ do
   keyword "distinct"
   return True
 
-(alternatively could be written
+alternatively could be written
 
 keyword "distinct" *> return True
 
-which is also good but slightly longer so I prefer the first)
+which is also good but slightly longer so I prefer the first.
+
 
 <:>
 made this one up as an applicative version of (:),
@@ -115,7 +125,7 @@ do
   a <- p1
   b <- p2
   return (a:b)
-but using <:> instead of
+but using <:>, instead of
 (:) <$> p1 <$> p2
 you can write
 p1 <:> p2
@@ -131,16 +141,16 @@ Returning to the delete parser:
 
 there are some other notable aspects, in the bit before the 'Delete'.
 
-* the code here is before the delete as a kind of filter, many of the
-  parsers look like this - in an attempt to make the parsers more
-  readable. The alternative code that this style replaced is this:
+* the code here is before the delete to look like a kind of filter,
+  many of the parsers look like this. The alternative code that this
+  style replaced is this:
 
  delete = Delete
           <$> (trykeyword "delete" *> keyword "from" *> identifierString)
           <*> tryMaybeP whereClause
           <*> tryMaybeP returning
 
-  which I think is less readable.
+  which I think looks less clear.
 
 There are also a couple of tricks in this line which are connected to
 parsing the haskell code and precedence:
@@ -156,7 +166,7 @@ if we use *> instead of >> at the top, we need (), this is why >> is chosen:
 (The code prefers *> where *> and >> are interchangable without adding
 ().)
 
-trykeyword could be replaced with:
+trykeyword could be replaced:
 
  delete = try (keyword "delete") >> keyword "from" >>
           Delete
@@ -166,7 +176,80 @@ trykeyword could be replaced with:
 
 but it's extra brackets (trykeyword is only shorthand like this used
 in the code, since it appears all over and loads of () and $ get added
-without it).
+without using trykeyword).
+
+One last aspect:
+
+ delete = trykeyword "delete" >> keyword "from" >>
+          Delete
+          <$> identifierString
+          <*> tryMaybeP whereClause
+          <*> tryMaybeP returning
+
+why is try used for delete but not for from? This is to help improve
+the error messages, see if you can work out why.
+
+Hint: try parsing the following three lines with the current code
+(errors on purpose).
+
+delte from x;
+
+delete frm x;
+
+delete from x x x x;
+
+Parse each line separately. You can use ghci and the function parseSql
+from the prompt, e.g.
+
+ghci> parseSql "delte from x;"
+
+Then change the delete code in this file to read:
+
+trykeyword "delete" *> trykeyword "from" *>
+...
+(try added on the keyword from parser)
+
+and parse the three lines above again.
+
+Finally, try this function
+
+ delete = try (keyword "delete" >> keyword "from" >>
+               Delete
+               <$> identifierString
+               <*> tryMaybeP whereClause
+               <*> tryMaybeP returning)
+
+And parse the three lines above. (Notice the difference between the
+error messages. The trys are used to parse difficult sql syntax, but
+with this sort of effect in mind for error messages.)
+
+There are lots of little idioms in the code, which is an ongoing
+effort, please comment if they are too obtuse or you think of some
+better/additional ones.
+
+One other tip is that when coding with <*> <$> *>, etc it can be a bit
+confusing where parens are needed. One way of coping is to write code
+using one of the existing parsers as a template, copying the layout of
+indentation and () usage, adding plenty of extra () where you're not
+sure.
+
+After it compiles and tests ok, run hlint and it will tell you which
+() are redundant and you can fix the code. After a while you get the
+hang of it (and hopefully the type checking and tests catch
+mistakes). (Don't just do what hlint says blindly because it gets
+confused in some places and you'll end up with the code not compiling,
+also run the tests after changing the code in this way, although it's
+pretty rare to see this with the latest versions of hlint.)
+
+Couple of other notes:
+
+The trys follow a pattern which attempts to lead to better error
+messages.
+
+Near the bottom of this file are two parser combinators:
+parseOptionalSuffix, and parseOptionalSuffixThreaded (which were named
+by a recovering java programmer), which have some long winded docs on
+how they work if it isn't obvious where they're used.
 
 Some further reference/reading:
 
@@ -226,14 +309,14 @@ parse fully formed sql
 Parse expression fragment, used for testing purposes
 
 > parseExpression :: String -> Either ParseError Expression
-> parseExpression s = parse (expr <* eof) "" s
+> parseExpression = parse (expr <* eof) ""
 
 parse plpgsql statements, used for testing purposes
 
 > parsePlpgsql :: String -> Either ParseError [Statement]
-> parsePlpgsql s = parse (whitespace
->                          *> many plPgsqlStatement
->                          <* eof) "(unknown)" s
+> parsePlpgsql = parse (whitespace
+>                       *> many plPgsqlStatement
+>                       <* eof) "(unknown)"
 
 ================================================================================
 
@@ -288,7 +371,8 @@ recurses to support parsing excepts, unions, etc
 
 > select :: ParsecT String () Identity Statement
 > select = do
->   s1 <- trykeyword "select" *> selQuerySpec
+>   trykeyword "select"
+>   s1 <- selQuerySpec
 >   choice [
 >     --don't know if this does associativity in the correct order for
 >     --statements with multiple excepts/ intersects and no parens
@@ -311,7 +395,7 @@ recurses to support parsing excepts, unions, etc
 >                                ,Desc <$ keyword "desc"])
 >                <*> tryMaybeP limit
 >                <*> tryMaybeP offset
->     from = (keyword "from" *> tref)
+>     from = keyword "from" *> tref
 >     groupBy = trykeyword "group" *> keyword "by"
 >               *> commaSep1 expr
 >     orderBy = trykeyword "order" *> keyword "by"
@@ -336,8 +420,7 @@ recurses to support parsing excepts, unions, etc
 >                       TrefFunAlias () (trykeyword "as" *> identifierString)
 >                    ,parseOptionalSuffix
 >                       Tref nkwid
->                       TrefAlias () ((optional $ trykeyword "as")
->                                     *> nkwid)]
+>                       TrefAlias () (optional (trykeyword "as") *> nkwid)]
 >     --joinpart: parse a join after the first part of the tableref
 >     --(which is a table name, aliased table name or subselect) -
 >     --takes this tableref as an arg so it can recurse to multiple
@@ -345,7 +428,7 @@ recurses to support parsing excepts, unions, etc
 >     joinPart tr1 = parseOptionalSuffixThreaded (readOneJoinPart tr1) joinPart
 >     readOneJoinPart tr1 = JoinedTref tr1
 >          --look for the join flavour first
->          <$> (option Unnatural (Natural <$ trykeyword "natural"))
+>          <$> option Unnatural (Natural <$ trykeyword "natural")
 >          <*> choice [
 >             Inner <$ trykeyword "inner"
 >            ,LeftOuter <$ try (keyword "left" *> keyword "outer")
@@ -364,8 +447,10 @@ recurses to support parsing excepts, unions, etc
 >              --avoid all these keywords as aliases since they can
 >              --appear immediately following a tableref as the next
 >              --part of the statement, if we don't do this then lots
->              --of things don't parse. don't know if these should be
->              --allowed as aliases without "" or []
+>              --of things don't parse. Seems a bit inelegant but
+>              --works for the tests and the test sql files don't know
+>              --if these should be allowed as aliases without "" or
+>              --[]
 >              if x `elem` ["as"
 >                          ,"where"
 >                          ,"except"
@@ -418,21 +503,11 @@ multiple rows to insert and insert from select statements
 >                        <*> (symbol "=" *> expr)]
 
 > delete :: ParsecT String () Identity Statement
-
- > delete = trykeyword "delete" >> keyword "from" >>
- >          Delete
- >          <$> identifierString
- >          <*> tryMaybeP whereClause
- >          <*> tryMaybeP returning
-
-> delete = do
->          trykeyword "delete"
->          keyword "from"
->          i <- identifierString
->          w <- tryMaybeP whereClause
->          r <- tryMaybeP returning
->          return $ Delete i w r
-
+> delete = trykeyword "delete" >> keyword "from" >>
+>          Delete
+>          <$> identifierString
+>          <*> tryMaybeP whereClause
+>          <*> tryMaybeP returning
 
 = copy statement
 
@@ -579,7 +654,7 @@ a string
 = component parsers for sql statements
 
 > whereClause :: ParsecT String () Identity Expression
-> whereClause = (keyword "where" *> expr)
+> whereClause = keyword "where" *> expr
 
 selectlist and selectitem: the bit between select and from
 check for into either before the whole list of select columns
@@ -718,8 +793,8 @@ bit too clever coming up
 > caseStatement :: ParsecT String () Identity Statement
 > caseStatement = trykeyword "case" >>
 >     CaseStatement <$> expr
->                   <*> (many whenSt)
->                   <*> (option [] (keyword "else" *> many plPgsqlStatement))
+>                   <*> many whenSt
+>                   <*> option [] (keyword "else" *> many plPgsqlStatement)
 >                           <* keyword "end" <* keyword "case"
 >     where
 >       whenSt = keyword "when" >>
@@ -747,7 +822,7 @@ are enclosed in begin ... end; (semi colon after end is optional
 > functionBody Plpgsql =
 >   whitespace >>
 >   PlpgsqlFnBody
->   <$> (option [] declarePart)
+>   <$> option [] declarePart
 >   <*> statementPart
 >   where
 >     statementPart = keyword "begin"
@@ -967,7 +1042,7 @@ string parsing
 >   where
 >     --parse a string delimited by single quotes
 >     stringQuotes = StringL <$> stringPar
->     stringPar = (optional $ char 'E') *> char '\''
+>     stringPar = optional (char 'E') *> char '\''
 >                 *> readQuoteEscape <* whitespace
 >     --(readquoteescape reads the trailing ')
 
@@ -1018,7 +1093,7 @@ expression when value' currently
 > caseParse :: ParsecT String () Identity Expression
 > caseParse = trykeyword "case" >>
 >             Case <$> many whenParse
->                  <*> (tryMaybeP ((keyword "else" *> expr)))
+>                  <*> tryMaybeP (keyword "else" *> expr)
 >                       <* keyword "end"
 >   where
 >     whenParse = (,) <$> (keyword "when" *> expr)
@@ -1043,16 +1118,16 @@ expression when value' currently
 when you put expr instead of identifier in arraysub, it stack
 overflows, not sure why.
 
-> arraySub :: ParsecT [Char] () Identity Expression
+> arraySub :: ParsecT String () Identity Expression
 > arraySub = ArraySub <$> identifier <*> squares (commaSep1 expr)
 
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
 
 > windowFn :: GenParser Char () Expression
-> windowFn = WindowFn <$> (functionCall <* keyword "over")
+> windowFn = WindowFn <$> functionCall <* keyword "over"
 >                     <*> (symbol "(" *> option [] partitionBy)
->                     <*> (option [] orderBy1)
+>                     <*> option [] orderBy1
 >                     <*> option Asc (try $ choice [
 >                                                Asc <$ keyword "asc"
 >                                               ,Desc <$ keyword "desc"])
@@ -1087,7 +1162,7 @@ fn() over ([partition bit]? [order bit]?)
 >               CastKeyword <$> expr
 >                           <*> (keyword "as" *> typeName <* symbol ")")
 
-> substring :: ParsecT [Char] () Identity Expression
+> substring :: ParsecT String () Identity Expression
 > substring = trykeyword "substring" >> symbol "(" >>
 >             Substring
 >             <$> expr
