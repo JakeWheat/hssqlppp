@@ -46,3 +46,65 @@ get property checker working again - one problem is that the pretty
    printer will reject some parse trees (which the parser cannot
    produce), and the parser will probably reject some invalid sql that
    the pretty printer will happily produce from some parse trees.
+
+
+some sql to do:
+updates to existing parsers:
+create table: finish constraints (see placeholder text in tests)
+select: all, distinct on, having, window
+  order by desc and using
+  offset, for update/sahre
+delete from
+update using
+
+new? parsers
+
+create or replace
+alter table
+transactions: begin, checkpoint, commit, end, rollback
+cursors: declare, open, fetch, move, close, where current of
+copy - parse properly
+create database
+create index
+create rule
+create trigger + plpgsql support
+drops for all supported creates
+grant,revoke
+listen, notify, unlisten
+prepare, execute
+savepoint, release savepoint, rollback to savepoint
+set, reset
+set constraints
+set role
+set transaction
+truncate
+
+plpgsql
+
+blocks
+% types
+perform
+strict on intos
+not null for var defs
+exception
+execute using
+get diagnostics
+return query execute
+raise missing bits
+out params
+elsif
+when exp,exp
+loop
+exit
+labels
+reverse, by in for
+for in execute
+
+expressions:
+process string escapes
+floats, reals, etc.
+full user operator support
+fix expression parser properly to handle things like between
+[:] array slices
+aggregate: all and distinct
+multi dimensional arrays: selectors and subscripting

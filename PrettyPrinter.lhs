@@ -293,9 +293,9 @@ Conversion routines - convert Sql asts into Docs
 >   <+> hsep (map (\e -> (case e of
 >                           NullConstraint -> text "null"
 >                           NotNullConstraint -> text "not null"
->                           InlineCheckConstraint ew ->
+>                           RowCheckConstraint ew ->
 >                               text "check" <+> parens (convExp ew)
->                           InlineUniqueConstraint -> text "unique"
+>                           RowUniqueConstraint -> text "unique"
 >                   )) cons)
 
 > checkExp :: Maybe Expression -> Doc

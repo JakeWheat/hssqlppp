@@ -114,15 +114,15 @@ select columns, into columns
 
 name type default null constraint
 
-> data AttributeDef = AttributeDef String String (Maybe Expression) [InlineConstraint]
+> data AttributeDef = AttributeDef String String (Maybe Expression) [RowConstraint]
 >                     deriving (Eq,Show)
 
 Constraints which appear attached to an individual field
 
-> data InlineConstraint = NullConstraint
->                       | NotNullConstraint
->                       | InlineCheckConstraint Expression
->                       | InlineUniqueConstraint
+> data RowConstraint = NullConstraint
+>                    | NotNullConstraint
+>                    | RowCheckConstraint Expression
+>                    | RowUniqueConstraint
 >                       deriving (Eq,Show)
 
 constraints which appear on a separate row in the create table

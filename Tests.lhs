@@ -625,7 +625,7 @@ nulls
 >                            Nothing [NotNullConstraint]]
 >          []]
 
-unique row
+unique table
 
 >      ,p "create table t1 (\n\
 >         \ x int,\n\
@@ -636,7 +636,7 @@ unique row
 >                           ,AttributeDef "y" "int" Nothing []]
 >          [UniqueConstraint ["x","y"]]]
 
-check ordering
+test arbitrary ordering
 
 >      ,p "create table t1 (\n\
 >         \ x int,\n\
@@ -647,28 +647,28 @@ check ordering
 >                           ,AttributeDef "y" "int" Nothing []]
 >          [UniqueConstraint ["x"]]]
 
-unique inline
+unique row
 
 >      ,p "create table t1 (\n\
 >         \ x int unique\n\
 >         \);"
 >         [CreateTable "t1" [AttributeDef "x" "int" Nothing
->                            [InlineUniqueConstraint]][]]
+>                            [RowUniqueConstraint]][]]
 
-primary key inline, row
+primary key row, table
 
-check inline, row
+check row, table
 
 >      ,p "create table t (\n\
 >         \f text check (f in('a', 'b'))\n\
 >         \);"
 >         [CreateTable "t"
 >          [AttributeDef "f" "text" Nothing
->           [InlineCheckConstraint (InPredicate
+>           [RowCheckConstraint (InPredicate
 >                                   (Identifier "f") True
 >                                   (InList [StringL "a", StringL "b"]))]] []]
 
-inline, whole loead
+row, whole load of constraints, todo: add reference here
 
 >      ,p "create table t (\n\
 >         \f text not null unique check (f in('a', 'b'))\n\
@@ -676,14 +676,14 @@ inline, whole loead
 >         [CreateTable "t"
 >          [AttributeDef "f" "text" Nothing
 >           [NotNullConstraint
->            ,InlineUniqueConstraint
->            ,InlineCheckConstraint (InPredicate
+>            ,RowUniqueConstraint
+>            ,RowCheckConstraint (InPredicate
 >                                    (Identifier "f") True
 >                                    (InList [StringL "a"
 >                                            ,StringL "b"]))]] []]
 
 
-reference inline, row
+reference row, table
 
 >      ])
 

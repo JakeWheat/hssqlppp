@@ -405,16 +405,16 @@ tableatt - an single attribute line in a create table
 >            <$> identifierString
 >            <*> identifierString
 >            <*> maybeP (keyword "default" *> expr)
->            <*> sepBy inlineConstraint whitespace
+>            <*> sepBy rowConstraint whitespace
 
 > tableConstr :: ParsecT String () Identity Constraint
 > tableConstr = UniqueConstraint <$> try (keyword "unique" *> columnNameList)
 
-> inlineConstraint :: ParsecT String () Identity InlineConstraint
-> inlineConstraint =
+> rowConstraint :: ParsecT String () Identity RowConstraint
+> rowConstraint =
 >   choice [
->           InlineUniqueConstraint <$ keyword "unique"
->          ,InlineCheckConstraint <$> (keyword "check" *> parens expr)
+>           RowUniqueConstraint <$ keyword "unique"
+>          ,RowCheckConstraint <$> (keyword "check" *> parens expr)
 >          ,NullConstraint <$ trykeyword "null"
 >          ,NotNullConstraint <$ (keyword "not" *> keyword "null")
 >          ]
