@@ -130,6 +130,7 @@ Constraints which appear attached to an individual field
 >                    | RowCheckConstraint Expression
 >                    | RowUniqueConstraint
 >                    | RowPrimaryKeyConstraint
+>                    | RowReferenceConstraint String [String]
 >                       deriving (Eq,Show)
 
 constraints which appear on a separate row in the create table
@@ -137,7 +138,7 @@ constraints which appear on a separate row in the create table
 > data Constraint = UniqueConstraint [String]
 >                 | PrimaryKeyConstraint [String]
 >                 | CheckConstraint Expression
->                 | ReferenceConstraint [String] [String]
+>                 | ReferenceConstraint [String] String [String]
 >                   deriving (Eq,Show)
 
 > data TypeAttributeDef = TypeAttDef String String

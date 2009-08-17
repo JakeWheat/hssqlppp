@@ -570,7 +570,12 @@ one with just a \. in the first two columns
 >                                     (:[]) <$> identifierString
 >                                    ,parens (commaSep1 identifierString)])
 >                    ,CheckConstraint
->                    <$> try (keyword "check" *> parens (expr))]
+>                    <$> try (keyword "check" *> parens (expr))
+>                    ,ReferenceConstraint
+>                    <$> try (keyword "foreign" *> keyword "key"
+>                             *> parens (commaSep1 identifierString))
+>                    <*> (keyword "references" *> identifierString)
+>                    <*> option [] (try $ parens $ commaSep1 identifierString)]
 >     rowConstraint =
 >        choice [
 >           RowUniqueConstraint <$ keyword "unique"
@@ -578,6 +583,10 @@ one with just a \. in the first two columns
 >          ,RowCheckConstraint <$> (keyword "check" *> parens expr)
 >          ,NullConstraint <$ trykeyword "null"
 >          ,NotNullConstraint <$ (keyword "not" *> keyword "null")
+>          ,RowReferenceConstraint
+>          <$> (trykeyword "references" *> identifierString)
+>          <*> option [] (try $ parens $ many1 identifierString)
+
 >          ]
 
 

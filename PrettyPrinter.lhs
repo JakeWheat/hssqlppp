@@ -339,7 +339,11 @@ Conversion routines - convert Sql asts into Docs
 >                           RowCheckConstraint ew ->
 >                               text "check" <+> parens (convExp ew)
 >                           RowUniqueConstraint -> text "unique"
->                           RowPrimaryKeyConstraint ->  text "primary key"
+>                           RowPrimaryKeyConstraint -> text "primary key"
+>                           RowReferenceConstraint tb att ->
+>                               text "references" <+> text tb
+>                               <+> ifNotEmpty
+>                                     (\at -> parens (hcatCsvMap text at)) att
 >                   )) cons)
 
 > checkExp :: Maybe Expression -> Doc
@@ -350,8 +354,10 @@ Conversion routines - convert Sql asts into Docs
 > convCon (PrimaryKeyConstraint p) = text "primary key"
 >                                    <+> parens (hcatCsvMap text p)
 > convCon (CheckConstraint c) = text "check" <+> parens (convExp c)
-
- >                 | ReferenceConstraint [String] [String]
+> convCon (ReferenceConstraint at tb rat) =
+>   text "foreign key" <+> parens (hcatCsvMap text at)
+>   <+> text "references" <+> text tb
+>   <+> ifNotEmpty (\rats -> parens (hcatCsvMap text rats)) rat
 
 > convIfExists :: IfExists -> Doc
 > convIfExists i = case i of

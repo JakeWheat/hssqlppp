@@ -767,8 +767,39 @@ row, whole load of constraints, todo: add reference here
 >                                    (InList [StringL "a"
 >                                            ,StringL "b"]))]] []]
 
-
 reference row, table
+
+>      ,p "create table t1 (\n\
+>         \ x int references t2\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>                            [RowReferenceConstraint "t2" []]][]]
+
+>      ,p "create table t1 (\n\
+>         \ x int references t2(y)\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>                            [RowReferenceConstraint "t2" ["y"]]][]]
+
+
+>      ,p "create table t1 (\n\
+>         \ x int,\n\
+>         \ y int,\n\
+>         \ foreign key (x,y) references t2\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
+>                           ,AttributeDef "y" "int" Nothing []]
+>          [ReferenceConstraint ["x", "y"] "t2" []]]
+
+>      ,p "create table t1 (\n\
+>         \ x int,\n\
+>         \ y int,\n\
+>         \ foreign key (x,y) references t2(z,w)\n\
+>         \);"
+>         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
+>                           ,AttributeDef "y" "int" Nothing []]
+>          [ReferenceConstraint ["x", "y"] "t2" ["z", "w"]]]
+
 
 >      ])
 
