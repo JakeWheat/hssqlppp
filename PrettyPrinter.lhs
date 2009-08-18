@@ -44,7 +44,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement s@(CombineSelect _ _ _) =
 >   convSelectFragment True s <> statementEnd
 
-> convStatement (Values expss) = convValues expss <> statementEnd
+> convStatement v@(Values _) = convSelectFragment True v <> statementEnd
 
 == dml
 
@@ -60,6 +60,12 @@ Conversion routines - convert Sql asts into Docs
 >    <+> hcatCsvMap convSetClause scs
 >    <+> convWhere wh
 >    $+$ convReturning rt <> statementEnd
+>    where
+>      convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
+>      convSetClause (RowSetClause atts exs) =
+>        parens (hcatCsvMap text atts)
+>        <+> text "="
+>        <+> parens (hcatCsvMap convExp exs)
 
 > convStatement (Delete tbl wh rt) = text "delete from" <+> text tbl
 >                                 <+> convWhere wh
@@ -77,12 +83,42 @@ Conversion routines - convert Sql asts into Docs
 
 == ddl
 
-> convStatement (CreateTable t atts cons) =
+> convStatement (CreateTable tbl atts cns) =
 >     text "create table"
->     <+> text t <+> lparen
+>     <+> text tbl <+> lparen
 
->     $+$ nest 2 (vcat (csv (map convAttDef atts ++ map convCon cons)))
+>     $+$ nest 2 (vcat (csv (map convAttDef atts ++ map convCon cns)))
 >     $+$ rparen <> statementEnd
+>     where
+>       convAttDef (AttributeDef n t def cons) =
+>         text n <+> text t
+>         <+> maybeConv (\e -> text "default" <+> convExp e) def
+>         <+> hsep (map (\e -> (case e of
+>                                 NullConstraint -> text "null"
+>                                 NotNullConstraint -> text "not null"
+>                                 RowCheckConstraint ew ->
+>                                     text "check" <+> parens (convExp ew)
+>                                 RowUniqueConstraint -> text "unique"
+>                                 RowPrimaryKeyConstraint -> text "primary key"
+>                                 RowReferenceConstraint tb att ondel onupd ->
+>                                     text "references" <+> text tb
+>                                     <+> ifNotEmpty
+>                                           (\at -> parens (hcatCsvMap text at)) att
+>                                     <+> text "on delete" <+> convCasc ondel
+>                                     <+> text "on update" <+> convCasc onupd
+>                         )) cons)
+>       convCon (UniqueConstraint c) = text "unique" <+> parens (hcatCsvMap text c)
+>       convCon (PrimaryKeyConstraint p) = text "primary key"
+>                                          <+> parens (hcatCsvMap text p)
+>       convCon (CheckConstraint c) = text "check" <+> parens (convExp c)
+>       convCon (ReferenceConstraint at tb rat ondel onupd) =
+>         text "foreign key" <+> parens (hcatCsvMap text at)
+>         <+> text "references" <+> text tb
+>         <+> ifNotEmpty (\rats -> parens (hcatCsvMap text rats)) rat
+>         <+> text "on delete" <+> convCasc ondel
+>         <+> text "on update" <+> convCasc onupd
+
+
 
 > convStatement (CreateTableAs t sel) =
 >     text "create table"
@@ -104,6 +140,21 @@ Conversion routines - convert Sql asts into Docs
 >                        Stable -> "stable"
 >                        Immutable -> "immutable")
 >     <> statementEnd
+>     where
+>       convFnBody (SqlFnBody sts) = convNestedStatements sts
+>       convFnBody (PlpgsqlFnBody decls sts) =
+>           (ifNotEmpty (\l -> text "declare"
+>                   $+$ nest 2 (vcat $ map convVarDef l)) decls)
+>           $+$ text "begin"
+>           $+$ convNestedStatements sts
+>           $+$ text "end;"
+>       convParamDef (ParamDef n t) = text n <+> convTypeName t
+>       convParamDef  (ParamDefTp t) = convTypeName t
+>       convVarDef (VarDef n t v) =
+>         text n <+> convTypeName t
+>         <+> maybeConv (\x -> text ":=" <+> convExp x) v <> semi
+
+
 
 > convStatement (CreateView name sel) =
 >     text "create view" <+> text name <+> text "as"
@@ -112,6 +163,8 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (CreateDomain name tp ex) =
 >     text "create domain" <+> text name <+> text "as"
 >     <+> text tp <+> checkExp ex <> statementEnd
+>     where
+>       checkExp = maybeConv (\e -> text "check" <+> parens (convExp e))
 
 > convStatement (DropFunction ifExists fns casc) =
 >   text "drop function"
@@ -246,6 +299,39 @@ Conversion routines - convert Sql asts into Docs
 >                   <+> convDir orddir) ord
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 >   <+> maybeConv (\offs -> text "offset" <+> convExp offs) off
+>   where
+>     convTref (Tref f) = text f
+>     convTref (TrefAlias f a) = text f <+> text a
+>     convTref (JoinedTref t1 nat jt t2 ex) =
+>         convTref t1
+>         $+$ (case nat of
+>                       Natural -> text "natural"
+>                       Unnatural -> empty)
+>         <+> text (case jt of
+>                           Inner -> "inner"
+>                           Cross -> "cross"
+>                           LeftOuter -> "left outer"
+>                           RightOuter -> "right outer"
+>                           FullOuter -> "full outer")
+>         <+> text "join"
+>         <+> convTref t2
+>         <+> maybeConv (nest 2 . convJoinExpression) ex
+>         where
+>           convJoinExpression (JoinOn e) = text "on" <+> convExp e
+>           convJoinExpression (JoinUsing ids) =
+>               text "using" <+> parens (hcatCsvMap text ids)
+
+>     convTref (SubTref sub alias) =
+>         parens (convSelectFragment True sub)
+>         <+> text "as" <+> text alias
+>     convTref (TrefFun f@(FunCall _ _)) = convExp f
+>     convTref (TrefFun x) =
+>         error $ "node not supported in function tref: " ++ show x
+>     convTref (TrefFunAlias f@(FunCall _ _) a) =
+>         convExp f <+> text "as" <+> text a
+>     convTref (TrefFunAlias x _) =
+>         error $ "node not supported in function tref: " ++ show x
+
 > convSelectFragment writeSelect (CombineSelect tp s1 s2) =
 >   convSelectFragment writeSelect s1
 >   $+$ (case tp of
@@ -254,7 +340,8 @@ Conversion routines - convert Sql asts into Docs
 >          UnionAll -> text "union" <+> text "all"
 >          Intersect -> text "intersect")
 >   $+$ convSelectFragment True s2
-> convSelectFragment _ (Values expss) = convValues expss
+> convSelectFragment _ (Values expss) =
+>   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
 
 > convSelectFragment _ a = error $ "no convSelectFragment for " ++ show a
 
@@ -263,38 +350,6 @@ Conversion routines - convert Sql asts into Docs
 >                           Asc -> "asc"
 >                           Desc -> "desc"
 
-> convTref :: TableRef -> Doc
-> convTref (Tref f) = text f
-> convTref (TrefAlias f a) = text f <+> text a
-> convTref (JoinedTref t1 nat jt t2 ex) =
->     convTref t1
->     $+$ (case nat of
->            Natural -> text "natural"
->            Unnatural -> empty)
->     <+> text (case jt of
->                       Inner -> "inner"
->                       Cross -> "cross"
->                       LeftOuter -> "left outer"
->                       RightOuter -> "right outer"
->                       FullOuter -> "full outer")
->     <+> text "join"
->     <+> convTref t2
->     <+> maybeConv (nest 2 . convJoinExpression) ex
-> convTref (SubTref sub alias) =
->     parens (convSelectFragment True sub)
->     <+> text "as" <+> text alias
-> convTref (TrefFun f@(FunCall _ _)) = convExp f
-> convTref (TrefFun x) =
->     error $ "node not supported in function tref: " ++ show x
-> convTref (TrefFunAlias f@(FunCall _ _) a) =
->     convExp f <+> text "as" <+> text a
-> convTref (TrefFunAlias x _) =
->     error $ "node not supported in function tref: " ++ show x
-
-> convJoinExpression :: JoinExpression -> Doc
-> convJoinExpression (JoinOn e) = text "on" <+> convExp e
-> convJoinExpression (JoinUsing ids) =
->   text "using" <+> parens (hcatCsvMap text ids)
 
 > convWhere :: (Maybe Expression) -> Doc
 > convWhere (Just ex) = text "where" <+> convExp ex
@@ -304,14 +359,9 @@ Conversion routines - convert Sql asts into Docs
 > convSelList (SelectList ex into) =
 >   hcatCsvMap convSelItem ex
 >   <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap text i) into
-
-> convSelItem :: SelectItem -> Doc
-> convSelItem (SelectItem ex nm) = convExp ex <+> text "as" <+> text nm
-> convSelItem (SelExp e) = convExp e
-
-> convValues :: [[Expression]] -> Doc
-> convValues expss =
->   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
+>   where
+>     convSelItem (SelectItem ex1 nm) = convExp ex1 <+> text "as" <+> text nm
+>     convSelItem (SelExp e) = convExp e
 
 > convCasc :: Cascade -> Doc
 > convCasc casc = text $ case casc of
@@ -325,70 +375,12 @@ Conversion routines - convert Sql asts into Docs
 >                 Nothing -> empty
 >                 Just ls -> nest 2 (text "returning" <+> convSelList ls)
 
-> convSetClause :: SetClause -> Doc
-> convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
-> convSetClause (RowSetClause atts exs) = parens (hcatCsvMap text atts)
->                                         <+> text "="
->                                         <+> parens (hcatCsvMap convExp exs)
-
-> convAttDef :: AttributeDef -> Doc
-> convAttDef (AttributeDef n t def cons) =
->   text n <+> text t
->   <+> maybeConv (\e -> text "default" <+> convExp e) def
->   <+> hsep (map (\e -> (case e of
->                           NullConstraint -> text "null"
->                           NotNullConstraint -> text "not null"
->                           RowCheckConstraint ew ->
->                               text "check" <+> parens (convExp ew)
->                           RowUniqueConstraint -> text "unique"
->                           RowPrimaryKeyConstraint -> text "primary key"
->                           RowReferenceConstraint tb att ondel onupd ->
->                               text "references" <+> text tb
->                               <+> ifNotEmpty
->                                     (\at -> parens (hcatCsvMap text at)) att
->                               <+> text "on delete" <+> convCasc ondel
->                               <+> text "on update" <+> convCasc onupd
-
->                   )) cons)
-
-> checkExp :: Maybe Expression -> Doc
-> checkExp = maybeConv (\e -> text "check" <+> convExp e)
-
-> convCon :: Constraint -> Doc
-> convCon (UniqueConstraint c) = text "unique" <+> parens (hcatCsvMap text c)
-> convCon (PrimaryKeyConstraint p) = text "primary key"
->                                    <+> parens (hcatCsvMap text p)
-> convCon (CheckConstraint c) = text "check" <+> parens (convExp c)
-> convCon (ReferenceConstraint at tb rat ondel onupd) =
->   text "foreign key" <+> parens (hcatCsvMap text at)
->   <+> text "references" <+> text tb
->   <+> ifNotEmpty (\rats -> parens (hcatCsvMap text rats)) rat
->   <+> text "on delete" <+> convCasc ondel
->   <+> text "on update" <+> convCasc onupd
-
 > convIfExists :: IfExists -> Doc
 > convIfExists i = case i of
 >                         Require -> empty
 >                         IfExists -> text "if exists"
 
 == plpgsql
-
-> convFnBody :: FnBody -> Doc
-> convFnBody (SqlFnBody sts) = convNestedStatements sts
-> convFnBody (PlpgsqlFnBody decls sts) =
->     (ifNotEmpty (\l -> text "declare"
->             $+$ nest 2 (vcat $ map convVarDef l)) decls)
->     $+$ text "begin"
->     $+$ convNestedStatements sts
->     $+$ text "end;"
-
-> convParamDef :: ParamDef -> Doc
-> convParamDef (ParamDef n t) = text n <+> convTypeName t
-> convParamDef  (ParamDefTp t) = convTypeName t
-
-> convVarDef :: VarDef -> Doc
-> convVarDef (VarDef n t v) =
->   text n <+> convTypeName t <+>  maybeConv (\x -> text ":=" <+> convExp x) v <> semi
 
 > convNestedStatements :: [Statement] -> Doc
 > convNestedStatements = nest 2 . vcat . map convStatement
