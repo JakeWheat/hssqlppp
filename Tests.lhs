@@ -20,9 +20,6 @@ There are no tests for invalid sql at the moment.
 
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
-
-> import Text.Parsec.Error (ParseError)
-
 > import Data.Char
 
  > import Test.Framework.Providers.QuickCheck2
@@ -1075,21 +1072,22 @@ parse and then pretty print and parse an expression
 > checkParsePlpgsql :: String -> [Statement] -> Test.Framework.Test
 > checkParsePlpgsql src ast = parseUtil src ast parsePlpgsql printSql
 
-> parseUtil :: (Eq b, Show b) =>
->              String
->           -> b
->           -> (String -> Either ParseError b)
->           -> (b -> String)
->           -> Test.Framework.Test
+ > parseUtil :: (Eq b, Show b) =>
+ >              String
+ >           -> b
+ >           -> (String -> Either ExtendedError b)
+ >           -> (b -> String)
+ >           -> Test.Framework.Test
+
 > parseUtil src ast parser printer = testCase ("parse " ++ src) $ do
 >   let ast' = case parser src of
->               Left er -> error $ showEr er src
+>               Left er -> error $ show er
 >               Right l -> l
 >   assertEqual ("parse " ++ src) ast ast'
 >   -- pretty print then parse to check
 >   let pp = printer ast
 >   let ast'' = case parser pp of
->               Left er -> error $ "reparse " ++ showEr er pp ++ "\n" ++ pp ++ "\n"
+>               Left er -> error $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >               Right l -> l
 >   assertEqual ("reparse " ++ pp) ast ast''
 

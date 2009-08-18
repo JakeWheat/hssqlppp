@@ -23,19 +23,16 @@ authentic the sql is and how much has been silently dropped on the floor
 >   putStrLn $ "parsing " ++ show f
 >   x <- parseSqlFile f
 >   case x of
->        Left er -> do
->            fs <- readFile f
->            error $ showEr er fs
+>        Left er -> putStrLn $ show er
 >        Right l -> do
 >            print l
 >            putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
->            putStrLn $ printSql l
->            --check roundtrip
 >            let pp = printSql l
+>            putStrLn pp
+>            --check roundtrip
 >            case parseSql pp of
 >              Left er -> do
->                     --fs <- readFile f
->                     error $ "roundtrip failed: " ++ showEr er pp
+>                     error $ "roundtrip failed: " ++ show er
 >              Right l' -> if l == l'
 >                            then putStrLn "roundtrip ok"
 >                            else putStrLn "roundtrip failed: different ast"

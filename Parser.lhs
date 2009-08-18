@@ -18,11 +18,16 @@ for some notes on postgresql syntax (the rest of that manual is also helpful)
 ================================================================================
 
 Notes on coding style if the code looks like gobbledygook (assumes you
-are familiar with do notation). Mostly uninteresting if you can easily
-understand the first code snippet below.
+are familiar with do notation). Mostly a crash course in using
+Applicative, probably these docs will be uninteresting if you can
+easily understand the first code snippet below.
 
 Here is a version of the delete parser which parses stuff like:
+
 delete from [tablename] [where]? [returning]?
+
+This snippet will be used to illustrate some of the particular idioms
+in the code:
 
  delete = trykeyword "delete" >> keyword "from" >>
           Delete
@@ -34,8 +39,8 @@ We transform this in several stages through to vanilla do notation,
 this is equivalent to
 
   delete = trykeyword "delete" >> keyword "from" >>
-           Delete `liftM`
-           `ap` identifierString
+           Delete
+           `liftM` identifierString
            `ap` tryMaybeP whereClause
            `ap` tryMaybeP returning
 
@@ -46,6 +51,7 @@ this is equivalent to
                  identifierString
                  (tryMaybeP whereClause)
                  (tryMaybeP returning)
+
 maybe this is a backward step)
 
 finally, in do notation it is:
@@ -113,8 +119,10 @@ alternatively could be written
 
 keyword "distinct" *> return True
 
-which is also good but slightly longer so I prefer the first.
+which is also good but slightly longer so I think I prefer the first.
 
+You can see how these are used in an attempt to make the code more
+concise whilst not making it unreadable in the actual code below.
 
 <:>
 made this one up as an applicative version of (:),
@@ -155,7 +163,8 @@ there are some other notable aspects, in the bit before the 'Delete'.
 There are also a couple of tricks in this line which are connected to
 parsing the haskell code and precedence:
 
-if we use *> instead of >> at the top, we need (), this is why >> is chosen:
+if we use *> instead of >> at the top, we need to use (), this is why
+ >> is chosen:
 
  delete = trykeyword "delete" *> keyword "from" *>
           (Delete
@@ -163,8 +172,8 @@ if we use *> instead of >> at the top, we need (), this is why >> is chosen:
           <*> tryMaybeP whereClause
           <*> tryMaybeP returning)
 
-(The code prefers *> where *> and >> are interchangable without adding
-().)
+(The code prefers *> in places where *> and >> are interchangable
+without adding ().)
 
 trykeyword could be replaced:
 
@@ -186,11 +195,11 @@ One last aspect:
           <*> tryMaybeP whereClause
           <*> tryMaybeP returning
 
-why is try used for delete but not for from? This is to help improve
-the error messages, see if you can work out why.
+Why is try used for delete but not for from? This is to help improve
+the error messages, see if you can work out why:
 
 Hint: try parsing the following three lines with the current code
-(errors on purpose).
+(errors in this code on purpose).
 
 delte from x;
 
@@ -241,7 +250,7 @@ confused in some places and you'll end up with the code not compiling,
 also run the tests after changing the code in this way, although it's
 pretty rare to see this with the latest versions of hlint.)
 
-Couple of other notes:
+Few of other notes:
 
 The trys follow a pattern which attempts to lead to better error
 messages.
@@ -250,6 +259,13 @@ Near the bottom of this file are two parser combinators:
 parseOptionalSuffix, and parseOptionalSuffixThreaded (which were named
 by a recovering java programmer), which have some long winded docs on
 how they work if it isn't obvious where they're used.
+
+One thing you might miss if you're unfamiliar with parsec is the
+whitespace handling - this code uses lexeme style which is documented
+in the parsec tutorial. Most of the whitespace handling is fully
+implicit which aids readability but it helps if you're aware how this
+is happening. Sometimes different parsers are used in order to not
+skip whitespace e.g. using "char '.'" instead of "symbol '.'".
 
 Some further reference/reading:
 
@@ -300,23 +316,43 @@ http://book.realworldhaskell.org/read/using-parsec.html
 
 parse fully formed sql
 
-> parseSql :: String -> Either ParseError [Statement]
-> parseSql = parse sqlStatements "(unknown)"
+> parseSql :: String -> Either ExtendedError [Statement]
+> parseSql s = convertToExtendedError (parse sqlStatements "(unknown)" s) s
 
-> parseSqlFile :: String -> IO (Either ParseError [Statement])
-> parseSqlFile = parseFromFile sqlStatements
+> parseSqlFile :: String -> IO (Either ExtendedError [Statement])
+> parseSqlFile s = do
+>   sc <- readFile s
+>   res <- parseFromFile sqlStatements s
+>   return $ convertToExtendedError res sc
 
 Parse expression fragment, used for testing purposes
 
-> parseExpression :: String -> Either ParseError Expression
-> parseExpression = parse (expr <* eof) ""
+> parseExpression :: String -> Either ExtendedError Expression
+> parseExpression s = convertToExtendedError (parse (expr <* eof) "" s) s
 
 parse plpgsql statements, used for testing purposes
 
-> parsePlpgsql :: String -> Either ParseError [Statement]
-> parsePlpgsql = parse (whitespace
+> parsePlpgsql :: String -> Either ExtendedError [Statement]
+> parsePlpgsql s =  convertToExtendedError (
+>                     parse (whitespace
 >                       *> many plPgsqlStatement
->                       <* eof) "(unknown)"
+>                       <* eof) "(unknown)" s) s
+
+bit of boilerplate to allow errors to be displayed easily
+
+> data ExtendedError = ExtendedError ParseError String
+
+> instance Show ExtendedError where
+>    show (ExtendedError _ x) = x
+
+> convertToExtendedError :: Either ParseError b
+>                        -> String
+>                        -> Either ExtendedError b
+> convertToExtendedError f src =
+>      case f of
+>             Left er -> Left $ ExtendedError er (showEr er src)
+>             Right l -> Right l
+
 
 ================================================================================
 
@@ -909,12 +945,19 @@ work
 order these so the ones which can be valid prefixes of others
 appear further down the list
 
-start with the ones which start with parens - eliminate scalar
+One little speed optimisation, to help with pretty printed code which
+can contain a lot of parens - check for nested ((
+This little addition speeds up ./ParseFile.lhs sqltestfiles/system.sql on my system
+from ~4 minutes to ~4 seconds
+
+>          try $ (lookAhead $ string "((") >> parens expr
+
+start with the factors which start with parens - eliminate scalar
 subquerys since they're easy to distinguish from the others then do in
 predicate before row constructor, since an in predicate can start with
 a row constructor, then finally vanilla parens
 
->           scalarSubQuery
+>          ,scalarSubQuery
 >          ,try inPredicate
 >          ,try rowCtor
 >          ,parens expr
@@ -1477,9 +1520,7 @@ properly
 enhanced show for errors which, in addition to the usual parsec error
 message, displays the line containing the error with a little hat
 pointing to the exact column below it, and some previous and next
-lines for context. This additional text could probably be added in the
-parse routines above to avoid all the clients of this module having to
-do a load of work to get this information.
+lines for context.
 
 > showEr :: ParseError -> String -> String
 > showEr er src =
@@ -1487,8 +1528,8 @@ do a load of work to get this information.
 >          lineNo = sourceLine pos
 >          ls = lines src
 >          line = safeGet ls(lineNo - 1)
->          prelines = map (safeGet ls) [(lineNo - 10) .. (lineNo - 2)]
->          postlines = map (safeGet ls) [lineNo .. (lineNo + 10)]
+>          prelines = map (safeGet ls) [(lineNo - 5) .. (lineNo - 2)]
+>          postlines = map (safeGet ls) [lineNo .. (lineNo + 5)]
 >          colNo = sourceColumn pos
 >          highlightLine = replicate (colNo - 1) ' ' ++ "^"
 >     in "\n---------------------\n" ++ show er
