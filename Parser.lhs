@@ -306,6 +306,7 @@ http://book.realworldhaskell.org/read/using-parsec.html
 > import Control.Monad.Identity
 
 > import Data.Maybe
+> import Data.Char
 
 
 > import Tree
@@ -490,7 +491,7 @@ recurses to support parsing excepts, unions, etc
 >              --works for the tests and the test sql files don't know
 >              --if these should be allowed as aliases without "" or
 >              --[]
->              if x `elem` ["as"
+>              if (map toLower x) `elem` ["as"
 >                          ,"where"
 >                          ,"except"
 >                          ,"union"
@@ -1191,9 +1192,10 @@ expression when value' currently
 >          Exists <$> parens select
 
 > booleanLiteral :: ParsecT String u Identity Expression
-> booleanLiteral = BooleanL <$> (=="true")
+> booleanLiteral = BooleanL <$> (\x -> tl x =="true")
 >                               <$> lexeme (string "true"
 >                                           <|> string "false")
+>                  where tl = map toLower
 
 > nullL :: ParsecT String u Identity Expression
 > nullL = NullL <$ keyword "null"
@@ -1290,8 +1292,12 @@ keyword has to not be immediately followed by letters or numbers
 identifier which happens to start with a complete keyword
 
 > keyword :: String -> ParsecT String u Identity ()
-> keyword k = lexeme (string k *> notFollowedBy (alphaNum <|> char '_'))
+> keyword k = lexeme (insensitiveString k *> notFollowedBy (alphaNum <|> char '_'))
 >             <?> k
+>     where
+>       insensitiveChar c = satisfy (\x -> toUpper x == toUpper c)
+>       insensitiveString cs = mapM_ insensitiveChar cs
+
 
 shorthand to simplify parsers, helps because you can then avoid parens
 or $ which in turn doesn't clutter up things and interfere with the
@@ -1300,12 +1306,13 @@ applicative operators
 > trykeyword :: String -> ParsecT String u Identity ()
 > trykeyword = try . keyword
 
+
 include dots in all identifier strings, - todo: check the validity
 of qualification with a second pass over the parse tree.
 
 > identifierString :: Parser String
 > identifierString = lexeme $ choice [
->                     "*" <$ star
+>                     "*" <$ symbol "*"
 >                    ,do
 >                      a <- nonStarPart
 >                      b <- tryMaybeP ((++) <$> symbol "." <*> identifierString)
@@ -1313,14 +1320,8 @@ of qualification with a second pass over the parse tree.
 >                                Just c -> return $ a ++ c]
 
 >   where
->     star = symbol "*"
 >     nonStarPart = letter <:> secondOnwards
 >     secondOnwards = many (alphaNum <|> char '_')
-
-
- >                               --make sure if we do allow a dot
- >                               --it looks like it's part of a qualified id
- >                           <|> (char '.' <* lookAhead (alphaNum <|> char '_')))
 
 == combinatory things
 
@@ -1362,6 +1363,7 @@ doesn't seem too gratuitous, comes up a few times
 pass a list of pairs of strings and values
 try each pair k,v in turn,
 if keyword k matches then return v
+doesn't really add a lot of value
 
 > matchAKeyword :: [(String, a)] -> ParsecT String u Identity a
 > matchAKeyword [] = fail "no matches"

@@ -1,59 +1,10 @@
-add support for partial expressions: e.g. used in case:
-case a
-   when = 3 then
-   ...
-and in check constraints
-
-create table x (
-  f text check (in ['a','b'])
-...
-
-add a exe to help checking the parse/pretty print round trip
-using postgresl - take a sql script, parse and pretty print it to a
-   separate file, then load the original and the pretty printed into
-   empty databases, check no errors, then to a pg dump of each to two
-   files then you can eyeball a diff to see how similar they
-   look. Probably will have to do some work on cutting down the amount
-   of parentheses that the pretty printer produces to make the diffs
-   useful
-
-identify the biggest missing bits and create table of supported and
-   unsupported elements
-work on error reporting, add tests for malformed sql
-lex things properly?
-
-put code in a well chosen module
-
-add switch to support other sql dialects in the future
-
-change the parsing to produce a parse tree with source locations for
-   tokens
-add support for passes over this tree to find additional errors which
-   the initial parsing misses
-transform this tree into an ast and add things like type checking
-
-add a macro system for code generation, etc.
-
-find a parser that supports better error messages, particularly
-something which can report multiple errors
-
-improve tests:
-identify each bit of syntax and make sure there is a test for it
-add some bigger tests: lots of sql statements, big functions
-look for possible corner cases and add tests
-
-get property checker working again - one problem is that the pretty
-   printer will reject some parse trees (which the parser cannot
-   produce), and the parser will probably reject some invalid sql that
-   the pretty printer will happily produce from some parse trees.
-
-
+Syntax support missing
+(turn this into a table at some point)
 some sql to do:
 updates to existing parsers:
-create table: finish constraints (see placeholder text in tests)
 select: all, distinct on, having, window
-  order by desc and using
-  offset, for update/sahre
+  order by using
+  for update/share
 delete from
 update using
 
@@ -76,13 +27,11 @@ set, reset
 set constraints
 set role
 set transaction
-truncate
 
 plpgsql
 
-blocks
+blocks which aren't at the top level of a function
 % types
-perform
 strict on intos
 not null for var defs
 exception
@@ -92,7 +41,6 @@ return query execute
 raise missing bits
 out params
 elsif
-when exp,exp
 loop
 exit
 labels
@@ -100,14 +48,15 @@ reverse, by in for
 for in execute
 
 expressions:
-process string escapes
+process string escapes, support dollar quoting and other quoting more
+   robustly in the pretty printer
 full user operator support
 fix expression parser properly to handle things like between
 [:] array slices
 aggregate: all and distinct
 multi dimensional arrays: selectors and subscripting
 isnull, notnull, is [ not ] distinct from, is unknown, is not unknown
-ops: |/ ||/ ! !! $ | # ~ << >>
+basic ops: |/ ||/ ! !! $ | # ~ << >>
 substring regex variants
 position(in), trim(both from), overlay
 like, ilike, ~~ , etc.
@@ -117,5 +66,57 @@ datetime extract
 time zone
 geometric, text search, array operators <- should be covered by user
    operator stuff
-any, some, all subquery ops
+subquery operators: any, some, all
 
+other ideas:
+
+add a exe to help checking the parse/pretty print round trip
+using postgresl - take a sql script, parse and pretty print it to a
+   separate file, then load the original and the pretty printed into
+   empty databases, check no errors, then to a pg dump of each to two
+   files then you can eyeball a diff to see how similar they
+   look. Probably will have to do some work on cutting down the amount
+   of parentheses that the pretty printer produces to make the diffs
+   useful
+
+work on error reporting, add tests for malformed sql
+lex things properly, might speed up various things?
+
+fix up expression parser to support full range of pg operators and
+   syntax with proper precedence
+
+put code in a well chosen module
+
+add switch to support other sql dialects in the future - is switch the
+   right way? think probably have a completely separate parser, tree
+   nodes and pretty printer for each dialect, use cut and paste to get
+   started, then see if any commonality can be refactored back in. How
+   can a program use the library and write routines to work with any
+   dialect if the tree nodes are complete separate though?
+
+add token location info to ast nodes, modify for type checking, etc
+   support. not sure what's best way to do this, add separate parse
+   tree nodes, or just add to ast nodes?
+add support for passes over this tree to find additional errors which
+   the initial parsing misses
+
+add a macro system for custom syntax and code generation, etc. - do
+   this by providing hooks rather than compromising the vanilla pgsql
+   parser
+
+want to report multiple errors, perhaps can bodge this because of the
+   property that ';' can only appear inside a string or comment,
+   otherwise at the end of a statement, so add some code to jump
+   to the next end of statement looking ';' and continue to parse
+   to end of file in an attempt to catch at least some further syntax
+   errors
+
+improve tests:
+identify each bit of syntax and make sure there is a test for it
+add some bigger tests: lots of sql statements, big functions
+look for possible corner cases and add tests
+
+get property checker working again - one problem is that the pretty
+   printer will reject some parse trees (which the parser cannot
+   produce), and the parser will probably reject some invalid sql that
+   the pretty printer will happily produce from some parse trees.
