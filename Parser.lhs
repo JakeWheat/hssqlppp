@@ -691,7 +691,7 @@ a string
 >                CreateDomain
 >                <$> identifierString
 >                <*> (tryMaybeP (keyword "as") *> identifierString)
->                <*> tryMaybeP (keyword "check" *> expr)
+>                <*> tryMaybeP (keyword "check" *> parens (expr))
 
 > dropSomething :: ParsecT String () Identity Statement
 > dropSomething = do
