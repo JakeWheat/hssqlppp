@@ -1,0 +1,327 @@
+= Extension system
+
+extension system constraint 1: provide hooks in the existing
+parser. The parser should be able to be run and only parse vanilla sql
+and plpgsql.
+
+Adding extensions should not involve modifying any of these files:
+parser, tree, pretty printer.
+
+There are two possible approaches to using extensions which alter what
+goes into the database:
+
+a) write a 'compiler' which parses the code, then loads each statement
+node into pg one at a time by pretty printing it, and passing errors
+and stuff back to the stdout in appropriate format/ transformed or
+whatever (mainly thinking about line numbers here).
+
+b) produce a single sql text at the end like RoundTripFile does,
+possibly with some original source line number comments in it, which
+can then be fed into psql in the usual way. Then if there is an error,
+you'll have to manually look in the generated source, to get the
+original source line(s) that caused the error (this may be automatable
+by running psql using a little wrapper that only does this).
+
+Would like to support both approaches with a) being the usual way to
+use it, and b) being a way to produce vanilla plpgsql source files
+e.g. to load into a production system with pg but without ghc.
+
+= Flavours of extensions
+
+1. Inspectors
+
+These don't affect the sql ast types or parser, but hook in to view
+the ast after it's been parsed (and processed, typed checked, etc.).
+
+One possible can add additional static checks which can inject errors
+and prevent the completion of compilation (not sure if inspector is
+the right name for something like this).
+
+Another use is for documentation generation, can run a bunch of
+processing over the ast, produce a new set of completely different
+nodes types and then turn these into html & pngs or something.
+
+2. Processors
+
+These intercept the compilation process, and have the type
+[statement] -> [statement]
+(maybe need [statement] -> IO [statement] also)
+
+example: a processor which adds a call to a function for each create
+table statement (i.e. poor mans catalog triggers).
+
+3. Custom statement syntax
+
+design syntax for a new statement type.
+
+Provide a new node type to somehow be slotted into tree.lhs. No idea
+how to do this whilst leaving tree.lhs unchanged (maybe some sort of
+haskell macros/ template haskell or other code generation?)
+
+Provide a parse which slots into either statement or plpgsqlStatement
+in Parser.lhs
+
+Then provide a processor which filters out these statements during
+processing and replaces them with 0 or more regular sql statements to
+be loaded into pg.
+
+So you don't provide a pretty printer under this model, you just have
+to make sure the final statement list only contains regular pg
+supported syntax.
+
+4. explore ideas re adding custom expression syntax and/or altering
+the syntax of existing commands e.g. changing primary key in create
+table to multiple key declarations (which are implemented using unique
+not null constraints, pretty unambitious). This may be a bit too much
+of a stretch with sql syntax. Might be able to compromise by adding a
+hardcoded set of hook points in certain statement types for custom
+syntax. (I'm thinking the main ones I might like to alter are create
+table, to add new constraint types, and create function. could just
+compromise by an extension adding a new create table node and parser
+which is tried before the vanilla parser).
+
+For plain sql/ plpgsql, once the raw parsing has been completed, any
+fix ups, type checking, etc. which are used as part of the vanilla sql
+parsing process, and any type checks, etc., to run on vanilla sql will
+use this extension system to operate.
+
+================================================================================
+
+= regular sql/ plpgsql parsing and processing stuff
+
+ast processing:
+add some type checking thingys:
+check expressions -> refer to a field?
+qualified identifiers are ok (refer to existing types),
+ * used only in appropriate places
+typenames are ok in context
+create table:
+  column names unique
+  up to one pk
+  fk must refer to pk
+  check types of rows exist
+
+expression checking
+function names exist, args: correct number and type
+rows referred to in relational expressions exist
+
+see how this goes, then try to work out how to get a comprehensive
+list of these sorts of checks for sql and plpgsql so can at least give
+a full todo of what isn't implemented. (will be able to rely on the
+loading into pg process to catch any checks not yet implemented in
+this code as a fall back for time being.)
+
+code fixups:
+
+e.g. add full qualifications to variable references, fixup any
+weirdness that the parser produces for expediency and transform into
+valid ast
+
+if can write a full validity checker for [statement] then might be
+able to start using quick check on asts again.
+
+= ideas for extensions
+
+== modules
+
+add syntax like:
+
+module x.y.z ...
+
+data statement = ...
+               | Module [String]
+               ...
+
+and fn which is [Statement] -> [Statement]
+
+which adds in insert statements (removes module statements?), and adds
+the create table statement to hold module information, so we have a
+new catalog table called modules with attributes like object_type,
+object_name.
+
+(and does ?type checking, e.g. throws error if a module decl appears
+inside a function def)
+
+- hook to add module type to ast nodes (how?)
+- hook to pass the module statement parser so it can get called
+in the statement parser in the parser
+
+the add export lists and public/private checking
+- syntax becomes something like
+module x,y,z (fna(text), fna(text, int), view b, table c)
+inspired by haskell module syntax (or maybe dylan modules?)
+
+== view analyser
+
+will output for an individual view:
+the column names and types
+which tables and columns the view ultimately depends on
+
+== implicit argument explicitificator
+
+e.g. for views: they refer to functions and tables, create some sort
+of output like e.g.:
+
+create table d
+  a text
+  b int
+  c int
+
+create function fun (text) returns int ...
+
+create view test as
+ select fun(a), b from table d
+
+explicitificator runs on the view and produces:
+
+create view test as
+
+[make the implicit arg types explicit]
+params are:
+(tablearg (virtual table
+           acol text
+           bcol int),
+(funarg function(text) returns int))
+
+[make the implicit default args explicit]
+args are:
+(d {a,b}, fun)
+i.e. just the a and b fields of d
+[rewrite the expression referring only to local identifiers]
+expression is:
+select funarg(acol), bcol from table tablearg
+put it all together:
+
+create view text_explicit(
+                tablearg (virtual table
+                            acol text
+                            bcol int) = d,
+                funarg (function(text) returns int) = fun) as
+select funarg(acol), bcol from table tablearg;
+
+Now it looks like a pure function.
+
+also, can provide info on which implicit/explicit args are updated,
+e.g.  for a function list the tables and the fields in each table
+which are possibly read, and which are possibly updated.
+
+not sure what actual use it would be
+
+== dependency analyzer:
+
+works on constraints, views, functions, what else?
+provides: immediate dependencies, ultimate table dependencies complete
+list of dependencies. Can generate a variety of graphs, run analysis,
+e.g. make sure module dependencies are in a tree shape with no
+circular dependencies.
+
+== documentation generator
+
+generate a mass of html documentation for the database, modules,
+dependency graphs, etc.
+
+== code generation
+
+template type:
+create new syntax
+create template blah (x,y,z) =
+ < ... >
+
+e.g.
+
+create template expression_functionizer (fun, expr) =
+<|<|<
+create function £$% fun %$£ () returns boolean as $a$
+begin
+  return £$% expr %$£ ;
+end;
+$a$ language plpgsql stable;;
+|>|>|>
+
+(delimiters not yet finalized)
+
+this is just parsed as a string:
+
+data TemplateDef = TD String [String] String
+(template name, arg names, template test)
+
+then can instantiate templates with variables, e.g.
+
+instantiate template expression_functionizer('test',
+            $$select count(*) from a > select count(*) from b$$);
+
+[String literals or recursive calls from other templates only for args
+to instantiate.]
+
+the instantiate template line could parse to
+
+data TemplateInst [expr?]
+
+and then when the processor transforms the templateinst to regular
+statements, we run parsing and type checking at that time and if there
+is an error we report back the location in the original template, or
+possibly in the args, and output the generated text with the error
+point highlighted in it.
+
+This should do the job pretty well without having to parse or type check
+the template syntax itself.
+
+== out of order defs
+
+ability to write objects in any order and e.g. add constraints which
+refer to a table defined further down in the file, then the parsed
+statement list is loaded into pg in different order to how it appears
+in the source file.
+
+don't know what kinds of mutual dependencies can be coded, will
+probably need to detect and reject these or provide some way of
+manually specifying a solution (which can then check the result
+corresponds to the original source).
+
+This would probably have to work by separating constraint defs from
+the tables they might be attached to.
+
+================================================================================
+
+= other notes
+
+== replacement abstract/concrete syntax?
+
+how feasible is it to parse the sql, then transform to a more
+relational algebra like set of nodes to work with, then transform
+these nodes back to sql nodes, then can pretty print to load into pg?
+
+Can then add a concrete syntax, parser and pretty printer for the
+relational algebra language, and completely move away from writing
+extended sql and instead using something more regular.
+
+Possible concrete syntaxes could be lisp like (really easy to
+implement), haskell like (quite partial to this one - could later look
+into transitioning to making this system some sort of haskell
+extension), or tutorial d like.
+
+== null stuff
+
+use type checking to eliminate nulls from almost everywhere. Where
+they remain, tightly control how they are used (e.g. don't allow
+nullable fields to participate in expressions, only use them for
+prejoined tables with optional fields and for outer joins (but you
+can't do anything with the nulls except send them to a client gui in
+results or filter the columns or rows with null values out before
+doing anything else with them).
+
+== algebraic datatypes
+
+add support in plpgsql variables, params, etc. and fields in
+tables/views, etc. and add pattern matching to code.
+
+== combining extensions:
+
+can't mix and match separate extensions automatically e.g. something
+that wants to generate extra statements for every create table has to
+run after something which might add new create table statements, so
+programmer has to specify which extensions and in what order
+
+Maybe use some sort of pragma stuff at top of source files, or add a
+simple declarative makefile format and make program to run the
+parser/loader.

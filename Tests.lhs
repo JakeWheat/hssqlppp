@@ -9,8 +9,8 @@ written in a tdd style, which the coverage of the tests reflects.
 
 Also had some quickcheck stuff, but it got disabled since it failed
 depressingly often and the code has now gone very stale. The idea with
-this was to generate random parse trees, pretty print then parse them,
-and check the new parse tree was the same as the original.
+this was to generate random asts, pretty print then parse them,
+and check the new ast was the same as the original.
 
 There are no tests for invalid sql at the moment.
 
@@ -85,8 +85,8 @@ array subscripting
 
 >      ,p "a[1]" (ArraySub (Identifier "a") [IntegerL 1])
 
-we just produce a parse tree, so no type checking or anything like
-that is done
+we just produce a ast, so no type checking or anything like that is
+done
 
 some operator tests
 

@@ -77,35 +77,39 @@ using postgresl - take a sql script, parse and pretty print it to a
    files then you can eyeball a diff to see how similar they
    look. Probably will have to do some work on cutting down the amount
    of parentheses that the pretty printer produces to make the diffs
-   useful
+   useful for complicated views and functions.
 
 work on error reporting, add tests for malformed sql
-lex things properly, might speed up various things?
+lex things properly, might speed up various parsing - won't need to
+   try parsing a piece of text to match with multiple keywords. Not
+   sure how to do this.
 
 fix up expression parser to support full range of pg operators and
    syntax with proper precedence
 
-put code in a well chosen module
+put code in a well named module
 
 add switch to support other sql dialects in the future - is switch the
    right way? think probably have a completely separate parser, tree
    nodes and pretty printer for each dialect, use cut and paste to get
    started, then see if any commonality can be refactored back in. How
-   can a program use the library and write routines to work with any
-   dialect if the tree nodes are complete separate though?
+   can a program use the library and write routines to work with
+   multiple dialects if the tree nodes are completely separate though?
 
 add token location info to ast nodes, modify for type checking, etc
-   support. not sure what's best way to do this, add separate parse
-   tree nodes, or just add to ast nodes?
+   support.
+
 add support for passes over this tree to find additional errors which
    the initial parsing misses
 
+add type checking, etc. over the ast.
+
 add a macro system for custom syntax and code generation, etc. - do
    this by providing hooks rather than compromising the vanilla pgsql
-   parser
+   parser. See extension_system for notes on this.
 
 want to report multiple errors, perhaps can bodge this because of the
-   property that ';' can only appear inside a string or comment,
+   property that ';' can only appear inside a string or comment, or
    otherwise at the end of a statement, so add some code to jump
    to the next end of statement looking ';' and continue to parse
    to end of file in an attempt to catch at least some further syntax
@@ -117,6 +121,6 @@ add some bigger tests: lots of sql statements, big functions
 look for possible corner cases and add tests
 
 get property checker working again - one problem is that the pretty
-   printer will reject some parse trees (which the parser cannot
+   printer will reject some asts (which the parser cannot
    produce), and the parser will probably reject some invalid sql that
-   the pretty printer will happily produce from some parse trees.
+   the pretty printer will happily produce from some asts.

@@ -5,7 +5,7 @@ Copyright 2009 Jake Wheat
 ================================================================================
 
 Executable to parse sql from a file, check that it appears to parse ok,
-that pretty printing it and parsing that text gives the same parse tree,
+that pretty printing it and parsing that text gives the same ast,
 and then displays the pretty printed version so you can see how well it's
 done (maybe it could interpolate each original statement with its
 parsed, pretty printed version so you can more easily check how

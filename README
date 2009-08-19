@@ -1,4 +1,158 @@
-A very rough parser and pretty printer for postgresql sql and plpgsql
+Summary: A parser and pretty printer for postgresql sql and
+plpgsql. BSD licensed.
+
+Status: it successfully parses and accurately pretty prints the three
+moderate sized sql files from another project of mine, but there are
+lots of missing bits. Coverage of sql is reasonable, see below for
+more details on what is supported and unsupported.
+
+The haskell files are literate haskell (the docs in these files aren't
+quite traditional literal style though). Parser.lhs has plenty of
+documentation in it, and if you view Tests.lhs you can see a range of
+sql that the program supports. The sql three files in ./sqltestfiles/
+all parse successfully as longer examples of what can be parsed (they
+are from another project).
+
+Apart from this file, additional documentation may be found in the
+files TODO and extension_system, and possibly on the launchpad page at
+http://launchpad.net/hssqlppp/
+
+The code comes with a cabal file. It should probably work with any
+modern ghc (6.10.x, maybe even earlier versions).
+
+It doesn't need postgresql installed to run, although some of the
+planned functionality will need postgresql installed. Basic parsing
+and stuff will probably always run without postgresql.
+
+It isn't currently in good shape to use in another project, but this
+should change shortly, any help in this area appreciated (a good start
+would be choosing a module name and uploading to hackage).
+
+The ultimate purpose of this project is to add an extension system for
+custom syntax and other code processing and code generation to plpgsql
+so you can write more concise code and run custom checks, but
+hopefully it will end up also being a solid parser and type checker
+for regular sql and plpgsql code.
+
+It functions purely as a sql parser and pretty printer at the moment.
+
+If you wanted to use the code to parse sql and then do something with
+the ast then the extension system should help you to do with this,
+although you won't need to use it.
+
+If you are looking for a sql parser in haskell and evaluate this
+project and decide that you can't use it, it would be appreciated if
+you drop me a short note to say why this project is no good for you
+(jakewheatmail@gmail.com).
+
+================================================================================
+
+= Trying it out
+
+The main thing you can do at the moment is try to parse a file of sql
+and see what fails. To do this run the ParseFile (.lhs) script and
+pass the filename of the sql file to it. It will attempt to parse the
+file, and if it succeeds, pretty print then reparse the pretty printed
+text.
+
+Another check you can try is to try parsing and pretty printing a sql
+script from a project.
+
+Then to check the pretty printed version, load the resultant file into
+pg, see if it loads without error, and then maybe run tests/ try out
+your project using this new database to see if it is still good. The
+script RoundTripFile.lhs accepts two filenames, source and target to
+produce a parsed then pretty printed file.
+
+Using ghci to check parsing: load up Parser.lhs in ghci and try out
+the parsers interactively, e.g.:
+
+*Parser> parseSql "select a,b,count(c) as count from d group by b having count > 3;"
+Right [Select Dupes (SelectList [SelExp (Identifier "a"),SelExp
+(Identifier "b"),SelectItem (FunCall "count" [Identifier "c"])
+"count"] []) (Just (Tref "d")) Nothing [Identifier "b"] (Just
+(BinOpCall Gt (Identifier "count") (IntegerL 3))) [] Asc Nothing
+Nothing]
+
+*Parser> parseExpression "1+1"
+Right (BinOpCall Plus (IntegerL 1) (IntegerL 1))
+
+*Parser> parseSql "select 1; select another 1;"
+Left
+---------------------
+"(unknown)" (line 1, column 26):
+unexpected "1"
+expecting operator, as, ",", into, from, where, group, having, order,
+asc, desc, limit, offset, except, intersect, union or ";"
+------------
+Check it out:
+select 1; select another 1;
+                         ^
+ERROR HERE
+------------
+
+================================================================================
+
+= Fixing problems
+
+To add support for missing syntax or alter existing support/ fix bugs,
+I recommend:
+* first altering Tree.lhs to add/change the tree node data
+type(s), then
+* altering the pretty printer to output these nodes,
+* altering the parser to parse them
+** add new statements to sqlStatement or plPgsqlStatement function
+** new expression types to the factor function, and
+* add one or more test cases to Tests.lhs.
+
+(If you are a fan of TDD, do the last item first.)
+
+Tests.lhs already has structure set up to parse:
+
+*  fully formed sql (including plpgsql inside create function
+   statements)
+*  individual/ multiple plpgsql statements without having to use
+   createfunction
+*  single expressions
+
+and check the asts returned. Pretty printing is tested by pretty
+printing then reparsing the asts produced.
+
+If you add something please let me know, send a patch or add it on
+launchpad or something.
+
+As an example, you can view the diffs for adding drop domain support
+here to see how much lines of code were added/changed:
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/revision/122
+
+To add support for another sql dialect (e.g. ms sql server or mysql),
+I suggest forking the project for now, and we could look at merging
+back together once the forked code is running well for its
+dialect. Let me know if you need some help doing this.
+
+= Reporting problems
+
+If you would like some standard postgresql syntax supported and can't
+code it yourself, a request should contain:
+* a single fully valid expression, or
+* a fully valid file of sql statements
+with
+* the parse error produced when you parse them, or
+* the original sql and the invalidly produced parsed and pretty
+printed sql.
+
+Unfortunately I can't make any promises to fix anything in a timely
+manner myself.
+
+If you want another sql dialect supported and don't want to it
+yourself, please report that on the bug tracker.
+
+Report problems using the bug track on launchpad or by emailing me
+(see below for info).
+
+================================================================================
+
+= Syntax supported/ not supported:
 
 Partially supports:
 select statements (selectlists (*, qualified, aliased, expressions)
@@ -49,39 +203,39 @@ Many things are missing at the moment, in particular
   cursors
 This is a non-exhaustive list.
 
-Other current downsides:
+Expression support is patchy, should work pretty well for a lot of
+simple stuff though.
 
-The parse tree node types aren't well designed, it produces a tree
-which is more like a ast than a parse tree, which contains no location
-information.
+There is slightly more detail in the todo file about what sql isn't
+supported.
 
-No work has been done on correctly rejecting invalid sql and no
+= Other current downsides:
+
+The ast node types aren't well designed, in particular they contain no
+location information, and no other annotation.
+
+No work has been done on correctly rejecting invalid sql and not much
 thought has been put into error messages and error reporting.
 
 No thought has been given in respects to supporting other sql dialects.
 
+================================================================================
 
-Trying it out
+= Rough roadmap
 
-The main thing you can do is try to parse a file of sql and see what
-fails. To do this run the ParseFile (.lhs) script and pass the
-filename of the sql file to it. It will attempt to parse the file, and
-if it succeeds, pretty print then reparse the pretty printed text.
+My own focus is on the extension system at the moment, I don't intend
+to continue adding support for missing sql syntax for the time
+being. Once the extension system is working I will be using this code
+in anger in another project.
 
-To add support for missing syntax or alter existing support/ fix bugs,
-I recommend first altering Tree.lhs to add/change the tree node data
-type(s), then altering the pretty printer to output these nodes,
-altering the parser to parse them (add new statements to sqlStatement
-or plPgsqlStatement function, new expressions to the factor function),
-and add one or more test cases to Tests.lhs. This already has
-structure set up to parse:
+Adding support for missing syntax should mostly be pretty easy. The
+only gnarly bits will be if you come across problems with the
+expression parser, but there's a good chance you won't with most real
+sql.
 
-*  fully formed sql (including plpgsql inside create function
-   statements)
-*  individual/ multiple plpgsql statements without having to use
-   createfunction
-*  single expressions
+Contributions are welcome.
 
+================================================================================
 
 Homepage
 

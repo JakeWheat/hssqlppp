@@ -64,8 +64,8 @@ finally, in do notation it is:
           r <- tryMaybeP returning
           return $ Delete i w r
 
-Which is what you'd write if you didn't know liftM or Applicative (or
-what I wrote before I learnt to use Applicative).
+Which is what you'd write if you didn't know/like liftM or Applicative
+(or what I wrote before I learnt to use Applicative).
 
 I think the top version is clearest as long as you can understand it
 is a short hand for the bottom version.
@@ -172,7 +172,7 @@ if we use *> instead of >> at the top, we need to use (), this is why
           <*> tryMaybeP whereClause
           <*> tryMaybeP returning)
 
-(The code prefers *> in places where *> and >> are interchangable
+(The code prefers *> in places where *> and >> are interchangeable
 without adding ().)
 
 trykeyword could be replaced:
@@ -207,8 +207,8 @@ delete frm x;
 
 delete from x x x x;
 
-Parse each line separately. You can use ghci and the function parseSql
-from the prompt, e.g.
+(Parse each line separately). You can use ghci and the function parseSql
+from the prompt, (load this file, Parser.lhs into ghci first) e.g.
 
 ghci> parseSql "delte from x;"
 
@@ -1308,7 +1308,7 @@ applicative operators
 
 
 include dots in all identifier strings, - todo: check the validity
-of qualification with a second pass over the parse tree.
+of qualification with a second pass over the ast.
 
 > identifierString :: Parser String
 > identifierString = lexeme $ choice [

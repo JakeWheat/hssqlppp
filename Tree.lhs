@@ -1,17 +1,13 @@
 Copyright 2009 Jake Wheat
 
-This file contains the data types for the sql parse tree nodes
+This file contains the data types for the sql ast nodes
 No real thought or taste has gone into the decisions on how to structure
 these.
 They contain no source line/column references.
 Lots of invalid sql is allowed.
-The code currently uses this both to represent the parse tree for sql
-and as the tree nodes which are used to generate sql using the pretty printer.
-Don't know if the parse tree and the input to the pretty printer should use
-the same data types, particularly for a language as funky as sql.
 
-The parser will not parse as many parse trees that correspond to invalid
-sql as the tree types can represent.
+These ast nodes a are both used as the result of successful parsing,
+and as the input to the pretty printer.
 
 > module Tree where
 
@@ -23,11 +19,16 @@ everything is chucked in here, in particular this means that many places where
 a select can appear inside another statement (e.g. a subselect), you can
 instead put any statement - this type checks but is totally invalid.
 
+> -- | Statement represents a single sql or plpgsql statement.
 > data Statement =
 
 queries
 
->                  -- distinct? selectlist from where
+>                  -- | Select represents a select statement.
+>                  -- The args are: distinct?, columns to select plus plpgsql into part,
+>                  -- from?, where?,
+>                  -- groupby, having, orderby,
+>                  -- orderbydirection, limit, offset
 >                  Select Distinct SelectList (Maybe TableRef) (Maybe Expression)
 >                             --groupby having orderby
 >                             [Expression] (Maybe Expression) [Expression]

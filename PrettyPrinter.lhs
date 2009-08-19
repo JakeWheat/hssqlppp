@@ -1,13 +1,13 @@
 Copyright 2009 Jake Wheat
 
-The pretty printer which prints parse tree nodes from Grammar.lhs
+The pretty printer which prints ast nodes from Tree.lhs
 It uses the hughes pj pretty printer
 
 Produces sort of readable code, but mainly just written to produce
 reparsable text.
 
 > module PrettyPrinter (
->                       --convert a sql parse tree to text
+>                       --convert a sql ast to text
 >                       printSql
 >                       --convert a single expression parse node to text
 >                      ,printExpression
