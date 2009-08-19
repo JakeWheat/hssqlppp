@@ -45,7 +45,8 @@ dml
 >                | Update String [SetClause] (Maybe Expression) (Maybe SelectList)
 >                  --tablename, where, returning
 >                | Delete String (Maybe Expression) (Maybe SelectList)
->                | Copy String
+>                  --tablename column names, from, inline data
+>                | Copy String [String] CopySource (Maybe String)
 >                | Truncate [String] RestartIdentity Cascade
 
 ddl
@@ -118,6 +119,10 @@ select columns, into columns
 > data SelectItem = SelExp Expression
 >                 | SelectItem Expression String
 >                   deriving (Eq,Show)
+
+> data CopySource = CopyFilename String | Stdin
+>                  deriving (Eq,Show)
+
 
 name type default null constraint
 

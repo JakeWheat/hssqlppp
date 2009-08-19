@@ -243,8 +243,14 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (Perform x) =
 >    error $ "convStatement not supported for " ++ show x
 
-> convStatement (Copy x) =
->     text "copy" <+> text x
+> convStatement (Copy tb cols src payload) =
+>     text "copy" <+> text tb
+>     <+> ifNotEmpty (\cls -> parens (hcatCsvMap text cls)) cols
+>     <+> text "from" <+> case src of
+>                                  CopyFilename s -> quotes $ text s
+>                                  Stdin -> text "stdin"
+>     <> statementEnd
+>     <> maybeConv (\p -> text p <> text "\\." <> newline) payload
 
 > convStatement (If conds els) =
 >    text "if" <+> convCond (head conds)

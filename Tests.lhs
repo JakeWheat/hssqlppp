@@ -584,10 +584,9 @@ copy, bit crap at the moment
 >         \bat	t\n\
 >         \bear	f\n\
 >         \\\.\n"
->       [Copy "tbl(a,b) from stdin;\n\
+>       [Copy "tbl" ["a", "b"] Stdin (Just "\
 >         \bat	t\n\
->         \bear	f\n\
->             \\\.\n"]
+>         \bear	f\n")]
 >      ])
 
 ================================================================================
@@ -1072,13 +1071,12 @@ parse and then pretty print and parse an expression
 > checkParsePlpgsql :: String -> [Statement] -> Test.Framework.Test
 > checkParsePlpgsql src ast = parseUtil src ast parsePlpgsql printSql
 
- > parseUtil :: (Eq b, Show b) =>
- >              String
- >           -> b
- >           -> (String -> Either ExtendedError b)
- >           -> (b -> String)
- >           -> Test.Framework.Test
-
+> parseUtil :: (Show t, Eq b, Show b) =>
+>              [Char]
+>           -> b
+>           -> ([Char] -> Either t b)
+>           -> (b -> [Char])
+>           -> Test.Framework.Test
 > parseUtil src ast parser printer = testCase ("parse " ++ src) $ do
 >   let ast' = case parser src of
 >               Left er -> error $ show er

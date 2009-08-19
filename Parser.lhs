@@ -387,7 +387,7 @@ parse a statement
 >                                      ,dropFunction]
 >                        ]
 >     <* (if reqSemi then semi >> return () else optional semi >> return ()))
->    --copy doesn't end with a semicolon
+>    --copy reads the semi colon itself to cope with possibly copying from stdin
 >    <|> copy
 
 ================================================================================
@@ -560,19 +560,27 @@ multiple rows to insert and insert from select statements
 >                                                     <* keyword "identity")])
 >            <*> cascade
 
-= copy statement
-
-copy: just reads the string in for now - read lines until we get to
-one with just a \. in the first two columns
-
-> copy :: ParsecT String u Identity Statement
-> copy = trykeyword "copy" >>
->        Copy <$> lexeme (getLinesTillMatches "\\.\n")
+> copy :: ParsecT String () Identity Statement
+> copy = do
+>        trykeyword "copy"
+>        tableName <- identifierString
+>        cols <- option [] (parens $ commaSep1 identifierString)
+>        keyword "from"
+>        src <- choice [
+>                CopyFilename <$> extrStr <$> stringLiteral
+>               ,Stdin <$ string "stdin"]
+>        semi
+>        --read the copy data iff stdin is given
+>        payload <- case src of
+>                           CopyFilename _ -> return Nothing
+>                           Stdin -> Just
+>                                    <$> lexeme (getLinesTillMatches "\\.\n")
+>        return $ Copy tableName cols src payload
 >   where
 >     getLinesTillMatches s = do
 >                             x <- getALine
 >                             if x == s
->                               then return x
+>                               then return ""
 >                               else (x++) <$> getLinesTillMatches s
 >     getALine = (++"\n") <$> manyTill anyChar (try newline)
 
