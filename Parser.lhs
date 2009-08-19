@@ -1534,11 +1534,16 @@ lines for context.
 >          postlines = map (safeGet ls) [lineNo .. (lineNo + 5)]
 >          colNo = sourceColumn pos
 >          highlightLine = replicate (colNo - 1) ' ' ++ "^"
+>          errorHighlightText = prelines
+>                               ++ [line, highlightLine, "ERROR HERE"]
+>                               ++ postlines
 >     in "\n---------------------\n" ++ show er
->        ++ "\n------------\nCheck it out:\n" ++ unlines prelines ++ "\n"
->        ++ line ++ "\n" ++ highlightLine ++ "\nERROR HERE\n" ++ unlines postlines
+>        ++ "\n------------\nCheck it out:\n"
+>        ++ unlines (trimLines errorHighlightText)
 >        ++ "\n-----------------\n"
->          where
->            safeGet a i = if i < 0 || i >= length a
->                            then ""
->                            else a !! i
+>     where
+>       safeGet a i = if i < 0 || i >= length a
+>                       then ""
+>                       else a !! i
+>       trimLines s = trimStartLines $ reverse $ trimStartLines $ reverse s
+>       trimStartLines = dropWhile (=="")
