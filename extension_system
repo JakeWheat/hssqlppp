@@ -1,11 +1,6 @@
 = Extension system
 
-extension system constraint 1: provide hooks in the existing
-parser. The parser should be able to be run and only parse vanilla sql
-and plpgsql.
-
-Adding extensions should not involve modifying any of these files:
-parser, tree, pretty printer.
+== extension system usage
 
 There are two possible approaches to using extensions which alter what
 goes into the database:
@@ -25,6 +20,24 @@ by running psql using a little wrapper that only does this).
 Would like to support both approaches with a) being the usual way to
 use it, and b) being a way to produce vanilla plpgsql source files
 e.g. to load into a production system with pg but without ghc.
+
+== constraints on extension system:
+
+* provide hooks in the existing parser. The parser should be able to
+be run and only parse vanilla sql and plpgsql.
+
+* Adding extensions should not involve modifying any of these files:
+parser, tree, pretty printer.
+
+* current design will satisfy these:
+
+** No requirement to have ghc or hssqlppp installed on server to run
+   scripts - can generate a regular sql script and use standard pg
+   utils
+
+** Uses only plpgsql at runtime, so no running haskell code after the
+   database is setup (e.g. no extensions which require runtime support
+   from haskell code)
 
 = Flavours of extensions
 
