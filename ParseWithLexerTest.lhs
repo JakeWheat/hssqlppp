@@ -358,7 +358,10 @@ parse plpgsql statements, used for testing purposes
 parse a statement
 
 > sqlStatement :: Bool -> ParsecT [Token] () Identity Statement
-> sqlStatement reqSemi = insert <* symbol ';'
+> sqlStatement reqSemi = choice [
+>                          insert
+>                         ,select]
+>                        <* symbol ';'
 
 -- > sqlStatement :: Bool -> ParsecT String () Identity Statement
 -- > sqlStatement reqSemi = (choice [
@@ -386,29 +389,188 @@ parse a statement
 
 ================================================================================
 
+statement flavour parsers
+
+top level/sql statements first
+
+= select
+
+select parser, parses things starting with the keyword 'select'
+
+supports plpgsql 'select into' only for the variants which look like
+'select into ([targets]) [columnNames] from ...
+or
+'select [columnNames] into ([targets]) from ...
+
+recurses to support parsing excepts, unions, etc
+
+> select :: ParsecT [Token] () Identity Statement
+> select = do
+>   trykeyword "select"
+>   s1 <- selQuerySpec
+>   choice [
+>     --don't know if this does associativity in the correct order for
+>     --statements with multiple excepts/ intersects and no parens
+>     CombineSelect Except s1 <$> (trykeyword "except" *> select)
+>    ,CombineSelect Intersect s1 <$> (trykeyword "intersect" *> select)
+>    ,CombineSelect UnionAll s1 <$> (try (keyword "union"
+>                                          *> keyword "all") *> select)
+>    ,CombineSelect Union s1 <$> (trykeyword "union" *> select)
+>    ,return s1]
+>   where
+>     selQuerySpec = Select
+>                <$> option Dupes (Distinct <$ trykeyword "distinct")
+>                <*> selectList
+>                <*> tryMaybeP from
+>                <*> tryMaybeP whereClause
+>                <*> option [] groupBy
+>                <*> tryMaybeP having
+>                <*> option [] orderBy
+>                <*> option Asc (choice [
+>                                 Asc <$ keyword "asc"
+>                                ,Desc <$ keyword "desc"])
+>                <*> tryMaybeP limit
+>                <*> tryMaybeP offset
+>     from = keyword "from" *> tref
+>     groupBy = trykeyword "group" *> keyword "by"
+>               *> commaSep1 expr
+>     having = trykeyword "having" *> expr
+>     orderBy = trykeyword "order" *> keyword "by"
+>               *> commaSep1 expr
+>     limit = keyword "limit" *> expr
+>     offset = keyword "offset" *> expr
+
+>     -- table refs
+>     -- have to cope with:
+>     -- a simple tableref i.e just a name
+>     -- an aliased table ref e.g. select a.b from tbl as a
+>     -- a sub select e.g. select a from (select b from c)
+>     --  - these are handled in tref
+>     -- then cope with joins recursively using joinpart below
+>     tref = parseOptionalSuffixThreaded getFirstTref joinPart
+>     getFirstTref = choice [
+>                     SubTref
+>                     <$> parens select
+>                     <*> (keyword "as" *> idString)
+>                    ,parseOptionalSuffix
+>                       TrefFun (try functionCall)
+>                       TrefFunAlias () (trykeyword "as" *> idString)
+>                    ,parseOptionalSuffix
+>                       Tref nkwid
+>                       TrefAlias () (optional (trykeyword "as") *> nkwid)]
+>     --joinpart: parse a join after the first part of the tableref
+>     --(which is a table name, aliased table name or subselect) -
+>     --takes this tableref as an arg so it can recurse to multiple
+>     --joins
+>     joinPart tr1 = parseOptionalSuffixThreaded (readOneJoinPart tr1) joinPart
+>     readOneJoinPart tr1 = JoinedTref tr1
+>          --look for the join flavour first
+>          <$> option Unnatural (Natural <$ trykeyword "natural")
+>          <*> choice [
+>             Inner <$ trykeyword "inner"
+>            ,LeftOuter <$ try (keyword "left" *> keyword "outer")
+>            ,RightOuter <$ try (keyword "right" *> keyword "outer")
+>            ,FullOuter <$ try (keyword "full" >> keyword "outer")
+>            ,Cross <$ trykeyword "cross"]
+>          --recurse back to tref to read the table
+>          <*> (keyword "join" *> tref)
+>          --now try and read the join condition
+>          <*> choice [
+>              Just <$> (JoinOn <$> (trykeyword "on" *> expr))
+>             ,Just <$> (JoinUsing <$> (trykeyword "using" *> columnNameList))
+>             ,return Nothing]
+>     nkwid = try $ do
+>              x <- idString
+>              --avoid all these keywords as aliases since they can
+>              --appear immediately following a tableref as the next
+>              --part of the statement, if we don't do this then lots
+>              --of things don't parse. Seems a bit inelegant but
+>              --works for the tests and the test sql files don't know
+>              --if these should be allowed as aliases without "" or
+>              --[]
+>              if (map toLower x) `elem` ["as"
+>                          ,"where"
+>                          ,"except"
+>                          ,"union"
+>                          ,"intersect"
+>                          ,"loop"
+>                          ,"inner"
+>                          ,"on"
+>                          ,"left"
+>                          ,"right"
+>                          ,"full"
+>                          ,"cross"
+>                          ,"natural"
+>                          ,"order"
+>                          ,"group"
+>                          ,"limit"
+>                          ,"using"]
+>                then fail "not keyword"
+>                else return x
+
+> values :: ParsecT [Token] () Identity Statement
+> values = trykeyword "values" >>
+>          Values <$> commaSep1 (parens $ commaSep1 $ expr)
+
+
+================================================================================
+
 = insert, update and delete
 
 insert statement: supports option column name list,
 multiple rows to insert and insert from select statements
 
 > insert :: ParsecT [Token] () Identity Statement
-> insert = do
->   trykeyword "insert" >> keyword "into"
->   Insert <$> idString
+> insert = trykeyword "insert" >> keyword "into" >>
+>          Insert
+>          <$> idString
 >          <*> option [] (try columnNameList)
 >          <*> values
 >          <*> return Nothing
 
+================================================================================
+
+= component parsers for sql statements
+
+> whereClause :: ParsecT [Token] () Identity Expression
+> whereClause = keyword "where" *> expr
+
+selectlist and selectitem: the bit between select and from
+check for into either before the whole list of select columns
+or after the whole list
+
+> selectList :: ParsecT [Token] () Identity SelectList
+> selectList =
+>     choice [
+>         flip SelectList <$> readInto <*> itemList
+>        ,SelectList <$> itemList <*> option [] readInto]
+>   where
+>     readInto = trykeyword "into" *> commaSep1 idString
+>     itemList = commaSep1 selectItem
+>     selectItem = parseOptionalSuffix
+>                    SelExp expr
+>                    SelectItem () (trykeyword "as" *> idString)
+
+> returning :: ParsecT [Token] () Identity SelectList
+> returning = trykeyword "returning" *> selectList
+
 > columnNameList :: ParsecT [Token] () Identity [String]
 > columnNameList = parens $ commaSep1 idString
 
-> values :: ParsecT [Token] () Identity Statement
-> values = trykeyword "values" >>
->          Values <$> commaSep1 (parens $ commaSep1 $ expr)
+> typeName :: ParsecT [Token] () Identity TypeName
+> typeName = choice [
+>             SetOfType <$> (trykeyword "setof" *> typeName)
+>            ,do
+>              s <- idString
+>              choice [
+>                PrecType s <$> parens integer
+>               ,ArrayType (SimpleType s) <$ symbol '[' <* symbol ']'
+>               ,return $ SimpleType s]]
 
-> expr :: ParsecT [Token] () Identity Expression
-> expr = integer <|> string <|> identifierExp
-
+> cascade :: ParsecT [Token] () Identity Cascade
+> cascade = option Restrict (choice [
+>                             Restrict <$ keyword "restrict"
+>                            ,Cascade <$ keyword "cascade"])
 
 ================================================================================
 
@@ -498,9 +660,9 @@ doesn't seem too gratuitous, comes up a few times
 >   posToken  (pos,_)   = pos
 >   testToken (_,tok)   = test tok
 
-> integer :: MyParser Expression
+> integer :: MyParser Integer
 > integer = mytoken (\tok -> case tok of
->                                     IntegerTok n -> Just $ IntegerL n
+>                                     IntegerTok n -> Just n
 >                                     _ -> Nothing)
 
 > string :: MyParser Expression
@@ -513,3 +675,101 @@ doesn't seem too gratuitous, comes up a few times
 > commaSep1 :: ParsecT [Token] () Identity a
 >           -> ParsecT [Token] () Identity [a]
 > commaSep1 p = sepBy1 p (symbol ',')
+
+> commaSep :: ParsecT [Token] () Identity a
+>          -> ParsecT [Token] () Identity [a]
+> commaSep p = sepBy p (symbol ',')
+
+
+> tryMaybeP :: GenParser tok st a
+>           -> ParsecT [tok] st Identity (Maybe a)
+> tryMaybeP p = try (optionMaybe p) <|> return Nothing
+
+
+parseOptionalSuffix
+
+parse the start of something -> parseResultA,
+then parse an optional suffix -> parseResultB
+if this second parser succeeds, call fn2 parseResultA parseResultB
+else call fn1 parseResultA
+
+e.g.
+parsing an identifier in a select list can be
+fieldName
+or
+fieldName as alias
+so we can pass
+* IdentifierCtor
+* identifier (returns aval)
+* AliasedIdentifierCtor
+* () - looks like a place holder, probably a crap idea
+* parser for (as b) (returns bval)
+as the args, which I like to ident like:
+parseOptionalSuffix
+  IdentifierCtor identifierParser
+  AliasedIdentifierCtor () asAliasParser
+and we get either
+* IdentifierCtor identifierValue
+or
+* AliasedIdentifierCtor identifierValue aliasValue
+as the result depending on whether the asAliasParser
+succeeds or not.
+
+probably this concept already exists under a better name in parsing
+theory
+
+> parseOptionalSuffix :: (Stream s m t2) =>
+>                       (t1 -> b)
+>                    -> ParsecT s u m t1
+>                    -> (t1 -> a -> b)
+>                    -> ()
+>                    -> ParsecT s u m a
+>                    -> ParsecT s u m b
+> parseOptionalSuffix c1 p1 c2 _ p2 = do
+>   x <- p1
+>   option (c1 x) (c2 x <$> try p2)
+
+parseOptionalSuffixThreaded
+
+parse the start of something -> parseResultA,
+then parse an optional suffix, passing parseResultA
+  to this parser -> parseResultB
+return parseResultB is it succeeds, else return parseResultA
+
+sort of like a suffix operator parser where the suffixisable part
+is parsed, then if the suffix is there it wraps the suffixisable
+part in an enclosing tree node.
+
+parser1 -> tree1
+(parser2 tree1) -> maybe tree2
+tree2 isnothing ? tree1 : tree2
+
+> parseOptionalSuffixThreaded :: ParsecT [tok] st Identity a
+>                             -> (a -> GenParser tok st a)
+>                             -> ParsecT [tok] st Identity a
+> parseOptionalSuffixThreaded p1 p2 = do
+>   x <- p1
+>   option x (try $ p2 x)
+
+I'm pretty sure this is some standard monad operation but I don't know
+what. It's a bit like the maybe monad but when you get nothing it
+returns the previous result instead of nothing
+- if you take the parsing specific stuff out you get:
+
+p1 :: (Monad m) =>
+      m b -> (b -> m (Maybe b)) -> m b
+p1 = do
+   x <- p1
+   y <- p2 x
+   case y of
+     Nothing -> return x
+     Just z -> return z
+
+
+
+> expr :: ParsecT [Token] () Identity Expression
+> expr = (IntegerL <$> integer) <|> string <|> identifierExp
+
+
+> functionCall :: ParsecT [Token] () Identity Expression
+> functionCall = FunCall <$> idString <*> parens (commaSep expr)
