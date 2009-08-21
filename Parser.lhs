@@ -525,10 +525,10 @@ multiple rows to insert and insert from select statements
 
 > insert :: ParsecT String () Identity Statement
 > insert = do
->   sp <- getPosition
->   let sp1 = Just $ SourcePos (sourceLine sp) (sourceColumn sp)
+>   --sp <- getPosition
+>   --let sp1 = Just $ SourcePos (sourceLine sp) (sourceColumn sp)
 >   trykeyword "insert" >> keyword "into"
->   Insert sp1 <$> identifierString
+>   Insert <$> identifierString
 >          <*> option [] (try columnNameList)
 >          <*> (select <|> values)
 >          <*> tryMaybeP returning

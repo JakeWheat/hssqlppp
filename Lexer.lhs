@@ -59,7 +59,6 @@ part of parsing is being referred to.
 > import Control.Monad.Identity
 
 > import Data.Char
-> import System
 
 ================================================================================
 
@@ -67,18 +66,20 @@ part of parsing is being referred to.
 
 > type Token = (SourcePos, Tok)
 
-> data Tok = SqlString String String --delim, value (delim will one of
+> data Tok = StringTok String String --delim, value (delim will one of
 >                                    --', $$, $[stuff]$
->          | IdString String --includes . and x.y.* type stuff
->          | Symbol Char --operators, and ()[],;
->          | PositionalArg Integer -- $1, etc.
->          | SqlFloat Double
->          | SqlInteger Integer
->          | CopyPayload String -- support copy from stdin; with inline data
+>          | IdStringTok String --includes . and x.y.* type stuff
+>          | SymbolTok Char --operators, and ()[],;
+>          | PositionalArgTok Integer -- $1, etc.
+>          | FloatTok Double
+>          | IntegerTok Integer
+>          | CopyPayloadTok String -- support copy from stdin; with inline data
 >            deriving (Eq,Show)
 
+> lexSqlFile :: String -> IO (Either ParseError [Token])
 > lexSqlFile f = parseFromFile sqlTokens f
 
+> lexSqlText :: String -> Either ParseError [Token]
 > lexSqlText s = parse sqlTokens "" s
 
 ================================================================================
@@ -92,6 +93,7 @@ table data, then switches back. Don't know how to do this in parsec,
 or even if it is possible, so as a work around, first look for "from
 stdin;", then special case it.
 
+> sqlTokens :: ParsecT String u Identity [Token]
 > sqlTokens =
 >   whiteSpace >>
 >   concat <$> many (choice [
@@ -102,10 +104,10 @@ stdin;", then special case it.
 >     copyFromStdin = do
 >                     fr <- lexId "from"
 >                     st <- lexId "stdin"
->                     sem <- withPos $ Symbol ';' <$ lexeme (char ';')
+>                     sem <- withPos $ SymbolTok ';' <$ lexeme (char ';')
 >                     cppl <- withPos copyPayload
 >                     return [fr,st,sem,cppl]
->     lexId s = withPos $ IdString s <$ (lexeme $ string s)
+>     lexId s = withPos $ IdStringTok s <$ (lexeme $ string s)
 >     withPos p = do
 >                 pos <- getPosition
 >                 x <- p
@@ -127,10 +129,11 @@ stdin from now on.
 
 == specialized token parsers
 
+> sqlString :: ParsecT String u Identity Tok
 > sqlString = stringQuotes <|> stringLD
 >   where
 >     --parse a string delimited by single quotes
->     stringQuotes = SqlString "\'" <$> stringPar
+>     stringQuotes = StringTok "\'" <$> stringPar
 >     stringPar = optional (char 'E') *> char '\''
 >                 *> readQuoteEscape <* whiteSpace
 >     --(readquoteescape reads the trailing ')
@@ -155,18 +158,22 @@ parse a dollar quoted string
 >                                    <|> (identifierString <* char '$')))
 >                s <- lexeme $ manyTill anyChar
 >                       (try $ char '$' <* string tag <* char '$')
->                return $ SqlString ("$" ++ tag ++ "$") s
+>                return $ StringTok ("$" ++ tag ++ "$") s
 
+> idString :: ParsecT String u Identity Tok
+> idString = IdStringTok <$> identifierString
 
-> idString = IdString <$> identifierString
+> positionalArg :: ParsecT String u Identity Tok
+> positionalArg = char '$' >> PositionalArgTok <$> integer
 
-> positionalArg = char '$' >> PositionalArg <$> integer
+> sqlSymbol :: ParsecT String u Identity Tok
+> sqlSymbol = SymbolTok <$> lexeme (oneOf "+-*/<>=~!@#%^&|`?:()[],;")
 
-> sqlSymbol = Symbol <$> lexeme (oneOf "+-*/<>=~!@#%^&|`?:()[],;")
+> sqlFloat :: ParsecT String u Identity Tok
+> sqlFloat = FloatTok <$> float
 
-> sqlFloat = SqlFloat <$> float
-
-> sqlInteger = SqlInteger <$> integer
+> sqlInteger :: ParsecT String u Identity Tok
+> sqlInteger = IntegerTok <$> integer
 
 ================================================================================
 
@@ -176,13 +183,14 @@ include dots, * in all identifier strings during lexing. This parser
 is also used for keywords, so identifiers and keywords aren't distinguished
 until during proper parsing
 
-> identifierString = lexeme $ choice [
+> identifierString :: ParsecT [Char] u Identity [Char]
+> identifierString = (liftM (map toLower)) (lexeme $ choice [
 >                     "*" <$ symbol "*"
 >                    ,do
 >                      a <- nonStarPart
 >                      b <- tryMaybeP ((++) <$> symbol "." <*> identifierString)
 >                      case b of Nothing -> return a
->                                Just c -> return $ a ++ c]
+>                                Just c -> return $ a ++ c])
 >   where
 >     nonStarPart = letter <:> secondOnwards
 >     secondOnwards = many (alphaNum <|> char '_')
@@ -190,7 +198,8 @@ until during proper parsing
 parse the block of inline data for a copy from stdin, ends with \. on
 its own on a line
 
-> copyPayload = CopyPayload <$> (lexeme (getLinesTillMatches "\\.\n"))
+> copyPayload :: ParsecT String u Identity Tok
+> copyPayload = CopyPayloadTok <$> (lexeme (getLinesTillMatches "\\.\n"))
 >   where
 >     getLinesTillMatches s = do
 >                             x <- getALine
