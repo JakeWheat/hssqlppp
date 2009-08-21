@@ -59,7 +59,7 @@ try approach 2 for now
 >        Left er -> do
 >            src <- readFile f
 >            putStrLn $ showEr er f src
->        Right l -> print l
+>        Right l -> mapM_ print l
 
 
 > type Token = (SourcePos, Tok)
@@ -71,16 +71,22 @@ try approach 2 for now
 >          | PositionalArg Integer -- $1, etc.
 >          | SqlFloat Double
 >          | SqlInteger Integer
+>          | CopyEnd
 >            deriving (Eq,Show)
 
 > sqlTokens = (whiteSpace *> many sqlToken <* eof)
 
-> sqlToken = sqlString
->            <|> idString
->            <|> positionalArg
->            <|> sqlSymbol
+> sqlToken = try sqlString
+>            <|> try copyEnd --this is wrong
+>            <|> try idString
+>            <|> try positionalArg
+>            <|> try sqlSymbol
 >            <|> try sqlFloat
->            <|> sqlInteger
+>            <|> try sqlInteger
+
+temporary hack to parse copy from stdin blocks
+
+> copyEnd = CopyEnd <$ try (lexeme $ (char '\\' *> char '.'))
 
 > sqlString = stringQuotes <|> stringLD
 >   where
@@ -115,7 +121,9 @@ parse a dollar quoted string
 
 > idString = IdString <$> identifierString
 
-> sqlSymbol = Symbol <$> oneOf "=_*/<>=~!@#%^&|`?()[],"
+\ and . shouldn't be here, just temporary
+
+> sqlSymbol = Symbol <$> lexeme (oneOf "+-*/<>=~!@#%^&|`?()[],;:\\.")
 
 > positionalArg = char '$' >> PositionalArg <$> integer
 
