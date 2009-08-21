@@ -1,5 +1,3 @@
-#! /usr/bin/env runhaskell
-
 Copyright 2009 Jake Wheat
 
 This file contains the lexer for sql text.
@@ -44,6 +42,14 @@ refer to the parsers which form the lexing stage as lexers, and the
 parsers which use the lexed tokens as parses, to make it clear which
 part of parsing is being referred to.
 
+> module Lexer (
+>               Token
+>              ,Tok(..)
+>              ,lexSqlFile
+>              ,lexSqlText
+>              ,showEr
+>              ) where
+
 > import Text.Parsec hiding(many, optional, (<|>))
 > import qualified Text.Parsec.Token as P
 > import Text.Parsec.Language
@@ -70,6 +76,10 @@ part of parsing is being referred to.
 >          | SqlInteger Integer
 >          | CopyPayload String -- support copy from stdin; with inline data
 >            deriving (Eq,Show)
+
+> lexSqlFile f = parseFromFile sqlTokens f
+
+> lexSqlText s = parse sqlTokens "" s
 
 ================================================================================
 
@@ -272,20 +282,3 @@ plus output error location in emacs friendly format.
 >                       else a !! i
 >       trimLines s = trimStartLines $ reverse $ trimStartLines $ reverse s
 >       trimStartLines = dropWhile (=="")
-
-================================================================================
-
-= test main
-
-> main :: IO ()
-> main = do
->   args <- getArgs
->   let f = head args
->   putStrLn $ "parsing " ++ show f
->   x <- parseFromFile sqlTokens f
->   return ()
->   case x of
->        Left er -> do
->            src <- readFile f
->            putStrLn $ showEr er f src
->        Right l -> mapM_ print l
