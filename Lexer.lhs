@@ -18,12 +18,14 @@
 
 lexicon:
 
-eof
 string
 identifier or keyword
 () []
 other symbols
 positional arg
+int
+float
+copy payload (used to parse copy from stdin data)
 
 notes on symbols
 treat enclosing symbols separately - [] ()
@@ -67,17 +69,30 @@ try approach 2 for now
 
 > data Tok = SqlString String String --delim, value (delim will one of ', $$, $[stuff]$
 >          | IdString String --includes . and x.y.* type stuff
->          | Symbol Char
+>          | Symbol Char --operators, and ()[],;
 >          | PositionalArg Integer -- $1, etc.
 >          | SqlFloat Double
 >          | SqlInteger Integer
->          | CopyEnd
+>          | CopyPayload String -- support copy from stdin; with inline data
 >            deriving (Eq,Show)
 
-> sqlTokens = (whiteSpace *> many sqlToken <* eof)
+> sqlTokens = do
+>   whiteSpace
+>   concat <$> many (choice [
+>               try $ do
+>                 --slightly hacky code to parse the inline data from
+>                 --a copy from stdin; statement
+>                 lexeme $ string "from"
+>                 lexeme $ string "stdin"
+>                 lexeme $ char ';'
+>                 c <- copyPayload
+>                 return [IdString "from", IdString "stdin",
+>                         Symbol ';', c]
+>             ,(:[]) <$> sqlToken]) <* eof
+
+
 
 > sqlToken = try sqlString
->            <|> try copyEnd --this is wrong
 >            <|> try idString
 >            <|> try positionalArg
 >            <|> try sqlSymbol
@@ -86,7 +101,7 @@ try approach 2 for now
 
 temporary hack to parse copy from stdin blocks
 
-> copyEnd = CopyEnd <$ try (lexeme $ (char '\\' *> char '.'))
+ > copyEnd = CopyEnd <$ try (lexeme $ (char '\\' *> char '.'))
 
 > sqlString = stringQuotes <|> stringLD
 >   where
@@ -121,9 +136,7 @@ parse a dollar quoted string
 
 > idString = IdString <$> identifierString
 
-\ and . shouldn't be here, just temporary
-
-> sqlSymbol = Symbol <$> lexeme (oneOf "+-*/<>=~!@#%^&|`?()[],;:\\.")
+> sqlSymbol = Symbol <$> lexeme (oneOf "+-*/<>=~!@#%^&|`?:()[],;")
 
 > positionalArg = char '$' >> PositionalArg <$> integer
 
@@ -143,6 +156,16 @@ parse a dollar quoted string
 >   where
 >     nonStarPart = letter <:> secondOnwards
 >     secondOnwards = many (alphaNum <|> char '_')
+
+
+> copyPayload = CopyPayload <$> (lexeme (getLinesTillMatches "\\.\n"))
+>   where
+>     getLinesTillMatches s = do
+>                             x <- getALine
+>                             if x == s
+>                               then return ""
+>                               else (x++) <$> getLinesTillMatches s
+>     getALine = (++"\n") <$> manyTill anyChar (try newline)
 
 > symbol :: String -> ParsecT String u Identity String
 > symbol = P.symbol lexer
