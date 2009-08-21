@@ -40,7 +40,7 @@ queries
 dml
 
 >                  --table targetcolumns insertdata(values or select statement) returning
->                | Insert String [String] Statement (Maybe SelectList)
+>                | Insert (Maybe SourcePos) String [String] Statement (Maybe SelectList)
 >                  --tablename setitems where returning
 >                | Update String [SetClause] (Maybe Expression) (Maybe SelectList)
 >                  --tablename, where, returning
@@ -200,6 +200,9 @@ constraints which appear on a separate row in the create table
 > data RestartIdentity = RestartIdentity | ContinueIdentity
 >                 deriving (Eq, Show)
 
+> --line number, column number
+> data SourcePos = SourcePos Int Int
+>                 deriving (Eq, Show)
 
 ================================================================================
 

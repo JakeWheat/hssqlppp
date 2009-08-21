@@ -55,11 +55,9 @@ pretty printed stuff, don't know how much help this will be.
 >         withTemporaryFile (\tfn -> do
 >                                writeFile tfn payload
 >                                tfn1 <- canonicalizePath tfn
->                                handleError fn
->                                  (runSqlCommand conn $ printSql
->                                   [Copy tb cl (CopyFilename tfn1) Nothing]))
+>                                loadStatement conn (Copy tb cl (CopyFilename tfn1) Nothing))
 >     loadStatement conn st =
->         handleError fn $ runSqlCommand conn (printSql [st])
+>         handleError fn st $ runSqlCommand conn (printSql [st])
 >     loadPlpgsqlIntoDatabase conn = do
 >          -- first, check plpgsql is in the database
 >          x <- selectValue conn
@@ -145,14 +143,20 @@ though
  >                            _ -> 0
  >     getLineStuffLength l = length (l =~ "^LINE ([0-9]+):" :: String) + 1
 
-> handleError :: String -> IO () -> IO ()
-> handleError fn f = catchSql f
+> handleError :: String -> Tree.Statement -> IO () -> IO ()
+> handleError fn st f = catchSql f
 >                    (\e -> do
 >                      --s <- readFile fn
 >                      let (l,c) = getLineAndColumnFromErrorText (seErrorMsg e)
+>                      let (sl,sc) = getStatementPos st
 >                      error $ "ERROR!!!!\n"
->                                ++ fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n"
+>                                ++ show l ++ ":" ++ show c ++ ":\n"
+>                                ++ "from here:\n"
+>                                ++ fn ++ ":" ++ show sl ++ ":" ++ show sc ++ ":\n"
 >                                ++ seErrorMsg e)
+
+> getStatementPos (Insert (Just (SourcePos x y)) _ _ _ _) = (x,y)
+> getStatementPos _ = (0,0)
 
 ================================================================================
 

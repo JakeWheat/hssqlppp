@@ -489,7 +489,7 @@ simple insert
 >       p "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2);\n"
->       [Insert
+>       [Insert jsp
 >         "testtable"
 >         ["columna", "columnb"]
 >         (Values [[IntegerL 1, IntegerL 2]])
@@ -505,7 +505,7 @@ that should be in the select section?
 >      ,p "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2), (3,4);\n"
->       [Insert
+>       [Insert jsp
 >         "testtable"
 >         ["columna", "columnb"]
 >         (Values [[IntegerL 1, IntegerL 2]
@@ -516,14 +516,14 @@ insert from select
 
 >      ,p "insert into a\n\
 >          \    select b from c;"
->       [Insert "a" []
+>       [Insert jsp "a" []
 >        (selectFrom [selI "b"] (Tref "c"))
 >        Nothing]
 
 >      ,p "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2) returning id;\n"
->       [Insert
+>       [Insert jsp
 >         "testtable"
 >         ["columna", "columnb"]
 >         (Values [[IntegerL 1, IntegerL 2]])
@@ -1052,6 +1052,7 @@ complicated statements
 >           selectFromWhere selList frm whr =
 >             Select Dupes (SelectList selList [])
 >                    (Just frm) (Just whr) [] Nothing [] Asc Nothing Nothing
+>           jsp = Just $ SourcePos 1 1
 
 ================================================================================
 

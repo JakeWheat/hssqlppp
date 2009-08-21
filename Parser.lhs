@@ -291,7 +291,7 @@ http://book.realworldhaskell.org/read/using-parsec.html
 >              ,parsePlpgsql
 >               --convert a parse error to string plus some source
 >               --with highlights
->              ,showEr
+>              --,showEr
 >              )
 >     where
 
@@ -318,18 +318,19 @@ http://book.realworldhaskell.org/read/using-parsec.html
 parse fully formed sql
 
 > parseSql :: String -> Either ExtendedError [Statement]
-> parseSql s = convertToExtendedError (parse sqlStatements "(unknown)" s) s
+> parseSql s = convertToExtendedError (parse sqlStatements "(unknown)" s) "" s
 
 > parseSqlFile :: String -> IO (Either ExtendedError [Statement])
 > parseSqlFile s = do
 >   sc <- readFile s
 >   res <- parseFromFile sqlStatements s
->   return $ convertToExtendedError res sc
+>   return $ convertToExtendedError res s sc
 
 Parse expression fragment, used for testing purposes
 
 > parseExpression :: String -> Either ExtendedError Expression
-> parseExpression s = convertToExtendedError (parse (expr <* eof) "" s) s
+> parseExpression s = convertToExtendedError (parse (expr <* eof) "" s) "" s
+
 
 parse plpgsql statements, used for testing purposes
 
@@ -337,7 +338,7 @@ parse plpgsql statements, used for testing purposes
 > parsePlpgsql s =  convertToExtendedError (
 >                     parse (whitespace
 >                       *> many plPgsqlStatement
->                       <* eof) "(unknown)" s) s
+>                       <* eof) "(unknown)" s) "" s
 
 bit of boilerplate to allow errors to be displayed easily
 
@@ -348,10 +349,11 @@ bit of boilerplate to allow errors to be displayed easily
 
 > convertToExtendedError :: Either ParseError b
 >                        -> String
+>                        -> String
 >                        -> Either ExtendedError b
-> convertToExtendedError f src =
+> convertToExtendedError f fn src =
 >      case f of
->             Left er -> Left $ ExtendedError er (showEr er src)
+>             Left er -> Left $ ExtendedError er (showEr er fn src)
 >             Right l -> Right l
 
 
@@ -522,8 +524,11 @@ insert statement: supports option column name list,
 multiple rows to insert and insert from select statements
 
 > insert :: ParsecT String () Identity Statement
-> insert = trykeyword "insert" >> keyword "into" >>
->   Insert <$> identifierString
+> insert = do
+>   sp <- getPosition
+>   let sp1 = Just $ SourcePos (sourceLine sp) (sourceColumn sp)
+>   trykeyword "insert" >> keyword "into"
+>   Insert sp1 <$> identifierString
 >          <*> option [] (try columnNameList)
 >          <*> (select <|> values)
 >          <*> tryMaybeP returning
@@ -685,7 +690,7 @@ a string
 >                            --error and rethrow it
 >                            sp <- getPosition
 >                            error $ "in " ++ show sp
->                                      ++ ", " ++ showEr e (extrStr body)
+>                                      ++ ", " ++ showEr e "" (extrStr body)
 >                  Right body' -> return (quoteOfString body, body')
 
 
@@ -1532,8 +1537,8 @@ message, displays the line containing the error with a little hat
 pointing to the exact column below it, and some previous and next
 lines for context.
 
-> showEr :: ParseError -> String -> String
-> showEr er src =
+> showEr :: ParseError -> String -> String -> String
+> showEr er fn src =
 >     let  pos  = errorPos er
 >          lineNo = sourceLine pos
 >          ls = lines src
@@ -1546,6 +1551,7 @@ lines for context.
 >                               ++ [line, highlightLine, "ERROR HERE"]
 >                               ++ postlines
 >     in "\n---------------------\n" ++ show er
+>        ++ fn ++ ":" ++ show line ++ ":" ++ show colNo
 >        ++ "\n------------\nCheck it out:\n"
 >        ++ unlines (trimLines errorHighlightText)
 >        ++ "\n-----------------\n"

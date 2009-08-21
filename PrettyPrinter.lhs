@@ -48,7 +48,7 @@ Conversion routines - convert Sql asts into Docs
 
 == dml
 
-> convStatement (Insert tb atts idata rt) =
+> convStatement (Insert _ tb atts idata rt) =
 >   text "insert into" <+> text tb
 >   <+> ifNotEmpty (\a -> parens $ hcatCsvMap text a) atts
 >   $+$ convSelectFragment True idata
