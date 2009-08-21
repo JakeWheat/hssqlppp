@@ -47,7 +47,6 @@ part of parsing is being referred to.
 >              ,Tok(..)
 >              ,lexSqlFile
 >              ,lexSqlText
->              ,showEr
 >              ) where
 
 > import Text.Parsec hiding(many, optional, (<|>))
@@ -59,6 +58,8 @@ part of parsing is being referred to.
 > import Control.Monad.Identity
 
 > import Data.Char
+
+> import ParseErrors
 
 ================================================================================
 
@@ -76,11 +77,14 @@ part of parsing is being referred to.
 >          | CopyPayloadTok String -- support copy from stdin; with inline data
 >            deriving (Eq,Show)
 
-> lexSqlFile :: String -> IO (Either ParseError [Token])
-> lexSqlFile f = parseFromFile sqlTokens f
+> lexSqlFile :: FilePath -> IO (Either ExtendedError [Token])
+> lexSqlFile f = do
+>   te <- readFile f
+>   x <- parseFromFile sqlTokens f
+>   return $ convertToExtendedError x f te
 
-> lexSqlText :: String -> Either ParseError [Token]
-> lexSqlText s = parse sqlTokens "" s
+> lexSqlText :: String -> Either ExtendedError [Token]
+> lexSqlText s = convertToExtendedError (parse sqlTokens "" s) "" s
 
 ================================================================================
 
@@ -260,34 +264,3 @@ the fields are not used at all (like identifier and operator stuff)
 > opLetters :: String
 > opLetters = ".:^*/%+-<>=|!"
 
-================================================================================
-
-= error message thing
-
-convert error messages to show source text fragment with little hat,
-plus output error location in emacs friendly format.
-
-> showEr :: ParseError -> String -> String -> String
-> showEr er fn src =
->     let  pos  = errorPos er
->          lineNo = sourceLine pos
->          ls = lines src
->          line = safeGet ls(lineNo - 1)
->          prelines = map (safeGet ls) [(lineNo - 5) .. (lineNo - 2)]
->          postlines = map (safeGet ls) [lineNo .. (lineNo + 5)]
->          colNo = sourceColumn pos
->          highlightLine = replicate (colNo - 1) ' ' ++ "^"
->          errorHighlightText = prelines
->                               ++ [line, highlightLine, "ERROR HERE"]
->                               ++ postlines
->     in "\n---------------------\n" ++ show er
->        ++ "\n" ++ fn ++ ":" ++ show lineNo ++ ":" ++ show colNo
->        ++ "\n------------\nCheck it out:\n"
->        ++ unlines (trimLines errorHighlightText)
->        ++ "\n-----------------\n"
->     where
->       safeGet a i = if i < 0 || i >= length a
->                       then ""
->                       else a !! i
->       trimLines s = trimStartLines $ reverse $ trimStartLines $ reverse s
->       trimStartLines = dropWhile (=="")
