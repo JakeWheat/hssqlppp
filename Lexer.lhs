@@ -59,10 +59,7 @@ part of parsing is being referred to.
 
 = data types
 
-Todo: use token and sourcepos, just uses tok currently.
-
 > type Token = (SourcePos, Tok)
-
 
 > data Tok = SqlString String String --delim, value (delim will one of
 >                                    --', $$, $[stuff]$
@@ -93,24 +90,30 @@ stdin;", then special case it.
 >                    ) <* eof
 >   where
 >     copyFromStdin = do
->                     lexeme $ string "from"
->                     lexeme $ string "stdin"
->                     lexeme $ char ';'
->                     c <- copyPayload
->                     return [IdString "from"
->                             ,IdString "stdin"
->                             ,Symbol ';'
->                             , c]
+>                     fr <- lexId "from"
+>                     st <- lexId "stdin"
+>                     sem <- withPos $ Symbol ';' <$ lexeme (char ';')
+>                     cppl <- withPos copyPayload
+>                     return [fr,st,sem,cppl]
+>     lexId s = withPos $ IdString s <$ (lexeme $ string s)
+>     withPos p = do
+>                 pos <- getPosition
+>                 x <- p
+>                 return (pos, x)
 
 parser for an individual token, don't need to worry about copy from
 stdin from now on.
 
-> sqlToken = try sqlString
->            <|> try idString
->            <|> try positionalArg
->            <|> try sqlSymbol
->            <|> try sqlFloat
->            <|> try sqlInteger
+> sqlToken :: ParsecT String u Identity Token
+> sqlToken = do
+>            sp <- getPosition
+>            t <- (try sqlString
+>                  <|> try idString
+>                  <|> try positionalArg
+>                  <|> try sqlSymbol
+>                  <|> try sqlFloat
+>                  <|> try sqlInteger)
+>            return (sp,t)
 
 == specialized token parsers
 
