@@ -316,37 +316,39 @@ http://book.realworldhaskell.org/read/using-parsec.html
 parse fully formed sql
 
 > parseSql :: String -> Either ExtendedError [Statement]
-> parseSql s = case lexSqlText s of
->                Left er -> Left er
->                Right toks -> convertToExtendedError
->                                (parse sqlStatements "(unknown)" toks) "" s
+> parseSql s = parseIt (lexSqlText s) sqlStatements "" s
 
 > parseSqlFile :: String -> IO (Either ExtendedError [Statement])
 > parseSqlFile fn = do
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
->   return $ case x of
->                   Left er -> Left er
->                   Right toks -> convertToExtendedError
->                                   (parse sqlStatements fn toks) fn sc
+>   return $ parseIt x sqlStatements fn sc
 
 Parse expression fragment, used for testing purposes
 
 > parseExpression :: String -> Either ExtendedError Expression
-> parseExpression s = case lexSqlText s of
->                       Left er -> Left er
->                       Right toks -> convertToExtendedError
->                                       (parse (expr <* eof) "" toks) "" s
+> parseExpression s = parseIt (lexSqlText s) (expr <* eof) "" s
 
 
 parse plpgsql statements, used for testing purposes
 
 > parsePlpgsql :: String -> Either ExtendedError [Statement]
-> parsePlpgsql s =  case lexSqlText s of
->                       Left er -> Left er
->                       Right toks -> convertToExtendedError
->                                       (parse (many plPgsqlStatement <* eof)
->                                         "(unknown)" toks) "" s
+> parsePlpgsql s =  parseIt (lexSqlText s) (many plPgsqlStatement <* eof) "" s
+
+utility function to do error handling in one place
+
+ > parseIt :: (Stream s Identity t) =>
+ >            Either ExtendedError s
+ >         -> Parsec s () b
+ >         -> SourceName
+ >         -> String
+ >         -> Either ExtendedError b
+
+> parseIt lexed parser fn src =
+>     case lexed of
+>                Left er -> Left er
+>                Right toks -> convertToExtendedError
+>                                (parse parser fn toks) fn src
 
 ================================================================================
 
@@ -645,39 +647,74 @@ and provides a statement list for the body rather than just
 a string
 
 > createFunction :: ParsecT [Token] () Identity Statement
-> createFunction = undefined
+> createFunction = do
+>   trykeyword "function"
+>   fnName <- idString
+>   params <- parens $ commaSep param
+>   retType <- keyword "returns" *> typeName
+>   body <- keyword "as" *> stringVal
+>   lang <- readLang
+>   (q, b) <- parseBody lang body fnName
+>   CreateFunction lang fnName params retType q b <$> pVol
+>     where
+>         pVol = matchAKeyword [("volatile", Volatile)
+>                              ,("stable", Stable)
+>                              ,("immutable", Immutable)]
+>         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
+>                                                        ,("sql",Sql)]
+>         parseBody lang body fnName = do
+>             case (parseIt
+>                   (lexSqlText (extrStr body))
+>                   (functionBody lang)
+>                   ("function " ++ fnName)
+>                   (extrStr body)) of
+>                      Left e -> do
+>                            --if we have an error parsing the body,
+>                            --collect all the needed info from that
+>                            --error and rethrow it
+>                            sp <- getPosition
+>                            error $ "in " ++ show sp
+>                                      ++ ", " ++ show e
 
--- do
--- >   trykeyword "function"
--- >   fnName <- idString
--- >   params <- parens $ commaSep param
--- >   retType <- keyword "returns" *> typeName
--- >   body <- keyword "as" *> stringVal
--- >   lang <- readLang
--- >   (q, b) <- parseBody lang body fnName
--- >   CreateFunction lang fnName params retType q b <$> pVol
--- >     where
--- >         pVol = matchAKeyword [("volatile", Volatile)
--- >                              ,("stable", Stable)
--- >                              ,("immutable", Immutable)]
--- >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
--- >                                                        ,("sql",Sql)]
--- >         parseBody lang body fnName =
--- >             case parse
--- >               (functionBody lang)
--- >               ("function " ++ fnName)
--- >               (extrStr body) of
--- >                  Left e -> undefined
+>                      Right body' -> return (quoteOfString body, body')
 
--- -- > do
--- -- >                            --if we have an error parsing the body,
--- -- >                            --collect all the needed info from that
--- -- >                            --error and rethrow it
--- -- >                            sp <- getPosition
--- -- >                            error $ "in " ++ show sp
--- -- >                                      ++ ", " ++ showEr e "" (extrStr body)
+sql function is just a list of statements, the last one has the
+trailing semicolon optional
 
--- >                  Right body' -> return (quoteOfString body, body')
+>         functionBody Sql = do
+>            a <- many (try $ sqlStatement True)
+>            -- this makes my head hurt, should probably write out
+>            -- more longhand
+>            SqlFnBody <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
+
+plpgsql function has an optional declare section, plus the statements
+are enclosed in begin ... end; (semi colon after end is optional
+
+>         functionBody Plpgsql =
+>             PlpgsqlFnBody
+>             <$> option [] declarePart
+>             <*> statementPart
+>             where
+>               statementPart = keyword "begin"
+>                     *> many plPgsqlStatement
+>                     <* keyword "end" <* optional (symbol ';') <* eof
+>               declarePart = keyword "declare"
+>                   *> manyTill (try varDef) (lookAhead $ trykeyword "begin")
+
+params to a function
+
+> param :: ParsecT [Token] () Identity ParamDef
+> param = choice [
+>          try (ParamDef <$> idString <*> typeName)
+>         ,ParamDefTp <$> typeName]
+
+variable declarations in a plpgsql function
+
+> varDef :: ParsecT [Token] () Identity VarDef
+> varDef = VarDef
+>          <$> idString
+>          <*> typeName
+>          <*> tryMaybeP ((symbols ":=" <|> symbols "=")*> expr) <* symbol ';'
 
 
 > createView :: ParsecT [Token] () Identity Statement
@@ -880,54 +917,6 @@ bit too clever coming up
 >       whenSt = keyword "when" >>
 >                (,) <$> commaSep1 expr
 >                    <*> (keyword "then" *> many plPgsqlStatement)
-
-===============================================================================
-
-= statement components for plpgsql
-
-> functionBody :: Language -> ParsecT [Token] () Identity FnBody
-
-sql function is just a list of statements, the last one has the
-trailing semicolon optional
-
-> functionBody Sql = undefined
-
--- >   whitespace
--- >   a <- many (try $ sqlStatement True)
--- >   -- this makes my head hurt, should probably write out more longhand
--- >   SqlFnBody <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
-
-plpgsql function has an optional declare section, plus the statements
-are enclosed in begin ... end; (semi colon after end is optional
-
-> functionBody Plpgsql = undefined
-
--- >   whitespace >>
--- >   PlpgsqlFnBody
--- >   <$> option [] declarePart
--- >   <*> statementPart
--- >   where
--- >     statementPart = keyword "begin"
--- >                     *> many plPgsqlStatement
--- >                     <* keyword "end" <* optional semi <* eof
--- >     declarePart = keyword "declare"
--- >                   *> manyTill (try varDef) (lookAhead $ trykeyword "begin")
-
-params to a function
-
-> param :: ParsecT [Token] () Identity ParamDef
-> param = choice [
->          try (ParamDef <$> idString <*> typeName)
->         ,ParamDefTp <$> typeName]
-
-variable declarations in a plpgsql function
-
-> varDef :: ParsecT [Token] () Identity VarDef
-> varDef = VarDef
->          <$> idString
->          <*> typeName
->          <*> tryMaybeP ((symbols ":=" <|> symbols "=")*> expr) <* symbol ';'
-
 
 ================================================================================
 
@@ -1289,10 +1278,10 @@ from a StringLD or StringL, and the delimiters which were used
 > extrStr (StringL s) = s
 > extrStr x = error $ "extrStr not supported for this type " ++ show x
 
- > quoteOfString :: Expression -> String
- > quoteOfString (StringLD tag _) = "$" ++ tag ++ "$"
- > quoteOfString (StringL _) = "'"
- > quoteOfString x = error $ "quoteType not supported for this type " ++ show x
+> quoteOfString :: Expression -> String
+> quoteOfString (StringLD tag _) = "$" ++ tag ++ "$"
+> quoteOfString (StringL _) = "'"
+> quoteOfString x = error $ "quoteType not supported for this type " ++ show x
 
 == combinatory things
 
