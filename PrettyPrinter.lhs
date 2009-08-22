@@ -243,14 +243,15 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (Perform x) =
 >    error $ "convStatement not supported for " ++ show x
 
-> convStatement (Copy tb cols src payload) =
+> convStatement (Copy tb cols src) =
 >     text "copy" <+> text tb
 >     <+> ifNotEmpty (\cls -> parens (hcatCsvMap text cls)) cols
 >     <+> text "from" <+> case src of
 >                                  CopyFilename s -> quotes $ text s
 >                                  Stdin -> text "stdin"
 >     <> statementEnd
->     <> maybeConv (\p -> text p <> text "\\." <> newline) payload
+
+> convStatement (CopyData s) = text s <> text "\\." <> newline
 
 > convStatement (If conds els) =
 >    text "if" <+> convCond (head conds)
@@ -455,7 +456,7 @@ Conversion routines - convert Sql asts into Docs
 >             text "when" <+> hcatCsvMap convExp ex1
 >             <+> text "then" <+> convExp ex2
 
-> convExp (PositionalArg a) = text "$" <> int a
+> convExp (PositionalArg a) = text "$" <> integer a
 > convExp (Exists s) = text "exists" <+> parens (convSelectFragment True s)
 > convExp (Row r) = text "row" <> parens (hcatCsvMap convExp r)
 > convExp (ArraySub (Identifier i) s) = text i <> brackets (csvExp s)

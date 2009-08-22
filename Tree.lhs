@@ -45,8 +45,10 @@ dml
 >                | Update String [SetClause] (Maybe Expression) (Maybe SelectList)
 >                  --tablename, where, returning
 >                | Delete String (Maybe Expression) (Maybe SelectList)
->                  --tablename column names, from, inline data
->                | Copy String [String] CopySource (Maybe String)
+>                  --tablename column names, from
+>                | Copy String [String] CopySource
+>                  --represents inline data for copy statement
+>                | CopyData String
 >                | Truncate [String] RestartIdentity Cascade
 
 ddl
@@ -255,7 +257,7 @@ on which expressions can appear in different places.
 >                 | StringLD String String
 >                 | NullL
 >                 | BooleanL Bool
->                 | PositionalArg Int
+>                 | PositionalArg Integer
 >                 | CastKeyword Expression TypeName
 >                   -- sourcestring start length
 >                 | Substring Expression Expression Expression
