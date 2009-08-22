@@ -1265,8 +1265,7 @@ applicative operators
 > stringVal :: MyParser Expression
 > stringVal = mytoken (\tok ->
 >                   case tok of
->                            StringTok d s | d == "'" -> Just $ StringL s
->                                          | otherwise -> Just $ StringLD d s
+>                            StringTok d s -> Just $ StringL d s
 >                            _ -> Nothing)
 
 couple of helper functions which extract the actual string
@@ -1274,13 +1273,11 @@ from a StringLD or StringL, and the delimiters which were used
 (either ' or a dollar tag)
 
 > extrStr :: Expression -> String
-> extrStr (StringLD _ s) = s
-> extrStr (StringL s) = s
+> extrStr (StringL _ s) = s
 > extrStr x = error $ "extrStr not supported for this type " ++ show x
 
 > quoteOfString :: Expression -> String
-> quoteOfString (StringLD tag _) = "$" ++ tag ++ "$"
-> quoteOfString (StringL _) = "'"
+> quoteOfString (StringL tag _) = tag
 > quoteOfString x = error $ "quoteType not supported for this type " ++ show x
 
 == combinatory things

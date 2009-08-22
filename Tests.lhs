@@ -67,8 +67,8 @@ these tests reflect how pg seems to intrepret the variants.
 
 test some more really basic expressions
 
->      ,p "'test'" (StringL "test")
->      ,p "''" (StringL "")
+>      ,p "'test'" (stringQ "test")
+>      ,p "''" (stringQ "")
 >      ,p "hello" (Identifier "hello")
 >      ,p "helloTest" (Identifier "helloTest")
 >      ,p "hello_test" (Identifier "hello_test")
@@ -96,10 +96,10 @@ some operator tests
 >                     Plus (Identifier "tst1") (IntegerL 1))
 >      ,p "tst + tst1" (BinOpCall
 >                       Plus (Identifier "tst") (Identifier "tst1"))
->      ,p "'a' || 'b'" (BinOpCall Conc (StringL "a")
->                                              (StringL "b"))
+>      ,p "'a' || 'b'" (BinOpCall Conc (stringQ "a")
+>                                              (stringQ "b"))
 >      ,p "'stuff'::text" (BinOpCall
->                          Cast (StringL "stuff") (Identifier "text"))
+>                          Cast (stringQ "stuff") (Identifier "text"))
 >      ,p "245::float(24)" (BinOpCall
 >                          Cast (IntegerL 245)
 >                           (FunCall "float" [IntegerL 24]))
@@ -123,9 +123,9 @@ some function call tests
 
 >      ,p "fn()" (FunCall "fn" [])
 >      ,p "fn(1)" (FunCall "fn" [IntegerL 1])
->      ,p "fn('test')" (FunCall "fn" [StringL "test"])
->      ,p "fn(1,'test')" (FunCall "fn" [IntegerL 1, StringL "test"])
->      ,p "fn('test')" (FunCall "fn" [StringL "test"])
+>      ,p "fn('test')" (FunCall "fn" [stringQ "test"])
+>      ,p "fn(1,'test')" (FunCall "fn" [IntegerL 1, stringQ "test"])
+>      ,p "fn('test')" (FunCall "fn" [stringQ "test"])
 
 simple whitespace sanity checks
 
@@ -189,16 +189,16 @@ and dollar quoting, including nesting.
 
 >     ,testGroup "string parsing"
 >     (mapExpr [
->       p "''" (StringL "")
->      ,p "''''" (StringL "'")
->      ,p "'test'''" (StringL "test'")
->      ,p "'''test'" (StringL "'test")
->      ,p "'te''st'" (StringL "te'st")
->      ,p "$$test$$" (StringLD "" "test")
->      ,p "$$te'st$$" (StringLD "" "te'st")
->      ,p "$st$test$st$" (StringLD "st" "test")
->      ,p "$outer$te$$yup$$st$outer$" (StringLD "outer" "te$$yup$$st")
->      ,p "'spl$$it'" (StringL "spl$$it")
+>       p "''" (stringQ "")
+>      ,p "''''" (stringQ "'")
+>      ,p "'test'''" (stringQ "test'")
+>      ,p "'''test'" (stringQ "'test")
+>      ,p "'te''st'" (stringQ "te'st")
+>      ,p "$$test$$" (StringL "$$" "test")
+>      ,p "$$te'st$$" (StringL "$$" "te'st")
+>      ,p "$st$test$st$" (StringL "$st$" "test")
+>      ,p "$outer$te$$yup$$st$outer$" (StringL "$outer$" "te$$yup$$st")
+>      ,p "'spl$$it'" (stringQ "spl$$it")
 >      ])
 
 ================================================================================
@@ -628,7 +628,7 @@ other creates
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
 >       [CreateDomain "td" "text"
 >        (Just (InPredicate (Identifier "value") True
->               (InList [StringL "t1" ,StringL "t2"])))]
+>               (InList [stringQ "t1" ,stringQ "t2"])))]
 >      ,p "create type tp1 as (\n\
 >         \  f1 text,\n\
 >         \  f2 text\n\
@@ -746,7 +746,7 @@ check row, table
 >          [AttributeDef "f" "text" Nothing
 >           [RowCheckConstraint (InPredicate
 >                                   (Identifier "f") True
->                                   (InList [StringL "a", StringL "b"]))]] []]
+>                                   (InList [stringQ "a", stringQ "b"]))]] []]
 
 >      ,p "create table t1 (\n\
 >         \ x int,\n\
@@ -768,8 +768,8 @@ row, whole load of constraints, todo: add reference here
 >            ,RowUniqueConstraint
 >            ,RowCheckConstraint (InPredicate
 >                                    (Identifier "f") True
->                                    (InList [StringL "a"
->                                            ,StringL "b"]))]] []]
+>                                    (InList [stringQ "a"
+>                                            ,stringQ "b"]))]] []]
 
 reference row, table
 
@@ -887,7 +887,7 @@ test functions
 >        [ParamDef "a" $ ArrayType $ SimpleType "text"]
 >        (ArrayType $ SimpleType "int") "$$"
 >        (PlpgsqlFnBody
->         [VarDef "b" (ArrayType $ SimpleType "xtype") (Just $ StringL "{}")]
+>         [VarDef "b" (ArrayType $ SimpleType "xtype") (Just $ stringQ "{}")]
 >         [NullStatement])
 >        Immutable]
 >      ,p "create function fn() returns void as '\n\
@@ -956,7 +956,7 @@ simple statements
 >      ,p "perform test(r.relvar_name || '_and_stuff');"
 >       [Perform $ FunCall "test" [
 >                     BinOpCall Conc (Identifier "r.relvar_name")
->                                            (StringL "_and_stuff")]]
+>                                            (stringQ "_and_stuff")]]
 >      ,p "select into a,b c,d from e;"
 >       [Select Dupes (SelectList [selI "c", selI "d"] ["a", "b"])
 >                   (Just $ Tref "e") Nothing [] Nothing [] Asc Nothing Nothing]
@@ -1053,6 +1053,7 @@ complicated statements
 >           selectFromWhere selList frm whr =
 >             Select Dupes (SelectList selList [])
 >                    (Just frm) (Just whr) [] Nothing [] Asc Nothing Nothing
+>           stringQ = StringL "'"
 
 ================================================================================
 
@@ -1089,86 +1090,3 @@ parse and then pretty print and parse an expression
 >               Left er -> error $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >               Right l -> l
 >   assertEqual ("reparse " ++ pp) ast ast''
-
- > parseSqlThrow :: String -> [Statement]
- > parseSqlThrow s =
- >     case parseSql s of
- >       Left er -> error $ "parse " ++ showEr er s ++ "****" ++ s ++ "****"
- >       Right l -> l
-
-================================================================================
-
-Properties
-
-WELL STALE
-
-Scaffolding to generate random asts which are checked by pretty printing then
-parsing them
-
-property
-
--- > prop_statements_ppp :: [Statement] -> Bool
--- > prop_statements_ppp s = parseSqlThrow (printSql s) == s
-
--- > prop_expression_ppp :: Expression -> Bool
--- > prop_expression_ppp s = parseExpressionThrow (printExpression s) == s
-
--- > parseExpressionThrow :: String -> Expression
--- > parseExpressionThrow s =
--- >     case parseExpression s of
--- >       Left er -> error $ "parse " ++ show er ++ "****" ++ s ++ "****"
--- >       Right l -> l
-
-
-
--- arbitrary instances
-
--- > instance Arbitrary Expression where
--- >     arbitrary = oneof [
--- >                  liftM3 BinOpCall arbitrary arbitrary arbitrary
--- >                 ,liftM IntegerL arbitrary
--- >                 ,liftM StringL aString
--- >                 ,liftM BooleanL arbitrary
--- >                 ,liftM Identifier aIdentifier
--- >                 ,liftM2 FunCall aIdentifier arbitrary
--- >                 ]
-
--- > instance Arbitrary Statement where
--- >     arbitrary = oneof [
--- >                  liftM selectE arbitrary
--- >                 ,liftM3 Select arbitrary aIdentifier arbitrary
--- >                 ,liftM2 CreateTable aIdentifier arbitrary
--- >                 ,liftM3 Insert aIdentifier arbitrary arbitrary
--- >                 ,liftM3 Update aIdentifier arbitrary arbitrary
--- >                 ]
-
-
--- > instance Arbitrary Op where
--- >     arbitrary = elements [Plus, Minus, Mult, Div, Pow, Mod, Eql]
-
--- > instance Arbitrary SelectList where
--- >     arbitrary = oneof [
--- >                  liftM SelectList arbitrary
--- >                 ,return Star
--- >                 ]
-
--- > instance Arbitrary AttributeDef where
--- >     arbitrary = liftM3 AttributeDef aIdentifier aIdentifier arbitrary
-
--- > instance Arbitrary SetClause where
--- >     arbitrary = liftM2 SetClause aIdentifier arbitrary
-
--- > instance Arbitrary Where where
--- >     arbitrary = liftM Where arbitrary
-
--- some gen helpers
-
--- > aString :: Gen String
--- > aString = listOf1 $ choose ('\32', '\126')
-
--- > aIdentifier :: Gen String
--- > aIdentifier = do
--- >   start <- elements letter
--- >   suffix <- listOf $ elements $ letter ++ "_" ++ ['0' .. '9']
--- >   return (start : suffix)
--- >               where letter = ['A'..'Z'] ++ ['a' .. 'z']

@@ -253,8 +253,7 @@ on which expressions can appear in different places.
 > data Expression =
 >                   IntegerL Integer
 >                 | FloatL Double
->                 | StringL String
->                 | StringLD String String
+>                 | StringL String String
 >                 | NullL
 >                 | BooleanL Bool
 >                 | PositionalArg Integer

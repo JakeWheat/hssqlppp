@@ -215,7 +215,7 @@ Conversion routines - convert Sql asts into Docs
 >                 RNotice -> text "notice"
 >                 RException -> text "exception"
 >                 RError -> text "error"
->     <+> convExp (StringL st)
+>     <+> convExp (StringL "'" st)
 >     <> ifNotEmpty (\e -> comma <+> csvExp e) exps
 >     <> statementEnd
 
@@ -404,9 +404,11 @@ Conversion routines - convert Sql asts into Docs
 > convExp (Identifier i) = text i
 > convExp (IntegerL n) = integer n
 > convExp (FloatL n) = double n
-> convExp (StringL s) = quotes $ text $ replace "'" "''" s
-> convExp (StringLD t s) = tag <> text s <> tag
->     where tag = text "$" <> text t <> text "$"
+> convExp (StringL tag s) = text tag <> text replaceQuotes <> text tag
+>                           where
+>                             replaceQuotes = if tag == "'"
+>                                               then replace "'" "''" s
+>                                               else s
 
 > convExp (FunCall i as) = text i <> parens (csvExp as)
 
