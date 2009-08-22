@@ -15,7 +15,7 @@ copy payload (used to lex copy from stdin data)
 The symbol element is single symbol character:
 
 approach 1:
-try to keep whole symbols as single lexical items
+try to keep multi symbol operators as single lexical items
 (e.g. "==", "~=="
 
 approach 2:
@@ -42,8 +42,8 @@ Most of this isn't relevant for the current lexer.
 
 Don't know if its proper vernaculaic usage, but the docs in this file
 refer to the parsers which form the lexing stage as lexers, and the
-parsers which use the lexed tokens as parses, to make it clear which
-part of parsing is being referred to.
+parsers which use the lexed tokens as parsers, to make it clear which
+part of parsing is being referred to. If that makes sense?
 
 > module Lexer (
 >               Token
@@ -116,10 +116,7 @@ stdin;", then special case it.
 >                     cppl <- withPos copyPayload
 >                     return [fr,st,sem,cppl]
 >     lexId s = withPos $ IdStringTok s <$ lexeme (string s)
->     withPos p = do
->                 pos <- getPosition
->                 x <- p
->                 return (pos, x)
+>     withPos p = (,) <$> getPosition <*> p
 
 parser for an individual token, don't need to worry about copy from
 stdin from now on.

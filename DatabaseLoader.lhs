@@ -65,7 +65,8 @@ pretty printed stuff, don't know how much help this will be.
 >     --(which libpq does support - adding this properly should be a todo)
 >     --we need the copy from stdin and the copydata to be processed in one go,
 >     --so filter the list to replace instances of these with a replacement
->     --and a dummy statement following
+>     --and a dummy statement following. Well dodgy, don't really know
+>     --how it manages to work correctly.
 >     filterStatements sts =
 >        map (\(x,y) ->
 >                 case (x,y) of

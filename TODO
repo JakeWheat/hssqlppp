@@ -73,7 +73,7 @@ in general, parsing operators is wrong, the lexer needs to be able to
    what happens at the moment is a kludge, also, general operator
    parsing will change how operators are represented in the ast
 
-other ideas:
+other ideas (some of this stuff is ridiculously ambitious):
 
 add a exe to help checking the parse/pretty print round trip
 using postgresl - take a sql script, parse and pretty print it to a
@@ -146,7 +146,7 @@ and get the type of the relational valued expression
    http://lindstroem.wordpress.com/2008/09/18/metahdbc-paper-draft/
    which is the ability to use type inference to determine that the
    value of an relation valued expression contains exactly one
-   tuple. Darwen et al.s' (puntuation?) approach
+   tuple. Darwen et al.s' (punctuation?) approach
 
    I'm particularly keen on being able to definitively say whether a
    given column in a relation valued expression can or can't be
@@ -155,7 +155,7 @@ and get the type of the relational valued expression
 
 Mads Lindstrøm makes an excellent argument on the above thread for a
    pragmatic approach to accessing sql databases from Haskell,
-   avoiding dsls and the like.  Supporting such an approach using this
+   avoiding dsls and the like. Supporting such an approach using this
    parser to do type inference on regular sql code for use within
    MetaHDBC and similar systems should be a major goal for this
    library, separate from my megalomaniac ideas about extension

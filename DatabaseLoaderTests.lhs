@@ -2,6 +2,10 @@
 
 Copyright 2009 Jake Wheat
 
+TODO: the point of these tests will be to check the line and column
+mapping from parsed and pretty printed sql back to the original source
+text.
+
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit

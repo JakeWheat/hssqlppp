@@ -22,6 +22,9 @@ are familiar with do notation). Mostly a crash course in using
 Applicative, probably these docs will be uninteresting if you can
 easily understand the first code snippet below.
 
+TODO: this doesn't really belong here, should be in a separate file or
+blog post or something.
+
 Here is a version of the delete parser which parses stuff like:
 
 delete from [tablename] [where]? [returning]?
@@ -174,40 +177,12 @@ if we use *> instead of >> at the top, we need to use (), this is why
 (The code prefers *> in places where *> and >> are interchangeable
 without adding ().)
 
-There are lots of little idioms in the code, which is an ongoing
-effort, please comment if they are too obtuse or you think of some
-better/additional ones.
-
-One other tip is that when coding with <*> <$> *>, etc it can be a bit
-confusing where parens are needed. One way of coping is to write code
-using one of the existing parsers as a template, copying the layout of
-indentation and () usage, adding plenty of extra () where you're not
-sure.
-
-After it compiles and tests ok, run hlint and it will tell you which
-() are redundant and you can fix the code. After a while you get the
-hang of it (and hopefully the type checking and tests catch
-mistakes). (Don't just do what hlint says blindly because it gets
-confused in some places and you'll end up with the code not compiling,
-also run the tests after changing the code in this way, although it's
-pretty rare to see this with the latest versions of hlint.)
-
 Few of other notes:
-
-The trys follow a pattern which attempts to lead to better error
-messages.
 
 Near the bottom of this file are two parser combinators:
 parseOptionalSuffix, and parseOptionalSuffixThreaded (which were named
 by a recovering java programmer), which have some long winded docs on
 how they work if it isn't obvious where they're used.
-
-One thing you might miss if you're unfamiliar with parsec is the
-whitespace handling - this code uses lexeme style which is documented
-in the parsec tutorial. Most of the whitespace handling is fully
-implicit which aids readability but it helps if you're aware how this
-is happening. Sometimes different parsers are used in order to not
-skip whitespace e.g. using "char '.'" instead of "symbol '.'".
 
 Some further reference/reading:
 
@@ -1127,9 +1102,20 @@ fn() over ([partition bit]? [order bit]?)
 >              --can't use the full expression parser at this time
 >              --because of a conflict between the operator 'and' and
 >              --the 'and' part of a between
->              --possible solution is to parse a between as binopcall
->              --and (between a) b then fix it up with a second pass
->              --just bodging it for now
+
+From postgresql src/backend/parser/gram.y
+
+ * We have two expression types: a_expr is the unrestricted kind, and
+ * b_expr is a subset that must be used in some places to avoid shift/reduce
+ * conflicts.  For example, we can't do BETWEEN as "BETWEEN a_expr AND a_expr"
+ * because that use of AND conflicts with AND as a boolean operator.  So,
+ * b_expr is used in BETWEEN and we remove boolean keywords from b_expr.
+ *
+ * Note that '(' a_expr ')' is a b_expr, so an unrestricted expression can
+ * always be used by surrounding it with parens.
+
+Thanks to Sam Mason for the heads up on this.
+
 >              where
 >                dodgyParseElement =
 >                    choice [
