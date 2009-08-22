@@ -23,7 +23,10 @@ make each character a separate element
 e.g. == lexes to ['=', '=']
 then the parser sorts this out
 
-try approach 2 for now
+try approach 2 for now (THIS IS REALLY WRONG, will have to be fixed to
+parse full symbols at some point since the parser needs to distinguish
+between symbols with whitespace between them and with no whitespace
+between them)
 
 == notes on symbols in pg operators
 pg symbols can be made from:
@@ -70,7 +73,8 @@ part of parsing is being referred to.
 > data Tok = StringTok String String --delim, value (delim will one of
 >                                    --', $$, $[stuff]$
 >          | IdStringTok String --includes . and x.y.* type stuff
->          | SymbolTok Char --operators, and ()[],;
+>          | SymbolTok Char --operators, and ()[],;, have to do this after id
+>                           --cos id can contain . which is also a valid symbol
 >          | PositionalArgTok Integer -- $1, etc.
 >          | FloatTok Double
 >          | IntegerTok Integer
@@ -171,7 +175,7 @@ parse a dollar quoted string
 > positionalArg = char '$' >> PositionalArgTok <$> integer
 
 > sqlSymbol :: ParsecT String u Identity Tok
-> sqlSymbol = SymbolTok <$> lexeme (oneOf "+-*/<>=~!@#%^&|`?:()[],;")
+> sqlSymbol = SymbolTok <$> lexeme (oneOf "+-*/<>=~!@#%^&|`?:()[],;.")
 
 > sqlFloat :: ParsecT String u Identity Tok
 > sqlFloat = FloatTok <$> float

@@ -1071,10 +1071,13 @@ some custom parsers
 fix problem parsing <> - don't parse as "<" if it is immediately
 followed by ">"
 
->       lt _ f = Infix (dontFollowWith "<" ">" >> return f)
+>       lt _ f = Infix (dontFollowWith '<' '>' >> return f)
 
 >       dontFollowWith c1 c2 =
->         try $ symbols c1 -- *> notFollowedBy (symbols c2)
+>         try $ symbol c1 *> ((do
+>                                lookAhead $ symbol c2
+>                                fail "dont follow")
+>                             <|> return ())
 
 the first argument to these twp above is ignored, it is there so the
 symbol can appear in the operator table above for readability purposes
