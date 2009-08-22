@@ -428,7 +428,7 @@ recurses to support parsing excepts, unions, etc
 >              --works for the tests and the test sql files don't know
 >              --if these should be allowed as aliases without "" or
 >              --[]
->              if (map toLower x) `elem` ["as"
+>              if map toLower x `elem` ["as"
 >                          ,"where"
 >                          ,"except"
 >                          ,"union"
@@ -450,7 +450,7 @@ recurses to support parsing excepts, unions, etc
 
 > values :: ParsecT [Token] () Identity Statement
 > values = keyword "values" >>
->          Values <$> commaSep1 (parens $ commaSep1 $ expr)
+>          Values <$> commaSep1 (parens $ commaSep1 expr)
 
 
 = insert, update and delete
@@ -509,10 +509,10 @@ multiple rows to insert and insert from select statements
 >        return $ Copy tableName cols src
 
 > copyData :: ParsecT [Token] () Identity Statement
-> copyData = CopyData <$> (mytoken (\tok ->
+> copyData = CopyData <$> mytoken (\tok ->
 >                                         case tok of
 >                                                  CopyPayloadTok n -> Just n
->                                                  _ -> Nothing))
+>                                                  _ -> Nothing)
 
 = ddl
 
@@ -547,7 +547,7 @@ multiple rows to insert and insert from select statements
 >                                     (:[]) <$> idString
 >                                    ,parens (commaSep1 idString)])
 >                    ,CheckConstraint
->                    <$> try (keyword "check" *> parens (expr))
+>                    <$> try (keyword "check" *> parens expr)
 >                    ,ReferenceConstraint
 >                    <$> try (keyword "foreign" *> keyword "key"
 >                             *> parens (commaSep1 idString))
@@ -604,7 +604,7 @@ a string
 >                              ,("immutable", Immutable)]
 >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
 >                                                        ,("sql",Sql)]
->         parseBody lang body fnName = do
+>         parseBody lang body fnName =
 >             case (parseIt
 >                   (lexSqlText (extrStr body))
 >                   (functionBody lang)
@@ -670,7 +670,7 @@ variable declarations in a plpgsql function
 >                CreateDomain
 >                <$> idString
 >                <*> (tryMaybeP (keyword "as") *> idString)
->                <*> tryMaybeP (keyword "check" *> parens (expr))
+>                <*> tryMaybeP (keyword "check" *> parens expr)
 
 > dropSomething :: ParsecT [Token] () Identity Statement
 > dropSomething = do
@@ -1011,7 +1011,7 @@ syntactical novelty
 >       --postfixk s f
 >       --   = Postfix (try (keyword s >> return f))
 >       postfixks ss f
->          = Postfix (try ((mapM_ keyword ss) >> return f))
+>          = Postfix (try (mapM_ keyword ss >> return f))
 
 some custom parsers
 
@@ -1167,21 +1167,17 @@ keyword has to not be immediately followed by letters or numbers
 identifier which happens to start with a complete keyword
 
 > keyword :: String -> ParsecT [Token] () Identity String
-> keyword k = idStringMatchCase k
+> keyword k = mytoken (\tok ->
+>                                case tok of
+>                                IdStringTok i | lcase k == lcase i -> Just k
+>                                _ -> Nothing)
+>                       where
+>                         lcase = map toLower
 
 > idString :: MyParser String
 > idString = mytoken (\tok -> case tok of
 >                                      IdStringTok i -> Just i
 >                                      _ -> Nothing)
-
-> idStringMatchCase :: String -> MyParser String
-> idStringMatchCase s = mytoken (\tok ->
->                                case tok of
->                                IdStringTok i | lcase s == lcase i -> Just i
->                                _ -> Nothing)
->                       where
->                         lcase = map toLower
-
 
 > symbol :: Char -> MyParser Char
 > symbol c = mytoken (\tok -> case tok of
@@ -1197,16 +1193,14 @@ identifier which happens to start with a complete keyword
 >                                     _ -> Nothing)
 
 > positionalArg :: ParsecT [Token] () Identity Expression
-> positionalArg = PositionalArg <$> (mytoken (\tok -> case tok of
+> positionalArg = PositionalArg <$> mytoken (\tok -> case tok of
 >                                     PositionalArgTok n -> Just n
->                                     _ -> Nothing))
-
+>                                     _ -> Nothing)
 
 > float :: MyParser Double
 > float = mytoken (\tok -> case tok of
 >                                     FloatTok n -> Just n
 >                                     _ -> Nothing)
-
 
 > stringVal :: MyParser Expression
 > stringVal = mytoken (\tok ->
@@ -1230,11 +1224,11 @@ from a StringLD or StringL, and the delimiters which were used
 
 > parens :: ParsecT [Token] () Identity a
 >        -> ParsecT [Token] () Identity a
-> parens p  = between (symbol '(') (symbol ')') p
+> parens = between (symbol '(') (symbol ')')
 
 > squares :: ParsecT [Token] () Identity a
 >        -> ParsecT [Token] () Identity a
-> squares p  = between (symbol '[') (symbol ']') p
+> squares = between (symbol '[') (symbol ']')
 
 > tryMaybeP :: (Stream s m t) =>
 >              ParsecT s u m a -> ParsecT s u m (Maybe a)
@@ -1371,7 +1365,7 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 
 == lexer stuff
 
-> type MyParser a   = GenParser Token () a
+> type MyParser = GenParser Token ()
 
 > mytoken :: (Tok -> Maybe a) -> MyParser a
 > mytoken test
@@ -1380,4 +1374,3 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >   showToken (_,tok)   = show tok
 >   posToken  (pos,_)   = pos
 >   testToken (_,tok)   = test tok
-

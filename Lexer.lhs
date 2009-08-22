@@ -115,7 +115,7 @@ stdin;", then special case it.
 >                     sem <- withPos $ SymbolTok ';' <$ lexeme (char ';')
 >                     cppl <- withPos copyPayload
 >                     return [fr,st,sem,cppl]
->     lexId s = withPos $ IdStringTok s <$ (lexeme $ string s)
+>     lexId s = withPos $ IdStringTok s <$ lexeme (string s)
 >     withPos p = do
 >                 pos <- getPosition
 >                 x <- p
@@ -191,14 +191,14 @@ include dots, * in all identifier strings during lexing. This parser
 is also used for keywords, so identifiers and keywords aren't distinguished
 until during proper parsing
 
-> identifierString :: ParsecT [Char] u Identity [Char]
-> identifierString = (lexeme $ choice [
+> identifierString :: ParsecT String u Identity String
+> identifierString = lexeme $ choice [
 >                     "*" <$ symbol "*"
 >                    ,do
 >                      a <- nonStarPart
 >                      b <- tryMaybeP ((++) <$> symbol "." <*> identifierString)
 >                      case b of Nothing -> return a
->                                Just c -> return $ a ++ c])
+>                                Just c -> return $ a ++ c]
 >   where
 >     nonStarPart = letter <:> secondOnwards
 >     secondOnwards = many (alphaNum <|> char '_')
@@ -207,7 +207,7 @@ parse the block of inline data for a copy from stdin, ends with \. on
 its own on a line
 
 > copyPayload :: ParsecT String u Identity Tok
-> copyPayload = CopyPayloadTok <$> (lexeme (getLinesTillMatches "\\.\n"))
+> copyPayload = CopyPayloadTok <$> lexeme (getLinesTillMatches "\\.\n")
 >   where
 >     getLinesTillMatches s = do
 >                             x <- getALine

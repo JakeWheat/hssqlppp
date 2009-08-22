@@ -13,7 +13,6 @@ Copyright 2009 Jake Wheat
 >   x <- lexSqlFile f
 >   return ()
 >   case x of
->        Left er -> do
->            print er
+>        Left er -> print er
 >        Right l -> mapM_ print l
 

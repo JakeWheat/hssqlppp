@@ -853,8 +853,8 @@ test functions
 >        (SimpleType "text") "$$"
 >        (SqlFnBody
 >         [selectFromWhere [SelExp (Identifier "a")] (Tref "t1")
->          ((BinOpCall Eql
->            (Identifier "b") (PositionalArg 1)))])
+>          (BinOpCall Eql
+>           (Identifier "b") (PositionalArg 1))])
 >        Stable]
 >      ,p "create function fn() returns void as $$\n\
 >         \declare\n\
@@ -1081,10 +1081,10 @@ parse and then pretty print and parse an expression
 > checkParsePlpgsql src ast = parseUtil src ast parsePlpgsql printSql
 
 > parseUtil :: (Show t, Eq b, Show b) =>
->              [Char]
+>              String
 >           -> b
->           -> ([Char] -> Either t b)
->           -> (b -> [Char])
+>           -> (String -> Either t b)
+>           -> (b -> String)
 >           -> Test.Framework.Test
 > parseUtil src ast parser printer = testCase ("parse " ++ src) $ do
 >   let ast' = case parser src of

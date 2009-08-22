@@ -306,9 +306,13 @@ how feasible is it to parse the sql, then transform to a more
 relational algebra like set of nodes to work with, then transform
 these nodes back to sql nodes, then can pretty print to load into pg?
 
+Probably too much hard work to translate sql->relational algebra->sql
+without the resultant sql code being horribly mangled, but hopefully
+not too hard to at least do relational algebra -> sql.
+
 Can then add a concrete syntax, parser and pretty printer for the
 relational algebra language, and completely move away from writing
-extended sql and instead using something more regular.
+extended sql and instead use something more regular.
 
 Possible concrete syntaxes could be lisp like (really easy to
 implement), haskell like (quite partial to this one - could later look

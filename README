@@ -147,7 +147,7 @@ manner myself.
 If you want another sql dialect supported and don't want to it
 yourself, please report that on the bug tracker.
 
-Report problems using the bug track on launchpad or by emailing me
+Report problems using the bug tracker on launchpad or by emailing me
 (see below for info).
 
 ================================================================================
@@ -204,7 +204,10 @@ Many things are missing at the moment, in particular
 This is a non-exhaustive list.
 
 Expression support is patchy, should work pretty well for a lot of
-simple stuff though.
+simple stuff though. There is a strong possibility that for some
+complex selects and expressions, the implicit precedence (that is,
+bits without enclosing parenthesis), may parse in the wrong
+direction. Please let me know if you encounter such an error.
 
 There is slightly more detail in the todo file about what sql isn't
 supported.

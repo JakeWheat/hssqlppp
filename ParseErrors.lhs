@@ -46,5 +46,5 @@ bit of boilerplate to allow errors to be displayed easily
 >       safeGet a i = if i < 0 || i >= length a
 >                       then ""
 >                       else a !! i
->       trimLines s = trimStartLines $ reverse $ trimStartLines $ reverse s
+>       trimLines = trimStartLines . reverse . trimStartLines . reverse
 >       trimStartLines = dropWhile (=="")
