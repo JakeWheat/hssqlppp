@@ -14,7 +14,6 @@ Copyright 2009 Jake Wheat
 >   return ()
 >   case x of
 >        Left er -> do
->            src <- readFile f
->            putStrLn $ showEr er f src
+>            print er
 >        Right l -> mapM_ print l
 
