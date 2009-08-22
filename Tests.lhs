@@ -27,7 +27,7 @@ There are no tests for invalid sql at the moment.
  > import Control.Monad
 
 > import Tree
-> import ParseWithLexerTest
+> import Parser
 > import PrettyPrinter
 
 > main :: IO ()

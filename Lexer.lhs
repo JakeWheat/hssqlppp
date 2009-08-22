@@ -188,7 +188,7 @@ is also used for keywords, so identifiers and keywords aren't distinguished
 until during proper parsing
 
 > identifierString :: ParsecT [Char] u Identity [Char]
-> identifierString = (liftM (map toLower)) (lexeme $ choice [
+> identifierString = (lexeme $ choice [
 >                     "*" <$ symbol "*"
 >                    ,do
 >                      a <- nonStarPart
