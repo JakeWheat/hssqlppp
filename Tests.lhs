@@ -117,7 +117,8 @@ some operator tests
 >      ,p "substring(a from 0 for (5 - 3))"
 >         (Substring (Identifier "a") (IntegerL 0)
 >          (BinOpCall Minus (IntegerL 5) (IntegerL 3)))
-
+>      ,p "a like b"
+>         (BinOpCall Like (Identifier "a") (Identifier "b"))
 
 some function call tests
 

@@ -1021,6 +1021,7 @@ syntactical novelty
 >         ,[prefix "-" (UnOpCall Neg)]
 >         ,[binary "^" (BinOpCall Pow) AssocLeft]
 >         ,[binary "*" (BinOpCall Mult) AssocLeft
+>          ,idHackBinary "*" (BinOpCall Mult) AssocLeft
 >          ,binary "/" (BinOpCall Div) AssocLeft
 >          ,binary "%" (BinOpCall Mod) AssocLeft]
 >         ,[binary "+" (BinOpCall Plus) AssocLeft
@@ -1038,7 +1039,7 @@ syntactical novelty
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
->         ,[binary "like" (BinOpCall Like) AssocNone
+>         ,[binaryk "like" (BinOpCall Like) AssocNone
 >          ,binary "!=" (BinOpCall NotEql) AssocNone]
 >          --(also ilike similar)
 >         ,[lt "<" (BinOpCall Lt) AssocNone
@@ -1055,6 +1056,10 @@ syntactical novelty
 >       --right whitespace behaviour
 >       binary s f
 >          = Infix (try (symbols s >> return f))
+>       -- * ends up being lexed as an id token rather than a symbol
+>       -- * token, so work around here
+>       idHackBinary s f
+>          = Infix (try (keyword s >> return f))
 >       prefix s f
 >          = Prefix (try (symbols s >> return f))
 >       binaryk s f
