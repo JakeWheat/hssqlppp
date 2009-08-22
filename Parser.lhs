@@ -914,8 +914,8 @@ since the start of a float looks like an integer. Have to use
 try not just because float starts like an integer, but also
 to cope with .. operator
 
->          ,try floatLit
->          ,integerLit
+>          ,try floatVal
+>          ,integerVal
 
 put the factors which start with keywords before the ones which start
 with a function, I think these all need try because functions can
@@ -924,13 +924,13 @@ tried after these. This claim might be wrong
 
 >          ,caseParse
 >          ,exists
->          ,try booleanLiteral
->          ,try nullL
+>          ,try booleanVal
+>          ,try nullVal
 
 do array before array sub, since array parses an array selector which
 looks exactly like an array subscript operator
 
->          ,array
+>          ,arrayVal
 >          ,try arraySub
 
 now the ones starting with a function name, since a function call
@@ -1066,11 +1066,11 @@ and () is a syntax error.
  > positionalArg :: ParsecT [Token] u Identity Expression
  > positionalArg = PositionalArg <$> (symbol '$' *> (fromInteger <$> integer))
 
-> floatLit :: ParsecT [Token] () Identity Expression
-> floatLit = FloatL <$> float
+> floatVal :: ParsecT [Token] () Identity Expression
+> floatVal = FloatVal <$> float
 
-> integerLit :: ParsecT [Token] () Identity Expression
-> integerLit = IntegerL <$> integer
+> integerVal :: ParsecT [Token] () Identity Expression
+> integerVal = IntegerVal <$> integer
 
 case - only supports 'case when condition' flavour and not 'case
 expression when value' currently
@@ -1088,16 +1088,16 @@ expression when value' currently
 > exists = keyword "exists" >>
 >          Exists <$> parens select
 
-> booleanLiteral :: ParsecT [Token] () Identity Expression
-> booleanLiteral = BooleanL <$> (True <$ keyword "true"
+> booleanVal :: ParsecT [Token] () Identity Expression
+> booleanVal = BooleanVal <$> (True <$ keyword "true"
 >                                <|> False <$ keyword "false")
 
-> nullL :: ParsecT [Token] () Identity Expression
-> nullL = NullL <$ keyword "null"
+> nullVal :: ParsecT [Token] () Identity Expression
+> nullVal = NullVal <$ keyword "null"
 
-> array :: ParsecT [Token] () Identity Expression
-> array = keyword "array" >>
->         ArrayL <$> squares (commaSep expr)
+> arrayVal :: ParsecT [Token] () Identity Expression
+> arrayVal = keyword "array" >>
+>            ArrayVal <$> squares (commaSep expr)
 
 when you put expr instead of identifier in arraysub, it stack
 overflows, not sure why.
@@ -1136,7 +1136,7 @@ fn() over ([partition bit]? [order bit]?)
 >                       functionCall
 >                      ,identifier
 >                      ,parens dodgyParseElement
->                      ,integerLit]
+>                      ,integerVal]
 
 > functionCall :: ParsecT [Token] () Identity Expression
 > functionCall = FunCall <$> idString <*> parens (commaSep expr)
@@ -1211,7 +1211,7 @@ identifier which happens to start with a complete keyword
 > stringVal :: MyParser Expression
 > stringVal = mytoken (\tok ->
 >                   case tok of
->                            StringTok d s -> Just $ StringL d s
+>                            StringTok d s -> Just $ StringVal d s
 >                            _ -> Nothing)
 
 couple of helper functions which extract the actual string
@@ -1219,11 +1219,11 @@ from a StringLD or StringL, and the delimiters which were used
 (either ' or a dollar tag)
 
 > extrStr :: Expression -> String
-> extrStr (StringL _ s) = s
+> extrStr (StringVal _ s) = s
 > extrStr x = error $ "extrStr not supported for this type " ++ show x
 
 > quoteOfString :: Expression -> String
-> quoteOfString (StringL tag _) = tag
+> quoteOfString (StringVal tag _) = tag
 > quoteOfString x = error $ "quoteType not supported for this type " ++ show x
 
 == combinatory things

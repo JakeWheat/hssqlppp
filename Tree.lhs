@@ -251,18 +251,18 @@ are chucked into one even though there are many restrictions
 on which expressions can appear in different places.
 
 > data Expression =
->                   IntegerL Integer
->                 | FloatL Double
->                 | StringL String String
->                 | NullL
->                 | BooleanL Bool
+>                   IntegerVal Integer
+>                 | FloatVal Double
+>                 | StringVal String String
+>                 | NullVal
+>                 | BooleanVal Bool
 >                 | PositionalArg Integer
 >                 | CastKeyword Expression TypeName
 >                   -- sourcestring start length
 >                 | Substring Expression Expression Expression
 >                 | Identifier String
 >                 | Row [Expression]
->                 | ArrayL [Expression]
+>                 | ArrayVal [Expression]
 >                 | Case [([Expression],Expression)] (Maybe Expression)
 >                 | Exists Statement
 >                 | BinOpCall BinOp Expression Expression

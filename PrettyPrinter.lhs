@@ -215,7 +215,7 @@ Conversion routines - convert Sql asts into Docs
 >                 RNotice -> text "notice"
 >                 RException -> text "exception"
 >                 RError -> text "error"
->     <+> convExp (StringL "'" st)
+>     <+> convExp (StringVal "'" st)
 >     <> ifNotEmpty (\e -> comma <+> csvExp e) exps
 >     <> statementEnd
 
@@ -402,9 +402,9 @@ Conversion routines - convert Sql asts into Docs
 
 > convExp :: Expression -> Doc
 > convExp (Identifier i) = text i
-> convExp (IntegerL n) = integer n
-> convExp (FloatL n) = double n
-> convExp (StringL tag s) = text tag <> text replaceQuotes <> text tag
+> convExp (IntegerVal n) = integer n
+> convExp (FloatVal n) = double n
+> convExp (StringVal tag s) = text tag <> text replaceQuotes <> text tag
 >                           where
 >                             replaceQuotes = if tag == "'"
 >                                               then replace "'" "''" s
@@ -424,15 +424,15 @@ Conversion routines - convert Sql asts into Docs
 >           Abs -> parens (text (unOpToSymbol op) <+> convExp a)
 >           Neg -> parens (text (unOpToSymbol op) <+> convExp a)
 
-> convExp (BooleanL b) = bool b
+> convExp (BooleanVal b) = bool b
 > convExp (InPredicate att t lst) =
 >   convExp att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
 >                        InList expr -> csvExp expr
 >                        InSelect sel -> convSelectFragment True sel)
 > convExp (ScalarSubQuery s) = parens (convSelectFragment True s)
-> convExp NullL = text "null"
-> convExp (ArrayL es) = text "array" <> brackets (csvExp es)
+> convExp NullVal = text "null"
+> convExp (ArrayVal es) = text "array" <> brackets (csvExp es)
 > convExp (WindowFn fn partition order asc) =
 >   convExp fn <+> text "over"
 >   <+> (if hp || ho
