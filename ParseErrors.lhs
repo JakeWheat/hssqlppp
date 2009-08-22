@@ -1,4 +1,7 @@
+Copyright 2009 Jake Wheat
 
+convert error messages to show source text fragment with little hat,
+plus output error location in emacs friendly format.
 
 > module ParseErrors (convertToExtendedError, ExtendedError) where
 
@@ -20,12 +23,6 @@ bit of boilerplate to allow errors to be displayed easily
 >             Left er -> Left $ ExtendedError er (showEr er fn src)
 >             Right l -> Right l
 
-================================================================================
-
-= error message thing
-
-convert error messages to show source text fragment with little hat,
-plus output error location in emacs friendly format.
 
 > showEr :: ParseError -> String -> String -> String
 > showEr er fn src =

@@ -80,9 +80,6 @@ using postgresl - take a sql script, parse and pretty print it to a
    useful for complicated views and functions.
 
 work on error reporting, add tests for malformed sql
-lex things properly, might speed up various parsing - won't need to
-   try parsing a piece of text to match with multiple keywords. Not
-   sure how to do this.
 
 fix up expression parser to support full range of pg operators and
    syntax with proper precedence
