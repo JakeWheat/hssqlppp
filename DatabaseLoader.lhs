@@ -46,18 +46,14 @@ pretty printed stuff, don't know how much help this will be.
 >          loadPlpgsqlIntoDatabase conn
 >          mapM_ (\st ->
 >                 loadStatement conn st
->                 >> putStr ".") ast
->     --hack cos we don't have support in hdbc for copy from stdin
->     --(which libpq does support - adding this properly should be a todo)
+>                 >> putStr ".") (filterStatements ast)
 >   where
->     loadStatement conn (Copy tb cl Stdin (Just payload)) = do
->         --save the data to a temp file and load from there
->         withTemporaryFile (\tfn -> do
->                                writeFile tfn payload
->                                tfn1 <- canonicalizePath tfn
->                                loadStatement conn (Copy tb cl (CopyFilename tfn1) Nothing))
->     loadStatement conn st =
->         handleError fn st $ runSqlCommand conn (printSql [st])
+>     loadStatement conn st = case st of
+>                               Skipit -> return ()
+>                               VanillaStatement vs ->
+>                                  handleError fn vs (runSqlCommand conn
+>                                                       (printSql [vs]))
+>                               CopyStdin a b -> runCopy conn a b
 >     loadPlpgsqlIntoDatabase conn = do
 >          -- first, check plpgsql is in the database
 >          x <- selectValue conn
@@ -65,6 +61,31 @@ pretty printed stuff, don't know how much help this will be.
 >          when (readInt x == 0) $
 >               runSqlCommand conn "create procedural language plpgsql;"
 >     readInt x = (read x)::Int
+>     --hack cos we don't have support in hdbc for copy from stdin
+>     --(which libpq does support - adding this properly should be a todo)
+>     --we need the copy from stdin and the copydata to be processed in one go,
+>     --so filter the list to replace instances of these with a replacement
+>     --and a dummy statement following
+>     filterStatements sts =
+>        map (\(x,y) ->
+>                 case (x,y) of
+>                        (a@(Copy _ _ Stdin), b@(CopyData _)) -> CopyStdin a b
+>                        (CopyData _, _) -> Skipit
+>                        (vs,_) -> VanillaStatement vs)
+>            (zip sts (tail sts ++ [NullStatement]))
+>     runCopy conn a b = case (a,b) of
+>                          (Copy tb cl Stdin, CopyData s) -> do
+>                            withTemporaryFile (\tfn -> do
+>                                writeFile tfn s
+>                                tfn1 <- canonicalizePath tfn
+>                                loadStatement conn
+>                                  (VanillaStatement (Copy tb cl
+>                                                     (CopyFilename tfn1))))
+>                          _ -> error "pattern match fail"
+
+> data Wrapper = CopyStdin Tree.Statement Tree.Statement
+>              | Skipit
+>              | VanillaStatement Tree.Statement
 
 ================================================================================
 
@@ -155,8 +176,10 @@ though
 >                                ++ fn ++ ":" ++ show sl ++ ":" ++ show sc ++ ":\n"
 >                                ++ seErrorMsg e)
 
-> getStatementPos (Insert (Just (SourcePos x y)) _ _ _ _) = (x,y)
-> getStatementPos _ = (0,0)
+ > getStatementPos (Insert (Just (SourcePos x y)) _ _ _ _) = (x,y)
+
+> getStatementPos :: t -> (Integer, Integer)
+> getStatementPos _ = (0::Integer,0::Integer)
 
 ================================================================================
 

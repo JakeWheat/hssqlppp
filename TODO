@@ -51,7 +51,8 @@ expressions:
 process string escapes, support dollar quoting and other quoting more
    robustly in the pretty printer
 full user operator support
-fix expression parser properly to handle things like between
+fix expression parser properly to handle things like between - see
+   grammar in pg source for info on how to do this
 [:] array slices
 aggregate: all and distinct
 multi dimensional arrays: selectors and subscripting
@@ -67,6 +68,10 @@ time zone
 geometric, text search, array operators <- should be covered by user
    operator stuff
 subquery operators: any, some, all
+in general, parsing operators is wrong, the lexer needs to be able to
+   lex sequences of symbols into single/multiple operators correctly,
+   what happens at the moment is a kludge, also, general operator
+   parsing will change how operators are represented in the ast
 
 other ideas:
 
@@ -80,9 +85,6 @@ using postgresl - take a sql script, parse and pretty print it to a
    useful for complicated views and functions.
 
 work on error reporting, add tests for malformed sql
-lex things properly, might speed up various parsing - won't need to
-   try parsing a piece of text to match with multiple keywords. Not
-   sure how to do this.
 
 fix up expression parser to support full range of pg operators and
    syntax with proper precedence
@@ -124,3 +126,47 @@ get property checker working again - one problem is that the pretty
    printer will reject some asts (which the parser cannot
    produce), and the parser will probably reject some invalid sql that
    the pretty printer will happily produce from some asts.
+
+use the type inferencer:
+take a relational valued expression (select, function returning table
+   or setof, etc) plus one of:
+  sql source of database
+  text description of database read using script which reads catalog
+  database connection info to read catalog live
+and get the type of the relational valued expression
+2) - generate a typesafe wrapper to get the value of this expression
+   from haskell (see MetaHDBC, if can get this working, will remove
+   the need for metahdbc to use odbc to get try and get the type of a
+   select statement, although it may still need to access the database
+   to read the catalogs e.g. to get the types of tables, functions and
+   views).
+
+   Another thing mentioned in connection to MetaHDBC is something that
+   is called singleton results in the thread at
+   http://lindstroem.wordpress.com/2008/09/18/metahdbc-paper-draft/
+   which is the ability to use type inference to determine that the
+   value of an relation valued expression contains exactly one
+   tuple. Darwen et al.s' (puntuation?) approach
+
+   I'm particularly keen on being able to definitively say whether a
+   given column in a relation valued expression can or can't be
+   null. (Something I noticed the otherwise pretty good type
+   inferencer in ms sql server 2005 was a bit crap at.)
+
+Mads Lindstrøm makes an excellent argument on the above thread for a
+   pragmatic approach to accessing sql databases from Haskell,
+   avoiding dsls and the like.  Supporting such an approach using this
+   parser to do type inference on regular sql code for use within
+   MetaHDBC and similar systems should be a major goal for this
+   library, separate from my megalomaniac ideas about extension
+   languages and stuff, and probably a higher priority too.
+
+plpgsql on 'roids:
+write libraries in haskell, and then write syntax extensions for
+   plpgsql using the extension mechanism to access these libs from
+   extended plpgsql e.g. ui lib written in haskell, accessed by syntax
+   extensions in plpgsql then can write the database and ui all in the
+   same source code in the same language, with first class support for
+   properly typed relation valued expressions, avoiding multiple
+   languages and mapping/'impedance mismatch' between database types
+   and types in the language you write the ui in.
