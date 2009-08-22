@@ -157,7 +157,12 @@ positional args used in sql and sometimes plpgsql functions
 >      ,p "$1" (PositionalArg 1)
 
 >      ,p "exists (select 1 from a)"
->       (Exists (selectFrom [SelExp (IntegerVal 1)] (Tref "a")))
+>       (Exists (makeSelect {
+>                 selSelectList = sle [(IntegerVal 1)]
+>                ,selTref = Just $ Tref "a"}))
+
+
+selectFrom [SelExp (IntegerVal 1)] (Tref "a")))
 
 in variants, including using row constructors
 
@@ -1047,6 +1052,7 @@ complicated statements
 >           selIL = map selI
 >           selI = SelExp . Identifier
 >           sl a = SelectList a []
+>           sle a = SelectList (map SelExp a) []
 >           selectE selList = Select Dupes selList Nothing Nothing [] Nothing [] Asc Nothing Nothing
 >           selectFrom selList frm =
 >             Select Dupes (SelectList selList [])

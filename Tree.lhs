@@ -25,15 +25,17 @@ instead put any statement - this type checks but is totally invalid.
 queries
 
 >                  -- | Select represents a select statement.
->                  -- The args are: distinct?, columns to select plus plpgsql into part,
->                  -- from?, where?,
->                  -- groupby, having, orderby,
->                  -- orderbydirection, limit, offset
->                  Select Distinct SelectList (Maybe TableRef) (Maybe Expression)
->                             --groupby having orderby
->                             [Expression] (Maybe Expression) [Expression]
->                             --orderby direction limit offset
->                             Direction (Maybe Expression) (Maybe Expression)
+>                  Select {
+>                          selDistinct :: Distinct
+>                         ,selSelectList :: SelectList
+>                         ,selTref :: (Maybe TableRef)
+>                         ,selWhere :: (Maybe Expression)
+>                         ,selGroupBy :: [Expression]
+>                         ,selHaving :: (Maybe Expression)
+>                         ,selOrderBy :: [Expression]
+>                         ,selDir :: Direction
+>                         ,selLimit :: (Maybe Expression)
+>                         ,selOffset ::(Maybe Expression)}
 >                | CombineSelect CombineType Statement Statement
 >                | Values [[Expression]]
 
@@ -278,3 +280,7 @@ on which expressions can appear in different places.
 
 > data InList = InList [Expression] | InSelect Statement
 >               deriving (Show,Eq)
+
+> makeSelect :: Statement
+> makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
+>                     Nothing Nothing [] Nothing [] Asc Nothing Nothing
