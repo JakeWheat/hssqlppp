@@ -1,11 +1,8 @@
+Copyright 2009 Jake Wheat
+
 = Extension system
 
-extension system constraint 1: provide hooks in the existing
-parser. The parser should be able to be run and only parse vanilla sql
-and plpgsql.
-
-Adding extensions should not involve modifying any of these files:
-parser, tree, pretty printer.
+== extension system usage
 
 There are two possible approaches to using extensions which alter what
 goes into the database:
@@ -25,6 +22,24 @@ by running psql using a little wrapper that only does this).
 Would like to support both approaches with a) being the usual way to
 use it, and b) being a way to produce vanilla plpgsql source files
 e.g. to load into a production system with pg but without ghc.
+
+== constraints on extension system:
+
+* provide hooks in the existing parser. The parser should be able to
+be run and only parse vanilla sql and plpgsql.
+
+* Adding extensions should not involve modifying any of these files:
+parser, tree, pretty printer.
+
+* current design will satisfy these:
+
+** No requirement to have ghc or hssqlppp installed on server to run
+   scripts - can generate a regular sql script and use standard pg
+   utils
+
+** Uses only plpgsql at runtime, so no running haskell code after the
+   database is setup (e.g. no extensions which require runtime support
+   from haskell code)
 
 = Flavours of extensions
 
@@ -291,9 +306,13 @@ how feasible is it to parse the sql, then transform to a more
 relational algebra like set of nodes to work with, then transform
 these nodes back to sql nodes, then can pretty print to load into pg?
 
+Probably too much hard work to translate sql->relational algebra->sql
+without the resultant sql code being horribly mangled, but hopefully
+not too hard to at least do relational algebra -> sql.
+
 Can then add a concrete syntax, parser and pretty printer for the
 relational algebra language, and completely move away from writing
-extended sql and instead using something more regular.
+extended sql and instead use something more regular.
 
 Possible concrete syntaxes could be lisp like (really easy to
 implement), haskell like (quite partial to this one - could later look

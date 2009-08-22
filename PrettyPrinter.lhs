@@ -50,7 +50,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (Insert tb atts idata rt) =
 >   text "insert into" <+> text tb
->   <+> ifNotEmpty (\a -> parens $ hcatCsvMap text a) atts
+>   <+> ifNotEmpty (parens . hcatCsvMap text) atts
 >   $+$ convSelectFragment True idata
 >   $+$ convReturning rt
 >   <> statementEnd
@@ -103,18 +103,19 @@ Conversion routines - convert Sql asts into Docs
 >                                 RowReferenceConstraint tb att ondel onupd ->
 >                                     text "references" <+> text tb
 >                                     <+> ifNotEmpty
->                                           (\at -> parens (hcatCsvMap text at)) att
+>                                           (parens . hcatCsvMap text) att
 >                                     <+> text "on delete" <+> convCasc ondel
 >                                     <+> text "on update" <+> convCasc onupd
 >                         )) cons)
->       convCon (UniqueConstraint c) = text "unique" <+> parens (hcatCsvMap text c)
+>       convCon (UniqueConstraint c) = text "unique"
+>                                      <+> parens (hcatCsvMap text c)
 >       convCon (PrimaryKeyConstraint p) = text "primary key"
 >                                          <+> parens (hcatCsvMap text p)
 >       convCon (CheckConstraint c) = text "check" <+> parens (convExp c)
 >       convCon (ReferenceConstraint at tb rat ondel onupd) =
 >         text "foreign key" <+> parens (hcatCsvMap text at)
 >         <+> text "references" <+> text tb
->         <+> ifNotEmpty (\rats -> parens (hcatCsvMap text rats)) rat
+>         <+> ifNotEmpty (parens . hcatCsvMap text) rat
 >         <+> text "on delete" <+> convCasc ondel
 >         <+> text "on update" <+> convCasc onupd
 
@@ -143,8 +144,8 @@ Conversion routines - convert Sql asts into Docs
 >     where
 >       convFnBody (SqlFnBody sts) = convNestedStatements sts
 >       convFnBody (PlpgsqlFnBody decls sts) =
->           (ifNotEmpty (\l -> text "declare"
->                   $+$ nest 2 (vcat $ map convVarDef l)) decls)
+>           ifNotEmpty (\l -> text "declare"
+>                   $+$ nest 2 (vcat $ map convVarDef l)) decls
 >           $+$ text "begin"
 >           $+$ convNestedStatements sts
 >           $+$ text "end;"
@@ -207,7 +208,8 @@ Conversion routines - convert Sql asts into Docs
 >     text "return" <+> text "next" <+> convExp ex <> statementEnd
 
 > convStatement (ReturnQuery sel) =
->     text "return" <+> text "query" <+> convSelectFragment True sel <> statementEnd
+>     text "return" <+> text "query"
+>     <+> convSelectFragment True sel <> statementEnd
 
 > convStatement (Raise rt st exps) =
 >     text "raise"
@@ -215,7 +217,7 @@ Conversion routines - convert Sql asts into Docs
 >                 RNotice -> text "notice"
 >                 RException -> text "exception"
 >                 RError -> text "error"
->     <+> convExp (StringL st)
+>     <+> convExp (StringVal "'" st)
 >     <> ifNotEmpty (\e -> comma <+> csvExp e) exps
 >     <> statementEnd
 
@@ -243,14 +245,15 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (Perform x) =
 >    error $ "convStatement not supported for " ++ show x
 
-> convStatement (Copy tb cols src payload) =
+> convStatement (Copy tb cols src) =
 >     text "copy" <+> text tb
->     <+> ifNotEmpty (\cls -> parens (hcatCsvMap text cls)) cols
+>     <+> ifNotEmpty (parens . hcatCsvMap text) cols
 >     <+> text "from" <+> case src of
 >                                  CopyFilename s -> quotes $ text s
 >                                  Stdin -> text "stdin"
 >     <> statementEnd
->     <> maybeConv (\p -> text p <> text "\\." <> newline) payload
+
+> convStatement (CopyData s) = text s <> text "\\." <> newline
 
 > convStatement (If conds els) =
 >    text "if" <+> convCond (head conds)
@@ -272,11 +275,9 @@ Conversion routines - convert Sql asts into Docs
 >                 $+$ convElseSt els
 >                 ) $+$ text "end case" <> statementEnd
 >     where
->       convWhenSt ex sts = text "when" <+> hcatCsvMap convExp ex <+> text "then"
->                           $+$ convNestedStatements sts
->       convElseSt sts = ifNotEmpty
->                         (\s -> text "else" $+$ convNestedStatements s)
->                         sts
+>       convWhenSt ex sts = text "when" <+> hcatCsvMap convExp ex
+>                           <+> text "then" $+$ convNestedStatements sts
+>       convElseSt = ifNotEmpty (\s -> text "else" $+$ convNestedStatements s)
 
 
 > statementEnd :: Doc
@@ -401,11 +402,13 @@ Conversion routines - convert Sql asts into Docs
 
 > convExp :: Expression -> Doc
 > convExp (Identifier i) = text i
-> convExp (IntegerL n) = integer n
-> convExp (FloatL n) = double n
-> convExp (StringL s) = quotes $ text $ replace "'" "''" s
-> convExp (StringLD t s) = tag <> text s <> tag
->     where tag = text "$" <> text t <> text "$"
+> convExp (IntegerVal n) = integer n
+> convExp (FloatVal n) = double n
+> convExp (StringVal tag s) = text tag <> text replaceQuotes <> text tag
+>                           where
+>                             replaceQuotes = if tag == "'"
+>                                               then replace "'" "''" s
+>                                               else s
 
 > convExp (FunCall i as) = text i <> parens (csvExp as)
 
@@ -421,15 +424,15 @@ Conversion routines - convert Sql asts into Docs
 >           Abs -> parens (text (unOpToSymbol op) <+> convExp a)
 >           Neg -> parens (text (unOpToSymbol op) <+> convExp a)
 
-> convExp (BooleanL b) = bool b
+> convExp (BooleanVal b) = bool b
 > convExp (InPredicate att t lst) =
 >   convExp att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
 >                        InList expr -> csvExp expr
 >                        InSelect sel -> convSelectFragment True sel)
 > convExp (ScalarSubQuery s) = parens (convSelectFragment True s)
-> convExp NullL = text "null"
-> convExp (ArrayL es) = text "array" <> brackets (csvExp es)
+> convExp NullVal = text "null"
+> convExp (ArrayVal es) = text "array" <> brackets (csvExp es)
 > convExp (WindowFn fn partition order asc) =
 >   convExp fn <+> text "over"
 >   <+> (if hp || ho
@@ -455,7 +458,7 @@ Conversion routines - convert Sql asts into Docs
 >             text "when" <+> hcatCsvMap convExp ex1
 >             <+> text "then" <+> convExp ex2
 
-> convExp (PositionalArg a) = text "$" <> int a
+> convExp (PositionalArg a) = text "$" <> integer a
 > convExp (Exists s) = text "exists" <+> parens (convSelectFragment True s)
 > convExp (Row r) = text "row" <> parens (hcatCsvMap convExp r)
 > convExp (ArraySub (Identifier i) s) = text i <> brackets (csvExp s)

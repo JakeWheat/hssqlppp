@@ -17,23 +17,23 @@ authentic the sql is and how much has been silently dropped on the floor
 > import PrettyPrinter
 
 > main :: IO ()
-> main = do
->   args <- getArgs
->   let f = head args
->   putStrLn $ "parsing " ++ show f
->   x <- parseSqlFile f
->   case x of
->        Left er -> putStrLn $ show er
->        Right l -> do
->            print l
->            putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
->            let pp = printSql l
->            putStrLn pp
->            --check roundtrip
->            case parseSql pp of
->              Left er -> do
->                     error $ "roundtrip failed: " ++ show er
->              Right l' -> if l == l'
->                            then putStrLn "roundtrip ok"
->                            else putStrLn "roundtrip failed: different ast"
->   return ()
+> main = getArgs >>= mapM_ parseFile
+>   where
+>     parseFile f = do
+>       putStrLn $ "parsing " ++ show f
+>       x <- parseSqlFile f
+>       case x of
+>            Left er -> print er
+>            Right l -> do
+>                --print l
+>                --putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
+>                putStrLn "parse ok"
+>                let pp = printSql l
+>                --putStrLn pp
+>                --check roundtrip
+>                case parseSql pp of
+>                  Left er -> error $ "roundtrip failed: " ++ show er
+>                  Right l' -> if l == l'
+>                                then putStrLn "roundtrip ok"
+>                                else putStrLn "roundtrip failed: different ast"
+>       return ()

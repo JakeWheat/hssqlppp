@@ -29,26 +29,26 @@ delete from [tablename] [where]? [returning]?
 This snippet will be used to illustrate some of the particular idioms
 in the code:
 
- delete = trykeyword "delete" >> keyword "from" >>
+ delete = keyword "delete" >> keyword "from" >>
           Delete
-          <$> identifierString
+          <$> idString
           <*> tryMaybeP whereClause
           <*> tryMaybeP returning
 
 We transform this in several stages through to vanilla do notation,
 this is equivalent to
 
-  delete = trykeyword "delete" >> keyword "from" >>
+  delete = keyword "delete" >> keyword "from" >>
            Delete
-           `liftM` identifierString
+           `liftM` idString
            `ap` tryMaybeP whereClause
            `ap` tryMaybeP returning
 
 (which in turn is equivalent to
 
- delete = trykeyword "delete" >> keyword "from" >>
+ delete = keyword "delete" >> keyword "from" >>
           liftM3 Delete
-                 identifierString
+                 idString
                  (tryMaybeP whereClause)
                  (tryMaybeP returning)
 
@@ -57,9 +57,9 @@ maybe this is a backward step)
 finally, in do notation it is:
 
  delete = do
-          trykeyword "delete"
+          keyword "delete"
           keyword "from"
-          i <- identifierString
+          i <- idString
           w <- tryMaybeP whereClause
           r <- tryMaybeP returning
           return $ Delete i w r
@@ -141,9 +141,9 @@ don't know if the precedence of (<:>) is the same as (:) though
 
 Returning to the delete parser:
 
- delete = trykeyword "delete" >> keyword "from" >>
+ delete = keyword "delete" >> keyword "from" >>
           Delete
-          <$> identifierString
+          <$> idString
           <*> tryMaybeP whereClause
           <*> tryMaybeP returning
 
@@ -154,83 +154,25 @@ there are some other notable aspects, in the bit before the 'Delete'.
   style replaced is this:
 
  delete = Delete
-          <$> (trykeyword "delete" *> keyword "from" *> identifierString)
+          <$> (keyword "delete" *> keyword "from" *> idString)
           <*> tryMaybeP whereClause
           <*> tryMaybeP returning
 
   which I think looks less clear.
 
-There are also a couple of tricks in this line which are connected to
-parsing the haskell code and precedence:
+One other note:
 
 if we use *> instead of >> at the top, we need to use (), this is why
  >> is chosen:
 
- delete = trykeyword "delete" *> keyword "from" *>
+ delete = keyword "delete" *> keyword "from" *>
           (Delete
-          <$> identifierString
+          <$> idString
           <*> tryMaybeP whereClause
           <*> tryMaybeP returning)
 
 (The code prefers *> in places where *> and >> are interchangeable
 without adding ().)
-
-trykeyword could be replaced:
-
- delete = try (keyword "delete") >> keyword "from" >>
-          Delete
-          <$> identifierString
-          <*> tryMaybeP whereClause
-          <*> tryMaybeP returning
-
-but it's extra brackets (trykeyword is only shorthand like this used
-in the code, since it appears all over and loads of () and $ get added
-without using trykeyword).
-
-One last aspect:
-
- delete = trykeyword "delete" >> keyword "from" >>
-          Delete
-          <$> identifierString
-          <*> tryMaybeP whereClause
-          <*> tryMaybeP returning
-
-Why is try used for delete but not for from? This is to help improve
-the error messages, see if you can work out why:
-
-Hint: try parsing the following three lines with the current code
-(errors in this code on purpose).
-
-delte from x;
-
-delete frm x;
-
-delete from x x x x;
-
-(Parse each line separately). You can use ghci and the function parseSql
-from the prompt, (load this file, Parser.lhs into ghci first) e.g.
-
-ghci> parseSql "delte from x;"
-
-Then change the delete code in this file to read:
-
-trykeyword "delete" *> trykeyword "from" *>
-...
-(try added on the keyword from parser)
-
-and parse the three lines above again.
-
-Finally, try this function
-
- delete = try (keyword "delete" >> keyword "from" >>
-               Delete
-               <$> identifierString
-               <*> tryMaybeP whereClause
-               <*> tryMaybeP returning)
-
-And parse the three lines above. (Notice the difference between the
-error messages. The trys are used to parse difficult sql syntax, but
-with this sort of effect in mind for error messages.)
 
 There are lots of little idioms in the code, which is an ongoing
 effort, please comment if they are too obtuse or you think of some
@@ -279,7 +221,7 @@ applicative parsing style taken from here:
 http://book.realworldhaskell.org/read/using-parsec.html
 (just over halfway down the page)
 
-> module Parser(
+> module Parser (
 >               --parse fully formed sql statements from a string
 >               parseSql
 >               --parse a file containing sql statements only
@@ -289,18 +231,15 @@ http://book.realworldhaskell.org/read/using-parsec.html
 >              ,parseExpression
 >              --parse fully formed plpgsql statements from a string
 >              ,parsePlpgsql
->               --convert a parse error to string plus some source
->               --with highlights
->              ,showEr
 >              )
 >     where
 
-> import Text.Parsec hiding(many, optional, (<|>))
-> import qualified Text.Parsec.Token as P
-> import Text.Parsec.Language
+> import Text.Parsec hiding(many, optional, (<|>), string)
+> --import qualified Text.Parsec.Token as P
+> --import Text.Parsec.Language
 > import Text.Parsec.Expr
 > import Text.Parsec.String
-> import Text.Parsec.Error
+> --import Text.Parsec.Error
 
 > import Control.Applicative
 > import Control.Monad.Identity
@@ -308,7 +247,8 @@ http://book.realworldhaskell.org/read/using-parsec.html
 > import Data.Maybe
 > import Data.Char
 
-
+> import Lexer
+> import ParseErrors
 > import Tree
 
 ===============================================================================
@@ -318,77 +258,74 @@ http://book.realworldhaskell.org/read/using-parsec.html
 parse fully formed sql
 
 > parseSql :: String -> Either ExtendedError [Statement]
-> parseSql s = convertToExtendedError (parse sqlStatements "(unknown)" s) s
+> parseSql s = parseIt (lexSqlText s) sqlStatements "" s
 
 > parseSqlFile :: String -> IO (Either ExtendedError [Statement])
-> parseSqlFile s = do
->   sc <- readFile s
->   res <- parseFromFile sqlStatements s
->   return $ convertToExtendedError res sc
+> parseSqlFile fn = do
+>   sc <- readFile fn
+>   x <- lexSqlFile fn
+>   return $ parseIt x sqlStatements fn sc
 
 Parse expression fragment, used for testing purposes
 
 > parseExpression :: String -> Either ExtendedError Expression
-> parseExpression s = convertToExtendedError (parse (expr <* eof) "" s) s
+> parseExpression s = parseIt (lexSqlText s) (expr <* eof) "" s
+
 
 parse plpgsql statements, used for testing purposes
 
 > parsePlpgsql :: String -> Either ExtendedError [Statement]
-> parsePlpgsql s =  convertToExtendedError (
->                     parse (whitespace
->                       *> many plPgsqlStatement
->                       <* eof) "(unknown)" s) s
+> parsePlpgsql s =  parseIt (lexSqlText s) (many plPgsqlStatement <* eof) "" s
 
-bit of boilerplate to allow errors to be displayed easily
+utility function to do error handling in one place
 
-> data ExtendedError = ExtendedError ParseError String
+ > parseIt :: (Stream s Identity t) =>
+ >            Either ExtendedError s
+ >         -> Parsec s () b
+ >         -> SourceName
+ >         -> String
+ >         -> Either ExtendedError b
 
-> instance Show ExtendedError where
->    show (ExtendedError _ x) = x
-
-> convertToExtendedError :: Either ParseError b
->                        -> String
->                        -> Either ExtendedError b
-> convertToExtendedError f src =
->      case f of
->             Left er -> Left $ ExtendedError er (showEr er src)
->             Right l -> Right l
-
+> parseIt lexed parser fn src =
+>     case lexed of
+>                Left er -> Left er
+>                Right toks -> convertToExtendedError
+>                                (parse parser fn toks) fn src
 
 ================================================================================
 
 = Parsing top level statements
 
-> sqlStatements :: ParsecT String () Identity [Statement]
-> sqlStatements = whitespace >>
->                 many (sqlStatement True)
->                 <* eof
+> sqlStatements :: ParsecT [Token] () Identity [Statement]
+> sqlStatements = many (sqlStatement True) <* eof
 
 parse a statement
 
-> sqlStatement :: Bool -> ParsecT String () Identity Statement
+> sqlStatement :: Bool -> ParsecT [Token] () Identity Statement
 > sqlStatement reqSemi = (choice [
->                         select
->                        ,values
->                        ,insert
->                        ,update
->                        ,delete
->                        ,truncateSt
->                        ,trykeyword "create" *>
+>                          select
+>                         ,values
+>                         ,insert
+>                         ,update
+>                         ,delete
+>                         ,truncateSt
+>                         ,copy
+>                         ,keyword "create" *>
 >                                    choice [
 >                                       createTable
 >                                      ,createType
 >                                      ,createFunction
 >                                      ,createView
 >                                      ,createDomain]
->                        ,trykeyword "drop" *>
+>                         ,keyword "drop" *>
 >                                    choice [
 >                                       dropSomething
 >                                      ,dropFunction]
->                        ]
->     <* (if reqSemi then semi >> return () else optional semi >> return ()))
->    --copy reads the semi colon itself to cope with possibly copying from stdin
->    <|> copy
+>                         ]
+>        <* (if reqSemi
+>              then symbol ';' >> return ()
+>              else optional (symbol ';') >> return ()))
+>       <|> copyData
 
 ================================================================================
 
@@ -407,22 +344,22 @@ or
 
 recurses to support parsing excepts, unions, etc
 
-> select :: ParsecT String () Identity Statement
+> select :: ParsecT [Token] () Identity Statement
 > select = do
->   trykeyword "select"
+>   keyword "select"
 >   s1 <- selQuerySpec
 >   choice [
 >     --don't know if this does associativity in the correct order for
 >     --statements with multiple excepts/ intersects and no parens
->     CombineSelect Except s1 <$> (trykeyword "except" *> select)
->    ,CombineSelect Intersect s1 <$> (trykeyword "intersect" *> select)
+>     CombineSelect Except s1 <$> (keyword "except" *> select)
+>    ,CombineSelect Intersect s1 <$> (keyword "intersect" *> select)
 >    ,CombineSelect UnionAll s1 <$> (try (keyword "union"
 >                                          *> keyword "all") *> select)
->    ,CombineSelect Union s1 <$> (trykeyword "union" *> select)
+>    ,CombineSelect Union s1 <$> (keyword "union" *> select)
 >    ,return s1]
 >   where
 >     selQuerySpec = Select
->                <$> option Dupes (Distinct <$ trykeyword "distinct")
+>                <$> option Dupes (Distinct <$ keyword "distinct")
 >                <*> selectList
 >                <*> tryMaybeP from
 >                <*> tryMaybeP whereClause
@@ -435,10 +372,10 @@ recurses to support parsing excepts, unions, etc
 >                <*> tryMaybeP limit
 >                <*> tryMaybeP offset
 >     from = keyword "from" *> tref
->     groupBy = trykeyword "group" *> keyword "by"
+>     groupBy = keyword "group" *> keyword "by"
 >               *> commaSep1 expr
->     having = trykeyword "having" *> expr
->     orderBy = trykeyword "order" *> keyword "by"
+>     having = keyword "having" *> expr
+>     orderBy = keyword "order" *> keyword "by"
 >               *> commaSep1 expr
 >     limit = keyword "limit" *> expr
 >     offset = keyword "offset" *> expr
@@ -454,13 +391,13 @@ recurses to support parsing excepts, unions, etc
 >     getFirstTref = choice [
 >                     SubTref
 >                     <$> parens select
->                     <*> (keyword "as" *> identifierString)
+>                     <*> (keyword "as" *> idString)
 >                    ,parseOptionalSuffix
 >                       TrefFun (try functionCall)
->                       TrefFunAlias () (trykeyword "as" *> identifierString)
+>                       TrefFunAlias () (keyword "as" *> idString)
 >                    ,parseOptionalSuffix
 >                       Tref nkwid
->                       TrefAlias () (optional (trykeyword "as") *> nkwid)]
+>                       TrefAlias () (optional (keyword "as") *> nkwid)]
 >     --joinpart: parse a join after the first part of the tableref
 >     --(which is a table name, aliased table name or subselect) -
 >     --takes this tableref as an arg so it can recurse to multiple
@@ -468,22 +405,22 @@ recurses to support parsing excepts, unions, etc
 >     joinPart tr1 = parseOptionalSuffixThreaded (readOneJoinPart tr1) joinPart
 >     readOneJoinPart tr1 = JoinedTref tr1
 >          --look for the join flavour first
->          <$> option Unnatural (Natural <$ trykeyword "natural")
+>          <$> option Unnatural (Natural <$ keyword "natural")
 >          <*> choice [
->             Inner <$ trykeyword "inner"
+>             Inner <$ keyword "inner"
 >            ,LeftOuter <$ try (keyword "left" *> keyword "outer")
 >            ,RightOuter <$ try (keyword "right" *> keyword "outer")
 >            ,FullOuter <$ try (keyword "full" >> keyword "outer")
->            ,Cross <$ trykeyword "cross"]
+>            ,Cross <$ keyword "cross"]
 >          --recurse back to tref to read the table
 >          <*> (keyword "join" *> tref)
 >          --now try and read the join condition
 >          <*> choice [
->              Just <$> (JoinOn <$> (trykeyword "on" *> expr))
->             ,Just <$> (JoinUsing <$> (trykeyword "using" *> columnNameList))
+>              Just <$> (JoinOn <$> (keyword "on" *> expr))
+>             ,Just <$> (JoinUsing <$> (keyword "using" *> columnNameList))
 >             ,return Nothing]
 >     nkwid = try $ do
->              x <- identifierString
+>              x <- idString
 >              --avoid all these keywords as aliases since they can
 >              --appear immediately following a tableref as the next
 >              --part of the statement, if we don't do this then lots
@@ -491,7 +428,7 @@ recurses to support parsing excepts, unions, etc
 >              --works for the tests and the test sql files don't know
 >              --if these should be allowed as aliases without "" or
 >              --[]
->              if (map toLower x) `elem` ["as"
+>              if map toLower x `elem` ["as"
 >                          ,"where"
 >                          ,"except"
 >                          ,"union"
@@ -511,48 +448,48 @@ recurses to support parsing excepts, unions, etc
 >                then fail "not keyword"
 >                else return x
 
-
-> values :: ParsecT String () Identity Statement
-> values = trykeyword "values" >>
+> values :: ParsecT [Token] () Identity Statement
+> values = keyword "values" >>
 >          Values <$> commaSep1 (parens $ commaSep1 expr)
+
 
 = insert, update and delete
 
 insert statement: supports option column name list,
 multiple rows to insert and insert from select statements
 
-> insert :: ParsecT String () Identity Statement
-> insert = trykeyword "insert" >> keyword "into" >>
->   Insert <$> identifierString
->          <*> option [] (try columnNameList)
->          <*> (select <|> values)
->          <*> tryMaybeP returning
+> insert :: ParsecT [Token] () Identity Statement
+> insert = keyword "insert" >> keyword "into" >>
+>          Insert <$> idString
+>                 <*> option [] (try columnNameList)
+>                 <*> (select <|> values)
+>                 <*> tryMaybeP returning
 
-> update :: ParsecT String () Identity Statement
-> update = trykeyword "update" >>
+> update :: ParsecT [Token] () Identity Statement
+> update = keyword "update" >>
 >          Update
->          <$> identifierString
+>          <$> idString
 >          <*> (keyword "set" *> commaSep1 setClause)
 >          <*> tryMaybeP whereClause
 >          <*> tryMaybeP returning
 >     where
 >       setClause = choice
->             [RowSetClause <$> parens (commaSep1 identifierString)
->                           <*> (symbol "=" *> parens (commaSep1 expr))
->             ,SetClause <$> identifierString
->                        <*> (symbol "=" *> expr)]
+>             [RowSetClause <$> parens (commaSep1 idString)
+>                           <*> (symbol '=' *> parens (commaSep1 expr))
+>             ,SetClause <$> idString
+>                        <*> (symbol '=' *> expr)]
 
-> delete :: ParsecT String () Identity Statement
-> delete = trykeyword "delete" >> keyword "from" >>
+> delete :: ParsecT [Token] () Identity Statement
+> delete = keyword "delete" >> keyword "from" >>
 >          Delete
->          <$> identifierString
+>          <$> idString
 >          <*> tryMaybeP whereClause
 >          <*> tryMaybeP returning
 
-> truncateSt :: ParsecT String () Identity Statement
-> truncateSt = trykeyword "truncate" >> optional (trykeyword "table") >>
+> truncateSt :: ParsecT [Token] () Identity Statement
+> truncateSt = keyword "truncate" >> optional (keyword "table") >>
 >            Truncate
->            <$> commaSep1 identifierString
+>            <$> commaSep1 idString
 >            <*> option ContinueIdentity (choice [
 >                                 ContinueIdentity <$ (keyword "continue"
 >                                                      <* keyword "identity")
@@ -560,38 +497,31 @@ multiple rows to insert and insert from select statements
 >                                                     <* keyword "identity")])
 >            <*> cascade
 
-> copy :: ParsecT String () Identity Statement
+> copy :: ParsecT [Token] () Identity Statement
 > copy = do
->        trykeyword "copy"
->        tableName <- identifierString
->        cols <- option [] (parens $ commaSep1 identifierString)
+>        keyword "copy"
+>        tableName <- idString
+>        cols <- option [] (parens $ commaSep1 idString)
 >        keyword "from"
 >        src <- choice [
->                CopyFilename <$> extrStr <$> stringLiteral
->               ,Stdin <$ string "stdin"]
->        semi
->        --read the copy data iff stdin is given
->        payload <- case src of
->                           CopyFilename _ -> return Nothing
->                           Stdin -> Just
->                                    <$> lexeme (getLinesTillMatches "\\.\n")
->        return $ Copy tableName cols src payload
->   where
->     getLinesTillMatches s = do
->                             x <- getALine
->                             if x == s
->                               then return ""
->                               else (x++) <$> getLinesTillMatches s
->     getALine = (++"\n") <$> manyTill anyChar (try newline)
+>                CopyFilename <$> extrStr <$> stringVal
+>               ,Stdin <$ keyword "stdin"]
+>        return $ Copy tableName cols src
+
+> copyData :: ParsecT [Token] () Identity Statement
+> copyData = CopyData <$> mytoken (\tok ->
+>                                         case tok of
+>                                                  CopyPayloadTok n -> Just n
+>                                                  _ -> Nothing)
 
 = ddl
 
-> createTable :: ParsecT String () Identity Statement
+> createTable :: ParsecT [Token] () Identity Statement
 > createTable = do
->   trykeyword "table"
->   tname <- identifierString
+>   keyword "table"
+>   tname <- idString
 >   choice [
->      CreateTableAs tname <$> (trykeyword "as" *> select)
+>      CreateTableAs tname <$> (keyword "as" *> select)
 >     ,uncurry (CreateTable tname) <$> readAttsAndCons]
 >   where
 >     --parse our unordered list of attribute defs or constraints for
@@ -601,28 +531,28 @@ multiple rows to insert and insert from select statements
 >     readAttsAndCons = parens (swap <$> parseABsep1
 >                                          (try tableConstr)
 >                                          tableAtt
->                                          (symbol ","))
+>                                          (symbol ','))
 >                       where swap (a,b) = (b,a)
 >     tableAtt = AttributeDef
->                <$> identifierString
->                <*> identifierString
+>                <$> idString
+>                <*> idString
 >                <*> tryMaybeP (keyword "default" *> expr)
->                <*> sepBy rowConstraint whitespace
+>                <*> many rowConstraint
 >     tableConstr = choice [
 >                    UniqueConstraint
 >                    <$> try (keyword "unique" *> columnNameList)
 >                    ,PrimaryKeyConstraint
 >                    <$> try (keyword "primary" *> keyword "key"
 >                             *> choice [
->                                     (:[]) <$> identifierString
->                                    ,parens (commaSep1 identifierString)])
+>                                     (:[]) <$> idString
+>                                    ,parens (commaSep1 idString)])
 >                    ,CheckConstraint
->                    <$> try (keyword "check" *> parens (expr))
+>                    <$> try (keyword "check" *> parens expr)
 >                    ,ReferenceConstraint
 >                    <$> try (keyword "foreign" *> keyword "key"
->                             *> parens (commaSep1 identifierString))
->                    <*> (keyword "references" *> identifierString)
->                    <*> option [] (parens $ commaSep1 identifierString)
+>                             *> parens (commaSep1 idString))
+>                    <*> (keyword "references" *> idString)
+>                    <*> option [] (parens $ commaSep1 idString)
 >                    <*> onDelete
 >                    <*> onUpdate]
 >     rowConstraint =
@@ -630,11 +560,11 @@ multiple rows to insert and insert from select statements
 >           RowUniqueConstraint <$ keyword "unique"
 >          ,RowPrimaryKeyConstraint <$ keyword "primary" <* keyword "key"
 >          ,RowCheckConstraint <$> (keyword "check" *> parens expr)
->          ,NullConstraint <$ trykeyword "null"
+>          ,NullConstraint <$ keyword "null"
 >          ,NotNullConstraint <$ (keyword "not" *> keyword "null")
 >          ,RowReferenceConstraint
->          <$> (trykeyword "references" *> identifierString)
->          <*> option [] (try $ parens $ many1 identifierString)
+>          <$> (keyword "references" *> idString)
+>          <*> option [] (try $ parens $ many1 idString)
 >          <*> onDelete
 >          <*> onUpdate
 >          ]
@@ -644,13 +574,13 @@ multiple rows to insert and insert from select statements
 >                    *> keyword k *> cascade
 
 
-> createType :: ParsecT String () Identity Statement
-> createType = trykeyword "type" >>
+> createType :: ParsecT [Token] () Identity Statement
+> createType = keyword "type" >>
 >              CreateType
->              <$> identifierString
+>              <$> idString
 >              <*> (keyword "as" *> parens (commaSep1 typeAtt))
 >   where
->     typeAtt = TypeAttDef <$> identifierString <*> identifierString
+>     typeAtt = TypeAttDef <$> idString <*> idString
 
 
 create function, support sql functions and
@@ -658,13 +588,13 @@ plpgsql functions. Actually parses the body in both cases
 and provides a statement list for the body rather than just
 a string
 
-> createFunction :: GenParser Char () Statement
+> createFunction :: ParsecT [Token] () Identity Statement
 > createFunction = do
->   trykeyword "function"
->   fnName <- identifierString
+>   keyword "function"
+>   fnName <- idString
 >   params <- parens $ commaSep param
 >   retType <- keyword "returns" *> typeName
->   body <- keyword "as" *> stringLiteral
+>   body <- keyword "as" *> stringVal
 >   lang <- readLang
 >   (q, b) <- parseBody lang body fnName
 >   CreateFunction lang fnName params retType q b <$> pVol
@@ -675,55 +605,95 @@ a string
 >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
 >                                                        ,("sql",Sql)]
 >         parseBody lang body fnName =
->             case parse
->               (functionBody lang)
->               ("function " ++ fnName)
->               (extrStr body) of
->                  Left e -> do
+>             case (parseIt
+>                   (lexSqlText (extrStr body))
+>                   (functionBody lang)
+>                   ("function " ++ fnName)
+>                   (extrStr body)) of
+>                      Left e -> do
 >                            --if we have an error parsing the body,
 >                            --collect all the needed info from that
 >                            --error and rethrow it
 >                            sp <- getPosition
 >                            error $ "in " ++ show sp
->                                      ++ ", " ++ showEr e (extrStr body)
->                  Right body' -> return (quoteOfString body, body')
+>                                      ++ ", " ++ show e
+
+>                      Right body' -> return (quoteOfString body, body')
+
+sql function is just a list of statements, the last one has the
+trailing semicolon optional
+
+>         functionBody Sql = do
+>            a <- many (try $ sqlStatement True)
+>            -- this makes my head hurt, should probably write out
+>            -- more longhand
+>            SqlFnBody <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
+
+plpgsql function has an optional declare section, plus the statements
+are enclosed in begin ... end; (semi colon after end is optional
+
+>         functionBody Plpgsql =
+>             PlpgsqlFnBody
+>             <$> option [] declarePart
+>             <*> statementPart
+>             where
+>               statementPart = keyword "begin"
+>                     *> many plPgsqlStatement
+>                     <* keyword "end" <* optional (symbol ';') <* eof
+>               declarePart = keyword "declare"
+>                   *> manyTill (try varDef) (lookAhead $ keyword "begin")
+
+params to a function
+
+> param :: ParsecT [Token] () Identity ParamDef
+> param = choice [
+>          try (ParamDef <$> idString <*> typeName)
+>         ,ParamDefTp <$> typeName]
+
+variable declarations in a plpgsql function
+
+> varDef :: ParsecT [Token] () Identity VarDef
+> varDef = VarDef
+>          <$> idString
+>          <*> typeName
+>          <*> tryMaybeP ((symbols ":=" <|> symbols "=")*> expr) <* symbol ';'
 
 
-> createView :: ParsecT String () Identity Statement
-> createView = trykeyword "view" >>
+> createView :: ParsecT [Token] () Identity Statement
+> createView = keyword "view" >>
 >              CreateView
->              <$> identifierString
+>              <$> idString
 >              <*> (keyword "as" *> select)
 
-> createDomain :: ParsecT String () Identity Statement
-> createDomain = trykeyword "domain" >>
+> createDomain :: ParsecT [Token] () Identity Statement
+> createDomain = keyword "domain" >>
 >                CreateDomain
->                <$> identifierString
->                <*> (tryMaybeP (keyword "as") *> identifierString)
->                <*> tryMaybeP (keyword "check" *> parens (expr))
+>                <$> idString
+>                <*> (tryMaybeP (keyword "as") *> idString)
+>                <*> tryMaybeP (keyword "check" *> parens expr)
 
-> dropSomething :: ParsecT String () Identity Statement
+> dropSomething :: ParsecT [Token] () Identity Statement
 > dropSomething = do
 >   x <- try (choice [
 >                  Domain <$ keyword "domain"
->                 ,Type <$ trykeyword "type"
+>                 ,Type <$ keyword "type"
 >                 ,Table <$ keyword "table"
 >                 ,View <$ keyword "view"
 >             ])
->   (i,e,r) <- parseDrop identifierString
+>   (i,e,r) <- parseDrop idString
 >   return $ DropSomething x i e r
 
-> dropFunction :: ParsecT String () Identity Statement
+> dropFunction :: ParsecT [Token] () Identity Statement
 > dropFunction = do
->                trykeyword "function"
+>                keyword "function"
 >                (i,e,r) <- parseDrop pFun
 >                return $ DropFunction i e r
 >                where
->                  pFun = (,) <$> identifierString
->                             <*> parens (many identifierString)
+>                  pFun = (,) <$> idString
+>                             <*> parens (many idString)
 
-> parseDrop :: ParsecT String u Identity a
->           -> ParsecT String u Identity (IfExists, [a], Cascade)
+> parseDrop :: ParsecT [Token] () Identity a
+>           -> ParsecT [Token] () Identity (IfExists, [a], Cascade)
 > parseDrop p = (,,)
 >               <$> ifExists
 >               <*> commaSep1 p
@@ -737,42 +707,42 @@ a string
 
 = component parsers for sql statements
 
-> whereClause :: ParsecT String () Identity Expression
+> whereClause :: ParsecT [Token] () Identity Expression
 > whereClause = keyword "where" *> expr
 
 selectlist and selectitem: the bit between select and from
 check for into either before the whole list of select columns
 or after the whole list
 
-> selectList :: ParsecT String () Identity SelectList
+> selectList :: ParsecT [Token] () Identity SelectList
 > selectList =
 >     choice [
 >         flip SelectList <$> readInto <*> itemList
 >        ,SelectList <$> itemList <*> option [] readInto]
 >   where
->     readInto = trykeyword "into" *> commaSep1 identifierString
+>     readInto = keyword "into" *> commaSep1 idString
 >     itemList = commaSep1 selectItem
 >     selectItem = parseOptionalSuffix
 >                    SelExp expr
->                    SelectItem () (trykeyword "as" *> identifierString)
+>                    SelectItem () (keyword "as" *> idString)
 
-> returning :: ParsecT String () Identity SelectList
-> returning = trykeyword "returning" *> selectList
+> returning :: ParsecT [Token] () Identity SelectList
+> returning = keyword "returning" *> selectList
 
-> columnNameList :: ParsecT String () Identity [String]
-> columnNameList = parens $ commaSep1 identifierString
+> columnNameList :: ParsecT [Token] () Identity [String]
+> columnNameList = parens $ commaSep1 idString
 
-> typeName :: ParsecT String () Identity TypeName
+> typeName :: ParsecT [Token] () Identity TypeName
 > typeName = choice [
->             SetOfType <$> (trykeyword "setof" *> typeName)
+>             SetOfType <$> (keyword "setof" *> typeName)
 >            ,do
->              s <- identifierString
+>              s <- idString
 >              choice [
 >                PrecType s <$> parens integer
->               ,ArrayType (SimpleType s) <$ symbol "[]"
+>               ,ArrayType (SimpleType s) <$ symbol '[' <* symbol ']'
 >               ,return $ SimpleType s]]
 
-> cascade :: ParsecT String u Identity Cascade
+> cascade :: ParsecT [Token] () Identity Cascade
 > cascade = option Restrict (choice [
 >                             Restrict <$ keyword "restrict"
 >                            ,Cascade <$ keyword "cascade"])
@@ -781,7 +751,7 @@ or after the whole list
 
 = plpgsql statements
 
-> plPgsqlStatement :: ParsecT String () Identity Statement
+> plPgsqlStatement :: ParsecT [Token] () Identity Statement
 > plPgsqlStatement = sqlStatement True
 >                    <|> (choice [
 >                          continue
@@ -795,92 +765,92 @@ or after the whole list
 >                         ,whileStatement
 >                         ,perform
 >                         ,nullStatement]
->                         <* semi)
+>                         <* symbol ';')
 
-> nullStatement :: ParsecT String u Identity Statement
+> nullStatement :: ParsecT [Token] () Identity Statement
 > nullStatement = NullStatement <$ keyword "null"
 
-> continue :: ParsecT String u Identity Statement
-> continue = ContinueStatement <$ trykeyword "continue"
+> continue :: ParsecT [Token] () Identity Statement
+> continue = ContinueStatement <$ keyword "continue"
 
-> perform :: ParsecT String () Identity Statement
-> perform = trykeyword "perform" >>
+> perform :: ParsecT [Token] () Identity Statement
+> perform = keyword "perform" >>
 >           Perform <$> expr
 
-> execute :: ParsecT String () Identity Statement
-> execute = trykeyword "execute" >>
+> execute :: ParsecT [Token] () Identity Statement
+> execute = keyword "execute" >>
 >           parseOptionalSuffix
 >             Execute expr
 >             ExecuteInto () readInto
 >     where
->       readInto = trykeyword "into" *> commaSep1 identifierString
+>       readInto = keyword "into" *> commaSep1 idString
 
-> assignment :: ParsecT String () Identity Statement
+> assignment :: ParsecT [Token] () Identity Statement
 > assignment = Assignment
 >              -- put the := in the first try to attempt to get a
 >              -- better error if the code looks like malformed
 >              -- assignment statement
->              <$> try (identifierString <* (symbol ":=" <|> symbol "="))
+>              <$> try (idString <* (symbols ":=" <|> symbols "="))
 >              <*> expr
 
-> returnSt :: ParsecT String () Identity Statement
-> returnSt = trykeyword "return" >>
+> returnSt :: ParsecT [Token] () Identity Statement
+> returnSt = keyword "return" >>
 >            choice [
->             ReturnNext <$> (trykeyword "next" *> expr)
->            ,ReturnQuery <$> (trykeyword "query" *> select)
+>             ReturnNext <$> (keyword "next" *> expr)
+>            ,ReturnQuery <$> (keyword "query" *> select)
 >            ,Return <$> tryMaybeP expr]
 
-> raise :: ParsecT String () Identity Statement
-> raise = trykeyword "raise" >>
+> raise :: ParsecT [Token] () Identity Statement
+> raise = keyword "raise" >>
 >         Raise
 >         <$> raiseType
->         <*> (extrStr <$> stringLiteral)
->         <*> option [] (symbol "," *> commaSep1 expr)
+>         <*> (extrStr <$> stringVal)
+>         <*> option [] (symbol ',' *> commaSep1 expr)
 >         where
 >           raiseType = matchAKeyword [("notice", RNotice)
 >                                      ,("exception", RException)
 >                                      ,("error", RError)]
 
-> forStatement :: GenParser Char () Statement
+> forStatement :: ParsecT [Token] () Identity Statement
 > forStatement = do
->                trykeyword "for"
->                start <- identifierString
+>                keyword "for"
+>                start <- idString
 >                keyword "in"
 >                choice [(ForSelectStatement start <$> try select <*> theRest)
 >                       ,(ForIntegerStatement start
 >                               <$> expr
->                               <*> (symbol ".." *> expr)
+>                               <*> (symbols ".." *> expr)
 >                               <*> theRest)]
 >   where
 >     theRest = keyword "loop" *> many plPgsqlStatement
 >               <* keyword "end" <* keyword "loop"
 
-> whileStatement :: ParsecT String () Identity Statement
-> whileStatement = trykeyword "while" >>
+> whileStatement :: ParsecT [Token] () Identity Statement
+> whileStatement = keyword "while" >>
 >                  WhileStatement
 >                  <$> (expr <* keyword "loop")
 >                  <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
 
 bit too clever coming up
 
-> ifStatement :: ParsecT String () Identity Statement
-> ifStatement = trykeyword "if" >>
+> ifStatement :: ParsecT [Token] () Identity Statement
+> ifStatement = keyword "if" >>
 >               If
 >               <$> (ifPart <:> elseifParts)
 >               <*> (elsePart <* endIf)
 >   where
 >     ifPart = expr <.> (thn *> many plPgsqlStatement)
 >     elseifParts = many ((elseif *> expr) <.> (thn *> many plPgsqlStatement))
->     elsePart = option [] (trykeyword "else" *> many plPgsqlStatement)
->     endIf = trykeyword "end" <* keyword "if"
+>     elsePart = option [] (keyword "else" *> many plPgsqlStatement)
+>     endIf = keyword "end" <* keyword "if"
 >     thn = keyword "then"
->     elseif = trykeyword "elseif"
+>     elseif = keyword "elseif"
 >     --might as well these in as well after all that
 >     -- can't do <,> unfortunately, so use <.> instead
 >     (<.>) a b = (,) <$> a <*> b
 
-> caseStatement :: ParsecT String () Identity Statement
-> caseStatement = trykeyword "case" >>
+> caseStatement :: ParsecT [Token] () Identity Statement
+> caseStatement = keyword "case" >>
 >     CaseStatement <$> expr
 >                   <*> many whenSt
 >                   <*> option [] (keyword "else" *> many plPgsqlStatement)
@@ -889,51 +859,6 @@ bit too clever coming up
 >       whenSt = keyword "when" >>
 >                (,) <$> commaSep1 expr
 >                    <*> (keyword "then" *> many plPgsqlStatement)
-
-===============================================================================
-
-= statement components for plpgsql
-
-> functionBody :: Language -> ParsecT String () Identity FnBody
-
-sql function is just a list of statements, the last one has the
-trailing semicolon optional
-
-> functionBody Sql = do
->   whitespace
->   a <- many (try $ sqlStatement True)
->   -- this makes my head hurt, should probably write out more longhand
->   SqlFnBody <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
-
-plpgsql function has an optional declare section, plus the statements
-are enclosed in begin ... end; (semi colon after end is optional
-
-> functionBody Plpgsql =
->   whitespace >>
->   PlpgsqlFnBody
->   <$> option [] declarePart
->   <*> statementPart
->   where
->     statementPart = keyword "begin"
->                     *> many plPgsqlStatement
->                     <* keyword "end" <* optional semi <* eof
->     declarePart = keyword "declare"
->                   *> manyTill (try varDef) (lookAhead $ trykeyword "begin")
-
-params to a function
-
-> param :: ParsecT String () Identity ParamDef
-> param = choice [
->          try (ParamDef <$> identifierString <*> typeName)
->         ,ParamDefTp <$> typeName]
-
-variable declarations in a plpgsql function
-
-> varDef :: ParsecT String () Identity VarDef
-> varDef = VarDef
->          <$> identifierString
->          <*> typeName
->          <*> tryMaybeP ((symbol ":=" <|> symbol "=")*> expr) <* semi
 
 ================================================================================
 
@@ -944,11 +869,11 @@ know haskell, parsing theory or parsec ... robbed a parsing example
 from haskell-cafe and mainly just kept changing it until it seemed to
 work
 
-> expr :: Parser Expression
+> expr :: ParsecT [Token] () Identity Expression
 > expr = buildExpressionParser table factor
 >        <?> "expression"
 
-> factor :: GenParser Char () Expression
+> factor :: ParsecT [Token] () Identity Expression
 > factor = choice [
 
 order these so the ones which can be valid prefixes of others
@@ -959,7 +884,7 @@ can contain a lot of parens - check for nested ((
 This little addition speeds up ./ParseFile.lhs sqltestfiles/system.sql on my system
 from ~4 minutes to ~4 seconds
 
->          try $ (lookAhead $ string "((") >> parens expr
+>          try (lookAhead (symbols "((")) >> parens expr
 
 start with the factors which start with parens - eliminate scalar
 subquerys since they're easy to distinguish from the others then do in
@@ -981,7 +906,7 @@ string using quotes don't start like anything else and we've
 already tried the other thing which starts with a $, so can
 parse without a try
 
->          ,stringLiteral
+>          ,stringVal
 
 anything starting with a number has to be a number, so this
 could probably appear anywhere in the list. Do float first
@@ -989,8 +914,8 @@ since the start of a float looks like an integer. Have to use
 try not just because float starts like an integer, but also
 to cope with .. operator
 
->          ,try floatLit
->          ,integerLit
+>          ,try floatVal
+>          ,integerVal
 
 put the factors which start with keywords before the ones which start
 with a function, I think these all need try because functions can
@@ -999,13 +924,13 @@ tried after these. This claim might be wrong
 
 >          ,caseParse
 >          ,exists
->          ,try booleanLiteral
->          ,try nullL
+>          ,try booleanVal
+>          ,try nullVal
 
 do array before array sub, since array parses an array selector which
 looks exactly like an array subscript operator
 
->          ,array
+>          ,arrayVal
 >          ,try arraySub
 
 now the ones starting with a function name, since a function call
@@ -1032,19 +957,20 @@ http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTA
 will probably need something more custom to handle full range of sql
 syntactical novelty
 
-> table :: [[Operator String u Identity Expression]]
+> table :: [[Operator [Token] () Identity Expression]]
 > table = [[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
 >         ,[prefix "-" (UnOpCall Neg)]
 >         ,[binary "^" (BinOpCall Pow) AssocLeft]
 >         ,[binary "*" (BinOpCall Mult) AssocLeft
+>          ,idHackBinary "*" (BinOpCall Mult) AssocLeft
 >          ,binary "/" (BinOpCall Div) AssocLeft
 >          ,binary "%" (BinOpCall Mod) AssocLeft]
 >         ,[binary "+" (BinOpCall Plus) AssocLeft
 >          ,binary "-" (BinOpCall Minus) AssocLeft]
 >          --should be is isnull and notnull
->         ,[postfixk "is not null" (UnOpCall IsNotNull)
->          ,postfixk "is null" (UnOpCall IsNull)]
+>         ,[postfixks ["is", "not", "null"] (UnOpCall IsNotNull)
+>          ,postfixks ["is", "null"] (UnOpCall IsNull)]
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "<->" (BinOpCall DistBetween) AssocNone
 >          ,binary "<=" (BinOpCall Lte) AssocRight
@@ -1055,7 +981,7 @@ syntactical novelty
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
->         ,[binary "like" (BinOpCall Like) AssocNone
+>         ,[binaryk "like" (BinOpCall Like) AssocNone
 >          ,binary "!=" (BinOpCall NotEql) AssocNone]
 >          --(also ilike similar)
 >         ,[lt "<" (BinOpCall Lt) AssocNone
@@ -1071,15 +997,21 @@ syntactical novelty
 >       --use different parsers for symbols and keywords to get the
 >       --right whitespace behaviour
 >       binary s f
->          = Infix (try (operator s >> return f))
+>          = Infix (try (symbols s >> return f))
+>       -- * ends up being lexed as an id token rather than a symbol
+>       -- * token, so work around here
+>       idHackBinary s f
+>          = Infix (try (keyword s >> return f))
 >       prefix s f
->          = Prefix (try (operator s >> return f))
+>          = Prefix (try (symbols s >> return f))
 >       binaryk s f
 >          = Infix (try (keyword s >> return f))
 >       prefixk s f
 >          = Prefix (try (keyword s >> return f))
->       postfixk s f
->          = Postfix (try (keyword s >> return f))
+>       --postfixk s f
+>       --   = Postfix (try (keyword s >> return f))
+>       postfixks ss f
+>          = Postfix (try (mapM_ keyword ss >> return f))
 
 some custom parsers
 
@@ -1089,26 +1021,29 @@ followed by ">"
 >       lt _ f = Infix (dontFollowWith '<' '>' >> return f)
 
 >       dontFollowWith c1 c2 =
->         try $ char c1 *> notFollowedBy (char c2) *> whitespace
+>         try $ symbol c1 *> ((do
+>                                lookAhead $ symbol c2
+>                                fail "dont follow")
+>                             <|> return ())
 
 the first argument to these twp above is ignored, it is there so the
 symbol can appear in the operator table above for readability purposes
 
 == factor parsers
 
-> scalarSubQuery :: GenParser Char () Expression
-> scalarSubQuery = try (symbol "(" *> lookAhead (keyword "select")) >>
+> scalarSubQuery :: ParsecT [Token] () Identity Expression
+> scalarSubQuery = try (symbol '(' *> lookAhead (keyword "select")) >>
 >                  ScalarSubQuery
->                  <$> select <* symbol ")"
+>                  <$> select <* symbol ')'
 
 in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
 
-> inPredicate :: ParsecT String () Identity Expression
+> inPredicate :: ParsecT [Token] () Identity Expression
 > inPredicate =
 >   InPredicate
->   <$> (try rowCtor <|> Identifier <$> identifierString)
->   <*> option True (False <$ trykeyword "not")
+>   <$> (try rowCtor <|> Identifier <$> idString)
+>   <*> option True (False <$ keyword "not")
 >   <*> (keyword "in" *> parens ((InSelect <$> select)
 >                                <|>
 >                                (InList <$> commaSep1 expr)))
@@ -1123,71 +1058,25 @@ notes:
 (expr) parses to just expr rather than row(expr)
 and () is a syntax error.
 
-> rowCtor :: ParsecT String () Identity Expression
+> rowCtor :: ParsecT [Token] () Identity Expression
 > rowCtor = Row <$> choice [
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
 
-> positionalArg :: ParsecT String u Identity Expression
-> positionalArg = PositionalArg <$> (char '$' *> (fromInteger <$> integer))
+ > positionalArg :: ParsecT [Token] u Identity Expression
+ > positionalArg = PositionalArg <$> (symbol '$' *> (fromInteger <$> integer))
 
-string parsing
+> floatVal :: ParsecT [Token] () Identity Expression
+> floatVal = FloatVal <$> float
 
-> stringLiteral :: ParsecT String () Identity Expression
-> stringLiteral = stringQuotes <|> stringLD
->   where
->     --parse a string delimited by single quotes
->     stringQuotes = StringL <$> stringPar
->     stringPar = optional (char 'E') *> char '\''
->                 *> readQuoteEscape <* whitespace
->     --(readquoteescape reads the trailing ')
-
-have to read two consecutive single quotes as a quote character
-instead of the end of the string, probably an easier way to do this
-other escapes (e.g. \n \t) are left unprocessed
-
->     readQuoteEscape = do
->                       x <- anyChar
->                       if x == '\''
->                         then try ((x:) <$> (char '\'' *> readQuoteEscape))
->                              <|> return ""
->                         else (x:) <$> readQuoteEscape
-
-parse a dollar quoted string
-
->     stringLD = do
->                -- cope with $$ as well as $[identifier]$
->                tag <- char '$' *> ((char '$' *> return "")
->                                    <|> (identifierString <* char '$'))
->                s <- lexeme $ manyTill anyChar
->                       (try $ char '$' <* string tag <* char '$')
->                return $ StringLD tag s
-
-couple of helper functions which extract the actual string
-from a StringLD or StringL, and the delimiters which were used
-(either ' or a dollar tag)
-
-> extrStr :: Expression -> String
-> extrStr (StringLD _ s) = s
-> extrStr (StringL s) = s
-> extrStr x = error $ "extrStr not supported for this type " ++ show x
-
-> quoteOfString :: Expression -> String
-> quoteOfString (StringLD tag _) = "$" ++ tag ++ "$"
-> quoteOfString (StringL _) = "'"
-> quoteOfString x = error $ "quoteType not supported for this type " ++ show x
-
-> floatLit :: ParsecT String u Identity Expression
-> floatLit = FloatL <$> float
-
-> integerLit :: ParsecT String u Identity Expression
-> integerLit = IntegerL <$> integer
+> integerVal :: ParsecT [Token] () Identity Expression
+> integerVal = IntegerVal <$> integer
 
 case - only supports 'case when condition' flavour and not 'case
 expression when value' currently
 
-> caseParse :: ParsecT String () Identity Expression
-> caseParse = trykeyword "case" >>
+> caseParse :: ParsecT [Token] () Identity Expression
+> caseParse = keyword "case" >>
 >             Case <$> many whenParse
 >                  <*> tryMaybeP (keyword "else" *> expr)
 >                       <* keyword "end"
@@ -1195,47 +1084,45 @@ expression when value' currently
 >     whenParse = (,) <$> (keyword "when" *> commaSep1 expr)
 >                     <*> (keyword "then" *> expr)
 
-> exists :: ParsecT String () Identity Expression
-> exists = trykeyword "exists" >>
+> exists :: ParsecT [Token] () Identity Expression
+> exists = keyword "exists" >>
 >          Exists <$> parens select
 
-> booleanLiteral :: ParsecT String u Identity Expression
-> booleanLiteral = BooleanL <$> (\x -> tl x =="true")
->                               <$> lexeme (string "true"
->                                           <|> string "false")
->                  where tl = map toLower
+> booleanVal :: ParsecT [Token] () Identity Expression
+> booleanVal = BooleanVal <$> (True <$ keyword "true"
+>                                <|> False <$ keyword "false")
 
-> nullL :: ParsecT String u Identity Expression
-> nullL = NullL <$ keyword "null"
+> nullVal :: ParsecT [Token] () Identity Expression
+> nullVal = NullVal <$ keyword "null"
 
-> array :: GenParser Char () Expression
-> array = trykeyword "array" >>
->         ArrayL <$> squares (commaSep expr)
+> arrayVal :: ParsecT [Token] () Identity Expression
+> arrayVal = keyword "array" >>
+>            ArrayVal <$> squares (commaSep expr)
 
 when you put expr instead of identifier in arraysub, it stack
 overflows, not sure why.
 
-> arraySub :: ParsecT String () Identity Expression
+> arraySub :: ParsecT [Token] () Identity Expression
 > arraySub = ArraySub <$> identifier <*> squares (commaSep1 expr)
 
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
 
-> windowFn :: GenParser Char () Expression
+> windowFn :: ParsecT [Token] () Identity Expression
 > windowFn = WindowFn <$> functionCall <* keyword "over"
->                     <*> (symbol "(" *> option [] partitionBy)
+>                     <*> (symbol '(' *> option [] partitionBy)
 >                     <*> option [] orderBy1
 >                     <*> option Asc (try $ choice [
 >                                                Asc <$ keyword "asc"
 >                                               ,Desc <$ keyword "desc"])
->                          <* symbol ")"
+>                          <* symbol ')'
 >   where
->     orderBy1 = trykeyword "order" *> keyword "by" *> commaSep1 expr
->     partitionBy = trykeyword "partition" *> keyword "by" *> commaSep1 expr
+>     orderBy1 = keyword "order" *> keyword "by" *> commaSep1 expr
+>     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
 
-> betweenExp :: ParsecT String () Identity Expression
+> betweenExp :: ParsecT [Token] () Identity Expression
 > betweenExp = Between <$> identifier
->                      <*> (trykeyword "between" *> dodgyParseElement)
+>                      <*> (keyword "between" *> dodgyParseElement)
 >                      <*> (keyword "and" *> dodgyParseElement)
 >              --can't use the full expression parser at this time
 >              --because of a conflict between the operator 'and' and
@@ -1249,26 +1136,25 @@ fn() over ([partition bit]? [order bit]?)
 >                       functionCall
 >                      ,identifier
 >                      ,parens dodgyParseElement
->                      ,integerLit]
+>                      ,integerVal]
 
-> functionCall :: ParsecT String () Identity Expression
-> functionCall = FunCall <$> identifierString <*> parens (commaSep expr)
+> functionCall :: ParsecT [Token] () Identity Expression
+> functionCall = FunCall <$> idString <*> parens (commaSep expr)
 
-> castKeyword :: ParsecT String () Identity Expression
-> castKeyword = trykeyword "cast" *> symbol "(" >>
+> castKeyword :: ParsecT [Token] () Identity Expression
+> castKeyword = keyword "cast" *> symbol '(' >>
 >               CastKeyword <$> expr
->                           <*> (keyword "as" *> typeName <* symbol ")")
+>                           <*> (keyword "as" *> typeName <* symbol ')')
 
-> substring :: ParsecT String () Identity Expression
-> substring = trykeyword "substring" >> symbol "(" >>
+> substring :: ParsecT [Token] () Identity Expression
+> substring = keyword "substring" >> symbol '(' >>
 >             Substring
 >             <$> expr
 >             <*> (keyword "from" *> expr)
->             <*> (keyword "for" *> expr <* symbol ")")
+>             <*> (keyword "for" *> expr <* symbol ')')
 
-> identifier :: ParsecT String () Identity Expression
-> identifier = Identifier <$> identifierString
-
+> identifier :: ParsecT [Token] () Identity Expression
+> identifier = Identifier <$> idString
 
 ================================================================================
 
@@ -1276,90 +1162,93 @@ fn() over ([partition bit]? [order bit]?)
 
 == tokeny things
 
-> lexeme :: ParsecT String u Identity a
->           -> ParsecT String u Identity a
-> lexeme = P.lexeme lexer
-
-> semi :: ParsecT String u Identity String
-> semi = P.semi lexer
-
-> symbol :: String -> ParsecT String u Identity String
-> symbol = P.symbol lexer
-
-> integer :: ParsecT String u Identity Integer
-> integer = lexeme $ P.integer lexer
-
-> float :: ParsecT String u Identity Double
-> float = lexeme $ P.float lexer
-
-> operator :: String -> ParsecT String u Identity String
-> operator = symbol
-
 keyword has to not be immediately followed by letters or numbers
 (symbols and whitespace are ok) so we know that we aren't reading an
 identifier which happens to start with a complete keyword
 
-> keyword :: String -> ParsecT String u Identity ()
-> keyword k = lexeme (insensitiveString k *> notFollowedBy (alphaNum <|> char '_'))
->             <?> k
->     where
->       insensitiveChar c = satisfy (\x -> toUpper x == toUpper c)
->       insensitiveString cs = mapM_ insensitiveChar cs
+> keyword :: String -> ParsecT [Token] () Identity String
+> keyword k = mytoken (\tok ->
+>                                case tok of
+>                                IdStringTok i | lcase k == lcase i -> Just k
+>                                _ -> Nothing)
+>                       where
+>                         lcase = map toLower
 
+> idString :: MyParser String
+> idString = mytoken (\tok -> case tok of
+>                                      IdStringTok i -> Just i
+>                                      _ -> Nothing)
 
-shorthand to simplify parsers, helps because you can then avoid parens
-or $ which in turn doesn't clutter up things and interfere with the
-applicative operators
+> symbol :: Char -> MyParser Char
+> symbol c = mytoken (\tok -> case tok of
+>                                      SymbolTok s | c==s -> Just c
+>                                      _           -> Nothing)
 
-> trykeyword :: String -> ParsecT String u Identity ()
-> trykeyword = try . keyword
+> symbols :: String -> ParsecT [Token] () Identity String
+> symbols = mapM symbol
 
+> integer :: MyParser Integer
+> integer = mytoken (\tok -> case tok of
+>                                     IntegerTok n -> Just n
+>                                     _ -> Nothing)
 
-include dots in all identifier strings, - todo: check the validity
-of qualification with a second pass over the ast.
+> positionalArg :: ParsecT [Token] () Identity Expression
+> positionalArg = PositionalArg <$> mytoken (\tok -> case tok of
+>                                     PositionalArgTok n -> Just n
+>                                     _ -> Nothing)
 
-> identifierString :: Parser String
-> identifierString = lexeme $ choice [
->                     "*" <$ symbol "*"
->                    ,do
->                      a <- nonStarPart
->                      b <- tryMaybeP ((++) <$> symbol "." <*> identifierString)
->                      case b of Nothing -> return a
->                                Just c -> return $ a ++ c]
+> float :: MyParser Double
+> float = mytoken (\tok -> case tok of
+>                                     FloatTok n -> Just n
+>                                     _ -> Nothing)
 
->   where
->     nonStarPart = letter <:> secondOnwards
->     secondOnwards = many (alphaNum <|> char '_')
+> stringVal :: MyParser Expression
+> stringVal = mytoken (\tok ->
+>                   case tok of
+>                            StringTok d s -> Just $ StringVal d s
+>                            _ -> Nothing)
+
+couple of helper functions which extract the actual string
+from a StringLD or StringL, and the delimiters which were used
+(either ' or a dollar tag)
+
+> extrStr :: Expression -> String
+> extrStr (StringVal _ s) = s
+> extrStr x = error $ "extrStr not supported for this type " ++ show x
+
+> quoteOfString :: Expression -> String
+> quoteOfString (StringVal tag _) = tag
+> quoteOfString x = error $ "quoteType not supported for this type " ++ show x
 
 == combinatory things
 
-> parens :: ParsecT String u Identity a
->           -> ParsecT String u Identity a
-> parens = P.parens lexer
+> parens :: ParsecT [Token] () Identity a
+>        -> ParsecT [Token] () Identity a
+> parens = between (symbol '(') (symbol ')')
 
-> squares :: ParsecT String u Identity a
->           -> ParsecT String u Identity a
-> squares = P.squares lexer
+> squares :: ParsecT [Token] () Identity a
+>        -> ParsecT [Token] () Identity a
+> squares = between (symbol '[') (symbol ']')
 
-
-> tryMaybeP :: GenParser tok st a
->           -> ParsecT [tok] st Identity (Maybe a)
+> tryMaybeP :: (Stream s m t) =>
+>              ParsecT s u m a -> ParsecT s u m (Maybe a)
 > tryMaybeP p = try (optionMaybe p) <|> return Nothing
 
-> commaSep2 :: ParsecT String u Identity t -> ParsecT String u Identity [t]
-> commaSep2 p = sepBy2 p (symbol ",")
+> commaSep2 :: ParsecT [Token] () Identity a
+>           -> ParsecT [Token] () Identity [a]
+> commaSep2 p = sepBy2 p (symbol ',')
 
-> sepBy2 :: (Stream s m t1) =>
->           ParsecT s u m t -> ParsecT s u m a -> ParsecT s u m [t]
+> sepBy2 :: (Stream s m t) =>
+>           ParsecT s u m a -> ParsecT s u m b -> ParsecT s u m [a]
 > sepBy2 p sep = (p <* sep) <:> sepBy1 p sep
 
-> commaSep :: ParsecT String u Identity a
->             -> ParsecT String u Identity [a]
-> commaSep = P.commaSep lexer
+> commaSep :: ParsecT [Token] () Identity a
+>          -> ParsecT [Token] () Identity [a]
+> commaSep p = sepBy p (symbol ',')
 
-> commaSep1 :: ParsecT String u Identity a
->             -> ParsecT String u Identity [a]
-> commaSep1 = P.commaSep lexer
+> commaSep1 :: ParsecT [Token] () Identity a
+>           -> ParsecT [Token] () Identity [a]
+> commaSep1 p = sepBy1 p (symbol ',')
 
 doesn't seem too gratuitous, comes up a few times
 
@@ -1367,15 +1256,14 @@ doesn't seem too gratuitous, comes up a few times
 >          f a -> f [a] -> f [a]
 > (<:>) a b = (:) <$> a <*> b
 
-
 pass a list of pairs of strings and values
 try each pair k,v in turn,
 if keyword k matches then return v
 doesn't really add a lot of value
 
-> matchAKeyword :: [(String, a)] -> ParsecT String u Identity a
+> matchAKeyword :: [(String, a)] -> ParsecT [Token] () Identity a
 > matchAKeyword [] = fail "no matches"
-> matchAKeyword ((k,v):kvs) = v <$ trykeyword k <|> matchAKeyword kvs
+> matchAKeyword ((k,v):kvs) = v <$ keyword k <|> matchAKeyword kvs
 
 parseOptionalSuffix
 
@@ -1455,7 +1343,6 @@ p1 = do
    case y of
      Nothing -> return x
      Just z -> return z
-
 =====
 
 couldn't work how to to perms so just did this hack instead
@@ -1476,82 +1363,14 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >                   (\x -> (Just x,Nothing)) <$> p1
 >                  ,(\y -> (Nothing, Just y)) <$> p2]
 
-== whitespacey things
+== lexer stuff
 
-> whitespace :: ParsecT String u Identity ()
-> whitespace = skipMany ((space >> return ())
->                        <|> blockComment
->                        <|> lineComment)
+> type MyParser = GenParser Token ()
 
-not quite sure how comment parsing is suppose to work, but these in
-the whitespace parser and in the lexer below seems to cover all the
-bases
-
-> blockComment :: ParsecT String st Identity ()
-> blockComment = st >> manyTill anyChar en >> return ()
->     where
->       st = try $ string "/*"
->       en = try $ string "*/"
-
-> lineComment :: ParsecT String st Identity ()
-> lineComment = st >> manyTill anyChar en >> return ()
+> mytoken :: (Tok -> Maybe a) -> MyParser a
+> mytoken test
+>   = token showToken posToken testToken
 >   where
->     st = try $ string "--"
->     en = (char '\n' >> return ()) <|> eof
-
-== lexerizer
-
-bit piss poor at the moment, I think it only puts in real work when it
-is used to allow the built expression parser to deal with comments
-properly
-
-> lexer :: P.GenTokenParser String u Identity
-> lexer = P.makeTokenParser (emptyDef {
->                             P.commentStart = "/*"
->                            ,P.commentEnd = "*/"
->                            ,P.commentLine = "--"
->                            ,P.nestedComments = False
->                            ,P.identStart = letter <|> char '_'
->                            ,P.identLetter    = alphaNum <|> oneOf "_"
->                            ,P.opStart        = P.opLetter emptyDef
->                            ,P.opLetter       = oneOf opLetters
->                            ,P.reservedOpNames= []
->                            ,P.reservedNames  = []
->                            ,P.caseSensitive  = False
->                            })
-
-> opLetters :: String
-> opLetters = ".:^*/%+-<>=|!"
-
-================================================================================
-
-= error message thing
-
-enhanced show for errors which, in addition to the usual parsec error
-message, displays the line containing the error with a little hat
-pointing to the exact column below it, and some previous and next
-lines for context.
-
-> showEr :: ParseError -> String -> String
-> showEr er src =
->     let  pos  = errorPos er
->          lineNo = sourceLine pos
->          ls = lines src
->          line = safeGet ls(lineNo - 1)
->          prelines = map (safeGet ls) [(lineNo - 5) .. (lineNo - 2)]
->          postlines = map (safeGet ls) [lineNo .. (lineNo + 5)]
->          colNo = sourceColumn pos
->          highlightLine = replicate (colNo - 1) ' ' ++ "^"
->          errorHighlightText = prelines
->                               ++ [line, highlightLine, "ERROR HERE"]
->                               ++ postlines
->     in "\n---------------------\n" ++ show er
->        ++ "\n------------\nCheck it out:\n"
->        ++ unlines (trimLines errorHighlightText)
->        ++ "\n-----------------\n"
->     where
->       safeGet a i = if i < 0 || i >= length a
->                       then ""
->                       else a !! i
->       trimLines s = trimStartLines $ reverse $ trimStartLines $ reverse s
->       trimStartLines = dropWhile (=="")
+>   showToken (_,tok)   = show tok
+>   posToken  (pos,_)   = pos
+>   testToken (_,tok)   = test tok

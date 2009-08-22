@@ -22,11 +22,9 @@ target filename.
 >          error "Please pass exactly two filenames, source and target."
 >   let (source:target:[]) = args
 >   targetExists <- doesFileExist target
->   when (targetExists) $
+>   when targetExists $
 >          error "the target file name exists already, please delete it or choose a new filename"
 >   x <- parseSqlFile source
 >   case x of
->        Left er -> putStrLn $ show er
->        Right l -> do
->            let pp = printSql l
->            writeFile target pp
+>        Left er -> print er
+>        Right l -> writeFile target $ printSql l

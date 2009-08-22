@@ -25,15 +25,17 @@ instead put any statement - this type checks but is totally invalid.
 queries
 
 >                  -- | Select represents a select statement.
->                  -- The args are: distinct?, columns to select plus plpgsql into part,
->                  -- from?, where?,
->                  -- groupby, having, orderby,
->                  -- orderbydirection, limit, offset
->                  Select Distinct SelectList (Maybe TableRef) (Maybe Expression)
->                             --groupby having orderby
->                             [Expression] (Maybe Expression) [Expression]
->                             --orderby direction limit offset
->                             Direction (Maybe Expression) (Maybe Expression)
+>                  Select {
+>                          selDistinct :: Distinct
+>                         ,selSelectList :: SelectList
+>                         ,selTref :: (Maybe TableRef)
+>                         ,selWhere :: (Maybe Expression)
+>                         ,selGroupBy :: [Expression]
+>                         ,selHaving :: (Maybe Expression)
+>                         ,selOrderBy :: [Expression]
+>                         ,selDir :: Direction
+>                         ,selLimit :: (Maybe Expression)
+>                         ,selOffset ::(Maybe Expression)}
 >                | CombineSelect CombineType Statement Statement
 >                | Values [[Expression]]
 
@@ -45,8 +47,10 @@ dml
 >                | Update String [SetClause] (Maybe Expression) (Maybe SelectList)
 >                  --tablename, where, returning
 >                | Delete String (Maybe Expression) (Maybe SelectList)
->                  --tablename column names, from, inline data
->                | Copy String [String] CopySource (Maybe String)
+>                  --tablename column names, from
+>                | Copy String [String] CopySource
+>                  --represents inline data for copy statement
+>                | CopyData String
 >                | Truncate [String] RestartIdentity Cascade
 
 ddl
@@ -200,7 +204,6 @@ constraints which appear on a separate row in the create table
 > data RestartIdentity = RestartIdentity | ContinueIdentity
 >                 deriving (Eq, Show)
 
-
 ================================================================================
 
 Expressions
@@ -250,19 +253,18 @@ are chucked into one even though there are many restrictions
 on which expressions can appear in different places.
 
 > data Expression =
->                   IntegerL Integer
->                 | FloatL Double
->                 | StringL String
->                 | StringLD String String
->                 | NullL
->                 | BooleanL Bool
->                 | PositionalArg Int
+>                   IntegerVal Integer
+>                 | FloatVal Double
+>                 | StringVal String String
+>                 | NullVal
+>                 | BooleanVal Bool
+>                 | PositionalArg Integer
 >                 | CastKeyword Expression TypeName
 >                   -- sourcestring start length
 >                 | Substring Expression Expression Expression
 >                 | Identifier String
 >                 | Row [Expression]
->                 | ArrayL [Expression]
+>                 | ArrayVal [Expression]
 >                 | Case [([Expression],Expression)] (Maybe Expression)
 >                 | Exists Statement
 >                 | BinOpCall BinOp Expression Expression
@@ -278,3 +280,7 @@ on which expressions can appear in different places.
 
 > data InList = InList [Expression] | InSelect Statement
 >               deriving (Show,Eq)
+
+> makeSelect :: Statement
+> makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
+>                     Nothing Nothing [] Nothing [] Asc Nothing Nothing
