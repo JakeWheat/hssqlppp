@@ -1026,8 +1026,8 @@ syntactical novelty
 >         ,[binary "+" (BinOpCall Plus) AssocLeft
 >          ,binary "-" (BinOpCall Minus) AssocLeft]
 >          --should be is isnull and notnull
->         ,[postfixk "is not null" (UnOpCall IsNotNull)
->          ,postfixk "is null" (UnOpCall IsNull)]
+>         ,[postfixks ["is", "not", "null"] (UnOpCall IsNotNull)
+>          ,postfixks ["is", "null"] (UnOpCall IsNull)]
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "<->" (BinOpCall DistBetween) AssocNone
 >          ,binary "<=" (BinOpCall Lte) AssocRight
@@ -1061,8 +1061,10 @@ syntactical novelty
 >          = Infix (try (keyword s >> return f))
 >       prefixk s f
 >          = Prefix (try (keyword s >> return f))
->       postfixk s f
->          = Postfix (try (keyword s >> return f))
+>       --postfixk s f
+>       --   = Postfix (try (keyword s >> return f))
+>       postfixks ss f
+>          = Postfix (try ((mapM_ keyword ss) >> return f))
 
 some custom parsers
 
@@ -1137,10 +1139,8 @@ expression when value' currently
 >          Exists <$> parens select
 
 > booleanLiteral :: ParsecT [Token] () Identity Expression
-> booleanLiteral = BooleanL <$> (\x -> tl x =="true")
->                               <$> (keyword "true"
->                                    <|> keyword "false")
->                  where tl = map toLower
+> booleanLiteral = BooleanL <$> (True <$ trykeyword "true"
+>                                <|> False <$ keyword "false")
 
 > nullL :: ParsecT [Token] () Identity Expression
 > nullL = NullL <$ keyword "null"
@@ -1217,7 +1217,7 @@ keyword has to not be immediately followed by letters or numbers
 identifier which happens to start with a complete keyword
 
 > keyword :: String -> ParsecT [Token] () Identity String
-> keyword k = do
+> keyword k = try $ do
 >   k1 <- idString
 >   when (lcase k1 /= lcase k) $ fail $ "expected" ++ k
 >   return k
