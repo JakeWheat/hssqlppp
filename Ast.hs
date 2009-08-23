@@ -40,23 +40,45 @@ unOpToSymbol op = case op of
 makeSelect :: Statement
 makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
                     Nothing Nothing [] Nothing [] Asc Nothing Nothing
+
+runAtts :: StatementList -> Int
+runAtts sts = sem_StatementList sts
+
+
 -- AttributeDef ------------------------------------------------
 data AttributeDef  = AttributeDef (String) (String) (Maybe Expression) (RowConstraintList) 
                    deriving ( Eq,Show)
 -- cata
+sem_AttributeDef :: AttributeDef  ->
+                    T_AttributeDef 
 sem_AttributeDef (AttributeDef _name _typ _check _cons )  =
     (sem_AttributeDef_AttributeDef _name _typ _check (sem_RowConstraintList _cons ) )
+-- semantic domain
+type T_AttributeDef  = ( )
+sem_AttributeDef_AttributeDef :: String ->
+                                 String ->
+                                 (Maybe Expression) ->
+                                 T_RowConstraintList  ->
+                                 T_AttributeDef 
 sem_AttributeDef_AttributeDef name_ typ_ check_ cons_  =
     (let 
      in  ( ))
 -- AttributeDefList --------------------------------------------
 type AttributeDefList  = [(AttributeDef)]
 -- cata
+sem_AttributeDefList :: AttributeDefList  ->
+                        T_AttributeDefList 
 sem_AttributeDefList list  =
     (Prelude.foldr sem_AttributeDefList_Cons sem_AttributeDefList_Nil (Prelude.map sem_AttributeDef list) )
+-- semantic domain
+type T_AttributeDefList  = ( )
+sem_AttributeDefList_Cons :: T_AttributeDef  ->
+                             T_AttributeDefList  ->
+                             T_AttributeDefList 
 sem_AttributeDefList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_AttributeDefList_Nil :: T_AttributeDefList 
 sem_AttributeDefList_Nil  =
     (let 
      in  ( ))
@@ -81,6 +103,8 @@ data BinOp  = And
             | Pow 
             deriving ( Eq,Show)
 -- cata
+sem_BinOp :: BinOp  ->
+             T_BinOp 
 sem_BinOp (And )  =
     (sem_BinOp_And )
 sem_BinOp (Cast )  =
@@ -117,57 +141,77 @@ sem_BinOp (Plus )  =
     (sem_BinOp_Plus )
 sem_BinOp (Pow )  =
     (sem_BinOp_Pow )
+-- semantic domain
+type T_BinOp  = ( )
+sem_BinOp_And :: T_BinOp 
 sem_BinOp_And  =
     (let 
      in  ( ))
+sem_BinOp_Cast :: T_BinOp 
 sem_BinOp_Cast  =
     (let 
      in  ( ))
+sem_BinOp_Conc :: T_BinOp 
 sem_BinOp_Conc  =
     (let 
      in  ( ))
+sem_BinOp_DistBetween :: T_BinOp 
 sem_BinOp_DistBetween  =
     (let 
      in  ( ))
+sem_BinOp_Div :: T_BinOp 
 sem_BinOp_Div  =
     (let 
      in  ( ))
+sem_BinOp_Eql :: T_BinOp 
 sem_BinOp_Eql  =
     (let 
      in  ( ))
+sem_BinOp_Gt :: T_BinOp 
 sem_BinOp_Gt  =
     (let 
      in  ( ))
+sem_BinOp_Gte :: T_BinOp 
 sem_BinOp_Gte  =
     (let 
      in  ( ))
+sem_BinOp_Like :: T_BinOp 
 sem_BinOp_Like  =
     (let 
      in  ( ))
+sem_BinOp_Lt :: T_BinOp 
 sem_BinOp_Lt  =
     (let 
      in  ( ))
+sem_BinOp_Lte :: T_BinOp 
 sem_BinOp_Lte  =
     (let 
      in  ( ))
+sem_BinOp_Minus :: T_BinOp 
 sem_BinOp_Minus  =
     (let 
      in  ( ))
+sem_BinOp_Mod :: T_BinOp 
 sem_BinOp_Mod  =
     (let 
      in  ( ))
+sem_BinOp_Mult :: T_BinOp 
 sem_BinOp_Mult  =
     (let 
      in  ( ))
+sem_BinOp_NotEql :: T_BinOp 
 sem_BinOp_NotEql  =
     (let 
      in  ( ))
+sem_BinOp_Or :: T_BinOp 
 sem_BinOp_Or  =
     (let 
      in  ( ))
+sem_BinOp_Plus :: T_BinOp 
 sem_BinOp_Plus  =
     (let 
      in  ( ))
+sem_BinOp_Pow :: T_BinOp 
 sem_BinOp_Pow  =
     (let 
      in  ( ))
@@ -176,13 +220,19 @@ data Cascade  = Cascade
               | Restrict 
               deriving ( Eq,Show)
 -- cata
+sem_Cascade :: Cascade  ->
+               T_Cascade 
 sem_Cascade (Cascade )  =
     (sem_Cascade_Cascade )
 sem_Cascade (Restrict )  =
     (sem_Cascade_Restrict )
+-- semantic domain
+type T_Cascade  = ( )
+sem_Cascade_Cascade :: T_Cascade 
 sem_Cascade_Cascade  =
     (let 
      in  ( ))
+sem_Cascade_Restrict :: T_Cascade 
 sem_Cascade_Restrict  =
     (let 
      in  ( ))
@@ -193,6 +243,8 @@ data CombineType  = Except
                   | UnionAll 
                   deriving ( Eq,Show)
 -- cata
+sem_CombineType :: CombineType  ->
+                   T_CombineType 
 sem_CombineType (Except )  =
     (sem_CombineType_Except )
 sem_CombineType (Intersect )  =
@@ -201,15 +253,21 @@ sem_CombineType (Union )  =
     (sem_CombineType_Union )
 sem_CombineType (UnionAll )  =
     (sem_CombineType_UnionAll )
+-- semantic domain
+type T_CombineType  = ( )
+sem_CombineType_Except :: T_CombineType 
 sem_CombineType_Except  =
     (let 
      in  ( ))
+sem_CombineType_Intersect :: T_CombineType 
 sem_CombineType_Intersect  =
     (let 
      in  ( ))
+sem_CombineType_Union :: T_CombineType 
 sem_CombineType_Union  =
     (let 
      in  ( ))
+sem_CombineType_UnionAll :: T_CombineType 
 sem_CombineType_UnionAll  =
     (let 
      in  ( ))
@@ -220,6 +278,8 @@ data Constraint  = CheckConstraint (Expression)
                  | UniqueConstraint (StringList) 
                  deriving ( Eq,Show)
 -- cata
+sem_Constraint :: Constraint  ->
+                  T_Constraint 
 sem_Constraint (CheckConstraint _expression )  =
     (sem_Constraint_CheckConstraint (sem_Expression _expression ) )
 sem_Constraint (PrimaryKeyConstraint _stringList )  =
@@ -228,26 +288,48 @@ sem_Constraint (ReferenceConstraint _atts _table _tableAtts _onUpdate _onDelete 
     (sem_Constraint_ReferenceConstraint (sem_StringList _atts ) _table (sem_StringList _tableAtts ) (sem_Cascade _onUpdate ) (sem_Cascade _onDelete ) )
 sem_Constraint (UniqueConstraint _stringList )  =
     (sem_Constraint_UniqueConstraint (sem_StringList _stringList ) )
+-- semantic domain
+type T_Constraint  = ( )
+sem_Constraint_CheckConstraint :: T_Expression  ->
+                                  T_Constraint 
 sem_Constraint_CheckConstraint expression_  =
     (let 
      in  ( ))
+sem_Constraint_PrimaryKeyConstraint :: T_StringList  ->
+                                       T_Constraint 
 sem_Constraint_PrimaryKeyConstraint stringList_  =
     (let 
      in  ( ))
+sem_Constraint_ReferenceConstraint :: T_StringList  ->
+                                      String ->
+                                      T_StringList  ->
+                                      T_Cascade  ->
+                                      T_Cascade  ->
+                                      T_Constraint 
 sem_Constraint_ReferenceConstraint atts_ table_ tableAtts_ onUpdate_ onDelete_  =
     (let 
      in  ( ))
+sem_Constraint_UniqueConstraint :: T_StringList  ->
+                                   T_Constraint 
 sem_Constraint_UniqueConstraint stringList_  =
     (let 
      in  ( ))
 -- ConstraintList ----------------------------------------------
 type ConstraintList  = [(Constraint)]
 -- cata
+sem_ConstraintList :: ConstraintList  ->
+                      T_ConstraintList 
 sem_ConstraintList list  =
     (Prelude.foldr sem_ConstraintList_Cons sem_ConstraintList_Nil (Prelude.map sem_Constraint list) )
+-- semantic domain
+type T_ConstraintList  = ( )
+sem_ConstraintList_Cons :: T_Constraint  ->
+                           T_ConstraintList  ->
+                           T_ConstraintList 
 sem_ConstraintList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_ConstraintList_Nil :: T_ConstraintList 
 sem_ConstraintList_Nil  =
     (let 
      in  ( ))
@@ -256,13 +338,20 @@ data CopySource  = CopyFilename (String)
                  | Stdin 
                  deriving ( Eq,Show)
 -- cata
+sem_CopySource :: CopySource  ->
+                  T_CopySource 
 sem_CopySource (CopyFilename _string )  =
     (sem_CopySource_CopyFilename _string )
 sem_CopySource (Stdin )  =
     (sem_CopySource_Stdin )
+-- semantic domain
+type T_CopySource  = ( )
+sem_CopySource_CopyFilename :: String ->
+                               T_CopySource 
 sem_CopySource_CopyFilename string_  =
     (let 
      in  ( ))
+sem_CopySource_Stdin :: T_CopySource 
 sem_CopySource_Stdin  =
     (let 
      in  ( ))
@@ -271,13 +360,19 @@ data Direction  = Asc
                 | Desc 
                 deriving ( Eq,Show)
 -- cata
+sem_Direction :: Direction  ->
+                 T_Direction 
 sem_Direction (Asc )  =
     (sem_Direction_Asc )
 sem_Direction (Desc )  =
     (sem_Direction_Desc )
+-- semantic domain
+type T_Direction  = ( )
+sem_Direction_Asc :: T_Direction 
 sem_Direction_Asc  =
     (let 
      in  ( ))
+sem_Direction_Desc :: T_Direction 
 sem_Direction_Desc  =
     (let 
      in  ( ))
@@ -286,13 +381,19 @@ data Distinct  = Distinct
                | Dupes 
                deriving ( Eq,Show)
 -- cata
+sem_Distinct :: Distinct  ->
+                T_Distinct 
 sem_Distinct (Distinct )  =
     (sem_Distinct_Distinct )
 sem_Distinct (Dupes )  =
     (sem_Distinct_Dupes )
+-- semantic domain
+type T_Distinct  = ( )
+sem_Distinct_Distinct :: T_Distinct 
 sem_Distinct_Distinct  =
     (let 
      in  ( ))
+sem_Distinct_Dupes :: T_Distinct 
 sem_Distinct_Dupes  =
     (let 
      in  ( ))
@@ -303,6 +404,8 @@ data DropType  = Domain
                | View 
                deriving ( Eq,Show)
 -- cata
+sem_DropType :: DropType  ->
+                T_DropType 
 sem_DropType (Domain )  =
     (sem_DropType_Domain )
 sem_DropType (Table )  =
@@ -311,15 +414,21 @@ sem_DropType (Type )  =
     (sem_DropType_Type )
 sem_DropType (View )  =
     (sem_DropType_View )
+-- semantic domain
+type T_DropType  = ( )
+sem_DropType_Domain :: T_DropType 
 sem_DropType_Domain  =
     (let 
      in  ( ))
+sem_DropType_Table :: T_DropType 
 sem_DropType_Table  =
     (let 
      in  ( ))
+sem_DropType_Type :: T_DropType 
 sem_DropType_Type  =
     (let 
      in  ( ))
+sem_DropType_View :: T_DropType 
 sem_DropType_View  =
     (let 
      in  ( ))
@@ -347,6 +456,8 @@ data Expression  = ArrayLit (ExpressionList)
                  | WindowFn (Expression) (ExpressionList) (ExpressionList) (Direction) 
                  deriving ( Eq,Show)
 -- cata
+sem_Expression :: Expression  ->
+                  T_Expression 
 sem_Expression (ArrayLit _expressionList )  =
     (sem_Expression_ArrayLit (sem_ExpressionList _expressionList ) )
 sem_Expression (ArraySub _expression _expressionList )  =
@@ -389,145 +500,274 @@ sem_Expression (UnOpCall _unOp _expression )  =
     (sem_Expression_UnOpCall (sem_UnOp _unOp ) (sem_Expression _expression ) )
 sem_Expression (WindowFn _fn _partitionBy _orderBy _dir )  =
     (sem_Expression_WindowFn (sem_Expression _fn ) (sem_ExpressionList _partitionBy ) (sem_ExpressionList _orderBy ) (sem_Direction _dir ) )
+-- semantic domain
+type T_Expression  = ( )
+sem_Expression_ArrayLit :: T_ExpressionList  ->
+                           T_Expression 
 sem_Expression_ArrayLit expressionList_  =
     (let 
      in  ( ))
+sem_Expression_ArraySub :: T_Expression  ->
+                           T_ExpressionList  ->
+                           T_Expression 
 sem_Expression_ArraySub expression_ expressionList_  =
     (let 
      in  ( ))
+sem_Expression_Between :: T_Expression  ->
+                          T_Expression  ->
+                          T_Expression  ->
+                          T_Expression 
 sem_Expression_Between val_ lower_ upper_  =
     (let 
      in  ( ))
+sem_Expression_BinOpCall :: T_BinOp  ->
+                            T_Expression  ->
+                            T_Expression  ->
+                            T_Expression 
 sem_Expression_BinOpCall binOp_ arg1_ arg2_  =
     (let 
      in  ( ))
+sem_Expression_BooleanLit :: Bool ->
+                             T_Expression 
 sem_Expression_BooleanLit bool_  =
     (let 
      in  ( ))
+sem_Expression_Case :: T_ExpressionListExpressionPairList  ->
+                       (Maybe Expression) ->
+                       T_Expression 
 sem_Expression_Case cases_ els_  =
     (let 
      in  ( ))
+sem_Expression_CastKeyword :: T_Expression  ->
+                              T_TypeName  ->
+                              T_Expression 
 sem_Expression_CastKeyword expression_ typeName_  =
     (let 
      in  ( ))
+sem_Expression_Exists :: T_Statement  ->
+                         T_Expression 
 sem_Expression_Exists statement_  =
-    (let 
+    (let _statementIsum :: Int
+         ( _statementIsum) =
+             (statement_ )
      in  ( ))
+sem_Expression_FloatLit :: Double ->
+                           T_Expression 
 sem_Expression_FloatLit double_  =
     (let 
      in  ( ))
+sem_Expression_FunCall :: String ->
+                          T_ExpressionList  ->
+                          T_Expression 
 sem_Expression_FunCall string_ expressionList_  =
     (let 
      in  ( ))
+sem_Expression_Identifier :: String ->
+                             T_Expression 
 sem_Expression_Identifier string_  =
     (let 
      in  ( ))
+sem_Expression_InPredicate :: T_Expression  ->
+                              Bool ->
+                              T_InList  ->
+                              T_Expression 
 sem_Expression_InPredicate expression_ bool_ inList_  =
     (let 
      in  ( ))
+sem_Expression_IntegerLit :: Integer ->
+                             T_Expression 
 sem_Expression_IntegerLit integer_  =
     (let 
      in  ( ))
+sem_Expression_NullLit :: T_Expression 
 sem_Expression_NullLit  =
     (let 
      in  ( ))
+sem_Expression_PositionalArg :: Integer ->
+                                T_Expression 
 sem_Expression_PositionalArg integer_  =
     (let 
      in  ( ))
+sem_Expression_Row :: T_ExpressionList  ->
+                      T_Expression 
 sem_Expression_Row expressionList_  =
     (let 
      in  ( ))
+sem_Expression_ScalarSubQuery :: T_Statement  ->
+                                 T_Expression 
 sem_Expression_ScalarSubQuery statement_  =
-    (let 
+    (let _statementIsum :: Int
+         ( _statementIsum) =
+             (statement_ )
      in  ( ))
+sem_Expression_StringLit :: String ->
+                            String ->
+                            T_Expression 
 sem_Expression_StringLit quote_ value_  =
     (let 
      in  ( ))
+sem_Expression_Substring :: T_Expression  ->
+                            T_Expression  ->
+                            T_Expression  ->
+                            T_Expression 
 sem_Expression_Substring str_ from_ for_  =
     (let 
      in  ( ))
+sem_Expression_UnOpCall :: T_UnOp  ->
+                           T_Expression  ->
+                           T_Expression 
 sem_Expression_UnOpCall unOp_ expression_  =
     (let 
      in  ( ))
+sem_Expression_WindowFn :: T_Expression  ->
+                           T_ExpressionList  ->
+                           T_ExpressionList  ->
+                           T_Direction  ->
+                           T_Expression 
 sem_Expression_WindowFn fn_ partitionBy_ orderBy_ dir_  =
     (let 
      in  ( ))
 -- ExpressionList ----------------------------------------------
 type ExpressionList  = [(Expression)]
 -- cata
+sem_ExpressionList :: ExpressionList  ->
+                      T_ExpressionList 
 sem_ExpressionList list  =
     (Prelude.foldr sem_ExpressionList_Cons sem_ExpressionList_Nil (Prelude.map sem_Expression list) )
+-- semantic domain
+type T_ExpressionList  = ( )
+sem_ExpressionList_Cons :: T_Expression  ->
+                           T_ExpressionList  ->
+                           T_ExpressionList 
 sem_ExpressionList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_ExpressionList_Nil :: T_ExpressionList 
 sem_ExpressionList_Nil  =
     (let 
      in  ( ))
 -- ExpressionListExpressionPair --------------------------------
 type ExpressionListExpressionPair  = ( (ExpressionList),(Expression))
 -- cata
+sem_ExpressionListExpressionPair :: ExpressionListExpressionPair  ->
+                                    T_ExpressionListExpressionPair 
 sem_ExpressionListExpressionPair ( x1,x2)  =
     (sem_ExpressionListExpressionPair_Tuple (sem_ExpressionList x1 ) (sem_Expression x2 ) )
+-- semantic domain
+type T_ExpressionListExpressionPair  = ( )
+sem_ExpressionListExpressionPair_Tuple :: T_ExpressionList  ->
+                                          T_Expression  ->
+                                          T_ExpressionListExpressionPair 
 sem_ExpressionListExpressionPair_Tuple x1_ x2_  =
     (let 
      in  ( ))
 -- ExpressionListExpressionPairList ----------------------------
 type ExpressionListExpressionPairList  = [(ExpressionListExpressionPair)]
 -- cata
+sem_ExpressionListExpressionPairList :: ExpressionListExpressionPairList  ->
+                                        T_ExpressionListExpressionPairList 
 sem_ExpressionListExpressionPairList list  =
     (Prelude.foldr sem_ExpressionListExpressionPairList_Cons sem_ExpressionListExpressionPairList_Nil (Prelude.map sem_ExpressionListExpressionPair list) )
+-- semantic domain
+type T_ExpressionListExpressionPairList  = ( )
+sem_ExpressionListExpressionPairList_Cons :: T_ExpressionListExpressionPair  ->
+                                             T_ExpressionListExpressionPairList  ->
+                                             T_ExpressionListExpressionPairList 
 sem_ExpressionListExpressionPairList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_ExpressionListExpressionPairList_Nil :: T_ExpressionListExpressionPairList 
 sem_ExpressionListExpressionPairList_Nil  =
     (let 
      in  ( ))
 -- ExpressionListList ------------------------------------------
 type ExpressionListList  = [(ExpressionList)]
 -- cata
+sem_ExpressionListList :: ExpressionListList  ->
+                          T_ExpressionListList 
 sem_ExpressionListList list  =
     (Prelude.foldr sem_ExpressionListList_Cons sem_ExpressionListList_Nil (Prelude.map sem_ExpressionList list) )
+-- semantic domain
+type T_ExpressionListList  = ( )
+sem_ExpressionListList_Cons :: T_ExpressionList  ->
+                               T_ExpressionListList  ->
+                               T_ExpressionListList 
 sem_ExpressionListList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_ExpressionListList_Nil :: T_ExpressionListList 
 sem_ExpressionListList_Nil  =
     (let 
      in  ( ))
 -- ExpressionStatementListPair ---------------------------------
 type ExpressionStatementListPair  = ( (Expression),(StatementList))
 -- cata
+sem_ExpressionStatementListPair :: ExpressionStatementListPair  ->
+                                   T_ExpressionStatementListPair 
 sem_ExpressionStatementListPair ( x1,x2)  =
     (sem_ExpressionStatementListPair_Tuple (sem_Expression x1 ) (sem_StatementList x2 ) )
+-- semantic domain
+type T_ExpressionStatementListPair  = ( )
+sem_ExpressionStatementListPair_Tuple :: T_Expression  ->
+                                         T_StatementList  ->
+                                         T_ExpressionStatementListPair 
 sem_ExpressionStatementListPair_Tuple x1_ x2_  =
-    (let 
+    (let _x2Isum :: Int
+         ( _x2Isum) =
+             (x2_ )
      in  ( ))
 -- ExpressionStatementListPairList -----------------------------
 type ExpressionStatementListPairList  = [(ExpressionStatementListPair)]
 -- cata
+sem_ExpressionStatementListPairList :: ExpressionStatementListPairList  ->
+                                       T_ExpressionStatementListPairList 
 sem_ExpressionStatementListPairList list  =
     (Prelude.foldr sem_ExpressionStatementListPairList_Cons sem_ExpressionStatementListPairList_Nil (Prelude.map sem_ExpressionStatementListPair list) )
+-- semantic domain
+type T_ExpressionStatementListPairList  = ( )
+sem_ExpressionStatementListPairList_Cons :: T_ExpressionStatementListPair  ->
+                                            T_ExpressionStatementListPairList  ->
+                                            T_ExpressionStatementListPairList 
 sem_ExpressionStatementListPairList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_ExpressionStatementListPairList_Nil :: T_ExpressionStatementListPairList 
 sem_ExpressionStatementListPairList_Nil  =
     (let 
      in  ( ))
 -- ExpressonListStatementListPair ------------------------------
 type ExpressonListStatementListPair  = ( (ExpressionList),(StatementList))
 -- cata
+sem_ExpressonListStatementListPair :: ExpressonListStatementListPair  ->
+                                      T_ExpressonListStatementListPair 
 sem_ExpressonListStatementListPair ( x1,x2)  =
     (sem_ExpressonListStatementListPair_Tuple (sem_ExpressionList x1 ) (sem_StatementList x2 ) )
+-- semantic domain
+type T_ExpressonListStatementListPair  = ( )
+sem_ExpressonListStatementListPair_Tuple :: T_ExpressionList  ->
+                                            T_StatementList  ->
+                                            T_ExpressonListStatementListPair 
 sem_ExpressonListStatementListPair_Tuple x1_ x2_  =
-    (let 
+    (let _x2Isum :: Int
+         ( _x2Isum) =
+             (x2_ )
      in  ( ))
 -- ExpressonListStatementListPairList --------------------------
 type ExpressonListStatementListPairList  = [(ExpressonListStatementListPair)]
 -- cata
+sem_ExpressonListStatementListPairList :: ExpressonListStatementListPairList  ->
+                                          T_ExpressonListStatementListPairList 
 sem_ExpressonListStatementListPairList list  =
     (Prelude.foldr sem_ExpressonListStatementListPairList_Cons sem_ExpressonListStatementListPairList_Nil (Prelude.map sem_ExpressonListStatementListPair list) )
+-- semantic domain
+type T_ExpressonListStatementListPairList  = ( )
+sem_ExpressonListStatementListPairList_Cons :: T_ExpressonListStatementListPair  ->
+                                               T_ExpressonListStatementListPairList  ->
+                                               T_ExpressonListStatementListPairList 
 sem_ExpressonListStatementListPairList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_ExpressonListStatementListPairList_Nil :: T_ExpressonListStatementListPairList 
 sem_ExpressonListStatementListPairList_Nil  =
     (let 
      in  ( ))
@@ -536,28 +776,47 @@ data FnBody  = PlpgsqlFnBody (VarDefList) (StatementList)
              | SqlFnBody (StatementList) 
              deriving ( Eq,Show)
 -- cata
+sem_FnBody :: FnBody  ->
+              T_FnBody 
 sem_FnBody (PlpgsqlFnBody _varDefList _statementList )  =
     (sem_FnBody_PlpgsqlFnBody (sem_VarDefList _varDefList ) (sem_StatementList _statementList ) )
 sem_FnBody (SqlFnBody _statementList )  =
     (sem_FnBody_SqlFnBody (sem_StatementList _statementList ) )
+-- semantic domain
+type T_FnBody  = ( )
+sem_FnBody_PlpgsqlFnBody :: T_VarDefList  ->
+                            T_StatementList  ->
+                            T_FnBody 
 sem_FnBody_PlpgsqlFnBody varDefList_ statementList_  =
-    (let 
+    (let _statementListIsum :: Int
+         ( _statementListIsum) =
+             (statementList_ )
      in  ( ))
+sem_FnBody_SqlFnBody :: T_StatementList  ->
+                        T_FnBody 
 sem_FnBody_SqlFnBody statementList_  =
-    (let 
+    (let _statementListIsum :: Int
+         ( _statementListIsum) =
+             (statementList_ )
      in  ( ))
 -- IfExists ----------------------------------------------------
 data IfExists  = IfExists 
                | Require 
                deriving ( Eq,Show)
 -- cata
+sem_IfExists :: IfExists  ->
+                T_IfExists 
 sem_IfExists (IfExists )  =
     (sem_IfExists_IfExists )
 sem_IfExists (Require )  =
     (sem_IfExists_Require )
+-- semantic domain
+type T_IfExists  = ( )
+sem_IfExists_IfExists :: T_IfExists 
 sem_IfExists_IfExists  =
     (let 
      in  ( ))
+sem_IfExists_Require :: T_IfExists 
 sem_IfExists_Require  =
     (let 
      in  ( ))
@@ -566,28 +825,46 @@ data InList  = InList (ExpressionList)
              | InSelect (Statement) 
              deriving ( Eq,Show)
 -- cata
+sem_InList :: InList  ->
+              T_InList 
 sem_InList (InList _expressionList )  =
     (sem_InList_InList (sem_ExpressionList _expressionList ) )
 sem_InList (InSelect _statement )  =
     (sem_InList_InSelect (sem_Statement _statement ) )
+-- semantic domain
+type T_InList  = ( )
+sem_InList_InList :: T_ExpressionList  ->
+                     T_InList 
 sem_InList_InList expressionList_  =
     (let 
      in  ( ))
+sem_InList_InSelect :: T_Statement  ->
+                       T_InList 
 sem_InList_InSelect statement_  =
-    (let 
+    (let _statementIsum :: Int
+         ( _statementIsum) =
+             (statement_ )
      in  ( ))
 -- JoinExpression ----------------------------------------------
 data JoinExpression  = JoinOn (Expression) 
                      | JoinUsing (StringList) 
                      deriving ( Eq,Show)
 -- cata
+sem_JoinExpression :: JoinExpression  ->
+                      T_JoinExpression 
 sem_JoinExpression (JoinOn _expression )  =
     (sem_JoinExpression_JoinOn (sem_Expression _expression ) )
 sem_JoinExpression (JoinUsing _stringList )  =
     (sem_JoinExpression_JoinUsing (sem_StringList _stringList ) )
+-- semantic domain
+type T_JoinExpression  = ( )
+sem_JoinExpression_JoinOn :: T_Expression  ->
+                             T_JoinExpression 
 sem_JoinExpression_JoinOn expression_  =
     (let 
      in  ( ))
+sem_JoinExpression_JoinUsing :: T_StringList  ->
+                                T_JoinExpression 
 sem_JoinExpression_JoinUsing stringList_  =
     (let 
      in  ( ))
@@ -599,6 +876,8 @@ data JoinType  = Cross
                | RightOuter 
                deriving ( Eq,Show)
 -- cata
+sem_JoinType :: JoinType  ->
+                T_JoinType 
 sem_JoinType (Cross )  =
     (sem_JoinType_Cross )
 sem_JoinType (FullOuter )  =
@@ -609,18 +888,25 @@ sem_JoinType (LeftOuter )  =
     (sem_JoinType_LeftOuter )
 sem_JoinType (RightOuter )  =
     (sem_JoinType_RightOuter )
+-- semantic domain
+type T_JoinType  = ( )
+sem_JoinType_Cross :: T_JoinType 
 sem_JoinType_Cross  =
     (let 
      in  ( ))
+sem_JoinType_FullOuter :: T_JoinType 
 sem_JoinType_FullOuter  =
     (let 
      in  ( ))
+sem_JoinType_Inner :: T_JoinType 
 sem_JoinType_Inner  =
     (let 
      in  ( ))
+sem_JoinType_LeftOuter :: T_JoinType 
 sem_JoinType_LeftOuter  =
     (let 
      in  ( ))
+sem_JoinType_RightOuter :: T_JoinType 
 sem_JoinType_RightOuter  =
     (let 
      in  ( ))
@@ -629,13 +915,19 @@ data Language  = Plpgsql
                | Sql 
                deriving ( Eq,Show)
 -- cata
+sem_Language :: Language  ->
+                T_Language 
 sem_Language (Plpgsql )  =
     (sem_Language_Plpgsql )
 sem_Language (Sql )  =
     (sem_Language_Sql )
+-- semantic domain
+type T_Language  = ( )
+sem_Language_Plpgsql :: T_Language 
 sem_Language_Plpgsql  =
     (let 
      in  ( ))
+sem_Language_Sql :: T_Language 
 sem_Language_Sql  =
     (let 
      in  ( ))
@@ -644,13 +936,19 @@ data Natural  = Natural
               | Unnatural 
               deriving ( Eq,Show)
 -- cata
+sem_Natural :: Natural  ->
+               T_Natural 
 sem_Natural (Natural )  =
     (sem_Natural_Natural )
 sem_Natural (Unnatural )  =
     (sem_Natural_Unnatural )
+-- semantic domain
+type T_Natural  = ( )
+sem_Natural_Natural :: T_Natural 
 sem_Natural_Natural  =
     (let 
      in  ( ))
+sem_Natural_Unnatural :: T_Natural 
 sem_Natural_Unnatural  =
     (let 
      in  ( ))
@@ -659,24 +957,41 @@ data ParamDef  = ParamDef (String) (TypeName)
                | ParamDefTp (TypeName) 
                deriving ( Eq,Show)
 -- cata
+sem_ParamDef :: ParamDef  ->
+                T_ParamDef 
 sem_ParamDef (ParamDef _string _typeName )  =
     (sem_ParamDef_ParamDef _string (sem_TypeName _typeName ) )
 sem_ParamDef (ParamDefTp _typeName )  =
     (sem_ParamDef_ParamDefTp (sem_TypeName _typeName ) )
+-- semantic domain
+type T_ParamDef  = ( )
+sem_ParamDef_ParamDef :: String ->
+                         T_TypeName  ->
+                         T_ParamDef 
 sem_ParamDef_ParamDef string_ typeName_  =
     (let 
      in  ( ))
+sem_ParamDef_ParamDefTp :: T_TypeName  ->
+                           T_ParamDef 
 sem_ParamDef_ParamDefTp typeName_  =
     (let 
      in  ( ))
 -- ParamDefList ------------------------------------------------
 type ParamDefList  = [(ParamDef)]
 -- cata
+sem_ParamDefList :: ParamDefList  ->
+                    T_ParamDefList 
 sem_ParamDefList list  =
     (Prelude.foldr sem_ParamDefList_Cons sem_ParamDefList_Nil (Prelude.map sem_ParamDef list) )
+-- semantic domain
+type T_ParamDefList  = ( )
+sem_ParamDefList_Cons :: T_ParamDef  ->
+                         T_ParamDefList  ->
+                         T_ParamDefList 
 sem_ParamDefList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_ParamDefList_Nil :: T_ParamDefList 
 sem_ParamDefList_Nil  =
     (let 
      in  ( ))
@@ -686,18 +1001,25 @@ data RaiseType  = RError
                 | RNotice 
                 deriving ( Eq,Show)
 -- cata
+sem_RaiseType :: RaiseType  ->
+                 T_RaiseType 
 sem_RaiseType (RError )  =
     (sem_RaiseType_RError )
 sem_RaiseType (RException )  =
     (sem_RaiseType_RException )
 sem_RaiseType (RNotice )  =
     (sem_RaiseType_RNotice )
+-- semantic domain
+type T_RaiseType  = ( )
+sem_RaiseType_RError :: T_RaiseType 
 sem_RaiseType_RError  =
     (let 
      in  ( ))
+sem_RaiseType_RException :: T_RaiseType 
 sem_RaiseType_RException  =
     (let 
      in  ( ))
+sem_RaiseType_RNotice :: T_RaiseType 
 sem_RaiseType_RNotice  =
     (let 
      in  ( ))
@@ -706,13 +1028,19 @@ data RestartIdentity  = ContinueIdentity
                       | RestartIdentity 
                       deriving ( Eq,Show)
 -- cata
+sem_RestartIdentity :: RestartIdentity  ->
+                       T_RestartIdentity 
 sem_RestartIdentity (ContinueIdentity )  =
     (sem_RestartIdentity_ContinueIdentity )
 sem_RestartIdentity (RestartIdentity )  =
     (sem_RestartIdentity_RestartIdentity )
+-- semantic domain
+type T_RestartIdentity  = ( )
+sem_RestartIdentity_ContinueIdentity :: T_RestartIdentity 
 sem_RestartIdentity_ContinueIdentity  =
     (let 
      in  ( ))
+sem_RestartIdentity_RestartIdentity :: T_RestartIdentity 
 sem_RestartIdentity_RestartIdentity  =
     (let 
      in  ( ))
@@ -725,6 +1053,8 @@ data RowConstraint  = NotNullConstraint
                     | RowUniqueConstraint 
                     deriving ( Eq,Show)
 -- cata
+sem_RowConstraint :: RowConstraint  ->
+                     T_RowConstraint 
 sem_RowConstraint (NotNullConstraint )  =
     (sem_RowConstraint_NotNullConstraint )
 sem_RowConstraint (NullConstraint )  =
@@ -737,32 +1067,53 @@ sem_RowConstraint (RowReferenceConstraint _table _atts _onUpdate _onDelete )  =
     (sem_RowConstraint_RowReferenceConstraint _table (sem_StringList _atts ) (sem_Cascade _onUpdate ) (sem_Cascade _onDelete ) )
 sem_RowConstraint (RowUniqueConstraint )  =
     (sem_RowConstraint_RowUniqueConstraint )
+-- semantic domain
+type T_RowConstraint  = ( )
+sem_RowConstraint_NotNullConstraint :: T_RowConstraint 
 sem_RowConstraint_NotNullConstraint  =
     (let 
      in  ( ))
+sem_RowConstraint_NullConstraint :: T_RowConstraint 
 sem_RowConstraint_NullConstraint  =
     (let 
      in  ( ))
+sem_RowConstraint_RowCheckConstraint :: T_Expression  ->
+                                        T_RowConstraint 
 sem_RowConstraint_RowCheckConstraint expression_  =
     (let 
      in  ( ))
+sem_RowConstraint_RowPrimaryKeyConstraint :: T_RowConstraint 
 sem_RowConstraint_RowPrimaryKeyConstraint  =
     (let 
      in  ( ))
+sem_RowConstraint_RowReferenceConstraint :: String ->
+                                            T_StringList  ->
+                                            T_Cascade  ->
+                                            T_Cascade  ->
+                                            T_RowConstraint 
 sem_RowConstraint_RowReferenceConstraint table_ atts_ onUpdate_ onDelete_  =
     (let 
      in  ( ))
+sem_RowConstraint_RowUniqueConstraint :: T_RowConstraint 
 sem_RowConstraint_RowUniqueConstraint  =
     (let 
      in  ( ))
 -- RowConstraintList -------------------------------------------
 type RowConstraintList  = [(RowConstraint)]
 -- cata
+sem_RowConstraintList :: RowConstraintList  ->
+                         T_RowConstraintList 
 sem_RowConstraintList list  =
     (Prelude.foldr sem_RowConstraintList_Cons sem_RowConstraintList_Nil (Prelude.map sem_RowConstraint list) )
+-- semantic domain
+type T_RowConstraintList  = ( )
+sem_RowConstraintList_Cons :: T_RowConstraint  ->
+                              T_RowConstraintList  ->
+                              T_RowConstraintList 
 sem_RowConstraintList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_RowConstraintList_Nil :: T_RowConstraintList 
 sem_RowConstraintList_Nil  =
     (let 
      in  ( ))
@@ -771,24 +1122,41 @@ data SelectItem  = SelExp (Expression)
                  | SelectItem (Expression) (String) 
                  deriving ( Eq,Show)
 -- cata
+sem_SelectItem :: SelectItem  ->
+                  T_SelectItem 
 sem_SelectItem (SelExp _expression )  =
     (sem_SelectItem_SelExp (sem_Expression _expression ) )
 sem_SelectItem (SelectItem _expression _string )  =
     (sem_SelectItem_SelectItem (sem_Expression _expression ) _string )
+-- semantic domain
+type T_SelectItem  = ( )
+sem_SelectItem_SelExp :: T_Expression  ->
+                         T_SelectItem 
 sem_SelectItem_SelExp expression_  =
     (let 
      in  ( ))
+sem_SelectItem_SelectItem :: T_Expression  ->
+                             String ->
+                             T_SelectItem 
 sem_SelectItem_SelectItem expression_ string_  =
     (let 
      in  ( ))
 -- SelectItemList ----------------------------------------------
 type SelectItemList  = [(SelectItem)]
 -- cata
+sem_SelectItemList :: SelectItemList  ->
+                      T_SelectItemList 
 sem_SelectItemList list  =
     (Prelude.foldr sem_SelectItemList_Cons sem_SelectItemList_Nil (Prelude.map sem_SelectItem list) )
+-- semantic domain
+type T_SelectItemList  = ( )
+sem_SelectItemList_Cons :: T_SelectItem  ->
+                           T_SelectItemList  ->
+                           T_SelectItemList 
 sem_SelectItemList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_SelectItemList_Nil :: T_SelectItemList 
 sem_SelectItemList_Nil  =
     (let 
      in  ( ))
@@ -796,8 +1164,15 @@ sem_SelectItemList_Nil  =
 data SelectList  = SelectList (SelectItemList) (StringList) 
                  deriving ( Eq,Show)
 -- cata
+sem_SelectList :: SelectList  ->
+                  T_SelectList 
 sem_SelectList (SelectList _selectItemList _stringList )  =
     (sem_SelectList_SelectList (sem_SelectItemList _selectItemList ) (sem_StringList _stringList ) )
+-- semantic domain
+type T_SelectList  = ( )
+sem_SelectList_SelectList :: T_SelectItemList  ->
+                             T_StringList  ->
+                             T_SelectList 
 sem_SelectList_SelectList selectItemList_ stringList_  =
     (let 
      in  ( ))
@@ -806,24 +1181,42 @@ data SetClause  = RowSetClause (StringList) (ExpressionList)
                 | SetClause (String) (Expression) 
                 deriving ( Eq,Show)
 -- cata
+sem_SetClause :: SetClause  ->
+                 T_SetClause 
 sem_SetClause (RowSetClause _stringList _expressionList )  =
     (sem_SetClause_RowSetClause (sem_StringList _stringList ) (sem_ExpressionList _expressionList ) )
 sem_SetClause (SetClause _string _expression )  =
     (sem_SetClause_SetClause _string (sem_Expression _expression ) )
+-- semantic domain
+type T_SetClause  = ( )
+sem_SetClause_RowSetClause :: T_StringList  ->
+                              T_ExpressionList  ->
+                              T_SetClause 
 sem_SetClause_RowSetClause stringList_ expressionList_  =
     (let 
      in  ( ))
+sem_SetClause_SetClause :: String ->
+                           T_Expression  ->
+                           T_SetClause 
 sem_SetClause_SetClause string_ expression_  =
     (let 
      in  ( ))
 -- SetClauseList -----------------------------------------------
 type SetClauseList  = [(SetClause)]
 -- cata
+sem_SetClauseList :: SetClauseList  ->
+                     T_SetClauseList 
 sem_SetClauseList list  =
     (Prelude.foldr sem_SetClauseList_Cons sem_SetClauseList_Nil (Prelude.map sem_SetClause list) )
+-- semantic domain
+type T_SetClauseList  = ( )
+sem_SetClauseList_Cons :: T_SetClause  ->
+                          T_SetClauseList  ->
+                          T_SetClauseList 
 sem_SetClauseList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_SetClauseList_Nil :: T_SetClauseList 
 sem_SetClauseList_Nil  =
     (let 
      in  ( ))
@@ -862,6 +1255,8 @@ data Statement  = Assignment (String) (Expression)
                 | WhileStatement (Expression) (StatementList) 
                 deriving ( Eq,Show)
 -- cata
+sem_Statement :: Statement  ->
+                 T_Statement 
 sem_Statement (Assignment _target _value )  =
     (sem_Statement_Assignment _target (sem_Expression _value ) )
 sem_Statement (CaseStatement _val _cases _els )  =
@@ -926,140 +1321,399 @@ sem_Statement (Values _expressionListList )  =
     (sem_Statement_Values (sem_ExpressionListList _expressionListList ) )
 sem_Statement (WhileStatement _expr _sts )  =
     (sem_Statement_WhileStatement (sem_Expression _expr ) (sem_StatementList _sts ) )
+-- semantic domain
+type T_Statement  = ( Int)
+sem_Statement_Assignment :: String ->
+                            T_Expression  ->
+                            T_Statement 
 sem_Statement_Assignment target_ value_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_CaseStatement :: T_Expression  ->
+                               T_ExpressonListStatementListPairList  ->
+                               T_StatementList  ->
+                               T_Statement 
 sem_Statement_CaseStatement val_ cases_ els_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _elsIsum :: Int
+         _lhsOsum =
+             1
+         ( _elsIsum) =
+             (els_ )
+     in  ( _lhsOsum))
+sem_Statement_CombineSelect :: T_CombineType  ->
+                               T_Statement  ->
+                               T_Statement  ->
+                               T_Statement 
 sem_Statement_CombineSelect ctype_ sel1_ sel2_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _sel1Isum :: Int
+         _sel2Isum :: Int
+         _lhsOsum =
+             1
+         ( _sel1Isum) =
+             (sel1_ )
+         ( _sel2Isum) =
+             (sel2_ )
+     in  ( _lhsOsum))
+sem_Statement_ContinueStatement :: T_Statement 
 sem_Statement_ContinueStatement  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_Copy :: String ->
+                      T_StringList  ->
+                      T_CopySource  ->
+                      T_Statement 
 sem_Statement_Copy table_ targetCols_ source_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_CopyData :: String ->
+                          T_Statement 
 sem_Statement_CopyData insData_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_CreateDomain :: String ->
+                              String ->
+                              (Maybe Expression) ->
+                              T_Statement 
 sem_Statement_CreateDomain name_ typ_ check_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_CreateFunction :: T_Language  ->
+                                String ->
+                                T_ParamDefList  ->
+                                T_TypeName  ->
+                                String ->
+                                T_FnBody  ->
+                                T_Volatility  ->
+                                T_Statement 
 sem_Statement_CreateFunction lang_ name_ params_ rettype_ bodyQuote_ body_ vol_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_CreateTable :: String ->
+                             T_AttributeDefList  ->
+                             T_ConstraintList  ->
+                             T_Statement 
 sem_Statement_CreateTable name_ atts_ cons_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_CreateTableAs :: String ->
+                               T_Statement  ->
+                               T_Statement 
 sem_Statement_CreateTableAs name_ expr_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _exprIsum :: Int
+         _lhsOsum =
+             1
+         ( _exprIsum) =
+             (expr_ )
+     in  ( _lhsOsum))
+sem_Statement_CreateType :: String ->
+                            T_TypeAttributeDefList  ->
+                            T_Statement 
 sem_Statement_CreateType name_ atts_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_CreateView :: String ->
+                            T_Statement  ->
+                            T_Statement 
 sem_Statement_CreateView name_ expr_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _exprIsum :: Int
+         _lhsOsum =
+             1
+         ( _exprIsum) =
+             (expr_ )
+     in  ( _lhsOsum))
+sem_Statement_Delete :: String ->
+                        (Maybe Expression) ->
+                        (Maybe SelectList) ->
+                        T_Statement 
 sem_Statement_Delete table_ whr_ returning_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_DropFunction :: T_IfExists  ->
+                              T_StringStringListPairList  ->
+                              T_Cascade  ->
+                              T_Statement 
 sem_Statement_DropFunction ifE_ sigs_ cascade_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_DropSomething :: T_DropType  ->
+                               T_IfExists  ->
+                               T_StringList  ->
+                               T_Cascade  ->
+                               T_Statement 
 sem_Statement_DropSomething dropType_ ifE_ names_ cascade_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_Execute :: T_Expression  ->
+                         T_Statement 
 sem_Statement_Execute expr_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_ExecuteInto :: T_Expression  ->
+                             T_StringList  ->
+                             T_Statement 
 sem_Statement_ExecuteInto expr_ targets_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_ForIntegerStatement :: String ->
+                                     T_Expression  ->
+                                     T_Expression  ->
+                                     T_StatementList  ->
+                                     T_Statement 
 sem_Statement_ForIntegerStatement var_ from_ to_ sts_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _stsIsum :: Int
+         _lhsOsum =
+             1
+         ( _stsIsum) =
+             (sts_ )
+     in  ( _lhsOsum))
+sem_Statement_ForSelectStatement :: String ->
+                                    T_Statement  ->
+                                    T_StatementList  ->
+                                    T_Statement 
 sem_Statement_ForSelectStatement var_ sel_ sts_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _selIsum :: Int
+         _stsIsum :: Int
+         _lhsOsum =
+             1
+         ( _selIsum) =
+             (sel_ )
+         ( _stsIsum) =
+             (sts_ )
+     in  ( _lhsOsum))
+sem_Statement_If :: T_ExpressionStatementListPairList  ->
+                    T_StatementList  ->
+                    T_Statement 
 sem_Statement_If cases_ els_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _elsIsum :: Int
+         _lhsOsum =
+             1
+         ( _elsIsum) =
+             (els_ )
+     in  ( _lhsOsum))
+sem_Statement_Insert :: String ->
+                        T_StringList  ->
+                        T_Statement  ->
+                        (Maybe SelectList) ->
+                        T_Statement 
 sem_Statement_Insert table_ targetCols_ insData_ returning_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _insDataIsum :: Int
+         _lhsOsum =
+             1
+         ( _insDataIsum) =
+             (insData_ )
+     in  ( _lhsOsum))
+sem_Statement_NullStatement :: T_Statement 
 sem_Statement_NullStatement  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_Perform :: T_Expression  ->
+                         T_Statement 
 sem_Statement_Perform expr_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_Raise :: T_RaiseType  ->
+                       String ->
+                       T_ExpressionList  ->
+                       T_Statement 
 sem_Statement_Raise level_ message_ args_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_Return :: (Maybe Expression) ->
+                        T_Statement 
 sem_Statement_Return value_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_ReturnNext :: T_Expression  ->
+                            T_Statement 
 sem_Statement_ReturnNext expr_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_ReturnQuery :: T_Statement  ->
+                             T_Statement 
 sem_Statement_ReturnQuery sel_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _selIsum :: Int
+         _lhsOsum =
+             1
+         ( _selIsum) =
+             (sel_ )
+     in  ( _lhsOsum))
+sem_Statement_Select :: T_Distinct  ->
+                        T_SelectList  ->
+                        (Maybe TableRef) ->
+                        (Maybe Expression) ->
+                        T_ExpressionList  ->
+                        (Maybe Expression) ->
+                        T_ExpressionList  ->
+                        T_Direction  ->
+                        (Maybe Expression) ->
+                        (Maybe Expression) ->
+                        T_Statement 
 sem_Statement_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGroupBy_ selHaving_ selOrderBy_ selDir_ selLimit_ selOffset_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_Truncate :: T_StringList  ->
+                          T_RestartIdentity  ->
+                          T_Cascade  ->
+                          T_Statement 
 sem_Statement_Truncate tables_ restartIdentity_ cascade_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_Update :: String ->
+                        T_SetClauseList  ->
+                        (Maybe Expression) ->
+                        (Maybe SelectList) ->
+                        T_Statement 
 sem_Statement_Update table_ assigns_ whr_ returning_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_Values :: T_ExpressionListList  ->
+                        T_Statement 
 sem_Statement_Values expressionListList_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             1
+     in  ( _lhsOsum))
+sem_Statement_WhileStatement :: T_Expression  ->
+                                T_StatementList  ->
+                                T_Statement 
 sem_Statement_WhileStatement expr_ sts_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _stsIsum :: Int
+         _lhsOsum =
+             1
+         ( _stsIsum) =
+             (sts_ )
+     in  ( _lhsOsum))
 -- StatementList -----------------------------------------------
 type StatementList  = [(Statement)]
 -- cata
+sem_StatementList :: StatementList  ->
+                     T_StatementList 
 sem_StatementList list  =
     (Prelude.foldr sem_StatementList_Cons sem_StatementList_Nil (Prelude.map sem_Statement list) )
+-- semantic domain
+type T_StatementList  = ( Int)
+sem_StatementList_Cons :: T_Statement  ->
+                          T_StatementList  ->
+                          T_StatementList 
 sem_StatementList_Cons hd_ tl_  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _hdIsum :: Int
+         _tlIsum :: Int
+         _lhsOsum =
+             _hdIsum + _tlIsum
+         ( _hdIsum) =
+             (hd_ )
+         ( _tlIsum) =
+             (tl_ )
+     in  ( _lhsOsum))
+sem_StatementList_Nil :: T_StatementList 
 sem_StatementList_Nil  =
-    (let 
-     in  ( ))
+    (let _lhsOsum :: Int
+         _lhsOsum =
+             0
+     in  ( _lhsOsum))
 -- StringList --------------------------------------------------
 type StringList  = [(String)]
 -- cata
+sem_StringList :: StringList  ->
+                  T_StringList 
 sem_StringList list  =
     (Prelude.foldr sem_StringList_Cons sem_StringList_Nil list )
+-- semantic domain
+type T_StringList  = ( )
+sem_StringList_Cons :: String ->
+                       T_StringList  ->
+                       T_StringList 
 sem_StringList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_StringList_Nil :: T_StringList 
 sem_StringList_Nil  =
     (let 
      in  ( ))
 -- StringStringListPair ----------------------------------------
 type StringStringListPair  = ( (String),(StringList))
 -- cata
+sem_StringStringListPair :: StringStringListPair  ->
+                            T_StringStringListPair 
 sem_StringStringListPair ( x1,x2)  =
     (sem_StringStringListPair_Tuple x1 (sem_StringList x2 ) )
+-- semantic domain
+type T_StringStringListPair  = ( )
+sem_StringStringListPair_Tuple :: String ->
+                                  T_StringList  ->
+                                  T_StringStringListPair 
 sem_StringStringListPair_Tuple x1_ x2_  =
     (let 
      in  ( ))
 -- StringStringListPairList ------------------------------------
 type StringStringListPairList  = [(StringStringListPair)]
 -- cata
+sem_StringStringListPairList :: StringStringListPairList  ->
+                                T_StringStringListPairList 
 sem_StringStringListPairList list  =
     (Prelude.foldr sem_StringStringListPairList_Cons sem_StringStringListPairList_Nil (Prelude.map sem_StringStringListPair list) )
+-- semantic domain
+type T_StringStringListPairList  = ( )
+sem_StringStringListPairList_Cons :: T_StringStringListPair  ->
+                                     T_StringStringListPairList  ->
+                                     T_StringStringListPairList 
 sem_StringStringListPairList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_StringStringListPairList_Nil :: T_StringStringListPairList 
 sem_StringStringListPairList_Nil  =
     (let 
      in  ( ))
@@ -1072,6 +1726,8 @@ data TableRef  = JoinedTref (TableRef) (Natural) (JoinType) (TableRef) (Maybe Jo
                | TrefFunAlias (Expression) (String) 
                deriving ( Eq,Show)
 -- cata
+sem_TableRef :: TableRef  ->
+                T_TableRef 
 sem_TableRef (JoinedTref _tref _nat _joinType _jtref _onExpr )  =
     (sem_TableRef_JoinedTref (sem_TableRef _tref ) (sem_Natural _nat ) (sem_JoinType _joinType ) (sem_TableRef _jtref ) _onExpr )
 sem_TableRef (SubTref _statement _string )  =
@@ -1084,21 +1740,44 @@ sem_TableRef (TrefFun _expression )  =
     (sem_TableRef_TrefFun (sem_Expression _expression ) )
 sem_TableRef (TrefFunAlias _expression _string )  =
     (sem_TableRef_TrefFunAlias (sem_Expression _expression ) _string )
+-- semantic domain
+type T_TableRef  = ( )
+sem_TableRef_JoinedTref :: T_TableRef  ->
+                           T_Natural  ->
+                           T_JoinType  ->
+                           T_TableRef  ->
+                           (Maybe JoinExpression) ->
+                           T_TableRef 
 sem_TableRef_JoinedTref tref_ nat_ joinType_ jtref_ onExpr_  =
     (let 
      in  ( ))
+sem_TableRef_SubTref :: T_Statement  ->
+                        String ->
+                        T_TableRef 
 sem_TableRef_SubTref statement_ string_  =
-    (let 
+    (let _statementIsum :: Int
+         ( _statementIsum) =
+             (statement_ )
      in  ( ))
+sem_TableRef_Tref :: String ->
+                     T_TableRef 
 sem_TableRef_Tref string_  =
     (let 
      in  ( ))
+sem_TableRef_TrefAlias :: String ->
+                          String ->
+                          T_TableRef 
 sem_TableRef_TrefAlias tref_ alias_  =
     (let 
      in  ( ))
+sem_TableRef_TrefFun :: T_Expression  ->
+                        T_TableRef 
 sem_TableRef_TrefFun expression_  =
     (let 
      in  ( ))
+sem_TableRef_TrefFunAlias :: T_Expression  ->
+                             String ->
+                             T_TableRef 
 sem_TableRef_TrefFunAlias expression_ string_  =
     (let 
      in  ( ))
@@ -1106,19 +1785,34 @@ sem_TableRef_TrefFunAlias expression_ string_  =
 data TypeAttributeDef  = TypeAttDef (String) (String) 
                        deriving ( Eq,Show)
 -- cata
+sem_TypeAttributeDef :: TypeAttributeDef  ->
+                        T_TypeAttributeDef 
 sem_TypeAttributeDef (TypeAttDef _name _typ )  =
     (sem_TypeAttributeDef_TypeAttDef _name _typ )
+-- semantic domain
+type T_TypeAttributeDef  = ( )
+sem_TypeAttributeDef_TypeAttDef :: String ->
+                                   String ->
+                                   T_TypeAttributeDef 
 sem_TypeAttributeDef_TypeAttDef name_ typ_  =
     (let 
      in  ( ))
 -- TypeAttributeDefList ----------------------------------------
 type TypeAttributeDefList  = [(TypeAttributeDef)]
 -- cata
+sem_TypeAttributeDefList :: TypeAttributeDefList  ->
+                            T_TypeAttributeDefList 
 sem_TypeAttributeDefList list  =
     (Prelude.foldr sem_TypeAttributeDefList_Cons sem_TypeAttributeDefList_Nil (Prelude.map sem_TypeAttributeDef list) )
+-- semantic domain
+type T_TypeAttributeDefList  = ( )
+sem_TypeAttributeDefList_Cons :: T_TypeAttributeDef  ->
+                                 T_TypeAttributeDefList  ->
+                                 T_TypeAttributeDefList 
 sem_TypeAttributeDefList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_TypeAttributeDefList_Nil :: T_TypeAttributeDefList 
 sem_TypeAttributeDefList_Nil  =
     (let 
      in  ( ))
@@ -1129,6 +1823,8 @@ data TypeName  = ArrayType (TypeName)
                | SimpleType (String) 
                deriving ( Eq,Show)
 -- cata
+sem_TypeName :: TypeName  ->
+                T_TypeName 
 sem_TypeName (ArrayType _typeName )  =
     (sem_TypeName_ArrayType (sem_TypeName _typeName ) )
 sem_TypeName (PrecType _string _integer )  =
@@ -1137,15 +1833,26 @@ sem_TypeName (SetOfType _typeName )  =
     (sem_TypeName_SetOfType (sem_TypeName _typeName ) )
 sem_TypeName (SimpleType _string )  =
     (sem_TypeName_SimpleType _string )
+-- semantic domain
+type T_TypeName  = ( )
+sem_TypeName_ArrayType :: T_TypeName  ->
+                          T_TypeName 
 sem_TypeName_ArrayType typeName_  =
     (let 
      in  ( ))
+sem_TypeName_PrecType :: String ->
+                         Integer ->
+                         T_TypeName 
 sem_TypeName_PrecType string_ integer_  =
     (let 
      in  ( ))
+sem_TypeName_SetOfType :: T_TypeName  ->
+                          T_TypeName 
 sem_TypeName_SetOfType typeName_  =
     (let 
      in  ( ))
+sem_TypeName_SimpleType :: String ->
+                           T_TypeName 
 sem_TypeName_SimpleType string_  =
     (let 
      in  ( ))
@@ -1158,6 +1865,8 @@ data UnOp  = Abs
            | SetOf 
            deriving ( Eq,Show)
 -- cata
+sem_UnOp :: UnOp  ->
+            T_UnOp 
 sem_UnOp (Abs )  =
     (sem_UnOp_Abs )
 sem_UnOp (IsNotNull )  =
@@ -1170,21 +1879,29 @@ sem_UnOp (Not )  =
     (sem_UnOp_Not )
 sem_UnOp (SetOf )  =
     (sem_UnOp_SetOf )
+-- semantic domain
+type T_UnOp  = ( )
+sem_UnOp_Abs :: T_UnOp 
 sem_UnOp_Abs  =
     (let 
      in  ( ))
+sem_UnOp_IsNotNull :: T_UnOp 
 sem_UnOp_IsNotNull  =
     (let 
      in  ( ))
+sem_UnOp_IsNull :: T_UnOp 
 sem_UnOp_IsNull  =
     (let 
      in  ( ))
+sem_UnOp_Neg :: T_UnOp 
 sem_UnOp_Neg  =
     (let 
      in  ( ))
+sem_UnOp_Not :: T_UnOp 
 sem_UnOp_Not  =
     (let 
      in  ( ))
+sem_UnOp_SetOf :: T_UnOp 
 sem_UnOp_SetOf  =
     (let 
      in  ( ))
@@ -1192,19 +1909,35 @@ sem_UnOp_SetOf  =
 data VarDef  = VarDef (String) (TypeName) (Maybe Expression) 
              deriving ( Eq,Show)
 -- cata
+sem_VarDef :: VarDef  ->
+              T_VarDef 
 sem_VarDef (VarDef _name _typ _value )  =
     (sem_VarDef_VarDef _name (sem_TypeName _typ ) _value )
+-- semantic domain
+type T_VarDef  = ( )
+sem_VarDef_VarDef :: String ->
+                     T_TypeName  ->
+                     (Maybe Expression) ->
+                     T_VarDef 
 sem_VarDef_VarDef name_ typ_ value_  =
     (let 
      in  ( ))
 -- VarDefList --------------------------------------------------
 type VarDefList  = [(VarDef)]
 -- cata
+sem_VarDefList :: VarDefList  ->
+                  T_VarDefList 
 sem_VarDefList list  =
     (Prelude.foldr sem_VarDefList_Cons sem_VarDefList_Nil (Prelude.map sem_VarDef list) )
+-- semantic domain
+type T_VarDefList  = ( )
+sem_VarDefList_Cons :: T_VarDef  ->
+                       T_VarDefList  ->
+                       T_VarDefList 
 sem_VarDefList_Cons hd_ tl_  =
     (let 
      in  ( ))
+sem_VarDefList_Nil :: T_VarDefList 
 sem_VarDefList_Nil  =
     (let 
      in  ( ))
@@ -1214,18 +1947,25 @@ data Volatility  = Immutable
                  | Volatile 
                  deriving ( Eq,Show)
 -- cata
+sem_Volatility :: Volatility  ->
+                  T_Volatility 
 sem_Volatility (Immutable )  =
     (sem_Volatility_Immutable )
 sem_Volatility (Stable )  =
     (sem_Volatility_Stable )
 sem_Volatility (Volatile )  =
     (sem_Volatility_Volatile )
+-- semantic domain
+type T_Volatility  = ( )
+sem_Volatility_Immutable :: T_Volatility 
 sem_Volatility_Immutable  =
     (let 
      in  ( ))
+sem_Volatility_Stable :: T_Volatility 
 sem_Volatility_Stable  =
     (let 
      in  ( ))
+sem_Volatility_Volatile :: T_Volatility 
 sem_Volatility_Volatile  =
     (let 
      in  ( ))

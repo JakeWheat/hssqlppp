@@ -1,6 +1,6 @@
 Copyright 2009 Jake Wheat
 
-The pretty printer which prints ast nodes from Tree.lhs
+The pretty printer which prints ast nodes from Ast.hs
 It uses the hughes pj pretty printer
 
 Produces sort of readable code, but mainly just written to produce

@@ -10,6 +10,12 @@ Lots of invalid sql is allowed.
 These ast nodes a are both used as the result of successful parsing,
 and as the input to the pretty printer.
 
+use
+
+uuagc -dcfs Ast.ag
+
+to generate a new Ast.hs from this file
+
 -}
 
 MODULE {Ast}
@@ -387,9 +393,65 @@ TYPE RowConstraintList = [RowConstraint]
 TYPE ExpressionListExpressionPair = (ExpressionList,Expression)
 TYPE ExpressionListExpressionPairList = [ExpressionListExpressionPair]
 
+-- =============================================================================
+
+ATTR Statement [
+               |
+               | sum: Int
+               ]
+
+ATTR StatementList [
+                   |
+                   | sum: Int
+                   ]
+
+
+SEM Statement
+    | Select lhs.sum = 1
+    | CombineSelect lhs.sum = 1
+    | Values lhs.sum = 1
+    | Insert lhs.sum = 1
+    | Update lhs.sum = 1
+    | Delete lhs.sum = 1
+    | Copy lhs.sum = 1
+    | CopyData lhs.sum = 1
+    | Truncate lhs.sum = 1
+    | CreateTable lhs.sum = 1
+    | CreateTableAs lhs.sum = 1
+    | CreateView lhs.sum = 1
+    | CreateType lhs.sum = 1
+    | CreateFunction lhs.sum = 1
+    | CreateDomain lhs.sum = 1
+    | DropFunction lhs.sum = 1
+    | DropSomething lhs.sum = 1
+    | Assignment lhs.sum = 1
+    | Return lhs.sum = 1
+    | ReturnNext lhs.sum = 1
+    | ReturnQuery lhs.sum = 1
+    | Raise lhs.sum = 1
+    | NullStatement lhs.sum = 1
+    | Perform lhs.sum = 1
+    | Execute lhs.sum = 1
+    | ExecuteInto lhs.sum = 1
+    | ForSelectStatement lhs.sum = 1
+    | ForIntegerStatement lhs.sum = 1
+    | WhileStatement lhs.sum = 1
+    | ContinueStatement lhs.sum = 1
+    | CaseStatement lhs.sum = 1
+    | If lhs.sum = 1
+
+SEM StatementList
+    | Cons lhs.sum = @hd.sum + @tl.sum
+    | Nil lhs.sum = 0
+
 
 {
 makeSelect :: Statement
 makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
                     Nothing Nothing [] Nothing [] Asc Nothing Nothing
+
+runAtts :: StatementList -> Int
+runAtts sts = sem_StatementList sts
+
+
 }
