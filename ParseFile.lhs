@@ -21,13 +21,14 @@ authentic the sql is and how much has been silently dropped on the floor
 >   where
 >     parseFile f = do
 >       putStrLn $ "parsing " ++ show f
->       x <- parseSqlFile f
+>       x <- parseSqlFileWithState f
 >       case x of
 >            Left er -> print er
->            Right l -> do
+>            Right (l, st) -> do
 >                --print l
 >                --putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
 >                putStrLn "parse ok"
+>                print st
 >                let pp = printSql l
 >                --putStrLn pp
 >                --check roundtrip

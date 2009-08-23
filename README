@@ -8,12 +8,15 @@ more details on what is supported and unsupported.
 
 The haskell files are literate haskell (the docs in these files aren't
 quite traditional literal style though). Parser.lhs has plenty of
-documentation in it, and if you view Tests.lhs you can see a range of
-sql that the program supports. The sql three files in ./sqltestfiles/
-all parse successfully as longer examples of what can be parsed (they
-are from another project).
+links in it, and if you view Tests.lhs you can see a range of sql that
+the program supports. The sql three files in ./sqltestfiles/ all parse
+successfully as longer examples of what can be parsed (they are from
+another project. Strictly speaking, passing these files through the
+parsing and pretty printing process leaves them unchanged enough to
+run the test suite from that project, it's still possible that not
+every detail is parsed correctly despite this).
 
-Apart from this file, additional documentation may be found in the
+Apart from the file you're reading, documentation may be found in the
 files TODO and extension_system, and possibly on the launchpad page at
 http://launchpad.net/hssqlppp/
 
@@ -206,7 +209,7 @@ This is a non-exhaustive list.
 Expression support is patchy, should work pretty well for a lot of
 simple stuff though. There is a strong possibility that for some
 complex selects and expressions, the implicit precedence (that is,
-bits without enclosing parenthesis), may parse in the wrong
+bits without enclosing parenthesis) may parse in the wrong
 direction. Please let me know if you encounter such an error.
 
 There is slightly more detail in the todo file about what sql isn't
@@ -226,10 +229,9 @@ No thought has been given in respects to supporting other sql dialects.
 
 = Rough roadmap
 
-My own focus is on the extension system at the moment, I don't intend
-to continue adding support for missing sql syntax for the time
-being. Once the extension system is working I will be using this code
-in anger in another project.
+My current focus is on adding source location information to the ast,
+then adding type checking. I don't intend to continue adding support
+for missing sql syntax for the time being.
 
 Adding support for missing syntax should mostly be pretty easy. The
 only gnarly bits will be if you come across problems with the

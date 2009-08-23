@@ -73,7 +73,22 @@ in general, parsing operators is wrong, the lexer needs to be able to
    what happens at the moment is a kludge, also, general operator
    parsing will change how operators are represented in the ast
 
-other ideas:
+other ideas (some of this stuff is ridiculously ambitious):
+
+write a show for parsec errors which formats the lex tokens and
+   expected lists properly (was broken when moved to the separate
+   lexer)
+
+lex operators properly, instead of as single chars
+
+try to find non hacky solution to lexing copy from stdin data
+
+add haddock docs to public api
+
+write some example programs with plenty of comments
+
+redo cabal file to add compile time options: exes, pg support, tests
+ or split into separate packages?
 
 add a exe to help checking the parse/pretty print round trip
 using postgresl - take a sql script, parse and pretty print it to a
@@ -83,6 +98,7 @@ using postgresl - take a sql script, parse and pretty print it to a
    look. Probably will have to do some work on cutting down the amount
    of parentheses that the pretty printer produces to make the diffs
    useful for complicated views and functions.
+   Just using database loader plus tests from target project for now
 
 work on error reporting, add tests for malformed sql
 
@@ -146,7 +162,9 @@ and get the type of the relational valued expression
    http://lindstroem.wordpress.com/2008/09/18/metahdbc-paper-draft/
    which is the ability to use type inference to determine that the
    value of an relation valued expression contains exactly one
-   tuple. Darwen et al.s' (puntuation?) approach
+   tuple. Darwen et al.s' (punctuation?) approach involves an operator
+   which throws a runtime exception if the relation doesn't have onne
+   tuple in it which seems less good than catching it at compile time.
 
    I'm particularly keen on being able to definitively say whether a
    given column in a relation valued expression can or can't be
@@ -155,7 +173,7 @@ and get the type of the relational valued expression
 
 Mads Lindstrøm makes an excellent argument on the above thread for a
    pragmatic approach to accessing sql databases from Haskell,
-   avoiding dsls and the like.  Supporting such an approach using this
+   avoiding dsls and the like. Supporting such an approach using this
    parser to do type inference on regular sql code for use within
    MetaHDBC and similar systems should be a major goal for this
    library, separate from my megalomaniac ideas about extension
