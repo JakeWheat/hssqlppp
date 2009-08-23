@@ -81,60 +81,67 @@ part of parsing is being referred to. If that makes sense?
 >          | CopyPayloadTok String -- support copy from stdin; with inline data
 >            deriving (Eq,Show)
 
+> type ParseState = [Tok]
+
 > lexSqlFile :: FilePath -> IO (Either ExtendedError [Token])
 > lexSqlFile f = do
 >   te <- readFile f
->   x <- parseFromFile sqlTokens f
+>   let x = runParser sqlTokens [] f te --parseFromFile sqlTokens f
 >   return $ convertToExtendedError x f te
 
 > lexSqlText :: String -> Either ExtendedError [Token]
-> lexSqlText s = convertToExtendedError (parse sqlTokens "" s) "" s
+> lexSqlText s = convertToExtendedError (runParser sqlTokens [] "" s) "" s
 
 ================================================================================
 
 = lexers
 
 lexer for tokens, contains a hack for copy from stdin with inline
-table data.  What we should do is lex lazily and when the lexer reads
-a copy from stdin statement, it switches lexers to lex the inline
-table data, then switches back. Don't know how to do this in parsec,
-or even if it is possible, so as a work around, first look for "from
-stdin;", then special case it.
+table data.
 
-> sqlTokens :: ParsecT String u Identity [Token]
+> sqlTokens :: ParsecT String ParseState Identity [Token]
 > sqlTokens =
+>   setState [] >>
 >   whiteSpace >>
->   concat <$> many (choice [
->                     try copyFromStdin
->                    ,(:[]) <$> sqlToken]
->                    ) <* eof
->   where
->     copyFromStdin = do
->                     fr <- lexId "from"
->                     st <- lexId "stdin"
->                     sem <- withPos $ SymbolTok ';' <$ lexeme (char ';')
->                     cppl <- withPos copyPayload
->                     return [fr,st,sem,cppl]
->     lexId s = withPos $ IdStringTok s <$ lexeme (string s)
->     withPos p = (,) <$> getPosition <*> p
+>   many sqlToken <* eof
 
-parser for an individual token, don't need to worry about copy from
-stdin from now on.
+Parser for an individual token.
 
-> sqlToken :: ParsecT String u Identity Token
+What we should do is lex lazily and when the lexer reads a copy from
+stdin statement, it switches lexers to lex the inline table data, then
+switches back. Don't know how to do this in parsec, or even if it is
+possible, so as a work around, we use the state to trap if we've just
+seen 'from stdin;', if so, we read the copy payload, otherwise we read
+a normal token.
+
+> sqlToken :: ParsecT String ParseState Identity Token
 > sqlToken = do
 >            sp <- getPosition
->            t <- (try sqlString
+>            sta <- getState
+>            t <- if sta == [ft,st,mt]
+>                 then copyPayload
+>                 else (try sqlString
 >                  <|> try idString
 >                  <|> try positionalArg
 >                  <|> try sqlSymbol
 >                  <|> try sqlFloat
 >                  <|> try sqlInteger)
+>            updateState $ \stt ->
+>              case () of
+>                      _ | stt == [] && t == ft -> [ft]
+>                        | stt == [ft] && t == st -> [ft,st]
+>                        | stt == [ft,st] && t == mt -> [ft,st,mt]
+>                        | True -> []
+
 >            return (sp,t)
+>            where
+>              ft = IdStringTok "from"
+>              st = IdStringTok "stdin"
+>              mt = SymbolTok ';'
 
 == specialized token parsers
 
-> sqlString :: ParsecT String u Identity Tok
+> sqlString :: ParsecT String ParseState Identity Tok
 > sqlString = stringQuotes <|> stringLD
 >   where
 >     --parse a string delimited by single quotes
@@ -165,19 +172,19 @@ parse a dollar quoted string
 >                       (try $ char '$' <* string tag <* char '$')
 >                return $ StringTok ("$" ++ tag ++ "$") s
 
-> idString :: ParsecT String u Identity Tok
+> idString :: ParsecT String ParseState Identity Tok
 > idString = IdStringTok <$> identifierString
 
-> positionalArg :: ParsecT String u Identity Tok
+> positionalArg :: ParsecT String ParseState Identity Tok
 > positionalArg = char '$' >> PositionalArgTok <$> integer
 
-> sqlSymbol :: ParsecT String u Identity Tok
+> sqlSymbol :: ParsecT String ParseState Identity Tok
 > sqlSymbol = SymbolTok <$> lexeme (oneOf "+-*/<>=~!@#%^&|`?:()[],;.")
 
-> sqlFloat :: ParsecT String u Identity Tok
+> sqlFloat :: ParsecT String ParseState Identity Tok
 > sqlFloat = FloatTok <$> float
 
-> sqlInteger :: ParsecT String u Identity Tok
+> sqlInteger :: ParsecT String ParseState Identity Tok
 > sqlInteger = IntegerTok <$> integer
 
 ================================================================================
@@ -188,7 +195,7 @@ include dots, * in all identifier strings during lexing. This parser
 is also used for keywords, so identifiers and keywords aren't distinguished
 until during proper parsing
 
-> identifierString :: ParsecT String u Identity String
+> identifierString :: ParsecT String ParseState Identity String
 > identifierString = lexeme $ choice [
 >                     "*" <$ symbol "*"
 >                    ,do
@@ -203,7 +210,7 @@ until during proper parsing
 parse the block of inline data for a copy from stdin, ends with \. on
 its own on a line
 
-> copyPayload :: ParsecT String u Identity Tok
+> copyPayload :: ParsecT String ParseState Identity Tok
 > copyPayload = CopyPayloadTok <$> lexeme (getLinesTillMatches "\\.\n")
 >   where
 >     getLinesTillMatches s = do
@@ -228,26 +235,26 @@ doesn't seem too gratuitous, comes up a few times
 
 = parsec pass throughs
 
-> symbol :: String -> ParsecT String u Identity String
+> symbol :: String -> ParsecT String ParseState Identity String
 > symbol = P.symbol lexer
 
-> integer :: ParsecT String u Identity Integer
+> integer :: ParsecT String ParseState Identity Integer
 > integer = lexeme $ P.integer lexer
 
-> float :: ParsecT String u Identity Double
+> float :: ParsecT String ParseState Identity Double
 > float = lexeme $ P.float lexer
 
-> whiteSpace :: ParsecT String u Identity ()
+> whiteSpace :: ParsecT String ParseState Identity ()
 > whiteSpace= P.whiteSpace lexer
 
-> lexeme :: ParsecT String u Identity a
->           -> ParsecT String u Identity a
+> lexeme :: ParsecT String ParseState Identity a
+>           -> ParsecT String ParseState Identity a
 > lexeme = P.lexeme lexer
 
 this lexer isn't really used as much as it could be, probably some of
 the fields are not used at all (like identifier and operator stuff)
 
-> lexer :: P.GenTokenParser String u Identity
+> lexer :: P.GenTokenParser String ParseState Identity
 > lexer = P.makeTokenParser (emptyDef {
 >                             P.commentStart = "/*"
 >                            ,P.commentEnd = "*/"

@@ -46,24 +46,24 @@ start with some really basic expressions, we just use the expression
 parser rather than the full sql statement parser. (the expression parser
 requires a single expression followed by eof.)
 
->       p "1" (IntegerVal 1)
->      ,p "-1" (UnOpCall Neg (IntegerVal 1))
->      ,p "1.1" (FloatVal 1.1)
->      ,p "-1.1" (UnOpCall Neg (FloatVal 1.1))
->      ,p " 1 + 1 " (BinOpCall Plus (IntegerVal 1) (IntegerVal 1))
+>       p "1" (IntegerLit 1)
+>      ,p "-1" (UnOpCall Neg (IntegerLit 1))
+>      ,p "1.1" (FloatLit 1.1)
+>      ,p "-1.1" (UnOpCall Neg (FloatLit 1.1))
+>      ,p " 1 + 1 " (BinOpCall Plus (IntegerLit 1) (IntegerLit 1))
 >      ,p "1+1+1" (BinOpCall
 >                  Plus
->                  (BinOpCall Plus (IntegerVal 1) (IntegerVal 1))
->                  (IntegerVal 1))
+>                  (BinOpCall Plus (IntegerLit 1) (IntegerLit 1))
+>                  (IntegerLit 1))
 
 check some basic parens use wrt naked values and row constructors
 these tests reflect how pg seems to intrepret the variants.
 
->      ,p "(1)" (IntegerVal 1)
+>      ,p "(1)" (IntegerLit 1)
 >      ,p "row ()" (Row [])
->      ,p "row (1)" (Row [IntegerVal 1])
->      ,p "row (1,2)" (Row [IntegerVal 1,IntegerVal 2])
->      ,p "(1,2)" (Row [IntegerVal 1,IntegerVal 2])
+>      ,p "row (1)" (Row [IntegerLit 1])
+>      ,p "row (1,2)" (Row [IntegerLit 1,IntegerLit 2])
+>      ,p "(1,2)" (Row [IntegerLit 1,IntegerLit 2])
 
 test some more really basic expressions
 
@@ -73,17 +73,17 @@ test some more really basic expressions
 >      ,p "helloTest" (Identifier "helloTest")
 >      ,p "hello_test" (Identifier "hello_test")
 >      ,p "hello1234" (Identifier "hello1234")
->      ,p "true" (BooleanVal True)
->      ,p "false" (BooleanVal False)
->      ,p "null" NullVal
+>      ,p "true" (BooleanLit True)
+>      ,p "false" (BooleanLit False)
+>      ,p "null" NullLit
 
 array selector
 
->      ,p "array[1,2]" (ArrayVal [IntegerVal 1, IntegerVal 2])
+>      ,p "array[1,2]" (ArrayLit [IntegerLit 1, IntegerLit 2])
 
 array subscripting
 
->      ,p "a[1]" (ArraySub (Identifier "a") [IntegerVal 1])
+>      ,p "a[1]" (ArraySub (Identifier "a") [IntegerLit 1])
 
 we just produce a ast, so no type checking or anything like that is
 done
@@ -91,9 +91,9 @@ done
 some operator tests
 
 >      ,p "1 + tst1" (BinOpCall
->                     Plus (IntegerVal 1) (Identifier "tst1"))
+>                     Plus (IntegerLit 1) (Identifier "tst1"))
 >      ,p "tst1 + 1" (BinOpCall
->                     Plus (Identifier "tst1") (IntegerVal 1))
+>                     Plus (Identifier "tst1") (IntegerLit 1))
 >      ,p "tst + tst1" (BinOpCall
 >                       Plus (Identifier "tst") (Identifier "tst1"))
 >      ,p "'a' || 'b'" (BinOpCall Conc (stringQ "a")
@@ -101,43 +101,43 @@ some operator tests
 >      ,p "'stuff'::text" (BinOpCall
 >                          Cast (stringQ "stuff") (Identifier "text"))
 >      ,p "245::float(24)" (BinOpCall
->                          Cast (IntegerVal 245)
->                           (FunCall "float" [IntegerVal 24]))
+>                          Cast (IntegerLit 245)
+>                           (FunCall "float" [IntegerLit 24]))
 
 >      ,p "a between 1 and 3"
->         (Between (Identifier "a") (IntegerVal 1) (IntegerVal 3))
+>         (Between (Identifier "a") (IntegerLit 1) (IntegerLit 3))
 >      ,p "cast(a as text)"
 >         (CastKeyword (Identifier "a") (SimpleType "text"))
 >      ,p "@ a"
 >         (UnOpCall Abs (Identifier "a"))
 
 >      ,p "substring(a from 0 for 3)"
->         (Substring (Identifier "a") (IntegerVal 0) (IntegerVal 3))
+>         (Substring (Identifier "a") (IntegerLit 0) (IntegerLit 3))
 
 >      ,p "substring(a from 0 for (5 - 3))"
->         (Substring (Identifier "a") (IntegerVal 0)
->          (BinOpCall Minus (IntegerVal 5) (IntegerVal 3)))
+>         (Substring (Identifier "a") (IntegerLit 0)
+>          (BinOpCall Minus (IntegerLit 5) (IntegerLit 3)))
 >      ,p "a like b"
 >         (BinOpCall Like (Identifier "a") (Identifier "b"))
 
 some function call tests
 
 >      ,p "fn()" (FunCall "fn" [])
->      ,p "fn(1)" (FunCall "fn" [IntegerVal 1])
+>      ,p "fn(1)" (FunCall "fn" [IntegerLit 1])
 >      ,p "fn('test')" (FunCall "fn" [stringQ "test"])
->      ,p "fn(1,'test')" (FunCall "fn" [IntegerVal 1, stringQ "test"])
+>      ,p "fn(1,'test')" (FunCall "fn" [IntegerLit 1, stringQ "test"])
 >      ,p "fn('test')" (FunCall "fn" [stringQ "test"])
 
 simple whitespace sanity checks
 
->      ,p "fn (1)" (FunCall "fn" [IntegerVal 1])
->      ,p "fn( 1)" (FunCall "fn" [IntegerVal 1])
->      ,p "fn(1 )" (FunCall "fn" [IntegerVal 1])
->      ,p "fn(1) " (FunCall "fn" [IntegerVal 1])
+>      ,p "fn (1)" (FunCall "fn" [IntegerLit 1])
+>      ,p "fn( 1)" (FunCall "fn" [IntegerLit 1])
+>      ,p "fn(1 )" (FunCall "fn" [IntegerLit 1])
+>      ,p "fn(1) " (FunCall "fn" [IntegerLit 1])
 
 null stuff
 
->      ,p "not null" (UnOpCall Not NullVal)
+>      ,p "not null" (UnOpCall Not NullLit)
 >      ,p "a is null" (UnOpCall IsNull (Identifier "a"))
 >      ,p "a is not null" (UnOpCall
 >                          IsNotNull (Identifier "a"))
@@ -148,9 +148,9 @@ some slightly more complex stuff
 >         \     when c then 4\n\
 >         \     else 5\n\
 >         \end"
->         (Case [([Identifier "a", Identifier "b"], IntegerVal 3)
->               ,([Identifier "c"], IntegerVal 4)]
->          (Just $ IntegerVal 5))
+>         (Case [([Identifier "a", Identifier "b"], IntegerLit 3)
+>               ,([Identifier "c"], IntegerLit 4)]
+>          (Just $ IntegerLit 5))
 
 positional args used in sql and sometimes plpgsql functions
 
@@ -158,21 +158,21 @@ positional args used in sql and sometimes plpgsql functions
 
 >      ,p "exists (select 1 from a)"
 >       (Exists (makeSelect {
->                 selSelectList = sle [(IntegerVal 1)]
+>                 selSelectList = sle [(IntegerLit 1)]
 >                ,selTref = Just $ Tref "a"}))
 
 
-selectFrom [SelExp (IntegerVal 1)] (Tref "a")))
+selectFrom [SelExp (IntegerLit 1)] (Tref "a")))
 
 in variants, including using row constructors
 
 >      ,p "t in (1,2)"
->       (InPredicate (Identifier "t") True (InList [IntegerVal 1,IntegerVal 2]))
+>       (InPredicate (Identifier "t") True (InList [IntegerLit 1,IntegerLit 2]))
 >      ,p "t not in (1,2)"
->       (InPredicate (Identifier "t") False (InList [IntegerVal 1,IntegerVal 2]))
+>       (InPredicate (Identifier "t") False (InList [IntegerLit 1,IntegerLit 2]))
 >      ,p "(t,u) in (1,2)"
 >       (InPredicate (Row [Identifier "t",Identifier "u"]) True
->        (InList [IntegerVal 1,IntegerVal 2]))
+>        (InList [IntegerLit 1,IntegerLit 2]))
 
 operator issues:
 <> appears below < in the precedence table, this caused
@@ -200,10 +200,10 @@ and dollar quoting, including nesting.
 >      ,p "'test'''" (stringQ "test'")
 >      ,p "'''test'" (stringQ "'test")
 >      ,p "'te''st'" (stringQ "te'st")
->      ,p "$$test$$" (StringVal "$$" "test")
->      ,p "$$te'st$$" (StringVal "$$" "te'st")
->      ,p "$st$test$st$" (StringVal "$st$" "test")
->      ,p "$outer$te$$yup$$st$outer$" (StringVal "$outer$" "te$$yup$$st")
+>      ,p "$$test$$" (StringLit "$$" "test")
+>      ,p "$$te'st$$" (StringLit "$$" "te'st")
+>      ,p "$st$test$st$" (StringLit "$st$" "test")
+>      ,p "$outer$te$$yup$$st$outer$" (StringLit "$outer$" "te$$yup$$st")
 >      ,p "'spl$$it'" (stringQ "spl$$it")
 >      ])
 
@@ -213,7 +213,7 @@ first statement, pretty simple
 
 >     ,testGroup "select expression"
 >     (mapSql [
->       p "select 1;" [selectE (SelectList [SelExp (IntegerVal 1)] [])]
+>       p "select 1;" [selectE (SelectList [SelExp (IntegerLit 1)] [])]
 >      ])
 
 ================================================================================
@@ -239,16 +239,16 @@ test a whole bunch more select statements
 >         (selIL ["a"])
 >         (Tref "tbl")
 >         (BinOpCall Eql
->          (Identifier "b") (IntegerVal 2))]
+>          (Identifier "b") (IntegerLit 2))]
 >      ,p "select a from tbl where b=2 and c=3;"
 >       [selectFromWhere
 >         (selIL ["a"])
 >         (Tref "tbl")
 >         (BinOpCall And
 >          (BinOpCall Eql
->           (Identifier "b") (IntegerVal 2))
+>           (Identifier "b") (IntegerLit 2))
 >          (BinOpCall Eql
->           (Identifier "c") (IntegerVal 3)))]
+>           (Identifier "c") (IntegerLit 3)))]
 
 >      ,p "select a from tbl\n\
 >         \except\n\
@@ -260,8 +260,8 @@ test a whole bunch more select statements
 >         \except\n\
 >         \select a from tbl1 where true;"
 >       [CombineSelect Except
->        (selectFromWhere (selIL ["a"]) (Tref "tbl") (BooleanVal True))
->        (selectFromWhere (selIL ["a"]) (Tref "tbl1") (BooleanVal True))]
+>        (selectFromWhere (selIL ["a"]) (Tref "tbl") (BooleanLit True))
+>        (selectFromWhere (selIL ["a"]) (Tref "tbl1") (BooleanLit True))]
 >      ,p "select a from tbl\n\
 >         \union\n\
 >         \select a from tbl1;"
@@ -335,10 +335,10 @@ test a whole bunch more select statements
 >        [SelExp (Identifier "a")]
 >        (JoinedTref
 >         (JoinedTref (Tref "b") Unnatural Inner (Tref "c")
->          (Just $ JoinOn (BooleanVal True)))
+>          (Just $ JoinOn (BooleanLit True)))
 >         Unnatural Inner (Tref "d")
 >         (Just  $ JoinOn (BinOpCall Eql
->                (IntegerVal 1) (IntegerVal 1))))]
+>                (IntegerLit 1) (IntegerLit 1))))]
 
 >      ,p "select row_number() over(order by a) as place from tbl;"
 >       [selectFrom [SelectItem
@@ -406,13 +406,13 @@ test a whole bunch more select statements
 >       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
->        Nothing [] Nothing [Identifier "c"] Asc (Just (IntegerVal 1)) Nothing]
+>        Nothing [] Nothing [Identifier "c"] Asc (Just (IntegerLit 1)) Nothing]
 
 >      ,p "select * from a order by c offset 3;"
 >       [Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
->        Nothing [] Nothing [Identifier "c"] Asc Nothing (Just $ IntegerVal 3)]
+>        Nothing [] Nothing [Identifier "c"] Asc Nothing (Just $ IntegerLit 3)]
 
 >      ,p "select a from (select b from c) as d;"
 >         [selectFrom
@@ -439,7 +439,7 @@ test a whole bunch more select statements
 >         [Select Dupes
 >          (sl [selI "a", SelectItem (FunCall "count" [Identifier "b"]) "cnt"])
 >          (Just $ Tref "c") Nothing [Identifier "a"]
->          (Just $ BinOpCall Gt (Identifier "cnt") (IntegerVal 4))
+>          (Just $ BinOpCall Gt (Identifier "cnt") (IntegerLit 4))
 >          [] Asc Nothing Nothing]
 
 >      ])
@@ -450,8 +450,8 @@ one sanity check for parsing multiple statements
 
 >     ,testGroup "multiple statements"
 >     (mapSql [
->       p "select 1;\nselect 2;" [selectE $ sl [SelExp (IntegerVal 1)]
->                                ,selectE $ sl [SelExp (IntegerVal 2)]]
+>       p "select 1;\nselect 2;" [selectE $ sl [SelExp (IntegerLit 1)]
+>                                ,selectE $ sl [SelExp (IntegerLit 2)]]
 >      ])
 
 ================================================================================
@@ -471,15 +471,15 @@ statements when they program?
 >      ,p "select 1;\n\
 >         \-- this is a test\n\
 >         \select -- this is a test\n\
->         \2;" [selectE $ sl [SelExp (IntegerVal 1)]
->              ,selectE $ sl [SelExp (IntegerVal 2)]
+>         \2;" [selectE $ sl [SelExp (IntegerLit 1)]
+>              ,selectE $ sl [SelExp (IntegerLit 2)]
 >              ]
 >      ,p "select 1;\n\
 >         \/* this is\n\
 >         \a test*/\n\
 >         \select /* this is a test*/2;"
->                     [selectE $ sl [SelExp (IntegerVal 1)]
->                     ,selectE $ sl [SelExp (IntegerVal 2)]
+>                     [selectE $ sl [SelExp (IntegerLit 1)]
+>                     ,selectE $ sl [SelExp (IntegerLit 2)]
 >                     ]
 >      ])
 
@@ -498,15 +498,15 @@ simple insert
 >       [Insert
 >         "testtable"
 >         ["columna", "columnb"]
->         (Values [[IntegerVal 1, IntegerVal 2]])
+>         (Values [[IntegerLit 1, IntegerLit 2]])
 >         Nothing]
 
 multi row insert, test the stand alone values statement first, maybe
 that should be in the select section?
 
 >      ,p "values (1,2), (3,4);"
->      [Values [[IntegerVal 1, IntegerVal 2]
->              ,[IntegerVal 3, IntegerVal 4]]]
+>      [Values [[IntegerLit 1, IntegerLit 2]
+>              ,[IntegerLit 3, IntegerLit 4]]]
 
 >      ,p "insert into testtable\n\
 >         \(columna,columnb)\n\
@@ -514,8 +514,8 @@ that should be in the select section?
 >       [Insert
 >         "testtable"
 >         ["columna", "columnb"]
->         (Values [[IntegerVal 1, IntegerVal 2]
->                 ,[IntegerVal 3, IntegerVal 4]])
+>         (Values [[IntegerLit 1, IntegerLit 2]
+>                 ,[IntegerLit 3, IntegerLit 4]])
 >         Nothing]
 
 insert from select
@@ -532,27 +532,27 @@ insert from select
 >       [Insert
 >         "testtable"
 >         ["columna", "columnb"]
->         (Values [[IntegerVal 1, IntegerVal 2]])
+>         (Values [[IntegerLit 1, IntegerLit 2]])
 >         (Just $ sl [selI "id"])]
 
 updates
 
 >      ,p "update tb\n\
 >         \  set x = 1, y = 2;"
->       [Update "tb" [SetClause "x" (IntegerVal 1)
->                    ,SetClause "y" (IntegerVal 2)]
+>       [Update "tb" [SetClause "x" (IntegerLit 1)
+>                    ,SetClause "y" (IntegerLit 2)]
 >        Nothing Nothing]
 >      ,p "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
->       [Update "tb" [SetClause "x" (IntegerVal 1)
->                    ,SetClause "y" (IntegerVal 2)]
+>       [Update "tb" [SetClause "x" (IntegerLit 1)
+>                    ,SetClause "y" (IntegerLit 2)]
 >        (Just $ BinOpCall Eql
->         (Identifier "z") (BooleanVal True))
+>         (Identifier "z") (BooleanLit True))
 >        Nothing]
 >      ,p "update tb\n\
 >         \  set x = 1, y = 2 returning id;"
->       [Update "tb" [SetClause "x" (IntegerVal 1)
->                    ,SetClause "y" (IntegerVal 2)]
+>       [Update "tb" [SetClause "x" (IntegerLit 1)
+>                    ,SetClause "y" (IntegerLit 2)]
 >        Nothing (Just $ sl [selI "id"])]
 >      ,p "update pieces\n\
 >         \set a=b returning tag into r.tag;"
@@ -564,18 +564,18 @@ updates
 >         \  set (x,y) = (1,2);"
 >       [Update "tb" [RowSetClause
 >                     ["x","y"]
->                     [IntegerVal 1,IntegerVal 2]]
+>                     [IntegerLit 1,IntegerLit 2]]
 >        Nothing Nothing]
 
 delete
 
 >      ,p "delete from tbl1 where x = true;"
 >       [Delete "tbl1" (Just $ BinOpCall Eql
->                                (Identifier "x") (BooleanVal True))
+>                                (Identifier "x") (BooleanLit True))
 >        Nothing]
 >      ,p "delete from tbl1 where x = true returning id;"
 >       [Delete "tbl1" (Just $ BinOpCall Eql
->                                (Identifier "x") (BooleanVal True))
+>                                (Identifier "x") (BooleanLit True))
 >        (Just $ sl [selI "id"])]
 
 >     ,p "truncate test;"
@@ -618,11 +618,11 @@ create table tests
 >      ,p "create table tbl (\n\
 >         \  fld boolean default false);"
 >       [CreateTable "tbl" [AttributeDef "fld" "boolean"
->                           (Just $ BooleanVal False) []][]]
+>                           (Just $ BooleanLit False) []][]]
 
 >      ,p "create table tbl as select 1;"
 >       [CreateTableAs "tbl"
->        (selectE (SelectList [SelExp (IntegerVal 1)] []))]
+>        (selectE (SelectList [SelExp (IntegerLit 1)] []))]
 
 other creates
 
@@ -904,7 +904,7 @@ test functions
 >         \end;\n\
 >         \' language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" [] (SimpleType "void") "'"
->        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") (Just $ IntegerVal 3)]
+>        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") (Just $ IntegerLit 3)]
 >         [NullStatement])
 >        Stable]
 >      ,p "create function fn() returns setof int as $$\n\
@@ -942,19 +942,19 @@ test non sql plpgsql statements
 simple statements
 
 >       p "success := true;"
->       [Assignment "success" (BooleanVal True)]
+>       [Assignment "success" (BooleanLit True)]
 >      ,p "success = true;"
->       [Assignment "success" (BooleanVal True)]
+>       [Assignment "success" (BooleanLit True)]
 >      ,p "return true;"
->       [Return $ Just (BooleanVal True)]
+>       [Return $ Just (BooleanLit True)]
 >      ,p "return;"
 >       [Return Nothing]
 >      ,p "return next 1;"
->       [ReturnNext $ IntegerVal 1]
+>       [ReturnNext $ IntegerLit 1]
 >      ,p "return query select a from b;"
 >       [ReturnQuery $ selectFrom [selI "a"] (Tref "b")]
 >      ,p "raise notice 'stuff %', 1;"
->       [Raise RNotice "stuff %" [IntegerVal 1]]
+>       [Raise RNotice "stuff %" [IntegerLit 1]]
 >      ,p "perform test();"
 >       [Perform $ FunCall "test" []]
 >      ,p "perform test(a,b);"
@@ -988,13 +988,13 @@ complicated statements
 >         \null;\n\
 >         \end loop;"
 >       [ForSelectStatement "r"
->        (selectFromWhere [selI "a"] (Tref "tbl") (BooleanVal True))
+>        (selectFromWhere [selI "a"] (Tref "tbl") (BooleanLit True))
 >        [NullStatement]]
 >      ,p "for r in 1 .. 10 loop\n\
 >         \null;\n\
 >         \end loop;"
 >       [ForIntegerStatement "r"
->        (IntegerVal 1) (IntegerVal 10)
+>        (IntegerLit 1) (IntegerLit 10)
 >        [NullStatement]]
 
 >      ,p "if a=b then\n\
@@ -1008,15 +1008,15 @@ complicated statements
 >         \else\n\
 >         \  null;\n\
 >         \end if;"
->       [If [((BooleanVal True),[NullStatement])]
+>       [If [((BooleanLit True),[NullStatement])]
 >        [NullStatement]]
 >      ,p "if true then\n\
 >         \  null;\n\
 >         \elseif false then\n\
 >         \  return;\n\
 >         \end if;"
->       [If [((BooleanVal True), [NullStatement])
->           ,((BooleanVal False), [Return Nothing])]
+>       [If [((BooleanLit True), [NullStatement])
+>           ,((BooleanLit False), [Return Nothing])]
 >        []]
 >      ,p "if true then\n\
 >         \  null;\n\
@@ -1027,9 +1027,9 @@ complicated statements
 >         \else\n\
 >         \  return;\n\
 >         \end if;"
->       [If [((BooleanVal True), [NullStatement])
->           ,((BooleanVal False), [Return Nothing])
->           ,((BooleanVal False), [Return Nothing])]
+>       [If [((BooleanLit True), [NullStatement])
+>           ,((BooleanLit False), [Return Nothing])
+>           ,((BooleanLit False), [Return Nothing])]
 >        [Return Nothing]]
 >      ,p "case a\n\
 >         \  when b then null;\n\
@@ -1060,7 +1060,7 @@ complicated statements
 >           selectFromWhere selList frm whr =
 >             Select Dupes (SelectList selList [])
 >                    (Just frm) (Just whr) [] Nothing [] Asc Nothing Nothing
->           stringQ = StringVal "'"
+>           stringQ = StringLit "'"
 
 ================================================================================
 

@@ -146,7 +146,9 @@ and get the type of the relational valued expression
    http://lindstroem.wordpress.com/2008/09/18/metahdbc-paper-draft/
    which is the ability to use type inference to determine that the
    value of an relation valued expression contains exactly one
-   tuple. Darwen et al.s' (punctuation?) approach
+   tuple. Darwen et al.s' (punctuation?) approach involves an operator
+   which throws a runtime exception if the relation doesn't have onne
+   tuple in it which seems less good than catching it at compile time.
 
    I'm particularly keen on being able to definitively say whether a
    given column in a relation valued expression can or can't be

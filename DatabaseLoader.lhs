@@ -25,6 +25,8 @@ One option for some of the code is to use the original source code
 when it hasn't been changed for a given statement, instead of the
 pretty printed stuff, don't know how much help this will be.
 
+This code is a massive mess at the moment.
+
 > module DatabaseLoader where
 
 > import System.IO
@@ -40,27 +42,21 @@ pretty printed stuff, don't know how much help this will be.
 > import PrettyPrinter
 > import Tree
 
-> loadIntoDatabase :: String -> String -> [Tree.Statement] -> IO ()
-> loadIntoDatabase dbName fn ast = do
+> loadIntoDatabase :: String -> String -> ([Tree.Statement], [(String,Int,Int)]) -> IO ()
+> loadIntoDatabase dbName fn (ast,srcps) = do
 >   withConn ("dbname=" ++ dbName) $ \conn -> do
 >          loadPlpgsqlIntoDatabase conn
+>          let astSrcps = zip ast srcps
 >          mapM_ (\st ->
 >                 loadStatement conn st
->                 >> putStr ".") (filterStatements ast)
+>                 >> putStr ".") (filterStatements astSrcps)
 >   where
->     loadStatement conn st = case st of
->                               Skipit -> return ()
->                               VanillaStatement vs ->
->                                  handleError fn vs (runSqlCommand conn
+>     loadStatement conn (st,srcp) = case st of
+>                                          Skipit -> return ()
+>                                          VanillaStatement vs ->
+>                                              handleError fn srcp vs (runSqlCommand conn
 >                                                       (printSql [vs]))
->                               CopyStdin a b -> runCopy conn a b
->     loadPlpgsqlIntoDatabase conn = do
->          -- first, check plpgsql is in the database
->          x <- selectValue conn
->                 "select count(1) from pg_language where lanname='plpgsql';"
->          when (readInt x == 0) $
->               runSqlCommand conn "create procedural language plpgsql;"
->     readInt x = (read x)::Int
+>                                          CopyStdin a b -> runCopy conn a b srcp
 >     --hack cos we don't have support in hdbc for copy from stdin
 >     --(which libpq does support - adding this properly should be a todo)
 >     --we need the copy from stdin and the copydata to be processed in one go,
@@ -68,21 +64,31 @@ pretty printed stuff, don't know how much help this will be.
 >     --and a dummy statement following. Well dodgy, don't really know
 >     --how it manages to work correctly.
 >     filterStatements sts =
->        map (\(x,y) ->
+>        map (\((x,xsrcp),(y,_)) ->
 >                 case (x,y) of
->                        (a@(Copy _ _ Stdin), b@(CopyData _)) -> CopyStdin a b
->                        (CopyData _, _) -> Skipit
->                        (vs,_) -> VanillaStatement vs)
->            (zip sts (tail sts ++ [NullStatement]))
->     runCopy conn a b = case (a,b) of
+>                        (a@(Copy _ _ Stdin), b@(CopyData _)) -> (CopyStdin a b, xsrcp)
+>                        (CopyData _, _) -> (Skipit, xsrcp)
+>                        (vs,_) -> (VanillaStatement vs, xsrcp))
+>            statementWithNextStatement
+>            where
+>              statementWithNextStatement =
+>                  zip sts (tail sts ++ [(NullStatement, ("",0,0))])
+>     runCopy conn a b srcp = case (a,b) of
 >                          (Copy tb cl Stdin, CopyData s) -> do
 >                            withTemporaryFile (\tfn -> do
 >                                writeFile tfn s
 >                                tfn1 <- canonicalizePath tfn
 >                                loadStatement conn
 >                                  (VanillaStatement (Copy tb cl
->                                                     (CopyFilename tfn1))))
+>                                                     (CopyFilename tfn1)), srcp))
 >                          _ -> error "pattern match fail"
+>     loadPlpgsqlIntoDatabase conn = do
+>          -- first, check plpgsql is in the database
+>          x <- selectValue conn
+>                 "select count(1) from pg_language where lanname='plpgsql';"
+>          when (readInt x == 0) $
+>               runSqlCommand conn "create procedural language plpgsql;"
+>     readInt x = (read x)::Int
 
 > data Wrapper = CopyStdin Tree.Statement Tree.Statement
 >              | Skipit
@@ -165,12 +171,12 @@ though
  >                            _ -> 0
  >     getLineStuffLength l = length (l =~ "^LINE ([0-9]+):" :: String) + 1
 
-> handleError :: String -> Tree.Statement -> IO () -> IO ()
-> handleError fn st f = catchSql f
+> handleError :: String -> (String,Int,Int) -> Tree.Statement -> IO () -> IO ()
+> handleError fn (_, sl,sc) _ f = catchSql f
 >                    (\e -> do
 >                      --s <- readFile fn
 >                      let (l,c) = getLineAndColumnFromErrorText (seErrorMsg e)
->                      let (sl,sc) = getStatementPos st
+>                      --let (sl,sc) = getStatementPos st
 >                      error $ "ERROR!!!!\n"
 >                                ++ show l ++ ":" ++ show c ++ ":\n"
 >                                ++ "from here:\n"
@@ -179,8 +185,8 @@ though
 
  > getStatementPos (Insert (Just (SourcePos x y)) _ _ _ _) = (x,y)
 
-> getStatementPos :: t -> (Integer, Integer)
-> getStatementPos _ = (0::Integer,0::Integer)
+ > getStatementPos :: t -> (Integer, Integer)
+ > getStatementPos _ = (0::Integer,0::Integer)
 
 ================================================================================
 

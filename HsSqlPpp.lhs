@@ -31,7 +31,7 @@ database given.
 
 > loadSqlfile :: String -> String -> IO ()
 > loadSqlfile db fn = do
->   res <- parseSqlFile fn
+>   res <- parseSqlFileWithState fn
 >   case res of
 >     Left er -> error $ show er
 >     Right ast -> putStrLn ("loading " ++ fn)
