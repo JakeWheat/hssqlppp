@@ -1,0 +1,395 @@
+{-
+Copyright 2009 Jake Wheat
+
+This file contains the data types for the sql ast nodes
+No real thought or taste has gone into the decisions on how to structure
+these.
+They contain no source line/column references.
+Lots of invalid sql is allowed.
+
+These ast nodes a are both used as the result of successful parsing,
+and as the input to the pretty printer.
+
+-}
+
+MODULE {Ast}
+{} -- exports
+{} -- imports
+
+{-
+================================================================================
+
+SQL top level statements
+
+everything is chucked in here, in particular this means that many places where
+a select can appear inside another statement (e.g. a subselect), you can
+instead put any statement - this type checks but is totally invalid.
+
+> -- | Statement represents a single sql or plpgsql statement.
+
+-}
+
+DATA Statement
+
+--queries
+
+    | Select selDistinct : Distinct
+             selSelectList : SelectList
+             selTref : (Maybe TableRef)
+             selWhere : (Maybe Expression)
+             selGroupBy : ExpressionList
+             selHaving : (Maybe Expression)
+             selOrderBy : ExpressionList
+             selDir : Direction
+             selLimit : (Maybe Expression)
+             selOffset : (Maybe Expression)
+    | CombineSelect ctype : CombineType
+                    sel1 : Statement
+                    sel2 : Statement
+    | Values ExpressionListList
+
+-- dml
+
+    --table targetcolumns insertdata(values or select statement) returning
+    | Insert table : String
+             targetCols : StringList
+             insData : Statement
+             returning : (Maybe SelectList)
+    --tablename setitems where returning
+    | Update table : String
+             assigns : SetClauseList
+             whr : (Maybe Expression)
+             returning : (Maybe SelectList)
+    --tablename, where, returning
+    | Delete table : String
+             whr : (Maybe Expression)
+             returning : (Maybe SelectList)
+    --tablename column names, from
+    | Copy table : String
+           targetCols : StringList
+           source : CopySource
+    --represents inline data for copy statement
+    | CopyData insData : String
+    | Truncate tables: StringList
+               restartIdentity : RestartIdentity
+               cascade : Cascade
+
+-- ddl
+
+    | CreateTable name : String
+                  atts : AttributeDefList
+                  cons : ConstraintList
+    | CreateTableAs name : String
+                    expr : Statement
+    | CreateView name : String
+                 expr : Statement
+    | CreateType name : String
+                 atts : TypeAttributeDefList
+    -- language name args rettype bodyquoteused body vol
+    | CreateFunction lang : Language
+                     name : String
+                     params : ParamDefList
+                     rettype : TypeName
+                     bodyQuote : String
+                     body : FnBody
+                     vol : Volatility
+    -- name type checkexpression
+    | CreateDomain name : String
+                   typ : String
+                   check : (Maybe Expression)
+    -- ifexists (name,argtypes)* cascadeorrestrict
+    | DropFunction ifE : IfExists
+                   sigs : StringStringListPairList
+                   cascade : Cascade
+    -- ifexists names cascadeorrestrict
+    | DropSomething dropType : DropType
+                    ifE : IfExists
+                    names : StringList
+                    cascade : Cascade
+    | Assignment target : String
+                 value : Expression
+    | Return value : (Maybe Expression)
+    | ReturnNext expr : Expression
+    | ReturnQuery sel : Statement
+    | Raise level : RaiseType
+            message : String
+            args : ExpressionList
+    | NullStatement
+    | Perform expr : Expression
+    | Execute expr : Expression
+    | ExecuteInto expr : Expression
+                  targets : StringList
+    | ForSelectStatement var : String
+                         sel : Statement
+                         sts : StatementList
+    | ForIntegerStatement var : String
+                          from : Expression
+                          to : Expression
+                          sts : StatementList
+    | WhileStatement expr : Expression
+                     sts : StatementList
+    | ContinueStatement
+    --variable, list of when parts, else part
+    | CaseStatement val : Expression
+                    cases : ExpressonListStatementListPairList
+                    els : StatementList
+    --list is
+    --first if (condition, statements):elseifs(condition, statements)
+    --last bit is else statements
+    | If cases : ExpressionStatementListPairList
+         els : StatementList
+DERIVING Statement: Show,Eq
+
+-- =============================================================================
+
+--Statement components
+
+DATA FnBody | SqlFnBody StatementList | PlpgsqlFnBody VarDefList StatementList
+DERIVING FnBody: Show,Eq
+
+DATA SetClause | SetClause String Expression | RowSetClause StringList ExpressionList
+DERIVING SetClause: Show,Eq
+
+DATA TableRef | Tref String
+              | TrefAlias tref : String
+                          alias : String
+              | JoinedTref tref : TableRef
+                           nat : Natural
+                           joinType : JoinType
+                           jtref : TableRef
+                           onExpr : (Maybe JoinExpression)
+              | SubTref Statement String
+              | TrefFun Expression
+              | TrefFunAlias Expression String
+DERIVING TableRef: Show,Eq
+
+DATA JoinExpression | JoinOn Expression | JoinUsing StringList
+DERIVING JoinExpression: Show,Eq
+
+DATA JoinType | Inner | LeftOuter| RightOuter | FullOuter | Cross
+DERIVING JoinType: Show,Eq
+
+-- select columns, into columns
+
+DATA SelectList | SelectList SelectItemList StringList
+DERIVING SelectList: Show,Eq
+
+DATA SelectItem | SelExp Expression
+                | SelectItem Expression String
+DERIVING SelectItem: Show,Eq
+
+DATA CopySource | CopyFilename String | Stdin
+DERIVING CopySource: Show,Eq
+
+--name type default null constraint
+
+DATA AttributeDef | AttributeDef name : String
+                                 typ : String
+                                 check : (Maybe Expression)
+                                 cons : RowConstraintList
+DERIVING AttributeDef: Show,Eq
+
+--Constraints which appear attached to an individual field
+
+DATA RowConstraint | NullConstraint
+                   | NotNullConstraint
+                   | RowCheckConstraint Expression
+                   | RowUniqueConstraint
+                   | RowPrimaryKeyConstraint
+                   | RowReferenceConstraint table : String
+                                            atts : StringList
+                                            onUpdate : Cascade
+                                            onDelete : Cascade
+DERIVING RowConstraint: Show,Eq
+
+--constraints which appear on a separate row in the create table
+
+DATA Constraint | UniqueConstraint StringList
+                | PrimaryKeyConstraint StringList
+                | CheckConstraint Expression
+                  -- sourcecols targettable targetcols ondelete onupdate
+                | ReferenceConstraint atts : StringList
+                                      table : String
+                                      tableAtts : StringList
+                                      onUpdate : Cascade
+                                      onDelete : Cascade
+DERIVING Constraint: Show,Eq
+
+DATA TypeAttributeDef | TypeAttDef name : String
+                                   typ : String
+DERIVING TypeAttributeDef: Show,Eq
+
+DATA ParamDef | ParamDef String TypeName
+              | ParamDefTp TypeName
+DERIVING ParamDef: Show,Eq
+
+DATA VarDef | VarDef name : String
+                     typ : TypeName
+                     value : (Maybe Expression)
+DERIVING VarDef: Show,Eq
+
+DATA RaiseType | RNotice | RException | RError
+DERIVING RaiseType: Show,Eq
+
+DATA CombineType | Except | Union | Intersect | UnionAll
+DERIVING CombineType: Show,Eq
+
+DATA Volatility | Volatile | Stable | Immutable
+DERIVING Volatility: Show,Eq
+
+DATA Language | Sql | Plpgsql
+DERIVING Language: Show,Eq
+
+DATA TypeName | SimpleType String
+              | PrecType String Integer
+              | ArrayType TypeName
+              | SetOfType TypeName
+DERIVING TypeName: Show,Eq
+
+DATA DropType | Table
+         | Domain
+         | View
+         | Type
+DERIVING DropType: Show,Eq
+
+DATA Cascade | Cascade | Restrict
+DERIVING Cascade: Show,Eq
+
+DATA Direction | Asc | Desc
+DERIVING Direction: Show,Eq
+
+DATA Distinct | Distinct | Dupes
+DERIVING Distinct: Show,Eq
+
+DATA Natural | Natural | Unnatural
+DERIVING Natural: Show,Eq
+
+DATA IfExists | Require | IfExists
+DERIVING IfExists: Show,Eq
+
+DATA RestartIdentity | RestartIdentity | ContinueIdentity
+DERIVING RestartIdentity: Show,Eq
+
+{-
+================================================================================
+
+Expressions
+
+-}
+
+DATA BinOp
+    | Plus | Minus | Mult | Div | Pow | Mod | Eql
+    | And | Or | Conc | Like
+    | Cast | NotEql | Lt | Gt | Lte | Gte
+    | DistBetween
+DERIVING BinOp: Show,Eq
+
+
+DATA UnOp | Not | IsNull | IsNotNull | SetOf | Abs | Neg
+DERIVING UnOp: Show,Eq
+
+{
+
+binOpToSymbol :: BinOp -> String
+binOpToSymbol op = case op of
+                        Plus -> "+"
+                        Minus -> "-"
+                        Mult -> "*"
+                        Div -> "/"
+                        Pow -> "^"
+                        Mod -> "%"
+                        Eql -> "="
+                        And -> "and"
+                        Or -> "or"
+                        Conc -> "||"
+                        Like -> "like"
+                        Cast -> "::"
+                        NotEql -> "<>"
+                        Lt -> "<"
+                        Gt -> ">"
+                        Lte -> "<="
+                        Gte -> ">="
+                        DistBetween -> "<->"
+
+unOpToSymbol :: UnOp -> String
+unOpToSymbol op = case op of
+                         Not -> "not"
+                         IsNull -> "is null"
+                         IsNotNull -> "is not null"
+                         SetOf -> "setof"
+                         Abs -> "@"
+                         Neg -> "-"
+
+}
+
+{-
+Similarly to the statement type, all expressions
+are chucked into one even though there are many restrictions
+on which expressions can appear in different places.
+-}
+DATA Expression | IntegerLit Integer
+                | FloatLit Double
+                | StringLit quote : String
+                            value : String
+                | NullLit
+                | BooleanLit Bool
+                | PositionalArg Integer
+                | CastKeyword Expression TypeName
+                  -- sourcestring start length
+                | Substring str : Expression
+                            from : Expression
+                            for : Expression
+                | Identifier String
+                | Row ExpressionList
+                | ArrayLit ExpressionList
+                | Case cases : ExpressionListExpressionPairList
+                       els : (Maybe Expression)
+                | Exists Statement
+                | BinOpCall BinOp
+                            arg1 : Expression
+                            arg2 : Expression
+                | UnOpCall UnOp Expression
+                | FunCall String ExpressionList
+                | InPredicate Expression Bool InList
+                  -- windowfn selectitem partitionby orderby orderbyasc?
+                | WindowFn fn : Expression
+                           partitionBy : ExpressionList
+                           orderBy : ExpressionList
+                           dir : Direction
+                | ScalarSubQuery Statement
+                | ArraySub Expression ExpressionList
+                | Between val : Expression
+                          lower : Expression
+                          upper : Expression
+DERIVING Expression: Show,Eq
+
+DATA InList | InList ExpressionList | InSelect Statement
+DERIVING InList: Show,Eq
+
+TYPE ExpressionList = [Expression]
+TYPE ExpressionListList = [ExpressionList]
+TYPE StringList = [String]
+TYPE SetClauseList = [SetClause]
+TYPE AttributeDefList = [AttributeDef]
+TYPE ConstraintList = [Constraint]
+TYPE TypeAttributeDefList = [TypeAttributeDef]
+TYPE ParamDefList = [ParamDef]
+TYPE StringStringListPair = (String,StringList)
+TYPE StringStringListPairList = [StringStringListPair]
+TYPE StatementList = [Statement]
+TYPE ExpressonListStatementListPair = (ExpressionList,StatementList)
+TYPE ExpressonListStatementListPairList = [ExpressonListStatementListPair]
+TYPE ExpressionStatementListPair = (Expression, StatementList)
+TYPE ExpressionStatementListPairList = [ExpressionStatementListPair]
+TYPE VarDefList = [VarDef]
+TYPE SelectItemList = [SelectItem]
+TYPE RowConstraintList = [RowConstraint]
+TYPE ExpressionListExpressionPair = (ExpressionList,Expression)
+TYPE ExpressionListExpressionPairList = [ExpressionListExpressionPair]
+
+
+{
+makeSelect :: Statement
+makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
+                    Nothing Nothing [] Nothing [] Asc Nothing Nothing
+}

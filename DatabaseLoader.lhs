@@ -40,9 +40,9 @@ This code is a massive mess at the moment.
 > import Data.Maybe
 
 > import PrettyPrinter
-> import Tree
+> import Ast
 
-> loadIntoDatabase :: String -> String -> ([Tree.Statement], [(String,Int,Int)]) -> IO ()
+> loadIntoDatabase :: String -> String -> ([Ast.Statement], [(String,Int,Int)]) -> IO ()
 > loadIntoDatabase dbName fn (ast,srcps) = do
 >   withConn ("dbname=" ++ dbName) $ \conn -> do
 >          loadPlpgsqlIntoDatabase conn
@@ -90,9 +90,9 @@ This code is a massive mess at the moment.
 >               runSqlCommand conn "create procedural language plpgsql;"
 >     readInt x = (read x)::Int
 
-> data Wrapper = CopyStdin Tree.Statement Tree.Statement
+> data Wrapper = CopyStdin Ast.Statement Ast.Statement
 >              | Skipit
->              | VanillaStatement Tree.Statement
+>              | VanillaStatement Ast.Statement
 
 ================================================================================
 
@@ -171,7 +171,7 @@ though
  >                            _ -> 0
  >     getLineStuffLength l = length (l =~ "^LINE ([0-9]+):" :: String) + 1
 
-> handleError :: String -> (String,Int,Int) -> Tree.Statement -> IO () -> IO ()
+> handleError :: String -> (String,Int,Int) -> Ast.Statement -> IO () -> IO ()
 > handleError fn (_, sl,sc) _ f = catchSql f
 >                    (\e -> do
 >                      --s <- readFile fn

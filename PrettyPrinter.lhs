@@ -17,7 +17,7 @@ reparsable text.
 > import Text.PrettyPrint
 > import Data.List (stripPrefix)
 > import Data.Maybe
-> import Tree
+> import Ast
 
 ================================================================================
 

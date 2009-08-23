@@ -83,20 +83,6 @@ filters the incoming tokens from the terminal parsers into the right
 tree structure then the parser will return the list of statements and
 a parallel tree of token positions (sounds mental?)
 
-use UUAG
-(http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarManual) to
-create a parallel set of ast nodes with the token position information
-inline, and to do filters which take a tokenpos tree and statement
-list and produce a tokenposificated ast tree, and to take a
-tokenposificatedast tree and produce a standard ast tree.
-
-For converting back to regular nodes, may need something more fine
-grained since we whilst loading into the database we want to use the
-individual pretty printers with regular nodes, and at the same time
-keep the token positions from the original source handy for mapping
-error positions from postgresql back to original source text
-positions.
-
 
 > module Parser (
 >               --parse fully formed sql statements from a string
@@ -126,7 +112,7 @@ positions.
 
 > import Lexer
 > import ParseErrors
-> import Tree
+> import Ast
 
 > type ParseState = [MySourcePos]
 > type MySourcePos = (String,Int,Int)

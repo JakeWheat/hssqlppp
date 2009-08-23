@@ -26,7 +26,7 @@ There are no tests for invalid sql at the moment.
 
  > import Control.Monad
 
-> import Tree
+> import Ast
 > import Parser
 > import PrettyPrinter
 
@@ -157,9 +157,11 @@ positional args used in sql and sometimes plpgsql functions
 >      ,p "$1" (PositionalArg 1)
 
 >      ,p "exists (select 1 from a)"
->       (Exists (makeSelect {
->                 selSelectList = sle [(IntegerLit 1)]
->                ,selTref = Just $ Tref "a"}))
+>       (Exists (selectFrom [SelExp (IntegerLit 1)] (Tref "a")))
+
+ >       (Exists (makeSelect {
+ >                 selSelectList = sle [(IntegerLit 1)]
+ >                ,selTref = Just $ Tref "a"}))
 
 
 selectFrom [SelExp (IntegerLit 1)] (Tref "a")))

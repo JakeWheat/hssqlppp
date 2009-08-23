@@ -83,6 +83,13 @@ lex operators properly, instead of as single chars
 
 try to find non hacky solution to lexing copy from stdin data
 
+add haddock docs to public api
+
+write some example programs with plenty of comments
+
+redo cabal file to add compile time options: exes, pg support, tests
+ or split into separate packages?
+
 add a exe to help checking the parse/pretty print round trip
 using postgresl - take a sql script, parse and pretty print it to a
    separate file, then load the original and the pretty printed into
