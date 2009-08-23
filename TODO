@@ -75,6 +75,14 @@ in general, parsing operators is wrong, the lexer needs to be able to
 
 other ideas (some of this stuff is ridiculously ambitious):
 
+write a show for parsec errors which formats the lex tokens and
+   expected lists properly (was broken when moved to the separate
+   lexer)
+
+lex operators properly, instead of as single chars
+
+try to find non hacky solution to lexing copy from stdin data
+
 add a exe to help checking the parse/pretty print round trip
 using postgresl - take a sql script, parse and pretty print it to a
    separate file, then load the original and the pretty printed into
@@ -83,6 +91,7 @@ using postgresl - take a sql script, parse and pretty print it to a
    look. Probably will have to do some work on cutting down the amount
    of parentheses that the pretty printer produces to make the diffs
    useful for complicated views and functions.
+   Just using database loader plus tests from target project for now
 
 work on error reporting, add tests for malformed sql
 

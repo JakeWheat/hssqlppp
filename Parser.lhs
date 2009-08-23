@@ -66,6 +66,38 @@ is same as
 (Note how >> is the same as *> but has different precedence)
 
 
+Notes on source positions:
+The constraints to try to satify are:
+Don't change the ast node datatypes
+Don't make the individual parsers in this file look like crap by
+putting source pos stuff all over them
+Plan:
+whilst parsing, store the token positions in the parser state, which
+will be some sort of tree
+individual terminal parsers will add individual tokensource positions
+to the state in a generic way
+
+the tree structure will appear by having a token position acceptor
+custom for each nonterminal parser which is saved in the state and
+filters the incoming tokens from the terminal parsers into the right
+tree structure then the parser will return the list of statements and
+a parallel tree of token positions (sounds mental?)
+
+use UUAG
+(http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarManual) to
+create a parallel set of ast nodes with the token position information
+inline, and to do filters which take a tokenpos tree and statement
+list and produce a tokenposificated ast tree, and to take a
+tokenposificatedast tree and produce a standard ast tree.
+
+For converting back to regular nodes, may need something more fine
+grained since we whilst loading into the database we want to use the
+individual pretty printers with regular nodes, and at the same time
+keep the token positions from the original source handy for mapping
+error positions from postgresql back to original source text
+positions.
+
+
 > module Parser (
 >               --parse fully formed sql statements from a string
 >               parseSql
@@ -105,7 +137,7 @@ is same as
 > toMySp :: SourcePos -> MySourcePos
 > toMySp sp = (sourceName sp, sourceLine sp, sourceColumn sp)
 
-===============================================================================
+=====================================W==========================================
 
 = Top level parsing functions
 
@@ -226,16 +258,16 @@ recurses to support parsing excepts, unions, etc
 >     selQuerySpec = Select
 >                <$> option Dupes (Distinct <$ keyword "distinct")
 >                <*> selectList
->                <*> tryMaybeP from
->                <*> tryMaybeP whereClause
+>                <*> tryOptionMaybe from
+>                <*> tryOptionMaybe whereClause
 >                <*> option [] groupBy
->                <*> tryMaybeP having
+>                <*> tryOptionMaybe having
 >                <*> option [] orderBy
 >                <*> option Asc (choice [
 >                                 Asc <$ keyword "asc"
 >                                ,Desc <$ keyword "desc"])
->                <*> tryMaybeP limit
->                <*> tryMaybeP offset
+>                <*> tryOptionMaybe limit
+>                <*> tryOptionMaybe offset
 >     from = keyword "from" *> tref
 >     groupBy = keyword "group" *> keyword "by"
 >               *> commaSep1 expr
@@ -328,15 +360,15 @@ multiple rows to insert and insert from select statements
 >          Insert <$> idString
 >                 <*> option [] (try columnNameList)
 >                 <*> (select <|> values)
->                 <*> tryMaybeP returning
+>                 <*> tryOptionMaybe returning
 
 > update :: ParsecT [Token] ParseState Identity Statement
 > update = keyword "update" >>
 >          Update
 >          <$> idString
 >          <*> (keyword "set" *> commaSep1 setClause)
->          <*> tryMaybeP whereClause
->          <*> tryMaybeP returning
+>          <*> tryOptionMaybe whereClause
+>          <*> tryOptionMaybe returning
 >     where
 >       setClause = choice
 >             [RowSetClause <$> parens (commaSep1 idString)
@@ -348,8 +380,8 @@ multiple rows to insert and insert from select statements
 > delete = keyword "delete" >> keyword "from" >>
 >          Delete
 >          <$> idString
->          <*> tryMaybeP whereClause
->          <*> tryMaybeP returning
+>          <*> tryOptionMaybe whereClause
+>          <*> tryOptionMaybe returning
 
 > truncateSt :: ParsecT [Token] ParseState Identity Statement
 > truncateSt = keyword "truncate" >> optional (keyword "table") >>
@@ -401,7 +433,7 @@ multiple rows to insert and insert from select statements
 >     tableAtt = AttributeDef
 >                <$> idString
 >                <*> idString
->                <*> tryMaybeP (keyword "default" *> expr)
+>                <*> tryOptionMaybe (keyword "default" *> expr)
 >                <*> many rowConstraint
 >     tableConstr = choice [
 >                    UniqueConstraint
@@ -521,7 +553,7 @@ variable declarations in a plpgsql function
 > varDef = VarDef
 >          <$> idString
 >          <*> typeName
->          <*> tryMaybeP ((symbols ":=" <|> symbols "=")*> expr) <* symbol ';'
+>          <*> tryOptionMaybe ((symbols ":=" <|> symbols "=")*> expr) <* symbol ';'
 
 
 > createView :: ParsecT [Token] ParseState Identity Statement
@@ -534,8 +566,8 @@ variable declarations in a plpgsql function
 > createDomain = keyword "domain" >>
 >                CreateDomain
 >                <$> idString
->                <*> (tryMaybeP (keyword "as") *> idString)
->                <*> tryMaybeP (keyword "check" *> parens expr)
+>                <*> (tryOptionMaybe (keyword "as") *> idString)
+>                <*> tryOptionMaybe (keyword "check" *> parens expr)
 
 > dropSomething :: ParsecT [Token] ParseState Identity Statement
 > dropSomething = do
@@ -663,7 +695,7 @@ or after the whole list
 >            choice [
 >             ReturnNext <$> (keyword "next" *> expr)
 >            ,ReturnQuery <$> (keyword "query" *> select)
->            ,Return <$> tryMaybeP expr]
+>            ,Return <$> tryOptionMaybe expr]
 
 > raise :: ParsecT [Token] ParseState Identity Statement
 > raise = keyword "raise" >>
@@ -943,7 +975,7 @@ expression when value' currently
 > caseParse :: ParsecT [Token] ParseState Identity Expression
 > caseParse = keyword "case" >>
 >             Case <$> many whenParse
->                  <*> tryMaybeP (keyword "else" *> expr)
+>                  <*> tryOptionMaybe (keyword "else" *> expr)
 >                       <* keyword "end"
 >   where
 >     whenParse = (,) <$> (keyword "when" *> commaSep1 expr)
@@ -1106,9 +1138,9 @@ from a StringLD or StringL, and the delimiters which were used
 >        -> ParsecT [Token] ParseState Identity a
 > squares = between (symbol '[') (symbol ']')
 
-> tryMaybeP :: (Stream s m t) =>
+> tryOptionMaybe :: (Stream s m t) =>
 >              ParsecT s u m a -> ParsecT s u m (Maybe a)
-> tryMaybeP p = try (optionMaybe p) <|> return Nothing
+> tryOptionMaybe p = try (optionMaybe p) <|> return Nothing
 
 > commaSep2 :: ParsecT [Token] ParseState Identity a
 >           -> ParsecT [Token] ParseState Identity [a]
