@@ -20,6 +20,8 @@ Executable to parse sql from a file and run some attributizing on the ast
 >       case x of
 >            Left er -> print er
 >            Right (st, _) -> do
+>                mapM_ print st
+>                putStrLn "\nattributizing"
 >                let y = runAtts st
 >                print y
 >       return ()

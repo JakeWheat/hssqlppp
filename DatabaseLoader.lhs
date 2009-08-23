@@ -47,6 +47,11 @@ This code is a massive mess at the moment.
 >   withConn ("dbname=" ++ dbName) $ \conn -> do
 >          loadPlpgsqlIntoDatabase conn
 >          let astSrcps = zip ast srcps
+
+I don't think this zip works, cos the parser recurses and embeds
+statements inside other statements, so the line numbers will only be
+accurate by accident?
+
 >          mapM_ (\st ->
 >                 loadStatement conn st
 >                 >> putStr ".") (filterStatements astSrcps)

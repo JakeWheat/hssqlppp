@@ -2,7 +2,7 @@ Syntax support missing
 (turn this into a table at some point)
 some sql to do:
 updates to existing parsers:
-select: all, distinct on, having, window
+select: all, distinct on, window
   order by using
   for update/share
 delete from

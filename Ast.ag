@@ -1,20 +1,34 @@
 {-
 Copyright 2009 Jake Wheat
 
-This file contains the data types for the sql ast nodes
-No real thought or taste has gone into the decisions on how to structure
-these.
-They contain no source line/column references.
-Lots of invalid sql is allowed.
+This file contains the ast nodes, which aren't brilliantly designed,
+and the attribute grammar system which uses the Utrecht University
+Attribute Grammar system:
+
+http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem
+http://www.haskell.org/haskellwiki/The_Monad.Reader/Issue4/Why_Attribute_Grammars_Matter
+
+There are no source positions in the ast at the moment. The grammar
+system is intended to act a as type checker, and to do other static
+checks for the time being, which is a work in progress and in a very
+early state.
 
 These ast nodes a are both used as the result of successful parsing,
 and as the input to the pretty printer.
 
+Lots of invalid sql is currently allowed if you construct the asts in
+code, the parser isn't quite as lenient, but still can parse and not
+complain about a lot of invalid sql.
+
 use
 
-uuagc -dcfs Ast.ag
+uuagc -dcfws Ast.ag
 
 to generate a new Ast.hs from this file
+
+(install uuagc with
+cabal install uuagc
+)
 
 -}
 
@@ -137,24 +151,22 @@ DATA Statement
     | ContinueStatement
     --variable, list of when parts, else part
     | CaseStatement val : Expression
-                    cases : ExpressonListStatementListPairList
+                    cases : ExpressionListStatementListPairList
                     els : StatementList
     --list is
     --first if (condition, statements):elseifs(condition, statements)
     --last bit is else statements
     | If cases : ExpressionStatementListPairList
          els : StatementList
-DERIVING Statement: Show,Eq
 
 -- =============================================================================
 
 --Statement components
 
-DATA FnBody | SqlFnBody StatementList | PlpgsqlFnBody VarDefList StatementList
-DERIVING FnBody: Show,Eq
+DATA FnBody | SqlFnBody sts : StatementList
+            | PlpgsqlFnBody VarDefList sts : StatementList
 
 DATA SetClause | SetClause String Expression | RowSetClause StringList ExpressionList
-DERIVING SetClause: Show,Eq
 
 DATA TableRef | Tref String
               | TrefAlias tref : String
@@ -167,25 +179,19 @@ DATA TableRef | Tref String
               | SubTref Statement String
               | TrefFun Expression
               | TrefFunAlias Expression String
-DERIVING TableRef: Show,Eq
 
 DATA JoinExpression | JoinOn Expression | JoinUsing StringList
-DERIVING JoinExpression: Show,Eq
 
 DATA JoinType | Inner | LeftOuter| RightOuter | FullOuter | Cross
-DERIVING JoinType: Show,Eq
 
 -- select columns, into columns
 
 DATA SelectList | SelectList SelectItemList StringList
-DERIVING SelectList: Show,Eq
 
 DATA SelectItem | SelExp Expression
                 | SelectItem Expression String
-DERIVING SelectItem: Show,Eq
 
 DATA CopySource | CopyFilename String | Stdin
-DERIVING CopySource: Show,Eq
 
 --name type default null constraint
 
@@ -193,7 +199,6 @@ DATA AttributeDef | AttributeDef name : String
                                  typ : String
                                  check : (Maybe Expression)
                                  cons : RowConstraintList
-DERIVING AttributeDef: Show,Eq
 
 --Constraints which appear attached to an individual field
 
@@ -206,7 +211,6 @@ DATA RowConstraint | NullConstraint
                                             atts : StringList
                                             onUpdate : Cascade
                                             onDelete : Cascade
-DERIVING RowConstraint: Show,Eq
 
 --constraints which appear on a separate row in the create table
 
@@ -219,62 +223,46 @@ DATA Constraint | UniqueConstraint StringList
                                       tableAtts : StringList
                                       onUpdate : Cascade
                                       onDelete : Cascade
-DERIVING Constraint: Show,Eq
 
 DATA TypeAttributeDef | TypeAttDef name : String
                                    typ : String
-DERIVING TypeAttributeDef: Show,Eq
 
 DATA ParamDef | ParamDef String TypeName
               | ParamDefTp TypeName
-DERIVING ParamDef: Show,Eq
 
 DATA VarDef | VarDef name : String
                      typ : TypeName
                      value : (Maybe Expression)
-DERIVING VarDef: Show,Eq
 
 DATA RaiseType | RNotice | RException | RError
-DERIVING RaiseType: Show,Eq
 
 DATA CombineType | Except | Union | Intersect | UnionAll
-DERIVING CombineType: Show,Eq
 
 DATA Volatility | Volatile | Stable | Immutable
-DERIVING Volatility: Show,Eq
 
 DATA Language | Sql | Plpgsql
-DERIVING Language: Show,Eq
 
 DATA TypeName | SimpleType String
               | PrecType String Integer
               | ArrayType TypeName
               | SetOfType TypeName
-DERIVING TypeName: Show,Eq
 
 DATA DropType | Table
          | Domain
          | View
          | Type
-DERIVING DropType: Show,Eq
 
 DATA Cascade | Cascade | Restrict
-DERIVING Cascade: Show,Eq
 
 DATA Direction | Asc | Desc
-DERIVING Direction: Show,Eq
 
 DATA Distinct | Distinct | Dupes
-DERIVING Distinct: Show,Eq
 
 DATA Natural | Natural | Unnatural
-DERIVING Natural: Show,Eq
 
 DATA IfExists | Require | IfExists
-DERIVING IfExists: Show,Eq
 
 DATA RestartIdentity | RestartIdentity | ContinueIdentity
-DERIVING RestartIdentity: Show,Eq
 
 {-
 ================================================================================
@@ -288,11 +276,9 @@ DATA BinOp
     | And | Or | Conc | Like
     | Cast | NotEql | Lt | Gt | Lte | Gte
     | DistBetween
-DERIVING BinOp: Show,Eq
 
 
 DATA UnOp | Not | IsNull | IsNotNull | SetOf | Abs | Neg
-DERIVING UnOp: Show,Eq
 
 {
 
@@ -367,10 +353,8 @@ DATA Expression | IntegerLit Integer
                 | Between val : Expression
                           lower : Expression
                           upper : Expression
-DERIVING Expression: Show,Eq
 
 DATA InList | InList ExpressionList | InSelect Statement
-DERIVING InList: Show,Eq
 
 TYPE ExpressionList = [Expression]
 TYPE ExpressionListList = [ExpressionList]
@@ -383,8 +367,8 @@ TYPE ParamDefList = [ParamDef]
 TYPE StringStringListPair = (String,StringList)
 TYPE StringStringListPairList = [StringStringListPair]
 TYPE StatementList = [Statement]
-TYPE ExpressonListStatementListPair = (ExpressionList,StatementList)
-TYPE ExpressonListStatementListPairList = [ExpressonListStatementListPair]
+TYPE ExpressionListStatementListPair = (ExpressionList,StatementList)
+TYPE ExpressionListStatementListPairList = [ExpressionListStatementListPair]
 TYPE ExpressionStatementListPair = (Expression, StatementList)
 TYPE ExpressionStatementListPairList = [ExpressionStatementListPair]
 TYPE VarDefList = [VarDef]
@@ -393,56 +377,59 @@ TYPE RowConstraintList = [RowConstraint]
 TYPE ExpressionListExpressionPair = (ExpressionList,Expression)
 TYPE ExpressionListExpressionPairList = [ExpressionListExpressionPair]
 
+DATA Message | Error String
+             | Warning String
+             | Notice String
+DERIVING Message: Show
+
 -- =============================================================================
 
-ATTR Statement [
-               |
-               | sum: Int
-               ]
+--attributes which every node has
 
-ATTR StatementList [
-                   |
-                   | sum: Int
-                   ]
+SET AllNodes = Statement FnBody SetClause TableRef JoinExpression JoinType
+               SelectList SelectItem CopySource AttributeDef RowConstraint
+               Constraint TypeAttributeDef ParamDef VarDef RaiseType
+               CombineType Volatility Language TypeName DropType Cascade
+               Direction Distinct Natural IfExists RestartIdentity
+               BinOp UnOp Expression InList
+               ExpressionList ExpressionListList StringList SetClauseList
+               AttributeDefList ConstraintList TypeAttributeDefList
+               ParamDefList StringStringListPair StringStringListPairList
+               StatementList ExpressionListStatementListPair
+               ExpressionListStatementListPairList ExpressionStatementListPair
+               ExpressionStatementListPairList VarDefList SelectItemList
+               RowConstraintList ExpressionListExpressionPair
+               ExpressionListExpressionPairList
 
+DERIVING AllNodes: Show,Eq
+
+
+ATTR AllNodes
+  [ inLoop: Bool
+  |
+  | messages USE {++} {[]} : {[Message]}
+  ]
+
+-- standard inloop
 
 SEM Statement
-    | Select lhs.sum = 1
-    | CombineSelect lhs.sum = 1
-    | Values lhs.sum = 1
-    | Insert lhs.sum = 1
-    | Update lhs.sum = 1
-    | Delete lhs.sum = 1
-    | Copy lhs.sum = 1
-    | CopyData lhs.sum = 1
-    | Truncate lhs.sum = 1
-    | CreateTable lhs.sum = 1
-    | CreateTableAs lhs.sum = 1
-    | CreateView lhs.sum = 1
-    | CreateType lhs.sum = 1
-    | CreateFunction lhs.sum = 1
-    | CreateDomain lhs.sum = 1
-    | DropFunction lhs.sum = 1
-    | DropSomething lhs.sum = 1
-    | Assignment lhs.sum = 1
-    | Return lhs.sum = 1
-    | ReturnNext lhs.sum = 1
-    | ReturnQuery lhs.sum = 1
-    | Raise lhs.sum = 1
-    | NullStatement lhs.sum = 1
-    | Perform lhs.sum = 1
-    | Execute lhs.sum = 1
-    | ExecuteInto lhs.sum = 1
-    | ForSelectStatement lhs.sum = 1
-    | ForIntegerStatement lhs.sum = 1
-    | WhileStatement lhs.sum = 1
-    | ContinueStatement lhs.sum = 1
-    | CaseStatement lhs.sum = 1
-    | If lhs.sum = 1
+     | ForSelectStatement ForIntegerStatement WhileStatement sts.inLoop = True
+     | CreateFunction body.inLoop = False
 
-SEM StatementList
-    | Cons lhs.sum = @hd.sum + @tl.sum
-    | Nil lhs.sum = 0
+{-SEM Statement
+    | Select CombineSelect Values Insert Update Delete Copy CopyData
+      Truncate CreateTable CreateTableAs CreateView CreateType CreateFunction
+      CreateDomain DropFunction DropSomething Assignment Return ReturnNext
+      ReturnQuery Raise NullStatement Perform Execute ExecuteInto
+      ForSelectStatement ForIntegerStatement WhileStatement
+      ContinueStatement CaseStatement If-}
+
+-- standard messages
+
+SEM Statement
+    | ContinueStatement  lhs.messages = if not @lhs.inLoop
+                                          then [Error ("continue not in loop")]
+                                          else []
 
 
 {
@@ -450,8 +437,12 @@ makeSelect :: Statement
 makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
                     Nothing Nothing [] Nothing [] Asc Nothing Nothing
 
-runAtts :: StatementList -> Int
-runAtts sts = sem_StatementList sts
+--runAtts :: StatementList -> (Int,Int,[Message])
+runAtts sts = let t = sem_StatementList sts
+                  t1 = (wrap_StatementList t
+                        Inh_StatementList{inLoop_Inh_StatementList=False})
+              in (messages_Syn_StatementList t1)
+
 
 
 }
