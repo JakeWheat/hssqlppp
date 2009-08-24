@@ -1,9 +1,5 @@
 #!/usr/bin/env runghc
 
-> {-# LANGUAGE TypeSynonymInstances #-}
-
-
-
 Copyright 2009 Jake Wheat
 
 The automated tests, uses hunit to check a bunch of text expressions

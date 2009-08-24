@@ -213,7 +213,7 @@ parse a statement
 >   s <- getState
 >   case s of
 >     [] -> return p
->     (fn,pl,pc):_ -> let (_,l,c) = p
+>     (fn,pl,_):_ -> let (_,l,c) = p
 >                     in return (fn,pl+l-1,c)
 
 ================================================================================

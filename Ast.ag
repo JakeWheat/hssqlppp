@@ -380,9 +380,15 @@ TYPE RowConstraintList = [RowConstraint]
 TYPE ExpressionListExpressionPair = (ExpressionList,Expression)
 TYPE ExpressionListExpressionPairList = [ExpressionListExpressionPair]
 
-DATA Message | Error MySourcePos String
-             | Warning MySourcePos String
-             | Notice MySourcePos String
+DATA Message | Error MySourcePos MessageStuff
+             | Warning MySourcePos MessageStuff
+             | Notice MySourcePos MessageStuff
+
+DATA MessageStuff | ContinueNotInLoop
+                  | CustomMessage String
+
+DERIVING Message MessageStuff: Eq
+DERIVING MessageStuff: Show
 {
 
 instance Show Message where
@@ -394,7 +400,7 @@ showMessage m = case m of
                 where
                   showit lev (fn,l,c) s = lev ++ "\n" ++ fn ++ ":"
                                           ++ show l ++ ":" ++ show c ++ ":\n"
-                                          ++ s ++ "\n"
+                                          ++ show s ++ "\n"
 }
 
 -- =============================================================================
@@ -448,10 +454,8 @@ SEM SourcePosStatement
 
 SEM Statement
     | ContinueStatement  lhs.messages = if not @lhs.inLoop
-                                          then [Error @lhs.sourcePos ("continue not in loop")]
+                                          then [Error @lhs.sourcePos ContinueNotInLoop]
                                           else []
-
-
 {
 makeSelect :: Statement
 makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
@@ -487,7 +491,6 @@ resetSps' sts = map resetSp' sts
 
 nsp :: MySourcePos
 nsp = ("", 0,0)
-
 }
 
 {-

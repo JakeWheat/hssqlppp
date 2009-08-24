@@ -47,7 +47,7 @@ showMessage m = case m of
                 where
                   showit lev (fn,l,c) s = lev ++ "\n" ++ fn ++ ":"
                                           ++ show l ++ ":" ++ show c ++ ":\n"
-                                          ++ s ++ "\n"
+                                          ++ show s ++ "\n"
 
 
 makeSelect :: Statement
@@ -84,7 +84,6 @@ resetSps' sts = map resetSp' sts
 
 nsp :: MySourcePos
 nsp = ("", 0,0)
-
 -- AttributeDef ------------------------------------------------
 data AttributeDef  = AttributeDef (String) (TypeName) (Maybe Expression) (RowConstraintList) 
                    deriving ( Eq,Show)
@@ -2179,18 +2178,19 @@ sem_Language_Sql  =
                   []
           in  ( _lhsOmessages)))
 -- Message -----------------------------------------------------
-data Message  = Error (MySourcePos) (String) 
-              | Notice (MySourcePos) (String) 
-              | Warning (MySourcePos) (String) 
+data Message  = Error (MySourcePos) (MessageStuff) 
+              | Notice (MySourcePos) (MessageStuff) 
+              | Warning (MySourcePos) (MessageStuff) 
+              deriving ( Eq)
 -- cata
 sem_Message :: Message  ->
                T_Message 
-sem_Message (Error _mySourcePos _string )  =
-    (sem_Message_Error (sem_MySourcePos _mySourcePos ) _string )
-sem_Message (Notice _mySourcePos _string )  =
-    (sem_Message_Notice (sem_MySourcePos _mySourcePos ) _string )
-sem_Message (Warning _mySourcePos _string )  =
-    (sem_Message_Warning (sem_MySourcePos _mySourcePos ) _string )
+sem_Message (Error _mySourcePos _messageStuff )  =
+    (sem_Message_Error (sem_MySourcePos _mySourcePos ) (sem_MessageStuff _messageStuff ) )
+sem_Message (Notice _mySourcePos _messageStuff )  =
+    (sem_Message_Notice (sem_MySourcePos _mySourcePos ) (sem_MessageStuff _messageStuff ) )
+sem_Message (Warning _mySourcePos _messageStuff )  =
+    (sem_Message_Warning (sem_MySourcePos _mySourcePos ) (sem_MessageStuff _messageStuff ) )
 -- semantic domain
 type T_Message  = ( )
 data Inh_Message  = Inh_Message {}
@@ -2203,28 +2203,59 @@ wrap_Message sem (Inh_Message )  =
              (sem )
      in  (Syn_Message ))
 sem_Message_Error :: T_MySourcePos  ->
-                     String ->
+                     T_MessageStuff  ->
                      T_Message 
-sem_Message_Error mySourcePos_ string_  =
+sem_Message_Error mySourcePos_ messageStuff_  =
     (let _mySourcePosIval :: MySourcePos
          ( _mySourcePosIval) =
              (mySourcePos_ )
      in  ( ))
 sem_Message_Notice :: T_MySourcePos  ->
-                      String ->
+                      T_MessageStuff  ->
                       T_Message 
-sem_Message_Notice mySourcePos_ string_  =
+sem_Message_Notice mySourcePos_ messageStuff_  =
     (let _mySourcePosIval :: MySourcePos
          ( _mySourcePosIval) =
              (mySourcePos_ )
      in  ( ))
 sem_Message_Warning :: T_MySourcePos  ->
-                       String ->
+                       T_MessageStuff  ->
                        T_Message 
-sem_Message_Warning mySourcePos_ string_  =
+sem_Message_Warning mySourcePos_ messageStuff_  =
     (let _mySourcePosIval :: MySourcePos
          ( _mySourcePosIval) =
              (mySourcePos_ )
+     in  ( ))
+-- MessageStuff ------------------------------------------------
+data MessageStuff  = ContinueNotInLoop 
+                   | CustomMessage (String) 
+                   deriving ( Eq,Show)
+-- cata
+sem_MessageStuff :: MessageStuff  ->
+                    T_MessageStuff 
+sem_MessageStuff (ContinueNotInLoop )  =
+    (sem_MessageStuff_ContinueNotInLoop )
+sem_MessageStuff (CustomMessage _string )  =
+    (sem_MessageStuff_CustomMessage _string )
+-- semantic domain
+type T_MessageStuff  = ( )
+data Inh_MessageStuff  = Inh_MessageStuff {}
+data Syn_MessageStuff  = Syn_MessageStuff {}
+wrap_MessageStuff :: T_MessageStuff  ->
+                     Inh_MessageStuff  ->
+                     Syn_MessageStuff 
+wrap_MessageStuff sem (Inh_MessageStuff )  =
+    (let ( ) =
+             (sem )
+     in  (Syn_MessageStuff ))
+sem_MessageStuff_ContinueNotInLoop :: T_MessageStuff 
+sem_MessageStuff_ContinueNotInLoop  =
+    (let 
+     in  ( ))
+sem_MessageStuff_CustomMessage :: String ->
+                                  T_MessageStuff 
+sem_MessageStuff_CustomMessage string_  =
+    (let 
      in  ( ))
 -- MySourcePos -------------------------------------------------
 type MySourcePos  = ( (String),(Int),(Int))
@@ -3226,7 +3257,7 @@ sem_Statement_ContinueStatement  =
          (let _lhsOmessages :: ([Message])
               _lhsOmessages =
                   if not _lhsIinLoop
-                    then [Error _lhsIsourcePos ("continue not in loop")]
+                    then [Error _lhsIsourcePos ContinueNotInLoop]
                     else []
           in  ( _lhsOmessages)))
 sem_Statement_Copy :: String ->
