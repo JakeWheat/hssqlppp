@@ -613,13 +613,13 @@ create table tests
 >         \);"
 >       [CreateTable
 >        "test"
->        [AttributeDef "fielda" "text" Nothing []
->        ,AttributeDef "fieldb" "int" Nothing []
+>        [att "fielda" "text"
+>        ,att "fieldb" "int"
 >        ]
 >        []]
 >      ,p "create table tbl (\n\
 >         \  fld boolean default false);"
->       [CreateTable "tbl" [AttributeDef "fld" "boolean"
+>       [CreateTable "tbl" [AttributeDef "fld" (SimpleType "boolean")
 >                           (Just $ BooleanLit False) []][]]
 
 >      ,p "create table tbl as select 1;"
@@ -634,15 +634,15 @@ other creates
 >        "v1"
 >        (selectFrom [selI "a", selI "b"] (Tref "t"))]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
->       [CreateDomain "td" "text"
+>       [CreateDomain "td" (SimpleType "text")
 >        (Just (InPredicate (Identifier "value") True
 >               (InList [stringQ "t1" ,stringQ "t2"])))]
 >      ,p "create type tp1 as (\n\
 >         \  f1 text,\n\
 >         \  f2 text\n\
 >         \);"
->       [CreateType "tp1" [TypeAttDef "f1" "text"
->                         ,TypeAttDef "f2" "text"]]
+>       [CreateType "tp1" [TypeAttDef "f1" (SimpleType "text")
+>                         ,TypeAttDef "f2" (SimpleType "text")]]
 
 drops
 
@@ -672,13 +672,13 @@ nulls
 >       p "create table t1 (\n\
 >         \ a text null\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "a" "text"
+>         [CreateTable "t1" [AttributeDef "a" (SimpleType "text")
 >                            Nothing [NullConstraint]]
 >          []]
 >      ,p "create table t1 (\n\
 >         \ a text not null\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "a" "text"
+>         [CreateTable "t1" [AttributeDef "a" (SimpleType "text")
 >                            Nothing [NotNullConstraint]]
 >          []]
 
@@ -689,8 +689,8 @@ unique table
 >         \ y int,\n\
 >         \ unique (x,y)\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
->                           ,AttributeDef "y" "int" Nothing []]
+>         [CreateTable "t1" [att "x" "int"
+>                           ,att "y" "int"]
 >          [UniqueConstraint ["x","y"]]]
 
 test arbitrary ordering
@@ -700,8 +700,8 @@ test arbitrary ordering
 >         \ unique (x),\n\
 >         \ y int\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
->                           ,AttributeDef "y" "int" Nothing []]
+>         [CreateTable "t1" [att "x" "int"
+>                           ,att "y" "int"]
 >          [UniqueConstraint ["x"]]]
 
 unique row
@@ -709,13 +709,13 @@ unique row
 >      ,p "create table t1 (\n\
 >         \ x int unique\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
 >                            [RowUniqueConstraint]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int unique not null\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
 >                            [RowUniqueConstraint
 >                            ,NotNullConstraint]][]]
 
@@ -724,7 +724,7 @@ quick sanity check
 >      ,p "create table t1 (\n\
 >         \ x int not null unique\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
 >                            [NotNullConstraint
 >                            ,RowUniqueConstraint]][]]
 
@@ -733,7 +733,7 @@ primary key row, table
 >      ,p "create table t1 (\n\
 >         \ x int primary key\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
 >                            [RowPrimaryKeyConstraint]][]]
 
 >      ,p "create table t1 (\n\
@@ -741,8 +741,8 @@ primary key row, table
 >         \ y int,\n\
 >         \ primary key (x,y)\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
->                           ,AttributeDef "y" "int" Nothing []]
+>         [CreateTable "t1" [att "x" "int"
+>                           ,att "y" "int"]
 >          [PrimaryKeyConstraint ["x", "y"]]]
 
 check row, table
@@ -751,7 +751,7 @@ check row, table
 >         \f text check (f in('a', 'b'))\n\
 >         \);"
 >         [CreateTable "t"
->          [AttributeDef "f" "text" Nothing
+>          [AttributeDef "f" (SimpleType "text") Nothing
 >           [RowCheckConstraint (InPredicate
 >                                   (Identifier "f") True
 >                                   (InList [stringQ "a", stringQ "b"]))]] []]
@@ -761,8 +761,8 @@ check row, table
 >         \ y int,\n\
 >         \ check (x>y)\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
->                           ,AttributeDef "y" "int" Nothing []]
+>         [CreateTable "t1" [att "x" "int"
+>                           ,att "y" "int"]
 >          [CheckConstraint (BinOpCall Gt (Identifier "x") (Identifier "y"))]]
 
 row, whole load of constraints, todo: add reference here
@@ -771,7 +771,7 @@ row, whole load of constraints, todo: add reference here
 >         \f text not null unique check (f in('a', 'b'))\n\
 >         \);"
 >         [CreateTable "t"
->          [AttributeDef "f" "text" Nothing
+>          [AttributeDef "f" (SimpleType "text") Nothing
 >           [NotNullConstraint
 >            ,RowUniqueConstraint
 >            ,RowCheckConstraint (InPredicate
@@ -784,15 +784,15 @@ reference row, table
 >      ,p "create table t1 (\n\
 >         \ x int references t2\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing
->                            [RowReferenceConstraint "t2" []
+>         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>                            [RowReferenceConstraint "t2" Nothing
 >                             Restrict Restrict]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int references t2(y)\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing
->                            [RowReferenceConstraint "t2" ["y"]
+>         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>                            [RowReferenceConstraint "t2" (Just "y")
 >                             Restrict Restrict]][]]
 
 
@@ -801,8 +801,8 @@ reference row, table
 >         \ y int,\n\
 >         \ foreign key (x,y) references t2\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
->                           ,AttributeDef "y" "int" Nothing []]
+>         [CreateTable "t1" [att "x" "int"
+>                           ,att "y" "int"]
 >          [ReferenceConstraint ["x", "y"] "t2" []
 >           Restrict Restrict]]
 
@@ -811,23 +811,23 @@ reference row, table
 >         \ y int,\n\
 >         \ foreign key (x,y) references t2(z,w)\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
->                           ,AttributeDef "y" "int" Nothing []]
+>         [CreateTable "t1" [att "x" "int"
+>                           ,att "y" "int"]
 >          [ReferenceConstraint ["x", "y"] "t2" ["z", "w"]
 >           Restrict Restrict]]
 
 >      ,p "create table t1 (\n\
 >         \ x int references t2 on delete cascade\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing
->                            [RowReferenceConstraint "t2" []
+>         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>                            [RowReferenceConstraint "t2" Nothing
 >                             Cascade Restrict]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int references t2 on update cascade\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing
->                            [RowReferenceConstraint "t2" []
+>         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>                            [RowReferenceConstraint "t2" Nothing
 >                             Restrict Cascade]][]]
 
 >      ,p "create table t1 (\n\
@@ -835,8 +835,8 @@ reference row, table
 >         \ y int,\n\
 >         \ foreign key (x,y) references t2 on delete cascade on update cascade\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" "int" Nothing []
->                           ,AttributeDef "y" "int" Nothing []]
+>         [CreateTable "t1" [att "x" "int"
+>                           ,att "y" "int"]
 >          [ReferenceConstraint ["x", "y"] "t2" []
 >           Cascade Cascade]]
 
@@ -1054,7 +1054,7 @@ complicated statements
 >           selIL = map selI
 >           selI = SelExp . Identifier
 >           sl a = SelectList a []
->           sle a = SelectList (map SelExp a) []
+>           --sle a = SelectList (map SelExp a) []
 >           selectE selList = Select Dupes selList Nothing Nothing [] Nothing [] Asc Nothing Nothing
 >           selectFrom selList frm =
 >             Select Dupes (SelectList selList [])
@@ -1063,6 +1063,7 @@ complicated statements
 >             Select Dupes (SelectList selList [])
 >                    (Just frm) (Just whr) [] Nothing [] Asc Nothing Nothing
 >           stringQ = StringLit "'"
+>           att n t = AttributeDef n (SimpleType t) Nothing []
 
 ================================================================================
 

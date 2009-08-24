@@ -91,7 +91,7 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ rparen <> statementEnd
 >     where
 >       convAttDef (AttributeDef n t def cons) =
->         text n <+> text t
+>         text n <+> convTypeName t
 >         <+> maybeConv (\e -> text "default" <+> convExp e) def
 >         <+> hsep (map (\e -> (case e of
 >                                 NullConstraint -> text "null"
@@ -102,8 +102,7 @@ Conversion routines - convert Sql asts into Docs
 >                                 RowPrimaryKeyConstraint -> text "primary key"
 >                                 RowReferenceConstraint tb att ondel onupd ->
 >                                     text "references" <+> text tb
->                                     <+> ifNotEmpty
->                                           (parens . hcatCsvMap text) att
+>                                     <+> maybeConv (parens . text) att
 >                                     <+> text "on delete" <+> convCasc ondel
 >                                     <+> text "on update" <+> convCasc onupd
 >                         )) cons)
@@ -163,7 +162,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (CreateDomain name tp ex) =
 >     text "create domain" <+> text name <+> text "as"
->     <+> text tp <+> checkExp ex <> statementEnd
+>     <+> convTypeName tp <+> checkExp ex <> statementEnd
 >     where
 >       checkExp = maybeConv (\e -> text "check" <+> parens (convExp e))
 
@@ -191,7 +190,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (CreateType name atts) =
 >     text "create type" <+> text name <+> text "as" <+> lparen
 >     $+$ nest 2 (vcat (csv
->           (map (\(TypeAttDef n t) -> text n <+> text t)  atts)))
+>           (map (\(TypeAttDef n t) -> text n <+> convTypeName t)  atts)))
 >     $+$ rparen <> statementEnd
 
 == plpgsql

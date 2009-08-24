@@ -31,7 +31,7 @@ unOpToSymbol op = case op of
                          Not -> "not"
                          IsNull -> "is null"
                          IsNotNull -> "is not null"
-                         SetOf -> "setof"
+                         --SetOf -> "setof"
                          Abs -> "@"
                          Neg -> "-"
 
@@ -46,17 +46,14 @@ runAtts sts = let t = sem_StatementList sts
                   t1 = (wrap_StatementList t
                         Inh_StatementList{inLoop_Inh_StatementList=False})
               in (messages_Syn_StatementList t1)
-
-
-
 -- AttributeDef ------------------------------------------------
-data AttributeDef  = AttributeDef (String) (String) (Maybe Expression) (RowConstraintList) 
+data AttributeDef  = AttributeDef (String) (TypeName) (Maybe Expression) (RowConstraintList) 
                    deriving ( Eq,Show)
 -- cata
 sem_AttributeDef :: AttributeDef  ->
                     T_AttributeDef 
 sem_AttributeDef (AttributeDef _name _typ _check _cons )  =
-    (sem_AttributeDef_AttributeDef _name _typ _check (sem_RowConstraintList _cons ) )
+    (sem_AttributeDef_AttributeDef _name (sem_TypeName _typ ) _check (sem_RowConstraintList _cons ) )
 -- semantic domain
 type T_AttributeDef  = Bool ->
                        ( ([Message]))
@@ -70,19 +67,25 @@ wrap_AttributeDef sem (Inh_AttributeDef _lhsIinLoop )  =
              (sem _lhsIinLoop )
      in  (Syn_AttributeDef _lhsOmessages ))
 sem_AttributeDef_AttributeDef :: String ->
-                                 String ->
+                                 T_TypeName  ->
                                  (Maybe Expression) ->
                                  T_RowConstraintList  ->
                                  T_AttributeDef 
 sem_AttributeDef_AttributeDef name_ typ_ check_ cons_  =
     (\ _lhsIinLoop ->
          (let _lhsOmessages :: ([Message])
+              _typOinLoop :: Bool
               _consOinLoop :: Bool
+              _typImessages :: ([Message])
               _consImessages :: ([Message])
               _lhsOmessages =
-                  _consImessages
+                  _typImessages ++ _consImessages
+              _typOinLoop =
+                  _lhsIinLoop
               _consOinLoop =
                   _lhsIinLoop
+              ( _typImessages) =
+                  (typ_ _typOinLoop )
               ( _consImessages) =
                   (cons_ _consOinLoop )
           in  ( _lhsOmessages)))
@@ -2094,7 +2097,7 @@ data RowConstraint  = NotNullConstraint
                     | NullConstraint 
                     | RowCheckConstraint (Expression) 
                     | RowPrimaryKeyConstraint 
-                    | RowReferenceConstraint (String) (StringList) (Cascade) (Cascade) 
+                    | RowReferenceConstraint (String) (Maybe String) (Cascade) (Cascade) 
                     | RowUniqueConstraint 
                     deriving ( Eq,Show)
 -- cata
@@ -2108,8 +2111,8 @@ sem_RowConstraint (RowCheckConstraint _expression )  =
     (sem_RowConstraint_RowCheckConstraint (sem_Expression _expression ) )
 sem_RowConstraint (RowPrimaryKeyConstraint )  =
     (sem_RowConstraint_RowPrimaryKeyConstraint )
-sem_RowConstraint (RowReferenceConstraint _table _atts _onUpdate _onDelete )  =
-    (sem_RowConstraint_RowReferenceConstraint _table (sem_StringList _atts ) (sem_Cascade _onUpdate ) (sem_Cascade _onDelete ) )
+sem_RowConstraint (RowReferenceConstraint _table _att _onUpdate _onDelete )  =
+    (sem_RowConstraint_RowReferenceConstraint _table _att (sem_Cascade _onUpdate ) (sem_Cascade _onDelete ) )
 sem_RowConstraint (RowUniqueConstraint )  =
     (sem_RowConstraint_RowUniqueConstraint )
 -- semantic domain
@@ -2160,29 +2163,23 @@ sem_RowConstraint_RowPrimaryKeyConstraint  =
                   []
           in  ( _lhsOmessages)))
 sem_RowConstraint_RowReferenceConstraint :: String ->
-                                            T_StringList  ->
+                                            (Maybe String) ->
                                             T_Cascade  ->
                                             T_Cascade  ->
                                             T_RowConstraint 
-sem_RowConstraint_RowReferenceConstraint table_ atts_ onUpdate_ onDelete_  =
+sem_RowConstraint_RowReferenceConstraint table_ att_ onUpdate_ onDelete_  =
     (\ _lhsIinLoop ->
          (let _lhsOmessages :: ([Message])
-              _attsOinLoop :: Bool
               _onUpdateOinLoop :: Bool
               _onDeleteOinLoop :: Bool
-              _attsImessages :: ([Message])
               _onUpdateImessages :: ([Message])
               _onDeleteImessages :: ([Message])
               _lhsOmessages =
-                  _attsImessages ++ _onUpdateImessages ++ _onDeleteImessages
-              _attsOinLoop =
-                  _lhsIinLoop
+                  _onUpdateImessages ++ _onDeleteImessages
               _onUpdateOinLoop =
                   _lhsIinLoop
               _onDeleteOinLoop =
                   _lhsIinLoop
-              ( _attsImessages) =
-                  (atts_ _attsOinLoop )
               ( _onUpdateImessages) =
                   (onUpdate_ _onUpdateOinLoop )
               ( _onDeleteImessages) =
@@ -2495,7 +2492,7 @@ data Statement  = Assignment (String) (Expression)
                 | ContinueStatement 
                 | Copy (String) (StringList) (CopySource) 
                 | CopyData (String) 
-                | CreateDomain (String) (String) (Maybe Expression) 
+                | CreateDomain (String) (TypeName) (Maybe Expression) 
                 | CreateFunction (Language) (String) (ParamDefList) (TypeName) (String) (FnBody) (Volatility) 
                 | CreateTable (String) (AttributeDefList) (ConstraintList) 
                 | CreateTableAs (String) (Statement) 
@@ -2538,7 +2535,7 @@ sem_Statement (Copy _table _targetCols _source )  =
 sem_Statement (CopyData _insData )  =
     (sem_Statement_CopyData _insData )
 sem_Statement (CreateDomain _name _typ _check )  =
-    (sem_Statement_CreateDomain _name _typ _check )
+    (sem_Statement_CreateDomain _name (sem_TypeName _typ ) _check )
 sem_Statement (CreateFunction _lang _name _params _rettype _bodyQuote _body _vol )  =
     (sem_Statement_CreateFunction (sem_Language _lang ) _name (sem_ParamDefList _params ) (sem_TypeName _rettype ) _bodyQuote (sem_FnBody _body ) (sem_Volatility _vol ) )
 sem_Statement (CreateTable _name _atts _cons )  =
@@ -2712,14 +2709,20 @@ sem_Statement_CopyData insData_  =
                   []
           in  ( _lhsOmessages)))
 sem_Statement_CreateDomain :: String ->
-                              String ->
+                              T_TypeName  ->
                               (Maybe Expression) ->
                               T_Statement 
 sem_Statement_CreateDomain name_ typ_ check_  =
     (\ _lhsIinLoop ->
          (let _lhsOmessages :: ([Message])
+              _typOinLoop :: Bool
+              _typImessages :: ([Message])
               _lhsOmessages =
-                  []
+                  _typImessages
+              _typOinLoop =
+                  _lhsIinLoop
+              ( _typImessages) =
+                  (typ_ _typOinLoop )
           in  ( _lhsOmessages)))
 sem_Statement_CreateFunction :: T_Language  ->
                                 String ->
@@ -3543,13 +3546,13 @@ sem_TableRef_TrefFunAlias expression_ string_  =
                   (expression_ _expressionOinLoop )
           in  ( _lhsOmessages)))
 -- TypeAttributeDef --------------------------------------------
-data TypeAttributeDef  = TypeAttDef (String) (String) 
+data TypeAttributeDef  = TypeAttDef (String) (TypeName) 
                        deriving ( Eq,Show)
 -- cata
 sem_TypeAttributeDef :: TypeAttributeDef  ->
                         T_TypeAttributeDef 
 sem_TypeAttributeDef (TypeAttDef _name _typ )  =
-    (sem_TypeAttributeDef_TypeAttDef _name _typ )
+    (sem_TypeAttributeDef_TypeAttDef _name (sem_TypeName _typ ) )
 -- semantic domain
 type T_TypeAttributeDef  = Bool ->
                            ( ([Message]))
@@ -3563,13 +3566,19 @@ wrap_TypeAttributeDef sem (Inh_TypeAttributeDef _lhsIinLoop )  =
              (sem _lhsIinLoop )
      in  (Syn_TypeAttributeDef _lhsOmessages ))
 sem_TypeAttributeDef_TypeAttDef :: String ->
-                                   String ->
+                                   T_TypeName  ->
                                    T_TypeAttributeDef 
 sem_TypeAttributeDef_TypeAttDef name_ typ_  =
     (\ _lhsIinLoop ->
          (let _lhsOmessages :: ([Message])
+              _typOinLoop :: Bool
+              _typImessages :: ([Message])
               _lhsOmessages =
-                  []
+                  _typImessages
+              _typOinLoop =
+                  _lhsIinLoop
+              ( _typImessages) =
+                  (typ_ _typOinLoop )
           in  ( _lhsOmessages)))
 -- TypeAttributeDefList ----------------------------------------
 type TypeAttributeDefList  = [(TypeAttributeDef)]

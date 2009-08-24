@@ -418,7 +418,7 @@ multiple rows to insert and insert from select statements
 >                       where swap (a,b) = (b,a)
 >     tableAtt = AttributeDef
 >                <$> idString
->                <*> idString
+>                <*> typeName
 >                <*> tryOptionMaybe (keyword "default" *> expr)
 >                <*> many rowConstraint
 >     tableConstr = choice [
@@ -447,7 +447,7 @@ multiple rows to insert and insert from select statements
 >          ,NotNullConstraint <$ (keyword "not" *> keyword "null")
 >          ,RowReferenceConstraint
 >          <$> (keyword "references" *> idString)
->          <*> option [] (try $ parens $ many1 idString)
+>          <*> option Nothing (try $ parens $ Just <$> idString)
 >          <*> onDelete
 >          <*> onUpdate
 >          ]
@@ -463,7 +463,7 @@ multiple rows to insert and insert from select statements
 >              <$> idString
 >              <*> (keyword "as" *> parens (commaSep1 typeAtt))
 >   where
->     typeAtt = TypeAttDef <$> idString <*> idString
+>     typeAtt = TypeAttDef <$> idString <*> typeName
 
 
 create function, support sql functions and
@@ -552,7 +552,7 @@ variable declarations in a plpgsql function
 > createDomain = keyword "domain" >>
 >                CreateDomain
 >                <$> idString
->                <*> (tryOptionMaybe (keyword "as") *> idString)
+>                <*> (tryOptionMaybe (keyword "as") *> typeName)
 >                <*> tryOptionMaybe (keyword "check" *> parens expr)
 
 > dropSomething :: ParsecT [Token] ParseState Identity Statement

@@ -115,7 +115,7 @@ DATA Statement
                      vol : Volatility
     -- name type checkexpression
     | CreateDomain name : String
-                   typ : String
+                   typ : TypeName
                    check : (Maybe Expression)
     -- ifexists (name,argtypes)* cascadeorrestrict
     | DropFunction ifE : IfExists
@@ -196,7 +196,7 @@ DATA CopySource | CopyFilename String | Stdin
 --name type default null constraint
 
 DATA AttributeDef | AttributeDef name : String
-                                 typ : String
+                                 typ : TypeName
                                  check : (Maybe Expression)
                                  cons : RowConstraintList
 
@@ -208,7 +208,7 @@ DATA RowConstraint | NullConstraint
                    | RowUniqueConstraint
                    | RowPrimaryKeyConstraint
                    | RowReferenceConstraint table : String
-                                            atts : StringList
+                                            att : (Maybe String)
                                             onUpdate : Cascade
                                             onDelete : Cascade
 
@@ -225,7 +225,7 @@ DATA Constraint | UniqueConstraint StringList
                                       onDelete : Cascade
 
 DATA TypeAttributeDef | TypeAttDef name : String
-                                   typ : String
+                                   typ : TypeName
 
 DATA ParamDef | ParamDef String TypeName
               | ParamDefTp TypeName
@@ -308,7 +308,7 @@ unOpToSymbol op = case op of
                          Not -> "not"
                          IsNull -> "is null"
                          IsNotNull -> "is not null"
-                         SetOf -> "setof"
+                         --SetOf -> "setof"
                          Abs -> "@"
                          Neg -> "-"
 
@@ -410,8 +410,6 @@ ATTR AllNodes
   | messages USE {++} {[]} : {[Message]}
   ]
 
--- standard inloop
-
 SEM Statement
      | ForSelectStatement ForIntegerStatement WhileStatement sts.inLoop = True
      | CreateFunction body.inLoop = False
@@ -423,8 +421,6 @@ SEM Statement
       ReturnQuery Raise NullStatement Perform Execute ExecuteInto
       ForSelectStatement ForIntegerStatement WhileStatement
       ContinueStatement CaseStatement If-}
-
--- standard messages
 
 SEM Statement
     | ContinueStatement  lhs.messages = if not @lhs.inLoop
@@ -442,7 +438,54 @@ runAtts sts = let t = sem_StatementList sts
                   t1 = (wrap_StatementList t
                         Inh_StatementList{inLoop_Inh_StatementList=False})
               in (messages_Syn_StatementList t1)
-
-
-
 }
+
+{-
+
+containment guide for statements:
+combineselect 2 selects
+insert ?select
+createtableas 1 select
+createview 1 select
+return query 1 select
+forselect 1 select, [statement]
+forinteger [statement]
+while [statement]
+casestatement [[statement]]
+if [[statement]]
+createfunction->fnbody [Statement]
+select->subselect select
+expression->exists select
+            scalarsubquery select
+            inselect select
+
+TODO
+
+add positions to top level statements, add conversions to statements
+in functions
+
+some non type-check checks:
+check plpgsql only in plpgsql function
+do all containment checks above
+orderby in top level select only
+copy followed immediately by copydata iff stdin, copydata only follows
+copy from stdin
+args to raise, etc, same number as placeholders in string
+natural with correct join types
+no natural with onexpr in joins
+constraint column ref checks?
+typename -> setof (& fix parsing), what else like this?
+expressions: positionalarg in function, window function only in select
+list top level
+
+some sql support to add, common ones:
+alter table
+create index
+create rule
+create trigger
+loop, exit, labels
+easy ones: transactions, savepoints, listen
+prepare, execute + using
+proper general operator support & lex properly
+
+-}
