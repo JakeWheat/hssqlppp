@@ -42,25 +42,19 @@ This code is a massive mess at the moment.
 > import PrettyPrinter
 > import Ast
 
-> loadIntoDatabase :: String -> String -> ([Ast.Statement], [(String,Int,Int)]) -> IO ()
-> loadIntoDatabase dbName fn (ast,srcps) = do
+> loadIntoDatabase :: String -> String -> StatementList -> IO ()
+> loadIntoDatabase dbName fn ast = do
 >   withConn ("dbname=" ++ dbName) $ \conn -> do
 >          loadPlpgsqlIntoDatabase conn
->          let astSrcps = zip ast srcps
-
-I don't think this zip works, cos the parser recurses and embeds
-statements inside other statements, so the line numbers will only be
-accurate by accident?
-
 >          mapM_ (\st ->
 >                 loadStatement conn st
->                 >> putStr ".") (filterStatements astSrcps)
+>                 >> putStr ".") (filterStatements ast)
 >   where
->     loadStatement conn (st,srcp) = case st of
+>     loadStatement conn (srcp, st) = case st of
 >                                          Skipit -> return ()
 >                                          VanillaStatement vs ->
 >                                              handleError fn srcp vs (runSqlCommand conn
->                                                       (printSql [vs]))
+>                                                       (printSql [(srcp,vs)]))
 >                                          CopyStdin a b -> runCopy conn a b srcp
 >     --hack cos we don't have support in hdbc for copy from stdin
 >     --(which libpq does support - adding this properly should be a todo)
@@ -69,23 +63,23 @@ accurate by accident?
 >     --and a dummy statement following. Well dodgy, don't really know
 >     --how it manages to work correctly.
 >     filterStatements sts =
->        map (\((x,xsrcp),(y,_)) ->
+>        map (\((xsrcp, x),(_,y)) ->
 >                 case (x,y) of
->                        (a@(Copy _ _ Stdin), b@(CopyData _)) -> (CopyStdin a b, xsrcp)
->                        (CopyData _, _) -> (Skipit, xsrcp)
->                        (vs,_) -> (VanillaStatement vs, xsrcp))
+>                        (a@(Copy _ _ Stdin), b@(CopyData _)) -> (xsrcp,CopyStdin a b)
+>                        (CopyData _, _) -> (xsrcp, Skipit)
+>                        (vs,_) -> (xsrcp, VanillaStatement vs))
 >            statementWithNextStatement
 >            where
 >              statementWithNextStatement =
->                  zip sts (tail sts ++ [(NullStatement, ("",0,0))])
+>                  zip sts (tail sts ++ [(("",0,0), NullStatement)])
 >     runCopy conn a b srcp = case (a,b) of
 >                          (Copy tb cl Stdin, CopyData s) -> do
 >                            withTemporaryFile (\tfn -> do
 >                                writeFile tfn s
 >                                tfn1 <- canonicalizePath tfn
 >                                loadStatement conn
->                                  (VanillaStatement (Copy tb cl
->                                                     (CopyFilename tfn1)), srcp))
+>                                  (srcp, VanillaStatement (Copy tb cl
+>                                                     (CopyFilename tfn1))))
 >                          _ -> error "pattern match fail"
 >     loadPlpgsqlIntoDatabase conn = do
 >          -- first, check plpgsql is in the database

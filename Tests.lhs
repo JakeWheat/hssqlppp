@@ -1,5 +1,9 @@
 #!/usr/bin/env runghc
 
+> {-# LANGUAGE TypeSynonymInstances #-}
+
+
+
 Copyright 2009 Jake Wheat
 
 The automated tests, uses hunit to check a bunch of text expressions
@@ -29,6 +33,7 @@ There are no tests for invalid sql at the moment.
 > import Ast
 > import Parser
 > import PrettyPrinter
+> import ParseErrors
 
 > main :: IO ()
 > main =
@@ -854,7 +859,7 @@ test functions
 >       [CreateFunction Sql "t1" [ParamDefTp $ SimpleType "text"]
 >        (SimpleType "text") "$$"
 >        (SqlFnBody
->         [selectFromWhere [SelExp (Identifier "a")] (Tref "t1")
+>         [addNsp $ selectFromWhere [SelExp (Identifier "a")] (Tref "t1")
 >          (BinOpCall Eql
 >           (Identifier "b") (PositionalArg 1))])
 >        Stable]
@@ -869,7 +874,7 @@ test functions
 >       [CreateFunction Plpgsql "fn" [] (SimpleType "void") "$$"
 >        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") Nothing
 >                       ,VarDef "b" (SimpleType "text") Nothing]
->         [NullStatement])
+>         [addNsp $ NullStatement])
 >        Volatile]
 >      ,p "create function fn() returns void as $$\n\
 >         \declare\n\
@@ -882,7 +887,7 @@ test functions
 >       [CreateFunction Plpgsql "fn" [] (SimpleType "void") "$$"
 >        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") Nothing
 >                       ,VarDef "b" (SimpleType "text") Nothing]
->         [NullStatement])
+>         [addNsp $ NullStatement])
 >        Volatile]
 >      ,p "create function fn(a text[]) returns int[] as $$\n\
 >         \declare\n\
@@ -896,7 +901,7 @@ test functions
 >        (ArrayType $ SimpleType "int") "$$"
 >        (PlpgsqlFnBody
 >         [VarDef "b" (ArrayType $ SimpleType "xtype") (Just $ stringQ "{}")]
->         [NullStatement])
+>         [addNsp $ NullStatement])
 >        Immutable]
 >      ,p "create function fn() returns void as '\n\
 >         \declare\n\
@@ -907,7 +912,7 @@ test functions
 >         \' language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" [] (SimpleType "void") "'"
 >        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") (Just $ IntegerLit 3)]
->         [NullStatement])
+>         [addNsp $ NullStatement])
 >        Stable]
 >      ,p "create function fn() returns setof int as $$\n\
 >         \begin\n\
@@ -916,7 +921,7 @@ test functions
 >         \$$ language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" []
 >        (SetOfType $ SimpleType "int") "$$"
->        (PlpgsqlFnBody [] [NullStatement])
+>        (PlpgsqlFnBody [] [addNsp $ NullStatement])
 >        Stable]
 >      ,p "create function fn() returns void as $$\n\
 >         \begin\n\
@@ -925,7 +930,7 @@ test functions
 >         \$$ language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" []
 >        (SimpleType "void") "$$"
->        (PlpgsqlFnBody [] [NullStatement])
+>        (PlpgsqlFnBody [] [addNsp $ NullStatement])
 >        Stable]
 >      ,p "drop function test(text);"
 >       [DropFunction Require [("test",["text"])] Restrict]
@@ -985,40 +990,40 @@ complicated statements
 >         \null;\n\
 >         \end loop;"
 >       [ForSelectStatement "r" (selectFrom  [selI "a"] (Tref "tbl"))
->        [NullStatement]]
+>        [addNsp $ NullStatement]]
 >      ,p "for r in select a from tbl where true loop\n\
 >         \null;\n\
 >         \end loop;"
 >       [ForSelectStatement "r"
 >        (selectFromWhere [selI "a"] (Tref "tbl") (BooleanLit True))
->        [NullStatement]]
+>        [addNsp $ NullStatement]]
 >      ,p "for r in 1 .. 10 loop\n\
 >         \null;\n\
 >         \end loop;"
 >       [ForIntegerStatement "r"
 >        (IntegerLit 1) (IntegerLit 10)
->        [NullStatement]]
+>        [addNsp $ NullStatement]]
 
 >      ,p "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
 >       [If [((BinOpCall  Eql (Identifier "a") (Identifier "b"))
->           ,[Update "c" [SetClause "d" (Identifier "e")] Nothing Nothing])]
+>           ,[addNsp $ Update "c" [SetClause "d" (Identifier "e")] Nothing Nothing])]
 >        []]
 >      ,p "if true then\n\
 >         \  null;\n\
 >         \else\n\
 >         \  null;\n\
 >         \end if;"
->       [If [((BooleanLit True),[NullStatement])]
->        [NullStatement]]
+>       [If [((BooleanLit True),[addNsp $ NullStatement])]
+>        [addNsp $ NullStatement]]
 >      ,p "if true then\n\
 >         \  null;\n\
 >         \elseif false then\n\
 >         \  return;\n\
 >         \end if;"
->       [If [((BooleanLit True), [NullStatement])
->           ,((BooleanLit False), [Return Nothing])]
+>       [If [((BooleanLit True), [addNsp $ NullStatement])
+>           ,((BooleanLit False), [addNsp $ Return Nothing])]
 >        []]
 >      ,p "if true then\n\
 >         \  null;\n\
@@ -1029,19 +1034,19 @@ complicated statements
 >         \else\n\
 >         \  return;\n\
 >         \end if;"
->       [If [((BooleanLit True), [NullStatement])
->           ,((BooleanLit False), [Return Nothing])
->           ,((BooleanLit False), [Return Nothing])]
->        [Return Nothing]]
+>       [If [((BooleanLit True), [addNsp $ NullStatement])
+>           ,((BooleanLit False), [addNsp $ Return Nothing])
+>           ,((BooleanLit False), [addNsp $ Return Nothing])]
+>        [addNsp $ Return Nothing]]
 >      ,p "case a\n\
 >         \  when b then null;\n\
 >         \  when c,d then null;\n\
 >         \  else null;\n\
 >         \end case;"
 >      [CaseStatement (Identifier "a")
->       [([Identifier "b"], [NullStatement])
->       ,([Identifier "c", Identifier "d"], [NullStatement])]
->       [NullStatement]]
+>       [([Identifier "b"], [addNsp $ NullStatement])
+>       ,([Identifier "c", Identifier "d"], [addNsp $ NullStatement])]
+>       [addNsp $ NullStatement]]
 >      ])
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp
@@ -1063,7 +1068,11 @@ complicated statements
 >             Select Dupes (SelectList selList [])
 >                    (Just frm) (Just whr) [] Nothing [] Asc Nothing Nothing
 >           stringQ = StringLit "'"
+>           addNsp s = (nsp,s)
 >           att n t = AttributeDef n (SimpleType t) Nothing []
+
+> stripSp :: [(a, b)] -> [b]
+> stripSp = map snd
 
 ================================================================================
 
@@ -1072,7 +1081,7 @@ Unit test helpers
 parse and then pretty print and parse a statement
 
 > checkParse :: String -> [Statement] -> Test.Framework.Test
-> checkParse src ast = parseUtil src ast parseSql printSql
+> checkParse src ast = parseUtil1 src ast parseSql
 
 parse and then pretty print and parse an expression
 
@@ -1081,7 +1090,7 @@ parse and then pretty print and parse an expression
 >                                  parseExpression printExpression
 
 > checkParsePlpgsql :: String -> [Statement] -> Test.Framework.Test
-> checkParsePlpgsql src ast = parseUtil src ast parsePlpgsql printSql
+> checkParsePlpgsql src ast = parseUtil1 src ast parsePlpgsql
 
 > parseUtil :: (Show t, Eq b, Show b) =>
 >              String
@@ -1100,3 +1109,20 @@ parse and then pretty print and parse an expression
 >               Left er -> error $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >               Right l -> l
 >   assertEqual ("reparse " ++ pp) ast ast''
+
+> parseUtil1 :: String
+>            -> [Statement]
+>            -> (String -> Either ExtendedError StatementList)
+>            -> Test.Framework.Test
+> parseUtil1 src ast parser = testCase ("parse " ++ src) $ do
+>   let ast' = case parser src of
+>               Left er -> error $ show er
+>               Right l -> l
+>   assertEqual ("parse " ++ src) ast $ resetSps (map snd ast')
+>   -- pretty print then parse to check
+>   let pp = printSql ast'
+>   let ast'' = case parser pp of
+>               Left er -> error $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
+>               Right l -> l
+>   assertEqual ("reparse " ++ pp) ast $ resetSps (map snd ast'')
+

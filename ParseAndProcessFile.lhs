@@ -19,7 +19,7 @@ Executable to parse sql from a file and run some attributizing on the ast
 >       x <- parseSqlFileWithState f
 >       case x of
 >            Left er -> print er
->            Right (st, _) -> do
+>            Right st -> do
 >                mapM_ print st
 >                putStrLn "\nattributizing"
 >                let y = runAtts st

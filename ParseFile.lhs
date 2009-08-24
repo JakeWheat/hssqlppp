@@ -15,6 +15,7 @@ authentic the sql is and how much has been silently dropped on the floor
 
 > import Parser
 > import PrettyPrinter
+> import Ast
 
 > main :: IO ()
 > main = getArgs >>= mapM_ parseFile
@@ -24,17 +25,17 @@ authentic the sql is and how much has been silently dropped on the floor
 >       x <- parseSqlFileWithState f
 >       case x of
 >            Left er -> print er
->            Right (l, st) -> do
+>            Right st -> do
 >                --print l
 >                --putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
 >                putStrLn "parse ok"
 >                print st
->                let pp = printSql l
+>                let pp = printSql st
 >                --putStrLn pp
 >                --check roundtrip
 >                case parseSql pp of
 >                  Left er -> error $ "roundtrip failed: " ++ show er
->                  Right l' -> if l == l'
+>                  Right st' -> if resetSps' st == resetSps' st'
 >                                then putStrLn "roundtrip ok"
 >                                else putStrLn "roundtrip failed: different ast"
 >       return ()

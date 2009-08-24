@@ -115,7 +115,6 @@ a parallel tree of token positions (sounds mental?)
 > import Ast
 
 > type ParseState = [MySourcePos]
-> type MySourcePos = (String,Int,Int)
 
 > startState :: ParseState
 > startState = []
@@ -129,63 +128,60 @@ a parallel tree of token positions (sounds mental?)
 
 parse fully formed sql
 
-> parseSql :: String -> Either ExtendedError [Statement]
-> parseSql s = statementsOnly $ parseIt (lexSqlText s) sqlStatements "" s
+> parseSql :: String -> Either ExtendedError StatementList
+> parseSql s = statementsOnly $ parseIt (lexSqlText s) sqlStatements "" s startState
 
-> parseSqlFile :: String -> IO (Either ExtendedError [Statement])
+> parseSqlFile :: String -> IO (Either ExtendedError StatementList)
 > parseSqlFile fn = do
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
->   return $ statementsOnly $ parseIt x sqlStatements fn sc
+>   return $ statementsOnly $ parseIt x sqlStatements fn sc startState
 
-> parseSqlFileWithState :: String -> IO (Either ExtendedError ([Statement], ParseState))
+> parseSqlFileWithState :: String -> IO (Either ExtendedError StatementList)
 > parseSqlFileWithState fn = do
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
->   return $ parseIt x sqlStatements fn sc
+>   return $ parseIt x sqlStatements fn sc startState
 
 
 Parse expression fragment, used for testing purposes
 
 > parseExpression :: String -> Either ExtendedError Expression
-> parseExpression s = parseIt (lexSqlText s) (expr <* eof) "" s
+> parseExpression s = parseIt (lexSqlText s) (expr <* eof) "" s startState
 
 
 parse plpgsql statements, used for testing purposes
 
-> parsePlpgsql :: String -> Either ExtendedError [Statement]
-> parsePlpgsql s =  parseIt (lexSqlText s) (many plPgsqlStatement <* eof) "" s
+> parsePlpgsql :: String -> Either ExtendedError StatementList
+> parsePlpgsql s =  parseIt (lexSqlText s) (many plPgsqlStatement <* eof) "" s startState
 
 utility function to do error handling in one place
 
-> parseIt lexed parser fn src =
+> parseIt lexed parser fn src ss =
 >     case lexed of
 >                Left er -> Left er
 >                Right toks -> convertToExtendedError
->                                (runParser parser startState fn toks) fn src
+>                                (runParser parser ss fn toks) fn src
 
-> statementsOnly :: Either ExtendedError ([Statement], ParseState)
->                -> Either ExtendedError [Statement]
+> statementsOnly :: Either ExtendedError StatementList
+>                -> Either ExtendedError StatementList
 > statementsOnly s = case s of
 >                      Left er -> Left er
->                      Right (st,_) -> Right st
+>                      Right st -> Right st
 
 ================================================================================
 
 = Parsing top level statements
 
-> sqlStatements :: ParsecT [Token] ParseState Identity ([Statement], ParseState)
-> sqlStatements = do
->   a <- many (sqlStatement True) <* eof
->   b <- getState
->   return (a,reverse b)
+> sqlStatements :: ParsecT [Token] ParseState Identity [(MySourcePos,Statement)]
+> sqlStatements = many (sqlStatement True) <* eof
 
 parse a statement
 
-> sqlStatement :: Bool -> ParsecT [Token] ParseState Identity Statement
-> sqlStatement reqSemi = getPosition >>=
->                        (\p -> updateState (\st -> (toMySp p:st))) >>
->                        (choice [
+> sqlStatement :: Bool -> ParsecT [Token] ParseState Identity (MySourcePos,Statement)
+> sqlStatement reqSemi = do
+>    p <- getAdjustedPosition
+>    st <- ((choice [
 >                          select
 >                         ,values
 >                         ,insert
@@ -208,7 +204,17 @@ parse a statement
 >        <* (if reqSemi
 >              then symbol ';' >> return ()
 >              else optional (symbol ';') >> return ()))
->       <|> copyData
+>       <|> copyData)
+>    return (p, st)
+
+> getAdjustedPosition :: ParsecT [Token] ParseState Identity MySourcePos
+> getAdjustedPosition = do
+>   p <- toMySp <$> getPosition
+>   s <- getState
+>   case s of
+>     [] -> return p
+>     (fn,pl,pc):_ -> let (_,l,c) = p
+>                     in return (fn,pl+l-1,c)
 
 ================================================================================
 
@@ -477,9 +483,11 @@ a string
 >   fnName <- idString
 >   params <- parens $ commaSep param
 >   retType <- keyword "returns" *> typeName
->   body <- keyword "as" *> stringLit
+>   keyword "as"
+>   bodypos <- getAdjustedPosition
+>   body <- stringLit
 >   lang <- readLang
->   (q, b) <- parseBody lang body fnName
+>   (q, b) <- parseBody lang body fnName bodypos
 >   CreateFunction lang fnName params retType q b <$> pVol
 >     where
 >         pVol = matchAKeyword [("volatile", Volatile)
@@ -487,21 +495,16 @@ a string
 >                              ,("immutable", Immutable)]
 >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
 >                                                        ,("sql",Sql)]
->         parseBody lang body fnName =
+>         parseBody lang body fnName bodypos = do
 >             case (parseIt
 >                   (lexSqlText (extrStr body))
 >                   (functionBody lang)
 >                   ("function " ++ fnName)
->                   (extrStr body)) of
->                      Left e -> do
->                            --if we have an error parsing the body,
->                            --collect all the needed info from that
->                            --error and rethrow it
->                            sp <- getPosition
->                            error $ "in " ++ show sp
->                                      ++ ", " ++ show e
-
->                      Right body' -> return (quoteOfString body, body')
+>                   (extrStr body)
+>                   [bodypos]) of
+>                      Left e -> error $ show e
+>                      Right body' -> do
+>                        return (quoteOfString body, body')
 
 sql function is just a list of statements, the last one has the
 trailing semicolon optional
@@ -634,9 +637,11 @@ or after the whole list
 
 = plpgsql statements
 
-> plPgsqlStatement :: ParsecT [Token] ParseState Identity Statement
-> plPgsqlStatement = sqlStatement True
->                    <|> (choice [
+> plPgsqlStatement :: ParsecT [Token] ParseState Identity (MySourcePos,Statement)
+> plPgsqlStatement = do
+>    p <- getAdjustedPosition
+>    ((sqlStatement True)
+>     <|> (,) p <$> (choice [
 >                          continue
 >                         ,execute
 >                         ,caseStatement
@@ -648,7 +653,7 @@ or after the whole list
 >                         ,whileStatement
 >                         ,perform
 >                         ,nullStatement]
->                         <* symbol ';')
+>                         <* symbol ';'))
 
 > nullStatement :: ParsecT [Token] ParseState Identity Statement
 > nullStatement = NullStatement <$ keyword "null"

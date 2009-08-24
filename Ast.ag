@@ -49,6 +49,8 @@ instead put any statement - this type checks but is totally invalid.
 
 -}
 
+TYPE MySourcePos = (String, Int, Int)
+
 DATA Statement
 
 --queries
@@ -366,7 +368,8 @@ TYPE TypeAttributeDefList = [TypeAttributeDef]
 TYPE ParamDefList = [ParamDef]
 TYPE StringStringListPair = (String,StringList)
 TYPE StringStringListPairList = [StringStringListPair]
-TYPE StatementList = [Statement]
+TYPE SourcePosStatement = (MySourcePos, Statement)
+TYPE StatementList = [SourcePosStatement]
 TYPE ExpressionListStatementListPair = (ExpressionList,StatementList)
 TYPE ExpressionListStatementListPairList = [ExpressionListStatementListPair]
 TYPE ExpressionStatementListPair = (Expression, StatementList)
@@ -377,10 +380,22 @@ TYPE RowConstraintList = [RowConstraint]
 TYPE ExpressionListExpressionPair = (ExpressionList,Expression)
 TYPE ExpressionListExpressionPairList = [ExpressionListExpressionPair]
 
-DATA Message | Error String
-             | Warning String
-             | Notice String
-DERIVING Message: Show
+DATA Message | Error MySourcePos String
+             | Warning MySourcePos String
+             | Notice MySourcePos String
+{
+
+instance Show Message where
+   show m = showMessage m
+showMessage m = case m of
+                  Error sp s -> showit "Error" sp s
+                  Warning sp s -> showit "Warning" sp s
+                  Notice sp s -> showit "Notice" sp s
+                where
+                  showit lev (fn,l,c) s = lev ++ "\n" ++ fn ++ ":"
+                                          ++ show l ++ ":" ++ show c ++ ":\n"
+                                          ++ s ++ "\n"
+}
 
 -- =============================================================================
 
@@ -399,20 +414,29 @@ SET AllNodes = Statement FnBody SetClause TableRef JoinExpression JoinType
                ExpressionListStatementListPairList ExpressionStatementListPair
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList ExpressionListExpressionPair
-               ExpressionListExpressionPairList
+               ExpressionListExpressionPairList SourcePosStatement
 
 DERIVING AllNodes: Show,Eq
 
 
 ATTR AllNodes
-  [ inLoop: Bool
+  [ inLoop: Bool sourcePos: MySourcePos
   |
   | messages USE {++} {[]} : {[Message]}
   ]
 
+ATTR MySourcePos
+         [
+         |
+         | val : SELF
+         ]
+
 SEM Statement
      | ForSelectStatement ForIntegerStatement WhileStatement sts.inLoop = True
      | CreateFunction body.inLoop = False
+
+SEM SourcePosStatement
+    | Tuple x2.sourcePos = @x1.val
 
 {-SEM Statement
     | Select CombineSelect Values Insert Update Delete Copy CopyData
@@ -424,7 +448,7 @@ SEM Statement
 
 SEM Statement
     | ContinueStatement  lhs.messages = if not @lhs.inLoop
-                                          then [Error ("continue not in loop")]
+                                          then [Error @lhs.sourcePos ("continue not in loop")]
                                           else []
 
 
@@ -438,6 +462,32 @@ runAtts sts = let t = sem_StatementList sts
                   t1 = (wrap_StatementList t
                         Inh_StatementList{inLoop_Inh_StatementList=False})
               in (messages_Syn_StatementList t1)
+
+--hack job, not interested in the source positions when testing the asts
+--produced, so this function will reset all the source positions to
+--empty ("", 0, 0)
+
+resetSps :: [Statement] -> [Statement]
+resetSps sts = map resetSp sts
+
+resetSp (CreateFunction l n p r bq b v) = (CreateFunction l n p r bq
+                                              (case b of
+                                                SqlFnBody stss -> SqlFnBody (map resetSp' stss)
+                                                PlpgsqlFnBody vd stss -> PlpgsqlFnBody vd (map resetSp' stss))
+                                            v)
+resetSp (ForSelectStatement v s stss) = ForSelectStatement v s (map resetSp' stss)
+resetSp (ForIntegerStatement v f t stss) = ForIntegerStatement v f t (map resetSp' stss)
+resetSp (CaseStatement v cs els) = CaseStatement v (map (\(el,st) -> (el,map resetSp' st)) cs) (map resetSp' els)
+resetSp (If cs els) = If (map (\(el,st) -> (el,map resetSp' st)) cs) (map resetSp' els)
+resetSp a = a
+resetSp' (_,st) = (nsp,resetSp st)
+
+resetSps' :: StatementList -> StatementList
+resetSps' sts = map resetSp' sts
+
+nsp :: MySourcePos
+nsp = ("", 0,0)
+
 }
 
 {-
@@ -483,6 +533,7 @@ alter table
 create index
 create rule
 create trigger
+ctes
 loop, exit, labels
 easy ones: transactions, savepoints, listen
 prepare, execute + using

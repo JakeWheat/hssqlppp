@@ -23,8 +23,8 @@ reparsable text.
 
 Public functions
 
-> printSql :: [Statement] -> String
-> printSql ast = render $ vcat (map convStatement ast) <> text "\n"
+> printSql :: StatementList -> String
+> printSql ast = render $ vcat (map (convStatement . snd) ast) <> text "\n"
 
 > printExpression :: Expression -> String
 > printExpression = render . convExp
@@ -388,8 +388,8 @@ Conversion routines - convert Sql asts into Docs
 
 == plpgsql
 
-> convNestedStatements :: [Statement] -> Doc
-> convNestedStatements = nest 2 . vcat . map convStatement
+> convNestedStatements :: StatementList -> Doc
+> convNestedStatements = nest 2 . vcat . map (convStatement . snd)
 
 > convTypeName :: TypeName -> Doc
 > convTypeName (SimpleType s) = text s
