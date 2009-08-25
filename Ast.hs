@@ -50,19 +50,24 @@ showMessage m = case m of
                                           ++ show s ++ "\n"
 
 
-makeSelect :: Statement
-makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
-                    Nothing Nothing [] Nothing [] Asc Nothing Nothing
 
---runAtts :: StatementList -> (Int,Int,[Message])
-runAtts sts = let t = sem_StatementList sts
-                  t1 = (wrap_StatementList t
-                        Inh_StatementList{inLoop_Inh_StatementList=False})
-              in (messages_Syn_StatementList t1)
+-- use to use record syntax to try to insulate code from field
+-- changes, and not have to write out loads of nothings and [] for
+-- simple selects, but don't know how to use haskell named records
+-- from uuagc code
+--makeSelect :: Statement
+--makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
+--                    Nothing Nothing [] Nothing [] Asc Nothing Nothing
 
---hack job, not interested in the source positions when testing the asts
---produced, so this function will reset all the source positions to
---empty ("", 0, 0)
+checkAst :: StatementList -> [Message]
+checkAst sts = let t = sem_StatementList sts
+                   t1 = (wrap_StatementList t
+                         Inh_StatementList{inLoop_Inh_StatementList=False})
+               in (messages_Syn_StatementList t1)
+
+--hack job, often not interested in the source positions when testing
+--the asts produced, so this function will reset all the source
+--positions to empty ("", 0, 0)
 
 resetSps :: [Statement] -> [Statement]
 resetSps sts = map resetSp sts

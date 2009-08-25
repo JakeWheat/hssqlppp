@@ -504,7 +504,7 @@ a string
 >                   ("function " ++ fnName)
 >                   (extrStr body)
 >                   [bodypos]) of
->                      Left er@(ExtendedError e s) ->
+>                      Left er@(ExtendedError e _) ->
 >                               -- don't know how to change the
 >                               --position of the error we've been
 >                               --given, so add some information to

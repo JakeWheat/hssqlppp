@@ -30,6 +30,20 @@ to generate a new Ast.hs from this file
 cabal install uuagc
 )
 
+Tip: after you've compiled this file with the above command, you can
+get loads of warnings from ghc if you're the sort who enables
+these. Using haskell-mode from emacs usually results in compiles being
+really slow just cos emacs outputs all these warnings _really_ slowly,
+and also any real warnings and errors can get drowned out. You can get
+rid of these warnings by ghc compiling the produced Ast.hs on the
+command line:
+ghc -c Ast.hs
+
+does the job, you can then compile from emacs and it will use the .o
+file and you won't get any warnings about generated code in Ast.hs (if
+the .o file gets stale, ghc / haskell mode will do the right thing and
+ignore it, but it can't tell if the Ast.hs has gotten stale wrt
+Ast.ag)
 -}
 
 MODULE {Ast}
@@ -271,6 +285,11 @@ DATA RestartIdentity | RestartIdentity | ContinueIdentity
 
 Expressions
 
+Will probably change the symbol operators to accept a string of the
+symbol to support general pg operators, including user defined
+ones. Then the number of special cases will probably be smaller than
+the current two lists.
+
 -}
 
 DATA BinOp
@@ -369,6 +388,13 @@ TYPE ParamDefList = [ParamDef]
 TYPE StringStringListPair = (String,StringList)
 TYPE StringStringListPairList = [StringStringListPair]
 TYPE SourcePosStatement = (MySourcePos, Statement)
+
+-- slightly hacky, add the source positions only in statement lists
+-- this includes top level statements, and statements inside createfunction,
+-- and nested inside if, while, case statements, and the like, but
+-- unfortunately not select expressions inside other
+-- expressions/statements
+
 TYPE StatementList = [SourcePosStatement]
 TYPE ExpressionListStatementListPair = (ExpressionList,StatementList)
 TYPE ExpressionListStatementListPairList = [ExpressionListStatementListPair]
@@ -424,12 +450,9 @@ SET AllNodes = Statement FnBody SetClause TableRef JoinExpression JoinType
 
 DERIVING AllNodes: Show,Eq
 
-
-ATTR AllNodes
-  [ inLoop: Bool sourcePos: MySourcePos
-  |
-  | messages USE {++} {[]} : {[Message]}
-  ]
+-- use this attr to lift the source pos value so we can access it
+-- couldn't find a way just to read the value direct from the tuple in
+-- the semantic bit...
 
 ATTR MySourcePos
          [
@@ -437,14 +460,52 @@ ATTR MySourcePos
          | val : SELF
          ]
 
+SEM SourcePosStatement
+    | Tuple x2.sourcePos = @x1.val
+
+
+{-
+attribute descriptions:
+
+sourcePos - holds the source position used in messages, not very
+accurate at the moment, just gives you the position of the first
+character in the current statement
+
+messages - used to collect error messages, also to be used for
+warnings (e.g. $1 position argument used when all args have aliases),
+and notices - will probably use these to highlight dodgy sql
+code and idioms.
+
+inloop - use to check continue, exit, and other commands that can only
+appear inside loops (for, while, loop)
+
+-}
+
+ATTR AllNodes
+  [ inLoop: Bool sourcePos: MySourcePos
+  |
+  | messages USE {++} {[]} : {[Message]}
+  ]
+
+
+-- set the inloop stuff which nests, it's reset inside a create
+-- function statement, in case you have a create function inside a
+-- loop, seems unlikely you'd do this though
+
 SEM Statement
      | ForSelectStatement ForIntegerStatement WhileStatement sts.inLoop = True
      | CreateFunction body.inLoop = False
 
-SEM SourcePosStatement
-    | Tuple x2.sourcePos = @x1.val
+-- now we can check when we hit a continue statement if it is in the
+-- right context
+SEM Statement
+    | ContinueStatement  lhs.messages = if not @lhs.inLoop
+                                          then [Error @lhs.sourcePos ContinueNotInLoop]
+                                          else []
 
-{-SEM Statement
+{-
+save this so i don't have to type it all out again
+SEM Statement
     | Select CombineSelect Values Insert Update Delete Copy CopyData
       Truncate CreateTable CreateTableAs CreateView CreateType CreateFunction
       CreateDomain DropFunction DropSomething Assignment Return ReturnNext
@@ -452,24 +513,25 @@ SEM SourcePosStatement
       ForSelectStatement ForIntegerStatement WhileStatement
       ContinueStatement CaseStatement If-}
 
-SEM Statement
-    | ContinueStatement  lhs.messages = if not @lhs.inLoop
-                                          then [Error @lhs.sourcePos ContinueNotInLoop]
-                                          else []
 {
-makeSelect :: Statement
-makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
-                    Nothing Nothing [] Nothing [] Asc Nothing Nothing
 
---runAtts :: StatementList -> (Int,Int,[Message])
-runAtts sts = let t = sem_StatementList sts
-                  t1 = (wrap_StatementList t
-                        Inh_StatementList{inLoop_Inh_StatementList=False})
-              in (messages_Syn_StatementList t1)
+-- use to use record syntax to try to insulate code from field
+-- changes, and not have to write out loads of nothings and [] for
+-- simple selects, but don't know how to use haskell named records
+-- from uuagc code
+--makeSelect :: Statement
+--makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
+--                    Nothing Nothing [] Nothing [] Asc Nothing Nothing
 
---hack job, not interested in the source positions when testing the asts
---produced, so this function will reset all the source positions to
---empty ("", 0, 0)
+checkAst :: StatementList -> [Message]
+checkAst sts = let t = sem_StatementList sts
+                   t1 = (wrap_StatementList t
+                         Inh_StatementList{inLoop_Inh_StatementList=False})
+               in (messages_Syn_StatementList t1)
+
+--hack job, often not interested in the source positions when testing
+--the asts produced, so this function will reset all the source
+--positions to empty ("", 0, 0)
 
 resetSps :: [Statement] -> [Statement]
 resetSps sts = map resetSp sts
@@ -514,9 +576,6 @@ expression->exists select
 
 TODO
 
-add positions to top level statements, add conversions to statements
-in functions
-
 some non type-check checks:
 check plpgsql only in plpgsql function
 do all containment checks above
@@ -529,7 +588,18 @@ no natural with onexpr in joins
 constraint column ref checks?
 typename -> setof (& fix parsing), what else like this?
 expressions: positionalarg in function, window function only in select
-list top level
+ list top level
+
+review all ast checks, and see if we can also catch them during
+parsing (e.g. typeName parses setof, but this should only be allowed
+for a function return, and we can make this a parse error when parsing
+from source code rather than checking a generated ast. This needs
+judgement to say whether a parse error is better than a check error, I
+think for setof it is, but e.g. for a continue not in a loop (which
+could be caught during parsing) works better as a check error, looking
+at the error message the user will get. This might be wrong, haven't
+thought too carefully about it yet).
+
 
 some sql support to add, common ones:
 alter table

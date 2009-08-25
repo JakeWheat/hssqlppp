@@ -2,7 +2,9 @@
 
 Copyright 2009 Jake Wheat
 
-Mainly test error messages from check failures from bad sql
+Mainly test error messages from check failures from bad sql checks the
+source positions, even though they are a bit fragile and checks the
+types of error message received.
 
 > import Test.HUnit
 > import Test.Framework
@@ -46,5 +48,5 @@ Mainly test error messages from check failures from bad sql
 >   let ast = case parseSql src of
 >                Left er -> error $ show er
 >                Right l -> l
->       msgs1 = runAtts ast
+>       msgs1 = checkAst ast
 >   assertEqual ("check " ++ src) msgs msgs1
