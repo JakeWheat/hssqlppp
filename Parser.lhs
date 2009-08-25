@@ -213,8 +213,10 @@ parse a statement
 >   s <- getState
 >   case s of
 >     [] -> return p
->     (fn,pl,_):_ -> let (_,l,c) = p
->                     in return (fn,pl+l-1,c)
+>     x:_ -> return $ adjustPosition x p
+
+> adjustPosition :: MySourcePos -> MySourcePos -> MySourcePos
+> adjustPosition (fn,pl,_) (_,l,c) = (fn,pl+l-1,c)
 
 ================================================================================
 
@@ -487,7 +489,7 @@ a string
 >   bodypos <- getAdjustedPosition
 >   body <- stringLit
 >   lang <- readLang
->   (q, b) <- parseBody lang body fnName bodypos
+>   let (q, b) = parseBody lang body fnName bodypos
 >   CreateFunction lang fnName params retType q b <$> pVol
 >     where
 >         pVol = matchAKeyword [("volatile", Volatile)
@@ -495,16 +497,29 @@ a string
 >                              ,("immutable", Immutable)]
 >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
 >                                                        ,("sql",Sql)]
->         parseBody lang body fnName bodypos = do
+>         parseBody lang body fnName bodypos =
 >             case (parseIt
 >                   (lexSqlText (extrStr body))
 >                   (functionBody lang)
 >                   ("function " ++ fnName)
 >                   (extrStr body)
 >                   [bodypos]) of
->                      Left e -> error $ show e
->                      Right body' -> do
->                        return (quoteOfString body, body')
+>                      Left er@(ExtendedError e s) ->
+>                               -- don't know how to change the
+>                               --position of the error we've been
+>                               --given, so add some information to
+>                               --show the position of the containing
+>                               --function and the adjusted absolute
+>                               --position of this error
+>                               let ep = toMySp $ errorPos e
+>                                   (fn,fp,fc) = bodypos
+>                                   fnBit = "in function " ++ fnName ++ "\n"
+>                                           ++ fn ++ ":" ++ show fp ++ ":" ++ show fc ++ ":\n"
+>                                   (_,lp,lc) = adjustPosition bodypos ep
+>                                   lineBit = "on line\n"
+>                                             ++ fn ++ ":" ++ show lp ++ ":" ++ show lc ++ ":\n"
+>                               in error $ show er ++ "\n" ++ fnBit ++ lineBit
+>                      Right body' -> (quoteOfString body, body')
 
 sql function is just a list of statements, the last one has the
 trailing semicolon optional

@@ -3,7 +3,7 @@ Copyright 2009 Jake Wheat
 convert error messages to show source text fragment with little hat,
 plus output error location in emacs friendly format.
 
-> module ParseErrors (convertToExtendedError, ExtendedError) where
+> module ParseErrors (convertToExtendedError, ExtendedError(..)) where
 
 > import Text.Parsec
 
