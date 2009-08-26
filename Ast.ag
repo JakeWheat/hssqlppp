@@ -406,6 +406,20 @@ TYPE RowConstraintList = [RowConstraint]
 TYPE ExpressionListExpressionPair = (ExpressionList,Expression)
 TYPE ExpressionListExpressionPairList = [ExpressionListExpressionPair]
 
+{-
+================================================================================
+Type checking
+-}
+
+DATA Type | ScalarType String
+          | UnknownType
+DERIVING Type: Show,Eq
+
+{-
+================================================================================
+Error reporting
+-}
+
 DATA Message | Error MySourcePos MessageStuff
              | Warning MySourcePos MessageStuff
              | Notice MySourcePos MessageStuff
@@ -436,6 +450,9 @@ showMessage m = case m of
 
 DATA Root | Root statements:StatementList
 DERIVING Root: Show
+
+DATA ExpressionRoot | ExpressionRoot expr:Expression
+DERIVING ExpressionRoot: Show
 
 -- =============================================================================
 
@@ -496,7 +513,7 @@ ATTR AllNodes
   |
   ]
 
-ATTR AllNodes Root
+ATTR AllNodes Root ExpressionRoot
   [
   |
   | messages USE {++} {[]} : {[Message]}
@@ -504,6 +521,10 @@ ATTR AllNodes Root
 
 SEM Root
   | Root statements.sourcePos = ("",0,0)
+
+SEM ExpressionRoot
+  | ExpressionRoot expr.sourcePos = ("",0,0)
+
 
 {-
 
@@ -554,6 +575,9 @@ ATTR AllNodes
 SEM Root
   | Root statements.selectsOnly = False
 
+SEM ExpressionRoot
+  | ExpressionRoot expr.selectsOnly = True
+
 -- set the selects only
 SEM Statement
      | CombineSelect sel1.selectsOnly = True
@@ -572,7 +596,8 @@ SEM InList
      | InSelect sel.selectsOnly = True
 
 --check 'em
-
+{-
+disabled for the time being because of problems noted below
 SEM Statement
     --all the statement types except select (shorthand for this?)
     | CombineSelect Values Insert Update Delete Copy CopyData
@@ -584,6 +609,7 @@ SEM Statement
           lhs.messages = if @lhs.selectsOnly
                                       then [Error @lhs.sourcePos NonSelectInSelectExpression]
                                       else []
+-}
 {-
 
 Problem 1: can't have two sem statements for the same node type which
@@ -615,6 +641,13 @@ ATTR AllNodes
 SEM Root
   | Root statements.inLoop = False
 
+SEM ExpressionRoot
+  | ExpressionRoot expr.inLoop = False
+
+-- set the inloop stuff which nests, it's reset inside a create
+-- function statement, in case you have a create function inside a
+-- loop, seems unlikely you'd do this though
+
 -- set the inloop stuff which nests, it's reset inside a create
 -- function statement, in case you have a create function inside a
 -- loop, seems unlikely you'd do this though
@@ -639,8 +672,28 @@ SEM Statement
       ReturnQuery Raise NullStatement Perform Execute ExecuteInto
       ForSelectStatement ForIntegerStatement WhileStatement
       ContinueStatement CaseStatement If-}
-{
 {-
+================================================================================
+
+= typechecking
+-}
+
+ATTR AllNodes Root ExpressionRoot
+  [
+  |
+  | nodeType USE {`setUnknown`} {UnknownType} : {Type}
+  ]
+
+{
+setUnknown :: Type -> Type -> Type
+setUnknown t1 t2 = UnknownType
+}
+
+SEM Expression
+     | IntegerLit lhs.nodeType = ScalarType "Integer"
+
+{-
+
 
 ================================================================================
 
@@ -657,15 +710,33 @@ Non attribute grammar stuff
 
 {-
 
+================================================================================
+
 = checkAst
 
 Main function to run on asts, returns a list of errors, warnings, etc.
 
 -}
-
+{
 checkAst :: StatementList -> [Message]
 checkAst sts = let t = sem_Root (Root sts)
                in (messages_Syn_Root (wrap_Root t Inh_Root))
+{-
+================================================================================
+
+= Types
+
+== getExpressionType
+
+Gets the type of an expression
+
+-}
+
+getExpressionType :: Expression -> Type
+getExpressionType ex = let t = sem_ExpressionRoot (ExpressionRoot ex)
+                       in (nodeType_Syn_ExpressionRoot
+                           (wrap_ExpressionRoot t Inh_ExpressionRoot))
+
 
 --hack job, often not interested in the source positions when testing
 --the asts produced, so this function will reset all the source

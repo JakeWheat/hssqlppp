@@ -39,10 +39,18 @@ types of error message received.
 >         \end;\n\
 >         \$$ language plpgsql volatile;\n" [Error ("",3,5) ContinueNotInLoop]
 >      ])
+
+>    ,testGroup "basic literal types"
+>     (mapExprType [
+>       p "1" (ScalarType "Integer")
+>      ])
+
 >    ]
 >         where
 >           mapAttr = map $ uncurry checkAttrs
 >           p a b = (a,b)
+>           mapExprType = map $ uncurry checkExpressionType
+
 > checkAttrs :: String -> [Message] -> Test.Framework.Test
 > checkAttrs src msgs = testCase ("check " ++ src) $ do
 >   let ast = case parseSql src of
@@ -50,3 +58,11 @@ types of error message received.
 >                Right l -> l
 >       msgs1 = checkAst ast
 >   assertEqual ("check " ++ src) msgs msgs1
+
+> checkExpressionType :: String -> Type -> Test.Framework.Test
+> checkExpressionType src typ = testCase ("typecheck " ++ src) $ do
+>   let ast = case parseExpression src of
+>                Left er -> error $ show er
+>                Right l -> l
+>       typ1 = getExpressionType ast
+>   assertEqual ("typecheck " ++ src) typ typ1
