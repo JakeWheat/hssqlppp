@@ -192,7 +192,7 @@ DATA TableRef | Tref String
                            joinType : JoinType
                            jtref : TableRef
                            onExpr : (Maybe JoinExpression)
-              | SubTref Statement String
+              | SubTref sel : Statement alias : String
               | TrefFun Expression
               | TrefFunAlias Expression String
 
@@ -357,7 +357,7 @@ DATA Expression | IntegerLit Integer
                 | ArrayLit ExpressionList
                 | Case cases : ExpressionListExpressionPairList
                        els : (Maybe Expression)
-                | Exists Statement
+                | Exists sel : Statement
                 | BinOpCall BinOp
                             arg1 : Expression
                             arg2 : Expression
@@ -369,13 +369,13 @@ DATA Expression | IntegerLit Integer
                            partitionBy : ExpressionList
                            orderBy : ExpressionList
                            dir : Direction
-                | ScalarSubQuery Statement
+                | ScalarSubQuery sel : Statement
                 | ArraySub Expression ExpressionList
                 | Between val : Expression
                           lower : Expression
                           upper : Expression
 
-DATA InList | InList ExpressionList | InSelect Statement
+DATA InList | InList ExpressionList | InSelect sel : Statement
 
 TYPE ExpressionList = [Expression]
 TYPE ExpressionListList = [ExpressionList]
@@ -411,6 +411,7 @@ DATA Message | Error MySourcePos MessageStuff
              | Notice MySourcePos MessageStuff
 
 DATA MessageStuff | ContinueNotInLoop
+                  | NonSelectInSelectExpression
                   | CustomMessage String
 
 DERIVING Message MessageStuff: Eq
@@ -428,6 +429,13 @@ showMessage m = case m of
                                           ++ show l ++ ":" ++ show c ++ ":\n"
                                           ++ show s ++ "\n"
 }
+
+-- Add a root data type so we can put initial values for inherited
+-- attributes in the section which defines and uses those attributes
+-- rather than in the sem_ calls
+
+DATA Root | Root statements:StatementList
+DERIVING Root: Show
 
 -- =============================================================================
 
@@ -465,6 +473,9 @@ SEM SourcePosStatement
 
 
 {-
+
+================================================================================
+
 attribute descriptions:
 
 sourcePos - holds the source position used in messages, not very
@@ -476,17 +487,133 @@ warnings (e.g. $1 position argument used when all args have aliases),
 and notices - will probably use these to highlight dodgy sql
 code and idioms.
 
+
+-}
+
+ATTR AllNodes
+  [ sourcePos: MySourcePos
+  |
+  |
+  ]
+
+ATTR AllNodes Root
+  [
+  |
+  | messages USE {++} {[]} : {[Message]}
+  ]
+
+SEM Root
+  | Root statements.sourcePos = ("",0,0)
+
+{-
+
+================================================================================
+
+= select statement testing
+
+lots of places in the ast can only take a select statement (really a
+select expression in these nodes), but select expressions don't exist
+as a separate data type (maybe they should?), so the fields that hold
+them can hold any statement type. The parser won't produce these bad
+asts, but creating asts in other ways will, so we check them here
+
+(Thinking about this, may change the ast to use a separate select
+statement and select expression type, would probably work a lot
+better, otoh, this approach may be able to support e.g insert
+returning nested in a select and crazy stuff like that)
+
+here is the checklist for these select expressions appearing in other nodes:
+
+combineselect 2 selects
+insert ?select
+createtableas 1 select
+createview 1 select
+return query 1 select
+forselect 1 select
+select->subselect select
+expression->exists select
+            scalarsubquery select
+            inselect select
+
+the forselect also holds a statement list, so we need to make sure we
+only pass the select only marker into the select part, all the others
+we can pass it down to any subnodes.
+
+Also, selects only actually means either a select statement or a
+values statement (which is virtually a syntax sugered select
+statement).
+
+-}
+
+ATTR AllNodes
+  [ selectsOnly: Bool
+  |
+  |
+  ]
+
+SEM Root
+  | Root statements.selectsOnly = False
+
+-- set the selects only
+SEM Statement
+     | CombineSelect sel1.selectsOnly = True
+                     sel2.selectsOnly = True
+     | Insert insData.selectsOnly = True
+     | CreateTableAs CreateView expr.selectsOnly = True
+     | ReturnQuery ForSelectStatement sel.selectsOnly = True
+
+SEM TableRef
+     | SubTref sel.selectsOnly = True
+
+SEM Expression
+     | ScalarSubQuery Exists sel.selectsOnly = True
+
+SEM InList
+     | InSelect sel.selectsOnly = True
+
+--check 'em
+
+SEM Statement
+    --all the statement types except select (shorthand for this?)
+    | CombineSelect Values Insert Update Delete Copy CopyData
+      Truncate CreateTable CreateTableAs CreateView CreateType CreateFunction
+      CreateDomain DropFunction DropSomething Assignment Return ReturnNext
+      ReturnQuery Raise NullStatement Perform Execute ExecuteInto
+      ForSelectStatement ForIntegerStatement WhileStatement
+      {-ContinueStatement-} CaseStatement If
+          lhs.messages = if @lhs.selectsOnly
+                                      then [Error @lhs.sourcePos NonSelectInSelectExpression]
+                                      else []
+{-
+
+Problem 1: can't have two sem statements for the same node type which
+both add messages, and then the messages get combined to provide the
+final message list attribute value for that node. Don't know how to
+get round this.
+
+Problem 2: no shorthand to combine what the default rule for messages
+would be and then add a bit extra - so if you want all the children
+messages, plus possiby an extra message or two, have to write out the
+default rule in full explicitly. Can get round this by writing out
+loads of code.
+
+================================================================================
+
+= inloop testing
+
 inloop - use to check continue, exit, and other commands that can only
 appear inside loops (for, while, loop)
 
 -}
 
 ATTR AllNodes
-  [ inLoop: Bool sourcePos: MySourcePos
+  [ inLoop: Bool
   |
-  | messages USE {++} {[]} : {[Message]}
+  |
   ]
 
+SEM Root
+  | Root statements.inLoop = False
 
 -- set the inloop stuff which nests, it's reset inside a create
 -- function statement, in case you have a create function inside a
@@ -512,9 +639,14 @@ SEM Statement
       ReturnQuery Raise NullStatement Perform Execute ExecuteInto
       ForSelectStatement ForIntegerStatement WhileStatement
       ContinueStatement CaseStatement If-}
-
 {
+{-
 
+================================================================================
+
+Non attribute grammar stuff
+
+-}
 -- use to use record syntax to try to insulate code from field
 -- changes, and not have to write out loads of nothings and [] for
 -- simple selects, but don't know how to use haskell named records
@@ -523,11 +655,17 @@ SEM Statement
 --makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
 --                    Nothing Nothing [] Nothing [] Asc Nothing Nothing
 
+{-
+
+= checkAst
+
+Main function to run on asts, returns a list of errors, warnings, etc.
+
+-}
+
 checkAst :: StatementList -> [Message]
-checkAst sts = let t = sem_StatementList sts
-                   t1 = (wrap_StatementList t
-                         Inh_StatementList{inLoop_Inh_StatementList=False})
-               in (messages_Syn_StatementList t1)
+checkAst sts = let t = sem_Root (Root sts)
+               in (messages_Syn_Root (wrap_Root t Inh_Root))
 
 --hack job, often not interested in the source positions when testing
 --the asts produced, so this function will reset all the source
@@ -611,5 +749,25 @@ loop, exit, labels
 easy ones: transactions, savepoints, listen
 prepare, execute + using
 proper general operator support & lex properly
+
+Type checking
+
+(Have no idea what I am doing, just going to try to bluff it, then
+learn how to do it properly later)
+
+Create a algebraic data type to represent types.
+
+Add a type called Unknown which always passes. Add this to everything
+by default - now all code type checks and we can add proper type
+checking piecemeal.
+
+Start with tables, and then simple select * from table, select a,b from table.
+Then maybe do some simple expressions.
+
+Add separate function to return the inferred types of statementlists/
+expressions, etc., so the checkAst checks the types are consistent,
+and them have something like getStatementType, getStatementsType,
+getExpressionType (which works for selects and relation valued
+expressions as well as scalars, tuples, etc).
 
 -}
