@@ -108,7 +108,7 @@ some operator tests
 >      ,p "a between 1 and 3"
 >         (Between (Identifier "a") (IntegerLit 1) (IntegerLit 3))
 >      ,p "cast(a as text)"
->         (CastKeyword (Identifier "a") (SimpleType "text"))
+>         (CastKeyword (Identifier "a") (SimpleTypeName "text"))
 >      ,p "@ a"
 >         (UnOpCall Abs (Identifier "a"))
 
@@ -620,7 +620,7 @@ create table tests
 >        []]
 >      ,p "create table tbl (\n\
 >         \  fld boolean default false);"
->       [CreateTable "tbl" [AttributeDef "fld" (SimpleType "boolean")
+>       [CreateTable "tbl" [AttributeDef "fld" (SimpleTypeName "boolean")
 >                           (Just $ BooleanLit False) []][]]
 
 >      ,p "create table tbl as select 1;"
@@ -635,15 +635,15 @@ other creates
 >        "v1"
 >        (selectFrom [selI "a", selI "b"] (Tref "t"))]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
->       [CreateDomain "td" (SimpleType "text")
+>       [CreateDomain "td" (SimpleTypeName "text")
 >        (Just (InPredicate (Identifier "value") True
 >               (InList [stringQ "t1" ,stringQ "t2"])))]
 >      ,p "create type tp1 as (\n\
 >         \  f1 text,\n\
 >         \  f2 text\n\
 >         \);"
->       [CreateType "tp1" [TypeAttDef "f1" (SimpleType "text")
->                         ,TypeAttDef "f2" (SimpleType "text")]]
+>       [CreateType "tp1" [TypeAttDef "f1" (SimpleTypeName "text")
+>                         ,TypeAttDef "f2" (SimpleTypeName "text")]]
 
 drops
 
@@ -673,13 +673,13 @@ nulls
 >       p "create table t1 (\n\
 >         \ a text null\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "a" (SimpleType "text")
+>         [CreateTable "t1" [AttributeDef "a" (SimpleTypeName "text")
 >                            Nothing [NullConstraint]]
 >          []]
 >      ,p "create table t1 (\n\
 >         \ a text not null\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "a" (SimpleType "text")
+>         [CreateTable "t1" [AttributeDef "a" (SimpleTypeName "text")
 >                            Nothing [NotNullConstraint]]
 >          []]
 
@@ -710,13 +710,13 @@ unique row
 >      ,p "create table t1 (\n\
 >         \ x int unique\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleTypeName "int") Nothing
 >                            [RowUniqueConstraint]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int unique not null\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleTypeName "int") Nothing
 >                            [RowUniqueConstraint
 >                            ,NotNullConstraint]][]]
 
@@ -725,7 +725,7 @@ quick sanity check
 >      ,p "create table t1 (\n\
 >         \ x int not null unique\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleTypeName "int") Nothing
 >                            [NotNullConstraint
 >                            ,RowUniqueConstraint]][]]
 
@@ -734,7 +734,7 @@ primary key row, table
 >      ,p "create table t1 (\n\
 >         \ x int primary key\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleTypeName "int") Nothing
 >                            [RowPrimaryKeyConstraint]][]]
 
 >      ,p "create table t1 (\n\
@@ -752,7 +752,7 @@ check row, table
 >         \f text check (f in('a', 'b'))\n\
 >         \);"
 >         [CreateTable "t"
->          [AttributeDef "f" (SimpleType "text") Nothing
+>          [AttributeDef "f" (SimpleTypeName "text") Nothing
 >           [RowCheckConstraint (InPredicate
 >                                   (Identifier "f") True
 >                                   (InList [stringQ "a", stringQ "b"]))]] []]
@@ -772,7 +772,7 @@ row, whole load of constraints, todo: add reference here
 >         \f text not null unique check (f in('a', 'b'))\n\
 >         \);"
 >         [CreateTable "t"
->          [AttributeDef "f" (SimpleType "text") Nothing
+>          [AttributeDef "f" (SimpleTypeName "text") Nothing
 >           [NotNullConstraint
 >            ,RowUniqueConstraint
 >            ,RowCheckConstraint (InPredicate
@@ -785,14 +785,14 @@ reference row, table
 >      ,p "create table t1 (\n\
 >         \ x int references t2\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleTypeName "int") Nothing
 >                            [RowReferenceConstraint "t2" Nothing
 >                             Restrict Restrict]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int references t2(y)\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleTypeName "int") Nothing
 >                            [RowReferenceConstraint "t2" (Just "y")
 >                             Restrict Restrict]][]]
 
@@ -820,14 +820,14 @@ reference row, table
 >      ,p "create table t1 (\n\
 >         \ x int references t2 on delete cascade\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleTypeName "int") Nothing
 >                            [RowReferenceConstraint "t2" Nothing
 >                             Cascade Restrict]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int references t2 on update cascade\n\
 >         \);"
->         [CreateTable "t1" [AttributeDef "x" (SimpleType "int") Nothing
+>         [CreateTable "t1" [AttributeDef "x" (SimpleTypeName "int") Nothing
 >                            [RowReferenceConstraint "t2" Nothing
 >                             Restrict Cascade]][]]
 
@@ -852,8 +852,8 @@ test functions
 >       p "create function t1(text) returns text as $$\n\
 >         \select a from t1 where b = $1;\n\
 >         \$$ language sql stable;"
->       [CreateFunction Sql "t1" [ParamDefTp $ SimpleType "text"]
->        (SimpleType "text") "$$"
+>       [CreateFunction Sql "t1" [ParamDefTp $ SimpleTypeName "text"]
+>        (SimpleTypeName "text") "$$"
 >        (SqlFnBody
 >         [addNsp $ selectFromWhere [SelExp (Identifier "a")] (Tref "t1")
 >          (BinOpCall Eql
@@ -867,9 +867,9 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction Plpgsql "fn" [] (SimpleType "void") "$$"
->        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") Nothing
->                       ,VarDef "b" (SimpleType "text") Nothing]
+>       [CreateFunction Plpgsql "fn" [] (SimpleTypeName "void") "$$"
+>        (PlpgsqlFnBody [VarDef "a" (SimpleTypeName "int") Nothing
+>                       ,VarDef "b" (SimpleTypeName "text") Nothing]
 >         [addNsp $ NullStatement])
 >        Volatile]
 >      ,p "create function fn() returns void as $$\n\
@@ -880,9 +880,9 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction Plpgsql "fn" [] (SimpleType "void") "$$"
->        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") Nothing
->                       ,VarDef "b" (SimpleType "text") Nothing]
+>       [CreateFunction Plpgsql "fn" [] (SimpleTypeName "void") "$$"
+>        (PlpgsqlFnBody [VarDef "a" (SimpleTypeName "int") Nothing
+>                       ,VarDef "b" (SimpleTypeName "text") Nothing]
 >         [addNsp $ NullStatement])
 >        Volatile]
 >      ,p "create function fn(a text[]) returns int[] as $$\n\
@@ -893,10 +893,10 @@ test functions
 >         \end;\n\
 >         \$$ language plpgsql immutable;"
 >       [CreateFunction Plpgsql "fn"
->        [ParamDef "a" $ ArrayType $ SimpleType "text"]
->        (ArrayType $ SimpleType "int") "$$"
+>        [ParamDef "a" $ ArrayTypeName $ SimpleTypeName "text"]
+>        (ArrayTypeName $ SimpleTypeName "int") "$$"
 >        (PlpgsqlFnBody
->         [VarDef "b" (ArrayType $ SimpleType "xtype") (Just $ stringQ "{}")]
+>         [VarDef "b" (ArrayTypeName $ SimpleTypeName "xtype") (Just $ stringQ "{}")]
 >         [addNsp $ NullStatement])
 >        Immutable]
 >      ,p "create function fn() returns void as '\n\
@@ -906,8 +906,8 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction Plpgsql "fn" [] (SimpleType "void") "'"
->        (PlpgsqlFnBody [VarDef "a" (SimpleType "int") (Just $ IntegerLit 3)]
+>       [CreateFunction Plpgsql "fn" [] (SimpleTypeName "void") "'"
+>        (PlpgsqlFnBody [VarDef "a" (SimpleTypeName "int") (Just $ IntegerLit 3)]
 >         [addNsp $ NullStatement])
 >        Stable]
 >      ,p "create function fn() returns setof int as $$\n\
@@ -916,7 +916,7 @@ test functions
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" []
->        (SetOfType $ SimpleType "int") "$$"
+>        (SetOfTypeName $ SimpleTypeName "int") "$$"
 >        (PlpgsqlFnBody [] [addNsp $ NullStatement])
 >        Stable]
 >      ,p "create function fn() returns void as $$\n\
@@ -925,7 +925,7 @@ test functions
 >         \end\n\
 >         \$$ language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" []
->        (SimpleType "void") "$$"
+>        (SimpleTypeName "void") "$$"
 >        (PlpgsqlFnBody [] [addNsp $ NullStatement])
 >        Stable]
 >      ,p "drop function test(text);"
@@ -1065,7 +1065,7 @@ complicated statements
 >                    (Just frm) (Just whr) [] Nothing [] Asc Nothing Nothing
 >           stringQ = StringLit "'"
 >           addNsp s = (nsp,s)
->           att n t = AttributeDef n (SimpleType t) Nothing []
+>           att n t = AttributeDef n (SimpleTypeName t) Nothing []
 
 > stripSp :: [(a, b)] -> [b]
 > stripSp = map snd

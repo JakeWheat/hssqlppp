@@ -43,6 +43,15 @@ types of error message received.
 >    ,testGroup "basic literal types"
 >     (mapExprType [
 >       p "1" (ScalarType "Integer")
+>      ,p "1.0" (ScalarType "Float")
+>      ,p "'test'" (ScalarType "String")
+>      ,p "true" (ScalarType "Boolean")
+>      ,p "array[1,2,3]" (ArrayType (ScalarType "Integer"))
+>      ,p "array['a','b']" (ArrayType (ScalarType "String"))
+>      ,p "array[1,'b']" (TypeError ("",0,0)
+>                         (ArrayElementMismatch
+>                          (ScalarType "Integer")
+>                          (ScalarType "String")))
 >      ])
 
 >    ]

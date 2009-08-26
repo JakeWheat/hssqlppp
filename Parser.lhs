@@ -635,13 +635,13 @@ or after the whole list
 
 > typeName :: ParsecT [Token] ParseState Identity TypeName
 > typeName = choice [
->             SetOfType <$> (keyword "setof" *> typeName)
+>             SetOfTypeName <$> (keyword "setof" *> typeName)
 >            ,do
 >              s <- idString
 >              choice [
->                PrecType s <$> parens integer
->               ,ArrayType (SimpleType s) <$ symbol '[' <* symbol ']'
->               ,return $ SimpleType s]]
+>                PrecTypeName s <$> parens integer
+>               ,ArrayTypeName (SimpleTypeName s) <$ symbol '[' <* symbol ']'
+>               ,return $ SimpleTypeName s]]
 
 > cascade :: ParsecT [Token] ParseState Identity Cascade
 > cascade = option Restrict (choice [

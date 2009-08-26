@@ -392,10 +392,10 @@ Conversion routines - convert Sql asts into Docs
 > convNestedStatements = nest 2 . vcat . map (convStatement . snd)
 
 > convTypeName :: TypeName -> Doc
-> convTypeName (SimpleType s) = text s
-> convTypeName (PrecType s i) = text s <> parens(integer i)
-> convTypeName (ArrayType t) = convTypeName t <> text "[]"
-> convTypeName (SetOfType t) = text "setof" <+> convTypeName t
+> convTypeName (SimpleTypeName s) = text s
+> convTypeName (PrecTypeName s i) = text s <> parens(integer i)
+> convTypeName (ArrayTypeName t) = convTypeName t <> text "[]"
+> convTypeName (SetOfTypeName t) = text "setof" <+> convTypeName t
 
 = Expressions
 

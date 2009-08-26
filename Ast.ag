@@ -258,10 +258,10 @@ DATA Volatility | Volatile | Stable | Immutable
 
 DATA Language | Sql | Plpgsql
 
-DATA TypeName | SimpleType String
-              | PrecType String Integer
-              | ArrayType TypeName
-              | SetOfType TypeName
+DATA TypeName | SimpleTypeName String
+              | PrecTypeName String Integer
+              | ArrayTypeName TypeName
+              | SetOfTypeName TypeName
 
 DATA DropType | Table
          | Domain
@@ -354,7 +354,7 @@ DATA Expression | IntegerLit Integer
                             for : Expression
                 | Identifier String
                 | Row ExpressionList
-                | ArrayLit ExpressionList
+                | ArrayLit ArrayExpressionList
                 | Case cases : ExpressionListExpressionPairList
                        els : (Maybe Expression)
                 | Exists sel : Statement
@@ -378,6 +378,7 @@ DATA Expression | IntegerLit Integer
 DATA InList | InList ExpressionList | InSelect sel : Statement
 
 TYPE ExpressionList = [Expression]
+TYPE ArrayExpressionList = [Expression]
 TYPE ExpressionListList = [ExpressionList]
 TYPE StringList = [String]
 TYPE SetClauseList = [SetClause]
@@ -405,15 +406,6 @@ TYPE SelectItemList = [SelectItem]
 TYPE RowConstraintList = [RowConstraint]
 TYPE ExpressionListExpressionPair = (ExpressionList,Expression)
 TYPE ExpressionListExpressionPairList = [ExpressionListExpressionPair]
-
-{-
-================================================================================
-Type checking
--}
-
-DATA Type | ScalarType String
-          | UnknownType
-DERIVING Type: Show,Eq
 
 {-
 ================================================================================
@@ -454,16 +446,20 @@ DERIVING Root: Show
 DATA ExpressionRoot | ExpressionRoot expr:Expression
 DERIVING ExpressionRoot: Show
 
--- =============================================================================
+{-
+================================================================================
 
---attributes which every node has
+=some basic bookkeeping
+
+attributes which every node has
+-}
 
 SET AllNodes = Statement FnBody SetClause TableRef JoinExpression JoinType
                SelectList SelectItem CopySource AttributeDef RowConstraint
                Constraint TypeAttributeDef ParamDef VarDef RaiseType
                CombineType Volatility Language TypeName DropType Cascade
                Direction Distinct Natural IfExists RestartIdentity
-               BinOp UnOp Expression InList
+               BinOp UnOp Expression InList ArrayExpressionList
                ExpressionList ExpressionListList StringList SetClauseList
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList StringStringListPair StringStringListPairList
@@ -529,6 +525,8 @@ SEM ExpressionRoot
 {-
 
 ================================================================================
+
+= static tests
 
 = select statement testing
 
@@ -614,14 +612,19 @@ SEM Statement
 
 Problem 1: can't have two sem statements for the same node type which
 both add messages, and then the messages get combined to provide the
-final message list attribute value for that node. Don't know how to
-get round this.
+final message list attribute value for that node. Workaround is
+instead of having each check in it's own section, to combine them all
+into one SEM.
 
 Problem 2: no shorthand to combine what the default rule for messages
 would be and then add a bit extra - so if you want all the children
 messages, plus possiby an extra message or two, have to write out the
 default rule in full explicitly. Can get round this by writing out
 loads of code.
+
+Both the workarounds to these seem a bit tedious and error prone, and
+will make the code much less readable. Maybe need a preprocessor to
+produce the ag file?
 
 ================================================================================
 
@@ -672,11 +675,21 @@ SEM Statement
       ReturnQuery Raise NullStatement Perform Execute ExecuteInto
       ForSelectStatement ForIntegerStatement WhileStatement
       ContinueStatement CaseStatement If-}
+
 {-
 ================================================================================
-
-= typechecking
+Type checking
 -}
+
+DATA Type | ScalarType String
+          | ArrayType Type
+          | PolyArray
+          | UnknownType
+          | TypeError MySourcePos TypeErrorInfo
+
+DATA TypeErrorInfo | ArrayElementMismatch expected:Type got:Type
+
+DERIVING Type TypeErrorInfo: Show,Eq
 
 ATTR AllNodes Root ExpressionRoot
   [
@@ -689,8 +702,36 @@ setUnknown :: Type -> Type -> Type
 setUnknown t1 t2 = UnknownType
 }
 
+{-
+== literals
+-}
+
 SEM Expression
      | IntegerLit lhs.nodeType = ScalarType "Integer"
+     | StringLit lhs.nodeType = ScalarType "String"
+     | FloatLit lhs.nodeType = ScalarType "Float"
+     | BooleanLit lhs.nodeType = ScalarType "Boolean"
+
+SEM ArrayExpressionList
+    | Cons  lhs.nodeType = let t = (ArrayType @hd.nodeType)
+                           in case @tl.nodeType of
+                                a@(TypeError _ _) -> a
+                                _ | @tl.nodeType == PolyArray -> t
+                                  | t == @tl.nodeType -> t
+                                  | True -> TypeError @lhs.sourcePos
+                                                (ArrayElementMismatch
+                                                 --swap the args since
+                                                 --we check the array
+                                                 --in reverse order
+                                                 (extractArrayType t)
+                                                 (extractArrayType @tl.nodeType))
+    | Nil lhs.nodeType = PolyArray
+
+{
+extractArrayType :: Type -> Type
+extractArrayType (ArrayType t) = t
+extractArrayType t = error $ "extract array type not supported for type " ++ show t
+}
 
 {-
 
