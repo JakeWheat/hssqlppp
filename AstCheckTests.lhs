@@ -52,6 +52,9 @@ types of error message received.
 >                         (ArrayElementMismatch
 >                          (ScalarType "Integer")
 >                          (ScalarType "String")))
+>      ,p "case\n\
+>         \ when true then 1\n\
+>         \end" (ScalarType "Integer")
 >      ])
 
 >    ]

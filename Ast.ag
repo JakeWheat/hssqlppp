@@ -355,7 +355,7 @@ DATA Expression | IntegerLit Integer
                 | Identifier String
                 | Row ExpressionList
                 | ArrayLit ArrayExpressionList
-                | Case cases : ExpressionListExpressionPairList
+                | Case cases : CaseExpressionListExpressionPairList
                        els : (Maybe Expression)
                 | Exists sel : Statement
                 | BinOpCall BinOp
@@ -404,8 +404,9 @@ TYPE ExpressionStatementListPairList = [ExpressionStatementListPair]
 TYPE VarDefList = [VarDef]
 TYPE SelectItemList = [SelectItem]
 TYPE RowConstraintList = [RowConstraint]
-TYPE ExpressionListExpressionPair = (ExpressionList,Expression)
-TYPE ExpressionListExpressionPairList = [ExpressionListExpressionPair]
+TYPE CaseExpressionListExpressionPair = (CaseExpressionList,Expression)
+TYPE CaseExpressionList = [Expression]
+TYPE CaseExpressionListExpressionPairList = [CaseExpressionListExpressionPair]
 
 {-
 ================================================================================
@@ -466,8 +467,9 @@ SET AllNodes = Statement FnBody SetClause TableRef JoinExpression JoinType
                StatementList ExpressionListStatementListPair
                ExpressionListStatementListPairList ExpressionStatementListPair
                ExpressionStatementListPairList VarDefList SelectItemList
-               RowConstraintList ExpressionListExpressionPair
-               ExpressionListExpressionPairList SourcePosStatement
+               RowConstraintList CaseExpressionListExpressionPair
+               CaseExpressionListExpressionPairList CaseExpressionList
+               SourcePosStatement
 
 DERIVING AllNodes: Show,Eq
 
@@ -683,11 +685,14 @@ Type checking
 
 DATA Type | ScalarType String
           | ArrayType Type
-          | PolyArray
+          | AnyArray
+          | AnyElement
           | UnknownType
           | TypeError MySourcePos TypeErrorInfo
 
 DATA TypeErrorInfo | ArrayElementMismatch expected:Type got:Type
+                   | CaseExpressionNotBoolean Type
+                   | CaseExpressionThenMismatch expected:Type got:Type
 
 DERIVING Type TypeErrorInfo: Show,Eq
 
@@ -702,6 +707,34 @@ setUnknown :: Type -> Type -> Type
 setUnknown t1 t2 = UnknownType
 }
 
+
+{
+
+--if the first argument is unknown or type error, pass it on
+--otherwise use the second argument
+propagateUnknownError :: Type -> Type -> Type
+propagateUnknownError t t1 = case t of
+                               a@(TypeError _ _) -> a
+                               UnknownType -> UnknownType
+                               _ -> t1
+--list version, if you need to propagate two or more types when
+--unknown or error
+propagateUnknownErrors :: [Type] -> Type -> Type
+propagateUnknownErrors ts t1 =
+    let unks = filter (\t -> case t of
+                               UnknownType -> True
+                               _ -> False) ts
+        errs = filter (\t -> case t of
+                               TypeError _ _ -> True
+                               _ -> False) ts
+    in case () of
+         _ | length errs > 0 -> head errs --should probably pass all of them forward
+           | length unks > 0 -> UnknownType
+           | otherwise -> t1
+
+}
+
+
 {-
 == literals
 -}
@@ -712,26 +745,73 @@ SEM Expression
      | FloatLit lhs.nodeType = ScalarType "Float"
      | BooleanLit lhs.nodeType = ScalarType "Boolean"
 
+-- what this code calls an array literal isn't really a literal?
 SEM ArrayExpressionList
-    | Cons  lhs.nodeType = let t = (ArrayType @hd.nodeType)
-                           in case @tl.nodeType of
-                                a@(TypeError _ _) -> a
-                                _ | @tl.nodeType == PolyArray -> t
-                                  | t == @tl.nodeType -> t
-                                  | True -> TypeError @lhs.sourcePos
-                                                (ArrayElementMismatch
-                                                 --swap the args since
-                                                 --we check the array
-                                                 --in reverse order
-                                                 (extractArrayType t)
-                                                 (extractArrayType @tl.nodeType))
-    | Nil lhs.nodeType = PolyArray
+    | Cons  lhs.nodeType = propagateUnknownError @tl.nodeType
+                            (let t = (ArrayType @hd.nodeType)
+                             in case () of
+                                  _ | @tl.nodeType == AnyArray -> t
+                                    | t == @tl.nodeType -> t
+                                    | otherwise ->
+                                        TypeError
+                                          @lhs.sourcePos
+                                          (ArrayElementMismatch
+                                           --swap the args since
+                                           --we check the array
+                                           --in reverse order
+                                           (extractArrayType t)
+                                           (extractArrayType @tl.nodeType)))
+    | Nil lhs.nodeType = AnyArray
 
 {
 extractArrayType :: Type -> Type
 extractArrayType (ArrayType t) = t
 extractArrayType t = error $ "extract array type not supported for type " ++ show t
 }
+
+{-
+== case expressions
+
+check the when expressions are boolean
+inside the pairs, then just propagate the then type
+then check all the thens are consistent with each other and the else
+in the case node
+
+-}
+SEM CaseExpressionListExpressionPair
+    | Tuple lhs.nodeType = propagateUnknownError @x1.nodeType @x2.nodeType
+
+SEM CaseExpressionListExpressionPairList
+    | Cons  lhs.nodeType = propagateUnknownError @tl.nodeType
+                            (let t = @hd.nodeType
+                             in case () of
+                                  _ | @tl.nodeType == AnyElement -> t
+                                    | t == @tl.nodeType -> t
+                                    | otherwise ->
+                                        TypeError
+                                          @lhs.sourcePos
+                                          (CaseExpressionThenMismatch
+                                           --swap the args since
+                                           --we check the thens
+                                           --in reverse order
+                                           t
+                                           @tl.nodeType))
+    | Nil lhs.nodeType = AnyElement
+
+SEM Expression
+    | Case lhs.nodeType = @cases.nodeType
+
+SEM CaseExpressionList
+    | Cons lhs.nodeType = if @hd.nodeType /= ScalarType "Boolean"
+                             then TypeError
+                                      @lhs.sourcePos
+                                      (CaseExpressionNotBoolean @hd.nodeType)
+                             else @tl.nodeType
+    | Nil lhs.nodeType = AnyElement
+
+--                | Case cases : ExpressionListExpressionPairList
+--                       els : (Maybe Expression)
+
 
 {-
 

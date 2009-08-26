@@ -54,6 +54,31 @@ setUnknown :: Type -> Type -> Type
 setUnknown t1 t2 = UnknownType
 
 
+
+--if the first argument is unknown or type error, pass it on
+--otherwise use the second argument
+propagateUnknownError :: Type -> Type -> Type
+propagateUnknownError t t1 = case t of
+                               a@(TypeError _ _) -> a
+                               UnknownType -> UnknownType
+                               _ -> t1
+--list version, if you need to propagate two or more types when
+--unknown or error
+propagateUnknownErrors :: [Type] -> Type -> Type
+propagateUnknownErrors ts t1 =
+    let unks = filter (\t -> case t of
+                               UnknownType -> True
+                               _ -> False) ts
+        errs = filter (\t -> case t of
+                               TypeError _ _ -> True
+                               _ -> False) ts
+    in case () of
+         _ | length errs > 0 -> head errs --should probably pass all of them forward
+           | length unks > 0 -> UnknownType
+           | otherwise -> t1
+
+
+
 extractArrayType :: Type -> Type
 extractArrayType (ArrayType t) = t
 extractArrayType t = error $ "extract array type not supported for type " ++ show t
@@ -144,15 +169,17 @@ sem_ArrayExpressionList_Cons hd_ tl_  =
               _tlImessages :: ([Message])
               _tlInodeType :: Type
               _lhsOnodeType =
-                  let t = (ArrayType _hdInodeType)
-                  in case _tlInodeType of
-                       a@(TypeError _ _) -> a
-                       _ | _tlInodeType == PolyArray -> t
-                         | t == _tlInodeType -> t
-                         | True -> TypeError _lhsIsourcePos
-                                       (ArrayElementMismatch
-                                        (extractArrayType t)
-                                        (extractArrayType _tlInodeType))
+                  propagateUnknownError _tlInodeType
+                   (let t = (ArrayType _hdInodeType)
+                    in case () of
+                         _ | _tlInodeType == AnyArray -> t
+                           | t == _tlInodeType -> t
+                           | otherwise ->
+                               TypeError
+                                 _lhsIsourcePos
+                                 (ArrayElementMismatch
+                                  (extractArrayType t)
+                                  (extractArrayType _tlInodeType)))
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _hdOinLoop =
@@ -180,7 +207,7 @@ sem_ArrayExpressionList_Nil  =
          (let _lhsOnodeType :: Type
               _lhsOmessages :: ([Message])
               _lhsOnodeType =
-                  PolyArray
+                  AnyArray
               _lhsOmessages =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))
@@ -658,6 +685,227 @@ sem_Cascade_Restrict  =
                   []
               _lhsOnodeType =
                   UnknownType
+          in  ( _lhsOmessages,_lhsOnodeType)))
+-- CaseExpressionList ------------------------------------------
+type CaseExpressionList  = [(Expression)]
+-- cata
+sem_CaseExpressionList :: CaseExpressionList  ->
+                          T_CaseExpressionList 
+sem_CaseExpressionList list  =
+    (Prelude.foldr sem_CaseExpressionList_Cons sem_CaseExpressionList_Nil (Prelude.map sem_Expression list) )
+-- semantic domain
+type T_CaseExpressionList  = Bool ->
+                             Bool ->
+                             MySourcePos ->
+                             ( ([Message]),Type)
+data Inh_CaseExpressionList  = Inh_CaseExpressionList {inLoop_Inh_CaseExpressionList :: Bool,selectsOnly_Inh_CaseExpressionList :: Bool,sourcePos_Inh_CaseExpressionList :: MySourcePos}
+data Syn_CaseExpressionList  = Syn_CaseExpressionList {messages_Syn_CaseExpressionList :: [Message],nodeType_Syn_CaseExpressionList :: Type}
+wrap_CaseExpressionList :: T_CaseExpressionList  ->
+                           Inh_CaseExpressionList  ->
+                           Syn_CaseExpressionList 
+wrap_CaseExpressionList sem (Inh_CaseExpressionList _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
+    (let ( _lhsOmessages,_lhsOnodeType) =
+             (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
+     in  (Syn_CaseExpressionList _lhsOmessages _lhsOnodeType ))
+sem_CaseExpressionList_Cons :: T_Expression  ->
+                               T_CaseExpressionList  ->
+                               T_CaseExpressionList 
+sem_CaseExpressionList_Cons hd_ tl_  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _hdOinLoop :: Bool
+              _hdOselectsOnly :: Bool
+              _hdOsourcePos :: MySourcePos
+              _tlOinLoop :: Bool
+              _tlOselectsOnly :: Bool
+              _tlOsourcePos :: MySourcePos
+              _hdImessages :: ([Message])
+              _hdInodeType :: Type
+              _tlImessages :: ([Message])
+              _tlInodeType :: Type
+              _lhsOnodeType =
+                  if _hdInodeType /= ScalarType "Boolean"
+                     then TypeError
+                              _lhsIsourcePos
+                              (CaseExpressionNotBoolean _hdInodeType)
+                     else _tlInodeType
+              _lhsOmessages =
+                  _hdImessages ++ _tlImessages
+              _hdOinLoop =
+                  _lhsIinLoop
+              _hdOselectsOnly =
+                  _lhsIselectsOnly
+              _hdOsourcePos =
+                  _lhsIsourcePos
+              _tlOinLoop =
+                  _lhsIinLoop
+              _tlOselectsOnly =
+                  _lhsIselectsOnly
+              _tlOsourcePos =
+                  _lhsIsourcePos
+              ( _hdImessages,_hdInodeType) =
+                  (hd_ _hdOinLoop _hdOselectsOnly _hdOsourcePos )
+              ( _tlImessages,_tlInodeType) =
+                  (tl_ _tlOinLoop _tlOselectsOnly _tlOsourcePos )
+          in  ( _lhsOmessages,_lhsOnodeType)))
+sem_CaseExpressionList_Nil :: T_CaseExpressionList 
+sem_CaseExpressionList_Nil  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _lhsOnodeType =
+                  AnyElement
+              _lhsOmessages =
+                  []
+          in  ( _lhsOmessages,_lhsOnodeType)))
+-- CaseExpressionListExpressionPair ----------------------------
+type CaseExpressionListExpressionPair  = ( (CaseExpressionList),(Expression))
+-- cata
+sem_CaseExpressionListExpressionPair :: CaseExpressionListExpressionPair  ->
+                                        T_CaseExpressionListExpressionPair 
+sem_CaseExpressionListExpressionPair ( x1,x2)  =
+    (sem_CaseExpressionListExpressionPair_Tuple (sem_CaseExpressionList x1 ) (sem_Expression x2 ) )
+-- semantic domain
+type T_CaseExpressionListExpressionPair  = Bool ->
+                                           Bool ->
+                                           MySourcePos ->
+                                           ( ([Message]),Type)
+data Inh_CaseExpressionListExpressionPair  = Inh_CaseExpressionListExpressionPair {inLoop_Inh_CaseExpressionListExpressionPair :: Bool,selectsOnly_Inh_CaseExpressionListExpressionPair :: Bool,sourcePos_Inh_CaseExpressionListExpressionPair :: MySourcePos}
+data Syn_CaseExpressionListExpressionPair  = Syn_CaseExpressionListExpressionPair {messages_Syn_CaseExpressionListExpressionPair :: [Message],nodeType_Syn_CaseExpressionListExpressionPair :: Type}
+wrap_CaseExpressionListExpressionPair :: T_CaseExpressionListExpressionPair  ->
+                                         Inh_CaseExpressionListExpressionPair  ->
+                                         Syn_CaseExpressionListExpressionPair 
+wrap_CaseExpressionListExpressionPair sem (Inh_CaseExpressionListExpressionPair _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
+    (let ( _lhsOmessages,_lhsOnodeType) =
+             (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
+     in  (Syn_CaseExpressionListExpressionPair _lhsOmessages _lhsOnodeType ))
+sem_CaseExpressionListExpressionPair_Tuple :: T_CaseExpressionList  ->
+                                              T_Expression  ->
+                                              T_CaseExpressionListExpressionPair 
+sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _x1OinLoop :: Bool
+              _x1OselectsOnly :: Bool
+              _x1OsourcePos :: MySourcePos
+              _x2OinLoop :: Bool
+              _x2OselectsOnly :: Bool
+              _x2OsourcePos :: MySourcePos
+              _x1Imessages :: ([Message])
+              _x1InodeType :: Type
+              _x2Imessages :: ([Message])
+              _x2InodeType :: Type
+              _lhsOnodeType =
+                  propagateUnknownError _x1InodeType _x2InodeType
+              _lhsOmessages =
+                  _x1Imessages ++ _x2Imessages
+              _x1OinLoop =
+                  _lhsIinLoop
+              _x1OselectsOnly =
+                  _lhsIselectsOnly
+              _x1OsourcePos =
+                  _lhsIsourcePos
+              _x2OinLoop =
+                  _lhsIinLoop
+              _x2OselectsOnly =
+                  _lhsIselectsOnly
+              _x2OsourcePos =
+                  _lhsIsourcePos
+              ( _x1Imessages,_x1InodeType) =
+                  (x1_ _x1OinLoop _x1OselectsOnly _x1OsourcePos )
+              ( _x2Imessages,_x2InodeType) =
+                  (x2_ _x2OinLoop _x2OselectsOnly _x2OsourcePos )
+          in  ( _lhsOmessages,_lhsOnodeType)))
+-- CaseExpressionListExpressionPairList ------------------------
+type CaseExpressionListExpressionPairList  = [(CaseExpressionListExpressionPair)]
+-- cata
+sem_CaseExpressionListExpressionPairList :: CaseExpressionListExpressionPairList  ->
+                                            T_CaseExpressionListExpressionPairList 
+sem_CaseExpressionListExpressionPairList list  =
+    (Prelude.foldr sem_CaseExpressionListExpressionPairList_Cons sem_CaseExpressionListExpressionPairList_Nil (Prelude.map sem_CaseExpressionListExpressionPair list) )
+-- semantic domain
+type T_CaseExpressionListExpressionPairList  = Bool ->
+                                               Bool ->
+                                               MySourcePos ->
+                                               ( ([Message]),Type)
+data Inh_CaseExpressionListExpressionPairList  = Inh_CaseExpressionListExpressionPairList {inLoop_Inh_CaseExpressionListExpressionPairList :: Bool,selectsOnly_Inh_CaseExpressionListExpressionPairList :: Bool,sourcePos_Inh_CaseExpressionListExpressionPairList :: MySourcePos}
+data Syn_CaseExpressionListExpressionPairList  = Syn_CaseExpressionListExpressionPairList {messages_Syn_CaseExpressionListExpressionPairList :: [Message],nodeType_Syn_CaseExpressionListExpressionPairList :: Type}
+wrap_CaseExpressionListExpressionPairList :: T_CaseExpressionListExpressionPairList  ->
+                                             Inh_CaseExpressionListExpressionPairList  ->
+                                             Syn_CaseExpressionListExpressionPairList 
+wrap_CaseExpressionListExpressionPairList sem (Inh_CaseExpressionListExpressionPairList _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
+    (let ( _lhsOmessages,_lhsOnodeType) =
+             (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
+     in  (Syn_CaseExpressionListExpressionPairList _lhsOmessages _lhsOnodeType ))
+sem_CaseExpressionListExpressionPairList_Cons :: T_CaseExpressionListExpressionPair  ->
+                                                 T_CaseExpressionListExpressionPairList  ->
+                                                 T_CaseExpressionListExpressionPairList 
+sem_CaseExpressionListExpressionPairList_Cons hd_ tl_  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _hdOinLoop :: Bool
+              _hdOselectsOnly :: Bool
+              _hdOsourcePos :: MySourcePos
+              _tlOinLoop :: Bool
+              _tlOselectsOnly :: Bool
+              _tlOsourcePos :: MySourcePos
+              _hdImessages :: ([Message])
+              _hdInodeType :: Type
+              _tlImessages :: ([Message])
+              _tlInodeType :: Type
+              _lhsOnodeType =
+                  propagateUnknownError _tlInodeType
+                   (let t = _hdInodeType
+                    in case () of
+                         _ | _tlInodeType == AnyElement -> t
+                           | t == _tlInodeType -> t
+                           | otherwise ->
+                               TypeError
+                                 _lhsIsourcePos
+                                 (CaseExpressionThenMismatch
+                                  t
+                                  _tlInodeType))
+              _lhsOmessages =
+                  _hdImessages ++ _tlImessages
+              _hdOinLoop =
+                  _lhsIinLoop
+              _hdOselectsOnly =
+                  _lhsIselectsOnly
+              _hdOsourcePos =
+                  _lhsIsourcePos
+              _tlOinLoop =
+                  _lhsIinLoop
+              _tlOselectsOnly =
+                  _lhsIselectsOnly
+              _tlOsourcePos =
+                  _lhsIsourcePos
+              ( _hdImessages,_hdInodeType) =
+                  (hd_ _hdOinLoop _hdOselectsOnly _hdOsourcePos )
+              ( _tlImessages,_tlInodeType) =
+                  (tl_ _tlOinLoop _tlOselectsOnly _tlOsourcePos )
+          in  ( _lhsOmessages,_lhsOnodeType)))
+sem_CaseExpressionListExpressionPairList_Nil :: T_CaseExpressionListExpressionPairList 
+sem_CaseExpressionListExpressionPairList_Nil  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _lhsOnodeType =
+                  AnyElement
+              _lhsOmessages =
+                  []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- CombineType -------------------------------------------------
 data CombineType  = Except 
@@ -1222,7 +1470,7 @@ data Expression  = ArrayLit (ArrayExpressionList)
                  | Between (Expression) (Expression) (Expression) 
                  | BinOpCall (BinOp) (Expression) (Expression) 
                  | BooleanLit (Bool) 
-                 | Case (ExpressionListExpressionPairList) (Maybe Expression) 
+                 | Case (CaseExpressionListExpressionPairList) (Maybe Expression) 
                  | CastKeyword (Expression) (TypeName) 
                  | Exists (Statement) 
                  | FloatLit (Double) 
@@ -1253,7 +1501,7 @@ sem_Expression (BinOpCall _binOp _arg1 _arg2 )  =
 sem_Expression (BooleanLit _bool )  =
     (sem_Expression_BooleanLit _bool )
 sem_Expression (Case _cases _els )  =
-    (sem_Expression_Case (sem_ExpressionListExpressionPairList _cases ) _els )
+    (sem_Expression_Case (sem_CaseExpressionListExpressionPairList _cases ) _els )
 sem_Expression (CastKeyword _expression _typeName )  =
     (sem_Expression_CastKeyword (sem_Expression _expression ) (sem_TypeName _typeName ) )
 sem_Expression (Exists _sel )  =
@@ -1485,24 +1733,24 @@ sem_Expression_BooleanLit bool_  =
               _lhsOmessages =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))
-sem_Expression_Case :: T_ExpressionListExpressionPairList  ->
+sem_Expression_Case :: T_CaseExpressionListExpressionPairList  ->
                        (Maybe Expression) ->
                        T_Expression 
 sem_Expression_Case cases_ els_  =
     (\ _lhsIinLoop
        _lhsIselectsOnly
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
               _casesOinLoop :: Bool
               _casesOselectsOnly :: Bool
               _casesOsourcePos :: MySourcePos
               _casesImessages :: ([Message])
               _casesInodeType :: Type
-              _lhsOmessages =
-                  _casesImessages
               _lhsOnodeType =
                   _casesInodeType
+              _lhsOmessages =
+                  _casesImessages
               _casesOinLoop =
                   _lhsIinLoop
               _casesOselectsOnly =
@@ -2001,140 +2249,6 @@ sem_ExpressionList_Cons hd_ tl_  =
           in  ( _lhsOmessages,_lhsOnodeType)))
 sem_ExpressionList_Nil :: T_ExpressionList 
 sem_ExpressionList_Nil  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
--- ExpressionListExpressionPair --------------------------------
-type ExpressionListExpressionPair  = ( (ExpressionList),(Expression))
--- cata
-sem_ExpressionListExpressionPair :: ExpressionListExpressionPair  ->
-                                    T_ExpressionListExpressionPair 
-sem_ExpressionListExpressionPair ( x1,x2)  =
-    (sem_ExpressionListExpressionPair_Tuple (sem_ExpressionList x1 ) (sem_Expression x2 ) )
--- semantic domain
-type T_ExpressionListExpressionPair  = Bool ->
-                                       Bool ->
-                                       MySourcePos ->
-                                       ( ([Message]),Type)
-data Inh_ExpressionListExpressionPair  = Inh_ExpressionListExpressionPair {inLoop_Inh_ExpressionListExpressionPair :: Bool,selectsOnly_Inh_ExpressionListExpressionPair :: Bool,sourcePos_Inh_ExpressionListExpressionPair :: MySourcePos}
-data Syn_ExpressionListExpressionPair  = Syn_ExpressionListExpressionPair {messages_Syn_ExpressionListExpressionPair :: [Message],nodeType_Syn_ExpressionListExpressionPair :: Type}
-wrap_ExpressionListExpressionPair :: T_ExpressionListExpressionPair  ->
-                                     Inh_ExpressionListExpressionPair  ->
-                                     Syn_ExpressionListExpressionPair 
-wrap_ExpressionListExpressionPair sem (Inh_ExpressionListExpressionPair _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType) =
-             (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
-     in  (Syn_ExpressionListExpressionPair _lhsOmessages _lhsOnodeType ))
-sem_ExpressionListExpressionPair_Tuple :: T_ExpressionList  ->
-                                          T_Expression  ->
-                                          T_ExpressionListExpressionPair 
-sem_ExpressionListExpressionPair_Tuple x1_ x2_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _x1OinLoop :: Bool
-              _x1OselectsOnly :: Bool
-              _x1OsourcePos :: MySourcePos
-              _x2OinLoop :: Bool
-              _x2OselectsOnly :: Bool
-              _x2OsourcePos :: MySourcePos
-              _x1Imessages :: ([Message])
-              _x1InodeType :: Type
-              _x2Imessages :: ([Message])
-              _x2InodeType :: Type
-              _lhsOmessages =
-                  _x1Imessages ++ _x2Imessages
-              _lhsOnodeType =
-                  _x1InodeType `setUnknown` _x2InodeType
-              _x1OinLoop =
-                  _lhsIinLoop
-              _x1OselectsOnly =
-                  _lhsIselectsOnly
-              _x1OsourcePos =
-                  _lhsIsourcePos
-              _x2OinLoop =
-                  _lhsIinLoop
-              _x2OselectsOnly =
-                  _lhsIselectsOnly
-              _x2OsourcePos =
-                  _lhsIsourcePos
-              ( _x1Imessages,_x1InodeType) =
-                  (x1_ _x1OinLoop _x1OselectsOnly _x1OsourcePos )
-              ( _x2Imessages,_x2InodeType) =
-                  (x2_ _x2OinLoop _x2OselectsOnly _x2OsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
--- ExpressionListExpressionPairList ----------------------------
-type ExpressionListExpressionPairList  = [(ExpressionListExpressionPair)]
--- cata
-sem_ExpressionListExpressionPairList :: ExpressionListExpressionPairList  ->
-                                        T_ExpressionListExpressionPairList 
-sem_ExpressionListExpressionPairList list  =
-    (Prelude.foldr sem_ExpressionListExpressionPairList_Cons sem_ExpressionListExpressionPairList_Nil (Prelude.map sem_ExpressionListExpressionPair list) )
--- semantic domain
-type T_ExpressionListExpressionPairList  = Bool ->
-                                           Bool ->
-                                           MySourcePos ->
-                                           ( ([Message]),Type)
-data Inh_ExpressionListExpressionPairList  = Inh_ExpressionListExpressionPairList {inLoop_Inh_ExpressionListExpressionPairList :: Bool,selectsOnly_Inh_ExpressionListExpressionPairList :: Bool,sourcePos_Inh_ExpressionListExpressionPairList :: MySourcePos}
-data Syn_ExpressionListExpressionPairList  = Syn_ExpressionListExpressionPairList {messages_Syn_ExpressionListExpressionPairList :: [Message],nodeType_Syn_ExpressionListExpressionPairList :: Type}
-wrap_ExpressionListExpressionPairList :: T_ExpressionListExpressionPairList  ->
-                                         Inh_ExpressionListExpressionPairList  ->
-                                         Syn_ExpressionListExpressionPairList 
-wrap_ExpressionListExpressionPairList sem (Inh_ExpressionListExpressionPairList _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType) =
-             (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
-     in  (Syn_ExpressionListExpressionPairList _lhsOmessages _lhsOnodeType ))
-sem_ExpressionListExpressionPairList_Cons :: T_ExpressionListExpressionPair  ->
-                                             T_ExpressionListExpressionPairList  ->
-                                             T_ExpressionListExpressionPairList 
-sem_ExpressionListExpressionPairList_Cons hd_ tl_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _hdOinLoop :: Bool
-              _hdOselectsOnly :: Bool
-              _hdOsourcePos :: MySourcePos
-              _tlOinLoop :: Bool
-              _tlOselectsOnly :: Bool
-              _tlOsourcePos :: MySourcePos
-              _hdImessages :: ([Message])
-              _hdInodeType :: Type
-              _tlImessages :: ([Message])
-              _tlInodeType :: Type
-              _lhsOmessages =
-                  _hdImessages ++ _tlImessages
-              _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
-              _hdOinLoop =
-                  _lhsIinLoop
-              _hdOselectsOnly =
-                  _lhsIselectsOnly
-              _hdOsourcePos =
-                  _lhsIsourcePos
-              _tlOinLoop =
-                  _lhsIinLoop
-              _tlOselectsOnly =
-                  _lhsIselectsOnly
-              _tlOsourcePos =
-                  _lhsIsourcePos
-              ( _hdImessages,_hdInodeType) =
-                  (hd_ _hdOinLoop _hdOselectsOnly _hdOsourcePos )
-              ( _tlImessages,_tlInodeType) =
-                  (tl_ _tlOinLoop _tlOselectsOnly _tlOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_ExpressionListExpressionPairList_Nil :: T_ExpressionListExpressionPairList 
-sem_ExpressionListExpressionPairList_Nil  =
     (\ _lhsIinLoop
        _lhsIselectsOnly
        _lhsIsourcePos ->
@@ -5872,8 +5986,9 @@ sem_TableRef_TrefFunAlias expression_ string_  =
                   (expression_ _expressionOinLoop _expressionOselectsOnly _expressionOsourcePos )
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- Type --------------------------------------------------------
-data Type  = ArrayType (Type) 
-           | PolyArray 
+data Type  = AnyArray 
+           | AnyElement 
+           | ArrayType (Type) 
            | ScalarType (String) 
            | TypeError (MySourcePos) (TypeErrorInfo) 
            | UnknownType 
@@ -5881,10 +5996,12 @@ data Type  = ArrayType (Type)
 -- cata
 sem_Type :: Type  ->
             T_Type 
+sem_Type (AnyArray )  =
+    (sem_Type_AnyArray )
+sem_Type (AnyElement )  =
+    (sem_Type_AnyElement )
 sem_Type (ArrayType _type )  =
     (sem_Type_ArrayType (sem_Type _type ) )
-sem_Type (PolyArray )  =
-    (sem_Type_PolyArray )
 sem_Type (ScalarType _string )  =
     (sem_Type_ScalarType _string )
 sem_Type (TypeError _mySourcePos _typeErrorInfo )  =
@@ -5902,13 +6019,17 @@ wrap_Type sem (Inh_Type )  =
     (let ( ) =
              (sem )
      in  (Syn_Type ))
+sem_Type_AnyArray :: T_Type 
+sem_Type_AnyArray  =
+    (let 
+     in  ( ))
+sem_Type_AnyElement :: T_Type 
+sem_Type_AnyElement  =
+    (let 
+     in  ( ))
 sem_Type_ArrayType :: T_Type  ->
                       T_Type 
 sem_Type_ArrayType type_  =
-    (let 
-     in  ( ))
-sem_Type_PolyArray :: T_Type 
-sem_Type_PolyArray  =
     (let 
      in  ( ))
 sem_Type_ScalarType :: String ->
@@ -6052,12 +6173,18 @@ sem_TypeAttributeDefList_Nil  =
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- TypeErrorInfo -----------------------------------------------
 data TypeErrorInfo  = ArrayElementMismatch (Type) (Type) 
+                    | CaseExpressionNotBoolean (Type) 
+                    | CaseExpressionThenMismatch (Type) (Type) 
                     deriving ( Eq,Show)
 -- cata
 sem_TypeErrorInfo :: TypeErrorInfo  ->
                      T_TypeErrorInfo 
 sem_TypeErrorInfo (ArrayElementMismatch _expected _got )  =
     (sem_TypeErrorInfo_ArrayElementMismatch (sem_Type _expected ) (sem_Type _got ) )
+sem_TypeErrorInfo (CaseExpressionNotBoolean _type )  =
+    (sem_TypeErrorInfo_CaseExpressionNotBoolean (sem_Type _type ) )
+sem_TypeErrorInfo (CaseExpressionThenMismatch _expected _got )  =
+    (sem_TypeErrorInfo_CaseExpressionThenMismatch (sem_Type _expected ) (sem_Type _got ) )
 -- semantic domain
 type T_TypeErrorInfo  = ( )
 data Inh_TypeErrorInfo  = Inh_TypeErrorInfo {}
@@ -6073,6 +6200,17 @@ sem_TypeErrorInfo_ArrayElementMismatch :: T_Type  ->
                                           T_Type  ->
                                           T_TypeErrorInfo 
 sem_TypeErrorInfo_ArrayElementMismatch expected_ got_  =
+    (let 
+     in  ( ))
+sem_TypeErrorInfo_CaseExpressionNotBoolean :: T_Type  ->
+                                              T_TypeErrorInfo 
+sem_TypeErrorInfo_CaseExpressionNotBoolean type_  =
+    (let 
+     in  ( ))
+sem_TypeErrorInfo_CaseExpressionThenMismatch :: T_Type  ->
+                                                T_Type  ->
+                                                T_TypeErrorInfo 
+sem_TypeErrorInfo_CaseExpressionThenMismatch expected_ got_  =
     (let 
      in  ( ))
 -- TypeName ----------------------------------------------------
