@@ -202,8 +202,8 @@ parse a statement
 >                                      ,dropFunction]
 >                         ]
 >        <* (if reqSemi
->              then symbol ';' >> return ()
->              else optional (symbol ';') >> return ()))
+>              then symbol ";" >> return ()
+>              else optional (symbol ";") >> return ()))
 >       <|> copyData)
 >    return (p, st)
 
@@ -366,9 +366,9 @@ multiple rows to insert and insert from select statements
 >     where
 >       setClause = choice
 >             [RowSetClause <$> parens (commaSep1 idString)
->                           <*> (symbol '=' *> parens (commaSep1 expr))
+>                           <*> (symbol "=" *> parens (commaSep1 expr))
 >             ,SetClause <$> idString
->                        <*> (symbol '=' *> expr)]
+>                        <*> (symbol "=" *> expr)]
 
 > delete :: ParsecT [Token] ParseState Identity Statement
 > delete = keyword "delete" >> keyword "from" >>
@@ -422,7 +422,7 @@ multiple rows to insert and insert from select statements
 >     readAttsAndCons = parens (swap <$> multiPerm
 >                                          (try tableConstr)
 >                                          tableAtt
->                                          (symbol ','))
+>                                          (symbol ","))
 >                       where swap (a,b) = (b,a)
 >     tableAtt = AttributeDef
 >                <$> idString
@@ -540,7 +540,7 @@ are enclosed in begin ... end; (semi colon after end is optional
 >             where
 >               statementPart = keyword "begin"
 >                     *> many plPgsqlStatement
->                     <* keyword "end" <* optional (symbol ';') <* eof
+>                     <* keyword "end" <* optional (symbol ";") <* eof
 >               declarePart = keyword "declare"
 >                   *> manyTill (try varDef) (lookAhead $ keyword "begin")
 
@@ -557,7 +557,7 @@ variable declarations in a plpgsql function
 > varDef = VarDef
 >          <$> idString
 >          <*> typeName
->          <*> tryOptionMaybe ((symbols ":=" <|> symbols "=")*> expr) <* symbol ';'
+>          <*> tryOptionMaybe ((symbol ":=" <|> symbol "=")*> expr) <* symbol ";"
 
 
 > createView :: ParsecT [Token] ParseState Identity Statement
@@ -640,7 +640,7 @@ or after the whole list
 >              s <- idString
 >              choice [
 >                PrecTypeName s <$> parens integer
->               ,ArrayTypeName (SimpleTypeName s) <$ symbol '[' <* symbol ']'
+>               ,ArrayTypeName (SimpleTypeName s) <$ symbol "[" <* symbol "]"
 >               ,return $ SimpleTypeName s]]
 
 > cascade :: ParsecT [Token] ParseState Identity Cascade
@@ -668,7 +668,7 @@ or after the whole list
 >                         ,whileStatement
 >                         ,perform
 >                         ,nullStatement]
->                         <* symbol ';'))
+>                         <* symbol ";"))
 
 > nullStatement :: ParsecT [Token] ParseState Identity Statement
 > nullStatement = NullStatement <$ keyword "null"
@@ -693,7 +693,7 @@ or after the whole list
 >              -- put the := in the first try to attempt to get a
 >              -- better error if the code looks like malformed
 >              -- assignment statement
->              <$> try (idString <* (symbols ":=" <|> symbols "="))
+>              <$> try (idString <* (symbol ":=" <|> symbol "="))
 >              <*> expr
 
 > returnSt :: ParsecT [Token] ParseState Identity Statement
@@ -708,7 +708,7 @@ or after the whole list
 >         Raise
 >         <$> raiseType
 >         <*> (extrStr <$> stringLit)
->         <*> option [] (symbol ',' *> commaSep1 expr)
+>         <*> option [] (symbol "," *> commaSep1 expr)
 >         where
 >           raiseType = matchAKeyword [("notice", RNotice)
 >                                      ,("exception", RException)
@@ -722,7 +722,7 @@ or after the whole list
 >                choice [(ForSelectStatement start <$> try select <*> theRest)
 >                       ,(ForIntegerStatement start
 >                               <$> expr
->                               <*> (symbols ".." *> expr)
+>                               <*> (symbol ".." *> expr)
 >                               <*> theRest)]
 >   where
 >     theRest = keyword "loop" *> many plPgsqlStatement
@@ -787,7 +787,7 @@ can contain a lot of parens - check for nested ((
 This little addition speeds up ./ParseFile.lhs sqltestfiles/system.sql on my system
 from ~4 minutes to ~4 seconds
 
->          try (lookAhead (symbols "((")) >> parens expr
+>          try (lookAhead (symbol "(" >> symbol "(")) >> parens expr
 
 start with the factors which start with parens - eliminate scalar
 subquerys since they're easy to distinguish from the others then do in
@@ -797,6 +797,7 @@ a row constructor, then finally vanilla parens
 >          ,scalarSubQuery
 >          ,try inPredicate
 >          ,try rowCtor
+>          --,castOp
 >          ,parens expr
 
 we have two things which can start with a $,
@@ -861,67 +862,67 @@ will probably need something more custom to handle full range of sql
 syntactical novelty
 
 > table :: [[Operator [Token] ParseState Identity Expression]]
-> table = [[binary "::" (BinOpCall Cast) AssocLeft]
+> table = [--[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
->         ,[prefix "-" (UnOpCall Neg)]
->         ,[binary "^" (BinOpCall Pow) AssocLeft]
->         ,[binary "*" (BinOpCall Mult) AssocLeft
->          ,idHackBinary "*" (BinOpCall Mult) AssocLeft
->          ,binary "/" (BinOpCall Div) AssocLeft
->          ,binary "%" (BinOpCall Mod) AssocLeft]
->         ,[binary "+" (BinOpCall Plus) AssocLeft
->          ,binary "-" (BinOpCall Minus) AssocLeft]
+>          [prefix "-" (FunCall (Operator "-"))]
+>         ,[binary "^" AssocLeft]
+>         ,[binary "*" AssocLeft
+>          ,idHackBinary "*" AssocLeft
+>          ,binary "/" AssocLeft
+>          ,binary "%" AssocLeft]
+>         ,[binary "+" AssocLeft
+>          ,binary "-" AssocLeft]
 >          --should be is isnull and notnull
->         ,[postfixks ["is", "not", "null"] (UnOpCall IsNotNull)
->          ,postfixks ["is", "null"] (UnOpCall IsNull)]
+>         ,[postfixks ["is", "not", "null"] (FunCall (Operator "is not null"))
+>          ,postfixks ["is", "null"] (FunCall (Operator "is null"))]
 >          --other operators all added in this list according to the pg docs:
->         ,[binary "<->" (BinOpCall DistBetween) AssocNone
->          ,binary "<=" (BinOpCall Lte) AssocRight
->          ,binary ">=" (BinOpCall Gte) AssocRight
->          ,binary "||" (BinOpCall Conc) AssocLeft
->          ,prefix "@" (UnOpCall Abs)
+>         ,[binary "<->" AssocNone
+>          ,binary "<=" AssocRight
+>          ,binary ">=" AssocRight
+>          ,binary "||" AssocLeft
+>          ,prefix "@" (FunCall (Operator "@"))
 >          ]
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
->         ,[binaryk "like" (BinOpCall Like) AssocNone
->          ,binary "!=" (BinOpCall NotEql) AssocNone]
+>         ,[binaryk "like" AssocNone
+>          ,binary "!=" AssocNone]
 >          --(also ilike similar)
->         ,[lt "<" (BinOpCall Lt) AssocNone
->          ,binary ">" (BinOpCall Gt) AssocNone]
->         ,[binary "=" (BinOpCall Eql) AssocRight
->          ,binary "<>" (BinOpCall NotEql) AssocNone
->          ,binary "!=" (BinOpCall NotEql) AssocNone
+>         ,[lt "<" AssocNone
+>          ,binary ">" AssocNone]
+>          ,[binary "=" AssocRight
+>          ,binary "<>" AssocNone
+>          ,binary "!=" AssocNone
 >          ]
->         ,[prefixk "not" (UnOpCall Not)]
->         ,[binaryk "and" (BinOpCall And) AssocLeft
->          ,binaryk "or" (BinOpCall Or) AssocLeft]]
+>         ,[prefixk "not" (FunCall (Operator "not"))]
+>         ,[binaryk "and" AssocLeft
+>          ,binaryk "or" AssocLeft]]
 >     where
 >       --use different parsers for symbols and keywords to get the
 >       --right whitespace behaviour
->       binary s f
->          = Infix (try (symbols s >> return f))
+>       binary s
+>          = Infix (try (symbol s >> (return $ (\l -> (\m -> (FunCall (Operator s)) [l,m])))))
 >       -- * ends up being lexed as an id token rather than a symbol
 >       -- * token, so work around here
->       idHackBinary s f
->          = Infix (try (keyword s >> return f))
+>       idHackBinary s
+>           = Infix (try (keyword s >> (return $ (\l -> (\m -> (FunCall (Operator s)) [l,m])))))
 >       prefix s f
->          = Prefix (try (symbols s >> return f))
->       binaryk s f
->          = Infix (try (keyword s >> return f))
+>          = Prefix (try (symbol s >> return (\l -> f [l])))
+>       binaryk s
+>          = Infix (try (keyword s >> (return $ (\l -> (\m -> (FunCall (Operator s)) [l,m])))))
 >       prefixk s f
->          = Prefix (try (keyword s >> return f))
+>          = Prefix (try (keyword s >> return (\l -> f [l])))
 >       --postfixk s f
 >       --   = Postfix (try (keyword s >> return f))
 >       postfixks ss f
->          = Postfix (try (mapM_ keyword ss >> return f))
+>          = Postfix (try (mapM_ keyword ss >> return (\l -> f [l])))
 
 some custom parsers
 
 fix problem parsing <> - don't parse as "<" if it is immediately
 followed by ">"
 
->       lt _ f = Infix (dontFollowWith '<' '>' >> return f)
+>       lt _ = Infix (dontFollowWith "<" ">" >> (return $ (\l -> (\m -> (FunCall (Operator "<")) [l,m]))))
 
 >       dontFollowWith c1 c2 =
 >         try $ symbol c1 *> ((do
@@ -935,9 +936,9 @@ symbol can appear in the operator table above for readability purposes
 == factor parsers
 
 > scalarSubQuery :: ParsecT [Token] ParseState Identity Expression
-> scalarSubQuery = try (symbol '(' *> lookAhead (keyword "select")) >>
+> scalarSubQuery = try (symbol "(" *> lookAhead (keyword "select")) >>
 >                  ScalarSubQuery
->                  <$> select <* symbol ')'
+>                  <$> select <* symbol ")"
 
 in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
@@ -962,12 +963,9 @@ notes:
 and () is a syntax error.
 
 > rowCtor :: ParsecT [Token] ParseState Identity Expression
-> rowCtor = Row <$> choice [
+> rowCtor = FunCall RowCtor <$> choice [
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
-
- > positionalArg :: ParsecT [Token] u Identity Expression
- > positionalArg = PositionalArg <$> (symbol '$' *> (fromInteger <$> integer))
 
 > floatLit :: ParsecT [Token] ParseState Identity Expression
 > floatLit = FloatLit <$> float
@@ -1000,33 +998,37 @@ expression when value' currently
 
 > arrayLit :: ParsecT [Token] ParseState Identity Expression
 > arrayLit = keyword "array" >>
->            ArrayLit <$> squares (commaSep expr)
+>            FunCall ArrayVal <$> squares (commaSep expr)
 
 when you put expr instead of identifier in arraysub, it stack
 overflows, not sure why.
 
 > arraySub :: ParsecT [Token] ParseState Identity Expression
-> arraySub = ArraySub <$> identifier <*> squares (commaSep1 expr)
+> arraySub = FunCall ArraySub <$> (identifier <:> squares (commaSep1 expr))
 
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
 
 > windowFn :: ParsecT [Token] ParseState Identity Expression
 > windowFn = WindowFn <$> functionCall <* keyword "over"
->                     <*> (symbol '(' *> option [] partitionBy)
+>                     <*> (symbol "(" *> option [] partitionBy)
 >                     <*> option [] orderBy1
 >                     <*> option Asc (try $ choice [
 >                                                Asc <$ keyword "asc"
 >                                               ,Desc <$ keyword "desc"])
->                          <* symbol ')'
+>                          <* symbol ")"
 >   where
 >     orderBy1 = keyword "order" *> keyword "by" *> commaSep1 expr
 >     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
 
 > betweenExp :: ParsecT [Token] ParseState Identity Expression
-> betweenExp = Between <$> identifier
->                      <*> (keyword "between" *> dodgyParseElement)
->                      <*> (keyword "and" *> dodgyParseElement)
+> betweenExp = do
+>   a <- identifier
+>   keyword "between"
+>   b <- dodgyParseElement
+>   keyword "and"
+>   c <- dodgyParseElement
+>   return $ FunCall Between [a,b,c]
 >              --can't use the full expression parser at this time
 >              --because of a conflict between the operator 'and' and
 >              --the 'and' part of a between
@@ -1053,19 +1055,29 @@ Thanks to Sam Mason for the heads up on this.
 >                      ,integerLit]
 
 > functionCall :: ParsecT [Token] ParseState Identity Expression
-> functionCall = FunCall <$> idString <*> parens (commaSep expr)
+> functionCall = FunCall <$> (SimpleFun <$> idString) <*> parens (commaSep expr)
 
 > castKeyword :: ParsecT [Token] ParseState Identity Expression
-> castKeyword = keyword "cast" *> symbol '(' >>
+> castKeyword = keyword "cast" *> symbol "(" >>
 >               CastKeyword <$> expr
->                           <*> (keyword "as" *> typeName <* symbol ')')
+>                           <*> (keyword "as" *> typeName <* symbol ")")
+
+> castOp :: ParsecT [Token] ParseState Identity Expression
+> castOp = try (CastOp <$> expr
+>                      <*> (symbol "::" *> typeName))
+
 
 > substring :: ParsecT [Token] ParseState Identity Expression
-> substring = keyword "substring" >> symbol '(' >>
->             Substring
->             <$> expr
->             <*> (keyword "from" *> expr)
->             <*> (keyword "for" *> expr <* symbol ')')
+> substring = do
+>             keyword "substring"
+>             symbol "("
+>             a <- expr
+>             keyword "from"
+>             b <- expr
+>             keyword "for"
+>             c <- expr
+>             symbol ")"
+>             return $ FunCall Substring [a,b,c]
 
 > identifier :: ParsecT [Token] ParseState Identity Expression
 > identifier = Identifier <$> idString
@@ -1093,13 +1105,10 @@ identifier which happens to start with a complete keyword
 >                                      IdStringTok i -> Just i
 >                                      _ -> Nothing)
 
-> symbol :: Char -> MyParser Char
+> symbol :: String -> ParsecT [Token] ParseState Identity String
 > symbol c = mytoken (\tok -> case tok of
->                                      SymbolTok s | c==s -> Just c
->                                      _           -> Nothing)
-
-> symbols :: String -> ParsecT [Token] ParseState Identity String
-> symbols = mapM symbol
+>                                    SymbolTok s | c==s -> Just c
+>                                    _           -> Nothing)
 
 > integer :: MyParser Integer
 > integer = mytoken (\tok -> case tok of
@@ -1138,11 +1147,11 @@ from a StringLD or StringL, and the delimiters which were used
 
 > parens :: ParsecT [Token] ParseState Identity a
 >        -> ParsecT [Token] ParseState Identity a
-> parens = between (symbol '(') (symbol ')')
+> parens = between (symbol "(") (symbol ")")
 
 > squares :: ParsecT [Token] ParseState Identity a
 >        -> ParsecT [Token] ParseState Identity a
-> squares = between (symbol '[') (symbol ']')
+> squares = between (symbol "[") (symbol "]")
 
 > tryOptionMaybe :: (Stream s m t) =>
 >              ParsecT s u m a -> ParsecT s u m (Maybe a)
@@ -1150,7 +1159,7 @@ from a StringLD or StringL, and the delimiters which were used
 
 > commaSep2 :: ParsecT [Token] ParseState Identity a
 >           -> ParsecT [Token] ParseState Identity [a]
-> commaSep2 p = sepBy2 p (symbol ',')
+> commaSep2 p = sepBy2 p (symbol ",")
 
 > sepBy2 :: (Stream s m t) =>
 >           ParsecT s u m a -> ParsecT s u m b -> ParsecT s u m [a]
@@ -1158,11 +1167,11 @@ from a StringLD or StringL, and the delimiters which were used
 
 > commaSep :: ParsecT [Token] ParseState Identity a
 >          -> ParsecT [Token] ParseState Identity [a]
-> commaSep p = sepBy p (symbol ',')
+> commaSep p = sepBy p (symbol ",")
 
 > commaSep1 :: ParsecT [Token] ParseState Identity a
 >           -> ParsecT [Token] ParseState Identity [a]
-> commaSep1 p = sepBy1 p (symbol ',')
+> commaSep1 p = sepBy1 p (symbol ",")
 
 doesn't seem too gratuitous, comes up a few times
 

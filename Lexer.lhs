@@ -73,8 +73,10 @@ part of parsing is being referred to. If that makes sense?
 > data Tok = StringTok String String --delim, value (delim will one of
 >                                    --', $$, $[stuff]$
 >          | IdStringTok String --includes . and x.y.* type stuff
->          | SymbolTok Char --operators, and ()[],;, have to do this after id
->                           --cos id can contain . which is also a valid symbol
+>          | SymbolTok String -- operators, and ()[],;:
+>                             -- * is currently always lexed as an id
+>                             --   rather than an operator
+>                             -- this gets fixed in the parsing stage
 >          | PositionalArgTok Integer -- $1, etc.
 >          | FloatTok Double
 >          | IntegerTok Integer
@@ -137,7 +139,7 @@ a normal token.
 >            where
 >              ft = IdStringTok "from"
 >              st = IdStringTok "stdin"
->              mt = SymbolTok ';'
+>              mt = SymbolTok ";"
 
 == specialized token parsers
 
@@ -178,8 +180,30 @@ parse a dollar quoted string
 > positionalArg :: ParsecT String ParseState Identity Tok
 > positionalArg = char '$' >> PositionalArgTok <$> integer
 
+sql symbol is one of
+()[],; - single character
+: or :: symbol
++-*/<>=~!@#%^&|`? string - one or more of these, parsed until hit char
+which isn't one of these (including whitespace). This will parse some
+standard sql expressions wrongly at the moment, work around is to add
+whitespace e.g. i think 3*-4 is valid sql, should lex as '3' '*' '-'
+'4', but will currently lex as '3' '*-' '4'. Maybe this will be fixed
+in the parser instead?
+
+some other special cases are operators with non standard chars in them
+e.g.
+.. := ::
+
 > sqlSymbol :: ParsecT String ParseState Identity Tok
-> sqlSymbol = SymbolTok <$> lexeme (oneOf "+-*/<>=~!@#%^&|`?:()[],;.")
+> sqlSymbol =
+>   SymbolTok <$> lexeme (choice [
+>                          replicate 1 <$> oneOf "()[],;"
+>                         ,string ".."
+>                         ,try $ string "::"
+>                         ,try $ string ":="
+>                         ,string ":"
+>                         ,many1 (oneOf "+-*/<>=~!@#%^&|`?")
+>                         ])
 
 > sqlFloat :: ParsecT String ParseState Identity Tok
 > sqlFloat = FloatTok <$> float

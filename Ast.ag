@@ -285,57 +285,6 @@ DATA RestartIdentity | RestartIdentity | ContinueIdentity
 
 Expressions
 
-Will probably change the symbol operators to accept a string of the
-symbol to support general pg operators, including user defined
-ones. Then the number of special cases will probably be smaller than
-the current two lists.
-
--}
-
-DATA BinOp
-    | Plus | Minus | Mult | Div | Pow | Mod | Eql
-    | And | Or | Conc | Like
-    | Cast | NotEql | Lt | Gt | Lte | Gte
-    | DistBetween
-
-
-DATA UnOp | Not | IsNull | IsNotNull | SetOf | Abs | Neg
-
-{
-
-binOpToSymbol :: BinOp -> String
-binOpToSymbol op = case op of
-                        Plus -> "+"
-                        Minus -> "-"
-                        Mult -> "*"
-                        Div -> "/"
-                        Pow -> "^"
-                        Mod -> "%"
-                        Eql -> "="
-                        And -> "and"
-                        Or -> "or"
-                        Conc -> "||"
-                        Like -> "like"
-                        Cast -> "::"
-                        NotEql -> "<>"
-                        Lt -> "<"
-                        Gt -> ">"
-                        Lte -> "<="
-                        Gte -> ">="
-                        DistBetween -> "<->"
-
-unOpToSymbol :: UnOp -> String
-unOpToSymbol op = case op of
-                         Not -> "not"
-                         IsNull -> "is null"
-                         IsNotNull -> "is not null"
-                         --SetOf -> "setof"
-                         Abs -> "@"
-                         Neg -> "-"
-
-}
-
-{-
 Similarly to the statement type, all expressions
 are chucked into one even though there are many restrictions
 on which expressions can appear in different places.
@@ -347,22 +296,13 @@ DATA Expression | IntegerLit Integer
                 | NullLit
                 | BooleanLit Bool
                 | PositionalArg Integer
+                | CastOp Expression TypeName
                 | CastKeyword Expression TypeName
-                  -- sourcestring start length
-                | Substring str : Expression
-                            from : Expression
-                            for : Expression
                 | Identifier String
-                | Row ExpressionList
-                | ArrayLit ArrayExpressionList
                 | Case cases : CaseExpressionListExpressionPairList
                        els : (Maybe Expression)
                 | Exists sel : Statement
-                | BinOpCall op: BinOp
-                            arg1 : Expression
-                            arg2 : Expression
-                | UnOpCall UnOp Expression
-                | FunCall String ExpressionList
+                | FunCall FunName ExpressionList
                 | InPredicate Expression Bool InList
                   -- windowfn selectitem partitionby orderby orderbyasc?
                 | WindowFn fn : Expression
@@ -370,15 +310,50 @@ DATA Expression | IntegerLit Integer
                            orderBy : ExpressionList
                            dir : Direction
                 | ScalarSubQuery sel : Statement
-                | ArraySub Expression ExpressionList
-                | Between val : Expression
-                          lower : Expression
-                          upper : Expression
+
+-- we need information possibly for the lexer and parser for the
+-- pretty printer, and type information (including num arguments, type
+-- constraints on these, and the type of the result), also need
+-- operator precedence and associativity for binary operators
+-- some of this information is spread out over the code
+-- variantions for funcalls include:
+-- normal pg function call
+-- unusual syntax function calls (e.g. substring from for)
+-- unusual syntax operators (e.g. between x and y)
+-- row ctor
+-- array selector
+-- unary and binary operators (both text and symbol)
+-- array subscripting
+
+DATA FunName | SimpleFun String
+             | Operator String
+             | ArrayVal
+             | RowCtor
+             | ArraySub
+             | Substring
+             | Between
+
+DATA OperatorType | BinaryOp | LeftUnary | RightUnary
+
+{
+getOperatorType :: String -> OperatorType
+getOperatorType s = case () of
+                      _ | s `elem` ["not", "@", "-"] -> LeftUnary
+                        | s `elem` ["is null", "is not null"] -> RightUnary
+                        | s `elem` ["+", "-", "*", "/","^",
+                                    "%","=","and","or","||",
+                                    "like","::","<>","<",">",
+                                    "<=",">=","<->"] -> BinaryOp
+                        | otherwise -> error $ "don't know flavour of operator " ++ s
+}
+
 
 DATA InList | InList ExpressionList | InSelect sel : Statement
 
+-- some list nodes, not sure if all of these are needed as separately
+-- named node types
+
 TYPE ExpressionList = [Expression]
-TYPE ArrayExpressionList = [Expression]
 TYPE ExpressionListList = [ExpressionList]
 TYPE StringList = [String]
 TYPE SetClauseList = [SetClause]
@@ -388,15 +363,6 @@ TYPE TypeAttributeDefList = [TypeAttributeDef]
 TYPE ParamDefList = [ParamDef]
 TYPE StringStringListPair = (String,StringList)
 TYPE StringStringListPairList = [StringStringListPair]
-TYPE SourcePosStatement = (MySourcePos, Statement)
-
--- slightly hacky, add the source positions only in statement lists
--- this includes top level statements, and statements inside createfunction,
--- and nested inside if, while, case statements, and the like, but
--- unfortunately not select expressions inside other
--- expressions/statements
-
-TYPE StatementList = [SourcePosStatement]
 TYPE ExpressionListStatementListPair = (ExpressionList,StatementList)
 TYPE ExpressionListStatementListPairList = [ExpressionListStatementListPair]
 TYPE ExpressionStatementListPair = (Expression, StatementList)
@@ -407,6 +373,16 @@ TYPE RowConstraintList = [RowConstraint]
 TYPE CaseExpressionListExpressionPair = (CaseExpressionList,Expression)
 TYPE CaseExpressionList = [Expression]
 TYPE CaseExpressionListExpressionPairList = [CaseExpressionListExpressionPair]
+
+-- slightly hacky, add the source positions only in statement lists
+-- this includes top level statements, and statements inside createfunction,
+-- and nested inside if, while, case statements, and the like, but
+-- unfortunately not select expressions inside other
+-- expressions/statements
+
+TYPE SourcePosStatement = (MySourcePos, Statement)
+TYPE StatementList = [SourcePosStatement]
+
 
 {-
 ================================================================================
@@ -460,7 +436,7 @@ SET AllNodes = Statement FnBody SetClause TableRef JoinExpression JoinType
                Constraint TypeAttributeDef ParamDef VarDef RaiseType
                CombineType Volatility Language TypeName DropType Cascade
                Direction Distinct Natural IfExists RestartIdentity
-               BinOp UnOp Expression InList ArrayExpressionList
+               Expression InList
                ExpressionList ExpressionListList StringList SetClauseList
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList StringStringListPair StringStringListPairList
@@ -469,7 +445,7 @@ SET AllNodes = Statement FnBody SetClause TableRef JoinExpression JoinType
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               SourcePosStatement
+               SourcePosStatement FunName
 
 DERIVING AllNodes: Show,Eq
 
@@ -747,6 +723,7 @@ SEM Expression
      | BooleanLit lhs.nodeType = ScalarType "Boolean"
 
 -- what this code calls an array literal isn't really a literal?
+{-
 SEM ArrayExpressionList
     | Cons  lhs.nodeType = propagateUnknownError @tl.nodeType
                             (let t = (ArrayType @hd.nodeType)
@@ -763,7 +740,7 @@ SEM ArrayExpressionList
                                            (extractArrayType t)
                                            (extractArrayType @tl.nodeType)))
     | Nil lhs.nodeType = AnyArray
-
+-}
 {
 extractArrayType :: Type -> Type
 extractArrayType (ArrayType t) = t
@@ -773,7 +750,7 @@ extractArrayType t = error $ "extract array type not supported for type " ++ sho
 {-
 == simple operators
 -}
-SEM Expression
+{-SEM Expression
     | BinOpCall lhs.nodeType = if @op.val == Eql
                                     then
                                      if @arg1.nodeType == @arg2.nodeType
@@ -790,7 +767,7 @@ ATTR BinOp
   |
   | val : SELF
   ]
-
+-}
 {-
 == case expression
 s
@@ -951,18 +928,6 @@ think for setof it is, but e.g. for a continue not in a loop (which
 could be caught during parsing) works better as a check error, looking
 at the error message the user will get. This might be wrong, haven't
 thought too carefully about it yet).
-
-
-some sql support to add, common ones:
-alter table
-create index
-create rule
-create trigger
-ctes
-loop, exit, labels
-easy ones: transactions, savepoints, listen
-prepare, execute + using
-proper general operator support & lex properly
 
 Type checking
 

@@ -409,19 +409,30 @@ Conversion routines - convert Sql asts into Docs
 >                                               then replace "'" "''" s
 >                                               else s
 
-> convExp (FunCall i as) = text i <> parens (csvExp as)
+> convExp (FunCall (SimpleFun i) es) = text i <> parens (csvExp es)
+> convExp (FunCall (Operator n) es) =
+>    case getOperatorType n of
+>                           BinaryOp ->
+>                               parens (convExp (es !! 0)
+>                                       <+> text n
+>                                       <+> convExp (es !! 1))
+>                           LeftUnary -> parens (text n <+> convExp (head es))
+>                           RightUnary -> parens (convExp (head es) <+> text n)
+> convExp (FunCall ArrayVal es) = text "array" <> brackets (csvExp es)
+> convExp (FunCall RowCtor es) = text "row" <> parens (hcatCsvMap convExp es)
+> convExp (FunCall ArraySub ((Identifier i):es)) = text i <> brackets (csvExp es)
+> convExp (FunCall ArraySub es) = parens (convExp (es !! 0)) <> brackets (csvExp (tail es))
 
-> convExp (BinOpCall op a b) =
->   parens (convExp a <+> text (binOpToSymbol op) <+> convExp b)
+> convExp (FunCall Substring es) = text "substring"
+>                             <> parens (convExp (es !! 0)
+>                                        <+> text "from" <+> convExp (es !! 1)
+>                                        <+> text "for" <+> convExp (es !! 2))
 
-> convExp (UnOpCall op a) =
->     case op of
->           Not -> parens (text (unOpToSymbol op) <+> convExp a)
->           SetOf -> text (unOpToSymbol op) <+> convExp a
->           IsNull -> parens (convExp a <+> text (unOpToSymbol op))
->           IsNotNull -> parens (convExp a <+> text (unOpToSymbol op))
->           Abs -> parens (text (unOpToSymbol op) <+> convExp a)
->           Neg -> parens (text (unOpToSymbol op) <+> convExp a)
+> convExp (FunCall Between es) = convExp (es !! 0) <+> text "between"
+>                                <+> parens (convExp (es !! 1))
+>                                <+> text "and"
+>                                <+> parens (convExp (es !! 2))
+
 
 > convExp (BooleanLit b) = bool b
 > convExp (InPredicate att t lst) =
@@ -431,7 +442,6 @@ Conversion routines - convert Sql asts into Docs
 >                        InSelect sel -> convSelectFragment True sel)
 > convExp (ScalarSubQuery s) = parens (convSelectFragment True s)
 > convExp NullLit = text "null"
-> convExp (ArrayLit es) = text "array" <> brackets (csvExp es)
 > convExp (WindowFn fn partition order asc) =
 >   convExp fn <+> text "over"
 >   <+> (if hp || ho
@@ -459,18 +469,12 @@ Conversion routines - convert Sql asts into Docs
 
 > convExp (PositionalArg a) = text "$" <> integer a
 > convExp (Exists s) = text "exists" <+> parens (convSelectFragment True s)
-> convExp (Row r) = text "row" <> parens (hcatCsvMap convExp r)
-> convExp (ArraySub (Identifier i) s) = text i <> brackets (csvExp s)
-> convExp (ArraySub e s) = parens (convExp e) <> brackets (csvExp s)
-> convExp (Between i e f) = convExp i <+> text "between" <+> parens (convExp e)
->                           <+> text "and" <+> parens (convExp f)
 > convExp (CastKeyword ex t) = text "cast" <> parens (convExp ex
 >                                                     <+> text "as"
 >                                                     <+> convTypeName t)
-> convExp (Substring s b e) = text "substring"
->                             <> parens (convExp s
->                                        <+> text "from" <+> convExp b
->                                        <+> text "for" <+> convExp e)
+> convExp (CastOp ex t) = parens (parens (convExp ex)
+>                                 <> text "::"
+>                                 <> convTypeName t)
 
 = Utils
 

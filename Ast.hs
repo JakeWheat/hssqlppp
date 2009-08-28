@@ -4,37 +4,15 @@
 module Ast where
 
 
-
-binOpToSymbol :: BinOp -> String
-binOpToSymbol op = case op of
-                        Plus -> "+"
-                        Minus -> "-"
-                        Mult -> "*"
-                        Div -> "/"
-                        Pow -> "^"
-                        Mod -> "%"
-                        Eql -> "="
-                        And -> "and"
-                        Or -> "or"
-                        Conc -> "||"
-                        Like -> "like"
-                        Cast -> "::"
-                        NotEql -> "<>"
-                        Lt -> "<"
-                        Gt -> ">"
-                        Lte -> "<="
-                        Gte -> ">="
-                        DistBetween -> "<->"
-
-unOpToSymbol :: UnOp -> String
-unOpToSymbol op = case op of
-                         Not -> "not"
-                         IsNull -> "is null"
-                         IsNotNull -> "is not null"
-                         --SetOf -> "setof"
-                         Abs -> "@"
-                         Neg -> "-"
-
+getOperatorType :: String -> OperatorType
+getOperatorType s = case () of
+                      _ | s `elem` ["not", "@", "-"] -> LeftUnary
+                        | s `elem` ["is null", "is not null"] -> RightUnary
+                        | s `elem` ["+", "-", "*", "/","^",
+                                    "%","=","and","or","||",
+                                    "like","::","<>","<",">",
+                                    "<=",">=","<->"] -> BinaryOp
+                        | otherwise -> error $ "don't know flavour of operator " ++ s
 
 
 
@@ -128,89 +106,6 @@ resetSps' sts = map resetSp' sts
 
 nsp :: MySourcePos
 nsp = ("", 0,0)
--- ArrayExpressionList -----------------------------------------
-type ArrayExpressionList  = [(Expression)]
--- cata
-sem_ArrayExpressionList :: ArrayExpressionList  ->
-                           T_ArrayExpressionList 
-sem_ArrayExpressionList list  =
-    (Prelude.foldr sem_ArrayExpressionList_Cons sem_ArrayExpressionList_Nil (Prelude.map sem_Expression list) )
--- semantic domain
-type T_ArrayExpressionList  = Bool ->
-                              Bool ->
-                              MySourcePos ->
-                              ( ([Message]),Type)
-data Inh_ArrayExpressionList  = Inh_ArrayExpressionList {inLoop_Inh_ArrayExpressionList :: Bool,selectsOnly_Inh_ArrayExpressionList :: Bool,sourcePos_Inh_ArrayExpressionList :: MySourcePos}
-data Syn_ArrayExpressionList  = Syn_ArrayExpressionList {messages_Syn_ArrayExpressionList :: [Message],nodeType_Syn_ArrayExpressionList :: Type}
-wrap_ArrayExpressionList :: T_ArrayExpressionList  ->
-                            Inh_ArrayExpressionList  ->
-                            Syn_ArrayExpressionList 
-wrap_ArrayExpressionList sem (Inh_ArrayExpressionList _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType) =
-             (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
-     in  (Syn_ArrayExpressionList _lhsOmessages _lhsOnodeType ))
-sem_ArrayExpressionList_Cons :: T_Expression  ->
-                                T_ArrayExpressionList  ->
-                                T_ArrayExpressionList 
-sem_ArrayExpressionList_Cons hd_ tl_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOnodeType :: Type
-              _lhsOmessages :: ([Message])
-              _hdOinLoop :: Bool
-              _hdOselectsOnly :: Bool
-              _hdOsourcePos :: MySourcePos
-              _tlOinLoop :: Bool
-              _tlOselectsOnly :: Bool
-              _tlOsourcePos :: MySourcePos
-              _hdImessages :: ([Message])
-              _hdInodeType :: Type
-              _tlImessages :: ([Message])
-              _tlInodeType :: Type
-              _lhsOnodeType =
-                  propagateUnknownError _tlInodeType
-                   (let t = (ArrayType _hdInodeType)
-                    in case () of
-                         _ | _tlInodeType == AnyArray -> t
-                           | t == _tlInodeType -> t
-                           | otherwise ->
-                               TypeError
-                                 _lhsIsourcePos
-                                 (ArrayElementMismatch
-                                  (extractArrayType t)
-                                  (extractArrayType _tlInodeType)))
-              _lhsOmessages =
-                  _hdImessages ++ _tlImessages
-              _hdOinLoop =
-                  _lhsIinLoop
-              _hdOselectsOnly =
-                  _lhsIselectsOnly
-              _hdOsourcePos =
-                  _lhsIsourcePos
-              _tlOinLoop =
-                  _lhsIinLoop
-              _tlOselectsOnly =
-                  _lhsIselectsOnly
-              _tlOsourcePos =
-                  _lhsIsourcePos
-              ( _hdImessages,_hdInodeType) =
-                  (hd_ _hdOinLoop _hdOselectsOnly _hdOsourcePos )
-              ( _tlImessages,_tlInodeType) =
-                  (tl_ _tlOinLoop _tlOselectsOnly _tlOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_ArrayExpressionList_Nil :: T_ArrayExpressionList 
-sem_ArrayExpressionList_Nil  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOnodeType :: Type
-              _lhsOmessages :: ([Message])
-              _lhsOnodeType =
-                  AnyArray
-              _lhsOmessages =
-                  []
-          in  ( _lhsOmessages,_lhsOnodeType)))
 -- AttributeDef ------------------------------------------------
 data AttributeDef  = AttributeDef (String) (TypeName) (Maybe Expression) (RowConstraintList) 
                    deriving ( Eq,Show)
@@ -348,385 +243,6 @@ sem_AttributeDefList_Nil  =
               _lhsOnodeType =
                   UnknownType
           in  ( _lhsOmessages,_lhsOnodeType)))
--- BinOp -------------------------------------------------------
-data BinOp  = And 
-            | Cast 
-            | Conc 
-            | DistBetween 
-            | Div 
-            | Eql 
-            | Gt 
-            | Gte 
-            | Like 
-            | Lt 
-            | Lte 
-            | Minus 
-            | Mod 
-            | Mult 
-            | NotEql 
-            | Or 
-            | Plus 
-            | Pow 
-            deriving ( Eq,Show)
--- cata
-sem_BinOp :: BinOp  ->
-             T_BinOp 
-sem_BinOp (And )  =
-    (sem_BinOp_And )
-sem_BinOp (Cast )  =
-    (sem_BinOp_Cast )
-sem_BinOp (Conc )  =
-    (sem_BinOp_Conc )
-sem_BinOp (DistBetween )  =
-    (sem_BinOp_DistBetween )
-sem_BinOp (Div )  =
-    (sem_BinOp_Div )
-sem_BinOp (Eql )  =
-    (sem_BinOp_Eql )
-sem_BinOp (Gt )  =
-    (sem_BinOp_Gt )
-sem_BinOp (Gte )  =
-    (sem_BinOp_Gte )
-sem_BinOp (Like )  =
-    (sem_BinOp_Like )
-sem_BinOp (Lt )  =
-    (sem_BinOp_Lt )
-sem_BinOp (Lte )  =
-    (sem_BinOp_Lte )
-sem_BinOp (Minus )  =
-    (sem_BinOp_Minus )
-sem_BinOp (Mod )  =
-    (sem_BinOp_Mod )
-sem_BinOp (Mult )  =
-    (sem_BinOp_Mult )
-sem_BinOp (NotEql )  =
-    (sem_BinOp_NotEql )
-sem_BinOp (Or )  =
-    (sem_BinOp_Or )
-sem_BinOp (Plus )  =
-    (sem_BinOp_Plus )
-sem_BinOp (Pow )  =
-    (sem_BinOp_Pow )
--- semantic domain
-type T_BinOp  = Bool ->
-                Bool ->
-                MySourcePos ->
-                ( ([Message]),Type,BinOp)
-data Inh_BinOp  = Inh_BinOp {inLoop_Inh_BinOp :: Bool,selectsOnly_Inh_BinOp :: Bool,sourcePos_Inh_BinOp :: MySourcePos}
-data Syn_BinOp  = Syn_BinOp {messages_Syn_BinOp :: [Message],nodeType_Syn_BinOp :: Type,val_Syn_BinOp :: BinOp}
-wrap_BinOp :: T_BinOp  ->
-              Inh_BinOp  ->
-              Syn_BinOp 
-wrap_BinOp sem (Inh_BinOp _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType,_lhsOval) =
-             (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
-     in  (Syn_BinOp _lhsOmessages _lhsOnodeType _lhsOval ))
-sem_BinOp_And :: T_BinOp 
-sem_BinOp_And  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  And
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Cast :: T_BinOp 
-sem_BinOp_Cast  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Cast
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Conc :: T_BinOp 
-sem_BinOp_Conc  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Conc
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_DistBetween :: T_BinOp 
-sem_BinOp_DistBetween  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  DistBetween
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Div :: T_BinOp 
-sem_BinOp_Div  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Div
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Eql :: T_BinOp 
-sem_BinOp_Eql  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Eql
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Gt :: T_BinOp 
-sem_BinOp_Gt  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Gt
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Gte :: T_BinOp 
-sem_BinOp_Gte  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Gte
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Like :: T_BinOp 
-sem_BinOp_Like  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Like
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Lt :: T_BinOp 
-sem_BinOp_Lt  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Lt
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Lte :: T_BinOp 
-sem_BinOp_Lte  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Lte
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Minus :: T_BinOp 
-sem_BinOp_Minus  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Minus
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Mod :: T_BinOp 
-sem_BinOp_Mod  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Mod
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Mult :: T_BinOp 
-sem_BinOp_Mult  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Mult
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_NotEql :: T_BinOp 
-sem_BinOp_NotEql  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  NotEql
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Or :: T_BinOp 
-sem_BinOp_Or  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Or
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Plus :: T_BinOp 
-sem_BinOp_Plus  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Plus
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_BinOp_Pow :: T_BinOp 
-sem_BinOp_Pow  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: BinOp
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  Pow
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 -- Cascade -----------------------------------------------------
 data Cascade  = Cascade 
               | Restrict 
@@ -1555,51 +1071,39 @@ sem_DropType_View  =
                   UnknownType
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- Expression --------------------------------------------------
-data Expression  = ArrayLit (ArrayExpressionList) 
-                 | ArraySub (Expression) (ExpressionList) 
-                 | Between (Expression) (Expression) (Expression) 
-                 | BinOpCall (BinOp) (Expression) (Expression) 
-                 | BooleanLit (Bool) 
+data Expression  = BooleanLit (Bool) 
                  | Case (CaseExpressionListExpressionPairList) (Maybe Expression) 
                  | CastKeyword (Expression) (TypeName) 
+                 | CastOp (Expression) (TypeName) 
                  | Exists (Statement) 
                  | FloatLit (Double) 
-                 | FunCall (String) (ExpressionList) 
+                 | FunCall (FunName) (ExpressionList) 
                  | Identifier (String) 
                  | InPredicate (Expression) (Bool) (InList) 
                  | IntegerLit (Integer) 
                  | NullLit 
                  | PositionalArg (Integer) 
-                 | Row (ExpressionList) 
                  | ScalarSubQuery (Statement) 
                  | StringLit (String) (String) 
-                 | Substring (Expression) (Expression) (Expression) 
-                 | UnOpCall (UnOp) (Expression) 
                  | WindowFn (Expression) (ExpressionList) (ExpressionList) (Direction) 
                  deriving ( Eq,Show)
 -- cata
 sem_Expression :: Expression  ->
                   T_Expression 
-sem_Expression (ArrayLit _arrayExpressionList )  =
-    (sem_Expression_ArrayLit (sem_ArrayExpressionList _arrayExpressionList ) )
-sem_Expression (ArraySub _expression _expressionList )  =
-    (sem_Expression_ArraySub (sem_Expression _expression ) (sem_ExpressionList _expressionList ) )
-sem_Expression (Between _val _lower _upper )  =
-    (sem_Expression_Between (sem_Expression _val ) (sem_Expression _lower ) (sem_Expression _upper ) )
-sem_Expression (BinOpCall _op _arg1 _arg2 )  =
-    (sem_Expression_BinOpCall (sem_BinOp _op ) (sem_Expression _arg1 ) (sem_Expression _arg2 ) )
 sem_Expression (BooleanLit _bool )  =
     (sem_Expression_BooleanLit _bool )
 sem_Expression (Case _cases _els )  =
     (sem_Expression_Case (sem_CaseExpressionListExpressionPairList _cases ) _els )
 sem_Expression (CastKeyword _expression _typeName )  =
     (sem_Expression_CastKeyword (sem_Expression _expression ) (sem_TypeName _typeName ) )
+sem_Expression (CastOp _expression _typeName )  =
+    (sem_Expression_CastOp (sem_Expression _expression ) (sem_TypeName _typeName ) )
 sem_Expression (Exists _sel )  =
     (sem_Expression_Exists (sem_Statement _sel ) )
 sem_Expression (FloatLit _double )  =
     (sem_Expression_FloatLit _double )
-sem_Expression (FunCall _string _expressionList )  =
-    (sem_Expression_FunCall _string (sem_ExpressionList _expressionList ) )
+sem_Expression (FunCall _funName _expressionList )  =
+    (sem_Expression_FunCall (sem_FunName _funName ) (sem_ExpressionList _expressionList ) )
 sem_Expression (Identifier _string )  =
     (sem_Expression_Identifier _string )
 sem_Expression (InPredicate _expression _bool _inList )  =
@@ -1610,16 +1114,10 @@ sem_Expression (NullLit )  =
     (sem_Expression_NullLit )
 sem_Expression (PositionalArg _integer )  =
     (sem_Expression_PositionalArg _integer )
-sem_Expression (Row _expressionList )  =
-    (sem_Expression_Row (sem_ExpressionList _expressionList ) )
 sem_Expression (ScalarSubQuery _sel )  =
     (sem_Expression_ScalarSubQuery (sem_Statement _sel ) )
 sem_Expression (StringLit _quote _value )  =
     (sem_Expression_StringLit _quote _value )
-sem_Expression (Substring _str _from _for )  =
-    (sem_Expression_Substring (sem_Expression _str ) (sem_Expression _from ) (sem_Expression _for ) )
-sem_Expression (UnOpCall _unOp _expression )  =
-    (sem_Expression_UnOpCall (sem_UnOp _unOp ) (sem_Expression _expression ) )
 sem_Expression (WindowFn _fn _partitionBy _orderBy _dir )  =
     (sem_Expression_WindowFn (sem_Expression _fn ) (sem_ExpressionList _partitionBy ) (sem_ExpressionList _orderBy ) (sem_Direction _dir ) )
 -- semantic domain
@@ -1636,190 +1134,6 @@ wrap_Expression sem (Inh_Expression _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos 
     (let ( _lhsOmessages,_lhsOnodeType) =
              (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
      in  (Syn_Expression _lhsOmessages _lhsOnodeType ))
-sem_Expression_ArrayLit :: T_ArrayExpressionList  ->
-                           T_Expression 
-sem_Expression_ArrayLit arrayExpressionList_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _arrayExpressionListOinLoop :: Bool
-              _arrayExpressionListOselectsOnly :: Bool
-              _arrayExpressionListOsourcePos :: MySourcePos
-              _arrayExpressionListImessages :: ([Message])
-              _arrayExpressionListInodeType :: Type
-              _lhsOmessages =
-                  _arrayExpressionListImessages
-              _lhsOnodeType =
-                  _arrayExpressionListInodeType
-              _arrayExpressionListOinLoop =
-                  _lhsIinLoop
-              _arrayExpressionListOselectsOnly =
-                  _lhsIselectsOnly
-              _arrayExpressionListOsourcePos =
-                  _lhsIsourcePos
-              ( _arrayExpressionListImessages,_arrayExpressionListInodeType) =
-                  (arrayExpressionList_ _arrayExpressionListOinLoop _arrayExpressionListOselectsOnly _arrayExpressionListOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_Expression_ArraySub :: T_Expression  ->
-                           T_ExpressionList  ->
-                           T_Expression 
-sem_Expression_ArraySub expression_ expressionList_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _expressionOinLoop :: Bool
-              _expressionOselectsOnly :: Bool
-              _expressionOsourcePos :: MySourcePos
-              _expressionListOinLoop :: Bool
-              _expressionListOselectsOnly :: Bool
-              _expressionListOsourcePos :: MySourcePos
-              _expressionImessages :: ([Message])
-              _expressionInodeType :: Type
-              _expressionListImessages :: ([Message])
-              _expressionListInodeType :: Type
-              _lhsOmessages =
-                  _expressionImessages ++ _expressionListImessages
-              _lhsOnodeType =
-                  _expressionInodeType `setUnknown` _expressionListInodeType
-              _expressionOinLoop =
-                  _lhsIinLoop
-              _expressionOselectsOnly =
-                  _lhsIselectsOnly
-              _expressionOsourcePos =
-                  _lhsIsourcePos
-              _expressionListOinLoop =
-                  _lhsIinLoop
-              _expressionListOselectsOnly =
-                  _lhsIselectsOnly
-              _expressionListOsourcePos =
-                  _lhsIsourcePos
-              ( _expressionImessages,_expressionInodeType) =
-                  (expression_ _expressionOinLoop _expressionOselectsOnly _expressionOsourcePos )
-              ( _expressionListImessages,_expressionListInodeType) =
-                  (expressionList_ _expressionListOinLoop _expressionListOselectsOnly _expressionListOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_Expression_Between :: T_Expression  ->
-                          T_Expression  ->
-                          T_Expression  ->
-                          T_Expression 
-sem_Expression_Between val_ lower_ upper_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _valOinLoop :: Bool
-              _valOselectsOnly :: Bool
-              _valOsourcePos :: MySourcePos
-              _lowerOinLoop :: Bool
-              _lowerOselectsOnly :: Bool
-              _lowerOsourcePos :: MySourcePos
-              _upperOinLoop :: Bool
-              _upperOselectsOnly :: Bool
-              _upperOsourcePos :: MySourcePos
-              _valImessages :: ([Message])
-              _valInodeType :: Type
-              _lowerImessages :: ([Message])
-              _lowerInodeType :: Type
-              _upperImessages :: ([Message])
-              _upperInodeType :: Type
-              _lhsOmessages =
-                  _valImessages ++ _lowerImessages ++ _upperImessages
-              _lhsOnodeType =
-                  _valInodeType `setUnknown` _lowerInodeType `setUnknown` _upperInodeType
-              _valOinLoop =
-                  _lhsIinLoop
-              _valOselectsOnly =
-                  _lhsIselectsOnly
-              _valOsourcePos =
-                  _lhsIsourcePos
-              _lowerOinLoop =
-                  _lhsIinLoop
-              _lowerOselectsOnly =
-                  _lhsIselectsOnly
-              _lowerOsourcePos =
-                  _lhsIsourcePos
-              _upperOinLoop =
-                  _lhsIinLoop
-              _upperOselectsOnly =
-                  _lhsIselectsOnly
-              _upperOsourcePos =
-                  _lhsIsourcePos
-              ( _valImessages,_valInodeType) =
-                  (val_ _valOinLoop _valOselectsOnly _valOsourcePos )
-              ( _lowerImessages,_lowerInodeType) =
-                  (lower_ _lowerOinLoop _lowerOselectsOnly _lowerOsourcePos )
-              ( _upperImessages,_upperInodeType) =
-                  (upper_ _upperOinLoop _upperOselectsOnly _upperOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_Expression_BinOpCall :: T_BinOp  ->
-                            T_Expression  ->
-                            T_Expression  ->
-                            T_Expression 
-sem_Expression_BinOpCall op_ arg1_ arg2_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOnodeType :: Type
-              _lhsOmessages :: ([Message])
-              _opOinLoop :: Bool
-              _opOselectsOnly :: Bool
-              _opOsourcePos :: MySourcePos
-              _arg1OinLoop :: Bool
-              _arg1OselectsOnly :: Bool
-              _arg1OsourcePos :: MySourcePos
-              _arg2OinLoop :: Bool
-              _arg2OselectsOnly :: Bool
-              _arg2OsourcePos :: MySourcePos
-              _opImessages :: ([Message])
-              _opInodeType :: Type
-              _opIval :: BinOp
-              _arg1Imessages :: ([Message])
-              _arg1InodeType :: Type
-              _arg2Imessages :: ([Message])
-              _arg2InodeType :: Type
-              _lhsOnodeType =
-                  if _opIval == Eql
-                       then
-                        if _arg1InodeType == _arg2InodeType
-                          then (ScalarType "Boolean")
-                        else
-                          (TypeError _lhsIsourcePos
-                           (ArgumentTypeMismatch
-                            _arg1InodeType
-                            _arg2InodeType))
-                       else UnknownType
-              _lhsOmessages =
-                  _opImessages ++ _arg1Imessages ++ _arg2Imessages
-              _opOinLoop =
-                  _lhsIinLoop
-              _opOselectsOnly =
-                  _lhsIselectsOnly
-              _opOsourcePos =
-                  _lhsIsourcePos
-              _arg1OinLoop =
-                  _lhsIinLoop
-              _arg1OselectsOnly =
-                  _lhsIselectsOnly
-              _arg1OsourcePos =
-                  _lhsIsourcePos
-              _arg2OinLoop =
-                  _lhsIinLoop
-              _arg2OselectsOnly =
-                  _lhsIselectsOnly
-              _arg2OsourcePos =
-                  _lhsIsourcePos
-              ( _opImessages,_opInodeType,_opIval) =
-                  (op_ _opOinLoop _opOselectsOnly _opOsourcePos )
-              ( _arg1Imessages,_arg1InodeType) =
-                  (arg1_ _arg1OinLoop _arg1OselectsOnly _arg1OsourcePos )
-              ( _arg2Imessages,_arg2InodeType) =
-                  (arg2_ _arg2OinLoop _arg2OselectsOnly _arg2OsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
 sem_Expression_BooleanLit :: Bool ->
                              T_Expression 
 sem_Expression_BooleanLit bool_  =
@@ -1900,6 +1214,46 @@ sem_Expression_CastKeyword expression_ typeName_  =
               ( _typeNameImessages,_typeNameInodeType) =
                   (typeName_ _typeNameOinLoop _typeNameOselectsOnly _typeNameOsourcePos )
           in  ( _lhsOmessages,_lhsOnodeType)))
+sem_Expression_CastOp :: T_Expression  ->
+                         T_TypeName  ->
+                         T_Expression 
+sem_Expression_CastOp expression_ typeName_  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _expressionOinLoop :: Bool
+              _expressionOselectsOnly :: Bool
+              _expressionOsourcePos :: MySourcePos
+              _typeNameOinLoop :: Bool
+              _typeNameOselectsOnly :: Bool
+              _typeNameOsourcePos :: MySourcePos
+              _expressionImessages :: ([Message])
+              _expressionInodeType :: Type
+              _typeNameImessages :: ([Message])
+              _typeNameInodeType :: Type
+              _lhsOmessages =
+                  _expressionImessages ++ _typeNameImessages
+              _lhsOnodeType =
+                  _expressionInodeType `setUnknown` _typeNameInodeType
+              _expressionOinLoop =
+                  _lhsIinLoop
+              _expressionOselectsOnly =
+                  _lhsIselectsOnly
+              _expressionOsourcePos =
+                  _lhsIsourcePos
+              _typeNameOinLoop =
+                  _lhsIinLoop
+              _typeNameOselectsOnly =
+                  _lhsIselectsOnly
+              _typeNameOsourcePos =
+                  _lhsIsourcePos
+              ( _expressionImessages,_expressionInodeType) =
+                  (expression_ _expressionOinLoop _expressionOselectsOnly _expressionOsourcePos )
+              ( _typeNameImessages,_typeNameInodeType) =
+                  (typeName_ _typeNameOinLoop _typeNameOselectsOnly _typeNameOsourcePos )
+          in  ( _lhsOmessages,_lhsOnodeType)))
 sem_Expression_Exists :: T_Statement  ->
                          T_Expression 
 sem_Expression_Exists sel_  =
@@ -1939,30 +1293,43 @@ sem_Expression_FloatLit double_  =
               _lhsOmessages =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))
-sem_Expression_FunCall :: String ->
+sem_Expression_FunCall :: T_FunName  ->
                           T_ExpressionList  ->
                           T_Expression 
-sem_Expression_FunCall string_ expressionList_  =
+sem_Expression_FunCall funName_ expressionList_  =
     (\ _lhsIinLoop
        _lhsIselectsOnly
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _funNameOinLoop :: Bool
+              _funNameOselectsOnly :: Bool
+              _funNameOsourcePos :: MySourcePos
               _expressionListOinLoop :: Bool
               _expressionListOselectsOnly :: Bool
               _expressionListOsourcePos :: MySourcePos
+              _funNameImessages :: ([Message])
+              _funNameInodeType :: Type
               _expressionListImessages :: ([Message])
               _expressionListInodeType :: Type
               _lhsOmessages =
-                  _expressionListImessages
+                  _funNameImessages ++ _expressionListImessages
               _lhsOnodeType =
-                  _expressionListInodeType
+                  _funNameInodeType `setUnknown` _expressionListInodeType
+              _funNameOinLoop =
+                  _lhsIinLoop
+              _funNameOselectsOnly =
+                  _lhsIselectsOnly
+              _funNameOsourcePos =
+                  _lhsIsourcePos
               _expressionListOinLoop =
                   _lhsIinLoop
               _expressionListOselectsOnly =
                   _lhsIselectsOnly
               _expressionListOsourcePos =
                   _lhsIsourcePos
+              ( _funNameImessages,_funNameInodeType) =
+                  (funName_ _funNameOinLoop _funNameOselectsOnly _funNameOsourcePos )
               ( _expressionListImessages,_expressionListInodeType) =
                   (expressionList_ _expressionListOinLoop _expressionListOselectsOnly _expressionListOsourcePos )
           in  ( _lhsOmessages,_lhsOnodeType)))
@@ -2058,32 +1425,6 @@ sem_Expression_PositionalArg integer_  =
               _lhsOnodeType =
                   UnknownType
           in  ( _lhsOmessages,_lhsOnodeType)))
-sem_Expression_Row :: T_ExpressionList  ->
-                      T_Expression 
-sem_Expression_Row expressionList_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _expressionListOinLoop :: Bool
-              _expressionListOselectsOnly :: Bool
-              _expressionListOsourcePos :: MySourcePos
-              _expressionListImessages :: ([Message])
-              _expressionListInodeType :: Type
-              _lhsOmessages =
-                  _expressionListImessages
-              _lhsOnodeType =
-                  _expressionListInodeType
-              _expressionListOinLoop =
-                  _lhsIinLoop
-              _expressionListOselectsOnly =
-                  _lhsIselectsOnly
-              _expressionListOsourcePos =
-                  _lhsIsourcePos
-              ( _expressionListImessages,_expressionListInodeType) =
-                  (expressionList_ _expressionListOinLoop _expressionListOselectsOnly _expressionListOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
 sem_Expression_ScalarSubQuery :: T_Statement  ->
                                  T_Expression 
 sem_Expression_ScalarSubQuery sel_  =
@@ -2123,100 +1464,6 @@ sem_Expression_StringLit quote_ value_  =
                   ScalarType "String"
               _lhsOmessages =
                   []
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_Expression_Substring :: T_Expression  ->
-                            T_Expression  ->
-                            T_Expression  ->
-                            T_Expression 
-sem_Expression_Substring str_ from_ for_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _strOinLoop :: Bool
-              _strOselectsOnly :: Bool
-              _strOsourcePos :: MySourcePos
-              _fromOinLoop :: Bool
-              _fromOselectsOnly :: Bool
-              _fromOsourcePos :: MySourcePos
-              _forOinLoop :: Bool
-              _forOselectsOnly :: Bool
-              _forOsourcePos :: MySourcePos
-              _strImessages :: ([Message])
-              _strInodeType :: Type
-              _fromImessages :: ([Message])
-              _fromInodeType :: Type
-              _forImessages :: ([Message])
-              _forInodeType :: Type
-              _lhsOmessages =
-                  _strImessages ++ _fromImessages ++ _forImessages
-              _lhsOnodeType =
-                  _strInodeType `setUnknown` _fromInodeType `setUnknown` _forInodeType
-              _strOinLoop =
-                  _lhsIinLoop
-              _strOselectsOnly =
-                  _lhsIselectsOnly
-              _strOsourcePos =
-                  _lhsIsourcePos
-              _fromOinLoop =
-                  _lhsIinLoop
-              _fromOselectsOnly =
-                  _lhsIselectsOnly
-              _fromOsourcePos =
-                  _lhsIsourcePos
-              _forOinLoop =
-                  _lhsIinLoop
-              _forOselectsOnly =
-                  _lhsIselectsOnly
-              _forOsourcePos =
-                  _lhsIsourcePos
-              ( _strImessages,_strInodeType) =
-                  (str_ _strOinLoop _strOselectsOnly _strOsourcePos )
-              ( _fromImessages,_fromInodeType) =
-                  (from_ _fromOinLoop _fromOselectsOnly _fromOsourcePos )
-              ( _forImessages,_forInodeType) =
-                  (for_ _forOinLoop _forOselectsOnly _forOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_Expression_UnOpCall :: T_UnOp  ->
-                           T_Expression  ->
-                           T_Expression 
-sem_Expression_UnOpCall unOp_ expression_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _unOpOinLoop :: Bool
-              _unOpOselectsOnly :: Bool
-              _unOpOsourcePos :: MySourcePos
-              _expressionOinLoop :: Bool
-              _expressionOselectsOnly :: Bool
-              _expressionOsourcePos :: MySourcePos
-              _unOpImessages :: ([Message])
-              _unOpInodeType :: Type
-              _expressionImessages :: ([Message])
-              _expressionInodeType :: Type
-              _lhsOmessages =
-                  _unOpImessages ++ _expressionImessages
-              _lhsOnodeType =
-                  _unOpInodeType `setUnknown` _expressionInodeType
-              _unOpOinLoop =
-                  _lhsIinLoop
-              _unOpOselectsOnly =
-                  _lhsIselectsOnly
-              _unOpOsourcePos =
-                  _lhsIsourcePos
-              _expressionOinLoop =
-                  _lhsIinLoop
-              _expressionOselectsOnly =
-                  _lhsIselectsOnly
-              _expressionOsourcePos =
-                  _lhsIsourcePos
-              ( _unOpImessages,_unOpInodeType) =
-                  (unOp_ _unOpOinLoop _unOpOselectsOnly _unOpOsourcePos )
-              ( _expressionImessages,_expressionInodeType) =
-                  (expression_ _expressionOinLoop _expressionOselectsOnly _expressionOsourcePos )
           in  ( _lhsOmessages,_lhsOnodeType)))
 sem_Expression_WindowFn :: T_Expression  ->
                            T_ExpressionList  ->
@@ -2833,6 +2080,132 @@ sem_FnBody_SqlFnBody sts_  =
               ( _stsImessages,_stsInodeType) =
                   (sts_ _stsOinLoop _stsOselectsOnly _stsOsourcePos )
           in  ( _lhsOmessages,_lhsOnodeType)))
+-- FunName -----------------------------------------------------
+data FunName  = ArraySub 
+              | ArrayVal 
+              | Between 
+              | Operator (String) 
+              | RowCtor 
+              | SimpleFun (String) 
+              | Substring 
+              deriving ( Eq,Show)
+-- cata
+sem_FunName :: FunName  ->
+               T_FunName 
+sem_FunName (ArraySub )  =
+    (sem_FunName_ArraySub )
+sem_FunName (ArrayVal )  =
+    (sem_FunName_ArrayVal )
+sem_FunName (Between )  =
+    (sem_FunName_Between )
+sem_FunName (Operator _string )  =
+    (sem_FunName_Operator _string )
+sem_FunName (RowCtor )  =
+    (sem_FunName_RowCtor )
+sem_FunName (SimpleFun _string )  =
+    (sem_FunName_SimpleFun _string )
+sem_FunName (Substring )  =
+    (sem_FunName_Substring )
+-- semantic domain
+type T_FunName  = Bool ->
+                  Bool ->
+                  MySourcePos ->
+                  ( ([Message]),Type)
+data Inh_FunName  = Inh_FunName {inLoop_Inh_FunName :: Bool,selectsOnly_Inh_FunName :: Bool,sourcePos_Inh_FunName :: MySourcePos}
+data Syn_FunName  = Syn_FunName {messages_Syn_FunName :: [Message],nodeType_Syn_FunName :: Type}
+wrap_FunName :: T_FunName  ->
+                Inh_FunName  ->
+                Syn_FunName 
+wrap_FunName sem (Inh_FunName _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
+    (let ( _lhsOmessages,_lhsOnodeType) =
+             (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
+     in  (Syn_FunName _lhsOmessages _lhsOnodeType ))
+sem_FunName_ArraySub :: T_FunName 
+sem_FunName_ArraySub  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOmessages =
+                  []
+              _lhsOnodeType =
+                  UnknownType
+          in  ( _lhsOmessages,_lhsOnodeType)))
+sem_FunName_ArrayVal :: T_FunName 
+sem_FunName_ArrayVal  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOmessages =
+                  []
+              _lhsOnodeType =
+                  UnknownType
+          in  ( _lhsOmessages,_lhsOnodeType)))
+sem_FunName_Between :: T_FunName 
+sem_FunName_Between  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOmessages =
+                  []
+              _lhsOnodeType =
+                  UnknownType
+          in  ( _lhsOmessages,_lhsOnodeType)))
+sem_FunName_Operator :: String ->
+                        T_FunName 
+sem_FunName_Operator string_  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOmessages =
+                  []
+              _lhsOnodeType =
+                  UnknownType
+          in  ( _lhsOmessages,_lhsOnodeType)))
+sem_FunName_RowCtor :: T_FunName 
+sem_FunName_RowCtor  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOmessages =
+                  []
+              _lhsOnodeType =
+                  UnknownType
+          in  ( _lhsOmessages,_lhsOnodeType)))
+sem_FunName_SimpleFun :: String ->
+                         T_FunName 
+sem_FunName_SimpleFun string_  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOmessages =
+                  []
+              _lhsOnodeType =
+                  UnknownType
+          in  ( _lhsOmessages,_lhsOnodeType)))
+sem_FunName_Substring :: T_FunName 
+sem_FunName_Substring  =
+    (\ _lhsIinLoop
+       _lhsIselectsOnly
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOmessages =
+                  []
+              _lhsOnodeType =
+                  UnknownType
+          in  ( _lhsOmessages,_lhsOnodeType)))
 -- IfExists ----------------------------------------------------
 data IfExists  = IfExists 
                | Require 
@@ -3344,6 +2717,42 @@ sem_Natural_Unnatural  =
               _lhsOnodeType =
                   UnknownType
           in  ( _lhsOmessages,_lhsOnodeType)))
+-- OperatorType ------------------------------------------------
+data OperatorType  = BinaryOp 
+                   | LeftUnary 
+                   | RightUnary 
+-- cata
+sem_OperatorType :: OperatorType  ->
+                    T_OperatorType 
+sem_OperatorType (BinaryOp )  =
+    (sem_OperatorType_BinaryOp )
+sem_OperatorType (LeftUnary )  =
+    (sem_OperatorType_LeftUnary )
+sem_OperatorType (RightUnary )  =
+    (sem_OperatorType_RightUnary )
+-- semantic domain
+type T_OperatorType  = ( )
+data Inh_OperatorType  = Inh_OperatorType {}
+data Syn_OperatorType  = Syn_OperatorType {}
+wrap_OperatorType :: T_OperatorType  ->
+                     Inh_OperatorType  ->
+                     Syn_OperatorType 
+wrap_OperatorType sem (Inh_OperatorType )  =
+    (let ( ) =
+             (sem )
+     in  (Syn_OperatorType ))
+sem_OperatorType_BinaryOp :: T_OperatorType 
+sem_OperatorType_BinaryOp  =
+    (let 
+     in  ( ))
+sem_OperatorType_LeftUnary :: T_OperatorType 
+sem_OperatorType_LeftUnary  =
+    (let 
+     in  ( ))
+sem_OperatorType_RightUnary :: T_OperatorType 
+sem_OperatorType_RightUnary  =
+    (let 
+     in  ( ))
 -- ParamDef ----------------------------------------------------
 data ParamDef  = ParamDef (String) (TypeName) 
                | ParamDefTp (TypeName) 
@@ -6422,115 +5831,6 @@ sem_TypeName_SetOfTypeName typeName_  =
 sem_TypeName_SimpleTypeName :: String ->
                                T_TypeName 
 sem_TypeName_SimpleTypeName string_  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
--- UnOp --------------------------------------------------------
-data UnOp  = Abs 
-           | IsNotNull 
-           | IsNull 
-           | Neg 
-           | Not 
-           | SetOf 
-           deriving ( Eq,Show)
--- cata
-sem_UnOp :: UnOp  ->
-            T_UnOp 
-sem_UnOp (Abs )  =
-    (sem_UnOp_Abs )
-sem_UnOp (IsNotNull )  =
-    (sem_UnOp_IsNotNull )
-sem_UnOp (IsNull )  =
-    (sem_UnOp_IsNull )
-sem_UnOp (Neg )  =
-    (sem_UnOp_Neg )
-sem_UnOp (Not )  =
-    (sem_UnOp_Not )
-sem_UnOp (SetOf )  =
-    (sem_UnOp_SetOf )
--- semantic domain
-type T_UnOp  = Bool ->
-               Bool ->
-               MySourcePos ->
-               ( ([Message]),Type)
-data Inh_UnOp  = Inh_UnOp {inLoop_Inh_UnOp :: Bool,selectsOnly_Inh_UnOp :: Bool,sourcePos_Inh_UnOp :: MySourcePos}
-data Syn_UnOp  = Syn_UnOp {messages_Syn_UnOp :: [Message],nodeType_Syn_UnOp :: Type}
-wrap_UnOp :: T_UnOp  ->
-             Inh_UnOp  ->
-             Syn_UnOp 
-wrap_UnOp sem (Inh_UnOp _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType) =
-             (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
-     in  (Syn_UnOp _lhsOmessages _lhsOnodeType ))
-sem_UnOp_Abs :: T_UnOp 
-sem_UnOp_Abs  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_UnOp_IsNotNull :: T_UnOp 
-sem_UnOp_IsNotNull  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_UnOp_IsNull :: T_UnOp 
-sem_UnOp_IsNull  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_UnOp_Neg :: T_UnOp 
-sem_UnOp_Neg  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_UnOp_Not :: T_UnOp 
-sem_UnOp_Not  =
-    (\ _lhsIinLoop
-       _lhsIselectsOnly
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
-sem_UnOp_SetOf :: T_UnOp 
-sem_UnOp_SetOf  =
     (\ _lhsIinLoop
        _lhsIselectsOnly
        _lhsIsourcePos ->

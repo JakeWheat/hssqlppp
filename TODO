@@ -1,3 +1,45 @@
+immediate list being worked on/ queued
+fix ast wrt functions and syntaxes which look a bit like function
+   calls (e.g. they have a name, you pass a list of expressions and
+   they produce an expression), this will hopefully involve fixing the
+   lexer to lex symbols properly
+   sub todo list:
+     fix ast
+     fix pretty printer
+     sort lexing
+     fix parser to work with new lex type
+     fix parser
+     fix tests
+     fix exes
+add type checking for these ast forms + tests
+sort out testing, rename Tests to parseandprettyprint tests or
+   something, add some lexing tests?, combine the separate test
+   files into one exe test runner.
+
+change so that select expressions have different ast node type to
+   select statements
+do some more work on type checking (how much?)
+work on error messages from lexer and parser,
+  think about adding more source location information
+  for the type checking, etc. to use in messages
+add support for following sql syntax (+ type checking)
+alter table, common variations
+create index
+create rule
+create trigger
++ drops for all creates
++ maybe alters?
+ctes
+loop, exit, labels
+easy ones: transactions, savepoints, listen
+prepare, execute + using
+then: review documentation
+  add a reasonably comprehensive list of what parses, what type checks
+    what syntax support is missing, what type checking support is missing
+
+
+Other todos
+------------------------
 Syntax support missing
 (turn this into a table at some point)
 some sql to do:
