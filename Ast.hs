@@ -10,7 +10,7 @@ getOperatorType s = case () of
                         | s `elem` ["is null", "is not null"] -> RightUnary
                         | s `elem` ["+", "-", "*", "/","^",
                                     "%","=","and","or","||",
-                                    "like","::","<>","<",">",
+                                    "like","<>","<",">",
                                     "<=",">=","<->"] -> BinaryOp
                         | otherwise -> error $ "don't know flavour of operator " ++ s
 
@@ -18,6 +18,8 @@ getOperatorType s = case () of
 
 instance Show Message where
    show m = showMessage m
+
+showMessage :: Message -> [Char]
 showMessage m = case m of
                   Error sp s -> showit "Error" sp s
                   Warning sp s -> showit "Warning" sp s
@@ -29,7 +31,13 @@ showMessage m = case m of
 
 
 setUnknown :: Type -> Type -> Type
-setUnknown t1 t2 = UnknownType
+setUnknown _ _ = UnknownType
+
+appendTypeList :: Type -> Type -> Type
+appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
+appendTypeList t1 t2 = TypeList (t1:t2:[])
+
+
 
 
 
@@ -55,11 +63,22 @@ propagateUnknownErrors ts t1 =
            | length unks > 0 -> UnknownType
            | otherwise -> t1
 
+checkTypesAre :: Type -> MySourcePos -> [Type] -> Type
+checkTypesAre typ sp l = propagateUnknownErrors l
+                          (let bad = filter (\t -> t /= typ) l
+                           in if length bad == 0
+                                then typ
+                                else TypeError sp (WrongTypes typ bad))
 
+checkSameTypes :: MySourcePos -> [Type]-> Type
+checkSameTypes sp l = propagateUnknownErrors l
+                        (if length l == 0
+                           then AnyElement
+                           else checkTypesAre (head l) sp l)
 
-extractArrayType :: Type -> Type
-extractArrayType (ArrayType t) = t
-extractArrayType t = error $ "extract array type not supported for type " ++ show t
+typesFromTypeList :: Type -> [Type]
+typesFromTypeList (TypeList ts) = ts
+typesFromTypeList x = error $ "can't get types from list " ++ show x
 
 
 checkAst :: StatementList -> [Message]
@@ -89,6 +108,7 @@ getExpressionType ex = let t = sem_ExpressionRoot (ExpressionRoot ex)
 resetSps :: [Statement] -> [Statement]
 resetSps sts = map resetSp sts
 
+resetSp :: Statement -> Statement
 resetSp (CreateFunction l n p r bq b v) = (CreateFunction l n p r bq
                                               (case b of
                                                 SqlFnBody stss -> SqlFnBody (map resetSp' stss)
@@ -99,6 +119,8 @@ resetSp (ForIntegerStatement v f t stss) = ForIntegerStatement v f t (map resetS
 resetSp (CaseStatement v cs els) = CaseStatement v (map (\(el,st) -> (el,map resetSp' st)) cs) (map resetSp' els)
 resetSp (If cs els) = If (map (\(el,st) -> (el,map resetSp' st)) cs) (map resetSp' els)
 resetSp a = a
+
+resetSp' :: SourcePosStatement -> SourcePosStatement
 resetSp' (_,st) = (nsp,resetSp st)
 
 resetSps' :: StatementList -> StatementList
@@ -213,7 +235,7 @@ sem_AttributeDefList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -241,7 +263,7 @@ sem_AttributeDefList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- Cascade -----------------------------------------------------
 data Cascade  = Cascade 
@@ -320,8 +342,8 @@ sem_CaseExpressionList_Cons hd_ tl_  =
     (\ _lhsIinLoop
        _lhsIselectsOnly
        _lhsIsourcePos ->
-         (let _lhsOnodeType :: Type
-              _lhsOmessages :: ([Message])
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
               _hdOinLoop :: Bool
               _hdOselectsOnly :: Bool
               _hdOsourcePos :: MySourcePos
@@ -332,14 +354,10 @@ sem_CaseExpressionList_Cons hd_ tl_  =
               _hdInodeType :: Type
               _tlImessages :: ([Message])
               _tlInodeType :: Type
-              _lhsOnodeType =
-                  if _hdInodeType /= ScalarType "Boolean"
-                     then TypeError
-                              _lhsIsourcePos
-                              (CaseExpressionNotBoolean _hdInodeType)
-                     else _tlInodeType
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
+              _lhsOnodeType =
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -362,12 +380,12 @@ sem_CaseExpressionList_Nil  =
     (\ _lhsIinLoop
        _lhsIselectsOnly
        _lhsIsourcePos ->
-         (let _lhsOnodeType :: Type
-              _lhsOmessages :: ([Message])
-              _lhsOnodeType =
-                  AnyElement
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
               _lhsOmessages =
                   []
+              _lhsOnodeType =
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- CaseExpressionListExpressionPair ----------------------------
 type CaseExpressionListExpressionPair  = ( (CaseExpressionList),(Expression))
@@ -410,7 +428,12 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
               _x2Imessages :: ([Message])
               _x2InodeType :: Type
               _lhsOnodeType =
-                  propagateUnknownError _x1InodeType _x2InodeType
+                  propagateUnknownError
+                    (checkTypesAre
+                      (ScalarType "Boolean")
+                      _lhsIsourcePos
+                      (typesFromTypeList _x1InodeType))
+                    _x2InodeType
               _lhsOmessages =
                   _x1Imessages ++ _x2Imessages
               _x1OinLoop =
@@ -458,8 +481,8 @@ sem_CaseExpressionListExpressionPairList_Cons hd_ tl_  =
     (\ _lhsIinLoop
        _lhsIselectsOnly
        _lhsIsourcePos ->
-         (let _lhsOnodeType :: Type
-              _lhsOmessages :: ([Message])
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
               _hdOinLoop :: Bool
               _hdOselectsOnly :: Bool
               _hdOsourcePos :: MySourcePos
@@ -470,20 +493,10 @@ sem_CaseExpressionListExpressionPairList_Cons hd_ tl_  =
               _hdInodeType :: Type
               _tlImessages :: ([Message])
               _tlInodeType :: Type
-              _lhsOnodeType =
-                  propagateUnknownError _tlInodeType
-                   (let t = _hdInodeType
-                    in case () of
-                         _ | _tlInodeType == AnyElement -> t
-                           | t == _tlInodeType -> t
-                           | otherwise ->
-                               TypeError
-                                 _lhsIsourcePos
-                                 (CaseExpressionThenMismatch
-                                  t
-                                  _tlInodeType))
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
+              _lhsOnodeType =
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -506,12 +519,12 @@ sem_CaseExpressionListExpressionPairList_Nil  =
     (\ _lhsIinLoop
        _lhsIselectsOnly
        _lhsIsourcePos ->
-         (let _lhsOnodeType :: Type
-              _lhsOmessages :: ([Message])
-              _lhsOnodeType =
-                  AnyElement
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
               _lhsOmessages =
                   []
+              _lhsOnodeType =
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- CombineType -------------------------------------------------
 data CombineType  = Except 
@@ -813,7 +826,7 @@ sem_ConstraintList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -841,7 +854,7 @@ sem_ConstraintList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- CopySource --------------------------------------------------
 data CopySource  = CopyFilename (String) 
@@ -1102,8 +1115,8 @@ sem_Expression (Exists _sel )  =
     (sem_Expression_Exists (sem_Statement _sel ) )
 sem_Expression (FloatLit _double )  =
     (sem_Expression_FloatLit _double )
-sem_Expression (FunCall _funName _expressionList )  =
-    (sem_Expression_FunCall (sem_FunName _funName ) (sem_ExpressionList _expressionList ) )
+sem_Expression (FunCall _funName _args )  =
+    (sem_Expression_FunCall (sem_FunName _funName ) (sem_ExpressionList _args ) )
 sem_Expression (Identifier _string )  =
     (sem_Expression_Identifier _string )
 sem_Expression (InPredicate _expression _bool _inList )  =
@@ -1162,7 +1175,8 @@ sem_Expression_Case cases_ els_  =
               _casesImessages :: ([Message])
               _casesInodeType :: Type
               _lhsOnodeType =
-                  _casesInodeType
+                  propagateUnknownErrors (typesFromTypeList _casesInodeType)
+                    (checkSameTypes _lhsIsourcePos (typesFromTypeList _casesInodeType))
               _lhsOmessages =
                   _casesImessages
               _casesOinLoop =
@@ -1296,42 +1310,62 @@ sem_Expression_FloatLit double_  =
 sem_Expression_FunCall :: T_FunName  ->
                           T_ExpressionList  ->
                           T_Expression 
-sem_Expression_FunCall funName_ expressionList_  =
+sem_Expression_FunCall funName_ args_  =
     (\ _lhsIinLoop
        _lhsIselectsOnly
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
               _funNameOinLoop :: Bool
               _funNameOselectsOnly :: Bool
               _funNameOsourcePos :: MySourcePos
-              _expressionListOinLoop :: Bool
-              _expressionListOselectsOnly :: Bool
-              _expressionListOsourcePos :: MySourcePos
+              _argsOinLoop :: Bool
+              _argsOselectsOnly :: Bool
+              _argsOsourcePos :: MySourcePos
               _funNameImessages :: ([Message])
               _funNameInodeType :: Type
-              _expressionListImessages :: ([Message])
-              _expressionListInodeType :: Type
-              _lhsOmessages =
-                  _funNameImessages ++ _expressionListImessages
+              _funNameIval :: FunName
+              _argsImessages :: ([Message])
+              _argsInodeType :: Type
               _lhsOnodeType =
-                  _funNameInodeType `setUnknown` _expressionListInodeType
+                  case _funNameIval of
+                    ArrayVal ->
+                        propagateUnknownErrors (typesFromTypeList _argsInodeType)
+                            (let t = (checkSameTypes
+                                      _lhsIsourcePos
+                                      (typesFromTypeList _argsInodeType))
+                             in propagateUnknownError
+                                 t
+                                 (ArrayType t))
+                    Operator s ->
+                        propagateUnknownErrors (typesFromTypeList _argsInodeType)
+                          (if s == "="
+                            then let t = (checkSameTypes
+                                          _lhsIsourcePos
+                                          (typesFromTypeList _argsInodeType))
+                                 in propagateUnknownError
+                                      t
+                                      (ScalarType "Boolean")
+                            else UnknownType)
+                    _ -> UnknownType
+              _lhsOmessages =
+                  _funNameImessages ++ _argsImessages
               _funNameOinLoop =
                   _lhsIinLoop
               _funNameOselectsOnly =
                   _lhsIselectsOnly
               _funNameOsourcePos =
                   _lhsIsourcePos
-              _expressionListOinLoop =
+              _argsOinLoop =
                   _lhsIinLoop
-              _expressionListOselectsOnly =
+              _argsOselectsOnly =
                   _lhsIselectsOnly
-              _expressionListOsourcePos =
+              _argsOsourcePos =
                   _lhsIsourcePos
-              ( _funNameImessages,_funNameInodeType) =
+              ( _funNameImessages,_funNameInodeType,_funNameIval) =
                   (funName_ _funNameOinLoop _funNameOselectsOnly _funNameOsourcePos )
-              ( _expressionListImessages,_expressionListInodeType) =
-                  (expressionList_ _expressionListOinLoop _expressionListOselectsOnly _expressionListOsourcePos )
+              ( _argsImessages,_argsInodeType) =
+                  (args_ _argsOinLoop _argsOselectsOnly _argsOsourcePos )
           in  ( _lhsOmessages,_lhsOnodeType)))
 sem_Expression_Identifier :: String ->
                              T_Expression 
@@ -1576,7 +1610,7 @@ sem_ExpressionList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -1604,7 +1638,7 @@ sem_ExpressionList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- ExpressionListList ------------------------------------------
 type ExpressionListList  = [(ExpressionList)]
@@ -1649,7 +1683,7 @@ sem_ExpressionListList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -1677,7 +1711,7 @@ sem_ExpressionListList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- ExpressionListStatementListPair -----------------------------
 type ExpressionListStatementListPair  = ( (ExpressionList),(StatementList))
@@ -1783,7 +1817,7 @@ sem_ExpressionListStatementListPairList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -1811,7 +1845,7 @@ sem_ExpressionListStatementListPairList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- ExpressionRoot ----------------------------------------------
 data ExpressionRoot  = ExpressionRoot (Expression) 
@@ -1959,7 +1993,7 @@ sem_ExpressionStatementListPairList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -1987,7 +2021,7 @@ sem_ExpressionStatementListPairList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- FnBody ------------------------------------------------------
 data FnBody  = PlpgsqlFnBody (VarDefList) (StatementList) 
@@ -2110,16 +2144,16 @@ sem_FunName (Substring )  =
 type T_FunName  = Bool ->
                   Bool ->
                   MySourcePos ->
-                  ( ([Message]),Type)
+                  ( ([Message]),Type,FunName)
 data Inh_FunName  = Inh_FunName {inLoop_Inh_FunName :: Bool,selectsOnly_Inh_FunName :: Bool,sourcePos_Inh_FunName :: MySourcePos}
-data Syn_FunName  = Syn_FunName {messages_Syn_FunName :: [Message],nodeType_Syn_FunName :: Type}
+data Syn_FunName  = Syn_FunName {messages_Syn_FunName :: [Message],nodeType_Syn_FunName :: Type,val_Syn_FunName :: FunName}
 wrap_FunName :: T_FunName  ->
                 Inh_FunName  ->
                 Syn_FunName 
 wrap_FunName sem (Inh_FunName _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType) =
+    (let ( _lhsOmessages,_lhsOnodeType,_lhsOval) =
              (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
-     in  (Syn_FunName _lhsOmessages _lhsOnodeType ))
+     in  (Syn_FunName _lhsOmessages _lhsOnodeType _lhsOval ))
 sem_FunName_ArraySub :: T_FunName 
 sem_FunName_ArraySub  =
     (\ _lhsIinLoop
@@ -2127,11 +2161,16 @@ sem_FunName_ArraySub  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  ArraySub
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_ArrayVal :: T_FunName 
 sem_FunName_ArrayVal  =
     (\ _lhsIinLoop
@@ -2139,11 +2178,16 @@ sem_FunName_ArrayVal  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  ArrayVal
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_Between :: T_FunName 
 sem_FunName_Between  =
     (\ _lhsIinLoop
@@ -2151,11 +2195,16 @@ sem_FunName_Between  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Between
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_Operator :: String ->
                         T_FunName 
 sem_FunName_Operator string_  =
@@ -2164,11 +2213,16 @@ sem_FunName_Operator string_  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Operator string_
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_RowCtor :: T_FunName 
 sem_FunName_RowCtor  =
     (\ _lhsIinLoop
@@ -2176,11 +2230,16 @@ sem_FunName_RowCtor  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  RowCtor
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_SimpleFun :: String ->
                          T_FunName 
 sem_FunName_SimpleFun string_  =
@@ -2189,11 +2248,16 @@ sem_FunName_SimpleFun string_  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  SimpleFun string_
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_Substring :: T_FunName 
 sem_FunName_Substring  =
     (\ _lhsIinLoop
@@ -2201,11 +2265,16 @@ sem_FunName_Substring  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Substring
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 -- IfExists ----------------------------------------------------
 data IfExists  = IfExists 
                | Require 
@@ -2874,7 +2943,7 @@ sem_ParamDefList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -2902,7 +2971,7 @@ sem_ParamDefList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- RaiseType ---------------------------------------------------
 data RaiseType  = RError 
@@ -3255,7 +3324,7 @@ sem_RowConstraintList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -3283,7 +3352,7 @@ sem_RowConstraintList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- SelectItem --------------------------------------------------
 data SelectItem  = SelExp (Expression) 
@@ -3406,7 +3475,7 @@ sem_SelectItemList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -3434,7 +3503,7 @@ sem_SelectItemList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- SelectList --------------------------------------------------
 data SelectList  = SelectList (SelectItemList) (StringList) 
@@ -3480,7 +3549,7 @@ sem_SelectList_SelectList selectItemList_ stringList_  =
               _lhsOmessages =
                   _selectItemListImessages ++ _stringListImessages
               _lhsOnodeType =
-                  _selectItemListInodeType `setUnknown` _stringListInodeType
+                  _selectItemListInodeType `appendTypeList` _stringListInodeType
               _selectItemListOinLoop =
                   _lhsIinLoop
               _selectItemListOselectsOnly =
@@ -3633,7 +3702,7 @@ sem_SetClauseList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -3661,7 +3730,7 @@ sem_SetClauseList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- SourcePosStatement ------------------------------------------
 type SourcePosStatement  = ( (MySourcePos),(Statement))
@@ -5070,7 +5139,7 @@ sem_StatementList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -5098,7 +5167,7 @@ sem_StatementList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- StringList --------------------------------------------------
 type StringList  = [(String)]
@@ -5158,7 +5227,7 @@ sem_StringList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- StringStringListPair ----------------------------------------
 type StringStringListPair  = ( (String),(StringList))
@@ -5251,7 +5320,7 @@ sem_StringStringListPairList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -5279,7 +5348,7 @@ sem_StringStringListPairList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- TableRef ----------------------------------------------------
 data TableRef  = JoinedTref (TableRef) (Natural) (JoinType) (TableRef) (Maybe JoinExpression) 
@@ -5500,6 +5569,7 @@ data Type  = AnyArray
            | ArrayType (Type) 
            | ScalarType (String) 
            | TypeError (MySourcePos) (TypeErrorInfo) 
+           | TypeList ([Type]) 
            | UnknownType 
            deriving ( Eq,Show)
 -- cata
@@ -5515,6 +5585,8 @@ sem_Type (ScalarType _string )  =
     (sem_Type_ScalarType _string )
 sem_Type (TypeError _mySourcePos _typeErrorInfo )  =
     (sem_Type_TypeError (sem_MySourcePos _mySourcePos ) (sem_TypeErrorInfo _typeErrorInfo ) )
+sem_Type (TypeList _tps )  =
+    (sem_Type_TypeList _tps )
 sem_Type (UnknownType )  =
     (sem_Type_UnknownType )
 -- semantic domain
@@ -5553,6 +5625,11 @@ sem_Type_TypeError mySourcePos_ typeErrorInfo_  =
     (let _mySourcePosIval :: MySourcePos
          ( _mySourcePosIval) =
              (mySourcePos_ )
+     in  ( ))
+sem_Type_TypeList :: ([Type]) ->
+                     T_Type 
+sem_Type_TypeList tps_  =
+    (let 
      in  ( ))
 sem_Type_UnknownType :: T_Type 
 sem_Type_UnknownType  =
@@ -5650,7 +5727,7 @@ sem_TypeAttributeDefList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -5678,25 +5755,16 @@ sem_TypeAttributeDefList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- TypeErrorInfo -----------------------------------------------
-data TypeErrorInfo  = ArgumentTypeMismatch (Type) (Type) 
-                    | ArrayElementMismatch (Type) (Type) 
-                    | CaseExpressionNotBoolean (Type) 
-                    | CaseExpressionThenMismatch (Type) (Type) 
+data TypeErrorInfo  = WrongTypes (Type) ([Type]) 
                     deriving ( Eq,Show)
 -- cata
 sem_TypeErrorInfo :: TypeErrorInfo  ->
                      T_TypeErrorInfo 
-sem_TypeErrorInfo (ArgumentTypeMismatch _expected _got )  =
-    (sem_TypeErrorInfo_ArgumentTypeMismatch (sem_Type _expected ) (sem_Type _got ) )
-sem_TypeErrorInfo (ArrayElementMismatch _expected _got )  =
-    (sem_TypeErrorInfo_ArrayElementMismatch (sem_Type _expected ) (sem_Type _got ) )
-sem_TypeErrorInfo (CaseExpressionNotBoolean _type )  =
-    (sem_TypeErrorInfo_CaseExpressionNotBoolean (sem_Type _type ) )
-sem_TypeErrorInfo (CaseExpressionThenMismatch _expected _got )  =
-    (sem_TypeErrorInfo_CaseExpressionThenMismatch (sem_Type _expected ) (sem_Type _got ) )
+sem_TypeErrorInfo (WrongTypes _expected _got )  =
+    (sem_TypeErrorInfo_WrongTypes (sem_Type _expected ) _got )
 -- semantic domain
 type T_TypeErrorInfo  = ( )
 data Inh_TypeErrorInfo  = Inh_TypeErrorInfo {}
@@ -5708,27 +5776,10 @@ wrap_TypeErrorInfo sem (Inh_TypeErrorInfo )  =
     (let ( ) =
              (sem )
      in  (Syn_TypeErrorInfo ))
-sem_TypeErrorInfo_ArgumentTypeMismatch :: T_Type  ->
-                                          T_Type  ->
-                                          T_TypeErrorInfo 
-sem_TypeErrorInfo_ArgumentTypeMismatch expected_ got_  =
-    (let 
-     in  ( ))
-sem_TypeErrorInfo_ArrayElementMismatch :: T_Type  ->
-                                          T_Type  ->
-                                          T_TypeErrorInfo 
-sem_TypeErrorInfo_ArrayElementMismatch expected_ got_  =
-    (let 
-     in  ( ))
-sem_TypeErrorInfo_CaseExpressionNotBoolean :: T_Type  ->
-                                              T_TypeErrorInfo 
-sem_TypeErrorInfo_CaseExpressionNotBoolean type_  =
-    (let 
-     in  ( ))
-sem_TypeErrorInfo_CaseExpressionThenMismatch :: T_Type  ->
-                                                T_Type  ->
-                                                T_TypeErrorInfo 
-sem_TypeErrorInfo_CaseExpressionThenMismatch expected_ got_  =
+sem_TypeErrorInfo_WrongTypes :: T_Type  ->
+                                ([Type]) ->
+                                T_TypeErrorInfo 
+sem_TypeErrorInfo_WrongTypes expected_ got_  =
     (let 
      in  ( ))
 -- TypeName ----------------------------------------------------
@@ -5934,7 +5985,7 @@ sem_VarDefList_Cons hd_ tl_  =
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
-                  _hdInodeType `setUnknown` _tlInodeType
+                  _hdInodeType `appendTypeList` _tlInodeType
               _hdOinLoop =
                   _lhsIinLoop
               _hdOselectsOnly =
@@ -5962,7 +6013,7 @@ sem_VarDefList_Nil  =
               _lhsOmessages =
                   []
               _lhsOnodeType =
-                  UnknownType
+                  TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- Volatility --------------------------------------------------
 data Volatility  = Immutable 

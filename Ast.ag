@@ -302,7 +302,7 @@ DATA Expression | IntegerLit Integer
                 | Case cases : CaseExpressionListExpressionPairList
                        els : (Maybe Expression)
                 | Exists sel : Statement
-                | FunCall FunName ExpressionList
+                | FunCall funName:FunName args:ExpressionList
                 | InPredicate Expression Bool InList
                   -- windowfn selectitem partitionby orderby orderbyasc?
                 | WindowFn fn : Expression
@@ -403,6 +403,8 @@ DERIVING MessageStuff: Show
 
 instance Show Message where
    show m = showMessage m
+
+showMessage :: Message -> [Char]
 showMessage m = case m of
                   Error sp s -> showit "Error" sp s
                   Warning sp s -> showit "Warning" sp s
@@ -446,6 +448,29 @@ SET AllNodes = Statement FnBody SetClause TableRef JoinExpression JoinType
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
                SourcePosStatement FunName
+
+
+SET NonListNodes = Statement FnBody SetClause TableRef JoinExpression JoinType
+               SelectItem CopySource AttributeDef RowConstraint
+               Constraint TypeAttributeDef ParamDef VarDef RaiseType
+               CombineType Volatility Language TypeName DropType Cascade
+               Direction Distinct Natural IfExists RestartIdentity
+               Expression InList
+               StringStringListPair ExpressionListStatementListPair
+               ExpressionStatementListPair
+               CaseExpressionListExpressionPair
+               SourcePosStatement FunName
+
+
+SET ListNodes = SelectList ExpressionList ExpressionListList StringList
+                SetClauseList
+               AttributeDefList ConstraintList TypeAttributeDefList
+               ParamDefList StringStringListPairList
+               StatementList
+               ExpressionListStatementListPairList
+               ExpressionStatementListPairList VarDefList SelectItemList
+               RowConstraintList
+               CaseExpressionListExpressionPairList CaseExpressionList
 
 DERIVING AllNodes: Show,Eq
 
@@ -664,24 +689,38 @@ DATA Type | ScalarType String
           | AnyArray
           | AnyElement
           | UnknownType
+          | TypeList tps:{[Type]}
           | TypeError MySourcePos TypeErrorInfo
 
-DATA TypeErrorInfo | ArrayElementMismatch expected:Type got:Type
-                   | CaseExpressionNotBoolean Type
-                   | CaseExpressionThenMismatch expected:Type got:Type
-                   | ArgumentTypeMismatch expected:Type got:Type
+DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
 
 DERIVING Type TypeErrorInfo: Show,Eq
 
-ATTR AllNodes Root ExpressionRoot
+ATTR NonListNodes Root ExpressionRoot
   [
   |
   | nodeType USE {`setUnknown`} {UnknownType} : {Type}
   ]
 
+
+ATTR ListNodes
+  [
+  |
+  | nodeType USE {`appendTypeList`} {TypeList []} : {Type}
+  ]
+
+
+-- type checking utilities
+
 {
 setUnknown :: Type -> Type -> Type
-setUnknown t1 t2 = UnknownType
+setUnknown _ _ = UnknownType
+
+appendTypeList :: Type -> Type -> Type
+appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
+appendTypeList t1 t2 = TypeList (t1:t2:[])
+
+
 }
 
 
@@ -709,8 +748,23 @@ propagateUnknownErrors ts t1 =
            | length unks > 0 -> UnknownType
            | otherwise -> t1
 
-}
+checkTypesAre :: Type -> MySourcePos -> [Type] -> Type
+checkTypesAre typ sp l = propagateUnknownErrors l
+                          (let bad = filter (\t -> t /= typ) l
+                           in if length bad == 0
+                                then typ
+                                else TypeError sp (WrongTypes typ bad))
 
+checkSameTypes :: MySourcePos -> [Type]-> Type
+checkSameTypes sp l = propagateUnknownErrors l
+                        (if length l == 0
+                           then AnyElement
+                           else checkTypesAre (head l) sp l)
+
+typesFromTypeList :: Type -> [Type]
+typesFromTypeList (TypeList ts) = ts
+typesFromTypeList x = error $ "can't get types from list " ++ show x
+}
 
 {-
 == literals
@@ -722,94 +776,57 @@ SEM Expression
      | FloatLit lhs.nodeType = ScalarType "Float"
      | BooleanLit lhs.nodeType = ScalarType "Boolean"
 
--- what this code calls an array literal isn't really a literal?
-{-
-SEM ArrayExpressionList
-    | Cons  lhs.nodeType = propagateUnknownError @tl.nodeType
-                            (let t = (ArrayType @hd.nodeType)
-                             in case () of
-                                  _ | @tl.nodeType == AnyArray -> t
-                                    | t == @tl.nodeType -> t
-                                    | otherwise ->
-                                        TypeError
-                                          @lhs.sourcePos
-                                          (ArrayElementMismatch
-                                           --swap the args since
-                                           --we check the array
-                                           --in reverse order
-                                           (extractArrayType t)
-                                           (extractArrayType @tl.nodeType)))
-    | Nil lhs.nodeType = AnyArray
--}
-{
-extractArrayType :: Type -> Type
-extractArrayType (ArrayType t) = t
-extractArrayType t = error $ "extract array type not supported for type " ++ show t
-}
-
 {-
 == simple operators
 -}
-{-SEM Expression
-    | BinOpCall lhs.nodeType = if @op.val == Eql
-                                    then
-                                     if @arg1.nodeType == @arg2.nodeType
-                                       then (ScalarType "Boolean")
-                                     else
-                                       (TypeError @lhs.sourcePos
-                                        (ArgumentTypeMismatch
-                                         @arg1.nodeType
-                                         @arg2.nodeType))
-                                    else UnknownType
 
-ATTR BinOp
+ATTR FunName
   [
   |
   | val : SELF
   ]
--}
-{-
-== case expression
-s
-check the when expressions are boolean
-inside the pairs, then just propagate the then type
-then check all the thens are consistent with each other and the else
-in the case node
-
--}
-SEM CaseExpressionListExpressionPair
-    | Tuple lhs.nodeType = propagateUnknownError @x1.nodeType @x2.nodeType
-
-SEM CaseExpressionListExpressionPairList
-    | Cons  lhs.nodeType = propagateUnknownError @tl.nodeType
-                            (let t = @hd.nodeType
-                             in case () of
-                                  _ | @tl.nodeType == AnyElement -> t
-                                    | t == @tl.nodeType -> t
-                                    | otherwise ->
-                                        TypeError
-                                          @lhs.sourcePos
-                                          (CaseExpressionThenMismatch
-                                           --swap the args since
-                                           --we check the thens
-                                           --in reverse order
-                                           t
-                                           @tl.nodeType))
-    | Nil lhs.nodeType = AnyElement
 
 SEM Expression
-    | Case lhs.nodeType = @cases.nodeType
+    | FunCall lhs.nodeType = case @funName.val of
+                               ArrayVal ->
+                                   propagateUnknownErrors (typesFromTypeList @args.nodeType)
+                                       (let t = (checkSameTypes
+                                                 @lhs.sourcePos
+                                                 (typesFromTypeList @args.nodeType))
+                                        in propagateUnknownError
+                                            t
+                                            (ArrayType t))
+                               Operator s ->
+                                   propagateUnknownErrors (typesFromTypeList @args.nodeType)
+                                     (if s == "="
+                                       then let t = (checkSameTypes
+                                                     @lhs.sourcePos
+                                                     (typesFromTypeList @args.nodeType))
+                                            in propagateUnknownError
+                                                 t
+                                                 (ScalarType "Boolean")
+                                       else UnknownType)
+                               _ -> UnknownType
 
-SEM CaseExpressionList
-    | Cons lhs.nodeType = if @hd.nodeType /= ScalarType "Boolean"
-                             then TypeError
-                                      @lhs.sourcePos
-                                      (CaseExpressionNotBoolean @hd.nodeType)
-                             else @tl.nodeType
-    | Nil lhs.nodeType = AnyElement
 
---                | Case cases : ExpressionListExpressionPairList
---                       els : (Maybe Expression)
+{-
+== case expression
+check the when expressions are boolean
+inside the pairs, then just propagate the then type
+
+-}
+
+SEM CaseExpressionListExpressionPair
+    | Tuple lhs.nodeType = propagateUnknownError
+                             (checkTypesAre
+                               (ScalarType "Boolean")
+                               @lhs.sourcePos
+                               (typesFromTypeList @x1.nodeType))
+                             @x2.nodeType
+
+SEM Expression
+    | Case lhs.nodeType = propagateUnknownErrors (typesFromTypeList @cases.nodeType)
+                            (checkSameTypes @lhs.sourcePos (typesFromTypeList @cases.nodeType))
 
 
 {-
@@ -865,6 +882,7 @@ getExpressionType ex = let t = sem_ExpressionRoot (ExpressionRoot ex)
 resetSps :: [Statement] -> [Statement]
 resetSps sts = map resetSp sts
 
+resetSp :: Statement -> Statement
 resetSp (CreateFunction l n p r bq b v) = (CreateFunction l n p r bq
                                               (case b of
                                                 SqlFnBody stss -> SqlFnBody (map resetSp' stss)
@@ -875,6 +893,8 @@ resetSp (ForIntegerStatement v f t stss) = ForIntegerStatement v f t (map resetS
 resetSp (CaseStatement v cs els) = CaseStatement v (map (\(el,st) -> (el,map resetSp' st)) cs) (map resetSp' els)
 resetSp (If cs els) = If (map (\(el,st) -> (el,map resetSp' st)) cs) (map resetSp' els)
 resetSp a = a
+
+resetSp' :: SourcePosStatement -> SourcePosStatement
 resetSp' (_,st) = (nsp,resetSp st)
 
 resetSps' :: StatementList -> StatementList

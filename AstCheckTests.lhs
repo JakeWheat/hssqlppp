@@ -50,18 +50,18 @@ types of error message received.
 >      ,p "array[1,2,3]" (ArrayType (ScalarType "Integer"))
 >      ,p "array['a','b']" (ArrayType (ScalarType "String"))
 >      ,p "array[1,'b']" (TypeError ("",0,0)
->                         (ArrayElementMismatch
+>                         (WrongTypes
 >                          (ScalarType "Integer")
->                          (ScalarType "String")))
+>                          [ScalarType "String"]))
 >      ])
 
 >    ,testGroup "some expressions"
 >     (mapExprType [
 >       p "1=1" (ScalarType "Boolean")
 >      ,p "1='test'" (TypeError ("",0,0)
->                     (ArgumentTypeMismatch
+>                     (WrongTypes
 >                     (ScalarType "Integer")
->                     (ScalarType "String")))
+>                     [ScalarType "String"]))
 >      ])
 
 >    ,testGroup "case expressions"
@@ -78,7 +78,8 @@ types of error message received.
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 'test'=3 then 'blah'\n\
 >         \ else 'test'\n\
->         \end" (ScalarType "String")
+>         \end" (TypeError ("",0,0)
+>                (WrongTypes (ScalarType "String") [ScalarType "Integer"]))
 >      ])
 
 >    ]
