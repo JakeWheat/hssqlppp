@@ -411,16 +411,16 @@ sem_BinOp (Pow )  =
 type T_BinOp  = Bool ->
                 Bool ->
                 MySourcePos ->
-                ( ([Message]),Type)
+                ( ([Message]),Type,BinOp)
 data Inh_BinOp  = Inh_BinOp {inLoop_Inh_BinOp :: Bool,selectsOnly_Inh_BinOp :: Bool,sourcePos_Inh_BinOp :: MySourcePos}
-data Syn_BinOp  = Syn_BinOp {messages_Syn_BinOp :: [Message],nodeType_Syn_BinOp :: Type}
+data Syn_BinOp  = Syn_BinOp {messages_Syn_BinOp :: [Message],nodeType_Syn_BinOp :: Type,val_Syn_BinOp :: BinOp}
 wrap_BinOp :: T_BinOp  ->
               Inh_BinOp  ->
               Syn_BinOp 
 wrap_BinOp sem (Inh_BinOp _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType) =
+    (let ( _lhsOmessages,_lhsOnodeType,_lhsOval) =
              (sem _lhsIinLoop _lhsIselectsOnly _lhsIsourcePos )
-     in  (Syn_BinOp _lhsOmessages _lhsOnodeType ))
+     in  (Syn_BinOp _lhsOmessages _lhsOnodeType _lhsOval ))
 sem_BinOp_And :: T_BinOp 
 sem_BinOp_And  =
     (\ _lhsIinLoop
@@ -428,11 +428,16 @@ sem_BinOp_And  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  And
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Cast :: T_BinOp 
 sem_BinOp_Cast  =
     (\ _lhsIinLoop
@@ -440,11 +445,16 @@ sem_BinOp_Cast  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Cast
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Conc :: T_BinOp 
 sem_BinOp_Conc  =
     (\ _lhsIinLoop
@@ -452,11 +462,16 @@ sem_BinOp_Conc  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Conc
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_DistBetween :: T_BinOp 
 sem_BinOp_DistBetween  =
     (\ _lhsIinLoop
@@ -464,11 +479,16 @@ sem_BinOp_DistBetween  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  DistBetween
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Div :: T_BinOp 
 sem_BinOp_Div  =
     (\ _lhsIinLoop
@@ -476,11 +496,16 @@ sem_BinOp_Div  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Div
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Eql :: T_BinOp 
 sem_BinOp_Eql  =
     (\ _lhsIinLoop
@@ -488,11 +513,16 @@ sem_BinOp_Eql  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Eql
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Gt :: T_BinOp 
 sem_BinOp_Gt  =
     (\ _lhsIinLoop
@@ -500,11 +530,16 @@ sem_BinOp_Gt  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Gt
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Gte :: T_BinOp 
 sem_BinOp_Gte  =
     (\ _lhsIinLoop
@@ -512,11 +547,16 @@ sem_BinOp_Gte  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Gte
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Like :: T_BinOp 
 sem_BinOp_Like  =
     (\ _lhsIinLoop
@@ -524,11 +564,16 @@ sem_BinOp_Like  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Like
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Lt :: T_BinOp 
 sem_BinOp_Lt  =
     (\ _lhsIinLoop
@@ -536,11 +581,16 @@ sem_BinOp_Lt  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Lt
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Lte :: T_BinOp 
 sem_BinOp_Lte  =
     (\ _lhsIinLoop
@@ -548,11 +598,16 @@ sem_BinOp_Lte  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Lte
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Minus :: T_BinOp 
 sem_BinOp_Minus  =
     (\ _lhsIinLoop
@@ -560,11 +615,16 @@ sem_BinOp_Minus  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Minus
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Mod :: T_BinOp 
 sem_BinOp_Mod  =
     (\ _lhsIinLoop
@@ -572,11 +632,16 @@ sem_BinOp_Mod  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Mod
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Mult :: T_BinOp 
 sem_BinOp_Mult  =
     (\ _lhsIinLoop
@@ -584,11 +649,16 @@ sem_BinOp_Mult  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Mult
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_NotEql :: T_BinOp 
 sem_BinOp_NotEql  =
     (\ _lhsIinLoop
@@ -596,11 +666,16 @@ sem_BinOp_NotEql  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  NotEql
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Or :: T_BinOp 
 sem_BinOp_Or  =
     (\ _lhsIinLoop
@@ -608,11 +683,16 @@ sem_BinOp_Or  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Or
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Plus :: T_BinOp 
 sem_BinOp_Plus  =
     (\ _lhsIinLoop
@@ -620,11 +700,16 @@ sem_BinOp_Plus  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Plus
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_BinOp_Pow :: T_BinOp 
 sem_BinOp_Pow  =
     (\ _lhsIinLoop
@@ -632,11 +717,16 @@ sem_BinOp_Pow  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: BinOp
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Pow
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 -- Cascade -----------------------------------------------------
 data Cascade  = Cascade 
               | Restrict 
@@ -1496,8 +1586,8 @@ sem_Expression (ArraySub _expression _expressionList )  =
     (sem_Expression_ArraySub (sem_Expression _expression ) (sem_ExpressionList _expressionList ) )
 sem_Expression (Between _val _lower _upper )  =
     (sem_Expression_Between (sem_Expression _val ) (sem_Expression _lower ) (sem_Expression _upper ) )
-sem_Expression (BinOpCall _binOp _arg1 _arg2 )  =
-    (sem_Expression_BinOpCall (sem_BinOp _binOp ) (sem_Expression _arg1 ) (sem_Expression _arg2 ) )
+sem_Expression (BinOpCall _op _arg1 _arg2 )  =
+    (sem_Expression_BinOpCall (sem_BinOp _op ) (sem_Expression _arg1 ) (sem_Expression _arg2 ) )
 sem_Expression (BooleanLit _bool )  =
     (sem_Expression_BooleanLit _bool )
 sem_Expression (Case _cases _els )  =
@@ -1670,36 +1760,46 @@ sem_Expression_BinOpCall :: T_BinOp  ->
                             T_Expression  ->
                             T_Expression  ->
                             T_Expression 
-sem_Expression_BinOpCall binOp_ arg1_ arg2_  =
+sem_Expression_BinOpCall op_ arg1_ arg2_  =
     (\ _lhsIinLoop
        _lhsIselectsOnly
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _binOpOinLoop :: Bool
-              _binOpOselectsOnly :: Bool
-              _binOpOsourcePos :: MySourcePos
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _opOinLoop :: Bool
+              _opOselectsOnly :: Bool
+              _opOsourcePos :: MySourcePos
               _arg1OinLoop :: Bool
               _arg1OselectsOnly :: Bool
               _arg1OsourcePos :: MySourcePos
               _arg2OinLoop :: Bool
               _arg2OselectsOnly :: Bool
               _arg2OsourcePos :: MySourcePos
-              _binOpImessages :: ([Message])
-              _binOpInodeType :: Type
+              _opImessages :: ([Message])
+              _opInodeType :: Type
+              _opIval :: BinOp
               _arg1Imessages :: ([Message])
               _arg1InodeType :: Type
               _arg2Imessages :: ([Message])
               _arg2InodeType :: Type
-              _lhsOmessages =
-                  _binOpImessages ++ _arg1Imessages ++ _arg2Imessages
               _lhsOnodeType =
-                  _binOpInodeType `setUnknown` _arg1InodeType `setUnknown` _arg2InodeType
-              _binOpOinLoop =
+                  if _opIval == Eql
+                       then
+                        if _arg1InodeType == _arg2InodeType
+                          then (ScalarType "Boolean")
+                        else
+                          (TypeError _lhsIsourcePos
+                           (ArgumentTypeMismatch
+                            _arg1InodeType
+                            _arg2InodeType))
+                       else UnknownType
+              _lhsOmessages =
+                  _opImessages ++ _arg1Imessages ++ _arg2Imessages
+              _opOinLoop =
                   _lhsIinLoop
-              _binOpOselectsOnly =
+              _opOselectsOnly =
                   _lhsIselectsOnly
-              _binOpOsourcePos =
+              _opOsourcePos =
                   _lhsIsourcePos
               _arg1OinLoop =
                   _lhsIinLoop
@@ -1713,8 +1813,8 @@ sem_Expression_BinOpCall binOp_ arg1_ arg2_  =
                   _lhsIselectsOnly
               _arg2OsourcePos =
                   _lhsIsourcePos
-              ( _binOpImessages,_binOpInodeType) =
-                  (binOp_ _binOpOinLoop _binOpOselectsOnly _binOpOsourcePos )
+              ( _opImessages,_opInodeType,_opIval) =
+                  (op_ _opOinLoop _opOselectsOnly _opOsourcePos )
               ( _arg1Imessages,_arg1InodeType) =
                   (arg1_ _arg1OinLoop _arg1OselectsOnly _arg1OsourcePos )
               ( _arg2Imessages,_arg2InodeType) =
@@ -6172,13 +6272,16 @@ sem_TypeAttributeDefList_Nil  =
                   UnknownType
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- TypeErrorInfo -----------------------------------------------
-data TypeErrorInfo  = ArrayElementMismatch (Type) (Type) 
+data TypeErrorInfo  = ArgumentTypeMismatch (Type) (Type) 
+                    | ArrayElementMismatch (Type) (Type) 
                     | CaseExpressionNotBoolean (Type) 
                     | CaseExpressionThenMismatch (Type) (Type) 
                     deriving ( Eq,Show)
 -- cata
 sem_TypeErrorInfo :: TypeErrorInfo  ->
                      T_TypeErrorInfo 
+sem_TypeErrorInfo (ArgumentTypeMismatch _expected _got )  =
+    (sem_TypeErrorInfo_ArgumentTypeMismatch (sem_Type _expected ) (sem_Type _got ) )
 sem_TypeErrorInfo (ArrayElementMismatch _expected _got )  =
     (sem_TypeErrorInfo_ArrayElementMismatch (sem_Type _expected ) (sem_Type _got ) )
 sem_TypeErrorInfo (CaseExpressionNotBoolean _type )  =
@@ -6196,6 +6299,12 @@ wrap_TypeErrorInfo sem (Inh_TypeErrorInfo )  =
     (let ( ) =
              (sem )
      in  (Syn_TypeErrorInfo ))
+sem_TypeErrorInfo_ArgumentTypeMismatch :: T_Type  ->
+                                          T_Type  ->
+                                          T_TypeErrorInfo 
+sem_TypeErrorInfo_ArgumentTypeMismatch expected_ got_  =
+    (let 
+     in  ( ))
 sem_TypeErrorInfo_ArrayElementMismatch :: T_Type  ->
                                           T_Type  ->
                                           T_TypeErrorInfo 

@@ -52,9 +52,32 @@ types of error message received.
 >                         (ArrayElementMismatch
 >                          (ScalarType "Integer")
 >                          (ScalarType "String")))
->      ,p "case\n\
+>      ])
+
+>    ,testGroup "some expressions"
+>     (mapExprType [
+>       p "1=1" (ScalarType "Boolean")
+>      ,p "1='test'" (TypeError ("",0,0)
+>                     (ArgumentTypeMismatch
+>                     (ScalarType "Integer")
+>                     (ScalarType "String")))
+>      ])
+
+>    ,testGroup "case expressions"
+>     (mapExprType [
+>       p "case\n\
 >         \ when true then 1\n\
 >         \end" (ScalarType "Integer")
+>      ,p "case\n\
+>         \ when 1=2 then 'stuff'\n\
+>         \ when 2=3 then 'blah'\n\
+>         \ else 'test'\n\
+>         \end" (ScalarType "String")
+>      ,p "case\n\
+>         \ when 1=2 then 'stuff'\n\
+>         \ when 'test'=3 then 'blah'\n\
+>         \ else 'test'\n\
+>         \end" (ScalarType "String")
 >      ])
 
 >    ]

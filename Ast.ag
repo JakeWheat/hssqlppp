@@ -358,7 +358,7 @@ DATA Expression | IntegerLit Integer
                 | Case cases : CaseExpressionListExpressionPairList
                        els : (Maybe Expression)
                 | Exists sel : Statement
-                | BinOpCall BinOp
+                | BinOpCall op: BinOp
                             arg1 : Expression
                             arg2 : Expression
                 | UnOpCall UnOp Expression
@@ -693,6 +693,7 @@ DATA Type | ScalarType String
 DATA TypeErrorInfo | ArrayElementMismatch expected:Type got:Type
                    | CaseExpressionNotBoolean Type
                    | CaseExpressionThenMismatch expected:Type got:Type
+                   | ArgumentTypeMismatch expected:Type got:Type
 
 DERIVING Type TypeErrorInfo: Show,Eq
 
@@ -770,8 +771,29 @@ extractArrayType t = error $ "extract array type not supported for type " ++ sho
 }
 
 {-
-== case expressions
+== simple operators
+-}
+SEM Expression
+    | BinOpCall lhs.nodeType = if @op.val == Eql
+                                    then
+                                     if @arg1.nodeType == @arg2.nodeType
+                                       then (ScalarType "Boolean")
+                                     else
+                                       (TypeError @lhs.sourcePos
+                                        (ArgumentTypeMismatch
+                                         @arg1.nodeType
+                                         @arg2.nodeType))
+                                    else UnknownType
 
+ATTR BinOp
+  [
+  |
+  | val : SELF
+  ]
+
+{-
+== case expression
+s
 check the when expressions are boolean
 inside the pairs, then just propagate the then type
 then check all the thens are consistent with each other and the else
