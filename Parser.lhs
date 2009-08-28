@@ -777,7 +777,9 @@ work
 >        <?> "expression"
 
 > factor :: ParsecT [Token] ParseState Identity Expression
-> factor = choice [
+> factor = threadOptionalSuffix fit castSuffix
+>          where
+>            fit = choice [
 
 order these so the ones which can be valid prefixes of others
 appear further down the list
@@ -787,30 +789,29 @@ can contain a lot of parens - check for nested ((
 This little addition speeds up ./ParseFile.lhs sqltestfiles/system.sql on my system
 from ~4 minutes to ~4 seconds
 
->          try (lookAhead (symbol "(" >> symbol "(")) >> parens expr
+>                try (lookAhead (symbol "(" >> symbol "(")) >> parens expr
 
 start with the factors which start with parens - eliminate scalar
 subquerys since they're easy to distinguish from the others then do in
 predicate before row constructor, since an in predicate can start with
 a row constructor, then finally vanilla parens
 
->          ,scalarSubQuery
->          ,try inPredicate
->          ,try rowCtor
->          --,castOp
->          ,parens expr
+>               ,scalarSubQuery
+>               ,try inPredicate
+>               ,try rowCtor
+>               ,parens expr
 
 we have two things which can start with a $,
 do the position arg first, then we can unconditionally
 try the dollar quoted string next
 
->          ,try positionalArg
+>               ,try positionalArg
 
 string using quotes don't start like anything else and we've
 already tried the other thing which starts with a $, so can
 parse without a try
 
->          ,stringLit
+>               ,stringLit
 
 anything starting with a number has to be a number, so this
 could probably appear anywhere in the list. Do float first
@@ -818,38 +819,38 @@ since the start of a float looks like an integer. Have to use
 try not just because float starts like an integer, but also
 to cope with .. operator
 
->          ,try floatLit
->          ,integerLit
+>               ,try floatLit
+>               ,integerLit
 
 put the factors which start with keywords before the ones which start
 with a function, I think these all need try because functions can
 start with the same letters as these keywords, and they have to be
 tried after these. This claim might be wrong
 
->          ,caseParse
->          ,exists
->          ,try booleanLit
->          ,try nullLit
+>               ,caseParse
+>               ,exists
+>               ,try booleanLit
+>               ,try nullLit
 
 do array before array sub, since array parses an array selector which
 looks exactly like an array subscript operator
 
->          ,arrayLit
->          ,try arraySub
+>               ,arrayLit
+>               ,try arraySub
 
 now the ones starting with a function name, since a function call
 looks like the start of a window expression, try the window expression
 first
 
->          ,try windowFn
+>               ,try windowFn
 
 try function call before identifier for same reason
 
->          ,castKeyword
->          ,substring
->          ,try betweenExp
->          ,try functionCall
->          ,try identifier]
+>               ,castKeyword
+>               ,substring
+>               ,try betweenExp
+>               ,try functionCall
+>               ,try identifier]
 
 == operator table
 
@@ -1062,9 +1063,8 @@ Thanks to Sam Mason for the heads up on this.
 >               CastKeyword <$> expr
 >                           <*> (keyword "as" *> typeName <* symbol ")")
 
-> castOp :: ParsecT [Token] ParseState Identity Expression
-> castOp = try (CastOp <$> expr
->                      <*> (symbol "::" *> typeName))
+> castSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
+> castSuffix ex = CastOp ex <$> (symbol "::" *> typeName)
 
 
 > substring :: ParsecT [Token] ParseState Identity Expression
