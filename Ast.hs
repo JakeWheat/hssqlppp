@@ -985,7 +985,7 @@ sem_DropType_View  =
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- Expression --------------------------------------------------
 data Expression  = BooleanLit (Bool) 
-                 | Case (CaseExpressionListExpressionPairList) (Maybe Expression) 
+                 | Case (CaseExpressionListExpressionPairList) (MaybeExpression) 
                  | CastKeyword (Expression) (TypeName) 
                  | CastOp (Expression) (TypeName) 
                  | Exists (SelectExpression) 
@@ -1006,7 +1006,7 @@ sem_Expression :: Expression  ->
 sem_Expression (BooleanLit _bool )  =
     (sem_Expression_BooleanLit _bool )
 sem_Expression (Case _cases _els )  =
-    (sem_Expression_Case (sem_CaseExpressionListExpressionPairList _cases ) _els )
+    (sem_Expression_Case (sem_CaseExpressionListExpressionPairList _cases ) (sem_MaybeExpression _els ) )
 sem_Expression (CastKeyword _expression _typeName )  =
     (sem_Expression_CastKeyword (sem_Expression _expression ) (sem_TypeName _typeName ) )
 sem_Expression (CastOp _expression _typeName )  =
@@ -1059,7 +1059,7 @@ sem_Expression_BooleanLit bool_  =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))
 sem_Expression_Case :: T_CaseExpressionListExpressionPairList  ->
-                       (Maybe Expression) ->
+                       T_MaybeExpression  ->
                        T_Expression 
 sem_Expression_Case cases_ els_  =
     (\ _lhsIinLoop
@@ -1068,19 +1068,33 @@ sem_Expression_Case cases_ els_  =
               _lhsOmessages :: ([Message])
               _casesOinLoop :: Bool
               _casesOsourcePos :: MySourcePos
+              _elsOinLoop :: Bool
+              _elsOsourcePos :: MySourcePos
               _casesImessages :: ([Message])
               _casesInodeType :: Type
+              _elsImessages :: ([Message])
+              _elsInodeType :: Type
               _lhsOnodeType =
                   propagateUnknownErrors (typesFromTypeList _casesInodeType)
-                    (checkSameTypes _lhsIsourcePos (typesFromTypeList _casesInodeType))
+                    (checkSameTypes
+                     _lhsIsourcePos
+                     (case _elsInodeType of
+                        AnyElement -> typesFromTypeList _casesInodeType
+                        e -> (typesFromTypeList _casesInodeType) ++ [e]))
               _lhsOmessages =
-                  _casesImessages
+                  _casesImessages ++ _elsImessages
               _casesOinLoop =
                   _lhsIinLoop
               _casesOsourcePos =
                   _lhsIsourcePos
+              _elsOinLoop =
+                  _lhsIinLoop
+              _elsOsourcePos =
+                  _lhsIsourcePos
               ( _casesImessages,_casesInodeType) =
                   (cases_ _casesOinLoop _casesOsourcePos )
+              ( _elsImessages,_elsInodeType) =
+                  (els_ _elsOinLoop _elsOsourcePos )
           in  ( _lhsOmessages,_lhsOnodeType)))
 sem_Expression_CastKeyword :: T_Expression  ->
                               T_TypeName  ->
@@ -1202,7 +1216,6 @@ sem_Expression_FunCall funName_ args_  =
               _lhsOnodeType =
                   case _funNameIval of
                     ArrayVal ->
-                        propagateUnknownErrors (typesFromTypeList _argsInodeType)
                             (let t = (checkSameTypes
                                       _lhsIsourcePos
                                       (typesFromTypeList _argsInodeType))
@@ -1210,7 +1223,6 @@ sem_Expression_FunCall funName_ args_  =
                                  t
                                  (ArrayType t))
                     Operator s ->
-                        propagateUnknownErrors (typesFromTypeList _argsInodeType)
                           (if s == "="
                             then let t = (checkSameTypes
                                           _lhsIsourcePos
@@ -2354,6 +2366,61 @@ sem_Language_Sql  =
                   []
               _lhsOnodeType =
                   UnknownType
+          in  ( _lhsOmessages,_lhsOnodeType)))
+-- MaybeExpression ---------------------------------------------
+type MaybeExpression  = (Maybe (Expression))
+-- cata
+sem_MaybeExpression :: MaybeExpression  ->
+                       T_MaybeExpression 
+sem_MaybeExpression (Prelude.Just x )  =
+    (sem_MaybeExpression_Just (sem_Expression x ) )
+sem_MaybeExpression Prelude.Nothing  =
+    sem_MaybeExpression_Nothing
+-- semantic domain
+type T_MaybeExpression  = Bool ->
+                          MySourcePos ->
+                          ( ([Message]),Type)
+data Inh_MaybeExpression  = Inh_MaybeExpression {inLoop_Inh_MaybeExpression :: Bool,sourcePos_Inh_MaybeExpression :: MySourcePos}
+data Syn_MaybeExpression  = Syn_MaybeExpression {messages_Syn_MaybeExpression :: [Message],nodeType_Syn_MaybeExpression :: Type}
+wrap_MaybeExpression :: T_MaybeExpression  ->
+                        Inh_MaybeExpression  ->
+                        Syn_MaybeExpression 
+wrap_MaybeExpression sem (Inh_MaybeExpression _lhsIinLoop _lhsIsourcePos )  =
+    (let ( _lhsOmessages,_lhsOnodeType) =
+             (sem _lhsIinLoop _lhsIsourcePos )
+     in  (Syn_MaybeExpression _lhsOmessages _lhsOnodeType ))
+sem_MaybeExpression_Just :: T_Expression  ->
+                            T_MaybeExpression 
+sem_MaybeExpression_Just just_  =
+    (\ _lhsIinLoop
+       _lhsIsourcePos ->
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _justOinLoop :: Bool
+              _justOsourcePos :: MySourcePos
+              _justImessages :: ([Message])
+              _justInodeType :: Type
+              _lhsOnodeType =
+                  _justInodeType
+              _lhsOmessages =
+                  _justImessages
+              _justOinLoop =
+                  _lhsIinLoop
+              _justOsourcePos =
+                  _lhsIsourcePos
+              ( _justImessages,_justInodeType) =
+                  (just_ _justOinLoop _justOsourcePos )
+          in  ( _lhsOmessages,_lhsOnodeType)))
+sem_MaybeExpression_Nothing :: T_MaybeExpression 
+sem_MaybeExpression_Nothing  =
+    (\ _lhsIinLoop
+       _lhsIsourcePos ->
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _lhsOnodeType =
+                  AnyElement
+              _lhsOmessages =
+                  []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- Message -----------------------------------------------------
 data Message  = Error (MySourcePos) (MessageStuff) 

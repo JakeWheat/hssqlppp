@@ -80,6 +80,18 @@ types of error message received.
 >         \ else 'test'\n\
 >         \end" (TypeError ("",0,0)
 >                (WrongTypes (ScalarType "String") [ScalarType "Integer"]))
+>      ,p "case\n\
+>         \ when 1=2 then 'stuff'\n\
+>         \ when 2=3 then 'blah'\n\
+>         \ else 1\n\
+>         \end" (TypeError ("",0,0)
+>                (WrongTypes (ScalarType "String") [ScalarType "Integer"]))
+>      ,p "case\n\
+>         \ when 1=2 then 'stuff'\n\
+>         \ when 2=3 then 1\n\
+>         \ else 'else'\n\
+>         \end" (TypeError ("",0,0)
+>                (WrongTypes (ScalarType "String") [ScalarType "Integer"]))
 >      ])
 
 >    ]

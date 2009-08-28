@@ -305,7 +305,7 @@ DATA Expression | IntegerLit Integer
                 | CastKeyword Expression TypeName
                 | Identifier String
                 | Case cases : CaseExpressionListExpressionPairList
-                       els : (Maybe Expression)
+                       els : MaybeExpression
                 | Exists sel : SelectExpression
                 | FunCall funName:FunName args:ExpressionList
                 | InPredicate Expression Bool InList
@@ -315,6 +315,8 @@ DATA Expression | IntegerLit Integer
                            orderBy : ExpressionList
                            dir : Direction
                 | ScalarSubQuery sel : SelectExpression
+
+TYPE MaybeExpression = MAYBE Expression
 
 -- we need information possibly for the lexer and parser for the
 -- pretty printer, and type information (including num arguments, type
@@ -443,7 +445,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpressi
                Constraint TypeAttributeDef ParamDef VarDef RaiseType
                CombineType Volatility Language TypeName DropType Cascade
                Direction Distinct Natural IfExists RestartIdentity
-               Expression InList
+               Expression InList MaybeExpression
                ExpressionList ExpressionListList StringList SetClauseList
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList StringStringListPair StringStringListPairList
@@ -460,7 +462,7 @@ SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpr
                Constraint TypeAttributeDef ParamDef VarDef RaiseType
                CombineType Volatility Language TypeName DropType Cascade
                Direction Distinct Natural IfExists RestartIdentity
-               Expression InList
+               Expression InList MaybeExpression
                StringStringListPair ExpressionListStatementListPair
                ExpressionStatementListPair
                CaseExpressionListExpressionPair
@@ -689,6 +691,9 @@ typesFromTypeList (TypeList ts) = ts
 typesFromTypeList x = error $ "can't get types from list " ++ show x
 }
 
+SEM MaybeExpression
+    | Just lhs.nodeType = @just.nodeType
+    | Nothing lhs.nodeType = AnyElement
 {-
 == literals
 -}
@@ -712,7 +717,6 @@ ATTR FunName
 SEM Expression
     | FunCall lhs.nodeType = case @funName.val of
                                ArrayVal ->
-                                   propagateUnknownErrors (typesFromTypeList @args.nodeType)
                                        (let t = (checkSameTypes
                                                  @lhs.sourcePos
                                                  (typesFromTypeList @args.nodeType))
@@ -720,7 +724,6 @@ SEM Expression
                                             t
                                             (ArrayType t))
                                Operator s ->
-                                   propagateUnknownErrors (typesFromTypeList @args.nodeType)
                                      (if s == "="
                                        then let t = (checkSameTypes
                                                      @lhs.sourcePos
@@ -749,7 +752,11 @@ SEM CaseExpressionListExpressionPair
 
 SEM Expression
     | Case lhs.nodeType = propagateUnknownErrors (typesFromTypeList @cases.nodeType)
-                            (checkSameTypes @lhs.sourcePos (typesFromTypeList @cases.nodeType))
+                            (checkSameTypes
+                             @lhs.sourcePos
+                             (case @els.nodeType of
+                                AnyElement -> typesFromTypeList @cases.nodeType
+                                e -> (typesFromTypeList @cases.nodeType) ++ [e]))
 
 
 {-
