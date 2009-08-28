@@ -48,9 +48,9 @@ parser rather than the full sql statement parser. (the expression parser
 requires a single expression followed by eof.)
 
 >       p "1" (IntegerLit 1)
->      ,p "-1" (opCall "-" [IntegerLit 1])
+>      ,p "-1" (opCall "u-" [IntegerLit 1])
 >      ,p "1.1" (FloatLit 1.1)
->      ,p "-1.1" (opCall "-" [FloatLit 1.1])
+>      ,p "-1.1" (opCall "u-" [FloatLit 1.1])
 >      ,p " 1 + 1 " (opCall "+" [IntegerLit 1
 >                               ,IntegerLit 1])
 >      ,p "1+1+1" (opCall "+" [opCall "+" [IntegerLit 1

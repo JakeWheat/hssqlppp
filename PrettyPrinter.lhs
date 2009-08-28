@@ -416,7 +416,10 @@ Conversion routines - convert Sql asts into Docs
 >                               parens (convExp (es !! 0)
 >                                       <+> text n
 >                                       <+> convExp (es !! 1))
->                           LeftUnary -> parens (text n <+> convExp (head es))
+>                           LeftUnary -> parens (text (if n == "u-"
+>                                                        then "-"
+>                                                        else n)
+>                                                <+> convExp (head es))
 >                           RightUnary -> parens (convExp (head es) <+> text n)
 > convExp (FunCall ArrayVal es) = text "array" <> brackets (csvExp es)
 > convExp (FunCall RowCtor es) = text "row" <> parens (hcatCsvMap convExp es)

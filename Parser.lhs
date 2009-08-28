@@ -864,7 +864,7 @@ syntactical novelty
 > table :: [[Operator [Token] ParseState Identity Expression]]
 > table = [--[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
->          [prefix "-" (FunCall (Operator "-"))]
+>          [prefix "-" (FunCall (Operator "u-"))]
 >         ,[binary "^" AssocLeft]
 >         ,[binary "*" AssocLeft
 >          ,idHackBinary "*" AssocLeft
@@ -886,14 +886,12 @@ syntactical novelty
 >          --between
 >          --overlaps
 >         ,[binaryk "like" AssocNone
->          ,binary "!=" AssocNone]
+>          ,binarycust "!=" "<>" AssocNone]
 >          --(also ilike similar)
 >         ,[lt "<" AssocNone
 >          ,binary ">" AssocNone]
 >          ,[binary "=" AssocRight
->          ,binary "<>" AssocNone
->          ,binary "!=" AssocNone
->          ]
+>          ,binary "<>" AssocNone]
 >         ,[prefixk "not" (FunCall (Operator "not"))]
 >         ,[binaryk "and" AssocLeft
 >          ,binaryk "or" AssocLeft]]
@@ -902,6 +900,8 @@ syntactical novelty
 >       --right whitespace behaviour
 >       binary s
 >          = Infix (try (symbol s >> (return $ (\l -> (\m -> (FunCall (Operator s)) [l,m])))))
+>       binarycust s t
+>          = Infix (try (symbol s >> (return $ (\l -> (\m -> (FunCall (Operator t)) [l,m])))))
 >       -- * ends up being lexed as an id token rather than a symbol
 >       -- * token, so work around here
 >       idHackBinary s

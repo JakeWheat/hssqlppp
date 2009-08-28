@@ -338,7 +338,7 @@ DATA OperatorType | BinaryOp | LeftUnary | RightUnary
 {
 getOperatorType :: String -> OperatorType
 getOperatorType s = case () of
-                      _ | s `elem` ["not", "@", "-"] -> LeftUnary
+                      _ | s `elem` ["not", "@", "u-"] -> LeftUnary
                         | s `elem` ["is null", "is not null"] -> RightUnary
                         | s `elem` ["+", "-", "*", "/","^",
                                     "%","=","and","or","||",
