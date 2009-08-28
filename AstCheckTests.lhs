@@ -6,6 +6,8 @@ Mainly test error messages from check failures from bad sql checks the
 source positions, even though they are a bit fragile and checks the
 types of error message received.
 
+> module AstCheckTests (astCheckTests) where
+
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
@@ -14,9 +16,8 @@ types of error message received.
 > import Ast
 > import Parser
 
-> main :: IO ()
-> main =
->   defaultMain [
+> astCheckTests :: Test.Framework.Test
+> astCheckTests = testGroup "astCheckTests" [
 >     testGroup "test test"
 >     (mapAttr [
 >       p "select 1;" []

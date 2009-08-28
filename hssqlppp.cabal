@@ -19,10 +19,14 @@ Library
   Exposed-modules:   Parser, PrettyPrinter
 
 
-Executable ParseFile
-  Main-is:           ParseFile.lhs
+Executable HsSqlSystem
+  Main-is:           HsSqlSystem.lhs
   Build-Depends:     base,
-                     haskell98
+                     haskell98,
+                     regex-posix,
+                     HDBC,
+                     HDBC-postgresql,
+                     directory
   Other-Modules:     Parser, PrettyPrinter
 
 Executable Tests
@@ -32,17 +36,4 @@ Executable Tests
                      test-framework,
                      test-framework-hunit
 
-  Other-Modules:     Parser, PrettyPrinter
-
-Executable LexFile
-  Main-is:           LexFile.lhs
-  Build-Depends:     base,
-                     haskell98
-  Other-Modules:     Parser, PrettyPrinter
-
-Executable RoundTripFile
-  Main-is:           RoundTripFile.lhs
-  Build-Depends:     base,
-                     haskell98,
-                     directory
   Other-Modules:     Parser, PrettyPrinter
