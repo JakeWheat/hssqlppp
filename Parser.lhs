@@ -289,7 +289,7 @@ recurses to support parsing excepts, unions, etc
 >                         <$> parens selectExpression
 >                         <*> (keyword "as" *> idString)
 >                        ,optionalSuffix
->                           TrefFun (try functionCall)
+>                           TrefFun (try $ identifier >>= functionCallSuffix)
 >                           TrefFunAlias () (keyword "as" *> idString)
 >                        ,optionalSuffix
 >                           Tref nkwid
@@ -780,12 +780,22 @@ work
 >        <?> "expression"
 
 > factor :: ParsecT [Token] ParseState Identity Expression
-> factor = threadOptionalSuffixes fit [castSuffix, betweenSuffix]
+> factor =
+
+First job is to take care of forms which start as a regular
+expression, and then add a suffix on
+
+>          threadOptionalSuffixes fct [castSuffix
+>                                     ,betweenSuffix
+>                                     ,arraySubSuffix]
 >          where
->            fit = choice [
+>            fct = choice [
 
 order these so the ones which can be valid prefixes of others
 appear further down the list
+
+probably want to refactor this to use the optionalsuffix parsers
+to improve speed
 
 One little speed optimisation, to help with pretty printed code which
 can contain a lot of parens - check for nested ((
@@ -800,15 +810,14 @@ predicate before row constructor, since an in predicate can start with
 a row constructor, then finally vanilla parens
 
 >               ,scalarSubQuery
->               ,try inPredicate
->               ,try rowCtor
+>               ,try $ threadOptionalSuffix rowCtor inPredicateSuffix
 >               ,parens expr
 
 we have two things which can start with a $,
 do the position arg first, then we can unconditionally
 try the dollar quoted string next
 
->               ,try positionalArg
+>               ,positionalArg
 
 string using quotes don't start like anything else and we've
 already tried the other thing which starts with a $, so can
@@ -816,43 +825,27 @@ parse without a try
 
 >               ,stringLit
 
-anything starting with a number has to be a number, so this
-could probably appear anywhere in the list. Do float first
-since the start of a float looks like an integer. Have to use
-try not just because float starts like an integer, but also
-to cope with .. operator
-
->               ,try floatLit
+>               ,floatLit
 >               ,integerLit
 
 put the factors which start with keywords before the ones which start
-with a function, I think these all need try because functions can
-start with the same letters as these keywords, and they have to be
-tried after these. This claim might be wrong
+with a function
 
 >               ,caseParse
 >               ,exists
->               ,try booleanLit
->               ,try nullLit
 
-do array before array sub, since array parses an array selector which
-looks exactly like an array subscript operator
+>               ,booleanLit
+>               ,nullLit
 
 >               ,arrayLit
->               ,try arraySub
 
-now the ones starting with a function name, since a function call
-looks like the start of a window expression, try the window expression
-first
-
->               ,try windowFn
-
-try function call before identifier for same reason
 
 >               ,castKeyword
 >               ,substring
->               ,try functionCall
->               ,try identifier]
+>               ,threadOptionalSuffixes
+>                 identifier
+>                 [inPredicateSuffix
+>                 ,\l -> threadOptionalSuffix (functionCallSuffix l) windowFnSuffix]]
 
 == operator table
 
@@ -949,11 +942,10 @@ symbol can appear in the operator table above for readability purposes
 in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
 
-> inPredicate :: ParsecT [Token] ParseState Identity Expression
-> inPredicate =
->   InPredicate
->   <$> (try rowCtor <|> Identifier <$> idString)
->   <*> option True (False <$ keyword "not")
+> inPredicateSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
+> inPredicateSuffix e =
+>   InPredicate e
+>   <$> option True (False <$ keyword "not")
 >   <*> (keyword "in" *> parens ((InSelect <$> selectExpression)
 >                                <|>
 >                                (InList <$> commaSep1 expr)))
@@ -1009,20 +1001,22 @@ expression when value' currently
 when you put expr instead of identifier in arraysub, it stack
 overflows, not sure why.
 
-> arraySub :: ParsecT [Token] ParseState Identity Expression
-> arraySub = FunCall ArraySub <$> (identifier <:> squares (commaSep1 expr))
+> arraySubSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
+> arraySubSuffix e = if e == Identifier "array"
+>                      then fail "can't use array as identifier name"
+>                      else FunCall ArraySub <$> ((e:) <$> squares (commaSep1 expr))
 
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
 
-> windowFn :: ParsecT [Token] ParseState Identity Expression
-> windowFn = WindowFn <$> functionCall <* keyword "over"
->                     <*> (symbol "(" *> option [] partitionBy)
->                     <*> option [] orderBy1
->                     <*> option Asc (try $ choice [
->                                                Asc <$ keyword "asc"
->                                               ,Desc <$ keyword "desc"])
->                          <* symbol ")"
+> windowFnSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
+> windowFnSuffix e = WindowFn e
+>                    <$> (keyword "over" *> (symbol "(" *> option [] partitionBy))
+>                    <*> option [] orderBy1
+>                    <*> option Asc (try $ choice [
+>                                             Asc <$ keyword "asc"
+>                                            ,Desc <$ keyword "desc"])
+>                            <* symbol ")"
 >   where
 >     orderBy1 = keyword "order" *> keyword "by" *> commaSep1 expr
 >     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
@@ -1054,14 +1048,14 @@ Thanks to Sam Mason for the heads up on this.
 >              where
 >                dodgyParseElement =
 >                    choice [
->                       functionCall
->                      ,identifier
+>                       threadOptionalSuffix identifier functionCallSuffix
 >                      ,parens dodgyParseElement
 >                      ,stringLit
 >                      ,integerLit]
 
-> functionCall :: ParsecT [Token] ParseState Identity Expression
-> functionCall = FunCall <$> (SimpleFun <$> idString) <*> parens (commaSep expr)
+> functionCallSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
+> functionCallSuffix (Identifier fnName) = FunCall (SimpleFun fnName) <$> parens (commaSep expr)
+> functionCallSuffix s = error $ "cannot make functioncall from " ++ show s
 
 > castKeyword :: ParsecT [Token] ParseState Identity Expression
 > castKeyword = keyword "cast" *> symbol "(" >>
