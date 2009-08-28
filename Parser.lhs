@@ -780,7 +780,7 @@ work
 >        <?> "expression"
 
 > factor :: ParsecT [Token] ParseState Identity Expression
-> factor = threadOptionalSuffix fit castSuffix
+> factor = threadOptionalSuffixes fit [castSuffix, betweenSuffix]
 >          where
 >            fit = choice [
 
@@ -851,7 +851,6 @@ try function call before identifier for same reason
 
 >               ,castKeyword
 >               ,substring
->               ,try betweenExp
 >               ,try functionCall
 >               ,try identifier]
 
@@ -1028,9 +1027,8 @@ fn() over ([partition bit]? [order bit]?)
 >     orderBy1 = keyword "order" *> keyword "by" *> commaSep1 expr
 >     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
 
-> betweenExp :: ParsecT [Token] ParseState Identity Expression
-> betweenExp = do
->   a <- identifier
+> betweenSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
+> betweenSuffix a = do
 >   keyword "between"
 >   b <- dodgyParseElement
 >   keyword "and"
@@ -1059,6 +1057,7 @@ Thanks to Sam Mason for the heads up on this.
 >                       functionCall
 >                      ,identifier
 >                      ,parens dodgyParseElement
+>                      ,stringLit
 >                      ,integerLit]
 
 > functionCall :: ParsecT [Token] ParseState Identity Expression
@@ -1277,6 +1276,14 @@ p1 = do
 couldn't work how to to perms so just did this hack instead
 e.g.
 a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
+
+> threadOptionalSuffixes :: ParsecT [tok] st Identity a
+>                        -> [a -> GenParser tok st a]
+>                        -> ParsecT [tok] st Identity a
+> threadOptionalSuffixes p1 p2s = do
+>   x <- p1
+>   option x (try $ choice (map (\l -> l x) p2s))
+
 
 > multiPerm :: (Stream s m t) =>
 >                ParsecT s u m a1

@@ -79,7 +79,11 @@ types of error message received.
 >                                    ,ScalarType "Integer"
 >                                    ,ScalarType "String"]))
 
-between
+>      ,p "3 between 2 and 4" (ScalarType "Boolean")
+>      ,p "3 between '2' and 4" (TypeError ("",0,0)
+>                                (WrongTypes (ScalarType "Integer")
+>                                 [ScalarType "String"]))
+
 arraysub
 rowctor
 not @ -u -b

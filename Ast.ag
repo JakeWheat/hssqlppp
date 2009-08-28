@@ -619,6 +619,7 @@ DATA Type | ScalarType String
 
 DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
                    | WrongTypeList expected:{[Type]} got:{[Type]}
+                   | WrongNumArgs expected:Int got:Int
 
 DERIVING Type TypeErrorInfo: Show,Eq
 
@@ -682,6 +683,13 @@ checkSameTypes sp l = propagateUnknownErrors l
                            then AnyElement
                            else checkTypesAre (head l) sp l)
 
+checkSameTypesNum :: MySourcePos -> Int -> [Type] -> Type
+checkSameTypesNum sp n l = propagateUnknownErrors l
+                        (if length l /= n
+                           then TypeError sp (WrongNumArgs n (length l))
+                           else checkTypesAre (head l) sp l)
+
+
 checkExactTypes :: MySourcePos -> [Type] -> [Type] -> Type
 checkExactTypes sp ts es = propagateUnknownErrors es
                            (if ts /= es
@@ -734,6 +742,14 @@ SEM Expression
                                       ,ScalarType "Integer"]
                                       (typesFromTypeList @args.nodeType))
                                      (ScalarType "String")
+                               Between ->
+                                   propagateUnknownError
+                                     (checkSameTypesNum
+                                      @lhs.sourcePos
+                                      3
+                                      (typesFromTypeList @args.nodeType))
+                                     (ScalarType "Boolean")
+
                                Operator s ->
                                      (if s == "="
                                        then let t = (checkSameTypes

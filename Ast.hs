@@ -73,6 +73,13 @@ checkSameTypes sp l = propagateUnknownErrors l
                            then AnyElement
                            else checkTypesAre (head l) sp l)
 
+checkSameTypesNum :: MySourcePos -> Int -> [Type] -> Type
+checkSameTypesNum sp n l = propagateUnknownErrors l
+                        (if length l /= n
+                           then TypeError sp (WrongNumArgs n (length l))
+                           else checkTypesAre (head l) sp l)
+
+
 checkExactTypes :: MySourcePos -> [Type] -> [Type] -> Type
 checkExactTypes sp ts es = propagateUnknownErrors es
                            (if ts /= es
@@ -1234,6 +1241,13 @@ sem_Expression_FunCall funName_ args_  =
                            ,ScalarType "Integer"]
                            (typesFromTypeList _argsInodeType))
                           (ScalarType "String")
+                    Between ->
+                        propagateUnknownError
+                          (checkSameTypesNum
+                           _lhsIsourcePos
+                           3
+                           (typesFromTypeList _argsInodeType))
+                          (ScalarType "Boolean")
                     Operator s ->
                           (if s == "="
                             then let t = (checkSameTypes
@@ -5234,12 +5248,15 @@ sem_TypeAttributeDefList_Nil  =
                   TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- TypeErrorInfo -----------------------------------------------
-data TypeErrorInfo  = WrongTypeList ([Type]) ([Type]) 
+data TypeErrorInfo  = WrongNumArgs (Int) (Int) 
+                    | WrongTypeList ([Type]) ([Type]) 
                     | WrongTypes (Type) ([Type]) 
                     deriving ( Eq,Show)
 -- cata
 sem_TypeErrorInfo :: TypeErrorInfo  ->
                      T_TypeErrorInfo 
+sem_TypeErrorInfo (WrongNumArgs _expected _got )  =
+    (sem_TypeErrorInfo_WrongNumArgs _expected _got )
 sem_TypeErrorInfo (WrongTypeList _expected _got )  =
     (sem_TypeErrorInfo_WrongTypeList _expected _got )
 sem_TypeErrorInfo (WrongTypes _expected _got )  =
@@ -5255,6 +5272,12 @@ wrap_TypeErrorInfo sem (Inh_TypeErrorInfo )  =
     (let ( ) =
              (sem )
      in  (Syn_TypeErrorInfo ))
+sem_TypeErrorInfo_WrongNumArgs :: Int ->
+                                  Int ->
+                                  T_TypeErrorInfo 
+sem_TypeErrorInfo_WrongNumArgs expected_ got_  =
+    (let 
+     in  ( ))
 sem_TypeErrorInfo_WrongTypeList :: ([Type]) ->
                                    ([Type]) ->
                                    T_TypeErrorInfo 
