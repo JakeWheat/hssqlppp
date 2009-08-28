@@ -39,19 +39,15 @@ Conversion routines - convert Sql asts into Docs
 
 == selects
 
-> convStatement s@(Select _ _ _ _ _ _ _ _ _ _) =
->   convSelectFragment True s <> statementEnd
-> convStatement s@(CombineSelect _ _ _) =
->   convSelectFragment True s <> statementEnd
-
-> convStatement v@(Values _) = convSelectFragment True v <> statementEnd
+> convStatement (SelectStatement s) =
+>   convSelectExpression True s <> statementEnd
 
 == dml
 
 > convStatement (Insert tb atts idata rt) =
 >   text "insert into" <+> text tb
 >   <+> ifNotEmpty (parens . hcatCsvMap text) atts
->   $+$ convSelectFragment True idata
+>   $+$ convSelectExpression True idata
 >   $+$ convReturning rt
 >   <> statementEnd
 
@@ -123,7 +119,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (CreateTableAs t sel) =
 >     text "create table"
 >     <+> text t <+> text "as"
->     $+$ convSelectFragment True sel
+>     $+$ convSelectExpression True sel
 >     <> statementEnd
 
 > convStatement (CreateFunction lang name args retType qt body vol) =
@@ -158,7 +154,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (CreateView name sel) =
 >     text "create view" <+> text name <+> text "as"
->     $+$ nest 2 (convSelectFragment True sel) <> statementEnd
+>     $+$ nest 2 (convSelectExpression True sel) <> statementEnd
 
 > convStatement (CreateDomain name tp ex) =
 >     text "create domain" <+> text name <+> text "as"
@@ -208,7 +204,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (ReturnQuery sel) =
 >     text "return" <+> text "query"
->     <+> convSelectFragment True sel <> statementEnd
+>     <+> convSelectExpression True sel <> statementEnd
 
 > convStatement (Raise rt st exps) =
 >     text "raise"
@@ -222,7 +218,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement (ForSelectStatement i sel stmts) =
 >     text "for" <+> text i <+> text "in"
->     <+> convSelectFragment True sel <+> text "loop"
+>     <+> convSelectExpression True sel <+> text "loop"
 >     $+$ convNestedStatements stmts
 >     $+$ text "end loop" <> statementEnd
 
@@ -288,8 +284,8 @@ Conversion routines - convert Sql asts into Docs
 
 == selects
 
-> convSelectFragment :: Bool -> Statement -> Doc
-> convSelectFragment writeSelect (Select dis l tb wh grp hav
+> convSelectExpression :: Bool -> SelectExpression -> Doc
+> convSelectExpression writeSelect (Select dis l tb wh grp hav
 >                                 ord orddir lim off) =
 >   text (if writeSelect then "select" else "")
 >   <+> (case dis of
@@ -328,7 +324,7 @@ Conversion routines - convert Sql asts into Docs
 >               text "using" <+> parens (hcatCsvMap text ids)
 
 >     convTref (SubTref sub alias) =
->         parens (convSelectFragment True sub)
+>         parens (convSelectExpression True sub)
 >         <+> text "as" <+> text alias
 >     convTref (TrefFun f@(FunCall _ _)) = convExp f
 >     convTref (TrefFun x) =
@@ -338,18 +334,16 @@ Conversion routines - convert Sql asts into Docs
 >     convTref (TrefFunAlias x _) =
 >         error $ "node not supported in function tref: " ++ show x
 
-> convSelectFragment writeSelect (CombineSelect tp s1 s2) =
->   convSelectFragment writeSelect s1
+> convSelectExpression writeSelect (CombineSelect tp s1 s2) =
+>   convSelectExpression writeSelect s1
 >   $+$ (case tp of
 >          Except -> text "except"
 >          Union -> text "union"
 >          UnionAll -> text "union" <+> text "all"
 >          Intersect -> text "intersect")
->   $+$ convSelectFragment True s2
-> convSelectFragment _ (Values expss) =
+>   $+$ convSelectExpression True s2
+> convSelectExpression _ (Values expss) =
 >   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
-
-> convSelectFragment _ a = error $ "no convSelectFragment for " ++ show a
 
 > convDir :: Direction -> Doc
 > convDir d = text $ case d of
@@ -442,8 +436,8 @@ Conversion routines - convert Sql asts into Docs
 >   convExp att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
 >                        InList expr -> csvExp expr
->                        InSelect sel -> convSelectFragment True sel)
-> convExp (ScalarSubQuery s) = parens (convSelectFragment True s)
+>                        InSelect sel -> convSelectExpression True sel)
+> convExp (ScalarSubQuery s) = parens (convSelectExpression True s)
 > convExp NullLit = text "null"
 > convExp (WindowFn fn partition order asc) =
 >   convExp fn <+> text "over"
@@ -471,7 +465,7 @@ Conversion routines - convert Sql asts into Docs
 >             <+> text "then" <+> convExp ex2
 
 > convExp (PositionalArg a) = text "$" <> integer a
-> convExp (Exists s) = text "exists" <+> parens (convSelectFragment True s)
+> convExp (Exists s) = text "exists" <+> parens (convSelectExpression True s)
 > convExp (CastKeyword ex t) = text "cast" <> parens (convExp ex
 >                                                     <+> text "as"
 >                                                     <+> convTypeName t)

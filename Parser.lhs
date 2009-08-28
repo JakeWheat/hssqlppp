@@ -182,8 +182,7 @@ parse a statement
 > sqlStatement reqSemi = do
 >    p <- getAdjustedPosition
 >    st <- ((choice [
->                          select
->                         ,values
+>                          selectStatement
 >                         ,insert
 >                         ,update
 >                         ,delete
@@ -235,113 +234,117 @@ or
 
 recurses to support parsing excepts, unions, etc
 
-> select :: ParsecT [Token] ParseState Identity Statement
-> select = do
->   keyword "select"
->   s1 <- selQuerySpec
->   choice [
->     --don't know if this does associativity in the correct order for
->     --statements with multiple excepts/ intersects and no parens
->     CombineSelect Except s1 <$> (keyword "except" *> select)
->    ,CombineSelect Intersect s1 <$> (keyword "intersect" *> select)
->    ,CombineSelect UnionAll s1 <$> (try (keyword "union"
->                                          *> keyword "all") *> select)
->    ,CombineSelect Union s1 <$> (keyword "union" *> select)
->    ,return s1]
+> selectStatement :: ParsecT [Token] ParseState Identity Statement
+> selectStatement = SelectStatement <$> selectExpression
+
+> selectExpression :: ParsecT [Token] ParseState Identity SelectExpression
+> selectExpression =
+>   choice [selectE, values]
 >   where
->     selQuerySpec = Select
->                <$> option Dupes (Distinct <$ keyword "distinct")
->                <*> selectList
->                <*> tryOptionMaybe from
->                <*> tryOptionMaybe whereClause
->                <*> option [] groupBy
->                <*> tryOptionMaybe having
->                <*> option [] orderBy
->                <*> option Asc (choice [
->                                 Asc <$ keyword "asc"
->                                ,Desc <$ keyword "desc"])
->                <*> tryOptionMaybe limit
->                <*> tryOptionMaybe offset
->     from = keyword "from" *> tref
->     groupBy = keyword "group" *> keyword "by"
->               *> commaSep1 expr
->     having = keyword "having" *> expr
->     orderBy = keyword "order" *> keyword "by"
->               *> commaSep1 expr
->     limit = keyword "limit" *> expr
->     offset = keyword "offset" *> expr
+>     selectE = do
+>       keyword "select"
+>       s1 <- selQuerySpec
+>       choice [
+>         --don't know if this does associativity in the correct order for
+>         --statements with multiple excepts/ intersects and no parens
+>         CombineSelect Except s1 <$> (keyword "except" *> selectExpression)
+>        ,CombineSelect Intersect s1 <$> (keyword "intersect" *> selectExpression)
+>        ,CombineSelect UnionAll s1 <$> (try (keyword "union"
+>                                              *> keyword "all") *> selectExpression)
+>        ,CombineSelect Union s1 <$> (keyword "union" *> selectExpression)
+>        ,return s1]
+>       where
+>         selQuerySpec = Select
+>                    <$> option Dupes (Distinct <$ keyword "distinct")
+>                    <*> selectList
+>                    <*> tryOptionMaybe from
+>                    <*> tryOptionMaybe whereClause
+>                    <*> option [] groupBy
+>                    <*> tryOptionMaybe having
+>                    <*> option [] orderBy
+>                    <*> option Asc (choice [
+>                                     Asc <$ keyword "asc"
+>                                    ,Desc <$ keyword "desc"])
+>                    <*> tryOptionMaybe limit
+>                    <*> tryOptionMaybe offset
+>         from = keyword "from" *> tref
+>         groupBy = keyword "group" *> keyword "by"
+>                   *> commaSep1 expr
+>         having = keyword "having" *> expr
+>         orderBy = keyword "order" *> keyword "by"
+>                   *> commaSep1 expr
+>         limit = keyword "limit" *> expr
+>         offset = keyword "offset" *> expr
 
->     -- table refs
->     -- have to cope with:
->     -- a simple tableref i.e just a name
->     -- an aliased table ref e.g. select a.b from tbl as a
->     -- a sub select e.g. select a from (select b from c)
->     --  - these are handled in tref
->     -- then cope with joins recursively using joinpart below
->     tref = threadOptionalSuffix getFirstTref joinPart
->     getFirstTref = choice [
->                     SubTref
->                     <$> parens select
->                     <*> (keyword "as" *> idString)
->                    ,optionalSuffix
->                       TrefFun (try functionCall)
->                       TrefFunAlias () (keyword "as" *> idString)
->                    ,optionalSuffix
->                       Tref nkwid
->                       TrefAlias () (optional (keyword "as") *> nkwid)]
->     --joinpart: parse a join after the first part of the tableref
->     --(which is a table name, aliased table name or subselect) -
->     --takes this tableref as an arg so it can recurse to multiple
->     --joins
->     joinPart tr1 = threadOptionalSuffix (readOneJoinPart tr1) joinPart
->     readOneJoinPart tr1 = JoinedTref tr1
->          --look for the join flavour first
->          <$> option Unnatural (Natural <$ keyword "natural")
->          <*> choice [
->             Inner <$ keyword "inner"
->            ,LeftOuter <$ try (keyword "left" *> keyword "outer")
->            ,RightOuter <$ try (keyword "right" *> keyword "outer")
->            ,FullOuter <$ try (keyword "full" >> keyword "outer")
->            ,Cross <$ keyword "cross"]
->          --recurse back to tref to read the table
->          <*> (keyword "join" *> tref)
->          --now try and read the join condition
->          <*> choice [
->              Just <$> (JoinOn <$> (keyword "on" *> expr))
->             ,Just <$> (JoinUsing <$> (keyword "using" *> columnNameList))
->             ,return Nothing]
->     nkwid = try $ do
->              x <- idString
->              --avoid all these keywords as aliases since they can
->              --appear immediately following a tableref as the next
->              --part of the statement, if we don't do this then lots
->              --of things don't parse. Seems a bit inelegant but
->              --works for the tests and the test sql files don't know
->              --if these should be allowed as aliases without "" or
->              --[]
->              if map toLower x `elem` ["as"
->                          ,"where"
->                          ,"except"
->                          ,"union"
->                          ,"intersect"
->                          ,"loop"
->                          ,"inner"
->                          ,"on"
->                          ,"left"
->                          ,"right"
->                          ,"full"
->                          ,"cross"
->                          ,"natural"
->                          ,"order"
->                          ,"group"
->                          ,"limit"
->                          ,"using"]
->                then fail "not keyword"
->                else return x
-
-> values :: ParsecT [Token] ParseState Identity Statement
-> values = keyword "values" >>
->          Values <$> commaSep1 (parens $ commaSep1 expr)
+>         -- table refs
+>         -- have to cope with:
+>         -- a simple tableref i.e just a name
+>         -- an aliased table ref e.g. select a.b from tbl as a
+>         -- a sub select e.g. select a from (select b from c)
+>         --  - these are handled in tref
+>         -- then cope with joins recursively using joinpart below
+>         tref = threadOptionalSuffix getFirstTref joinPart
+>         getFirstTref = choice [
+>                         SubTref
+>                         <$> parens selectExpression
+>                         <*> (keyword "as" *> idString)
+>                        ,optionalSuffix
+>                           TrefFun (try functionCall)
+>                           TrefFunAlias () (keyword "as" *> idString)
+>                        ,optionalSuffix
+>                           Tref nkwid
+>                           TrefAlias () (optional (keyword "as") *> nkwid)]
+>         --joinpart: parse a join after the first part of the tableref
+>         --(which is a table name, aliased table name or subselect) -
+>         --takes this tableref as an arg so it can recurse to multiple
+>         --joins
+>         joinPart tr1 = threadOptionalSuffix (readOneJoinPart tr1) joinPart
+>         readOneJoinPart tr1 = JoinedTref tr1
+>              --look for the join flavour first
+>              <$> option Unnatural (Natural <$ keyword "natural")
+>              <*> choice [
+>                 Inner <$ keyword "inner"
+>                ,LeftOuter <$ try (keyword "left" *> keyword "outer")
+>                ,RightOuter <$ try (keyword "right" *> keyword "outer")
+>                ,FullOuter <$ try (keyword "full" >> keyword "outer")
+>                ,Cross <$ keyword "cross"]
+>              --recurse back to tref to read the table
+>              <*> (keyword "join" *> tref)
+>              --now try and read the join condition
+>              <*> choice [
+>                  Just <$> (JoinOn <$> (keyword "on" *> expr))
+>                 ,Just <$> (JoinUsing <$> (keyword "using" *> columnNameList))
+>                 ,return Nothing]
+>         nkwid = try $ do
+>                  x <- idString
+>                  --avoid all these keywords as aliases since they can
+>                  --appear immediately following a tableref as the next
+>                  --part of the statement, if we don't do this then lots
+>                  --of things don't parse. Seems a bit inelegant but
+>                  --works for the tests and the test sql files don't know
+>                  --if these should be allowed as aliases without "" or
+>                  --[]
+>                  if map toLower x `elem` ["as"
+>                              ,"where"
+>                              ,"except"
+>                              ,"union"
+>                              ,"intersect"
+>                              ,"loop"
+>                              ,"inner"
+>                              ,"on"
+>                              ,"left"
+>                              ,"right"
+>                              ,"full"
+>                              ,"cross"
+>                              ,"natural"
+>                              ,"order"
+>                              ,"group"
+>                              ,"limit"
+>                              ,"using"]
+>                    then fail "not keyword"
+>                    else return x
+>     values = keyword "values" >>
+>              Values <$> commaSep1 (parens $ commaSep1 expr)
 
 
 = insert, update and delete
@@ -353,7 +356,7 @@ multiple rows to insert and insert from select statements
 > insert = keyword "insert" >> keyword "into" >>
 >          Insert <$> idString
 >                 <*> option [] (try columnNameList)
->                 <*> (select <|> values)
+>                 <*> selectExpression
 >                 <*> tryOptionMaybe returning
 
 > update :: ParsecT [Token] ParseState Identity Statement
@@ -412,7 +415,7 @@ multiple rows to insert and insert from select statements
 >   keyword "table"
 >   tname <- idString
 >   choice [
->      CreateTableAs tname <$> (keyword "as" *> select)
+>      CreateTableAs tname <$> (keyword "as" *> selectExpression)
 >     ,uncurry (CreateTable tname) <$> readAttsAndCons]
 >   where
 >     --parse our unordered list of attribute defs or constraints for
@@ -564,7 +567,7 @@ variable declarations in a plpgsql function
 > createView = keyword "view" >>
 >              CreateView
 >              <$> idString
->              <*> (keyword "as" *> select)
+>              <*> (keyword "as" *> selectExpression)
 
 > createDomain :: ParsecT [Token] ParseState Identity Statement
 > createDomain = keyword "domain" >>
@@ -700,7 +703,7 @@ or after the whole list
 > returnSt = keyword "return" >>
 >            choice [
 >             ReturnNext <$> (keyword "next" *> expr)
->            ,ReturnQuery <$> (keyword "query" *> select)
+>            ,ReturnQuery <$> (keyword "query" *> selectExpression)
 >            ,Return <$> tryOptionMaybe expr]
 
 > raise :: ParsecT [Token] ParseState Identity Statement
@@ -719,7 +722,7 @@ or after the whole list
 >                keyword "for"
 >                start <- idString
 >                keyword "in"
->                choice [(ForSelectStatement start <$> try select <*> theRest)
+>                choice [(ForSelectStatement start <$> try selectExpression <*> theRest)
 >                       ,(ForIntegerStatement start
 >                               <$> expr
 >                               <*> (symbol ".." *> expr)
@@ -942,7 +945,7 @@ symbol can appear in the operator table above for readability purposes
 > scalarSubQuery :: ParsecT [Token] ParseState Identity Expression
 > scalarSubQuery = try (symbol "(" *> lookAhead (keyword "select")) >>
 >                  ScalarSubQuery
->                  <$> select <* symbol ")"
+>                  <$> selectExpression <* symbol ")"
 
 in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
@@ -952,7 +955,7 @@ then a list of expressions or a subselect
 >   InPredicate
 >   <$> (try rowCtor <|> Identifier <$> idString)
 >   <*> option True (False <$ keyword "not")
->   <*> (keyword "in" *> parens ((InSelect <$> select)
+>   <*> (keyword "in" *> parens ((InSelect <$> selectExpression)
 >                                <|>
 >                                (InList <$> commaSep1 expr)))
 
@@ -991,7 +994,7 @@ expression when value' currently
 
 > exists :: ParsecT [Token] ParseState Identity Expression
 > exists = keyword "exists" >>
->          Exists <$> parens select
+>          Exists <$> parens selectExpression
 
 > booleanLit :: ParsecT [Token] ParseState Identity Expression
 > booleanLit = BooleanLit <$> (True <$ keyword "true"

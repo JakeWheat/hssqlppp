@@ -206,7 +206,7 @@ first statement, pretty simple
 
 >     ,testGroup "select expression"
 >     (mapSql [
->       p "select 1;" [selectE (SelectList [SelExp (IntegerLit 1)] [])]
+>       p "select 1;" [SelectStatement $ selectE (SelectList [SelExp (IntegerLit 1)] [])]
 >      ])
 
 ================================================================================
@@ -216,25 +216,25 @@ test a whole bunch more select statements
 >     ,testGroup "select from table"
 >     (mapSql [
 >       p "select * from tbl;"
->       [selectFrom (selIL ["*"]) (Tref "tbl")]
+>       [SelectStatement $ selectFrom (selIL ["*"]) (Tref "tbl")]
 >      ,p "select a,b from tbl;"
->       [selectFrom (selIL ["a", "b"]) (Tref "tbl")]
+>       [SelectStatement $ selectFrom (selIL ["a", "b"]) (Tref "tbl")]
 
 >      ,p "select a,b from inf.tbl;"
->       [selectFrom (selIL ["a", "b"]) (Tref "inf.tbl")]
+>       [SelectStatement $ selectFrom (selIL ["a", "b"]) (Tref "inf.tbl")]
 
 >      ,p "select distinct * from tbl;"
->       [Select Distinct (SelectList (selIL ["*"]) []) (Just $ Tref "tbl")
+>       [SelectStatement $ Select Distinct (SelectList (selIL ["*"]) []) (Just $ Tref "tbl")
 >        Nothing [] Nothing [] Asc Nothing Nothing]
 
 >      ,p "select a from tbl where b=2;"
->       [selectFromWhere
+>       [SelectStatement $ selectFromWhere
 >         (selIL ["a"])
 >         (Tref "tbl")
 >         (opCall "="
 >          [Identifier "b", IntegerLit 2])]
 >      ,p "select a from tbl where b=2 and c=3;"
->       [selectFromWhere
+>       [SelectStatement $ selectFromWhere
 >         (selIL ["a"])
 >         (Tref "tbl")
 >         (opCall "and"
@@ -244,76 +244,76 @@ test a whole bunch more select statements
 >      ,p "select a from tbl\n\
 >         \except\n\
 >         \select a from tbl1;"
->       [CombineSelect Except
+>       [SelectStatement $ CombineSelect Except
 >        (selectFrom (selIL ["a"]) (Tref "tbl"))
 >        (selectFrom (selIL ["a"]) (Tref "tbl1"))]
 >      ,p "select a from tbl where true\n\
 >         \except\n\
 >         \select a from tbl1 where true;"
->       [CombineSelect Except
+>       [SelectStatement $ CombineSelect Except
 >        (selectFromWhere (selIL ["a"]) (Tref "tbl") (BooleanLit True))
 >        (selectFromWhere (selIL ["a"]) (Tref "tbl1") (BooleanLit True))]
 >      ,p "select a from tbl\n\
 >         \union\n\
 >         \select a from tbl1;"
->       [CombineSelect Union
+>       [SelectStatement $ CombineSelect Union
 >        (selectFrom (selIL ["a"]) (Tref "tbl"))
 >        (selectFrom (selIL ["a"]) (Tref "tbl1"))]
 >      ,p "select a from tbl\n\
 >         \union all\n\
 >         \select a from tbl1;"
->       [CombineSelect UnionAll
+>       [SelectStatement $ CombineSelect UnionAll
 >        (selectFrom (selIL ["a"]) (Tref "tbl"))
 >        (selectFrom (selIL ["a"]) (Tref "tbl1"))]
 
 >      ,p "select a as b from tbl;"
->       [selectFrom [SelectItem (Identifier "a") "b"] (Tref "tbl")]
+>       [SelectStatement $ selectFrom [SelectItem (Identifier "a") "b"] (Tref "tbl")]
 >      ,p "select a + b as b from tbl;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        [SelectItem
 >         (opCall "+"
 >          [Identifier "a", Identifier "b"]) "b"]
 >        (Tref "tbl")]
 >      ,p "select a.* from tbl a;"
->       [selectFrom (selIL ["a.*"]) (TrefAlias "tbl" "a")]
+>       [SelectStatement $ selectFrom (selIL ["a.*"]) (TrefAlias "tbl" "a")]
 
 >      ,p "select a from b inner join c on b.a=c.a;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") Unnatural Inner (Tref "c")
 >           (Just (JoinOn
 >            (opCall "=" [Identifier "b.a", Identifier "c.a"]))))]
 >      ,p "select a from b inner join c as d on b.a=d.a;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") Unnatural Inner (TrefAlias "c" "d")
 >           (Just (JoinOn
 >            (opCall "=" [Identifier "b.a", Identifier "d.a"]))))]
 
 >      ,p "select a from b inner join c using(d,e);"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") Unnatural Inner (Tref "c")
 >           (Just (JoinUsing ["d","e"])))]
 
 >      ,p "select a from b natural inner join c;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") Natural Inner (Tref "c") Nothing)]
 >      ,p "select a from b left outer join c;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") Unnatural LeftOuter (Tref "c") Nothing)]
 >      ,p "select a from b full outer join c;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") Unnatural FullOuter (Tref "c") Nothing)]
 >      ,p "select a from b right outer join c;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") Unnatural RightOuter (Tref "c") Nothing)]
 >      ,p "select a from b cross join c;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref (Tref "b") Unnatural Cross (Tref "c") Nothing)]
 
@@ -322,7 +322,7 @@ test a whole bunch more select statements
 >         \      on true\n\
 >         \    inner join d\n\
 >         \      on 1=1;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        [SelExp (Identifier "a")]
 >        (JoinedTref
 >         (JoinedTref (Tref "b") Unnatural Inner (Tref "c")
@@ -332,7 +332,7 @@ test a whole bunch more select statements
 >                [IntegerLit 1, IntegerLit 1])))]
 
 >      ,p "select row_number() over(order by a) as place from tbl;"
->       [selectFrom [SelectItem
+>       [SelectStatement $ selectFrom [SelectItem
 >                    (WindowFn
 >                     (fnCall "row_number" [])
 >                     []
@@ -340,7 +340,7 @@ test a whole bunch more select statements
 >                    "place"]
 >        (Tref "tbl")]
 >      ,p "select row_number() over(order by a asc) as place from tbl;"
->       [selectFrom [SelectItem
+>       [SelectStatement $ selectFrom [SelectItem
 >                    (WindowFn
 >                     (fnCall "row_number" [])
 >                     []
@@ -348,7 +348,7 @@ test a whole bunch more select statements
 >                    "place"]
 >        (Tref "tbl")]
 >      ,p "select row_number() over(order by a desc) as place from tbl;"
->       [selectFrom [SelectItem
+>       [SelectStatement $ selectFrom [SelectItem
 >                    (WindowFn
 >                     (fnCall "row_number" [])
 >                     []
@@ -358,7 +358,7 @@ test a whole bunch more select statements
 >      ,p "select row_number()\n\
 >         \over(partition by (a,b) order by c) as place\n\
 >         \from tbl;"
->       [selectFrom [SelectItem
+>       [SelectStatement $ selectFrom [SelectItem
 >                    (WindowFn
 >                     (fnCall "row_number" [])
 >                     [FunCall RowCtor [Identifier "a",Identifier "b"]]
@@ -367,7 +367,7 @@ test a whole bunch more select statements
 >        (Tref "tbl")]
 
 >      ,p "select * from a natural inner join (select * from b) as a;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        (selIL ["*"])
 >        (JoinedTref (Tref "a") Natural
 >         Inner (SubTref (selectFrom
@@ -376,37 +376,37 @@ test a whole bunch more select statements
 >         Nothing)]
 
 >      ,p "select * from a order by c;"
->       [Select Dupes
+>       [SelectStatement $ Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] Nothing [Identifier "c"] Asc Nothing Nothing]
 
 >      ,p "select * from a order by c,d asc;"
->       [Select Dupes
+>       [SelectStatement $ Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] Nothing [Identifier "c", Identifier "d"] Asc Nothing Nothing]
 
 >      ,p "select * from a order by c,d desc;"
->       [Select Dupes
+>       [SelectStatement $ Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] Nothing [Identifier "c", Identifier "d"] Desc Nothing Nothing]
 
 >      ,p "select * from a order by c limit 1;"
->       [Select Dupes
+>       [SelectStatement $ Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] Nothing [Identifier "c"] Asc (Just (IntegerLit 1)) Nothing]
 
 >      ,p "select * from a order by c offset 3;"
->       [Select Dupes
+>       [SelectStatement $ Select Dupes
 >        (sl (selIL ["*"]))
 >        (Just $ Tref "a")
 >        Nothing [] Nothing [Identifier "c"] Asc Nothing (Just $ IntegerLit 3)]
 
 >      ,p "select a from (select b from c) as d;"
->         [selectFrom
+>         [SelectStatement $ selectFrom
 >          (selIL ["a"])
 >          (SubTref (selectFrom
 >                    (selIL ["b"])
@@ -414,20 +414,20 @@ test a whole bunch more select statements
 >           "d")]
 
 >      ,p "select * from gen();"
->         [selectFrom (selIL ["*"]) (TrefFun $ fnCall "gen" [])]
+>         [SelectStatement $ selectFrom (selIL ["*"]) (TrefFun $ fnCall "gen" [])]
 >      ,p "select * from gen() as t;"
->       [selectFrom
+>       [SelectStatement $ selectFrom
 >        (selIL ["*"])
 >        (TrefFunAlias (fnCall "gen" []) "t")]
 
 >      ,p "select a, count(b) from c group by a;"
->         [Select Dupes
+>         [SelectStatement $ Select Dupes
 >          (sl [selI "a", SelExp (fnCall "count" [Identifier "b"])])
 >          (Just $ Tref "c") Nothing [Identifier "a"]
 >          Nothing [] Asc Nothing Nothing]
 
 >      ,p "select a, count(b) as cnt from c group by a having cnt > 4;"
->         [Select Dupes
+>         [SelectStatement $ Select Dupes
 >          (sl [selI "a", SelectItem (fnCall "count" [Identifier "b"]) "cnt"])
 >          (Just $ Tref "c") Nothing [Identifier "a"]
 >          (Just $ opCall ">" [Identifier "cnt", IntegerLit 4])
@@ -441,8 +441,8 @@ one sanity check for parsing multiple statements
 
 >     ,testGroup "multiple statements"
 >     (mapSql [
->       p "select 1;\nselect 2;" [selectE $ sl [SelExp (IntegerLit 1)]
->                                ,selectE $ sl [SelExp (IntegerLit 2)]]
+>       p "select 1;\nselect 2;" [SelectStatement $ selectE $ sl [SelExp (IntegerLit 1)]
+>                                ,SelectStatement $ selectE $ sl [SelExp (IntegerLit 2)]]
 >      ])
 
 ================================================================================
@@ -462,15 +462,15 @@ statements when they program?
 >      ,p "select 1;\n\
 >         \-- this is a test\n\
 >         \select -- this is a test\n\
->         \2;" [selectE $ sl [SelExp (IntegerLit 1)]
->              ,selectE $ sl [SelExp (IntegerLit 2)]
+>         \2;" [SelectStatement $ selectE $ sl [SelExp (IntegerLit 1)]
+>              ,SelectStatement $ selectE $ sl [SelExp (IntegerLit 2)]
 >              ]
 >      ,p "select 1;\n\
 >         \/* this is\n\
 >         \a test*/\n\
 >         \select /* this is a test*/2;"
->                     [selectE $ sl [SelExp (IntegerLit 1)]
->                     ,selectE $ sl [SelExp (IntegerLit 2)]
+>                     [SelectStatement $ selectE $ sl [SelExp (IntegerLit 1)]
+>                     ,SelectStatement $ selectE $ sl [SelExp (IntegerLit 2)]
 >                     ]
 >      ])
 
@@ -496,7 +496,7 @@ multi row insert, test the stand alone values statement first, maybe
 that should be in the select section?
 
 >      ,p "values (1,2), (3,4);"
->      [Values [[IntegerLit 1, IntegerLit 2]
+>      [SelectStatement $ Values [[IntegerLit 1, IntegerLit 2]
 >              ,[IntegerLit 3, IntegerLit 4]]]
 
 >      ,p "insert into testtable\n\
@@ -843,7 +843,7 @@ test functions
 >       [CreateFunction Sql "t1" [ParamDefTp $ SimpleTypeName "text"]
 >        (SimpleTypeName "text") "$$"
 >        (SqlFnBody
->         [addNsp $ selectFromWhere [SelExp (Identifier "a")] (Tref "t1")
+>         [addNsp $ SelectStatement $ selectFromWhere [SelExp (Identifier "a")] (Tref "t1")
 >          (opCall "="
 >           [Identifier "b", PositionalArg 1])])
 >        Stable]
@@ -955,10 +955,10 @@ simple statements
 >                     opCall "||" [Identifier "r.relvar_name"
 >                                 ,stringQ "_and_stuff"]]]
 >      ,p "select into a,b c,d from e;"
->       [Select Dupes (SelectList [selI "c", selI "d"] ["a", "b"])
+>       [SelectStatement $ Select Dupes (SelectList [selI "c", selI "d"] ["a", "b"])
 >                   (Just $ Tref "e") Nothing [] Nothing [] Asc Nothing Nothing]
 >      ,p "select c,d into a,b from e;"
->       [Select Dupes (SelectList [selI "c", selI "d"] ["a", "b"])
+>       [SelectStatement $ Select Dupes (SelectList [selI "c", selI "d"] ["a", "b"])
 >                   (Just $ Tref "e") Nothing [] Nothing [] Asc Nothing Nothing]
 
 >      ,p "execute s;"
@@ -1043,8 +1043,8 @@ complicated statements
 >           selIL = map selI
 >           selI = SelExp . Identifier
 >           sl a = SelectList a []
->           --sle a = SelectList (map SelExp a) []
->           selectE selList = Select Dupes selList Nothing Nothing [] Nothing [] Asc Nothing Nothing
+>           selectE selList = Select Dupes selList
+>                             Nothing Nothing [] Nothing [] Asc Nothing Nothing
 >           selectFrom selList frm =
 >             Select Dupes (SelectList selList [])
 >                    (Just frm) Nothing [] Nothing [] Asc Nothing Nothing
