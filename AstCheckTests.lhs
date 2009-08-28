@@ -62,7 +62,39 @@ types of error message received.
 >                     (WrongTypes
 >                     (ScalarType "Integer")
 >                     [ScalarType "String"]))
+>      ,p "substring('aqbc' from 2 for 2)" (ScalarType "String")
+
+>      ,p "substring(3 from 2 for 2)" (TypeError ("",0,0)
+>                     (WrongTypeList [ScalarType "String"
+>                                    ,ScalarType "Integer"
+>                                    ,ScalarType "Integer"]
+>                                    [ScalarType "Integer"
+>                                    ,ScalarType "Integer"
+>                                    ,ScalarType "Integer"]))
+>      ,p "substring('aqbc' from 2 for 'test')" (TypeError ("",0,0)
+>                     (WrongTypeList [ScalarType "String"
+>                                    ,ScalarType "Integer"
+>                                    ,ScalarType "Integer"]
+>                                    [ScalarType "String"
+>                                    ,ScalarType "Integer"
+>                                    ,ScalarType "String"]))
+
+between
+arraysub
+rowctor
+not @ -u -b
+is null
+is not null
++-*/^%
+and or
+|| like
+<> < > <= >= <->
+funs
+
+
 >      ])
+
+
 
 >    ,testGroup "case expressions"
 >     (mapExprType [

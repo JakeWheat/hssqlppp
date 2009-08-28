@@ -618,6 +618,7 @@ DATA Type | ScalarType String
           | TypeError MySourcePos TypeErrorInfo
 
 DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
+                   | WrongTypeList expected:{[Type]} got:{[Type]}
 
 DERIVING Type TypeErrorInfo: Show,Eq
 
@@ -645,11 +646,6 @@ appendTypeList :: Type -> Type -> Type
 appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
 appendTypeList t1 t2 = TypeList (t1:t2:[])
 
-
-}
-
-
-{
 
 --if the first argument is unknown or type error, pass it on
 --otherwise use the second argument
@@ -680,11 +676,17 @@ checkTypesAre typ sp l = propagateUnknownErrors l
                                 then typ
                                 else TypeError sp (WrongTypes typ bad))
 
-checkSameTypes :: MySourcePos -> [Type]-> Type
+checkSameTypes :: MySourcePos -> [Type] -> Type
 checkSameTypes sp l = propagateUnknownErrors l
                         (if length l == 0
                            then AnyElement
                            else checkTypesAre (head l) sp l)
+
+checkExactTypes :: MySourcePos -> [Type] -> [Type] -> Type
+checkExactTypes sp ts es = propagateUnknownErrors es
+                           (if ts /= es
+                              then TypeError sp (WrongTypeList ts es)
+                              else AnyElement)
 
 typesFromTypeList :: Type -> [Type]
 typesFromTypeList (TypeList ts) = ts
@@ -723,6 +725,15 @@ SEM Expression
                                         in propagateUnknownError
                                             t
                                             (ArrayType t))
+                               Substring ->
+                                   propagateUnknownError
+                                     (checkExactTypes
+                                      @lhs.sourcePos
+                                      [ScalarType "String"
+                                      ,ScalarType "Integer"
+                                      ,ScalarType "Integer"]
+                                      (typesFromTypeList @args.nodeType))
+                                     (ScalarType "String")
                                Operator s ->
                                      (if s == "="
                                        then let t = (checkSameTypes

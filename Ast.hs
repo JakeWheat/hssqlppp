@@ -38,9 +38,6 @@ appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
 appendTypeList t1 t2 = TypeList (t1:t2:[])
 
 
-
-
-
 --if the first argument is unknown or type error, pass it on
 --otherwise use the second argument
 propagateUnknownError :: Type -> Type -> Type
@@ -70,11 +67,17 @@ checkTypesAre typ sp l = propagateUnknownErrors l
                                 then typ
                                 else TypeError sp (WrongTypes typ bad))
 
-checkSameTypes :: MySourcePos -> [Type]-> Type
+checkSameTypes :: MySourcePos -> [Type] -> Type
 checkSameTypes sp l = propagateUnknownErrors l
                         (if length l == 0
                            then AnyElement
                            else checkTypesAre (head l) sp l)
+
+checkExactTypes :: MySourcePos -> [Type] -> [Type] -> Type
+checkExactTypes sp ts es = propagateUnknownErrors es
+                           (if ts /= es
+                              then TypeError sp (WrongTypeList ts es)
+                              else AnyElement)
 
 typesFromTypeList :: Type -> [Type]
 typesFromTypeList (TypeList ts) = ts
@@ -1222,6 +1225,15 @@ sem_Expression_FunCall funName_ args_  =
                              in propagateUnknownError
                                  t
                                  (ArrayType t))
+                    Substring ->
+                        propagateUnknownError
+                          (checkExactTypes
+                           _lhsIsourcePos
+                           [ScalarType "String"
+                           ,ScalarType "Integer"
+                           ,ScalarType "Integer"]
+                           (typesFromTypeList _argsInodeType))
+                          (ScalarType "String")
                     Operator s ->
                           (if s == "="
                             then let t = (checkSameTypes
@@ -5222,11 +5234,14 @@ sem_TypeAttributeDefList_Nil  =
                   TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- TypeErrorInfo -----------------------------------------------
-data TypeErrorInfo  = WrongTypes (Type) ([Type]) 
+data TypeErrorInfo  = WrongTypeList ([Type]) ([Type]) 
+                    | WrongTypes (Type) ([Type]) 
                     deriving ( Eq,Show)
 -- cata
 sem_TypeErrorInfo :: TypeErrorInfo  ->
                      T_TypeErrorInfo 
+sem_TypeErrorInfo (WrongTypeList _expected _got )  =
+    (sem_TypeErrorInfo_WrongTypeList _expected _got )
 sem_TypeErrorInfo (WrongTypes _expected _got )  =
     (sem_TypeErrorInfo_WrongTypes (sem_Type _expected ) _got )
 -- semantic domain
@@ -5240,6 +5255,12 @@ wrap_TypeErrorInfo sem (Inh_TypeErrorInfo )  =
     (let ( ) =
              (sem )
      in  (Syn_TypeErrorInfo ))
+sem_TypeErrorInfo_WrongTypeList :: ([Type]) ->
+                                   ([Type]) ->
+                                   T_TypeErrorInfo 
+sem_TypeErrorInfo_WrongTypeList expected_ got_  =
+    (let 
+     in  ( ))
 sem_TypeErrorInfo_WrongTypes :: T_Type  ->
                                 ([Type]) ->
                                 T_TypeErrorInfo 
