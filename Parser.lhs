@@ -900,30 +900,33 @@ syntactical novelty
 >       --use different parsers for symbols and keywords to get the
 >       --right whitespace behaviour
 >       binary s
->          = Infix (try (symbol s >> (return $ (\l -> (\m -> (FunCall (Operator s)) [l,m])))))
+>          = Infix (try (symbol s >> (return $ binaryF s)))
 >       binarycust s t
->          = Infix (try (symbol s >> (return $ (\l -> (\m -> (FunCall (Operator t)) [l,m])))))
+>          = Infix (try (symbol s >> (return $ binaryF t)))
 >       -- * ends up being lexed as an id token rather than a symbol
 >       -- * token, so work around here
 >       idHackBinary s
->           = Infix (try (keyword s >> (return $ (\l -> (\m -> (FunCall (Operator s)) [l,m])))))
+>           = Infix (try (keyword s >> (return $ binaryF s)))
 >       prefix s f
->          = Prefix (try (symbol s >> return (\l -> f [l])))
+>          = Prefix (try (symbol s >> (return $ unaryF f)))
 >       binaryk s
->          = Infix (try (keyword s >> (return $ (\l -> (\m -> (FunCall (Operator s)) [l,m])))))
+>          = Infix (try (keyword s >> (return $ binaryF s)))
 >       prefixk s f
->          = Prefix (try (keyword s >> return (\l -> f [l])))
+>          = Prefix (try (keyword s >> (return $ unaryF f)))
 >       --postfixk s f
 >       --   = Postfix (try (keyword s >> return f))
 >       postfixks ss f
->          = Postfix (try (mapM_ keyword ss >> return (\l -> f [l])))
+>          = Postfix (try (mapM_ keyword ss >> (return $ unaryF f)))
+>       unaryF f = \l -> f [l]
+>       binaryF s = \l -> \m -> (FunCall (Operator s)) [l,m]
 
 some custom parsers
 
 fix problem parsing <> - don't parse as "<" if it is immediately
 followed by ">"
 
->       lt _ = Infix (dontFollowWith "<" ">" >> (return $ (\l -> (\m -> (FunCall (Operator "<")) [l,m]))))
+>       lt _ = Infix (dontFollowWith "<" ">" >>
+>                     (return $ (\l -> (\m -> (FunCall (Operator "<")) [l,m]))))
 
 >       dontFollowWith c1 c2 =
 >         try $ symbol c1 *> ((do

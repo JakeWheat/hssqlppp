@@ -342,7 +342,7 @@ getOperatorType s = case () of
                         | s `elem` ["is null", "is not null"] -> RightUnary
                         | s `elem` ["+", "-", "*", "/","^",
                                     "%","=","and","or","||",
-                                    "like","::","<>","<",">",
+                                    "like","<>","<",">",
                                     "<=",">=","<->"] -> BinaryOp
                         | otherwise -> error $ "don't know flavour of operator " ++ s
 }
