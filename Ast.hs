@@ -212,8 +212,6 @@ checkTypes sp tl@(TypeList l) argC retT =
                                    then Nothing
                                    else Just $ te (WrongTypes tc tcs)
       te = TypeError sp
-      --argCheck (ExactType et) t = et == t
-      --argCheck (Predicate p _) t = p t
       pe = propagateUnknownError
 
 
@@ -1486,12 +1484,32 @@ sem_Expression_FunCall funName_ args_  =
                     Operator s | s == "=" -> ct
                                                (AllSameTypeNumAny 2)
                                                (ConstRetType (ScalarType "Boolean"))
-                               | s == "not" -> ct
-                                               (ExactList [ScalarType "Boolean"])
+                               | s == "not" -> closedUn "Boolean"
+                               | s `elem` ["@", "u-"] -> closedUn "Integer"
+                               | s `elem` ["-", "+", "*"
+                                          ,"/", "%", "^"] -> closedBin "Integer"
+                               | s `elem` ["is null", "is not null"] -> ct
+                                               (AllSameTypeNumAny 1)
                                                (ConstRetType (ScalarType "Boolean"))
+                               | s `elem` ["and", "or"] -> closedBin "Boolean"
+                               | s == "||" -> closedBin "String"
+                               | s == "like" -> ct (ExactList [ScalarType "String"
+                                                              ,ScalarType "String"])
+                                                   (ConstRetType (ScalarType "Boolean"))
+                               | s == "<>" -> ct
+                                               (AllSameTypeNumAny 2)
+                                               (ConstRetType (ScalarType "Boolean"))
+                               | s `elem` ["<",">","<=",">="] -> closedBinAny
                     _ -> UnknownType
                   where
                     ct = checkTypes _lhsIsourcePos _argsInodeType
+                    closedBin t = ct (ExactList [ScalarType t
+                                                ,ScalarType t])
+                                     (ConstRetType (ScalarType t))
+                    closedBinAny = ct (AllSameTypeNumAny 2)
+                                      (RetTypeAsArgN 0)
+                    closedUn t = ct (ExactList [ScalarType t])
+                                     (ConstRetType (ScalarType t))
               _lhsOmessages =
                   _funNameImessages ++ _argsImessages
               _funNameOinLoop =

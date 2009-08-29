@@ -99,13 +99,47 @@ types of error message received.
 >                   [ScalarType "Boolean"]
 >                   [ScalarType "Integer"]))
 
-not @ -u -b
-is null
-is not null
-+-*/^%
-and or
-|| like
-<> < > <= >= <->
+>      ,p "@ 3" (ScalarType "Integer")
+>      ,p "@ 'a'" (TypeError ("",0,0)
+>                  (WrongTypeList
+>                   [ScalarType "Integer"]
+>                   [ScalarType "String"]))
+
+>      ,p "-3" (ScalarType "Integer")
+>      ,p "-'a'" (TypeError ("",0,0)
+>                  (WrongTypeList
+>                   [ScalarType "Integer"]
+>                   [ScalarType "String"]))
+
+>      ,p "4-3" (ScalarType "Integer")
+>      ,p "4-'a'" (TypeError ("",0,0)
+>                  (WrongTypeList
+>                   [ScalarType "Integer",ScalarType "Integer"]
+>                   [ScalarType "Integer",ScalarType "String"]))
+
+>      ,p "1 is null" (ScalarType "Boolean")
+>      ,p "1 is not null" (ScalarType "Boolean")
+
+>      ,p "1+1" (ScalarType "Integer")
+>      ,p "1+True" (TypeError ("",0,0)
+>                   (WrongTypeList
+>                    [ScalarType "Integer",ScalarType "Integer"]
+>                    [ScalarType "Integer",ScalarType "Boolean"]))
+>      ,p "1+1" (ScalarType "Integer")
+>      ,p "31*511" (ScalarType "Integer")
+>      ,p "5/2" (ScalarType "Integer")
+>      ,p "2^10" (ScalarType "Integer")
+>      ,p "17%5" (ScalarType "Integer")
+
+>      ,p "3 and 4" (TypeError ("",0,0)
+>                   (WrongTypeList
+>                    [ScalarType "Boolean",ScalarType "Boolean"]
+>                    [ScalarType "Integer",ScalarType "Integer"]))
+
+>      ,p "True and False" (ScalarType "Boolean")
+>      ,p "false or true" (ScalarType "Boolean")
+
+
 funs
 rowctor
 
