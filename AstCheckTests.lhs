@@ -89,10 +89,9 @@ types of error message received.
 >      ,p "array[1,2,3][2]" (ScalarType "Integer")
 >      ,p "array['a','b'][1]" (ScalarType "String")
 >      ,p "array['a','b']['test']" (TypeError ("",0,0)
->                                   (WrongTypeList
->                                    [AnyArray,ScalarType "Integer"]
->                                    [ArrayType (ScalarType "String")
->                                    ,ScalarType "String"]))
+>                                   (WrongType
+>                                    (ScalarType "Integer")
+>                                    (ScalarType "String")))
 
 >      ,p "not true" (ScalarType "Boolean")
 >      ,p "not 1" (TypeError ("",0,0)

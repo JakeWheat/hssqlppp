@@ -141,23 +141,24 @@ type ArgCheckList = [ArgCheck]
 type TypePred = (Type -> Bool)
 type TypePredError = (Type -> TypeErrorInfo)
 
-{-checkPredList :: [ArgCheck] -> [Type] -> [Type]
-checkPredList sp chks ts = if length chks /= length ts
-                             then [TypeError sp
-                                             (WrongNumArgs
-                                              (length chks)
-                                              (length ts))]
-                             else (flip map) (take (length chks) [1..])
-                                  (\n -> 
-                           where
-                             checkArg n acc (chk:chks) (t:ts) =
-                                 if chk t
-                                   then checkArg (n+1) acc chks ts
-                                   else checkArg (n+1) (acc ++ 
-                                   
-                             checkArg n [] [] acc = acc
--}
+exactType :: Type -> ArgCheck
+exactType t = ArgCheck (t==) (WrongType t)
 
+checkPredList :: MySourcePos -> [ArgCheck] -> [Type] -> [Type]
+checkPredList sp achks ats =
+    if length achks /= length ats
+      then [TypeError sp
+            (WrongNumArgs
+             (length achks)
+             (length ats))]
+      else checkArg 0 [] achks ats
+    where
+      checkArg :: Int -> [Type] -> [ArgCheck] -> [Type] -> [Type]
+      checkArg n acc ((ArgCheck chk err):chks) (t:ts) =
+          if chk t
+            then checkArg (n+1) acc chks ts
+            else checkArg (n+1) (acc ++ [TypeError sp $ err t]) chks ts
+      checkArg n acc [] [] = acc
 
 
 type RetTypeFunner = ([Type] -> Type)
@@ -199,26 +200,20 @@ checkTypes sp tl@(TypeList l) argC retT =
             ExactList ts | ts /= l ->
                               Just $ te $ WrongTypeList ts l
                          | otherwise -> Nothing
-            ExactPredList chks | length l /= length chks ->
-                                   Just $ te $ WrongNumArgs
-                                            (length chks)
-                                            (length l)
-                               | any (\(chk,tc) -> not $ argCheck chk tc)
-                                     (zip chks l) ->
-                                         Just $ te $ OtherTypeError "types not correct."
-                               | otherwise -> Nothing
-            AllSameTypePredNum p n | length l /= n ->
-                                        Just $ te $ WrongNumArgs
-                                                      n
-                                                      (length l)
-                                   | all (argCheck p) l -> Nothing
-                                   | otherwise -> Just $ te $ OtherTypeError "types not correct."
+            ExactPredList chks -> case checkPredList sp chks l of
+                                    x | length x == 0 -> Nothing
+                                      | otherwise -> Just $ TypeList x
+            AllSameTypePredNum p n -> case checkPredList sp
+                                             (replicate n p)
+                                             l of
+                                        x | length x == 0 -> Nothing
+                                          | otherwise -> Just $ TypeList x
       checkArgListMatches tc tcs = if all (==tc) tcs
                                    then Nothing
                                    else Just $ te (WrongTypes tc tcs)
       te = TypeError sp
-      argCheck (ExactType et) t = et == t
-      argCheck (Predicate p _) t = p t
+      --argCheck (ExactType et) t = et == t
+      --argCheck (Predicate p _) t = p t
       pe = propagateUnknownError
 
 
@@ -274,15 +269,12 @@ resetSps' sts = map resetSp' sts
 nsp :: MySourcePos
 nsp = ("", 0,0)
 -- ArgCheck ----------------------------------------------------
-data ArgCheck  = ExactType (Type) 
-               | Predicate (TypePred) (TypePredError) 
+data ArgCheck  = ArgCheck (TypePred) (TypePredError) 
 -- cata
 sem_ArgCheck :: ArgCheck  ->
                 T_ArgCheck 
-sem_ArgCheck (ExactType _type )  =
-    (sem_ArgCheck_ExactType (sem_Type _type ) )
-sem_ArgCheck (Predicate _typePred _typePredError )  =
-    (sem_ArgCheck_Predicate _typePred _typePredError )
+sem_ArgCheck (ArgCheck _typePred _typePredError )  =
+    (sem_ArgCheck_ArgCheck _typePred _typePredError )
 -- semantic domain
 type T_ArgCheck  = ( )
 data Inh_ArgCheck  = Inh_ArgCheck {}
@@ -294,15 +286,10 @@ wrap_ArgCheck sem (Inh_ArgCheck )  =
     (let ( ) =
              (sem )
      in  (Syn_ArgCheck ))
-sem_ArgCheck_ExactType :: T_Type  ->
-                          T_ArgCheck 
-sem_ArgCheck_ExactType type_  =
-    (let 
-     in  ( ))
-sem_ArgCheck_Predicate :: TypePred ->
-                          TypePredError ->
-                          T_ArgCheck 
-sem_ArgCheck_Predicate typePred_ typePredError_  =
+sem_ArgCheck_ArgCheck :: TypePred ->
+                         TypePredError ->
+                         T_ArgCheck 
+sem_ArgCheck_ArgCheck typePred_ typePredError_  =
     (let 
      in  ( ))
 -- ArgsCheck ---------------------------------------------------
@@ -1493,8 +1480,8 @@ sem_Expression_FunCall funName_ args_  =
                                    (ConstRetType (ScalarType "Boolean"))
                     ArraySub -> ct
                                    (ExactPredList
-                                     [Predicate isArrayType NotArrayType
-                                     ,ExactType (ScalarType "Integer")])
+                                     [ArgCheck isArrayType NotArrayType
+                                     ,exactType (ScalarType "Integer")])
                                    (RetTypeFun (\t -> typeFromArray $ head t))
                     Operator s | s == "=" -> ct
                                                (AllSameTypeNumAny 2)
