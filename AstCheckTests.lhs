@@ -52,7 +52,7 @@ types of error message received.
 >      ,p "array[1,'b']" (TypeError ("",0,0)
 >                         (WrongTypes
 >                          (ScalarType "Integer")
->                          [ScalarType "String"]))
+>                          [ScalarType "Integer",ScalarType "String"]))
 >      ])
 
 >    ,testGroup "some expressions"
@@ -61,7 +61,7 @@ types of error message received.
 >      ,p "1='test'" (TypeError ("",0,0)
 >                     (WrongTypes
 >                     (ScalarType "Integer")
->                     [ScalarType "String"]))
+>                     [ScalarType "Integer",ScalarType "String"]))
 >      ,p "substring('aqbc' from 2 for 2)" (ScalarType "String")
 
 >      ,p "substring(3 from 2 for 2)" (TypeError ("",0,0)
@@ -82,7 +82,7 @@ types of error message received.
 >      ,p "3 between 2 and 4" (ScalarType "Boolean")
 >      ,p "3 between '2' and 4" (TypeError ("",0,0)
 >                                (WrongTypes (ScalarType "Integer")
->                                 [ScalarType "String"]))
+>                                 [ScalarType "Integer",ScalarType "String",ScalarType "Integer"]))
 
 >      ,p "array[1,2,3][2]" (ScalarType "Integer")
 >      ,p "array['a','b'][1]" (ScalarType "String")
@@ -93,7 +93,7 @@ types of error message received.
 
 >      ,p "not true" (ScalarType "Boolean")
 >      ,p "not 1" (TypeError ("",0,0)
->                  (WrongType (ScalarType "Boolean") (ScalarType "Integer")))
+>                  (WrongTypeList [ScalarType "Boolean"] [ScalarType "Integer"]))
 
 not @ -u -b
 is null

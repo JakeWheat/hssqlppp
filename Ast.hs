@@ -90,17 +90,37 @@ appendTypeList :: Type -> Type -> Type
 appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
 appendTypeList t1 t2 = TypeList (t1:t2:[])
 
-
 --if the first argument is unknown or type error, pass it on
 --otherwise use the second argument
 propagateUnknownError :: Type -> Type -> Type
-propagateUnknownError t t1 = case t of
-                               a@(TypeError _ _) -> a
-                               UnknownType -> UnknownType
-                               _ -> t1
+propagateUnknownError t t1 =
+    case t of
+      a@(TypeError _ _) -> a
+      UnknownType -> UnknownType
+      TypeList l -> doTypeList l
+      _ -> t1
+    where
+      -- run through the type list, if there are any eorors, collect
+      -- them all into a list
+      -- otherwise, if there are any unknowns, then the type is
+      -- unknown
+      -- otherwise, keep the list the same
+      doTypeList ts =
+          let unks = filter (\u -> case u of
+                                     UnknownType -> True
+                                     _ -> False) ts
+              errs = filter (\u -> case u of
+                                     TypeError _ _ -> True
+                                     _ -> False) ts
+          in case () of
+               _ | length errs > 0 -> TypeList errs
+                 | length unks > 0 -> UnknownType
+                 | otherwise -> t1
+
+
 --list version, if you need to propagate two or more types when
 --unknown or error
-propagateUnknownErrors :: [Type] -> Type -> Type
+{-propagateUnknownErrors :: [Type] -> Type -> Type
 propagateUnknownErrors ts t1 =
     let unks = filter (\t -> case t of
                                UnknownType -> True
@@ -112,7 +132,8 @@ propagateUnknownErrors ts t1 =
          _ | length errs > 0 -> head errs --should probably pass all of them forward
            | length unks > 0 -> UnknownType
            | otherwise -> t1
-
+-}
+{-
 checkTypesAre :: Type -> MySourcePos -> [Type] -> Type
 checkTypesAre typ sp l = propagateUnknownErrors l
                           (let bad = filter (\t -> t /= typ) l
@@ -148,6 +169,7 @@ matchAnys (x:xs) (y:ys) = if x == y
                              || (x == AnyElement || y == AnyElement)
                             then matchAnys xs ys
                             else False
+-}
 
 typesFromTypeList :: Type -> [Type]
 typesFromTypeList (TypeList ts) = ts
@@ -163,20 +185,47 @@ isArrayType (AnyArray) = True
 isArrayType _ = False
 
 
+
 type TypeList = [Type]
 type ArgCheckList = [ArgCheck]
 
 
 type TypePred = (Type -> Bool)
+type TypePredError = (Type -> TypeErrorInfo)
+
+{-checkPredList :: [ArgCheck] -> [Type] -> [Type]
+checkPredList sp chks ts = if length chks /= length ts
+                             then [TypeError sp
+                                             (WrongNumArgs
+                                              (length chks)
+                                              (length ts))]
+                             else (flip map) (take (length chks) [1..])
+                                  (\n -> 
+                           where
+                             checkArg n acc (chk:chks) (t:ts) =
+                                 if chk t
+                                   then checkArg (n+1) acc chks ts
+                                   else checkArg (n+1) (acc ++ 
+                                   
+                             checkArg n [] [] acc = acc
+-}
+
 
 
 type RetTypeFunner = ([Type] -> Type)
 
 checkTypes :: MySourcePos -> Type -> ArgsCheck -> RetType -> Type
-checkTypes sp (TypeList l) argC retT =
-    case checkArgs of
-         Just t -> t
-         Nothing -> getRetType
+checkTypes sp tl@(TypeList l) argC retT =
+    --1: check tl for errors or unknowns
+    --2: check the args against the constraints,
+    --  filter this for unknown or errors
+    --  (it returns Just error, or Nothing if ok)
+    --3: get the return type, and check that for unknowns or errors
+    --4: success, return the result type
+    let c = case checkArgs of
+              Just t -> t
+              Nothing -> getRetType
+    in pe tl $ pe c c
     where
       getRetType =
           case retT of
@@ -192,6 +241,13 @@ checkTypes sp (TypeList l) argC retT =
             AllSameTypeNum t n | length l /= n ->
                                     Just $ te $ WrongNumArgs n (length l)
                                | otherwise -> checkArgListMatches t l
+            AllSameTypeNumAny n | length l /= n ->
+                                    Just $ te $ WrongNumArgs n (length l)
+                                | otherwise -> checkArgListMatches (head l) l
+            AllSameTypeAny -> checkArgListMatches (head l) l
+            AllSameType1Any | length l == 0 ->
+                                Just $ te NeedOneOrMoreArgs
+                            | otherwise -> checkArgListMatches (head l) l
             ExactList ts | ts /= l ->
                               Just $ te $ WrongTypeList ts l
                          | otherwise -> Nothing
@@ -214,7 +270,8 @@ checkTypes sp (TypeList l) argC retT =
                                    else Just $ te (WrongTypes tc tcs)
       te = TypeError sp
       argCheck (ExactType et) t = et == t
-      argCheck (Predicate p) t = p t
+      argCheck (Predicate p _) t = p t
+      pe = propagateUnknownError
 
 
 checkTypes _ x _ _ = error $ "can't check types of non type list: " ++ show x
@@ -270,14 +327,14 @@ nsp :: MySourcePos
 nsp = ("", 0,0)
 -- ArgCheck ----------------------------------------------------
 data ArgCheck  = ExactType (Type) 
-               | Predicate (TypePred) 
+               | Predicate (TypePred) (TypePredError) 
 -- cata
 sem_ArgCheck :: ArgCheck  ->
                 T_ArgCheck 
 sem_ArgCheck (ExactType _type )  =
     (sem_ArgCheck_ExactType (sem_Type _type ) )
-sem_ArgCheck (Predicate _typePred )  =
-    (sem_ArgCheck_Predicate _typePred )
+sem_ArgCheck (Predicate _typePred _typePredError )  =
+    (sem_ArgCheck_Predicate _typePred _typePredError )
 -- semantic domain
 type T_ArgCheck  = ( )
 data Inh_ArgCheck  = Inh_ArgCheck {}
@@ -295,14 +352,18 @@ sem_ArgCheck_ExactType type_  =
     (let 
      in  ( ))
 sem_ArgCheck_Predicate :: TypePred ->
+                          TypePredError ->
                           T_ArgCheck 
-sem_ArgCheck_Predicate typePred_  =
+sem_ArgCheck_Predicate typePred_ typePredError_  =
     (let 
      in  ( ))
 -- ArgsCheck ---------------------------------------------------
 data ArgsCheck  = AllSameType (Type) 
                 | AllSameType1 (Type) 
+                | AllSameType1Any 
+                | AllSameTypeAny 
                 | AllSameTypeNum (Type) (Int) 
+                | AllSameTypeNumAny (Int) 
                 | AllSameTypePredNum (ArgCheck) (Int) 
                 | ExactList (TypeList) 
                 | ExactPredList (ArgCheckList) 
@@ -313,8 +374,14 @@ sem_ArgsCheck (AllSameType _type )  =
     (sem_ArgsCheck_AllSameType (sem_Type _type ) )
 sem_ArgsCheck (AllSameType1 _type )  =
     (sem_ArgsCheck_AllSameType1 (sem_Type _type ) )
+sem_ArgsCheck (AllSameType1Any )  =
+    (sem_ArgsCheck_AllSameType1Any )
+sem_ArgsCheck (AllSameTypeAny )  =
+    (sem_ArgsCheck_AllSameTypeAny )
 sem_ArgsCheck (AllSameTypeNum _type _int )  =
     (sem_ArgsCheck_AllSameTypeNum (sem_Type _type ) _int )
+sem_ArgsCheck (AllSameTypeNumAny _int )  =
+    (sem_ArgsCheck_AllSameTypeNumAny _int )
 sem_ArgsCheck (AllSameTypePredNum _argCheck _int )  =
     (sem_ArgsCheck_AllSameTypePredNum (sem_ArgCheck _argCheck ) _int )
 sem_ArgsCheck (ExactList _typeList )  =
@@ -342,10 +409,23 @@ sem_ArgsCheck_AllSameType1 :: T_Type  ->
 sem_ArgsCheck_AllSameType1 type_  =
     (let 
      in  ( ))
+sem_ArgsCheck_AllSameType1Any :: T_ArgsCheck 
+sem_ArgsCheck_AllSameType1Any  =
+    (let 
+     in  ( ))
+sem_ArgsCheck_AllSameTypeAny :: T_ArgsCheck 
+sem_ArgsCheck_AllSameTypeAny  =
+    (let 
+     in  ( ))
 sem_ArgsCheck_AllSameTypeNum :: T_Type  ->
                                 Int ->
                                 T_ArgsCheck 
 sem_ArgsCheck_AllSameTypeNum type_ int_  =
+    (let 
+     in  ( ))
+sem_ArgsCheck_AllSameTypeNumAny :: Int ->
+                                   T_ArgsCheck 
+sem_ArgsCheck_AllSameTypeNumAny int_  =
     (let 
      in  ( ))
 sem_ArgsCheck_AllSameTypePredNum :: T_ArgCheck  ->
@@ -631,12 +711,11 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
               _x2Imessages :: ([Message])
               _x2InodeType :: Type
               _lhsOnodeType =
-                  propagateUnknownError
-                    (checkTypesAre
-                      (ScalarType "Boolean")
-                      _lhsIsourcePos
-                      (typesFromTypeList _x1InodeType))
-                    _x2InodeType
+                  checkTypes
+                    _lhsIsourcePos
+                    (TypeList [_x1InodeType])
+                    (AllSameType $ ScalarType "Boolean")
+                    (ConstRetType _x2InodeType)
               _lhsOmessages =
                   _x1Imessages ++ _x2Imessages
               _x1OinLoop =
@@ -1311,12 +1390,15 @@ sem_Expression_Case cases_ els_  =
               _elsImessages :: ([Message])
               _elsInodeType :: Type
               _lhsOnodeType =
-                  propagateUnknownErrors (typesFromTypeList _casesInodeType)
-                    (checkSameTypes
+                  checkTypes
                      _lhsIsourcePos
                      (case _elsInodeType of
-                        AnyElement -> typesFromTypeList _casesInodeType
-                        e -> (typesFromTypeList _casesInodeType) ++ [e]))
+                        AnyElement -> _casesInodeType
+                        e -> TypeList
+                               ((typesFromTypeList _casesInodeType)
+                                ++ [e]))
+                     AllSameTypeAny
+                     (RetTypeAsArgN 0)
               _lhsOmessages =
                   _casesImessages ++ _elsImessages
               _casesOinLoop =
@@ -1451,46 +1533,30 @@ sem_Expression_FunCall funName_ args_  =
               _argsInodeType :: Type
               _lhsOnodeType =
                   case _funNameIval of
-                    ArrayVal ->
-                        (let t = (checkSameTypes
-                                  _lhsIsourcePos
-                                  (typesFromTypeList _argsInodeType))
-                         in propagateUnknownError
-                             t
-                             (ArrayType t))
-                    Substring ->
-                        propagateUnknownError
-                          (checkExactTypes
-                           _lhsIsourcePos
-                           [ScalarType "String"
-                           ,ScalarType "Integer"
-                           ,ScalarType "Integer"]
-                           (typesFromTypeList _argsInodeType))
-                          (ScalarType "String")
-                    Between ->
-                        propagateUnknownError
-                          (checkSameTypesNum
-                           _lhsIsourcePos
-                           3
-                           (typesFromTypeList _argsInodeType))
-                          (ScalarType "Boolean")
-                    ArraySub ->
-                        let t = typesFromTypeList _argsInodeType
-                        in propagateUnknownError
-                             (checkExactTypes
-                                _lhsIsourcePos
-                                [AnyArray
-                                ,ScalarType "Integer"]
-                                t)
-                             (typeFromArray (t !! 0))
-                    Operator s | s == "=" ->
-                                   let t = (checkSameTypes
-                                            _lhsIsourcePos
-                                            (typesFromTypeList _argsInodeType))
-                                   in propagateUnknownError
-                                      t
-                                      (ScalarType "Boolean")
+                    ArrayVal -> ct AllSameType1Any
+                                   (RetTypeFun (\t -> ArrayType $ head t))
+                    Substring -> ct
+                                   (ExactList [ScalarType "String"
+                                              ,ScalarType "Integer"
+                                              ,ScalarType "Integer"])
+                                   (ConstRetType (ScalarType "String"))
+                    Between -> ct
+                                   (AllSameTypeNumAny 3)
+                                   (ConstRetType (ScalarType "Boolean"))
+                    ArraySub -> ct
+                                   (ExactPredList
+                                     [Predicate isArrayType NotArrayType
+                                     ,ExactType (ScalarType "Integer")])
+                                   (RetTypeFun (\t -> typeFromArray $ head t))
+                    Operator s | s == "=" -> ct
+                                               (AllSameTypeNumAny 2)
+                                               (ConstRetType (ScalarType "Boolean"))
+                               | s == "not" -> ct
+                                               (ExactList [ScalarType "Boolean"])
+                                               (ConstRetType (ScalarType "Boolean"))
                     _ -> UnknownType
+                  where
+                    ct = checkTypes _lhsIsourcePos _argsInodeType
               _lhsOmessages =
                   _funNameImessages ++ _argsImessages
               _funNameOinLoop =
