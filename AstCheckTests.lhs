@@ -82,18 +82,23 @@ types of error message received.
 >      ,p "3 between 2 and 4" (ScalarType "Boolean")
 >      ,p "3 between '2' and 4" (TypeError ("",0,0)
 >                                (WrongTypes (ScalarType "Integer")
->                                 [ScalarType "Integer",ScalarType "String",ScalarType "Integer"]))
+>                                 [ScalarType "Integer"
+>                                 ,ScalarType "String"
+>                                 ,ScalarType "Integer"]))
 
 >      ,p "array[1,2,3][2]" (ScalarType "Integer")
 >      ,p "array['a','b'][1]" (ScalarType "String")
 >      ,p "array['a','b']['test']" (TypeError ("",0,0)
 >                                   (WrongTypeList
 >                                    [AnyArray,ScalarType "Integer"]
->                                    [ArrayType (ScalarType "String"),ScalarType "String"]))
+>                                    [ArrayType (ScalarType "String")
+>                                    ,ScalarType "String"]))
 
 >      ,p "not true" (ScalarType "Boolean")
 >      ,p "not 1" (TypeError ("",0,0)
->                  (WrongTypeList [ScalarType "Boolean"] [ScalarType "Integer"]))
+>                  (WrongTypeList
+>                   [ScalarType "Boolean"]
+>                   [ScalarType "Integer"]))
 
 not @ -u -b
 is null
@@ -125,19 +130,26 @@ rowctor
 >         \ when 'test'=3 then 'blah'\n\
 >         \ else 'test'\n\
 >         \end" (TypeError ("",0,0)
->                (WrongTypes (ScalarType "String") [ScalarType "Integer"]))
+>                (WrongTypes (ScalarType "String")
+>                 [ScalarType "String",ScalarType "Integer"]))
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 'blah'\n\
 >         \ else 1\n\
 >         \end" (TypeError ("",0,0)
->                (WrongTypes (ScalarType "String") [ScalarType "Integer"]))
+>                (WrongTypes (ScalarType "String")
+>                  [ScalarType "String"
+>                  ,ScalarType "String"
+>                  ,ScalarType "Integer"]))
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 1\n\
 >         \ else 'else'\n\
 >         \end" (TypeError ("",0,0)
->                (WrongTypes (ScalarType "String") [ScalarType "Integer"]))
+>                (WrongTypes (ScalarType "String")
+>                 [ScalarType "String"
+>                 ,ScalarType "Integer"
+>                 ,ScalarType "String"]))
 >      ])
 
 >    ]

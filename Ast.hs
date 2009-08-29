@@ -113,63 +113,11 @@ propagateUnknownError t t1 =
                                      TypeError _ _ -> True
                                      _ -> False) ts
           in case () of
-               _ | length errs > 0 -> TypeList errs
+               _ | length errs > 0 -> case () of
+                                        _ | length errs == 1 -> head errs
+                                          | otherwise -> TypeList errs
                  | length unks > 0 -> UnknownType
                  | otherwise -> t1
-
-
---list version, if you need to propagate two or more types when
---unknown or error
-{-propagateUnknownErrors :: [Type] -> Type -> Type
-propagateUnknownErrors ts t1 =
-    let unks = filter (\t -> case t of
-                               UnknownType -> True
-                               _ -> False) ts
-        errs = filter (\t -> case t of
-                               TypeError _ _ -> True
-                               _ -> False) ts
-    in case () of
-         _ | length errs > 0 -> head errs --should probably pass all of them forward
-           | length unks > 0 -> UnknownType
-           | otherwise -> t1
--}
-{-
-checkTypesAre :: Type -> MySourcePos -> [Type] -> Type
-checkTypesAre typ sp l = propagateUnknownErrors l
-                          (let bad = filter (\t -> t /= typ) l
-                           in if length bad == 0
-                                then typ
-                                else TypeError sp (WrongTypes typ bad))
-
-checkSameTypes :: MySourcePos -> [Type] -> Type
-checkSameTypes sp l = propagateUnknownErrors l
-                        (if length l == 0
-                           then AnyElement
-                           else checkTypesAre (head l) sp l)
-
-checkSameTypesNum :: MySourcePos -> Int -> [Type] -> Type
-checkSameTypesNum sp n l = propagateUnknownErrors l
-                        (if length l /= n
-                           then TypeError sp (WrongNumArgs n (length l))
-                           else checkTypesAre (head l) sp l)
-
-
-checkExactTypes :: MySourcePos -> [Type] -> [Type] -> Type
-checkExactTypes sp ts es = propagateUnknownErrors es
-                           (if not (matchAnys ts es)
-                              then TypeError sp (WrongTypeList ts es)
-                              else AnyElement)
-
-matchAnys :: [Type] -> [Type] -> Bool
-matchAnys [] [] = True
-matchAnys [] _ = False
-matchAnys _ [] = False
-matchAnys (x:xs) (y:ys) = if x == y
-                             || (isArrayType x && isArrayType y)
-                             || (x == AnyElement || y == AnyElement)
-                            then matchAnys xs ys
-                            else False
--}
 
 typesFromTypeList :: Type -> [Type]
 typesFromTypeList (TypeList ts) = ts
@@ -713,7 +661,7 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
               _lhsOnodeType =
                   checkTypes
                     _lhsIsourcePos
-                    (TypeList [_x1InodeType])
+                    _x1InodeType
                     (AllSameType $ ScalarType "Boolean")
                     (ConstRetType _x2InodeType)
               _lhsOmessages =
