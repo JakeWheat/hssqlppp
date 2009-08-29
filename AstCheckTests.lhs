@@ -91,6 +91,10 @@ types of error message received.
 >                                    [AnyArray,ScalarType "Integer"]
 >                                    [ArrayType (ScalarType "String"),ScalarType "String"]))
 
+>      ,p "not true" (ScalarType "Boolean")
+>      ,p "not 1" (TypeError ("",0,0)
+>                  (WrongType (ScalarType "Boolean") (ScalarType "Integer")))
+
 not @ -u -b
 is null
 is not null

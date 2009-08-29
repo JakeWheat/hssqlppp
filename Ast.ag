@@ -47,7 +47,60 @@ Ast.ag)
 -}
 
 MODULE {Ast}
-{} -- exports
+{
+    -- exports
+    MySourcePos
+
+    --ast nodes
+   ,Statement (..)
+   ,SelectExpression (..)
+   ,FnBody (..)
+   ,SetClause (..)
+   ,TableRef (..)
+   ,JoinExpression (..)
+   ,JoinType (..)
+   ,SelectList (..)
+   ,SelectItem (..)
+   ,CopySource (..)
+   ,AttributeDef (..)
+   ,RowConstraint (..)
+   ,Constraint (..)
+   ,TypeAttributeDef (..)
+   ,ParamDef (..)
+   ,VarDef (..)
+   ,RaiseType (..)
+   ,CombineType (..)
+   ,Volatility (..)
+   ,Language (..)
+   ,TypeName (..)
+   ,DropType (..)
+   ,Cascade (..)
+   ,Direction (..)
+   ,Distinct (..)
+   ,Natural (..)
+   ,IfExists (..)
+   ,RestartIdentity (..)
+   ,Expression (..)
+   ,FunName (..)
+   ,OperatorType (..)
+   ,getOperatorType
+   ,InList (..)
+   ,StatementList
+   --checking stuff
+   ,Message (..)
+   ,MessageStuff (..)
+   --types
+   ,Type (..)
+   ,TypeErrorInfo (..)
+   --fns
+   ,checkAst
+   ,getExpressionType
+   ,resetSps
+   ,resetSp
+   ,resetSp'
+   ,resetSps'
+   ,nsp
+}
 {} -- imports
 
 {-
@@ -401,7 +454,6 @@ DATA Message | Error MySourcePos MessageStuff
              | Notice MySourcePos MessageStuff
 
 DATA MessageStuff | ContinueNotInLoop
-                  | NonSelectInSelectExpression
                   | CustomMessage String
 
 DERIVING Message MessageStuff: Eq
@@ -622,6 +674,8 @@ DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
                    | WrongNumArgs expected:Int got:Int
                    | WrongType expected:Type got:Type
                    | NotArrayType got:Type
+                   | NeedOneOrMoreArgs
+                   | OtherTypeError String
 
 DERIVING Type TypeErrorInfo: Show,Eq
 
@@ -720,6 +774,99 @@ isArrayType :: Type -> Bool
 isArrayType (ArrayType _) = True
 isArrayType (AnyArray) = True
 isArrayType _ = False
+}
+---------------------------------------------
+-- some helpers to handle scalar expression type checking
+
+-- idea is to pass in a list of types of arguments to a scalar valued
+-- operator (or function, whatever), and a constraint on the arg list,
+-- and a method of getting the type of the result of the operator
+-- application
+
+DATA ArgsCheck
+    -- check any number of args, all have the same type
+    | AllSameType Type
+    -- check any one or more args, all have the same type
+    | AllSameType1 Type
+    -- check all same type, exact number of args
+    | AllSameTypeNum Type Int
+    -- check type list matches given list
+    | ExactList TypeList
+    -- check type list passes predicate list respectively
+    | ExactPredList ArgCheckList
+    -- check all types pass single predicate, exact number
+    | AllSameTypePredNum ArgCheck Int
+
+{
+type TypeList = [Type]
+type ArgCheckList = [ArgCheck]
+}
+
+DATA ArgCheck
+    | ExactType Type
+    | Predicate TypePred
+
+{
+type TypePred = (Type -> Bool)
+}
+
+DATA RetType
+    -- always returns fixed type
+    | ConstRetType Type
+    -- returns same type as argument n
+    | RetTypeAsArgN Int
+    -- use generic fn on arg list to produce return type
+    | RetTypeFun RetTypeFunner
+
+{
+type RetTypeFunner = ([Type] -> Type)
+
+checkTypes :: MySourcePos -> Type -> ArgsCheck -> RetType -> Type
+checkTypes sp (TypeList l) argC retT =
+    case checkArgs of
+         Just t -> t
+         Nothing -> getRetType
+    where
+      getRetType =
+          case retT of
+            ConstRetType t -> t
+            RetTypeAsArgN n -> l !! n
+            RetTypeFun f -> f l
+      checkArgs =
+          case argC of
+            AllSameType t -> checkArgListMatches t l
+            AllSameType1 t | length l == 0 ->
+                                Just $ te NeedOneOrMoreArgs
+                           | otherwise -> checkArgListMatches t l
+            AllSameTypeNum t n | length l /= n ->
+                                    Just $ te $ WrongNumArgs n (length l)
+                               | otherwise -> checkArgListMatches t l
+            ExactList ts | ts /= l ->
+                              Just $ te $ WrongTypeList ts l
+                         | otherwise -> Nothing
+            ExactPredList chks | length l /= length chks ->
+                                   Just $ te $ WrongNumArgs
+                                            (length chks)
+                                            (length l)
+                               | any (\(chk,tc) -> not $ argCheck chk tc)
+                                     (zip chks l) ->
+                                         Just $ te $ OtherTypeError "types not correct."
+                               | otherwise -> Nothing
+            AllSameTypePredNum p n | length l /= n ->
+                                        Just $ te $ WrongNumArgs
+                                                      n
+                                                      (length l)
+                                   | all (argCheck p) l -> Nothing
+                                   | otherwise -> Just $ te $ OtherTypeError "types not correct."
+      checkArgListMatches tc tcs = if all (==tc) tcs
+                                   then Nothing
+                                   else Just $ te (WrongTypes tc tcs)
+      te = TypeError sp
+      argCheck (ExactType et) t = et == t
+      argCheck (Predicate p) t = p t
+
+
+checkTypes _ x _ _ = error $ "can't check types of non type list: " ++ show x
 
 }
 
@@ -781,15 +928,13 @@ SEM Expression
                       ,ScalarType "Integer"]
                       t)
                    (typeFromArray (t !! 0))
-          Operator s ->
-              if s == "="
-                then let t = (checkSameTypes
-                              @lhs.sourcePos
-                              (typesFromTypeList @args.nodeType))
-                     in propagateUnknownError
-                          t
-                          (ScalarType "Boolean")
-                else UnknownType
+          Operator s | s == "=" ->
+                         let t = (checkSameTypes
+                                  @lhs.sourcePos
+                                  (typesFromTypeList @args.nodeType))
+                         in propagateUnknownError
+                            t
+                            (ScalarType "Boolean")
           _ -> UnknownType
 
 

@@ -737,8 +737,6 @@ or after the whole list
 >                  <$> (expr <* keyword "loop")
 >                  <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
 
-bit too clever coming up
-
 > ifStatement :: ParsecT [Token] ParseState Identity Statement
 > ifStatement = keyword "if" >>
 >               If
@@ -833,15 +831,15 @@ with a function
 
 >               ,caseParse
 >               ,exists
-
 >               ,booleanLit
 >               ,nullLit
-
 >               ,arrayLit
-
-
 >               ,castKeyword
 >               ,substring
+
+now do identifiers, functions, and window functions (each is a prefix
+to the next one)
+
 >               ,threadOptionalSuffixes
 >                 identifier
 >                 [inPredicateSuffix

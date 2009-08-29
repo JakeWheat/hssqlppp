@@ -1,7 +1,60 @@
 
 
 -- UUAGC 0.9.10 (Ast.ag)
-module Ast where
+module Ast(
+    -- exports
+    MySourcePos
+
+    --ast nodes
+   ,Statement (..)
+   ,SelectExpression (..)
+   ,FnBody (..)
+   ,SetClause (..)
+   ,TableRef (..)
+   ,JoinExpression (..)
+   ,JoinType (..)
+   ,SelectList (..)
+   ,SelectItem (..)
+   ,CopySource (..)
+   ,AttributeDef (..)
+   ,RowConstraint (..)
+   ,Constraint (..)
+   ,TypeAttributeDef (..)
+   ,ParamDef (..)
+   ,VarDef (..)
+   ,RaiseType (..)
+   ,CombineType (..)
+   ,Volatility (..)
+   ,Language (..)
+   ,TypeName (..)
+   ,DropType (..)
+   ,Cascade (..)
+   ,Direction (..)
+   ,Distinct (..)
+   ,Natural (..)
+   ,IfExists (..)
+   ,RestartIdentity (..)
+   ,Expression (..)
+   ,FunName (..)
+   ,OperatorType (..)
+   ,getOperatorType
+   ,InList (..)
+   ,StatementList
+   --checking stuff
+   ,Message (..)
+   ,MessageStuff (..)
+   --types
+   ,Type (..)
+   ,TypeErrorInfo (..)
+   --fns
+   ,checkAst
+   ,getExpressionType
+   ,resetSps
+   ,resetSp
+   ,resetSp'
+   ,resetSps'
+   ,nsp
+) where
 
 
 getOperatorType :: String -> OperatorType
@@ -110,6 +163,63 @@ isArrayType (AnyArray) = True
 isArrayType _ = False
 
 
+type TypeList = [Type]
+type ArgCheckList = [ArgCheck]
+
+
+type TypePred = (Type -> Bool)
+
+
+type RetTypeFunner = ([Type] -> Type)
+
+checkTypes :: MySourcePos -> Type -> ArgsCheck -> RetType -> Type
+checkTypes sp (TypeList l) argC retT =
+    case checkArgs of
+         Just t -> t
+         Nothing -> getRetType
+    where
+      getRetType =
+          case retT of
+            ConstRetType t -> t
+            RetTypeAsArgN n -> l !! n
+            RetTypeFun f -> f l
+      checkArgs =
+          case argC of
+            AllSameType t -> checkArgListMatches t l
+            AllSameType1 t | length l == 0 ->
+                                Just $ te NeedOneOrMoreArgs
+                           | otherwise -> checkArgListMatches t l
+            AllSameTypeNum t n | length l /= n ->
+                                    Just $ te $ WrongNumArgs n (length l)
+                               | otherwise -> checkArgListMatches t l
+            ExactList ts | ts /= l ->
+                              Just $ te $ WrongTypeList ts l
+                         | otherwise -> Nothing
+            ExactPredList chks | length l /= length chks ->
+                                   Just $ te $ WrongNumArgs
+                                            (length chks)
+                                            (length l)
+                               | any (\(chk,tc) -> not $ argCheck chk tc)
+                                     (zip chks l) ->
+                                         Just $ te $ OtherTypeError "types not correct."
+                               | otherwise -> Nothing
+            AllSameTypePredNum p n | length l /= n ->
+                                        Just $ te $ WrongNumArgs
+                                                      n
+                                                      (length l)
+                                   | all (argCheck p) l -> Nothing
+                                   | otherwise -> Just $ te $ OtherTypeError "types not correct."
+      checkArgListMatches tc tcs = if all (==tc) tcs
+                                   then Nothing
+                                   else Just $ te (WrongTypes tc tcs)
+      te = TypeError sp
+      argCheck (ExactType et) t = et == t
+      argCheck (Predicate p) t = p t
+
+
+checkTypes _ x _ _ = error $ "can't check types of non type list: " ++ show x
+
+
 
 checkAst :: StatementList -> [Message]
 checkAst sts = let t = sem_Root (Root sts)
@@ -158,6 +268,102 @@ resetSps' sts = map resetSp' sts
 
 nsp :: MySourcePos
 nsp = ("", 0,0)
+-- ArgCheck ----------------------------------------------------
+data ArgCheck  = ExactType (Type) 
+               | Predicate (TypePred) 
+-- cata
+sem_ArgCheck :: ArgCheck  ->
+                T_ArgCheck 
+sem_ArgCheck (ExactType _type )  =
+    (sem_ArgCheck_ExactType (sem_Type _type ) )
+sem_ArgCheck (Predicate _typePred )  =
+    (sem_ArgCheck_Predicate _typePred )
+-- semantic domain
+type T_ArgCheck  = ( )
+data Inh_ArgCheck  = Inh_ArgCheck {}
+data Syn_ArgCheck  = Syn_ArgCheck {}
+wrap_ArgCheck :: T_ArgCheck  ->
+                 Inh_ArgCheck  ->
+                 Syn_ArgCheck 
+wrap_ArgCheck sem (Inh_ArgCheck )  =
+    (let ( ) =
+             (sem )
+     in  (Syn_ArgCheck ))
+sem_ArgCheck_ExactType :: T_Type  ->
+                          T_ArgCheck 
+sem_ArgCheck_ExactType type_  =
+    (let 
+     in  ( ))
+sem_ArgCheck_Predicate :: TypePred ->
+                          T_ArgCheck 
+sem_ArgCheck_Predicate typePred_  =
+    (let 
+     in  ( ))
+-- ArgsCheck ---------------------------------------------------
+data ArgsCheck  = AllSameType (Type) 
+                | AllSameType1 (Type) 
+                | AllSameTypeNum (Type) (Int) 
+                | AllSameTypePredNum (ArgCheck) (Int) 
+                | ExactList (TypeList) 
+                | ExactPredList (ArgCheckList) 
+-- cata
+sem_ArgsCheck :: ArgsCheck  ->
+                 T_ArgsCheck 
+sem_ArgsCheck (AllSameType _type )  =
+    (sem_ArgsCheck_AllSameType (sem_Type _type ) )
+sem_ArgsCheck (AllSameType1 _type )  =
+    (sem_ArgsCheck_AllSameType1 (sem_Type _type ) )
+sem_ArgsCheck (AllSameTypeNum _type _int )  =
+    (sem_ArgsCheck_AllSameTypeNum (sem_Type _type ) _int )
+sem_ArgsCheck (AllSameTypePredNum _argCheck _int )  =
+    (sem_ArgsCheck_AllSameTypePredNum (sem_ArgCheck _argCheck ) _int )
+sem_ArgsCheck (ExactList _typeList )  =
+    (sem_ArgsCheck_ExactList _typeList )
+sem_ArgsCheck (ExactPredList _argCheckList )  =
+    (sem_ArgsCheck_ExactPredList _argCheckList )
+-- semantic domain
+type T_ArgsCheck  = ( )
+data Inh_ArgsCheck  = Inh_ArgsCheck {}
+data Syn_ArgsCheck  = Syn_ArgsCheck {}
+wrap_ArgsCheck :: T_ArgsCheck  ->
+                  Inh_ArgsCheck  ->
+                  Syn_ArgsCheck 
+wrap_ArgsCheck sem (Inh_ArgsCheck )  =
+    (let ( ) =
+             (sem )
+     in  (Syn_ArgsCheck ))
+sem_ArgsCheck_AllSameType :: T_Type  ->
+                             T_ArgsCheck 
+sem_ArgsCheck_AllSameType type_  =
+    (let 
+     in  ( ))
+sem_ArgsCheck_AllSameType1 :: T_Type  ->
+                              T_ArgsCheck 
+sem_ArgsCheck_AllSameType1 type_  =
+    (let 
+     in  ( ))
+sem_ArgsCheck_AllSameTypeNum :: T_Type  ->
+                                Int ->
+                                T_ArgsCheck 
+sem_ArgsCheck_AllSameTypeNum type_ int_  =
+    (let 
+     in  ( ))
+sem_ArgsCheck_AllSameTypePredNum :: T_ArgCheck  ->
+                                    Int ->
+                                    T_ArgsCheck 
+sem_ArgsCheck_AllSameTypePredNum argCheck_ int_  =
+    (let 
+     in  ( ))
+sem_ArgsCheck_ExactList :: TypeList ->
+                           T_ArgsCheck 
+sem_ArgsCheck_ExactList typeList_  =
+    (let 
+     in  ( ))
+sem_ArgsCheck_ExactPredList :: ArgCheckList ->
+                               T_ArgsCheck 
+sem_ArgsCheck_ExactPredList argCheckList_  =
+    (let 
+     in  ( ))
 -- AttributeDef ------------------------------------------------
 data AttributeDef  = AttributeDef (String) (TypeName) (Maybe Expression) (RowConstraintList) 
                    deriving ( Eq,Show)
@@ -1277,15 +1483,13 @@ sem_Expression_FunCall funName_ args_  =
                                 ,ScalarType "Integer"]
                                 t)
                              (typeFromArray (t !! 0))
-                    Operator s ->
-                        if s == "="
-                          then let t = (checkSameTypes
-                                        _lhsIsourcePos
-                                        (typesFromTypeList _argsInodeType))
-                               in propagateUnknownError
-                                    t
-                                    (ScalarType "Boolean")
-                          else UnknownType
+                    Operator s | s == "=" ->
+                                   let t = (checkSameTypes
+                                            _lhsIsourcePos
+                                            (typesFromTypeList _argsInodeType))
+                                   in propagateUnknownError
+                                      t
+                                      (ScalarType "Boolean")
                     _ -> UnknownType
               _lhsOmessages =
                   _funNameImessages ++ _argsImessages
@@ -2529,7 +2733,6 @@ sem_Message_Warning mySourcePos_ messageStuff_  =
 -- MessageStuff ------------------------------------------------
 data MessageStuff  = ContinueNotInLoop 
                    | CustomMessage (String) 
-                   | NonSelectInSelectExpression 
                    deriving ( Eq,Show)
 -- cata
 sem_MessageStuff :: MessageStuff  ->
@@ -2538,8 +2741,6 @@ sem_MessageStuff (ContinueNotInLoop )  =
     (sem_MessageStuff_ContinueNotInLoop )
 sem_MessageStuff (CustomMessage _string )  =
     (sem_MessageStuff_CustomMessage _string )
-sem_MessageStuff (NonSelectInSelectExpression )  =
-    (sem_MessageStuff_NonSelectInSelectExpression )
 -- semantic domain
 type T_MessageStuff  = ( )
 data Inh_MessageStuff  = Inh_MessageStuff {}
@@ -2558,10 +2759,6 @@ sem_MessageStuff_ContinueNotInLoop  =
 sem_MessageStuff_CustomMessage :: String ->
                                   T_MessageStuff 
 sem_MessageStuff_CustomMessage string_  =
-    (let 
-     in  ( ))
-sem_MessageStuff_NonSelectInSelectExpression :: T_MessageStuff 
-sem_MessageStuff_NonSelectInSelectExpression  =
     (let 
      in  ( ))
 -- MySourcePos -------------------------------------------------
@@ -2914,6 +3111,45 @@ sem_RestartIdentity_RestartIdentity  =
               _lhsOnodeType =
                   UnknownType
           in  ( _lhsOmessages,_lhsOnodeType)))
+-- RetType -----------------------------------------------------
+data RetType  = ConstRetType (Type) 
+              | RetTypeAsArgN (Int) 
+              | RetTypeFun (RetTypeFunner) 
+-- cata
+sem_RetType :: RetType  ->
+               T_RetType 
+sem_RetType (ConstRetType _type )  =
+    (sem_RetType_ConstRetType (sem_Type _type ) )
+sem_RetType (RetTypeAsArgN _int )  =
+    (sem_RetType_RetTypeAsArgN _int )
+sem_RetType (RetTypeFun _retTypeFunner )  =
+    (sem_RetType_RetTypeFun _retTypeFunner )
+-- semantic domain
+type T_RetType  = ( )
+data Inh_RetType  = Inh_RetType {}
+data Syn_RetType  = Syn_RetType {}
+wrap_RetType :: T_RetType  ->
+                Inh_RetType  ->
+                Syn_RetType 
+wrap_RetType sem (Inh_RetType )  =
+    (let ( ) =
+             (sem )
+     in  (Syn_RetType ))
+sem_RetType_ConstRetType :: T_Type  ->
+                            T_RetType 
+sem_RetType_ConstRetType type_  =
+    (let 
+     in  ( ))
+sem_RetType_RetTypeAsArgN :: Int ->
+                             T_RetType 
+sem_RetType_RetTypeAsArgN int_  =
+    (let 
+     in  ( ))
+sem_RetType_RetTypeFun :: RetTypeFunner ->
+                          T_RetType 
+sem_RetType_RetTypeFun retTypeFunner_  =
+    (let 
+     in  ( ))
 -- Root --------------------------------------------------------
 data Root  = Root (StatementList) 
            deriving ( Show)
@@ -5277,7 +5513,9 @@ sem_TypeAttributeDefList_Nil  =
                   TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- TypeErrorInfo -----------------------------------------------
-data TypeErrorInfo  = NotArrayType (Type) 
+data TypeErrorInfo  = NeedOneOrMoreArgs 
+                    | NotArrayType (Type) 
+                    | OtherTypeError (String) 
                     | WrongNumArgs (Int) (Int) 
                     | WrongType (Type) (Type) 
                     | WrongTypeList ([Type]) ([Type]) 
@@ -5286,8 +5524,12 @@ data TypeErrorInfo  = NotArrayType (Type)
 -- cata
 sem_TypeErrorInfo :: TypeErrorInfo  ->
                      T_TypeErrorInfo 
+sem_TypeErrorInfo (NeedOneOrMoreArgs )  =
+    (sem_TypeErrorInfo_NeedOneOrMoreArgs )
 sem_TypeErrorInfo (NotArrayType _got )  =
     (sem_TypeErrorInfo_NotArrayType (sem_Type _got ) )
+sem_TypeErrorInfo (OtherTypeError _string )  =
+    (sem_TypeErrorInfo_OtherTypeError _string )
 sem_TypeErrorInfo (WrongNumArgs _expected _got )  =
     (sem_TypeErrorInfo_WrongNumArgs _expected _got )
 sem_TypeErrorInfo (WrongType _expected _got )  =
@@ -5307,9 +5549,18 @@ wrap_TypeErrorInfo sem (Inh_TypeErrorInfo )  =
     (let ( ) =
              (sem )
      in  (Syn_TypeErrorInfo ))
+sem_TypeErrorInfo_NeedOneOrMoreArgs :: T_TypeErrorInfo 
+sem_TypeErrorInfo_NeedOneOrMoreArgs  =
+    (let 
+     in  ( ))
 sem_TypeErrorInfo_NotArrayType :: T_Type  ->
                                   T_TypeErrorInfo 
 sem_TypeErrorInfo_NotArrayType got_  =
+    (let 
+     in  ( ))
+sem_TypeErrorInfo_OtherTypeError :: String ->
+                                    T_TypeErrorInfo 
+sem_TypeErrorInfo_OtherTypeError string_  =
     (let 
      in  ( ))
 sem_TypeErrorInfo_WrongNumArgs :: Int ->
