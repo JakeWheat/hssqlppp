@@ -84,8 +84,13 @@ types of error message received.
 >                                (WrongTypes (ScalarType "Integer")
 >                                 [ScalarType "String"]))
 
-arraysub
-rowctor
+>      ,p "array[1,2,3][2]" (ScalarType "Integer")
+>      ,p "array['a','b'][1]" (ScalarType "String")
+>      ,p "array['a','b']['test']" (TypeError ("",0,0)
+>                                   (WrongTypeList
+>                                    [AnyArray,ScalarType "Integer"]
+>                                    [ArrayType (ScalarType "String"),ScalarType "String"]))
+
 not @ -u -b
 is null
 is not null
@@ -94,6 +99,7 @@ and or
 || like
 <> < > <= >= <->
 funs
+rowctor
 
 
 >      ])

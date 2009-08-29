@@ -620,6 +620,8 @@ DATA Type | ScalarType String
 DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
                    | WrongTypeList expected:{[Type]} got:{[Type]}
                    | WrongNumArgs expected:Int got:Int
+                   | WrongType expected:Type got:Type
+                   | NotArrayType got:Type
 
 DERIVING Type TypeErrorInfo: Show,Eq
 
@@ -692,13 +694,33 @@ checkSameTypesNum sp n l = propagateUnknownErrors l
 
 checkExactTypes :: MySourcePos -> [Type] -> [Type] -> Type
 checkExactTypes sp ts es = propagateUnknownErrors es
-                           (if ts /= es
+                           (if not (matchAnys ts es)
                               then TypeError sp (WrongTypeList ts es)
                               else AnyElement)
+
+matchAnys :: [Type] -> [Type] -> Bool
+matchAnys [] [] = True
+matchAnys [] _ = False
+matchAnys _ [] = False
+matchAnys (x:xs) (y:ys) = if x == y
+                             || (isArrayType x && isArrayType y)
+                             || (x == AnyElement || y == AnyElement)
+                            then matchAnys xs ys
+                            else False
 
 typesFromTypeList :: Type -> [Type]
 typesFromTypeList (TypeList ts) = ts
 typesFromTypeList x = error $ "can't get types from list " ++ show x
+
+typeFromArray :: Type -> Type
+typeFromArray (ArrayType t) = t
+typeFromArray x = error $ "can't get types from non array " ++ show x
+
+isArrayType :: Type -> Bool
+isArrayType (ArrayType _) = True
+isArrayType (AnyArray) = True
+isArrayType _ = False
+
 }
 
 SEM MaybeExpression
@@ -725,41 +747,50 @@ ATTR FunName
   ]
 
 SEM Expression
-    | FunCall lhs.nodeType = case @funName.val of
-                               ArrayVal ->
-                                       (let t = (checkSameTypes
-                                                 @lhs.sourcePos
-                                                 (typesFromTypeList @args.nodeType))
-                                        in propagateUnknownError
-                                            t
-                                            (ArrayType t))
-                               Substring ->
-                                   propagateUnknownError
-                                     (checkExactTypes
-                                      @lhs.sourcePos
-                                      [ScalarType "String"
-                                      ,ScalarType "Integer"
-                                      ,ScalarType "Integer"]
-                                      (typesFromTypeList @args.nodeType))
-                                     (ScalarType "String")
-                               Between ->
-                                   propagateUnknownError
-                                     (checkSameTypesNum
-                                      @lhs.sourcePos
-                                      3
-                                      (typesFromTypeList @args.nodeType))
-                                     (ScalarType "Boolean")
-
-                               Operator s ->
-                                     (if s == "="
-                                       then let t = (checkSameTypes
-                                                     @lhs.sourcePos
-                                                     (typesFromTypeList @args.nodeType))
-                                            in propagateUnknownError
-                                                 t
-                                                 (ScalarType "Boolean")
-                                       else UnknownType)
-                               _ -> UnknownType
+    | FunCall lhs.nodeType =
+        case @funName.val of
+          ArrayVal ->
+              (let t = (checkSameTypes
+                        @lhs.sourcePos
+                        (typesFromTypeList @args.nodeType))
+               in propagateUnknownError
+                   t
+                   (ArrayType t))
+          Substring ->
+              propagateUnknownError
+                (checkExactTypes
+                 @lhs.sourcePos
+                 [ScalarType "String"
+                 ,ScalarType "Integer"
+                 ,ScalarType "Integer"]
+                 (typesFromTypeList @args.nodeType))
+                (ScalarType "String")
+          Between ->
+              propagateUnknownError
+                (checkSameTypesNum
+                 @lhs.sourcePos
+                 3
+                 (typesFromTypeList @args.nodeType))
+                (ScalarType "Boolean")
+          ArraySub ->
+              let t = typesFromTypeList @args.nodeType
+              in propagateUnknownError
+                   (checkExactTypes
+                      @lhs.sourcePos
+                      [AnyArray
+                      ,ScalarType "Integer"]
+                      t)
+                   (typeFromArray (t !! 0))
+          Operator s ->
+              if s == "="
+                then let t = (checkSameTypes
+                              @lhs.sourcePos
+                              (typesFromTypeList @args.nodeType))
+                     in propagateUnknownError
+                          t
+                          (ScalarType "Boolean")
+                else UnknownType
+          _ -> UnknownType
 
 
 {-

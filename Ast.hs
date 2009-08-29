@@ -82,13 +82,33 @@ checkSameTypesNum sp n l = propagateUnknownErrors l
 
 checkExactTypes :: MySourcePos -> [Type] -> [Type] -> Type
 checkExactTypes sp ts es = propagateUnknownErrors es
-                           (if ts /= es
+                           (if not (matchAnys ts es)
                               then TypeError sp (WrongTypeList ts es)
                               else AnyElement)
+
+matchAnys :: [Type] -> [Type] -> Bool
+matchAnys [] [] = True
+matchAnys [] _ = False
+matchAnys _ [] = False
+matchAnys (x:xs) (y:ys) = if x == y
+                             || (isArrayType x && isArrayType y)
+                             || (x == AnyElement || y == AnyElement)
+                            then matchAnys xs ys
+                            else False
 
 typesFromTypeList :: Type -> [Type]
 typesFromTypeList (TypeList ts) = ts
 typesFromTypeList x = error $ "can't get types from list " ++ show x
+
+typeFromArray :: Type -> Type
+typeFromArray (ArrayType t) = t
+typeFromArray x = error $ "can't get types from non array " ++ show x
+
+isArrayType :: Type -> Bool
+isArrayType (ArrayType _) = True
+isArrayType (AnyArray) = True
+isArrayType _ = False
+
 
 
 checkAst :: StatementList -> [Message]
@@ -1226,12 +1246,12 @@ sem_Expression_FunCall funName_ args_  =
               _lhsOnodeType =
                   case _funNameIval of
                     ArrayVal ->
-                            (let t = (checkSameTypes
-                                      _lhsIsourcePos
-                                      (typesFromTypeList _argsInodeType))
-                             in propagateUnknownError
-                                 t
-                                 (ArrayType t))
+                        (let t = (checkSameTypes
+                                  _lhsIsourcePos
+                                  (typesFromTypeList _argsInodeType))
+                         in propagateUnknownError
+                             t
+                             (ArrayType t))
                     Substring ->
                         propagateUnknownError
                           (checkExactTypes
@@ -1248,15 +1268,24 @@ sem_Expression_FunCall funName_ args_  =
                            3
                            (typesFromTypeList _argsInodeType))
                           (ScalarType "Boolean")
+                    ArraySub ->
+                        let t = typesFromTypeList _argsInodeType
+                        in propagateUnknownError
+                             (checkExactTypes
+                                _lhsIsourcePos
+                                [AnyArray
+                                ,ScalarType "Integer"]
+                                t)
+                             (typeFromArray (t !! 0))
                     Operator s ->
-                          (if s == "="
-                            then let t = (checkSameTypes
-                                          _lhsIsourcePos
-                                          (typesFromTypeList _argsInodeType))
-                                 in propagateUnknownError
-                                      t
-                                      (ScalarType "Boolean")
-                            else UnknownType)
+                        if s == "="
+                          then let t = (checkSameTypes
+                                        _lhsIsourcePos
+                                        (typesFromTypeList _argsInodeType))
+                               in propagateUnknownError
+                                    t
+                                    (ScalarType "Boolean")
+                          else UnknownType
                     _ -> UnknownType
               _lhsOmessages =
                   _funNameImessages ++ _argsImessages
@@ -5248,15 +5277,21 @@ sem_TypeAttributeDefList_Nil  =
                   TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- TypeErrorInfo -----------------------------------------------
-data TypeErrorInfo  = WrongNumArgs (Int) (Int) 
+data TypeErrorInfo  = NotArrayType (Type) 
+                    | WrongNumArgs (Int) (Int) 
+                    | WrongType (Type) (Type) 
                     | WrongTypeList ([Type]) ([Type]) 
                     | WrongTypes (Type) ([Type]) 
                     deriving ( Eq,Show)
 -- cata
 sem_TypeErrorInfo :: TypeErrorInfo  ->
                      T_TypeErrorInfo 
+sem_TypeErrorInfo (NotArrayType _got )  =
+    (sem_TypeErrorInfo_NotArrayType (sem_Type _got ) )
 sem_TypeErrorInfo (WrongNumArgs _expected _got )  =
     (sem_TypeErrorInfo_WrongNumArgs _expected _got )
+sem_TypeErrorInfo (WrongType _expected _got )  =
+    (sem_TypeErrorInfo_WrongType (sem_Type _expected ) (sem_Type _got ) )
 sem_TypeErrorInfo (WrongTypeList _expected _got )  =
     (sem_TypeErrorInfo_WrongTypeList _expected _got )
 sem_TypeErrorInfo (WrongTypes _expected _got )  =
@@ -5272,10 +5307,21 @@ wrap_TypeErrorInfo sem (Inh_TypeErrorInfo )  =
     (let ( ) =
              (sem )
      in  (Syn_TypeErrorInfo ))
+sem_TypeErrorInfo_NotArrayType :: T_Type  ->
+                                  T_TypeErrorInfo 
+sem_TypeErrorInfo_NotArrayType got_  =
+    (let 
+     in  ( ))
 sem_TypeErrorInfo_WrongNumArgs :: Int ->
                                   Int ->
                                   T_TypeErrorInfo 
 sem_TypeErrorInfo_WrongNumArgs expected_ got_  =
+    (let 
+     in  ( ))
+sem_TypeErrorInfo_WrongType :: T_Type  ->
+                               T_Type  ->
+                               T_TypeErrorInfo 
+sem_TypeErrorInfo_WrongType expected_ got_  =
     (let 
      in  ( ))
 sem_TypeErrorInfo_WrongTypeList :: ([Type]) ->
