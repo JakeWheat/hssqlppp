@@ -93,13 +93,13 @@ some operator tests
 >                                  ,Identifier "tst1"])
 >      ,p "'a' || 'b'" (opCall "||" [stringQ "a"
 >                                   ,stringQ "b"])
->      ,p "'stuff'::text" (CastOp (stringQ "stuff") (SimpleTypeName "text"))
->      ,p "245::float(24)" (CastOp (IntegerLit 245) (PrecTypeName "float" 24))
+>      ,p "'stuff'::text" (Cast (stringQ "stuff") (SimpleTypeName "text"))
+>      ,p "245::float(24)" (Cast (IntegerLit 245) (PrecTypeName "float" 24))
 
 >      ,p "a between 1 and 3"
 >         (FunCall Between [Identifier "a", IntegerLit 1, IntegerLit 3])
 >      ,p "cast(a as text)"
->         (CastKeyword (Identifier "a") (SimpleTypeName "text"))
+>         (Cast (Identifier "a") (SimpleTypeName "text"))
 >      ,p "@ a"
 >         (opCall "@" [Identifier "a"])
 
@@ -166,10 +166,6 @@ in variants, including using row constructors
 >      ,p "(t,u) in (1,2)"
 >       (InPredicate (FunCall RowCtor [Identifier "t",Identifier "u"]) True
 >        (InList [IntegerLit 1,IntegerLit 2]))
-
-operator issues:
-<> appears below < in the precedence table, this caused
-<> to not parse properly
 
 >      ,p "a < b"
 >       (opCall "<" [Identifier "a", Identifier "b"])

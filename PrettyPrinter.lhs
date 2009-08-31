@@ -466,12 +466,9 @@ Conversion routines - convert Sql asts into Docs
 
 > convExp (PositionalArg a) = text "$" <> integer a
 > convExp (Exists s) = text "exists" <+> parens (convSelectExpression True s)
-> convExp (CastKeyword ex t) = text "cast" <> parens (convExp ex
->                                                     <+> text "as"
->                                                     <+> convTypeName t)
-> convExp (CastOp ex t) = parens (parens (convExp ex)
->                                 <> text "::"
->                                 <> convTypeName t)
+> convExp (Cast ex t) = text "cast" <> parens (convExp ex
+>                                              <+> text "as"
+>                                              <+> convTypeName t)
 
 = Utils
 

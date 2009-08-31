@@ -112,8 +112,6 @@ everything is chucked in here, in particular this means that many places where
 a select can appear inside another statement (e.g. a subselect), you can
 instead put any statement - this type checks but is totally invalid.
 
-> -- | Statement represents a single sql or plpgsql statement.
-
 -}
 
 TYPE MySourcePos = (String, Int, Int)
@@ -315,10 +313,10 @@ DATA Volatility | Volatile | Stable | Immutable
 
 DATA Language | Sql | Plpgsql
 
-DATA TypeName | SimpleTypeName String
-              | PrecTypeName String Integer
-              | ArrayTypeName TypeName
-              | SetOfTypeName TypeName
+DATA TypeName | SimpleTypeName tn:String
+              | PrecTypeName tn:String prec:Integer
+              | ArrayTypeName typ:TypeName
+              | SetOfTypeName typ:TypeName
 
 DATA DropType | Table
          | Domain
@@ -354,8 +352,7 @@ DATA Expression | IntegerLit Integer
                 | NullLit
                 | BooleanLit Bool
                 | PositionalArg Integer
-                | CastOp Expression TypeName
-                | CastKeyword Expression TypeName
+                | Cast expr:Expression tn:TypeName
                 | Identifier String
                 | Case cases : CaseExpressionListExpressionPairList
                        els : MaybeExpression
@@ -370,6 +367,30 @@ DATA Expression | IntegerLit Integer
                 | ScalarSubQuery sel : SelectExpression
 
 TYPE MaybeExpression = MAYBE Expression
+
+{-
+
+list of expression flavours from postgresql with this ast equivs
+constant/literal               integerlit, floatlit, stringlit, nulllit, boollit
+column reference               identifier
+positional parameter reference   positionalarg
+subscripted expression            fun arraysub
+field selection expression        identifier
+operator invocation               fun op
+function call                     fun simple
+aggregate expression              ?
+window function call              windowfn
+type cast                         cast
+scalar subquery                   scalarsubquery
+array constructor                 fun arrayval
+row constructor                   fun rowctor
+
+TODO: think about having separate parse tree which the parser produces,
+and a proper set of ast types with no pollution from concrete syntax
+or parsing considerations
+
+
+-}
 
 -- we need information possibly for the lexer and parser for the
 -- pretty printer, and type information (including num arguments, type
@@ -659,6 +680,24 @@ SEM Statement
 {-
 ================================================================================
 Type checking
+
+the current type checking approach doesn't quite match how SQL
+works. What it will do when the first version is finished, is possibly
+read the database catalogs, then read the source script(s) and
+statically check the types are consistent, as if the scripts are
+declarative descriptions rather than a series of imperative
+commands. In particular, this means that it won't be able to type
+check dynamically generated tables, functions, views, etc., in a sense
+it is static whereas SQL is dynamic.
+
+One possible solution to this is to defer type checking and use the
+database to load the script bit by bit whilst type checking as bits
+are loaded.
+
+Part of the syntax extension system design is to provide some
+specialized methods for generating sql code in a way that can be type
+checked statically without having to run the code.
+
 -}
 
 DATA Type | ScalarType String
@@ -666,6 +705,7 @@ DATA Type | ScalarType String
           | AnyArray
           | AnyElement
           | UnknownType
+          | SetOfType Type
           | TypeList tps:{[Type]}
           | TypeError MySourcePos TypeErrorInfo
 
@@ -676,6 +716,7 @@ DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
                    | NotArrayType got:Type
                    | NeedOneOrMoreArgs
                    | OtherTypeError String
+                   | UnknownTypeError String
 
 DERIVING Type TypeErrorInfo: Show,Eq
 
@@ -872,18 +913,265 @@ checkTypes _ x _ _ = error $ "can't check types of non type list: " ++ show x
 
 }
 
+{-
+================================================================================
+
+= type table
+this holds the available types
+
+notes on pg types:
+pseudotypes:any,anyelement,anyarray,anynonarray.anyenum
+cstring,internal,language_handler,opaque
+void
+trigger
+composite types
+row type
+setof (relation valued expressions)
+dynamically typed record (can be any composite type)
+numerical types: smallint, integer, bigint, decimal/numeric, real, double precision, serial, big serial,
+ (some of these are aliases/shorthands, other aliases are: float, int2, int4, int8)
+money
+varchar, char, text
+"char",name
+bytea
+boolean
+enum
+groups of type: timestamp, geometric, netaddr, bitstring,tsearch,uuid,xml
+array (one array type per type (dimensions and sizes not part of type so int[] same type as int[][] (!))
+custom create type types
+
+domains:
+the point of domains is you can't put constraints on types, but you
+can wrap a type up in a domain and put a constraint on it there
+
+
+== literals/selectors
+needs some notes for parsing and checking the various ways to
+represent literals/selectors of various types in source code, e.g. ROW
+for composite types, and e.g. '{}' for empty array, etc.
+
+== notes on type checking types
+prectypename: only for certain types
+check types refered to appear in type catalog cache
+
+- build this early in the checking process, want to feed in a default
+  list, or load it from a database, then supplement it with the new
+  type definitions in the ast
+
+looking at the typename nodes:
+check context: setof can only appear as return type of function
+what other restrictions on context?
+some types refer to other types:
+e.g. domains, composite types, enum, row types?
+
+how does pg treat row types: are they all the same, are ones with the
+same number of elements the same, are they only the same when they
+have the same number and types of elements?
+
+is it worth splitting types into scalar and type generators, and
+handling them differently?
+
+how does name and structural equivalence apply to pg types?
+
+== notes on implicit casting
+
+type categories boolean, numeric, string, bitstring, datetime,
+timespan, geometric, network, and user-defined
+
+implicit 'functional' casts
+
+
+=== types catalog
+select typname from pg_type;
+restrict this?
+
+
+=== basic type checking
+at the moment - just check type exists in predetermined list of type
+names
+todo: option to read types from database catalog at time of type
+checking
+todo: collect type names from current source file to check against
+also
+
+
+with ts as
+(select pg_catalog.format_type(t.oid, null) as name
+  from pg_catalog.pg_type t
+  where (t.typrelid = 0
+         or (select c.relkind = 'c'
+             from pg_catalog.pg_class c
+             where c.oid = t.typrelid))
+        and not exists(select 1 from pg_catalog.pg_type el
+                       where el.oid = t.typelem and el.typarray = t.oid)
+        and pg_catalog.pg_type_is_visible(t.oid)
+  order by name)
+select '"' || name || '",' from ts;
+
+where need to check type names?
+casts, create table attrs, create type (composite) attrs, create
+domain, create function: param defs, returns, var defs, drop function
+
+-}
+{
+defaultTypes = [
+ "abstime",
+ "aclitem",
+ "\"any\"",
+ "anyarray",
+ "anyelement",
+ "anyenum",
+ "anynonarray",
+ "bigint",
+ "bit",
+ "bit varying",
+ "boolean",
+ "box",
+ "bytea",
+ "\"char\"",
+ "character",
+ "character varying",
+ "cid",
+ "cidr",
+ "circle",
+ "cstring",
+ "date",
+ "double precision",
+ "gtsvector",
+ "inet",
+ "int2vector",
+ "integer",
+ "internal",
+ "interval",
+ "language_handler",
+ "line",
+ "lseg",
+ "macaddr",
+ "money",
+ "name",
+ "numeric",
+ "oid",
+ "oidvector",
+ "opaque",
+ "path",
+ "point",
+ "polygon",
+ "real",
+ "record",
+ "refcursor",
+ "regclass",
+ "regconfig",
+ "regdictionary",
+ "regoper",
+ "regoperator",
+ "regproc",
+ "regprocedure",
+ "regtype",
+ "reltime",
+ "smallint",
+ "smgr",
+ "text",
+ "tid",
+ "timestamp without time zone",
+ "timestamp with time zone",
+ "time without time zone",
+ "time with time zone",
+ "tinterval",
+ "trigger",
+ "tsquery",
+ "tsvector",
+ "txid_snapshot",
+ "unknown",
+ "uuid",
+ "void",
+ "xid",
+ "xml"]
+}
+
+SEM TypeName
+     | SimpleTypeName
+          lhs.nodeType = if @tn `elem` defaultTypes
+                           then ScalarType @tn
+                           else TypeError @lhs.sourcePos
+                                  (UnknownTypeError @tn)
+--     | PrecTypeName
+--          lhs.nodeType = if @tn `elem` defaultTypes
+--                           then ScalarType @tn
+--                           else TypeError @lhs.sourcePos
+--                                  (UnknownTypeError @tn)
+     | ArrayTypeName
+          lhs.nodeType = propagateUnknownError @typ.nodeType
+                           (ArrayType @typ.nodeType)
+     | SetOfTypeName
+          lhs.nodeType = propagateUnknownError @typ.nodeType
+                           (SetOfType @typ.nodeType)
+
+--todo: some sort of validation on whether the cast will work
+SEM Expression
+    | Cast lhs.nodeType = propagateUnknownError
+                            (TypeList
+                             [@expr.nodeType])
+                            @tn.nodeType
+
+{-
+
+================================================================================
+
+= function table
+this holds the types of functions for lookup and checking
+
+
+operators plus types:
+
+select oprname,
+       oprlefttype.typname as oprleftname,
+       oprrighttype.typname as oprrightname,
+       oprresulttype.typname as oprresultname
+  from pg_operator
+  left outer join pg_type oprlefttype
+    on pg_operator.oprleft = oprlefttype.oid
+  left outer join pg_type oprrighttype
+    on pg_operator.oprright = oprrighttype.oid
+  left outer join pg_type oprresulttype
+    on pg_operator.oprresult = oprresulttype.oid;
+
+functions plus types:
+
+select p.proname as name,
+       pg_get_function_result(p.oid) as returns,
+       pg_get_function_arguments(p.oid) as args
+  from pg_proc p
+  left join pg_catalog.pg_namespace n
+    on n.oid = p.pronamespace
+  where
+       pg_catalog.pg_function_is_visible(p.oid)
+       and not (p.proisagg
+                or p.proiswindow
+                or (p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype))
+  order by name,args,returns;
+
+-}
+
+
+
+--bit hacky, used to work with maybe bits in attribute grammar code
 SEM MaybeExpression
     | Just lhs.nodeType = @just.nodeType
     | Nothing lhs.nodeType = AnyElement
+
 {-
+================================================================================
+
+= actual type checking
+
 == literals
 -}
 
 SEM Expression
-     | IntegerLit lhs.nodeType = ScalarType "Integer"
-     | StringLit lhs.nodeType = ScalarType "String"
-     | FloatLit lhs.nodeType = ScalarType "Float"
-     | BooleanLit lhs.nodeType = ScalarType "Boolean"
+     | IntegerLit lhs.nodeType = ScalarType "integer"
+     | StringLit lhs.nodeType = ScalarType "string"
+     | FloatLit lhs.nodeType = ScalarType "float"
+     | BooleanLit lhs.nodeType = ScalarType "boolean"
 
 {-
 == simple operators
@@ -901,36 +1189,36 @@ SEM Expression
           ArrayVal -> ct AllSameType1Any
                          (RetTypeFun (\t -> ArrayType $ head t))
           Substring -> ct
-                         (ExactList [ScalarType "String"
-                                    ,ScalarType "Integer"
-                                    ,ScalarType "Integer"])
-                         (ConstRetType (ScalarType "String"))
+                         (ExactList [ScalarType "string"
+                                    ,ScalarType "integer"
+                                    ,ScalarType "integer"])
+                         (ConstRetType (ScalarType "string"))
           Between -> ct
                          (AllSameTypeNumAny 3)
-                         (ConstRetType (ScalarType "Boolean"))
+                         (ConstRetType (ScalarType "boolean"))
           ArraySub -> ct
                          (ExactPredList
                            [ArgCheck isArrayType NotArrayType
-                           ,exactType (ScalarType "Integer")])
+                           ,exactType (ScalarType "integer")])
                          (RetTypeFun (\t -> typeFromArray $ head t))
           Operator s | s == "=" -> ct
                                      (AllSameTypeNumAny 2)
-                                     (ConstRetType (ScalarType "Boolean"))
-                     | s == "not" -> closedUn "Boolean"
-                     | s `elem` ["@", "u-"] -> closedUn "Integer"
+                                     (ConstRetType (ScalarType "boolean"))
+                     | s == "not" -> closedUn "boolean"
+                     | s `elem` ["@", "u-"] -> closedUn "integer"
                      | s `elem` ["-", "+", "*"
-                                ,"/", "%", "^"] -> closedBin "Integer"
+                                ,"/", "%", "^"] -> closedBin "integer"
                      | s `elem` ["is null", "is not null"] -> ct
                                      (AllSameTypeNumAny 1)
-                                     (ConstRetType (ScalarType "Boolean"))
-                     | s `elem` ["and", "or"] -> closedBin "Boolean"
-                     | s == "||" -> closedBin "String"
-                     | s == "like" -> ct (ExactList [ScalarType "String"
-                                                    ,ScalarType "String"])
-                                         (ConstRetType (ScalarType "Boolean"))
+                                     (ConstRetType (ScalarType "boolean"))
+                     | s `elem` ["and", "or"] -> closedBin "boolean"
+                     | s == "||" -> closedBin "string"
+                     | s == "like" -> ct (ExactList [ScalarType "string"
+                                                    ,ScalarType "string"])
+                                         (ConstRetType (ScalarType "boolean"))
                      | s == "<>" -> ct
                                      (AllSameTypeNumAny 2)
-                                     (ConstRetType (ScalarType "Boolean"))
+                                     (ConstRetType (ScalarType "boolean"))
                      | s `elem` ["<",">","<=",">="] -> closedBinAny
           _ -> UnknownType
         where
@@ -955,7 +1243,7 @@ SEM CaseExpressionListExpressionPair
     | Tuple lhs.nodeType = checkTypes
                              @lhs.sourcePos
                              @x1.nodeType
-                             (AllSameType $ ScalarType "Boolean")
+                             (AllSameType $ ScalarType "boolean")
                              (ConstRetType @x2.nodeType)
 
 SEM Expression
@@ -1046,22 +1334,25 @@ nsp = ("", 0,0)
 
 {-
 
-containment guide for statements:
+containment guide for select expressions:
 combineselect 2 selects
 insert ?select
 createtableas 1 select
 createview 1 select
 return query 1 select
-forselect 1 select, [statement]
+forselect 1 select
+select->subselect select
+expression->exists select
+            scalarsubquery select
+            inselect select
+
+containment guide for statements:
+forselect [statement]
 forinteger [statement]
 while [statement]
 casestatement [[statement]]
 if [[statement]]
 createfunction->fnbody [Statement]
-select->subselect select
-expression->exists select
-            scalarsubquery select
-            inselect select
 
 TODO
 
@@ -1108,5 +1399,18 @@ expressions, etc., so the checkAst checks the types are consistent,
 and them have something like getStatementType, getStatementsType,
 getExpressionType (which works for selects and relation valued
 expressions as well as scalars, tuples, etc).
+
+
+TODO: canonicalize ast process, as part of type checking produces a canonicalized ast which:
+all casts are explicit
+all names fully qualified
+all types use canonical names
+literal values and selectors in one form (use row style?)
+what else?
+
+Canonical form only defined for type consistent asts.
+
+This canonical form should pretty print and parse back to the same
+form, and type check correctly.
 
 -}

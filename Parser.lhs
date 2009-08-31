@@ -640,7 +640,7 @@ or after the whole list
 > typeName = choice [
 >             SetOfTypeName <$> (keyword "setof" *> typeName)
 >            ,do
->              s <- idString
+>              s <- (map toLower) <$> idString
 >              choice [
 >                PrecTypeName s <$> parens integer
 >               ,ArrayTypeName (SimpleTypeName s) <$ symbol "[" <* symbol "]"
@@ -1057,11 +1057,11 @@ Thanks to Sam Mason for the heads up on this.
 
 > castKeyword :: ParsecT [Token] ParseState Identity Expression
 > castKeyword = keyword "cast" *> symbol "(" >>
->               CastKeyword <$> expr
->                           <*> (keyword "as" *> typeName <* symbol ")")
+>               Cast <$> expr
+>                    <*> (keyword "as" *> typeName <* symbol ")")
 
 > castSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> castSuffix ex = CastOp ex <$> (symbol "::" *> typeName)
+> castSuffix ex = Cast ex <$> (symbol "::" *> typeName)
 
 
 > substring :: ParsecT [Token] ParseState Identity Expression
