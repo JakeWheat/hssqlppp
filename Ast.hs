@@ -305,26 +305,26 @@ defaultTypes = [
 
 
 defaultBinaryOperators = [
- ("!~","bpchar","text","bool"),
- ("!~","text","text","bool"),
- ("!~","name","text","bool"),
- ("!~*","text","text","bool"),
- ("!~*","name","text","bool"),
- ("!~*","bpchar","text","bool"),
- ("!~~","bpchar","text","bool"),
- ("!~~","bytea","bytea","bool"),
- ("!~~","name","text","bool"),
- ("!~~","text","text","bool"),
- ("!~~*","name","text","bool"),
- ("!~~*","bpchar","text","bool"),
- ("!~~*","text","text","bool"),
- ("#","int8","int8","int8"),
+ ("!~","character","text","boolean"),
+ ("!~","text","text","boolean"),
+ ("!~","name","text","boolean"),
+ ("!~*","text","text","boolean"),
+ ("!~*","name","text","boolean"),
+ ("!~*","character","text","boolean"),
+ ("!~~","character","text","boolean"),
+ ("!~~","bytea","bytea","boolean"),
+ ("!~~","name","text","boolean"),
+ ("!~~","text","text","boolean"),
+ ("!~~*","name","text","boolean"),
+ ("!~~*","character","text","boolean"),
+ ("!~~*","text","text","boolean"),
+ ("#","bigint","bigint","bigint"),
  ("#","bit","bit","bit"),
  ("#","line","line","point"),
  ("#","box","box","box"),
- ("#","int2","int2","int2"),
+ ("#","smallint","smallint","smallint"),
  ("#","lseg","lseg","point"),
- ("#","int4","int4","int4"),
+ ("#","integer","integer","integer"),
  ("##","lseg","box","point"),
  ("##","point","lseg","point"),
  ("##","point","box","point"),
@@ -333,691 +333,704 @@ defaultBinaryOperators = [
  ("##","lseg","line","point"),
  ("##","line","box","point"),
  ("##","line","lseg","point"),
- ("#<","tinterval","reltime","bool"),
- ("#<=","tinterval","reltime","bool"),
- ("#<>","tinterval","reltime","bool"),
- ("#=","tinterval","reltime","bool"),
- ("#>","tinterval","reltime","bool"),
- ("#>=","tinterval","reltime","bool"),
- ("%","int8","int8","int8"),
- ("%","int4","int4","int4"),
- ("%","int2","int2","int2"),
+ ("#<","tinterval","reltime","boolean"),
+ ("#<=","tinterval","reltime","boolean"),
+ ("#<>","tinterval","reltime","boolean"),
+ ("#=","tinterval","reltime","boolean"),
+ ("#>","tinterval","reltime","boolean"),
+ ("#>=","tinterval","reltime","boolean"),
+ ("%","bigint","bigint","bigint"),
+ ("%","integer","integer","integer"),
+ ("%","smallint","smallint","smallint"),
  ("%","numeric","numeric","numeric"),
- ("&","int2","int2","int2"),
- ("&","int4","int4","int4"),
- ("&","int8","int8","int8"),
+ ("&","smallint","smallint","smallint"),
+ ("&","integer","integer","integer"),
+ ("&","bigint","bigint","bigint"),
  ("&","bit","bit","bit"),
  ("&","inet","inet","inet"),
- ("&&","circle","circle","bool"),
- ("&&","tinterval","tinterval","bool"),
- ("&&","polygon","polygon","bool"),
+ ("&&","circle","circle","boolean"),
+ ("&&","tinterval","tinterval","boolean"),
+ ("&&","polygon","polygon","boolean"),
  ("&&","tsquery","tsquery","tsquery"),
- ("&&","box","box","bool"),
- ("&&","anyarray","anyarray","bool"),
- ("&<","circle","circle","bool"),
- ("&<","polygon","polygon","bool"),
- ("&<","box","box","bool"),
- ("&<|","circle","circle","bool"),
- ("&<|","polygon","polygon","bool"),
- ("&<|","box","box","bool"),
- ("&>","circle","circle","bool"),
- ("&>","polygon","polygon","bool"),
- ("&>","box","box","bool"),
- ("*","int4","int2","int4"),
- ("*","int8","int8","int8"),
- ("*","money","float4","money"),
- ("*","int2","int8","int8"),
- ("*","int4","money","money"),
- ("*","float8","float4","float8"),
+ ("&&","box","box","boolean"),
+ ("&&","anyarray","anyarray","boolean"),
+ ("&<","circle","circle","boolean"),
+ ("&<","polygon","polygon","boolean"),
+ ("&<","box","box","boolean"),
+ ("&<|","circle","circle","boolean"),
+ ("&<|","polygon","polygon","boolean"),
+ ("&<|","box","box","boolean"),
+ ("&>","circle","circle","boolean"),
+ ("&>","polygon","polygon","boolean"),
+ ("&>","box","box","boolean"),
+ ("*","integer","smallint","integer"),
+ ("*","bigint","bigint","bigint"),
+ ("*","money","real","money"),
+ ("*","smallint","bigint","bigint"),
+ ("*","integer","money","money"),
+ ("*","double precision","real","double precision"),
  ("*","path","point","path"),
- ("*","money","int4","money"),
- ("*","float8","money","money"),
- ("*","float8","interval","interval"),
- ("*","int4","int4","int4"),
- ("*","float4","float8","float8"),
- ("*","float4","float4","float4"),
- ("*","int8","int4","int8"),
- ("*","int2","money","money"),
- ("*","money","int2","money"),
+ ("*","money","integer","money"),
+ ("*","double precision","money","money"),
+ ("*","double precision","interval","interval"),
+ ("*","integer","integer","integer"),
+ ("*","real","double precision","double precision"),
+ ("*","real","real","real"),
+ ("*","bigint","integer","bigint"),
+ ("*","smallint","money","money"),
+ ("*","money","smallint","money"),
  ("*","point","point","point"),
  ("*","circle","point","circle"),
- ("*","int4","int8","int8"),
- ("*","int2","int2","int2"),
- ("*","interval","float8","interval"),
- ("*","float4","money","money"),
+ ("*","integer","bigint","bigint"),
+ ("*","smallint","smallint","smallint"),
+ ("*","interval","double precision","interval"),
+ ("*","real","money","money"),
  ("*","box","point","box"),
- ("*","int2","int4","int4"),
- ("*","float8","float8","float8"),
+ ("*","smallint","integer","integer"),
+ ("*","double precision","double precision","double precision"),
  ("*","numeric","numeric","numeric"),
- ("*","int8","int2","int8"),
- ("*","money","float8","money"),
- ("+","float4","float4","float4"),
+ ("*","bigint","smallint","bigint"),
+ ("*","money","double precision","money"),
+ ("+","real","real","real"),
  ("+","path","point","path"),
  ("+","path","path","path"),
  ("+","point","point","point"),
- ("+","int8","int8","int8"),
- ("+","int8","int4","int8"),
- ("+","int4","int8","int8"),
- ("+","int8","int2","int8"),
- ("+","int2","int8","int8"),
- ("+","date","timetz","timestamptz"),
- ("+","date","time","timestamp"),
- ("+","inet","int8","inet"),
+ ("+","bigint","bigint","bigint"),
+ ("+","bigint","integer","bigint"),
+ ("+","integer","bigint","bigint"),
+ ("+","bigint","smallint","bigint"),
+ ("+","smallint","bigint","bigint"),
+ ("+","date","time with time zone","timestamp with time zone"),
+ ("+","date","time without time zone","timestamp without time zone"),
+ ("+","inet","bigint","inet"),
  ("+","interval","interval","interval"),
- ("+","timestamptz","interval","timestamptz"),
- ("+","int8","inet","inet"),
+ ("+","timestamp with time zone","interval","timestamp with time zone"),
+ ("+","bigint","inet","inet"),
  ("+","numeric","numeric","numeric"),
- ("+","float8","float4","float8"),
- ("+","int4","date","date"),
- ("+","interval","timestamptz","timestamptz"),
- ("+","float4","float8","float8"),
- ("+","interval","timestamp","timestamp"),
- ("+","interval","timetz","timetz"),
- ("+","time","interval","time"),
- ("+","interval","date","timestamp"),
- ("+","timetz","interval","timetz"),
- ("+","date","int4","date"),
- ("+","int2","int2","int2"),
- ("+","int4","int4","int4"),
- ("+","int2","int4","int4"),
- ("+","int4","int2","int4"),
- ("+","date","interval","timestamp"),
+ ("+","double precision","real","double precision"),
+ ("+","integer","date","date"),
+ ("+","interval","timestamp with time zone","timestamp with time zone"),
+ ("+","real","double precision","double precision"),
+ ("+","interval","timestamp without time zone","timestamp without time zone"),
+ ("+","interval","time with time zone","time with time zone"),
+ ("+","time without time zone","interval","time without time zone"),
+ ("+","interval","date","timestamp without time zone"),
+ ("+","time with time zone","interval","time with time zone"),
+ ("+","date","integer","date"),
+ ("+","smallint","smallint","smallint"),
+ ("+","integer","integer","integer"),
+ ("+","smallint","integer","integer"),
+ ("+","integer","smallint","integer"),
+ ("+","date","interval","timestamp without time zone"),
  ("+","circle","point","circle"),
- ("+","interval","time","time"),
- ("+","timetz","date","timestamptz"),
- ("+","_aclitem","aclitem","_aclitem"),
+ ("+","interval","time without time zone","time without time zone"),
+ ("+","time with time zone","date","timestamp with time zone"),
+ ("+","aclitem[]","aclitem","aclitem[]"),
  ("+","abstime","reltime","abstime"),
- ("+","timestamp","interval","timestamp"),
- ("+","float8","float8","float8"),
- ("+","time","date","timestamp"),
+ ("+","timestamp without time zone","interval","timestamp without time zone"),
+ ("+","double precision","double precision","double precision"),
+ ("+","time without time zone","date","timestamp without time zone"),
  ("+","money","money","money"),
  ("+","box","point","box"),
- ("-","int4","int4","int4"),
- ("-","float8","float8","float8"),
- ("-","float4","float8","float8"),
- ("-","float8","float4","float8"),
+ ("-","integer","integer","integer"),
+ ("-","double precision","double precision","double precision"),
+ ("-","real","double precision","double precision"),
+ ("-","double precision","real","double precision"),
  ("-","money","money","money"),
- ("-","inet","int8","inet"),
+ ("-","inet","bigint","inet"),
  ("-","path","point","path"),
  ("-","numeric","numeric","numeric"),
- ("-","timestamptz","timestamptz","interval"),
- ("-","timestamptz","interval","timestamptz"),
+ ("-","timestamp with time zone","timestamp with time zone","interval"),
+ ("-","timestamp with time zone","interval","timestamp with time zone"),
  ("-","interval","interval","interval"),
- ("-","int2","int8","int8"),
+ ("-","smallint","bigint","bigint"),
  ("-","box","point","box"),
- ("-","timestamp","timestamp","interval"),
- ("-","int8","int2","int8"),
- ("-","int4","int8","int8"),
- ("-","int8","int4","int8"),
- ("-","date","interval","timestamp"),
- ("-","int4","int2","int4"),
- ("-","time","time","interval"),
- ("-","_aclitem","aclitem","_aclitem"),
- ("-","int8","int8","int8"),
- ("-","int2","int4","int4"),
- ("-","int2","int2","int2"),
- ("-","timetz","interval","timetz"),
- ("-","date","date","int4"),
- ("-","date","int4","date"),
- ("-","time","interval","time"),
+ ("-","timestamp without time zone","timestamp without time zone","interval"),
+ ("-","bigint","smallint","bigint"),
+ ("-","integer","bigint","bigint"),
+ ("-","bigint","integer","bigint"),
+ ("-","date","interval","timestamp without time zone"),
+ ("-","integer","smallint","integer"),
+ ("-","time without time zone","time without time zone","interval"),
+ ("-","aclitem[]","aclitem","aclitem[]"),
+ ("-","bigint","bigint","bigint"),
+ ("-","smallint","integer","integer"),
+ ("-","smallint","smallint","smallint"),
+ ("-","time with time zone","interval","time with time zone"),
+ ("-","date","date","integer"),
+ ("-","date","integer","date"),
+ ("-","time without time zone","interval","time without time zone"),
  ("-","point","point","point"),
  ("-","abstime","reltime","abstime"),
  ("-","circle","point","circle"),
- ("-","float4","float4","float4"),
- ("-","inet","inet","int8"),
- ("-","timestamp","interval","timestamp"),
- ("/","int4","int2","int4"),
- ("/","int2","int4","int4"),
+ ("-","real","real","real"),
+ ("-","inet","inet","bigint"),
+ ("-","timestamp without time zone","interval","timestamp without time zone"),
+ ("/","integer","smallint","integer"),
+ ("/","smallint","integer","integer"),
  ("/","circle","point","circle"),
- ("/","money","float8","money"),
- ("/","float8","float4","float8"),
+ ("/","money","double precision","money"),
+ ("/","double precision","real","double precision"),
  ("/","numeric","numeric","numeric"),
  ("/","box","point","box"),
- ("/","int2","int8","int8"),
- ("/","int4","int8","int8"),
- ("/","interval","float8","interval"),
+ ("/","smallint","bigint","bigint"),
+ ("/","integer","bigint","bigint"),
+ ("/","interval","double precision","interval"),
  ("/","path","point","path"),
- ("/","float4","float4","float4"),
- ("/","money","float4","money"),
- ("/","int8","int4","int8"),
- ("/","int8","int2","int8"),
- ("/","float8","float8","float8"),
- ("/","int4","int4","int4"),
- ("/","money","int2","money"),
- ("/","int2","int2","int2"),
- ("/","int8","int8","int8"),
+ ("/","real","real","real"),
+ ("/","money","real","money"),
+ ("/","bigint","integer","bigint"),
+ ("/","bigint","smallint","bigint"),
+ ("/","double precision","double precision","double precision"),
+ ("/","integer","integer","integer"),
+ ("/","money","smallint","money"),
+ ("/","smallint","smallint","smallint"),
+ ("/","bigint","bigint","bigint"),
  ("/","point","point","point"),
- ("/","float4","float8","float8"),
- ("/","money","int4","money"),
- ("<","anyarray","anyarray","bool"),
- ("<","tsvector","tsvector","bool"),
- ("<","inet","inet","bool"),
- ("<","lseg","lseg","bool"),
- ("<","macaddr","macaddr","bool"),
- ("<","int8","int4","bool"),
- ("<","anyenum","anyenum","bool"),
- ("<","uuid","uuid","bool"),
- ("<","box","box","bool"),
- ("<","int2","int2","bool"),
- ("<","record","record","bool"),
- ("<","int2","int4","bool"),
- ("<","int4","int2","bool"),
- ("<","timestamptz","timestamp","bool"),
- ("<","int4","int4","bool"),
- ("<","abstime","abstime","bool"),
- ("<","bool","bool","bool"),
- ("<","reltime","reltime","bool"),
- ("<","timestamp","timestamptz","bool"),
- ("<","oid","oid","bool"),
- ("<","timestamptz","date","bool"),
- ("<","oidvector","oidvector","bool"),
- ("<","timestamp","date","bool"),
- ("<","float4","float4","bool"),
- ("<","char","char","bool"),
- ("<","date","timestamptz","bool"),
- ("<","date","timestamp","bool"),
- ("<","name","name","bool"),
- ("<","text","text","bool"),
- ("<","timestamp","timestamp","bool"),
- ("<","float8","float8","bool"),
- ("<","bytea","bytea","bool"),
- ("<","path","path","bool"),
- ("<","tinterval","tinterval","bool"),
- ("<","money","money","bool"),
- ("<","int8","int2","bool"),
- ("<","int2","int8","bool"),
- ("<","bpchar","bpchar","bool"),
- ("<","tid","tid","bool"),
- ("<","varbit","varbit","bool"),
- ("<","tsquery","tsquery","bool"),
- ("<","date","date","bool"),
- ("<","time","time","bool"),
- ("<","timetz","timetz","bool"),
- ("<","int4","int8","bool"),
- ("<","float4","float8","bool"),
- ("<","float8","float4","bool"),
- ("<","bit","bit","bool"),
- ("<","int8","int8","bool"),
- ("<","timestamptz","timestamptz","bool"),
- ("<","numeric","numeric","bool"),
- ("<","interval","interval","bool"),
- ("<","circle","circle","bool"),
+ ("/","real","double precision","double precision"),
+ ("/","money","integer","money"),
+ ("<","anyarray","anyarray","boolean"),
+ ("<","tsvector","tsvector","boolean"),
+ ("<","inet","inet","boolean"),
+ ("<","lseg","lseg","boolean"),
+ ("<","macaddr","macaddr","boolean"),
+ ("<","bigint","integer","boolean"),
+ ("<","anyenum","anyenum","boolean"),
+ ("<","uuid","uuid","boolean"),
+ ("<","box","box","boolean"),
+ ("<","smallint","smallint","boolean"),
+ ("<","record","record","boolean"),
+ ("<","smallint","integer","boolean"),
+ ("<","integer","smallint","boolean"),
+ ("<","timestamp with time zone","timestamp without time zone","boolean"),
+ ("<","integer","integer","boolean"),
+ ("<","abstime","abstime","boolean"),
+ ("<","boolean","boolean","boolean"),
+ ("<","reltime","reltime","boolean"),
+ ("<","timestamp without time zone","timestamp with time zone","boolean"),
+ ("<","oid","oid","boolean"),
+ ("<","timestamp with time zone","date","boolean"),
+ ("<","oidvector","oidvector","boolean"),
+ ("<","timestamp without time zone","date","boolean"),
+ ("<","real","real","boolean"),
+ ("<","\"char\"","\"char\"","boolean"),
+ ("<","date","timestamp with time zone","boolean"),
+ ("<","date","timestamp without time zone","boolean"),
+ ("<","name","name","boolean"),
+ ("<","text","text","boolean"),
+ ("<","timestamp without time zone","timestamp without time zone","boolean"),
+ ("<","double precision","double precision","boolean"),
+ ("<","bytea","bytea","boolean"),
+ ("<","path","path","boolean"),
+ ("<","tinterval","tinterval","boolean"),
+ ("<","money","money","boolean"),
+ ("<","bigint","smallint","boolean"),
+ ("<","smallint","bigint","boolean"),
+ ("<","character","character","boolean"),
+ ("<","tid","tid","boolean"),
+ ("<","bit varying","bit varying","boolean"),
+ ("<","tsquery","tsquery","boolean"),
+ ("<","date","date","boolean"),
+ ("<","time without time zone","time without time zone","boolean"),
+ ("<","time with time zone","time with time zone","boolean"),
+ ("<","integer","bigint","boolean"),
+ ("<","real","double precision","boolean"),
+ ("<","double precision","real","boolean"),
+ ("<","bit","bit","boolean"),
+ ("<","bigint","bigint","boolean"),
+ ("<","timestamp with time zone","timestamp with time zone","boolean"),
+ ("<","numeric","numeric","boolean"),
+ ("<","interval","interval","boolean"),
+ ("<","circle","circle","boolean"),
  ("<#>","abstime","abstime","tinterval"),
- ("<->","point","box","float8"),
- ("<->","lseg","line","float8"),
- ("<->","line","line","float8"),
- ("<->","polygon","polygon","float8"),
- ("<->","path","path","float8"),
- ("<->","box","box","float8"),
- ("<->","circle","circle","float8"),
- ("<->","point","circle","float8"),
- ("<->","circle","polygon","float8"),
- ("<->","line","box","float8"),
- ("<->","point","point","float8"),
- ("<->","point","path","float8"),
- ("<->","lseg","lseg","float8"),
- ("<->","point","line","float8"),
- ("<->","lseg","box","float8"),
- ("<->","point","lseg","float8"),
- ("<<","tinterval","tinterval","bool"),
- ("<<","int4","int4","int4"),
- ("<<","int2","int4","int2"),
- ("<<","int8","int4","int8"),
- ("<<","circle","circle","bool"),
- ("<<","bit","int4","bit"),
- ("<<","inet","inet","bool"),
- ("<<","point","point","bool"),
- ("<<","box","box","bool"),
- ("<<","polygon","polygon","bool"),
- ("<<=","inet","inet","bool"),
- ("<<|","box","box","bool"),
- ("<<|","circle","circle","bool"),
- ("<<|","polygon","polygon","bool"),
- ("<=","anyenum","anyenum","bool"),
- ("<=","oidvector","oidvector","bool"),
- ("<=","timestamp","date","bool"),
- ("<=","oid","oid","bool"),
- ("<=","bytea","bytea","bool"),
- ("<=","timestamptz","date","bool"),
- ("<=","reltime","reltime","bool"),
- ("<=","int2","int8","bool"),
- ("<=","int8","int8","bool"),
- ("<=","bpchar","bpchar","bool"),
- ("<=","timestamp","timestamptz","bool"),
- ("<=","abstime","abstime","bool"),
- ("<=","varbit","varbit","bool"),
- ("<=","anyarray","anyarray","bool"),
- ("<=","circle","circle","bool"),
- ("<=","date","date","bool"),
- ("<=","timestamptz","timestamp","bool"),
- ("<=","int4","int2","bool"),
- ("<=","int2","int4","bool"),
- ("<=","tid","tid","bool"),
- ("<=","time","time","bool"),
- ("<=","timetz","timetz","bool"),
- ("<=","macaddr","macaddr","bool"),
- ("<=","int4","int4","bool"),
- ("<=","int2","int2","bool"),
- ("<=","inet","inet","bool"),
- ("<=","tsquery","tsquery","bool"),
- ("<=","float4","float8","bool"),
- ("<=","bit","bit","bool"),
- ("<=","float8","float4","bool"),
- ("<=","box","box","bool"),
- ("<=","int4","int8","bool"),
- ("<=","uuid","uuid","bool"),
- ("<=","lseg","lseg","bool"),
- ("<=","timestamptz","timestamptz","bool"),
- ("<=","numeric","numeric","bool"),
- ("<=","float4","float4","bool"),
- ("<=","int8","int4","bool"),
- ("<=","money","money","bool"),
- ("<=","tsvector","tsvector","bool"),
- ("<=","date","timestamptz","bool"),
- ("<=","interval","interval","bool"),
- ("<=","record","record","bool"),
- ("<=","char","char","bool"),
- ("<=","path","path","bool"),
- ("<=","float8","float8","bool"),
- ("<=","timestamp","timestamp","bool"),
- ("<=","text","text","bool"),
- ("<=","name","name","bool"),
- ("<=","date","timestamp","bool"),
- ("<=","tinterval","tinterval","bool"),
- ("<=","bool","bool","bool"),
- ("<=","int8","int2","bool"),
- ("<>","float8","float8","bool"),
- ("<>","int4","int4","bool"),
- ("<>","interval","interval","bool"),
- ("<>","float4","float8","bool"),
- ("<>","timestamptz","timestamptz","bool"),
- ("<>","date","timestamptz","bool"),
- ("<>","date","timestamp","bool"),
- ("<>","int4","int2","bool"),
- ("<>","name","name","bool"),
- ("<>","time","time","bool"),
- ("<>","inet","inet","bool"),
- ("<>","point","point","bool"),
- ("<>","int2","int4","bool"),
- ("<>","timestamptz","timestamp","bool"),
- ("<>","tsvector","tsvector","bool"),
- ("<>","timetz","timetz","bool"),
- ("<>","timestamp","timestamp","bool"),
- ("<>","text","text","bool"),
- ("<>","int8","int4","bool"),
- ("<>","int2","int2","bool"),
- ("<>","record","record","bool"),
- ("<>","money","money","bool"),
- ("<>","oidvector","oidvector","bool"),
- ("<>","bytea","bytea","bool"),
- ("<>","int8","int8","bool"),
- ("<>","float8","float4","bool"),
- ("<>","tsquery","tsquery","bool"),
- ("<>","numeric","numeric","bool"),
- ("<>","lseg","lseg","bool"),
- ("<>","bit","bit","bool"),
- ("<>","oid","oid","bool"),
- ("<>","int4","int8","bool"),
- ("<>","macaddr","macaddr","bool"),
- ("<>","int8","int2","bool"),
- ("<>","timestamptz","date","bool"),
- ("<>","char","char","bool"),
- ("<>","tid","tid","bool"),
- ("<>","reltime","reltime","bool"),
- ("<>","bpchar","bpchar","bool"),
- ("<>","uuid","uuid","bool"),
- ("<>","int2","int8","bool"),
- ("<>","bool","bool","bool"),
- ("<>","circle","circle","bool"),
- ("<>","anyarray","anyarray","bool"),
- ("<>","anyenum","anyenum","bool"),
- ("<>","timestamp","date","bool"),
- ("<>","timestamp","timestamptz","bool"),
- ("<>","abstime","abstime","bool"),
- ("<>","date","date","bool"),
- ("<>","tinterval","tinterval","bool"),
- ("<>","float4","float4","bool"),
- ("<>","varbit","varbit","bool"),
- ("<?>","abstime","tinterval","bool"),
- ("<@","point","line","bool"),
- ("<@","point","path","bool"),
- ("<@","point","box","bool"),
- ("<@","lseg","line","bool"),
- ("<@","point","lseg","bool"),
- ("<@","lseg","box","bool"),
- ("<@","point","circle","bool"),
- ("<@","point","polygon","bool"),
- ("<@","box","box","bool"),
- ("<@","polygon","polygon","bool"),
- ("<@","anyarray","anyarray","bool"),
- ("<@","tsquery","tsquery","bool"),
- ("<@","circle","circle","bool"),
- ("<^","point","point","bool"),
- ("<^","box","box","bool"),
- ("=","int4","int8","bool"),
- ("=","bool","bool","bool"),
- ("=","char","char","bool"),
- ("=","name","name","bool"),
- ("=","int2","int2","bool"),
- ("=","int4","int4","bool"),
- ("=","text","text","bool"),
- ("=","xid","xid","bool"),
- ("=","xid","int4","bool"),
- ("=","cid","cid","bool"),
- ("=","int2vector","int2vector","bool"),
- ("=","tid","tid","bool"),
- ("=","int8","int8","bool"),
- ("=","int8","int4","bool"),
- ("=","box","box","bool"),
- ("=","int2","int4","bool"),
- ("=","int4","int2","bool"),
- ("=","abstime","abstime","bool"),
- ("=","reltime","reltime","bool"),
- ("=","oid","oid","bool"),
- ("=","oidvector","oidvector","bool"),
- ("=","float4","float4","bool"),
- ("=","float8","float8","bool"),
- ("=","path","path","bool"),
- ("=","tinterval","tinterval","bool"),
- ("=","money","money","bool"),
- ("=","aclitem","aclitem","bool"),
- ("=","bpchar","bpchar","bool"),
- ("=","anyarray","anyarray","bool"),
- ("=","date","date","bool"),
- ("=","time","time","bool"),
- ("=","timetz","timetz","bool"),
- ("=","float4","float8","bool"),
- ("=","float8","float4","bool"),
- ("=","timestamptz","timestamptz","bool"),
- ("=","interval","interval","bool"),
- ("=","circle","circle","bool"),
- ("=","lseg","lseg","bool"),
- ("=","line","line","bool"),
- ("=","macaddr","macaddr","bool"),
- ("=","inet","inet","bool"),
- ("=","numeric","numeric","bool"),
- ("=","bit","bit","bool"),
- ("=","varbit","varbit","bool"),
- ("=","int2","int8","bool"),
- ("=","int8","int2","bool"),
- ("=","bytea","bytea","bool"),
- ("=","timestamp","timestamp","bool"),
- ("=","date","timestamp","bool"),
- ("=","date","timestamptz","bool"),
- ("=","timestamp","date","bool"),
- ("=","timestamptz","date","bool"),
- ("=","timestamp","timestamptz","bool"),
- ("=","timestamptz","timestamp","bool"),
- ("=","uuid","uuid","bool"),
- ("=","anyenum","anyenum","bool"),
- ("=","tsvector","tsvector","bool"),
- ("=","tsquery","tsquery","bool"),
- ("=","record","record","bool"),
- (">","inet","inet","bool"),
- (">","int8","int2","bool"),
- (">","money","money","bool"),
- (">","reltime","reltime","bool"),
- (">","timestamptz","date","bool"),
- (">","tsvector","tsvector","bool"),
- (">","tinterval","tinterval","bool"),
- (">","date","timestamp","bool"),
- (">","bool","bool","bool"),
- (">","uuid","uuid","bool"),
- (">","oid","oid","bool"),
- (">","anyenum","anyenum","bool"),
- (">","int8","int4","bool"),
- (">","name","name","bool"),
- (">","timestamp","timestamp","bool"),
- (">","int2","int2","bool"),
- (">","macaddr","macaddr","bool"),
- (">","path","path","bool"),
- (">","text","text","bool"),
- (">","tsquery","tsquery","bool"),
- (">","float8","float8","bool"),
- (">","int8","int8","bool"),
- (">","int4","int2","bool"),
- (">","bytea","bytea","bool"),
- (">","bit","bit","bool"),
- (">","record","record","bool"),
- (">","float8","float4","bool"),
- (">","circle","circle","bool"),
- (">","timestamptz","timestamp","bool"),
- (">","lseg","lseg","bool"),
- (">","float4","float8","bool"),
- (">","box","box","bool"),
- (">","timestamp","date","bool"),
- (">","tid","tid","bool"),
- (">","timetz","timetz","bool"),
- (">","interval","interval","bool"),
- (">","time","time","bool"),
- (">","int4","int4","bool"),
- (">","int4","int8","bool"),
- (">","date","date","bool"),
- (">","timestamptz","timestamptz","bool"),
- (">","varbit","varbit","bool"),
- (">","anyarray","anyarray","bool"),
- (">","numeric","numeric","bool"),
- (">","int2","int4","bool"),
- (">","oidvector","oidvector","bool"),
- (">","bpchar","bpchar","bool"),
- (">","float4","float4","bool"),
- (">","int2","int8","bool"),
- (">","date","timestamptz","bool"),
- (">","abstime","abstime","bool"),
- (">","timestamp","timestamptz","bool"),
- (">","char","char","bool"),
- (">=","inet","inet","bool"),
- (">=","box","box","bool"),
- (">=","interval","interval","bool"),
- (">=","timestamptz","timestamptz","bool"),
- (">=","numeric","numeric","bool"),
- (">=","macaddr","macaddr","bool"),
- (">=","float8","float4","bool"),
- (">=","bit","bit","bool"),
- (">=","float4","float8","bool"),
- (">=","timetz","timetz","bool"),
- (">=","lseg","lseg","bool"),
- (">=","time","time","bool"),
- (">=","date","date","bool"),
- (">=","anyarray","anyarray","bool"),
- (">=","varbit","varbit","bool"),
- (">=","bpchar","bpchar","bool"),
- (">=","int2","int8","bool"),
- (">=","tsquery","tsquery","bool"),
- (">=","money","money","bool"),
- (">=","int8","int2","bool"),
- (">=","tinterval","tinterval","bool"),
- (">=","tsvector","tsvector","bool"),
- (">=","tid","tid","bool"),
- (">=","path","path","bool"),
- (">=","circle","circle","bool"),
- (">=","bytea","bytea","bool"),
- (">=","float8","float8","bool"),
- (">=","int8","int8","bool"),
- (">=","text","text","bool"),
- (">=","timestamp","timestamp","bool"),
- (">=","name","name","bool"),
- (">=","anyenum","anyenum","bool"),
- (">=","int8","int4","bool"),
- (">=","int4","int8","bool"),
- (">=","uuid","uuid","bool"),
- (">=","date","timestamp","bool"),
- (">=","char","char","bool"),
- (">=","float4","float4","bool"),
- (">=","date","timestamptz","bool"),
- (">=","oidvector","oidvector","bool"),
- (">=","bool","bool","bool"),
- (">=","timestamp","date","bool"),
- (">=","oid","oid","bool"),
- (">=","timestamptz","date","bool"),
- (">=","reltime","reltime","bool"),
- (">=","abstime","abstime","bool"),
- (">=","timestamp","timestamptz","bool"),
- (">=","int4","int2","bool"),
- (">=","int2","int4","bool"),
- (">=","record","record","bool"),
- (">=","timestamptz","timestamp","bool"),
- (">=","int4","int4","bool"),
- (">=","int2","int2","bool"),
- (">>","polygon","polygon","bool"),
- (">>","int8","int4","int8"),
- (">>","box","box","bool"),
- (">>","int2","int4","int2"),
- (">>","point","point","bool"),
- (">>","int4","int4","int4"),
- (">>","circle","circle","bool"),
- (">>","bit","int4","bit"),
- (">>","inet","inet","bool"),
- (">>=","inet","inet","bool"),
- (">^","point","point","bool"),
- (">^","box","box","bool"),
- ("?#","lseg","line","bool"),
- ("?#","line","box","bool"),
- ("?#","path","path","bool"),
- ("?#","line","line","bool"),
- ("?#","lseg","box","bool"),
- ("?#","box","box","bool"),
- ("?#","lseg","lseg","bool"),
- ("?-","point","point","bool"),
- ("?-|","lseg","lseg","bool"),
- ("?-|","line","line","bool"),
- ("?|","point","point","bool"),
- ("?||","line","line","bool"),
- ("?||","lseg","lseg","bool"),
---comment these out since the code doesn't support operators which can
---be overloaded by being e.g. prefix or binary depending on arguments
- -- ("@","circle","circle","bool"),
- -- ("@","point","box","bool"),
- -- ("@","box","box","bool"),
- -- ("@","point","path","bool"),
- -- ("@","point","line","bool"),
- -- ("@","point","circle","bool"),
- -- ("@","polygon","polygon","bool"),
- -- ("@","lseg","box","bool"),
- -- ("@","lseg","line","bool"),
- -- ("@","point","polygon","bool"),
- -- ("@","point","lseg","bool"),
- ("@>","tsquery","tsquery","bool"),
- ("@>","circle","circle","bool"),
- ("@>","_aclitem","aclitem","bool"),
- ("@>","circle","point","bool"),
- ("@>","polygon","point","bool"),
- ("@>","path","point","bool"),
- ("@>","anyarray","anyarray","bool"),
- ("@>","box","box","bool"),
- ("@>","polygon","polygon","bool"),
- ("@@","text","text","bool"),
- ("@@","tsquery","tsvector","bool"),
- ("@@","text","tsquery","bool"),
- ("@@","tsvector","tsquery","bool"),
- ("@@@","tsvector","tsquery","bool"),
- ("@@@","tsquery","tsvector","bool"),
- ("^","float8","float8","float8"),
+ ("<->","point","box","double precision"),
+ ("<->","lseg","line","double precision"),
+ ("<->","line","line","double precision"),
+ ("<->","polygon","polygon","double precision"),
+ ("<->","path","path","double precision"),
+ ("<->","box","box","double precision"),
+ ("<->","circle","circle","double precision"),
+ ("<->","point","circle","double precision"),
+ ("<->","circle","polygon","double precision"),
+ ("<->","line","box","double precision"),
+ ("<->","point","point","double precision"),
+ ("<->","point","path","double precision"),
+ ("<->","lseg","lseg","double precision"),
+ ("<->","point","line","double precision"),
+ ("<->","lseg","box","double precision"),
+ ("<->","point","lseg","double precision"),
+ ("<<","tinterval","tinterval","boolean"),
+ ("<<","integer","integer","integer"),
+ ("<<","smallint","integer","smallint"),
+ ("<<","bigint","integer","bigint"),
+ ("<<","circle","circle","boolean"),
+ ("<<","bit","integer","bit"),
+ ("<<","inet","inet","boolean"),
+ ("<<","point","point","boolean"),
+ ("<<","box","box","boolean"),
+ ("<<","polygon","polygon","boolean"),
+ ("<<=","inet","inet","boolean"),
+ ("<<|","box","box","boolean"),
+ ("<<|","circle","circle","boolean"),
+ ("<<|","polygon","polygon","boolean"),
+ ("<=","anyenum","anyenum","boolean"),
+ ("<=","oidvector","oidvector","boolean"),
+ ("<=","timestamp without time zone","date","boolean"),
+ ("<=","oid","oid","boolean"),
+ ("<=","bytea","bytea","boolean"),
+ ("<=","timestamp with time zone","date","boolean"),
+ ("<=","reltime","reltime","boolean"),
+ ("<=","smallint","bigint","boolean"),
+ ("<=","bigint","bigint","boolean"),
+ ("<=","character","character","boolean"),
+ ("<=","timestamp without time zone","timestamp with time zone","boolean"),
+ ("<=","abstime","abstime","boolean"),
+ ("<=","bit varying","bit varying","boolean"),
+ ("<=","anyarray","anyarray","boolean"),
+ ("<=","circle","circle","boolean"),
+ ("<=","date","date","boolean"),
+ ("<=","timestamp with time zone","timestamp without time zone","boolean"),
+ ("<=","integer","smallint","boolean"),
+ ("<=","smallint","integer","boolean"),
+ ("<=","tid","tid","boolean"),
+ ("<=","time without time zone","time without time zone","boolean"),
+ ("<=","time with time zone","time with time zone","boolean"),
+ ("<=","macaddr","macaddr","boolean"),
+ ("<=","integer","integer","boolean"),
+ ("<=","smallint","smallint","boolean"),
+ ("<=","inet","inet","boolean"),
+ ("<=","tsquery","tsquery","boolean"),
+ ("<=","real","double precision","boolean"),
+ ("<=","bit","bit","boolean"),
+ ("<=","double precision","real","boolean"),
+ ("<=","box","box","boolean"),
+ ("<=","integer","bigint","boolean"),
+ ("<=","uuid","uuid","boolean"),
+ ("<=","lseg","lseg","boolean"),
+ ("<=","timestamp with time zone","timestamp with time zone","boolean"),
+ ("<=","numeric","numeric","boolean"),
+ ("<=","real","real","boolean"),
+ ("<=","bigint","integer","boolean"),
+ ("<=","money","money","boolean"),
+ ("<=","tsvector","tsvector","boolean"),
+ ("<=","date","timestamp with time zone","boolean"),
+ ("<=","interval","interval","boolean"),
+ ("<=","record","record","boolean"),
+ ("<=","\"char\"","\"char\"","boolean"),
+ ("<=","path","path","boolean"),
+ ("<=","double precision","double precision","boolean"),
+ ("<=","timestamp without time zone","timestamp without time zone","boolean"),
+ ("<=","text","text","boolean"),
+ ("<=","name","name","boolean"),
+ ("<=","date","timestamp without time zone","boolean"),
+ ("<=","tinterval","tinterval","boolean"),
+ ("<=","boolean","boolean","boolean"),
+ ("<=","bigint","smallint","boolean"),
+ ("<>","double precision","double precision","boolean"),
+ ("<>","integer","integer","boolean"),
+ ("<>","interval","interval","boolean"),
+ ("<>","real","double precision","boolean"),
+ ("<>","timestamp with time zone","timestamp with time zone","boolean"),
+ ("<>","date","timestamp with time zone","boolean"),
+ ("<>","date","timestamp without time zone","boolean"),
+ ("<>","integer","smallint","boolean"),
+ ("<>","name","name","boolean"),
+ ("<>","time without time zone","time without time zone","boolean"),
+ ("<>","inet","inet","boolean"),
+ ("<>","point","point","boolean"),
+ ("<>","smallint","integer","boolean"),
+ ("<>","timestamp with time zone","timestamp without time zone","boolean"),
+ ("<>","tsvector","tsvector","boolean"),
+ ("<>","time with time zone","time with time zone","boolean"),
+ ("<>","timestamp without time zone","timestamp without time zone","boolean"),
+ ("<>","text","text","boolean"),
+ ("<>","bigint","integer","boolean"),
+ ("<>","smallint","smallint","boolean"),
+ ("<>","record","record","boolean"),
+ ("<>","money","money","boolean"),
+ ("<>","oidvector","oidvector","boolean"),
+ ("<>","bytea","bytea","boolean"),
+ ("<>","bigint","bigint","boolean"),
+ ("<>","double precision","real","boolean"),
+ ("<>","tsquery","tsquery","boolean"),
+ ("<>","numeric","numeric","boolean"),
+ ("<>","lseg","lseg","boolean"),
+ ("<>","bit","bit","boolean"),
+ ("<>","oid","oid","boolean"),
+ ("<>","integer","bigint","boolean"),
+ ("<>","macaddr","macaddr","boolean"),
+ ("<>","bigint","smallint","boolean"),
+ ("<>","timestamp with time zone","date","boolean"),
+ ("<>","\"char\"","\"char\"","boolean"),
+ ("<>","tid","tid","boolean"),
+ ("<>","reltime","reltime","boolean"),
+ ("<>","character","character","boolean"),
+ ("<>","uuid","uuid","boolean"),
+ ("<>","smallint","bigint","boolean"),
+ ("<>","boolean","boolean","boolean"),
+ ("<>","circle","circle","boolean"),
+ ("<>","anyarray","anyarray","boolean"),
+ ("<>","anyenum","anyenum","boolean"),
+ ("<>","timestamp without time zone","date","boolean"),
+ ("<>","timestamp without time zone","timestamp with time zone","boolean"),
+ ("<>","abstime","abstime","boolean"),
+ ("<>","date","date","boolean"),
+ ("<>","tinterval","tinterval","boolean"),
+ ("<>","real","real","boolean"),
+ ("<>","bit varying","bit varying","boolean"),
+ ("<?>","abstime","tinterval","boolean"),
+ ("<@","point","line","boolean"),
+ ("<@","point","path","boolean"),
+ ("<@","point","box","boolean"),
+ ("<@","lseg","line","boolean"),
+ ("<@","point","lseg","boolean"),
+ ("<@","lseg","box","boolean"),
+ ("<@","point","circle","boolean"),
+ ("<@","point","polygon","boolean"),
+ ("<@","box","box","boolean"),
+ ("<@","polygon","polygon","boolean"),
+ ("<@","anyarray","anyarray","boolean"),
+ ("<@","tsquery","tsquery","boolean"),
+ ("<@","circle","circle","boolean"),
+ ("<^","point","point","boolean"),
+ ("<^","box","box","boolean"),
+ ("=","integer","bigint","boolean"),
+ ("=","boolean","boolean","boolean"),
+ ("=","\"char\"","\"char\"","boolean"),
+ ("=","name","name","boolean"),
+ ("=","smallint","smallint","boolean"),
+ ("=","integer","integer","boolean"),
+ ("=","text","text","boolean"),
+ ("=","xid","xid","boolean"),
+ ("=","xid","integer","boolean"),
+ ("=","cid","cid","boolean"),
+ ("=","int2vector","int2vector","boolean"),
+ ("=","tid","tid","boolean"),
+ ("=","bigint","bigint","boolean"),
+ ("=","bigint","integer","boolean"),
+ ("=","box","box","boolean"),
+ ("=","smallint","integer","boolean"),
+ ("=","integer","smallint","boolean"),
+ ("=","abstime","abstime","boolean"),
+ ("=","reltime","reltime","boolean"),
+ ("=","oid","oid","boolean"),
+ ("=","oidvector","oidvector","boolean"),
+ ("=","real","real","boolean"),
+ ("=","double precision","double precision","boolean"),
+ ("=","path","path","boolean"),
+ ("=","tinterval","tinterval","boolean"),
+ ("=","money","money","boolean"),
+ ("=","aclitem","aclitem","boolean"),
+ ("=","character","character","boolean"),
+ ("=","anyarray","anyarray","boolean"),
+ ("=","date","date","boolean"),
+ ("=","time without time zone","time without time zone","boolean"),
+ ("=","time with time zone","time with time zone","boolean"),
+ ("=","real","double precision","boolean"),
+ ("=","double precision","real","boolean"),
+ ("=","timestamp with time zone","timestamp with time zone","boolean"),
+ ("=","interval","interval","boolean"),
+ ("=","circle","circle","boolean"),
+ ("=","lseg","lseg","boolean"),
+ ("=","line","line","boolean"),
+ ("=","macaddr","macaddr","boolean"),
+ ("=","inet","inet","boolean"),
+ ("=","numeric","numeric","boolean"),
+ ("=","bit","bit","boolean"),
+ ("=","bit varying","bit varying","boolean"),
+ ("=","smallint","bigint","boolean"),
+ ("=","bigint","smallint","boolean"),
+ ("=","bytea","bytea","boolean"),
+ ("=","timestamp without time zone","timestamp without time zone","boolean"),
+ ("=","date","timestamp without time zone","boolean"),
+ ("=","date","timestamp with time zone","boolean"),
+ ("=","timestamp without time zone","date","boolean"),
+ ("=","timestamp with time zone","date","boolean"),
+ ("=","timestamp without time zone","timestamp with time zone","boolean"),
+ ("=","timestamp with time zone","timestamp without time zone","boolean"),
+ ("=","uuid","uuid","boolean"),
+ ("=","anyenum","anyenum","boolean"),
+ ("=","tsvector","tsvector","boolean"),
+ ("=","tsquery","tsquery","boolean"),
+ ("=","record","record","boolean"),
+ (">","inet","inet","boolean"),
+ (">","bigint","smallint","boolean"),
+ (">","money","money","boolean"),
+ (">","reltime","reltime","boolean"),
+ (">","timestamp with time zone","date","boolean"),
+ (">","tsvector","tsvector","boolean"),
+ (">","tinterval","tinterval","boolean"),
+ (">","date","timestamp without time zone","boolean"),
+ (">","boolean","boolean","boolean"),
+ (">","uuid","uuid","boolean"),
+ (">","oid","oid","boolean"),
+ (">","anyenum","anyenum","boolean"),
+ (">","bigint","integer","boolean"),
+ (">","name","name","boolean"),
+ (">","timestamp without time zone","timestamp without time zone","boolean"),
+ (">","smallint","smallint","boolean"),
+ (">","macaddr","macaddr","boolean"),
+ (">","path","path","boolean"),
+ (">","text","text","boolean"),
+ (">","tsquery","tsquery","boolean"),
+ (">","double precision","double precision","boolean"),
+ (">","bigint","bigint","boolean"),
+ (">","integer","smallint","boolean"),
+ (">","bytea","bytea","boolean"),
+ (">","bit","bit","boolean"),
+ (">","record","record","boolean"),
+ (">","double precision","real","boolean"),
+ (">","circle","circle","boolean"),
+ (">","timestamp with time zone","timestamp without time zone","boolean"),
+ (">","lseg","lseg","boolean"),
+ (">","real","double precision","boolean"),
+ (">","box","box","boolean"),
+ (">","timestamp without time zone","date","boolean"),
+ (">","tid","tid","boolean"),
+ (">","time with time zone","time with time zone","boolean"),
+ (">","interval","interval","boolean"),
+ (">","time without time zone","time without time zone","boolean"),
+ (">","integer","integer","boolean"),
+ (">","integer","bigint","boolean"),
+ (">","date","date","boolean"),
+ (">","timestamp with time zone","timestamp with time zone","boolean"),
+ (">","bit varying","bit varying","boolean"),
+ (">","anyarray","anyarray","boolean"),
+ (">","numeric","numeric","boolean"),
+ (">","smallint","integer","boolean"),
+ (">","oidvector","oidvector","boolean"),
+ (">","character","character","boolean"),
+ (">","real","real","boolean"),
+ (">","smallint","bigint","boolean"),
+ (">","date","timestamp with time zone","boolean"),
+ (">","abstime","abstime","boolean"),
+ (">","timestamp without time zone","timestamp with time zone","boolean"),
+ (">","\"char\"","\"char\"","boolean"),
+ (">=","inet","inet","boolean"),
+ (">=","box","box","boolean"),
+ (">=","interval","interval","boolean"),
+ (">=","timestamp with time zone","timestamp with time zone","boolean"),
+ (">=","numeric","numeric","boolean"),
+ (">=","macaddr","macaddr","boolean"),
+ (">=","double precision","real","boolean"),
+ (">=","bit","bit","boolean"),
+ (">=","real","double precision","boolean"),
+ (">=","time with time zone","time with time zone","boolean"),
+ (">=","lseg","lseg","boolean"),
+ (">=","time without time zone","time without time zone","boolean"),
+ (">=","date","date","boolean"),
+ (">=","anyarray","anyarray","boolean"),
+ (">=","bit varying","bit varying","boolean"),
+ (">=","character","character","boolean"),
+ (">=","smallint","bigint","boolean"),
+ (">=","tsquery","tsquery","boolean"),
+ (">=","money","money","boolean"),
+ (">=","bigint","smallint","boolean"),
+ (">=","tinterval","tinterval","boolean"),
+ (">=","tsvector","tsvector","boolean"),
+ (">=","tid","tid","boolean"),
+ (">=","path","path","boolean"),
+ (">=","circle","circle","boolean"),
+ (">=","bytea","bytea","boolean"),
+ (">=","double precision","double precision","boolean"),
+ (">=","bigint","bigint","boolean"),
+ (">=","text","text","boolean"),
+ (">=","timestamp without time zone","timestamp without time zone","boolean"),
+ (">=","name","name","boolean"),
+ (">=","anyenum","anyenum","boolean"),
+ (">=","bigint","integer","boolean"),
+ (">=","integer","bigint","boolean"),
+ (">=","uuid","uuid","boolean"),
+ (">=","date","timestamp without time zone","boolean"),
+ (">=","\"char\"","\"char\"","boolean"),
+ (">=","real","real","boolean"),
+ (">=","date","timestamp with time zone","boolean"),
+ (">=","oidvector","oidvector","boolean"),
+ (">=","boolean","boolean","boolean"),
+ (">=","timestamp without time zone","date","boolean"),
+ (">=","oid","oid","boolean"),
+ (">=","timestamp with time zone","date","boolean"),
+ (">=","reltime","reltime","boolean"),
+ (">=","abstime","abstime","boolean"),
+ (">=","timestamp without time zone","timestamp with time zone","boolean"),
+ (">=","integer","smallint","boolean"),
+ (">=","smallint","integer","boolean"),
+ (">=","record","record","boolean"),
+ (">=","timestamp with time zone","timestamp without time zone","boolean"),
+ (">=","integer","integer","boolean"),
+ (">=","smallint","smallint","boolean"),
+ (">>","polygon","polygon","boolean"),
+ (">>","bigint","integer","bigint"),
+ (">>","box","box","boolean"),
+ (">>","smallint","integer","smallint"),
+ (">>","point","point","boolean"),
+ (">>","integer","integer","integer"),
+ (">>","circle","circle","boolean"),
+ (">>","bit","integer","bit"),
+ (">>","inet","inet","boolean"),
+ (">>=","inet","inet","boolean"),
+ (">^","point","point","boolean"),
+ (">^","box","box","boolean"),
+ ("?#","lseg","line","boolean"),
+ ("?#","line","box","boolean"),
+ ("?#","path","path","boolean"),
+ ("?#","line","line","boolean"),
+ ("?#","lseg","box","boolean"),
+ ("?#","box","box","boolean"),
+ ("?#","lseg","lseg","boolean"),
+ ("?-","point","point","boolean"),
+ ("?-|","lseg","lseg","boolean"),
+ ("?-|","line","line","boolean"),
+ ("?|","point","point","boolean"),
+ ("?||","line","line","boolean"),
+ ("?||","lseg","lseg","boolean"),
+ -- ("@","circle","circle","boolean"),
+ -- ("@","point","box","boolean"),
+ -- ("@","box","box","boolean"),
+ -- ("@","point","path","boolean"),
+ -- ("@","point","line","boolean"),
+ -- ("@","point","circle","boolean"),
+ -- ("@","polygon","polygon","boolean"),
+ -- ("@","lseg","box","boolean"),
+ -- ("@","lseg","line","boolean"),
+ -- ("@","point","polygon","boolean"),
+ -- ("@","point","lseg","boolean"),
+ ("@>","tsquery","tsquery","boolean"),
+ ("@>","circle","circle","boolean"),
+ ("@>","aclitem[]","aclitem","boolean"),
+ ("@>","circle","point","boolean"),
+ ("@>","polygon","point","boolean"),
+ ("@>","path","point","boolean"),
+ ("@>","anyarray","anyarray","boolean"),
+ ("@>","box","box","boolean"),
+ ("@>","polygon","polygon","boolean"),
+ ("@@","text","text","boolean"),
+ ("@@","tsquery","tsvector","boolean"),
+ ("@@","text","tsquery","boolean"),
+ ("@@","tsvector","tsquery","boolean"),
+ ("@@@","tsvector","tsquery","boolean"),
+ ("@@@","tsquery","tsvector","boolean"),
+ ("^","double precision","double precision","double precision"),
  ("^","numeric","numeric","numeric"),
- ("|","int8","int8","int8"),
- ("|","int4","int4","int4"),
+ ("|","bigint","bigint","bigint"),
+ ("|","integer","integer","integer"),
  ("|","bit","bit","bit"),
  ("|","inet","inet","inet"),
- ("|","int2","int2","int2"),
- ("|&>","box","box","bool"),
- ("|&>","polygon","polygon","bool"),
- ("|&>","circle","circle","bool"),
- ("|>>","box","box","bool"),
- ("|>>","circle","circle","bool"),
- ("|>>","polygon","polygon","bool"),
+ ("|","smallint","smallint","smallint"),
+ ("|&>","box","box","boolean"),
+ ("|&>","polygon","polygon","boolean"),
+ ("|&>","circle","circle","boolean"),
+ ("|>>","box","box","boolean"),
+ ("|>>","circle","circle","boolean"),
+ ("|>>","polygon","polygon","boolean"),
  ("||","tsvector","tsvector","tsvector"),
  ("||","text","anynonarray","text"),
  ("||","anynonarray","text","text"),
  ("||","tsquery","tsquery","tsquery"),
  ("||","anyarray","anyarray","anyarray"),
- ("||","varbit","varbit","varbit"),
+ ("||","bit varying","bit varying","bit varying"),
  ("||","anyelement","anyarray","anyarray"),
  ("||","text","text","text"),
  ("||","anyarray","anyelement","anyarray"),
  ("||","bytea","bytea","bytea"),
- ("~","bpchar","text","bool"),
- ("~","circle","point","bool"),
- ("~","polygon","point","bool"),
- ("~","circle","circle","bool"),
- ("~","box","box","bool"),
- ("~","text","text","bool"),
- ("~","_aclitem","aclitem","bool"),
- ("~","polygon","polygon","bool"),
- ("~","path","point","bool"),
- ("~","name","text","bool"),
- ("~*","name","text","bool"),
- ("~*","text","text","bool"),
- ("~*","bpchar","text","bool"),
- ("~<=~","bpchar","bpchar","bool"),
- ("~<=~","text","text","bool"),
- ("~<~","text","text","bool"),
- ("~<~","bpchar","bpchar","bool"),
- ("~=","tinterval","tinterval","bool"),
- ("~=","circle","circle","bool"),
- ("~=","point","point","bool"),
- ("~=","polygon","polygon","bool"),
- ("~=","box","box","bool"),
- ("~>=~","text","text","bool"),
- ("~>=~","bpchar","bpchar","bool"),
- ("~>~","bpchar","bpchar","bool"),
- ("~>~","text","text","bool"),
- ("~~","bpchar","text","bool"),
- ("~~","text","text","bool"),
- ("~~","name","text","bool"),
- ("~~","bytea","bytea","bool"),
- ("~~*","name","text","bool"),
- ("~~*","bpchar","text","bool"),
- ("~~*","text","text","bool")]
+ ("~","character","text","boolean"),
+ ("~","circle","point","boolean"),
+ ("~","polygon","point","boolean"),
+ ("~","circle","circle","boolean"),
+ ("~","box","box","boolean"),
+ ("~","text","text","boolean"),
+ ("~","aclitem[]","aclitem","boolean"),
+ ("~","polygon","polygon","boolean"),
+ ("~","path","point","boolean"),
+ ("~","name","text","boolean"),
+ ("~*","name","text","boolean"),
+ ("~*","text","text","boolean"),
+ ("~*","character","text","boolean"),
+ ("~<=~","character","character","boolean"),
+ ("~<=~","text","text","boolean"),
+ ("~<~","text","text","boolean"),
+ ("~<~","character","character","boolean"),
+ ("~=","tinterval","tinterval","boolean"),
+ ("~=","circle","circle","boolean"),
+ ("~=","point","point","boolean"),
+ ("~=","polygon","polygon","boolean"),
+ ("~=","box","box","boolean"),
+ ("~>=~","text","text","boolean"),
+ ("~>=~","character","character","boolean"),
+ ("~>~","character","character","boolean"),
+ ("~>~","text","text","boolean"),
+ ("~~","character","text","boolean"),
+ ("~~","text","text","boolean"),
+ ("~~","name","text","boolean"),
+ ("~~","bytea","bytea","boolean"),
+ ("~~*","name","text","boolean"),
+ ("~~*","character","text","boolean"),
+ ("~~*","text","text","boolean")]
+
+
 
 
 defaultPrefixOperators = [
- ("!!","int8","numeric"),
- ("@","int8","int8"),
- ("-","int8","int8"),
+ ("!!","tsquery","tsquery"),
+ ("!!","bigint","numeric"),
+ ("#","polygon","integer"),
+ ("#","path","integer"),
+ ("+","double precision","double precision"),
+ ("+","integer","integer"),
+ ("+","real","real"),
+ ("+","smallint","smallint"),
+ ("+","bigint","bigint"),
+ ("+","numeric","numeric"),
+ ("-","smallint","smallint"),
+ ("-","bigint","bigint"),
+ ("-","integer","integer"),
+ ("-","real","real"),
+ ("-","double precision","double precision"),
+ ("-","interval","interval"),
+ ("-","numeric","numeric"),
+ ("?-","lseg","boolean"),
+ ("?-","line","boolean"),
+ ("?|","line","boolean"),
+ ("?|","lseg","boolean"),
+ ("@","numeric","numeric"),
+ ("@","smallint","smallint"),
+ ("@","real","real"),
+ ("@","bigint","bigint"),
+ ("@","integer","integer"),
+ ("@","double precision","double precision"),
+ ("@-@","path","double precision"),
+ ("@-@","lseg","double precision"),
  ("@@","box","point"),
- ("-","int4","int4"),
- ("-","int2","int2"),
- ("-","float4","float4"),
- ("-","float8","float8"),
- ("@","float4","float4"),
- ("@","float8","float8"),
- ("|/","float8","float8"),
- ("||/","float8","float8"),
- ("|","tinterval","abstime"),
- ("@","int2","int2"),
- ("@","int4","int4"),
- ("#","path","int4"),
- ("@-@","path","float8"),
+ ("@@","circle","point"),
  ("@@","lseg","point"),
  ("@@","path","point"),
  ("@@","polygon","point"),
- ("-","interval","interval"),
- ("@@","circle","point"),
- ("#","polygon","int4"),
- ("?-","lseg","bool"),
- ("?|","lseg","bool"),
- ("@-@","lseg","float8"),
- ("?-","line","bool"),
- ("?|","line","bool"),
- ("~","inet","inet"),
- ("-","numeric","numeric"),
- ("@","numeric","numeric"),
+ ("|","tinterval","abstime"),
+ ("|/","double precision","double precision"),
+ ("||/","double precision","double precision"),
+ ("~","integer","integer"),
+ ("~","smallint","smallint"),
  ("~","bit","bit"),
- ("~","int2","int2"),
- ("~","int4","int4"),
- ("~","int8","int8"),
- ("+","int8","int8"),
- ("+","int2","int2"),
- ("+","int4","int4"),
- ("+","float4","float4"),
- ("+","float8","float8"),
- ("+","numeric","numeric"),
- ("!!","tsquery","tsquery")]
+ ("~","bigint","bigint"),
+ ("~","inet","inet")]
 
 
 
 defaultPostfixOperators = [
- ("!","int8","numeric")]
+ ("!","bigint","numeric")]
+
+defaultUnaryOperators = defaultPostfixOperators ++ defaultPrefixOperators
+
+
+keywordBinaryOperatorTypes = [
+ (And, "boolean", "boolean", "boolean"),
+ (Or, "boolean", "boolean", "boolean"),
+ (Like, "text", "text", "boolean")]
+keywordUnaryOperatorTypes = [
+ (Not, "boolean", "boolean"),
+ (IsNull, "any", "boolean"),
+ (IsNotNull, "any", "boolean")]
+
 
 
 checkAst :: StatementList -> [Message]
@@ -2221,20 +2234,88 @@ sem_Expression_FunCall :: T_FunName  ->
 sem_Expression_FunCall funName_ args_  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
               _funNameOinLoop :: Bool
               _funNameOsourcePos :: MySourcePos
               _argsOinLoop :: Bool
               _argsOsourcePos :: MySourcePos
               _funNameImessages :: ([Message])
               _funNameInodeType :: Type
+              _funNameIval :: FunName
               _argsImessages :: ([Message])
               _argsInodeType :: Type
+              _lhsOnodeType =
+                  case _funNameIval of
+                    ArrayCtor -> ct AllSameType1Any
+                                   (RetTypeFun (\t -> ArrayType $ head t))
+                    Substring -> ct
+                                   (ExactList [ScalarType "text"
+                                              ,ScalarType "integer"
+                                              ,ScalarType "integer"])
+                                   (ConstRetType (ScalarType "text"))
+                    Between -> ct
+                                   (AllSameTypeNumAny 3)
+                                   (ConstRetType (ScalarType "boolean"))
+                    ArraySub -> ct
+                                   (ExactPredList
+                                     [ArgCheck isArrayType NotArrayType
+                                     ,exactType (ScalarType "integer")])
+                                   (RetTypeFun (\t -> typeFromArray $ head t))
+                    Operator s -> let l = length (typesFromTypeList _argsInodeType)
+                                  in case () of
+                                       _ | l == 0 -> TypeError nsp (OperatorNeeds1Or2Args 0)
+                                         | l == 1 -> checkUnaryOp s
+                                         | l == 2 -> checkBinaryOp s
+                                         | otherwise -> TypeError nsp (OperatorNeeds1Or2Args l)
+                    KOperator k -> let l = length (typesFromTypeList _argsInodeType)
+                                   in case () of
+                                       _ | l == 0 -> TypeError nsp (OperatorNeeds1Or2Args 0)
+                                         | l == 1 -> checkUnaryKOp k
+                                         | l == 2 -> checkBinaryKOp k
+                                         | otherwise -> TypeError nsp (OperatorNeeds1Or2Args l)
+                    _ -> UnknownType
+                  where
+                    ct = checkTypes _lhsIsourcePos _argsInodeType
+                    checkUnaryOp s1 = let s = (if s1 == "u-" then "-" else s1)
+                                          a0 = head $ typesFromTypeList _argsInodeType
+                                          cands = filter (\(o,a,_) ->
+                                                             (o,ScalarType a) == (s,a0))
+                                                   defaultUnaryOperators
+                                      in case () of
+                                           _ | length cands == 0 -> TypeError nsp (NoMatchingOperator s [a0])
+                                             | length cands == 1 -> let (_,_,rettype) = (head cands)
+                                                                    in ScalarType rettype
+                                             | otherwise -> TypeError nsp (MultipleMatchingOperators s [a0])
+                    checkBinaryOp s = let [a0,a1] = typesFromTypeList _argsInodeType
+                                          cands = filter (\(o,a,b,_) ->
+                                                              (o,ScalarType a,ScalarType b) == (s,a0,a1))
+                                                    defaultBinaryOperators
+                                      in case () of
+                                           _ | length cands == 0 -> TypeError nsp (NoMatchingOperator s [a0,a1])
+                                             | length cands == 1 -> let (_,_,_,rettype) = (head cands)
+                                                                    in ScalarType rettype
+                                             | otherwise -> TypeError nsp (MultipleMatchingOperators s [a0,a1])
+                    checkUnaryKOp s = let a0 = head $ typesFromTypeList _argsInodeType
+                                          cands = filter (\(o,a,_) ->
+                                                             (o,ScalarType a) == (s,a0))
+                                                   keywordUnaryOperatorTypes
+                                      in case () of
+                                           _ | length cands == 0 -> TypeError nsp (NoMatchingOperator (show s) [a0])
+                                             | length cands == 1 -> let (_,_,rettype) = (head cands)
+                                                                    in ScalarType rettype
+                                             | otherwise -> TypeError nsp (MultipleMatchingOperators (show s) [a0])
+                    checkBinaryKOp s = let [a0,a1] = typesFromTypeList _argsInodeType
+                                           cands = filter (\(o,a,b,_) ->
+                                                              (o,ScalarType a,ScalarType b) == (s,a0,a1))
+                                                     keywordBinaryOperatorTypes
+                                       in case () of
+                                           _ | length cands == 0 -> TypeError nsp (NoMatchingOperator (show s) [a0,a1])
+                                             | length cands == 1 -> let (_,_,_,rettype) = (head cands)
+                                                                    in ScalarType rettype
+                                             | otherwise -> TypeError nsp (MultipleMatchingOperators (show s) [a0,a1])
               _lhsOmessages =
                   _funNameImessages ++ _argsImessages
-              _lhsOnodeType =
-                  _funNameInodeType `setUnknown` _argsInodeType
               _funNameOinLoop =
                   _lhsIinLoop
               _funNameOsourcePos =
@@ -2243,7 +2324,7 @@ sem_Expression_FunCall funName_ args_  =
                   _lhsIinLoop
               _argsOsourcePos =
                   _lhsIsourcePos
-              ( _funNameImessages,_funNameInodeType) =
+              ( _funNameImessages,_funNameInodeType,_funNameIval) =
                   (funName_ _funNameOinLoop _funNameOsourcePos )
               ( _argsImessages,_argsInodeType) =
                   (args_ _argsOinLoop _argsOsourcePos )
@@ -2360,7 +2441,7 @@ sem_Expression_StringLit quote_ value_  =
          (let _lhsOnodeType :: Type
               _lhsOmessages :: ([Message])
               _lhsOnodeType =
-                  ScalarType "string"
+                  ScalarType "text"
               _lhsOmessages =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))
@@ -2931,49 +3012,64 @@ sem_FunName (Substring )  =
 -- semantic domain
 type T_FunName  = Bool ->
                   MySourcePos ->
-                  ( ([Message]),Type)
+                  ( ([Message]),Type,FunName)
 data Inh_FunName  = Inh_FunName {inLoop_Inh_FunName :: Bool,sourcePos_Inh_FunName :: MySourcePos}
-data Syn_FunName  = Syn_FunName {messages_Syn_FunName :: [Message],nodeType_Syn_FunName :: Type}
+data Syn_FunName  = Syn_FunName {messages_Syn_FunName :: [Message],nodeType_Syn_FunName :: Type,val_Syn_FunName :: FunName}
 wrap_FunName :: T_FunName  ->
                 Inh_FunName  ->
                 Syn_FunName 
 wrap_FunName sem (Inh_FunName _lhsIinLoop _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType) =
+    (let ( _lhsOmessages,_lhsOnodeType,_lhsOval) =
              (sem _lhsIinLoop _lhsIsourcePos )
-     in  (Syn_FunName _lhsOmessages _lhsOnodeType ))
+     in  (Syn_FunName _lhsOmessages _lhsOnodeType _lhsOval ))
 sem_FunName_ArrayCtor :: T_FunName 
 sem_FunName_ArrayCtor  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  ArrayCtor
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_ArraySub :: T_FunName 
 sem_FunName_ArraySub  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  ArraySub
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_Between :: T_FunName 
 sem_FunName_Between  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Between
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_KOperator :: T_KeywordOperator  ->
                          T_FunName 
 sem_FunName_KOperator keywordOperator_  =
@@ -2981,20 +3077,26 @@ sem_FunName_KOperator keywordOperator_  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _keywordOperatorOinLoop :: Bool
               _keywordOperatorOsourcePos :: MySourcePos
               _keywordOperatorImessages :: ([Message])
+              _keywordOperatorIval :: KeywordOperator
               _lhsOmessages =
                   _keywordOperatorImessages
               _lhsOnodeType =
                   UnknownType
+              _val =
+                  KOperator _keywordOperatorIval
+              _lhsOval =
+                  _val
               _keywordOperatorOinLoop =
                   _lhsIinLoop
               _keywordOperatorOsourcePos =
                   _lhsIsourcePos
-              ( _keywordOperatorImessages) =
+              ( _keywordOperatorImessages,_keywordOperatorIval) =
                   (keywordOperator_ _keywordOperatorOinLoop _keywordOperatorOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_Operator :: String ->
                         T_FunName 
 sem_FunName_Operator string_  =
@@ -3002,22 +3104,32 @@ sem_FunName_Operator string_  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Operator string_
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_RowCtor :: T_FunName 
 sem_FunName_RowCtor  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  RowCtor
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_SimpleFun :: String ->
                          T_FunName 
 sem_FunName_SimpleFun string_  =
@@ -3025,22 +3137,32 @@ sem_FunName_SimpleFun string_  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  SimpleFun string_
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 sem_FunName_Substring :: T_FunName 
 sem_FunName_Substring  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              _val =
+                  Substring
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
 -- IfExists ----------------------------------------------------
 data IfExists  = IfExists 
                | Require 
@@ -3337,64 +3459,94 @@ sem_KeywordOperator (Or )  =
 -- semantic domain
 type T_KeywordOperator  = Bool ->
                           MySourcePos ->
-                          ( ([Message]))
+                          ( ([Message]),KeywordOperator)
 data Inh_KeywordOperator  = Inh_KeywordOperator {inLoop_Inh_KeywordOperator :: Bool,sourcePos_Inh_KeywordOperator :: MySourcePos}
-data Syn_KeywordOperator  = Syn_KeywordOperator {messages_Syn_KeywordOperator :: [Message]}
+data Syn_KeywordOperator  = Syn_KeywordOperator {messages_Syn_KeywordOperator :: [Message],val_Syn_KeywordOperator :: KeywordOperator}
 wrap_KeywordOperator :: T_KeywordOperator  ->
                         Inh_KeywordOperator  ->
                         Syn_KeywordOperator 
 wrap_KeywordOperator sem (Inh_KeywordOperator _lhsIinLoop _lhsIsourcePos )  =
-    (let ( _lhsOmessages) =
+    (let ( _lhsOmessages,_lhsOval) =
              (sem _lhsIinLoop _lhsIsourcePos )
-     in  (Syn_KeywordOperator _lhsOmessages ))
+     in  (Syn_KeywordOperator _lhsOmessages _lhsOval ))
 sem_KeywordOperator_And :: T_KeywordOperator 
 sem_KeywordOperator_And  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
+              _lhsOval :: KeywordOperator
               _lhsOmessages =
                   []
-          in  ( _lhsOmessages)))
+              _val =
+                  And
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOval)))
 sem_KeywordOperator_IsNotNull :: T_KeywordOperator 
 sem_KeywordOperator_IsNotNull  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
+              _lhsOval :: KeywordOperator
               _lhsOmessages =
                   []
-          in  ( _lhsOmessages)))
+              _val =
+                  IsNotNull
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOval)))
 sem_KeywordOperator_IsNull :: T_KeywordOperator 
 sem_KeywordOperator_IsNull  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
+              _lhsOval :: KeywordOperator
               _lhsOmessages =
                   []
-          in  ( _lhsOmessages)))
+              _val =
+                  IsNull
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOval)))
 sem_KeywordOperator_Like :: T_KeywordOperator 
 sem_KeywordOperator_Like  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
+              _lhsOval :: KeywordOperator
               _lhsOmessages =
                   []
-          in  ( _lhsOmessages)))
+              _val =
+                  Like
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOval)))
 sem_KeywordOperator_Not :: T_KeywordOperator 
 sem_KeywordOperator_Not  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
+              _lhsOval :: KeywordOperator
               _lhsOmessages =
                   []
-          in  ( _lhsOmessages)))
+              _val =
+                  Not
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOval)))
 sem_KeywordOperator_Or :: T_KeywordOperator 
 sem_KeywordOperator_Or  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
+              _lhsOval :: KeywordOperator
               _lhsOmessages =
                   []
-          in  ( _lhsOmessages)))
+              _val =
+                  Or
+              _lhsOval =
+                  _val
+          in  ( _lhsOmessages,_lhsOval)))
 -- Language ----------------------------------------------------
 data Language  = Plpgsql 
                | Sql 
@@ -6336,8 +6488,11 @@ sem_TypeAttributeDefList_Nil  =
                   TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- TypeErrorInfo -----------------------------------------------
-data TypeErrorInfo  = NeedOneOrMoreArgs 
+data TypeErrorInfo  = MultipleMatchingOperators (String) ([Type]) 
+                    | NeedOneOrMoreArgs 
+                    | NoMatchingOperator (String) ([Type]) 
                     | NotArrayType (Type) 
+                    | OperatorNeeds1Or2Args (Int) 
                     | OtherTypeError (String) 
                     | UnknownTypeError (String) 
                     | WrongNumArgs (Int) (Int) 
@@ -6348,10 +6503,16 @@ data TypeErrorInfo  = NeedOneOrMoreArgs
 -- cata
 sem_TypeErrorInfo :: TypeErrorInfo  ->
                      T_TypeErrorInfo 
+sem_TypeErrorInfo (MultipleMatchingOperators _o _t )  =
+    (sem_TypeErrorInfo_MultipleMatchingOperators _o _t )
 sem_TypeErrorInfo (NeedOneOrMoreArgs )  =
     (sem_TypeErrorInfo_NeedOneOrMoreArgs )
+sem_TypeErrorInfo (NoMatchingOperator _o _t )  =
+    (sem_TypeErrorInfo_NoMatchingOperator _o _t )
 sem_TypeErrorInfo (NotArrayType _got )  =
     (sem_TypeErrorInfo_NotArrayType (sem_Type _got ) )
+sem_TypeErrorInfo (OperatorNeeds1Or2Args _got )  =
+    (sem_TypeErrorInfo_OperatorNeeds1Or2Args _got )
 sem_TypeErrorInfo (OtherTypeError _string )  =
     (sem_TypeErrorInfo_OtherTypeError _string )
 sem_TypeErrorInfo (UnknownTypeError _string )  =
@@ -6375,13 +6536,30 @@ wrap_TypeErrorInfo sem (Inh_TypeErrorInfo )  =
     (let ( ) =
              (sem )
      in  (Syn_TypeErrorInfo ))
+sem_TypeErrorInfo_MultipleMatchingOperators :: String ->
+                                               ([Type]) ->
+                                               T_TypeErrorInfo 
+sem_TypeErrorInfo_MultipleMatchingOperators o_ t_  =
+    (let 
+     in  ( ))
 sem_TypeErrorInfo_NeedOneOrMoreArgs :: T_TypeErrorInfo 
 sem_TypeErrorInfo_NeedOneOrMoreArgs  =
+    (let 
+     in  ( ))
+sem_TypeErrorInfo_NoMatchingOperator :: String ->
+                                        ([Type]) ->
+                                        T_TypeErrorInfo 
+sem_TypeErrorInfo_NoMatchingOperator o_ t_  =
     (let 
      in  ( ))
 sem_TypeErrorInfo_NotArrayType :: T_Type  ->
                                   T_TypeErrorInfo 
 sem_TypeErrorInfo_NotArrayType got_  =
+    (let 
+     in  ( ))
+sem_TypeErrorInfo_OperatorNeeds1Or2Args :: Int ->
+                                           T_TypeErrorInfo 
+sem_TypeErrorInfo_OperatorNeeds1Or2Args got_  =
     (let 
      in  ( ))
 sem_TypeErrorInfo_OtherTypeError :: String ->

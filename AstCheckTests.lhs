@@ -45,96 +45,78 @@ types of error message received.
 >     (mapExprType [
 >       p "1" (ScalarType "integer")
 >      ,p "1.0" (ScalarType "float")
->      ,p "'test'" (ScalarType "string")
+>      ,p "'test'" (ScalarType "text")
 >      ,p "true" (ScalarType "boolean")
 >      ,p "array[1,2,3]" (ArrayType (ScalarType "integer"))
->      ,p "array['a','b']" (ArrayType (ScalarType "string"))
+>      ,p "array['a','b']" (ArrayType (ScalarType "text"))
 >      ,p "array[1,'b']" (TypeError ("",0,0)
 >                         (WrongTypes
 >                          (ScalarType "integer")
->                          [ScalarType "integer",ScalarType "string"]))
+>                          [ScalarType "integer",ScalarType "text"]))
 >      ])
 
 >    ,testGroup "some expressions"
 >     (mapExprType [
 >       p "1=1" (ScalarType "boolean")
 >      ,p "1='test'" (TypeError ("",0,0)
->                     (WrongTypes
->                     (ScalarType "integer")
->                     [ScalarType "integer",ScalarType "string"]))
->      ,p "substring('aqbc' from 2 for 2)" (ScalarType "string")
+>                     (NoMatchingOperator "=" [ScalarType "integer",ScalarType "text"]))
+>      ,p "substring('aqbc' from 2 for 2)" (ScalarType "text")
 
 >      ,p "substring(3 from 2 for 2)" (TypeError ("",0,0)
->                     (WrongTypeList [ScalarType "string"
+>                     (WrongTypeList [ScalarType "text"
 >                                    ,ScalarType "integer"
 >                                    ,ScalarType "integer"]
 >                                    [ScalarType "integer"
 >                                    ,ScalarType "integer"
 >                                    ,ScalarType "integer"]))
 >      ,p "substring('aqbc' from 2 for 'test')" (TypeError ("",0,0)
->                     (WrongTypeList [ScalarType "string"
+>                     (WrongTypeList [ScalarType "text"
 >                                    ,ScalarType "integer"
 >                                    ,ScalarType "integer"]
->                                    [ScalarType "string"
+>                                    [ScalarType "text"
 >                                    ,ScalarType "integer"
->                                    ,ScalarType "string"]))
+>                                    ,ScalarType "text"]))
 
 >      ,p "3 between 2 and 4" (ScalarType "boolean")
 >      ,p "3 between '2' and 4" (TypeError ("",0,0)
 >                                (WrongTypes (ScalarType "integer")
 >                                 [ScalarType "integer"
->                                 ,ScalarType "string"
+>                                 ,ScalarType "text"
 >                                 ,ScalarType "integer"]))
 
 >      ,p "array[1,2,3][2]" (ScalarType "integer")
->      ,p "array['a','b'][1]" (ScalarType "string")
+>      ,p "array['a','b'][1]" (ScalarType "text")
 >      ,p "array['a','b']['test']" (TypeError ("",0,0)
 >                                   (WrongType
 >                                    (ScalarType "integer")
->                                    (ScalarType "string")))
+>                                    (ScalarType "text")))
 
 >      ,p "not true" (ScalarType "boolean")
 >      ,p "not 1" (TypeError ("",0,0)
->                  (WrongTypeList
->                   [ScalarType "boolean"]
->                   [ScalarType "integer"]))
+>                  (NoMatchingOperator "Not" [ScalarType "integer"]))
 
 >      ,p "@ 3" (ScalarType "integer")
 >      ,p "@ 'a'" (TypeError ("",0,0)
->                  (WrongTypeList
->                   [ScalarType "integer"]
->                   [ScalarType "string"]))
+>                  (NoMatchingOperator "@" [ScalarType "text"]))
 
 >      ,p "-3" (ScalarType "integer")
 >      ,p "-'a'" (TypeError ("",0,0)
->                  (WrongTypeList
->                   [ScalarType "integer"]
->                   [ScalarType "string"]))
+>                  (NoMatchingOperator "-" [ScalarType "text"]))
 
 >      ,p "4-3" (ScalarType "integer")
->      ,p "4-'a'" (TypeError ("",0,0)
->                  (WrongTypeList
->                   [ScalarType "integer",ScalarType "integer"]
->                   [ScalarType "integer",ScalarType "string"]))
 
->      ,p "1 is null" (ScalarType "boolean")
->      ,p "1 is not null" (ScalarType "boolean")
+>      --,p "1 is null" (ScalarType "boolean")
+>      --,p "1 is not null" (ScalarType "boolean")
 
 >      ,p "1+1" (ScalarType "integer")
->      ,p "1+True" (TypeError ("",0,0)
->                   (WrongTypeList
->                    [ScalarType "integer",ScalarType "integer"]
->                    [ScalarType "integer",ScalarType "boolean"]))
 >      ,p "1+1" (ScalarType "integer")
 >      ,p "31*511" (ScalarType "integer")
 >      ,p "5/2" (ScalarType "integer")
->      ,p "2^10" (ScalarType "integer")
+>      --,p "2^10" (ScalarType "integer")
 >      ,p "17%5" (ScalarType "integer")
 
 >      ,p "3 and 4" (TypeError ("",0,0)
->                   (WrongTypeList
->                    [ScalarType "boolean",ScalarType "boolean"]
->                    [ScalarType "integer",ScalarType "integer"]))
+>                   (NoMatchingOperator "And" [ScalarType "integer",ScalarType "integer"]))
 
 >      ,p "True and False" (ScalarType "boolean")
 >      ,p "false or true" (ScalarType "boolean")
@@ -150,32 +132,31 @@ types of error message received.
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 'blah'\n\
 >         \ else 'test'\n\
->         \end" (ScalarType "string")
+>         \end" (ScalarType "text")
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 'test'=3 then 'blah'\n\
 >         \ else 'test'\n\
 >         \end" (TypeError ("",0,0)
->                (WrongTypes (ScalarType "string")
->                 [ScalarType "string",ScalarType "integer"]))
+>                (NoMatchingOperator "=" [ScalarType "text",ScalarType "integer"]))
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 'blah'\n\
 >         \ else 1\n\
 >         \end" (TypeError ("",0,0)
->                (WrongTypes (ScalarType "string")
->                  [ScalarType "string"
->                  ,ScalarType "string"
+>                (WrongTypes (ScalarType "text")
+>                  [ScalarType "text"
+>                  ,ScalarType "text"
 >                  ,ScalarType "integer"]))
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 1\n\
 >         \ else 'else'\n\
 >         \end" (TypeError ("",0,0)
->                (WrongTypes (ScalarType "string")
->                 [ScalarType "string"
+>                (WrongTypes (ScalarType "text")
+>                 [ScalarType "text"
 >                 ,ScalarType "integer"
->                 ,ScalarType "string"]))
+>                 ,ScalarType "text"]))
 >      ])
 
 >    ,testGroup "case expressions"
