@@ -410,12 +410,28 @@ Conversion routines - convert Sql asts into Docs
 >                               parens (convExp (es !! 0)
 >                                       <+> text n
 >                                       <+> convExp (es !! 1))
->                           LeftUnary -> parens (text (if n == "u-"
+>                           PrefixOp -> parens (text (if n == "u-"
 >                                                        then "-"
 >                                                        else n)
 >                                                <+> convExp (head es))
->                           RightUnary -> parens (convExp (head es) <+> text n)
-> convExp (FunCall ArrayVal es) = text "array" <> brackets (csvExp es)
+>                           PostfixOp -> parens (convExp (head es) <+> text n)
+> convExp (FunCall (KOperator k) es) =
+>     case k of
+>       And -> binary "and"
+>       Or -> binary "or"
+>       Not -> prefix "not"
+>       IsNull -> postfix "is null"
+>       IsNotNull -> postfix "is not null"
+>       Like -> binary "like"
+>     where
+>       prefix kw = parens (text kw <+> convExp (head es))
+>       postfix kw = parens (convExp (head es) <+> text kw)
+>       binary kw = parens (convExp (es !! 0)
+>                          <+> text kw
+>                          <+> convExp (es !! 1))
+
+
+> convExp (FunCall ArrayCtor es) = text "array" <> brackets (csvExp es)
 > convExp (FunCall RowCtor es) = text "row" <> parens (hcatCsvMap convExp es)
 > convExp (FunCall ArraySub ((Identifier i):es)) = text i <> brackets (csvExp es)
 > convExp (FunCall ArraySub es) = parens (convExp (es !! 0)) <> brackets (csvExp (tail es))

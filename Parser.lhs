@@ -867,8 +867,8 @@ syntactical novelty
 >         ,[binary "+" AssocLeft
 >          ,binary "-" AssocLeft]
 >          --should be is isnull and notnull
->         ,[postfixks ["is", "not", "null"] (FunCall (Operator "is not null"))
->          ,postfixks ["is", "null"] (FunCall (Operator "is null"))]
+>         ,[postfixks ["is", "not", "null"] (FunCall (KOperator IsNotNull))
+>          ,postfixks ["is", "null"] (FunCall (KOperator IsNull))]
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "<->" AssocNone
 >          ,binary "<=" AssocRight
@@ -879,16 +879,16 @@ syntactical novelty
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
->         ,[binaryk "like" AssocNone
+>         ,[binaryk "like" Like AssocNone
 >          ,binarycust "!=" "<>" AssocNone]
 >          --(also ilike similar)
 >         ,[lt "<" AssocNone
 >          ,binary ">" AssocNone]
 >          ,[binary "=" AssocRight
 >          ,binary "<>" AssocNone]
->         ,[prefixk "not" (FunCall (Operator "not"))]
->         ,[binaryk "and" AssocLeft
->          ,binaryk "or" AssocLeft]]
+>         ,[prefixk "not" (FunCall (KOperator Not))]
+>         ,[binaryk "and" And AssocLeft
+>          ,binaryk "or" Or AssocLeft]]
 >     where
 >       --use different parsers for symbols and keywords to get the
 >       --right whitespace behaviour
@@ -902,8 +902,8 @@ syntactical novelty
 >           = Infix (try (keyword s >> (return $ binaryF s)))
 >       prefix s f
 >          = Prefix (try (symbol s >> (return $ unaryF f)))
->       binaryk s
->          = Infix (try (keyword s >> (return $ binaryF s)))
+>       binaryk s o
+>          = Infix (try (keyword s >> (return $ binaryFk o)))
 >       prefixk s f
 >          = Prefix (try (keyword s >> (return $ unaryF f)))
 >       --postfixk s f
@@ -912,6 +912,7 @@ syntactical novelty
 >          = Postfix (try (mapM_ keyword ss >> (return $ unaryF f)))
 >       unaryF f = \l -> f [l]
 >       binaryF s = \l -> \m -> (FunCall (Operator s)) [l,m]
+>       binaryFk s = \l -> \m -> (FunCall (KOperator s)) [l,m]
 
 some custom parsers
 
@@ -994,7 +995,7 @@ expression when value' currently
 
 > arrayLit :: ParsecT [Token] ParseState Identity Expression
 > arrayLit = keyword "array" >>
->            FunCall ArrayVal <$> squares (commaSep expr)
+>            FunCall ArrayCtor <$> squares (commaSep expr)
 
 when you put expr instead of identifier in arraysub, it stack
 overflows, not sure why.

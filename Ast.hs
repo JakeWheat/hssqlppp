@@ -36,6 +36,7 @@ module Ast(
    ,RestartIdentity (..)
    ,Expression (..)
    ,FunName (..)
+   ,KeywordOperator(..)
    ,OperatorType (..)
    ,getOperatorType
    ,InList (..)
@@ -57,15 +58,25 @@ module Ast(
 ) where
 
 
+
+-- for now, assume that all the overloaded operators that have the
+-- same name are all either binary, prefix or postfix, otherwise the
+-- getoperatortype would need the types of the arguments to determine
+-- the operator type, and the parser would have to be a lot cleverer
+
 getOperatorType :: String -> OperatorType
 getOperatorType s = case () of
-                      _ | s `elem` ["not", "@", "u-"] -> LeftUnary
-                        | s `elem` ["is null", "is not null"] -> RightUnary
-                        | s `elem` ["+", "-", "*", "/","^",
-                                    "%","=","and","or","||",
-                                    "like","<>","<",">",
-                                    "<=",">=","<->"] -> BinaryOp
-                        | otherwise -> error $ "don't know flavour of operator " ++ s
+                      _ | any (\(x,_,_,_) -> x == s) defaultBinaryOperators ->
+                            BinaryOp
+                        | any (\(x,_,_) -> x == s ||
+                                           (x=="-" && s=="u-"))
+                              defaultPrefixOperators ->
+                            PrefixOp
+                        | any (\(x,_,_) -> x == s) defaultPostfixOperators ->
+                            PostfixOp
+                        --special case the keyword operators
+                        | otherwise ->
+                            error $ "don't know flavour of operator " ++ s
 
 
 
@@ -291,6 +302,722 @@ defaultTypes = [
  "void",
  "xid",
  "xml"]
+
+
+defaultBinaryOperators = [
+ ("!~","bpchar","text","bool"),
+ ("!~","text","text","bool"),
+ ("!~","name","text","bool"),
+ ("!~*","text","text","bool"),
+ ("!~*","name","text","bool"),
+ ("!~*","bpchar","text","bool"),
+ ("!~~","bpchar","text","bool"),
+ ("!~~","bytea","bytea","bool"),
+ ("!~~","name","text","bool"),
+ ("!~~","text","text","bool"),
+ ("!~~*","name","text","bool"),
+ ("!~~*","bpchar","text","bool"),
+ ("!~~*","text","text","bool"),
+ ("#","int8","int8","int8"),
+ ("#","bit","bit","bit"),
+ ("#","line","line","point"),
+ ("#","box","box","box"),
+ ("#","int2","int2","int2"),
+ ("#","lseg","lseg","point"),
+ ("#","int4","int4","int4"),
+ ("##","lseg","box","point"),
+ ("##","point","lseg","point"),
+ ("##","point","box","point"),
+ ("##","lseg","lseg","point"),
+ ("##","point","line","point"),
+ ("##","lseg","line","point"),
+ ("##","line","box","point"),
+ ("##","line","lseg","point"),
+ ("#<","tinterval","reltime","bool"),
+ ("#<=","tinterval","reltime","bool"),
+ ("#<>","tinterval","reltime","bool"),
+ ("#=","tinterval","reltime","bool"),
+ ("#>","tinterval","reltime","bool"),
+ ("#>=","tinterval","reltime","bool"),
+ ("%","int8","int8","int8"),
+ ("%","int4","int4","int4"),
+ ("%","int2","int2","int2"),
+ ("%","numeric","numeric","numeric"),
+ ("&","int2","int2","int2"),
+ ("&","int4","int4","int4"),
+ ("&","int8","int8","int8"),
+ ("&","bit","bit","bit"),
+ ("&","inet","inet","inet"),
+ ("&&","circle","circle","bool"),
+ ("&&","tinterval","tinterval","bool"),
+ ("&&","polygon","polygon","bool"),
+ ("&&","tsquery","tsquery","tsquery"),
+ ("&&","box","box","bool"),
+ ("&&","anyarray","anyarray","bool"),
+ ("&<","circle","circle","bool"),
+ ("&<","polygon","polygon","bool"),
+ ("&<","box","box","bool"),
+ ("&<|","circle","circle","bool"),
+ ("&<|","polygon","polygon","bool"),
+ ("&<|","box","box","bool"),
+ ("&>","circle","circle","bool"),
+ ("&>","polygon","polygon","bool"),
+ ("&>","box","box","bool"),
+ ("*","int4","int2","int4"),
+ ("*","int8","int8","int8"),
+ ("*","money","float4","money"),
+ ("*","int2","int8","int8"),
+ ("*","int4","money","money"),
+ ("*","float8","float4","float8"),
+ ("*","path","point","path"),
+ ("*","money","int4","money"),
+ ("*","float8","money","money"),
+ ("*","float8","interval","interval"),
+ ("*","int4","int4","int4"),
+ ("*","float4","float8","float8"),
+ ("*","float4","float4","float4"),
+ ("*","int8","int4","int8"),
+ ("*","int2","money","money"),
+ ("*","money","int2","money"),
+ ("*","point","point","point"),
+ ("*","circle","point","circle"),
+ ("*","int4","int8","int8"),
+ ("*","int2","int2","int2"),
+ ("*","interval","float8","interval"),
+ ("*","float4","money","money"),
+ ("*","box","point","box"),
+ ("*","int2","int4","int4"),
+ ("*","float8","float8","float8"),
+ ("*","numeric","numeric","numeric"),
+ ("*","int8","int2","int8"),
+ ("*","money","float8","money"),
+ ("+","float4","float4","float4"),
+ ("+","path","point","path"),
+ ("+","path","path","path"),
+ ("+","point","point","point"),
+ ("+","int8","int8","int8"),
+ ("+","int8","int4","int8"),
+ ("+","int4","int8","int8"),
+ ("+","int8","int2","int8"),
+ ("+","int2","int8","int8"),
+ ("+","date","timetz","timestamptz"),
+ ("+","date","time","timestamp"),
+ ("+","inet","int8","inet"),
+ ("+","interval","interval","interval"),
+ ("+","timestamptz","interval","timestamptz"),
+ ("+","int8","inet","inet"),
+ ("+","numeric","numeric","numeric"),
+ ("+","float8","float4","float8"),
+ ("+","int4","date","date"),
+ ("+","interval","timestamptz","timestamptz"),
+ ("+","float4","float8","float8"),
+ ("+","interval","timestamp","timestamp"),
+ ("+","interval","timetz","timetz"),
+ ("+","time","interval","time"),
+ ("+","interval","date","timestamp"),
+ ("+","timetz","interval","timetz"),
+ ("+","date","int4","date"),
+ ("+","int2","int2","int2"),
+ ("+","int4","int4","int4"),
+ ("+","int2","int4","int4"),
+ ("+","int4","int2","int4"),
+ ("+","date","interval","timestamp"),
+ ("+","circle","point","circle"),
+ ("+","interval","time","time"),
+ ("+","timetz","date","timestamptz"),
+ ("+","_aclitem","aclitem","_aclitem"),
+ ("+","abstime","reltime","abstime"),
+ ("+","timestamp","interval","timestamp"),
+ ("+","float8","float8","float8"),
+ ("+","time","date","timestamp"),
+ ("+","money","money","money"),
+ ("+","box","point","box"),
+ ("-","int4","int4","int4"),
+ ("-","float8","float8","float8"),
+ ("-","float4","float8","float8"),
+ ("-","float8","float4","float8"),
+ ("-","money","money","money"),
+ ("-","inet","int8","inet"),
+ ("-","path","point","path"),
+ ("-","numeric","numeric","numeric"),
+ ("-","timestamptz","timestamptz","interval"),
+ ("-","timestamptz","interval","timestamptz"),
+ ("-","interval","interval","interval"),
+ ("-","int2","int8","int8"),
+ ("-","box","point","box"),
+ ("-","timestamp","timestamp","interval"),
+ ("-","int8","int2","int8"),
+ ("-","int4","int8","int8"),
+ ("-","int8","int4","int8"),
+ ("-","date","interval","timestamp"),
+ ("-","int4","int2","int4"),
+ ("-","time","time","interval"),
+ ("-","_aclitem","aclitem","_aclitem"),
+ ("-","int8","int8","int8"),
+ ("-","int2","int4","int4"),
+ ("-","int2","int2","int2"),
+ ("-","timetz","interval","timetz"),
+ ("-","date","date","int4"),
+ ("-","date","int4","date"),
+ ("-","time","interval","time"),
+ ("-","point","point","point"),
+ ("-","abstime","reltime","abstime"),
+ ("-","circle","point","circle"),
+ ("-","float4","float4","float4"),
+ ("-","inet","inet","int8"),
+ ("-","timestamp","interval","timestamp"),
+ ("/","int4","int2","int4"),
+ ("/","int2","int4","int4"),
+ ("/","circle","point","circle"),
+ ("/","money","float8","money"),
+ ("/","float8","float4","float8"),
+ ("/","numeric","numeric","numeric"),
+ ("/","box","point","box"),
+ ("/","int2","int8","int8"),
+ ("/","int4","int8","int8"),
+ ("/","interval","float8","interval"),
+ ("/","path","point","path"),
+ ("/","float4","float4","float4"),
+ ("/","money","float4","money"),
+ ("/","int8","int4","int8"),
+ ("/","int8","int2","int8"),
+ ("/","float8","float8","float8"),
+ ("/","int4","int4","int4"),
+ ("/","money","int2","money"),
+ ("/","int2","int2","int2"),
+ ("/","int8","int8","int8"),
+ ("/","point","point","point"),
+ ("/","float4","float8","float8"),
+ ("/","money","int4","money"),
+ ("<","anyarray","anyarray","bool"),
+ ("<","tsvector","tsvector","bool"),
+ ("<","inet","inet","bool"),
+ ("<","lseg","lseg","bool"),
+ ("<","macaddr","macaddr","bool"),
+ ("<","int8","int4","bool"),
+ ("<","anyenum","anyenum","bool"),
+ ("<","uuid","uuid","bool"),
+ ("<","box","box","bool"),
+ ("<","int2","int2","bool"),
+ ("<","record","record","bool"),
+ ("<","int2","int4","bool"),
+ ("<","int4","int2","bool"),
+ ("<","timestamptz","timestamp","bool"),
+ ("<","int4","int4","bool"),
+ ("<","abstime","abstime","bool"),
+ ("<","bool","bool","bool"),
+ ("<","reltime","reltime","bool"),
+ ("<","timestamp","timestamptz","bool"),
+ ("<","oid","oid","bool"),
+ ("<","timestamptz","date","bool"),
+ ("<","oidvector","oidvector","bool"),
+ ("<","timestamp","date","bool"),
+ ("<","float4","float4","bool"),
+ ("<","char","char","bool"),
+ ("<","date","timestamptz","bool"),
+ ("<","date","timestamp","bool"),
+ ("<","name","name","bool"),
+ ("<","text","text","bool"),
+ ("<","timestamp","timestamp","bool"),
+ ("<","float8","float8","bool"),
+ ("<","bytea","bytea","bool"),
+ ("<","path","path","bool"),
+ ("<","tinterval","tinterval","bool"),
+ ("<","money","money","bool"),
+ ("<","int8","int2","bool"),
+ ("<","int2","int8","bool"),
+ ("<","bpchar","bpchar","bool"),
+ ("<","tid","tid","bool"),
+ ("<","varbit","varbit","bool"),
+ ("<","tsquery","tsquery","bool"),
+ ("<","date","date","bool"),
+ ("<","time","time","bool"),
+ ("<","timetz","timetz","bool"),
+ ("<","int4","int8","bool"),
+ ("<","float4","float8","bool"),
+ ("<","float8","float4","bool"),
+ ("<","bit","bit","bool"),
+ ("<","int8","int8","bool"),
+ ("<","timestamptz","timestamptz","bool"),
+ ("<","numeric","numeric","bool"),
+ ("<","interval","interval","bool"),
+ ("<","circle","circle","bool"),
+ ("<#>","abstime","abstime","tinterval"),
+ ("<->","point","box","float8"),
+ ("<->","lseg","line","float8"),
+ ("<->","line","line","float8"),
+ ("<->","polygon","polygon","float8"),
+ ("<->","path","path","float8"),
+ ("<->","box","box","float8"),
+ ("<->","circle","circle","float8"),
+ ("<->","point","circle","float8"),
+ ("<->","circle","polygon","float8"),
+ ("<->","line","box","float8"),
+ ("<->","point","point","float8"),
+ ("<->","point","path","float8"),
+ ("<->","lseg","lseg","float8"),
+ ("<->","point","line","float8"),
+ ("<->","lseg","box","float8"),
+ ("<->","point","lseg","float8"),
+ ("<<","tinterval","tinterval","bool"),
+ ("<<","int4","int4","int4"),
+ ("<<","int2","int4","int2"),
+ ("<<","int8","int4","int8"),
+ ("<<","circle","circle","bool"),
+ ("<<","bit","int4","bit"),
+ ("<<","inet","inet","bool"),
+ ("<<","point","point","bool"),
+ ("<<","box","box","bool"),
+ ("<<","polygon","polygon","bool"),
+ ("<<=","inet","inet","bool"),
+ ("<<|","box","box","bool"),
+ ("<<|","circle","circle","bool"),
+ ("<<|","polygon","polygon","bool"),
+ ("<=","anyenum","anyenum","bool"),
+ ("<=","oidvector","oidvector","bool"),
+ ("<=","timestamp","date","bool"),
+ ("<=","oid","oid","bool"),
+ ("<=","bytea","bytea","bool"),
+ ("<=","timestamptz","date","bool"),
+ ("<=","reltime","reltime","bool"),
+ ("<=","int2","int8","bool"),
+ ("<=","int8","int8","bool"),
+ ("<=","bpchar","bpchar","bool"),
+ ("<=","timestamp","timestamptz","bool"),
+ ("<=","abstime","abstime","bool"),
+ ("<=","varbit","varbit","bool"),
+ ("<=","anyarray","anyarray","bool"),
+ ("<=","circle","circle","bool"),
+ ("<=","date","date","bool"),
+ ("<=","timestamptz","timestamp","bool"),
+ ("<=","int4","int2","bool"),
+ ("<=","int2","int4","bool"),
+ ("<=","tid","tid","bool"),
+ ("<=","time","time","bool"),
+ ("<=","timetz","timetz","bool"),
+ ("<=","macaddr","macaddr","bool"),
+ ("<=","int4","int4","bool"),
+ ("<=","int2","int2","bool"),
+ ("<=","inet","inet","bool"),
+ ("<=","tsquery","tsquery","bool"),
+ ("<=","float4","float8","bool"),
+ ("<=","bit","bit","bool"),
+ ("<=","float8","float4","bool"),
+ ("<=","box","box","bool"),
+ ("<=","int4","int8","bool"),
+ ("<=","uuid","uuid","bool"),
+ ("<=","lseg","lseg","bool"),
+ ("<=","timestamptz","timestamptz","bool"),
+ ("<=","numeric","numeric","bool"),
+ ("<=","float4","float4","bool"),
+ ("<=","int8","int4","bool"),
+ ("<=","money","money","bool"),
+ ("<=","tsvector","tsvector","bool"),
+ ("<=","date","timestamptz","bool"),
+ ("<=","interval","interval","bool"),
+ ("<=","record","record","bool"),
+ ("<=","char","char","bool"),
+ ("<=","path","path","bool"),
+ ("<=","float8","float8","bool"),
+ ("<=","timestamp","timestamp","bool"),
+ ("<=","text","text","bool"),
+ ("<=","name","name","bool"),
+ ("<=","date","timestamp","bool"),
+ ("<=","tinterval","tinterval","bool"),
+ ("<=","bool","bool","bool"),
+ ("<=","int8","int2","bool"),
+ ("<>","float8","float8","bool"),
+ ("<>","int4","int4","bool"),
+ ("<>","interval","interval","bool"),
+ ("<>","float4","float8","bool"),
+ ("<>","timestamptz","timestamptz","bool"),
+ ("<>","date","timestamptz","bool"),
+ ("<>","date","timestamp","bool"),
+ ("<>","int4","int2","bool"),
+ ("<>","name","name","bool"),
+ ("<>","time","time","bool"),
+ ("<>","inet","inet","bool"),
+ ("<>","point","point","bool"),
+ ("<>","int2","int4","bool"),
+ ("<>","timestamptz","timestamp","bool"),
+ ("<>","tsvector","tsvector","bool"),
+ ("<>","timetz","timetz","bool"),
+ ("<>","timestamp","timestamp","bool"),
+ ("<>","text","text","bool"),
+ ("<>","int8","int4","bool"),
+ ("<>","int2","int2","bool"),
+ ("<>","record","record","bool"),
+ ("<>","money","money","bool"),
+ ("<>","oidvector","oidvector","bool"),
+ ("<>","bytea","bytea","bool"),
+ ("<>","int8","int8","bool"),
+ ("<>","float8","float4","bool"),
+ ("<>","tsquery","tsquery","bool"),
+ ("<>","numeric","numeric","bool"),
+ ("<>","lseg","lseg","bool"),
+ ("<>","bit","bit","bool"),
+ ("<>","oid","oid","bool"),
+ ("<>","int4","int8","bool"),
+ ("<>","macaddr","macaddr","bool"),
+ ("<>","int8","int2","bool"),
+ ("<>","timestamptz","date","bool"),
+ ("<>","char","char","bool"),
+ ("<>","tid","tid","bool"),
+ ("<>","reltime","reltime","bool"),
+ ("<>","bpchar","bpchar","bool"),
+ ("<>","uuid","uuid","bool"),
+ ("<>","int2","int8","bool"),
+ ("<>","bool","bool","bool"),
+ ("<>","circle","circle","bool"),
+ ("<>","anyarray","anyarray","bool"),
+ ("<>","anyenum","anyenum","bool"),
+ ("<>","timestamp","date","bool"),
+ ("<>","timestamp","timestamptz","bool"),
+ ("<>","abstime","abstime","bool"),
+ ("<>","date","date","bool"),
+ ("<>","tinterval","tinterval","bool"),
+ ("<>","float4","float4","bool"),
+ ("<>","varbit","varbit","bool"),
+ ("<?>","abstime","tinterval","bool"),
+ ("<@","point","line","bool"),
+ ("<@","point","path","bool"),
+ ("<@","point","box","bool"),
+ ("<@","lseg","line","bool"),
+ ("<@","point","lseg","bool"),
+ ("<@","lseg","box","bool"),
+ ("<@","point","circle","bool"),
+ ("<@","point","polygon","bool"),
+ ("<@","box","box","bool"),
+ ("<@","polygon","polygon","bool"),
+ ("<@","anyarray","anyarray","bool"),
+ ("<@","tsquery","tsquery","bool"),
+ ("<@","circle","circle","bool"),
+ ("<^","point","point","bool"),
+ ("<^","box","box","bool"),
+ ("=","int4","int8","bool"),
+ ("=","bool","bool","bool"),
+ ("=","char","char","bool"),
+ ("=","name","name","bool"),
+ ("=","int2","int2","bool"),
+ ("=","int4","int4","bool"),
+ ("=","text","text","bool"),
+ ("=","xid","xid","bool"),
+ ("=","xid","int4","bool"),
+ ("=","cid","cid","bool"),
+ ("=","int2vector","int2vector","bool"),
+ ("=","tid","tid","bool"),
+ ("=","int8","int8","bool"),
+ ("=","int8","int4","bool"),
+ ("=","box","box","bool"),
+ ("=","int2","int4","bool"),
+ ("=","int4","int2","bool"),
+ ("=","abstime","abstime","bool"),
+ ("=","reltime","reltime","bool"),
+ ("=","oid","oid","bool"),
+ ("=","oidvector","oidvector","bool"),
+ ("=","float4","float4","bool"),
+ ("=","float8","float8","bool"),
+ ("=","path","path","bool"),
+ ("=","tinterval","tinterval","bool"),
+ ("=","money","money","bool"),
+ ("=","aclitem","aclitem","bool"),
+ ("=","bpchar","bpchar","bool"),
+ ("=","anyarray","anyarray","bool"),
+ ("=","date","date","bool"),
+ ("=","time","time","bool"),
+ ("=","timetz","timetz","bool"),
+ ("=","float4","float8","bool"),
+ ("=","float8","float4","bool"),
+ ("=","timestamptz","timestamptz","bool"),
+ ("=","interval","interval","bool"),
+ ("=","circle","circle","bool"),
+ ("=","lseg","lseg","bool"),
+ ("=","line","line","bool"),
+ ("=","macaddr","macaddr","bool"),
+ ("=","inet","inet","bool"),
+ ("=","numeric","numeric","bool"),
+ ("=","bit","bit","bool"),
+ ("=","varbit","varbit","bool"),
+ ("=","int2","int8","bool"),
+ ("=","int8","int2","bool"),
+ ("=","bytea","bytea","bool"),
+ ("=","timestamp","timestamp","bool"),
+ ("=","date","timestamp","bool"),
+ ("=","date","timestamptz","bool"),
+ ("=","timestamp","date","bool"),
+ ("=","timestamptz","date","bool"),
+ ("=","timestamp","timestamptz","bool"),
+ ("=","timestamptz","timestamp","bool"),
+ ("=","uuid","uuid","bool"),
+ ("=","anyenum","anyenum","bool"),
+ ("=","tsvector","tsvector","bool"),
+ ("=","tsquery","tsquery","bool"),
+ ("=","record","record","bool"),
+ (">","inet","inet","bool"),
+ (">","int8","int2","bool"),
+ (">","money","money","bool"),
+ (">","reltime","reltime","bool"),
+ (">","timestamptz","date","bool"),
+ (">","tsvector","tsvector","bool"),
+ (">","tinterval","tinterval","bool"),
+ (">","date","timestamp","bool"),
+ (">","bool","bool","bool"),
+ (">","uuid","uuid","bool"),
+ (">","oid","oid","bool"),
+ (">","anyenum","anyenum","bool"),
+ (">","int8","int4","bool"),
+ (">","name","name","bool"),
+ (">","timestamp","timestamp","bool"),
+ (">","int2","int2","bool"),
+ (">","macaddr","macaddr","bool"),
+ (">","path","path","bool"),
+ (">","text","text","bool"),
+ (">","tsquery","tsquery","bool"),
+ (">","float8","float8","bool"),
+ (">","int8","int8","bool"),
+ (">","int4","int2","bool"),
+ (">","bytea","bytea","bool"),
+ (">","bit","bit","bool"),
+ (">","record","record","bool"),
+ (">","float8","float4","bool"),
+ (">","circle","circle","bool"),
+ (">","timestamptz","timestamp","bool"),
+ (">","lseg","lseg","bool"),
+ (">","float4","float8","bool"),
+ (">","box","box","bool"),
+ (">","timestamp","date","bool"),
+ (">","tid","tid","bool"),
+ (">","timetz","timetz","bool"),
+ (">","interval","interval","bool"),
+ (">","time","time","bool"),
+ (">","int4","int4","bool"),
+ (">","int4","int8","bool"),
+ (">","date","date","bool"),
+ (">","timestamptz","timestamptz","bool"),
+ (">","varbit","varbit","bool"),
+ (">","anyarray","anyarray","bool"),
+ (">","numeric","numeric","bool"),
+ (">","int2","int4","bool"),
+ (">","oidvector","oidvector","bool"),
+ (">","bpchar","bpchar","bool"),
+ (">","float4","float4","bool"),
+ (">","int2","int8","bool"),
+ (">","date","timestamptz","bool"),
+ (">","abstime","abstime","bool"),
+ (">","timestamp","timestamptz","bool"),
+ (">","char","char","bool"),
+ (">=","inet","inet","bool"),
+ (">=","box","box","bool"),
+ (">=","interval","interval","bool"),
+ (">=","timestamptz","timestamptz","bool"),
+ (">=","numeric","numeric","bool"),
+ (">=","macaddr","macaddr","bool"),
+ (">=","float8","float4","bool"),
+ (">=","bit","bit","bool"),
+ (">=","float4","float8","bool"),
+ (">=","timetz","timetz","bool"),
+ (">=","lseg","lseg","bool"),
+ (">=","time","time","bool"),
+ (">=","date","date","bool"),
+ (">=","anyarray","anyarray","bool"),
+ (">=","varbit","varbit","bool"),
+ (">=","bpchar","bpchar","bool"),
+ (">=","int2","int8","bool"),
+ (">=","tsquery","tsquery","bool"),
+ (">=","money","money","bool"),
+ (">=","int8","int2","bool"),
+ (">=","tinterval","tinterval","bool"),
+ (">=","tsvector","tsvector","bool"),
+ (">=","tid","tid","bool"),
+ (">=","path","path","bool"),
+ (">=","circle","circle","bool"),
+ (">=","bytea","bytea","bool"),
+ (">=","float8","float8","bool"),
+ (">=","int8","int8","bool"),
+ (">=","text","text","bool"),
+ (">=","timestamp","timestamp","bool"),
+ (">=","name","name","bool"),
+ (">=","anyenum","anyenum","bool"),
+ (">=","int8","int4","bool"),
+ (">=","int4","int8","bool"),
+ (">=","uuid","uuid","bool"),
+ (">=","date","timestamp","bool"),
+ (">=","char","char","bool"),
+ (">=","float4","float4","bool"),
+ (">=","date","timestamptz","bool"),
+ (">=","oidvector","oidvector","bool"),
+ (">=","bool","bool","bool"),
+ (">=","timestamp","date","bool"),
+ (">=","oid","oid","bool"),
+ (">=","timestamptz","date","bool"),
+ (">=","reltime","reltime","bool"),
+ (">=","abstime","abstime","bool"),
+ (">=","timestamp","timestamptz","bool"),
+ (">=","int4","int2","bool"),
+ (">=","int2","int4","bool"),
+ (">=","record","record","bool"),
+ (">=","timestamptz","timestamp","bool"),
+ (">=","int4","int4","bool"),
+ (">=","int2","int2","bool"),
+ (">>","polygon","polygon","bool"),
+ (">>","int8","int4","int8"),
+ (">>","box","box","bool"),
+ (">>","int2","int4","int2"),
+ (">>","point","point","bool"),
+ (">>","int4","int4","int4"),
+ (">>","circle","circle","bool"),
+ (">>","bit","int4","bit"),
+ (">>","inet","inet","bool"),
+ (">>=","inet","inet","bool"),
+ (">^","point","point","bool"),
+ (">^","box","box","bool"),
+ ("?#","lseg","line","bool"),
+ ("?#","line","box","bool"),
+ ("?#","path","path","bool"),
+ ("?#","line","line","bool"),
+ ("?#","lseg","box","bool"),
+ ("?#","box","box","bool"),
+ ("?#","lseg","lseg","bool"),
+ ("?-","point","point","bool"),
+ ("?-|","lseg","lseg","bool"),
+ ("?-|","line","line","bool"),
+ ("?|","point","point","bool"),
+ ("?||","line","line","bool"),
+ ("?||","lseg","lseg","bool"),
+--comment these out since the code doesn't support operators which can
+--be overloaded by being e.g. prefix or binary depending on arguments
+ -- ("@","circle","circle","bool"),
+ -- ("@","point","box","bool"),
+ -- ("@","box","box","bool"),
+ -- ("@","point","path","bool"),
+ -- ("@","point","line","bool"),
+ -- ("@","point","circle","bool"),
+ -- ("@","polygon","polygon","bool"),
+ -- ("@","lseg","box","bool"),
+ -- ("@","lseg","line","bool"),
+ -- ("@","point","polygon","bool"),
+ -- ("@","point","lseg","bool"),
+ ("@>","tsquery","tsquery","bool"),
+ ("@>","circle","circle","bool"),
+ ("@>","_aclitem","aclitem","bool"),
+ ("@>","circle","point","bool"),
+ ("@>","polygon","point","bool"),
+ ("@>","path","point","bool"),
+ ("@>","anyarray","anyarray","bool"),
+ ("@>","box","box","bool"),
+ ("@>","polygon","polygon","bool"),
+ ("@@","text","text","bool"),
+ ("@@","tsquery","tsvector","bool"),
+ ("@@","text","tsquery","bool"),
+ ("@@","tsvector","tsquery","bool"),
+ ("@@@","tsvector","tsquery","bool"),
+ ("@@@","tsquery","tsvector","bool"),
+ ("^","float8","float8","float8"),
+ ("^","numeric","numeric","numeric"),
+ ("|","int8","int8","int8"),
+ ("|","int4","int4","int4"),
+ ("|","bit","bit","bit"),
+ ("|","inet","inet","inet"),
+ ("|","int2","int2","int2"),
+ ("|&>","box","box","bool"),
+ ("|&>","polygon","polygon","bool"),
+ ("|&>","circle","circle","bool"),
+ ("|>>","box","box","bool"),
+ ("|>>","circle","circle","bool"),
+ ("|>>","polygon","polygon","bool"),
+ ("||","tsvector","tsvector","tsvector"),
+ ("||","text","anynonarray","text"),
+ ("||","anynonarray","text","text"),
+ ("||","tsquery","tsquery","tsquery"),
+ ("||","anyarray","anyarray","anyarray"),
+ ("||","varbit","varbit","varbit"),
+ ("||","anyelement","anyarray","anyarray"),
+ ("||","text","text","text"),
+ ("||","anyarray","anyelement","anyarray"),
+ ("||","bytea","bytea","bytea"),
+ ("~","bpchar","text","bool"),
+ ("~","circle","point","bool"),
+ ("~","polygon","point","bool"),
+ ("~","circle","circle","bool"),
+ ("~","box","box","bool"),
+ ("~","text","text","bool"),
+ ("~","_aclitem","aclitem","bool"),
+ ("~","polygon","polygon","bool"),
+ ("~","path","point","bool"),
+ ("~","name","text","bool"),
+ ("~*","name","text","bool"),
+ ("~*","text","text","bool"),
+ ("~*","bpchar","text","bool"),
+ ("~<=~","bpchar","bpchar","bool"),
+ ("~<=~","text","text","bool"),
+ ("~<~","text","text","bool"),
+ ("~<~","bpchar","bpchar","bool"),
+ ("~=","tinterval","tinterval","bool"),
+ ("~=","circle","circle","bool"),
+ ("~=","point","point","bool"),
+ ("~=","polygon","polygon","bool"),
+ ("~=","box","box","bool"),
+ ("~>=~","text","text","bool"),
+ ("~>=~","bpchar","bpchar","bool"),
+ ("~>~","bpchar","bpchar","bool"),
+ ("~>~","text","text","bool"),
+ ("~~","bpchar","text","bool"),
+ ("~~","text","text","bool"),
+ ("~~","name","text","bool"),
+ ("~~","bytea","bytea","bool"),
+ ("~~*","name","text","bool"),
+ ("~~*","bpchar","text","bool"),
+ ("~~*","text","text","bool")]
+
+
+defaultPrefixOperators = [
+ ("!!","int8","numeric"),
+ ("@","int8","int8"),
+ ("-","int8","int8"),
+ ("@@","box","point"),
+ ("-","int4","int4"),
+ ("-","int2","int2"),
+ ("-","float4","float4"),
+ ("-","float8","float8"),
+ ("@","float4","float4"),
+ ("@","float8","float8"),
+ ("|/","float8","float8"),
+ ("||/","float8","float8"),
+ ("|","tinterval","abstime"),
+ ("@","int2","int2"),
+ ("@","int4","int4"),
+ ("#","path","int4"),
+ ("@-@","path","float8"),
+ ("@@","lseg","point"),
+ ("@@","path","point"),
+ ("@@","polygon","point"),
+ ("-","interval","interval"),
+ ("@@","circle","point"),
+ ("#","polygon","int4"),
+ ("?-","lseg","bool"),
+ ("?|","lseg","bool"),
+ ("@-@","lseg","float8"),
+ ("?-","line","bool"),
+ ("?|","line","bool"),
+ ("~","inet","inet"),
+ ("-","numeric","numeric"),
+ ("@","numeric","numeric"),
+ ("~","bit","bit"),
+ ("~","int2","int2"),
+ ("~","int4","int4"),
+ ("~","int8","int8"),
+ ("+","int8","int8"),
+ ("+","int2","int2"),
+ ("+","int4","int4"),
+ ("+","float4","float4"),
+ ("+","float8","float8"),
+ ("+","numeric","numeric"),
+ ("!!","tsquery","tsquery")]
+
+
+
+defaultPostfixOperators = [
+ ("!","int8","numeric")]
 
 
 checkAst :: StatementList -> [Message]
@@ -1494,65 +2221,20 @@ sem_Expression_FunCall :: T_FunName  ->
 sem_Expression_FunCall funName_ args_  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
-         (let _lhsOnodeType :: Type
-              _lhsOmessages :: ([Message])
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
               _funNameOinLoop :: Bool
               _funNameOsourcePos :: MySourcePos
               _argsOinLoop :: Bool
               _argsOsourcePos :: MySourcePos
               _funNameImessages :: ([Message])
               _funNameInodeType :: Type
-              _funNameIval :: FunName
               _argsImessages :: ([Message])
               _argsInodeType :: Type
-              _lhsOnodeType =
-                  case _funNameIval of
-                    ArrayVal -> ct AllSameType1Any
-                                   (RetTypeFun (\t -> ArrayType $ head t))
-                    Substring -> ct
-                                   (ExactList [ScalarType "string"
-                                              ,ScalarType "integer"
-                                              ,ScalarType "integer"])
-                                   (ConstRetType (ScalarType "string"))
-                    Between -> ct
-                                   (AllSameTypeNumAny 3)
-                                   (ConstRetType (ScalarType "boolean"))
-                    ArraySub -> ct
-                                   (ExactPredList
-                                     [ArgCheck isArrayType NotArrayType
-                                     ,exactType (ScalarType "integer")])
-                                   (RetTypeFun (\t -> typeFromArray $ head t))
-                    Operator s | s == "=" -> ct
-                                               (AllSameTypeNumAny 2)
-                                               (ConstRetType (ScalarType "boolean"))
-                               | s == "not" -> closedUn "boolean"
-                               | s `elem` ["@", "u-"] -> closedUn "integer"
-                               | s `elem` ["-", "+", "*"
-                                          ,"/", "%", "^"] -> closedBin "integer"
-                               | s `elem` ["is null", "is not null"] -> ct
-                                               (AllSameTypeNumAny 1)
-                                               (ConstRetType (ScalarType "boolean"))
-                               | s `elem` ["and", "or"] -> closedBin "boolean"
-                               | s == "||" -> closedBin "string"
-                               | s == "like" -> ct (ExactList [ScalarType "string"
-                                                              ,ScalarType "string"])
-                                                   (ConstRetType (ScalarType "boolean"))
-                               | s == "<>" -> ct
-                                               (AllSameTypeNumAny 2)
-                                               (ConstRetType (ScalarType "boolean"))
-                               | s `elem` ["<",">","<=",">="] -> closedBinAny
-                    _ -> UnknownType
-                  where
-                    ct = checkTypes _lhsIsourcePos _argsInodeType
-                    closedBin t = ct (ExactList [ScalarType t
-                                                ,ScalarType t])
-                                     (ConstRetType (ScalarType t))
-                    closedBinAny = ct (AllSameTypeNumAny 2)
-                                      (RetTypeAsArgN 0)
-                    closedUn t = ct (ExactList [ScalarType t])
-                                     (ConstRetType (ScalarType t))
               _lhsOmessages =
                   _funNameImessages ++ _argsImessages
+              _lhsOnodeType =
+                  _funNameInodeType `setUnknown` _argsInodeType
               _funNameOinLoop =
                   _lhsIinLoop
               _funNameOsourcePos =
@@ -1561,7 +2243,7 @@ sem_Expression_FunCall funName_ args_  =
                   _lhsIinLoop
               _argsOsourcePos =
                   _lhsIsourcePos
-              ( _funNameImessages,_funNameInodeType,_funNameIval) =
+              ( _funNameImessages,_funNameInodeType) =
                   (funName_ _funNameOinLoop _funNameOsourcePos )
               ( _argsImessages,_argsInodeType) =
                   (args_ _argsOinLoop _argsOsourcePos )
@@ -2218,9 +2900,10 @@ sem_FnBody_SqlFnBody sts_  =
                   (sts_ _stsOinLoop _stsOsourcePos )
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- FunName -----------------------------------------------------
-data FunName  = ArraySub 
-              | ArrayVal 
+data FunName  = ArrayCtor 
+              | ArraySub 
               | Between 
+              | KOperator (KeywordOperator) 
               | Operator (String) 
               | RowCtor 
               | SimpleFun (String) 
@@ -2229,12 +2912,14 @@ data FunName  = ArraySub
 -- cata
 sem_FunName :: FunName  ->
                T_FunName 
+sem_FunName (ArrayCtor )  =
+    (sem_FunName_ArrayCtor )
 sem_FunName (ArraySub )  =
     (sem_FunName_ArraySub )
-sem_FunName (ArrayVal )  =
-    (sem_FunName_ArrayVal )
 sem_FunName (Between )  =
     (sem_FunName_Between )
+sem_FunName (KOperator _keywordOperator )  =
+    (sem_FunName_KOperator (sem_KeywordOperator _keywordOperator ) )
 sem_FunName (Operator _string )  =
     (sem_FunName_Operator _string )
 sem_FunName (RowCtor )  =
@@ -2246,64 +2931,70 @@ sem_FunName (Substring )  =
 -- semantic domain
 type T_FunName  = Bool ->
                   MySourcePos ->
-                  ( ([Message]),Type,FunName)
+                  ( ([Message]),Type)
 data Inh_FunName  = Inh_FunName {inLoop_Inh_FunName :: Bool,sourcePos_Inh_FunName :: MySourcePos}
-data Syn_FunName  = Syn_FunName {messages_Syn_FunName :: [Message],nodeType_Syn_FunName :: Type,val_Syn_FunName :: FunName}
+data Syn_FunName  = Syn_FunName {messages_Syn_FunName :: [Message],nodeType_Syn_FunName :: Type}
 wrap_FunName :: T_FunName  ->
                 Inh_FunName  ->
                 Syn_FunName 
 wrap_FunName sem (Inh_FunName _lhsIinLoop _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType,_lhsOval) =
+    (let ( _lhsOmessages,_lhsOnodeType) =
              (sem _lhsIinLoop _lhsIsourcePos )
-     in  (Syn_FunName _lhsOmessages _lhsOnodeType _lhsOval ))
+     in  (Syn_FunName _lhsOmessages _lhsOnodeType ))
+sem_FunName_ArrayCtor :: T_FunName 
+sem_FunName_ArrayCtor  =
+    (\ _lhsIinLoop
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOmessages =
+                  []
+              _lhsOnodeType =
+                  UnknownType
+          in  ( _lhsOmessages,_lhsOnodeType)))
 sem_FunName_ArraySub :: T_FunName 
 sem_FunName_ArraySub  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
-              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-              _val =
-                  ArraySub
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_FunName_ArrayVal :: T_FunName 
-sem_FunName_ArrayVal  =
-    (\ _lhsIinLoop
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOval :: FunName
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _val =
-                  ArrayVal
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
+          in  ( _lhsOmessages,_lhsOnodeType)))
 sem_FunName_Between :: T_FunName 
 sem_FunName_Between  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
-              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-              _val =
-                  Between
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
+          in  ( _lhsOmessages,_lhsOnodeType)))
+sem_FunName_KOperator :: T_KeywordOperator  ->
+                         T_FunName 
+sem_FunName_KOperator keywordOperator_  =
+    (\ _lhsIinLoop
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _keywordOperatorOinLoop :: Bool
+              _keywordOperatorOsourcePos :: MySourcePos
+              _keywordOperatorImessages :: ([Message])
+              _lhsOmessages =
+                  _keywordOperatorImessages
+              _lhsOnodeType =
+                  UnknownType
+              _keywordOperatorOinLoop =
+                  _lhsIinLoop
+              _keywordOperatorOsourcePos =
+                  _lhsIsourcePos
+              ( _keywordOperatorImessages) =
+                  (keywordOperator_ _keywordOperatorOinLoop _keywordOperatorOsourcePos )
+          in  ( _lhsOmessages,_lhsOnodeType)))
 sem_FunName_Operator :: String ->
                         T_FunName 
 sem_FunName_Operator string_  =
@@ -2311,32 +3002,22 @@ sem_FunName_Operator string_  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
-              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-              _val =
-                  Operator string_
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
+          in  ( _lhsOmessages,_lhsOnodeType)))
 sem_FunName_RowCtor :: T_FunName 
 sem_FunName_RowCtor  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
-              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-              _val =
-                  RowCtor
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
+          in  ( _lhsOmessages,_lhsOnodeType)))
 sem_FunName_SimpleFun :: String ->
                          T_FunName 
 sem_FunName_SimpleFun string_  =
@@ -2344,32 +3025,22 @@ sem_FunName_SimpleFun string_  =
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
-              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-              _val =
-                  SimpleFun string_
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
+          in  ( _lhsOmessages,_lhsOnodeType)))
 sem_FunName_Substring :: T_FunName 
 sem_FunName_Substring  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
-              _lhsOval :: FunName
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   UnknownType
-              _val =
-                  Substring
-              _lhsOval =
-                  _val
-          in  ( _lhsOmessages,_lhsOnodeType,_lhsOval)))
+          in  ( _lhsOmessages,_lhsOnodeType)))
 -- IfExists ----------------------------------------------------
 data IfExists  = IfExists 
                | Require 
@@ -2640,6 +3311,90 @@ sem_JoinType_RightOuter  =
               _lhsOnodeType =
                   UnknownType
           in  ( _lhsOmessages,_lhsOnodeType)))
+-- KeywordOperator ---------------------------------------------
+data KeywordOperator  = And 
+                      | IsNotNull 
+                      | IsNull 
+                      | Like 
+                      | Not 
+                      | Or 
+                      deriving ( Eq,Show)
+-- cata
+sem_KeywordOperator :: KeywordOperator  ->
+                       T_KeywordOperator 
+sem_KeywordOperator (And )  =
+    (sem_KeywordOperator_And )
+sem_KeywordOperator (IsNotNull )  =
+    (sem_KeywordOperator_IsNotNull )
+sem_KeywordOperator (IsNull )  =
+    (sem_KeywordOperator_IsNull )
+sem_KeywordOperator (Like )  =
+    (sem_KeywordOperator_Like )
+sem_KeywordOperator (Not )  =
+    (sem_KeywordOperator_Not )
+sem_KeywordOperator (Or )  =
+    (sem_KeywordOperator_Or )
+-- semantic domain
+type T_KeywordOperator  = Bool ->
+                          MySourcePos ->
+                          ( ([Message]))
+data Inh_KeywordOperator  = Inh_KeywordOperator {inLoop_Inh_KeywordOperator :: Bool,sourcePos_Inh_KeywordOperator :: MySourcePos}
+data Syn_KeywordOperator  = Syn_KeywordOperator {messages_Syn_KeywordOperator :: [Message]}
+wrap_KeywordOperator :: T_KeywordOperator  ->
+                        Inh_KeywordOperator  ->
+                        Syn_KeywordOperator 
+wrap_KeywordOperator sem (Inh_KeywordOperator _lhsIinLoop _lhsIsourcePos )  =
+    (let ( _lhsOmessages) =
+             (sem _lhsIinLoop _lhsIsourcePos )
+     in  (Syn_KeywordOperator _lhsOmessages ))
+sem_KeywordOperator_And :: T_KeywordOperator 
+sem_KeywordOperator_And  =
+    (\ _lhsIinLoop
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOmessages =
+                  []
+          in  ( _lhsOmessages)))
+sem_KeywordOperator_IsNotNull :: T_KeywordOperator 
+sem_KeywordOperator_IsNotNull  =
+    (\ _lhsIinLoop
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOmessages =
+                  []
+          in  ( _lhsOmessages)))
+sem_KeywordOperator_IsNull :: T_KeywordOperator 
+sem_KeywordOperator_IsNull  =
+    (\ _lhsIinLoop
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOmessages =
+                  []
+          in  ( _lhsOmessages)))
+sem_KeywordOperator_Like :: T_KeywordOperator 
+sem_KeywordOperator_Like  =
+    (\ _lhsIinLoop
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOmessages =
+                  []
+          in  ( _lhsOmessages)))
+sem_KeywordOperator_Not :: T_KeywordOperator 
+sem_KeywordOperator_Not  =
+    (\ _lhsIinLoop
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOmessages =
+                  []
+          in  ( _lhsOmessages)))
+sem_KeywordOperator_Or :: T_KeywordOperator 
+sem_KeywordOperator_Or  =
+    (\ _lhsIinLoop
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOmessages =
+                  []
+          in  ( _lhsOmessages)))
 -- Language ----------------------------------------------------
 data Language  = Plpgsql 
                | Sql 
@@ -2898,17 +3653,17 @@ sem_Natural_Unnatural  =
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- OperatorType ------------------------------------------------
 data OperatorType  = BinaryOp 
-                   | LeftUnary 
-                   | RightUnary 
+                   | PostfixOp 
+                   | PrefixOp 
 -- cata
 sem_OperatorType :: OperatorType  ->
                     T_OperatorType 
 sem_OperatorType (BinaryOp )  =
     (sem_OperatorType_BinaryOp )
-sem_OperatorType (LeftUnary )  =
-    (sem_OperatorType_LeftUnary )
-sem_OperatorType (RightUnary )  =
-    (sem_OperatorType_RightUnary )
+sem_OperatorType (PostfixOp )  =
+    (sem_OperatorType_PostfixOp )
+sem_OperatorType (PrefixOp )  =
+    (sem_OperatorType_PrefixOp )
 -- semantic domain
 type T_OperatorType  = ( )
 data Inh_OperatorType  = Inh_OperatorType {}
@@ -2924,12 +3679,12 @@ sem_OperatorType_BinaryOp :: T_OperatorType
 sem_OperatorType_BinaryOp  =
     (let 
      in  ( ))
-sem_OperatorType_LeftUnary :: T_OperatorType 
-sem_OperatorType_LeftUnary  =
+sem_OperatorType_PostfixOp :: T_OperatorType 
+sem_OperatorType_PostfixOp  =
     (let 
      in  ( ))
-sem_OperatorType_RightUnary :: T_OperatorType 
-sem_OperatorType_RightUnary  =
+sem_OperatorType_PrefixOp :: T_OperatorType 
+sem_OperatorType_PrefixOp  =
     (let 
      in  ( ))
 -- ParamDef ----------------------------------------------------
