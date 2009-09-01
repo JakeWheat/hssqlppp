@@ -93,7 +93,7 @@ types of error message received.
 
 >      ,p "not true" (ScalarType "boolean")
 >      ,p "not 1" (TypeError ("",0,0)
->                  (NoMatchingOperator "Not" [ScalarType "integer"]))
+>                  (NoMatchingKOperator Not [ScalarType "integer"]))
 
 >      ,p "@ 3" (ScalarType "integer")
 >      ,p "@ 'a'" (TypeError ("",0,0)
@@ -116,7 +116,7 @@ types of error message received.
 >      ,p "17%5" (ScalarType "integer")
 
 >      ,p "3 and 4" (TypeError ("",0,0)
->                   (NoMatchingOperator "And" [ScalarType "integer",ScalarType "integer"]))
+>                   (NoMatchingKOperator And [ScalarType "integer",ScalarType "integer"]))
 
 >      ,p "True and False" (ScalarType "boolean")
 >      ,p "false or true" (ScalarType "boolean")

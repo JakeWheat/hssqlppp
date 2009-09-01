@@ -31,8 +31,6 @@ This code is a massive mess at the moment.
 
 > import System.IO
 > import System.Directory
-> import qualified Database.HDBC.PostgreSQL as Pg
-> import Database.HDBC
 > import Control.Monad
 > import Control.Exception
 > import Text.Regex.Posix
@@ -41,6 +39,7 @@ This code is a massive mess at the moment.
 
 > import PrettyPrinter
 > import Ast
+> import DBAccess
 
 > loadIntoDatabase :: String -> String -> StatementList -> IO ()
 > loadIntoDatabase dbName fn ast = do
@@ -200,39 +199,3 @@ proper dodgy, needs fixing:
 > withTemporaryFile f = bracket (return ())
 >                               (\_ -> removeFile "hssqlppptemp.temp")
 >                               (\_ -> f "hssqlppptemp.temp")
-
-================================================================================
-
-= database wrapper stuff
-
-> runSqlCommand :: (IConnection conn) =>
->           conn -> String -> IO ()
-> runSqlCommand conn query {-args-} = do
->     run conn query [] {- $ map toSql args-}
->     commit conn
-
-> connect :: String -> IO Pg.Connection
-> connect db = Pg.connectPostgreSQL db
-
-> withConn :: String -> (Pg.Connection -> IO c) -> IO c
-> withConn cs f = bracket (Pg.connectPostgreSQL cs)
->                         (\c -> disconnect c)
->                          f
-
-> selectValue :: (IConnection conn) =>
->                conn -> String -> IO String
-> selectValue conn query = do
->   r <- quickQuery' conn query [] -- $ map sToSql args
->   case length r of
->     0 -> error $ "select value on " ++ query ++
->                         " returned 0 rows, expected 1"
->     1 -> do
->       let t = head r
->       when (length t /= 1)
->         (error $ "select value on " ++ query ++
->              " returned " ++ (show $ length t) ++ " attributes, expected 1.")
->       return $ toS $ head t
->     _ -> error $ "select value on " ++ query ++
->              " returned " ++ (show $ length r) ++ " tuples, expected 0 or 1."
->   where
->     toS a = (fromSql a)::String

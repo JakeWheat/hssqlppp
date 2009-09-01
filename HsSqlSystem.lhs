@@ -38,6 +38,9 @@ you the same ast.
 
 roundtrip [filename] [targetfilename]
 
+getfntables [databasename]
+output function and operator tables for the parser and type checker
+from the given database
 
 
 TODO 1: add options to specify username and password (keep optional though)
@@ -47,13 +50,14 @@ TODO 2: think of a name for this command
 > import System.IO
 > import Control.Monad
 > import System.Directory
+> import Data.List
 
 > import Parser
 > import DatabaseLoader
 > import Lexer
 > import Ast
 > import PrettyPrinter
-
+> import DBAccess
 
 ================================================================================
 
@@ -75,6 +79,7 @@ TODO 2: think of a name for this command
 >       | (length args >= 2 && head args == "showfileatts") -> showfileatts (tail args)
 >       | (length args >= 2 && head args == "parsefile") -> parseFile (tail args)
 >       | (length args == 3 && head args == "roundtrip") -> roundTripFile (tail args)
+>       | (length args == 2 && head args == "getfntables") -> getFnTables (args !! 1)
 >       | otherwise -> error "couldn't parse command line"
 >   where
 >     loadsqlfiles args = mapM_ (loadSqlfile (args !! 1)) (tail $ tail args)
@@ -188,3 +193,64 @@ target filename.
 >   case x of
 >        Left er -> print er
 >        Right l -> writeFile target $ printSql l
+
+================================================================================
+
+getFnTables
+
+read the operators and functions from the catalog of the given database
+output four values: binops, prefixops, postfixops, functions
+each is a list with type ({functionName} String
+                         ,{args} [Type]
+                         ,{retType} Type)
+
+> getFnTables :: [Char] -> IO ()
+> getFnTables dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
+>    let binopquery = "select oprname,\n\
+>                     \       pg_catalog.format_type(oprleft, null),\n\
+>                     \       pg_catalog.format_type(oprright, null),\n\
+>                     \       pg_catalog.format_type(oprresult, null)\n\
+>                     \  from pg_operator\n\
+>                     \  where oprleft <> 0 and oprright <> 0\n\
+>                     \  order by oprname;"
+>    binopinfo <- selectRelation conn binopquery []
+>    putStrLn $ makeVal "binaryOperatorTypes" $ map convBinopRow binopinfo
+>    prefixopinfo <- selectRelation conn
+>                      "select oprname,\n\
+>                      \       pg_catalog.format_type(oprright, null),\n\
+>                      \       pg_catalog.format_type(oprresult, null)\n\
+>                      \  from pg_operator\n\
+>                      \  where oprleft = 0\n\
+>                      \  order by oprname;" []
+>    putStrLn $ makeVal "prefixOperatorTypes" $ map convUnopRow prefixopinfo
+>    postfixopinfo <- selectRelation conn
+>                      "select oprname,\n\
+>                      \       pg_catalog.format_type(oprleft, null),\n\
+>                      \       pg_catalog.format_type(oprresult, null)\n\
+>                      \  from pg_operator\n\
+>                      \  where oprright = 0\n\
+>                      \  order by oprname;" []
+>    putStrLn $ makeVal "postfixOperatorTypes" $ map convUnopRow postfixopinfo
+>    where
+>      convBinopRow :: [String] -> String
+>      convBinopRow l = "(" ++ stringIt (head l) ++ ","
+>                       ++ toScalarTypes (take 2 $ drop 1 l) ++ ","
+>                       ++ toScalarType (l !! 3) ++ ")"
+>      convUnopRow l = "(" ++ stringIt (head l) ++ ","
+>                       ++ toScalarTypes [l !! 1] ++ ","
+>                       ++ toScalarType (l !! 2) ++ ")"
+>      toScalarType s = "ScalarType " ++ stringIt s
+>      toScalarTypes :: [String] -> String
+>      toScalarTypes ss = "[" ++ intercalate ","  (map toScalarType ss) ++ "]"
+>      stringIt s = "\"" ++ replace "\"" "\\\"" s ++ "\""
+>      makeVal nm rows = nm ++ " = [\n    "
+>                        ++ intercalate ",\n    " rows
+>                        ++ "\n    ]"
+
+
+> replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
+> replace _ _ [] = []
+> replace old new xs@(y:ys) =
+>   case stripPrefix old xs of
+>     Nothing -> y : replace old new ys
+>     Just ys' -> new ++ replace old new ys'
