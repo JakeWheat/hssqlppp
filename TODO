@@ -1,3 +1,19 @@
+rough milestones for release 0.1:
+work through pg manual part II, add test plus parse and type check
+   support for everything mentioned. follow some links to sql
+   reference and add tests for stuff there also.
+figure out what to do about tricky operator precedence parsing, etc.
+ability to type check all of chaos sql
+ability to type check partial scripts + existing database
+get type info for ? style sql strings
+generate typesafe db access wrapper for selects and function calls,
+   plus other ? style sql strings?
+example for generating sql code from haskell using the ast
+get database loader and typesafe access good enough to use in chaos
+example usage of each of these
+
+
+---------------------
 immediate list being worked on/ queued
 add type checking for these ast forms + tests
 change so that select expressions have different ast node type to

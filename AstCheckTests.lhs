@@ -121,6 +121,9 @@ types of error message received.
 >      ,p "True and False" (ScalarType "boolean")
 >      ,p "false or true" (ScalarType "boolean")
 
+>      ,p "lower('TEST')" (ScalarType "text")
+>      ,p "lower(1)" (TypeError nsp (NoMatchingOperator "lower" [ScalarType "integer"]))
+
 >      ])
 
 >    ,testGroup "case expressions"

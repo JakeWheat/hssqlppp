@@ -206,6 +206,7 @@ each is a list with type ({functionName} String
 
 > getFnTables :: [Char] -> IO ()
 > getFnTables dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
+>    putStrLn "{"
 >    let binopquery = "select oprname,\n\
 >                     \       pg_catalog.format_type(oprleft, null),\n\
 >                     \       pg_catalog.format_type(oprright, null),\n\
@@ -231,7 +232,27 @@ each is a list with type ({functionName} String
 >                      \  where oprright = 0\n\
 >                      \  order by oprname;" []
 >    putStrLn $ makeVal "postfixOperatorTypes" $ map convUnopRow postfixopinfo
+>    functionsinfo <- selectRelation conn
+>                       "select p.proname,\n\
+>                       \        pg_get_function_arguments(p.oid),\n\
+>                       \        pg_get_function_result(p.oid) as ret\n\
+>                       \  from pg_proc p\n\
+>                       \  left join pg_catalog.pg_namespace n\n\
+>                       \    on n.oid = p.pronamespace\n\
+>                       \  where\n\
+>                       \       pg_catalog.pg_function_is_visible(p.oid)\n\
+>                       \       and not (p.proisagg\n\
+>                       \                or p.proiswindow\n\
+>                       \                or (p.prorettype =\n\
+>                       \                'pg_catalog.trigger'::pg_catalog.regtype))\n\
+>                       \  order by p.proname" []
+>    putStrLn $ makeVal "functionTypes" $ map convFunctionRow functionsinfo
+>    putStrLn "}"
+
 >    where
+>      convFunctionRow l = "(" ++ stringIt (head l) ++ ","
+>                          ++ toScalarTypes (splitToks $ l !! 1) ++ ","
+>                          ++ toScalarType (l !! 2) ++ ")"
 >      convBinopRow :: [String] -> String
 >      convBinopRow l = "(" ++ stringIt (head l) ++ ","
 >                       ++ toScalarTypes (take 2 $ drop 1 l) ++ ","
@@ -246,6 +267,8 @@ each is a list with type ({functionName} String
 >      makeVal nm rows = nm ++ " = [\n    "
 >                        ++ intercalate ",\n    " rows
 >                        ++ "\n    ]"
+>      splitToks :: String -> [String]
+>      splitToks ts = map trim $ split ',' ts
 
 
 > replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
@@ -254,3 +277,17 @@ each is a list with type ({functionName} String
 >   case stripPrefix old xs of
 >     Nothing -> y : replace old new ys
 >     Just ys' -> new ++ replace old new ys'
+
+
+> split :: Char -> String -> [String]
+> split _ ""                =  []
+> split c s                 =  let (l, s') = break (== c) s
+>                            in  l : case s' of
+>                                            [] -> []
+>                                            (_:s'') -> split c s''
+
+> trim :: String -> String
+> trim s = trimSWS $ reverse $ trimSWS $ reverse s
+>        where
+>          trimSWS :: String -> String
+>          trimSWS = dropWhile (`elem` " \n\t")
