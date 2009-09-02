@@ -13,6 +13,9 @@ get database loader and typesafe access good enough to use in chaos
 example usage of each of these
 
 
+incorporate pg regression test sql into parsing and type checking
+   tests
+
 ---------------------
 immediate list being worked on/ queued
 add type checking for these ast forms + tests

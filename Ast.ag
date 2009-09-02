@@ -92,6 +92,7 @@ MODULE {Ast}
    ,MessageStuff (..)
    --types
    ,Type (..)
+   ,PseudoType (..)
    ,TypeErrorInfo (..)
    --fns
    ,checkAst
@@ -101,8 +102,11 @@ MODULE {Ast}
    ,resetSp'
    ,resetSps'
    ,nsp
+   ,checkFunctionTypes
 }
-{} -- imports
+{
+import Data.Maybe
+} -- imports
 
 {-
 ================================================================================
@@ -320,9 +324,9 @@ DATA TypeName | SimpleTypeName tn:String
               | SetOfTypeName typ:TypeName
 
 DATA DropType | Table
-         | Domain
-         | View
-         | Type
+              | Domain
+              | View
+              | Type
 
 DATA Cascade | Cascade | Restrict
 
@@ -752,12 +756,32 @@ checked statically without having to run the code.
 
 DATA Type | ScalarType String
           | ArrayType Type
-          | AnyArray
-          | AnyElement
-          | UnknownType
           | SetOfType Type
+          | CompositeType name:String attrs:{[(String,Type)]}
+          | DomainType String Type
+          | Row attrs:{[Type]}
+          -- type list is used internally in the type checking.
           | TypeList tps:{[Type]}
+          | Pseudo PseudoType
           | TypeError MySourcePos TypeErrorInfo
+          | UnknownType -- represents something which the type checker
+                        -- doesn't know how to type check
+
+DATA PseudoType | Any
+                | AnyArray
+                | AnyElement
+                | AnyEnum
+                | AnyNonArray
+                | Cstring
+                | Record
+                | Trigger
+                | Void
+                | Internal
+                | LanguageHandler
+                | Opaque
+                | UnknownStringLit -- represents a string literal
+                                   -- token whose type isn't yet
+                                   -- determined
 
 DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
                    | WrongTypeList expected:{[Type]} got:{[Type]}
@@ -773,7 +797,7 @@ DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
                    | NoMatchingKOperator o:KeywordOperator t:{[Type]}
                    | MultipleMatchingKOperators o:KeywordOperator t:{[Type]}
 
-DERIVING Type TypeErrorInfo: Show,Eq
+DERIVING Type PseudoType TypeErrorInfo: Show,Eq
 
 ATTR NonListNodes Root ExpressionRoot
   [
@@ -838,7 +862,7 @@ typeFromArray x = error $ "can't get types from non array " ++ show x
 
 isArrayType :: Type -> Bool
 isArrayType (ArrayType _) = True
-isArrayType (AnyArray) = True
+isArrayType (Pseudo AnyArray) = True
 isArrayType _ = False
 
 }
@@ -972,7 +996,7 @@ checkTypes _ x _ _ = error $ "can't check types of non type list: " ++ show x
 --bit hacky, used to work with maybe bits in attribute grammar code
 SEM MaybeExpression
     | Just lhs.nodeType = @just.nodeType
-    | Nothing lhs.nodeType = AnyElement
+    | Nothing lhs.nodeType = Pseudo AnyElement
 
 {-
 ================================================================================
@@ -1042,11 +1066,6 @@ timespan, geometric, network, and user-defined
 implicit 'functional' casts
 
 
-=== types catalog
-select typname from pg_type;
-restrict this?
-
-
 === basic type checking
 at the moment - just check type exists in predetermined list of type
 names
@@ -1073,6 +1092,30 @@ where need to check type names?
 casts, create table attrs, create type (composite) attrs, create
 domain, create function: param defs, returns, var defs, drop function
 
+
+
+select pg_catalog.format_type(t.oid, null) as name,
+       typtype,
+       typcategory,
+       typispreferred,
+       typrelid,
+       --pg_catalog.format_type(t.typelem, null) as elem,
+       --pg_catalog.format_type(t.typarray, null) as array,
+       typnotnull,
+       pg_catalog.format_type(t.typbasetype, null) as basetype
+  from pg_catalog.pg_type t
+  where pg_catalog.pg_type_is_visible(t.oid)
+        and typtype <> 'p'
+        and not exists(select 1 from pg_catalog.pg_type el
+                       where el.oid = t.typelem and el.typarray = t.oid)
+  order by typtype,typcategory,typispreferred desc,name;
+
+
+
+select pg_catalog.format_type(castsource, null) as castsource,
+       pg_catalog.format_type(casttarget, null) as casttarget,
+       castcontext from pg_cast
+       order by castsource, casttarget;
 
 Type aliases
 
@@ -1109,87 +1152,15 @@ names atm, and need to treat scalars, composites, domains, special
 types differently
 
 -}
-{
-defaultTypes = [
- "abstime",
- "aclitem",
- "\"any\"",
- "anyarray",
- "anyelement",
- "anyenum",
- "anynonarray",
- "bigint",
- "bit",
- "bit varying",
- "boolean",
- "box",
- "bytea",
- "\"char\"",
- "character",
- "character varying",
- "cid",
- "cidr",
- "circle",
- "cstring",
- "date",
- "double precision",
- "gtsvector",
- "inet",
- "int2vector",
- "integer",
- "internal",
- "interval",
- "language_handler",
- "line",
- "lseg",
- "macaddr",
- "money",
- "name",
- "numeric",
- "oid",
- "oidvector",
- "opaque",
- "path",
- "point",
- "polygon",
- "real",
- "record",
- "refcursor",
- "regclass",
- "regconfig",
- "regdictionary",
- "regoper",
- "regoperator",
- "regproc",
- "regprocedure",
- "regtype",
- "reltime",
- "smallint",
- "smgr",
- "text",
- "tid",
- "timestamp without time zone",
- "timestamp with time zone",
- "time without time zone",
- "time with time zone",
- "tinterval",
- "trigger",
- "tsquery",
- "tsvector",
- "txid_snapshot",
- "unknown",
- "uuid",
- "void",
- "xid",
- "xml"]
-}
+INCLUDE "PGTypes.ag"
 
 SEM TypeName
      | SimpleTypeName
-          lhs.nodeType = if @tn `elem` defaultTypes
-                           then ScalarType @tn
-                           else TypeError @lhs.sourcePos
-                                  (UnknownTypeError @tn)
+          lhs.nodeType = let st = ScalarType @tn
+                         in if st `elem` defaultTypeNames
+                              then st
+                              else TypeError @lhs.sourcePos
+                                       (UnknownTypeError @tn)
 --     | PrecTypeName
 --          lhs.nodeType = if @tn `elem` defaultTypes
 --                           then ScalarType @tn
@@ -1263,6 +1234,8 @@ these hold the types of functions and operators for lookup and checking
 INCLUDE "FnTypes.ag"
 
 {
+
+allOpsAndFns :: [(String, [Type], Type)]
 allOpsAndFns = binaryOperatorTypes
                ++ prefixOperatorTypes
                ++ postfixOperatorTypes
@@ -1270,16 +1243,39 @@ allOpsAndFns = binaryOperatorTypes
 
 --add the keyword operators here
 
+keywordBinaryOperatorTypes :: [(KeywordOperator,[Type],Type)]
 keywordBinaryOperatorTypes = [
  (And, [ScalarType "boolean", ScalarType "boolean"], ScalarType "boolean"),
  (Or, [ScalarType "boolean", ScalarType "boolean"], ScalarType "boolean"),
  (Like, [ScalarType "text", ScalarType "text"], ScalarType "boolean")]
+keywordUnaryOperatorTypes :: [(KeywordOperator,[Type],Type)]
 keywordUnaryOperatorTypes = [
  (Not, [ScalarType "boolean"], ScalarType "boolean"),
  (IsNull, [ScalarType "any"], ScalarType "boolean"),
  (IsNotNull, [ScalarType "any"], ScalarType "boolean")]
 
+allKeywordOps :: [(KeywordOperator, [Type], Type)]
 allKeywordOps = keywordBinaryOperatorTypes ++ keywordUnaryOperatorTypes
+
+allTypes :: [Type]
+allTypes = defaultTypeNames
+
+checkFunctionTypes :: [(String, [Type])]
+checkFunctionTypes =
+    catMaybes $ map (\(f,a,r) ->
+                     let ts = (r:a)
+                         badts = filter (not . knownType) ts
+                     in if length badts == 0
+                          then Nothing
+                          else Just (f, badts)
+                    ) allOpsAndFns
+    where
+      knownType :: Type -> Bool
+      knownType l = case l of
+                      Pseudo _ -> True
+                      t@(ScalarType _) -> t `elem` defaultTypeNames
+                      ArrayType t -> knownType t
+                      SetOfType t -> knownType t
 
 }
 
@@ -1385,7 +1381,7 @@ SEM Expression
     | Case lhs.nodeType = checkTypes
                              @lhs.sourcePos
                              (case @els.nodeType of
-                                AnyElement -> @cases.nodeType
+                                Pseudo AnyElement -> @cases.nodeType
                                 e -> TypeList
                                        ((typesFromTypeList @cases.nodeType)
                                         ++ [e]))
