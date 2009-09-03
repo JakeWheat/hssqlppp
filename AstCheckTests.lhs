@@ -49,10 +49,9 @@ types of error message received.
 >      ,p "true" typeBool
 >      ,p "array[1,2,3]" (ArrayType typeInt)
 >      ,p "array['a','b']" (ArrayType (ScalarType "text"))
->      ,p "array[1,'b']" (TypeError ("",0,0)
->                         (WrongTypes
->                          (typeInt)
->                          [typeInt,UnknownStringLit]))
+>      ,p "array[1,'b']" (ArrayType typeInt)
+>      ,p "array[1,true]" (TypeError ("",0,0)
+>                         (IncompatibleTypes [typeInt,typeBool]))
 >      ])
 
 >    ,testGroup "some expressions"
@@ -188,7 +187,10 @@ check casts from unknown string lits
 >         (typeInt)
 >      ,p "cast ('1' as baz)"
 >         (TypeError nsp (UnknownTypeError "baz"))
-
+>      ,p "array[]"
+>         (TypeError nsp TypelessEmptyArray)
+>      ,p "array[] :: text[]"
+>         (ArrayType (ScalarType "text"))
 
 >      ])
 

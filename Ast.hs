@@ -539,10 +539,6 @@ findCallMatch sp f inArgs =
                                        case isPreferredType ca of
                                          True -> ImplicitToPreferred
                                          False -> ImplicitToNonPreferred
-                                   -- | ia == UnknownStringLit ->
-                                   --    case isPreferredType ca of
-                                   --      True -> ImplicitToPreferred
-                                   --      False -> ImplicitToNonPreferred
                                    | otherwise -> CannotCast
                               ) : listCastPairs' ias cas
                           listCastPairs' [] [] = []
@@ -586,6 +582,54 @@ implicitlyCastableFromTo from to = from == UnknownStringLit ||
                                      any (==(from,to,ImplicitCastContext)) castTable
 
 
+{-
+
+resolveResultSetType -
+partially implement the typing of results sets where the types aren't
+all the same and not unknown
+used in union,except,intersect columns, case, array ctor, values, greatest and least
+
+algo:
+if all inputs are same and not unknown -> that type
+replace domains with base types
+if all inputs are unknown then text
+if the non unknown types aren't all in same category then fail
+choose first input type that is a preferred type if there is one
+choose last non unknown type that has implicit casts from all preceding inputs
+check all can convert to selected type else fail
+
+-}
+
+resolveResultSetType :: MySourcePos -> [Type] -> Type
+resolveResultSetType sp inArgs =
+    case () of
+      _ | length inArgs == 0 -> TypeError sp TypelessEmptyArray
+        | allSameType -> head inArgs
+        --todo: do domains
+        | allUnknown -> ScalarType "text"
+        | not allSameCat -> TypeError sp (IncompatibleTypes inArgs)
+        | isJust targetType &&
+          allConvertibleToFrom
+            (fromJust targetType)
+            inArgs -> fromJust targetType
+        | otherwise -> TypeError sp (IncompatibleTypes inArgs)
+   where
+     allSameType = all (== head inArgs) inArgs && head inArgs /= UnknownStringLit
+     allUnknown = all (==UnknownStringLit) inArgs
+     knownTypes = filter (/=UnknownStringLit) inArgs
+     allSameCat = let firstCat = getTypeCategory (head knownTypes)
+                  in all (\t -> getTypeCategory t == firstCat) knownTypes
+     targetType = case catMaybes [firstPreferred, lastAllConvertibleTo] of
+                    [] -> Nothing
+                    (x:xs) -> Just x
+     firstPreferred = find isPreferredType knownTypes
+     allConvertibleToFrom t ts = all (matchOrImplicitToFrom t) ts
+     lastAllConvertibleTo = firstAllConvertibleTo (reverse knownTypes)
+     firstAllConvertibleTo (x:xs) = if allConvertibleToFrom x xs
+                                      then Just x
+                                      else firstAllConvertibleTo xs
+     firstAllConvertibleTo [] = Nothing
+     matchOrImplicitToFrom t t1 = t == t1 || implicitlyCastableFromTo t1 t
 
 
 checkAst :: StatementList -> [Message]
@@ -4906,8 +4950,8 @@ sem_Expression_FunCall funName_ args_  =
               _argsInodeType :: Type
               _lhsOnodeType =
                   case _funNameIval of
-                    ArrayCtor -> ct AllSameType1Any
-                                    (RetTypeFun (\t -> ArrayType $ head t))
+                    ArrayCtor -> let t = resolveResultSetType _lhsIsourcePos $ typesFromTypeList _argsInodeType
+                                 in propagateUnknownError t $ ArrayType t
                     Substring -> ct
                                    (ExactList [ScalarType "text"
                                               ,ScalarType "int4"
@@ -9239,7 +9283,8 @@ sem_TypeAttributeDefList_Nil  =
                   TypeList []
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- TypeErrorInfo -----------------------------------------------
-data TypeErrorInfo  = MultipleMatchingKOperators (KeywordOperator) ([Type]) 
+data TypeErrorInfo  = IncompatibleTypes ([Type]) 
+                    | MultipleMatchingKOperators (KeywordOperator) ([Type]) 
                     | MultipleMatchingOperators (String) ([Type]) 
                     | NeedOneOrMoreArgs 
                     | NoMatchingKOperator (KeywordOperator) ([Type]) 
@@ -9247,6 +9292,7 @@ data TypeErrorInfo  = MultipleMatchingKOperators (KeywordOperator) ([Type])
                     | NotArrayType (Type) 
                     | OperatorNeeds1Or2Args (Int) 
                     | OtherTypeError (String) 
+                    | TypelessEmptyArray 
                     | UnknownTypeError (String) 
                     | WrongNumArgs (Int) (Int) 
                     | WrongType (Type) (Type) 
@@ -9256,6 +9302,8 @@ data TypeErrorInfo  = MultipleMatchingKOperators (KeywordOperator) ([Type])
 -- cata
 sem_TypeErrorInfo :: TypeErrorInfo  ->
                      T_TypeErrorInfo 
+sem_TypeErrorInfo (IncompatibleTypes _t )  =
+    (sem_TypeErrorInfo_IncompatibleTypes _t )
 sem_TypeErrorInfo (MultipleMatchingKOperators _o _t )  =
     (sem_TypeErrorInfo_MultipleMatchingKOperators (sem_KeywordOperator _o ) _t )
 sem_TypeErrorInfo (MultipleMatchingOperators _o _t )  =
@@ -9272,6 +9320,8 @@ sem_TypeErrorInfo (OperatorNeeds1Or2Args _got )  =
     (sem_TypeErrorInfo_OperatorNeeds1Or2Args _got )
 sem_TypeErrorInfo (OtherTypeError _string )  =
     (sem_TypeErrorInfo_OtherTypeError _string )
+sem_TypeErrorInfo (TypelessEmptyArray )  =
+    (sem_TypeErrorInfo_TypelessEmptyArray )
 sem_TypeErrorInfo (UnknownTypeError _string )  =
     (sem_TypeErrorInfo_UnknownTypeError _string )
 sem_TypeErrorInfo (WrongNumArgs _expected _got )  =
@@ -9293,6 +9343,11 @@ wrap_TypeErrorInfo sem (Inh_TypeErrorInfo )  =
     (let ( ) =
              (sem )
      in  (Syn_TypeErrorInfo ))
+sem_TypeErrorInfo_IncompatibleTypes :: ([Type]) ->
+                                       T_TypeErrorInfo 
+sem_TypeErrorInfo_IncompatibleTypes t_  =
+    (let 
+     in  ( ))
 sem_TypeErrorInfo_MultipleMatchingKOperators :: T_KeywordOperator  ->
                                                 ([Type]) ->
                                                 T_TypeErrorInfo 
@@ -9352,6 +9407,10 @@ sem_TypeErrorInfo_OperatorNeeds1Or2Args got_  =
 sem_TypeErrorInfo_OtherTypeError :: String ->
                                     T_TypeErrorInfo 
 sem_TypeErrorInfo_OtherTypeError string_  =
+    (let 
+     in  ( ))
+sem_TypeErrorInfo_TypelessEmptyArray :: T_TypeErrorInfo 
+sem_TypeErrorInfo_TypelessEmptyArray  =
     (let 
      in  ( ))
 sem_TypeErrorInfo_UnknownTypeError :: String ->
