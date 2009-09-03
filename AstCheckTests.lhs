@@ -112,7 +112,7 @@ types of error message received.
 >      ,p "1+1" (typeInt)
 >      ,p "31*511" (typeInt)
 >      ,p "5/2" (typeInt)
->      --,p "2^10" (typeInt)
+>      ,p "2^10" (typeNumeric)
 >      ,p "17%5" (typeInt)
 
 >      ,p "3 and 4" (TypeError ("",0,0)
@@ -125,6 +125,13 @@ types of error message received.
 >      ,p "lower(1)" (TypeError nsp (NoMatchingOperator "lower" [typeInt]))
 
 >      ])
+
+implicit casting and function/operator choice tests:
+check when multiple implicit and one exact match on num args
+check multiple matches with num args, only one with implicit conversions
+check multiple implicit matches with one preferred
+check multiple implicit matches with one preferred highest count
+check casts from unknown string lits
 
 >    ,testGroup "case expressions"
 >     (mapExprType [

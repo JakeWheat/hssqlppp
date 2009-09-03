@@ -206,13 +206,6 @@ each is a list with type ({functionName} String
                          ,{args} [Type]
                          ,{retType} Type)
 
-map cstring to pseudo
-map types ending in [] to array types
-map void to pseudo
-map setof to setof type
-remove any functions which have args or return type internal
-
-
 > getFnTables :: [Char] -> IO ()
 > getFnTables dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
 >    putStrLn "{"
@@ -359,7 +352,7 @@ remove any functions which have args or return type internal
 
 = getTypeStuff
 
-will output type information and cast information
+outputs type information and cast information
 
 > getTypeStuff :: [Char] -> IO ()
 > getTypeStuff dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
@@ -371,6 +364,35 @@ will output type information and cast information
 >                  \order by descr;") []
 >    putStr "defaultTypeNames = [\n    "
 >    putStr $ intercalate ",\n    " $ map head typeinfo
+>    putStrLn "]"
+>    castTable <- selectRelation conn (typesCtesNamed ++
+>                                      "\nselect\n\
+>                                      \   '(' || cs.descr  || ',' ||\n\
+>                                      \   ct.descr || ',' ||\n\
+>                                      \   case castcontext\n\
+>                                      \     when 'i' then 'ImplicitCastContext'\n\
+>                                      \     when 'a' then 'AssignmentCastContext'\n\
+>                                      \     when 'e' then 'ExplicitCastContext'\n\
+>                                      \   end || ')'\n\
+>                                      \from pg_cast p\n\
+>                                      \  inner join ts cs\n\
+>                                      \    on p.castsource = cs.typoid\n\
+>                                      \  inner join ts ct\n\
+>                                      \    on p.casttarget = ct.typoid;") []
+>    putStr "castTable = [\n    "
+>    putStr $ intercalate ",\n    " $ map head castTable
+>    putStrLn "]"
+
+>    typeCategories <- selectRelation conn (typesCtesNamed ++
+>                        "\nselect '(' ||  ts.descr || ', \"' || t.typcategory\n\
+>                        \       || '\", ' || case t.typispreferred\n\
+>                        \                  when true then 'True'\n\
+>                        \                  else 'False' end || ')'\n\
+>                        \from ts inner join pg_type t\n\
+>                        \     on ts.typoid = t.oid\n\
+>                        \order by typcategory,typispreferred desc, descr;") []
+>    putStr "typeCategories = [\n    "
+>    putStr $ intercalate ",\n    " $ map head typeCategories
 >    putStrLn "]"
 >    putStrLn "}"
 
@@ -504,7 +526,46 @@ will output type information and cast information
                   ,ts as (select typoid, descr from nonArrayTypeNames
                            union
                            select typoid, descr from arrayTypeNames
-),
+)
+
+select '(' ||  ts.descr || ', "' || t.typcategory
+       || '", ' || case t.typispreferred
+                  when true then 'True'
+                  else 'False' end || ')'
+from ts inner join pg_type t
+     on ts.typoid = t.oid
+order by typcategory,typispreferred desc, descr
+;
+
+
+
+
+
+
+
+
+
+
+
+
+select
+   '(' || cs.descr  || ',' ||
+   ct.descr || ',' ||
+   case castcontext
+     when 'i' then 'ImplicitCastContext'
+     when 'a' then 'AssignmentCastContext'
+     when 'e' then 'ExplicitCastContext'
+   end || ')'
+from pg_cast p
+  inner join ts cs
+    on p.castsource = cs.typoid
+  inner join ts ct
+    on p.casttarget = ct.typoid;
+
+ from pg_cast
+ castsource | casttarget | castfunc | castcontext
+
+
 expandedArgs as (
 select pg_proc.oid,proname,proretset, generate_series as argpos,
        proargtypes[generate_series] as argtype, prorettype
