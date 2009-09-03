@@ -757,7 +757,7 @@ checked statically without having to run the code.
 DATA Type | ScalarType String
           | ArrayType Type
           | SetOfType Type
-          | CompositeType name:String attrs:{[(String,Type)]}
+          | CompositeType name:String --attrs:{[(String,Type)]}
           | DomainType String Type
           | Row attrs:{[Type]}
           -- type list is used internally in the type checking.

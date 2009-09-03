@@ -58,7 +58,6 @@ TODO 2: think of a name for this command
 > import Ast
 > import PrettyPrinter
 > import DBAccess
-> import ArgsParser
 
 ================================================================================
 
@@ -217,48 +216,129 @@ remove any functions which have args or return type internal
 > getFnTables :: [Char] -> IO ()
 > getFnTables dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
 >    putStrLn "{"
->    let binopquery = "select oprname,\n\
->                     \       pg_catalog.format_type(oprleft, null),\n\
->                     \       pg_catalog.format_type(oprright, null),\n\
->                     \       pg_catalog.format_type(oprresult, null)\n\
->                     \  from pg_operator\n\
->                     \  where oprleft <> 0 and oprright <> 0\n\
->                     \  order by oprname;"
->    binopinfo <- selectRelation conn binopquery []
->    putStrLn $ makeVal "binaryOperatorTypes" $ map (show .convBinopRow) binopinfo
->    prefixopinfo <- selectRelation conn
->                      "select oprname,\n\
->                      \       pg_catalog.format_type(oprright, null),\n\
->                      \       pg_catalog.format_type(oprresult, null)\n\
->                      \  from pg_operator\n\
->                      \  where oprleft = 0\n\
->                      \  order by oprname;" []
->    putStrLn $ makeVal "prefixOperatorTypes" $ map (show . convUnopRow) prefixopinfo
->    postfixopinfo <- selectRelation conn
->                      "select oprname,\n\
->                      \       pg_catalog.format_type(oprleft, null),\n\
->                      \       pg_catalog.format_type(oprresult, null)\n\
->                      \  from pg_operator\n\
->                      \  where oprright = 0\n\
->                      \  order by oprname;" []
->    putStrLn $ makeVal "postfixOperatorTypes" $ map (show . convUnopRow) postfixopinfo
->    functionsinfo <- selectRelation conn
->                       "select p.proname,\n\
->                       \        pg_get_function_arguments(p.oid),\n\
->                       \        pg_get_function_result(p.oid) as ret\n\
->                       \  from pg_proc p\n\
->                       \  left join pg_catalog.pg_namespace n\n\
->                       \    on n.oid = p.pronamespace\n\
->                       \  where\n\
->                       \       pg_catalog.pg_function_is_visible(p.oid)\n\
->                       \       and not (p.proisagg\n\
->                       \                or p.proiswindow\n\
->                       \                or (p.prorettype =\n\
->                       \                'pg_catalog.trigger'::pg_catalog.regtype))\n\
->                       \  order by p.proname" []
->    putStrLn $ makeVal "functionTypes" $ map show $ filterOut $ map convFunctionRow functionsinfo
+>    binopinfo <- selectRelation conn (typesCtesNamed ++
+>                      "\n     select oprname,\n\
+>                      \               tl.descr as left,\n\
+>                      \               tr.descr as right,\n\
+>                      \               tres.descr as result\n\
+>                      \          from pg_operator\n\
+>                      \          inner join ts tl\n\
+>                      \            on oprleft = tl.typoid\n\
+>                      \          inner join ts tr\n\
+>                      \            on oprright = tr.typoid\n\
+>                      \          inner join ts tres\n\
+>                      \            on oprresult = tres.typoid\n\
+>                      \          where oprleft <> 0 and oprright <> 0\n\
+>                      \             and oprname <> '@' --hack for now\n\
+>                      \          order by oprname;") []
+>    putStrLn $ makeVal "binaryOperatorTypes" $ map (showProt . (\l -> (l!!0,[l!!1,l!!2],l!!3))) binopinfo
+
+>    prefixopinfo <- selectRelation conn (typesCtesNamed ++
+>                      "\n     select oprname,\n\
+>                      \               tr.descr as right,\n\
+>                      \               tres.descr as result\n\
+>                      \          from pg_operator\n\
+>                      \          inner join ts tr\n\
+>                      \            on oprright = tr.typoid\n\
+>                      \          inner join ts tres\n\
+>                      \            on oprresult = tres.typoid\n\
+>                      \          where oprleft = 0\n\
+>                      \          order by oprname;") []
+>    putStrLn $ makeVal "prefixOperatorTypes" $ map (showProt . (\l -> (l!!0,[l!!1],l!!2))) prefixopinfo
+
+>    postfixopinfo <- selectRelation conn (typesCtesNamed ++
+>                      "\n     select oprname,\n\
+>                      \               tl.descr as left,\n\
+>                      \               tres.descr as result\n\
+>                      \          from pg_operator\n\
+>                      \          inner join ts tl\n\
+>                      \            on oprleft = tl.typoid\n\
+>                      \          inner join ts tres\n\
+>                      \            on oprresult = tres.typoid\n\
+>                      \          where oprright = 0\n\
+>                      \          order by oprname;") []
+>    putStrLn $ makeVal "postfixOperatorTypes" $ map (showProt . (\l -> (l!!0,[l!!1],l!!2))) postfixopinfo
+
+>    functionsinfo <- selectRelation conn (typesCtesNamed ++
+>                       "\n,\n\
+>                       \expandedArgs as (\n\
+>                       \select pg_proc.oid,proname,proretset, generate_series as argpos,\n\
+>                       \       proargtypes[generate_series] as argtype, prorettype\n\
+>                       \from pg_proc\n\
+>                       \cross join generate_series(0, (select max(array_upper(proargtypes, 1))\n\
+>                       \                                  from pg_proc))\n\
+>                       \where pg_catalog.pg_function_is_visible(pg_proc.oid)\n\
+>                       \      and provariadic = 0\n\
+>                       \      and not proisagg\n\
+>                       \      and not proiswindow\n\
+>                       \),\n\
+>                       \filteredArgs as (\n\
+>                       \select oid,proname,proretset, argpos,argtype, prorettype\n\
+>                       \   from expandedArgs\n\
+>                       \   where argtype is not null\n\
+>                       \),\n\
+>                       \namedTypes as (\n\
+>                       \select oid,\n\
+>                       \       proname,\n\
+>                       \       argpos,\n\
+>                       \       aty.descr as argtype,\n\
+>                       \       case\n\
+>                       \         when proretset\n\
+>                       \           then 'SetOfType (' || rt.descr || ')'\n\
+>                       \         else rt.descr\n\
+>                       \       end as ret\n\
+>                       \   from filteredArgs f\n\
+>                       \   inner join ts rt\n\
+>                       \     on rt.typoid = prorettype\n\
+>                       \   inner join ts aty\n\
+>                       \     on aty.typoid = argtype\n\
+>                       \),\n\
+>                       \combinedNamedArgs as (\n\
+>                       \select oid, proname,\n\
+>                       \       array_agg(argtype) over (partition by oid\n\
+>                       \                                order by oid,argpos) as argtypes,\n\
+>                       \       ret,\n\
+>                       \       rank()  over (partition by oid\n\
+>                       \                                order by oid desc,argpos desc) as rank\n\
+>                       \from namedTypes\n\
+>                       \)\n\
+>                       \select oid,proname,\n\
+>                       \  array_to_string(argtypes, ',') as argtypes,ret\n\
+>                       \from combinedNamedArgs\n\
+>                       \where rank = 1\n\
+>                       \--we've lost the no args fns at this point, so whack em back in\n\
+>                       \union\n\
+>                       \select p.oid,\n\
+>                       \       proname,\n\
+>                       \       '' as argtypes,\n\
+>                       \       case\n\
+>                       \         when proretset\n\
+>                       \           then 'SetOfType (' || rt.descr || ')'\n\
+>                       \         else rt.descr\n\
+>                       \       end as ret\n\
+>                       \   from pg_proc p\n\
+>                       \   inner join ts rt\n\
+>                       \     on rt.typoid = prorettype\n\
+>                       \  where pg_catalog.pg_function_is_visible(p.oid)\n\
+>                       \      and provariadic = 0\n\
+>                       \      and not proisagg\n\
+>                       \      and not proiswindow\n\
+>                       \      and pronargs = 0\n\
+>                       \order by proname,argtypes;") []
+>    putStrLn $ makeVal "functionTypes" $ map showProt $ filterOut $ map convFnLine functionsinfo
 >    putStrLn "}"
 >    where
+>      convFnLine l = (l!!1, toStrList (l!!2), l!!3)
+>      toStrList ss = map trim $ split ',' ss
+>      --showFn (n,a,r) = "(" ++ show n ++ ",[" ++ fixTypeArray a ++ "]," ++ r ++ ")"
+>      --fixTypeArray a = replace "\\\"" "\"" (dropEnds a)
+>      --dropEnds s = drop 1 $ reverse $ drop 1 $ reverse s
+
+ >      parseTypeArray s =
+ >        case parseTypeArray s of
+ >                              Left er -> error $ show er
+ >                              Right t -> t
+
 >      filterOut =
 >        filter
 >          (\(_,args,ret) -> let ts = (ret:args)
@@ -266,44 +346,11 @@ remove any functions which have args or return type internal
 >                              _ | length
 >                                    (filter
 >                                     (`elem`
->                                      (map ScalarType ["internal"
->                                                      ,"language_handler"
->                                                      ,"opaque"])) ts) > 0 -> False
+>                                      ["Pseudo Internal"
+>                                      ,"Pseudo LanguageHandler"
+>                                      ,"Pseudo Opaque"]) ts) > 0 -> False
 >                                | otherwise -> True)
->      pArgString s = case parseArgString s of
->                       Left er -> error $ show er
->                       Right t -> t
->      pArg s = case parseArg s of
->                       Left er -> error $ show er
->                       Right t -> t
->      convFunctionRow l = (head l
->                          ,pArgString (l !! 1)
->                          ,pArg (l !! 2))
->      convBinopRow l = (head l
->                       ,toTypes (take 2 $ drop 1 l)
->                       ,pArg (l !! 3))
->      convUnopRow l = (head l
->                      ,[pArg (l !! 1)]
->                      ,pArg (l !! 2))
-
->      toTypes ss = map pArg ss
->      showFn :: (String, [Type], Type) -> String
->      showFn (s,ts,t) = "(" ++ stringIt s
->                        ++ ",[" ++ intercalate "," (map tToS ts) ++ "],"
->                        ++ tToS t ++ ")"
->      tToS :: Type -> String
->      tToS ty = case ty of
->               ScalarType t -> "ScalarType " ++ stringIt t
->               ArrayType t -> "ArrayType(" ++ tToS t ++ ")"
->               SetOfType t -> "SetOfType(" ++ tToS t ++ ")"
->               CompositeType _ _ -> "error"
->               DomainType _ _ -> "error"
->               Row _ -> "error"
->               TypeList _ -> "error"
->               p@(Pseudo _) -> show p
->               TypeError _ _ -> "error"
->               UnknownType  -> "error"
->      stringIt s = "\"" ++ replace "\"" "\\\"" s ++ "\""
+>      showProt (n,a,r) = "(" ++ show n ++ ", [" ++ intercalate "," a ++ "], " ++ r ++ ")"
 >      makeVal nm rows = nm ++ " = [\n    "
 >                        ++ intercalate ",\n    " rows
 >                        ++ "\n    ]"
@@ -317,8 +364,18 @@ will output type information and cast information
 > getTypeStuff :: [Char] -> IO ()
 > getTypeStuff dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
 >    putStrLn "{"
->    typeinfo <- selectRelation conn
->                  "with nonArrayTypeNames as\n\
+>    typeinfo <- selectRelation conn (typesCtes ++
+>                  "\nselect descr from nonArrayTypeNames\n\
+>                  \union\n\
+>                  \select descr from arrayTypeNames\n\
+>                  \order by descr;") []
+>    putStr "defaultTypeNames = [\n    "
+>    putStr $ intercalate ",\n    " $ map head typeinfo
+>    putStrLn "]"
+>    putStrLn "}"
+
+> typesCtes :: [Char]
+> typesCtes =      "with nonArrayTypeNames as\n\
 >                  \(select\n\
 >                  \   t.oid as typoid,\n\
 >                  \   case typtype\n\
@@ -362,15 +419,14 @@ will output type information and cast information
 >                  \    on t.typarray = e.oid\n\
 >                  \  left outer join nonArrayTypeNames n\n\
 >                  \    on t.oid = n.typoid\n\
->                  \  where pg_catalog.pg_type_is_visible(t.oid))\n\
->                  \select descr from nonArrayTypeNames\n\
->                  \union\n\
->                  \select descr from arrayTypeNames\n\
->                  \order by descr;" []
->    putStr "defaultTypeNames = [\n    "
->    putStr $ intercalate ",\n    " $ map head typeinfo
->    putStrLn "]"
->    putStrLn "}"
+>                  \  where pg_catalog.pg_type_is_visible(t.oid))"
+
+> typesCtesNamed :: [Char]
+> typesCtesNamed = typesCtes ++
+>                      "\n,ts as (select typoid, descr from nonArrayTypeNames\n\
+>                      \     union\n\
+>                      \     select typoid, descr from arrayTypeNames)"
+
 
 > checkFnTypes :: IO ()
 > checkFnTypes = mapM_ print checkFunctionTypes
@@ -400,115 +456,126 @@ will output type information and cast information
 
 
 
+                  with nonArrayTypeNames as
+                  (select
+                     t.oid as typoid,
+                     case typtype
+                         when 'b' then
+                           'ScalarType "' || typname || '"'
+                         when 'c' then
+                           'CompositeType "' || typname || '"'
+                         when 'd' then
+                           'DomainType "' || typname || '"'
+                         when 'e' then
+                           'EnumType "' || typname || '"'
+                         when 'p' then 'Pseudo ' ||
+                           case typname
+                             when 'any' then 'Any'
+                             when 'anyarray' then 'AnyArray'
+                             when 'anyelement' then 'AnyElement'
+                             when 'anyenum' then 'AnyEnum'
+                             when 'anynonarray' then 'AnyNonArray'
+                             when 'cstring' then 'Cstring'
+                             when 'internal' then 'Internal'
+                             when 'language_handler' then 'LanguageHandler'
+                             when 'opaque' then 'Opaque'
+                             when 'record' then 'Record'
+                             when 'trigger' then 'Trigger'
+                             when 'void' then 'Void'
+                             else 'error pseudo ' || typname
+                           end
+                         else 'typtype error ' || typtype
+                      end as descr
+                    from pg_catalog.pg_type t
+                    where pg_catalog.pg_type_is_visible(t.oid)
+                          and not exists(select 1 from pg_catalog.pg_type el
+                                         where el.typarray = t.oid)),
+                  arrayTypeNames as
+                  (select
+                      e.oid as typoid,
+                      'ArrayType (' ||
+                      n.descr || ')' as descr
+                    from pg_catalog.pg_type t
+                    inner join pg_type e
+                      on t.typarray = e.oid
+                    left outer join nonArrayTypeNames n
+                      on t.oid = n.typoid
+                    where pg_catalog.pg_type_is_visible(t.oid))
+                  ,ts as (select typoid, descr from nonArrayTypeNames
+                           union
+                           select typoid, descr from arrayTypeNames
+),
+expandedArgs as (
+select pg_proc.oid,proname,proretset, generate_series as argpos,
+       proargtypes[generate_series] as argtype, prorettype
+from pg_proc
+cross join generate_series(0, (select max(array_upper(proargtypes, 1))
+                                  from pg_proc))
+where pg_catalog.pg_function_is_visible(pg_proc.oid)
+      and provariadic = 0
+      and not proisagg
+      and not proiswindow
+),
+filteredArgs as (
+select oid,proname,proretset, argpos,argtype, prorettype
+   from expandedArgs
+   where argtype is not null
+),
+namedTypes as (
+select oid,
+       proname,
+       argpos,
+       aty.descr as argtype,
+       case
+         when proretset
+           then 'SetOfType (' || rt.descr || ')'
+         else rt.descr
+       end as ret
+   from filteredArgs f
+   inner join ts rt
+     on rt.typoid = prorettype
+   inner join ts aty
+     on aty.typoid = argtype
+),
+combinedNamedArgs as (
+select oid, proname,
+       array_agg(argtype) over (partition by oid
+                                order by oid,argpos) as argtypes,
+       ret,
+       rank()  over (partition by oid
+                                order by oid desc,argpos desc) as rank
+from namedTypes
+)
+select oid,proname,argtypes,ret from combinedNamedArgs
+where rank = 1
+--we've lost the no args fns at this point, so whack em back in
+union
+select p.oid,
+       proname,
+       '{}'::text[] as argtypes,
+       case
+         when proretset
+           then 'SetOfType (' || rt.descr || ')'
+         else rt.descr
+       end as ret
+   from pg_proc p
+   inner join ts rt
+     on rt.typoid = prorettype
+  where pg_catalog.pg_function_is_visible(p.oid)
+      and provariadic = 0
+      and not proisagg
+      and not proiswindow
+      and pronargs = 0
+
+order by oid,proname
+;
 
 
 
-
-
-
-
-select p.proname,
-        pg_get_function_arguments(p.oid),
-pg_get_function_result(p.oid) as ret
-from pg_proc p
-left join pg_catalog.pg_namespace n
-on n.oid = p.pronamespace
-where
-pg_catalog.pg_function_is_visible(p.oid)
-and not (p.proisagg
-or p.proiswindow
-or (p.prorettype =
-'pg_catalog.trigger'::pg_catalog.regtype))
-order by p.proname;
-
-select
-   case
-       when typarray then 'ArrayType ('
-       else ''
-   end ||
-   case typtype
-       when 'b' then
-         'ScalarType "' || typname || '"'
-       when 'c' then
-         'CompositeType "' || typname || '"'
-       when 'd' then
-         'DomainType "' || typname || '"'
-       when 'e' then
-         'EnumType "' || typname || '"'
-       when 'p' then 'Pseudo ' ||
-         case typname
-           when '"any"' then 'Any'
-           when 'anyarray' then 'AnyArray'
-           when 'anyelement' then 'AnyElement'
-           when 'anyenum' then 'AnyEnum'
-           when 'anynonarray' then 'AnyNonArray'
-           when 'cstring' then 'Cstring'
-           when 'internal' then 'Internal'
-           when 'language_handler' then 'LanguageHandler'
-           when 'opaque' then 'Opaque'
-           when 'record' then 'Record'
-           when 'record[]' then 'RecordArray'
-           when 'trigger' then 'Trigger'
-           when 'void' then 'Void'
-           else 'error pseudo ' || typname
-         end
-       else 'typtype error ' || typtyp
-    end ||
-    case
-       when typarray then ')'
-       else ''
-    end as desc
-  from pg_catalog.pg_type t
-  where pg_catalog.pg_type_is_visible(t.oid)
-  order by typtype, typcategory, typname;
-
-
-select
-   case typtype
-       when 'b' then
-         'ScalarType "' || typname || '"'
-       when 'c' then
-         'CompositeType "' || typname || '"'
-       when 'd' then
-         'DomainType "' || typname || '"'
-       when 'e' then
-         'EnumType "' || typname || '"'
-       when 'p' then 'Pseudo ' ||
-         case typname
-           when 'any' then 'Any'
-           when 'anyarray' then 'AnyArray'
-           when 'anyelement' then 'AnyElement'
-           when 'anyenum' then 'AnyEnum'
-           when 'anynonarray' then 'AnyNonArray'
-           when 'cstring' then 'Cstring'
-           when 'internal' then 'Internal'
-           when 'language_handler' then 'LanguageHandler'
-           when 'opaque' then 'Opaque'
-           when 'record' then 'Record'
-           --when 'record[]' then 'RecordArray'
-           when 'trigger' then 'Trigger'
-           when 'void' then 'Void'
-           else 'error pseudo ' || typname
-         end
-       else 'typtype error ' || typtype
-    end as desc
-  from pg_catalog.pg_type t
-  where pg_catalog.pg_type_is_visible(t.oid)
-        and not exists(select 1 from pg_catalog.pg_type el
-                       where el.oid = t.typelem and el.typarray = t.oid)
-  order by typtype, typcategory, typname;
-
-
-
-
-
-
-
-select pg_catalog.format_type(t.oid, null) as name
-  from pg_catalog.pg_type t
-  where --pg_catalog.pg_type_is_visible(t.oid)
-        typtype = 'p'
-        --and not exists(select 1 from pg_catalog.pg_type el
-        --               where el.oid = t.typelem and el.typarray = t.oid)
-  order by typtype,typcategory,typispreferred desc,name;
+select count (*)
+from pg_proc
+where pg_catalog.pg_function_is_visible(pg_proc.oid)
+      and provariadic = 0
+      and not proisagg
+      and not proiswindow;
 
