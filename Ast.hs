@@ -57,6 +57,16 @@ module Ast(
    ,resetSps'
    ,nsp
    ,checkFunctionTypes
+   ,typeSmallInt
+   ,typeBigInt
+   ,typeInt
+   ,typeNumeric
+   ,typeFloat4
+   ,typeFloat8
+   ,typeVarChar
+   ,typeChar
+   ,typeBool
+
 ) where
 
 import Data.Maybe
@@ -235,6 +245,48 @@ checkTypes _ x _ _ = error $ "can't check types of non type list: " ++ show x
 
 
 
+typeSmallInt = ScalarType "int2"
+typeBigInt = ScalarType "int8"
+typeInt = ScalarType "int4"
+typeNumeric = ScalarType "numeric"
+typeFloat4 = ScalarType "float4"
+typeFloat8 = ScalarType "float8"
+typeVarChar = ScalarType "varchar"
+typeChar = ScalarType "char"
+typeBool = ScalarType "bool"
+
+canonicalizeType t =
+    case t of
+      ScalarType s -> cName s
+      ArrayType a -> ArrayType $ canonicalizeType a
+      SetOfType a -> SetOfType $ canonicalizeType a
+      t1@_ -> t1
+    where
+      cName s = case () of
+                  _ | s `elem` smallIntNames -> typeSmallInt
+                    | s `elem` intNames -> typeInt
+                    | s `elem` bigIntNames -> typeBigInt
+                    | s `elem` numericNames -> typeNumeric
+                    | s `elem` float4Names -> typeFloat4
+                    | s `elem` float8Names -> typeFloat8
+                    | s `elem` varcharNames -> typeVarChar
+                    | s `elem` charNames -> typeChar
+                    | s `elem` boolNames -> typeBool
+                    | otherwise -> ScalarType s
+      smallIntNames = ["int2", "smallint"]
+      intNames = ["int4", "integer", "int"]
+      bigIntNames = ["int8", "bigint"]
+      numericNames = ["numeric", "decimal"]
+      float4Names = ["real", "float4"]
+      float8Names = ["double precision", "float"]
+      varcharNames = ["character varying", "varchar"]
+      charNames = ["character", "char"]
+      boolNames = ["boolean", "bool"]
+
+
+
+
+
 allOpsAndFns :: [(String, [Type], Type)]
 allOpsAndFns = binaryOperatorTypes
                ++ prefixOperatorTypes
@@ -245,14 +297,14 @@ allOpsAndFns = binaryOperatorTypes
 
 keywordBinaryOperatorTypes :: [(KeywordOperator,[Type],Type)]
 keywordBinaryOperatorTypes = [
- (And, [ScalarType "boolean", ScalarType "boolean"], ScalarType "boolean"),
- (Or, [ScalarType "boolean", ScalarType "boolean"], ScalarType "boolean"),
- (Like, [ScalarType "text", ScalarType "text"], ScalarType "boolean")]
+ (And, [typeBool, typeBool], typeBool),
+ (Or, [typeBool, typeBool], typeBool),
+ (Like, [ScalarType "text", ScalarType "text"], typeBool)]
 keywordUnaryOperatorTypes :: [(KeywordOperator,[Type],Type)]
 keywordUnaryOperatorTypes = [
- (Not, [ScalarType "boolean"], ScalarType "boolean"),
- (IsNull, [ScalarType "any"], ScalarType "boolean"),
- (IsNotNull, [ScalarType "any"], ScalarType "boolean")]
+ (Not, [typeBool], typeBool),
+ (IsNull, [ScalarType "any"], typeBool),
+ (IsNotNull, [ScalarType "any"], typeBool)]
 
 allKeywordOps :: [(KeywordOperator, [Type], Type)]
 allKeywordOps = keywordBinaryOperatorTypes ++ keywordUnaryOperatorTypes
@@ -3410,7 +3462,7 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
                   checkTypes
                     _lhsIsourcePos
                     _x1InodeType
-                    (AllSameType $ ScalarType "boolean")
+                    (AllSameType $ typeBool)
                     (ConstRetType _x2InodeType)
               _lhsOmessages =
                   _x1Imessages ++ _x2Imessages
@@ -4062,7 +4114,7 @@ sem_Expression_BooleanLit bool_  =
          (let _lhsOnodeType :: Type
               _lhsOmessages :: ([Message])
               _lhsOnodeType =
-                  ScalarType "boolean"
+                  typeBool
               _lhsOmessages =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))
@@ -4173,7 +4225,7 @@ sem_Expression_FloatLit double_  =
          (let _lhsOnodeType :: Type
               _lhsOmessages :: ([Message])
               _lhsOnodeType =
-                  ScalarType "float"
+                  typeFloat4
               _lhsOmessages =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))
@@ -4200,16 +4252,16 @@ sem_Expression_FunCall funName_ args_  =
                                    (RetTypeFun (\t -> ArrayType $ head t))
                     Substring -> ct
                                    (ExactList [ScalarType "text"
-                                              ,ScalarType "integer"
-                                              ,ScalarType "integer"])
+                                              ,ScalarType "int4"
+                                              ,ScalarType "int4"])
                                    (ConstRetType (ScalarType "text"))
                     Between -> ct
                                    (AllSameTypeNumAny 3)
-                                   (ConstRetType (ScalarType "boolean"))
+                                   (ConstRetType (typeBool))
                     ArraySub -> ct
                                    (ExactPredList
                                      [ArgCheck isArrayType NotArrayType
-                                     ,exactType (ScalarType "integer")])
+                                     ,exactType (ScalarType "int4")])
                                    (RetTypeFun (\t -> typeFromArray $ head t))
                     Operator s -> lookupFn s (typesFromTypeList _argsInodeType)
                     KOperator k -> lookupKop k (typesFromTypeList _argsInodeType)
@@ -4303,7 +4355,7 @@ sem_Expression_IntegerLit integer_  =
          (let _lhsOnodeType :: Type
               _lhsOmessages :: ([Message])
               _lhsOnodeType =
-                  ScalarType "integer"
+                  typeInt
               _lhsOmessages =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))
@@ -8775,7 +8827,7 @@ sem_TypeName_SimpleTypeName tn_  =
          (let _lhsOnodeType :: Type
               _lhsOmessages :: ([Message])
               _lhsOnodeType =
-                  let st = ScalarType tn_
+                  let st = canonicalizeType $ ScalarType tn_
                   in if st `elem` defaultTypeNames
                        then st
                        else TypeError _lhsIsourcePos

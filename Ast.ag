@@ -103,6 +103,16 @@ MODULE {Ast}
    ,resetSps'
    ,nsp
    ,checkFunctionTypes
+   ,typeSmallInt
+   ,typeBigInt
+   ,typeInt
+   ,typeNumeric
+   ,typeFloat4
+   ,typeFloat8
+   ,typeVarChar
+   ,typeChar
+   ,typeBool
+
 }
 {
 import Data.Maybe
@@ -1142,21 +1152,44 @@ bigserial, serial8 -> bigint
 character varying(n), varchar(n)-> varchar(n)
 character(n), char(n) -> char(n)
 
+update: going to stick with the names given in pg_type as the
+canonical names for now, add constants to protect other programs from
+changes here.
+
 I think there has to be another layer of type equivalences, e.g. for
 type checking expressions, text and varchar are equivalent, domains
-and their underlying type are equivalent.
+and their underlying type are equivalent. Update - this is wrong,
+handled by implicit casts.
 
 
 Need to filter this list since they are all treated as scalar type
 names atm, and need to treat scalars, composites, domains, special
 types differently
 
+
+
 -}
 INCLUDE "PGTypes.ag"
 
+{-
+
+TODO:
+
+when we see a simple type name, or the name part of an arrayof or
+setof type, need to try to match against the following:
+scalar, composite or domain type
+scalar alias name e.g. integer -> ScalarType "int4"
+how are pseudo types going to work?
+what about types with modifiers?
+
+also, what can setof be applied to?
+array types have to match an exact array type in the catalog
+
+-}
+
 SEM TypeName
      | SimpleTypeName
-          lhs.nodeType = let st = ScalarType @tn
+          lhs.nodeType = let st = canonicalizeType $ ScalarType @tn
                          in if st `elem` defaultTypeNames
                               then st
                               else TypeError @lhs.sourcePos
@@ -1179,6 +1212,50 @@ SEM Expression
                             (TypeList
                              [@expr.nodeType])
                             @tn.nodeType
+
+
+{
+
+typeSmallInt = ScalarType "int2"
+typeBigInt = ScalarType "int8"
+typeInt = ScalarType "int4"
+typeNumeric = ScalarType "numeric"
+typeFloat4 = ScalarType "float4"
+typeFloat8 = ScalarType "float8"
+typeVarChar = ScalarType "varchar"
+typeChar = ScalarType "char"
+typeBool = ScalarType "bool"
+
+canonicalizeType t =
+    case t of
+      ScalarType s -> cName s
+      ArrayType a -> ArrayType $ canonicalizeType a
+      SetOfType a -> SetOfType $ canonicalizeType a
+      t1@_ -> t1
+    where
+      cName s = case () of
+                  _ | s `elem` smallIntNames -> typeSmallInt
+                    | s `elem` intNames -> typeInt
+                    | s `elem` bigIntNames -> typeBigInt
+                    | s `elem` numericNames -> typeNumeric
+                    | s `elem` float4Names -> typeFloat4
+                    | s `elem` float8Names -> typeFloat8
+                    | s `elem` varcharNames -> typeVarChar
+                    | s `elem` charNames -> typeChar
+                    | s `elem` boolNames -> typeBool
+                    | otherwise -> ScalarType s
+      smallIntNames = ["int2", "smallint"]
+      intNames = ["int4", "integer", "int"]
+      bigIntNames = ["int8", "bigint"]
+      numericNames = ["numeric", "decimal"]
+      float4Names = ["real", "float4"]
+      float8Names = ["double precision", "float"]
+      varcharNames = ["character varying", "varchar"]
+      charNames = ["character", "char"]
+      boolNames = ["boolean", "bool"]
+
+
+}
 
 {-
 = literals
@@ -1217,10 +1294,10 @@ sorts of things.
 -}
 
 SEM Expression
-     | IntegerLit lhs.nodeType = ScalarType "integer"
+     | IntegerLit lhs.nodeType = typeInt
      | StringLit lhs.nodeType = ScalarType "text"
-     | FloatLit lhs.nodeType = ScalarType "float"
-     | BooleanLit lhs.nodeType = ScalarType "boolean"
+     | FloatLit lhs.nodeType = typeFloat4
+     | BooleanLit lhs.nodeType = typeBool
 
 
 {-
@@ -1245,14 +1322,14 @@ allOpsAndFns = binaryOperatorTypes
 
 keywordBinaryOperatorTypes :: [(KeywordOperator,[Type],Type)]
 keywordBinaryOperatorTypes = [
- (And, [ScalarType "boolean", ScalarType "boolean"], ScalarType "boolean"),
- (Or, [ScalarType "boolean", ScalarType "boolean"], ScalarType "boolean"),
- (Like, [ScalarType "text", ScalarType "text"], ScalarType "boolean")]
+ (And, [typeBool, typeBool], typeBool),
+ (Or, [typeBool, typeBool], typeBool),
+ (Like, [ScalarType "text", ScalarType "text"], typeBool)]
 keywordUnaryOperatorTypes :: [(KeywordOperator,[Type],Type)]
 keywordUnaryOperatorTypes = [
- (Not, [ScalarType "boolean"], ScalarType "boolean"),
- (IsNull, [ScalarType "any"], ScalarType "boolean"),
- (IsNotNull, [ScalarType "any"], ScalarType "boolean")]
+ (Not, [typeBool], typeBool),
+ (IsNull, [ScalarType "any"], typeBool),
+ (IsNotNull, [ScalarType "any"], typeBool)]
 
 allKeywordOps :: [(KeywordOperator, [Type], Type)]
 allKeywordOps = keywordBinaryOperatorTypes ++ keywordUnaryOperatorTypes
@@ -1328,16 +1405,16 @@ SEM Expression
                          (RetTypeFun (\t -> ArrayType $ head t))
           Substring -> ct
                          (ExactList [ScalarType "text"
-                                    ,ScalarType "integer"
-                                    ,ScalarType "integer"])
+                                    ,ScalarType "int4"
+                                    ,ScalarType "int4"])
                          (ConstRetType (ScalarType "text"))
           Between -> ct
                          (AllSameTypeNumAny 3)
-                         (ConstRetType (ScalarType "boolean"))
+                         (ConstRetType (typeBool))
           ArraySub -> ct
                          (ExactPredList
                            [ArgCheck isArrayType NotArrayType
-                           ,exactType (ScalarType "integer")])
+                           ,exactType (ScalarType "int4")])
                          (RetTypeFun (\t -> typeFromArray $ head t))
           Operator s -> lookupFn s (typesFromTypeList @args.nodeType)
           KOperator k -> lookupKop k (typesFromTypeList @args.nodeType)
@@ -1374,7 +1451,7 @@ SEM CaseExpressionListExpressionPair
     | Tuple lhs.nodeType = checkTypes
                              @lhs.sourcePos
                              @x1.nodeType
-                             (AllSameType $ ScalarType "boolean")
+                             (AllSameType $ typeBool)
                              (ConstRetType @x2.nodeType)
 
 SEM Expression

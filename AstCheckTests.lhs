@@ -43,86 +43,86 @@ types of error message received.
 
 >    ,testGroup "basic literal types"
 >     (mapExprType [
->       p "1" (ScalarType "integer")
->      ,p "1.0" (ScalarType "float")
+>       p "1" (typeInt)
+>      ,p "1.0" (typeFloat4)
 >      ,p "'test'" (ScalarType "text")
->      ,p "true" (ScalarType "boolean")
->      ,p "array[1,2,3]" (ArrayType (ScalarType "integer"))
+>      ,p "true" (typeBool)
+>      ,p "array[1,2,3]" (ArrayType (typeInt))
 >      ,p "array['a','b']" (ArrayType (ScalarType "text"))
 >      ,p "array[1,'b']" (TypeError ("",0,0)
 >                         (WrongTypes
->                          (ScalarType "integer")
->                          [ScalarType "integer",ScalarType "text"]))
+>                          (typeInt)
+>                          [typeInt,ScalarType "text"]))
 >      ])
 
 >    ,testGroup "some expressions"
 >     (mapExprType [
->       p "1=1" (ScalarType "boolean")
+>       p "1=1" (typeBool)
 >      ,p "1='test'" (TypeError ("",0,0)
->                     (NoMatchingOperator "=" [ScalarType "integer",ScalarType "text"]))
+>                     (NoMatchingOperator "=" [typeInt,ScalarType "text"]))
 >      ,p "substring('aqbc' from 2 for 2)" (ScalarType "text")
 
 >      ,p "substring(3 from 2 for 2)" (TypeError ("",0,0)
 >                     (WrongTypeList [ScalarType "text"
->                                    ,ScalarType "integer"
->                                    ,ScalarType "integer"]
->                                    [ScalarType "integer"
->                                    ,ScalarType "integer"
->                                    ,ScalarType "integer"]))
+>                                    ,typeInt
+>                                    ,typeInt]
+>                                    [typeInt
+>                                    ,typeInt
+>                                    ,typeInt]))
 >      ,p "substring('aqbc' from 2 for 'test')" (TypeError ("",0,0)
 >                     (WrongTypeList [ScalarType "text"
->                                    ,ScalarType "integer"
->                                    ,ScalarType "integer"]
+>                                    ,typeInt
+>                                    ,typeInt]
 >                                    [ScalarType "text"
->                                    ,ScalarType "integer"
+>                                    ,typeInt
 >                                    ,ScalarType "text"]))
 
->      ,p "3 between 2 and 4" (ScalarType "boolean")
+>      ,p "3 between 2 and 4" (typeBool)
 >      ,p "3 between '2' and 4" (TypeError ("",0,0)
->                                (WrongTypes (ScalarType "integer")
->                                 [ScalarType "integer"
+>                                (WrongTypes (typeInt)
+>                                 [typeInt
 >                                 ,ScalarType "text"
->                                 ,ScalarType "integer"]))
+>                                 ,typeInt]))
 
->      ,p "array[1,2,3][2]" (ScalarType "integer")
+>      ,p "array[1,2,3][2]" (typeInt)
 >      ,p "array['a','b'][1]" (ScalarType "text")
 >      ,p "array['a','b']['test']" (TypeError ("",0,0)
 >                                   (WrongType
->                                    (ScalarType "integer")
+>                                    (typeInt)
 >                                    (ScalarType "text")))
 
->      ,p "not true" (ScalarType "boolean")
+>      ,p "not true" (typeBool)
 >      ,p "not 1" (TypeError ("",0,0)
->                  (NoMatchingKOperator Not [ScalarType "integer"]))
+>                  (NoMatchingKOperator Not [typeInt]))
 
->      ,p "@ 3" (ScalarType "integer")
+>      ,p "@ 3" (typeInt)
 >      ,p "@ 'a'" (TypeError ("",0,0)
 >                  (NoMatchingOperator "@" [ScalarType "text"]))
 
->      ,p "-3" (ScalarType "integer")
+>      ,p "-3" (typeInt)
 >      ,p "-'a'" (TypeError ("",0,0)
 >                  (NoMatchingOperator "-" [ScalarType "text"]))
 
->      ,p "4-3" (ScalarType "integer")
+>      ,p "4-3" (typeInt)
 
->      --,p "1 is null" (ScalarType "boolean")
->      --,p "1 is not null" (ScalarType "boolean")
+>      --,p "1 is null" (typeBool)
+>      --,p "1 is not null" (typeBool)
 
->      ,p "1+1" (ScalarType "integer")
->      ,p "1+1" (ScalarType "integer")
->      ,p "31*511" (ScalarType "integer")
->      ,p "5/2" (ScalarType "integer")
->      --,p "2^10" (ScalarType "integer")
->      ,p "17%5" (ScalarType "integer")
+>      ,p "1+1" (typeInt)
+>      ,p "1+1" (typeInt)
+>      ,p "31*511" (typeInt)
+>      ,p "5/2" (typeInt)
+>      --,p "2^10" (typeInt)
+>      ,p "17%5" (typeInt)
 
 >      ,p "3 and 4" (TypeError ("",0,0)
->                   (NoMatchingKOperator And [ScalarType "integer",ScalarType "integer"]))
+>                   (NoMatchingKOperator And [typeInt,typeInt]))
 
->      ,p "True and False" (ScalarType "boolean")
->      ,p "false or true" (ScalarType "boolean")
+>      ,p "True and False" (typeBool)
+>      ,p "false or true" (typeBool)
 
 >      ,p "lower('TEST')" (ScalarType "text")
->      ,p "lower(1)" (TypeError nsp (NoMatchingOperator "lower" [ScalarType "integer"]))
+>      ,p "lower(1)" (TypeError nsp (NoMatchingOperator "lower" [typeInt]))
 
 >      ])
 
@@ -130,7 +130,7 @@ types of error message received.
 >     (mapExprType [
 >       p "case\n\
 >         \ when true then 1\n\
->         \end" (ScalarType "integer")
+>         \end" (typeInt)
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 'blah'\n\
@@ -141,7 +141,7 @@ types of error message received.
 >         \ when 'test'=3 then 'blah'\n\
 >         \ else 'test'\n\
 >         \end" (TypeError ("",0,0)
->                (NoMatchingOperator "=" [ScalarType "text",ScalarType "integer"]))
+>                (NoMatchingOperator "=" [ScalarType "text",typeInt]))
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 'blah'\n\
@@ -150,7 +150,7 @@ types of error message received.
 >                (WrongTypes (ScalarType "text")
 >                  [ScalarType "text"
 >                  ,ScalarType "text"
->                  ,ScalarType "integer"]))
+>                  ,typeInt]))
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 1\n\
@@ -158,14 +158,14 @@ types of error message received.
 >         \end" (TypeError ("",0,0)
 >                (WrongTypes (ScalarType "text")
 >                 [ScalarType "text"
->                 ,ScalarType "integer"
+>                 ,typeInt
 >                 ,ScalarType "text"]))
 >      ])
 
 >    ,testGroup "case expressions"
 >     (mapExprType [
 >       p "cast ('1' as integer)"
->         (ScalarType "integer")
+>         (typeInt)
 >      ,p "cast ('1' as baz)"
 >         (TypeError nsp (UnknownTypeError "baz"))
 
