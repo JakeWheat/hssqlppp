@@ -601,7 +601,7 @@ check all can convert to selected type else fail
 -}
 
 resolveResultSetType :: MySourcePos -> [Type] -> Type
-resolveResultSetType sp inArgs =
+resolveResultSetType sp inArgs = propagateUnknownError (TypeList inArgs) $
     case () of
       _ | length inArgs == 0 -> TypeError sp TypelessEmptyArray
         | allSameType -> head inArgs
@@ -4837,15 +4837,13 @@ sem_Expression_Case cases_ els_  =
               _elsImessages :: ([Message])
               _elsInodeType :: Type
               _lhsOnodeType =
-                  checkTypes
-                     _lhsIsourcePos
-                     (case _elsInodeType of
-                        Pseudo AnyElement -> _casesInodeType
-                        e -> TypeList
-                               ((typesFromTypeList _casesInodeType)
-                                ++ [e]))
-                     AllSameTypeAny
-                     (RetTypeAsArgN 0)
+                  resolveResultSetType
+                    _lhsIsourcePos
+                    (typesFromTypeList (case _elsInodeType of
+                                          Pseudo AnyElement -> _casesInodeType
+                                          e -> TypeList
+                                               ((typesFromTypeList _casesInodeType)
+                                                ++ [e])))
               _lhsOmessages =
                   _casesImessages ++ _elsImessages
               _casesOinLoop =

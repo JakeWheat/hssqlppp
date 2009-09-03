@@ -141,7 +141,7 @@ check casts from unknown string lits
 >                                               ,UnknownStringLit]))
 >      ])
 
-> {-
+>
 
 >    ,testGroup "case expressions"
 >     (mapExprType [
@@ -155,31 +155,29 @@ check casts from unknown string lits
 >         \end" (ScalarType "text")
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
->         \ when 'test'=3 then 'blah'\n\
+>         \ when true=3 then 'blah'\n\
 >         \ else 'test'\n\
 >         \end" (TypeError ("",0,0)
->                (NoMatchingOperator "=" [UnknownStringLit,typeInt]))
+>                (NoMatchingOperator "=" [typeBool,typeInt]))
 >      ,p "case\n\
->         \ when 1=2 then 'stuff'\n\
->         \ when 2=3 then 'blah'\n\
+>         \ when 1=2 then true\n\
+>         \ when 2=3 then false\n\
 >         \ else 1\n\
 >         \end" (TypeError ("",0,0)
->                (WrongTypes (ScalarType "text")
->                  [UnknownStringLit
->                  ,UnknownStringLit
->                  ,typeInt]))
+>                (IncompatibleTypes [typeBool
+>                                   ,typeBool
+>                                   ,typeInt]))
 >      ,p "case\n\
->         \ when 1=2 then 'stuff'\n\
+>         \ when 1=2 then false\n\
 >         \ when 2=3 then 1\n\
->         \ else 'else'\n\
+>         \ else true\n\
 >         \end" (TypeError ("",0,0)
->                (WrongTypes (ScalarType "text")
->                 [UnknownStringLit
->                 ,typeInt
->                 ,UnknownStringLit]))
+>                (IncompatibleTypes [typeBool
+>                                   ,typeInt
+>                                   ,typeBool]))
 >      ])
 
-> -}
+>
 
 >    ,testGroup "cast expressions"
 >     (mapExprType [

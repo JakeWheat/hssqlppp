@@ -1668,7 +1668,7 @@ check all can convert to selected type else fail
 -}
 
 resolveResultSetType :: MySourcePos -> [Type] -> Type
-resolveResultSetType sp inArgs =
+resolveResultSetType sp inArgs = propagateUnknownError (TypeList inArgs) $
     case () of
       _ | length inArgs == 0 -> TypeError sp TypelessEmptyArray
         | allSameType -> head inArgs
@@ -1714,15 +1714,14 @@ SEM CaseExpressionListExpressionPair
                              (ConstRetType @x2.nodeType)
 
 SEM Expression
-    | Case lhs.nodeType = checkTypes
-                             @lhs.sourcePos
-                             (case @els.nodeType of
-                                Pseudo AnyElement -> @cases.nodeType
-                                e -> TypeList
-                                       ((typesFromTypeList @cases.nodeType)
-                                        ++ [e]))
-                             AllSameTypeAny
-                             (RetTypeAsArgN 0)
+    | Case lhs.nodeType =
+             resolveResultSetType
+               @lhs.sourcePos
+               (typesFromTypeList (case @els.nodeType of
+                                     Pseudo AnyElement -> @cases.nodeType
+                                     e -> TypeList
+                                          ((typesFromTypeList @cases.nodeType)
+                                           ++ [e])))
 
 {-
 
