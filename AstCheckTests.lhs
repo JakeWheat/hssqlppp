@@ -112,7 +112,7 @@ types of error message received.
 >      ,p "1+1" (typeInt)
 >      ,p "31*511" (typeInt)
 >      ,p "5/2" (typeInt)
->      ,p "2^10" (typeNumeric)
+>      ,p "2^10" (typeFloat8)
 >      ,p "17%5" (typeInt)
 
 >      ,p "3 and 4" (TypeError ("",0,0)
@@ -132,6 +132,14 @@ check multiple matches with num args, only one with implicit conversions
 check multiple implicit matches with one preferred
 check multiple implicit matches with one preferred highest count
 check casts from unknown string lits
+
+>    ,testGroup "some expressions"
+>     (mapExprType [
+>       p "3 + '4'" typeInt
+>      ,p "3.0 + '4'" typeNumeric
+>      ,p "'3' + '4'" typeNumeric
+>      ])
+
 
 >    ,testGroup "case expressions"
 >     (mapExprType [

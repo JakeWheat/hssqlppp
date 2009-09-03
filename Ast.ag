@@ -1478,7 +1478,8 @@ else fail
 -}
 
 type FunctionPrototype = (String,[Type],Type)
-type ProtArgCastList = [(FunctionPrototype, [ArgCastFlavour])]
+type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
+type ProtArgCastList = [ProtArgCast]
 
 findCallMatch :: MySourcePos -> String -> [Type] ->  Either Type FunctionPrototype
 findCallMatch sp f inArgs =
@@ -1491,44 +1492,63 @@ findCallMatch sp f inArgs =
         exactMatch = getExactMatch candCastPairs
         reachable :: ProtArgCastList
         reachable = filterCandCastPairs (none (==CannotCast)) candCastPairs
+        preferredTypesCounts = countPreferredTypeCasts reachable
+        keepCounts = maximum preferredTypesCounts
+        itemCountPairs :: [(ProtArgCast,Int)]
+        itemCountPairs = zip reachable preferredTypesCounts
+        filteredForPreferred :: ProtArgCastList
+        filteredForPreferred = map fst $ filter (\(_,i) -> i == keepCounts) itemCountPairs
     in case () of
          _ | length exactMatch == 1 -> Right $ getHeadFn exactMatch
            | length reachable == 1 -> Right $ getHeadFn reachable
+           | length filteredForPreferred == 1 -> Right $ getHeadFn filteredForPreferred
            | otherwise -> Left $ TypeError sp (NoMatchingOperator f inArgs)
     where
-      getFnArgs :: FunctionPrototype -> [Type]
-      getFnArgs (_,a,_) = a
-      getHeadFn :: ProtArgCastList -> FunctionPrototype
-      getHeadFn l =  let ((hdFn, _):_) = l
-                     in hdFn
-      none p l = not (any p l)
       initialCandList :: [FunctionPrototype]
       initialCandList = filter (\(candf,candArgs,_) ->
                                   (candf,length candArgs) == (f,length inArgs))
                           allOpsAndFns
       getExactMatch :: ProtArgCastList -> ProtArgCastList
       getExactMatch ccp  = filterCandCastPairs (all (==ExactMatch)) ccp
+
+      countPreferredTypeCasts :: ProtArgCastList -> [Int]
+      countPreferredTypeCasts l =
+          map (\(_,cp) -> count (==ImplicitToPreferred) cp) l
+
+      listCastPairs :: [Type] -> [ArgCastFlavour]
+      listCastPairs l = listCastPairs' inArgs l
+                        where
+                          listCastPairs' :: [Type] -> [Type] -> [ArgCastFlavour]
+                          listCastPairs' (ia:ias) (ca:cas) =
+                              (case () of
+                                 _ | ia == ca -> ExactMatch
+                                   | implicitlyCastableFromTo ia ca ->
+                                       case isPreferredType ca of
+                                         True -> ImplicitToPreferred
+                                         False -> ImplicitToNonPreferred
+                                   | otherwise -> CannotCast
+                              ) : listCastPairs' ias cas
+                          listCastPairs' [] [] = []
+                          listCastPairs' _ _ = error "internal error: mismatched num args in implicit cast algorithm"
+
       filterCandCastPairs :: ([ArgCastFlavour] -> Bool)
                           -> ProtArgCastList
                           -> ProtArgCastList
       filterCandCastPairs pred ccp = filter (\(_,cp) -> pred cp) ccp
 
-      listCastPairs :: [Type] -> [ArgCastFlavour]
-      listCastPairs l = listCastPairs' inArgs l
-      listCastPairs' :: [Type] -> [Type] -> [ArgCastFlavour]
-      listCastPairs' (ia:ias) (ca:cas) =
-          (case () of
-             _ | ia == ca -> ExactMatch
-               | implicitlyCastableFromTo ia ca ->
-                   case isPreferredType ca of
-                     True -> ImplicitToPreferred
-                     False -> ImplicitToNonPreferred
-               | otherwise -> CannotCast
-          ) : listCastPairs' ias cas
+      getFnArgs :: FunctionPrototype -> [Type]
+      getFnArgs (_,a,_) = a
+      getHeadFn :: ProtArgCastList -> FunctionPrototype
+      getHeadFn l =  let ((hdFn, _):_) = l
+                     in hdFn
+      none p l = not (any p l)
+      count p l = length $ filter p l
 
-      listCastPairs' [] [] = []
-      listCastPairs' _ _ = error "internal error: mismatched num args in implicit cast algorithm"
-
+data ArgCastFlavour = ExactMatch
+                    | CannotCast
+                    | ImplicitToPreferred
+                    | ImplicitToNonPreferred
+                      deriving (Eq,Show)
 
 
 
@@ -1580,11 +1600,6 @@ isPreferredType t = case find (\(t1,_,_)-> t1==t) typeCategories of
 implicitlyCastableFromTo :: Type -> Type -> Bool
 implicitlyCastableFromTo from to = any (==(from,to,ImplicitCastContext)) castTable
 
-data ArgCastFlavour = ExactMatch
-                    | CannotCast
-                    | ImplicitToPreferred
-                    | ImplicitToNonPreferred
-                      deriving (Eq,Show)
 
 }
 
