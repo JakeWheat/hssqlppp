@@ -43,23 +43,23 @@ types of error message received.
 
 >    ,testGroup "basic literal types"
 >     (mapExprType [
->       p "1" (typeInt)
->      ,p "1.0" (typeFloat4)
->      ,p "'test'" (ScalarType "text")
->      ,p "true" (typeBool)
->      ,p "array[1,2,3]" (ArrayType (typeInt))
+>       p "1" typeInt
+>      ,p "1.0" typeNumeric
+>      ,p "'test'" UnknownStringLit
+>      ,p "true" typeBool
+>      ,p "array[1,2,3]" (ArrayType typeInt)
 >      ,p "array['a','b']" (ArrayType (ScalarType "text"))
 >      ,p "array[1,'b']" (TypeError ("",0,0)
 >                         (WrongTypes
 >                          (typeInt)
->                          [typeInt,ScalarType "text"]))
+>                          [typeInt,UnknownStringLit]))
 >      ])
 
 >    ,testGroup "some expressions"
 >     (mapExprType [
 >       p "1=1" (typeBool)
->      ,p "1='test'" (TypeError ("",0,0)
->                     (NoMatchingOperator "=" [typeInt,ScalarType "text"]))
+>      ,p "1=true" (TypeError ("",0,0)
+>                     (NoMatchingOperator "=" [typeInt,typeBool]))
 >      ,p "substring('aqbc' from 2 for 2)" (ScalarType "text")
 
 >      ,p "substring(3 from 2 for 2)" (TypeError ("",0,0)
@@ -73,35 +73,35 @@ types of error message received.
 >                     (WrongTypeList [ScalarType "text"
 >                                    ,typeInt
 >                                    ,typeInt]
->                                    [ScalarType "text"
+>                                    [UnknownStringLit
 >                                    ,typeInt
->                                    ,ScalarType "text"]))
+>                                    ,UnknownStringLit]))
 
 >      ,p "3 between 2 and 4" (typeBool)
 >      ,p "3 between '2' and 4" (TypeError ("",0,0)
 >                                (WrongTypes (typeInt)
 >                                 [typeInt
->                                 ,ScalarType "text"
+>                                 ,UnknownStringLit
 >                                 ,typeInt]))
 
 >      ,p "array[1,2,3][2]" (typeInt)
 >      ,p "array['a','b'][1]" (ScalarType "text")
 >      ,p "array['a','b']['test']" (TypeError ("",0,0)
 >                                   (WrongType
->                                    (typeInt)
->                                    (ScalarType "text")))
+>                                    typeInt
+>                                    UnknownStringLit))
 
 >      ,p "not true" (typeBool)
 >      ,p "not 1" (TypeError ("",0,0)
 >                  (NoMatchingKOperator Not [typeInt]))
 
 >      ,p "@ 3" (typeInt)
->      ,p "@ 'a'" (TypeError ("",0,0)
->                  (NoMatchingOperator "@" [ScalarType "text"]))
+>      ,p "@ true" (TypeError ("",0,0)
+>                  (NoMatchingOperator "@" [ScalarType "bool"]))
 
 >      ,p "-3" (typeInt)
 >      ,p "-'a'" (TypeError ("",0,0)
->                  (NoMatchingOperator "-" [ScalarType "text"]))
+>                  (NoMatchingOperator "-" [UnknownStringLit]))
 
 >      ,p "4-3" (typeInt)
 
@@ -137,9 +137,12 @@ check casts from unknown string lits
 >     (mapExprType [
 >       p "3 + '4'" typeInt
 >      ,p "3.0 + '4'" typeNumeric
->      ,p "'3' + '4'" typeNumeric
+>      ,p "'3' + '4'" (TypeError ("",0,0)
+>                       (NoMatchingOperator "+" [UnknownStringLit
+>                                               ,UnknownStringLit]))
 >      ])
 
+> {-
 
 >    ,testGroup "case expressions"
 >     (mapExprType [
@@ -156,15 +159,15 @@ check casts from unknown string lits
 >         \ when 'test'=3 then 'blah'\n\
 >         \ else 'test'\n\
 >         \end" (TypeError ("",0,0)
->                (NoMatchingOperator "=" [ScalarType "text",typeInt]))
+>                (NoMatchingOperator "=" [UnknownStringLit,typeInt]))
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 'blah'\n\
 >         \ else 1\n\
 >         \end" (TypeError ("",0,0)
 >                (WrongTypes (ScalarType "text")
->                  [ScalarType "text"
->                  ,ScalarType "text"
+>                  [UnknownStringLit
+>                  ,UnknownStringLit
 >                  ,typeInt]))
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
@@ -172,12 +175,14 @@ check casts from unknown string lits
 >         \ else 'else'\n\
 >         \end" (TypeError ("",0,0)
 >                (WrongTypes (ScalarType "text")
->                 [ScalarType "text"
+>                 [UnknownStringLit
 >                 ,typeInt
->                 ,ScalarType "text"]))
+>                 ,UnknownStringLit]))
 >      ])
 
->    ,testGroup "case expressions"
+> -}
+
+>    ,testGroup "cast expressions"
 >     (mapExprType [
 >       p "cast ('1' as integer)"
 >         (typeInt)
