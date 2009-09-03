@@ -225,11 +225,7 @@ checkTypes sp tl@(TypeList l) argC retT =
                                 Just $ te NeedOneOrMoreArgs
                             | otherwise -> checkArgListMatches (head l) l
             ExactList ts | ts == l -> Nothing
-                         --hack -> check if ok if unknownstringlits
-                         --are replaced by scalartype 'text'
-                         | (map (\t -> if t == UnknownStringLit
-                                         then ScalarType "text"
-                                         else t) ts) == l -> Nothing
+                         | canImplicitCast l ts -> Nothing
                          | otherwise ->
                               Just $ te $ WrongTypeList ts l
             ExactPredList chks -> case checkPredList sp chks l of
@@ -245,6 +241,11 @@ checkTypes sp tl@(TypeList l) argC retT =
                                    else Just $ te (WrongTypes tc tcs)
       te = TypeError sp
       pe = propagateUnknownError
+      canImplicitCast (f:fs) (t:ts) =
+          {-trace (show (f:fs) ++ show (t:ts)) $-}
+          (f == t || implicitlyCastableFromTo f t) && canImplicitCast fs ts
+      canImplicitCast [] [] = True
+      canImplicitCast _ _ = False
 
 
 checkTypes _ x _ _ = error $ "can't check types of non type list: " ++ show x
@@ -538,10 +539,10 @@ findCallMatch sp f inArgs =
                                        case isPreferredType ca of
                                          True -> ImplicitToPreferred
                                          False -> ImplicitToNonPreferred
-                                   | ia == UnknownStringLit ->
-                                       case isPreferredType ca of
-                                         True -> ImplicitToPreferred
-                                         False -> ImplicitToNonPreferred
+                                   -- | ia == UnknownStringLit ->
+                                   --    case isPreferredType ca of
+                                   --      True -> ImplicitToPreferred
+                                   --      False -> ImplicitToNonPreferred
                                    | otherwise -> CannotCast
                               ) : listCastPairs' ias cas
                           listCastPairs' [] [] = []
@@ -581,7 +582,8 @@ getTypeCategory t = case find (\(t1,_,_)-> t1==t) typeCategories of
 
 
 implicitlyCastableFromTo :: Type -> Type -> Bool
-implicitlyCastableFromTo from to = any (==(from,to,ImplicitCastContext)) castTable
+implicitlyCastableFromTo from to = from == UnknownStringLit ||
+                                     any (==(from,to,ImplicitCastContext)) castTable
 
 
 

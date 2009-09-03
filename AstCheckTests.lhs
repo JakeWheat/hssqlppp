@@ -69,13 +69,13 @@ types of error message received.
 >                                    [typeInt
 >                                    ,typeInt
 >                                    ,typeInt]))
->      ,p "substring('aqbc' from 2 for 'test')" (TypeError ("",0,0)
+>      ,p "substring('aqbc' from 2 for true)" (TypeError ("",0,0)
 >                     (WrongTypeList [ScalarType "text"
 >                                    ,typeInt
 >                                    ,typeInt]
 >                                    [UnknownStringLit
 >                                    ,typeInt
->                                    ,UnknownStringLit]))
+>                                    ,typeBool]))
 
 >      ,p "3 between 2 and 4" (typeBool)
 >      ,p "3 between '2' and 4" (TypeError ("",0,0)
