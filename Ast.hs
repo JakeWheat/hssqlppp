@@ -90,7 +90,6 @@ getOperatorType s = case () of
                             PrefixOp
                         | any (\(x,_,_) -> x == s) postfixOperatorTypes ->
                             PostfixOp
-                        --special case the keyword operators
                         | otherwise ->
                             error $ "don't know flavour of operator " ++ s
 
@@ -251,6 +250,12 @@ checkTypes sp tl@(TypeList l) argC retT =
 checkTypes _ x _ _ = error $ "can't check types of non type list: " ++ show x
 
 
+
+checkTypeExists :: MySourcePos -> Type -> Type
+checkTypeExists sp t =
+    if t `elem` defaultTypeNames
+      then t
+      else TypeError sp (UnknownTypeError t)
 
 data CastContext = ImplicitCastContext | AssignmentCastContext | ExplicitCastContext
                    deriving (Eq,Show)
@@ -9291,7 +9296,7 @@ data TypeErrorInfo  = IncompatibleTypes ([Type])
                     | OperatorNeeds1Or2Args (Int) 
                     | OtherTypeError (String) 
                     | TypelessEmptyArray 
-                    | UnknownTypeError (String) 
+                    | UnknownTypeError (Type) 
                     | WrongNumArgs (Int) (Int) 
                     | WrongType (Type) (Type) 
                     | WrongTypeList ([Type]) ([Type]) 
@@ -9320,8 +9325,8 @@ sem_TypeErrorInfo (OtherTypeError _string )  =
     (sem_TypeErrorInfo_OtherTypeError _string )
 sem_TypeErrorInfo (TypelessEmptyArray )  =
     (sem_TypeErrorInfo_TypelessEmptyArray )
-sem_TypeErrorInfo (UnknownTypeError _string )  =
-    (sem_TypeErrorInfo_UnknownTypeError _string )
+sem_TypeErrorInfo (UnknownTypeError _type )  =
+    (sem_TypeErrorInfo_UnknownTypeError (sem_Type _type ) )
 sem_TypeErrorInfo (WrongNumArgs _expected _got )  =
     (sem_TypeErrorInfo_WrongNumArgs _expected _got )
 sem_TypeErrorInfo (WrongType _expected _got )  =
@@ -9411,9 +9416,9 @@ sem_TypeErrorInfo_TypelessEmptyArray :: T_TypeErrorInfo
 sem_TypeErrorInfo_TypelessEmptyArray  =
     (let 
      in  ( ))
-sem_TypeErrorInfo_UnknownTypeError :: String ->
+sem_TypeErrorInfo_UnknownTypeError :: T_Type  ->
                                       T_TypeErrorInfo 
-sem_TypeErrorInfo_UnknownTypeError string_  =
+sem_TypeErrorInfo_UnknownTypeError type_  =
     (let 
      in  ( ))
 sem_TypeErrorInfo_WrongNumArgs :: Int ->
@@ -9483,7 +9488,9 @@ sem_TypeName_ArrayTypeName typ_  =
               _typInodeType :: Type
               _lhsOnodeType =
                   propagateUnknownError _typInodeType
-                    (ArrayType _typInodeType)
+                    $ checkTypeExists
+                          _lhsIsourcePos
+                          (ArrayType _typInodeType)
               _lhsOmessages =
                   _typImessages
               _typOinLoop =
@@ -9538,10 +9545,7 @@ sem_TypeName_SimpleTypeName tn_  =
               _lhsOmessages :: ([Message])
               _lhsOnodeType =
                   let st = canonicalizeType $ ScalarType tn_
-                  in if st `elem` defaultTypeNames
-                       then st
-                       else TypeError _lhsIsourcePos
-                                (UnknownTypeError tn_)
+                  in checkTypeExists _lhsIsourcePos st
               _lhsOmessages =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))

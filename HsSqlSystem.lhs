@@ -1,5 +1,7 @@
 #! /usr/bin/env runhaskell
 
+Copyright 2009 Jake Wheat
+
 command line is
 ./HsSqlSystem.lhs [commandName] [commandArgs ...]
 

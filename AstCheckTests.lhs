@@ -184,7 +184,7 @@ check casts from unknown string lits
 >       p "cast ('1' as integer)"
 >         (typeInt)
 >      ,p "cast ('1' as baz)"
->         (TypeError nsp (UnknownTypeError "baz"))
+>         (TypeError nsp (UnknownTypeError $ ScalarType "baz"))
 >      ,p "array[]"
 >         (TypeError nsp TypelessEmptyArray)
 >      ,p "array[] :: text[]"

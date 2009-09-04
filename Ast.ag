@@ -8,10 +8,10 @@ Attribute Grammar system:
 http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem
 http://www.haskell.org/haskellwiki/The_Monad.Reader/Issue4/Why_Attribute_Grammars_Matter
 
-There are no source positions in the ast at the moment. The grammar
-system is intended to act a as type checker, and to do other static
-checks for the time being, which is a work in progress and in a very
-early state.
+There is very limited source position information in the ast at the
+moment. The grammar system is used to implement type checking, and
+will also do other static checks, which is a work in progress and in a
+very early state.
 
 These ast nodes a are both used as the result of successful parsing,
 and as the input to the pretty printer.
@@ -489,7 +489,6 @@ getOperatorType s = case () of
                             PrefixOp
                         | any (\(x,_,_) -> x == s) postfixOperatorTypes ->
                             PostfixOp
-                        --special case the keyword operators
                         | otherwise ->
                             error $ "don't know flavour of operator " ++ s
 }
@@ -734,27 +733,19 @@ SEM Statement
                                           else []
 
 {-
-save this so i don't have to type it all out again
-SEM Statement
-    | SelectStatement CombineSelect Values Insert Update Delete Copy CopyData
-      Truncate CreateTable CreateTableAs CreateView CreateType CreateFunction
-      CreateDomain DropFunction DropSomething Assignment Return ReturnNext
-      ReturnQuery Raise NullStatement Perform Execute ExecuteInto
-      ForSelectStatement ForIntegerStatement WhileStatement
-      ContinueStatement CaseStatement If-}
-
-{-
 ================================================================================
 Type checking
 
 the current type checking approach doesn't quite match how SQL
-works. What it will do when the first version is finished, is possibly
-read the database catalogs, then read the source script(s) and
-statically check the types are consistent, as if the scripts are
+works. What it will do when the first version is finished, is:
+* possibly read the database catalogs
+* then read the source script(s)
+and statically check the types are consistent, as if the scripts are
 declarative descriptions rather than a series of imperative
-commands. In particular, this means that it won't be able to type
-check dynamically generated tables, functions, views, etc., in a sense
-it is static whereas SQL is dynamic.
+commands.
+
+In particular, e.g. it won't be able to type check a create function
+statement run from an invocation of another function.
 
 One possible solution to this is to defer type checking and use the
 database to load the script bit by bit whilst type checking as bits
@@ -764,7 +755,38 @@ Part of the syntax extension system design is to provide some
 specialized methods for generating sql code in a way that can be type
 checked statically without having to run the code.
 
+Types overview:
+Regular types: scalarType, arrayType, composite type, domaintype
+we can used these anywhere
+
+semi first class types: row, unknownstringlit (called unknown in pg) -
+these can be used in some places, but not others, in particular an
+expression can have this type or select can have a row with these
+type, but a view can't have a column with this type (so a select can
+be valid on it's own but not as a view. Not sure if Row types can be
+variables, unknownstringlit definitely can't
+
+pseudo types - mirror pg pseudo types
+Internal, LanguageHandler, Opaque probably won't ever be properly supported
+Not sure exactly what Any is, can't use it in functions like the other any types.
+Cstring - treated as variant of text?
+record -dynamically typed, depends where it is used, i think is used
+for type inference in function return types, and as a dynamically
+typed variable in functions, where it can take any composite typed
+value.
+void is used for functions which return nothing
+trigger is a tag to say a function is used in triggers, used as a
+return type only
+
+typelist is an internal type used during type checking
+typeerror represents something which has failed to typecheck
+unknowntype is used to represent the type of anything which the code
+is currently unable to type check, this should dissappear at some
+point, or at least become unused
+
 -}
+
+-- Type identifies a type, doesn't describe it
 
 DATA Type | ScalarType String
           | ArrayType Type
@@ -795,6 +817,16 @@ DATA PseudoType | Any
                 | LanguageHandler
                 | Opaque
 
+{-
+
+this list will need reviewing, probably refactor to a completely
+different set of infos, also will want to add more information to
+these, and to provide a way of converting into a user friendly
+string. It is intended for this code to produce highly useful errors
+later on down the line.
+
+-}
+
 DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
                    | WrongTypeList expected:{[Type]} got:{[Type]}
                    | WrongNumArgs expected:Int got:Int
@@ -802,7 +834,7 @@ DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
                    | NotArrayType got:Type
                    | NeedOneOrMoreArgs
                    | OtherTypeError String
-                   | UnknownTypeError String
+                   | UnknownTypeError Type
                    | OperatorNeeds1Or2Args got:Int
                    | NoMatchingOperator o:String t:{[Type]}
                    | MultipleMatchingOperators o:String t:{[Type]}
@@ -812,6 +844,14 @@ DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
                    | IncompatibleTypes t:{[Type]}
 
 DERIVING Type PseudoType TypeErrorInfo: Show,Eq
+
+{-
+
+we set all the node types to unknown to start with, this allows the
+type checking to be implemented bit by bit. When the type checking is
+complete, these might be removed or changed to something more useful.
+
+-}
 
 ATTR NonListNodes Root ExpressionRoot
   [
@@ -826,9 +866,6 @@ ATTR ListNodes
   | nodeType USE {`appendTypeList`} {TypeList []} : {Type}
   ]
 
-
--- type checking utilities
-
 {
 setUnknown :: Type -> Type -> Type
 setUnknown _ _ = UnknownType
@@ -836,9 +873,25 @@ setUnknown _ _ = UnknownType
 appendTypeList :: Type -> Type -> Type
 appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
 appendTypeList t1 t2 = TypeList (t1:t2:[])
+}
 
---if the first argument is unknown or type error, pass it on
---otherwise use the second argument
+{
+{-
+================================================================================
+
+= some type checking utils
+
+== propagateunknownerror
+
+shortcut which should end up being used in every bit of type checking
+to make sure once we have an bad typed node, the type error propagates
+up the node tree nicely, instead of creating a cascade of type
+errors. Currently also used to propagate unknowntype in the same way.
+
+if the first argument is unknown or type error, pass it on otherwise
+use the second argument
+
+-}
 propagateUnknownError :: Type -> Type -> Type
 propagateUnknownError t t1 =
     case t of
@@ -881,12 +934,24 @@ isArrayType _ = False
 
 }
 ---------------------------------------------
--- some helpers to handle scalar expression type checking
 
--- idea is to pass in a list of types of arguments to a scalar valued
--- operator (or function, whatever), and a constraint on the arg list,
--- and a method of getting the type of the result of the operator
--- application
+{-
+================================================================================
+
+= mini type checking dsl
+
+create a little dsl to do declarative type checking for TypeList
+types. We can pass in:
+* the list of types,
+* a declarative constraint on this list, and
+* a method for determining the resultant type.
+
+Nnot sure all these constraint variations will be needed. or if this
+is going to last as the type checking is made more
+comprehensive. Currently used for type checking keyword operators, and
+in case expressions, maybe some other places.
+
+-}
 
 DATA ArgsCheck
     -- check any number of args, all have the same type
@@ -950,6 +1015,8 @@ DATA RetType
 {
 type RetTypeFunner = ([Type] -> Type)
 
+-- the actual dsl engine:
+
 checkTypes :: MySourcePos -> Type -> ArgsCheck -> RetType -> Type
 checkTypes sp tl@(TypeList l) argC retT =
     --1: check tl for errors or unknowns
@@ -958,6 +1025,7 @@ checkTypes sp tl@(TypeList l) argC retT =
     --  (it returns Just error, or Nothing if ok)
     --3: get the return type, and check that for unknowns or errors
     --4: success, return the result type
+    --todo: where can implicit casts be used in this type checking?
     let c = case checkArgs of
               Just t -> t
               Nothing -> getRetType
@@ -1024,67 +1092,28 @@ SEM MaybeExpression
 = type table
 this holds the available types
 
-notes on pg types:
-pseudotypes:any,anyelement,anyarray,anynonarray.anyenum
-cstring,internal,language_handler,opaque
-void
-trigger
-composite types
-row type
-setof (relation valued expressions)
-dynamically typed record (can be any composite type)
-numerical types: smallint, integer, bigint, decimal/numeric, real, double precision, serial, big serial,
- (some of these are aliases/shorthands, other aliases are: float, int2, int4, int8)
-money
-varchar, char, text
-"char",name
-bytea
-boolean
-enum
-groups of type: timestamp, geometric, netaddr, bitstring,tsearch,uuid,xml
-array (one array type per type (dimensions and sizes not part of type so int[] same type as int[][] (!))
-custom create type types
+random notes on pg types:
 
-domains:
+== domains:
 the point of domains is you can't put constraints on types, but you
 can wrap a type up in a domain and put a constraint on it there
 
-
 == literals/selectors
-needs some notes for parsing and checking the various ways to
-represent literals/selectors of various types in source code, e.g. ROW
-for composite types, and e.g. '{}' for empty array, etc.
+
+source strings are parsed as unknown type: they can be implicitly cast
+to almost any type in the right contexts.
+
+rows ctors can also be implicitly cast to any composite type matching
+the elements (how exactly are they matched?)
+
+string literals are not checked for valid syntax currently, but this
+will probably change so we can type check string literals statically,
+whereas pg defers all checking to runtime, because it has to cope with
+custom data types. this code isn't going to be able to support custom
+data types very well, so it can get away with doing more static checks
+on this sort of thing.
 
 == notes on type checking types
-prectypename: only for certain types
-check types refered to appear in type catalog cache
-
-- build this early in the checking process, want to feed in a default
-  list, or load it from a database, then supplement it with the new
-  type definitions in the ast
-
-looking at the typename nodes:
-check context: setof can only appear as return type of function
-what other restrictions on context?
-some types refer to other types:
-e.g. domains, composite types, enum, row types?
-
-how does pg treat row types: are they all the same, are ones with the
-same number of elements the same, are they only the same when they
-have the same number and types of elements?
-
-is it worth splitting types into scalar and type generators, and
-handling them differently?
-
-how does name and structural equivalence apply to pg types?
-
-== notes on implicit casting
-
-type categories boolean, numeric, string, bitstring, datetime,
-timespan, geometric, network, and user-defined
-
-implicit 'functional' casts
-
 
 === basic type checking
 at the moment - just check type exists in predetermined list of type
@@ -1092,55 +1121,11 @@ names
 todo: option to read types from database catalog at time of type
 checking
 todo: collect type names from current source file to check against
-also
-
-
-with ts as
-(select pg_catalog.format_type(t.oid, null) as name
-  from pg_catalog.pg_type t
-  where (t.typrelid = 0
-         or (select c.relkind = 'c'
-             from pg_catalog.pg_class c
-             where c.oid = t.typrelid))
-        and not exists(select 1 from pg_catalog.pg_type el
-                       where el.oid = t.typelem and el.typarray = t.oid)
-        and pg_catalog.pg_type_is_visible(t.oid)
-  order by name)
-select '"' || name || '",' from ts;
-
-where need to check type names?
-casts, create table attrs, create type (composite) attrs, create
-domain, create function: param defs, returns, var defs, drop function
-
-
-
-select pg_catalog.format_type(t.oid, null) as name,
-       typtype,
-       typcategory,
-       typispreferred,
-       typrelid,
-       --pg_catalog.format_type(t.typelem, null) as elem,
-       --pg_catalog.format_type(t.typarray, null) as array,
-       typnotnull,
-       pg_catalog.format_type(t.typbasetype, null) as basetype
-  from pg_catalog.pg_type t
-  where pg_catalog.pg_type_is_visible(t.oid)
-        and typtype <> 'p'
-        and not exists(select 1 from pg_catalog.pg_type el
-                       where el.oid = t.typelem and el.typarray = t.oid)
-  order by typtype,typcategory,typispreferred desc,name;
-
-
-
-select pg_catalog.format_type(castsource, null) as castsource,
-       pg_catalog.format_type(casttarget, null) as casttarget,
-       castcontext from pg_cast
-       order by castsource, casttarget;
 
 Type aliases
 
 Some types in postgresql have multiple names. I think this is
-hardcoded in their parser. There are two canonicalize routines to work
+hardcoded in the pg parser. There are two canonicalize routines to work
 with these aliases.
 
 The first one is for the ast, these canonical names have been chosen
@@ -1166,44 +1151,35 @@ update: going to stick with the names given in pg_type as the
 canonical names for now, add constants to protect other programs from
 changes here.
 
-I think there has to be another layer of type equivalences, e.g. for
-type checking expressions, text and varchar are equivalent, domains
-and their underlying type are equivalent. Update - this is wrong,
-handled by implicit casts.
-
-
-Need to filter this list since they are all treated as scalar type
-names atm, and need to treat scalars, composites, domains, special
-types differently
-
-
+see HsSqlSystem.lhs for the sql and haskell code which generates these
+include files containing type and function information
 
 -}
+
 INCLUDE "PGTypes.ag"
 
 {-
 
 TODO:
 
-when we see a simple type name, or the name part of an arrayof or
-setof type, need to try to match against the following:
-scalar, composite or domain type
-scalar alias name e.g. integer -> ScalarType "int4"
-how are pseudo types going to work?
-what about types with modifiers?
+SimpleTypeName can match a composite or domain type, as well as a base
+type
 
-also, what can setof be applied to?
-array types have to match an exact array type in the catalog
+what about PrecTypeName? - need to fix the ast and parser (these are
+called type modifiers in pg)
+
+also, what can setof be applied to - don't know if it can apply to an
+array or setof type
+
+array types have to match an exact array type in the catalog, so we
+can't create an arbitrary array of any type
 
 -}
 
 SEM TypeName
      | SimpleTypeName
           lhs.nodeType = let st = canonicalizeType $ ScalarType @tn
-                         in if st `elem` defaultTypeNames
-                              then st
-                              else TypeError @lhs.sourcePos
-                                       (UnknownTypeError @tn)
+                         in checkTypeExists @lhs.sourcePos st
 --     | PrecTypeName
 --          lhs.nodeType = if @tn `elem` defaultTypes
 --                           then ScalarType @tn
@@ -1211,26 +1187,40 @@ SEM TypeName
 --                                  (UnknownTypeError @tn)
      | ArrayTypeName
           lhs.nodeType = propagateUnknownError @typ.nodeType
-                           (ArrayType @typ.nodeType)
+                           $ checkTypeExists
+                                 @lhs.sourcePos
+                                 (ArrayType @typ.nodeType)
      | SetOfTypeName
           lhs.nodeType = propagateUnknownError @typ.nodeType
                            (SetOfType @typ.nodeType)
 
 {
-data CastContext = ImplicitCastContext | AssignmentCastContext | ExplicitCastContext
+checkTypeExists :: MySourcePos -> Type -> Type
+checkTypeExists sp t =
+    if t `elem` defaultTypeNames
+      then t
+      else TypeError sp (UnknownTypeError t)
+
+data CastContext = ImplicitCastContext
+                 | AssignmentCastContext
+                 | ExplicitCastContext
                    deriving (Eq,Show)
 }
 
---todo: some sort of validation on whether the cast will work
+
+--first actual bit of type checking - a cast expression
+-- todo: some sort of validation on whether the cast will work
+-- it's not straight forward to work out exactly what explicit casts
+-- pg allows...
+
 SEM Expression
     | Cast lhs.nodeType = propagateUnknownError
                             (TypeList
                              [@expr.nodeType])
                             @tn.nodeType
-
-
 {
-
+--aliases to protect client code if/when the ast canonical names are
+--changed
 typeSmallInt = ScalarType "int2"
 typeBigInt = ScalarType "int8"
 typeInt = ScalarType "int4"
@@ -1274,13 +1264,6 @@ canonicalizeType t =
 
 {-
 = literals
-
-Tokens which the parser produces are typed as follows:
-integer token -> int
-non integer token -> numeric
-bool -> bool
-string -> unknown
-
 -}
 
 SEM Expression
@@ -1327,6 +1310,10 @@ allKeywordOps = keywordBinaryOperatorTypes ++ keywordUnaryOperatorTypes
 allTypes :: [Type]
 allTypes = defaultTypeNames
 
+
+-- this utility fn is used to check that the operator and function
+-- prototypes only contain types listed in the defaultTypeNames list
+
 checkFunctionTypes :: [(String, [Type])]
 checkFunctionTypes =
     catMaybes $ map (\(f,a,r) ->
@@ -1349,16 +1336,15 @@ checkFunctionTypes =
 {-
 
 todo:
-basic operator lookup
-overloading tests
-wrong name
-wrong args
-add implicit cast tests
-determining type of token by context for int, float and string tokens
- (need a wide selection of tests for string tokens for various types)
+polymorphic functions
 row ctor implicitly and explicitly cast to a composite type
+cast empty array
 
 == simple operators
+
+type check keyword operators, standard operators (prefix, postfix,
+binary), and function calls
+
 -}
 
 ATTR KeywordOperator
@@ -1383,7 +1369,7 @@ SEM Expression
                                     ,ScalarType "int4"
                                     ,ScalarType "int4"])
                          (ConstRetType (ScalarType "text"))
-          Between -> ct
+          Between -> ct -- needs to be fixed to type check against <= and =>
                          (AllSameTypeNumAny 3)
                          (ConstRetType (typeBool))
           ArraySub -> ct
@@ -1414,14 +1400,13 @@ SEM Expression
 
 findCallMatch - partially implements the type conversion rules for
 finding an operator or function match given a name and list of
-arguments with partial types
+arguments with partial or fully specified types
 
 TODO:
 namespaces
 function style casts not in catalog
 variadic args
 default args
-binary ops with onne unknown
 domains -> base type
 
 Algo:
@@ -1665,6 +1650,8 @@ choose first input type that is a preferred type if there is one
 choose last non unknown type that has implicit casts from all preceding inputs
 check all can convert to selected type else fail
 
+code is not as much of a mess as findCallMatch
+
 -}
 
 resolveResultSetType :: MySourcePos -> [Type] -> Type
@@ -1701,8 +1688,9 @@ resolveResultSetType sp inArgs = propagateUnknownError (TypeList inArgs) $
 
 {-
 == case expression
-check the when expressions are boolean
-inside the pairs, then just propagate the then type
+
+check the when expressions are boolean inside the pairs, then collect
+the then types to pass to resolveResultSetType
 
 -}
 
@@ -1725,27 +1713,25 @@ SEM Expression
 
 {-
 
+End of type checking
 
 ================================================================================
 
-Non attribute grammar stuff
+used to use record syntax to try to insulate code from field changes,
+and not have to write out loads of nothings and [] for simple selects,
+but don't know how to create haskell named records from uuagc DATA
+things
 
--}
--- use to use record syntax to try to insulate code from field
--- changes, and not have to write out loads of nothings and [] for
--- simple selects, but don't know how to use haskell named records
--- from uuagc code
---makeSelect :: Statement
---makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
---                    Nothing Nothing [] Nothing [] Asc Nothing Nothing
+makeSelect :: Statement
+makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
+                   Nothing Nothing [] Nothing [] Asc Nothing Nothing
 
-{-
 
 ================================================================================
 
 = checkAst
 
-Main function to run on asts, returns a list of errors, warnings, etc.
+test function to run on asts, returns a list of errors, warnings, etc.
 
 -}
 {
@@ -1824,11 +1810,10 @@ TODO
 
 some non type-check checks:
 check plpgsql only in plpgsql function
-do all containment checks above
 orderby in top level select only
 copy followed immediately by copydata iff stdin, copydata only follows
-copy from stdin
-args to raise, etc, same number as placeholders in string
+  copy from stdin
+count args to raise, etc., check same number as placeholders in string
 natural with correct join types
 no natural with onexpr in joins
 constraint column ref checks?
@@ -1848,15 +1833,6 @@ thought too carefully about it yet).
 
 Type checking
 
-(Have no idea what I am doing, just going to try to bluff it, then
-learn how to do it properly later)
-
-Create a algebraic data type to represent types.
-
-Add a type called Unknown which always passes. Add this to everything
-by default - now all code type checks and we can add proper type
-checking piecemeal.
-
 Start with tables, and then simple select * from table, select a,b from table.
 Then maybe do some simple expressions.
 
@@ -1868,10 +1844,11 @@ expressions as well as scalars, tuples, etc).
 
 
 TODO: canonicalize ast process, as part of type checking produces a canonicalized ast which:
-all casts are explicit
+all implicit casts appear explicitly in the ast (maybe distinguished from explicit casts?)
 all names fully qualified
 all types use canonical names
 literal values and selectors in one form (use row style?)
+nodes are tagged with types
 what else?
 
 Canonical form only defined for type consistent asts.
