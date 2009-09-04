@@ -141,7 +141,7 @@ DATA Statement
 
 --queries
 
-    | SelectStatement SelectExpression
+    | SelectStatement ex:SelectExpression
 
 -- dml
 
@@ -253,7 +253,7 @@ DATA SelectExpression
     | CombineSelect ctype : CombineType
                     sel1 : SelectExpression
                     sel2 : SelectExpression
-    | Values ExpressionListList
+    | Values vll:ExpressionListList
 
 DATA FnBody | SqlFnBody sts : StatementList
             | PlpgsqlFnBody VarDefList sts : StatementList
@@ -1110,7 +1110,8 @@ SEM Expression
 {
 --aliases to protect client code if/when the ast canonical names are
 --changed
-typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,typeFloat8,typeVarChar,typeChar,typeBool :: Type
+typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
+  typeFloat8,typeVarChar,typeChar,typeBool :: Type
 typeSmallInt = ScalarType "int2"
 typeBigInt = ScalarType "int8"
 typeInt = ScalarType "int4"
@@ -1612,6 +1613,30 @@ SEM Expression
                                      e -> TypeList
                                           ((typesFromTypeList @cases.nodeType)
                                            ++ [e])))
+
+{-
+================================================================================
+
+= basic select statements
+
+-}
+
+SEM Statement
+    | SelectStatement lhs.nodeType = @ex.nodeType
+
+
+SEM SelectExpression
+    --we should get TypeList (TypeList (Type)) out of vll
+    | Values lhs.nodeType =
+        let t1 = typesFromTypeList ((typesFromTypeList @vll.nodeType) !! 0)
+            colNames = map (\(a,b) -> a ++ b) $
+                       zip (repeat "column")
+                           (map show [1..length t1])
+            ty = UnnamedCompositeType $ zip colNames t1
+        in SetOfType ty
+
+
+
 
 {-
 

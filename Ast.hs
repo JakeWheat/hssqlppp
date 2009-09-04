@@ -285,7 +285,8 @@ checkTypeExists sp t =
 
 --aliases to protect client code if/when the ast canonical names are
 --changed
-typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,typeFloat8,typeVarChar,typeChar,typeBool :: Type
+typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
+  typeFloat8,typeVarChar,typeChar,typeBool :: Type
 typeSmallInt = ScalarType "int2"
 typeBigInt = ScalarType "int8"
 typeInt = ScalarType "int4"
@@ -3827,8 +3828,8 @@ sem_SelectExpression (CombineSelect _ctype _sel1 _sel2 )  =
     (sem_SelectExpression_CombineSelect (sem_CombineType _ctype ) (sem_SelectExpression _sel1 ) (sem_SelectExpression _sel2 ) )
 sem_SelectExpression (Select _selDistinct _selSelectList _selTref _selWhere _selGroupBy _selHaving _selOrderBy _selDir _selLimit _selOffset )  =
     (sem_SelectExpression_Select (sem_Distinct _selDistinct ) (sem_SelectList _selSelectList ) _selTref _selWhere (sem_ExpressionList _selGroupBy ) _selHaving (sem_ExpressionList _selOrderBy ) (sem_Direction _selDir ) _selLimit _selOffset )
-sem_SelectExpression (Values _expressionListList )  =
-    (sem_SelectExpression_Values (sem_ExpressionListList _expressionListList ) )
+sem_SelectExpression (Values _vll )  =
+    (sem_SelectExpression_Values (sem_ExpressionListList _vll ) )
 -- semantic domain
 type T_SelectExpression  = Bool ->
                            MySourcePos ->
@@ -3959,25 +3960,30 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
           in  ( _lhsOmessages,_lhsOnodeType)))
 sem_SelectExpression_Values :: T_ExpressionListList  ->
                                T_SelectExpression 
-sem_SelectExpression_Values expressionListList_  =
+sem_SelectExpression_Values vll_  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _expressionListListOinLoop :: Bool
-              _expressionListListOsourcePos :: MySourcePos
-              _expressionListListImessages :: ([Message])
-              _expressionListListInodeType :: Type
-              _lhsOmessages =
-                  _expressionListListImessages
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _vllOinLoop :: Bool
+              _vllOsourcePos :: MySourcePos
+              _vllImessages :: ([Message])
+              _vllInodeType :: Type
               _lhsOnodeType =
-                  _expressionListListInodeType
-              _expressionListListOinLoop =
+                  let t1 = typesFromTypeList ((typesFromTypeList _vllInodeType) !! 0)
+                      colNames = map (\(a,b) -> a ++ b) $
+                                 zip (repeat "column")
+                                     (map show [1..length t1])
+                      ty = UnnamedCompositeType $ zip colNames t1
+                  in SetOfType ty
+              _lhsOmessages =
+                  _vllImessages
+              _vllOinLoop =
                   _lhsIinLoop
-              _expressionListListOsourcePos =
+              _vllOsourcePos =
                   _lhsIsourcePos
-              ( _expressionListListImessages,_expressionListListInodeType) =
-                  (expressionListList_ _expressionListListOinLoop _expressionListListOsourcePos )
+              ( _vllImessages,_vllInodeType) =
+                  (vll_ _vllOinLoop _vllOsourcePos )
           in  ( _lhsOmessages,_lhsOnodeType)))
 -- SelectItem --------------------------------------------------
 data SelectItem  = SelExp (Expression) 
@@ -4440,8 +4446,8 @@ sem_Statement (ReturnNext _expr )  =
     (sem_Statement_ReturnNext (sem_Expression _expr ) )
 sem_Statement (ReturnQuery _sel )  =
     (sem_Statement_ReturnQuery (sem_SelectExpression _sel ) )
-sem_Statement (SelectStatement _selectExpression )  =
-    (sem_Statement_SelectStatement (sem_SelectExpression _selectExpression ) )
+sem_Statement (SelectStatement _ex )  =
+    (sem_Statement_SelectStatement (sem_SelectExpression _ex ) )
 sem_Statement (Truncate _tables _restartIdentity _cascade )  =
     (sem_Statement_Truncate (sem_StringList _tables ) (sem_RestartIdentity _restartIdentity ) (sem_Cascade _cascade ) )
 sem_Statement (Update _table _assigns _whr _returning )  =
@@ -5222,25 +5228,25 @@ sem_Statement_ReturnQuery sel_  =
           in  ( _lhsOmessages,_lhsOnodeType)))
 sem_Statement_SelectStatement :: T_SelectExpression  ->
                                  T_Statement 
-sem_Statement_SelectStatement selectExpression_  =
+sem_Statement_SelectStatement ex_  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _selectExpressionOinLoop :: Bool
-              _selectExpressionOsourcePos :: MySourcePos
-              _selectExpressionImessages :: ([Message])
-              _selectExpressionInodeType :: Type
-              _lhsOmessages =
-                  _selectExpressionImessages
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _exOinLoop :: Bool
+              _exOsourcePos :: MySourcePos
+              _exImessages :: ([Message])
+              _exInodeType :: Type
               _lhsOnodeType =
-                  _selectExpressionInodeType
-              _selectExpressionOinLoop =
+                  _exInodeType
+              _lhsOmessages =
+                  _exImessages
+              _exOinLoop =
                   _lhsIinLoop
-              _selectExpressionOsourcePos =
+              _exOsourcePos =
                   _lhsIsourcePos
-              ( _selectExpressionImessages,_selectExpressionInodeType) =
-                  (selectExpression_ _selectExpressionOinLoop _selectExpressionOsourcePos )
+              ( _exImessages,_exInodeType) =
+                  (ex_ _exOinLoop _exOsourcePos )
           in  ( _lhsOmessages,_lhsOnodeType)))
 sem_Statement_Truncate :: T_StringList  ->
                           T_RestartIdentity  ->
