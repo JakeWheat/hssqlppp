@@ -116,8 +116,23 @@ appendTypeList :: Type -> Type -> Type
 appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
 appendTypeList t1 t2 = TypeList (t1:t2:[])
 
---if the first argument is unknown or type error, pass it on
---otherwise use the second argument
+
+{-
+================================================================================
+
+= some type checking utils
+
+== propagateunknownerror
+
+shortcut which should end up being used in every bit of type checking
+to make sure once we have an bad typed node, the type error propagates
+up the node tree nicely, instead of creating a cascade of type
+errors. Currently also used to propagate unknowntype in the same way.
+
+if the first argument is unknown or type error, pass it on otherwise
+use the second argument
+
+-}
 propagateUnknownError :: Type -> Type -> Type
 propagateUnknownError t t1 =
     case t of
@@ -189,6 +204,8 @@ checkPredList sp achks ats =
 
 type RetTypeFunner = ([Type] -> Type)
 
+-- the actual dsl engine:
+
 checkTypes :: MySourcePos -> Type -> ArgsCheck -> RetType -> Type
 checkTypes sp tl@(TypeList l) argC retT =
     --1: check tl for errors or unknowns
@@ -197,6 +214,7 @@ checkTypes sp tl@(TypeList l) argC retT =
     --  (it returns Just error, or Nothing if ok)
     --3: get the return type, and check that for unknowns or errors
     --4: success, return the result type
+    --todo: where can implicit casts be used in this type checking?
     let c = case checkArgs of
               Just t -> t
               Nothing -> getRetType
@@ -257,11 +275,14 @@ checkTypeExists sp t =
       then t
       else TypeError sp (UnknownTypeError t)
 
-data CastContext = ImplicitCastContext | AssignmentCastContext | ExplicitCastContext
+data CastContext = ImplicitCastContext
+                 | AssignmentCastContext
+                 | ExplicitCastContext
                    deriving (Eq,Show)
 
 
-
+--aliases to protect client code if/when the ast canonical names are
+--changed
 typeSmallInt = ScalarType "int2"
 typeBigInt = ScalarType "int8"
 typeInt = ScalarType "int4"
@@ -329,6 +350,10 @@ allKeywordOps = keywordBinaryOperatorTypes ++ keywordUnaryOperatorTypes
 allTypes :: [Type]
 allTypes = defaultTypeNames
 
+
+-- this utility fn is used to check that the operator and function
+-- prototypes only contain types listed in the defaultTypeNames list
+
 checkFunctionTypes :: [(String, [Type])]
 checkFunctionTypes =
     catMaybes $ map (\(f,a,r) ->
@@ -352,14 +377,13 @@ checkFunctionTypes =
 
 findCallMatch - partially implements the type conversion rules for
 finding an operator or function match given a name and list of
-arguments with partial types
+arguments with partial or fully specified types
 
 TODO:
 namespaces
 function style casts not in catalog
 variadic args
 default args
-binary ops with onne unknown
 domains -> base type
 
 Algo:
@@ -413,28 +437,7 @@ type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
 
 findCallMatch :: MySourcePos -> String -> [Type] ->  Either Type FunctionPrototype
 findCallMatch sp f inArgs =
-    let icl = initialCandList
-        castPairs :: [[ArgCastFlavour]]
-        castPairs = map listCastPairs $ map getFnArgs icl
-        candCastPairs :: [ProtArgCast]
-        candCastPairs = zip icl castPairs
-        exactMatch :: [ProtArgCast]
-        exactMatch = getExactMatch candCastPairs
-        binOp1UnknownMatch :: [ProtArgCast]
-        binOp1UnknownMatch = getBinOp1UnknownMatch candCastPairs
-        reachable :: [ProtArgCast]
-        reachable = filterCandCastPairs (none (==CannotCast)) candCastPairs
-        preferredTypesCounts = countPreferredTypeCasts reachable
-        keepCounts = maximum preferredTypesCounts
-        itemCountPairs :: [(ProtArgCast,Int)]
-        itemCountPairs = zip reachable preferredTypesCounts
-        filteredForPreferred :: [ProtArgCast]
-        filteredForPreferred = map fst $ filter (\(_,i) -> i == keepCounts) itemCountPairs
-        argCats :: [Either () String]
-        argCats = getCastCategoriesForUnknowns filteredForPreferred
-        unknownMatchesByCat :: [ProtArgCast]
-        unknownMatchesByCat = getCandCatMatches filteredForPreferred argCats
-    in case () of
+    case () of
          _ | length exactMatch == 1 -> Right $ getHeadFn exactMatch
            | length binOp1UnknownMatch == 1 -> Right $ getHeadFn binOp1UnknownMatch
            | length reachable == 1 -> Right $ getHeadFn reachable
@@ -444,8 +447,71 @@ findCallMatch sp f inArgs =
                           trace ("\nreachable " ++ show reachable) $
                           trace ("\nfilteredforpreferred " ++ show filteredForPreferred) $
                           trace ("\nargCats " ++ show argCats) $
-                          trace ("\nunknownMatchesByCat " ++ show unknownMatchesByCat) -} noMatchingError
+                          trace ("\nunknownMatchesByCat " ++ show unknownMatchesByCat) -}
+                          Left $ TypeError sp (NoMatchingOperator f inArgs)
     where
+      -- basic lists which roughly mirror algo
+      -- get the possibly matching candidates
+      icl = initialCandList
+
+      -- record what casts are needed for each candidate
+      castPairs :: [[ArgCastFlavour]]
+      castPairs = map listCastPairs $ map getFnArgs icl
+
+      candCastPairs :: [ProtArgCast]
+      candCastPairs = zip icl castPairs
+
+      -- see if we have an exact match
+      exactMatch :: [ProtArgCast]
+      exactMatch = getExactMatch candCastPairs
+
+      -- implement the one known, one unknown resolution for binary operators
+      binOp1UnknownMatch :: [ProtArgCast]
+      binOp1UnknownMatch = getBinOp1UnknownMatch candCastPairs
+
+      -- eliminate candidates for which the inargs cannot be casted to
+      reachable :: [ProtArgCast]
+      reachable = filterCandCastPairs (none (==CannotCast)) candCastPairs
+
+      -- keep the cands with the most casts to preferred types
+      preferredTypesCounts = countPreferredTypeCasts reachable
+      keepCounts = maximum preferredTypesCounts
+      itemCountPairs :: [(ProtArgCast,Int)]
+      itemCountPairs = zip reachable preferredTypesCounts
+      filteredForPreferred :: [ProtArgCast]
+      filteredForPreferred = map fst $ filter (\(_,i) -> i == keepCounts) itemCountPairs
+
+      -- collect the inArg type categories to do unknown inArg resolution
+      argCats :: [Either () String]
+      argCats = getCastCategoriesForUnknowns filteredForPreferred
+      unknownMatchesByCat :: [ProtArgCast]
+      unknownMatchesByCat = getCandCatMatches filteredForPreferred argCats
+
+      -------------
+      initialCandList :: [FunctionPrototype]
+      initialCandList = filter (\(candf,candArgs,_) ->
+                                  (candf,length candArgs) == (f,length inArgs))
+                          allOpsAndFns
+
+      listCastPairs :: [Type] -> [ArgCastFlavour]
+      listCastPairs l = listCastPairs' inArgs l
+                        where
+                          listCastPairs' :: [Type] -> [Type] -> [ArgCastFlavour]
+                          listCastPairs' (ia:ias) (ca:cas) =
+                              (case () of
+                                 _ | ia == ca -> ExactMatch
+                                   | implicitlyCastableFromTo ia ca ->
+                                       case isPreferredType ca of
+                                         True -> ImplicitToPreferred
+                                         False -> ImplicitToNonPreferred
+                                   | otherwise -> CannotCast
+                              ) : listCastPairs' ias cas
+                          listCastPairs' [] [] = []
+                          listCastPairs' _ _ = error "internal error: mismatched num args in implicit cast algorithm"
+
+      getExactMatch :: [ProtArgCast] -> [ProtArgCast]
+      getExactMatch ccp  = filterCandCastPairs (all (==ExactMatch)) ccp
+
       getBinOp1UnknownMatch :: [ProtArgCast] -> [ProtArgCast]
       getBinOp1UnknownMatch cands =
           if not (isOperator f &&
@@ -457,52 +523,15 @@ findCallMatch sp f inArgs =
                                             then inArgs !! 1
                                             else head inArgs)
                  in filter (\((_,a,_),_) -> a == newInArgs) cands
-      noMatchingError = Left $ TypeError sp (NoMatchingOperator f inArgs)
-      initialCandList :: [FunctionPrototype]
-      initialCandList = filter (\(candf,candArgs,_) ->
-                                  (candf,length candArgs) == (f,length inArgs))
-                          allOpsAndFns
-      getExactMatch :: [ProtArgCast] -> [ProtArgCast]
-      getExactMatch ccp  = filterCandCastPairs (all (==ExactMatch)) ccp
 
       countPreferredTypeCasts :: [ProtArgCast] -> [Int]
       countPreferredTypeCasts l =
           map (\(_,cp) -> count (==ImplicitToPreferred) cp) l
 
-      getCandCatMatches :: [ProtArgCast] -> [Either () String] -> [ProtArgCast]
-      getCandCatMatches candsA cats = getMatches candsA 0
-         where
-           getMatches :: [ProtArgCast] -> Int -> [ProtArgCast]
-           getMatches cands n =
-               case () of
-                 _ | n == length inArgs -> cands
-                   | (inArgs !! n) /= UnknownStringLit -> getMatches cands (n + 1)
-                   | otherwise ->
-                       let catMatches :: [ProtArgCast]
-                           catMatches = filter (\c -> Right (getCatForArgN n c) ==
-                                                     (cats !! n)) cands
-                           prefMatches :: [ProtArgCast]
-                           prefMatches = filter (\c -> isPreferredType
-                                                       (getTypeForArgN n c)) catMatches
-                           keepMatches :: [ProtArgCast]
-                           keepMatches = if length prefMatches > 0
-                                           then prefMatches
-                                           else catMatches
-                       in getMatches keepMatches (n + 1)
-           getTypeForArgN :: Int -> ProtArgCast -> Type
-           getTypeForArgN n ((_,a,_),_) = a !! n
-           getCatForArgN :: Int -> ProtArgCast -> String
-           getCatForArgN n c = getTypeCategory (getTypeForArgN n c)
-
-
-      -- Returns Left () if unknowns don't match so we can't match any
-      -- cands
-      -- returns: Right cats if they do match and we might be able to
-      -- select a best match
-      -- in the cats, Left () is used for inArgs which aren't unknown,
+      -- Left () is used for inArgs which aren't unknown,
       --                      and for unknowns which we don't have a
       --                      unique category
-      --              Right s -> s is the single letter category at
+      -- Right s -> s is the single letter category at
       --                           that position
       getCastCategoriesForUnknowns :: [ProtArgCast] -> [Either () String]
       getCastCategoriesForUnknowns cands =
@@ -533,22 +562,34 @@ findCallMatch sp f inArgs =
                              -- later on
                              | otherwise -> Left ()
 
-      listCastPairs :: [Type] -> [ArgCastFlavour]
-      listCastPairs l = listCastPairs' inArgs l
-                        where
-                          listCastPairs' :: [Type] -> [Type] -> [ArgCastFlavour]
-                          listCastPairs' (ia:ias) (ca:cas) =
-                              (case () of
-                                 _ | ia == ca -> ExactMatch
-                                   | implicitlyCastableFromTo ia ca ->
-                                       case isPreferredType ca of
-                                         True -> ImplicitToPreferred
-                                         False -> ImplicitToNonPreferred
-                                   | otherwise -> CannotCast
-                              ) : listCastPairs' ias cas
-                          listCastPairs' [] [] = []
-                          listCastPairs' _ _ = error "internal error: mismatched num args in implicit cast algorithm"
+      getCandCatMatches :: [ProtArgCast] -> [Either () String] -> [ProtArgCast]
+      getCandCatMatches candsA cats = getMatches candsA 0
+         where
+           getMatches :: [ProtArgCast] -> Int -> [ProtArgCast]
+           getMatches cands n =
+               case () of
+                 _ | n == length inArgs -> cands
+                   | (inArgs !! n) /= UnknownStringLit -> getMatches cands (n + 1)
+                   | otherwise ->
+                       let catMatches :: [ProtArgCast]
+                           catMatches = filter (\c -> Right (getCatForArgN n c) ==
+                                                     (cats !! n)) cands
+                           prefMatches :: [ProtArgCast]
+                           prefMatches = filter (\c -> isPreferredType
+                                                       (getTypeForArgN n c)) catMatches
+                           keepMatches :: [ProtArgCast]
+                           keepMatches = if length prefMatches > 0
+                                           then prefMatches
+                                           else catMatches
+                       in getMatches keepMatches (n + 1)
+           getTypeForArgN :: Int -> ProtArgCast -> Type
+           getTypeForArgN n ((_,a,_),_) = a !! n
+           getCatForArgN :: Int -> ProtArgCast -> String
+           getCatForArgN n c = getTypeCategory (getTypeForArgN n c)
 
+      -- utils
+      -- filter a candidate/cast flavours pair by a predicate on each
+      -- individual cast flavour
       filterCandCastPairs :: ([ArgCastFlavour] -> Bool)
                           -> [ProtArgCast]
                           -> [ProtArgCast]
@@ -556,9 +597,11 @@ findCallMatch sp f inArgs =
 
       getFnArgs :: FunctionPrototype -> [Type]
       getFnArgs (_,a,_) = a
+
       getHeadFn :: [ProtArgCast] -> FunctionPrototype
       getHeadFn l =  let ((hdFn, _):_) = l
                      in hdFn
+
       none p l = not (any p l)
       count p l = length $ filter p l
 
@@ -603,6 +646,8 @@ choose first input type that is a preferred type if there is one
 choose last non unknown type that has implicit casts from all preceding inputs
 check all can convert to selected type else fail
 
+code is not as much of a mess as findCallMatch
+
 -}
 
 resolveResultSetType :: MySourcePos -> [Type] -> Type
@@ -621,20 +666,20 @@ resolveResultSetType sp inArgs = propagateUnknownError (TypeList inArgs) $
    where
      allSameType = all (== head inArgs) inArgs && head inArgs /= UnknownStringLit
      allUnknown = all (==UnknownStringLit) inArgs
-     knownTypes = filter (/=UnknownStringLit) inArgs
      allSameCat = let firstCat = getTypeCategory (head knownTypes)
                   in all (\t -> getTypeCategory t == firstCat) knownTypes
      targetType = case catMaybes [firstPreferred, lastAllConvertibleTo] of
                     [] -> Nothing
                     (x:xs) -> Just x
      firstPreferred = find isPreferredType knownTypes
-     allConvertibleToFrom t ts = all (matchOrImplicitToFrom t) ts
      lastAllConvertibleTo = firstAllConvertibleTo (reverse knownTypes)
      firstAllConvertibleTo (x:xs) = if allConvertibleToFrom x xs
                                       then Just x
                                       else firstAllConvertibleTo xs
      firstAllConvertibleTo [] = Nothing
      matchOrImplicitToFrom t t1 = t == t1 || implicitlyCastableFromTo t1 t
+     knownTypes = filter (/=UnknownStringLit) inArgs
+     allConvertibleToFrom t ts = all (matchOrImplicitToFrom t) ts
 
 
 checkAst :: StatementList -> [Message]
@@ -5063,12 +5108,12 @@ sem_Expression_NullLit :: T_Expression
 sem_Expression_NullLit  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _lhsOnodeType =
+                  UnknownStringLit
               _lhsOmessages =
                   []
-              _lhsOnodeType =
-                  UnknownType
           in  ( _lhsOmessages,_lhsOnodeType)))
 sem_Expression_PositionalArg :: Integer ->
                                 T_Expression 

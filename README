@@ -4,17 +4,19 @@ plpgsql. BSD licensed.
 Status: it successfully parses and accurately pretty prints the three
 moderate sized sql files from another project of mine, but there are
 lots of missing bits. Coverage of sql is reasonable, see below for
-more details on what is supported and unsupported.
+more details on what is supported and unsupported. It also has the
+beginnings of a type checker, which currently can type check a range
+of expressions, but not selects, etc..
 
 The haskell files are literate haskell (the docs in these files aren't
 quite traditional literal style though). Parser.lhs has plenty of
-links in it, and if you view Tests.lhs you can see a range of sql that
-the program supports. The sql three files in ./sqltestfiles/ all parse
-successfully as longer examples of what can be parsed (they are from
-another project. Strictly speaking, passing these files through the
-parsing and pretty printing process leaves them unchanged enough to
-run the test suite from that project, it's still possible that not
-every detail is parsed correctly despite this).
+links in it, and if you view ParserTests.lhs you can see a range of
+sql that the program supports. The sql three files in ./sqltestfiles/
+all parse successfully as longer examples of what can be parsed (they
+are from another project. Strictly speaking, passing these files
+through the parsing and pretty printing process leaves them unchanged
+enough to run the test suite from that project, parsing them
+accurately will have to wait until the type checker is done).
 
 Apart from the file you're reading, documentation may be found in the
 files TODO and extension_system, and possibly on the launchpad page at
@@ -94,23 +96,56 @@ select 1; select another 1;
 ERROR HERE
 ------------
 
+To run the test suite run ./Tests.lhs
+
+It comes with a utility executable, ./HsSqlSystem.lhs, with the
+following commands:
+cleardb - slightly dodgy way to clear the database
+loadsql - load sql file(s) into a database, via parsing and pretty
+          printing
+clearandloadsql - cleardb then loadsql
+lexfile - lex a sql file and show the tokens on stdout
+showfileatts - intended to run typechecking, etc. on a sql file,
+               doesn't quite work at the moment
+parsefile - parse a sql file, then pretty print and parse that text to
+            see if it is unchanged
+roundtrip - parse then pretty print a sql file to stdout
+getfntables - used to generate FnTypes.ag, so we can type check
+              against the default operators and tables from template1
+              without having to connect to a database at parse/type
+              check time.
+gettypestuff - as above for types, type information and casts
+checkfntypes - utility to check that the operator and function
+               prototypes generated in getfntables only use types
+               mentioned in gettypestuff
+
+The database ones probably won't work right on your system, they are
+in a very early alpha state. You don't need to be able to run
+getfntables or gettypestuff since these output of these is included.
+
 ================================================================================
 
 = Fixing problems
 
 To add support for missing syntax or alter existing support/ fix bugs,
+you'll probably need uuagc installed.
 I recommend:
-* first altering Tree.lhs to add/change the tree node data
+* first altering Ast.ag to add/change the tree node data
 type(s), then
 * altering the pretty printer to output these nodes,
 * altering the parser to parse them
 ** add new statements to sqlStatement or plPgsqlStatement function
 ** new expression types to the factor function, and
-* add one or more test cases to Tests.lhs.
+* add one or more test cases to ParserTests.lhs (or possibly
+  AstCheckTests for type checking).
 
 (If you are a fan of TDD, do the last item first.)
 
-Tests.lhs already has structure set up to parse:
+You may need to alter some of the type checking code (if you add any
+new node types, put them in allnodes set, and in either nonlistsnodes
+or listnodes set.
+
+ParserTests.lhs already has structure set up to parse:
 
 *  fully formed sql (including plpgsql inside create function
    statements)
@@ -123,10 +158,6 @@ printing then reparsing the asts produced.
 
 If you add something please let me know, send a patch or add it on
 launchpad or something.
-
-As an example, you can view the diffs for adding drop domain support
-here to see how much lines of code were added/changed:
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/revision/122
 
 To add support for another sql dialect (e.g. ms sql server or mysql),
 I suggest forking the project for now, and we could look at merging
@@ -233,10 +264,10 @@ My current focus is on adding source location information to the ast,
 then adding type checking. I don't intend to continue adding support
 for missing sql syntax for the time being.
 
-Adding support for missing syntax should mostly be pretty easy. The
-only gnarly bits will be if you come across problems with the
-expression parser, but there's a good chance you won't with most real
-sql.
+Adding support for missing syntax used to be pretty
+easy. Unfortunately, since switching to uuagc for the ast file, it's
+become considerably more difficult. If you want to add something, send
+me an email and I can give you a few pointers.
 
 Contributions are welcome.
 

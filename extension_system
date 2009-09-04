@@ -29,9 +29,9 @@ e.g. to load into a production system with pg but without ghc.
 be run and only parse vanilla sql and plpgsql.
 
 * Adding extensions should not involve modifying any of these files:
-parser, tree, pretty printer.
+parser, ast, pretty printer.
 
-* current design will satisfy these:
+* current rough design should satisfy these additional constraints:
 
 ** No requirement to have ghc or hssqlppp installed on server to run
    scripts - can generate a regular sql script and use standard pg
@@ -40,6 +40,11 @@ parser, tree, pretty printer.
 ** Uses only plpgsql at runtime, so no running haskell code after the
    database is setup (e.g. no extensions which require runtime support
    from haskell code)
+
+These notes were written before deciding to use an attribute grammar
+system for type checking, not sure how it all can fit together, and
+whether extensions will be written in an attribute grammar style or
+not.
 
 = Flavours of extensions
 
@@ -80,29 +85,28 @@ Then provide a processor which filters out these statements during
 processing and replaces them with 0 or more regular sql statements to
 be loaded into pg.
 
-So you don't provide a pretty printer under this model, you just have
+So, you don't provide a pretty printer under this model, you just have
 to make sure the final statement list only contains regular pg
 supported syntax.
 
 4. explore ideas re adding custom expression syntax and/or altering
 the syntax of existing commands e.g. changing primary key in create
 table to multiple key declarations (which are implemented using unique
-not null constraints, pretty unambitious). This may be a bit too much
-of a stretch with sql syntax. Might be able to compromise by adding a
-hardcoded set of hook points in certain statement types for custom
-syntax. (I'm thinking the main ones I might like to alter are create
-table, to add new constraint types, and create function. could just
-compromise by an extension adding a new create table node and parser
-which is tried before the vanilla parser).
+not null constraints, pretty unambitious).
 
-For plain sql/ plpgsql, once the raw parsing has been completed, any
-fix ups, type checking, etc. which are used as part of the vanilla sql
-parsing process, and any type checks, etc., to run on vanilla sql will
-use this extension system to operate.
+Hooks like this may be a bit too much of a stretch with sql
+syntax. Might be able to compromise by adding a hardcoded set of hook
+points in certain statement types for custom syntax. (I'm thinking the
+main ones I might like to alter are create table, to add new
+constraint types, and create function. could just compromise by an
+extension adding a new create table node and parser which is tried
+before the vanilla parser).
 
 ================================================================================
 
 = regular sql/ plpgsql parsing and processing stuff
+
+this section well out of date
 
 ast processing:
 add some type checking thingys:
@@ -161,7 +165,8 @@ inside a function def)
 - hook to pass the module statement parser so it can get called
 in the statement parser in the parser
 
-the add export lists and public/private checking
+the add export lists and public/private checking, circular dependency
+checking
 - syntax becomes something like
 module x,y,z (fna(text), fna(text, int), view b, table c)
 inspired by haskell module syntax (or maybe dylan modules?)
@@ -225,7 +230,7 @@ not sure what actual use it would be
 == dependency analyzer:
 
 works on constraints, views, functions, what else?
-provides: immediate dependencies, ultimate table dependencies complete
+provides: immediate dependencies, ultimate table dependencies, complete
 list of dependencies. Can generate a variety of graphs, run analysis,
 e.g. make sure module dependencies are in a tree shape with no
 circular dependencies.
@@ -294,30 +299,9 @@ manually specifying a solution (which can then check the result
 corresponds to the original source).
 
 This would probably have to work by separating constraint defs from
-the tables they might be attached to.
-
-================================================================================
-
-= other notes
-
-== replacement abstract/concrete syntax?
-
-how feasible is it to parse the sql, then transform to a more
-relational algebra like set of nodes to work with, then transform
-these nodes back to sql nodes, then can pretty print to load into pg?
-
-Probably too much hard work to translate sql->relational algebra->sql
-without the resultant sql code being horribly mangled, but hopefully
-not too hard to at least do relational algebra -> sql.
-
-Can then add a concrete syntax, parser and pretty printer for the
-relational algebra language, and completely move away from writing
-extended sql and instead use something more regular.
-
-Possible concrete syntaxes could be lisp like (really easy to
-implement), haskell like (quite partial to this one - could later look
-into transitioning to making this system some sort of haskell
-extension), or tutorial d like.
+the tables they might be attached to (i.e. generate new create
+statements), apart from that will just need to reorder the other
+creates.
 
 == null stuff
 
@@ -334,13 +318,61 @@ doing anything else with them).
 add support in plpgsql variables, params, etc. and fields in
 tables/views, etc. and add pattern matching to code.
 
+================================================================================
+
+= other notes
+
 == combining extensions:
 
 can't mix and match separate extensions automatically e.g. something
 that wants to generate extra statements for every create table has to
 run after something which might add new create table statements, so
-programmer has to specify which extensions and in what order
+programmer has to specify which extensions and in what order, it will
+be their responsibility to get this right.
 
 Maybe use some sort of pragma stuff at top of source files, or add a
 simple declarative makefile format and make program to run the
 parser/loader.
+
+
+== replacement abstract/concrete syntax?
+
+update: this is a separate project
+
+how feasible is it to parse the sql, then transform to a more
+relational algebra like set of nodes to work with, then transform
+these nodes back to sql nodes, then can pretty print to load into pg?
+
+Probably too much hard work to translate sql->relational algebra->sql
+without the resultant sql code being horribly mangled, but hopefully
+not too hard to at least do relational algebra -> sql.
+
+Can then add a concrete syntax, parser and pretty printer for the
+relational algebra language, and completely move away from writing
+extended plpgsql and instead use something more regular.
+
+Possible concrete syntaxes could be lisp like (really easy to
+implement), haskell like (quite partial to this one - could later look
+into transitioning to making this system some sort of haskell
+extension), or tutorial d like.
+
+Currently thinking about a haskell-lite like language, with:
+* a transaction monad (maybe other monads, maybe not)
+* algebraic data types and pattern matching
+* type inference
+* type classes
+* lazy evaluation?
+* support for full typing of relation valued expressions (which I
+  don't think regular haskell can do without type system extensions)
+* ability to write extension libs to this language in normal haskell.
+* an arbtrary bunch of other basic haskell features.
+
+If this is easy enough to add to regular haskell may go down that
+route instead.
+
+The key to making this practical will be able to offload as much work
+onto the pg query optimiser as possible (i.e. turn expressions into
+non looped sql queries), and to run other code server side.
+
+Intention is to be able to use the same language client side as well,
+e.g. to implement a repl program, guis, web interfaces, etc..
