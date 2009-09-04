@@ -101,6 +101,8 @@ later on down the line.
 >                    | MultipleMatchingKOperators KeywordOperator [Type]
 >                    | TypelessEmptyArray
 >                    | IncompatibleTypes [Type]
+>                    | ValuesListsMustBeSameLength
+>                    | NoRowsGivenForValues
 >                      deriving (Eq,Show)
 
 > data KeywordOperator = And | Or | Not

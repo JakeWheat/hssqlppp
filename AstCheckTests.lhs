@@ -196,13 +196,13 @@ check casts from unknown string lits
 
 >    ,testGroup "simple selects"
 >     (mapStatementType [
->       p "select 1;" [SetOfType $ UnnamedCompositeType [("?unknown?", typeInt)]]
+>       {-p "select 1;" [SetOfType $ UnnamedCompositeType [("?unknown?", typeInt)]]
 >      ,p "select 1 as a;" [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
 >      ,p "select 1,2;" [SetOfType $ UnnamedCompositeType [("?unknown?", typeInt)
 >                                                         ,("?unknown?", typeInt)]]
 >      ,p "select 1 as a, 2 as b;" [SetOfType $ UnnamedCompositeType [("a", typeInt)
->                                                                    ,("b", typeInt)]]
->      ,p "values (1,2);" [SetOfType $
+>                                                                    ,("b", typeInt)]]-}
+>       p "values (1,2);" [SetOfType $
 >                          UnnamedCompositeType
 >                          [("column1", typeInt)
 >                          ,("column2", typeInt)]]
@@ -210,22 +210,21 @@ check casts from unknown string lits
 >                                      UnnamedCompositeType
 >                                      [("column1", typeInt)
 >                                      ,("column2", typeInt)]]
->      ,p "values (1,2),('a', true);" [SetOfType $
->                                      UnnamedCompositeType
->                                      [("column1", typeInt)
->                                      ,("column2", typeInt)]]
+>      ,p "values (1,2),('a', true);" [TypeError ("",1,1)
+>                                      (IncompatibleTypes [typeInt
+>                                                         ,typeBool])]
 >      ,p "values ('3', '4'),(1,2);" [SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", typeInt)
 >                                      ,("column2", typeInt)]]
->      ,p "values ('a', true),(1,2);" [SetOfType $
->                                      UnnamedCompositeType
->                                      [("column1", typeInt)
->                                      ,("column2", typeInt)]]
+>      ,p "values ('a', true),(1,2);" [TypeError ("",1,1)
+>                                      (IncompatibleTypes [typeBool
+>                                                         ,typeInt])]
 >      ,p "values ('a'::text, '2'::int2),('1','2');" [SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", ScalarType "text")
 >                                      ,("column2", typeSmallInt)]]
+>      ,p "values (1,2,3),(1,2);" [TypeError ("",1,1) ValuesListsMustBeSameLength]
 >      ])
 
 

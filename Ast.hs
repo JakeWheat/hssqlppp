@@ -3970,12 +3970,30 @@ sem_SelectExpression_Values vll_  =
               _vllImessages :: ([Message])
               _vllInodeType :: Type
               _lhsOnodeType =
-                  let t1 = typesFromTypeList ((typesFromTypeList _vllInodeType) !! 0)
+                  let rowsTs1 = (typesFromTypeList _vllInodeType)
+                      rowsTs = map typesFromTypeList rowsTs1
+                      lengths = map length rowsTs
+                      error1 = case () of
+                                _ | length rowsTs1 == 0 ->
+                                      Just $ TypeError _lhsIsourcePos NoRowsGivenForValues
+                                  | not (all (==head lengths) lengths) ->
+                                      Just $ TypeError _lhsIsourcePos
+                                           ValuesListsMustBeSameLength
+                                  | otherwise -> Nothing
                       colNames = map (\(a,b) -> a ++ b) $
                                  zip (repeat "column")
-                                     (map show [1..length t1])
-                      ty = UnnamedCompositeType $ zip colNames t1
-                  in SetOfType ty
+                                     (map show [1..head lengths])
+                      colTypeLists = transpose rowsTs
+                      colTypes = map (resolveResultSetType _lhsIsourcePos) colTypeLists
+                      error2 = let es = filter (\t -> case t of
+                                                        TypeError _ _ -> True
+                                                        _ -> False) colTypes
+                               in case length es of
+                                    0 -> Nothing
+                                    1 -> Just $ head es
+                                    _ ->  Just $ TypeList es
+                      ty = UnnamedCompositeType $ zip colNames colTypes
+                  in head $ catMaybes [error1, error2, Just $ SetOfType ty]
               _lhsOmessages =
                   _vllImessages
               _vllOinLoop =

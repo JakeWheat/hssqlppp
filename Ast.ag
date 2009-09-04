@@ -1626,17 +1626,34 @@ SEM Statement
 
 
 SEM SelectExpression
-    --we should get TypeList (TypeList (Type)) out of vll
+    --assume we get TypeList (TypeList (Type)) out of vll
     | Values lhs.nodeType =
-        let t1 = typesFromTypeList ((typesFromTypeList @vll.nodeType) !! 0)
+        let rowsTs1 = (typesFromTypeList @vll.nodeType)
+            --convert into [[Type]]
+            rowsTs = map typesFromTypeList rowsTs1
+            --check all same length
+            lengths = map length rowsTs
+            error1 = case () of
+                      _ | length rowsTs1 == 0 ->
+                            Just $ TypeError @lhs.sourcePos NoRowsGivenForValues
+                        | not (all (==head lengths) lengths) ->
+                            Just $ TypeError @lhs.sourcePos
+                                 ValuesListsMustBeSameLength
+                        | otherwise -> Nothing
             colNames = map (\(a,b) -> a ++ b) $
                        zip (repeat "column")
-                           (map show [1..length t1])
-            ty = UnnamedCompositeType $ zip colNames t1
-        in SetOfType ty
-
-
-
+                           (map show [1..head lengths])
+            colTypeLists = transpose rowsTs
+            colTypes = map (resolveResultSetType @lhs.sourcePos) colTypeLists
+            error2 = let es = filter (\t -> case t of
+                                              TypeError _ _ -> True
+                                              _ -> False) colTypes
+                     in case length es of
+                          0 -> Nothing
+                          1 -> Just $ head es
+                          _ ->  Just $ TypeList es
+            ty = UnnamedCompositeType $ zip colNames colTypes
+        in head $ catMaybes [error1, error2, Just $ SetOfType ty]
 
 {-
 
