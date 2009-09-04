@@ -1,4 +1,7 @@
-{
+module FnTypes where
+
+import TypeType
+
 binaryOperatorTypes = [
     ("!~", [ScalarType "bpchar",ScalarType "text"], ScalarType "bool"),
     ("!~", [ScalarType "text",ScalarType "text"], ScalarType "bool"),
@@ -2489,4 +2492,3 @@ functionTypes = [
     ("xpath", [ScalarType "text",ScalarType "xml"], ArrayType (ScalarType "xml")),
     ("xpath", [ScalarType "text",ScalarType "xml",ArrayType (ScalarType "text")], ArrayType (ScalarType "xml"))
     ]
-}

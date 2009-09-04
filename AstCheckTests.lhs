@@ -192,6 +192,14 @@ check casts from unknown string lits
 
 >      ])
 
+
+>    ,testGroup "simple selects"
+>     (mapStatementType [
+>       p "select 1;" [SetOfType $ UnnamedCompositeType [("?unknown?", typeInt)]]
+>      ,p "select 1 as a;" [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
+>      ])
+
+
 TODO:
 function calls
 rowctor
@@ -232,6 +240,7 @@ etc.
 >           mapAttr = map $ uncurry checkAttrs
 >           p a b = (a,b)
 >           mapExprType = map $ uncurry checkExpressionType
+>           mapStatementType = map $ uncurry checkStatementType
 
 > checkAttrs :: String -> [Message] -> Test.Framework.Test
 > checkAttrs src msgs = testCase ("check " ++ src) $ do
@@ -247,4 +256,12 @@ etc.
 >                Left er -> error $ show er
 >                Right l -> l
 >       typ1 = getExpressionType ast
+>   assertEqual ("typecheck " ++ src) typ typ1
+
+> checkStatementType :: String -> [Type] -> Test.Framework.Test
+> checkStatementType src typ = testCase ("typecheck " ++ src) $ do
+>   let ast = case parseSql src of
+>                Left er -> error $ show er
+>                Right l -> l
+>       typ1 = getStatementsType ast
 >   assertEqual ("typecheck " ++ src) typ typ1

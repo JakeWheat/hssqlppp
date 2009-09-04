@@ -210,7 +210,9 @@ each is a list with type ({functionName} String
 
 > getFnTables :: [Char] -> IO ()
 > getFnTables dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
->    putStrLn "{"
+>    putStrLn "module FnTypes where\n"
+>    putStrLn "import TypeType\n"
+
 >    binopinfo <- selectRelation conn (typesCtesNamed ++
 >                      "\n     select oprname,\n\
 >                      \               tl.descr as left,\n\
@@ -321,7 +323,6 @@ each is a list with type ({functionName} String
 >                       \      and pronargs = 0\n\
 >                       \order by proname,argtypes;") []
 >    putStrLn $ makeVal "functionTypes" $ map showProt $ filterOut $ map convFnLine functionsinfo
->    putStrLn "}"
 >    where
 >      convFnLine l = (l!!1, toStrList (l!!2), l!!3)
 >      toStrList ss = map trim $ split ',' ss
@@ -358,12 +359,14 @@ outputs type information and cast information
 
 > getTypeStuff :: [Char] -> IO ()
 > getTypeStuff dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
->    putStrLn "{"
+>    putStrLn "module PGTypes where\n"
+>    putStrLn "import TypeType\n"
 >    typeinfo <- selectRelation conn (typesCtes ++
 >                  "\nselect descr from nonArrayTypeNames\n\
 >                  \union\n\
 >                  \select descr from arrayTypeNames\n\
 >                  \order by descr;") []
+>    putStrLn "defaultTypeNames :: [Type]"
 >    putStr "defaultTypeNames = [\n    "
 >    putStr $ intercalate ",\n    " $ map head typeinfo
 >    putStrLn "]"
@@ -381,6 +384,7 @@ outputs type information and cast information
 >                                      \    on p.castsource = cs.typoid\n\
 >                                      \  inner join ts ct\n\
 >                                      \    on p.casttarget = ct.typoid;") []
+>    putStrLn "castTable :: [(Type, Type, CastContext)]"
 >    putStr "castTable = [\n    "
 >    putStr $ intercalate ",\n    " $ map head castTable
 >    putStrLn "]"
@@ -393,10 +397,10 @@ outputs type information and cast information
 >                        \from ts inner join pg_type t\n\
 >                        \     on ts.typoid = t.oid\n\
 >                        \order by typcategory,typispreferred desc, descr;") []
+>    putStrLn "typeCategories :: [(Type, [Char], Bool)]"
 >    putStr "typeCategories = [\n    "
 >    putStr $ intercalate ",\n    " $ map head typeCategories
 >    putStrLn "]"
->    putStrLn "}"
 
 > typesCtes :: [Char]
 > typesCtes =      "with nonArrayTypeNames as\n\

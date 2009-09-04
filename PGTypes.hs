@@ -1,4 +1,8 @@
-{
+module PGTypes where
+
+import TypeType
+
+defaultTypeNames :: [Type]
 defaultTypeNames = [
     ArrayType (Pseudo Cstring),
     ArrayType (Pseudo Record),
@@ -208,6 +212,7 @@ defaultTypeNames = [
     ScalarType "varchar",
     ScalarType "xid",
     ScalarType "xml"]
+castTable :: [(Type, Type, CastContext)]
 castTable = [
     (ScalarType "int8",ScalarType "int2",AssignmentCastContext),
     (ScalarType "int8",ScalarType "int4",AssignmentCastContext),
@@ -400,6 +405,7 @@ castTable = [
     (ScalarType "bit",ScalarType "bit",ImplicitCastContext),
     (ScalarType "varbit",ScalarType "varbit",ImplicitCastContext),
     (ScalarType "numeric",ScalarType "numeric",ImplicitCastContext)]
+typeCategories :: [(Type, [Char], Bool)]
 typeCategories = [
     (ArrayType (Pseudo Cstring), "A", False),
     (ArrayType (ScalarType "abstime"), "A", False),
@@ -609,4 +615,3 @@ typeCategories = [
     (ScalarType "varbit", "V", True),
     (ScalarType "bit", "V", False),
     (ScalarType "unknown", "X", False)]
-}

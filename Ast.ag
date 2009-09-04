@@ -37,7 +37,7 @@ really slow just cos emacs outputs all these warnings _really_ slowly,
 and also any real warnings and errors can get drowned out. You can get
 rid of these warnings by ghc compiling the produced Ast.hs on the
 command line:
-ghc -c Ast.hs
+ghc -c TypeType.lhs FnTypes.hs PGTypes.hs Ast.hs
 
 does the job, you can then compile from emacs and it will use the .o
 file and you won't get any warnings about generated code in Ast.hs (if
@@ -97,6 +97,7 @@ MODULE {Ast}
    --fns
    ,checkAst
    ,getExpressionType
+   ,getStatementsType
    ,resetSps
    ,resetSp
    ,resetSp'
@@ -118,7 +119,12 @@ MODULE {Ast}
 import Data.Maybe
 import Data.List
 import Debug.Trace
-} -- imports
+
+import TypeType
+import PGTypes
+import FnTypes
+
+}
 
 {-
 ================================================================================
@@ -130,8 +136,6 @@ a select can appear inside another statement (e.g. a subselect), you can
 instead put any statement - this type checks but is totally invalid.
 
 -}
-
-TYPE MySourcePos = (String, Int, Int)
 
 DATA Statement
 
@@ -465,10 +469,6 @@ DATA FunName | SimpleFun String
              | Between
                --add not between, overlay, any, etc.
 
-DATA KeywordOperator | And | Or | Not
-                     | IsNull | IsNotNull
-                     | Like
-                       -- add is distinct from, ilike, etc
 
 DATA OperatorType | BinaryOp | PrefixOp | PostfixOp
 
@@ -592,7 +592,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpressi
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               SourcePosStatement FunName KeywordOperator
+               SourcePosStatement FunName
 
 
 SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpression JoinType
@@ -619,18 +619,8 @@ SET ListNodes = SelectList ExpressionList ExpressionListList StringList
 
 DERIVING AllNodes: Show,Eq
 
--- use this attr to lift the source pos value so we can access it
--- couldn't find a way just to read the value direct from the tuple in
--- the semantic bit...
-
-ATTR MySourcePos
-         [
-         |
-         | val : SELF
-         ]
-
 SEM SourcePosStatement
-    | Tuple x2.sourcePos = @x1.val
+    | Tuple x2.sourcePos = @x1
 
 
 {-
@@ -755,97 +745,7 @@ Part of the syntax extension system design is to provide some
 specialized methods for generating sql code in a way that can be type
 checked statically without having to run the code.
 
-Types overview:
-Regular types: scalarType, arrayType, composite type, domaintype
-we can used these anywhere
 
-semi first class types: row, unknownstringlit (called unknown in pg) -
-these can be used in some places, but not others, in particular an
-expression can have this type or select can have a row with these
-type, but a view can't have a column with this type (so a select can
-be valid on it's own but not as a view. Not sure if Row types can be
-variables, unknownstringlit definitely can't
-
-pseudo types - mirror pg pseudo types
-Internal, LanguageHandler, Opaque probably won't ever be properly supported
-Not sure exactly what Any is, can't use it in functions like the other any types.
-Cstring - treated as variant of text?
-record -dynamically typed, depends where it is used, i think is used
-for type inference in function return types, and as a dynamically
-typed variable in functions, where it can take any composite typed
-value.
-void is used for functions which return nothing
-trigger is a tag to say a function is used in triggers, used as a
-return type only
-
-typelist is an internal type used during type checking
-typeerror represents something which has failed to typecheck
-unknowntype is used to represent the type of anything which the code
-is currently unable to type check, this should dissappear at some
-point, or at least become unused
-
--}
-
--- Type identifies a type, doesn't describe it
-
-DATA Type | ScalarType String
-          | ArrayType Type
-          | SetOfType Type
-          | CompositeType name:String --attrs:{[(String,Type)]}
-          | DomainType String Type
-          | Row attrs:{[Type]}
-          -- type list is used internally in the type checking.
-          | TypeList tps:{[Type]}
-          | Pseudo PseudoType
-          | TypeError MySourcePos TypeErrorInfo
-          | UnknownType -- represents something which the type checker
-                        -- doesn't know how to type check
-          | UnknownStringLit -- represents a string literal
-                             -- token whose type isn't yet
-                             -- determined
-
-DATA PseudoType | Any
-                | AnyArray
-                | AnyElement
-                | AnyEnum
-                | AnyNonArray
-                | Cstring
-                | Record
-                | Trigger
-                | Void
-                | Internal
-                | LanguageHandler
-                | Opaque
-
-{-
-
-this list will need reviewing, probably refactor to a completely
-different set of infos, also will want to add more information to
-these, and to provide a way of converting into a user friendly
-string. It is intended for this code to produce highly useful errors
-later on down the line.
-
--}
-
-DATA TypeErrorInfo | WrongTypes expected:Type got:{[Type]}
-                   | WrongTypeList expected:{[Type]} got:{[Type]}
-                   | WrongNumArgs expected:Int got:Int
-                   | WrongType expected:Type got:Type
-                   | NotArrayType got:Type
-                   | NeedOneOrMoreArgs
-                   | OtherTypeError String
-                   | UnknownTypeError Type
-                   | OperatorNeeds1Or2Args got:Int
-                   | NoMatchingOperator o:String t:{[Type]}
-                   | MultipleMatchingOperators o:String t:{[Type]}
-                   | NoMatchingKOperator o:KeywordOperator t:{[Type]}
-                   | MultipleMatchingKOperators o:KeywordOperator t:{[Type]}
-                   | TypelessEmptyArray
-                   | IncompatibleTypes t:{[Type]}
-
-DERIVING Type PseudoType TypeErrorInfo: Show,Eq
-
-{-
 
 we set all the node types to unknown to start with, this allows the
 type checking to be implemented bit by bit. When the type checking is
@@ -1001,7 +901,8 @@ checkPredList sp achks ats =
           if chk t
             then checkArg (n+1) acc chks ts
             else checkArg (n+1) (acc ++ [TypeError sp $ err t]) chks ts
-      checkArg n acc [] [] = acc
+      checkArg _ acc [] [] = acc
+      checkArg _ _ _ _ = error "internal error: pattern match failure in checkArg"
 }
 
 DATA RetType
@@ -1151,14 +1052,7 @@ update: going to stick with the names given in pg_type as the
 canonical names for now, add constants to protect other programs from
 changes here.
 
-see HsSqlSystem.lhs for the sql and haskell code which generates these
-include files containing type and function information
-
--}
-
-INCLUDE "PGTypes.ag"
-
-{-
+data type definitions live in pgtypes.hs
 
 TODO:
 
@@ -1200,11 +1094,6 @@ checkTypeExists sp t =
     if t `elem` defaultTypeNames
       then t
       else TypeError sp (UnknownTypeError t)
-
-data CastContext = ImplicitCastContext
-                 | AssignmentCastContext
-                 | ExplicitCastContext
-                   deriving (Eq,Show)
 }
 
 
@@ -1221,6 +1110,7 @@ SEM Expression
 {
 --aliases to protect client code if/when the ast canonical names are
 --changed
+typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,typeFloat8,typeVarChar,typeChar,typeBool :: Type
 typeSmallInt = ScalarType "int2"
 typeBigInt = ScalarType "int8"
 typeInt = ScalarType "int4"
@@ -1231,6 +1121,7 @@ typeVarChar = ScalarType "varchar"
 typeChar = ScalarType "char"
 typeBool = ScalarType "bool"
 
+canonicalizeType :: Type -> Type
 canonicalizeType t =
     case t of
       ScalarType s -> cName s
@@ -1281,9 +1172,8 @@ SEM Expression
 
 = function and operator tables
 these hold the types of functions and operators for lookup and checking
+they live in fntypes.hs
 -}
-
-INCLUDE "FnTypes.ag"
 
 {
 
@@ -1309,9 +1199,6 @@ keywordUnaryOperatorTypes = [
 allKeywordOps :: [(KeywordOperator, [Type], Type)]
 allKeywordOps = keywordBinaryOperatorTypes ++ keywordUnaryOperatorTypes
 
-allTypes :: [Type]
-allTypes = defaultTypeNames
-
 
 -- this utility fn is used to check that the operator and function
 -- prototypes only contain types listed in the defaultTypeNames list
@@ -1332,6 +1219,7 @@ checkFunctionTypes =
                       t@(ScalarType _) -> t `elem` defaultTypeNames
                       ArrayType t -> knownType t
                       SetOfType t -> knownType t
+                      _ -> error "internal error: unknown type in function proto"
 
 }
 
@@ -1348,12 +1236,6 @@ type check keyword operators, standard operators (prefix, postfix,
 binary), and function calls
 
 -}
-
-ATTR KeywordOperator
-  [
-  |
-  | val : SELF
-  ]
 
 ATTR FunName
   [
@@ -1574,8 +1456,8 @@ findCallMatch sp f inArgs =
                               else getCandsCatAt n) : filterArgN (n+1))
                 where
                   getCandsCatAt :: Int -> Either () String
-                  getCandsCatAt n =
-                      let typesAtN = map (!!n) candArgLists
+                  getCandsCatAt n' =
+                      let typesAtN = map (!!n') candArgLists
                           catsAtN = map getTypeCategory typesAtN
                       in case () of
                            --if any are string choose string
@@ -1618,7 +1500,7 @@ findCallMatch sp f inArgs =
       filterCandCastPairs :: ([ArgCastFlavour] -> Bool)
                           -> [ProtArgCast]
                           -> [ProtArgCast]
-      filterCandCastPairs pred ccp = filter (\(_,cp) -> pred cp) ccp
+      filterCandCastPairs predi ccp = filter (\(_,cp) -> predi cp) ccp
 
       getFnArgs :: FunctionPrototype -> [Type]
       getFnArgs (_,a,_) = a
@@ -1653,7 +1535,6 @@ getTypeCategory t = case find (\(t1,_,_)-> t1==t) typeCategories of
 implicitlyCastableFromTo :: Type -> Type -> Bool
 implicitlyCastableFromTo from to = from == UnknownStringLit ||
                                      any (==(from,to,ImplicitCastContext)) castTable
-
 
 {-
 
@@ -1695,7 +1576,7 @@ resolveResultSetType sp inArgs = propagateUnknownError (TypeList inArgs) $
                   in all (\t -> getTypeCategory t == firstCat) knownTypes
      targetType = case catMaybes [firstPreferred, lastAllConvertibleTo] of
                     [] -> Nothing
-                    (x:xs) -> Just x
+                    (x:_) -> Just x
      firstPreferred = find isPreferredType knownTypes
      lastAllConvertibleTo = firstAllConvertibleTo (reverse knownTypes)
      firstAllConvertibleTo (x:xs) = if allConvertibleToFrom x xs
@@ -1764,16 +1645,19 @@ checkAst sts = let t = sem_Root (Root sts)
 
 = Types
 
-== getExpressionType
-
-Gets the type of an expression
-
 -}
 
 getExpressionType :: Expression -> Type
 getExpressionType ex = let t = sem_ExpressionRoot (ExpressionRoot ex)
                        in (nodeType_Syn_ExpressionRoot
                            (wrap_ExpressionRoot t Inh_ExpressionRoot))
+
+
+getStatementsType :: StatementList -> [Type]
+getStatementsType st = let t = sem_Root (Root st)
+                           tl = (nodeType_Syn_Root
+                                 (wrap_Root t Inh_Root))
+                       in typesFromTypeList tl
 
 
 --hack job, often not interested in the source positions when testing
