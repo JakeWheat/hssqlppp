@@ -13,7 +13,14 @@ very early state.
 SEM SourcePosStatement
     | Tuple x2.sourcePos = @x1
 
+{
 
+-- currently used to get the types of identifiers
+-- eventually should include things like types, table attributes,
+-- etc.,
+
+type Scope = [(String,Type)]
+}
 {-
 
 ================================================================================
@@ -38,7 +45,7 @@ ATTR AllNodes
   ]
 
 ATTR AllNodes Root ExpressionRoot
-  [
+  [ scope : Scope
   |
   | messages USE {++} {[]} : {[Message]}
   ]
@@ -369,6 +376,19 @@ SEM Expression
                                      e -> TypeList
                                           ((typesFromTypeList @cases.nodeType)
                                            ++ [e])))
+
+{-
+
+pull id types out of scope for identifiers
+
+-}
+
+SEM Expression
+    | Identifier lhs.nodeType = case lookup @i @lhs.scope of
+                                  Nothing -> TypeError
+                                              @lhs.sourcePos
+                                              (UnrecognisedIdentifier @i)
+                                  Just t -> t
 
 {-
 ================================================================================

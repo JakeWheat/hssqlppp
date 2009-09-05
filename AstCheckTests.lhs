@@ -6,7 +6,7 @@ Mainly test error messages from check failures from bad sql checks the
 source positions, even though they are a bit fragile and checks the
 types of error message received.
 
-> module AstCheckTests (astCheckTests) where
+> module AstCheckTests (astCheckTests, parseAndGetType) where
 
 > import Test.HUnit
 > import Test.Framework
@@ -143,6 +143,14 @@ check casts from unknown string lits
 
 >
 
+>    ,testGroup "expressions and scope"
+>     (mapExprScopeType [
+>      t "a" [("a", typeInt)] typeInt
+>     ,t "b" [("a", typeInt)] (TypeError nsp (UnrecognisedIdentifier "b"))
+>     ])
+
+
+
 >    ,testGroup "case expressions"
 >     (mapExprType [
 >       p "case\n\
@@ -230,11 +238,11 @@ check casts from unknown string lits
 >      ,p "values (1,2,3),(1,2);" [TypeError ("",1,1) ValuesListsMustBeSameLength]
 >      ])
 
->{-    ,testGroup "simple selects from"
+>    {-,testGroup "simple selects from"
 >     (mapStatementType [
->       p "select a from (select 1 as a, 2 as b);"
+>       p "select a from (select 1 as a, 2 as b) x;"
 >         [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
->      ,p "select b from (select 1 as a, 2 as b);"
+>      ,p "select b from (select 1 as a, 2 as b) x;"
 >         [SetOfType $ UnnamedCompositeType [("b", typeInt)]]
 >      ])-}
 
@@ -277,8 +285,10 @@ etc.
 >         where
 >           mapAttr = map $ uncurry checkAttrs
 >           p a b = (a,b)
->           mapExprType = map $ uncurry checkExpressionType
+>           t a b c = (a,b,c)
+>           mapExprType = map $ uncurry $ checkExpressionType []
 >           mapStatementType = map $ uncurry checkStatementType
+>           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
 
 > checkAttrs :: String -> [Message] -> Test.Framework.Test
 > checkAttrs src msgs = testCase ("check " ++ src) $ do
@@ -288,18 +298,25 @@ etc.
 >       msgs1 = checkAst ast
 >   assertEqual ("check " ++ src) msgs msgs1
 
-> checkExpressionType :: String -> Type -> Test.Framework.Test
-> checkExpressionType src typ = testCase ("typecheck " ++ src) $ do
->   let ast = case parseExpression src of
->                Left er -> error $ show er
->                Right l -> l
->       typ1 = getExpressionType ast
->   assertEqual ("typecheck " ++ src) typ typ1
+> checkExpressionType :: Scope -> String -> Type -> Test.Framework.Test
+> checkExpressionType scope src typ = testCase ("typecheck " ++ src) $
+>   assertEqual ("typecheck " ++ src) typ (parseAndGetExpressionType scope src)
 
 > checkStatementType :: String -> [Type] -> Test.Framework.Test
-> checkStatementType src typ = testCase ("typecheck " ++ src) $ do
+> checkStatementType src typ = testCase ("typecheck " ++ src) $
+>   assertEqual ("typecheck " ++ src) typ (parseAndGetType src)
+
+
+> parseAndGetType :: String -> [Type]
+> parseAndGetType src =
 >   let ast = case parseSql src of
->                Left er -> error $ show er
->                Right l -> l
->       typ1 = getStatementsType ast
->   assertEqual ("typecheck " ++ src) typ typ1
+>                               Left er -> error $ show er
+>                               Right l -> l
+>   in getStatementsType ast
+
+> parseAndGetExpressionType :: Scope -> String -> Type
+> parseAndGetExpressionType scope src =
+>   let ast = case parseExpression src of
+>                                      Left er -> error $ show er
+>                                      Right l -> l
+>   in getExpressionType scope ast

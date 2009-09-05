@@ -103,6 +103,7 @@ later on down the line.
 >                    | IncompatibleTypes [Type]
 >                    | ValuesListsMustBeSameLength
 >                    | NoRowsGivenForValues
+>                    | UnrecognisedIdentifier String
 >                      deriving (Eq,Show)
 
 > typesFromTypeList :: Type -> [Type]

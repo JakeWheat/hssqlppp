@@ -94,6 +94,7 @@ MODULE {Ast}
    ,Type (..)
    ,PseudoType (..)
    ,TypeErrorInfo (..)
+   ,Scope
    --fns
    ,checkAst
    ,getExpressionType
@@ -375,7 +376,7 @@ DATA Expression | IntegerLit Integer
                 | BooleanLit Bool
                 | PositionalArg Integer
                 | Cast expr:Expression tn:TypeName
-                | Identifier String
+                | Identifier i:String
                 | Case cases : CaseExpressionListExpressionPairList
                        els : MaybeExpression
                 | Exists sel : SelectExpression
@@ -593,7 +594,7 @@ test function to run on asts, returns a list of errors, warnings, etc.
 {
 checkAst :: StatementList -> [Message]
 checkAst sts = let t = sem_Root (Root sts)
-               in (messages_Syn_Root (wrap_Root t Inh_Root))
+               in (messages_Syn_Root (wrap_Root t Inh_Root {scope_Inh_Root = []}))
 {-
 ================================================================================
 
@@ -601,16 +602,17 @@ checkAst sts = let t = sem_Root (Root sts)
 
 -}
 
-getExpressionType :: Expression -> Type
-getExpressionType ex = let t = sem_ExpressionRoot (ExpressionRoot ex)
-                       in (nodeType_Syn_ExpressionRoot
-                           (wrap_ExpressionRoot t Inh_ExpressionRoot))
+getExpressionType :: Scope -> Expression -> Type
+getExpressionType scope ex =
+    let t = sem_ExpressionRoot (ExpressionRoot ex)
+    in (nodeType_Syn_ExpressionRoot
+        (wrap_ExpressionRoot t Inh_ExpressionRoot {scope_Inh_ExpressionRoot = scope}))
 
 
 getStatementsType :: StatementList -> [Type]
 getStatementsType st = let t = sem_Root (Root st)
                            tl = (nodeType_Syn_Root
-                                 (wrap_Root t Inh_Root))
+                                 (wrap_Root t Inh_Root {scope_Inh_Root = []}))
                        in typesFromTypeList tl
 
 
