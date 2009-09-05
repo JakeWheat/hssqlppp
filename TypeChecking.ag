@@ -13,14 +13,6 @@ very early state.
 SEM SourcePosStatement
     | Tuple x2.sourcePos = @x1
 
-{
-
--- currently used to get the types of identifiers
--- eventually should include things like types, table attributes,
--- etc.,
-
-type Scope = [(String,Type)]
-}
 {-
 
 ================================================================================
@@ -384,7 +376,7 @@ pull id types out of scope for identifiers
 -}
 
 SEM Expression
-    | Identifier lhs.nodeType = case lookup @i @lhs.scope of
+    | Identifier lhs.nodeType = case M.lookup @i (identifierTypes @lhs.scope) of
                                   Nothing -> TypeError
                                               @lhs.sourcePos
                                               (UnrecognisedIdentifier @i)
@@ -442,7 +434,7 @@ SEM SelectExpression
             ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
         in head $ catMaybes [error1, error2, Just ty]
      | Select
-         selSelectList.scope = @selTref.suppliedScope
+         selSelectList.scope = scopeCombineIds @lhs.scope @selTref.suppliedIdScope
          lhs.nodeType =
         let colTypes = typesFromTypeList $ head $ typesFromTypeList @selSelectList.nodeType
             colNames = @selSelectList.columnNames
@@ -453,9 +445,9 @@ SEM SelectExpression
         in head $ catMaybes [error1, Just ty]
 
 {
-getScopeFromComposite :: Type -> Scope
-getScopeFromComposite (SetOfType (UnnamedCompositeType atts)) = atts
-getScopeFromComposite _ = []
+getIdScopeFromComposite :: Type -> [(String,Type)]
+getIdScopeFromComposite (SetOfType (UnnamedCompositeType atts)) = atts
+getIdScopeFromComposite _ = []
 
 }
 {-
@@ -475,16 +467,16 @@ DATA TableRef | Tref String
 ATTR TableRef MTableRef
      [
      |
-     | suppliedScope : Scope
+     | suppliedIdScope : {M.Map String Type}
      ]
 
 SEM TableRef
-    | SubTref lhs.suppliedScope = getScopeFromComposite @sel.nodeType
+    | SubTref lhs.suppliedIdScope = M.fromList $ getIdScopeFromComposite @sel.nodeType
     | Tref TrefAlias JoinedTref TrefFun TrefFunAlias
-        lhs.suppliedScope = []
+        lhs.suppliedIdScope = M.empty
 
 SEM MTableRef
-    | Nothing lhs.suppliedScope = []
+    | Nothing lhs.suppliedIdScope = M.empty
 
 ATTR SelectItem
   [
@@ -495,12 +487,12 @@ ATTR SelectItem
 ATTR Expression
   [
   |
-  | liftedColumnName USE {`reset`} {""}: String
+  | liftedColumnName USE {`(fixedValue "")`} {""}: String
   ]
 
 {
-reset :: String -> String -> String
-reset _ _ = ""
+fixedValue :: a -> a -> a -> a
+fixedValue a _ _ = a
 }
 
 SEM Expression

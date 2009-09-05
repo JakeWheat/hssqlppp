@@ -94,7 +94,9 @@ MODULE {Ast}
    ,Type (..)
    ,PseudoType (..)
    ,TypeErrorInfo (..)
-   ,Scope
+   ,Scope(..)
+   ,defaultScope
+   ,emptyScope
    --fns
    ,checkAst
    ,getExpressionType
@@ -120,11 +122,13 @@ MODULE {Ast}
 import Data.Maybe
 import Data.List
 import Debug.Trace
+import qualified Data.Map as M
 
 import TypeType
 import PGTypes
 import FnTypes
 import AstUtils
+import Scope
 
 }
 
@@ -596,7 +600,7 @@ test function to run on asts, returns a list of errors, warnings, etc.
 {
 checkAst :: StatementList -> [Message]
 checkAst sts = let t = sem_Root (Root sts)
-               in (messages_Syn_Root (wrap_Root t Inh_Root {scope_Inh_Root = []}))
+               in (messages_Syn_Root (wrap_Root t Inh_Root {scope_Inh_Root = defaultScope}))
 {-
 ================================================================================
 
@@ -608,13 +612,13 @@ getExpressionType :: Scope -> Expression -> Type
 getExpressionType scope ex =
     let t = sem_ExpressionRoot (ExpressionRoot ex)
     in (nodeType_Syn_ExpressionRoot
-        (wrap_ExpressionRoot t Inh_ExpressionRoot {scope_Inh_ExpressionRoot = scope}))
+        (wrap_ExpressionRoot t Inh_ExpressionRoot {scope_Inh_ExpressionRoot = combineScopes defaultScope scope}))
 
 
 getStatementsType :: StatementList -> [Type]
 getStatementsType st = let t = sem_Root (Root st)
                            tl = (nodeType_Syn_Root
-                                 (wrap_Root t Inh_Root {scope_Inh_Root = []}))
+                                 (wrap_Root t Inh_Root {scope_Inh_Root = defaultScope}))
                        in typesFromTypeList tl
 
 

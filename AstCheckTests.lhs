@@ -12,6 +12,7 @@ types of error message received.
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
+> import qualified Data.Map as M
 
 > import Ast
 > import Parser
@@ -144,8 +145,8 @@ check casts from unknown string lits
 
 >    ,testGroup "expressions and scope"
 >     (mapExprScopeType [
->      t "a" [("a", typeInt)] typeInt
->     ,t "b" [("a", typeInt)] (TypeError nsp (UnrecognisedIdentifier "b"))
+>      t "a" (makeScope [("a", typeInt)]) typeInt
+>     ,t "b" (makeScope [("a", typeInt)]) (TypeError nsp (UnrecognisedIdentifier "b"))
 >     ])
 
 
@@ -285,9 +286,10 @@ etc.
 >           mapAttr = map $ uncurry checkAttrs
 >           p a b = (a,b)
 >           t a b c = (a,b,c)
->           mapExprType = map $ uncurry $ checkExpressionType []
+>           mapExprType = map $ uncurry $ checkExpressionType emptyScope
 >           mapStatementType = map $ uncurry checkStatementType
 >           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
+>           makeScope l = Scope (M.fromList l)
 
 > checkAttrs :: String -> [Message] -> Test.Framework.Test
 > checkAttrs src msgs = testCase ("check " ++ src) $ do
