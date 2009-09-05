@@ -140,7 +140,6 @@ check casts from unknown string lits
 >                       (NoMatchingOperator "+" [UnknownStringLit
 >                                               ,UnknownStringLit]))
 >      ])
-
 >
 
 >    ,testGroup "expressions and scope"
@@ -238,13 +237,13 @@ check casts from unknown string lits
 >      ,p "values (1,2,3),(1,2);" [TypeError ("",1,1) ValuesListsMustBeSameLength]
 >      ])
 
->    {-,testGroup "simple selects from"
+>    ,testGroup "simple selects from"
 >     (mapStatementType [
 >       p "select a from (select 1 as a, 2 as b) x;"
 >         [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
 >      ,p "select b from (select 1 as a, 2 as b) x;"
 >         [SetOfType $ UnnamedCompositeType [("b", typeInt)]]
->      ])-}
+>      ])
 
 
 

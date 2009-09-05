@@ -412,7 +412,6 @@ ATTR SelectList
   | columnNames : {[String]}
   ]
 
-
 SEM SelectExpression
     --assume we get TypeList (TypeList (Type)) out of vll
     | Values lhs.nodeType =
@@ -442,7 +441,9 @@ SEM SelectExpression
                           _ ->  Just $ TypeList es
             ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
         in head $ catMaybes [error1, error2, Just ty]
-     | Select lhs.nodeType =
+     | Select
+         selSelectList.scope = @selTref.suppliedScope
+         lhs.nodeType =
         let colTypes = typesFromTypeList $ head $ typesFromTypeList @selSelectList.nodeType
             colNames = @selSelectList.columnNames
             error1 = if length colTypes == 0
@@ -451,15 +452,66 @@ SEM SelectExpression
             ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
         in head $ catMaybes [error1, Just ty]
 
+{
+getScopeFromComposite :: Type -> Scope
+getScopeFromComposite (SetOfType (UnnamedCompositeType atts)) = atts
+getScopeFromComposite _ = []
+
+}
+{-
+DATA TableRef | Tref String
+              | TrefAlias tref : String
+                          alias : String
+              | JoinedTref tref : TableRef
+                           nat : Natural
+                           joinType : JoinType
+                           jtref : TableRef
+                           onExpr : (Maybe JoinExpression)
+              | SubTref sel : SelectExpression alias : String
+              | TrefFun Expression
+              | TrefFunAlias Expression String
+-}
+
+ATTR TableRef MTableRef
+     [
+     |
+     | suppliedScope : Scope
+     ]
+
+SEM TableRef
+    | SubTref lhs.suppliedScope = getScopeFromComposite @sel.nodeType
+    | Tref TrefAlias JoinedTref TrefFun TrefFunAlias
+        lhs.suppliedScope = []
+
+SEM MTableRef
+    | Nothing lhs.suppliedScope = []
+
 ATTR SelectItem
   [
   |
   | columnName : String
   ]
 
+ATTR Expression
+  [
+  |
+  | liftedColumnName USE {`reset`} {""}: String
+  ]
+
+{
+reset :: String -> String -> String
+reset _ _ = ""
+}
+
+SEM Expression
+  | Identifier lhs.liftedColumnName = @i
+
+
 SEM SelectItem
     | SelExp SelectItem lhs.nodeType = @ex.nodeType
-    | SelExp lhs.columnName = "?column?"
+    | SelExp lhs.columnName = case @ex.liftedColumnName of
+                                "" -> "?column?"
+                                s -> s
     | SelectItem lhs.columnName = @name
 
 SEM SelectItemList
