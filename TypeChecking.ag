@@ -1,0 +1,448 @@
+{-
+Copyright 2009 Jake Wheat
+
+This file contains the attr and sem definitions, which do the type
+checking, etc..
+
+The grammar system is used to implement type checking, and
+will also do other static checks, which is a work in progress and in a
+very early state.
+
+-}
+
+SEM SourcePosStatement
+    | Tuple x2.sourcePos = @x1
+
+
+{-
+
+================================================================================
+
+attribute descriptions:
+
+sourcePos - holds the source position used in messages, not very
+accurate at the moment, just gives you the position of the first
+character in the current statement
+
+messages - used to collect error messages, also to be used for
+warnings (e.g. $1 position argument used when all args have aliases),
+and notices - will probably use these to highlight dodgy sql
+code and idioms.
+
+-}
+
+ATTR AllNodes
+  [ sourcePos: MySourcePos
+  |
+  |
+  ]
+
+ATTR AllNodes Root ExpressionRoot
+  [
+  |
+  | messages USE {++} {[]} : {[Message]}
+  ]
+
+SEM Root
+  | Root statements.sourcePos = ("",0,0)
+
+SEM ExpressionRoot
+  | ExpressionRoot expr.sourcePos = ("",0,0)
+
+
+{-
+
+================================================================================
+
+= static tests
+
+Problem 1: can't have two sem statements for the same node type which
+both add messages, and then the messages get combined to provide the
+final message list attribute value for that node. Workaround is
+instead of having each check in it's own section, to combine them all
+into one SEM.
+
+Problem 2: no shorthand to combine what the default rule for messages
+would be and then add a bit extra - so if you want all the children
+messages, plus possiby an extra message or two, have to write out the
+default rule in full explicitly. Can get round this by writing out
+loads of code.
+
+Both the workarounds to these seem a bit tedious and error prone, and
+will make the code much less readable. Maybe need a preprocessor to
+produce the ag file?
+
+================================================================================
+
+= inloop testing
+
+inloop - use to check continue, exit, and other commands that can only
+appear inside loops (for, while, loop)
+
+-}
+
+ATTR AllNodes
+  [ inLoop: Bool
+  |
+  |
+  ]
+
+SEM Root
+  | Root statements.inLoop = False
+
+SEM ExpressionRoot
+  | ExpressionRoot expr.inLoop = False
+
+-- set the inloop stuff which nests, it's reset inside a create
+-- function statement, in case you have a create function inside a
+-- loop, seems unlikely you'd do this though
+
+-- set the inloop stuff which nests, it's reset inside a create
+-- function statement, in case you have a create function inside a
+-- loop, seems unlikely you'd do this though
+
+SEM Statement
+     | ForSelectStatement ForIntegerStatement WhileStatement sts.inLoop = True
+     | CreateFunction body.inLoop = False
+
+-- now we can check when we hit a continue statement if it is in the
+-- right context
+SEM Statement
+    | ContinueStatement  lhs.messages = if not @lhs.inLoop
+                                          then [Error @lhs.sourcePos ContinueNotInLoop]
+                                          else []
+
+{-
+================================================================================
+Type checking
+
+the current type checking approach doesn't quite match how SQL
+works. What it will do when the first version is finished, is:
+* possibly read the database catalogs
+* then read the source script(s)
+and statically check the types are consistent, as if the scripts are
+declarative descriptions rather than a series of imperative
+commands.
+
+In particular, e.g. it won't be able to type check a create function
+statement run from an invocation of another function.
+
+One possible solution to this is to defer type checking and use the
+database to load the script bit by bit whilst type checking as bits
+are loaded.
+
+Part of the syntax extension system design is to provide some
+specialized methods for generating sql code in a way that can be type
+checked statically without having to run the code.
+
+
+
+we set all the node types to unknown to start with, this allows the
+type checking to be implemented bit by bit. When the type checking is
+complete, these might be removed or changed to something more useful.
+
+-}
+
+ATTR NonListNodes Root ExpressionRoot
+  [
+  |
+  | nodeType USE {`setUnknown`} {UnknownType} : {Type}
+  ]
+
+
+ATTR ListNodes
+  [
+  |
+  | nodeType USE {`appendTypeList`} {TypeList []} : {Type}
+  ]
+
+{
+setUnknown :: Type -> Type -> Type
+setUnknown _ _ = UnknownType
+
+appendTypeList :: Type -> Type -> Type
+appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
+appendTypeList t1 t2 = TypeList (t1:t2:[])
+}
+
+
+--bit hacky, used to work with maybe bits in attribute grammar code
+SEM MaybeExpression
+    | Just lhs.nodeType = @just.nodeType
+    | Nothing lhs.nodeType = Pseudo AnyElement
+
+{-
+================================================================================
+
+= types
+
+random notes on pg types:
+
+== domains:
+the point of domains is you can't put constraints on types, but you
+can wrap a type up in a domain and put a constraint on it there
+
+== literals/selectors
+
+source strings are parsed as unknown type: they can be implicitly cast
+to almost any type in the right contexts.
+
+rows ctors can also be implicitly cast to any composite type matching
+the elements (how exactly are they matched?)
+
+string literals are not checked for valid syntax currently, but this
+will probably change so we can type check string literals statically,
+whereas pg defers all checking to runtime, because it has to cope with
+custom data types. this code isn't going to be able to support custom
+data types very well, so it can get away with doing more static checks
+on this sort of thing.
+
+== notes on type checking types
+
+=== basic type checking
+at the moment - just check type exists in predetermined list of type
+names
+todo: option to read types from database catalog at time of type
+checking
+todo: collect type names from current source file to check against
+
+Type aliases
+
+Some types in postgresql have multiple names. I think this is
+hardcoded in the pg parser. There are two canonicalize routines to work
+with these aliases.
+
+The first one is for the ast, these canonical names have been chosen
+arbitrarily, but with some guidelines: where there is a choice, prefer
+the sql standard name, where there are multiple sql standard names,
+choose the most concise or common one.
+
+The second one is for postgresql, and converts type names into the
+name which appears in the pg_type catalog table.
+
+ast canonical names:
+numbers:
+int2, int4/integer, int8 -> smallint, int, bigint
+numeric, decimal -> numeric
+float(1) to float(24), real -> float(24)
+float, float(25) to float(53), double precision -> float
+serial, serial4 -> int
+bigserial, serial8 -> bigint
+character varying(n), varchar(n)-> varchar(n)
+character(n), char(n) -> char(n)
+
+update: going to stick with the names given in pg_type as the
+canonical names for now, add constants to protect other programs from
+changes here.
+
+data type definitions live in pgtypes.hs
+
+TODO:
+
+SimpleTypeName can match a composite or domain type, as well as a base
+type
+
+what about PrecTypeName? - need to fix the ast and parser (these are
+called type modifiers in pg)
+
+also, what can setof be applied to - don't know if it can apply to an
+array or setof type
+
+array types have to match an exact array type in the catalog, so we
+can't create an arbitrary array of any type
+
+-}
+
+SEM TypeName
+     | SimpleTypeName
+          lhs.nodeType = let st = canonicalizeType $ ScalarType @tn
+                         in checkTypeExists @lhs.sourcePos st
+--     | PrecTypeName
+--          lhs.nodeType = if @tn `elem` defaultTypes
+--                           then ScalarType @tn
+--                           else TypeError @lhs.sourcePos
+--                                  (UnknownTypeError @tn)
+     | ArrayTypeName
+          lhs.nodeType = propagateUnknownError @typ.nodeType
+                           $ checkTypeExists
+                                 @lhs.sourcePos
+                                 (ArrayType @typ.nodeType)
+     | SetOfTypeName
+          lhs.nodeType = propagateUnknownError @typ.nodeType
+                           (SetOfType @typ.nodeType)
+
+--first actual bit of type checking - a cast expression
+-- todo: some sort of validation on whether the cast will work
+-- it's not straight forward to work out exactly what explicit casts
+-- pg allows...
+
+SEM Expression
+    | Cast lhs.nodeType = propagateUnknownError
+                            (TypeList
+                             [@expr.nodeType])
+                            @tn.nodeType
+{-
+= literals
+-}
+
+SEM Expression
+     | IntegerLit lhs.nodeType = typeInt
+     | StringLit lhs.nodeType = UnknownStringLit
+     | FloatLit lhs.nodeType = typeNumeric
+     | BooleanLit lhs.nodeType = typeBool
+     -- I think a null types like an unknown string lit
+     | NullLit lhs.nodeType = UnknownStringLit
+
+
+{-
+== operators and functions
+
+type check keyword operators, standard operators (prefix, postfix,
+binary), and function calls
+
+-}
+
+ATTR FunName
+  [
+  |
+  | val : SELF
+  ]
+
+SEM Expression
+    | FunCall lhs.nodeType =
+        case @funName.val of
+          ArrayCtor -> let t = resolveResultSetType @lhs.sourcePos $ typesFromTypeList @args.nodeType
+                       in propagateUnknownError t $ ArrayType t
+          Substring -> ct
+                         (ExactList [ScalarType "text"
+                                    ,ScalarType "int4"
+                                    ,ScalarType "int4"])
+                         (ConstRetType (ScalarType "text"))
+          Between -> ct -- needs to be fixed to type check against <= and =>
+                         (AllSameTypeNumAny 3)
+                         (ConstRetType (typeBool))
+          ArraySub -> ct
+                         (ExactPredList
+                           [ArgCheck isArrayType NotArrayType
+                           ,exactType (ScalarType "int4")])
+                         (RetTypeFun (\t -> typeFromArray $ head t))
+          Operator s -> lookupFn s (typesFromTypeList @args.nodeType)
+          KOperator k -> lookupKop k (typesFromTypeList @args.nodeType)
+          SimpleFun f -> lookupFn f (typesFromTypeList @args.nodeType)
+          _ -> UnknownType
+        where
+          ct = checkTypes @lhs.sourcePos @args.nodeType
+          lookupFn s1 args = case findCallMatch @lhs.sourcePos
+                                             (if s1 == "u-" then "-" else s1) args of
+                               Left te -> te
+                               Right (_,_,r) -> r
+          lookupKop s args = let cands = filter (\(o,a,_) ->
+                                                   (o,a) == (s,args))
+                                           allKeywordOps
+                             in case () of
+                                 _ | length cands == 0 -> TypeError @lhs.sourcePos (NoMatchingKOperator s args)
+                                   | length cands == 1 -> let (_,_,rettype) = (head cands)
+                                                          in rettype
+                                   | otherwise -> TypeError @lhs.sourcePos (MultipleMatchingKOperators s args)
+
+{-
+== case expression
+
+check the when expressions are boolean inside the pairs, then collect
+the then types to pass to resolveResultSetType
+
+-}
+
+SEM CaseExpressionListExpressionPair
+    | Tuple lhs.nodeType = checkTypes
+                             @lhs.sourcePos
+                             @x1.nodeType
+                             (AllSameType $ typeBool)
+                             (ConstRetType @x2.nodeType)
+
+SEM Expression
+    | Case lhs.nodeType =
+             resolveResultSetType
+               @lhs.sourcePos
+               (typesFromTypeList (case @els.nodeType of
+                                     Pseudo AnyElement -> @cases.nodeType
+                                     e -> TypeList
+                                          ((typesFromTypeList @cases.nodeType)
+                                           ++ [e])))
+
+{-
+================================================================================
+
+= basic select statements
+
+-}
+
+SEM Statement
+    | SelectStatement lhs.nodeType = @ex.nodeType
+
+ATTR SelectItemList
+  [
+  |
+  | columnNames : {[String]}
+  ]
+
+ATTR SelectList
+  [
+  |
+  | columnNames : {[String]}
+  ]
+
+
+SEM SelectExpression
+    --assume we get TypeList (TypeList (Type)) out of vll
+    | Values lhs.nodeType =
+        let rowsTs1 = (typesFromTypeList @vll.nodeType)
+            --convert into [[Type]]
+            rowsTs = map typesFromTypeList rowsTs1
+            --check all same length
+            lengths = map length rowsTs
+            error1 = case () of
+                      _ | length rowsTs1 == 0 ->
+                            Just $ TypeError @lhs.sourcePos NoRowsGivenForValues
+                        | not (all (==head lengths) lengths) ->
+                            Just $ TypeError @lhs.sourcePos
+                                 ValuesListsMustBeSameLength
+                        | otherwise -> Nothing
+            colNames = map (\(a,b) -> a ++ b) $
+                       zip (repeat "column")
+                           (map show [1..head lengths])
+            colTypeLists = transpose rowsTs
+            colTypes = map (resolveResultSetType @lhs.sourcePos) colTypeLists
+            error2 = let es = filter (\t -> case t of
+                                              TypeError _ _ -> True
+                                              _ -> False) colTypes
+                     in case length es of
+                          0 -> Nothing
+                          1 -> Just $ head es
+                          _ ->  Just $ TypeList es
+            ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
+        in head $ catMaybes [error1, error2, Just ty]
+     | Select lhs.nodeType =
+        let colTypes = typesFromTypeList $ head $ typesFromTypeList @selSelectList.nodeType
+            colNames = @selSelectList.columnNames
+            error1 = if length colTypes == 0
+                       then Just $ TypeError @lhs.sourcePos NoRowsGivenForValues
+                       else Nothing
+            ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
+        in head $ catMaybes [error1, Just ty]
+
+ATTR SelectItem
+  [
+  |
+  | columnName : String
+  ]
+
+SEM SelectItem
+    | SelExp SelectItem lhs.nodeType = @ex.nodeType
+    | SelExp lhs.columnName = "?unknown?"
+    | SelectItem lhs.columnName = @name
+
+SEM SelectItemList
+    | Cons lhs.columnNames = (@hd.columnName : @tl.columnNames)
+    | Nil lhs.columnNames = []
+

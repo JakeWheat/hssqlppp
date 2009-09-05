@@ -65,6 +65,20 @@ TYPE MySourcePos = (String, Int, Int)
 >                              -- determined
 >             deriving (Eq,Show)
 
+
+> typesFromTypeList :: Type -> [Type]
+> typesFromTypeList (TypeList ts) = ts
+> typesFromTypeList x = error $ "can't get types from list " ++ show x
+
+> typeFromArray :: Type -> Type
+> typeFromArray (ArrayType t) = t
+> typeFromArray x = error $ "can't get types from non array " ++ show x
+
+> isArrayType :: Type -> Bool
+> isArrayType (ArrayType _) = True
+> isArrayType (Pseudo AnyArray) = True
+> isArrayType _ = False
+
 > data PseudoType = Any
 >                 | AnyArray
 >                 | AnyElement

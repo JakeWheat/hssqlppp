@@ -1,7 +1,5 @@
 logchanges
 test.sql
 notes
-Ast.hi
-FnTypes.hi
-PGTypes.hi
-TypeType.hi
+*.hi
+resetchaos.sh
