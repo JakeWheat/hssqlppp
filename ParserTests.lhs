@@ -429,6 +429,8 @@ test a whole bunch more select statements
 >          (Just $ opCall ">" [Identifier "cnt", IntegerLit 4])
 >          [] Asc Nothing Nothing]
 
+>      ,p "select a from (select 1 as a, 2 as b) x;"
+>         []
 >      ])
 
 ================================================================================

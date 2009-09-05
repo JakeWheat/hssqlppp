@@ -340,7 +340,8 @@ recurses to support parsing excepts, unions, etc
 >                              ,"order"
 >                              ,"group"
 >                              ,"limit"
->                              ,"using"]
+>                              ,"using"
+>                              ,"from"]
 >                    then fail "not keyword"
 >                    else return x
 >     values = keyword "values" >>

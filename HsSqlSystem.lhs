@@ -44,6 +44,7 @@ getfntables [databasename]
 output function and operator tables for the parser and type checker
 from the given database
 
+gettableviewtypes [databasename]
 
 TODO 1: add options to specify username and password (keep optional though)
 TODO 2: think of a name for this command
@@ -84,6 +85,7 @@ TODO 2: think of a name for this command
 >       | (length args == 2 && head args == "getfntables") -> getFnTables (args !! 1)
 >       | (length args == 2 && head args == "gettypestuff") -> getTypeStuff (args !! 1)
 >       | (length args == 1 && head args == "checkfntypes") -> checkFnTypes
+>       | (length args == 2 && head args == "gettableviewtypes") -> getTableViewTypes (args !! 1)
 >       | otherwise -> error "couldn't parse command line"
 >   where
 >     loadsqlfiles args = mapM_ (loadSqlfile (args !! 1)) (tail $ tail args)
@@ -293,16 +295,15 @@ each is a list with type ({functionName} String
 >                       \combinedNamedArgs as (\n\
 >                       \select oid, proname,\n\
 >                       \       array_agg(argtype) over (partition by oid\n\
->                       \                                order by oid,argpos) as argtypes,\n\
->                       \       ret,\n\
->                       \       rank()  over (partition by oid\n\
->                       \                                order by oid desc,argpos desc) as rank\n\
+>                       \                                order by oid,argpos\n\
+>                       \                                range between unbounded preceding\n\
+>                       \                                and unbounded following) as argtypes,\n\
+>                       \       ret\n\
 >                       \from namedTypes\n\
 >                       \)\n\
 >                       \select oid,proname,\n\
 >                       \  array_to_string(argtypes, ',') as argtypes,ret\n\
 >                       \from combinedNamedArgs\n\
->                       \where rank = 1\n\
 >                       \--we've lost the no args fns at this point, so whack em back in\n\
 >                       \union\n\
 >                       \select p.oid,\n\
@@ -461,6 +462,43 @@ outputs type information and cast information
 
 ================================================================================
 
+getTableViewTypes
+
+> getTableViewTypes :: String -> IO ()
+> getTableViewTypes dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
+>    putStrLn "module PGSetofTypes where\n"
+>    putStrLn "import TypeType\n"
+>    attrinfo <- selectRelation conn (typesCtesNamed ++
+>                                     " select\n\
+>                                     \        case cls.relkind\n\
+>                                     \          when 'r' then 'Table'\n\
+>                                     \          when 'v' then 'View'\n\
+>                                     \          when 'c' then 'Composite'\n\
+>                                     \        end || ' \"' || cls.relname || '\" ' ||\n\
+>                                     \        '\n    [' || array_to_string(array_agg('(\"' || attname || '\",' || descr || ')')\n\
+>                                     \           over (partition by relname order by attnum\n\
+>                                     \                range between unbounded preceding and unbounded following), ',\n    ') || ']\n'\n\
+>                                     \  from pg_attribute att\n\
+>                                     \  inner join pg_class cls\n\
+>                                     \    on cls.oid = attrelid\n\
+>                                     \  inner join ts\n\
+>                                     \    on ts.typoid = att.atttypid\n\
+>                                     \  where\n\
+>                                     \    pg_catalog.pg_table_is_visible(cls.oid)\n\
+>                                     \    and cls.relkind in ('r','v','c')\n\
+>                                     \    and not attisdropped\n\
+>                                     \order by relkind, relname,attnum;") []
+>    putStrLn "attrInfo :: [Type, [(String,Type)]]"
+>    putStr "attrInfo = [\n    "
+>    putStr $ intercalate ",\n    " $ map head attrinfo
+>    putStrLn "]"
+
+>    return ()
+
+
+
+================================================================================
+
 > replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
 > replace _ _ [] = []
 > replace old new xs@(y:ys) =
@@ -481,6 +519,10 @@ outputs type information and cast information
 >        where
 >          trimSWS :: String -> String
 >          trimSWS = dropWhile (`elem` " \n\t")
+
+
+
+
 
 
 
@@ -607,15 +649,13 @@ select oid,
 combinedNamedArgs as (
 select oid, proname,
        array_agg(argtype) over (partition by oid
-                                order by oid,argpos) as argtypes,
+                                order by oid,argpos
+                                range between unbounded preceding
+                                and unbounded following)) as argtypes,
        ret,
-       rank()  over (partition by oid
-                                order by oid desc,argpos desc) as rank
 from namedTypes
 )
 select oid,proname,argtypes,ret from combinedNamedArgs
-where rank = 1
---we've lost the no args fns at this point, so whack em back in
 union
 select p.oid,
        proname,
@@ -645,4 +685,6 @@ where pg_catalog.pg_function_is_visible(pg_proc.oid)
       and provariadic = 0
       and not proisagg
       and not proiswindow;
+
+
 

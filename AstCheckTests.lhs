@@ -196,12 +196,15 @@ check casts from unknown string lits
 
 >    ,testGroup "simple selects"
 >     (mapStatementType [
->       p "select 1;" [SetOfType $ UnnamedCompositeType [("?unknown?", typeInt)]]
+>       p "select 1;" [SetOfType $ UnnamedCompositeType [("?column?", typeInt)]]
 >      ,p "select 1 as a;" [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
->      ,p "select 1,2;" [SetOfType $ UnnamedCompositeType [("?unknown?", typeInt)
->                                                         ,("?unknown?", typeInt)]]
+>      ,p "select 1,2;" [SetOfType $ UnnamedCompositeType [("?column?", typeInt)
+>                                                         ,("?column?", typeInt)]]
 >      ,p "select 1 as a, 2 as b;" [SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                                                    ,("b", typeInt)]]
+>      ,p "select 1+2 as a, 'a' || 'b';" [SetOfType $
+>                                         UnnamedCompositeType [("a", typeInt)
+>                                                              ,("?column?", ScalarType "text")]]
 >      ,p "values (1,2);" [SetOfType $
 >                          UnnamedCompositeType
 >                          [("column1", typeInt)
@@ -227,16 +230,23 @@ check casts from unknown string lits
 >      ,p "values (1,2,3),(1,2);" [TypeError ("",1,1) ValuesListsMustBeSameLength]
 >      ])
 
+>{-    ,testGroup "simple selects from"
+>     (mapStatementType [
+>       p "select a from (select 1 as a, 2 as b);"
+>         [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
+>      ,p "select b from (select 1 as a, 2 as b);"
+>         [SetOfType $ UnnamedCompositeType [("b", typeInt)]]
+>      ])-}
+
+
 
 TODO:
-function calls
+
 rowctor
 casts
 in list
 
 select expressions:
-select 1
-select 1,2
 select a from table
 select a,b from table
 select * from table

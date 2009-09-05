@@ -75,8 +75,8 @@ import Data.List
 import Debug.Trace
 
 import TypeType
---import PGTypes
---import FnTypes
+import PGTypes
+import FnTypes
 import AstUtils
 
 
@@ -3194,7 +3194,7 @@ sem_SelectItem_SelExp ex_  =
               _lhsOnodeType =
                   _exInodeType
               _lhsOcolumnName =
-                  "?unknown?"
+                  "?column?"
               _lhsOmessages =
                   _exImessages
               _exOinLoop =

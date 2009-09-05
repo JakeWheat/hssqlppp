@@ -439,7 +439,7 @@ ATTR SelectItem
 
 SEM SelectItem
     | SelExp SelectItem lhs.nodeType = @ex.nodeType
-    | SelExp lhs.columnName = "?unknown?"
+    | SelExp lhs.columnName = "?column?"
     | SelectItem lhs.columnName = @name
 
 SEM SelectItemList

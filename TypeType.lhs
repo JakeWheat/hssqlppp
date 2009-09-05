@@ -50,7 +50,7 @@ TYPE MySourcePos = (String, Int, Int)
 > data Type = ScalarType String
 >           | ArrayType Type
 >           | SetOfType Type
->           | CompositeType String --attrs:{[(String,Type)]}
+>           | CompositeType String
 >           | UnnamedCompositeType [(String,Type)]
 >           | DomainType String Type
 >           | Row [Type]
@@ -64,20 +64,6 @@ TYPE MySourcePos = (String, Int, Int)
 >                              -- token whose type isn't yet
 >                              -- determined
 >             deriving (Eq,Show)
-
-
-> typesFromTypeList :: Type -> [Type]
-> typesFromTypeList (TypeList ts) = ts
-> typesFromTypeList x = error $ "can't get types from list " ++ show x
-
-> typeFromArray :: Type -> Type
-> typeFromArray (ArrayType t) = t
-> typeFromArray x = error $ "can't get types from non array " ++ show x
-
-> isArrayType :: Type -> Bool
-> isArrayType (ArrayType _) = True
-> isArrayType (Pseudo AnyArray) = True
-> isArrayType _ = False
 
 > data PseudoType = Any
 >                 | AnyArray
@@ -119,6 +105,19 @@ later on down the line.
 >                    | NoRowsGivenForValues
 >                      deriving (Eq,Show)
 
+> typesFromTypeList :: Type -> [Type]
+> typesFromTypeList (TypeList ts) = ts
+> typesFromTypeList x = error $ "can't get types from list " ++ show x
+
+> typeFromArray :: Type -> Type
+> typeFromArray (ArrayType t) = t
+> typeFromArray x = error $ "can't get types from non array " ++ show x
+
+> isArrayType :: Type -> Bool
+> isArrayType (ArrayType _) = True
+> isArrayType (Pseudo AnyArray) = True
+> isArrayType _ = False
+
 > data KeywordOperator = And | Or | Not
 >                      | IsNull | IsNotNull
 >                      | Like
@@ -129,3 +128,5 @@ later on down the line.
 >                  | AssignmentCastContext
 >                  | ExplicitCastContext
 >                    deriving (Eq,Show)
+
+> data CompositeTypeDef = CompositeTypeDef String [(String,Type)]
