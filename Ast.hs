@@ -75,8 +75,8 @@ import Data.List
 import Debug.Trace
 
 import TypeType
-import PGTypes
-import FnTypes
+--import PGTypes
+--import FnTypes
 import AstUtils
 
 

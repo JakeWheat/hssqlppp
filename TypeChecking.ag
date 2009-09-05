@@ -446,3 +446,76 @@ SEM SelectItemList
     | Cons lhs.columnNames = (@hd.columnName : @tl.columnNames)
     | Nil lhs.columnNames = []
 
+{-
+
+containment guide for select expressions:
+combineselect 2 selects
+insert ?select
+createtableas 1 select
+createview 1 select
+return query 1 select
+forselect 1 select
+select->subselect select
+expression->exists select
+            scalarsubquery select
+            inselect select
+
+containment guide for statements:
+forselect [statement]
+forinteger [statement]
+while [statement]
+casestatement [[statement]]
+if [[statement]]
+createfunction->fnbody [Statement]
+
+TODO
+
+some non type-check checks:
+check plpgsql only in plpgsql function
+orderby in top level select only
+copy followed immediately by copydata iff stdin, copydata only follows
+  copy from stdin
+count args to raise, etc., check same number as placeholders in string
+natural with correct join types
+no natural with onexpr in joins
+constraint column ref checks?
+typename -> setof (& fix parsing), what else like this?
+expressions: positionalarg in function, window function only in select
+ list top level
+
+review all ast checks, and see if we can also catch them during
+parsing (e.g. typeName parses setof, but this should only be allowed
+for a function return, and we can make this a parse error when parsing
+from source code rather than checking a generated ast. This needs
+judgement to say whether a parse error is better than a check error, I
+think for setof it is, but e.g. for a continue not in a loop (which
+could be caught during parsing) works better as a check error, looking
+at the error message the user will get. This might be wrong, haven't
+thought too carefully about it yet).
+
+Type checking
+
+Start with tables, and then simple select * from table, select a,b from table.
+Then maybe do some simple expressions.
+
+Add separate function to return the inferred types of statementlists/
+expressions, etc., so the checkAst checks the types are consistent,
+and them have something like getStatementType, getStatementsType,
+getExpressionType (which works for selects and relation valued
+expressions as well as scalars, tuples, etc).
+
+
+TODO: canonicalize ast process, as part of type checking produces a canonicalized ast which:
+all implicit casts appear explicitly in the ast (maybe distinguished from explicit casts?)
+all names fully qualified
+all types use canonical names
+literal values and selectors in one form (use row style?)
+nodes are tagged with types
+what else?
+
+Canonical form only defined for type consistent asts.
+
+This canonical form should pretty print and parse back to the same
+form, and type check correctly.
+
+-}
