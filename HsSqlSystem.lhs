@@ -259,70 +259,52 @@ each is a list with type ({functionName} String
 >    putStrLn $ makeVal "postfixOperatorTypes" $ map (showProt . (\l -> (l!!0,[l!!1],l!!2))) postfixopinfo
 
 >    functionsinfo <- selectRelation conn (typesCtesNamed ++
->                       "\n,\n\
->                       \expandedArgs as (\n\
->                       \select pg_proc.oid,proname,proretset, generate_series as argpos,\n\
->                       \       proargtypes[generate_series] as argtype, prorettype\n\
->                       \from pg_proc\n\
->                       \cross join generate_series(0, (select max(array_upper(proargtypes, 1))\n\
->                       \                                  from pg_proc))\n\
->                       \where pg_catalog.pg_function_is_visible(pg_proc.oid)\n\
->                       \      and provariadic = 0\n\
->                       \      and not proisagg\n\
->                       \      and not proiswindow\n\
->                       \),\n\
->                       \filteredArgs as (\n\
->                       \select oid,proname,proretset, argpos,argtype, prorettype\n\
->                       \   from expandedArgs\n\
->                       \   where argtype is not null\n\
->                       \),\n\
->                       \namedTypes as (\n\
->                       \select oid,\n\
->                       \       proname,\n\
->                       \       argpos,\n\
->                       \       aty.descr as argtype,\n\
->                       \       case\n\
->                       \         when proretset\n\
->                       \           then 'SetOfType (' || rt.descr || ')'\n\
->                       \         else rt.descr\n\
->                       \       end as ret\n\
->                       \   from filteredArgs f\n\
->                       \   inner join ts rt\n\
->                       \     on rt.typoid = prorettype\n\
->                       \   inner join ts aty\n\
->                       \     on aty.typoid = argtype\n\
->                       \),\n\
->                       \combinedNamedArgs as (\n\
->                       \select oid, proname,\n\
->                       \       array_agg(argtype) over (partition by oid\n\
->                       \                                order by oid,argpos\n\
->                       \                                range between unbounded preceding\n\
->                       \                                and unbounded following) as argtypes,\n\
->                       \       ret\n\
->                       \from namedTypes\n\
->                       \)\n\
->                       \select oid,proname,\n\
->                       \  array_to_string(argtypes, ',') as argtypes,ret\n\
->                       \from combinedNamedArgs\n\
->                       \--we've lost the no args fns at this point, so whack em back in\n\
->                       \union\n\
->                       \select p.oid,\n\
->                       \       proname,\n\
->                       \       '' as argtypes,\n\
->                       \       case\n\
->                       \         when proretset\n\
->                       \           then 'SetOfType (' || rt.descr || ')'\n\
->                       \         else rt.descr\n\
->                       \       end as ret\n\
->                       \   from pg_proc p\n\
->                       \   inner join ts rt\n\
->                       \     on rt.typoid = prorettype\n\
->                       \  where pg_catalog.pg_function_is_visible(p.oid)\n\
->                       \      and provariadic = 0\n\
->                       \      and not proisagg\n\
->                       \      and not proiswindow\n\
->                       \      and pronargs = 0\n\
->                       \order by proname,argtypes;") []
+>                                          "\n,\n\
+>                                          \interestingProcs as (\n\
+>                                          \select pg_proc.oid,proname,proargtypes,pronargs,\n\
+>                                          \       case\n\
+>                                          \         when proretset\n\
+>                                          \           then 'SetOfType (' || rt.descr || ')'\n\
+>                                          \         else rt.descr\n\
+>                                          \       end as rettype\n\
+>                                          \from pg_proc\n\
+>                                          \   inner join ts rt\n\
+>                                          \     on rt.typoid = prorettype\n\
+>                                          \where pg_catalog.pg_function_is_visible(pg_proc.oid)\n\
+>                                          \      and provariadic = 0\n\
+>                                          \      and not proisagg\n\
+>                                          \      and not proiswindow\n\
+>                                          \),\n\
+>                                          \expandedArgs as (\n\
+>                                          \select oid,proname,generate_series as argpos,\n\
+>                                          \       proargtypes[generate_series] as argtype,rettype\n\
+>                                          \from interestingProcs\n\
+>                                          \cross join generate_series(0, (select max(array_upper(proargtypes, 1))\n\
+>                                          \                from interestingProcs))\n\
+>                                          \),\n\
+>                                          \namedTypes as (\n\
+>                                          \select oid,\n\
+>                                          \       proname,\n\
+>                                          \       argpos,\n\
+>                                          \       coalesce(aty.descr, '') as argtype,\n\
+>                                          \       rettype\n\
+>                                          \   from expandedArgs f\n\
+>                                          \   left outer join ts aty\n\
+>                                          \     on aty.typoid = argtype\n\
+>                                          \   where aty.typoid is not null\n\
+>                                          \     or argpos = 0 and aty.typoid is null\n\
+>                                          \)\n\
+>                                          \select distinct oid, proname,\n\
+>                                          \       array_to_string(\n\
+>                                          \         array_agg(argtype) over (partition by oid\n\
+>                                          \              order by oid,argpos\n\
+>                                          \              range between unbounded preceding\n\
+>                                          \             and unbounded following)\n\
+>                                          \         , ',') as argtypes,\n\
+>                                          \       rettype\n\
+>                                          \from namedTypes\n\
+>                                          \order by proname, argtypes\n\
+>                                          \;") []
 >    putStrLn $ makeVal "functionTypes" $ map showProt $ filterOut $ map convFnLine functionsinfo
 >    where
 >      convFnLine l = (l!!1, toStrList (l!!2), l!!3)
