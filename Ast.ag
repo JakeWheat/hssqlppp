@@ -278,10 +278,10 @@ DATA JoinType | Inner | LeftOuter| RightOuter | FullOuter | Cross
 
 -- select columns, into columns
 
-DATA SelectList | SelectList SelectItemList StringList
+DATA SelectList | SelectList items:SelectItemList StringList
 
-DATA SelectItem | SelExp Expression
-                | SelectItem Expression String
+DATA SelectItem | SelExp ex:Expression
+                | SelectItem ex:Expression name:String
 
 DATA CopySource | CopyFilename String | Stdin
 
@@ -535,16 +535,15 @@ TYPE StatementList = [SourcePosStatement]
 Error reporting
 -}
 
-DATA Message | Error MySourcePos MessageStuff
+{
+data Message = Error MySourcePos MessageStuff
              | Warning MySourcePos MessageStuff
              | Notice MySourcePos MessageStuff
+               deriving (Eq)
 
-DATA MessageStuff | ContinueNotInLoop
+data MessageStuff = ContinueNotInLoop
                   | CustomMessage String
-
-DERIVING Message MessageStuff: Eq
-DERIVING MessageStuff: Show
-{
+                    deriving (Eq,Show)
 
 instance Show Message where
    show m = showMessage m
@@ -1624,6 +1623,18 @@ SEM Expression
 SEM Statement
     | SelectStatement lhs.nodeType = @ex.nodeType
 
+ATTR SelectItemList
+  [
+  |
+  | columnNames : {[String]}
+  ]
+
+ATTR SelectList
+  [
+  |
+  | columnNames : {[String]}
+  ]
+
 
 SEM SelectExpression
     --assume we get TypeList (TypeList (Type)) out of vll
@@ -1652,8 +1663,31 @@ SEM SelectExpression
                           0 -> Nothing
                           1 -> Just $ head es
                           _ ->  Just $ TypeList es
-            ty = UnnamedCompositeType $ zip colNames colTypes
-        in head $ catMaybes [error1, error2, Just $ SetOfType ty]
+            ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
+        in head $ catMaybes [error1, error2, Just ty]
+     | Select lhs.nodeType =
+        let colTypes = typesFromTypeList $ head $ typesFromTypeList @selSelectList.nodeType
+            colNames = @selSelectList.columnNames
+            error1 = if length colTypes == 0
+                       then Just $ TypeError @lhs.sourcePos NoRowsGivenForValues
+                       else Nothing
+            ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
+        in head $ catMaybes [error1, Just ty]
+
+ATTR SelectItem
+  [
+  |
+  | columnName : String
+  ]
+
+SEM SelectItem
+    | SelExp SelectItem lhs.nodeType = @ex.nodeType
+    | SelExp lhs.columnName = "?unknown?"
+    | SelectItem lhs.columnName = @name
+
+SEM SelectItemList
+    | Cons lhs.columnNames = (@hd.columnName : @tl.columnNames)
+    | Nil lhs.columnNames = []
 
 {-
 

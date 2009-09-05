@@ -100,6 +100,14 @@ getOperatorType s = case () of
                             error $ "don't know flavour of operator " ++ s
 
 
+data Message = Error MySourcePos MessageStuff
+             | Warning MySourcePos MessageStuff
+             | Notice MySourcePos MessageStuff
+               deriving (Eq)
+
+data MessageStuff = ContinueNotInLoop
+                  | CustomMessage String
+                    deriving (Eq,Show)
 
 instance Show Message where
    show m = showMessage m
@@ -3142,80 +3150,6 @@ sem_MaybeExpression_Nothing  =
               _lhsOmessages =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))
--- Message -----------------------------------------------------
-data Message  = Error (MySourcePos) (MessageStuff) 
-              | Notice (MySourcePos) (MessageStuff) 
-              | Warning (MySourcePos) (MessageStuff) 
-              deriving ( Eq)
--- cata
-sem_Message :: Message  ->
-               T_Message 
-sem_Message (Error _mySourcePos _messageStuff )  =
-    (sem_Message_Error _mySourcePos (sem_MessageStuff _messageStuff ) )
-sem_Message (Notice _mySourcePos _messageStuff )  =
-    (sem_Message_Notice _mySourcePos (sem_MessageStuff _messageStuff ) )
-sem_Message (Warning _mySourcePos _messageStuff )  =
-    (sem_Message_Warning _mySourcePos (sem_MessageStuff _messageStuff ) )
--- semantic domain
-type T_Message  = ( )
-data Inh_Message  = Inh_Message {}
-data Syn_Message  = Syn_Message {}
-wrap_Message :: T_Message  ->
-                Inh_Message  ->
-                Syn_Message 
-wrap_Message sem (Inh_Message )  =
-    (let ( ) =
-             (sem )
-     in  (Syn_Message ))
-sem_Message_Error :: MySourcePos ->
-                     T_MessageStuff  ->
-                     T_Message 
-sem_Message_Error mySourcePos_ messageStuff_  =
-    (let 
-     in  ( ))
-sem_Message_Notice :: MySourcePos ->
-                      T_MessageStuff  ->
-                      T_Message 
-sem_Message_Notice mySourcePos_ messageStuff_  =
-    (let 
-     in  ( ))
-sem_Message_Warning :: MySourcePos ->
-                       T_MessageStuff  ->
-                       T_Message 
-sem_Message_Warning mySourcePos_ messageStuff_  =
-    (let 
-     in  ( ))
--- MessageStuff ------------------------------------------------
-data MessageStuff  = ContinueNotInLoop 
-                   | CustomMessage (String) 
-                   deriving ( Eq,Show)
--- cata
-sem_MessageStuff :: MessageStuff  ->
-                    T_MessageStuff 
-sem_MessageStuff (ContinueNotInLoop )  =
-    (sem_MessageStuff_ContinueNotInLoop )
-sem_MessageStuff (CustomMessage _string )  =
-    (sem_MessageStuff_CustomMessage _string )
--- semantic domain
-type T_MessageStuff  = ( )
-data Inh_MessageStuff  = Inh_MessageStuff {}
-data Syn_MessageStuff  = Syn_MessageStuff {}
-wrap_MessageStuff :: T_MessageStuff  ->
-                     Inh_MessageStuff  ->
-                     Syn_MessageStuff 
-wrap_MessageStuff sem (Inh_MessageStuff )  =
-    (let ( ) =
-             (sem )
-     in  (Syn_MessageStuff ))
-sem_MessageStuff_ContinueNotInLoop :: T_MessageStuff 
-sem_MessageStuff_ContinueNotInLoop  =
-    (let 
-     in  ( ))
-sem_MessageStuff_CustomMessage :: String ->
-                                  T_MessageStuff 
-sem_MessageStuff_CustomMessage string_  =
-    (let 
-     in  ( ))
 -- Natural -----------------------------------------------------
 data Natural  = Natural 
               | Unnatural 
@@ -3901,8 +3835,8 @@ sem_SelectExpression_Select :: T_Distinct  ->
 sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGroupBy_ selHaving_ selOrderBy_ selDir_ selLimit_ selOffset_  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
               _selDistinctOinLoop :: Bool
               _selDistinctOsourcePos :: MySourcePos
               _selSelectListOinLoop :: Bool
@@ -3915,6 +3849,7 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selDirOsourcePos :: MySourcePos
               _selDistinctImessages :: ([Message])
               _selDistinctInodeType :: Type
+              _selSelectListIcolumnNames :: ([String])
               _selSelectListImessages :: ([Message])
               _selSelectListInodeType :: Type
               _selGroupByImessages :: ([Message])
@@ -3923,10 +3858,16 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selOrderByInodeType :: Type
               _selDirImessages :: ([Message])
               _selDirInodeType :: Type
+              _lhsOnodeType =
+                  let colTypes = typesFromTypeList $ head $ typesFromTypeList _selSelectListInodeType
+                      colNames = _selSelectListIcolumnNames
+                      error1 = if length colTypes == 0
+                                 then Just $ TypeError _lhsIsourcePos NoRowsGivenForValues
+                                 else Nothing
+                      ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
+                  in head $ catMaybes [error1, Just ty]
               _lhsOmessages =
                   _selDistinctImessages ++ _selSelectListImessages ++ _selGroupByImessages ++ _selOrderByImessages ++ _selDirImessages
-              _lhsOnodeType =
-                  _selDistinctInodeType `setUnknown` _selSelectListInodeType `setUnknown` _selGroupByInodeType `setUnknown` _selOrderByInodeType `setUnknown` _selDirInodeType
               _selDistinctOinLoop =
                   _lhsIinLoop
               _selDistinctOsourcePos =
@@ -3949,7 +3890,7 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
                   _lhsIsourcePos
               ( _selDistinctImessages,_selDistinctInodeType) =
                   (selDistinct_ _selDistinctOinLoop _selDistinctOsourcePos )
-              ( _selSelectListImessages,_selSelectListInodeType) =
+              ( _selSelectListIcolumnNames,_selSelectListImessages,_selSelectListInodeType) =
                   (selSelectList_ _selSelectListOinLoop _selSelectListOsourcePos )
               ( _selGroupByImessages,_selGroupByInodeType) =
                   (selGroupBy_ _selGroupByOinLoop _selGroupByOsourcePos )
@@ -3992,8 +3933,8 @@ sem_SelectExpression_Values vll_  =
                                     0 -> Nothing
                                     1 -> Just $ head es
                                     _ ->  Just $ TypeList es
-                      ty = UnnamedCompositeType $ zip colNames colTypes
-                  in head $ catMaybes [error1, error2, Just $ SetOfType ty]
+                      ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
+                  in head $ catMaybes [error1, error2, Just ty]
               _lhsOmessages =
                   _vllImessages
               _vllOinLoop =
@@ -4010,68 +3951,74 @@ data SelectItem  = SelExp (Expression)
 -- cata
 sem_SelectItem :: SelectItem  ->
                   T_SelectItem 
-sem_SelectItem (SelExp _expression )  =
-    (sem_SelectItem_SelExp (sem_Expression _expression ) )
-sem_SelectItem (SelectItem _expression _string )  =
-    (sem_SelectItem_SelectItem (sem_Expression _expression ) _string )
+sem_SelectItem (SelExp _ex )  =
+    (sem_SelectItem_SelExp (sem_Expression _ex ) )
+sem_SelectItem (SelectItem _ex _name )  =
+    (sem_SelectItem_SelectItem (sem_Expression _ex ) _name )
 -- semantic domain
 type T_SelectItem  = Bool ->
                      MySourcePos ->
-                     ( ([Message]),Type)
+                     ( String,([Message]),Type)
 data Inh_SelectItem  = Inh_SelectItem {inLoop_Inh_SelectItem :: Bool,sourcePos_Inh_SelectItem :: MySourcePos}
-data Syn_SelectItem  = Syn_SelectItem {messages_Syn_SelectItem :: [Message],nodeType_Syn_SelectItem :: Type}
+data Syn_SelectItem  = Syn_SelectItem {columnName_Syn_SelectItem :: String,messages_Syn_SelectItem :: [Message],nodeType_Syn_SelectItem :: Type}
 wrap_SelectItem :: T_SelectItem  ->
                    Inh_SelectItem  ->
                    Syn_SelectItem 
 wrap_SelectItem sem (Inh_SelectItem _lhsIinLoop _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType) =
+    (let ( _lhsOcolumnName,_lhsOmessages,_lhsOnodeType) =
              (sem _lhsIinLoop _lhsIsourcePos )
-     in  (Syn_SelectItem _lhsOmessages _lhsOnodeType ))
+     in  (Syn_SelectItem _lhsOcolumnName _lhsOmessages _lhsOnodeType ))
 sem_SelectItem_SelExp :: T_Expression  ->
                          T_SelectItem 
-sem_SelectItem_SelExp expression_  =
+sem_SelectItem_SelExp ex_  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _expressionOinLoop :: Bool
-              _expressionOsourcePos :: MySourcePos
-              _expressionImessages :: ([Message])
-              _expressionInodeType :: Type
-              _lhsOmessages =
-                  _expressionImessages
+         (let _lhsOnodeType :: Type
+              _lhsOcolumnName :: String
+              _lhsOmessages :: ([Message])
+              _exOinLoop :: Bool
+              _exOsourcePos :: MySourcePos
+              _exImessages :: ([Message])
+              _exInodeType :: Type
               _lhsOnodeType =
-                  _expressionInodeType
-              _expressionOinLoop =
+                  _exInodeType
+              _lhsOcolumnName =
+                  "?unknown?"
+              _lhsOmessages =
+                  _exImessages
+              _exOinLoop =
                   _lhsIinLoop
-              _expressionOsourcePos =
+              _exOsourcePos =
                   _lhsIsourcePos
-              ( _expressionImessages,_expressionInodeType) =
-                  (expression_ _expressionOinLoop _expressionOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              ( _exImessages,_exInodeType) =
+                  (ex_ _exOinLoop _exOsourcePos )
+          in  ( _lhsOcolumnName,_lhsOmessages,_lhsOnodeType)))
 sem_SelectItem_SelectItem :: T_Expression  ->
                              String ->
                              T_SelectItem 
-sem_SelectItem_SelectItem expression_ string_  =
+sem_SelectItem_SelectItem ex_ name_  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _expressionOinLoop :: Bool
-              _expressionOsourcePos :: MySourcePos
-              _expressionImessages :: ([Message])
-              _expressionInodeType :: Type
-              _lhsOmessages =
-                  _expressionImessages
+         (let _lhsOnodeType :: Type
+              _lhsOcolumnName :: String
+              _lhsOmessages :: ([Message])
+              _exOinLoop :: Bool
+              _exOsourcePos :: MySourcePos
+              _exImessages :: ([Message])
+              _exInodeType :: Type
               _lhsOnodeType =
-                  _expressionInodeType
-              _expressionOinLoop =
+                  _exInodeType
+              _lhsOcolumnName =
+                  name_
+              _lhsOmessages =
+                  _exImessages
+              _exOinLoop =
                   _lhsIinLoop
-              _expressionOsourcePos =
+              _exOsourcePos =
                   _lhsIsourcePos
-              ( _expressionImessages,_expressionInodeType) =
-                  (expression_ _expressionOinLoop _expressionOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
+              ( _exImessages,_exInodeType) =
+                  (ex_ _exOinLoop _exOsourcePos )
+          in  ( _lhsOcolumnName,_lhsOmessages,_lhsOnodeType)))
 -- SelectItemList ----------------------------------------------
 type SelectItemList  = [(SelectItem)]
 -- cata
@@ -4082,32 +4029,37 @@ sem_SelectItemList list  =
 -- semantic domain
 type T_SelectItemList  = Bool ->
                          MySourcePos ->
-                         ( ([Message]),Type)
+                         ( ([String]),([Message]),Type)
 data Inh_SelectItemList  = Inh_SelectItemList {inLoop_Inh_SelectItemList :: Bool,sourcePos_Inh_SelectItemList :: MySourcePos}
-data Syn_SelectItemList  = Syn_SelectItemList {messages_Syn_SelectItemList :: [Message],nodeType_Syn_SelectItemList :: Type}
+data Syn_SelectItemList  = Syn_SelectItemList {columnNames_Syn_SelectItemList :: [String],messages_Syn_SelectItemList :: [Message],nodeType_Syn_SelectItemList :: Type}
 wrap_SelectItemList :: T_SelectItemList  ->
                        Inh_SelectItemList  ->
                        Syn_SelectItemList 
 wrap_SelectItemList sem (Inh_SelectItemList _lhsIinLoop _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType) =
+    (let ( _lhsOcolumnNames,_lhsOmessages,_lhsOnodeType) =
              (sem _lhsIinLoop _lhsIsourcePos )
-     in  (Syn_SelectItemList _lhsOmessages _lhsOnodeType ))
+     in  (Syn_SelectItemList _lhsOcolumnNames _lhsOmessages _lhsOnodeType ))
 sem_SelectItemList_Cons :: T_SelectItem  ->
                            T_SelectItemList  ->
                            T_SelectItemList 
 sem_SelectItemList_Cons hd_ tl_  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
+         (let _lhsOcolumnNames :: ([String])
+              _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
               _hdOinLoop :: Bool
               _hdOsourcePos :: MySourcePos
               _tlOinLoop :: Bool
               _tlOsourcePos :: MySourcePos
+              _hdIcolumnName :: String
               _hdImessages :: ([Message])
               _hdInodeType :: Type
+              _tlIcolumnNames :: ([String])
               _tlImessages :: ([Message])
               _tlInodeType :: Type
+              _lhsOcolumnNames =
+                  (_hdIcolumnName : _tlIcolumnNames)
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
@@ -4120,76 +4072,83 @@ sem_SelectItemList_Cons hd_ tl_  =
                   _lhsIinLoop
               _tlOsourcePos =
                   _lhsIsourcePos
-              ( _hdImessages,_hdInodeType) =
+              ( _hdIcolumnName,_hdImessages,_hdInodeType) =
                   (hd_ _hdOinLoop _hdOsourcePos )
-              ( _tlImessages,_tlInodeType) =
+              ( _tlIcolumnNames,_tlImessages,_tlInodeType) =
                   (tl_ _tlOinLoop _tlOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
+          in  ( _lhsOcolumnNames,_lhsOmessages,_lhsOnodeType)))
 sem_SelectItemList_Nil :: T_SelectItemList 
 sem_SelectItemList_Nil  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
+         (let _lhsOcolumnNames :: ([String])
+              _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
+              _lhsOcolumnNames =
+                  []
               _lhsOmessages =
                   []
               _lhsOnodeType =
                   TypeList []
-          in  ( _lhsOmessages,_lhsOnodeType)))
+          in  ( _lhsOcolumnNames,_lhsOmessages,_lhsOnodeType)))
 -- SelectList --------------------------------------------------
 data SelectList  = SelectList (SelectItemList) (StringList) 
                  deriving ( Eq,Show)
 -- cata
 sem_SelectList :: SelectList  ->
                   T_SelectList 
-sem_SelectList (SelectList _selectItemList _stringList )  =
-    (sem_SelectList_SelectList (sem_SelectItemList _selectItemList ) (sem_StringList _stringList ) )
+sem_SelectList (SelectList _items _stringList )  =
+    (sem_SelectList_SelectList (sem_SelectItemList _items ) (sem_StringList _stringList ) )
 -- semantic domain
 type T_SelectList  = Bool ->
                      MySourcePos ->
-                     ( ([Message]),Type)
+                     ( ([String]),([Message]),Type)
 data Inh_SelectList  = Inh_SelectList {inLoop_Inh_SelectList :: Bool,sourcePos_Inh_SelectList :: MySourcePos}
-data Syn_SelectList  = Syn_SelectList {messages_Syn_SelectList :: [Message],nodeType_Syn_SelectList :: Type}
+data Syn_SelectList  = Syn_SelectList {columnNames_Syn_SelectList :: [String],messages_Syn_SelectList :: [Message],nodeType_Syn_SelectList :: Type}
 wrap_SelectList :: T_SelectList  ->
                    Inh_SelectList  ->
                    Syn_SelectList 
 wrap_SelectList sem (Inh_SelectList _lhsIinLoop _lhsIsourcePos )  =
-    (let ( _lhsOmessages,_lhsOnodeType) =
+    (let ( _lhsOcolumnNames,_lhsOmessages,_lhsOnodeType) =
              (sem _lhsIinLoop _lhsIsourcePos )
-     in  (Syn_SelectList _lhsOmessages _lhsOnodeType ))
+     in  (Syn_SelectList _lhsOcolumnNames _lhsOmessages _lhsOnodeType ))
 sem_SelectList_SelectList :: T_SelectItemList  ->
                              T_StringList  ->
                              T_SelectList 
-sem_SelectList_SelectList selectItemList_ stringList_  =
+sem_SelectList_SelectList items_ stringList_  =
     (\ _lhsIinLoop
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
-              _selectItemListOinLoop :: Bool
-              _selectItemListOsourcePos :: MySourcePos
+              _lhsOcolumnNames :: ([String])
+              _itemsOinLoop :: Bool
+              _itemsOsourcePos :: MySourcePos
               _stringListOinLoop :: Bool
               _stringListOsourcePos :: MySourcePos
-              _selectItemListImessages :: ([Message])
-              _selectItemListInodeType :: Type
+              _itemsIcolumnNames :: ([String])
+              _itemsImessages :: ([Message])
+              _itemsInodeType :: Type
               _stringListImessages :: ([Message])
               _stringListInodeType :: Type
               _lhsOmessages =
-                  _selectItemListImessages ++ _stringListImessages
+                  _itemsImessages ++ _stringListImessages
               _lhsOnodeType =
-                  _selectItemListInodeType `appendTypeList` _stringListInodeType
-              _selectItemListOinLoop =
+                  _itemsInodeType `appendTypeList` _stringListInodeType
+              _lhsOcolumnNames =
+                  _itemsIcolumnNames
+              _itemsOinLoop =
                   _lhsIinLoop
-              _selectItemListOsourcePos =
+              _itemsOsourcePos =
                   _lhsIsourcePos
               _stringListOinLoop =
                   _lhsIinLoop
               _stringListOsourcePos =
                   _lhsIsourcePos
-              ( _selectItemListImessages,_selectItemListInodeType) =
-                  (selectItemList_ _selectItemListOinLoop _selectItemListOsourcePos )
+              ( _itemsIcolumnNames,_itemsImessages,_itemsInodeType) =
+                  (items_ _itemsOinLoop _itemsOsourcePos )
               ( _stringListImessages,_stringListInodeType) =
                   (stringList_ _stringListOinLoop _stringListOsourcePos )
-          in  ( _lhsOmessages,_lhsOnodeType)))
+          in  ( _lhsOcolumnNames,_lhsOmessages,_lhsOnodeType)))
 -- SetClause ---------------------------------------------------
 data SetClause  = RowSetClause (StringList) (ExpressionList) 
                 | SetClause (String) (Expression) 
