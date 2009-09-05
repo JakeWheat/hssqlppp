@@ -287,10 +287,10 @@ recurses to support parsing excepts, unions, etc
 >         getFirstTref = choice [
 >                         SubTref
 >                         <$> parens selectExpression
->                         <*> (keyword "as" *> idString)
+>                         <*> (optional (keyword "as") *> idString)
 >                        ,optionalSuffix
 >                           TrefFun (try $ identifier >>= functionCallSuffix)
->                           TrefFunAlias () (keyword "as" *> idString)
+>                           TrefFunAlias () (optional (keyword "as") *> idString)
 >                        ,optionalSuffix
 >                           Tref nkwid
 >                           TrefAlias () (optional (keyword "as") *> nkwid)]

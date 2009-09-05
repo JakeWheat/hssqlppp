@@ -430,7 +430,12 @@ test a whole bunch more select statements
 >          [] Asc Nothing Nothing]
 
 >      ,p "select a from (select 1 as a, 2 as b) x;"
->         []
+>         [SelectStatement $ selectFrom
+>          [selI "a"]
+>          (SubTref (selectE $ SelectList
+>                                [SelectItem (IntegerLit 1) "a"
+>                                ,SelectItem (IntegerLit 2) "b"] [])
+>                   "x")]
 >      ])
 
 ================================================================================
