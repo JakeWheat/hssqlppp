@@ -4,6 +4,8 @@
 > import qualified Data.Map as M
 > import Data.Maybe
 
+> import Debug.Trace
+
 > import DBAccess
 > import Scope
 > import TypeType
@@ -26,11 +28,12 @@
 >                  \   and not exists(select 1 from pg_catalog.pg_type el\n\
 >                  \                       where el.typarray = t.oid)\n\
 >                  \  order by t.typname;" []
->    let types = concatMap convTypeInfoRow typeInfo
->        typeMap = M.fromList $ zip (map head typeInfo) types
+>    let typeAssoc = concatMap convTypeInfoRow typeInfo
+>        typeMap = M.fromList typeAssoc
+>        types = map snd typeAssoc
 >    castInfo <- selectRelation conn
 >                  "select castsource,casttarget,castcontext from pg_cast;" []
->    let jlt k = fromJust $ M.lookup k typeMap
+>    let jlt k = {-trace ("stuff:" ++ show k ++"//") $-} fromJust $ M.lookup k typeMap
 >    let casts = flip map castInfo
 >                  (\l -> (jlt (l!!0), jlt (l!!1),
 >                          case (l!!2) of
@@ -38,7 +41,13 @@
 >                                      "i" -> ImplicitCastContext
 >                                      "e" -> ExplicitCastContext
 >                                      _ -> error $ "unknown cast context " ++ (l!!2)))
->    return $ Scope types casts M.empty
+>    typeCatInfo <- selectRelation conn
+>                        "select pg_type.oid, typcategory, typispreferred from pg_type\n\
+>                        \where pg_catalog.pg_type_is_visible(pg_type.oid);" []
+>    let typeCats = flip map typeCatInfo
+>                     (\l -> (jlt (l!!0), l!!1, read (l!!2)::Bool))
+>    return $ Scope [] [] typeCats M.empty
+>    --return $ Scope types casts typeCats M.empty
 >    where
 >      convTypeInfoRow l =
 >        let name = (l!!2)
@@ -62,6 +71,7 @@
 >                                                  "void" -> Void
 >                                                  _ -> error $ "unknown pseudo " ++ t))
 >                     _ -> error $ "unknown type type: " ++ (l !! 1)
+>            scType = ((l!!0), ctor name)
 >        in if (l!!4) /= "0"
->           then [ArrayType $ ctor name, ctor name]
->           else [ctor name]
+>           then [((l!!5,ArrayType $ ctor name)), scType]
+>           else [scType]
