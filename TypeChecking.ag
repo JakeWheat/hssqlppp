@@ -40,6 +40,7 @@ ATTR AllNodes Root ExpressionRoot
   [ scope : Scope
   |
   | messages USE {++} {[]} : {[Message]}
+    actualValue: SELF
   ]
 
 SEM Root
@@ -377,11 +378,12 @@ pull id types out of scope for identifiers
 -}
 
 SEM Expression
-    | Identifier lhs.nodeType = case M.lookup @i (scopeIdentifierTypes @lhs.scope) of
-                                  Nothing -> TypeError
-                                              @lhs.sourcePos
-                                              (UnrecognisedIdentifier @i)
-                                  Just t -> t
+    | Identifier lhs.nodeType =
+               case M.lookup @i (scopeIdentifierTypes @lhs.scope) of
+                 Nothing -> TypeError
+                              @lhs.sourcePos
+                              (UnrecognisedIdentifier @i)
+                 Just t -> t
 
 {-
 ================================================================================
@@ -395,15 +397,16 @@ SEM Statement
 
 ATTR SelectItemList
   [
-  |
+  | columns : Type
   | columnNames : {[String]}
   ]
 
 ATTR SelectList
   [
-  |
+  | columns : Type
   | columnNames : {[String]}
   ]
+
 
 SEM SelectExpression
     --assume we get TypeList (TypeList (Type)) out of vll
@@ -435,12 +438,13 @@ SEM SelectExpression
             ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
         in head $ catMaybes [error1, error2, Just ty]
      | Select
-         selSelectList.scope = scopeCombineIds @lhs.scope @selTref.suppliedIdScope
+         selSelectList.scope = scopeCombineIds @lhs.scope (getColumnsAsTypes @selTref.columns)
+         selSelectList.columns = @selTref.columns
          lhs.nodeType =
              let error0 = case @selTref.nodeType of
                             TypeList [] -> Nothing
                             x -> Just x
-                 colTypes = typesFromTypeList $ head $ typesFromTypeList @selSelectList.nodeType
+                 colTypes = typesFromTypeList @selSelectList.nodeType
                  colNames = @selSelectList.columnNames
                  error1 = if length colTypes == 0
                             then Just $ TypeError @lhs.sourcePos NoRowsGivenForValues
@@ -451,9 +455,17 @@ SEM SelectExpression
              in head $ catMaybes [error0, error1, Just ty]
 
 {
-getIdScopeFromComposite :: Type -> [(String,Type)]
-getIdScopeFromComposite (SetOfType (UnnamedCompositeType atts)) = atts
-getIdScopeFromComposite _ = []
+getCompositeFromSetOf :: Type -> Type
+getCompositeFromSetOf (SetOfType a@(UnnamedCompositeType _)) = a
+getCompositeFromSetOf _ = UnnamedCompositeType []
+
+getColumnsAsTypes :: Type -> M.Map String Type
+getColumnsAsTypes (UnnamedCompositeType a) = M.fromList a
+getColumnsAsTypes _ = M.empty
+
+getTypesFromComp :: Type -> [(String,Type)]
+getTypesFromComp (UnnamedCompositeType a) = a
+getTypesFromComp _ = []
 
 }
 {-
@@ -473,7 +485,7 @@ DATA TableRef | Tref String
 ATTR TableRef MTableRef
      [
      |
-     | suppliedIdScope : {M.Map String Type}
+     | columns : Type
      ]
 
 SEM TableRef
@@ -482,18 +494,28 @@ SEM TableRef
           Nothing -> TypeError @lhs.sourcePos (UnrecognisedRelation @tbl)
           Just x -> TypeList [] --use as placeholder to say the table does exist
     | SubTref lhs.nodeType = TypeList []
+    | TrefFun TrefFunAlias
+         lhs.nodeType = case @fn.actualValue of
+                          FunCall _ _ -> TypeList []
+                          x -> TypeError @lhs.sourcePos (ContextError "FunCall")
+
 
 SEM TableRef
-    | SubTref lhs.suppliedIdScope = M.fromList $ getIdScopeFromComposite @sel.nodeType
-    | Tref lhs.suppliedIdScope =
+    | SubTref lhs.columns = getCompositeFromSetOf @sel.nodeType
+    | TrefAlias Tref lhs.columns =
         case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
-          Nothing -> M.empty
-          Just (_,_,UnnamedCompositeType a) -> M.fromList a
-    | TrefAlias JoinedTref TrefFun TrefFunAlias
-        lhs.suppliedIdScope = M.empty
+          Just (_,_,a@(UnnamedCompositeType _)) -> a
+          _ -> UnnamedCompositeType []
+    | TrefFun TrefFunAlias
+        lhs.columns = UnnamedCompositeType []
+        -- case @fn of
+        --                        FunCall f _ ->
+        --                        x -> M.empty
+    | JoinedTref
+        lhs.columns = UnnamedCompositeType []
 
 SEM MTableRef
-    | Nothing lhs.suppliedIdScope = M.empty
+    | Nothing lhs.columns = UnnamedCompositeType []
               lhs.nodeType = TypeList []
     | Just lhs.nodeType = @just.nodeType
 
@@ -508,6 +530,7 @@ ATTR Expression
   |
   | liftedColumnName USE {`(fixedValue "")`} {""}: String
   ]
+
 
 {
 fixedValue :: a -> a -> a -> a
@@ -526,8 +549,25 @@ SEM SelectItem
     | SelectItem lhs.columnName = @name
 
 SEM SelectItemList
-    | Cons lhs.columnNames = (@hd.columnName : @tl.columnNames)
+    | Cons lhs.columnNames = let cn = @hd.columnName
+                             in (if cn == "*"
+                                  then map fst $ getTypesFromComp @lhs.columns
+                                  else [cn])
+                                    ++ @tl.columnNames
     | Nil lhs.columnNames = []
+
+SEM SelectList
+    | SelectList
+        lhs.nodeType =
+            TypeList $ concatMap expandStar $ typesFromTypeList @items.nodeType
+            where
+              expandStar :: Type -> [Type]
+              expandStar =
+                (\l -> case l of
+                       TypeError _ (UnrecognisedIdentifier "*") ->
+                           map snd $ getTypesFromComp @lhs.columns
+                       x -> [x])
+
 
 {-
 

@@ -77,7 +77,7 @@
 >    let fnProts = map (convFnRow jlt) functionInfo
 
 >    attrInfo <- selectRelation conn
->                   "select\n\
+>                   "select distinct\n\
 >                   \   cls.relkind,\n\
 >                   \   cls.relname,\n\
 >                   \     array_to_string(\n\
@@ -93,7 +93,8 @@
 >                   \   pg_catalog.pg_table_is_visible(cls.oid)\n\
 >                   \   and cls.relkind in ('r','v','c')\n\
 >                   \   and not attisdropped\n\
->                   \ order by relkind, relname,attnum;" []
+>                   \   and attnum > 0\n\
+>                   \ order by relkind, relname;" []
 >    let attrs = map (convAttrRow jlt) attrInfo
 
 

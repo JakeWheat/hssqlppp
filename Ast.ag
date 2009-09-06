@@ -275,8 +275,8 @@ DATA TableRef | Tref tbl:String
                            jtref : TableRef
                            onExpr : (Maybe JoinExpression)
               | SubTref sel : SelectExpression alias : String
-              | TrefFun Expression
-              | TrefFunAlias Expression String
+              | TrefFun fn:Expression
+              | TrefFunAlias fn:Expression String
 
 DATA JoinExpression | JoinOn Expression | JoinUsing StringList
 

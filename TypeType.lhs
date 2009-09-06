@@ -106,6 +106,8 @@ later on down the line.
 >                    | NoRowsGivenForValues
 >                    | UnrecognisedIdentifier String
 >                    | UnrecognisedRelation String
+>                    | ContextError String
+>                    | FunctionMustReturnSet
 >                      deriving (Eq,Show)
 
 > typesFromTypeList :: Type -> [Type]

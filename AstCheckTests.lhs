@@ -251,8 +251,27 @@ check casts from unknown string lits
 >         [SetOfType $ UnnamedCompositeType [("typlen", typeSmallInt)]]
 >      ,p "select typlen from nope;"
 >         [TypeError ("",1,1) (UnrecognisedRelation "nope")]
+>      ,p "select generate_series from generate_series(1,7);"
+>         [SetOfType $ UnnamedCompositeType [("generate_series", typeSmallInt)]]
+>      ,p "select * from pg_attrdef;"
+>         [SetOfType $ UnnamedCompositeType
+>          [("adrelid",ScalarType "oid")
+>          ,("adnum",ScalarType "int2")
+>          ,("adbin",ScalarType "text")
+>          ,("adsrc",ScalarType "text")]]
+>      ,p "select abs from abs(3);"
+>         [SetOfType $ UnnamedCompositeType [("generate_series", typeSmallInt)]]
+>      ,p "select a,b from testfunc();"
+>         [SetOfType $ UnnamedCompositeType [("generate_series", typeSmallInt)]]
 >      ])
 
+select generate_series(1,7);
+select 3 + generate_series(1,7);
+
+cross join : union fields
+on join - same
+using list: attrs in using list only appear once
+natural - as with using list
 
 
 TODO:
