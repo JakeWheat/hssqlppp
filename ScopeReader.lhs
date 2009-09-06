@@ -46,7 +46,24 @@
 >                        \where pg_catalog.pg_type_is_visible(pg_type.oid);" []
 >    let typeCats = flip map typeCatInfo
 >                     (\l -> (jlt (l!!0), l!!1, read (l!!2)::Bool))
->    return $ Scope [] [] typeCats M.empty
+>    operatorInfo <- selectRelation conn
+>                        "select oprname,\n\
+>                        \       oprleft,\n\
+>                        \       oprright,\n\
+>                        \       oprresult\n\
+>                        \from pg_operator\n\
+>                        \      where not (oprleft <> 0 and oprright <> 0\n\
+>                        \         and oprname = '@') --hack for now\n\
+>                        \      order by oprname;" []
+>    let getOps a b c [] = (a,b,c)
+>        getOps pref post bin (l:ls) =
+>          let bit = (\a -> (l!!0, a, jlt(l!!3)))
+>          in case () of
+>                   _ | l!!1 == "0" -> getOps pref (bit [jlt (l!!2)]:post) bin ls
+>                     | l!!2 == "0" -> getOps (bit [jlt (l!!1)]:pref) post bin ls
+>                     | otherwise -> getOps pref post ((bit [jlt (l!!1), jlt (l!!2)]):bin) ls
+>    let (prefixOps, postfixOps, binaryOps) = getOps [] [] [] operatorInfo
+>    return $ Scope [] [] [] prefixOps postfixOps binaryOps M.empty
 >    --return $ Scope types casts typeCats M.empty
 >    where
 >      convTypeInfoRow l =
