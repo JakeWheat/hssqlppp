@@ -177,8 +177,8 @@ in case expressions, maybe some other places.
 
 the actual dsl engine:
 
-> checkTypes :: MySourcePos -> Type -> ArgsCheck -> RetType -> Type
-> checkTypes sp tl@(TypeList l) argC retT =
+> checkTypes :: Scope -> MySourcePos -> Type -> ArgsCheck -> RetType -> Type
+> checkTypes scope sp tl@(TypeList l) argC retT =
 >     --1: check tl for errors or unknowns
 >     --2: check the args against the constraints,
 >     --  filter this for unknown or errors
@@ -231,16 +231,16 @@ the actual dsl engine:
 >       pe = propagateUnknownError
 >       canImplicitCast (f:fs) (t:ts) =
 >           {-trace (show (f:fs) ++ show (t:ts)) $-}
->           (f == t || implicitlyCastableFromTo f t) && canImplicitCast fs ts
+>           (f == t || implicitlyCastableFromTo scope f t) && canImplicitCast fs ts
 >       canImplicitCast [] [] = True
 >       canImplicitCast _ _ = False
 
-> checkTypes _ x _ _ = error $ "can't check types of non type list: " ++ show x
+> checkTypes _ _ x _ _ = error $ "can't check types of non type list: " ++ show x
 
 
-> checkTypeExists :: MySourcePos -> Type -> Type
-> checkTypeExists sp t =
->     if t `elem` (scopeTypes defaultScope)
+> checkTypeExists :: Scope -> MySourcePos -> Type -> Type
+> checkTypeExists scope sp t =
+>     if t `elem` (scopeTypes scope)
 >       then t
 >       else TypeError sp (UnknownTypeError t)
 
@@ -309,28 +309,6 @@ they live in fntypes.hs
 > allKeywordOps :: [(KeywordOperator, [Type], Type)]
 > allKeywordOps = keywordBinaryOperatorTypes ++ keywordUnaryOperatorTypes
 
-
-this utility fn is used to check that the operator and function
-prototypes only contain types listed in the defaultTypeNames list
-
-> checkFunctionTypes :: [(String, [Type])]
-> checkFunctionTypes =
->     catMaybes $ map (\(f,a,r) ->
->                      let ts = (r:a)
->                          badts = filter (not . knownType) ts
->                      in if length badts == 0
->                           then Nothing
->                           else Just (f, badts)
->                     ) (scopeAllFns defaultScope)
->     where
->       knownType :: Type -> Bool
->       knownType l = case l of
->                       Pseudo _ -> True
->                       t@(ScalarType _) -> t `elem` (scopeTypes defaultScope)
->                       ArrayType t -> knownType t
->                       SetOfType t -> knownType t
->                       _ -> error "internal error: unknown type in function proto"
-
 todo:
 polymorphic functions
 row ctor implicitly and explicitly cast to a composite type
@@ -393,8 +371,8 @@ findCallMatch is a bit of a mess
 
 > type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
 
-> findCallMatch :: MySourcePos -> String -> [Type] ->  Either Type FunctionPrototype
-> findCallMatch sp f inArgs =
+> findCallMatch :: Scope -> MySourcePos -> String -> [Type] ->  Either Type FunctionPrototype
+> findCallMatch scope sp f inArgs =
 >     case () of
 >          _ | length exactMatch == 1 -> Right $ getHeadFn exactMatch
 >            | length binOp1UnknownMatch == 1 -> Right $ getHeadFn binOp1UnknownMatch
@@ -449,7 +427,7 @@ findCallMatch is a bit of a mess
 >       initialCandList :: [FunctionPrototype]
 >       initialCandList = filter (\(candf,candArgs,_) ->
 >                                   (candf,length candArgs) == (f,length inArgs))
->                           (scopeAllFns defaultScope)
+>                           (scopeAllFns scope)
 >
 >       listCastPairs :: [Type] -> [ArgCastFlavour]
 >       listCastPairs l = listCastPairs' inArgs l
@@ -458,8 +436,8 @@ findCallMatch is a bit of a mess
 >                           listCastPairs' (ia:ias) (ca:cas) =
 >                               (case () of
 >                                  _ | ia == ca -> ExactMatch
->                                    | implicitlyCastableFromTo ia ca ->
->                                        case isPreferredType ca of
+>                                    | implicitlyCastableFromTo scope ia ca ->
+>                                        case isPreferredType scope ca of
 >                                          True -> ImplicitToPreferred
 >                                          False -> ImplicitToNonPreferred
 >                                    | otherwise -> CannotCast
@@ -509,7 +487,7 @@ findCallMatch is a bit of a mess
 >                   getCandsCatAt :: Int -> Either () String
 >                   getCandsCatAt n' =
 >                       let typesAtN = map (!!n') candArgLists
->                           catsAtN = map getTypeCategory typesAtN
+>                           catsAtN = map (getTypeCategory scope) typesAtN
 >                       in case () of
 >                            --if any are string choose string
 >                            _ | any (== "S") catsAtN -> Right "S"
@@ -533,7 +511,7 @@ findCallMatch is a bit of a mess
 >                            catMatches = filter (\c -> Right (getCatForArgN n c) ==
 >                                                      (cats !! n)) cands
 >                            prefMatches :: [ProtArgCast]
->                            prefMatches = filter (\c -> isPreferredType
+>                            prefMatches = filter (\c -> isPreferredType scope
 >                                                        (getTypeForArgN n c)) catMatches
 >                            keepMatches :: [ProtArgCast]
 >                            keepMatches = if length prefMatches > 0
@@ -543,7 +521,7 @@ findCallMatch is a bit of a mess
 >            getTypeForArgN :: Int -> ProtArgCast -> Type
 >            getTypeForArgN n ((_,a,_),_) = a !! n
 >            getCatForArgN :: Int -> ProtArgCast -> String
->            getCatForArgN n c = getTypeCategory (getTypeForArgN n c)
+>            getCatForArgN n c = getTypeCategory scope (getTypeForArgN n c)
 >
 >       -- utils
 >       -- filter a candidate/cast flavours pair by a predicate on each
@@ -572,20 +550,20 @@ findCallMatch is a bit of a mess
 > isOperator :: String -> Bool
 > isOperator s = any (`elem` "+-*/<>=~!@#%^&|`?") s
 >
-> isPreferredType :: Type -> Bool
-> isPreferredType t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories defaultScope) of
+> isPreferredType :: Scope -> Type -> Bool
+> isPreferredType scope t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories scope) of
 >                       Nothing -> error $ "internal error, couldn't find type category information: " ++ show t
 >                       Just (_,_,p) -> p
 >
-> getTypeCategory :: Type -> String
-> getTypeCategory t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories defaultScope) of
+> getTypeCategory :: Scope -> Type -> String
+> getTypeCategory scope t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories scope) of
 >                       Nothing -> error $ "internal error, couldn't find type category information: " ++ show t
 >                       Just (_,c,_) -> c
 >
 >
-> implicitlyCastableFromTo :: Type -> Type -> Bool
-> implicitlyCastableFromTo from to = from == UnknownStringLit ||
->                                      any (==(from,to,ImplicitCastContext)) (scopeCasts defaultScope)
+> implicitlyCastableFromTo :: Scope -> Type -> Type -> Bool
+> implicitlyCastableFromTo scope from to = from == UnknownStringLit ||
+>                                      any (==(from,to,ImplicitCastContext)) (scopeCasts scope)
 >
 
 
@@ -606,8 +584,8 @@ check all can convert to selected type else fail
 code is not as much of a mess as findCallMatch
 
 
-> resolveResultSetType :: MySourcePos -> [Type] -> Type
-> resolveResultSetType sp inArgs = propagateUnknownError (TypeList inArgs) $
+> resolveResultSetType :: Scope -> MySourcePos -> [Type] -> Type
+> resolveResultSetType scope sp inArgs = propagateUnknownError (TypeList inArgs) $
 >     case () of
 >       _ | length inArgs == 0 -> TypeError sp TypelessEmptyArray
 >         | allSameType -> head inArgs
@@ -622,17 +600,17 @@ code is not as much of a mess as findCallMatch
 >    where
 >      allSameType = all (== head inArgs) inArgs && head inArgs /= UnknownStringLit
 >      allUnknown = all (==UnknownStringLit) inArgs
->      allSameCat = let firstCat = getTypeCategory (head knownTypes)
->                   in all (\t -> getTypeCategory t == firstCat) knownTypes
+>      allSameCat = let firstCat = getTypeCategory scope (head knownTypes)
+>                   in all (\t -> getTypeCategory scope t == firstCat) knownTypes
 >      targetType = case catMaybes [firstPreferred, lastAllConvertibleTo] of
 >                     [] -> Nothing
 >                     (x:_) -> Just x
->      firstPreferred = find isPreferredType knownTypes
+>      firstPreferred = find (isPreferredType scope) knownTypes
 >      lastAllConvertibleTo = firstAllConvertibleTo (reverse knownTypes)
 >      firstAllConvertibleTo (x:xs) = if allConvertibleToFrom x xs
 >                                       then Just x
 >                                       else firstAllConvertibleTo xs
 >      firstAllConvertibleTo [] = Nothing
->      matchOrImplicitToFrom t t1 = t == t1 || implicitlyCastableFromTo t1 t
+>      matchOrImplicitToFrom t t1 = t == t1 || implicitlyCastableFromTo scope t1 t
 >      knownTypes = filter (/=UnknownStringLit) inArgs
 >      allConvertibleToFrom t ts = all (matchOrImplicitToFrom t) ts

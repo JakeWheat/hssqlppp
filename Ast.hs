@@ -60,7 +60,6 @@ module Ast(
    ,resetSp'
    ,resetSps'
    ,nsp
-   ,checkFunctionTypes
    ,typeSmallInt
    ,typeBigInt
    ,typeInt
@@ -456,7 +455,7 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
               _x2Imessages :: ([Message])
               _x2InodeType :: Type
               _lhsOnodeType =
-                  checkTypes
+                  checkTypes _lhsIscope
                     _lhsIsourcePos
                     _x1InodeType
                     (AllSameType $ typeBool)
@@ -1209,7 +1208,7 @@ sem_Expression_Case cases_ els_  =
               _elsImessages :: ([Message])
               _elsInodeType :: Type
               _lhsOnodeType =
-                  resolveResultSetType
+                  resolveResultSetType _lhsIscope
                     _lhsIsourcePos
                     (typesFromTypeList (case _elsInodeType of
                                           Pseudo AnyElement -> _casesInodeType
@@ -1352,7 +1351,7 @@ sem_Expression_FunCall funName_ args_  =
               _argsInodeType :: Type
               _lhsOnodeType =
                   case _funNameIval of
-                    ArrayCtor -> let t = resolveResultSetType _lhsIsourcePos $ typesFromTypeList _argsInodeType
+                    ArrayCtor -> let t = resolveResultSetType _lhsIscope _lhsIsourcePos $ typesFromTypeList _argsInodeType
                                  in propagateUnknownError t $ ArrayType t
                     Substring -> ct
                                    (ExactList [ScalarType "text"
@@ -1372,8 +1371,8 @@ sem_Expression_FunCall funName_ args_  =
                     SimpleFun f -> lookupFn f (typesFromTypeList _argsInodeType)
                     _ -> UnknownType
                   where
-                    ct = checkTypes _lhsIsourcePos _argsInodeType
-                    lookupFn s1 args = case findCallMatch _lhsIsourcePos
+                    ct = checkTypes _lhsIscope _lhsIsourcePos _argsInodeType
+                    lookupFn s1 args = case findCallMatch _lhsIscope _lhsIsourcePos
                                                        (if s1 == "u-" then "-" else s1) args of
                                          Left te -> te
                                          Right (_,_,r) -> r
@@ -3642,7 +3641,7 @@ sem_SelectExpression_Values vll_  =
                                  zip (repeat "column")
                                      (map show [1..head lengths])
                       colTypeLists = transpose rowsTs
-                      colTypes = map (resolveResultSetType _lhsIsourcePos) colTypeLists
+                      colTypes = map (resolveResultSetType _lhsIscope _lhsIsourcePos) colTypeLists
                       error2 = let es = filter (\t -> case t of
                                                         TypeError _ _ -> True
                                                         _ -> False) colTypes
@@ -5945,6 +5944,7 @@ sem_TypeName_ArrayTypeName typ_  =
               _lhsOnodeType =
                   propagateUnknownError _typInodeType
                     $ checkTypeExists
+                          _lhsIscope
                           _lhsIsourcePos
                           (ArrayType _typInodeType)
               _lhsOmessages =
@@ -6009,7 +6009,7 @@ sem_TypeName_SimpleTypeName tn_  =
               _lhsOmessages :: ([Message])
               _lhsOnodeType =
                   let st = canonicalizeType $ ScalarType tn_
-                  in checkTypeExists _lhsIsourcePos st
+                  in checkTypeExists _lhsIscope _lhsIsourcePos st
               _lhsOmessages =
                   []
           in  ( _lhsOmessages,_lhsOnodeType)))

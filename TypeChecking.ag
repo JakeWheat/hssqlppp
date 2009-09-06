@@ -255,7 +255,7 @@ can't create an arbitrary array of any type
 SEM TypeName
      | SimpleTypeName
           lhs.nodeType = let st = canonicalizeType $ ScalarType @tn
-                         in checkTypeExists @lhs.sourcePos st
+                         in checkTypeExists @lhs.scope @lhs.sourcePos st
 --     | PrecTypeName
 --          lhs.nodeType = if @tn `elem` defaultTypes
 --                           then ScalarType @tn
@@ -264,6 +264,7 @@ SEM TypeName
      | ArrayTypeName
           lhs.nodeType = propagateUnknownError @typ.nodeType
                            $ checkTypeExists
+                                 @lhs.scope
                                  @lhs.sourcePos
                                  (ArrayType @typ.nodeType)
      | SetOfTypeName
@@ -310,7 +311,7 @@ ATTR FunName
 SEM Expression
     | FunCall lhs.nodeType =
         case @funName.val of
-          ArrayCtor -> let t = resolveResultSetType @lhs.sourcePos $ typesFromTypeList @args.nodeType
+          ArrayCtor -> let t = resolveResultSetType @lhs.scope @lhs.sourcePos $ typesFromTypeList @args.nodeType
                        in propagateUnknownError t $ ArrayType t
           Substring -> ct
                          (ExactList [ScalarType "text"
@@ -330,8 +331,8 @@ SEM Expression
           SimpleFun f -> lookupFn f (typesFromTypeList @args.nodeType)
           _ -> UnknownType
         where
-          ct = checkTypes @lhs.sourcePos @args.nodeType
-          lookupFn s1 args = case findCallMatch @lhs.sourcePos
+          ct = checkTypes @lhs.scope @lhs.sourcePos @args.nodeType
+          lookupFn s1 args = case findCallMatch @lhs.scope @lhs.sourcePos
                                              (if s1 == "u-" then "-" else s1) args of
                                Left te -> te
                                Right (_,_,r) -> r
@@ -353,7 +354,7 @@ the then types to pass to resolveResultSetType
 -}
 
 SEM CaseExpressionListExpressionPair
-    | Tuple lhs.nodeType = checkTypes
+    | Tuple lhs.nodeType = checkTypes @lhs.scope
                              @lhs.sourcePos
                              @x1.nodeType
                              (AllSameType $ typeBool)
@@ -361,7 +362,7 @@ SEM CaseExpressionListExpressionPair
 
 SEM Expression
     | Case lhs.nodeType =
-             resolveResultSetType
+             resolveResultSetType @lhs.scope
                @lhs.sourcePos
                (typesFromTypeList (case @els.nodeType of
                                      Pseudo AnyElement -> @cases.nodeType
@@ -423,7 +424,7 @@ SEM SelectExpression
                        zip (repeat "column")
                            (map show [1..head lengths])
             colTypeLists = transpose rowsTs
-            colTypes = map (resolveResultSetType @lhs.sourcePos) colTypeLists
+            colTypes = map (resolveResultSetType @lhs.scope @lhs.sourcePos) colTypeLists
             error2 = let es = filter (\t -> case t of
                                               TypeError _ _ -> True
                                               _ -> False) colTypes

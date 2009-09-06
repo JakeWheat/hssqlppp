@@ -106,7 +106,6 @@ MODULE {Ast}
    ,resetSp'
    ,resetSps'
    ,nsp
-   ,checkFunctionTypes
    ,typeSmallInt
    ,typeBigInt
    ,typeInt

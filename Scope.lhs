@@ -34,12 +34,19 @@ Copyright 2009 Jake Wheat
 > --base, overrides
 > combineScopes (Scope bt bc btc bpre bpost bbin bf baf bi)
 >               (Scope ot oc otc opre opost obin off oaf oi) =
->   Scope (union ot bt)
->         (union oc bc)
->         (union otc btc)
->         (union opre bpre)
->         (union opost bpost)
->         (union obin bbin)
->         (union off bf)
->         (union oaf baf)
+>   Scope (funion ot bt)
+>         (funion oc bc)
+>         (funion otc btc)
+>         (funion opre bpre)
+>         (funion opost bpost)
+>         (funion obin bbin)
+>         (funion off bf)
+>         (funion oaf baf)
 >         (M.union oi bi)
+>   where
+>     --without this it runs very slowly - guessing because it creates
+>     --a lot of garbage
+>     funion a b = case () of
+>                    _ | a == [] -> b
+>                      | b == [] -> a
+>                      | otherwise -> union a b
