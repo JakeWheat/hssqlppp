@@ -52,7 +52,8 @@ TYPE MySourcePos = (String, Int, Int)
 >           | SetOfType Type
 >           | CompositeType String
 >           | UnnamedCompositeType [(String,Type)]
->           | DomainType String Type
+>           | DomainType String
+>           | EnumType String
 >           | Row [Type]
 >           -- type list is used internally in the type checking.
 >           | TypeList [Type]

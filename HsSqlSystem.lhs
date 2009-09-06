@@ -61,6 +61,7 @@ TODO 2: think of a name for this command
 > import Ast
 > import PrettyPrinter
 > import DBAccess
+> import ScopeReader
 
 ================================================================================
 
@@ -86,6 +87,7 @@ TODO 2: think of a name for this command
 >       | (length args == 2 && head args == "gettypestuff") -> getTypeStuff (args !! 1)
 >       | (length args == 1 && head args == "checkfntypes") -> checkFnTypes
 >       | (length args == 2 && head args == "gettableviewtypes") -> getTableViewTypes (args !! 1)
+>       | (length args == 2 && head args == "getscope") -> getScope (args !! 1)
 >       | otherwise -> error "couldn't parse command line"
 >   where
 >     loadsqlfiles args = mapM_ (loadSqlfile (args !! 1)) (tail $ tail args)
@@ -477,7 +479,10 @@ getTableViewTypes
 
 >    return ()
 
-
+> getScope :: String -> IO ()
+> getScope dbName = do
+>   s <- readScope dbName
+>   print s
 
 ================================================================================
 
