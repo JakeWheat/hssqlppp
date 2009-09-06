@@ -507,10 +507,23 @@ SEM TableRef
           Just (_,_,a@(UnnamedCompositeType _)) -> a
           _ -> UnnamedCompositeType []
     | TrefFun TrefFunAlias
-        lhs.columns = UnnamedCompositeType []
-        -- case @fn of
-        --                        FunCall f _ ->
-        --                        x -> M.empty
+        lhs.columns =
+            case @fn.actualValue of
+              FunCall (SimpleFun f) _ ->
+                  case @fn.nodeType of
+                    SetOfType (CompositeType t) -> getCompositeType t
+                    SetOfType x -> UnnamedCompositeType [(f,x)]
+                    y -> UnnamedCompositeType [(f,y)]
+              x -> UnnamedCompositeType []
+              where
+                getCompositeType t =
+                    case getAttrs @lhs.scope [Composite
+                                             ,TableComposite
+                                             ,ViewComposite] t of
+                      Just (_,_,a@(UnnamedCompositeType _)) -> a
+                      _ -> UnnamedCompositeType []
+
+
     | JoinedTref
         lhs.columns = UnnamedCompositeType []
 
@@ -616,16 +629,15 @@ could be caught during parsing) works better as a check error, looking
 at the error message the user will get. This might be wrong, haven't
 thought too carefully about it yet).
 
-Type checking
+Type checking rough TODO
+finish tablerefs
+run through and finish or note missing bits for select expressions
+do other dml: insert,update,delete,copy,truncate
+creates, drops
+plpgsql
 
-Start with tables, and then simple select * from table, select a,b from table.
-Then maybe do some simple expressions.
 
-Add separate function to return the inferred types of statementlists/
-expressions, etc., so the checkAst checks the types are consistent,
-and them have something like getStatementType, getStatementsType,
-getExpressionType (which works for selects and relation valued
-expressions as well as scalars, tuples, etc).
+
 
 
 TODO: canonicalize ast process, as part of type checking produces a canonicalized ast which:

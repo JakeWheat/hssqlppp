@@ -6727,7 +6727,20 @@ sem_TableRef_TrefFun fn_  =
                     FunCall _ _ -> TypeList []
                     x -> TypeError _lhsIsourcePos (ContextError "FunCall")
               _lhsOcolumns =
-                  UnnamedCompositeType []
+                  case _fnIactualValue of
+                    FunCall (SimpleFun f) _ ->
+                        case _fnInodeType of
+                          SetOfType (CompositeType t) -> getCompositeType t
+                          SetOfType x -> UnnamedCompositeType [(f,x)]
+                          y -> UnnamedCompositeType [(f,y)]
+                    x -> UnnamedCompositeType []
+                    where
+                      getCompositeType t =
+                          case getAttrs _lhsIscope [Composite
+                                                   ,TableComposite
+                                                   ,ViewComposite] t of
+                            Just (_,_,a@(UnnamedCompositeType _)) -> a
+                            _ -> UnnamedCompositeType []
               _lhsOmessages =
                   _fnImessages
               _actualValue =
@@ -6766,7 +6779,20 @@ sem_TableRef_TrefFunAlias fn_ string_  =
                     FunCall _ _ -> TypeList []
                     x -> TypeError _lhsIsourcePos (ContextError "FunCall")
               _lhsOcolumns =
-                  UnnamedCompositeType []
+                  case _fnIactualValue of
+                    FunCall (SimpleFun f) _ ->
+                        case _fnInodeType of
+                          SetOfType (CompositeType t) -> getCompositeType t
+                          SetOfType x -> UnnamedCompositeType [(f,x)]
+                          y -> UnnamedCompositeType [(f,y)]
+                    x -> UnnamedCompositeType []
+                    where
+                      getCompositeType t =
+                          case getAttrs _lhsIscope [Composite
+                                                   ,TableComposite
+                                                   ,ViewComposite] t of
+                            Just (_,_,a@(UnnamedCompositeType _)) -> a
+                            _ -> UnnamedCompositeType []
               _lhsOmessages =
                   _fnImessages
               _actualValue =
