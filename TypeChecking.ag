@@ -437,13 +437,18 @@ SEM SelectExpression
      | Select
          selSelectList.scope = scopeCombineIds @lhs.scope @selTref.suppliedIdScope
          lhs.nodeType =
-        let colTypes = typesFromTypeList $ head $ typesFromTypeList @selSelectList.nodeType
-            colNames = @selSelectList.columnNames
-            error1 = if length colTypes == 0
-                       then Just $ TypeError @lhs.sourcePos NoRowsGivenForValues
-                       else Nothing
-            ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
-        in head $ catMaybes [error1, Just ty]
+             let error0 = case @selTref.nodeType of
+                            TypeList [] -> Nothing
+                            x -> Just x
+                 colTypes = typesFromTypeList $ head $ typesFromTypeList @selSelectList.nodeType
+                 colNames = @selSelectList.columnNames
+                 error1 = if length colTypes == 0
+                            then Just $ TypeError @lhs.sourcePos NoRowsGivenForValues
+                            else Nothing
+                 ty = propagateUnknownError
+                        (TypeList colTypes) $
+                        SetOfType $ UnnamedCompositeType $ zip colNames colTypes
+             in head $ catMaybes [error0, error1, Just ty]
 
 {
 getIdScopeFromComposite :: Type -> [(String,Type)]
@@ -472,12 +477,25 @@ ATTR TableRef MTableRef
      ]
 
 SEM TableRef
+    | Tref TrefAlias lhs.nodeType =
+        case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
+          Nothing -> TypeError @lhs.sourcePos (UnrecognisedRelation @tbl)
+          Just x -> TypeList [] --use as placeholder to say the table does exist
+    | SubTref lhs.nodeType = TypeList []
+
+SEM TableRef
     | SubTref lhs.suppliedIdScope = M.fromList $ getIdScopeFromComposite @sel.nodeType
-    | Tref TrefAlias JoinedTref TrefFun TrefFunAlias
+    | Tref lhs.suppliedIdScope =
+        case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
+          Nothing -> M.empty
+          Just (_,_,UnnamedCompositeType a) -> M.fromList a
+    | TrefAlias JoinedTref TrefFun TrefFunAlias
         lhs.suppliedIdScope = M.empty
 
 SEM MTableRef
     | Nothing lhs.suppliedIdScope = M.empty
+              lhs.nodeType = TypeList []
+    | Just lhs.nodeType = @just.nodeType
 
 ATTR SelectItem
   [

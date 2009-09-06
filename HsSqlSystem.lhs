@@ -193,41 +193,7 @@ target filename.
 >        Left er -> print er
 >        Right l -> writeFile target $ printSql l
 
-
 ================================================================================
-
-getTableViewTypes
-
-> {-getTableViewTypes :: String -> IO ()
-> getTableViewTypes dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
->    putStrLn "module PGSetofTypes where\n"
->    putStrLn "import TypeType\n"
->    attrinfo <- selectRelation conn (typesCtesNamed ++
->                                     " select\n\
->                                     \        case cls.relkind\n\
->                                     \          when 'r' then 'Table'\n\
->                                     \          when 'v' then 'View'\n\
->                                     \          when 'c' then 'Composite'\n\
->                                     \        end || ' \"' || cls.relname || '\" ' ||\n\
->                                     \        '\n    [' || array_to_string(array_agg('(\"' || attname || '\",' || descr || ')')\n\
->                                     \           over (partition by relname order by attnum\n\
->                                     \                range between unbounded preceding and unbounded following), ',\n    ') || ']\n'\n\
->                                     \  from pg_attribute att\n\
->                                     \  inner join pg_class cls\n\
->                                     \    on cls.oid = attrelid\n\
->                                     \  inner join ts\n\
->                                     \    on ts.typoid = att.atttypid\n\
->                                     \  where\n\
->                                     \    pg_catalog.pg_table_is_visible(cls.oid)\n\
->                                     \    and cls.relkind in ('r','v','c')\n\
->                                     \    and not attisdropped\n\
->                                     \order by relkind, relname,attnum;") []
->    putStrLn "attrInfo :: [Type, [(String,Type)]]"
->    putStr "attrInfo = [\n    "
->    putStr $ intercalate ",\n    " $ map head attrinfo
->    putStrLn "]"
-
->    return ()-}
 
 > getScope :: String -> IO ()
 > getScope dbName = do

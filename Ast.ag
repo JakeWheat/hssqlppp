@@ -266,8 +266,8 @@ DATA FnBody | SqlFnBody sts : StatementList
 
 DATA SetClause | SetClause String Expression | RowSetClause StringList ExpressionList
 
-DATA TableRef | Tref String
-              | TrefAlias tref : String
+DATA TableRef | Tref tbl:String
+              | TrefAlias tbl : String
                           alias : String
               | JoinedTref tref : TableRef
                            nat : Natural
@@ -545,7 +545,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpressi
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               SourcePosStatement FunName MTableRef
+               SourcePosStatement FunName MTableRef TableRef
 
 
 SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpression JoinType
@@ -557,7 +557,7 @@ SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpr
                StringStringListPair ExpressionListStatementListPair
                ExpressionStatementListPair
                CaseExpressionListExpressionPair
-               SourcePosStatement FunName
+               SourcePosStatement FunName MTableRef
 
 
 SET ListNodes = SelectList ExpressionList ExpressionListList StringList

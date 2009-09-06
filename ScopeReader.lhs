@@ -76,11 +76,44 @@
 >                       \order by proname,proargtypes;" []
 >    let fnProts = map (convFnRow jlt) functionInfo
 
+>    attrInfo <- selectRelation conn
+>                   "select\n\
+>                   \   cls.relkind,\n\
+>                   \   cls.relname,\n\
+>                   \     array_to_string(\n\
+>                   \       array_agg(attname || ';' || atttypid)\n\
+>                   \          over (partition by relname order by attnum\n\
+>                   \               range between unbounded preceding\n\
+>                   \               and unbounded following)\n\
+>                   \      ,',')\n\
+>                   \ from pg_attribute att\n\
+>                   \ inner join pg_class cls\n\
+>                   \   on cls.oid = attrelid\n\
+>                   \ where\n\
+>                   \   pg_catalog.pg_table_is_visible(cls.oid)\n\
+>                   \   and cls.relkind in ('r','v','c')\n\
+>                   \   and not attisdropped\n\
+>                   \ order by relkind, relname,attnum;" []
+>    let attrs = map (convAttrRow jlt) attrInfo
+
+
 >    return $ Scope types casts typeCats
 >                   prefixOps postfixOps binaryOps fnProts
 >                   (prefixOps ++ postfixOps ++ binaryOps ++ fnProts)
+>                   attrs
 >                   M.empty
 >    where
+>      convAttrRow jlt l =
+>         (l!!1, ty, atts)
+>          where
+>            ty = case l!!0 of
+>                   "r" -> TableComposite
+>                   "v" -> ViewComposite
+>                   "c" -> Composite
+>                   x -> error $ "unknown composite type: " ++ x
+>            atts = let ps = split ',' (l!!2)
+>                       ps1 = map (split ';') ps
+>                   in UnnamedCompositeType $ map (\pl -> (head pl, jlt (pl!!1))) ps1
 >      convFnRow jlt l =
 >         (l!!0,fnArgs,fnRet)
 >         where

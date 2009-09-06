@@ -245,6 +245,12 @@ check casts from unknown string lits
 >         [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
 >      ,p "select b from (select 1 as a, 2 as b) x;"
 >         [SetOfType $ UnnamedCompositeType [("b", typeInt)]]
+>      ,p "select c from (select 1 as a, 2 as b) x;"
+>         [TypeError ("",1,1) (UnrecognisedIdentifier "c")]
+>      ,p "select typlen from pg_type;"
+>         [SetOfType $ UnnamedCompositeType [("typlen", typeSmallInt)]]
+>      ,p "select typlen from nope;"
+>         [TypeError ("",1,1) (UnrecognisedRelation "nope")]
 >      ])
 
 

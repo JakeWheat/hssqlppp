@@ -614,3 +614,10 @@ code is not as much of a mess as findCallMatch
 >      matchOrImplicitToFrom t t1 = t == t1 || implicitlyCastableFromTo scope t1 t
 >      knownTypes = filter (/=UnknownStringLit) inArgs
 >      allConvertibleToFrom t ts = all (matchOrImplicitToFrom t) ts
+
+
+> getAttrs :: Scope -> [CompositeFlavour] -> String -> Maybe CompositeDef
+> getAttrs scope f n = find (\(nm,fl,_) ->
+>                                fl `elem` f
+>                                  && nm == n)
+>                          (scopeAttrDefs scope)

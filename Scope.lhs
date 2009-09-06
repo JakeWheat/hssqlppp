@@ -21,19 +21,20 @@ Copyright 2009 Jake Wheat
 >                    ,scopeBinaryOperators :: [FunctionPrototype]
 >                    ,scopeFunctions :: [FunctionPrototype]
 >                    ,scopeAllFns :: [FunctionPrototype]
+>                    ,scopeAttrDefs :: [CompositeDef]
 >                    ,scopeIdentifierTypes :: M.Map String Type}
 >            deriving (Eq,Show)
 
 > emptyScope :: Scope
-> emptyScope = Scope [] [] [] [] [] [] [] [] M.empty
+> emptyScope = Scope [] [] [] [] [] [] [] [] [] M.empty
 
 > scopeCombineIds :: Scope -> M.Map String Type -> Scope
 > scopeCombineIds s i = combineScopes s (emptyScope {scopeIdentifierTypes = i})
 
 > combineScopes :: Scope -> Scope -> Scope
 > --base, overrides
-> combineScopes (Scope bt bc btc bpre bpost bbin bf baf bi)
->               (Scope ot oc otc opre opost obin off oaf oi) =
+> combineScopes (Scope bt bc btc bpre bpost bbin bf baf bcd bi)
+>               (Scope ot oc otc opre opost obin off oaf ocd oi) =
 >   Scope (funion ot bt)
 >         (funion oc bc)
 >         (funion otc btc)
@@ -42,6 +43,7 @@ Copyright 2009 Jake Wheat
 >         (funion obin bbin)
 >         (funion off bf)
 >         (funion oaf baf)
+>         (funion ocd bcd)
 >         (M.union oi bi)
 >   where
 >     --without this it runs very slowly - guessing because it creates

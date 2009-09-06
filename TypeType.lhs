@@ -105,6 +105,7 @@ later on down the line.
 >                    | ValuesListsMustBeSameLength
 >                    | NoRowsGivenForValues
 >                    | UnrecognisedIdentifier String
+>                    | UnrecognisedRelation String
 >                      deriving (Eq,Show)
 
 > typesFromTypeList :: Type -> [Type]
@@ -131,4 +132,7 @@ later on down the line.
 >                  | ExplicitCastContext
 >                    deriving (Eq,Show)
 
-> data CompositeTypeDef = CompositeTypeDef String [(String,Type)]
+> data CompositeFlavour = Composite | TableComposite | ViewComposite
+>                         deriving (Eq,Show)
+
+> type CompositeDef = (String, CompositeFlavour, Type)
