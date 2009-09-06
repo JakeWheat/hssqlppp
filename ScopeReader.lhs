@@ -59,8 +59,8 @@
 >        getOps pref post bin (l:ls) =
 >          let bit = (\a -> (l!!0, a, jlt(l!!3)))
 >          in case () of
->                   _ | l!!1 == "0" -> getOps pref (bit [jlt (l!!2)]:post) bin ls
->                     | l!!2 == "0" -> getOps (bit [jlt (l!!1)]:pref) post bin ls
+>                   _ | l!!1 == "0" -> getOps (bit [jlt (l!!2)]:pref) post bin ls
+>                     | l!!2 == "0" -> getOps pref (bit [jlt (l!!1)]:post) bin ls
 >                     | otherwise -> getOps pref post ((bit [jlt (l!!1), jlt (l!!2)]):bin) ls
 >    let (prefixOps, postfixOps, binaryOps) = getOps [] [] [] operatorInfo
 >    functionInfo <- selectRelation conn

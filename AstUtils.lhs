@@ -9,8 +9,8 @@ etc., asts.
 > import Data.List
 
 > import TypeType
-> import FnTypes
-> import PGTypes
+> import Scope
+> import DefaultScope
 
 
 > data OperatorType = BinaryOp | PrefixOp | PostfixOp
@@ -23,13 +23,13 @@ the operator type, and the parser would have to be a lot cleverer
 
 > getOperatorType :: String -> OperatorType
 > getOperatorType s = case () of
->                       _ | any (\(x,_,_) -> x == s) binaryOperatorTypes ->
+>                       _ | any (\(x,_,_) -> x == s) (scopeBinaryOperators defaultScope) ->
 >                             BinaryOp
 >                         | any (\(x,_,_) -> x == s ||
 >                                            (x=="-" && s=="u-"))
->                               prefixOperatorTypes ->
+>                               (scopePrefixOperators defaultScope) ->
 >                             PrefixOp
->                         | any (\(x,_,_) -> x == s) postfixOperatorTypes ->
+>                         | any (\(x,_,_) -> x == s) (scopePostfixOperators defaultScope) ->
 >                             PostfixOp
 >                         | otherwise ->
 >                             error $ "don't know flavour of operator " ++ s
@@ -240,7 +240,7 @@ the actual dsl engine:
 
 > checkTypeExists :: MySourcePos -> Type -> Type
 > checkTypeExists sp t =
->     if t `elem` defaultTypeNames
+>     if t `elem` (scopeTypes defaultScope)
 >       then t
 >       else TypeError sp (UnknownTypeError t)
 
@@ -295,12 +295,6 @@ changed
 these hold the types of functions and operators for lookup and checking
 they live in fntypes.hs
 
-> allOpsAndFns :: [FunctionPrototype]
-> allOpsAndFns = binaryOperatorTypes
->                ++ prefixOperatorTypes
->                ++ postfixOperatorTypes
->                ++ functionTypes
-
 > keywordBinaryOperatorTypes :: [(KeywordOperator,[Type],Type)]
 > keywordBinaryOperatorTypes = [
 >  (And, [typeBool, typeBool], typeBool),
@@ -327,12 +321,12 @@ prototypes only contain types listed in the defaultTypeNames list
 >                      in if length badts == 0
 >                           then Nothing
 >                           else Just (f, badts)
->                     ) allOpsAndFns
+>                     ) (scopeAllFns defaultScope)
 >     where
 >       knownType :: Type -> Bool
 >       knownType l = case l of
 >                       Pseudo _ -> True
->                       t@(ScalarType _) -> t `elem` defaultTypeNames
+>                       t@(ScalarType _) -> t `elem` (scopeTypes defaultScope)
 >                       ArrayType t -> knownType t
 >                       SetOfType t -> knownType t
 >                       _ -> error "internal error: unknown type in function proto"
@@ -397,7 +391,6 @@ else fail
 
 findCallMatch is a bit of a mess
 
-> type FunctionPrototype = (String,[Type],Type)
 > type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
 
 > findCallMatch :: MySourcePos -> String -> [Type] ->  Either Type FunctionPrototype
@@ -456,7 +449,7 @@ findCallMatch is a bit of a mess
 >       initialCandList :: [FunctionPrototype]
 >       initialCandList = filter (\(candf,candArgs,_) ->
 >                                   (candf,length candArgs) == (f,length inArgs))
->                           allOpsAndFns
+>                           (scopeAllFns defaultScope)
 >
 >       listCastPairs :: [Type] -> [ArgCastFlavour]
 >       listCastPairs l = listCastPairs' inArgs l
@@ -580,20 +573,20 @@ findCallMatch is a bit of a mess
 > isOperator s = any (`elem` "+-*/<>=~!@#%^&|`?") s
 >
 > isPreferredType :: Type -> Bool
-> isPreferredType t = case find (\(t1,_,_)-> t1==t) typeCategories of
+> isPreferredType t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories defaultScope) of
 >                       Nothing -> error $ "internal error, couldn't find type category information: " ++ show t
 >                       Just (_,_,p) -> p
 >
 > getTypeCategory :: Type -> String
-> getTypeCategory t = case find (\(t1,_,_)-> t1==t) typeCategories of
+> getTypeCategory t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories defaultScope) of
 >                       Nothing -> error $ "internal error, couldn't find type category information: " ++ show t
 >                       Just (_,c,_) -> c
-> 
-> 
+>
+>
 > implicitlyCastableFromTo :: Type -> Type -> Bool
 > implicitlyCastableFromTo from to = from == UnknownStringLit ||
->                                      any (==(from,to,ImplicitCastContext)) castTable
-> 
+>                                      any (==(from,to,ImplicitCastContext)) (scopeCasts defaultScope)
+>
 
 
 resolveResultSetType -

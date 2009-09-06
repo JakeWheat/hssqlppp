@@ -79,10 +79,9 @@ import Debug.Trace
 import qualified Data.Map as M
 
 import TypeType
-import PGTypes
-import FnTypes
 import AstUtils
 import Scope
+import DefaultScope
 
 
 

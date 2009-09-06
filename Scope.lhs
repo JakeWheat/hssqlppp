@@ -17,15 +17,14 @@ Copyright 2009 Jake Wheat
 >                    ,scopeCasts :: [(Type,Type,CastContext)]
 >                    ,scopeTypeCategories :: [(Type,String,Bool)]
 >                    ,scopePrefixOperators :: [FunctionPrototype]
->                    ,scopePostfix :: [FunctionPrototype]
+>                    ,scopePostfixOperators :: [FunctionPrototype]
 >                    ,scopeBinaryOperators :: [FunctionPrototype]
 >                    ,scopeFunctions :: [FunctionPrototype]
 >                    ,scopeAllFns :: [FunctionPrototype]
 >                    ,scopeIdentifierTypes :: M.Map String Type}
 >            deriving (Eq,Show)
 
-> defaultScope,emptyScope :: Scope
-> defaultScope = Scope [] [] [] [] [] [] [] [] M.empty
+> emptyScope :: Scope
 > emptyScope = Scope [] [] [] [] [] [] [] [] M.empty
 
 > scopeCombineIds :: Scope -> M.Map String Type -> Scope
