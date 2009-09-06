@@ -55,6 +55,7 @@ module Ast(
    ,checkAst
    ,getExpressionType
    ,getStatementsType
+   ,getStatementsTypeScope
    ,resetSps
    ,resetSp
    ,resetSp'
@@ -102,11 +103,14 @@ getExpressionType scope ex =
 
 
 getStatementsType :: StatementList -> [Type]
-getStatementsType st = let t = sem_Root (Root st)
-                           tl = (nodeType_Syn_Root
-                                 (wrap_Root t Inh_Root {scope_Inh_Root = defaultScope}))
-                       in typesFromTypeList tl
+getStatementsType st = getStatementsTypeScope emptyScope st
 
+getStatementsTypeScope :: Scope -> StatementList -> [Type]
+getStatementsTypeScope scope st =
+    let t = sem_Root (Root st)
+        tl = (nodeType_Syn_Root
+              (wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}))
+    in typesFromTypeList tl
 
 --hack job, often not interested in the source positions when testing
 --the asts produced, so this function will reset all the source

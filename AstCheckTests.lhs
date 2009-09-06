@@ -17,6 +17,7 @@ types of error message received.
 > import Ast
 > import Parser
 > import Scope
+> import TypeType
 
 > astCheckTests :: Test.Framework.Test
 > astCheckTests = testGroup "astCheckTests" [
@@ -261,8 +262,24 @@ check casts from unknown string lits
 >          ,("adsrc",ScalarType "text")]]
 >      ,p "select abs from abs(3);"
 >         [SetOfType $ UnnamedCompositeType [("abs", typeInt)]]
->      ,p "select a,b from testfunc();"
->         [SetOfType $ UnnamedCompositeType [("generate_series", typeSmallInt)]]
+>      ])
+
+>    ,testGroup "simple selects from 2"
+>     (mapStatementTypeScope [
+>
+>       t "select a,b from testfunc();"
+>         (let fn = ("testfunc", [], SetOfType $ CompositeType "testType")
+>          in emptyScope {scopeFunctions = [fn]
+>                        ,scopeAllFns = [fn]
+>                        ,scopeAttrDefs =
+>                         [("testType"
+>                          ,Composite
+>                          ,UnnamedCompositeType
+>                             [("a", ScalarType "text")
+>                             ,("b", typeInt)
+>                             ,("c", typeInt)])]})
+>         [SetOfType $ UnnamedCompositeType
+>          [("a",ScalarType "text"),("b",ScalarType "int4")]]
 >      ])
 
 select generate_series(1,7);
@@ -316,6 +333,7 @@ etc.
 >           mapStatementType = map $ uncurry checkStatementType
 >           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
 >           makeScope l = scopeCombineIds defaultScope (M.fromList l)
+>           mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
 
 > checkAttrs :: String -> [Message] -> Test.Framework.Test
 > checkAttrs src msgs = testCase ("check " ++ src) $ do
@@ -333,6 +351,10 @@ etc.
 > checkStatementType src typ = testCase ("typecheck " ++ src) $
 >   assertEqual ("typecheck " ++ src) typ (parseAndGetType src)
 
+> checkStatementTypeScope ::  Scope -> String -> [Type] -> Test.Framework.Test
+> checkStatementTypeScope scope src typ = testCase ("typecheck " ++ src) $
+>   assertEqual ("typecheck " ++ src) typ (parseAndGetTypeScope scope src)
+
 
 > parseAndGetType :: String -> [Type]
 > parseAndGetType src =
@@ -340,6 +362,14 @@ etc.
 >                               Left er -> error $ show er
 >                               Right l -> l
 >   in getStatementsType ast
+
+> parseAndGetTypeScope :: Scope -> String -> [Type]
+> parseAndGetTypeScope scope src =
+>   let ast = case parseSql src of
+>                               Left er -> error $ show er
+>                               Right l -> l
+>   in getStatementsTypeScope scope ast
+
 
 > parseAndGetExpressionType :: Scope -> String -> Type
 > parseAndGetExpressionType scope src =
