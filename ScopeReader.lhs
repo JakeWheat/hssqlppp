@@ -1,5 +1,5 @@
 
-> module ScopeReader where
+> module ScopeReader (readScope) where
 
 > import qualified Data.Map as M
 > import Data.Maybe
@@ -63,9 +63,35 @@
 >                     | l!!2 == "0" -> getOps (bit [jlt (l!!1)]:pref) post bin ls
 >                     | otherwise -> getOps pref post ((bit [jlt (l!!1), jlt (l!!2)]):bin) ls
 >    let (prefixOps, postfixOps, binaryOps) = getOps [] [] [] operatorInfo
->    return $ Scope [] [] [] prefixOps postfixOps binaryOps M.empty
->    --return $ Scope types casts typeCats M.empty
+>    functionInfo <- selectRelation conn
+>                       "select proname,\n\
+>                       \       array_to_string(proargtypes,','),\n\
+>                       \       proretset,\n\
+>                       \       prorettype\n\
+>                       \from pg_proc\n\
+>                       \where pg_catalog.pg_function_is_visible(pg_proc.oid)\n\
+>                       \      and provariadic = 0\n\
+>                       \      and not proisagg\n\
+>                       \      and not proiswindow\n\
+>                       \order by proname,proargtypes;" []
+>    let fnProts = map (convFnRow jlt) functionInfo
+
+>    return $ Scope types casts typeCats
+>                   prefixOps postfixOps binaryOps fnProts
+>                   (prefixOps ++ postfixOps ++ binaryOps ++ fnProts)
+>                   M.empty
 >    where
+>      convFnRow jlt l =
+>         (l!!0,fnArgs,fnRet)
+>         where
+>           fnRet = let rt1 = jlt (l!!3)
+>                   in if read (l!!2)::Bool
+>                        then SetOfType rt1
+>                        else rt1
+>           fnArgs = if (l!!1) == ""
+>                      then []
+>                      else let a = split ',' (l!!1)
+>                           in map jlt a
 >      convTypeInfoRow l =
 >        let name = (l!!2)
 >            ctor = case (l!!1) of
@@ -92,3 +118,11 @@
 >        in if (l!!4) /= "0"
 >           then [((l!!5,ArrayType $ ctor name)), scType]
 >           else [scType]
+
+
+> split :: Char -> String -> [String]
+> split _ ""                =  []
+> split c s                 =  let (l, s') = break (== c) s
+>                            in  l : case s' of
+>                                            [] -> []
+>                                            (_:s'') -> split c s''

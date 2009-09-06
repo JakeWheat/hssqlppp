@@ -376,7 +376,7 @@ pull id types out of scope for identifiers
 -}
 
 SEM Expression
-    | Identifier lhs.nodeType = case M.lookup @i (identifierTypes @lhs.scope) of
+    | Identifier lhs.nodeType = case M.lookup @i (scopeIdentifierTypes @lhs.scope) of
                                   Nothing -> TypeError
                                               @lhs.sourcePos
                                               (UnrecognisedIdentifier @i)

@@ -16,6 +16,7 @@ types of error message received.
 
 > import Ast
 > import Parser
+> import Scope
 
 > astCheckTests :: Test.Framework.Test
 > astCheckTests = testGroup "astCheckTests" [
@@ -289,7 +290,7 @@ etc.
 >           mapExprType = map $ uncurry $ checkExpressionType emptyScope
 >           mapStatementType = map $ uncurry checkStatementType
 >           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
->           makeScope l = Scope (M.fromList l)
+>           makeScope l = scopeCombineIds defaultScope (M.fromList l)
 
 > checkAttrs :: String -> [Message] -> Test.Framework.Test
 > checkAttrs src msgs = testCase ("check " ++ src) $ do

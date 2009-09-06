@@ -1417,7 +1417,7 @@ sem_Expression_Identifier i_  =
               _lhsOliftedColumnName :: String
               _lhsOmessages :: ([Message])
               _lhsOnodeType =
-                  case M.lookup i_ (identifierTypes _lhsIscope) of
+                  case M.lookup i_ (scopeIdentifierTypes _lhsIscope) of
                     Nothing -> TypeError
                                 _lhsIsourcePos
                                 (UnrecognisedIdentifier i_)

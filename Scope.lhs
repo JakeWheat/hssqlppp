@@ -19,24 +19,28 @@ Copyright 2009 Jake Wheat
 >                    ,scopePrefixOperators :: [FunctionPrototype]
 >                    ,scopePostfix :: [FunctionPrototype]
 >                    ,scopeBinaryOperators :: [FunctionPrototype]
+>                    ,scopeFunctions :: [FunctionPrototype]
+>                    ,scopeAllFns :: [FunctionPrototype]
 >                    ,scopeIdentifierTypes :: M.Map String Type}
 >            deriving (Eq,Show)
 
 > defaultScope,emptyScope :: Scope
-> defaultScope = Scope [] [] [] [] [] [] M.empty
-> emptyScope = Scope [] [] [] [] [] [] M.empty
+> defaultScope = Scope [] [] [] [] [] [] [] [] M.empty
+> emptyScope = Scope [] [] [] [] [] [] [] [] M.empty
 
 > scopeCombineIds :: Scope -> M.Map String Type -> Scope
 > scopeCombineIds s i = combineScopes s (emptyScope {scopeIdentifierTypes = i})
 
 > combineScopes :: Scope -> Scope -> Scope
 > --base, overrides
-> combineScopes (Scope bt bc btc bpre bpost bbin bi)
->               (Scope ot oc otc opre opost obin oi) =
+> combineScopes (Scope bt bc btc bpre bpost bbin bf baf bi)
+>               (Scope ot oc otc opre opost obin off oaf oi) =
 >   Scope (union ot bt)
 >         (union oc bc)
->         (union btc otc)
->         (union bpre opre)
->         (union bpost opost)
->         (union bbin obin)
+>         (union otc btc)
+>         (union opre bpre)
+>         (union opost bpost)
+>         (union obin bbin)
+>         (union off bf)
+>         (union oaf baf)
 >         (M.union oi bi)

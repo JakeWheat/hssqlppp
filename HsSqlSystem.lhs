@@ -13,6 +13,7 @@ lexfile
 showfileatts
 checkppp
 roundtrip
+getscope
 
 command args:
 
@@ -39,12 +40,6 @@ to check a file can parse, and that pretty printing then parsing gives
 you the same ast.
 
 roundtrip [filename] [targetfilename]
-
-getfntables [databasename]
-output function and operator tables for the parser and type checker
-from the given database
-
-gettableviewtypes [databasename]
 
 TODO 1: add options to specify username and password (keep optional though)
 TODO 2: think of a name for this command
@@ -83,10 +78,6 @@ TODO 2: think of a name for this command
 >       | (length args >= 2 && head args == "showfileatts") -> showfileatts (tail args)
 >       | (length args >= 2 && head args == "parsefile") -> parseFile (tail args)
 >       | (length args == 3 && head args == "roundtrip") -> roundTripFile (tail args)
->       | (length args == 2 && head args == "getfntables") -> getFnTables (args !! 1)
->       | (length args == 2 && head args == "gettypestuff") -> getTypeStuff (args !! 1)
->       | (length args == 1 && head args == "checkfntypes") -> checkFnTypes
->       | (length args == 2 && head args == "gettableviewtypes") -> getTableViewTypes (args !! 1)
 >       | (length args == 2 && head args == "getscope") -> getScope (args !! 1)
 >       | otherwise -> error "couldn't parse command line"
 >   where
@@ -202,253 +193,12 @@ target filename.
 >        Left er -> print er
 >        Right l -> writeFile target $ printSql l
 
-================================================================================
-
-getFnTables
-
-read the operators and functions from the catalog of the given database
-output four values: binops, prefixops, postfixops, functions
-each is a list with type ({functionName} String
-                         ,{args} [Type]
-                         ,{retType} Type)
-
-> getFnTables :: [Char] -> IO ()
-> getFnTables dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
->    putStrLn "module FnTypes where\n"
->    putStrLn "import TypeType\n"
-
->    binopinfo <- selectRelation conn (typesCtesNamed ++
->                      "\n     select oprname,\n\
->                      \               tl.descr as left,\n\
->                      \               tr.descr as right,\n\
->                      \               tres.descr as result\n\
->                      \          from pg_operator\n\
->                      \          inner join ts tl\n\
->                      \            on oprleft = tl.typoid\n\
->                      \          inner join ts tr\n\
->                      \            on oprright = tr.typoid\n\
->                      \          inner join ts tres\n\
->                      \            on oprresult = tres.typoid\n\
->                      \          where oprleft <> 0 and oprright <> 0\n\
->                      \             and oprname <> '@' --hack for now\n\
->                      \          order by oprname;") []
->    putStrLn $ makeVal "binaryOperatorTypes" $ map (showProt . (\l -> (l!!0,[l!!1,l!!2],l!!3))) binopinfo
-
->    prefixopinfo <- selectRelation conn (typesCtesNamed ++
->                      "\n     select oprname,\n\
->                      \               tr.descr as right,\n\
->                      \               tres.descr as result\n\
->                      \          from pg_operator\n\
->                      \          inner join ts tr\n\
->                      \            on oprright = tr.typoid\n\
->                      \          inner join ts tres\n\
->                      \            on oprresult = tres.typoid\n\
->                      \          where oprleft = 0\n\
->                      \          order by oprname;") []
->    putStrLn $ makeVal "prefixOperatorTypes" $ map (showProt . (\l -> (l!!0,[l!!1],l!!2))) prefixopinfo
-
->    postfixopinfo <- selectRelation conn (typesCtesNamed ++
->                      "\n     select oprname,\n\
->                      \               tl.descr as left,\n\
->                      \               tres.descr as result\n\
->                      \          from pg_operator\n\
->                      \          inner join ts tl\n\
->                      \            on oprleft = tl.typoid\n\
->                      \          inner join ts tres\n\
->                      \            on oprresult = tres.typoid\n\
->                      \          where oprright = 0\n\
->                      \          order by oprname;") []
->    putStrLn $ makeVal "postfixOperatorTypes" $ map (showProt . (\l -> (l!!0,[l!!1],l!!2))) postfixopinfo
-
->    functionsinfo <- selectRelation conn (typesCtesNamed ++
->                                          "\n,\n\
->                                          \interestingProcs as (\n\
->                                          \select pg_proc.oid,proname,proargtypes,pronargs,\n\
->                                          \       case\n\
->                                          \         when proretset\n\
->                                          \           then 'SetOfType (' || rt.descr || ')'\n\
->                                          \         else rt.descr\n\
->                                          \       end as rettype\n\
->                                          \from pg_proc\n\
->                                          \   inner join ts rt\n\
->                                          \     on rt.typoid = prorettype\n\
->                                          \where pg_catalog.pg_function_is_visible(pg_proc.oid)\n\
->                                          \      and provariadic = 0\n\
->                                          \      and not proisagg\n\
->                                          \      and not proiswindow\n\
->                                          \),\n\
->                                          \expandedArgs as (\n\
->                                          \select oid,proname,generate_series as argpos,\n\
->                                          \       proargtypes[generate_series] as argtype,rettype\n\
->                                          \from interestingProcs\n\
->                                          \cross join generate_series(0, (select max(array_upper(proargtypes, 1))\n\
->                                          \                from interestingProcs))\n\
->                                          \),\n\
->                                          \namedTypes as (\n\
->                                          \select oid,\n\
->                                          \       proname,\n\
->                                          \       argpos,\n\
->                                          \       coalesce(aty.descr, '') as argtype,\n\
->                                          \       rettype\n\
->                                          \   from expandedArgs f\n\
->                                          \   left outer join ts aty\n\
->                                          \     on aty.typoid = argtype\n\
->                                          \   where aty.typoid is not null\n\
->                                          \     or argpos = 0 and aty.typoid is null\n\
->                                          \)\n\
->                                          \select distinct oid, proname,\n\
->                                          \       array_to_string(\n\
->                                          \         array_agg(argtype) over (partition by oid\n\
->                                          \              order by oid,argpos\n\
->                                          \              range between unbounded preceding\n\
->                                          \             and unbounded following)\n\
->                                          \         , ',') as argtypes,\n\
->                                          \       rettype\n\
->                                          \from namedTypes\n\
->                                          \order by proname, argtypes\n\
->                                          \;") []
->    putStrLn $ makeVal "functionTypes" $ map showProt $ filterOut $ map convFnLine functionsinfo
->    where
->      convFnLine l = (l!!1, toStrList (l!!2), l!!3)
->      toStrList ss = map trim $ split ',' ss
->      --showFn (n,a,r) = "(" ++ show n ++ ",[" ++ fixTypeArray a ++ "]," ++ r ++ ")"
->      --fixTypeArray a = replace "\\\"" "\"" (dropEnds a)
->      --dropEnds s = drop 1 $ reverse $ drop 1 $ reverse s
-
- >      parseTypeArray s =
- >        case parseTypeArray s of
- >                              Left er -> error $ show er
- >                              Right t -> t
-
->      filterOut =
->        filter
->          (\(_,args,ret) -> let ts = (ret:args)
->                            in case () of
->                              _ | length
->                                    (filter
->                                     (`elem`
->                                      ["Pseudo Internal"
->                                      ,"Pseudo LanguageHandler"
->                                      ,"Pseudo Opaque"]) ts) > 0 -> False
->                                | otherwise -> True)
->      showProt (n,a,r) = "(" ++ show n ++ ", [" ++ intercalate "," a ++ "], " ++ r ++ ")"
->      makeVal nm rows = nm ++ " = [\n    "
->                        ++ intercalate ",\n    " rows
->                        ++ "\n    ]"
-
-================================================================================
-
-= getTypeStuff
-
-outputs type information and cast information
-
-> getTypeStuff :: [Char] -> IO ()
-> getTypeStuff dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
->    putStrLn "module PGTypes where\n"
->    putStrLn "import TypeType\n"
->    typeinfo <- selectRelation conn (typesCtes ++
->                  "\nselect descr from nonArrayTypeNames\n\
->                  \union\n\
->                  \select descr from arrayTypeNames\n\
->                  \order by descr;") []
->    putStrLn "defaultTypeNames :: [Type]"
->    putStr "defaultTypeNames = [\n    "
->    putStr $ intercalate ",\n    " $ map head typeinfo
->    putStrLn "]"
->    castTable <- selectRelation conn (typesCtesNamed ++
->                                      "\nselect\n\
->                                      \   '(' || cs.descr  || ',' ||\n\
->                                      \   ct.descr || ',' ||\n\
->                                      \   case castcontext\n\
->                                      \     when 'i' then 'ImplicitCastContext'\n\
->                                      \     when 'a' then 'AssignmentCastContext'\n\
->                                      \     when 'e' then 'ExplicitCastContext'\n\
->                                      \   end || ')'\n\
->                                      \from pg_cast p\n\
->                                      \  inner join ts cs\n\
->                                      \    on p.castsource = cs.typoid\n\
->                                      \  inner join ts ct\n\
->                                      \    on p.casttarget = ct.typoid;") []
->    putStrLn "castTable :: [(Type, Type, CastContext)]"
->    putStr "castTable = [\n    "
->    putStr $ intercalate ",\n    " $ map head castTable
->    putStrLn "]"
-
->    typeCategories <- selectRelation conn (typesCtesNamed ++
->                        "\nselect '(' ||  ts.descr || ', \"' || t.typcategory\n\
->                        \       || '\", ' || case t.typispreferred\n\
->                        \                  when true then 'True'\n\
->                        \                  else 'False' end || ')'\n\
->                        \from ts inner join pg_type t\n\
->                        \     on ts.typoid = t.oid\n\
->                        \order by typcategory,typispreferred desc, descr;") []
->    putStrLn "typeCategories :: [(Type, [Char], Bool)]"
->    putStr "typeCategories = [\n    "
->    putStr $ intercalate ",\n    " $ map head typeCategories
->    putStrLn "]"
-
-> typesCtes :: [Char]
-> typesCtes =      "with nonArrayTypeNames as\n\
->                  \(select\n\
->                  \   t.oid as typoid,\n\
->                  \   case typtype\n\
->                  \       when 'b' then\n\
->                  \         'ScalarType \"' || typname || '\"'\n\
->                  \       when 'c' then\n\
->                  \         'CompositeType \"' || typname || '\"'\n\
->                  \       when 'd' then\n\
->                  \         'DomainType \"' || typname || '\"'\n\
->                  \       when 'e' then\n\
->                  \         'EnumType \"' || typname || '\"'\n\
->                  \       when 'p' then 'Pseudo ' ||\n\
->                  \         case typname\n\
->                  \           when 'any' then 'Any'\n\
->                  \           when 'anyarray' then 'AnyArray'\n\
->                  \           when 'anyelement' then 'AnyElement'\n\
->                  \           when 'anyenum' then 'AnyEnum'\n\
->                  \           when 'anynonarray' then 'AnyNonArray'\n\
->                  \           when 'cstring' then 'Cstring'\n\
->                  \           when 'internal' then 'Internal'\n\
->                  \           when 'language_handler' then 'LanguageHandler'\n\
->                  \           when 'opaque' then 'Opaque'\n\
->                  \           when 'record' then 'Record'\n\
->                  \           when 'trigger' then 'Trigger'\n\
->                  \           when 'void' then 'Void'\n\
->                  \           else 'error pseudo ' || typname\n\
->                  \         end\n\
->                  \       else 'typtype error ' || typtype\n\
->                  \    end as descr\n\
->                  \  from pg_catalog.pg_type t\n\
->                  \  where pg_catalog.pg_type_is_visible(t.oid)\n\
->                  \        and not exists(select 1 from pg_catalog.pg_type el\n\
->                  \                       where el.typarray = t.oid)),\n\
->                  \arrayTypeNames as\n\
->                  \(select\n\
->                  \    e.oid as typoid,\n\
->                  \    'ArrayType (' ||\n\
->                  \    n.descr || ')' as descr\n\
->                  \  from pg_catalog.pg_type t\n\
->                  \  inner join pg_type e\n\
->                  \    on t.typarray = e.oid\n\
->                  \  left outer join nonArrayTypeNames n\n\
->                  \    on t.oid = n.typoid\n\
->                  \  where pg_catalog.pg_type_is_visible(t.oid))"
-
-> typesCtesNamed :: [Char]
-> typesCtesNamed = typesCtes ++
->                      "\n,ts as (select typoid, descr from nonArrayTypeNames\n\
->                      \     union\n\
->                      \     select typoid, descr from arrayTypeNames)"
-
-
-> checkFnTypes :: IO ()
-> checkFnTypes = mapM_ print checkFunctionTypes
 
 ================================================================================
 
 getTableViewTypes
 
-> getTableViewTypes :: String -> IO ()
+> {-getTableViewTypes :: String -> IO ()
 > getTableViewTypes dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
 >    putStrLn "module PGSetofTypes where\n"
 >    putStrLn "import TypeType\n"
@@ -477,11 +227,17 @@ getTableViewTypes
 >    putStr $ intercalate ",\n    " $ map head attrinfo
 >    putStrLn "]"
 
->    return ()
+>    return ()-}
 
 > getScope :: String -> IO ()
 > getScope dbName = do
 >   s <- readScope dbName
+>   putStrLn "module DefaultScope where"
+>   putStrLn "import Data.Map"
+>   putStrLn "import TypeType"
+>   putStrLn "import Scope"
+>   putStrLn "defaultScope :: Scope"
+>   putStr "defaultScope = "
 >   print s
 
 ================================================================================

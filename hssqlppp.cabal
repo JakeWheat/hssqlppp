@@ -15,7 +15,8 @@ Library
   Build-Depends:     base,
                      mtl,
                      parsec >= 3,
-                     pretty
+                     pretty,
+                     containers
   Exposed-modules:   Parser, PrettyPrinter
 
 
