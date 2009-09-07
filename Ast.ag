@@ -270,14 +270,16 @@ DATA SetClause | SetClause String Expression | RowSetClause StringList Expressio
 DATA TableRef | Tref tbl:String
               | TrefAlias tbl : String
                           alias : String
-              | JoinedTref tref : TableRef
+              | JoinedTref tbl : TableRef
                            nat : Natural
                            joinType : JoinType
-                           jtref : TableRef
-                           onExpr : (Maybe JoinExpression)
+                           tbl1 : TableRef
+                           onExpr : OnExpr
               | SubTref sel : SelectExpression alias : String
               | TrefFun fn:Expression
               | TrefFunAlias fn:Expression String
+
+TYPE OnExpr = MAYBE JoinExpression
 
 DATA JoinExpression | JoinOn Expression | JoinUsing StringList
 
@@ -546,7 +548,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpressi
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               SourcePosStatement FunName MTableRef TableRef
+               SourcePosStatement FunName MTableRef TableRef OnExpr
 
 
 SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpression JoinType
@@ -558,7 +560,7 @@ SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpr
                StringStringListPair ExpressionListStatementListPair
                ExpressionStatementListPair
                CaseExpressionListExpressionPair
-               SourcePosStatement FunName MTableRef
+               SourcePosStatement FunName MTableRef OnExpr
 
 
 SET ListNodes = SelectList ExpressionList ExpressionListList StringList

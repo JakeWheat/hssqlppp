@@ -163,6 +163,36 @@ getTypesFromComp _ = []
 
 
 
+combineTableTypesWithUsingList :: Scope -> MySourcePos -> [String] -> Type -> Type -> Type
+combineTableTypesWithUsingList scope sp l t1c t2c =
+    --check t1 and t2 have l
+    let t1 = getTypesFromComp t1c
+        t2 = getTypesFromComp t2c
+        names1 = getNames t1
+        names2 = getNames t2
+        error1 = if not (contained l names1) ||
+                    not (contained l names2)
+                   then Just $ TypeError sp MissingJoinAttribute
+                   else Nothing
+        --check the types
+        joinColumns = map (getColumnType t1 t2) l
+--        error2 = case filter (\(_,t) -> case t of
+--                                          TypeError 
+        nonJoinColumns =
+            let notJoin = (\(s,_) -> not (s `elem` l))
+            in filter notJoin t1 ++ filter notJoin t2
+    in head $ catMaybes [error1, Just $ UnnamedCompositeType $ joinColumns ++ nonJoinColumns]
+    where
+      getNames :: [(String,Type)] -> [String]
+      getNames = map fst
+      contained l1 l2 = all (`elem` l2) l1
+      getColumnType t1 t2 f =
+          let ct1 = getFieldType t1 f
+              ct2 = getFieldType t2 f
+          in (f, resolveResultSetType scope sp [ct1,ct2])
+      getFieldType t f = snd $ fromJust $ find (\(s,_) -> s == f) t
+
+
 fixedValue :: a -> a -> a -> a
 fixedValue a _ _ = a
 -- AttributeDef ------------------------------------------------
@@ -3382,6 +3412,78 @@ sem_Natural_Unnatural  =
               _lhsOactualValue =
                   _actualValue
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+-- OnExpr ------------------------------------------------------
+type OnExpr  = (Maybe (JoinExpression))
+-- cata
+sem_OnExpr :: OnExpr  ->
+              T_OnExpr 
+sem_OnExpr (Prelude.Just x )  =
+    (sem_OnExpr_Just (sem_JoinExpression x ) )
+sem_OnExpr Prelude.Nothing  =
+    sem_OnExpr_Nothing
+-- semantic domain
+type T_OnExpr  = Bool ->
+                 Scope ->
+                 MySourcePos ->
+                 ( OnExpr,([Message]),Type)
+data Inh_OnExpr  = Inh_OnExpr {inLoop_Inh_OnExpr :: Bool,scope_Inh_OnExpr :: Scope,sourcePos_Inh_OnExpr :: MySourcePos}
+data Syn_OnExpr  = Syn_OnExpr {actualValue_Syn_OnExpr :: OnExpr,messages_Syn_OnExpr :: [Message],nodeType_Syn_OnExpr :: Type}
+wrap_OnExpr :: T_OnExpr  ->
+               Inh_OnExpr  ->
+               Syn_OnExpr 
+wrap_OnExpr sem (Inh_OnExpr _lhsIinLoop _lhsIscope _lhsIsourcePos )  =
+    (let ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType) =
+             (sem _lhsIinLoop _lhsIscope _lhsIsourcePos )
+     in  (Syn_OnExpr _lhsOactualValue _lhsOmessages _lhsOnodeType ))
+sem_OnExpr_Just :: T_JoinExpression  ->
+                   T_OnExpr 
+sem_OnExpr_Just just_  =
+    (\ _lhsIinLoop
+       _lhsIscope
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOactualValue :: OnExpr
+              _justOinLoop :: Bool
+              _justOscope :: Scope
+              _justOsourcePos :: MySourcePos
+              _justIactualValue :: JoinExpression
+              _justImessages :: ([Message])
+              _justInodeType :: Type
+              _lhsOmessages =
+                  _justImessages
+              _lhsOnodeType =
+                  _justInodeType
+              _actualValue =
+                  Just _justIactualValue
+              _lhsOactualValue =
+                  _actualValue
+              _justOinLoop =
+                  _lhsIinLoop
+              _justOscope =
+                  _lhsIscope
+              _justOsourcePos =
+                  _lhsIsourcePos
+              ( _justIactualValue,_justImessages,_justInodeType) =
+                  (just_ _justOinLoop _justOscope _justOsourcePos )
+          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+sem_OnExpr_Nothing :: T_OnExpr 
+sem_OnExpr_Nothing  =
+    (\ _lhsIinLoop
+       _lhsIscope
+       _lhsIsourcePos ->
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOactualValue :: OnExpr
+              _lhsOmessages =
+                  []
+              _lhsOnodeType =
+                  UnknownType
+              _actualValue =
+                  Nothing
+              _lhsOactualValue =
+                  _actualValue
+          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 -- ParamDef ----------------------------------------------------
 data ParamDef  = ParamDef (String) (TypeName) 
                | ParamDefTp (TypeName) 
@@ -6503,7 +6605,7 @@ sem_StringStringListPairList_Nil  =
                   _actualValue
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 -- TableRef ----------------------------------------------------
-data TableRef  = JoinedTref (TableRef) (Natural) (JoinType) (TableRef) (Maybe JoinExpression) 
+data TableRef  = JoinedTref (TableRef) (Natural) (JoinType) (TableRef) (OnExpr) 
                | SubTref (SelectExpression) (String) 
                | Tref (String) 
                | TrefAlias (String) (String) 
@@ -6513,8 +6615,8 @@ data TableRef  = JoinedTref (TableRef) (Natural) (JoinType) (TableRef) (Maybe Jo
 -- cata
 sem_TableRef :: TableRef  ->
                 T_TableRef 
-sem_TableRef (JoinedTref _tref _nat _joinType _jtref _onExpr )  =
-    (sem_TableRef_JoinedTref (sem_TableRef _tref ) (sem_Natural _nat ) (sem_JoinType _joinType ) (sem_TableRef _jtref ) _onExpr )
+sem_TableRef (JoinedTref _tbl _nat _joinType _tbl1 _onExpr )  =
+    (sem_TableRef_JoinedTref (sem_TableRef _tbl ) (sem_Natural _nat ) (sem_JoinType _joinType ) (sem_TableRef _tbl1 ) (sem_OnExpr _onExpr ) )
 sem_TableRef (SubTref _sel _alias )  =
     (sem_TableRef_SubTref (sem_SelectExpression _sel ) _alias )
 sem_TableRef (Tref _tbl )  =
@@ -6543,57 +6645,80 @@ sem_TableRef_JoinedTref :: T_TableRef  ->
                            T_Natural  ->
                            T_JoinType  ->
                            T_TableRef  ->
-                           (Maybe JoinExpression) ->
+                           T_OnExpr  ->
                            T_TableRef 
-sem_TableRef_JoinedTref tref_ nat_ joinType_ jtref_ onExpr_  =
+sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOcolumns :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOcolumns :: Type
               _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
               _lhsOactualValue :: TableRef
-              _trefOinLoop :: Bool
-              _trefOscope :: Scope
-              _trefOsourcePos :: MySourcePos
+              _tblOinLoop :: Bool
+              _tblOscope :: Scope
+              _tblOsourcePos :: MySourcePos
               _natOinLoop :: Bool
               _natOscope :: Scope
               _natOsourcePos :: MySourcePos
               _joinTypeOinLoop :: Bool
               _joinTypeOscope :: Scope
               _joinTypeOsourcePos :: MySourcePos
-              _jtrefOinLoop :: Bool
-              _jtrefOscope :: Scope
-              _jtrefOsourcePos :: MySourcePos
-              _trefIactualValue :: TableRef
-              _trefIcolumns :: Type
-              _trefImessages :: ([Message])
-              _trefInodeType :: Type
+              _tbl1OinLoop :: Bool
+              _tbl1Oscope :: Scope
+              _tbl1OsourcePos :: MySourcePos
+              _onExprOinLoop :: Bool
+              _onExprOscope :: Scope
+              _onExprOsourcePos :: MySourcePos
+              _tblIactualValue :: TableRef
+              _tblIcolumns :: Type
+              _tblImessages :: ([Message])
+              _tblInodeType :: Type
               _natIactualValue :: Natural
               _natImessages :: ([Message])
               _natInodeType :: Type
               _joinTypeIactualValue :: JoinType
               _joinTypeImessages :: ([Message])
               _joinTypeInodeType :: Type
-              _jtrefIactualValue :: TableRef
-              _jtrefIcolumns :: Type
-              _jtrefImessages :: ([Message])
-              _jtrefInodeType :: Type
-              _lhsOcolumns =
-                  UnnamedCompositeType []
-              _lhsOmessages =
-                  _trefImessages ++ _natImessages ++ _joinTypeImessages ++ _jtrefImessages
+              _tbl1IactualValue :: TableRef
+              _tbl1Icolumns :: Type
+              _tbl1Imessages :: ([Message])
+              _tbl1InodeType :: Type
+              _onExprIactualValue :: OnExpr
+              _onExprImessages :: ([Message])
+              _onExprInodeType :: Type
               _lhsOnodeType =
-                  _trefInodeType `setUnknown` _natInodeType `setUnknown` _joinTypeInodeType `setUnknown` _jtrefInodeType
+                  case catMaybes [propE _tblInodeType
+                                 ,propE _tbl1InodeType] of
+                    [] -> TypeList []
+                    x -> TypeList x
+                  where
+                    propE :: Type -> Maybe Type
+                    propE t = case t of
+                                TypeList [] -> Nothing
+                                x -> Just  x
+              _lhsOcolumns =
+                  case (_natIactualValue, _onExprIactualValue) of
+                    (Natural, _) -> let s = commonFieldNames _tblIcolumns _tbl1Icolumns
+                                    in combineTableTypesWithUsingList _lhsIscope _lhsIsourcePos s _tblIcolumns _tbl1Icolumns
+                    (_,Just (JoinUsing s)) -> combineTableTypesWithUsingList _lhsIscope _lhsIsourcePos s _tblIcolumns _tbl1Icolumns
+                    _ -> UnnamedCompositeType $ getTypesFromComp _tblIcolumns ++ getTypesFromComp _tbl1Icolumns
+                  where
+                    commonFieldNames t1 t2 =
+                        intersect (fn t1) (fn t2)
+                    fn (UnnamedCompositeType s) = map fst s
+                    fn _ = []
+              _lhsOmessages =
+                  _tblImessages ++ _natImessages ++ _joinTypeImessages ++ _tbl1Imessages ++ _onExprImessages
               _actualValue =
-                  JoinedTref _trefIactualValue _natIactualValue _joinTypeIactualValue _jtrefIactualValue onExpr_
+                  JoinedTref _tblIactualValue _natIactualValue _joinTypeIactualValue _tbl1IactualValue _onExprIactualValue
               _lhsOactualValue =
                   _actualValue
-              _trefOinLoop =
+              _tblOinLoop =
                   _lhsIinLoop
-              _trefOscope =
+              _tblOscope =
                   _lhsIscope
-              _trefOsourcePos =
+              _tblOsourcePos =
                   _lhsIsourcePos
               _natOinLoop =
                   _lhsIinLoop
@@ -6607,20 +6732,28 @@ sem_TableRef_JoinedTref tref_ nat_ joinType_ jtref_ onExpr_  =
                   _lhsIscope
               _joinTypeOsourcePos =
                   _lhsIsourcePos
-              _jtrefOinLoop =
+              _tbl1OinLoop =
                   _lhsIinLoop
-              _jtrefOscope =
+              _tbl1Oscope =
                   _lhsIscope
-              _jtrefOsourcePos =
+              _tbl1OsourcePos =
                   _lhsIsourcePos
-              ( _trefIactualValue,_trefIcolumns,_trefImessages,_trefInodeType) =
-                  (tref_ _trefOinLoop _trefOscope _trefOsourcePos )
+              _onExprOinLoop =
+                  _lhsIinLoop
+              _onExprOscope =
+                  _lhsIscope
+              _onExprOsourcePos =
+                  _lhsIsourcePos
+              ( _tblIactualValue,_tblIcolumns,_tblImessages,_tblInodeType) =
+                  (tbl_ _tblOinLoop _tblOscope _tblOsourcePos )
               ( _natIactualValue,_natImessages,_natInodeType) =
                   (nat_ _natOinLoop _natOscope _natOsourcePos )
               ( _joinTypeIactualValue,_joinTypeImessages,_joinTypeInodeType) =
                   (joinType_ _joinTypeOinLoop _joinTypeOscope _joinTypeOsourcePos )
-              ( _jtrefIactualValue,_jtrefIcolumns,_jtrefImessages,_jtrefInodeType) =
-                  (jtref_ _jtrefOinLoop _jtrefOscope _jtrefOsourcePos )
+              ( _tbl1IactualValue,_tbl1Icolumns,_tbl1Imessages,_tbl1InodeType) =
+                  (tbl1_ _tbl1OinLoop _tbl1Oscope _tbl1OsourcePos )
+              ( _onExprIactualValue,_onExprImessages,_onExprInodeType) =
+                  (onExpr_ _onExprOinLoop _onExprOscope _onExprOsourcePos )
           in  ( _lhsOactualValue,_lhsOcolumns,_lhsOmessages,_lhsOnodeType)))
 sem_TableRef_SubTref :: T_SelectExpression  ->
                         String ->

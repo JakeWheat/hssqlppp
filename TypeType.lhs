@@ -107,7 +107,7 @@ later on down the line.
 >                    | UnrecognisedIdentifier String
 >                    | UnrecognisedRelation String
 >                    | ContextError String
->                    | FunctionMustReturnSet
+>                    | MissingJoinAttribute
 >                      deriving (Eq,Show)
 
 > typesFromTypeList :: Type -> [Type]

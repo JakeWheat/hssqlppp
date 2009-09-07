@@ -498,7 +498,46 @@ SEM TableRef
          lhs.nodeType = case @fn.actualValue of
                           FunCall _ _ -> TypeList []
                           x -> TypeError @lhs.sourcePos (ContextError "FunCall")
+    | JoinedTref
+         lhs.nodeType =
+             case catMaybes [propE @tbl.nodeType
+                            ,propE @tbl1.nodeType] of
+               [] -> TypeList []
+               x -> TypeList x
+             where
+               propE :: Type -> Maybe Type
+               propE t = case t of
+                           TypeList [] -> Nothing
+                           x -> Just  x
 
+{
+combineTableTypesWithUsingList :: Scope -> MySourcePos -> [String] -> Type -> Type -> Type
+combineTableTypesWithUsingList scope sp l t1c t2c =
+    --check t1 and t2 have l
+    let t1 = getTypesFromComp t1c
+        t2 = getTypesFromComp t2c
+        names1 = getNames t1
+        names2 = getNames t2
+        error1 = if not (contained l names1) ||
+                    not (contained l names2)
+                   then Just $ TypeError sp MissingJoinAttribute
+                   else Nothing
+        --check the types
+        joinColumns = map (getColumnType t1 t2) l
+        nonJoinColumns =
+            let notJoin = (\(s,_) -> not (s `elem` l))
+            in filter notJoin t1 ++ filter notJoin t2
+    in head $ catMaybes [error1, Just $ UnnamedCompositeType $ joinColumns ++ nonJoinColumns]
+    where
+      getNames :: [(String,Type)] -> [String]
+      getNames = map fst
+      contained l1 l2 = all (`elem` l2) l1
+      getColumnType t1 t2 f =
+          let ct1 = getFieldType t1 f
+              ct2 = getFieldType t2 f
+          in (f, resolveResultSetType scope sp [ct1,ct2])
+      getFieldType t f = snd $ fromJust $ find (\(s,_) -> s == f) t
+}
 
 SEM TableRef
     | SubTref lhs.columns = getCompositeFromSetOf @sel.nodeType
@@ -522,10 +561,19 @@ SEM TableRef
                                              ,ViewComposite] t of
                       Just (_,_,a@(UnnamedCompositeType _)) -> a
                       _ -> UnnamedCompositeType []
-
-
     | JoinedTref
-        lhs.columns = UnnamedCompositeType []
+        lhs.columns =
+            case (@nat.actualValue, @onExpr.actualValue) of
+              (Natural, _) -> let s = commonFieldNames @tbl.columns @tbl1.columns
+                              in combineTableTypesWithUsingList @lhs.scope @lhs.sourcePos s @tbl.columns @tbl1.columns
+              (_,Just (JoinUsing s)) -> combineTableTypesWithUsingList @lhs.scope @lhs.sourcePos s @tbl.columns @tbl1.columns
+              _ -> UnnamedCompositeType $ getTypesFromComp @tbl.columns ++ getTypesFromComp @tbl1.columns
+            where
+              commonFieldNames t1 t2 =
+                  intersect (fn t1) (fn t2)
+              fn (UnnamedCompositeType s) = map fst s
+              fn _ = []
+----join type: natural/using: check for row compatibility, create new rows for these, add other rows from two trefs      on/cross/etc.: put all rows in
 
 SEM MTableRef
     | Nothing lhs.columns = UnnamedCompositeType []

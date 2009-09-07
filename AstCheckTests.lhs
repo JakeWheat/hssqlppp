@@ -262,6 +262,10 @@ check casts from unknown string lits
 >          ,("adsrc",ScalarType "text")]]
 >      ,p "select abs from abs(3);"
 >         [SetOfType $ UnnamedCompositeType [("abs", typeInt)]]
+>         --todo: these are both valid,
+>         --the second one means select 3+generate_series from generate_series(1,7)
+>         --  select generate_series(1,7);
+>         -- select 3 + generate_series(1,7);
 >      ])
 
 >    ,testGroup "simple selects from 2"
@@ -282,14 +286,39 @@ check casts from unknown string lits
 >          [("a",ScalarType "text"),("b",ScalarType "int4")]]
 >      ])
 
-select generate_series(1,7);
-select 3 + generate_series(1,7);
+>    ,testGroup "simple join selects"
+>     (mapStatementType [
+>       p "select * from (select 1 as a, 2 as b) a\n\
+>         \  cross join (select true as c, 4.5 as d) b;"
+>         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>                                           ,("b", typeInt)
+>                                           ,("c", typeBool)
+>                                           ,("d", typeNumeric)]]
+>      ,p "select * from (select 1 as a, 2 as b) a\n\
+>         \  inner join (select true as c, 4.5 as d) b on true;"
+>         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>                                           ,("b", typeInt)
+>                                           ,("c", typeBool)
+>                                           ,("d", typeNumeric)]]
+>      ,p "select * from (select 1 as a, 2 as b) a\n\
+>         \  inner join (select 1 as a, 4.5 as d) b using(a);"
+>         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>                                           ,("b", typeInt)
+>                                           ,("d", typeNumeric)]]
+>      ,p "select * from (select 1 as a, 2 as b) a\n\
+>         \ natural inner join (select 1 as a, 4.5 as d) b;"
+>         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>                                           ,("b", typeInt)
+>                                           ,("d", typeNumeric)]]
+>      ,p "select * from (select 1 as a, 2 as b) a\n\
+>         \ natural inner join (select true as a, 4.5 as d) b;"
+>         [TypeError ("",1,1) (IncompatibleTypes [ScalarType "int4"
+>                                                ,ScalarType "bool"])]
+>      ])
 
-cross join : union fields
-on join - same
-using list: attrs in using list only appear once
-natural - as with using list
 
+select * from (select 1 as a, 2 as b)
+  cross join (select 1 as c, 2 as d);
 
 TODO:
 
