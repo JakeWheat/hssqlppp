@@ -93,6 +93,9 @@ checkAst sts = let t = sem_Root (Root sts)
 
 = Types
 
+These are the utility functions which clients use to typecheck sql.
+
+
 -}
 
 getExpressionType :: Scope -> Expression -> Type
@@ -114,7 +117,8 @@ getStatementsTypeScope scope st =
 
 --hack job, often not interested in the source positions when testing
 --the asts produced, so this function will reset all the source
---positions to empty ("", 0, 0)
+--positions to empty ("", 0, 0) so we can compare them for equality, etc.
+--without having to get the positions correct.
 
 resetSps :: [Statement] -> [Statement]
 resetSps sts = map resetSp sts
@@ -497,10 +501,11 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
               _x2Imessages :: ([Message])
               _x2InodeType :: Type
               _lhsOnodeType =
-                  checkTypes _lhsIscope
+                  checkTypes
+                    _lhsIscope
                     _lhsIsourcePos
                     _x1InodeType
-                    (AllSameType $ typeBool)
+                    (AllSameType typeBool)
                     (ConstRetType _x2InodeType)
               _lhsOmessages =
                   _x1Imessages ++ _x2Imessages
@@ -1307,7 +1312,7 @@ sem_Expression (Exists _sel )  =
 sem_Expression (FloatLit _double )  =
     (sem_Expression_FloatLit _double )
 sem_Expression (FunCall _funName _args )  =
-    (sem_Expression_FunCall (sem_FunName _funName ) (sem_ExpressionList _args ) )
+    (sem_Expression_FunCall _funName (sem_ExpressionList _args ) )
 sem_Expression (Identifier _i )  =
     (sem_Expression_Identifier _i )
 sem_Expression (InPredicate _expression _bool _inList )  =
@@ -1383,13 +1388,14 @@ sem_Expression_Case cases_ els_  =
               _elsImessages :: ([Message])
               _elsInodeType :: Type
               _lhsOnodeType =
-                  resolveResultSetType _lhsIscope
+                  resolveResultSetType
+                    _lhsIscope
                     _lhsIsourcePos
-                    (typesFromTypeList (case _elsInodeType of
-                                          Pseudo AnyElement -> _casesInodeType
-                                          e -> TypeList
-                                               ((typesFromTypeList _casesInodeType)
-                                                ++ [e])))
+                    (typesFromTypeList
+                     (case _elsInodeType of
+                        TypeList [] -> _casesInodeType
+                        e -> TypeList $ (typesFromTypeList _casesInodeType)
+                                       ++ [e]))
               _lhsOliftedColumnName =
                   ""
               _lhsOmessages =
@@ -1525,7 +1531,7 @@ sem_Expression_FloatLit double_  =
               _lhsOactualValue =
                   _actualValue
           in  ( _lhsOactualValue,_lhsOliftedColumnName,_lhsOmessages,_lhsOnodeType)))
-sem_Expression_FunCall :: T_FunName  ->
+sem_Expression_FunCall :: FunName ->
                           T_ExpressionList  ->
                           T_Expression 
 sem_Expression_FunCall funName_ args_  =
@@ -1536,76 +1542,32 @@ sem_Expression_FunCall funName_ args_  =
               _lhsOliftedColumnName :: String
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: Expression
-              _funNameOinLoop :: Bool
-              _funNameOscope :: Scope
-              _funNameOsourcePos :: MySourcePos
               _argsOinLoop :: Bool
               _argsOscope :: Scope
               _argsOsourcePos :: MySourcePos
-              _funNameIactualValue :: FunName
-              _funNameImessages :: ([Message])
-              _funNameInodeType :: Type
-              _funNameIval :: FunName
               _argsIactualValue :: ExpressionList
               _argsImessages :: ([Message])
               _argsInodeType :: Type
               _lhsOnodeType =
-                  propagateUnknownError _argsInodeType $ case _funNameIval of
-                    ArrayCtor -> let t = resolveResultSetType _lhsIscope _lhsIsourcePos $ typesFromTypeList _argsInodeType
-                                 in propagateUnknownError t $ ArrayType t
-                    Substring -> ct
-                                   (ExactList [ScalarType "text"
-                                              ,ScalarType "int4"
-                                              ,ScalarType "int4"])
-                                   (ConstRetType (ScalarType "text"))
-                    Between -> ct
-                                   (AllSameTypeNumAny 3)
-                                   (ConstRetType (typeBool))
-                    ArraySub -> ct
-                                   (ExactPredList
-                                     [ArgCheck isArrayType NotArrayType
-                                     ,exactType (ScalarType "int4")])
-                                   (RetTypeFun (\t -> typeFromArray $ head t))
-                    Operator s ->  lookupFn s (typesFromTypeList _argsInodeType)
-                    KOperator k -> lookupKop k (typesFromTypeList _argsInodeType)
-                    SimpleFun f -> lookupFn f (typesFromTypeList _argsInodeType)
-                    _ -> UnknownType
-                  where
-                    ct = checkTypes _lhsIscope _lhsIsourcePos _argsInodeType
-                    lookupFn s1 args = case findCallMatch _lhsIscope _lhsIsourcePos
-                                                       (if s1 == "u-" then "-" else s1) args of
-                                         Left te -> te
-                                         Right (_,_,r) -> r
-                    lookupKop s args = let cands = filter (\(o,a,_) ->
-                                                             (o,a) == (s,args))
-                                                     allKeywordOps
-                                       in case () of
-                                           _ | length cands == 0 -> TypeError _lhsIsourcePos (NoMatchingKOperator s args)
-                                             | length cands == 1 -> let (_,_,rettype) = (head cands)
-                                                                    in rettype
-                                             | otherwise -> TypeError _lhsIsourcePos (MultipleMatchingKOperators s args)
+                  typeCheckFunCall
+                    _lhsIscope
+                    _lhsIsourcePos
+                    funName_
+                    _argsInodeType
               _lhsOliftedColumnName =
                   ""
               _lhsOmessages =
-                  _funNameImessages ++ _argsImessages
+                  _argsImessages
               _actualValue =
-                  FunCall _funNameIactualValue _argsIactualValue
+                  FunCall funName_ _argsIactualValue
               _lhsOactualValue =
                   _actualValue
-              _funNameOinLoop =
-                  _lhsIinLoop
-              _funNameOscope =
-                  _lhsIscope
-              _funNameOsourcePos =
-                  _lhsIsourcePos
               _argsOinLoop =
                   _lhsIinLoop
               _argsOscope =
                   _lhsIscope
               _argsOsourcePos =
                   _lhsIsourcePos
-              ( _funNameIactualValue,_funNameImessages,_funNameInodeType,_funNameIval) =
-                  (funName_ _funNameOinLoop _funNameOscope _funNameOsourcePos )
               ( _argsIactualValue,_argsImessages,_argsInodeType) =
                   (args_ _argsOinLoop _argsOscope _argsOsourcePos )
           in  ( _lhsOactualValue,_lhsOliftedColumnName,_lhsOmessages,_lhsOnodeType)))
@@ -2519,228 +2481,6 @@ sem_FnBody_SqlFnBody sts_  =
               ( _stsIactualValue,_stsImessages,_stsInodeType) =
                   (sts_ _stsOinLoop _stsOscope _stsOsourcePos )
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
--- FunName -----------------------------------------------------
-data FunName  = ArrayCtor 
-              | ArraySub 
-              | Between 
-              | KOperator (KeywordOperator) 
-              | Operator (String) 
-              | RowCtor 
-              | SimpleFun (String) 
-              | Substring 
-              deriving ( Eq,Show)
--- cata
-sem_FunName :: FunName  ->
-               T_FunName 
-sem_FunName (ArrayCtor )  =
-    (sem_FunName_ArrayCtor )
-sem_FunName (ArraySub )  =
-    (sem_FunName_ArraySub )
-sem_FunName (Between )  =
-    (sem_FunName_Between )
-sem_FunName (KOperator _keywordOperator )  =
-    (sem_FunName_KOperator _keywordOperator )
-sem_FunName (Operator _string )  =
-    (sem_FunName_Operator _string )
-sem_FunName (RowCtor )  =
-    (sem_FunName_RowCtor )
-sem_FunName (SimpleFun _string )  =
-    (sem_FunName_SimpleFun _string )
-sem_FunName (Substring )  =
-    (sem_FunName_Substring )
--- semantic domain
-type T_FunName  = Bool ->
-                  Scope ->
-                  MySourcePos ->
-                  ( FunName,([Message]),Type,FunName)
-data Inh_FunName  = Inh_FunName {inLoop_Inh_FunName :: Bool,scope_Inh_FunName :: Scope,sourcePos_Inh_FunName :: MySourcePos}
-data Syn_FunName  = Syn_FunName {actualValue_Syn_FunName :: FunName,messages_Syn_FunName :: [Message],nodeType_Syn_FunName :: Type,val_Syn_FunName :: FunName}
-wrap_FunName :: T_FunName  ->
-                Inh_FunName  ->
-                Syn_FunName 
-wrap_FunName sem (Inh_FunName _lhsIinLoop _lhsIscope _lhsIsourcePos )  =
-    (let ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOval) =
-             (sem _lhsIinLoop _lhsIscope _lhsIsourcePos )
-     in  (Syn_FunName _lhsOactualValue _lhsOmessages _lhsOnodeType _lhsOval ))
-sem_FunName_ArrayCtor :: T_FunName 
-sem_FunName_ArrayCtor  =
-    (\ _lhsIinLoop
-       _lhsIscope
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOactualValue :: FunName
-              _lhsOval :: FunName
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _actualValue =
-                  ArrayCtor
-              _val =
-                  ArrayCtor
-              _lhsOactualValue =
-                  _actualValue
-              _lhsOval =
-                  _val
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_FunName_ArraySub :: T_FunName 
-sem_FunName_ArraySub  =
-    (\ _lhsIinLoop
-       _lhsIscope
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOactualValue :: FunName
-              _lhsOval :: FunName
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _actualValue =
-                  ArraySub
-              _val =
-                  ArraySub
-              _lhsOactualValue =
-                  _actualValue
-              _lhsOval =
-                  _val
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_FunName_Between :: T_FunName 
-sem_FunName_Between  =
-    (\ _lhsIinLoop
-       _lhsIscope
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOactualValue :: FunName
-              _lhsOval :: FunName
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _actualValue =
-                  Between
-              _val =
-                  Between
-              _lhsOactualValue =
-                  _actualValue
-              _lhsOval =
-                  _val
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_FunName_KOperator :: KeywordOperator ->
-                         T_FunName 
-sem_FunName_KOperator keywordOperator_  =
-    (\ _lhsIinLoop
-       _lhsIscope
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOactualValue :: FunName
-              _lhsOval :: FunName
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _actualValue =
-                  KOperator keywordOperator_
-              _val =
-                  KOperator keywordOperator_
-              _lhsOactualValue =
-                  _actualValue
-              _lhsOval =
-                  _val
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_FunName_Operator :: String ->
-                        T_FunName 
-sem_FunName_Operator string_  =
-    (\ _lhsIinLoop
-       _lhsIscope
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOactualValue :: FunName
-              _lhsOval :: FunName
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _actualValue =
-                  Operator string_
-              _val =
-                  Operator string_
-              _lhsOactualValue =
-                  _actualValue
-              _lhsOval =
-                  _val
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_FunName_RowCtor :: T_FunName 
-sem_FunName_RowCtor  =
-    (\ _lhsIinLoop
-       _lhsIscope
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOactualValue :: FunName
-              _lhsOval :: FunName
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _actualValue =
-                  RowCtor
-              _val =
-                  RowCtor
-              _lhsOactualValue =
-                  _actualValue
-              _lhsOval =
-                  _val
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_FunName_SimpleFun :: String ->
-                         T_FunName 
-sem_FunName_SimpleFun string_  =
-    (\ _lhsIinLoop
-       _lhsIscope
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOactualValue :: FunName
-              _lhsOval :: FunName
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _actualValue =
-                  SimpleFun string_
-              _val =
-                  SimpleFun string_
-              _lhsOactualValue =
-                  _actualValue
-              _lhsOval =
-                  _val
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOval)))
-sem_FunName_Substring :: T_FunName 
-sem_FunName_Substring  =
-    (\ _lhsIinLoop
-       _lhsIscope
-       _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
-              _lhsOactualValue :: FunName
-              _lhsOval :: FunName
-              _lhsOmessages =
-                  []
-              _lhsOnodeType =
-                  UnknownType
-              _actualValue =
-                  Substring
-              _val =
-                  Substring
-              _lhsOactualValue =
-                  _actualValue
-              _lhsOval =
-                  _val
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOval)))
 -- IfExists ----------------------------------------------------
 data IfExists  = IfExists 
                | Require 
@@ -3221,14 +2961,14 @@ sem_MTableRef_Nothing  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOcolumns :: Type
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOcolumns :: Type
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: MTableRef
-              _lhsOcolumns =
-                  UnnamedCompositeType []
               _lhsOnodeType =
                   TypeList []
+              _lhsOcolumns =
+                  UnnamedCompositeType []
               _lhsOmessages =
                   []
               _actualValue =
@@ -3301,7 +3041,7 @@ sem_MaybeExpression_Nothing  =
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: MaybeExpression
               _lhsOnodeType =
-                  Pseudo AnyElement
+                  TypeList []
               _lhsOmessages =
                   []
               _actualValue =
@@ -4180,10 +3920,10 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _selSelectListOscope :: Scope
+         (let _lhsOnodeType :: Type
+              _selSelectListOscope :: Scope
               _selWhereOscope :: Scope
               _selSelectListOcolumns :: Type
-              _lhsOnodeType :: Type
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: SelectExpression
               _selDistinctOinLoop :: Bool
@@ -4229,25 +3969,23 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selDirIactualValue :: Direction
               _selDirImessages :: ([Message])
               _selDirInodeType :: Type
+              _lhsOnodeType =
+                  typeCheckSelectExpr
+                    _lhsIsourcePos
+                    _selSelectListInodeType
+                    _selSelectListIcolumnNames
+                    _selTrefInodeType
+                    _selWhereInodeType
               _selSelectListOscope =
-                  scopeCombineIds _lhsIscope (getColumnsAsTypes _selTrefIcolumns)
+                  scopeCombineIds
+                    _lhsIscope
+                    (getColumnsAsTypes _selTrefIcolumns)
               _selWhereOscope =
-                  scopeCombineIds _lhsIscope (getColumnsAsTypes _selTrefIcolumns)
+                  scopeCombineIds
+                    _lhsIscope
+                    (getColumnsAsTypes _selTrefIcolumns)
               _selSelectListOcolumns =
                   _selTrefIcolumns
-              _lhsOnodeType =
-                  let error0 = case _selTrefInodeType of
-                                 TypeList [] -> Nothing
-                                 x -> Just x
-                      colTypes = typesFromTypeList _selSelectListInodeType
-                      colNames = _selSelectListIcolumnNames
-                      error1 = if length colTypes == 0
-                                 then Just $ TypeError _lhsIsourcePos NoRowsGivenForValues
-                                 else Nothing
-                      ty = propagateUnknownError
-                             (TypeList colTypes) $
-                             SetOfType $ UnnamedCompositeType $ zip colNames colTypes
-                  in propagateUnknownError _selWhereInodeType $ head $ catMaybes [error0, error1, Just ty]
               _lhsOmessages =
                   _selDistinctImessages ++ _selSelectListImessages ++ _selTrefImessages ++ _selWhereImessages ++ _selGroupByImessages ++ _selOrderByImessages ++ _selDirImessages
               _actualValue =
@@ -4323,30 +4061,10 @@ sem_SelectExpression_Values vll_  =
               _vllImessages :: ([Message])
               _vllInodeType :: Type
               _lhsOnodeType =
-                  let rowsTs1 = (typesFromTypeList _vllInodeType)
-                      rowsTs = map typesFromTypeList rowsTs1
-                      lengths = map length rowsTs
-                      error1 = case () of
-                                _ | length rowsTs1 == 0 ->
-                                      Just $ TypeError _lhsIsourcePos NoRowsGivenForValues
-                                  | not (all (==head lengths) lengths) ->
-                                      Just $ TypeError _lhsIsourcePos
-                                           ValuesListsMustBeSameLength
-                                  | otherwise -> Nothing
-                      colNames = map (\(a,b) -> a ++ b) $
-                                 zip (repeat "column")
-                                     (map show [1..head lengths])
-                      colTypeLists = transpose rowsTs
-                      colTypes = map (resolveResultSetType _lhsIscope _lhsIsourcePos) colTypeLists
-                      error2 = let es = filter (\t -> case t of
-                                                        TypeError _ _ -> True
-                                                        _ -> False) colTypes
-                               in case length es of
-                                    0 -> Nothing
-                                    1 -> Just $ head es
-                                    _ ->  Just $ TypeList es
-                      ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
-                  in head $ catMaybes [error1, error2, Just ty]
+                  typeCheckValuesExpr
+                    _lhsIscope
+                    _lhsIsourcePos
+                    _vllInodeType
               _lhsOmessages =
                   _vllImessages
               _actualValue =

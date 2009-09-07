@@ -149,3 +149,15 @@ on using a wrapper.
 >                         deriving (Eq,Show)
 
 > type CompositeDef = (String, CompositeFlavour, Type)
+
+
+> data FunName = SimpleFun String
+>              | Operator String
+>              | KOperator KeywordOperator
+>              | ArrayCtor
+>              | RowCtor
+>              | ArraySub
+>              | Substring
+>              | Between
+>                deriving (Eq,Show)
+>               --add not between, overlay, any, etc.

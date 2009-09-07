@@ -1,7 +1,13 @@
 Copyright 2009 Jake Wheat
 
-This file collects a bunch of utility functions used in type checking,
-etc., asts.
+This file holds all the non-short bits of code that are mainly used in
+TypeChecking.ag.
+
+random implementation note:
+If you see one of these: TypeList [] - and don't get it - is used to
+represent a variety of different things, like node type checked ok
+when the node doesn't produce a type but can produce a type error,
+etc.. This could probably be reviewed and made to work a bit better.
 
 > module AstUtils where
 
@@ -246,8 +252,85 @@ the actual dsl engine:
 >       else TypeError sp (UnknownTypeError t)
 
 
+
+================================================================================
+
+= basic types
+
+random notes on pg types:
+
+== domains:
+the point of domains is you can't put constraints on types, but you
+can wrap a type up in a domain and put a constraint on it there
+
+== literals/selectors
+
+source strings are parsed as unknown type: they can be implicitly cast
+to almost any type in the right contexts.
+
+rows ctors can also be implicitly cast to any composite type matching
+the elements (how exactly are they matched? - number of elements, type
+compatibility of elements, just by context?)
+
+string literals are not checked for valid syntax currently, but this
+will probably change so we can type check string literals statically,
+whereas pg defers all checking to runtime, because it has to cope with
+custom data types. this code isn't going to be able to support such
+custom data types very well, so it can get away with doing more static
+checks on this sort of thing.
+
+== notes on type checking types
+
+=== basic type checking
+at the moment - just check type exists in predetermined list of type
+names
+todo: option to read types from database catalog at time of type
+checking
+todo: collect type names from current source file to check against
+A lot of the infrastructure to do this is already in place. We also
+need to do this for all other definitions, etc.
+
+Type aliases
+
+Some types in postgresql have multiple names. I think this is
+hardcoded in the pg parser.
+
+For the canonical name, we use the name given in the postgresql
+pg_type catalog relvar.
+
+TODO: Change the ast canonical names: where there is a choice, prefer
+the sql standard name, where there are multiple sql standard names,
+choose the most concise or common one, so the ast will use different
+canonical names to postgresql.
+
+planned ast canonical names:
+numbers:
+int2, int4/integer, int8 -> smallint, int, bigint
+numeric, decimal -> numeric
+float(1) to float(24), real -> float(24)
+float, float(25) to float(53), double precision -> float
+serial, serial4 -> int
+bigserial, serial8 -> bigint
+character varying(n), varchar(n)-> varchar(n)
+character(n), char(n) -> char(n)
+
+TODO:
+
+what about PrecTypeName? - need to fix the ast and parser (these are
+called type modifiers in pg)
+
+also, what can setof be applied to - don't know if it can apply to an
+array or setof type
+
+array types have to match an exact array type in the catalog, so we
+can't create an arbitrary array of any type
+
+
+
 aliases to protect client code if/when the ast canonical names are
 changed
+
+
 
 > typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
 >   typeFloat8,typeVarChar,typeChar,typeBool :: Type
@@ -662,3 +745,86 @@ code is not as much of a mess as findCallMatch
 > getTypesFromComp :: Type -> [(String,Type)]
 > getTypesFromComp (UnnamedCompositeType a) = a
 > getTypesFromComp _ = []
+
+
+> typeCheckFunCall :: Scope -> MySourcePos -> FunName -> Type -> Type
+> typeCheckFunCall scope sp fnName argsType =
+>         propagateUnknownError argsType $ case fnName of
+>           ArrayCtor -> let t = resolveResultSetType scope sp $ typesFromTypeList argsType
+>                        in propagateUnknownError t $ ArrayType t
+>           Substring -> ct
+>                          (ExactList [ScalarType "text"
+>                                     ,ScalarType "int4"
+>                                     ,ScalarType "int4"])
+>                          (ConstRetType (ScalarType "text"))
+>           Between -> ct -- needs to be fixed to type check against <= and =>
+>                          (AllSameTypeNumAny 3)
+>                          (ConstRetType (typeBool))
+>           ArraySub -> ct
+>                          (ExactPredList
+>                            [ArgCheck isArrayType NotArrayType
+>                            ,exactType (ScalarType "int4")])
+>                          (RetTypeFun (\t -> typeFromArray $ head t))
+>           Operator s ->  lookupFn s (typesFromTypeList argsType)
+>           KOperator k -> lookupKop k (typesFromTypeList argsType)
+>           SimpleFun f -> lookupFn f (typesFromTypeList argsType)
+>           _ -> UnknownType
+>         where
+>           ct = checkTypes scope sp argsType
+>           lookupFn s1 args = case findCallMatch scope sp
+>                                              (if s1 == "u-" then "-" else s1) args of
+>                                Left te -> te
+>                                Right (_,_,r) -> r
+>           lookupKop s args = let cands = filter (\(o,a,_) ->
+>                                                    (o,a) == (s,args))
+>                                            allKeywordOps
+>                              in case () of
+>                                  _ | length cands == 0 -> TypeError sp (NoMatchingKOperator s args)
+>                                    | length cands == 1 -> let (_,_,rettype) = (head cands)
+>                                                           in rettype
+>                                    | otherwise -> TypeError sp (MultipleMatchingKOperators s args)
+
+
+> typeCheckSelectExpr :: MySourcePos -> Type -> [String] -> Type -> Type -> Type
+> typeCheckSelectExpr sp selListType colNames trefType whereType =
+>              let error0 = case trefType of
+>                             TypeList [] -> Nothing
+>                             x -> Just x
+>                  colTypes = typesFromTypeList selListType
+>                  error1 = if length colTypes == 0
+>                             then Just $ TypeError sp NoRowsGivenForValues
+>                             else Nothing
+>                  ty = propagateUnknownError
+>                         (TypeList colTypes) $
+>                         SetOfType $ UnnamedCompositeType $ zip colNames colTypes
+>              in propagateUnknownError whereType $ head $ catMaybes [error0, error1, Just ty]
+>
+> typeCheckValuesExpr :: Scope -> MySourcePos -> Type -> Type
+> typeCheckValuesExpr scope sp vll =
+>         let rowsTs1 = typesFromTypeList vll
+>             --convert into [[Type]]
+>             rowsTs = map typesFromTypeList rowsTs1
+>             --check all same length
+>             lengths = map length rowsTs
+>             error1 = case () of
+>                       _ | length rowsTs1 == 0 ->
+>                             Just $ TypeError sp NoRowsGivenForValues
+>                         | not (all (==head lengths) lengths) ->
+>                             Just $ TypeError sp
+>                                  ValuesListsMustBeSameLength
+>                         | otherwise -> Nothing
+>             colNames = map (\(a,b) -> a ++ b) $
+>                        zip (repeat "column")
+>                            (map show [1..head lengths])
+>             colTypeLists = transpose rowsTs
+>             colTypes = map (resolveResultSetType scope sp) colTypeLists
+>             error2 = let es = filter (\t -> case t of
+>                                               TypeError _ _ -> True
+>                                               _ -> False) colTypes
+>                      in case length es of
+>                           0 -> Nothing
+>                           1 -> Just $ head es
+>                           _ ->  Just $ TypeList es
+>             ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
+>         in head $ catMaybes [error1, error2, Just ty]
+

@@ -458,15 +458,6 @@ Most of unusual syntax forms are not yet supported.
 -}
 
 
-DATA FunName | SimpleFun String
-             | Operator String
-             | KOperator KeywordOperator
-             | ArrayCtor
-             | RowCtor
-             | ArraySub
-             | Substring
-             | Between
-               --add not between, overlay, any, etc.
 
 DATA InList | InList ExpressionList | InSelect sel : SelectExpression
 
@@ -551,7 +542,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpressi
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               SourcePosStatement FunName MTableRef TableRef OnExpr Where
+               SourcePosStatement MTableRef TableRef OnExpr Where
 
 
 SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpression JoinType
@@ -563,7 +554,7 @@ SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpr
                StringStringListPair ExpressionListStatementListPair
                ExpressionStatementListPair
                CaseExpressionListExpressionPair
-               SourcePosStatement FunName MTableRef OnExpr Where
+               SourcePosStatement MTableRef OnExpr Where
 
 
 SET ListNodes = SelectList ExpressionList ExpressionListList StringList
