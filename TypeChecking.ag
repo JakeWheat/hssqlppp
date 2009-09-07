@@ -243,34 +243,64 @@ SEM SelectExpression
                               @lhs.sourcePos
                               @vll.nodeType
     | Select
-         lhs.nodeType = typeCheckSelectExpr
-                          @lhs.sourcePos
-                          @selSelectList.nodeType
-                          @selSelectList.columnNames
-                          @selTref.nodeType
-                          @selWhere.nodeType
+         lhs.nodeType = propagateUnknownError @selWhere.nodeType $
+                        SetOfType $ @selSelectList.nodeType
 
 SEM TableRef
-    | Tref TrefAlias lhs.nodeType =
+    | SubTref lhs.nodeType = getCompositeFromSetOf @sel.nodeType
+    | TrefAlias Tref lhs.nodeType =
         case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
-          Nothing -> TypeError @lhs.sourcePos (UnrecognisedRelation @tbl)
-          Just x -> TypeList [] --use as placeholder to say the table does exist
-    | SubTref lhs.nodeType = TypeList []
+          Just (_,_,a@(UnnamedCompositeType _)) -> a
+          _ -> UnnamedCompositeType []
     | TrefFun TrefFunAlias
-         lhs.nodeType = case @fn.actualValue of
-                          FunCall _ _ -> TypeList []
-                          x -> TypeError @lhs.sourcePos (ContextError "FunCall")
+        lhs.nodeType =
+            --lhs.nodeType = case @fn.actualValue of
+            --              FunCall _ _ -> TypeList []
+            --              x -> TypeError @lhs.sourcePos (ContextError "FunCall")
+            case @fn.actualValue of
+              FunCall (SimpleFun f) _ ->
+                  case @fn.nodeType of
+                    SetOfType (CompositeType t) -> getCompositeType t
+                    SetOfType x -> UnnamedCompositeType [(f,x)]
+                    y -> UnnamedCompositeType [(f,y)]
+              x -> UnnamedCompositeType []
+              where
+                getCompositeType t =
+                    case getAttrs @lhs.scope [Composite
+                                             ,TableComposite
+                                             ,ViewComposite] t of
+                      Just (_,_,a@(UnnamedCompositeType _)) -> a
+                      _ -> UnnamedCompositeType []
     | JoinedTref
-         lhs.nodeType =
-             case catMaybes [propE @tbl.nodeType
-                            ,propE @tbl1.nodeType] of
-               [] -> TypeList []
-               x -> TypeList x
-             where
-               propE :: Type -> Maybe Type
-               propE t = case t of
-                           TypeList [] -> Nothing
-                           x -> Just  x
+        lhs.nodeType =
+            case (@nat.actualValue, @onExpr.actualValue) of
+                      (Natural, _) -> unionJoinList $ commonFieldNames
+                                                        @tbl.nodeType
+                                                        @tbl1.nodeType
+                      (_,Just (JoinUsing s)) -> unionJoinList s
+                      _ -> UnnamedCompositeType $ getTypesFromComp
+                                                     @tbl.nodeType ++
+                                                     getTypesFromComp
+                                                       @tbl1.nodeType
+            --in catMaybes [propE @tbl.nodeType
+            --             ,propE @tbl1.nodeType
+            --             ,Just r]
+            where
+              --propE :: Type -> Maybe Type
+              --propE t = case t of
+              --             TypeList [] -> Nothing
+              --             x -> Just  x
+              unionJoinList s = combineTableTypesWithUsingList
+                                  @lhs.scope
+                                  @lhs.sourcePos
+                                  s
+                                  @tbl.nodeType
+                                  @tbl1.nodeType
+              commonFieldNames t1 t2 =
+                  intersect (fn t1) (fn t2)
+              fn (UnnamedCompositeType s) = map fst s
+              fn _ = []
+
 
 SEM MTableRef
     | Nothing lhs.nodeType = TypeList []
@@ -286,19 +316,30 @@ SEM Where
 SEM SelectItem
     | SelExp SelectItem lhs.nodeType = @ex.nodeType
 
+SEM SelectItemList
+    | Cons lhs.nodeType =
+        foldr consCompositeField @tl.nodeType
+           (if @hd.columnName == "*"
+              then getTypesFromComp @lhs.trefType
+              else [(@hd.columnName,@hd.nodeType)])
+    | Nil lhs.nodeType = UnnamedCompositeType []
+
 SEM SelectList
-    | SelectList
-        lhs.nodeType =
-            TypeList $ concatMap expandStar $ typesFromTypeList @items.nodeType
-            where
-              expandStar :: Type -> [Type]
-              expandStar =
-                (\l -> case l of
-                       TypeError _ (UnrecognisedIdentifier "*") ->
-                           map snd $ getTypesFromComp @lhs.columns
-                       x -> [x])
+    | SelectList lhs.nodeType = @items.nodeType
 
 {-
+
+>                  colTypes = typesFromTypeList selListType
+>                  error1 = if length colTypes == 0
+>                             then Just $ TypeError sp NoRowsGivenForValues
+>                             else Nothing
+>                  ty = propagateUnknownError
+>                         (TypeList colTypes) $
+>                         SetOfType $ UnnamedCompositeType $ zip colNames colTypes
+>              in propagateUnknownError whereType $ head $ catMaybes [error0, error1, Just ty]
+
+
+
 
 == scope passing
 
@@ -317,10 +358,10 @@ SEM SelectExpression
     | Select
          selSelectList.scope = scopeCombineIds
                                  @lhs.scope
-                                 (getColumnsAsTypes @selTref.columns)
+                                 (getColumnsAsTypes @selTref.nodeType)
          selWhere.scope =  scopeCombineIds
                              @lhs.scope
-                             (getColumnsAsTypes @selTref.columns)
+                             (getColumnsAsTypes @selTref.nodeType)
 
 
 {-
@@ -336,8 +377,9 @@ columns holds the types of the columns retrieved from the tref, this
 provides the set of identifiers for the select list, etc., to refer to
 (it's type is always unnamedcompositetype).
 
-columnName and columnNames are used to collect the column names that
-the select list produces.
+columnName is used to collect the column names that the select list
+produces, it is combined into an unnamedcompositetype in
+selectitemlist, which is also where expansion happens.
 
 -}
 
@@ -345,14 +387,14 @@ the select list produces.
 
 ATTR SelectItemList
   [
-  | columns : Type
-  | columnNames : {[String]}
+  | trefType : Type
+  |
   ]
 
 ATTR SelectList
   [
-  | columns : Type
-  | columnNames : {[String]}
+  | trefType : Type
+  |
   ]
 
 ATTR SelectItem
@@ -360,12 +402,6 @@ ATTR SelectItem
   |
   | columnName : String
   ]
-
-ATTR TableRef MTableRef
-     [
-     |
-     | columns : Type
-     ]
 
 {-
 if the select item is just an identifier, then that column is named
@@ -389,54 +425,20 @@ fixedValue a _ _ = a
 {-
 === semantics
 
-argumentColumns first:
+pass the type of the tableref into the select list:
 
 -}
 
 SEM SelectExpression
     | Select
-         selSelectList.columns = @selTref.columns
+         selSelectList.trefType = @selTref.nodeType
 
-SEM TableRef
-    | SubTref lhs.columns = getCompositeFromSetOf @sel.nodeType
-    | TrefAlias Tref lhs.columns =
-        case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
-          Just (_,_,a@(UnnamedCompositeType _)) -> a
-          _ -> UnnamedCompositeType []
-    | TrefFun TrefFunAlias
-        lhs.columns =
-            case @fn.actualValue of
-              FunCall (SimpleFun f) _ ->
-                  case @fn.nodeType of
-                    SetOfType (CompositeType t) -> getCompositeType t
-                    SetOfType x -> UnnamedCompositeType [(f,x)]
-                    y -> UnnamedCompositeType [(f,y)]
-              x -> UnnamedCompositeType []
-              where
-                getCompositeType t =
-                    case getAttrs @lhs.scope [Composite
-                                             ,TableComposite
-                                             ,ViewComposite] t of
-                      Just (_,_,a@(UnnamedCompositeType _)) -> a
-                      _ -> UnnamedCompositeType []
-    | JoinedTref
-        lhs.columns =
-            case (@nat.actualValue, @onExpr.actualValue) of
-              (Natural, _) -> let s = commonFieldNames @tbl.columns @tbl1.columns
-                              in combineTableTypesWithUsingList @lhs.scope @lhs.sourcePos s @tbl.columns @tbl1.columns
-              (_,Just (JoinUsing s)) -> combineTableTypesWithUsingList @lhs.scope @lhs.sourcePos s @tbl.columns @tbl1.columns
-              _ -> UnnamedCompositeType $ getTypesFromComp @tbl.columns ++ getTypesFromComp @tbl1.columns
-            where
-              commonFieldNames t1 t2 =
-                  intersect (fn t1) (fn t2)
-              fn (UnnamedCompositeType s) = map fst s
-              fn _ = []
-
-SEM MTableRef
-    | Nothing lhs.columns = UnnamedCompositeType []
 
 {-
-second, the returnColumnNames
+
+collect the column names so that the type of the select list can be
+calculated
+
 -}
 
 SEM Expression
@@ -448,18 +450,8 @@ SEM SelectItem
                                 s -> s
     | SelectItem lhs.columnName = @name
 
-SEM SelectItemList
-    | Cons lhs.columnNames = let cn = @hd.columnName
-                             in (if cn == "*"
-                                  then map fst $ getTypesFromComp @lhs.columns
-                                  else [cn])
-                                    ++ @tl.columnNames
-    | Nil lhs.columnNames = []
-
 
 {-
-
-
 
 containment guide for select expressions:
 combineselect 2 selects

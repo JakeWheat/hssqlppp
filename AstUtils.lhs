@@ -785,20 +785,6 @@ code is not as much of a mess as findCallMatch
 >                                    | otherwise -> TypeError sp (MultipleMatchingKOperators s args)
 
 
-> typeCheckSelectExpr :: MySourcePos -> Type -> [String] -> Type -> Type -> Type
-> typeCheckSelectExpr sp selListType colNames trefType whereType =
->              let error0 = case trefType of
->                             TypeList [] -> Nothing
->                             x -> Just x
->                  colTypes = typesFromTypeList selListType
->                  error1 = if length colTypes == 0
->                             then Just $ TypeError sp NoRowsGivenForValues
->                             else Nothing
->                  ty = propagateUnknownError
->                         (TypeList colTypes) $
->                         SetOfType $ UnnamedCompositeType $ zip colNames colTypes
->              in propagateUnknownError whereType $ head $ catMaybes [error0, error1, Just ty]
->
 > typeCheckValuesExpr :: Scope -> MySourcePos -> Type -> Type
 > typeCheckValuesExpr scope sp vll =
 >         let rowsTs1 = typesFromTypeList vll
@@ -828,3 +814,17 @@ code is not as much of a mess as findCallMatch
 >             ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
 >         in head $ catMaybes [error1, error2, Just ty]
 
+> appendCompositeTypes :: Type -> Type -> Type
+> appendCompositeTypes (UnnamedCompositeType a) (UnnamedCompositeType b) =
+>     UnnamedCompositeType (a ++ b)
+> appendCompositeTypes _ _ = error "internal error"
+
+> addCompositeFields :: Type -> [(String,Type)] -> Type
+> addCompositeFields (UnnamedCompositeType a) l =
+>     UnnamedCompositeType (a ++ l)
+> addCompositeFields _ _ = error "internal error"
+
+> consCompositeField :: (String,Type) -> Type -> Type
+> consCompositeField l (UnnamedCompositeType a) =
+>     UnnamedCompositeType (l:a)
+> consCompositeField _ _ = error "internal error"
