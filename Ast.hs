@@ -1446,10 +1446,9 @@ sem_Expression_Cast expr_ tn_  =
               _tnImessages :: ([Message])
               _tnInodeType :: Type
               _lhsOnodeType =
-                  propagateUnknownError
-                    (TypeList
-                     [_exprInodeType])
-                    _tnInodeType
+                  head $ catMaybes
+                    [unkErr _exprInodeType
+                    ,Just _tnInodeType]
               _lhsOliftedColumnName =
                   _exprIliftedColumnName
               _lhsOmessages =
@@ -3961,8 +3960,11 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selDirImessages :: ([Message])
               _selDirInodeType :: Type
               _lhsOnodeType =
-                  propagateUnknownError _selWhereInodeType $
-                  SetOfType $ _selSelectListInodeType
+                  head $ catMaybes
+                    [unkErr _selTrefInodeType
+                    ,unkErr _selSelectListInodeType
+                    ,unkErr _selWhereInodeType
+                    ,Just $ SetOfType _selSelectListInodeType]
               _selSelectListOscope =
                   scopeCombineIds
                     _lhsIscope
@@ -6341,7 +6343,11 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _onExprImessages :: ([Message])
               _onExprInodeType :: Type
               _lhsOnodeType =
-                  case (_natIactualValue, _onExprIactualValue) of
+                  head $ catMaybes [unkErr _tblInodeType
+                                   ,unkErr _tbl1InodeType
+                                   ,Just ret]
+                  where
+                    ret = case (_natIactualValue, _onExprIactualValue) of
                             (Natural, _) -> unionJoinList $ commonFieldNames
                                                               _tblInodeType
                                                               _tbl1InodeType
@@ -6350,7 +6356,6 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
                                                            _tblInodeType ++
                                                            getTypesFromComp
                                                              _tbl1InodeType
-                  where
                     unionJoinList s = combineTableTypesWithUsingList
                                         _lhsIscope
                                         _lhsIsourcePos
@@ -6453,7 +6458,7 @@ sem_TableRef_Tref tbl_  =
               _lhsOnodeType =
                   case getAttrs _lhsIscope [TableComposite, ViewComposite] tbl_ of
                     Just (_,_,a@(UnnamedCompositeType _)) -> a
-                    _ -> UnnamedCompositeType []
+                    _ -> TypeError _lhsIsourcePos (UnrecognisedRelation tbl_)
               _lhsOmessages =
                   []
               _actualValue =
@@ -6474,7 +6479,7 @@ sem_TableRef_TrefAlias tbl_ alias_  =
               _lhsOnodeType =
                   case getAttrs _lhsIscope [TableComposite, ViewComposite] tbl_ of
                     Just (_,_,a@(UnnamedCompositeType _)) -> a
-                    _ -> UnnamedCompositeType []
+                    _ -> TypeError _lhsIsourcePos (UnrecognisedRelation tbl_)
               _lhsOmessages =
                   []
               _actualValue =
@@ -6762,11 +6767,11 @@ sem_TypeName_ArrayTypeName typ_  =
               _typImessages :: ([Message])
               _typInodeType :: Type
               _lhsOnodeType =
-                  propagateUnknownError _typInodeType
-                    $ checkTypeExists
-                          _lhsIscope
-                          _lhsIsourcePos
-                          (ArrayType _typInodeType)
+                  let t = ArrayType _typInodeType
+                  in head $ catMaybes
+                         [unkErr _typInodeType
+                         ,checkTypeExists _lhsIscope _lhsIsourcePos t
+                         ,Just t]
               _lhsOmessages =
                   _typImessages
               _actualValue =
@@ -6817,8 +6822,9 @@ sem_TypeName_SetOfTypeName typ_  =
               _typImessages :: ([Message])
               _typInodeType :: Type
               _lhsOnodeType =
-                  propagateUnknownError _typInodeType
-                    (SetOfType _typInodeType)
+                  head $ catMaybes
+                    [unkErr _typInodeType
+                    ,Just $ SetOfType _typInodeType]
               _lhsOmessages =
                   _typImessages
               _actualValue =
@@ -6845,7 +6851,9 @@ sem_TypeName_SimpleTypeName tn_  =
               _lhsOactualValue :: TypeName
               _lhsOnodeType =
                   let st = canonicalizeType $ ScalarType tn_
-                  in checkTypeExists _lhsIscope _lhsIsourcePos st
+                  in head $ catMaybes
+                         [checkTypeExists _lhsIscope _lhsIsourcePos st
+                         ,Just st]
               _lhsOmessages =
                   []
               _actualValue =
@@ -7113,10 +7121,12 @@ sem_Where_Just just_  =
               _justImessages :: ([Message])
               _justInodeType :: Type
               _lhsOnodeType =
-                  propagateUnknownError _justInodeType $
-                  if _justInodeType /= typeBool
-                    then TypeError _lhsIsourcePos ExpressionMustBeBool
-                    else typeBool
+                  head $ catMaybes
+                    [unkErr _justInodeType
+                    ,Just $ if _justInodeType /= typeBool
+                              then TypeError _lhsIsourcePos
+                                     ExpressionMustBeBool
+                              else typeBool]
               _lhsOmessages =
                   _justImessages
               _actualValue =

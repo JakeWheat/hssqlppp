@@ -124,21 +124,24 @@ SEM MaybeExpression
 SEM TypeName
      | SimpleTypeName
           lhs.nodeType = let st = canonicalizeType $ ScalarType @tn
-                         in checkTypeExists @lhs.scope @lhs.sourcePos st
+                         in head $ catMaybes
+                                [checkTypeExists @lhs.scope @lhs.sourcePos st
+                                ,Just st]
 --     | PrecTypeName
 --          lhs.nodeType = if @tn `elem` defaultTypes
 --                           then ScalarType @tn
 --                           else TypeError @lhs.sourcePos
 --                                  (UnknownTypeError @tn)
      | ArrayTypeName
-          lhs.nodeType = propagateUnknownError @typ.nodeType
-                           $ checkTypeExists
-                                 @lhs.scope
-                                 @lhs.sourcePos
-                                 (ArrayType @typ.nodeType)
+          lhs.nodeType = let t = ArrayType @typ.nodeType
+                         in head $ catMaybes
+                                [unkErr @typ.nodeType
+                                ,checkTypeExists @lhs.scope @lhs.sourcePos t
+                                ,Just t]
      | SetOfTypeName
-          lhs.nodeType = propagateUnknownError @typ.nodeType
-                           (SetOfType @typ.nodeType)
+          lhs.nodeType = head $ catMaybes
+                           [unkErr @typ.nodeType
+                           ,Just $ SetOfType @typ.nodeType]
 
 {-
 == literals
@@ -164,10 +167,9 @@ SEM Expression
 -}
 
 SEM Expression
-    | Cast lhs.nodeType = propagateUnknownError
-                            (TypeList
-                             [@expr.nodeType])
-                            @tn.nodeType
+    | Cast lhs.nodeType = head $ catMaybes
+                            [unkErr @expr.nodeType
+                            ,Just @tn.nodeType]
 
 {-
 == operators and functions
@@ -243,15 +245,18 @@ SEM SelectExpression
                               @lhs.sourcePos
                               @vll.nodeType
     | Select
-         lhs.nodeType = propagateUnknownError @selWhere.nodeType $
-                        SetOfType $ @selSelectList.nodeType
+         lhs.nodeType = head $ catMaybes
+                          [unkErr @selTref.nodeType
+                          ,unkErr @selSelectList.nodeType
+                          ,unkErr @selWhere.nodeType
+                          ,Just $ SetOfType @selSelectList.nodeType]
 
 SEM TableRef
     | SubTref lhs.nodeType = getCompositeFromSetOf @sel.nodeType
     | TrefAlias Tref lhs.nodeType =
         case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
           Just (_,_,a@(UnnamedCompositeType _)) -> a
-          _ -> UnnamedCompositeType []
+          _ -> TypeError @lhs.sourcePos (UnrecognisedRelation @tbl)
     | TrefFun TrefFunAlias
         lhs.nodeType =
             --lhs.nodeType = case @fn.actualValue of
@@ -273,7 +278,11 @@ SEM TableRef
                       _ -> UnnamedCompositeType []
     | JoinedTref
         lhs.nodeType =
-            case (@nat.actualValue, @onExpr.actualValue) of
+            head $ catMaybes [unkErr @tbl.nodeType
+                             ,unkErr @tbl1.nodeType
+                             ,Just ret]
+            where
+              ret = case (@nat.actualValue, @onExpr.actualValue) of
                       (Natural, _) -> unionJoinList $ commonFieldNames
                                                         @tbl.nodeType
                                                         @tbl1.nodeType
@@ -282,14 +291,6 @@ SEM TableRef
                                                      @tbl.nodeType ++
                                                      getTypesFromComp
                                                        @tbl1.nodeType
-            --in catMaybes [propE @tbl.nodeType
-            --             ,propE @tbl1.nodeType
-            --             ,Just r]
-            where
-              --propE :: Type -> Maybe Type
-              --propE t = case t of
-              --             TypeList [] -> Nothing
-              --             x -> Just  x
               unionJoinList s = combineTableTypesWithUsingList
                                   @lhs.scope
                                   @lhs.sourcePos
@@ -308,10 +309,12 @@ SEM MTableRef
 
 SEM Where
     | Nothing lhs.nodeType = typeBool
-    | Just lhs.nodeType = propagateUnknownError @just.nodeType $
-                          if @just.nodeType /= typeBool
-                            then TypeError @lhs.sourcePos ExpressionMustBeBool
-                            else typeBool
+    | Just lhs.nodeType = head $ catMaybes
+                            [unkErr @just.nodeType
+                            ,Just $ if @just.nodeType /= typeBool
+                                      then TypeError @lhs.sourcePos
+                                             ExpressionMustBeBool
+                                      else typeBool]
 
 SEM SelectItem
     | SelExp SelectItem lhs.nodeType = @ex.nodeType

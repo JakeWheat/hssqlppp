@@ -71,30 +71,30 @@ Error reporting
 
 = type checking utils
 
-== propagateunknownerror
+== unkErr
 
-shortcut which should end up being used in every bit of type checking
-to make sure once we have an bad typed node, the type error propagates
-up the node tree nicely, instead of creating a cascade of type
-errors. Currently also used to propagate unknowntype in the same way.
+shorthand used with catMaybe
 
-if the first argument is unknown or type error, pass it on otherwise
-use the second argument
+takes a type and returns any type errors, or if no errors, unknowns,
+returns nothing if it doesn't find any type errors or unknowns. Looks
+at the immediate type, or inside the first level if passed a type
+list, or unnamedcompositetype.
 
 
-> propagateUnknownError :: Type -> Type -> Type
-> propagateUnknownError t t1 =
+> unkErr :: Type -> Maybe Type
+> unkErr t =
 >     case t of
->       a@(TypeError _ _) -> a
->       UnknownType -> UnknownType
+>       a@(TypeError _ _) -> Just a
+>       UnknownType -> Just UnknownType
 >       TypeList l -> doTypeList l
->       _ -> t1
+>       UnnamedCompositeType t -> doTypeList (map snd t)
+>       _ -> Nothing
 >     where
->       -- run through the type list, if there are any eorors, collect
+>       -- run through the type list, if there are any errors, collect
 >       -- them all into a list
 >       -- otherwise, if there are any unknowns, then the type is
 >       -- unknown
->       -- otherwise, keep the list the same
+>       -- otherwise, return nothing
 >       doTypeList ts =
 >           let unks = filter (\u -> case u of
 >                                      UnknownType -> True
@@ -103,11 +103,12 @@ use the second argument
 >                                      TypeError _ _ -> True
 >                                      _ -> False) ts
 >           in case () of
->                _ | length errs > 0 -> case () of
->                                         _ | length errs == 1 -> head errs
->                                           | otherwise -> TypeList errs
->                  | length unks > 0 -> UnknownType
->                  | otherwise -> t1
+>                _ | length errs > 0 ->
+>                      Just $ case () of
+>                                     _ | length errs == 1 -> head errs
+>                                       | otherwise -> TypeList errs
+>                  | length unks > 0 -> Just UnknownType
+>                  | otherwise -> Nothing
 
 ================================================================================
 
@@ -196,7 +197,7 @@ the actual dsl engine:
 >     let c = case checkArgs of
 >               Just t -> t
 >               Nothing -> getRetType
->     in pe tl $ pe c c
+>     in head $ catMaybes [unkErr tl, unkErr c, Just c]
 >     where
 >       getRetType =
 >           case retT of
@@ -235,7 +236,6 @@ the actual dsl engine:
 >                                      then Nothing
 >                                      else Just $ te (WrongTypes tc tcs)
 >       te = TypeError sp
->       pe = propagateUnknownError
 >       canImplicitCast (f:fs) (t:ts) =
 >           {-trace (show (f:fs) ++ show (t:ts)) $-}
 >           (f == t || implicitlyCastableFromTo scope f t) && canImplicitCast fs ts
@@ -245,11 +245,11 @@ the actual dsl engine:
 > checkTypes _ _ x _ _ = error $ "can't check types of non type list: " ++ show x
 
 
-> checkTypeExists :: Scope -> MySourcePos -> Type -> Type
+> checkTypeExists :: Scope -> MySourcePos -> Type -> Maybe Type
 > checkTypeExists scope sp t =
 >     if t `elem` (scopeTypes scope)
->       then t
->       else TypeError sp (UnknownTypeError t)
+>       then Nothing
+>       else Just $ TypeError sp (UnknownTypeError t)
 
 
 
@@ -669,19 +669,20 @@ code is not as much of a mess as findCallMatch
 
 
 > resolveResultSetType :: Scope -> MySourcePos -> [Type] -> Type
-> resolveResultSetType scope sp inArgs = propagateUnknownError (TypeList inArgs) $
->     case () of
->       _ | length inArgs == 0 -> TypeError sp TypelessEmptyArray
->         | allSameType -> head inArgs
->         --todo: do domains
->         | allUnknown -> ScalarType "text"
->         | not allSameCat -> TypeError sp (IncompatibleTypes inArgs)
->         | isJust targetType &&
->           allConvertibleToFrom
->             (fromJust targetType)
->             inArgs -> fromJust targetType
->         | otherwise -> TypeError sp (IncompatibleTypes inArgs)
+> resolveResultSetType scope sp inArgs =
+>    head $ catMaybes [unkErr $ TypeList inArgs, Just ret]
 >    where
+>      ret = case () of
+>                    _ | length inArgs == 0 -> TypeError sp TypelessEmptyArray
+>                      | allSameType -> head inArgs
+>                      --todo: do domains
+>                      | allUnknown -> ScalarType "text"
+>                      | not allSameCat -> TypeError sp (IncompatibleTypes inArgs)
+>                      | isJust targetType &&
+>                          allConvertibleToFrom
+>                          (fromJust targetType)
+>                          inArgs -> fromJust targetType
+>                      | otherwise -> TypeError sp (IncompatibleTypes inArgs)
 >      allSameType = all (== head inArgs) inArgs && head inArgs /= UnknownStringLit
 >      allUnknown = all (==UnknownStringLit) inArgs
 >      allSameCat = let firstCat = getTypeCategory scope (head knownTypes)
@@ -746,12 +747,18 @@ code is not as much of a mess as findCallMatch
 > getTypesFromComp (UnnamedCompositeType a) = a
 > getTypesFromComp _ = []
 
+> getTypesFromComp2 :: Type -> [Type]
+> getTypesFromComp2 (UnnamedCompositeType a) = map snd a
+> getTypesFromComp2 _ = []
+
 
 > typeCheckFunCall :: Scope -> MySourcePos -> FunName -> Type -> Type
 > typeCheckFunCall scope sp fnName argsType =
->         propagateUnknownError argsType $ case fnName of
+>     head $ catMaybes [unkErr argsType, Just ret]
+>     where
+>       ret = case fnName of
 >           ArrayCtor -> let t = resolveResultSetType scope sp $ typesFromTypeList argsType
->                        in propagateUnknownError t $ ArrayType t
+>                        in head $ catMaybes [unkErr t, Just $ ArrayType t]
 >           Substring -> ct
 >                          (ExactList [ScalarType "text"
 >                                     ,ScalarType "int4"
@@ -769,16 +776,15 @@ code is not as much of a mess as findCallMatch
 >           KOperator k -> lookupKop k (typesFromTypeList argsType)
 >           SimpleFun f -> lookupFn f (typesFromTypeList argsType)
 >           _ -> UnknownType
->         where
->           ct = checkTypes scope sp argsType
->           lookupFn s1 args = case findCallMatch scope sp
+>       ct = checkTypes scope sp argsType
+>       lookupFn s1 args = case findCallMatch scope sp
 >                                              (if s1 == "u-" then "-" else s1) args of
 >                                Left te -> te
 >                                Right (_,_,r) -> r
->           lookupKop s args = let cands = filter (\(o,a,_) ->
+>       lookupKop s args = let cands = filter (\(o,a,_) ->
 >                                                    (o,a) == (s,args))
 >                                            allKeywordOps
->                              in case () of
+>                          in case () of
 >                                  _ | length cands == 0 -> TypeError sp (NoMatchingKOperator s args)
 >                                    | length cands == 1 -> let (_,_,rettype) = (head cands)
 >                                                           in rettype
