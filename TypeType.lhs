@@ -108,6 +108,7 @@ later on down the line.
 >                    | UnrecognisedRelation String
 >                    | ContextError String
 >                    | MissingJoinAttribute
+>                    | ExpressionMustBeBool
 >                      deriving (Eq,Show)
 
 > typesFromTypeList :: Type -> [Type]

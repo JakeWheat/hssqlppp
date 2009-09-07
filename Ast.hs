@@ -1566,7 +1566,8 @@ sem_Expression_FunCall funName_ args_  =
                                      [ArgCheck isArrayType NotArrayType
                                      ,exactType (ScalarType "int4")])
                                    (RetTypeFun (\t -> typeFromArray $ head t))
-                    Operator s -> lookupFn s (typesFromTypeList _argsInodeType)
+                    Operator s ->  propagateUnknownError _argsInodeType $
+                                   lookupFn s (typesFromTypeList _argsInodeType)
                     KOperator k -> lookupKop k (typesFromTypeList _argsInodeType)
                     SimpleFun f -> lookupFn f (typesFromTypeList _argsInodeType)
                     _ -> UnknownType
@@ -4077,7 +4078,7 @@ sem_RowConstraintList_Nil  =
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 -- SelectExpression --------------------------------------------
 data SelectExpression  = CombineSelect (CombineType) (SelectExpression) (SelectExpression) 
-                       | Select (Distinct) (SelectList) (MTableRef) (Maybe Expression) (ExpressionList) (Maybe Expression) (ExpressionList) (Direction) (Maybe Expression) (Maybe Expression) 
+                       | Select (Distinct) (SelectList) (MTableRef) (Where) (ExpressionList) (Maybe Expression) (ExpressionList) (Direction) (Maybe Expression) (Maybe Expression) 
                        | Values (ExpressionListList) 
                        deriving ( Eq,Show)
 -- cata
@@ -4086,7 +4087,7 @@ sem_SelectExpression :: SelectExpression  ->
 sem_SelectExpression (CombineSelect _ctype _sel1 _sel2 )  =
     (sem_SelectExpression_CombineSelect (sem_CombineType _ctype ) (sem_SelectExpression _sel1 ) (sem_SelectExpression _sel2 ) )
 sem_SelectExpression (Select _selDistinct _selSelectList _selTref _selWhere _selGroupBy _selHaving _selOrderBy _selDir _selLimit _selOffset )  =
-    (sem_SelectExpression_Select (sem_Distinct _selDistinct ) (sem_SelectList _selSelectList ) (sem_MTableRef _selTref ) _selWhere (sem_ExpressionList _selGroupBy ) _selHaving (sem_ExpressionList _selOrderBy ) (sem_Direction _selDir ) _selLimit _selOffset )
+    (sem_SelectExpression_Select (sem_Distinct _selDistinct ) (sem_SelectList _selSelectList ) (sem_MTableRef _selTref ) (sem_Where _selWhere ) (sem_ExpressionList _selGroupBy ) _selHaving (sem_ExpressionList _selOrderBy ) (sem_Direction _selDir ) _selLimit _selOffset )
 sem_SelectExpression (Values _vll )  =
     (sem_SelectExpression_Values (sem_ExpressionListList _vll ) )
 -- semantic domain
@@ -4168,7 +4169,7 @@ sem_SelectExpression_CombineSelect ctype_ sel1_ sel2_  =
 sem_SelectExpression_Select :: T_Distinct  ->
                                T_SelectList  ->
                                T_MTableRef  ->
-                               (Maybe Expression) ->
+                               T_Where  ->
                                T_ExpressionList  ->
                                (Maybe Expression) ->
                                T_ExpressionList  ->
@@ -4181,6 +4182,7 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
        _lhsIscope
        _lhsIsourcePos ->
          (let _selSelectListOscope :: Scope
+              _selWhereOscope :: Scope
               _selSelectListOcolumns :: Type
               _lhsOnodeType :: Type
               _lhsOmessages :: ([Message])
@@ -4193,6 +4195,8 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selTrefOinLoop :: Bool
               _selTrefOscope :: Scope
               _selTrefOsourcePos :: MySourcePos
+              _selWhereOinLoop :: Bool
+              _selWhereOsourcePos :: MySourcePos
               _selGroupByOinLoop :: Bool
               _selGroupByOscope :: Scope
               _selGroupByOsourcePos :: MySourcePos
@@ -4214,6 +4218,9 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selTrefIcolumns :: Type
               _selTrefImessages :: ([Message])
               _selTrefInodeType :: Type
+              _selWhereIactualValue :: Where
+              _selWhereImessages :: ([Message])
+              _selWhereInodeType :: Type
               _selGroupByIactualValue :: ExpressionList
               _selGroupByImessages :: ([Message])
               _selGroupByInodeType :: Type
@@ -4224,6 +4231,8 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selDirImessages :: ([Message])
               _selDirInodeType :: Type
               _selSelectListOscope =
+                  scopeCombineIds _lhsIscope (getColumnsAsTypes _selTrefIcolumns)
+              _selWhereOscope =
                   scopeCombineIds _lhsIscope (getColumnsAsTypes _selTrefIcolumns)
               _selSelectListOcolumns =
                   _selTrefIcolumns
@@ -4239,11 +4248,11 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
                       ty = propagateUnknownError
                              (TypeList colTypes) $
                              SetOfType $ UnnamedCompositeType $ zip colNames colTypes
-                  in head $ catMaybes [error0, error1, Just ty]
+                  in propagateUnknownError _selWhereInodeType $ head $ catMaybes [error0, error1, Just ty]
               _lhsOmessages =
-                  _selDistinctImessages ++ _selSelectListImessages ++ _selTrefImessages ++ _selGroupByImessages ++ _selOrderByImessages ++ _selDirImessages
+                  _selDistinctImessages ++ _selSelectListImessages ++ _selTrefImessages ++ _selWhereImessages ++ _selGroupByImessages ++ _selOrderByImessages ++ _selDirImessages
               _actualValue =
-                  Select _selDistinctIactualValue _selSelectListIactualValue _selTrefIactualValue selWhere_ _selGroupByIactualValue selHaving_ _selOrderByIactualValue _selDirIactualValue selLimit_ selOffset_
+                  Select _selDistinctIactualValue _selSelectListIactualValue _selTrefIactualValue _selWhereIactualValue _selGroupByIactualValue selHaving_ _selOrderByIactualValue _selDirIactualValue selLimit_ selOffset_
               _lhsOactualValue =
                   _actualValue
               _selDistinctOinLoop =
@@ -4261,6 +4270,10 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selTrefOscope =
                   _lhsIscope
               _selTrefOsourcePos =
+                  _lhsIsourcePos
+              _selWhereOinLoop =
+                  _lhsIinLoop
+              _selWhereOsourcePos =
                   _lhsIsourcePos
               _selGroupByOinLoop =
                   _lhsIinLoop
@@ -4286,6 +4299,8 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
                   (selSelectList_ _selSelectListOcolumns _selSelectListOinLoop _selSelectListOscope _selSelectListOsourcePos )
               ( _selTrefIactualValue,_selTrefIcolumns,_selTrefImessages,_selTrefInodeType) =
                   (selTref_ _selTrefOinLoop _selTrefOscope _selTrefOsourcePos )
+              ( _selWhereIactualValue,_selWhereImessages,_selWhereInodeType) =
+                  (selWhere_ _selWhereOinLoop _selWhereOscope _selWhereOsourcePos )
               ( _selGroupByIactualValue,_selGroupByImessages,_selGroupByInodeType) =
                   (selGroupBy_ _selGroupByOinLoop _selGroupByOscope _selGroupByOsourcePos )
               ( _selOrderByIactualValue,_selOrderByImessages,_selOrderByInodeType) =
@@ -7396,6 +7411,82 @@ sem_Volatility_Volatile  =
                   UnknownType
               _actualValue =
                   Volatile
+              _lhsOactualValue =
+                  _actualValue
+          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+-- Where -------------------------------------------------------
+type Where  = (Maybe (Expression))
+-- cata
+sem_Where :: Where  ->
+             T_Where 
+sem_Where (Prelude.Just x )  =
+    (sem_Where_Just (sem_Expression x ) )
+sem_Where Prelude.Nothing  =
+    sem_Where_Nothing
+-- semantic domain
+type T_Where  = Bool ->
+                Scope ->
+                MySourcePos ->
+                ( Where,([Message]),Type)
+data Inh_Where  = Inh_Where {inLoop_Inh_Where :: Bool,scope_Inh_Where :: Scope,sourcePos_Inh_Where :: MySourcePos}
+data Syn_Where  = Syn_Where {actualValue_Syn_Where :: Where,messages_Syn_Where :: [Message],nodeType_Syn_Where :: Type}
+wrap_Where :: T_Where  ->
+              Inh_Where  ->
+              Syn_Where 
+wrap_Where sem (Inh_Where _lhsIinLoop _lhsIscope _lhsIsourcePos )  =
+    (let ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType) =
+             (sem _lhsIinLoop _lhsIscope _lhsIsourcePos )
+     in  (Syn_Where _lhsOactualValue _lhsOmessages _lhsOnodeType ))
+sem_Where_Just :: T_Expression  ->
+                  T_Where 
+sem_Where_Just just_  =
+    (\ _lhsIinLoop
+       _lhsIscope
+       _lhsIsourcePos ->
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _lhsOactualValue :: Where
+              _justOinLoop :: Bool
+              _justOscope :: Scope
+              _justOsourcePos :: MySourcePos
+              _justIactualValue :: Expression
+              _justIliftedColumnName :: String
+              _justImessages :: ([Message])
+              _justInodeType :: Type
+              _lhsOnodeType =
+                  propagateUnknownError _justInodeType $
+                  if _justInodeType /= typeBool
+                    then TypeError _lhsIsourcePos ExpressionMustBeBool
+                    else typeBool
+              _lhsOmessages =
+                  _justImessages
+              _actualValue =
+                  Just _justIactualValue
+              _lhsOactualValue =
+                  _actualValue
+              _justOinLoop =
+                  _lhsIinLoop
+              _justOscope =
+                  _lhsIscope
+              _justOsourcePos =
+                  _lhsIsourcePos
+              ( _justIactualValue,_justIliftedColumnName,_justImessages,_justInodeType) =
+                  (just_ _justOinLoop _justOscope _justOsourcePos )
+          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+sem_Where_Nothing :: T_Where 
+sem_Where_Nothing  =
+    (\ _lhsIinLoop
+       _lhsIscope
+       _lhsIsourcePos ->
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
+              _lhsOactualValue :: Where
+              _lhsOnodeType =
+                  typeBool
+              _lhsOmessages =
+                  []
+              _actualValue =
+                  Nothing
               _lhsOactualValue =
                   _actualValue
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))

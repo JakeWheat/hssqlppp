@@ -248,7 +248,7 @@ DATA SelectExpression
     | Select selDistinct : Distinct
              selSelectList : SelectList
              selTref : MTableRef
-             selWhere : (Maybe Expression)
+             selWhere : Where
              selGroupBy : ExpressionList
              selHaving : (Maybe Expression)
              selOrderBy : ExpressionList
@@ -261,6 +261,7 @@ DATA SelectExpression
     | Values vll:ExpressionListList
 
 TYPE MTableRef = MAYBE TableRef
+TYPE Where = MAYBE Expression
 
 DATA FnBody | SqlFnBody sts : StatementList
             | PlpgsqlFnBody VarDefList sts : StatementList
@@ -548,7 +549,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpressi
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               SourcePosStatement FunName MTableRef TableRef OnExpr
+               SourcePosStatement FunName MTableRef TableRef OnExpr Where
 
 
 SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpression JoinType
@@ -560,7 +561,7 @@ SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpr
                StringStringListPair ExpressionListStatementListPair
                ExpressionStatementListPair
                CaseExpressionListExpressionPair
-               SourcePosStatement FunName MTableRef OnExpr
+               SourcePosStatement FunName MTableRef OnExpr Where
 
 
 SET ListNodes = SelectList ExpressionList ExpressionListList StringList

@@ -327,7 +327,8 @@ SEM Expression
                            [ArgCheck isArrayType NotArrayType
                            ,exactType (ScalarType "int4")])
                          (RetTypeFun (\t -> typeFromArray $ head t))
-          Operator s -> lookupFn s (typesFromTypeList @args.nodeType)
+          Operator s ->  propagateUnknownError @args.nodeType $
+                         lookupFn s (typesFromTypeList @args.nodeType)
           KOperator k -> lookupKop k (typesFromTypeList @args.nodeType)
           SimpleFun f -> lookupFn f (typesFromTypeList @args.nodeType)
           _ -> UnknownType
@@ -439,6 +440,7 @@ SEM SelectExpression
         in head $ catMaybes [error1, error2, Just ty]
      | Select
          selSelectList.scope = scopeCombineIds @lhs.scope (getColumnsAsTypes @selTref.columns)
+         selWhere.scope =  scopeCombineIds @lhs.scope (getColumnsAsTypes @selTref.columns)
          selSelectList.columns = @selTref.columns
          lhs.nodeType =
              let error0 = case @selTref.nodeType of
@@ -452,7 +454,14 @@ SEM SelectExpression
                  ty = propagateUnknownError
                         (TypeList colTypes) $
                         SetOfType $ UnnamedCompositeType $ zip colNames colTypes
-             in head $ catMaybes [error0, error1, Just ty]
+             in propagateUnknownError @selWhere.nodeType $ head $ catMaybes [error0, error1, Just ty]
+
+SEM Where
+    | Nothing lhs.nodeType = typeBool
+    | Just lhs.nodeType = propagateUnknownError @just.nodeType $
+                          if @just.nodeType /= typeBool
+                            then TypeError @lhs.sourcePos ExpressionMustBeBool
+                            else typeBool
 
 ATTR TableRef MTableRef
      [

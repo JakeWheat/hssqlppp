@@ -316,6 +316,20 @@ check casts from unknown string lits
 >                                                ,ScalarType "bool"])]
 >      ])
 
+>    ,testGroup "simple wheres"
+>     (mapStatementType [
+>       p "select 1 from pg_type where true;"
+>         [SetOfType $ UnnamedCompositeType [("?column?", typeInt)]]
+>      ,p "select 1 from pg_type where 1;"
+>         [TypeError ("",1,1) ExpressionMustBeBool]
+>      ,p "select typname from pg_type where typbyval;"
+>         [SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
+>      ,p "select typname from pg_type where typtype = 'b';"
+>         [SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
+>      ,p "select typname from pg_type where what = 'b';"
+>         [TypeError ("",1,1) (UnrecognisedIdentifier "what")]
+>      ])
+
 
 select * from (select 1 as a, 2 as b)
   cross join (select 1 as c, 2 as d);
