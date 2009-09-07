@@ -1,6 +1,6 @@
 Copyright 2009 Jake Wheat
 
-This file contains the lexer for sql text.
+This file contains the lexer for sql source text.
 
 Lexicon:
 
@@ -11,39 +11,6 @@ positional arg
 int
 float
 copy payload (used to lex copy from stdin data)
-
-The symbol element is single symbol character:
-
-approach 1:
-try to keep multi symbol operators as single lexical items
-(e.g. "==", "~=="
-
-approach 2:
-make each character a separate element
-e.g. == lexes to ['=', '=']
-then the parser sorts this out
-
-try approach 2 for now (THIS IS REALLY WRONG, will have to be fixed to
-parse full symbols at some point since the parser needs to distinguish
-between symbols with whitespace between them and with no whitespace
-between them)
-
-== notes on symbols in pg operators
-pg symbols can be made from:
-
-=_*/<>=~!@#%^&|`?
-
-no --, /* in symbols
-
-can't end in + or - unless contains
-~!@#%^&|?
-
-Most of this isn't relevant for the current lexer.
-
-Don't know if its proper vernaculaic usage, but the docs in this file
-refer to the parsers which form the lexing stage as lexers, and the
-parsers which use the lexed tokens as parsers, to make it clear which
-part of parsing is being referred to. If that makes sense?
 
 > module Lexer (
 >               Token
@@ -107,7 +74,7 @@ table data.
 >   whiteSpace >>
 >   many sqlToken <* eof
 
-Parser for an individual token.
+Lexer for an individual token.
 
 What we should do is lex lazily and when the lexer reads a copy from
 stdin statement, it switches lexers to lex the inline table data, then
@@ -133,7 +100,7 @@ a normal token.
 >                      _ | stt == [] && t == ft -> [ft]
 >                        | stt == [ft] && t == st -> [ft,st]
 >                        | stt == [ft,st] && t == mt -> [ft,st,mt]
->                        | True -> []
+>                        | otherwise -> []
 
 >            return (sp,t)
 >            where
@@ -180,6 +147,34 @@ parse a dollar quoted string
 > positionalArg :: ParsecT String ParseState Identity Tok
 > positionalArg = char '$' >> PositionalArgTok <$> integer
 
+
+Lexing symbols:
+
+approach 1:
+try to keep multi symbol operators as single lexical items
+(e.g. "==", "~=="
+
+approach 2:
+make each character a separate element
+e.g. == lexes to ['=', '=']
+then the parser sorts this out
+
+Using approach 1 at the moment, see below
+
+== notes on symbols in pg operators
+pg symbols can be made from:
+
+=_*/<>=~!@#%^&|`?
+
+no --, /* in symbols
+
+can't end in + or - unless contains
+~!@#%^&|?
+
+Most of this isn't relevant for the current lexer.
+
+== sql symbols for this lexer:
+
 sql symbol is one of
 ()[],; - single character
 : or :: symbol
@@ -187,8 +182,8 @@ sql symbol is one of
 which isn't one of these (including whitespace). This will parse some
 standard sql expressions wrongly at the moment, work around is to add
 whitespace e.g. i think 3*-4 is valid sql, should lex as '3' '*' '-'
-'4', but will currently lex as '3' '*-' '4'. Maybe this will be fixed
-in the parser instead?
+'4', but will currently lex as '3' '*-' '4'. This is planned to be
+fixed in the parser.
 
 some other special cases are operators with non standard chars in them
 e.g.
@@ -216,8 +211,10 @@ e.g.
 additional parser bits and pieces
 
 include dots, * in all identifier strings during lexing. This parser
-is also used for keywords, so identifiers and keywords aren't distinguished
-until during proper parsing
+is also used for keywords, so identifiers and keywords aren't
+distinguished until during proper parsing, and * and qualifiers aren't
+really examined until type checking
+
 
 > identifierString :: ParsecT String ParseState Identity String
 > identifierString = lexeme $ choice [

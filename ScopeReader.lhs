@@ -1,3 +1,10 @@
+Copyright 2009 Jake Wheat
+
+This file contains the code to read all the scope data from a
+postgresql database catalog. It writes out the resulting value using
+show, which you can then compile. The output is all on one big line
+and compiles very slowly for the catalog of a standard template1
+database...
 
 > module ScopeReader (readScope) where
 

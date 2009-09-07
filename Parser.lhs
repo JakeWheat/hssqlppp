@@ -24,47 +24,6 @@ pdf about parsing, uses haskell and parser combinators for examples
 and exercises:
 http://www.cs.uu.nl/docs/vakken/gont/diktaat.pdf
 
-Crash course on applicative/point free parsing:
-
- delete = keyword "delete" >> keyword "from" >>
-          Delete
-          <$> idString
-          <*> whereClause
-          <*> returning
-
-means the same as:
-
- delete = do
-          keyword "delete"
-          keyword "from"
-          i <- idString
-          w <- whereClause
-          r <- returning
-          return $ Delete i w r
-
-and
-
- substring = keyword "substring" >> symbol '(' >>
-             Substring
-             <$> expr
-             <*> (keyword "from" *> expr)
-             <*> (keyword "for" *> expr <* symbol ')')
-
-is same as
-
- substring = do
-             keyword "substring"
-             symbol '('
-             e <- expr
-             keyword "from"
-             e1 <- expr
-             keyword <- "for"
-             e2 <- expr
-             symbol ')'
-             return $ Substring e e1 e2
-
-(Note how >> is the same as *> but has different precedence)
-
 
 Notes on source positions:
 The constraints to try to satify are:
@@ -231,6 +190,8 @@ supports plpgsql 'select into' only for the variants which look like
 'select into ([targets]) [columnNames] from ...
 or
 'select [columnNames] into ([targets]) from ...
+This should be changed so it can only parse an into clause when
+expecting a plpgsql statement.
 
 recurses to support parsing excepts, unions, etc
 
@@ -790,11 +751,9 @@ expression, and then add a suffix on
 >          where
 >            fct = choice [
 
-order these so the ones which can be valid prefixes of others
-appear further down the list
-
-probably want to refactor this to use the optionalsuffix parsers
-to improve speed
+order these so the ones which can be valid prefixes of others appear
+further down the list, probably want to refactor this to use the
+optionalsuffix parsers to improve speed.
 
 One little speed optimisation, to help with pretty printed code which
 can contain a lot of parens - check for nested ((
@@ -854,7 +813,10 @@ pg's operator table is on this page:
 http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTAX-OPERATORS
 
 will probably need something more custom to handle full range of sql
-syntactical novelty
+syntactical novelty, in particular the precedence rules mix these
+operators up with irregular syntax operators, and you can create new
+operators dynamically.
+The full list of operators from DefaultScope.hs should be used here.
 
 > table :: [[Operator [Token] ParseState Identity Expression]]
 > table = [--[binary "::" (BinOpCall Cast) AssocLeft]
@@ -885,7 +847,7 @@ syntactical novelty
 >          --(also ilike similar)
 >         ,[lt "<" AssocNone
 >          ,binary ">" AssocNone]
->          ,[binary "=" AssocRight
+>         ,[binary "=" AssocRight
 >          ,binary "<>" AssocNone]
 >         ,[prefixk "not" (FunCall (KOperator Not))]
 >         ,[binaryk "and" And AssocLeft
@@ -1009,6 +971,14 @@ overflows, not sure why.
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
 
+frame clauses todo:
+range unbounded preceding
+range between unbounded preceding and current row
+range between unbounded preceding and unbounded following
+rows unbounded preceding
+rows between unbounded preceding and current row
+rows between unbounded preceding and unbounded following
+
 > windowFnSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > windowFnSuffix e = WindowFn e
 >                    <$> (keyword "over" *> (symbol "(" *> option [] partitionBy))
@@ -1044,6 +1014,8 @@ From postgresql src/backend/parser/gram.y
  * always be used by surrounding it with parens.
 
 Thanks to Sam Mason for the heads up on this.
+
+TODO: copy this approach in this parser.
 
 >              where
 >                dodgyParseElement =
@@ -1267,9 +1239,8 @@ p1 = do
      Just z -> return z
 =====
 
-couldn't work how to to perms so just did this hack instead
-e.g.
-a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
+like thread optional suffix, but we pass a list of suffixes in, not
+much of a shorthand
 
 > threadOptionalSuffixes :: ParsecT [tok] st Identity a
 >                        -> [a -> GenParser tok st a]
@@ -1278,6 +1249,9 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >   x <- p1
 >   option x (try $ choice (map (\l -> l x) p2s))
 
+couldn't work how to to perms so just did this hack instead
+e.g.
+a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 
 > multiPerm :: (Stream s m t) =>
 >                ParsecT s u m a1

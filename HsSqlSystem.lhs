@@ -2,44 +2,14 @@
 
 Copyright 2009 Jake Wheat
 
+Command line access to a bunch of utility functions.
+
 command line is
 ./HsSqlSystem.lhs [commandName] [commandArgs ...]
 
-commands are:
-loadsql
-cleardb
-clearandloadsql
-lexfile
-showfileatts
-checkppp
-roundtrip
-getscope
-
-command args:
-
-loadsql [databasename] [filename]*
-database must already exist, loads sql from files into database, via
-parsing, checking and pretty printing
-
-cleardb [databasename]
-attempts to reset the database to empty, using a hack
-
-clearandloadsql [databasename] [filename]*
-runs cleardb then loadsql
-
-lexfile [filename]
-lexes the file given then displays each token on a separate line
-
-showfileatts [filename]
-parses then runs the attribute grammar processor over the ast,
-displays all the values produced
-
-checkppp [filename]
-parses then pretty prints then parses the pretty printed output. Used
-to check a file can parse, and that pretty printing then parsing gives
-you the same ast.
-
-roundtrip [filename] [targetfilename]
+run
+./HsSqlSystem.lhs help
+to get a list of commands and purpose and usage info
 
 TODO 1: add options to specify username and password (keep optional though)
 TODO 2: think of a name for this command
@@ -79,6 +49,7 @@ TODO 2: think of a name for this command
 >       | (length args >= 2 && head args == "parsefile") -> parseFile (tail args)
 >       | (length args == 3 && head args == "roundtrip") -> roundTripFile (tail args)
 >       | (length args == 2 && head args == "getscope") -> getScope (args !! 1)
+>       | (length args >= 2 && head args == "showtypes") -> showTypes $ tail args
 >       | otherwise -> error "couldn't parse command line"
 >   where
 >     loadsqlfiles args = mapM_ (loadSqlfile (args !! 1)) (tail $ tail args)
@@ -172,6 +143,27 @@ authentic the sql is and how much has been silently dropped on the floor
 >                                then putStrLn "roundtrip ok"
 >                                else putStrLn "roundtrip failed: different ast"
 >       return ()
+
+================================================================================
+
+show types
+reads each file, parses, type checks, then outputs the types
+interspersed with the pretty printed statements
+todo: modify this so that is inserts the types as comments into the
+original source, get it to work correctly when run multiple times or
+the types have changed between runs (i.e. add or update the comments)
+
+> showTypes :: [FilePath] -> IO ()
+> showTypes = mapM_ pt
+>   where
+>     pt f = do
+>       x <- parseSqlFileWithState f
+>       case x of
+>            Left er -> print er
+>            Right sts -> do
+>                let types = zip (getStatementsType sts) sts
+>                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
+>                                  putStrLn (printSql [st])) types
 
 ================================================================================
 

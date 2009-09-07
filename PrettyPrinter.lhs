@@ -4,7 +4,8 @@ The pretty printer which prints ast nodes from Ast.hs
 It uses the hughes pj pretty printer
 
 Produces sort of readable code, but mainly just written to produce
-reparsable text.
+reparsable text. Could do with some work to make the outputted text
+layout better.
 
 > module PrettyPrinter (
 >                       --convert a sql ast to text

@@ -2,6 +2,69 @@ Copyright 2009 Jake Wheat
 
 = Extension system
 
+== motivation
+
+As far as I am aware, none of the pl languages in supported in
+postgresql support relation types integrated within the language,
+apart from pl/pgsql. pl/pgsql is an old language, and it shows. Been
+looking into developing applications using relation database theory
+ideas, such as:
+* using relvars instead of classes to store application data
+* using transactions to do updates, exploiting constraints, automatic
+  rollbacks on errors and durability amongst other things
+* using relational querying (e.g. relational algebra) to work with
+  data in a read only context
+
+This differs from traditional sql database applications by the focus
+being on small apps with relatively small data sets, trying to use the
+power of complex relation querying and complex constraints which can
+work in these small situations where they are contraindicated in
+traditional sql dbms usages, which have a much focus on raw speed for
+large datasets.
+
+This approach is inspired by (or just plain stolen from) Chris Date,
+Hugh Darwen, et al..
+
+I tried writing a small game using plpgsql for as much code as
+possible, with a thin haskell/gtk layer to create the ui, and the
+resulting plpgsql was a bit hard to manage. The idea with this
+extension system is do help write some relatively modest syntax
+extensions to plpgsql (and other utilities such as a lint like
+program, and to constrain the code to a subset of full postgresql sql
+and pl/pgsql).
+
+The initial extensions to be supported are motivated by what could be
+used in the separate project to simplify the code, and to help with
+correctness.
+
+== constraints on extension system:
+
+* provide hooks in the existing parser. The parser should be able to
+be run and only parse vanilla sql and plpgsql.
+
+* Adding extensions should not involve modifying the parser, standard
+  ast nodes and the standard ast node pretty printer, so the
+  extensions are provided separately and can be project specific.
+
+* current rough design should satisfy these additional constraints:
+
+** No requirement to have ghc or hssqlppp installed on server to run
+   scripts - can generate a regular sql script and use standard pg
+   utils to work with this resultant script
+
+** Uses only plpgsql at runtime, so no running haskell code after the
+   database is setup (e.g. no extensions which require runtime support
+   from haskell code)
+
+(only thinking of online situations with these, using the haskell code
+in connection with a database will provide benefits for code
+development).
+
+These following notes were written before deciding to use an attribute
+grammar system for type checking, not sure how it all can fit
+together, and whether extensions will be written in an attribute
+grammar style or not.
+
 == extension system usage
 
 There are two possible approaches to using extensions which alter what
@@ -23,28 +86,6 @@ Would like to support both approaches with a) being the usual way to
 use it, and b) being a way to produce vanilla plpgsql source files
 e.g. to load into a production system with pg but without ghc.
 
-== constraints on extension system:
-
-* provide hooks in the existing parser. The parser should be able to
-be run and only parse vanilla sql and plpgsql.
-
-* Adding extensions should not involve modifying any of these files:
-parser, ast, pretty printer.
-
-* current rough design should satisfy these additional constraints:
-
-** No requirement to have ghc or hssqlppp installed on server to run
-   scripts - can generate a regular sql script and use standard pg
-   utils
-
-** Uses only plpgsql at runtime, so no running haskell code after the
-   database is setup (e.g. no extensions which require runtime support
-   from haskell code)
-
-These notes were written before deciding to use an attribute grammar
-system for type checking, not sure how it all can fit together, and
-whether extensions will be written in an attribute grammar style or
-not.
 
 = Flavours of extensions
 

@@ -1550,7 +1550,7 @@ sem_Expression_FunCall funName_ args_  =
               _argsImessages :: ([Message])
               _argsInodeType :: Type
               _lhsOnodeType =
-                  case _funNameIval of
+                  propagateUnknownError _argsInodeType $ case _funNameIval of
                     ArrayCtor -> let t = resolveResultSetType _lhsIscope _lhsIsourcePos $ typesFromTypeList _argsInodeType
                                  in propagateUnknownError t $ ArrayType t
                     Substring -> ct
@@ -1566,8 +1566,7 @@ sem_Expression_FunCall funName_ args_  =
                                      [ArgCheck isArrayType NotArrayType
                                      ,exactType (ScalarType "int4")])
                                    (RetTypeFun (\t -> typeFromArray $ head t))
-                    Operator s ->  propagateUnknownError _argsInodeType $
-                                   lookupFn s (typesFromTypeList _argsInodeType)
+                    Operator s ->  lookupFn s (typesFromTypeList _argsInodeType)
                     KOperator k -> lookupKop k (typesFromTypeList _argsInodeType)
                     SimpleFun f -> lookupFn f (typesFromTypeList _argsInodeType)
                     _ -> UnknownType

@@ -311,7 +311,7 @@ ATTR FunName
 
 SEM Expression
     | FunCall lhs.nodeType =
-        case @funName.val of
+        propagateUnknownError @args.nodeType $ case @funName.val of
           ArrayCtor -> let t = resolveResultSetType @lhs.scope @lhs.sourcePos $ typesFromTypeList @args.nodeType
                        in propagateUnknownError t $ ArrayType t
           Substring -> ct
@@ -327,8 +327,7 @@ SEM Expression
                            [ArgCheck isArrayType NotArrayType
                            ,exactType (ScalarType "int4")])
                          (RetTypeFun (\t -> typeFromArray $ head t))
-          Operator s ->  propagateUnknownError @args.nodeType $
-                         lookupFn s (typesFromTypeList @args.nodeType)
+          Operator s ->  lookupFn s (typesFromTypeList @args.nodeType)
           KOperator k -> lookupKop k (typesFromTypeList @args.nodeType)
           SimpleFun f -> lookupFn f (typesFromTypeList @args.nodeType)
           _ -> UnknownType
@@ -583,6 +582,8 @@ SEM SelectList
 
 {-
 
+
+
 containment guide for select expressions:
 combineselect 2 selects
 insert ?select
@@ -627,14 +628,6 @@ think for setof it is, but e.g. for a continue not in a loop (which
 could be caught during parsing) works better as a check error, looking
 at the error message the user will get. This might be wrong, haven't
 thought too carefully about it yet).
-
-Type checking rough TODO
-finish tablerefs
-run through and finish or note missing bits for select expressions
-do other dml: insert,update,delete,copy,truncate
-creates, drops
-plpgsql
-
 
 
 

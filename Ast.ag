@@ -8,17 +8,28 @@ http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem
 http://www.haskell.org/haskellwiki/The_Monad.Reader/Issue4/Why_Attribute_Grammars_Matter
 
 The attr and sem definitions are in TypeChecking.ag, which is included
-into this file
+into this file.
 
 There is very limited source position information in the ast at the
 moment.
 
-These ast nodes a are both used as the result of successful parsing,
-and as the input to the pretty printer.
+These ast nodes are both used as the result of successful parsing, and
+as the input to the pretty printer.
 
 Lots of invalid sql is currently allowed if you construct the asts in
 code, the parser isn't quite as lenient, but still can parse and not
-complain about a lot of invalid sql.
+complain about a lot of invalid sql. Typechecking should eventually
+catch all these problems.
+
+Future plans:
+
+Investigate how much mileage can get out of making these nodes the
+parse tree nodes, and using a separate ast. Hinges on how much extra
+value can get from making the types more restrictive for the ast nodes
+compared to the parse tree.
+
+Would like to turn this back into regular Haskell file, maybe could
+use AspectAG instead of uuagc to make this happen?
 
 use
 
@@ -30,20 +41,11 @@ to generate a new Ast.hs from this file
 cabal install uuagc
 )
 
-Tip: after you've compiled this file with the above command, you can
-get loads of warnings from ghc if you're the sort who enables
-these. Using haskell-mode from emacs usually results in compiles being
-really slow just cos emacs outputs all these warnings _really_ slowly,
-and also any real warnings and errors can get drowned out. You can get
-rid of these warnings by ghc compiling the produced Ast.hs on the
-command line:
-ghc -c TypeType.lhs FnTypes.hs PGTypes.hs Ast.hs
+The following two commands might be helpful to compile:
 
-does the job, you can then compile from emacs and it will use the .o
-file and you won't get any warnings about generated code in Ast.hs (if
-the .o file gets stale, ghc / haskell mode will do the right thing and
-ignore it, but it can't tell if the Ast.hs has gotten stale wrt
-Ast.ag)
+ghc -c TypeType.lhs Scope.lhs DefaultScope.hs
+
+ghc -c AstUtils.lhs Ast.hs
 -}
 
 MODULE {Ast}
@@ -136,9 +138,7 @@ import DefaultScope
 
 SQL top level statements
 
-everything is chucked in here, in particular this means that many places where
-a select can appear inside another statement (e.g. a subselect), you can
-instead put any statement - this type checks but is totally invalid.
+everything is chucked in here: dml, ddl, plpgsql statements
 
 -}
 
@@ -371,10 +371,11 @@ DATA RestartIdentity | RestartIdentity | ContinueIdentity
 
 Expressions
 
-Similarly to the statement type, all expressions
-are chucked into one even though there are many restrictions
-on which expressions can appear in different places.
-Maybe this should be called scalar expression?
+Similarly to the statement type, all expressions are chucked into one
+even though there are many restrictions on which expressions can
+appear in different places.  Maybe this should be called scalar
+expression?
+
 -}
 DATA Expression | IntegerLit Integer
                 | FloatLit Double
@@ -416,11 +417,6 @@ scalar subquery                   scalarsubquery
 array constructor                 fun arrayval
 row constructor                   fun rowctor
 
-TODO: think about having separate parse tree which the parser produces,
-and a proper set of ast types with no pollution from concrete syntax
-or parsing considerations
-
-
 Anything that is represented in the ast as some sort of name plus a
 list of expressions as arguments is treated as the same type of node:
 FunCall.
@@ -440,20 +436,10 @@ All of these could be considered concrete syntax variants of function
 calls, which take none, one or more expressions as arguments, and
 return a single expression as the result.
 
-Divide them up into different flavours (corresponding to the FunName
-algebraic data type constructors), the flavour divisions are guided
-only by what the pretty printer needs to work (maybe this is a bit
-inelegant):
-all regular function calls like [name](args,...) are SimpleFuns
-all regular operators (symbols, regular prefix,infix and postfix) are
-  treated the same
-arrayctors, rowctors, array subscript are each given their own ctor
-all the standard keyword operators (prefix, infix and postfix) are
-  given their own ctor
-each unusual syntax keyword operator is given its own ctor
-each unusual syntax function call is given its own ctor
+The different constructors in FunName are only used to help the pretty
+printer, this is a bit inelegant.
 
-keyword operators (regular prefix, infix and postfix):
+list of keyword operators (regular prefix, infix and postfix):
 and, or, not
 is null, is not null, isnull, notnull
 is distinct from, is not distinct from
@@ -466,6 +452,8 @@ unusual syntax operators and fn calls
 between, not between, between symmetric
 overlay, substring, trim
 any, some, all
+
+Most of unusual syntax forms are not yet supported.
 
 -}
 
@@ -506,11 +494,22 @@ TYPE CaseExpressionListExpressionPair = (CaseExpressionList,Expression)
 TYPE CaseExpressionList = [Expression]
 TYPE CaseExpressionListExpressionPairList = [CaseExpressionListExpressionPair]
 
--- slightly hacky, add the source positions only in statement lists
--- this includes top level statements, and statements inside createfunction,
--- and nested inside if, while, case statements, and the like, but
--- unfortunately not select expressions inside other
--- expressions/statements
+{-
+
+slightly hacky, add the source positions only in statement lists this
+includes top level statements, and statements inside createfunction,
+and nested inside if, while, case statements, and the like, but
+unfortunately not select expressions inside other
+expressions/statements, so we get particularly crap source positions
+for big select statements.
+
+Was done like this for expediency.
+
+This will be changed back to StatementList = [Statement] when all the
+nodes have sourcepositioning information added to them, doing which
+has been put off for no good reason.
+
+-}
 
 TYPE SourcePosStatement = (MySourcePos, Statement)
 TYPE StatementList = [SourcePosStatement]
@@ -523,6 +522,9 @@ TYPE StatementList = [SourcePosStatement]
 
 DATA Root | Root statements:StatementList
 DERIVING Root: Show
+
+-- use an expression root also to support type checking,
+-- etc., individual expressions
 
 DATA ExpressionRoot | ExpressionRoot expr:Expression
 DERIVING ExpressionRoot: Show
@@ -597,6 +599,7 @@ makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
 = checkAst
 
 test function to run on asts, returns a list of errors, warnings, etc.
+bit stale
 
 -}
 {
@@ -607,6 +610,9 @@ checkAst sts = let t = sem_Root (Root sts)
 ================================================================================
 
 = Types
+
+These are the utility functions which clients use to typecheck sql.
+
 
 -}
 
@@ -629,7 +635,8 @@ getStatementsTypeScope scope st =
 
 --hack job, often not interested in the source positions when testing
 --the asts produced, so this function will reset all the source
---positions to empty ("", 0, 0)
+--positions to empty ("", 0, 0) so we can compare them for equality, etc.
+--without having to get the positions correct.
 
 resetSps :: [Statement] -> [Statement]
 resetSps sts = map resetSp sts

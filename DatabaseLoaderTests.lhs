@@ -5,6 +5,7 @@ Copyright 2009 Jake Wheat
 TODO: the point of these tests will be to check the line and column
 mapping from parsed and pretty printed sql back to the original source
 text.
+Will be revived when the DatabaseLoader code is being worked on again.
 
 > module DatabaseLoaderTests (databaseLoaderTests) where
 

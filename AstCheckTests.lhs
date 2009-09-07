@@ -2,9 +2,7 @@
 
 Copyright 2009 Jake Wheat
 
-Mainly test error messages from check failures from bad sql checks the
-source positions, even though they are a bit fragile and checks the
-types of error message received.
+Set of tests to check the type checking code
 
 > module AstCheckTests (astCheckTests, parseAndGetType) where
 
@@ -329,43 +327,6 @@ check casts from unknown string lits
 >      ,p "select typname from pg_type where what = 'b';"
 >         [TypeError ("",1,1) (UnrecognisedIdentifier "what")]
 >      ])
-
-
-select * from (select 1 as a, 2 as b)
-  cross join (select 1 as c, 2 as d);
-
-TODO:
-
-rowctor
-casts
-in list
-
-select expressions:
-select a from table
-select a,b from table
-select * from table
-select a,b from table where a = 1
-select except, union, intersect
-select a as b from table
-select a+b from table
-joins
-window functions
-qualifier tests
-select * from gen()
-select count(b) from t
-select a, count(b) from c group by a
-select a, count(b) as cnt from c group by a having cnt > 4
-
-exists
-in query
-scalar subquery
-
-functions:
-identifiers used in functions, refering to positional args, aliased
-args, declared variables
-etc.
-
-
 
 >    ]
 >         where

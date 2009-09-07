@@ -1,3 +1,39 @@
+Type checking immediate TODO
+run through and finish or note missing bits for select expressions:
+group by, having
+order by
+limit, offset
+combineselect
+joinon expression
+natural and using fields check
+natural xor join expression in joins
+some missing expression bits:
+exists
+inpredicate
+windowfn
+scalarsubquery
+rowctor
+casts
+
+selects should all be typable at this point. run through pg manual and
+fill in all the gaps, get test sql files working for selects
+(modify show types to look inside create functions)
+
+chain scope lookups instead of unioning them since this is too slow
+think about working on dot qualification
+think about doing null and not null aspects
+do other dml: insert,update,delete,copy,truncate
+creates, drops
+plpgsql
+
+
+functions:
+identifiers used in functions, refering to positional args, aliased
+args, declared variables
+etc.
+
+
+
 rough milestones for release 0.1:
 work through pg manual part II, add test plus parse and type check
    support for everything mentioned. follow some links to sql

@@ -25,7 +25,7 @@ One option for some of the code is to use the original source code
 when it hasn't been changed for a given statement, instead of the
 pretty printed stuff, don't know how much help this will be.
 
-This code is a massive mess at the moment.
+This code is currently on the backburner, and is a massive mess.
 
 > module DatabaseLoader where
 

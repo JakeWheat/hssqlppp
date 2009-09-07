@@ -1,8 +1,9 @@
 Copyright 2009 Jake Wheat
 
--- currently used to get the types of identifiers
--- eventually should include things like types, table attributes,
--- etc.,
+Represents the types, identifiers, etc available. Used internally for
+little scopes in the type checker, as well as the input to the type
+checking routines if you want to supply different/extra definitions
+before type checking something.
 
 > module Scope where
 
@@ -20,6 +21,7 @@ Copyright 2009 Jake Wheat
 >                    ,scopePostfixOperators :: [FunctionPrototype]
 >                    ,scopeBinaryOperators :: [FunctionPrototype]
 >                    ,scopeFunctions :: [FunctionPrototype]
+>                     --this should be done better:
 >                    ,scopeAllFns :: [FunctionPrototype]
 >                    ,scopeAttrDefs :: [CompositeDef]
 >                    ,scopeIdentifierTypes :: M.Map String Type}
@@ -52,3 +54,6 @@ Copyright 2009 Jake Wheat
 >                    _ | a == [] -> b
 >                      | b == [] -> a
 >                      | otherwise -> union a b
+
+combine scopes still seems to run slowly, so change it so that it
+chains scopes instead of unioning the lists and maps.
