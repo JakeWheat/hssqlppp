@@ -7,6 +7,7 @@ etc., asts.
 
 > import Data.Maybe
 > import Data.List
+> import qualified Data.Map as M
 
 > import TypeType
 > import Scope
@@ -621,3 +622,43 @@ code is not as much of a mess as findCallMatch
 >                                fl `elem` f
 >                                  && nm == n)
 >                          (scopeAttrDefs scope)
+
+
+> combineTableTypesWithUsingList :: Scope -> MySourcePos -> [String] -> Type -> Type -> Type
+> combineTableTypesWithUsingList scope sp l t1c t2c =
+>     --check t1 and t2 have l
+>     let t1 = getTypesFromComp t1c
+>         t2 = getTypesFromComp t2c
+>         names1 = getNames t1
+>         names2 = getNames t2
+>         error1 = if not (contained l names1) ||
+>                     not (contained l names2)
+>                    then Just $ TypeError sp MissingJoinAttribute
+>                    else Nothing
+>         --check the types
+>         joinColumns = map (getColumnType t1 t2) l
+>         nonJoinColumns =
+>             let notJoin = (\(s,_) -> not (s `elem` l))
+>             in filter notJoin t1 ++ filter notJoin t2
+>     in head $ catMaybes [error1, Just $ UnnamedCompositeType $ joinColumns ++ nonJoinColumns]
+>     where
+>       getNames :: [(String,Type)] -> [String]
+>       getNames = map fst
+>       contained l1 l2 = all (`elem` l2) l1
+>       getColumnType t1 t2 f =
+>           let ct1 = getFieldType t1 f
+>               ct2 = getFieldType t2 f
+>           in (f, resolveResultSetType scope sp [ct1,ct2])
+>       getFieldType t f = snd $ fromJust $ find (\(s,_) -> s == f) t
+
+> getCompositeFromSetOf :: Type -> Type
+> getCompositeFromSetOf (SetOfType a@(UnnamedCompositeType _)) = a
+> getCompositeFromSetOf _ = UnnamedCompositeType []
+
+> getColumnsAsTypes :: Type -> M.Map String Type
+> getColumnsAsTypes (UnnamedCompositeType a) = M.fromList a
+> getColumnsAsTypes _ = M.empty
+
+> getTypesFromComp :: Type -> [(String,Type)]
+> getTypesFromComp (UnnamedCompositeType a) = a
+> getTypesFromComp _ = []
