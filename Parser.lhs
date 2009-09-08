@@ -602,7 +602,7 @@ or after the whole list
 > typeName = choice [
 >             SetOfTypeName <$> (keyword "setof" *> typeName)
 >            ,do
->              s <- (map toLower) <$> idString
+>              s <- map toLower <$> idString
 >              choice [
 >                PrecTypeName s <$> parens integer
 >               ,ArrayTypeName (SimpleTypeName s) <$ symbol "[" <* symbol "]"
@@ -620,7 +620,7 @@ or after the whole list
 > plPgsqlStatement :: ParsecT [Token] ParseState Identity (MySourcePos,Statement)
 > plPgsqlStatement = do
 >    p <- getAdjustedPosition
->    ((sqlStatement True)
+>    sqlStatement True
 >     <|> (,) p <$> (choice [
 >                          continue
 >                         ,execute
@@ -633,7 +633,7 @@ or after the whole list
 >                         ,whileStatement
 >                         ,perform
 >                         ,nullStatement]
->                         <* symbol ";"))
+>                         <* symbol ";")
 
 > nullStatement :: ParsecT [Token] ParseState Identity Statement
 > nullStatement = NullStatement <$ keyword "null"
@@ -856,25 +856,25 @@ The full list of operators from DefaultScope.hs should be used here.
 >       --use different parsers for symbols and keywords to get the
 >       --right whitespace behaviour
 >       binary s
->          = Infix (try (symbol s >> (return $ binaryF s)))
+>          = Infix (try (symbol s >> return (binaryF s)))
 >       binarycust s t
->          = Infix (try (symbol s >> (return $ binaryF t)))
+>          = Infix (try (symbol s >> return (binaryF t)))
 >       -- * ends up being lexed as an id token rather than a symbol
 >       -- * token, so work around here
 >       idHackBinary s
->           = Infix (try (keyword s >> (return $ binaryF s)))
+>           = Infix (try (keyword s >> return (binaryF s)))
 >       prefix s f
->          = Prefix (try (symbol s >> (return $ unaryF f)))
+>          = Prefix (try (symbol s >> return (unaryF f)))
 >       binaryk s o
->          = Infix (try (keyword s >> (return $ binaryF o)))
+>          = Infix (try (keyword s >> return (binaryF o)))
 >       prefixk s f
->          = Prefix (try (keyword s >> (return $ unaryF f)))
+>          = Prefix (try (keyword s >> return (unaryF f)))
 >       --postfixk s f
 >       --   = Postfix (try (keyword s >> return f))
 >       postfixks ss f
->          = Postfix (try (mapM_ keyword ss >> (return $ unaryF f)))
->       unaryF f = \l -> f [l]
->       binaryF s = \l -> \m -> (FunCall (Operator s)) [l,m]
+>          = Postfix (try (mapM_ keyword ss >> return (unaryF f)))
+>       unaryF f l = f [l]
+>       binaryF s l m = FunCall (Operator s) [l,m]
 
 some custom parsers
 
@@ -882,7 +882,7 @@ fix problem parsing <> - don't parse as "<" if it is immediately
 followed by ">"
 
 >       lt _ = Infix (dontFollowWith "<" ">" >>
->                     (return $ (\l -> (\m -> (FunCall (Operator "<")) [l,m]))))
+>                     return (\l -> (\m -> FunCall (Operator "<") [l,m])))
 
 >       dontFollowWith c1 c2 =
 >         try $ symbol c1 *> ((do

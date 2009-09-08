@@ -42,7 +42,7 @@ This code is currently on the backburner, and is a massive mess.
 > import DBAccess
 
 > loadIntoDatabase :: String -> String -> StatementList -> IO ()
-> loadIntoDatabase dbName fn ast = do
+> loadIntoDatabase dbName fn ast =
 >   withConn ("dbname=" ++ dbName) $ \conn -> do
 >          loadPlpgsqlIntoDatabase conn
 >          mapM_ (\st ->
@@ -72,7 +72,7 @@ This code is currently on the backburner, and is a massive mess.
 >              statementWithNextStatement =
 >                  zip sts (tail sts ++ [(("",0,0), NullStatement)])
 >     runCopy conn a b srcp = case (a,b) of
->                          (Copy tb cl Stdin, CopyData s) -> do
+>                          (Copy tb cl Stdin, CopyData s) ->
 >                            withTemporaryFile (\tfn -> do
 >                                writeFile tfn s
 >                                tfn1 <- canonicalizePath tfn
@@ -86,7 +86,7 @@ This code is currently on the backburner, and is a massive mess.
 >                 "select count(1) from pg_language where lanname='plpgsql';"
 >          when (readInt x == 0) $
 >               runSqlCommand conn "create procedural language plpgsql;"
->     readInt x = (read x)::Int
+>     readInt x = read x :: Int
 
 > data Wrapper = CopyStdin Ast.Statement Ast.Statement
 >              | Skipit
@@ -160,7 +160,7 @@ though
 >   where
 >     isLineLine l = l =~ "^LINE ([0-9]+):" :: Bool
 >     getLineNo l = read (stripCrap (l =~ "^LINE ([0-9]+):" :: String)) :: Int
->     stripCrap l =  reverse $ drop 1 $ reverse $ drop 5 l
+>     stripCrap = reverse . drop 1 . reverse . drop 5
 
  >     isHatLine l = l =~ "^[ ]*\\^" :: Bool
  >     getHatPos l i = case l of

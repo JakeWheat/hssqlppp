@@ -89,12 +89,12 @@ a normal token.
 >            sta <- getState
 >            t <- if sta == [ft,st,mt]
 >                 then copyPayload
->                 else (try sqlString
+>                 else try sqlString
 >                  <|> try idString
 >                  <|> try positionalArg
 >                  <|> try sqlSymbol
 >                  <|> try sqlFloat
->                  <|> try sqlInteger)
+>                  <|> try sqlInteger
 >            updateState $ \stt ->
 >              case () of
 >                      _ | stt == [] && t == ft -> [ft]

@@ -39,7 +39,7 @@ TODO 2: think of a name for this command
 >   hSetBuffering stdout NoBuffering
 >   args <- getArgs
 >   case () of
->        _ | length args == 0 -> putStrLn "no command given" >> help False
+>        _ | null args -> putStrLn "no command given" >> help False
 >          | args == ["help"] -> help False
 >          | args == ["help", "all"] -> help True
 >          | head args == "help" -> helpCommand (args !! 1)
@@ -91,7 +91,7 @@ TODO 2: think of a name for this command
 > loadSql :: [String] -> IO ()
 > loadSql args =
 >   let (db:fns) = args
->   in flip mapM_ fns $ \fn -> do
+>   in forM_ fns $ \fn -> do
 >   res <- parseSqlFileWithState fn
 >   case res of
 >     Left er -> error $ show er
@@ -113,7 +113,7 @@ TODO: do something more correct
 
 > cleardb :: String -> IO ()
 > cleardb db = do
->   withConn ("dbname=" ++ db) $ \conn -> do
+>   withConn ("dbname=" ++ db) $ \conn ->
 >     runSqlCommand conn "drop owned by jake cascade;"
 >   putStrLn $ "database " ++ db ++ " cleared."
 

@@ -68,7 +68,7 @@ database...
 >          in case () of
 >                   _ | l!!1 == "0" -> getOps (bit [jlt (l!!2)]:pref) post bin ls
 >                     | l!!2 == "0" -> getOps pref (bit [jlt (l!!1)]:post) bin ls
->                     | otherwise -> getOps pref post ((bit [jlt (l!!1), jlt (l!!2)]):bin) ls
+>                     | otherwise -> getOps pref post (bit [jlt (l!!1), jlt (l!!2)]:bin) ls
 >    let (prefixOps, postfixOps, binaryOps) = getOps [] [] [] operatorInfo
 >    functionInfo <- selectRelation conn
 >                       "select proname,\n\
@@ -123,7 +123,7 @@ database...
 >                       ps1 = map (split ';') ps
 >                   in UnnamedCompositeType $ map (\pl -> (head pl, jlt (pl!!1))) ps1
 >      convFnRow jlt l =
->         (l!!0,fnArgs,fnRet)
+>         (head l,fnArgs,fnRet)
 >         where
 >           fnRet = let rt1 = jlt (l!!3)
 >                   in if read (l!!2)::Bool
@@ -155,9 +155,9 @@ database...
 >                                                  "void" -> Void
 >                                                  _ -> error $ "unknown pseudo " ++ t))
 >                     _ -> error $ "unknown type type: " ++ (l !! 1)
->            scType = ((l!!0), ctor name)
+>            scType = (head l, ctor name)
 >        in if (l!!4) /= "0"
->           then [((l!!5,ArrayType $ ctor name)), scType]
+>           then [(l!!5,ArrayType $ ctor name), scType]
 >           else [scType]
 
 

@@ -861,7 +861,7 @@ test functions
 >       [CreateFunction Plpgsql "fn" [] (SimpleTypeName "void") "$$"
 >        (PlpgsqlFnBody [VarDef "a" (SimpleTypeName "int") Nothing
 >                       ,VarDef "b" (SimpleTypeName "text") Nothing]
->         [addNsp $ NullStatement])
+>         [addNsp NullStatement])
 >        Volatile]
 >      ,p "create function fn() returns void as $$\n\
 >         \declare\n\
@@ -874,7 +874,7 @@ test functions
 >       [CreateFunction Plpgsql "fn" [] (SimpleTypeName "void") "$$"
 >        (PlpgsqlFnBody [VarDef "a" (SimpleTypeName "int") Nothing
 >                       ,VarDef "b" (SimpleTypeName "text") Nothing]
->         [addNsp $ NullStatement])
+>         [addNsp NullStatement])
 >        Volatile]
 >      ,p "create function fn(a text[]) returns int[] as $$\n\
 >         \declare\n\
@@ -888,7 +888,7 @@ test functions
 >        (ArrayTypeName $ SimpleTypeName "int") "$$"
 >        (PlpgsqlFnBody
 >         [VarDef "b" (ArrayTypeName $ SimpleTypeName "xtype") (Just $ stringQ "{}")]
->         [addNsp $ NullStatement])
+>         [addNsp NullStatement])
 >        Immutable]
 >      ,p "create function fn() returns void as '\n\
 >         \declare\n\
@@ -899,7 +899,7 @@ test functions
 >         \' language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" [] (SimpleTypeName "void") "'"
 >        (PlpgsqlFnBody [VarDef "a" (SimpleTypeName "int") (Just $ IntegerLit 3)]
->         [addNsp $ NullStatement])
+>         [addNsp NullStatement])
 >        Stable]
 >      ,p "create function fn() returns setof int as $$\n\
 >         \begin\n\
@@ -908,7 +908,7 @@ test functions
 >         \$$ language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" []
 >        (SetOfTypeName $ SimpleTypeName "int") "$$"
->        (PlpgsqlFnBody [] [addNsp $ NullStatement])
+>        (PlpgsqlFnBody [] [addNsp NullStatement])
 >        Stable]
 >      ,p "create function fn() returns void as $$\n\
 >         \begin\n\
@@ -917,7 +917,7 @@ test functions
 >         \$$ language plpgsql stable;"
 >       [CreateFunction Plpgsql "fn" []
 >        (SimpleTypeName "void") "$$"
->        (PlpgsqlFnBody [] [addNsp $ NullStatement])
+>        (PlpgsqlFnBody [] [addNsp NullStatement])
 >        Stable]
 >      ,p "drop function test(text);"
 >       [DropFunction Require [("test",["text"])] Restrict]
@@ -977,19 +977,19 @@ complicated statements
 >         \null;\n\
 >         \end loop;"
 >       [ForSelectStatement "r" (selectFrom  [selI "a"] (Tref "tbl"))
->        [addNsp $ NullStatement]]
+>        [addNsp NullStatement]]
 >      ,p "for r in select a from tbl where true loop\n\
 >         \null;\n\
 >         \end loop;"
 >       [ForSelectStatement "r"
 >        (selectFromWhere [selI "a"] (Tref "tbl") (BooleanLit True))
->        [addNsp $ NullStatement]]
+>        [addNsp NullStatement]]
 >      ,p "for r in 1 .. 10 loop\n\
 >         \null;\n\
 >         \end loop;"
 >       [ForIntegerStatement "r"
 >        (IntegerLit 1) (IntegerLit 10)
->        [addNsp $ NullStatement]]
+>        [addNsp NullStatement]]
 
 >      ,p "if a=b then\n\
 >         \  update c set d = e;\n\
@@ -1002,14 +1002,14 @@ complicated statements
 >         \else\n\
 >         \  null;\n\
 >         \end if;"
->       [If [((BooleanLit True),[addNsp $ NullStatement])]
->        [addNsp $ NullStatement]]
+>       [If [((BooleanLit True),[addNsp NullStatement])]
+>        [addNsp NullStatement]]
 >      ,p "if true then\n\
 >         \  null;\n\
 >         \elseif false then\n\
 >         \  return;\n\
 >         \end if;"
->       [If [((BooleanLit True), [addNsp $ NullStatement])
+>       [If [((BooleanLit True), [addNsp NullStatement])
 >           ,((BooleanLit False), [addNsp $ Return Nothing])]
 >        []]
 >      ,p "if true then\n\
@@ -1021,7 +1021,7 @@ complicated statements
 >         \else\n\
 >         \  return;\n\
 >         \end if;"
->       [If [((BooleanLit True), [addNsp $ NullStatement])
+>       [If [((BooleanLit True), [addNsp NullStatement])
 >           ,((BooleanLit False), [addNsp $ Return Nothing])
 >           ,((BooleanLit False), [addNsp $ Return Nothing])]
 >        [addNsp $ Return Nothing]]
@@ -1031,9 +1031,9 @@ complicated statements
 >         \  else null;\n\
 >         \end case;"
 >      [CaseStatement (Identifier "a")
->       [([Identifier "b"], [addNsp $ NullStatement])
->       ,([Identifier "c", Identifier "d"], [addNsp $ NullStatement])]
->       [addNsp $ NullStatement]]
+>       [([Identifier "b"], [addNsp NullStatement])
+>       ,([Identifier "c", Identifier "d"], [addNsp NullStatement])]
+>       [addNsp NullStatement]]
 >      ])
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp
@@ -1057,8 +1057,8 @@ complicated statements
 >           stringQ = StringLit "'"
 >           addNsp s = (nsp,s)
 >           att n t = AttributeDef n (SimpleTypeName t) Nothing []
->           opCall o args = FunCall (Operator o) args
->           fnCall o args = FunCall (SimpleFun o) args
+>           opCall = FunCall . Operator
+>           fnCall = FunCall . SimpleFun
 
 ================================================================================
 

@@ -409,21 +409,21 @@ Conversion routines - convert Sql asts into Docs
 >     --check for special operators
 >    case n of
 >      "!arrayCtor" -> text "array" <> brackets (csvExp es)
->      "!between" -> convExp (es !! 0) <+> text "between"
+>      "!between" -> convExp (head es) <+> text "between"
 >                    <+> parens (convExp (es !! 1))
 >                   <+> text "and"
 >                   <+> parens (convExp (es !! 2))
 >      "!substring" -> text "substring"
->                      <> parens (convExp (es !! 0)
+>                      <> parens (convExp (head es)
 >                                 <+> text "from" <+> convExp (es !! 1)
 >                                 <+> text "for" <+> convExp (es !! 2))
 >      "!arraySub" -> case es of
 >                        ((Identifier i):es1) -> text i <> brackets (csvExp es1)
->                        _ -> parens (convExp (es !! 0)) <> brackets (csvExp (tail es))
+>                        _ -> parens (convExp (head es)) <> brackets (csvExp (tail es))
 >      _ ->
 >         case getOperatorType n of
 >                           BinaryOp ->
->                               parens (convExp (es !! 0)
+>                               parens (convExp (head es)
 >                                       <+> text (filterKeyword n)
 >                                       <+> convExp (es !! 1))
 >                           PrefixOp -> parens (text (if n == "u-"

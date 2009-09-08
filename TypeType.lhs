@@ -145,4 +145,3 @@ reads function prototypes out of template1
 >              | Operator String
 >              | RowCtor
 >                deriving (Eq,Show)
->               --add not between, overlay, any, etc.

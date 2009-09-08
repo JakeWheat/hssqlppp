@@ -227,7 +227,7 @@ changed
 
 > checkTypeExists :: Scope -> MySourcePos -> Type -> Type
 > checkTypeExists scope sp t =
->     if t `elem` (scopeTypes scope)
+>     if t `elem` scopeTypes scope
 >       then TypeList [] -- this works with the checkErrors function
 >       else TypeError sp (UnknownTypeError t)
 
@@ -293,11 +293,11 @@ utilities for working with Types
 
 > unwrapCompositeTypes :: Type -> M.Map String Type
 > unwrapCompositeTypes (UnnamedCompositeType a) = M.fromList a
-> unwrapCompositeTypes _ = error $ "cannot unwrapCompositeTypes on non unnamedcomposite type"
+> unwrapCompositeTypes _ = error "cannot unwrapCompositeTypes on non unnamedcomposite type"
 
 > unwrapComposite :: Type -> [(String,Type)]
 > unwrapComposite (UnnamedCompositeType a) = a
-> unwrapComposite _ = error $ "cannot unwrapComposite on non unnamedcomposite type"
+> unwrapComposite _ = error "cannot unwrapComposite on non unnamedcomposite type"
 
 > consComposite :: (String,Type) -> Type -> Type
 > consComposite l (UnnamedCompositeType a) =
@@ -319,9 +319,9 @@ disappear at some point
 >                     deriving (Eq,Show)
 >
 > instance Show Message where
->    show m = showMessage m
+>    show = showMessage
 >
-> showMessage :: Message -> [Char]
+> showMessage :: Message -> String
 > showMessage m = case m of
 >                   Error sp s -> showit "Error" sp s
 >                   Warning sp s -> showit "Warning" sp s

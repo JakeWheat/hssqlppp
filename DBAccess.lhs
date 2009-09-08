@@ -22,9 +22,7 @@ commands and queries.
 >     commit conn
 
 > withConn :: String -> (Pg.Connection -> IO c) -> IO c
-> withConn cs f = bracket (Pg.connectPostgreSQL cs)
->                         (\c -> disconnect c)
->                          f
+> withConn cs = bracket (Pg.connectPostgreSQL cs) disconnect
 
 > selectValue :: (IConnection conn) =>
 >                conn -> String -> IO String
@@ -37,12 +35,12 @@ commands and queries.
 >       let t = head r
 >       when (length t /= 1)
 >         (error $ "select value on " ++ query ++
->              " returned " ++ (show $ length t) ++ " attributes, expected 1.")
+>              " returned " ++ show (length t) ++ " attributes, expected 1.")
 >       return $ toS $ head t
 >     _ -> error $ "select value on " ++ query ++
->              " returned " ++ (show $ length r) ++ " tuples, expected 0 or 1."
+>              " returned " ++ show (length r) ++ " tuples, expected 0 or 1."
 >   where
->     toS a = (fromSql a)::String
+>     toS a = fromSql a :: String
 
 > selectRelation ::(IConnection conn) =>
 >                  conn -> String -> [String] -> IO [[String]]
@@ -56,4 +54,4 @@ commands and queries.
 > sToSql s = toSql (s::String)
 
 > sqlToS :: SqlValue -> String
-> sqlToS s = fromSql s
+> sqlToS = fromSql

@@ -49,14 +49,14 @@ not very consistently applied at the moment.
 >             --check all same length
 >             lengths = map length rowsTs
 >             error1 = case () of
->                       _ | length rowsTs1 == 0 ->
+>                       _ | null rowsTs1 ->
 >                             TypeError sp NoRowsGivenForValues
 >                         | not (all (==head lengths) lengths) ->
 >                             TypeError sp
 >                                  ValuesListsMustBeSameLength
 >                         | otherwise -> TypeList []
->             colNames = map (\(a,b) -> a ++ b) $
->                        zip (repeat "column")
+>             colNames = zipWith (++)
+>                            (repeat "column")
 >                            (map show [1..head lengths])
 >             colTypeLists = transpose rowsTs
 >             colTypes = map (resolveResultSetType scope sp) colTypeLists
@@ -97,7 +97,7 @@ type of the joined tables.
 >         --check the types
 >         joinColumns = map (getColumnType t1 t2) l
 >         nonJoinColumns =
->             let notJoin = (\(s,_) -> not (s `elem` l))
+>             let notJoin = (\(s,_) -> s `notElem` l)
 >             in filter notJoin t1 ++ filter notJoin t2
 >     in checkErrors [error1]
 >                    (UnnamedCompositeType $ joinColumns ++ nonJoinColumns)

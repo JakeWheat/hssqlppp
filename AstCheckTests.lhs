@@ -188,7 +188,7 @@ check casts from unknown string lits
 >      ,p "array_append(ARRAY['a','b'], 'c')"
 >         (ArrayType $ ScalarType "text")
 >      ,p "array_append(ARRAY['a'::int,'b'], 'c')"
->         (ArrayType $ typeInt)
+>         (ArrayType typeInt)
 >      ])
 
 todo:

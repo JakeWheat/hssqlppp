@@ -123,7 +123,7 @@ findCallMatch is a bit of a mess
 >
 >       -- record what casts are needed for each candidate
 >       castPairs :: [[ArgCastFlavour]]
->       castPairs = map listCastPairs $ map getFnArgs initialCandList
+>       castPairs = map (listCastPairs . getFnArgs) initialCandList
 >
 >       candCastPairs :: [ProtArgCast]
 >       candCastPairs = zip initialCandList castPairs
@@ -172,9 +172,9 @@ findCallMatch is a bit of a mess
 >                               (case () of
 >                                  _ | ia == ca -> ExactMatch
 >                                    | implicitlyCastableFromTo scope ia ca ->
->                                        case isPreferredType scope ca of
->                                          True -> ImplicitToPreferred
->                                          False -> ImplicitToNonPreferred
+>                                        if isPreferredType scope ca
+>                                          then ImplicitToPreferred
+>                                          else ImplicitToNonPreferred
 >                                    | otherwise -> CannotCast
 >                               ) : listCastPairs' ias cas
 >                           listCastPairs' [] [] = []
@@ -185,12 +185,12 @@ findCallMatch is a bit of a mess
 >       getBinOp1UnknownMatch cands =
 >           if not (isOperator f &&
 >                   length inArgs == 2 &&
->                   (count (==UnknownStringLit) inArgs) == 1)
+>                   count (==UnknownStringLit) inArgs == 1)
 >             then []
 >             else let newInArgs =
->                          take 2 $ repeat (if head inArgs == UnknownStringLit
->                                             then inArgs !! 1
->                                             else head inArgs)
+>                          replicate 2 (if head inArgs == UnknownStringLit
+>                                         then inArgs !! 1
+>                                         else head inArgs)
 >                  in filter (\((_,a,_),_) -> a == newInArgs) cands
 >
 >       filterPolymorphics :: [ProtArgCast] -> [ProtArgCast]
@@ -203,15 +203,15 @@ findCallMatch is a bit of a mess
 >               polyTypePairs = zip polyTypes ms
 >               keepPolyTypePairs :: [(Type, ProtArgCast)]
 >               keepPolyTypePairs =
->                 catMaybes $ map (\(t,p) -> case t of
->                                              Nothing -> Nothing
->                                              Just t' -> Just (t',p))
+>                 mapMaybe (\(t,p) -> case t of
+>                                            Nothing -> Nothing
+>                                            Just t' -> Just (t',p))
 >                               polyTypePairs
 >               finalRows = map (\(t,p) -> instantiatePolyType p t)
 >                               keepPolyTypePairs
 >               --create the new cast lists
 >               cps :: [[ArgCastFlavour]]
->               cps = map listCastPairs $ map (getFnArgs . fst) finalRows
+>               cps = map (listCastPairs . getFnArgs . fst) finalRows
 >           in zip (map fst finalRows) cps
 >           where
 >             polys :: [ProtArgCast]
@@ -230,9 +230,7 @@ findCallMatch is a bit of a mess
 >                  canMatch' (ia:ias) (pa:pas) =
 >                    case pa of
 >                      Pseudo Any -> nextMatch
->                      Pseudo AnyArray -> if isArrayType ia
->                                           then nextMatch
->                                           else False
+>                      Pseudo AnyArray -> isArrayType ia && nextMatch
 >                      Pseudo AnyElement -> nextMatch
 >                      Pseudo AnyEnum -> False
 >                      Pseudo AnyNonArray -> if isArrayType ia
@@ -250,11 +248,11 @@ findCallMatch is a bit of a mess
 >                                  (\(ia,fa) -> case fa of
 >                                                   Pseudo Any -> if isArrayType ia
 >                                                                          then Just $ unwrapArray ia
->                                                                          else Just $ ia
+>                                                                          else Just ia
 >                                                   Pseudo AnyArray -> Just $ unwrapArray ia
 >                                                   Pseudo AnyElement -> if isArrayType ia
 >                                                                          then Just $ unwrapArray ia
->                                                                          else Just $ ia
+>                                                                          else Just ia
 >                                                   Pseudo AnyEnum -> Nothing
 >                                                   Pseudo AnyNonArray -> Just ia
 >                                                   _ -> Nothing)
@@ -272,7 +270,7 @@ findCallMatch is a bit of a mess
 >                  in {-trace ("\nfixed:" ++ show x ++ "\n")-} x
 >               where
 >                 swapPolys :: Type -> [Type] -> [Type]
->                 swapPolys pit l = map (swapPoly pit) l
+>                 swapPolys = map . swapPoly
 >                 swapPoly :: Type -> Type -> Type
 >                 swapPoly pit at =
 >                   case at of
@@ -292,12 +290,12 @@ findCallMatch is a bit of a mess
 >       mergePolys :: [ProtArgCast] -> [ProtArgCast] -> [ProtArgCast]
 >       mergePolys orig polys =
 >           let origArgs = map (\((_,a,_),_) -> a) orig
->               filteredPolys = filter (\((_,a,_),_) -> not (a `elem` origArgs)) polys
+>               filteredPolys = filter (\((_,a,_),_) -> a `notElem` origArgs) polys
 >           in orig ++ filteredPolys
 >
 >       countPreferredTypeCasts :: [ProtArgCast] -> [Int]
->       countPreferredTypeCasts l =
->           map (\(_,cp) -> count (==ImplicitToPreferred) cp) l
+>       countPreferredTypeCasts =
+>           map (\(_,cp) -> count (==ImplicitToPreferred) cp)
 >
 >       -- Left () is used for inArgs which aren't unknown,
 >       --                      and for unknowns which we don't have a
@@ -346,8 +344,8 @@ findCallMatch is a bit of a mess
 >                            catMatches = filter (\c -> Right (getCatForArgN n c) ==
 >                                                      (cats !! n)) cands
 >                            prefMatches :: [ProtArgCast]
->                            prefMatches = filter (\c -> isPreferredType scope
->                                                        (getTypeForArgN n c)) catMatches
+>                            prefMatches = filter (isPreferredType scope .
+>                                                    getTypeForArgN n) catMatches
 >                            keepMatches :: [ProtArgCast]
 >                            keepMatches = if length prefMatches > 0
 >                                            then prefMatches
@@ -356,7 +354,7 @@ findCallMatch is a bit of a mess
 >            getTypeForArgN :: Int -> ProtArgCast -> Type
 >            getTypeForArgN n ((_,a,_),_) = a !! n
 >            getCatForArgN :: Int -> ProtArgCast -> String
->            getCatForArgN n c = getTypeCategory scope (getTypeForArgN n c)
+>            getCatForArgN n = getTypeCategory scope . getTypeForArgN n
 >
 >       -- utils
 >       -- filter a candidate/cast flavours pair by a predicate on each
@@ -364,7 +362,7 @@ findCallMatch is a bit of a mess
 >       filterCandCastPairs :: ([ArgCastFlavour] -> Bool)
 >                           -> [ProtArgCast]
 >                           -> [ProtArgCast]
->       filterCandCastPairs predi ccp = filter (\(_,cp) -> predi cp) ccp
+>       filterCandCastPairs predi = filter (\(_,cp) -> predi cp)
 >
 >       getFnArgs :: FunctionPrototype -> [Type]
 >       getFnArgs (_,a,_) = a
@@ -378,8 +376,8 @@ findCallMatch is a bit of a mess
 >                      in hdFn
 >       allFns = keywordOperatorTypes ++ scopeAllFns scope
 
->       none p l = not (any p l)
->       count p l = length $ filter p l
+>       none p = not . any p
+>       count p = length . filter p
 >
 > data ArgCastFlavour = ExactMatch
 >                     | CannotCast
@@ -388,7 +386,7 @@ findCallMatch is a bit of a mess
 >                       deriving (Eq,Show)
 >
 > isOperator :: String -> Bool
-> isOperator s = any (`elem` "+-*/<>=~!@#%^&|`?") s
+> isOperator = any (`elem` "+-*/<>=~!@#%^&|`?")
 >
 > isPreferredType :: Scope -> Type -> Bool
 > isPreferredType scope t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories scope) of
@@ -429,7 +427,7 @@ code is not as much of a mess as findCallMatch
 >    checkErrors [TypeList inArgs] ret
 >    where
 >      ret = case () of
->                    _ | length inArgs == 0 -> TypeError sp TypelessEmptyArray
+>                    _ | null inArgs -> TypeError sp TypelessEmptyArray
 >                      | allSameType -> head inArgs
 >                      --todo: do domains
 >                      | allUnknown -> ScalarType "text"
@@ -454,7 +452,7 @@ code is not as much of a mess as findCallMatch
 >      firstAllConvertibleTo [] = Nothing
 >      matchOrImplicitToFrom t t1 = t == t1 || implicitlyCastableFromTo scope t1 t
 >      knownTypes = filter (/=UnknownStringLit) inArgs
->      allConvertibleToFrom t ts = all (matchOrImplicitToFrom t) ts
+>      allConvertibleToFrom = all . matchOrImplicitToFrom
 
 todo:
 row ctor implicitly and explicitly cast to a composite type
