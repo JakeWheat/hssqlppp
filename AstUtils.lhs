@@ -40,6 +40,9 @@ the operator type, and the parser would have to be a lot cleverer
 >                             PrefixOp
 >                         | any (\(x,_,_) -> x == s) (scopePostfixOperators defaultScope) ->
 >                             PostfixOp
+>                         | s `elem` ["!and", "!or","!like"] -> BinaryOp
+>                         | s `elem` ["!not"] -> PrefixOp
+>                         | s `elem` ["!isNull", "!isNotNull"] -> PostfixOp
 >                         | otherwise ->
 >                             error $ "don't know flavour of operator " ++ s
 
@@ -118,139 +121,7 @@ list, or unnamedcompositetype.
 >                        Nothing -> checkErrors ts r
 > checkErrors [] r = r
 
-================================================================================
-
-= mini type checking dsl
-
-create a little dsl to do declarative type checking for TypeList
-types. We can pass in:
-* the list of types,
-* a declarative constraint on this list, and
-* a method for determining the resultant type.
-
-Not sure all these constraint variations will be needed. or if this
-is going to last as the type checking is made more
-comprehensive. Currently used for type checking keyword operators, and
-in case expressions, maybe some other places.
-
-> data ArgsCheck
->     -- check any number of args, all have the same type
->     = AllSameType Type
->     -- check any one or more args, all have the same type
->     | AllSameType1 Type
->     -- check any one or more args, all have the same type as eachother
->     | AllSameType1Any
->     | AllSameTypeAny
->     -- check all same type, exact number of args
->     | AllSameTypeNum Type Int
->     -- check all same type as each other, exact number of args
->     | AllSameTypeNumAny Int
->     -- check type list matches given list
->     | ExactList TypeList
->     -- check type list passes predicate list respectively
->     | ExactPredList ArgCheckList
->     -- check all types pass single predicate, exact number
->     | AllSameTypePredNum ArgCheck Int
-
-> type TypeList = [Type]
-> type ArgCheckList = [ArgCheck]
-
-> data ArgCheck = ArgCheck TypePred TypePredError
-
-> type TypePred = (Type -> Bool)
-> type TypePredError = (Type -> TypeErrorInfo)
-
-> exactType :: Type -> ArgCheck
-> exactType t = ArgCheck (t==) (WrongType t)
-
-> checkPredList :: MySourcePos -> [ArgCheck] -> [Type] -> [Type]
-> checkPredList sp achks ats =
->     if length achks /= length ats
->       then [TypeError sp
->             (WrongNumArgs
->              (length achks)
->              (length ats))]
->       else checkArg 0 [] achks ats
->     where
->       checkArg :: Int -> [Type] -> [ArgCheck] -> [Type] -> [Type]
->       checkArg n acc ((ArgCheck chk err):chks) (t:ts) =
->           if chk t
->             then checkArg (n+1) acc chks ts
->             else checkArg (n+1) (acc ++ [TypeError sp $ err t]) chks ts
->       checkArg _ acc [] [] = acc
->       checkArg _ _ _ _ = error "internal error: pattern match failure in checkArg"
-
-> data RetType
->     -- always returns fixed type
->     = ConstRetType Type
->     -- returns same type as argument n
->     | RetTypeAsArgN Int
->     -- use generic fn on arg list to produce return type
->     | RetTypeFun RetTypeFunner
-
-
-> type RetTypeFunner = ([Type] -> Type)
-
-the actual dsl engine:
-
-> checkTypes :: Scope -> MySourcePos -> Type -> ArgsCheck -> RetType -> Type
-> checkTypes scope sp tl@(TypeList l) argC retT =
->     --1: check tl for errors or unknowns
->     --2: check the args against the constraints,
->     --  filter this for unknown or errors
->     --  (it returns Just error, or Nothing if ok)
->     --3: get the return type, and check that for unknowns or errors
->     --4: success, return the result type
->     --todo: where can implicit casts be used in this type checking?
->     let c = case checkArgs of
->               Just t -> t
->               Nothing -> getRetType
->     in checkErrors [tl, c] c
->     where
->       getRetType =
->           case retT of
->             ConstRetType t -> t
->             RetTypeAsArgN n -> l !! n
->             RetTypeFun f -> f l
->       checkArgs =
->           case argC of
->             AllSameType t -> checkArgListMatches t l
->             AllSameType1 t | length l == 0 ->
->                                 Just $ te NeedOneOrMoreArgs
->                            | otherwise -> checkArgListMatches t l
->             AllSameTypeNum t n | length l /= n ->
->                                     Just $ te $ WrongNumArgs n (length l)
->                                | otherwise -> checkArgListMatches t l
->             AllSameTypeNumAny n | length l /= n ->
->                                     Just $ te $ WrongNumArgs n (length l)
->                                 | otherwise -> checkArgListMatches (head l) l
->             AllSameTypeAny -> checkArgListMatches (head l) l
->             AllSameType1Any | length l == 0 ->
->                                 Just $ te NeedOneOrMoreArgs
->                             | otherwise -> checkArgListMatches (head l) l
->             ExactList ts | ts == l -> Nothing
->                          | canImplicitCast l ts -> Nothing
->                          | otherwise ->
->                               Just $ te $ WrongTypeList ts l
->             ExactPredList chks -> case checkPredList sp chks l of
->                                     x | length x == 0 -> Nothing
->                                       | otherwise -> Just $ TypeList x
->             AllSameTypePredNum p n -> case checkPredList sp
->                                              (replicate n p)
->                                              l of
->                                         x | length x == 0 -> Nothing
->                                           | otherwise -> Just $ TypeList x
->       checkArgListMatches tc tcs = if all (==tc) tcs
->                                      then Nothing
->                                      else Just $ te (WrongTypes tc tcs)
->       te = TypeError sp
->       canImplicitCast (f:fs) (t:ts) =
->           {-trace (show (f:fs) ++ show (t:ts)) $-}
->           (f == t || implicitlyCastableFromTo scope f t) && canImplicitCast fs ts
->       canImplicitCast [] [] = True
->       canImplicitCast _ _ = False
-
-> checkTypes _ _ x _ _ = error $ "can't check types of non type list: " ++ show x
+======
 
 
 > checkTypeExists :: Scope -> MySourcePos -> Type -> Maybe Type
@@ -383,19 +254,23 @@ changed
 
 ================================================================================
 
-> keywordBinaryOperatorTypes :: [(KeywordOperator,[Type],Type)]
-> keywordBinaryOperatorTypes = [
->  (And, [typeBool, typeBool], typeBool),
->  (Or, [typeBool, typeBool], typeBool),
->  (Like, [ScalarType "text", ScalarType "text"], typeBool)]
-> keywordUnaryOperatorTypes :: [(KeywordOperator,[Type],Type)]
-> keywordUnaryOperatorTypes = [
->  (Not, [typeBool], typeBool),
->  (IsNull, [Pseudo Any], typeBool),
->  (IsNotNull, [Pseudo Any], typeBool)]
-
-> allKeywordOps :: [(KeywordOperator, [Type], Type)]
-> allKeywordOps = keywordBinaryOperatorTypes ++ keywordUnaryOperatorTypes
+> keywordOperatorTypes :: [(String,[Type],Type)]
+> keywordOperatorTypes = [
+>   ("!and", [typeBool, typeBool], typeBool)
+>  ,("!or", [typeBool, typeBool], typeBool)
+>  ,("!like", [ScalarType "text", ScalarType "text"], typeBool)
+>  ,("!not", [typeBool], typeBool)
+>  ,("!isNull", [Pseudo AnyElement], typeBool)
+>  ,("!isNotNull", [Pseudo AnyElement], typeBool)
+>  ,("!arrayCtor", [Pseudo AnyElement], Pseudo AnyArray) -- not quite right,
+>                                         -- needs variadic support
+>                                         -- currently works via a special case
+>  ,("!between", [Pseudo AnyElement
+>               ,Pseudo AnyElement
+>               ,Pseudo AnyElement], Pseudo AnyElement)
+>  ,("!substring", [ScalarType "text",typeInt,typeInt], ScalarType "text")
+>  ,("!arraySub", [Pseudo AnyArray,typeInt], Pseudo AnyElement)
+>  ]
 
 todo:
 polymorphic functions
@@ -491,7 +366,7 @@ findCallMatch is a bit of a mess
 >       initialCandList :: [FunctionPrototype]
 >       initialCandList = filter (\(candf,candArgs,_) ->
 >                                   (candf,length candArgs) == (f,length inArgs))
->                           (scopeAllFns scope)
+>                           allFns
 >
 >       -- record what casts are needed for each candidate
 >       castPairs :: [[ArgCastFlavour]]
@@ -748,7 +623,8 @@ findCallMatch is a bit of a mess
 >       getHeadFn :: [ProtArgCast] -> FunctionPrototype
 >       getHeadFn l =  let ((hdFn, _):_) = l
 >                      in hdFn
->
+>       allFns = keywordOperatorTypes ++ scopeAllFns scope
+
 >       none p l = not (any p l)
 >       count p l = length $ filter p l
 >
@@ -885,41 +761,21 @@ code is not as much of a mess as findCallMatch
 >     checkErrors [argsType] ret
 >     where
 >       ret = case fnName of
->           ArrayCtor -> let t = resolveResultSetType scope sp $ typesFromTypeList argsType
->                        in checkErrors [t] $ ArrayType t
->           Substring -> ct
->                          (ExactList [ScalarType "text"
->                                     ,ScalarType "int4"
->                                     ,ScalarType "int4"])
->                          (ConstRetType (ScalarType "text"))
->           Between -> let f1 = lookupFn ">=" [as !! 0, as !! 1]
->                          f2 = lookupFn "<=" [as !! 0, as !! 2]
->                          f3 = lookupKop And [f1,f2]
->                      in checkErrors [f1,f2] f3
->                      where
->                        as = typesFromTypeList argsType
->           ArraySub -> ct
->                          (ExactPredList
->                            [ArgCheck isArrayType NotArrayType
->                            ,exactType (ScalarType "int4")])
->                          (RetTypeFun (\t -> typeFromArray $ head t))
+>           Operator "!arrayCtor" -> let t = resolveResultSetType scope sp $ typesFromTypeList argsType
+>                                    in checkErrors [t] $ ArrayType t
+>           Operator "!between" -> let f1 = lookupFn ">=" [as !! 0, as !! 1]
+>                                      f2 = lookupFn "<=" [as !! 0, as !! 2]
+>                                      f3 = lookupFn "!and" [f1,f2]
+>                                  in checkErrors [f1,f2] f3
+>                                  where
+>                                    as = typesFromTypeList argsType
 >           Operator s ->  lookupFn s (typesFromTypeList argsType)
->           KOperator k -> lookupKop k (typesFromTypeList argsType)
 >           SimpleFun f -> lookupFn f (typesFromTypeList argsType)
 >           RowCtor -> UnknownType
->       ct = checkTypes scope sp argsType
 >       lookupFn s1 args = case findCallMatch scope sp
 >                                              (if s1 == "u-" then "-" else s1) args of
 >                                Left te -> te
 >                                Right (_,_,r) -> r
->       lookupKop s args = let cands = filter (\(o,a,_) ->
->                                                    (o,a) == (s,args))
->                                            allKeywordOps
->                          in case () of
->                                  _ | length cands == 0 -> TypeError sp (NoMatchingKOperator s args)
->                                    | length cands == 1 -> let (_,_,rettype) = (head cands)
->                                                           in rettype
->                                    | otherwise -> TypeError sp (MultipleMatchingKOperators s args)
 
 
 > typeCheckValuesExpr :: Scope -> MySourcePos -> Type -> Type

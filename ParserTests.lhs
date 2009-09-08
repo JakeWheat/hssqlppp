@@ -74,11 +74,11 @@ test some more really basic expressions
 
 array selector
 
->      ,p "array[1,2]" (FunCall ArrayCtor [IntegerLit 1, IntegerLit 2])
+>      ,p "array[1,2]" (opCall "!arrayCtor" [IntegerLit 1, IntegerLit 2])
 
 array subscripting
 
->      ,p "a[1]" (FunCall ArraySub [Identifier "a", IntegerLit 1])
+>      ,p "a[1]" (opCall "!arraySub" [Identifier "a", IntegerLit 1])
 
 we just produce a ast, so no type checking or anything like that is
 done
@@ -97,20 +97,20 @@ some operator tests
 >      ,p "245::float(24)" (Cast (IntegerLit 245) (PrecTypeName "float" 24))
 
 >      ,p "a between 1 and 3"
->         (FunCall Between [Identifier "a", IntegerLit 1, IntegerLit 3])
+>         (opCall "!between" [Identifier "a", IntegerLit 1, IntegerLit 3])
 >      ,p "cast(a as text)"
 >         (Cast (Identifier "a") (SimpleTypeName "text"))
 >      ,p "@ a"
 >         (opCall "@" [Identifier "a"])
 
 >      ,p "substring(a from 0 for 3)"
->         (FunCall Substring [Identifier "a", IntegerLit 0, IntegerLit 3])
+>         (opCall "!substring" [Identifier "a", IntegerLit 0, IntegerLit 3])
 
 >      ,p "substring(a from 0 for (5 - 3))"
->         (FunCall Substring [Identifier "a",IntegerLit 0,
+>         (opCall "!substring" [Identifier "a",IntegerLit 0,
 >          opCall "-" [IntegerLit 5,IntegerLit 3]])
 >      ,p "a like b"
->         (kopCall Like [Identifier "a", Identifier "b"])
+>         (opCall "!like" [Identifier "a", Identifier "b"])
 
 some function call tests
 
@@ -129,9 +129,9 @@ simple whitespace sanity checks
 
 null stuff
 
->      ,p "not null" (kopCall Not [NullLit])
->      ,p "a is null" (kopCall IsNull [Identifier "a"])
->      ,p "a is not null" (kopCall IsNotNull [Identifier "a"])
+>      ,p "not null" (opCall "!not" [NullLit])
+>      ,p "a is null" (opCall "!isNull" [Identifier "a"])
+>      ,p "a is not null" (opCall "!isNotNull" [Identifier "a"])
 
 some slightly more complex stuff
 
@@ -233,7 +233,7 @@ test a whole bunch more select statements
 >       [SelectStatement $ selectFromWhere
 >         (selIL ["a"])
 >         (Tref "tbl")
->         (kopCall And
+>         (opCall "!and"
 >          [opCall "="  [Identifier "b", IntegerLit 2]
 >          ,opCall "=" [Identifier "c", IntegerLit 3]])]
 
@@ -1058,7 +1058,6 @@ complicated statements
 >           addNsp s = (nsp,s)
 >           att n t = AttributeDef n (SimpleTypeName t) Nothing []
 >           opCall o args = FunCall (Operator o) args
->           kopCall o args = FunCall (KOperator o) args
 >           fnCall o args = FunCall (SimpleFun o) args
 
 ================================================================================

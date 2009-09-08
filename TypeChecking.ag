@@ -194,12 +194,12 @@ the then types to pass to resolveResultSetType
 -}
 
 SEM CaseExpressionListExpressionPair
-    | Tuple lhs.nodeType = checkTypes
-                             @lhs.scope
-                             @lhs.sourcePos
-                             @x1.nodeType
-                             (AllSameType typeBool)
-                             (ConstRetType @x2.nodeType)
+    | Tuple lhs.nodeType =
+        let tl = typesFromTypeList @x1.nodeType
+            e1 = if not (all (==typeBool) tl)
+                   then TypeError @lhs.sourcePos (WrongTypes typeBool tl)
+                   else TypeList []
+        in checkErrors (tl ++ [e1]) @x2.nodeType
 
 SEM Expression
     | Case lhs.nodeType =

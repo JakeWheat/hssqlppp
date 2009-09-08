@@ -406,47 +406,41 @@ Conversion routines - convert Sql asts into Docs
 
 > convExp (FunCall (SimpleFun i) es) = text i <> parens (csvExp es)
 > convExp (FunCall (Operator n) es) =
->    case getOperatorType n of
+>     --check for special operators
+>    case n of
+>      "!arrayCtor" -> text "array" <> brackets (csvExp es)
+>      "!between" -> convExp (es !! 0) <+> text "between"
+>                    <+> parens (convExp (es !! 1))
+>                   <+> text "and"
+>                   <+> parens (convExp (es !! 2))
+>      "!substring" -> text "substring"
+>                      <> parens (convExp (es !! 0)
+>                                 <+> text "from" <+> convExp (es !! 1)
+>                                 <+> text "for" <+> convExp (es !! 2))
+>      "!arraySub" -> case es of
+>                        ((Identifier i):es1) -> text i <> brackets (csvExp es1)
+>                        _ -> parens (convExp (es !! 0)) <> brackets (csvExp (tail es))
+>      _ ->
+>         case getOperatorType n of
 >                           BinaryOp ->
 >                               parens (convExp (es !! 0)
->                                       <+> text n
+>                                       <+> text (filterKeyword n)
 >                                       <+> convExp (es !! 1))
 >                           PrefixOp -> parens (text (if n == "u-"
 >                                                        then "-"
->                                                        else n)
+>                                                        else filterKeyword n)
 >                                                <+> convExp (head es))
->                           PostfixOp -> parens (convExp (head es) <+> text n)
-> convExp (FunCall (KOperator k) es) =
->     case k of
->       And -> binary "and"
->       Or -> binary "or"
->       Not -> prefix "not"
->       IsNull -> postfix "is null"
->       IsNotNull -> postfix "is not null"
->       Like -> binary "like"
->     where
->       prefix kw = parens (text kw <+> convExp (head es))
->       postfix kw = parens (convExp (head es) <+> text kw)
->       binary kw = parens (convExp (es !! 0)
->                          <+> text kw
->                          <+> convExp (es !! 1))
-
-
-> convExp (FunCall ArrayCtor es) = text "array" <> brackets (csvExp es)
+>                           PostfixOp -> parens (convExp (head es) <+> text (filterKeyword n))
+>    where
+>      filterKeyword t = case t of
+>                          "!and" -> "and"
+>                          "!or" -> "or"
+>                          "!not" -> "not"
+>                          "!isNull" -> "is null"
+>                          "!isNotNull" -> "is not null"
+>                          "!like" -> "like"
+>                          x -> x
 > convExp (FunCall RowCtor es) = text "row" <> parens (hcatCsvMap convExp es)
-> convExp (FunCall ArraySub ((Identifier i):es)) = text i <> brackets (csvExp es)
-> convExp (FunCall ArraySub es) = parens (convExp (es !! 0)) <> brackets (csvExp (tail es))
-
-> convExp (FunCall Substring es) = text "substring"
->                             <> parens (convExp (es !! 0)
->                                        <+> text "from" <+> convExp (es !! 1)
->                                        <+> text "for" <+> convExp (es !! 2))
-
-> convExp (FunCall Between es) = convExp (es !! 0) <+> text "between"
->                                <+> parens (convExp (es !! 1))
->                                <+> text "and"
->                                <+> parens (convExp (es !! 2))
-
 
 > convExp (BooleanLit b) = bool b
 > convExp (InPredicate att t lst) =

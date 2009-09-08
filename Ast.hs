@@ -36,7 +36,6 @@ module Ast(
    ,RestartIdentity (..)
    ,Expression (..)
    ,FunName (..)
-   ,KeywordOperator(..)
    ,OperatorType (..)
    ,getOperatorType
    ,InList (..)
@@ -501,12 +500,11 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
               _x2Imessages :: ([Message])
               _x2InodeType :: Type
               _lhsOnodeType =
-                  checkTypes
-                    _lhsIscope
-                    _lhsIsourcePos
-                    _x1InodeType
-                    (AllSameType typeBool)
-                    (ConstRetType _x2InodeType)
+                  let tl = typesFromTypeList _x1InodeType
+                      e1 = if not (all (==typeBool) tl)
+                             then TypeError _lhsIsourcePos (WrongTypes typeBool tl)
+                             else TypeList []
+                  in checkErrors (tl ++ [e1]) _x2InodeType
               _lhsOmessages =
                   _x1Imessages ++ _x2Imessages
               _actualValue =

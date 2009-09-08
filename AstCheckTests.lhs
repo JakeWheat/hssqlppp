@@ -63,19 +63,15 @@ Set of tests to check the type checking code
 >      ,p "substring('aqbc' from 2 for 2)" (ScalarType "text")
 
 >      ,p "substring(3 from 2 for 2)" (TypeError ("",0,0)
->                     (WrongTypeList [ScalarType "text"
->                                    ,typeInt
->                                    ,typeInt]
->                                    [typeInt
->                                    ,typeInt
->                                    ,typeInt]))
+>                                      (NoMatchingOperator "!substring"
+>                                       [ScalarType "int4"
+>                                       ,ScalarType "int4"
+>                                       ,ScalarType "int4"]))
 >      ,p "substring('aqbc' from 2 for true)" (TypeError ("",0,0)
->                     (WrongTypeList [ScalarType "text"
->                                    ,typeInt
->                                    ,typeInt]
->                                    [UnknownStringLit
->                                    ,typeInt
->                                    ,typeBool]))
+>                     (NoMatchingOperator "!substring"
+>                      [UnknownStringLit
+>                      ,ScalarType "int4"
+>                      ,ScalarType "bool"]))
 
 >      ,p "3 between 2 and 4" typeBool
 >      ,p "3 between true and 4" (TypeError ("",0,0)
@@ -85,14 +81,15 @@ Set of tests to check the type checking code
 
 >      ,p "array[1,2,3][2]" typeInt
 >      ,p "array['a','b'][1]" (ScalarType "text")
->      ,p "array['a','b']['test']" (TypeError ("",0,0)
->                                   (WrongType
->                                    typeInt
->                                    UnknownStringLit))
+
+ >      ,p "array['a','b'][true]" (TypeError ("",0,0)
+ >                                   (WrongType
+ >                                    typeInt
+ >                                    UnknownStringLit))
 
 >      ,p "not true" typeBool
 >      ,p "not 1" (TypeError ("",0,0)
->                  (NoMatchingKOperator Not [typeInt]))
+>                  (NoMatchingOperator "!not" [typeInt]))
 
 >      ,p "@ 3" typeInt
 >      ,p "@ true" (TypeError ("",0,0)
@@ -115,7 +112,7 @@ Set of tests to check the type checking code
 >      ,p "17%5" typeInt
 
 >      ,p "3 and 4" (TypeError ("",0,0)
->                   (NoMatchingKOperator And [typeInt,typeInt]))
+>                   (NoMatchingOperator "!and" [typeInt,typeInt]))
 
 >      ,p "True and False" typeBool
 >      ,p "false or true" typeBool

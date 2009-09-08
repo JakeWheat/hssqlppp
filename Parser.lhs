@@ -830,8 +830,8 @@ The full list of operators from DefaultScope.hs should be used here.
 >         ,[binary "+" AssocLeft
 >          ,binary "-" AssocLeft]
 >          --should be is isnull and notnull
->         ,[postfixks ["is", "not", "null"] (FunCall (KOperator IsNotNull))
->          ,postfixks ["is", "null"] (FunCall (KOperator IsNull))]
+>         ,[postfixks ["is", "not", "null"] (FunCall (Operator "!isNotNull"))
+>          ,postfixks ["is", "null"] (FunCall (Operator "!isNull"))]
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "<->" AssocNone
 >          ,binary "<=" AssocRight
@@ -842,16 +842,16 @@ The full list of operators from DefaultScope.hs should be used here.
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
->         ,[binaryk "like" Like AssocNone
+>         ,[binaryk "like" "!like" AssocNone
 >          ,binarycust "!=" "<>" AssocNone]
 >          --(also ilike similar)
 >         ,[lt "<" AssocNone
 >          ,binary ">" AssocNone]
 >         ,[binary "=" AssocRight
 >          ,binary "<>" AssocNone]
->         ,[prefixk "not" (FunCall (KOperator Not))]
->         ,[binaryk "and" And AssocLeft
->          ,binaryk "or" Or AssocLeft]]
+>         ,[prefixk "not" (FunCall (Operator "!not"))]
+>         ,[binaryk "and" "!and" AssocLeft
+>          ,binaryk "or" "!or" AssocLeft]]
 >     where
 >       --use different parsers for symbols and keywords to get the
 >       --right whitespace behaviour
@@ -866,7 +866,7 @@ The full list of operators from DefaultScope.hs should be used here.
 >       prefix s f
 >          = Prefix (try (symbol s >> (return $ unaryF f)))
 >       binaryk s o
->          = Infix (try (keyword s >> (return $ binaryFk o)))
+>          = Infix (try (keyword s >> (return $ binaryF o)))
 >       prefixk s f
 >          = Prefix (try (keyword s >> (return $ unaryF f)))
 >       --postfixk s f
@@ -875,7 +875,6 @@ The full list of operators from DefaultScope.hs should be used here.
 >          = Postfix (try (mapM_ keyword ss >> (return $ unaryF f)))
 >       unaryF f = \l -> f [l]
 >       binaryF s = \l -> \m -> (FunCall (Operator s)) [l,m]
->       binaryFk s = \l -> \m -> (FunCall (KOperator s)) [l,m]
 
 some custom parsers
 
@@ -958,7 +957,7 @@ expression when value' currently
 
 > arrayLit :: ParsecT [Token] ParseState Identity Expression
 > arrayLit = keyword "array" >>
->            FunCall ArrayCtor <$> squares (commaSep expr)
+>            FunCall (Operator "!arrayCtor") <$> squares (commaSep expr)
 
 when you put expr instead of identifier in arraysub, it stack
 overflows, not sure why.
@@ -966,7 +965,7 @@ overflows, not sure why.
 > arraySubSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > arraySubSuffix e = if e == Identifier "array"
 >                      then fail "can't use array as identifier name"
->                      else FunCall ArraySub <$> ((e:) <$> squares (commaSep1 expr))
+>                      else FunCall (Operator "!arraySub") <$> ((e:) <$> squares (commaSep1 expr))
 
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
@@ -997,7 +996,7 @@ rows between unbounded preceding and unbounded following
 >   b <- dodgyParseElement
 >   keyword "and"
 >   c <- dodgyParseElement
->   return $ FunCall Between [a,b,c]
+>   return $ FunCall (Operator "!between") [a,b,c]
 >              --can't use the full expression parser at this time
 >              --because of a conflict between the operator 'and' and
 >              --the 'and' part of a between
@@ -1043,7 +1042,7 @@ TODO: copy this approach here.
 >             keyword "for"
 >             c <- expr
 >             symbol ")"
->             return $ FunCall Substring [a,b,c]
+>             return $ FunCall (Operator "!substring") [a,b,c]
 
 > identifier :: ParsecT [Token] ParseState Identity Expression
 > identifier = Identifier <$> idString

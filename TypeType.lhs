@@ -92,28 +92,26 @@ later on down the line.
 
 >                    -- mostly expected,got
 > data TypeErrorInfo = WrongTypes Type [Type]
->                    | WrongTypeList [Type] [Type]
->                    | WrongNumArgs Int Int
->                    | WrongType Type Type
->                    | NotArrayType Type
->                    | NeedOneOrMoreArgs
->                    | OtherTypeError String
+>                    -- | WrongTypeList [Type] [Type]
+>                    -- | WrongNumArgs Int Int
+>                    -- | WrongType Type Type
+>                    -- | NotArrayType Type
+>                    -- | NeedOneOrMoreArgs
+>                    -- | OtherTypeError String
 >                    | UnknownTypeError Type
->                    | OperatorNeeds1Or2Args Int
+>                    -- | OperatorNeeds1Or2Args Int
 >                    | NoMatchingOperator String [Type]
->                    | MultipleMatchingOperators String [Type]
->                    | NoMatchingKOperator KeywordOperator [Type]
->                    | MultipleMatchingKOperators KeywordOperator [Type]
+>                    -- | MultipleMatchingOperators String [Type]
 >                    | TypelessEmptyArray
 >                    | IncompatibleTypes [Type]
 >                    | ValuesListsMustBeSameLength
 >                    | NoRowsGivenForValues
 >                    | UnrecognisedIdentifier String
 >                    | UnrecognisedRelation String
->                    | ContextError String
+>                    -- | ContextError String
 >                    | MissingJoinAttribute
 >                    | ExpressionMustBeBool
->                    | InternalError String
+>                    -- | InternalError String
 >                      deriving (Eq,Show)
 
 need this here because it is used in type errors - this should be
@@ -135,12 +133,6 @@ on using a wrapper.
 > isArrayType (Pseudo AnyArray) = True
 > isArrayType _ = False
 
-> data KeywordOperator = And | Or | Not
->                      | IsNull | IsNotNull
->                      | Like
->                        deriving (Eq,Show)
->                       -- add is distinct from, ilike, etc
-
 > data CastContext = ImplicitCastContext
 >                  | AssignmentCastContext
 >                  | ExplicitCastContext
@@ -154,11 +146,6 @@ on using a wrapper.
 
 > data FunName = SimpleFun String
 >              | Operator String
->              | KOperator KeywordOperator
->              | ArrayCtor
 >              | RowCtor
->              | ArraySub
->              | Substring
->              | Between
 >                deriving (Eq,Show)
 >               --add not between, overlay, any, etc.

@@ -84,7 +84,6 @@ MODULE {Ast}
    ,RestartIdentity (..)
    ,Expression (..)
    ,FunName (..)
-   ,KeywordOperator(..)
    ,OperatorType (..)
    ,getOperatorType
    ,InList (..)
@@ -454,6 +453,8 @@ overlay, substring, trim
 any, some, all
 
 Most of unusual syntax forms are not yet supported.
+
+Keyword operators are encoded as follows:
 
 -}
 
