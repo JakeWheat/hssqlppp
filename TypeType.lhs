@@ -39,7 +39,7 @@ unknowntype is used to represent the type of anything which the code
 is currently unable to type check, this should disappear at some
 point, or at least become unused
 
-The Type type identifies the type of a node, but doesn't neccessarily
+The Type type identifies the type of a node, but doesn't necessarily
 describe the type.
 Arraytype, setoftype and row are treated as type generators, and are
 unnamed so have structural equality. Other types sometimes effectively

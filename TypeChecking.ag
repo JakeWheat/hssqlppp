@@ -501,7 +501,7 @@ into one SEM.
 
 Problem 2: no shorthand to combine what the default rule for messages
 would be and then add a bit extra - so if you want all the children
-messages, plus possiby an extra message or two, have to write out the
+messages, plus possibly an extra message or two, have to write out the
 default rule in full explicitly. Can get round this by writing out
 loads of code.
 

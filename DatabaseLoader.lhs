@@ -6,7 +6,7 @@ load it into the database.
 The loading system works by parsing a sql file then passing the
 [Statement] to this module which pretty prints each Statement. (There
 is no fundamental reason why it loads each statement one at a time
-instead of pretty printing the whole lot, just that the run commmand
+instead of pretty printing the whole lot, just that the run command
 from hdbc only supports one command at a time.)
 
 The next todo is to start adding token position information to the

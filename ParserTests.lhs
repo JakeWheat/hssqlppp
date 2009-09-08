@@ -52,7 +52,7 @@ requires a single expression followed by eof.)
 >                             ,IntegerLit 1])
 
 check some basic parens use wrt naked values and row constructors
-these tests reflect how pg seems to intrepret the variants.
+these tests reflect how pg seems to interpret the variants.
 
 >      ,p "(1)" (IntegerLit 1)
 >      ,p "row ()" (FunCall "!rowCtor" [])

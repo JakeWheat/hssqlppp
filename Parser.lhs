@@ -763,7 +763,7 @@ from ~4 minutes to ~4 seconds
 >                try (lookAhead (symbol "(" >> symbol "(")) >> parens expr
 
 start with the factors which start with parens - eliminate scalar
-subquerys since they're easy to distinguish from the others then do in
+subqueries since they're easy to distinguish from the others then do in
 predicate before row constructor, since an in predicate can start with
 a row constructor, then finally vanilla parens
 
@@ -890,7 +890,7 @@ followed by ">"
 >                                fail "dont follow")
 >                             <|> return ())
 
-the first argument to these twp above is ignored, it is there so the
+the first argument to these two above is ignored, it is there so the
 symbol can appear in the operator table above for readability purposes
 
 == factor parsers

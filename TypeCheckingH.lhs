@@ -1,6 +1,6 @@
 Copyright 2009 Jake Wheat
 
-This file contains some utilty functions for working with types and
+This file contains some utility functions for working with types and
 type checking.
 
 > module TypeCheckingH where
@@ -77,7 +77,7 @@ attributes out of
 >                          (scopeAttrDefs scope)
 
 combine two relvar types when being joined, pass in a using list and
-it checks the types in the using list are comppatible, and eliminates
+it checks the types in the using list are compatible, and eliminates
 duplicate columns of the attrs in the using list, returns the relvar
 type of the joined tables.
 
