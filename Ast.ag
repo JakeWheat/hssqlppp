@@ -624,7 +624,7 @@ getStatementsTypeScope scope st =
     let t = sem_Root (Root st)
         tl = (nodeType_Syn_Root
               (wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}))
-    in typesFromTypeList tl
+    in unwrapTypeList tl
 
 --hack job, often not interested in the source positions when testing
 --the asts produced, so this function will reset all the source

@@ -114,7 +114,7 @@ getStatementsTypeScope scope st =
     let t = sem_Root (Root st)
         tl = (nodeType_Syn_Root
               (wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}))
-    in typesFromTypeList tl
+    in unwrapTypeList tl
 
 --hack job, often not interested in the source positions when testing
 --the asts produced, so this function will reset all the source
@@ -502,7 +502,7 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
               _x2Imessages :: ([Message])
               _x2InodeType :: Type
               _lhsOnodeType =
-                  let tl = typesFromTypeList _x1InodeType
+                  let tl = unwrapTypeList _x1InodeType
                       e1 = if not (all (==typeBool) tl)
                              then TypeError _lhsIsourcePos (WrongTypes typeBool tl)
                              else TypeList []
@@ -1391,10 +1391,10 @@ sem_Expression_Case cases_ els_  =
                   resolveResultSetType
                     _lhsIscope
                     _lhsIsourcePos
-                    (typesFromTypeList
+                    (unwrapTypeList
                      (case _elsInodeType of
                         TypeList [] -> _casesInodeType
-                        e -> TypeList $ (typesFromTypeList _casesInodeType)
+                        e -> TypeList $ (unwrapTypeList _casesInodeType)
                                        ++ [e]))
               _lhsOliftedColumnName =
                   ""
@@ -3967,11 +3967,11 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selSelectListOscope =
                   scopeCombineIds
                     _lhsIscope
-                    (getColumnsAsTypes _selTrefInodeType)
+                    (M.fromList $ unwrapComposite _selTrefInodeType)
               _selWhereOscope =
                   scopeCombineIds
                     _lhsIscope
-                    (getColumnsAsTypes _selTrefInodeType)
+                    (M.fromList $ unwrapComposite _selTrefInodeType)
               _selSelectListOtrefType =
                   _selTrefInodeType
               _lhsOmessages =
@@ -4218,9 +4218,9 @@ sem_SelectItemList_Cons hd_ tl_  =
               _tlInodeType :: Type
               _tlItrefType :: Type
               _lhsOnodeType =
-                  foldr consCompositeField _tlInodeType
+                  foldr consComposite _tlInodeType
                      (if _hdIcolumnName == "*"
-                        then getTypesFromComp _lhsItrefType
+                        then unwrapComposite _lhsItrefType
                         else [(_hdIcolumnName,_hdInodeType)])
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
@@ -6351,10 +6351,7 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
                                                               _tblInodeType
                                                               _tbl1InodeType
                             (_,Just (JoinUsing s)) -> unionJoinList s
-                            _ -> UnnamedCompositeType $ getTypesFromComp
-                                                           _tblInodeType ++
-                                                           getTypesFromComp
-                                                             _tbl1InodeType
+                            _ -> unionJoinList []
                     unionJoinList s = combineTableTypesWithUsingList
                                         _lhsIscope
                                         _lhsIsourcePos
@@ -6429,7 +6426,7 @@ sem_TableRef_SubTref sel_ alias_  =
               _selImessages :: ([Message])
               _selInodeType :: Type
               _lhsOnodeType =
-                  getCompositeFromSetOf _selInodeType
+                  unwrapSetOfComposite _selInodeType
               _lhsOmessages =
                   _selImessages
               _actualValue =

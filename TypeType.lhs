@@ -51,8 +51,6 @@ out. If not, will have to add another type.
 
 > module TypeType where
 
-> import qualified Data.Map as M
-
 > data Type = ScalarType String
 >           | ArrayType Type
 >           | SetOfType Type
@@ -117,70 +115,34 @@ later on down the line.
 >                      deriving (Eq,Show)
 
 need this here because it is used in type errors - this should be
-fixed, so a typeerror type doesn't hold location info, this is tacked
-on using a wrapper.
+fixed, so a typeerror type doesn't hold location info, we use
+(SourcePosInfo, TypeError), not going to worry about this until focus
+is on good error messages.
 
 > type MySourcePos = (String, Int, Int)
+
+some random stuff needed here because of compilation orders
+
+cast context - used in the casts catalog
 
 > data CastContext = ImplicitCastContext
 >                  | AssignmentCastContext
 >                  | ExplicitCastContext
 >                    deriving (Eq,Show)
 
+used in the attribute catalog which holds the attribute names and
+types of tables, views and other composite types.
+
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
 >                         deriving (Eq,Show)
 
 > type CompositeDef = (String, CompositeFlavour, Type)
 
+part of the ast, but here so we can compile the default scope which
+reads function prototypes out of template1
 
 > data FunName = SimpleFun String
 >              | Operator String
 >              | RowCtor
 >                deriving (Eq,Show)
 >               --add not between, overlay, any, etc.
-
-
-> typesFromTypeList :: Type -> [Type]
-> typesFromTypeList (TypeList ts) = ts
-> typesFromTypeList x = error $ "can't get types from list " ++ show x
-
-> typeFromArray :: Type -> Type
-> typeFromArray (ArrayType t) = t
-> typeFromArray x = error $ "can't get types from non array " ++ show x
-
-> isArrayType :: Type -> Bool
-> isArrayType (ArrayType _) = True
-> isArrayType (Pseudo AnyArray) = True
-> isArrayType _ = False
-
-
-> getCompositeFromSetOf :: Type -> Type
-> getCompositeFromSetOf (SetOfType a@(UnnamedCompositeType _)) = a
-> getCompositeFromSetOf _ = UnnamedCompositeType []
-
-> getColumnsAsTypes :: Type -> M.Map String Type
-> getColumnsAsTypes (UnnamedCompositeType a) = M.fromList a
-> getColumnsAsTypes _ = M.empty
-
-> getTypesFromComp :: Type -> [(String,Type)]
-> getTypesFromComp (UnnamedCompositeType a) = a
-> getTypesFromComp _ = []
-
-> getTypesFromComp2 :: Type -> [Type]
-> getTypesFromComp2 (UnnamedCompositeType a) = map snd a
-> getTypesFromComp2 _ = []
-
-> appendCompositeTypes :: Type -> Type -> Type
-> appendCompositeTypes (UnnamedCompositeType a) (UnnamedCompositeType b) =
->     UnnamedCompositeType (a ++ b)
-> appendCompositeTypes _ _ = error "internal error"
-
-> addCompositeFields :: Type -> [(String,Type)] -> Type
-> addCompositeFields (UnnamedCompositeType a) l =
->     UnnamedCompositeType (a ++ l)
-> addCompositeFields _ _ = error "internal error"
-
-> consCompositeField :: (String,Type) -> Type -> Type
-> consCompositeField l (UnnamedCompositeType a) =
->     UnnamedCompositeType (l:a)
-> consCompositeField _ _ = error "internal error"

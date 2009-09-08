@@ -1,6 +1,23 @@
 Copyright 2009 Jake Wheat
 
-> module TypeConversion where
+This file contains the functions for resolving types and
+function/operator resolution. See the pg manual chapter 10:
+
+http://www.postgresql.org/docs/8.4/interactive/typeconv.html
+
+findCallMatch - pass in a name and a list of arguments, and it returns
+the matching function. (pg manual 10.2,10.3)
+
+resolveResultSetType - pass in a set of types, and it tries to find
+the common type they can all be cast to. (pg manual 10.5)
+
+TODO
+pg manual 10.4 Value Storage
+
+> module TypeConversion (
+>                        findCallMatch
+>                       ,resolveResultSetType
+>                       ) where
 
 > import Data.Maybe
 > import Data.List
@@ -16,12 +33,13 @@ findCallMatch - partially implements the type conversion rules for
 finding an operator or function match given a name and list of
 arguments with partial or fully specified types
 
-TODO:
+TODO:, qualifiers
 namespaces
 function style casts not in catalog
 variadic args
 default args
 domains -> base type
+what about aggregates and window functions?
 
 Algo:
 
@@ -231,11 +249,11 @@ findCallMatch is a bit of a mess
 >                     typeList = catMaybes $ flip map argPairs
 >                                  (\(ia,fa) -> case fa of
 >                                                   Pseudo Any -> if isArrayType ia
->                                                                          then Just $ typeFromArray ia
+>                                                                          then Just $ unwrapArray ia
 >                                                                          else Just $ ia
->                                                   Pseudo AnyArray -> Just $ typeFromArray ia
+>                                                   Pseudo AnyArray -> Just $ unwrapArray ia
 >                                                   Pseudo AnyElement -> if isArrayType ia
->                                                                          then Just $ typeFromArray ia
+>                                                                          then Just $ unwrapArray ia
 >                                                                          else Just $ ia
 >                                                   Pseudo AnyEnum -> Nothing
 >                                                   Pseudo AnyNonArray -> Just ia

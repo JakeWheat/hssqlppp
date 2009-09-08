@@ -1,7 +1,7 @@
 Copyright 2009 Jake Wheat
 
-This file holds all the non-short bits of code that are mainly used in
-TypeChecking.ag.
+This file contains a bunch of small low level utilities to help with
+type checking.
 
 random implementation note:
 If you see one of these: TypeList [] - and don't get it - is used to
@@ -14,10 +14,17 @@ etc.. This could probably be reviewed and made to work a bit better.
 > import Data.Maybe
 > import Data.List
 > import Control.Monad.Error
+> import qualified Data.Map as M
 
 > import TypeType
 > import Scope
 > import DefaultScope
+
+================================================================================
+
+= getOperatorType
+
+used by the pretty printer, not sure this is a very good design
 
 > data OperatorType = BinaryOp | PrefixOp | PostfixOp
 >                   deriving (Eq,Show)
@@ -44,38 +51,24 @@ the operator type, and the parser would have to be a lot cleverer
 >                             error $ "don't know flavour of operator " ++ s
 
 ================================================================================
-Error reporting
-
-> data Message = Error MySourcePos MessageStuff
->              | Warning MySourcePos MessageStuff
->              | Notice MySourcePos MessageStuff
->                deriving (Eq)
->
-> data MessageStuff = ContinueNotInLoop
->                   | CustomMessage String
->                     deriving (Eq,Show)
->
-> instance Show Message where
->    show m = showMessage m
->
-> showMessage :: Message -> [Char]
-> showMessage m = case m of
->                   Error sp s -> showit "Error" sp s
->                   Warning sp s -> showit "Warning" sp s
->                   Notice sp s -> showit "Notice" sp s
->                 where
->                   showit lev (fn,l,c) s = lev ++ "\n" ++ fn ++ ":"
->                                           ++ show l ++ ":" ++ show c ++ ":\n"
->                                           ++ show s ++ "\n"
->
-
-================================================================================
 
 = type checking utils
 
-== unkErr
+== checkErrors
 
-shorthand used with catMaybe
+runs through the types in the first list looking for type errors or
+unknowns, if it finds any, return them, else return the second
+argument. See unkErr below for exactly how it finds errors and
+unknowns. It will only return errors from the first type containing
+errors, which might need looking at when the focus is on good error
+messages.
+
+> checkErrors :: [Type] -> Type -> Type
+> checkErrors (t:ts) r = case unkErr t of
+>                        Just e -> e
+>                        Nothing -> checkErrors ts r
+> checkErrors [] r = r
+
 
 takes a type and returns any type errors, or if no errors, unknowns,
 returns nothing if it doesn't find any type errors or unknowns. Looks
@@ -111,23 +104,6 @@ list, or unnamedcompositetype.
 >                                       | otherwise -> TypeList errs
 >                  | length unks > 0 -> Just UnknownType
 >                  | otherwise -> Nothing
-
-> checkErrors :: [Type] -> Type -> Type
-> checkErrors (t:ts) r = case unkErr t of
->                        Just e -> e
->                        Nothing -> checkErrors ts r
-> checkErrors [] r = r
-
-======
-
-
-> checkTypeExists :: Scope -> MySourcePos -> Type -> Type
-> checkTypeExists scope sp t =
->     if t `elem` (scopeTypes scope)
->       then TypeList [] -- this works with the checkErrors function
->       else TypeError sp (UnknownTypeError t)
-
-
 
 ================================================================================
 
@@ -249,6 +225,14 @@ changed
 >       charNames = ["character", "char"]
 >       boolNames = ["boolean", "bool"]
 
+> checkTypeExists :: Scope -> MySourcePos -> Type -> Type
+> checkTypeExists scope sp t =
+>     if t `elem` (scopeTypes scope)
+>       then TypeList [] -- this works with the checkErrors function
+>       else TypeError sp (UnknownTypeError t)
+
+================================================================================
+
 Internal errors
 
 TODO: work out monad transformers and try to use these. Want to throw
@@ -264,7 +248,10 @@ a regular either style error, all without dropping into IO.
 >    noMsg  = TInternalError "oh noes!"
 >    strMsg = TInternalError
 
+================================================================================
 
+types for the keyword operators, for use in findCallMatch. Not sure
+where these should live but probably not here.
 
 > keywordOperatorTypes :: [(String,[Type],Type)]
 > keywordOperatorTypes = [
@@ -283,3 +270,64 @@ a regular either style error, all without dropping into IO.
 >  ,("!substring", [ScalarType "text",typeInt,typeInt], ScalarType "text")
 >  ,("!arraySub", [Pseudo AnyArray,typeInt], Pseudo AnyElement)
 >  ]
+
+================================================================================
+
+utilities for working with Types
+
+> isArrayType :: Type -> Bool
+> isArrayType (ArrayType _) = True
+> isArrayType _ = False
+
+> unwrapTypeList :: Type -> [Type]
+> unwrapTypeList (TypeList ts) = ts
+> unwrapTypeList x = error $ "can't get types from list " ++ show x
+
+> unwrapArray :: Type -> Type
+> unwrapArray (ArrayType t) = t
+> unwrapArray x = error $ "can't get types from non array " ++ show x
+
+> unwrapSetOfComposite :: Type -> Type
+> unwrapSetOfComposite (SetOfType a@(UnnamedCompositeType _)) = a
+> unwrapSetOfComposite _ = error "internal error"
+
+> unwrapCompositeTypes :: Type -> M.Map String Type
+> unwrapCompositeTypes (UnnamedCompositeType a) = M.fromList a
+> unwrapCompositeTypes _ = error $ "cannot unwrapCompositeTypes on non unnamedcomposite type"
+
+> unwrapComposite :: Type -> [(String,Type)]
+> unwrapComposite (UnnamedCompositeType a) = a
+> unwrapComposite _ = error $ "cannot unwrapComposite on non unnamedcomposite type"
+
+> consComposite :: (String,Type) -> Type -> Type
+> consComposite l (UnnamedCompositeType a) =
+>     UnnamedCompositeType (l:a)
+> consComposite _ _ = error "internal error"
+
+================================================================================
+
+old message stuff, used by the continue in loop checking, will
+disappear at some point
+
+> data Message = Error MySourcePos MessageStuff
+>              | Warning MySourcePos MessageStuff
+>              | Notice MySourcePos MessageStuff
+>                deriving (Eq)
+>
+> data MessageStuff = ContinueNotInLoop
+>                   | CustomMessage String
+>                     deriving (Eq,Show)
+>
+> instance Show Message where
+>    show m = showMessage m
+>
+> showMessage :: Message -> [Char]
+> showMessage m = case m of
+>                   Error sp s -> showit "Error" sp s
+>                   Warning sp s -> showit "Warning" sp s
+>                   Notice sp s -> showit "Notice" sp s
+>                 where
+>                   showit lev (fn,l,c) s = lev ++ "\n" ++ fn ++ ":"
+>                                           ++ show l ++ ":" ++ show c ++ ":\n"
+>                                           ++ show s ++ "\n"
+>

@@ -34,12 +34,6 @@ sourcePos - holds the source position used in messages, not very
 accurate at the moment, just gives you the position of the first
 character in the current statement
 
-messages - used to collect error messages, also to be used for
-warnings (e.g. $1 position argument used when all args have aliases),
-and notices - will probably use these to highlight dodgy sql
-code and idioms. This is probably going to disappear and the nodeTypes
-will carry much of this information.
-
 actual value - add this to all nodes out of lazy programming. We use
 these values in a limited number of places in the code
 
@@ -54,8 +48,7 @@ ATTR AllNodes
 ATTR AllNodes Root ExpressionRoot
   [ scope : Scope
   |
-  | messages USE {++} {[]} : {[Message]}
-    actualValue: SELF
+  | actualValue: SELF
   ]
 
 {-
@@ -115,6 +108,68 @@ SEM MaybeExpression
     | Nothing lhs.nodeType = TypeList []
 
 {-
+================================================================================
+
+= notes and todo
+
+
+containment guide for select expressions:
+combineselect 2 selects
+insert ?select
+createtableas 1 select
+createview 1 select
+return query 1 select
+forselect 1 select
+select->subselect select
+expression->exists select
+            scalarsubquery select
+            inselect select
+
+containment guide for statements:
+forselect [statement]
+forinteger [statement]
+while [statement]
+casestatement [[statement]]
+if [[statement]]
+createfunction->fnbody [Statement]
+
+TODO
+
+some non type-check checks:
+check plpgsql only in plpgsql function
+orderby in top level select only
+copy followed immediately by copydata iff stdin, copydata only follows
+  copy from stdin
+count args to raise, etc., check same number as placeholders in string
+no natural with onexpr in joins
+typename -> setof (& fix parsing), what else like this?
+expressions: positionalarg in function, window function only in select
+ list top level
+
+review all ast checks, and see if we can also catch them during
+parsing (e.g. typeName parses setof, but this should only be allowed
+for a function return, and we can make this a parse error when parsing
+from source code rather than checking a generated ast. This needs
+judgement to say whether a parse error is better than a check error, I
+think for setof it is, but e.g. for a continue not in a loop (which
+could be caught during parsing) works better as a check error, looking
+at the error message the user will get. This might be wrong, haven't
+thought too carefully about it yet).
+
+
+TODO: canonicalize ast process, as part of type checking produces a canonicalized ast which:
+all implicit casts appear explicitly in the ast (maybe distinguished from explicit casts?)
+all names fully qualified
+all types use canonical names
+literal values and selectors in one form (use row style?)
+nodes are tagged with types
+what else?
+
+Canonical form only defined for type consistent asts.
+
+This canonical form should pretty print and parse back to the same
+form, and type check correctly.
+
 
 ================================================================================
 
@@ -201,7 +256,7 @@ the then types to pass to resolveResultSetType
 
 SEM CaseExpressionListExpressionPair
     | Tuple lhs.nodeType =
-        let tl = typesFromTypeList @x1.nodeType
+        let tl = unwrapTypeList @x1.nodeType
             e1 = if not (all (==typeBool) tl)
                    then TypeError @lhs.sourcePos (WrongTypes typeBool tl)
                    else TypeList []
@@ -212,10 +267,10 @@ SEM Expression
              resolveResultSetType
                @lhs.scope
                @lhs.sourcePos
-               (typesFromTypeList
+               (unwrapTypeList
                 (case @els.nodeType of
                    TypeList [] -> @cases.nodeType
-                   e -> TypeList $ (typesFromTypeList @cases.nodeType)
+                   e -> TypeList $ (unwrapTypeList @cases.nodeType)
                                   ++ [e]))
 
 {-
@@ -258,7 +313,7 @@ SEM SelectExpression
                           (SetOfType @selSelectList.nodeType)
 
 SEM TableRef
-    | SubTref lhs.nodeType = getCompositeFromSetOf @sel.nodeType
+    | SubTref lhs.nodeType = unwrapSetOfComposite @sel.nodeType
     | TrefAlias Tref lhs.nodeType =
         case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
           Just (_,_,a@(UnnamedCompositeType _)) -> a
@@ -290,10 +345,7 @@ SEM TableRef
                                                         @tbl.nodeType
                                                         @tbl1.nodeType
                       (_,Just (JoinUsing s)) -> unionJoinList s
-                      _ -> UnnamedCompositeType $ getTypesFromComp
-                                                     @tbl.nodeType ++
-                                                     getTypesFromComp
-                                                       @tbl1.nodeType
+                      _ -> unionJoinList []
               unionJoinList s = combineTableTypesWithUsingList
                                   @lhs.scope
                                   @lhs.sourcePos
@@ -324,9 +376,9 @@ SEM SelectItem
 
 SEM SelectItemList
     | Cons lhs.nodeType =
-        foldr consCompositeField @tl.nodeType
+        foldr consComposite @tl.nodeType
            (if @hd.columnName == "*"
-              then getTypesFromComp @lhs.trefType
+              then unwrapComposite @lhs.trefType
               else [(@hd.columnName,@hd.nodeType)])
     | Nil lhs.nodeType = UnnamedCompositeType []
 
@@ -349,12 +401,14 @@ them into the selectlist and where parts)
 
 SEM SelectExpression
     | Select
-         selSelectList.scope = scopeCombineIds
-                                 @lhs.scope
-                                 (getColumnsAsTypes @selTref.nodeType)
-         selWhere.scope =  scopeCombineIds
-                             @lhs.scope
-                             (getColumnsAsTypes @selTref.nodeType)
+         selSelectList.scope =
+             scopeCombineIds
+               @lhs.scope
+               (M.fromList $ unwrapComposite @selTref.nodeType)
+         selWhere.scope =
+             scopeCombineIds
+               @lhs.scope
+               (M.fromList $ unwrapComposite @selTref.nodeType)
 
 
 {-
@@ -434,70 +488,7 @@ SEM SelectItem
                                 s -> s
     | SelectItem lhs.columnName = @name
 
-
 {-
-
-containment guide for select expressions:
-combineselect 2 selects
-insert ?select
-createtableas 1 select
-createview 1 select
-return query 1 select
-forselect 1 select
-select->subselect select
-expression->exists select
-            scalarsubquery select
-            inselect select
-
-containment guide for statements:
-forselect [statement]
-forinteger [statement]
-while [statement]
-casestatement [[statement]]
-if [[statement]]
-createfunction->fnbody [Statement]
-
-TODO
-
-some non type-check checks:
-check plpgsql only in plpgsql function
-orderby in top level select only
-copy followed immediately by copydata iff stdin, copydata only follows
-  copy from stdin
-count args to raise, etc., check same number as placeholders in string
-natural with correct join types
-no natural with onexpr in joins
-constraint column ref checks?
-typename -> setof (& fix parsing), what else like this?
-expressions: positionalarg in function, window function only in select
- list top level
-
-review all ast checks, and see if we can also catch them during
-parsing (e.g. typeName parses setof, but this should only be allowed
-for a function return, and we can make this a parse error when parsing
-from source code rather than checking a generated ast. This needs
-judgement to say whether a parse error is better than a check error, I
-think for setof it is, but e.g. for a continue not in a loop (which
-could be caught during parsing) works better as a check error, looking
-at the error message the user will get. This might be wrong, haven't
-thought too carefully about it yet).
-
-
-
-
-TODO: canonicalize ast process, as part of type checking produces a canonicalized ast which:
-all implicit casts appear explicitly in the ast (maybe distinguished from explicit casts?)
-all names fully qualified
-all types use canonical names
-literal values and selectors in one form (use row style?)
-nodes are tagged with types
-what else?
-
-Canonical form only defined for type consistent asts.
-
-This canonical form should pretty print and parse back to the same
-form, and type check correctly.
-
 ================================================================================
 
 = static tests
@@ -528,7 +519,19 @@ appear inside loops (for, while, loop)
 the only nodes that really need this attribute are the ones which can
 contain statements
 
+the idea with the messages attribute was to collect errors, warnings,
+notices outside of the type checking, but thinking about getting rid
+of this and moving all this into the types.
+
+The inloop test is the only thing which uses the messages atm.
+
 -}
+
+ATTR AllNodes Root ExpressionRoot
+  [
+  |
+  | messages USE {++} {[]} : {[Message]}
+  ]
 
 ATTR AllNodes
   [ inLoop: Bool
