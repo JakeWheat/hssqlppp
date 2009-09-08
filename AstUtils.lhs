@@ -281,28 +281,28 @@ utilities for working with Types
 
 > unwrapTypeList :: Type -> [Type]
 > unwrapTypeList (TypeList ts) = ts
-> unwrapTypeList x = error $ "can't get types from list " ++ show x
+> unwrapTypeList x = error $ "internal error: can't get types from list " ++ show x
 
 > unwrapArray :: Type -> Type
 > unwrapArray (ArrayType t) = t
-> unwrapArray x = error $ "can't get types from non array " ++ show x
+> unwrapArray x = error $ "internal error: can't get types from non array " ++ show x
 
 > unwrapSetOfComposite :: Type -> Type
 > unwrapSetOfComposite (SetOfType a@(UnnamedCompositeType _)) = a
-> unwrapSetOfComposite _ = error "internal error"
+> unwrapSetOfComposite x = error $ "internal error: tried to unwrapSetOfComposite on" ++ show x
 
 > unwrapCompositeTypes :: Type -> M.Map String Type
 > unwrapCompositeTypes (UnnamedCompositeType a) = M.fromList a
-> unwrapCompositeTypes _ = error "cannot unwrapCompositeTypes on non unnamedcomposite type"
+> unwrapCompositeTypes x = error $ "internal error: cannot unwrapCompositeTypes on " ++ show x
 
 > unwrapComposite :: Type -> [(String,Type)]
 > unwrapComposite (UnnamedCompositeType a) = a
-> unwrapComposite _ = error "cannot unwrapComposite on non unnamedcomposite type"
+> unwrapComposite x = error $ "internal error: cannot unwrapComposite on " ++ show x
 
 > consComposite :: (String,Type) -> Type -> Type
 > consComposite l (UnnamedCompositeType a) =
 >     UnnamedCompositeType (l:a)
-> consComposite _ _ = error "internal error"
+> consComposite a b = error $ "internal error: called consComposite on " ++ show (a,b)
 
 ================================================================================
 

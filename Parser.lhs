@@ -1021,7 +1021,7 @@ TODO: copy this approach here.
 
 > functionCallSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > functionCallSuffix (Identifier fnName) = FunCall fnName <$> parens (commaSep expr)
-> functionCallSuffix s = error $ "cannot make functioncall from " ++ show s
+> functionCallSuffix s = error $ "internal error: cannot make functioncall from " ++ show s
 
 > castKeyword :: ParsecT [Token] ParseState Identity Expression
 > castKeyword = keyword "cast" *> symbol "(" >>
@@ -1102,11 +1102,11 @@ from a StringLD or StringL, and the delimiters which were used
 
 > extrStr :: Expression -> String
 > extrStr (StringLit _ s) = s
-> extrStr x = error $ "extrStr not supported for this type " ++ show x
+> extrStr x = error $ "internal error: extrStr not supported for this type " ++ show x
 
 > quoteOfString :: Expression -> String
 > quoteOfString (StringLit tag _) = tag
-> quoteOfString x = error $ "quoteType not supported for this type " ++ show x
+> quoteOfString x = error $ "internal error: quoteType not supported for this type " ++ show x
 
 == combinatory things
 

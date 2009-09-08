@@ -79,7 +79,7 @@ This code is currently on the backburner, and is a massive mess.
 >                                loadStatement conn
 >                                  (srcp, VanillaStatement (Copy tb cl
 >                                                     (CopyFilename tfn1))))
->                          _ -> error "pattern match fail"
+>                          _ -> error "internal error: pattern match fail in runCopy in loadIntoDatabase"
 >     loadPlpgsqlIntoDatabase conn = do
 >          -- first, check plpgsql is in the database
 >          x <- selectValue conn

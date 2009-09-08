@@ -47,7 +47,7 @@ database...
 >                                      "a" -> AssignmentCastContext
 >                                      "i" -> ImplicitCastContext
 >                                      "e" -> ExplicitCastContext
->                                      _ -> error $ "unknown cast context " ++ (l!!2)))
+>                                      _ -> error $ "internal error: unknown cast context " ++ (l!!2)))
 >    typeCatInfo <- selectRelation conn
 >                        "select pg_type.oid, typcategory, typispreferred from pg_type\n\
 >                        \where pg_catalog.pg_type_is_visible(pg_type.oid);" []
@@ -118,7 +118,7 @@ database...
 >                   "r" -> TableComposite
 >                   "v" -> ViewComposite
 >                   "c" -> Composite
->                   x -> error $ "unknown composite type: " ++ x
+>                   x -> error $ "internal error: unknown composite type: " ++ x
 >            atts = let ps = split ',' (l!!2)
 >                       ps1 = map (split ';') ps
 >                   in UnnamedCompositeType $ map (\pl -> (head pl, jlt (pl!!1))) ps1
@@ -153,8 +153,8 @@ database...
 >                                                  "record" -> Record
 >                                                  "trigger" -> Trigger
 >                                                  "void" -> Void
->                                                  _ -> error $ "unknown pseudo " ++ t))
->                     _ -> error $ "unknown type type: " ++ (l !! 1)
+>                                                  _ -> error $ "internal error: unknown pseudo " ++ t))
+>                     _ -> error $ "internal error: unknown type type: " ++ (l !! 1)
 >            scType = (head l, ctor name)
 >        in if (l!!4) /= "0"
 >           then [(l!!5,ArrayType $ ctor name), scType]

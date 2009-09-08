@@ -239,7 +239,7 @@ findCallMatch is a bit of a mess
 >                      _ -> True
 >                    where
 >                      nextMatch = canMatch' ias pas
->                  canMatch' _ _ = error "internal error"
+>                  canMatch' _ _ = error "internal error: mismatched lists in canMatch'"
 >             resolvePolyType :: ProtArgCast -> Maybe Type
 >             resolvePolyType ((_,fnArgs,_),_) =
 >                 {-trace ("\nresolving " ++ show fnArgs ++ " against " ++ show inArgs ++ "\n") $-}
@@ -387,12 +387,12 @@ findCallMatch is a bit of a mess
 >
 > isPreferredType :: Scope -> Type -> Bool
 > isPreferredType scope t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories scope) of
->                       Nothing -> error $ "internal error, couldn't find type category information: " ++ show t
+>                       Nothing -> error $ "internal error: couldn't find type category information: " ++ show t
 >                       Just (_,_,p) -> p
 >
 > getTypeCategory :: Scope -> Type -> String
 > getTypeCategory scope t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories scope) of
->                       Nothing -> error $ "internal error, couldn't find type category information: " ++ show t
+>                       Nothing -> error $ "internal error: couldn't find type category information: " ++ show t
 >                       Just (_,c,_) -> c
 >
 >

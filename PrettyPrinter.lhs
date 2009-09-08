@@ -241,7 +241,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement (Perform f@(FunCall _ _)) =
 >     text "perform" <+> convExp f <> statementEnd
 > convStatement (Perform x) =
->    error $ "convStatement not supported for " ++ show x
+>    error $ "internal error: convStatement not supported for " ++ show x
 
 > convStatement (Copy tb cols src) =
 >     text "copy" <+> text tb
@@ -331,11 +331,11 @@ Conversion routines - convert Sql asts into Docs
 >         <+> text "as" <+> text alias
 >     convTref (TrefFun f@(FunCall _ _)) = convExp f
 >     convTref (TrefFun x) =
->         error $ "node not supported in function tref: " ++ show x
+>         error $ "internal error: node not supported in function tref: " ++ show x
 >     convTref (TrefFunAlias f@(FunCall _ _) a) =
 >         convExp f <+> text "as" <+> text a
 >     convTref (TrefFunAlias x _) =
->         error $ "node not supported in function tref: " ++ show x
+>         error $ "internal error: node not supported in function tref: " ++ show x
 
 > convSelectExpression writeSelect (CombineSelect tp s1 s2) =
 >   convSelectExpression writeSelect s1
