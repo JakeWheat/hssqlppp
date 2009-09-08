@@ -38,7 +38,8 @@ more files then pretty print them line by line, loading each line
 straight into a database to help with testing. This may be a bit more
 fragile than using roundtripfile.
 
-This hopefully can give a bit more confidence that the sql has been
+Loading the roundtripped sql into a database then running tests on it
+will hopefully can give a bit more confidence that the sql has been
 parsed accurately.
 
 == showtypes,showtypesdb

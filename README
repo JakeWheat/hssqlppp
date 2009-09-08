@@ -80,7 +80,8 @@ with
   printed SQL.
 
 Unfortunately I can't make any promises to fix anything in a timely
-manner myself, although most SQL I can probably fix quite quickly.
+manner myself, although I will probably fix most small oversights
+quite quickly.
 
 If you want another SQL dialect supported and don't want to it
 yourself, please report this on the bug tracker or by emailing me.
@@ -173,10 +174,14 @@ much thought has been put into error messages and error reporting yet.
 
 No thought has been given in respects to supporting other SQL dialects.
 
-Future plans are to use this system to develop a Lint-type checker for
-PL/pgSQL, and possibly a lightweight code generation/ simple symbolic
-macro support to help with developing PL/pgSQL code, and to support
-type checking SQL statements, including with ? placeholders, to
-support generating type safe wrappers in Haskell (this placeholder
-version may be developed separately and designed to work on more than
-just PostGreSQL).
+Future plans:
+
+* use this system to develop a Lint-type checker for PL/pgSQL;
+
+* support type checking simple SQL statements that you'd embed in
+  Haskell code, including with ? placeholders, to support generating
+  type safe wrappers (this placeholder version may be developed
+  separately and designed to work on more than just PostGreSQL);
+
+* possibly a lightweight code generation/ simple symbolic macro
+  support to help with developing more robust PL/pgSQL code.
