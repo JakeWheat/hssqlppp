@@ -56,7 +56,8 @@ TODO 2: think of a name for this command
 >            ,parseFileCommand
 >            ,roundTripCommand
 >            ,getScopeCommand
->            ,showTypesCommand]
+>            ,showTypesCommand
+>            ,showTypesDBCommand]
 
 > lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
 > lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
@@ -175,9 +176,10 @@ TODO: do something more correct
 >                    "Routine to parse sql from a file, check that it appears to parse ok, \
 >                    \that pretty printing it and parsing that text gives the same ast, \
 >                    \and then displays the pretty printed version so you can see how well it's \
->                    \done (maybe it could interpolate each original statement with its \
->                    \parsed, pretty printed version so you can more easily check how \
->                    \authentic the sql is and how much has been silently dropped on the floor) "
+>                    \done"
+>                    --(maybe it could interpolate each original statement with its
+>                    --parsed, pretty printed version so you can more easily check how
+>                    --authentic the sql is and how much has been silently dropped on the floor)
 >                    (Multiple parseFile)
 
 > parseFile :: [String] -> IO ()
@@ -209,10 +211,10 @@ TODO: do something more correct
 > showTypesCommand = CallEntry
 >                    "showtypes"
 >                    "reads each file, parses, type checks, then outputs the types \
->                    \interspersed with the pretty printed statements \
->                    \todo: modify this so that is inserts the types as comments into the \
->                    \original source, get it to work correctly when run multiple times or \
->                    \the types have changed between runs (i.e. add or update the comments)"
+>                    \interspersed with the pretty printed statements"
+>                    -- todo: modify this so that is inserts the types as comments into the
+>                    -- original source, get it to work correctly when run multiple times or
+>                    -- the types have changed between runs (i.e. add or update the comments)
 >                    (Multiple showTypes)
 
 > showTypes :: [FilePath] -> IO ()
@@ -226,6 +228,35 @@ TODO: do something more correct
 >                let types = zip (getStatementsType sts) sts
 >                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
 >                                  putStrLn (printSql [st])) types
+
+================================================================================
+
+> showTypesDBCommand :: CallEntry
+> showTypesDBCommand = CallEntry
+>                    "showtypesdb"
+>                    "pass the name of a database first, then \
+>                    \filenames, reads each file, parses, type checks, \
+>                    \then outputs the types interspersed with the \
+>                    \pretty printed statements, will type check \
+>                    \against the given database schema"
+>                    (Multiple showTypesDB)
+
+
+> showTypesDB :: [FilePath] -> IO ()
+> showTypesDB args = do
+>   let dbName = head args
+>   scope <- readScope dbName
+>   mapM_ (pt scope) $ tail args
+>   where
+>     pt scope f = do
+>       x <- parseSqlFileWithState f
+>       case x of
+>            Left er -> print er
+>            Right sts -> do
+>                let types = zip (getStatementsTypeScope scope sts) sts
+>                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
+>                                  putStrLn (printSql [st])) types
+
 
 ================================================================================
 

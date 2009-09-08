@@ -10,10 +10,10 @@ using './HsSqlSystem.lhs help all'.
 The commands which access postgresql probably won't work right on your
 system, they are in a very early alpha state.
 
-The three most interesting commands are:
+The most interesting commands are:
 * parsefile
-* roundtripfile
-* showtypes
+* roundtripfile, loadsql
+* showtypes, showtypesdb
 
 == parsefile
 
@@ -22,26 +22,35 @@ program will attempt to parse, then pretty print and reparse to see if
 the two asts are the same. This can be used to check the program can
 successfully parse and pretty print your sql files.
 
-== roundtripfile
+== roundtripfile, loadsql
 
 Similar to parse file, pass in a source filename and a target
 filename, and the code with parse then pretty print the text. You can
 then load the pretty printed code into a database and run your test
 suite to see if the code made it through the parsing and pretty
 printing process ok, or you can just eyeball the resultant
-sql. loadsql is another command that will attempt to parse one or more
-files then pretty print them and load them straight into a database to
-help with testing.
+sql.
 
-== showtypes
+The related command is loadsql, which will attempt to parse one or
+more files then pretty print them line by line, loading each line
+straight into a database to help with testing. This may be a bit more
+fragile than using roundtripfile.
+
+== showtypes,showtypesdb
 
 This command will take a sql file, parse it, type check it and then
 pretty print the lines interspersed with comments containing the type
-of each command. At the moment you'll mostly get type errors, but you
-might be lucky enough to get the occaisional type - you can improve
-your chances by including select statements which only select from the
-pg catalog... This should be fixed soon to be able to type check many
-select statements against an arbitrary database.
+of each command.
+
+At the moment you'll mostly get type errors, but you might be lucky
+enough to get the occasional type - you can improve your chances by
+including select statements which only select from the pg
+catalog.
+
+showtypesdb fixes this to some extent. It will type check against the
+schema in the given database, rather than a hardcoded copy of
+template1. It still won't type check against definitions given in the
+same file though, which is a bit of a limitation.
 
 == reasonably up to date output of ./HsSqlSystem.lhs help all
 
@@ -69,10 +78,7 @@ parsefile
 Routine to parse sql from a file, check that it appears to parse ok,
 that pretty printing it and parsing that text gives the same ast, and
 then displays the pretty printed version so you can see how well it's
-done (maybe it could interpolate each original statement with its
-parsed, pretty printed version so you can more easily check how
-authentic the sql is and how much has been silently dropped on the
-floor)
+done
 
 roundtripfile
 Used to test the parsing and pretty printing round trip. Takes two
@@ -86,10 +92,14 @@ text to stdout
 
 showtypes
 reads each file, parses, type checks, then outputs the types
-interspersed with the pretty printed statements todo: modify this so
-that is inserts the types as comments into the original source, get it
-to work correctly when run multiple times or the types have changed
-between runs (i.e. add or update the comments)
+interspersed with the pretty printed statements
+
+showtypesdb
+pass the name of a database first, then filenames, reads each file,
+parses, type checks, then outputs the types interspersed with the
+pretty printed statements, will type check against the given database
+schema
+
 
 ================================================================================
 
@@ -128,6 +138,6 @@ load AstCheckTests.lhs, use parseAndGetType:
 = run the automated tests
 
 To run the test suite run ./Tests.lhs. This will mainly test parsing
-and pretty printing, and typechecking.
+and pretty printing, and type checking.
 
 
