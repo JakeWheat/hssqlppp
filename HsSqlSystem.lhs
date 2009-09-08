@@ -38,32 +38,60 @@ TODO 2: think of a name for this command
 >   --provide "..." progress thingys, etc.
 >   hSetBuffering stdout NoBuffering
 >   args <- getArgs
->   when (length args == 0) $ error "no command given"
 >   case () of
->     _ | (length args == 2 && head args == "cleardb") -> cleardb (args !! 1)
->       | (length args >= 3 && head args == "loadsql") -> loadsqlfiles args
->       | (length args >= 3 && head args == "clearandloadsql") ->
->            cleardb (args !! 1) >> loadsqlfiles args
->       | (length args == 2 && head args == "lexfile") -> lexFile (args !! 1)
->       | (length args >= 2 && head args == "showfileatts") -> showfileatts (tail args)
->       | (length args >= 2 && head args == "parsefile") -> parseFile (tail args)
->       | (length args == 3 && head args == "roundtrip") -> roundTripFile (tail args)
->       | (length args == 2 && head args == "getscope") -> getScope (args !! 1)
->       | (length args >= 2 && head args == "showtypes") -> showTypes $ tail args
->       | otherwise -> error "couldn't parse command line"
->   where
->     loadsqlfiles args = mapM_ (loadSqlfile (args !! 1)) (tail $ tail args)
+>        _ | length args == 0 -> putStrLn "no command given" >> help False
+>          | args == ["help"] -> help False
+>          | args == ["help", "all"] -> help True
+>          | head args == "help" -> helpCommand (args !! 1)
+>          | otherwise -> case lookupCaller commands (head args) of
+>                           Nothing -> putStrLn "unrecognised command" >> help False
+>                           Just c -> call c $ tail args
 
+> commands :: [CallEntry]
+> commands = [clearDBCommand
+>            ,loadSqlCommand
+>            ,clearAndLoadSqlCommand
+>            ,lexFileCommand
+>            ,showFileAttsCommand
+>            ,parseFileCommand
+>            ,roundTripCommand
+>            ,getScopeCommand
+>            ,showTypesCommand]
+
+> lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
+> lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
+
+> help :: Bool -> IO ()
+> help full = do
+>   putStrLn "commands available"
+>   putStrLn "use 'help' to see a list of commands"
+>   putStrLn "use 'help all' to see a list of commands with descriptions"
+>   putStrLn "use 'help [command]' to see the description for that command\n"
+>   mapM_ putStrLn $ flip map commands (\(CallEntry nm desc _)  ->
+>                                           if full
+>                                             then nm ++ "\n" ++ desc ++ "\n"
+>                                             else nm ++ "\n")
+
+> helpCommand :: String -> IO ()
+> helpCommand c =
+>     case lookupCaller commands c of
+>       Nothing -> putStrLn "unrecognised command" >> help False
+>       Just (CallEntry nm desc _) -> putStrLn $ nm ++ "\n" ++ desc
 
 ================================================================================
 
 = load sql file
 
-This takes a file full of sql from the disk and loads it into the
-database given.
+> loadSqlCommand :: CallEntry
+> loadSqlCommand = CallEntry
+>                  "loadsql"
+>                  "This takes one or more files with sql source txt database given."
+>                  (Multiple loadSql)
 
-> loadSqlfile :: String -> String -> IO ()
-> loadSqlfile db fn = do
+> loadSql :: [String] -> IO ()
+> loadSql args =
+>   let (db:fns) = args
+>   in flip mapM_ fns $ \fn -> do
 >   res <- parseSqlFileWithState fn
 >   case res of
 >     Left er -> error $ show er
@@ -77,15 +105,36 @@ database given.
 TODO: use the correct username in this command
 TODO: do something more correct
 
+> clearDBCommand :: CallEntry
+> clearDBCommand = CallEntry
+>                  "cleardb"
+>                  "hacky util to clear a database"
+>                  (Single cleardb)
+
 > cleardb :: String -> IO ()
 > cleardb db = do
 >   withConn ("dbname=" ++ db) $ \conn -> do
 >     runSqlCommand conn "drop owned by jake cascade;"
 >   putStrLn $ "database " ++ db ++ " cleared."
 
+================================================================================
+
+> clearAndLoadSqlCommand :: CallEntry
+> clearAndLoadSqlCommand = CallEntry
+>                          "clearandloadsql"
+>                          "cleardb then loadsql"
+>                          (Multiple
+>                           (\args -> do
+>                              cleardb $ head args
+>                              loadSql args))
 
 ================================================================================
 
+> lexFileCommand :: CallEntry
+> lexFileCommand = CallEntry
+>                  "lexfile"
+>                  "lex the file given and output the tokens on separate lines"
+>                  (Single lexFile)
 > lexFile :: FilePath -> IO ()
 > lexFile f = do
 >   putStrLn $ "lexing " ++ show f
@@ -96,6 +145,12 @@ TODO: do something more correct
 >        Right l -> mapM_ print l
 
 ================================================================================
+
+> showFileAttsCommand :: CallEntry
+> showFileAttsCommand = CallEntry
+>                       "showFileAtts"
+>                       "run the ag over the given files and return all the attributes computed"
+>                       (Multiple showfileatts)
 
 > showfileatts :: [String] -> IO ()
 > showfileatts = mapM_ pf
@@ -114,12 +169,16 @@ TODO: do something more correct
 
 ================================================================================
 
-Routine to parse sql from a file, check that it appears to parse ok,
-that pretty printing it and parsing that text gives the same ast,
-and then displays the pretty printed version so you can see how well it's
-done (maybe it could interpolate each original statement with its
-parsed, pretty printed version so you can more easily check how
-authentic the sql is and how much has been silently dropped on the floor
+> parseFileCommand :: CallEntry
+> parseFileCommand = CallEntry
+>                    "parsefile"
+>                    "Routine to parse sql from a file, check that it appears to parse ok, \
+>                    \that pretty printing it and parsing that text gives the same ast, \
+>                    \and then displays the pretty printed version so you can see how well it's \
+>                    \done (maybe it could interpolate each original statement with its \
+>                    \parsed, pretty printed version so you can more easily check how \
+>                    \authentic the sql is and how much has been silently dropped on the floor) "
+>                    (Multiple parseFile)
 
 > parseFile :: [String] -> IO ()
 > parseFile = mapM_ pf
@@ -146,12 +205,15 @@ authentic the sql is and how much has been silently dropped on the floor
 
 ================================================================================
 
-show types
-reads each file, parses, type checks, then outputs the types
-interspersed with the pretty printed statements
-todo: modify this so that is inserts the types as comments into the
-original source, get it to work correctly when run multiple times or
-the types have changed between runs (i.e. add or update the comments)
+> showTypesCommand :: CallEntry
+> showTypesCommand = CallEntry
+>                    "showtypes"
+>                    "reads each file, parses, type checks, then outputs the types \
+>                    \interspersed with the pretty printed statements \
+>                    \todo: modify this so that is inserts the types as comments into the \
+>                    \original source, get it to work correctly when run multiple times or \
+>                    \the types have changed between runs (i.e. add or update the comments)"
+>                    (Multiple showTypes)
 
 > showTypes :: [FilePath] -> IO ()
 > showTypes = mapM_ pt
@@ -167,13 +229,17 @@ the types have changed between runs (i.e. add or update the comments)
 
 ================================================================================
 
-Used to test the parsing and pretty printing round trip. Takes two
-arguments, a source filename and a target filename. If the target file
-exists, it quits. Parses the source file then pretty prints it to the
-target filename.
+> roundTripCommand :: CallEntry
+> roundTripCommand = CallEntry
+>                        "roundtripfile"
+>                        "Used to test the parsing and pretty printing round trip. Takes two \
+>                        \arguments, a source filename and a target filename. If the target file \
+>                        \exists, it quits. Parses the source file then pretty prints it to the \
+>                        \target filename."
+>                        (Multiple roundTrip)
 
-> roundTripFile :: [FilePath] -> IO ()
-> roundTripFile args = do
+> roundTrip :: [FilePath] -> IO ()
+> roundTrip args = do
 >   when (length args /= 2) $
 >          error "Please pass exactly two filenames, source and target."
 >   let (source:target:[]) = args
@@ -187,6 +253,11 @@ target filename.
 
 ================================================================================
 
+> getScopeCommand :: CallEntry
+> getScopeCommand = CallEntry
+>                   "getscope"
+>                   "read the catalogs for the given db and dump a scope variable source text to stdout"
+>                   (Single getScope)
 > getScope :: String -> IO ()
 > getScope dbName = do
 >   s <- readScope dbName
@@ -200,23 +271,15 @@ target filename.
 
 ================================================================================
 
-> replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
-> replace _ _ [] = []
-> replace old new xs@(y:ys) =
->   case stripPrefix old xs of
->     Nothing -> y : replace old new ys
->     Just ys' -> new ++ replace old new ys'
+> data CallEntry = CallEntry String String CallType
+>                --          name   use
 
+> data CallType = Single (String -> IO ())
+>               | Multiple ([String] -> IO ())
 
-> split :: Char -> String -> [String]
-> split _ ""                =  []
-> split c s                 =  let (l, s') = break (== c) s
->                            in  l : case s' of
->                                            [] -> []
->                                            (_:s'') -> split c s''
-
-> trim :: String -> String
-> trim s = trimSWS $ reverse $ trimSWS $ reverse s
->        where
->          trimSWS :: String -> String
->          trimSWS = dropWhile (`elem` " \n\t")
+> call :: CallEntry -> [String] -> IO ()
+> call (CallEntry _ _ ct) args =
+>     case ct of
+>       Single f | length args /= 1 -> error "please call this command with one argument"
+>                | otherwise -> f (head args)
+>       Multiple f -> f args
