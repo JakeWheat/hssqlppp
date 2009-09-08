@@ -1,0 +1,133 @@
+Here are some notes on what you can currently do with the code:
+
+= HsSqlSystem
+
+Command line access to a number of functions is provided by
+HsSqlSystem.lhs. You can list the commands using './HsSqlSystem.lhs
+help', and you can get the descriptions of what these commands do
+using './HsSqlSystem.lhs help all'.
+
+The commands which access postgresql probably won't work right on your
+system, they are in a very early alpha state.
+
+The three most interesting commands are:
+* parsefile
+* roundtripfile
+* showtypes
+
+== parsefile
+
+Pass in one or more filenames for files containing sql source, and the
+program will attempt to parse, then pretty print and reparse to see if
+the two asts are the same. This can be used to check the program can
+successfully parse and pretty print your sql files.
+
+== roundtripfile
+
+Similar to parse file, pass in a source filename and a target
+filename, and the code with parse then pretty print the text. You can
+then load the pretty printed code into a database and run your test
+suite to see if the code made it through the parsing and pretty
+printing process ok, or you can just eyeball the resultant
+sql. loadsql is another command that will attempt to parse one or more
+files then pretty print them and load them straight into a database to
+help with testing.
+
+== showtypes
+
+This command will take a sql file, parse it, type check it and then
+pretty print the lines interspersed with comments containing the type
+of each command. At the moment you'll mostly get type errors, but you
+might be lucky enough to get the occaisional type - you can improve
+your chances by including select statements which only select from the
+pg catalog... This should be fixed soon to be able to type check many
+select statements against an arbitrary database.
+
+== reasonably up to date output of ./HsSqlSystem.lhs help all
+
+commands available
+use 'help' to see a list of commands
+use 'help all' to see a list of commands with descriptions
+use 'help [command]' to see the description for that command
+
+cleardb
+hacky util to clear a database
+
+loadsql
+This takes one or more files with sql source txt database given.
+
+clearandloadsql
+cleardb then loadsql
+
+lexfile
+lex the file given and output the tokens on separate lines
+
+showFileAtts
+run the ag over the given files and return all the attributes computed
+
+parsefile
+Routine to parse sql from a file, check that it appears to parse ok,
+that pretty printing it and parsing that text gives the same ast, and
+then displays the pretty printed version so you can see how well it's
+done (maybe it could interpolate each original statement with its
+parsed, pretty printed version so you can more easily check how
+authentic the sql is and how much has been silently dropped on the
+floor)
+
+roundtripfile
+Used to test the parsing and pretty printing round trip. Takes two
+arguments, a source filename and a target filename. If the target file
+exists, it quits. Parses the source file then pretty prints it to the
+target filename.
+
+getscope
+read the catalogs for the given db and dump a scope variable source
+text to stdout
+
+showtypes
+reads each file, parses, type checks, then outputs the types
+interspersed with the pretty printed statements todo: modify this so
+that is inserts the types as comments into the original source, get it
+to work correctly when run multiple times or the types have changed
+between runs (i.e. add or update the comments)
+
+================================================================================
+
+= Using ghci
+
+by loading different files into ghci, you can try commands out
+interactively, here are some highlights:
+
+load Parser.lhs, use parseSql:
+
+Prelude Parser> parseSql "select a from b;"
+Right [(("",1,1),SelectStatement (Select Dupes (SelectList [SelExp (Identifier "a")] []) (Just (Tref "b")) Nothing [] Nothing [] Asc Nothing Nothing))]
+Prelude Parser> parseSql "select a b c from d;"
+Left 
+---------------------
+(line 1, column 10):
+unexpected IdStringTok "b"
+expecting operator
+FILENAMESTUFF:
+:1:10
+------------
+Check it out:
+select a b c from d;
+         ^
+ERROR HERE
+
+-----------------
+
+load AstCheckTests.lhs, use parseAndGetType:
+
+*AstCheckTests> parseAndGetType "select * from pg_attribute inner join pg_type on pg_attribute.atttypid = pg_type.oid;"
+[SetOfType (UnnamedCompositeType [("attrelid",ScalarType "oid"),("attname",ScalarType "name"),("atttypid",ScalarType "oid"),("attstattarget",ScalarType "int4"),("attlen",ScalarType "int2"),("attnum",ScalarType "int2"),("attndims",ScalarType "int4"),("attcacheoff",ScalarType "int4"),("atttypmod",ScalarType "int4"),("attbyval",ScalarType "bool"),("attstorage",ScalarType "char"),("attalign",ScalarType "char"),("attnotnull",ScalarType "bool"),("atthasdef",ScalarType "bool"),("attisdropped",ScalarType "bool"),("attislocal",ScalarType "bool"),("attinhcount",ScalarType "int4"),("attacl",ArrayType (ScalarType "aclitem")),("typname",ScalarType "name"),("typnamespace",ScalarType "oid"),("typowner",ScalarType "oid"),("typlen",ScalarType "int2"),("typbyval",ScalarType "bool"),("typtype",ScalarType "char"),("typcategory",ScalarType "char"),("typispreferred",ScalarType "bool"),("typisdefined",ScalarType "bool"),("typdelim",ScalarType "char"),("typrelid",ScalarType "oid"),("typelem",ScalarType "oid"),("typarray",ScalarType "oid"),("typinput",ScalarType "regproc"),("typoutput",ScalarType "regproc"),("typreceive",ScalarType "regproc"),("typsend",ScalarType "regproc"),("typmodin",ScalarType "regproc"),("typmodout",ScalarType "regproc"),("typanalyze",ScalarType "regproc"),("typalign",ScalarType "char"),("typstorage",ScalarType "char"),("typnotnull",ScalarType "bool"),("typbasetype",ScalarType "oid"),("typtypmod",ScalarType "int4"),("typndims",ScalarType "int4"),("typdefaultbin",ScalarType "text"),("typdefault",ScalarType "text")])]
+
+================================================================================
+
+= run the automated tests
+
+To run the test suite run ./Tests.lhs. This will mainly test parsing
+and pretty printing, and typechecking.
+
+

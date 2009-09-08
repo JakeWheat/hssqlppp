@@ -13,7 +13,7 @@ parse, but is in an early state.
 The current aims of the project is to provide a parser and type
 checker for a substantial portion of postgresql sql and plpgsql. The
 bits that are unlikely to be supported include stuff which falls above
-a certain threshold when considering the following factors:
+a certain threshold when considering the following factors together:
 * difficult to support
 * rarely used
 * having better ways of achieving the same effect
@@ -151,8 +151,7 @@ ddl.
 == Try it and see approach
 
 See the usage file where there are instructions on how to parse files,
-and type check them to see how well the code supports some of your sql
-source.
+and type check them to see how well the code supports your sql source.
 
 = Other current downsides:
 
