@@ -1,0 +1,104 @@
+Some brief notes on developing with this code:
+
+The project comes with a working cabal file.
+
+uuagc is used to do support type checking, there are some links at the
+top of Ast.ag for more information.
+
+Two of the files are generated:
+
+DefaultScope.hs -> generated using ./HsSqlSystem.lhs getscope template1
+ (make a backup of this file if you want to regenerate it - you can
+ get trapped without being able to run HsSqlSystem if the new file
+ doesn't compile). You shouldn't need to regenerate this file unless
+ you change the Scope data type.
+
+Ast.hs -> this is generated from Ast.ag and Typechecking.ag using
+uuagc, see Ast.ag for instructions on how to do this.
+
+If you are editing either of these files directly you're probably
+doing something wrong.
+
+See the file usage which gives some information on helper functions
+you can try from ghci, and documents a bunch of utility functions you
+can run from the command line.
+
+There are rudimentary test for a lot of the functionality, see
+ParserTests.lhs and AstCheckTests.lhs (for type checking). These
+contain some small examples of how the code can be used.
+
+Source file overview:
+
+Ast.ag: uuagc source for the ast data types and the api functions for
+        type checking asts.
+
+AstCheckTests.lhs: hunit tests for type checking
+
+AstUtils.lhs: some utilities used mainly in type checking
+
+DatabaseLoader.lhs: beginnings of a program
+                     to load sql from source into postgresql, pretty
+                     rough and unfinished at the moment.
+
+DatabaseLoaderTests.lhs: almost empty hunit tests, intended to be used
+                         mainly for testing error source positioning
+                         when using databaseloader.lhs
+
+DBAccess.lhs: some simple wrappers around hdbc to run sql statements
+              and do simple selects.
+
+DefaultScope.hs: generated file which contains the scope from a
+                 standard template1 database. The intended use is to
+                 support parsing and typechecking sql without having
+                 online access to postgresql. Not sure if this is
+                 useful. It's definitely quick enough to read this
+                 information at type checking time.
+
+HsSqlSystem.lhs: program to expose some functionality on the command
+                 line, mainly utilities to help with developing the
+                 source. Run './HsSqlSystem.lhs help' to list the
+                 commands.
+
+Lexer.lhs: small file to lex sql source code.
+
+ParseErrors.lhs: small utility to add a bit of extra value to parsec errors.
+
+Parser.lhs: one of the main files - takes the output of the lexer and
+            produces asts.
+
+ParserTests.lhs: lots of hunit tests for the parser.
+
+PrettyPrinter.lhs: code to produce reparsable source from an ast.
+
+Scope.lhs: data type to store mainly information from the pg catalog,
+           used during type checking, plus some utilities for this
+           datatype.
+
+ScopeReader.lhs: utility to read a scope data type from a
+                 database. Can access this function from
+                 HsSqlSystem.lhs.
+
+Tests.lhs: small file to pull together the tests from other test
+           suites, and make them into an executable.
+
+TypeChecking.ag: the uuagc ATTR and SEM constructs used in type
+                 checking, plus the smaller bits of type checking code
+                 inline.
+
+TypeCheckingH.lhs: larger bits of typechecking code and support types,
+                   functions, moved from TypeChecking.ag to mitigate
+                   some of the pain of developing using a
+                   preprocessor.
+
+TypeConversion.lhs: code to support the type conversion algorithms
+                    used in postgresql, which are quite complicated.
+                    In particular, the code used to match an exact
+                    function given a name and a bunch of args.
+
+
+TypeType.lhs: Some types used by the type checker, should live with
+              the ast nodes but are here to support splitting the code
+              out of the ag files for the same reason that
+              TypeCheckingH.lhs exists.
+
+These files all have (hopefully) useful comments.

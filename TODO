@@ -1,4 +1,5 @@
-Type checking immediate TODO
+TODOs in rough order that they are intended to be done
+
 run through and finish or note missing bits for select expressions:
 group by, having
 order by
@@ -18,49 +19,22 @@ casts
 selects should all be typable at this point. run through pg manual and
 fill in all the gaps, get test sql files working for selects
 (modify show types to look inside create functions)
+- then we can run a roundtrip process which adds all the types as
+   comments to have a look at
+
+write type checking support that reads a given database for the
+   defaultscope rather that using the hard coded template1 scope
+- can start to actually type check real sql at this point
+
+before finishing selects, (partially) do create statements, and fix
+   it so e.g. a source file with a create table followed by a select
+   from that table type checks
 
 chain scope lookups instead of unioning them since this is too slow
 think about working on dot qualification
 think about doing null and not null aspects
-do other dml: insert,update,delete,copy,truncate
-creates, drops
-plpgsql
 
-
-functions:
-identifiers used in functions, refering to positional args, aliased
-args, declared variables
-etc.
-
-
-
-rough milestones for release 0.1:
-work through pg manual part II, add test plus parse and type check
-   support for everything mentioned. follow some links to sql
-   reference and add tests for stuff there also.
-figure out what to do about tricky operator precedence parsing, etc.
-ability to type check all of chaos sql
-ability to type check partial scripts + existing database
-get type info for ? style sql strings
-generate typesafe db access wrapper for selects and function calls,
-   plus other ? style sql strings?
-example for generating sql code from haskell using the ast
-get database loader and typesafe access good enough to use in chaos
-example usage of each of these
-
-
-incorporate pg regression test sql into parsing and type checking
-   tests
-
----------------------
-immediate list being worked on/ queued
-add type checking for these ast forms + tests
-change so that select expressions have different ast node type to
-   select statements
-do some more work on type checking (how much?)
-work on error messages from lexer and parser,
-  think about adding more source location information
-  for the type checking, etc. to use in messages
+------------
 add support for following sql syntax (+ type checking)
 alter table, common variations
 create index
@@ -72,25 +46,7 @@ ctes
 loop, exit, labels
 easy ones: transactions, savepoints, listen
 prepare, execute + using
-then: review documentation
-  add a reasonably comprehensive list of what parses, what type checks
-    what syntax support is missing, what type checking support is missing
-
-
-Other todos
-------------------------
-Syntax support missing
-(turn this into a table at some point)
-some sql to do:
-updates to existing parsers:
-select: all, distinct on, window
-  order by using
-  for update/share
-delete from
-update using
-
-new? parsers
-
+some more:
 create or replace
 alter table
 transactions: begin, checkpoint, commit, end, rollback
@@ -154,15 +110,32 @@ in general, parsing operators is wrong, the lexer needs to be able to
    what happens at the moment is a kludge, also, general operator
    parsing will change how operators are represented in the ast
 
-other ideas (some of this stuff is ridiculously ambitious):
+
+
+rough milestones for release 0.1:
+work through pg manual part II, add test plus parse and type check
+   support for everything mentioned. follow some links to sql
+   reference and add tests for stuff there also.
+figure out what to do about tricky operator precedence parsing, etc.
+ability to type check all of chaos sql
+ability to type check partial scripts + existing database
+get type info for ? style sql strings
+generate typesafe db access wrapper for selects and function calls,
+   plus other ? style sql strings?
+example for generating sql code from haskell using the ast
+get database loader and typesafe access good enough to use in chaos
+example usage of each of these
+
+incorporate pg regression test sql into parsing and type checking
+   tests
+
+--
+
+some other random ideas:
 
 write a show for parsec errors which formats the lex tokens and
    expected lists properly (was broken when moved to the separate
    lexer)
-
-lex operators properly, instead of as single chars
-
-try to find non hacky solution to lexing copy from stdin data
 
 add haddock docs to public api
 
@@ -171,48 +144,19 @@ write some example programs with plenty of comments
 redo cabal file to add compile time options: exes, pg support, tests
  or split into separate packages?
 
-add a exe to help checking the parse/pretty print round trip
-using postgresl - take a sql script, parse and pretty print it to a
-   separate file, then load the original and the pretty printed into
-   empty databases, check no errors, then to a pg dump of each to two
-   files then you can eyeball a diff to see how similar they
-   look. Probably will have to do some work on cutting down the amount
-   of parentheses that the pretty printer produces to make the diffs
-   useful for complicated views and functions.
-   Just using database loader plus tests from target project for now
+make a subfolder hierarchy/put code in a well named modules
 
 work on error reporting, add tests for malformed sql
-
-fix up expression parser to support full range of pg operators and
-   syntax with proper precedence
-
-put code in a well named module
-
-add switch to support other sql dialects in the future - is switch the
-   right way? think probably have a completely separate parser, tree
-   nodes and pretty printer for each dialect, use cut and paste to get
-   started, then see if any commonality can be refactored back in. How
-   can a program use the library and write routines to work with
-   multiple dialects if the tree nodes are completely separate though?
 
 add token location info to ast nodes, modify for type checking, etc
    support.
 
-add support for passes over this tree to find additional errors which
-   the initial parsing misses
-
-add type checking, etc. over the ast.
-
-add a macro system for custom syntax and code generation, etc. - do
-   this by providing hooks rather than compromising the vanilla pgsql
-   parser. See extension_system for notes on this.
-
-want to report multiple errors, perhaps can bodge this because of the
-   property that ';' can only appear inside a string or comment, or
-   otherwise at the end of a statement, so add some code to jump
-   to the next end of statement looking ';' and continue to parse
-   to end of file in an attempt to catch at least some further syntax
-   errors
+want to report multiple parse errors, perhaps can bodge this because
+   of the property that ';' can only appear inside a string or
+   comment, or otherwise at the end of a statement, so add some code
+   to jump to the next end of statement looking ';' and continue to
+   parse to end of file in an attempt to catch at least some further
+   syntax errors
 
 improve tests:
 identify each bit of syntax and make sure there is a test for it
@@ -223,42 +167,6 @@ get property checker working again - one problem is that the pretty
    printer will reject some asts (which the parser cannot
    produce), and the parser will probably reject some invalid sql that
    the pretty printer will happily produce from some asts.
-
-use the type inferencer:
-take a relational valued expression (select, function returning table
-   or setof, etc) plus one of:
-  sql source of database
-  text description of database read using script which reads catalog
-  database connection info to read catalog live
-and get the type of the relational valued expression
-2) - generate a typesafe wrapper to get the value of this expression
-   from haskell (see MetaHDBC, if can get this working, will remove
-   the need for metahdbc to use odbc to get try and get the type of a
-   select statement, although it may still need to access the database
-   to read the catalogs e.g. to get the types of tables, functions and
-   views).
-
-   Another thing mentioned in connection to MetaHDBC is something that
-   is called singleton results in the thread at
-   http://lindstroem.wordpress.com/2008/09/18/metahdbc-paper-draft/
-   which is the ability to use type inference to determine that the
-   value of an relation valued expression contains exactly one
-   tuple. Darwen et al.s' (punctuation?) approach involves an operator
-   which throws a runtime exception if the relation doesn't have onne
-   tuple in it which seems less good than catching it at compile time.
-
-   I'm particularly keen on being able to definitively say whether a
-   given column in a relation valued expression can or can't be
-   null. (Something I noticed the otherwise pretty good type
-   inferencer in ms sql server 2005 was a bit crap at.)
-
-Mads Lindstrøm makes an excellent argument on the above thread for a
-   pragmatic approach to accessing sql databases from Haskell,
-   avoiding dsls and the like. Supporting such an approach using this
-   parser to do type inference on regular sql code for use within
-   MetaHDBC and similar systems should be a major goal for this
-   library, separate from my megalomaniac ideas about extension
-   languages and stuff, and probably a higher priority too.
 
 plpgsql on 'roids:
 write libraries in haskell, and then write syntax extensions for

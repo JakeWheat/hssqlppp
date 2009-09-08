@@ -4,165 +4,60 @@ plpgsql. BSD licensed.
 Status: it successfully parses and accurately pretty prints the three
 moderate sized sql files from another project of mine, but there are
 lots of missing bits. Coverage of sql is reasonable, see below for
-more details on what is supported and unsupported. It also has the
-beginnings of a type checker, which currently can type check a range
-of expressions, but not selects, etc..
+more details on what is supported and unsupported.
 
-The haskell files are literate haskell (the docs in these files aren't
-quite traditional literal style though). Parser.lhs has plenty of
-links in it, and if you view ParserTests.lhs you can see a range of
-sql that the program supports. The sql three files in ./sqltestfiles/
-all parse successfully as longer examples of what can be parsed (they
-are from another project. Strictly speaking, passing these files
-through the parsing and pretty printing process leaves them unchanged
-enough to run the test suite from that project, parsing them
-accurately will have to wait until the type checker is done).
+It also has the beginnings of a type checker, which currently can type
+check a large subset of expressions and selects that the parser can
+parse, but is in an early state.
 
-Apart from the file you're reading, documentation may be found in the
-files TODO and extension_system, and possibly on the launchpad page at
+The current aims of the project is to provide a parser and type
+checker for a substantial portion of postgresql sql and plpgsql. The
+bits that are unlikely to be supported include stuff which falls above
+a certain threshold when considering the following factors:
+* difficult to support
+* rarely used
+* having better ways of achieving the same effect
+* brain damaged area of sql.
+
+I hope to put together something more precise when the code has
+progressed to an appropriate point.
+
+There is not much documentation at the moment. See the usage file for
+what you can do right now with it. Most of the source files have
+plenty of comments, hopefully they can provide some illumination.
+
+It comes with a cabal file, so you can compile it by unzipping and
+using cabal configure && cabal build in the usual way. The main
+requirement which you might not meet is it needs parsec 3, I think it
+should work on all ghc 6.10.x and possibly also ghc 6.8.x.
+
+See the file development for some notes on how to work with the source
+(there are a few generated haskell files, but these generated files
+are also included in the zip file so you don't need to worry about
+them just to build and try out the code).
+
+The main dependencies of this project are: parsec, hunit, hdbc and
+uuagc.
+
+================================================================================
+
+Homepage
+
+The project is hosted on launchpad
 http://launchpad.net/hssqlppp/
 
-The code comes with a cabal file. It should probably work with any
-modern ghc (6.10.x, maybe even earlier versions).
+You can get the latest code using bzr:
+bzr branch lp:~jakewheat/hssqlppp/trunk
 
-It doesn't need postgresql installed to run, although some of the
-planned functionality will need postgresql installed. Basic parsing
-and stuff will probably always run without postgresql.
+Contact
 
-It isn't currently in good shape to use in another project, but this
-should change shortly, any help in this area appreciated (a good start
-would be choosing a module name and uploading to hackage).
+Let me know if you're using/ interesting in using the library, if you
+have any problems or suggestions, etc.. All contributions, comments
+and criticism welcome.
 
-The ultimate purpose of this project is to add an extension system for
-custom syntax and other code processing and code generation to plpgsql
-so you can write more concise code and run custom checks, but
-hopefully it will end up also being a solid parser and type checker
-for regular sql and plpgsql code.
-
-It functions purely as a sql parser and pretty printer at the moment.
-
-If you wanted to use the code to parse sql and then do something with
-the ast then the extension system should help you to do with this,
-although you won't need to use it.
-
-If you are looking for a sql parser in haskell and evaluate this
-project and decide that you can't use it, it would be appreciated if
-you drop me a short note to say why this project is no good for you
-(jakewheatmail@gmail.com).
+jakewheatmail@gmail.com
 
 ================================================================================
-
-= Trying it out
-
-The main thing you can do at the moment is try to parse a file of sql
-and see what fails. To do this run the ParseFile (.lhs) script and
-pass the filename of the sql file to it. It will attempt to parse the
-file, and if it succeeds, pretty print then reparse the pretty printed
-text.
-
-Another check you can try is to try parsing and pretty printing a sql
-script from a project.
-
-Then to check the pretty printed version, load the resultant file into
-pg, see if it loads without error, and then maybe run tests/ try out
-your project using this new database to see if it is still good. The
-script RoundTripFile.lhs accepts two filenames, source and target to
-produce a parsed then pretty printed file.
-
-Using ghci to check parsing: load up Parser.lhs in ghci and try out
-the parsers interactively, e.g.:
-
-*Parser> parseSql "select a,b,count(c) as count from d group by b having count > 3;"
-Right [Select Dupes (SelectList [SelExp (Identifier "a"),SelExp
-(Identifier "b"),SelectItem (FunCall "count" [Identifier "c"])
-"count"] []) (Just (Tref "d")) Nothing [Identifier "b"] (Just
-(BinOpCall Gt (Identifier "count") (IntegerL 3))) [] Asc Nothing
-Nothing]
-
-*Parser> parseExpression "1+1"
-Right (BinOpCall Plus (IntegerL 1) (IntegerL 1))
-
-*Parser> parseSql "select 1; select another 1;"
-Left
----------------------
-"(unknown)" (line 1, column 26):
-unexpected "1"
-expecting operator, as, ",", into, from, where, group, having, order,
-asc, desc, limit, offset, except, intersect, union or ";"
-------------
-Check it out:
-select 1; select another 1;
-                         ^
-ERROR HERE
-------------
-
-To run the test suite run ./Tests.lhs
-
-It comes with a utility executable, ./HsSqlSystem.lhs, with the
-following commands:
-cleardb - slightly dodgy way to clear the database
-loadsql - load sql file(s) into a database, via parsing and pretty
-          printing
-clearandloadsql - cleardb then loadsql
-lexfile - lex a sql file and show the tokens on stdout
-showfileatts - intended to run typechecking, etc. on a sql file,
-               doesn't quite work at the moment
-parsefile - parse a sql file, then pretty print and parse that text to
-            see if it is unchanged
-roundtrip - parse then pretty print a sql file to stdout
-getfntables - used to generate FnTypes.ag, so we can type check
-              against the default operators and tables from template1
-              without having to connect to a database at parse/type
-              check time.
-gettypestuff - as above for types, type information and casts
-checkfntypes - utility to check that the operator and function
-               prototypes generated in getfntables only use types
-               mentioned in gettypestuff
-
-The database ones probably won't work right on your system, they are
-in a very early alpha state. You don't need to be able to run
-getfntables or gettypestuff since these output of these is included.
-
-================================================================================
-
-= Fixing problems
-
-To add support for missing syntax or alter existing support/ fix bugs,
-you'll probably need uuagc installed.
-I recommend:
-* first altering Ast.ag to add/change the tree node data
-type(s), then
-* altering the pretty printer to output these nodes,
-* altering the parser to parse them
-** add new statements to sqlStatement or plPgsqlStatement function
-** new expression types to the factor function, and
-* add one or more test cases to ParserTests.lhs (or possibly
-  AstCheckTests for type checking).
-
-(If you are a fan of TDD, do the last item first.)
-
-You may need to alter some of the type checking code (if you add any
-new node types, put them in allnodes set, and in either nonlistsnodes
-or listnodes set.
-
-ParserTests.lhs already has structure set up to parse:
-
-*  fully formed sql (including plpgsql inside create function
-   statements)
-*  individual/ multiple plpgsql statements without having to use
-   createfunction
-*  single expressions
-
-and check the asts returned. Pretty printing is tested by pretty
-printing then reparsing the asts produced.
-
-If you add something please let me know, send a patch or add it on
-launchpad or something.
-
-To add support for another sql dialect (e.g. ms sql server or mysql),
-I suggest forking the project for now, and we could look at merging
-back together once the forked code is running well for its
-dialect. Let me know if you need some help doing this.
 
 = Reporting problems
 
@@ -179,14 +74,16 @@ Unfortunately I can't make any promises to fix anything in a timely
 manner myself.
 
 If you want another sql dialect supported and don't want to it
-yourself, please report that on the bug tracker.
+yourself, please report this on the bug tracker or by emailing me.
 
 Report problems using the bug tracker on launchpad or by emailing me
-(see below for info).
+(see above for info).
 
 ================================================================================
 
 = Syntax supported/ not supported:
+
+== Parsing
 
 Partially supports:
 select statements (selectlists (*, qualified, aliased, expressions)
@@ -226,7 +123,7 @@ plpgsql statements:
         case statement
 
 Many things are missing at the moment, in particular
-  selects: cte, implicit joins, like expressions
+  selects: cte, implicit joins
   joins in updates (delete from, update using)
   alter statements
   create and drop apart from table, view, domain, type, function
@@ -243,47 +140,35 @@ complex selects and expressions, the implicit precedence (that is,
 bits without enclosing parenthesis) may parse in the wrong
 direction. Please let me know if you encounter such an error.
 
-There is slightly more detail in the todo file about what sql isn't
-supported.
+== Type checking
+
+Type checking supports a good subset of expressions and select
+statements that the parser parses (and nothing else). Development work
+is currently focused in this area, first to support most select
+statements, then insert, update and delete, and finally other dml and
+ddl.
+
+== Try it and see approach
+
+See the usage file where there are instructions on how to parse files,
+and type check them to see how well the code supports some of your sql
+source.
 
 = Other current downsides:
 
-The ast node types aren't well designed, in particular they contain no
-location information, and no other annotation.
+The ast node types aren't well designed, in particular they contain
+almost no location information, and no other annotations. Still
+thinking about the best way to code this up.
 
-No work has been done on correctly rejecting invalid sql and not much
-thought has been put into error messages and error reporting.
+Not much work has been done on correctly rejecting invalid sql and not
+much thought has been put into error messages and error reporting yet.
 
 No thought has been given in respects to supporting other sql dialects.
 
-================================================================================
-
-= Rough roadmap
-
-My current focus is on adding source location information to the ast,
-then adding type checking. I don't intend to continue adding support
-for missing sql syntax for the time being.
-
-Adding support for missing syntax used to be pretty
-easy. Unfortunately, since switching to uuagc for the ast file, it's
-become considerably more difficult. If you want to add something, send
-me an email and I can give you a few pointers.
-
-Contributions are welcome.
-
-================================================================================
-
-Homepage
-
-The project is hosted on launchpad
-http://launchpad.net/hssqlppp/
-
-You can get the latest code using bzr:
-bzr branch lp:~jakewheat/hssqlppp/trunk
-
-Contact
-
-Let me know if you're using/ interesting in using the library, if you
-have any problems or suggestions, etc.
-
-jakewheatmail@gmail.com
+Future plans are to use this system to develop a lint-type checker for
+plpgsql, and possibly a lightweight code generation/ simple symbolic
+macro support to help with developing plpgsql code, and to support
+type checking sql statements, including with ? placeholders, to
+support generating type safe wrappers in haskell (this placeholder
+version may be developed separately and designed to work on more than
+just postgresql).
