@@ -80,6 +80,8 @@ import Control.Monad.Error
 
 import TypeType
 import AstUtils
+import TypeConversion
+import TypeCheckingH
 import Scope
 import DefaultScope
 

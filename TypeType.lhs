@@ -51,6 +51,8 @@ out. If not, will have to add another type.
 
 > module TypeType where
 
+> import qualified Data.Map as M
+
 > data Type = ScalarType String
 >           | ArrayType Type
 >           | SetOfType Type
@@ -120,19 +122,6 @@ on using a wrapper.
 
 > type MySourcePos = (String, Int, Int)
 
-> typesFromTypeList :: Type -> [Type]
-> typesFromTypeList (TypeList ts) = ts
-> typesFromTypeList x = error $ "can't get types from list " ++ show x
-
-> typeFromArray :: Type -> Type
-> typeFromArray (ArrayType t) = t
-> typeFromArray x = error $ "can't get types from non array " ++ show x
-
-> isArrayType :: Type -> Bool
-> isArrayType (ArrayType _) = True
-> isArrayType (Pseudo AnyArray) = True
-> isArrayType _ = False
-
 > data CastContext = ImplicitCastContext
 >                  | AssignmentCastContext
 >                  | ExplicitCastContext
@@ -149,3 +138,49 @@ on using a wrapper.
 >              | RowCtor
 >                deriving (Eq,Show)
 >               --add not between, overlay, any, etc.
+
+
+> typesFromTypeList :: Type -> [Type]
+> typesFromTypeList (TypeList ts) = ts
+> typesFromTypeList x = error $ "can't get types from list " ++ show x
+
+> typeFromArray :: Type -> Type
+> typeFromArray (ArrayType t) = t
+> typeFromArray x = error $ "can't get types from non array " ++ show x
+
+> isArrayType :: Type -> Bool
+> isArrayType (ArrayType _) = True
+> isArrayType (Pseudo AnyArray) = True
+> isArrayType _ = False
+
+
+> getCompositeFromSetOf :: Type -> Type
+> getCompositeFromSetOf (SetOfType a@(UnnamedCompositeType _)) = a
+> getCompositeFromSetOf _ = UnnamedCompositeType []
+
+> getColumnsAsTypes :: Type -> M.Map String Type
+> getColumnsAsTypes (UnnamedCompositeType a) = M.fromList a
+> getColumnsAsTypes _ = M.empty
+
+> getTypesFromComp :: Type -> [(String,Type)]
+> getTypesFromComp (UnnamedCompositeType a) = a
+> getTypesFromComp _ = []
+
+> getTypesFromComp2 :: Type -> [Type]
+> getTypesFromComp2 (UnnamedCompositeType a) = map snd a
+> getTypesFromComp2 _ = []
+
+> appendCompositeTypes :: Type -> Type -> Type
+> appendCompositeTypes (UnnamedCompositeType a) (UnnamedCompositeType b) =
+>     UnnamedCompositeType (a ++ b)
+> appendCompositeTypes _ _ = error "internal error"
+
+> addCompositeFields :: Type -> [(String,Type)] -> Type
+> addCompositeFields (UnnamedCompositeType a) l =
+>     UnnamedCompositeType (a ++ l)
+> addCompositeFields _ _ = error "internal error"
+
+> consCompositeField :: (String,Type) -> Type -> Type
+> consCompositeField l (UnnamedCompositeType a) =
+>     UnnamedCompositeType (l:a)
+> consCompositeField _ _ = error "internal error"
