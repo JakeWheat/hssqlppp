@@ -289,7 +289,7 @@ utilities for working with Types
 
 > unwrapSetOfComposite :: Type -> Type
 > unwrapSetOfComposite (SetOfType a@(UnnamedCompositeType _)) = a
-> unwrapSetOfComposite x = error $ "internal error: tried to unwrapSetOfComposite on" ++ show x
+> unwrapSetOfComposite x = error $ "internal error: tried to unwrapSetOfComposite on " ++ show x
 
 > unwrapCompositeTypes :: Type -> M.Map String Type
 > unwrapCompositeTypes (UnnamedCompositeType a) = M.fromList a

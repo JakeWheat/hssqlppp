@@ -153,6 +153,11 @@ appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
 appendTypeList t1 t2 = TypeList (t1:t2:[])
 
 
+doTrefScope :: Scope -> Type -> Scope
+doTrefScope scope trefType = scopeCombineIds scope
+                               (M.fromList $ unwrapComposite trefType)
+
+
 fixedValue :: a -> a -> a -> a
 fixedValue a _ _ = a
 -- AttributeDef ------------------------------------------------
@@ -505,7 +510,7 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
                       e1 = if not (all (==typeBool) tl)
                              then TypeError _lhsIsourcePos (WrongTypes typeBool tl)
                              else TypeList []
-                  in checkErrors (tl ++ [e1]) _x2InodeType
+                  in checkErrors (_x1InodeType:(tl ++ [e1])) _x2InodeType
               _lhsOmessages =
                   _x1Imessages ++ _x2Imessages
               _actualValue =
@@ -1387,14 +1392,15 @@ sem_Expression_Case cases_ els_  =
               _elsImessages :: ([Message])
               _elsInodeType :: Type
               _lhsOnodeType =
-                  resolveResultSetType
-                    _lhsIscope
-                    _lhsIsourcePos
-                    (unwrapTypeList
-                     (case _elsInodeType of
-                        TypeList [] -> _casesInodeType
-                        e -> TypeList $ (unwrapTypeList _casesInodeType)
-                                       ++ [e]))
+                  checkErrors [_elsInodeType,_casesInodeType] $
+                       resolveResultSetType
+                         _lhsIscope
+                         _lhsIsourcePos
+                         (unwrapTypeList
+                          (case _elsInodeType of
+                             TypeList [] -> _casesInodeType
+                             e -> TypeList $ (unwrapTypeList _casesInodeType)
+                                            ++ [e]))
               _lhsOliftedColumnName =
                   ""
               _lhsOmessages =
@@ -1546,11 +1552,12 @@ sem_Expression_FunCall funName_ args_  =
               _argsImessages :: ([Message])
               _argsInodeType :: Type
               _lhsOnodeType =
-                  typeCheckFunCall
-                    _lhsIscope
-                    _lhsIsourcePos
-                    funName_
-                    _argsInodeType
+                  checkErrors [_argsInodeType] $
+                    typeCheckFunCall
+                      _lhsIscope
+                      _lhsIsourcePos
+                      funName_
+                      _argsInodeType
               _lhsOliftedColumnName =
                   ""
               _lhsOmessages =
@@ -3964,13 +3971,9 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
                     ,_selWhereInodeType]
                     (SetOfType _selSelectListInodeType)
               _selSelectListOscope =
-                  scopeCombineIds
-                    _lhsIscope
-                    (M.fromList $ unwrapComposite _selTrefInodeType)
+                  doTrefScope _lhsIscope _selTrefInodeType
               _selWhereOscope =
-                  scopeCombineIds
-                    _lhsIscope
-                    (M.fromList $ unwrapComposite _selTrefInodeType)
+                  doTrefScope _lhsIscope _selTrefInodeType
               _selSelectListOtrefType =
                   _selTrefInodeType
               _lhsOmessages =
@@ -4048,10 +4051,11 @@ sem_SelectExpression_Values vll_  =
               _vllImessages :: ([Message])
               _vllInodeType :: Type
               _lhsOnodeType =
-                  typeCheckValuesExpr
-                    _lhsIscope
-                    _lhsIsourcePos
-                    _vllInodeType
+                  checkErrors [_vllInodeType] $
+                              typeCheckValuesExpr
+                                        _lhsIscope
+                                        _lhsIsourcePos
+                                        _vllInodeType
               _lhsOmessages =
                   _vllImessages
               _actualValue =
@@ -6425,7 +6429,8 @@ sem_TableRef_SubTref sel_ alias_  =
               _selImessages :: ([Message])
               _selInodeType :: Type
               _lhsOnodeType =
-                  unwrapSetOfComposite _selInodeType
+                  checkErrors [_selInodeType]
+                              (unwrapSetOfComposite _selInodeType)
               _lhsOmessages =
                   _selImessages
               _actualValue =
@@ -6499,6 +6504,7 @@ sem_TableRef_TrefFun fn_  =
               _fnImessages :: ([Message])
               _fnInodeType :: Type
               _lhsOnodeType =
+                  checkErrors [_fnInodeType] $
                   case _fnIactualValue of
                     FunCall f _ ->
                         case _fnInodeType of
@@ -6546,6 +6552,7 @@ sem_TableRef_TrefFunAlias fn_ string_  =
               _fnImessages :: ([Message])
               _fnInodeType :: Type
               _lhsOnodeType =
+                  checkErrors [_fnInodeType] $
                   case _fnIactualValue of
                     FunCall f _ ->
                         case _fnInodeType of

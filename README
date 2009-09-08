@@ -1,9 +1,14 @@
-Summary: A parser and pretty printer for postgresql sql and
-plpgsql. BSD licensed.
+Summary: A parser, pretty printer, and type checker for PostGreSQL SQL
+and PL/pgSQL. BSD licensed.
+
+There is a command line wrapper, HsSqlSystem.lhs, which provides some
+utility functions to access some of the library code.
+
+It comes with a small test suite.
 
 Status: it successfully parses and accurately pretty prints the three
-moderate sized sql files from another project of mine, but there are
-lots of missing bits. Coverage of sql is reasonable, see below for
+moderate sized SQL files from another project of mine, but there are
+lots of missing bits. Coverage of SQL is reasonable, see below for
 more details on what is supported and unsupported.
 
 It also has the beginnings of a type checker, which currently can type
@@ -11,42 +16,43 @@ check a large subset of expressions and selects that the parser can
 parse, but is in an early state.
 
 The current aims of the project is to provide a parser and type
-checker for a substantial portion of postgresql sql and plpgsql. The
+checker for a substantial portion of PostGreSQL SQL and PL/pgSQL. The
 bits that are unlikely to be supported include stuff which falls above
 a certain threshold when considering the following factors together:
 * difficult to support
 * rarely used
 * having better ways of achieving the same effect
-* brain damaged area of sql.
+* brain damaged area of SQL.
 
 I hope to put together something more precise when the code has
 progressed to an appropriate point.
 
-There is not much documentation at the moment. See the usage file for
-what you can do right now with it. Most of the source files have
+There is not much documentation at the moment. See the 'usage' file
+for what you can do right now with it. Most of the source files have
 plenty of comments, hopefully they can provide some illumination.
 
-It comes with a cabal file, so you can compile it by unzipping and
-using cabal configure && cabal build in the usual way. The main
-requirement which you might not meet is it needs parsec 3, I think it
-should work on all ghc 6.10.x and possibly also ghc 6.8.x.
+It comes with a Cabal file, so you can compile it by unzipping and
+using cabal configure && cabal build in the usual way. It doesn't put
+any modules in a proper module hierarchy yet. The main requirement
+which you might not meet is it needs Parsec 3, I think it should work
+on all GHC 6.10.x and possibly also GHC 6.8.x.
 
 See the file development for some notes on how to work with the source
-(there are a few generated haskell files, but these generated files
-are also included in the zip file so you don't need to worry about
-them just to build and try out the code).
+(there are a couple of generated Haskell files, but these generated
+files are also included in the zip file so you can build and try out
+the code without regenerating them).
 
-The main dependencies of this project are: parsec, hunit, hdbc and
-uuagc.
+The main dependencies of this project are: Parsec, HUnit, HDBC and
+UUAGC.
 
 ================================================================================
 
 Homepage
 
-The project is hosted on launchpad
+The project is hosted on Launchpad
 http://launchpad.net/hssqlppp/
 
-You can get the latest code using bzr:
+You can get the latest code using Bazaar:
 bzr branch lp:~jakewheat/hssqlppp/trunk
 
 Contact
@@ -61,22 +67,25 @@ jakewheatmail@gmail.com
 
 = Reporting problems
 
-If you would like some standard postgresql syntax supported and can't
+If you would like some standard PostGreSQL syntax supported and can't
 code it yourself, a request should contain:
+
 * a single fully valid expression, or
-* a fully valid file of sql statements
+* a fully valid file of SQL statements
+
 with
+
 * the parse error produced when you parse them, or
-* the original sql and the invalidly produced parsed and pretty
-printed sql.
+* the original SQL and the invalidly produced parsed and pretty
+  printed SQL.
 
 Unfortunately I can't make any promises to fix anything in a timely
-manner myself.
+manner myself, although most SQL I can probably fix quite quickly.
 
-If you want another sql dialect supported and don't want to it
+If you want another SQL dialect supported and don't want to it
 yourself, please report this on the bug tracker or by emailing me.
 
-Report problems using the bug tracker on launchpad or by emailing me
+Report problems using the bug tracker on Launchpad or by emailing me
 (see above for info).
 
 ================================================================================
@@ -145,29 +154,29 @@ direction. Please let me know if you encounter such an error.
 Type checking supports a good subset of expressions and select
 statements that the parser parses (and nothing else). Development work
 is currently focused in this area, first to support most select
-statements, then insert, update and delete, and finally other dml and
-ddl.
+statements, then insert, update and delete, and finally other DML and
+DDL.
 
 == Try it and see approach
 
 See the usage file where there are instructions on how to parse files,
-and type check them to see how well the code supports your sql source.
+and type check them to see how well the code supports your SQL source.
 
 = Other current downsides:
 
-The ast node types aren't well designed, in particular they contain
+The AST node types aren't well designed, in particular they contain
 almost no location information, and no other annotations. Still
 thinking about the best way to code this up.
 
-Not much work has been done on correctly rejecting invalid sql and not
+Not much work has been done on correctly rejecting invalid SQL and not
 much thought has been put into error messages and error reporting yet.
 
-No thought has been given in respects to supporting other sql dialects.
+No thought has been given in respects to supporting other SQL dialects.
 
-Future plans are to use this system to develop a lint-type checker for
-plpgsql, and possibly a lightweight code generation/ simple symbolic
-macro support to help with developing plpgsql code, and to support
-type checking sql statements, including with ? placeholders, to
-support generating type safe wrappers in haskell (this placeholder
+Future plans are to use this system to develop a Lint-type checker for
+PL/pgSQL, and possibly a lightweight code generation/ simple symbolic
+macro support to help with developing PL/pgSQL code, and to support
+type checking SQL statements, including with ? placeholders, to
+support generating type safe wrappers in Haskell (this placeholder
 version may be developed separately and designed to work on more than
-just postgresql).
+just PostGreSQL).

@@ -238,11 +238,12 @@ SEM Expression
 
 SEM Expression
     | FunCall lhs.nodeType =
-        typeCheckFunCall
-          @lhs.scope
-          @lhs.sourcePos
-          @funName
-          @args.nodeType
+        checkErrors [@args.nodeType] $
+          typeCheckFunCall
+            @lhs.scope
+            @lhs.sourcePos
+            @funName
+            @args.nodeType
 
 
 
@@ -260,10 +261,11 @@ SEM CaseExpressionListExpressionPair
             e1 = if not (all (==typeBool) tl)
                    then TypeError @lhs.sourcePos (WrongTypes typeBool tl)
                    else TypeList []
-        in checkErrors (tl ++ [e1]) @x2.nodeType
+        in checkErrors (@x1.nodeType:(tl ++ [e1])) @x2.nodeType
 
 SEM Expression
     | Case lhs.nodeType =
+        checkErrors [@els.nodeType,@cases.nodeType] $
              resolveResultSetType
                @lhs.scope
                @lhs.sourcePos
@@ -301,7 +303,9 @@ SEM Statement
 
 SEM SelectExpression
     --assume we get TypeList (TypeList (Type)) out of vll
-    | Values lhs.nodeType = typeCheckValuesExpr
+    | Values lhs.nodeType =
+        checkErrors [@vll.nodeType] $
+                    typeCheckValuesExpr
                               @lhs.scope
                               @lhs.sourcePos
                               @vll.nodeType
@@ -313,13 +317,15 @@ SEM SelectExpression
                           (SetOfType @selSelectList.nodeType)
 
 SEM TableRef
-    | SubTref lhs.nodeType = unwrapSetOfComposite @sel.nodeType
+    | SubTref lhs.nodeType = checkErrors [@sel.nodeType]
+                                         (unwrapSetOfComposite @sel.nodeType)
     | TrefAlias Tref lhs.nodeType =
         case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
           Just (_,_,a@(UnnamedCompositeType _)) -> a
           _ -> TypeError @lhs.sourcePos (UnrecognisedRelation @tbl)
     | TrefFun TrefFunAlias
         lhs.nodeType =
+            checkErrors [@fn.nodeType] $
             case @fn.actualValue of
               FunCall f _ ->
                   case @fn.nodeType of
@@ -401,15 +407,14 @@ them into the selectlist and where parts)
 
 SEM SelectExpression
     | Select
-         selSelectList.scope =
-             scopeCombineIds
-               @lhs.scope
-               (M.fromList $ unwrapComposite @selTref.nodeType)
-         selWhere.scope =
-             scopeCombineIds
-               @lhs.scope
-               (M.fromList $ unwrapComposite @selTref.nodeType)
+         selSelectList.scope = doTrefScope @lhs.scope @selTref.nodeType
+         selWhere.scope = doTrefScope @lhs.scope @selTref.nodeType
 
+{
+doTrefScope :: Scope -> Type -> Scope
+doTrefScope scope trefType = scopeCombineIds scope
+                               (M.fromList $ unwrapComposite trefType)
+}
 
 {-
 

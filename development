@@ -1,8 +1,8 @@
-Some brief notes on developing with this code:
+Some brief notes on developing with this code.
 
 The project comes with a working cabal file.
 
-uuagc is used to do support type checking, there are some links at the
+UUAGC is used to do support type checking, there are some links at the
 top of Ast.ag for more information.
 
 Two of the files are generated:

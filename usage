@@ -20,7 +20,9 @@ The most interesting commands are:
 Pass in one or more filenames for files containing sql source, and the
 program will attempt to parse, then pretty print and reparse to see if
 the two asts are the same. This can be used to check the program can
-successfully parse and pretty print your sql files.
+successfully parse your sql, and if pretty printing then parsing the
+result mangles it - lack of such mangling might give you slightly more
+confidence that it has parsed ok.
 
 == roundtripfile, loadsql
 
@@ -36,6 +38,9 @@ more files then pretty print them line by line, loading each line
 straight into a database to help with testing. This may be a bit more
 fragile than using roundtripfile.
 
+This hopefully can give a bit more confidence that the sql has been
+parsed accurately.
+
 == showtypes,showtypesdb
 
 This command will take a sql file, parse it, type check it and then
@@ -43,16 +48,18 @@ pretty print the lines interspersed with comments containing the type
 of each command.
 
 At the moment you'll mostly get type errors, but you might be lucky
-enough to get the occasional type - you can improve your chances by
-including select statements which only select from the pg
+enough to get the occasional actual type - you can improve your
+chances by including select statements which only select from the pg
 catalog.
 
-showtypesdb fixes this to some extent. It will type check against the
-schema in the given database, rather than a hardcoded copy of
-template1. It still won't type check against definitions given in the
-same file though, which is a bit of a limitation.
+showtypesdb will type check against the schema in the given database,
+rather than a hardcoded copy of template1 (by accessing postgresql to
+read the catalogs at runtime). It still won't type check against
+definitions given in the same file though, which is a bit of a
+limitation, but you can load the sql files into pg first, then type
+check and see types for some views, functions, etc..
 
-== reasonably up to date output of ./HsSqlSystem.lhs help all
+== reasonably up to date output of './HsSqlSystem.lhs help all'
 
 commands available
 use 'help' to see a list of commands
@@ -137,7 +144,5 @@ load AstCheckTests.lhs, use parseAndGetType:
 
 = run the automated tests
 
-To run the test suite run ./Tests.lhs. This will mainly test parsing
-and pretty printing, and type checking.
-
-
+To run the test suite run ./Tests.lhs. This will run the tests for parsing
+and pretty printing, and for type checking.

@@ -1,3 +1,6 @@
+
+= Current TODO list
+
 TODOs in rough order that they are intended to be done
 
 run through and finish or note missing bits for select expressions:
@@ -26,13 +29,22 @@ write type checking support that reads a given database for the
    defaultscope rather that using the hard coded template1 scope
 - can start to actually type check real sql at this point
 
-before finishing selects, (partially) do create statements, and fix
-   it so e.g. a source file with a create table followed by a select
-   from that table type checks
+maybe before finishing selects, (partially) do create statements, and
+   fix it so e.g. a source file with a create table followed by a
+   select from that table type checks
 
-chain scope lookups instead of unioning them since this is too slow
+chain scope lookups instead of unioning them since unioning is too
+   slow - or maybe use maps/sets, but need to quickly scan whole lists
+   e.g. for function lookup, which can't really use any sort of key
+   based lookup, where the key the function lookup uses is the same as the
+   key the map/set uses.
+
 think about working on dot qualification
 think about doing null and not null aspects
+
+================================================================================
+
+some disorganised syntax todo:
 
 ------------
 add support for following sql syntax (+ type checking)
@@ -110,7 +122,7 @@ in general, parsing operators is wrong, the lexer needs to be able to
    what happens at the moment is a kludge, also, general operator
    parsing will change how operators are represented in the ast
 
-
+================================================================================
 
 rough milestones for release 0.1:
 work through pg manual part II, add test plus parse and type check
@@ -118,18 +130,18 @@ work through pg manual part II, add test plus parse and type check
    reference and add tests for stuff there also.
 figure out what to do about tricky operator precedence parsing, etc.
 ability to type check all of chaos sql
-ability to type check partial scripts + existing database
 get type info for ? style sql strings
 generate typesafe db access wrapper for selects and function calls,
    plus other ? style sql strings?
 example for generating sql code from haskell using the ast
-get database loader and typesafe access good enough to use in chaos
+get database loader and typesafe access generators good enough to use
+   in chaos
 example usage of each of these
 
 incorporate pg regression test sql into parsing and type checking
    tests
 
---
+================================================================================
 
 some other random ideas:
 
@@ -139,7 +151,8 @@ write a show for parsec errors which formats the lex tokens and
 
 add haddock docs to public api
 
-write some example programs with plenty of comments
+write some example programs with plenty of comments - will this mainly
+   be used as a library or as a utility though?
 
 redo cabal file to add compile time options: exes, pg support, tests
  or split into separate packages?
@@ -176,4 +189,5 @@ write libraries in haskell, and then write syntax extensions for
    same source code in the same language, with first class support for
    properly typed relation valued expressions, avoiding multiple
    languages and mapping/'impedance mismatch' between database types
-   and types in the language you write the ui in.
+   and types in the language you write the ui in. A bit like Access
+   but with a non numpty dbms.
