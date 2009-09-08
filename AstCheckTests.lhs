@@ -190,8 +190,13 @@ check casts from unknown string lits
 >         (ArrayType typeInt)
 >      ,p "array_append(ARRAY['a','b'], 'c')"
 >         (ArrayType $ ScalarType "text")
+>      ,p "array_append(ARRAY['a'::int,'b'], 'c')"
+>         (ArrayType $ typeInt)
 >      ])
->
+
+todo:
+
+
 
 >    ,testGroup "cast expressions"
 >     (mapExprType [

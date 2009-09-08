@@ -15,6 +15,7 @@ etc.. This could probably be reviewed and made to work a bit better.
 > import Data.List
 > import qualified Data.Map as M
 > import Control.Monad.Error
+> import Debug.Trace
 
 > import TypeType
 > import Scope
@@ -453,6 +454,22 @@ that position
 if one left: use
 else fail
 
+polymorphic matching:
+want to create a set of matches to insert into the cast pairs list
+so:
+
+find all matches on name, num args and have polymorphic parameters
+
+for each one, check the polymorphic categories - eliminate fns that
+have params in wrong category - array, non array, enum.
+work out the base types for the polymorphic args at each spot based on
+the args passed - so each arg is unchanged except arrays which have
+the array part stripped off
+now we have a list of types, use resolveResultSetType to see if we
+can produce a match, if so, create a new prototype which is the same
+as the polymorphic function but with these args swapped in, work out the
+casts and add it into cand cast pairs, after exact match has been run.
+
 
 findCallMatch is a bit of a mess
 
@@ -463,6 +480,7 @@ findCallMatch is a bit of a mess
 >     returnIfOnne [
 >        exactMatch
 >       ,binOp1UnknownMatch
+>       ,polymorpicExactMatches
 >       ,reachable
 >       ,filteredForPreferred
 >       ,unknownMatchesByCat]
@@ -470,26 +488,37 @@ findCallMatch is a bit of a mess
 >     where
 >       -- basic lists which roughly mirror algo
 >       -- get the possibly matching candidates
->       icl = initialCandList
+>       initialCandList :: [FunctionPrototype]
+>       initialCandList = filter (\(candf,candArgs,_) ->
+>                                   (candf,length candArgs) == (f,length inArgs))
+>                           (scopeAllFns scope)
 >
 >       -- record what casts are needed for each candidate
 >       castPairs :: [[ArgCastFlavour]]
->       castPairs = map listCastPairs $ map getFnArgs icl
+>       castPairs = map listCastPairs $ map getFnArgs initialCandList
 >
 >       candCastPairs :: [ProtArgCast]
->       candCastPairs = zip icl castPairs
+>       candCastPairs = zip initialCandList castPairs
 >
 >       -- see if we have an exact match
 >       exactMatch :: [ProtArgCast]
->       exactMatch = getExactMatch candCastPairs
+>       exactMatch = filterCandCastPairs (all (==ExactMatch)) candCastPairs
 >
 >       -- implement the one known, one unknown resolution for binary operators
 >       binOp1UnknownMatch :: [ProtArgCast]
 >       binOp1UnknownMatch = getBinOp1UnknownMatch candCastPairs
 >
+>       --collect possible polymorphic matches
+>       polymorphicMatches :: [ProtArgCast]
+>       polymorphicMatches = filterPolymorphics candCastPairs
+>
+>       polymorpicExactMatches :: [ProtArgCast]
+>       polymorpicExactMatches = filterCandCastPairs (all (==ExactMatch)) polymorphicMatches
+>
 >       -- eliminate candidates for which the inargs cannot be casted to
 >       reachable :: [ProtArgCast]
->       reachable = filterCandCastPairs (none (==CannotCast)) candCastPairs
+>       reachable = mergePolys (filterCandCastPairs (none (==CannotCast)) candCastPairs)
+>                     polymorphicMatches
 >
 >       -- keep the cands with the most casts to preferred types
 >       preferredTypesCounts = countPreferredTypeCasts reachable
@@ -506,10 +535,6 @@ findCallMatch is a bit of a mess
 >       unknownMatchesByCat = getCandCatMatches filteredForPreferred argCats
 >
 >       -------------
->       initialCandList :: [FunctionPrototype]
->       initialCandList = filter (\(candf,candArgs,_) ->
->                                   (candf,length candArgs) == (f,length inArgs))
->                           (scopeAllFns scope)
 >
 >       listCastPairs :: [Type] -> [ArgCastFlavour]
 >       listCastPairs l = listCastPairs' inArgs l
@@ -527,8 +552,6 @@ findCallMatch is a bit of a mess
 >                           listCastPairs' [] [] = []
 >                           listCastPairs' _ _ = error "internal error: mismatched num args in implicit cast algorithm"
 >
->       getExactMatch :: [ProtArgCast] -> [ProtArgCast]
->       getExactMatch ccp  = filterCandCastPairs (all (==ExactMatch)) ccp
 >
 >       getBinOp1UnknownMatch :: [ProtArgCast] -> [ProtArgCast]
 >       getBinOp1UnknownMatch cands =
@@ -541,6 +564,108 @@ findCallMatch is a bit of a mess
 >                                             then inArgs !! 1
 >                                             else head inArgs)
 >                  in filter (\((_,a,_),_) -> a == newInArgs) cands
+>
+>       filterPolymorphics :: [ProtArgCast] -> [ProtArgCast]
+>       filterPolymorphics cl =
+>           let ms :: [ProtArgCast]
+>               ms = filter canMatch polys
+>               polyTypes :: [Maybe Type]
+>               polyTypes = map resolvePolyType ms
+>               polyTypePairs :: [(Maybe Type, ProtArgCast)]
+>               polyTypePairs = zip polyTypes ms
+>               keepPolyTypePairs :: [(Type, ProtArgCast)]
+>               keepPolyTypePairs =
+>                 catMaybes $ map (\(t,p) -> case t of
+>                                              Nothing -> Nothing
+>                                              Just t' -> Just (t',p))
+>                               polyTypePairs
+>               finalRows = map (\(t,p) -> instantiatePolyType p t)
+>                               keepPolyTypePairs
+>               --create the new cast lists
+>               cps :: [[ArgCastFlavour]]
+>               cps = map listCastPairs $ map (getFnArgs . fst) finalRows
+>           in zip (map fst finalRows) cps
+>           where
+>             polys :: [ProtArgCast]
+>             polys = filter (\((_,a,_),_) -> any (`elem`
+>                                              [Pseudo Any
+>                                              ,Pseudo AnyArray
+>                                              ,Pseudo AnyElement
+>                                              ,Pseudo AnyEnum
+>                                              ,Pseudo AnyNonArray]) a) cl
+>             canMatch :: ProtArgCast -> Bool
+>             canMatch pac =
+>                let ((_,fnArgs,_),_) = pac
+>                in canMatch' inArgs fnArgs
+>                where
+>                  canMatch' [] [] = True
+>                  canMatch' (ia:ias) (pa:pas) =
+>                    case pa of
+>                      Pseudo Any -> nextMatch
+>                      Pseudo AnyArray -> if isArrayType ia
+>                                           then nextMatch
+>                                           else False
+>                      Pseudo AnyElement -> nextMatch
+>                      Pseudo AnyEnum -> False
+>                      Pseudo AnyNonArray -> if isArrayType ia
+>                                              then False
+>                                              else nextMatch
+>                      _ -> True
+>                    where
+>                      nextMatch = canMatch' ias pas
+>                  canMatch' _ _ = error "internal error"
+>             resolvePolyType :: ProtArgCast -> Maybe Type
+>             resolvePolyType ((_,fnArgs,_),_) =
+>                 {-trace ("\nresolving " ++ show fnArgs ++ " against " ++ show inArgs ++ "\n") $-}
+>                 let argPairs = zip inArgs fnArgs
+>                     typeList = catMaybes $ flip map argPairs
+>                                  (\(ia,fa) -> case fa of
+>                                                   Pseudo Any -> if isArrayType ia
+>                                                                          then Just $ typeFromArray ia
+>                                                                          else Just $ ia
+>                                                   Pseudo AnyArray -> Just $ typeFromArray ia
+>                                                   Pseudo AnyElement -> if isArrayType ia
+>                                                                          then Just $ typeFromArray ia
+>                                                                          else Just $ ia
+>                                                   Pseudo AnyEnum -> Nothing
+>                                                   Pseudo AnyNonArray -> Just ia
+>                                                   _ -> Nothing)
+>                 in {-trace ("\nresolve types: " ++ show typeList ++ "\n") $-}
+>                    case resolveResultSetType scope sp typeList of
+>                      UnknownType -> Nothing
+>                      TypeError _ _ -> Nothing
+>                      x -> Just x
+>             instantiatePolyType :: ProtArgCast -> Type -> ProtArgCast
+>             instantiatePolyType pac t =
+>               let ((fn,a,r),_) = pac
+>                   instArgs = swapPolys t a
+>                   p1 = (fn, instArgs, swapPoly t r)
+>               in let x = (p1,listCastPairs instArgs)
+>                  in {-trace ("\nfixed:" ++ show x ++ "\n")-} x
+>               where
+>                 swapPolys :: Type -> [Type] -> [Type]
+>                 swapPolys pit l = map (swapPoly pit) l
+>                 swapPoly :: Type -> Type -> Type
+>                 swapPoly pit at =
+>                   case at of
+>                     Pseudo Any -> if isArrayType at
+>                                     then ArrayType pit
+>                                     else pit
+>                     Pseudo AnyArray -> ArrayType pit
+>                     Pseudo AnyElement -> if isArrayType at
+>                                            then ArrayType pit
+>                                            else pit
+>                     Pseudo AnyEnum -> pit
+>                     Pseudo AnyNonArray -> pit
+>                     _ -> at
+>       --merge in the instantiated poly functions, with a twist:
+>       -- if we already have the exact same set of args in the non poly list
+>       -- as a poly, then don't include that poly
+>       mergePolys :: [ProtArgCast] -> [ProtArgCast] -> [ProtArgCast]
+>       mergePolys orig polys =
+>           let origArgs = map (\((_,a,_),_) -> a) orig
+>               filteredPolys = filter (\((_,a,_),_) -> not (a `elem` origArgs)) polys
+>           in orig ++ filteredPolys
 >
 >       countPreferredTypeCasts :: [ProtArgCast] -> [Int]
 >       countPreferredTypeCasts l =
