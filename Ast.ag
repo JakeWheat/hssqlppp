@@ -83,7 +83,6 @@ MODULE {Ast}
    ,IfExists (..)
    ,RestartIdentity (..)
    ,Expression (..)
-   ,FunName (..)
    ,OperatorType (..)
    ,getOperatorType
    ,InList (..)
@@ -390,7 +389,7 @@ DATA Expression | IntegerLit Integer
                 | Case cases : CaseExpressionListExpressionPairList
                        els : MaybeExpression
                 | Exists sel : SelectExpression
-                | FunCall funName:FunName args:ExpressionList
+                | FunCall funName:String args:ExpressionList
                 | InPredicate Expression Bool InList
                   -- windowfn selectitem partitionby orderby orderbyasc?
                 | WindowFn fn : Expression
@@ -455,7 +454,7 @@ Most of unusual syntax forms are not yet supported.
 
 Keyword operators are encoded as operators, with a ! followed by a string
 e.g.
-and operator -> FunCall (Operator "!and") ...
+and operator -> FunCall "!and" ...
 
 -}
 

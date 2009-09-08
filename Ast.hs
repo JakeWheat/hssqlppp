@@ -35,7 +35,6 @@ module Ast(
    ,IfExists (..)
    ,RestartIdentity (..)
    ,Expression (..)
-   ,FunName (..)
    ,OperatorType (..)
    ,getOperatorType
    ,InList (..)
@@ -1288,7 +1287,7 @@ data Expression  = BooleanLit (Bool)
                  | Cast (Expression) (TypeName) 
                  | Exists (SelectExpression) 
                  | FloatLit (Double) 
-                 | FunCall (FunName) (ExpressionList) 
+                 | FunCall (String) (ExpressionList) 
                  | Identifier (String) 
                  | InPredicate (Expression) (Bool) (InList) 
                  | IntegerLit (Integer) 
@@ -1529,7 +1528,7 @@ sem_Expression_FloatLit double_  =
               _lhsOactualValue =
                   _actualValue
           in  ( _lhsOactualValue,_lhsOliftedColumnName,_lhsOmessages,_lhsOnodeType)))
-sem_Expression_FunCall :: FunName ->
+sem_Expression_FunCall :: String ->
                           T_ExpressionList  ->
                           T_Expression 
 sem_Expression_FunCall funName_ args_  =
@@ -6501,7 +6500,7 @@ sem_TableRef_TrefFun fn_  =
               _fnInodeType :: Type
               _lhsOnodeType =
                   case _fnIactualValue of
-                    FunCall (SimpleFun f) _ ->
+                    FunCall f _ ->
                         case _fnInodeType of
                           SetOfType (CompositeType t) -> getCompositeType t
                           SetOfType x -> UnnamedCompositeType [(f,x)]
@@ -6548,7 +6547,7 @@ sem_TableRef_TrefFunAlias fn_ string_  =
               _fnInodeType :: Type
               _lhsOnodeType =
                   case _fnIactualValue of
-                    FunCall (SimpleFun f) _ ->
+                    FunCall f _ ->
                         case _fnInodeType of
                           SetOfType (CompositeType t) -> getCompositeType t
                           SetOfType x -> UnnamedCompositeType [(f,x)]

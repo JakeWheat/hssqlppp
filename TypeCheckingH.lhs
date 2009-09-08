@@ -20,22 +20,20 @@ type checking.
 idea is to move these here from TypeChecking.ag if they get a bit big,
 not very consistently applied at the moment.
 
-> typeCheckFunCall :: Scope -> MySourcePos -> FunName -> Type -> Type
+> typeCheckFunCall :: Scope -> MySourcePos -> String -> Type -> Type
 > typeCheckFunCall scope sp fnName argsType =
 >     checkErrors [argsType] ret
 >     where
 >       ret = case fnName of
->           Operator "!arrayCtor" -> let t = resolveResultSetType scope sp $ unwrapTypeList argsType
+>           "!arrayCtor" -> let t = resolveResultSetType scope sp $ unwrapTypeList argsType
 >                                    in checkErrors [t] $ ArrayType t
->           Operator "!between" -> let f1 = lookupFn ">=" [as !! 0, as !! 1]
->                                      f2 = lookupFn "<=" [as !! 0, as !! 2]
->                                      f3 = lookupFn "!and" [f1,f2]
->                                  in checkErrors [f1,f2] f3
->                                  where
->                                    as = unwrapTypeList argsType
->           Operator s ->  lookupFn s (unwrapTypeList argsType)
->           SimpleFun f -> lookupFn f (unwrapTypeList argsType)
->           RowCtor -> UnknownType
+>           "!between" -> let f1 = lookupFn ">=" [as !! 0, as !! 1]
+>                             f2 = lookupFn "<=" [as !! 0, as !! 2]
+>                             f3 = lookupFn "!and" [f1,f2]
+>                         in checkErrors [f1,f2] f3
+>                         where
+>                           as = unwrapTypeList argsType
+>           s ->  lookupFn s (unwrapTypeList argsType)
 >       lookupFn s1 args = case findCallMatch scope sp
 >                                              (if s1 == "u-" then "-" else s1) args of
 >                                Left te -> te

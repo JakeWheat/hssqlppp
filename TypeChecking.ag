@@ -321,7 +321,7 @@ SEM TableRef
     | TrefFun TrefFunAlias
         lhs.nodeType =
             case @fn.actualValue of
-              FunCall (SimpleFun f) _ ->
+              FunCall f _ ->
                   case @fn.nodeType of
                     SetOfType (CompositeType t) -> getCompositeType t
                     SetOfType x -> UnnamedCompositeType [(f,x)]

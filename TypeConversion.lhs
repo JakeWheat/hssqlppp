@@ -385,9 +385,6 @@ findCallMatch is a bit of a mess
 >                     | ImplicitToNonPreferred
 >                       deriving (Eq,Show)
 >
-> isOperator :: String -> Bool
-> isOperator = any (`elem` "+-*/<>=~!@#%^&|`?")
->
 > isPreferredType :: Scope -> Type -> Bool
 > isPreferredType scope t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories scope) of
 >                       Nothing -> error $ "internal error, couldn't find type category information: " ++ show t

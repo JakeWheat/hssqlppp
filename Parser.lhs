@@ -821,7 +821,7 @@ The full list of operators from DefaultScope.hs should be used here.
 > table :: [[Operator [Token] ParseState Identity Expression]]
 > table = [--[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
->          [prefix "-" (FunCall (Operator "u-"))]
+>          [prefix "-" (FunCall "u-")]
 >         ,[binary "^" AssocLeft]
 >         ,[binary "*" AssocLeft
 >          ,idHackBinary "*" AssocLeft
@@ -830,14 +830,14 @@ The full list of operators from DefaultScope.hs should be used here.
 >         ,[binary "+" AssocLeft
 >          ,binary "-" AssocLeft]
 >          --should be is isnull and notnull
->         ,[postfixks ["is", "not", "null"] (FunCall (Operator "!isNotNull"))
->          ,postfixks ["is", "null"] (FunCall (Operator "!isNull"))]
+>         ,[postfixks ["is", "not", "null"] (FunCall "!isNotNull")
+>          ,postfixks ["is", "null"] (FunCall "!isNull")]
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "<->" AssocNone
 >          ,binary "<=" AssocRight
 >          ,binary ">=" AssocRight
 >          ,binary "||" AssocLeft
->          ,prefix "@" (FunCall (Operator "@"))
+>          ,prefix "@" (FunCall "@")
 >          ]
 >          --in should be here, but is treated as a factor instead
 >          --between
@@ -849,7 +849,7 @@ The full list of operators from DefaultScope.hs should be used here.
 >          ,binary ">" AssocNone]
 >         ,[binary "=" AssocRight
 >          ,binary "<>" AssocNone]
->         ,[prefixk "not" (FunCall (Operator "!not"))]
+>         ,[prefixk "not" (FunCall "!not")]
 >         ,[binaryk "and" "!and" AssocLeft
 >          ,binaryk "or" "!or" AssocLeft]]
 >     where
@@ -874,7 +874,7 @@ The full list of operators from DefaultScope.hs should be used here.
 >       postfixks ss f
 >          = Postfix (try (mapM_ keyword ss >> return (unaryF f)))
 >       unaryF f l = f [l]
->       binaryF s l m = FunCall (Operator s) [l,m]
+>       binaryF s l m = FunCall s [l,m]
 
 some custom parsers
 
@@ -882,7 +882,7 @@ fix problem parsing <> - don't parse as "<" if it is immediately
 followed by ">"
 
 >       lt _ = Infix (dontFollowWith "<" ">" >>
->                     return (\l -> (\m -> FunCall (Operator "<") [l,m])))
+>                     return (\l -> (\m -> FunCall "<" [l,m])))
 
 >       dontFollowWith c1 c2 =
 >         try $ symbol c1 *> ((do
@@ -922,7 +922,7 @@ notes:
 and () is a syntax error.
 
 > rowCtor :: ParsecT [Token] ParseState Identity Expression
-> rowCtor = FunCall RowCtor <$> choice [
+> rowCtor = FunCall "!rowCtor" <$> choice [
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
 
@@ -957,7 +957,7 @@ expression when value' currently
 
 > arrayLit :: ParsecT [Token] ParseState Identity Expression
 > arrayLit = keyword "array" >>
->            FunCall (Operator "!arrayCtor") <$> squares (commaSep expr)
+>            FunCall "!arrayCtor" <$> squares (commaSep expr)
 
 when you put expr instead of identifier in arraysub, it stack
 overflows, not sure why.
@@ -965,7 +965,7 @@ overflows, not sure why.
 > arraySubSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > arraySubSuffix e = if e == Identifier "array"
 >                      then fail "can't use array as identifier name"
->                      else FunCall (Operator "!arraySub") <$> ((e:) <$> squares (commaSep1 expr))
+>                      else FunCall "!arraySub" <$> ((e:) <$> squares (commaSep1 expr))
 
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
@@ -996,7 +996,7 @@ rows between unbounded preceding and unbounded following
 >   b <- dodgyParseElement
 >   keyword "and"
 >   c <- dodgyParseElement
->   return $ FunCall (Operator "!between") [a,b,c]
+>   return $ FunCall "!between" [a,b,c]
 >              --can't use the full expression parser at this time
 >              --because of a conflict between the operator 'and' and
 >              --the 'and' part of a between
@@ -1020,7 +1020,7 @@ TODO: copy this approach here.
 >                dodgyParseElement = factor
 
 > functionCallSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> functionCallSuffix (Identifier fnName) = FunCall (SimpleFun fnName) <$> parens (commaSep expr)
+> functionCallSuffix (Identifier fnName) = FunCall fnName <$> parens (commaSep expr)
 > functionCallSuffix s = error $ "cannot make functioncall from " ++ show s
 
 > castKeyword :: ParsecT [Token] ParseState Identity Expression
@@ -1042,7 +1042,7 @@ TODO: copy this approach here.
 >             keyword "for"
 >             c <- expr
 >             symbol ")"
->             return $ FunCall (Operator "!substring") [a,b,c]
+>             return $ FunCall "!substring" [a,b,c]
 
 > identifier :: ParsecT [Token] ParseState Identity Expression
 > identifier = Identifier <$> idString

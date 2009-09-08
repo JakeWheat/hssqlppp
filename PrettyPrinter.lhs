@@ -18,7 +18,9 @@ layout better.
 > import Text.PrettyPrint
 > import Data.List (stripPrefix)
 > import Data.Maybe
+
 > import Ast
+> import TypeType
 
 ================================================================================
 
@@ -404,8 +406,7 @@ Conversion routines - convert Sql asts into Docs
 >                                               then replace "'" "''" s
 >                                               else s
 
-> convExp (FunCall (SimpleFun i) es) = text i <> parens (csvExp es)
-> convExp (FunCall (Operator n) es) =
+> convExp (FunCall n es) =
 >     --check for special operators
 >    case n of
 >      "!arrayCtor" -> text "array" <> brackets (csvExp es)
@@ -420,7 +421,8 @@ Conversion routines - convert Sql asts into Docs
 >      "!arraySub" -> case es of
 >                        ((Identifier i):es1) -> text i <> brackets (csvExp es1)
 >                        _ -> parens (convExp (head es)) <> brackets (csvExp (tail es))
->      _ ->
+>      "!rowCtor" -> text "row" <> parens (hcatCsvMap convExp es)
+>      _ | isOperator n ->
 >         case getOperatorType n of
 >                           BinaryOp ->
 >                               parens (convExp (head es)
@@ -431,6 +433,7 @@ Conversion routines - convert Sql asts into Docs
 >                                                        else filterKeyword n)
 >                                                <+> convExp (head es))
 >                           PostfixOp -> parens (convExp (head es) <+> text (filterKeyword n))
+>        | otherwise -> text n <> parens (csvExp es)
 >    where
 >      filterKeyword t = case t of
 >                          "!and" -> "and"
@@ -440,7 +443,6 @@ Conversion routines - convert Sql asts into Docs
 >                          "!isNotNull" -> "is not null"
 >                          "!like" -> "like"
 >                          x -> x
-> convExp (FunCall RowCtor es) = text "row" <> parens (hcatCsvMap convExp es)
 
 > convExp (BooleanLit b) = bool b
 > convExp (InPredicate att t lst) =

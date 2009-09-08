@@ -138,10 +138,5 @@ types of tables, views and other composite types.
 
 > type CompositeDef = (String, CompositeFlavour, Type)
 
-part of the ast, but here so we can compile the default scope which
-reads function prototypes out of template1
-
-> data FunName = SimpleFun String
->              | Operator String
->              | RowCtor
->                deriving (Eq,Show)
+> isOperator :: String -> Bool
+> isOperator = any (`elem` "+-*/<>=~!@#%^&|`?")
