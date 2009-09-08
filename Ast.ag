@@ -435,9 +435,6 @@ All of these could be considered concrete syntax variants of function
 calls, which take none, one or more expressions as arguments, and
 return a single expression as the result.
 
-The different constructors in FunName are only used to help the pretty
-printer, this is a bit inelegant.
-
 list of keyword operators (regular prefix, infix and postfix):
 and, or, not
 is null, is not null, isnull, notnull
@@ -454,7 +451,9 @@ any, some, all
 
 Most of unusual syntax forms are not yet supported.
 
-Keyword operators are encoded as follows:
+Keyword operators are encoded as operators, with a ! followed by a string
+e.g.
+and operator -> FunCall (Operator "!and") ...
 
 -}
 

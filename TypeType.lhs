@@ -108,7 +108,7 @@ later on down the line.
 >                    | NoRowsGivenForValues
 >                    | UnrecognisedIdentifier String
 >                    | UnrecognisedRelation String
->                    -- | ContextError String
+>                    | ContextError String
 >                    | MissingJoinAttribute
 >                    | ExpressionMustBeBool
 >                    -- | InternalError String

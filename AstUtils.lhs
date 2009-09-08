@@ -124,11 +124,11 @@ list, or unnamedcompositetype.
 ======
 
 
-> checkTypeExists :: Scope -> MySourcePos -> Type -> Maybe Type
+> checkTypeExists :: Scope -> MySourcePos -> Type -> Type
 > checkTypeExists scope sp t =
 >     if t `elem` (scopeTypes scope)
->       then Nothing
->       else Just $ TypeError sp (UnknownTypeError t)
+>       then TypeList [] -- this works with the checkErrors function
+>       else TypeError sp (UnknownTypeError t)
 
 
 

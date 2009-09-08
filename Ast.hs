@@ -1444,9 +1444,8 @@ sem_Expression_Cast expr_ tn_  =
               _tnImessages :: ([Message])
               _tnInodeType :: Type
               _lhsOnodeType =
-                  head $ catMaybes
-                    [unkErr _exprInodeType
-                    ,Just _tnInodeType]
+                  checkErrors [_exprInodeType]
+                    _tnInodeType
               _lhsOliftedColumnName =
                   _exprIliftedColumnName
               _lhsOmessages =
@@ -3958,11 +3957,11 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selDirImessages :: ([Message])
               _selDirInodeType :: Type
               _lhsOnodeType =
-                  head $ catMaybes
-                    [unkErr _selTrefInodeType
-                    ,unkErr _selSelectListInodeType
-                    ,unkErr _selWhereInodeType
-                    ,Just $ SetOfType _selSelectListInodeType]
+                  checkErrors
+                    [_selTrefInodeType
+                    ,_selSelectListInodeType
+                    ,_selWhereInodeType]
+                    (SetOfType _selSelectListInodeType)
               _selSelectListOscope =
                   scopeCombineIds
                     _lhsIscope
@@ -6341,9 +6340,9 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _onExprImessages :: ([Message])
               _onExprInodeType :: Type
               _lhsOnodeType =
-                  head $ catMaybes [unkErr _tblInodeType
-                                   ,unkErr _tbl1InodeType
-                                   ,Just ret]
+                  checkErrors [_tblInodeType
+                              ,_tbl1InodeType]
+                              ret
                   where
                     ret = case (_natIactualValue, _onExprIactualValue) of
                             (Natural, _) -> unionJoinList $ commonFieldNames
@@ -6508,7 +6507,7 @@ sem_TableRef_TrefFun fn_  =
                           SetOfType (CompositeType t) -> getCompositeType t
                           SetOfType x -> UnnamedCompositeType [(f,x)]
                           y -> UnnamedCompositeType [(f,y)]
-                    x -> UnnamedCompositeType []
+                    x -> TypeError _lhsIsourcePos (ContextError "FunCall")
                     where
                       getCompositeType t =
                           case getAttrs _lhsIscope [Composite
@@ -6555,7 +6554,7 @@ sem_TableRef_TrefFunAlias fn_ string_  =
                           SetOfType (CompositeType t) -> getCompositeType t
                           SetOfType x -> UnnamedCompositeType [(f,x)]
                           y -> UnnamedCompositeType [(f,y)]
-                    x -> UnnamedCompositeType []
+                    x -> TypeError _lhsIsourcePos (ContextError "FunCall")
                     where
                       getCompositeType t =
                           case getAttrs _lhsIscope [Composite
@@ -6766,10 +6765,10 @@ sem_TypeName_ArrayTypeName typ_  =
               _typInodeType :: Type
               _lhsOnodeType =
                   let t = ArrayType _typInodeType
-                  in head $ catMaybes
-                         [unkErr _typInodeType
-                         ,checkTypeExists _lhsIscope _lhsIsourcePos t
-                         ,Just t]
+                  in checkErrors
+                         [_typInodeType
+                         ,checkTypeExists _lhsIscope _lhsIsourcePos t]
+                         t
               _lhsOmessages =
                   _typImessages
               _actualValue =
@@ -6820,9 +6819,8 @@ sem_TypeName_SetOfTypeName typ_  =
               _typImessages :: ([Message])
               _typInodeType :: Type
               _lhsOnodeType =
-                  head $ catMaybes
-                    [unkErr _typInodeType
-                    ,Just $ SetOfType _typInodeType]
+                  checkErrors [_typInodeType]
+                    (SetOfType _typInodeType)
               _lhsOmessages =
                   _typImessages
               _actualValue =
@@ -6849,9 +6847,9 @@ sem_TypeName_SimpleTypeName tn_  =
               _lhsOactualValue :: TypeName
               _lhsOnodeType =
                   let st = canonicalizeType $ ScalarType tn_
-                  in head $ catMaybes
-                         [checkTypeExists _lhsIscope _lhsIsourcePos st
-                         ,Just st]
+                  in checkErrors
+                         [checkTypeExists _lhsIscope _lhsIsourcePos st]
+                         st
               _lhsOmessages =
                   []
               _actualValue =
@@ -7119,12 +7117,11 @@ sem_Where_Just just_  =
               _justImessages :: ([Message])
               _justInodeType :: Type
               _lhsOnodeType =
-                  head $ catMaybes
-                    [unkErr _justInodeType
-                    ,Just $ if _justInodeType /= typeBool
-                              then TypeError _lhsIsourcePos
-                                     ExpressionMustBeBool
-                              else typeBool]
+                  checkErrors
+                    [_justInodeType]
+                    (if _justInodeType /= typeBool
+                       then TypeError _lhsIsourcePos ExpressionMustBeBool
+                       else typeBool)
               _lhsOmessages =
                   _justImessages
               _actualValue =

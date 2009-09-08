@@ -24,7 +24,7 @@ specialized methods for generating sql code in a way that can be type
 checked statically without having to run the code.
 
 Probably not many people do this sort of thing so it might not be a
-big limitation for most.
+big limitation.
 
 ================================================================================
 
@@ -92,7 +92,10 @@ appendTypeList t1 t2 = TypeList (t1:t2:[])
 {-
 
 source positions aren't collected by the parser properly yet, so we
-just get what's available and propagate that.
+just get what's available and propagate that. All the type errors
+should collect the source position information properly, so when it
+appears in the ast nodes, we can hook it up here and the errors should
+start giving accurate positions.
 
 -}
 
@@ -119,14 +122,19 @@ SEM MaybeExpression
 
 == type names
 
+Types with type modifiers (called PrecTypeName here, to be changed),
+are not supported at the moment.
+
 -}
 
 SEM TypeName
      | SimpleTypeName
+          --this needs to work a bit better, a simpletypename can match
+          --domains, composite types, etc., not just scalar types
           lhs.nodeType = let st = canonicalizeType $ ScalarType @tn
-                         in head $ catMaybes
-                                [checkTypeExists @lhs.scope @lhs.sourcePos st
-                                ,Just st]
+                         in checkErrors
+                                [checkTypeExists @lhs.scope @lhs.sourcePos st]
+                                st
 --     | PrecTypeName
 --          lhs.nodeType = if @tn `elem` defaultTypes
 --                           then ScalarType @tn
@@ -134,14 +142,13 @@ SEM TypeName
 --                                  (UnknownTypeError @tn)
      | ArrayTypeName
           lhs.nodeType = let t = ArrayType @typ.nodeType
-                         in head $ catMaybes
-                                [unkErr @typ.nodeType
-                                ,checkTypeExists @lhs.scope @lhs.sourcePos t
-                                ,Just t]
+                         in checkErrors
+                                [@typ.nodeType
+                                ,checkTypeExists @lhs.scope @lhs.sourcePos t]
+                                t
      | SetOfTypeName
-          lhs.nodeType = head $ catMaybes
-                           [unkErr @typ.nodeType
-                           ,Just $ SetOfType @typ.nodeType]
+          lhs.nodeType = checkErrors [@typ.nodeType]
+                           (SetOfType @typ.nodeType)
 
 {-
 == literals
@@ -167,9 +174,8 @@ SEM Expression
 -}
 
 SEM Expression
-    | Cast lhs.nodeType = head $ catMaybes
-                            [unkErr @expr.nodeType
-                            ,Just @tn.nodeType]
+    | Cast lhs.nodeType = checkErrors [@expr.nodeType]
+                            @tn.nodeType
 
 {-
 == operators and functions
@@ -245,11 +251,11 @@ SEM SelectExpression
                               @lhs.sourcePos
                               @vll.nodeType
     | Select
-         lhs.nodeType = head $ catMaybes
-                          [unkErr @selTref.nodeType
-                          ,unkErr @selSelectList.nodeType
-                          ,unkErr @selWhere.nodeType
-                          ,Just $ SetOfType @selSelectList.nodeType]
+         lhs.nodeType = checkErrors
+                          [@selTref.nodeType
+                          ,@selSelectList.nodeType
+                          ,@selWhere.nodeType]
+                          (SetOfType @selSelectList.nodeType)
 
 SEM TableRef
     | SubTref lhs.nodeType = getCompositeFromSetOf @sel.nodeType
@@ -259,16 +265,13 @@ SEM TableRef
           _ -> TypeError @lhs.sourcePos (UnrecognisedRelation @tbl)
     | TrefFun TrefFunAlias
         lhs.nodeType =
-            --lhs.nodeType = case @fn.actualValue of
-            --              FunCall _ _ -> TypeList []
-            --              x -> TypeError @lhs.sourcePos (ContextError "FunCall")
             case @fn.actualValue of
               FunCall (SimpleFun f) _ ->
                   case @fn.nodeType of
                     SetOfType (CompositeType t) -> getCompositeType t
                     SetOfType x -> UnnamedCompositeType [(f,x)]
                     y -> UnnamedCompositeType [(f,y)]
-              x -> UnnamedCompositeType []
+              x -> TypeError @lhs.sourcePos (ContextError "FunCall")
               where
                 getCompositeType t =
                     case getAttrs @lhs.scope [Composite
@@ -278,9 +281,9 @@ SEM TableRef
                       _ -> UnnamedCompositeType []
     | JoinedTref
         lhs.nodeType =
-            head $ catMaybes [unkErr @tbl.nodeType
-                             ,unkErr @tbl1.nodeType
-                             ,Just ret]
+            checkErrors [@tbl.nodeType
+                        ,@tbl1.nodeType]
+                        ret
             where
               ret = case (@nat.actualValue, @onExpr.actualValue) of
                       (Natural, _) -> unionJoinList $ commonFieldNames
@@ -309,12 +312,12 @@ SEM MTableRef
 
 SEM Where
     | Nothing lhs.nodeType = typeBool
-    | Just lhs.nodeType = head $ catMaybes
-                            [unkErr @just.nodeType
-                            ,Just $ if @just.nodeType /= typeBool
-                                      then TypeError @lhs.sourcePos
-                                             ExpressionMustBeBool
-                                      else typeBool]
+    | Just lhs.nodeType =
+        checkErrors
+          [@just.nodeType]
+          (if @just.nodeType /= typeBool
+             then TypeError @lhs.sourcePos ExpressionMustBeBool
+             else typeBool)
 
 SEM SelectItem
     | SelExp SelectItem lhs.nodeType = @ex.nodeType
@@ -356,16 +359,7 @@ SEM SelectExpression
 
 {-
 
-== columns
-
-this is where we collect the name,type information from the trefs so
-we can pass it on in the scope, and also this info is used to expand *
-
-=== attributes
-
-columns holds the types of the columns retrieved from the tref, this
-provides the set of identifiers for the select list, etc., to refer to
-(it's type is always unnamedcompositetype).
+== attributes
 
 columnName is used to collect the column names that the select list
 produces, it is combined into an unnamedcompositetype in
@@ -530,6 +524,9 @@ produce the ag file?
 
 inloop - use to check continue, exit, and other commands that can only
 appear inside loops (for, while, loop)
+
+the only nodes that really need this attribute are the ones which can
+contain statements
 
 -}
 
