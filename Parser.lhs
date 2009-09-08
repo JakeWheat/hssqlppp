@@ -1015,15 +1015,10 @@ From postgresql src/backend/parser/gram.y
 
 Thanks to Sam Mason for the heads up on this.
 
-TODO: copy this approach in this parser.
+TODO: copy this approach here.
 
 >              where
->                dodgyParseElement =
->                    choice [
->                       threadOptionalSuffix identifier functionCallSuffix
->                      ,parens dodgyParseElement
->                      ,stringLit
->                      ,integerLit]
+>                dodgyParseElement = factor
 
 > functionCallSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > functionCallSuffix (Identifier fnName) = FunCall (SimpleFun fnName) <$> parens (commaSep expr)

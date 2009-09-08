@@ -332,18 +332,6 @@ SEM SelectList
 
 {-
 
->                  colTypes = typesFromTypeList selListType
->                  error1 = if length colTypes == 0
->                             then Just $ TypeError sp NoRowsGivenForValues
->                             else Nothing
->                  ty = propagateUnknownError
->                         (TypeList colTypes) $
->                         SetOfType $ UnnamedCompositeType $ zip colNames colTypes
->              in propagateUnknownError whereType $ head $ catMaybes [error0, error1, Just ty]
-
-
-
-
 == scope passing
 
 scope flow:
@@ -354,7 +342,6 @@ from tref -> select list
 (so we take the identifiers and types from the tref part, and send
 them into the selectlist and where parts)
 
-The hard work is done in the columns attributes below.
 -}
 
 SEM SelectExpression

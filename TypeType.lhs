@@ -113,6 +113,7 @@ later on down the line.
 >                    | ContextError String
 >                    | MissingJoinAttribute
 >                    | ExpressionMustBeBool
+>                    | InternalError String
 >                      deriving (Eq,Show)
 
 need this here because it is used in type errors - this should be

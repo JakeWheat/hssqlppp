@@ -57,7 +57,7 @@ Set of tests to check the type checking code
 
 >    ,testGroup "some expressions"
 >     (mapExprType [
->       p "1=1" (typeBool)
+>       p "1=1" typeBool
 >      ,p "1=true" (TypeError ("",0,0)
 >                     (NoMatchingOperator "=" [typeInt,typeBool]))
 >      ,p "substring('aqbc' from 2 for 2)" (ScalarType "text")
@@ -77,49 +77,48 @@ Set of tests to check the type checking code
 >                                    ,typeInt
 >                                    ,typeBool]))
 
->      ,p "3 between 2 and 4" (typeBool)
->      ,p "3 between '2' and 4" (TypeError ("",0,0)
->                                (WrongTypes (typeInt)
+>      ,p "3 between 2 and 4" typeBool
+>      ,p "3 between true and 4" (TypeError ("",0,0)
+>                                (NoMatchingOperator ">="
 >                                 [typeInt
->                                 ,UnknownStringLit
->                                 ,typeInt]))
+>                                 ,typeBool]))
 
->      ,p "array[1,2,3][2]" (typeInt)
+>      ,p "array[1,2,3][2]" typeInt
 >      ,p "array['a','b'][1]" (ScalarType "text")
 >      ,p "array['a','b']['test']" (TypeError ("",0,0)
 >                                   (WrongType
 >                                    typeInt
 >                                    UnknownStringLit))
 
->      ,p "not true" (typeBool)
+>      ,p "not true" typeBool
 >      ,p "not 1" (TypeError ("",0,0)
 >                  (NoMatchingKOperator Not [typeInt]))
 
->      ,p "@ 3" (typeInt)
+>      ,p "@ 3" typeInt
 >      ,p "@ true" (TypeError ("",0,0)
 >                  (NoMatchingOperator "@" [ScalarType "bool"]))
 
->      ,p "-3" (typeInt)
+>      ,p "-3" typeInt
 >      ,p "-'a'" (TypeError ("",0,0)
 >                  (NoMatchingOperator "-" [UnknownStringLit]))
 
->      ,p "4-3" (typeInt)
+>      ,p "4-3" typeInt
 
->      --,p "1 is null" (typeBool)
->      --,p "1 is not null" (typeBool)
+>      --,p "1 is null" typeBool
+>      --,p "1 is not null" typeBool
 
->      ,p "1+1" (typeInt)
->      ,p "1+1" (typeInt)
->      ,p "31*511" (typeInt)
->      ,p "5/2" (typeInt)
->      ,p "2^10" (typeFloat8)
->      ,p "17%5" (typeInt)
+>      ,p "1+1" typeInt
+>      ,p "1+1" typeInt
+>      ,p "31*511" typeInt
+>      ,p "5/2" typeInt
+>      ,p "2^10" typeFloat8
+>      ,p "17%5" typeInt
 
 >      ,p "3 and 4" (TypeError ("",0,0)
 >                   (NoMatchingKOperator And [typeInt,typeInt]))
 
->      ,p "True and False" (typeBool)
->      ,p "false or true" (typeBool)
+>      ,p "True and False" typeBool
+>      ,p "false or true" typeBool
 
 >      ,p "lower('TEST')" (ScalarType "text")
 >      ,p "lower(1)" (TypeError nsp (NoMatchingOperator "lower" [typeInt]))
@@ -155,7 +154,7 @@ check casts from unknown string lits
 >     (mapExprType [
 >       p "case\n\
 >         \ when true then 1\n\
->         \end" (typeInt)
+>         \end" typeInt
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 'blah'\n\
@@ -185,12 +184,19 @@ check casts from unknown string lits
 >                                   ,typeBool]))
 >      ])
 
+>    ,testGroup "polymorphic functions"
+>     (mapExprType [
+>       p "array_append(ARRAY[1,2], 3)"
+>         (ArrayType typeInt)
+>      ,p "array_append(ARRAY['a','b'], 'c')"
+>         (ArrayType $ ScalarType "text")
+>      ])
 >
 
 >    ,testGroup "cast expressions"
 >     (mapExprType [
 >       p "cast ('1' as integer)"
->         (typeInt)
+>         typeInt
 >      ,p "cast ('1' as baz)"
 >         (TypeError nsp (UnknownTypeError $ ScalarType "baz"))
 >      ,p "array[]"
@@ -336,7 +342,7 @@ check casts from unknown string lits
 >           mapExprType = map $ uncurry $ checkExpressionType emptyScope
 >           mapStatementType = map $ uncurry checkStatementType
 >           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
->           makeScope l = scopeCombineIds defaultScope (M.fromList l)
+>           makeScope = scopeCombineIds defaultScope . M.fromList
 >           mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
 
 > checkAttrs :: String -> [Message] -> Test.Framework.Test

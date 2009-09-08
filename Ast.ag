@@ -125,12 +125,12 @@ import Data.Maybe
 import Data.List
 import Debug.Trace
 import qualified Data.Map as M
+import Control.Monad.Error
 
 import TypeType
 import AstUtils
 import Scope
 import DefaultScope
-
 }
 
 {-

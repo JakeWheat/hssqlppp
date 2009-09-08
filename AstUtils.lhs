@@ -14,6 +14,7 @@ etc.. This could probably be reviewed and made to work a bit better.
 > import Data.Maybe
 > import Data.List
 > import qualified Data.Map as M
+> import Control.Monad.Error
 
 > import TypeType
 > import Scope
@@ -87,7 +88,7 @@ list, or unnamedcompositetype.
 >       a@(TypeError _ _) -> Just a
 >       UnknownType -> Just UnknownType
 >       TypeList l -> doTypeList l
->       UnnamedCompositeType t -> doTypeList (map snd t)
+>       UnnamedCompositeType c -> doTypeList (map snd c)
 >       _ -> Nothing
 >     where
 >       -- run through the type list, if there are any errors, collect
@@ -109,6 +110,12 @@ list, or unnamedcompositetype.
 >                                       | otherwise -> TypeList errs
 >                  | length unks > 0 -> Just UnknownType
 >                  | otherwise -> Nothing
+
+> checkErrors :: [Type] -> Type -> Type
+> checkErrors (t:ts) r = case unkErr t of
+>                        Just e -> e
+>                        Nothing -> checkErrors ts r
+> checkErrors [] r = r
 
 ================================================================================
 
@@ -197,7 +204,7 @@ the actual dsl engine:
 >     let c = case checkArgs of
 >               Just t -> t
 >               Nothing -> getRetType
->     in head $ catMaybes [unkErr tl, unkErr c, Just c]
+>     in checkErrors [tl, c] c
 >     where
 >       getRetType =
 >           case retT of
@@ -375,10 +382,6 @@ changed
 
 ================================================================================
 
-= function and operator tables
-these hold the types of functions and operators for lookup and checking
-they live in fntypes.hs
-
 > keywordBinaryOperatorTypes :: [(KeywordOperator,[Type],Type)]
 > keywordBinaryOperatorTypes = [
 >  (And, [typeBool, typeBool], typeBool),
@@ -457,18 +460,13 @@ findCallMatch is a bit of a mess
 
 > findCallMatch :: Scope -> MySourcePos -> String -> [Type] ->  Either Type FunctionPrototype
 > findCallMatch scope sp f inArgs =
->     case () of
->          _ | length exactMatch == 1 -> Right $ getHeadFn exactMatch
->            | length binOp1UnknownMatch == 1 -> Right $ getHeadFn binOp1UnknownMatch
->            | length reachable == 1 -> Right $ getHeadFn reachable
->            | length filteredForPreferred == 1 -> Right $ getHeadFn filteredForPreferred
->            | length unknownMatchesByCat == 1 ->  Right $ getHeadFn unknownMatchesByCat
->            | otherwise -> {-trace ("exact matches " ++ show exactMatch) $
->                           trace ("\nreachable " ++ show reachable) $
->                           trace ("\nfilteredforpreferred " ++ show filteredForPreferred) $
->                           trace ("\nargCats " ++ show argCats) $
->                           trace ("\nunknownMatchesByCat " ++ show unknownMatchesByCat) -}
->                           Left $ TypeError sp (NoMatchingOperator f inArgs)
+>     returnIfOnne [
+>        exactMatch
+>       ,binOp1UnknownMatch
+>       ,reachable
+>       ,filteredForPreferred
+>       ,unknownMatchesByCat]
+>       (TypeError sp (NoMatchingOperator f inArgs))
 >     where
 >       -- basic lists which roughly mirror algo
 >       -- get the possibly matching candidates
@@ -617,6 +615,10 @@ findCallMatch is a bit of a mess
 >
 >       getFnArgs :: FunctionPrototype -> [Type]
 >       getFnArgs (_,a,_) = a
+>       returnIfOnne [] e = Left e
+>       returnIfOnne (l:ls) e = if length l == 1
+>                               then Right $ getHeadFn l
+>                               else returnIfOnne ls e
 >
 >       getHeadFn :: [ProtArgCast] -> FunctionPrototype
 >       getHeadFn l =  let ((hdFn, _):_) = l
@@ -670,7 +672,7 @@ code is not as much of a mess as findCallMatch
 
 > resolveResultSetType :: Scope -> MySourcePos -> [Type] -> Type
 > resolveResultSetType scope sp inArgs =
->    head $ catMaybes [unkErr $ TypeList inArgs, Just ret]
+>    checkErrors [TypeList inArgs] ret
 >    where
 >      ret = case () of
 >                    _ | length inArgs == 0 -> TypeError sp TypelessEmptyArray
@@ -717,14 +719,15 @@ code is not as much of a mess as findCallMatch
 >         names2 = getNames t2
 >         error1 = if not (contained l names1) ||
 >                     not (contained l names2)
->                    then Just $ TypeError sp MissingJoinAttribute
->                    else Nothing
+>                    then TypeError sp MissingJoinAttribute
+>                    else TypeList []
 >         --check the types
 >         joinColumns = map (getColumnType t1 t2) l
 >         nonJoinColumns =
 >             let notJoin = (\(s,_) -> not (s `elem` l))
 >             in filter notJoin t1 ++ filter notJoin t2
->     in head $ catMaybes [error1, Just $ UnnamedCompositeType $ joinColumns ++ nonJoinColumns]
+>     in checkErrors [error1]
+>                    (UnnamedCompositeType $ joinColumns ++ nonJoinColumns)
 >     where
 >       getNames :: [(String,Type)] -> [String]
 >       getNames = map fst
@@ -754,19 +757,22 @@ code is not as much of a mess as findCallMatch
 
 > typeCheckFunCall :: Scope -> MySourcePos -> FunName -> Type -> Type
 > typeCheckFunCall scope sp fnName argsType =
->     head $ catMaybes [unkErr argsType, Just ret]
+>     checkErrors [argsType] ret
 >     where
 >       ret = case fnName of
 >           ArrayCtor -> let t = resolveResultSetType scope sp $ typesFromTypeList argsType
->                        in head $ catMaybes [unkErr t, Just $ ArrayType t]
+>                        in checkErrors [t] $ ArrayType t
 >           Substring -> ct
 >                          (ExactList [ScalarType "text"
 >                                     ,ScalarType "int4"
 >                                     ,ScalarType "int4"])
 >                          (ConstRetType (ScalarType "text"))
->           Between -> ct -- needs to be fixed to type check against <= and =>
->                          (AllSameTypeNumAny 3)
->                          (ConstRetType (typeBool))
+>           Between -> let f1 = lookupFn ">=" [as !! 0, as !! 1]
+>                          f2 = lookupFn "<=" [as !! 0, as !! 2]
+>                          f3 = lookupKop And [f1,f2]
+>                      in checkErrors [f1,f2] f3
+>                      where
+>                        as = typesFromTypeList argsType
 >           ArraySub -> ct
 >                          (ExactPredList
 >                            [ArgCheck isArrayType NotArrayType
@@ -775,7 +781,7 @@ code is not as much of a mess as findCallMatch
 >           Operator s ->  lookupFn s (typesFromTypeList argsType)
 >           KOperator k -> lookupKop k (typesFromTypeList argsType)
 >           SimpleFun f -> lookupFn f (typesFromTypeList argsType)
->           _ -> UnknownType
+>           RowCtor -> UnknownType
 >       ct = checkTypes scope sp argsType
 >       lookupFn s1 args = case findCallMatch scope sp
 >                                              (if s1 == "u-" then "-" else s1) args of
@@ -800,25 +806,18 @@ code is not as much of a mess as findCallMatch
 >             lengths = map length rowsTs
 >             error1 = case () of
 >                       _ | length rowsTs1 == 0 ->
->                             Just $ TypeError sp NoRowsGivenForValues
+>                             TypeError sp NoRowsGivenForValues
 >                         | not (all (==head lengths) lengths) ->
->                             Just $ TypeError sp
+>                             TypeError sp
 >                                  ValuesListsMustBeSameLength
->                         | otherwise -> Nothing
+>                         | otherwise -> TypeList []
 >             colNames = map (\(a,b) -> a ++ b) $
 >                        zip (repeat "column")
 >                            (map show [1..head lengths])
 >             colTypeLists = transpose rowsTs
 >             colTypes = map (resolveResultSetType scope sp) colTypeLists
->             error2 = let es = filter (\t -> case t of
->                                               TypeError _ _ -> True
->                                               _ -> False) colTypes
->                      in case length es of
->                           0 -> Nothing
->                           1 -> Just $ head es
->                           _ ->  Just $ TypeList es
 >             ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
->         in head $ catMaybes [error1, error2, Just ty]
+>         in checkErrors (error1:colTypes) ty
 
 > appendCompositeTypes :: Type -> Type -> Type
 > appendCompositeTypes (UnnamedCompositeType a) (UnnamedCompositeType b) =
@@ -834,3 +833,10 @@ code is not as much of a mess as findCallMatch
 > consCompositeField l (UnnamedCompositeType a) =
 >     UnnamedCompositeType (l:a)
 > consCompositeField _ _ = error "internal error"
+
+> data TInternalError = TInternalError String
+>                      deriving (Eq, Ord, Show)
+
+> instance Error TInternalError where
+>    noMsg  = TInternalError "oh noes!"
+>    strMsg = TInternalError
