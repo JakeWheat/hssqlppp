@@ -1,10 +1,8 @@
 Summary: A parser, pretty printer, and type checker for PostGreSQL SQL
 and PL/pgSQL. BSD licensed.
 
-There is a command line wrapper, HsSqlSystem.lhs, which provides some
-utility functions to access some of the library code.
-
-It comes with a small test suite.
+The current aims of the project is to provide a parser and type
+checker for a substantial portion of PostGreSQL SQL and PL/pgSQL.
 
 Status: it successfully parses and accurately pretty prints the three
 moderate sized SQL files from another project of mine, but there are
@@ -15,10 +13,14 @@ It also has the beginnings of a type checker, which currently can type
 check a large subset of expressions and selects that the parser can
 parse, but is in an early state.
 
-The current aims of the project is to provide a parser and type
-checker for a substantial portion of PostGreSQL SQL and PL/pgSQL. The
-bits that are unlikely to be supported include stuff which falls above
-a certain threshold when considering the following factors together:
+There is a command line wrapper, HsSqlSystem.lhs, which provides some
+utility functions to access some of the library code.
+
+It comes with a small test suite.
+
+The bits of SQL that are unlikely to be supported include stuff which
+falls above a certain threshold when considering the following factors
+together:
 * difficult to support
 * rarely used
 * having better ways of achieving the same effect

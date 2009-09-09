@@ -293,7 +293,6 @@ TODO: do something more correct
 > getScope dbName = do
 >   s <- readScope dbName
 >   putStrLn "module DefaultScope where"
->   putStrLn "import Data.Map"
 >   putStrLn "import TypeType"
 >   putStrLn "import Scope"
 >   putStrLn "defaultScope :: Scope"

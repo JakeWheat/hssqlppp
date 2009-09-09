@@ -122,7 +122,6 @@ MODULE {Ast}
 import Data.Maybe
 import Data.List
 import Debug.Trace
-import qualified Data.Map as M
 import Control.Monad.Error
 
 import TypeType
@@ -278,7 +277,7 @@ DATA TableRef | Tref tbl:String
                            onExpr : OnExpr
               | SubTref sel : SelectExpression alias : String
               | TrefFun fn:Expression
-              | TrefFunAlias fn:Expression String
+              | TrefFunAlias fn:Expression alias:String
 
 TYPE OnExpr = MAYBE JoinExpression
 

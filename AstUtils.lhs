@@ -14,7 +14,6 @@ etc.. This could probably be reviewed and made to work a bit better.
 > import Data.Maybe
 > import Data.List
 > import Control.Monad.Error
-> import qualified Data.Map as M
 
 > import TypeType
 > import Scope
@@ -291,9 +290,9 @@ utilities for working with Types
 > unwrapSetOfComposite (SetOfType a@(UnnamedCompositeType _)) = a
 > unwrapSetOfComposite x = error $ "internal error: tried to unwrapSetOfComposite on " ++ show x
 
-> unwrapCompositeTypes :: Type -> M.Map String Type
-> unwrapCompositeTypes (UnnamedCompositeType a) = M.fromList a
-> unwrapCompositeTypes x = error $ "internal error: cannot unwrapCompositeTypes on " ++ show x
+> unwrapSetOf :: Type -> Type
+> unwrapSetOf (SetOfType a) = a
+> unwrapSetOf x = error $ "internal error: tried to unwrapSetOf on " ++ show x
 
 > unwrapComposite :: Type -> [(String,Type)]
 > unwrapComposite (UnnamedCompositeType a) = a

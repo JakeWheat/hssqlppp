@@ -7,7 +7,6 @@ before type checking something.
 
 > module Scope where
 
-> import qualified Data.Map as M
 > import Data.List
 
 > import TypeType
@@ -24,18 +23,53 @@ before type checking something.
 >                     --this should be done better:
 >                    ,scopeAllFns :: [FunctionPrototype]
 >                    ,scopeAttrDefs :: [CompositeDef]
->                    ,scopeIdentifierTypes :: M.Map String Type}
+>                    ,scopeIdentifierTypes :: [AliasedScope]}
 >            deriving (Eq,Show)
 
-> emptyScope :: Scope
-> emptyScope = Scope [] [] [] [] [] [] [] [] [] M.empty
+the way the scoping works is we have a list of prefixes/namespaces,
+which is generally the table/view name, or the alias given to it, and
+then a list of unaliased identifiers and their types. When we look
+something up, if it has an alias we just look in that list, if it is
+not present or not unique then throw an error. Similarly with no
+alias, we look at all the lists, if the id is not present or not
+unique then throw an error.
 
-> scopeCombineIds :: Scope -> M.Map String Type -> Scope
-> scopeCombineIds s i = combineScopes s (emptyScope {scopeIdentifierTypes = i})
+> type AliasedScope = (String, [(String,Type)])
+
+> emptyScope :: Scope
+> emptyScope = Scope [] [] [] [] [] [] [] [] [] []
+
+> scopeReplaceIds :: Scope -> [AliasedScope] -> Scope
+> scopeReplaceIds scope ids = scope { scopeIdentifierTypes = ids }
+
+> scopeLookupID :: Scope -> MySourcePos -> String -> String -> Type
+> scopeLookupID scope sp alias iden =
+>   if alias == ""
+>     then let types = concat $ map (filter (\(s,_) -> s == iden)) $
+>                      map snd $ scopeIdentifierTypes scope
+>          in case length types of
+>                 0 -> TypeError sp (UnrecognisedIdentifier iden)
+>                 1 -> (snd . head) types
+>                 _ -> TypeError sp (AmbiguousIdentifier iden)
+>     else case lookup alias (scopeIdentifierTypes scope) of
+>            Nothing -> TypeError sp $ UnrecognisedAlias alias
+>            Just s -> case lookup iden s of
+>                        Nothing -> TypeError sp $ UnrecognisedIdentifier $ alias ++ "." ++ iden
+>                        Just t -> t
+
+> scopeExpandStar :: Scope -> MySourcePos -> String -> [(String,Type)]
+> scopeExpandStar scope sp alias =
+>     if alias == ""
+>       then concatMap snd $ scopeIdentifierTypes scope
+>       else
+>           case lookup alias (scopeIdentifierTypes scope) of
+>             Nothing -> [("", TypeError sp $ UnrecognisedAlias alias)]
+>             Just s -> s
+
 
 > combineScopes :: Scope -> Scope -> Scope
 > --base, overrides
-> combineScopes (Scope bt bc btc bpre bpost bbin bf baf bcd bi)
+> combineScopes (Scope bt bc btc bpre bpost bbin bf baf bcd _)
 >               (Scope ot oc otc opre opost obin off oaf ocd oi) =
 >   Scope (funion ot bt)
 >         (funion oc bc)
@@ -46,7 +80,7 @@ before type checking something.
 >         (funion off bf)
 >         (funion oaf baf)
 >         (funion ocd bcd)
->         (M.union oi bi)
+>         oi -- overwrites old scopes, might need to be looked at again
 >   where
 >     --without this it runs very slowly - guessing because it creates
 >     --a lot of garbage

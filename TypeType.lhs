@@ -108,6 +108,8 @@ later on down the line.
 >                    | NoRowsGivenForValues
 >                    | UnrecognisedIdentifier String
 >                    | UnrecognisedRelation String
+>                    | UnrecognisedAlias String
+>                    | AmbiguousIdentifier String
 >                    | ContextError String
 >                    | MissingJoinAttribute
 >                    | ExpressionMustBeBool

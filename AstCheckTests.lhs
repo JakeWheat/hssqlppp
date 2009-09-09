@@ -10,7 +10,6 @@ Set of tests to check the type checking code
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
-> import qualified Data.Map as M
 
 > import Ast
 > import Parser
@@ -141,8 +140,8 @@ check casts from unknown string lits
 
 >    ,testGroup "expressions and scope"
 >     (mapExprScopeType [
->      t "a" (makeScope [("a", typeInt)]) typeInt
->     ,t "b" (makeScope [("a", typeInt)]) (TypeError nsp (UnrecognisedIdentifier "b"))
+>      t "a" (makeScope [("test", [("a", typeInt)])]) typeInt
+>     ,t "b" (makeScope [("test", [("a", typeInt)])]) (TypeError nsp (UnrecognisedIdentifier "b"))
 >     ])
 
 
@@ -344,7 +343,7 @@ todo:
 >           mapExprType = map $ uncurry $ checkExpressionType emptyScope
 >           mapStatementType = map $ uncurry checkStatementType
 >           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
->           makeScope = scopeCombineIds defaultScope . M.fromList
+>           makeScope = scopeReplaceIds defaultScope
 >           mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
 
 > checkAttrs :: String -> [Message] -> Test.Framework.Test

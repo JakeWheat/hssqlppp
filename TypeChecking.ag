@@ -283,11 +283,20 @@ pull id types out of scope for identifiers
 
 SEM Expression
     | Identifier lhs.nodeType =
-               case M.lookup @i (scopeIdentifierTypes @lhs.scope) of
-                 Nothing -> TypeError
-                              @lhs.sourcePos
-                              (UnrecognisedIdentifier @i)
-                 Just t -> t
+                   let (alias,iden) = splitIdentifier @i
+                   in scopeLookupID @lhs.scope @lhs.sourcePos alias iden
+
+{
+-- i think this should be alright, an identifier referenced in an
+-- expression can only have zero or one dot in it.
+
+splitIdentifier :: String -> (String,String)
+splitIdentifier s = let (a,b) = span (/= '.') s
+                    in if b == ""
+                         then ("", a)
+                         else (a,b)
+}
+
 
 {-
 ================================================================================
@@ -316,13 +325,32 @@ SEM SelectExpression
                           ,@selWhere.nodeType]
                           (SetOfType @selSelectList.nodeType)
 
+ATTR TableRef
+     [
+     | nodeTypeCopy : Type
+     |
+     ]
+
+
+SEM MTableRef
+    | Just just.nodeTypeCopy = @just.nodeType
+
+--SEM TableRef
+--    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
+--          @nodeTypeCopy = @lhs.nodeType
+
 SEM TableRef
-    | SubTref lhs.nodeType = checkErrors [@sel.nodeType]
-                                         (unwrapSetOfComposite @sel.nodeType)
-    | TrefAlias Tref lhs.nodeType =
-        case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
-          Just (_,_,a@(UnnamedCompositeType _)) -> a
-          _ -> TypeError @lhs.sourcePos (UnrecognisedRelation @tbl)
+    | SubTref lhs.nodeType = checkErrors [@sel.nodeType] $ unwrapSetOfComposite @sel.nodeType
+              lhs.idens = [(@alias, unwrapComposite $ unwrapSetOf @sel.nodeType)]
+    | TrefAlias Tref
+        lhs.nodeType =
+          case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
+            Just (_,_,a@(UnnamedCompositeType _)) -> a
+            _ -> TypeError @lhs.sourcePos (UnrecognisedRelation @tbl)
+    | Tref
+        lhs.idens = [(@tbl, unwrapComposite @lhs.nodeTypeCopy)]
+    | TrefAlias
+        lhs.idens = [(@alias, unwrapComposite @lhs.nodeTypeCopy)]
     | TrefFun TrefFunAlias
         lhs.nodeType =
             checkErrors [@fn.nodeType] $
@@ -340,6 +368,10 @@ SEM TableRef
                                              ,ViewComposite] t of
                       Just (_,_,a@(UnnamedCompositeType _)) -> a
                       _ -> UnnamedCompositeType []
+    | TrefFun
+        lhs.idens = [("", unwrapComposite @lhs.nodeTypeCopy)]
+    | TrefFunAlias
+        lhs.idens = [(@alias, unwrapComposite @lhs.nodeTypeCopy)]
     | JoinedTref
         lhs.nodeType =
             checkErrors [@tbl.nodeType
@@ -362,11 +394,15 @@ SEM TableRef
                   intersect (fn t1) (fn t2)
               fn (UnnamedCompositeType s) = map fst s
               fn _ = []
+        lhs.idens = [("",unwrapComposite @lhs.nodeTypeCopy)]
+
 
 
 SEM MTableRef
     | Nothing lhs.nodeType = TypeList []
+              lhs.idens = []
     | Just lhs.nodeType = @just.nodeType
+
 
 SEM Where
     | Nothing lhs.nodeType = typeBool
@@ -383,9 +419,10 @@ SEM SelectItem
 SEM SelectItemList
     | Cons lhs.nodeType =
         foldr consComposite @tl.nodeType
-           (if @hd.columnName == "*"
-              then unwrapComposite @lhs.trefType
-              else [(@hd.columnName,@hd.nodeType)])
+           (let (alias,iden) = splitIdentifier @hd.columnName
+            in if iden == "*"
+                then scopeExpandStar @lhs.scope @lhs.sourcePos alias
+                else [(iden, @hd.nodeType)])
     | Nil lhs.nodeType = UnnamedCompositeType []
 
 SEM SelectList
@@ -405,18 +442,27 @@ them into the selectlist and where parts)
 
 -}
 
+ATTR TableRef
+         [
+         |
+         | idens : {[AliasedScope]}
+         ]
+
+ATTR MTableRef
+         [
+         |
+         | idens : {[AliasedScope]}
+         ]
+
+
 SEM SelectExpression
     | Select
-         selSelectList.scope = doTrefScope @lhs.scope @selTref.nodeType
-         selWhere.scope = doTrefScope @lhs.scope @selTref.nodeType
-
-{
-doTrefScope :: Scope -> Type -> Scope
-doTrefScope scope trefType = scopeCombineIds scope
-                               (M.fromList $ unwrapComposite trefType)
-}
+         selSelectList.scope = scopeReplaceIds @lhs.scope @selTref.idens
+         selWhere.scope = scopeReplaceIds @lhs.scope @selTref.idens
 
 {-
+
+
 
 == attributes
 
@@ -427,7 +473,7 @@ selectitemlist, which is also where expansion happens.
 -}
 
 
-
+{-
 ATTR SelectItemList
   [
   | trefType : Type
@@ -439,6 +485,7 @@ ATTR SelectList
   | trefType : Type
   |
   ]
+-}
 
 ATTR SelectItem
   [
@@ -471,11 +518,11 @@ fixedValue a _ _ = a
 pass the type of the tableref into the select list:
 
 -}
-
+{-
 SEM SelectExpression
     | Select
          selSelectList.trefType = @selTref.nodeType
-
+-}
 
 {-
 
