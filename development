@@ -109,3 +109,7 @@ TypeType.lhs: Some types used by the type checker, should live with
               TypeCheckingH.lhs exists.
 
 These files all have (hopefully) useful comments.
+
+You'll find the jargon easier to follow if you're familiar with SQL
+and with the work of Date, Darwen, et al.. I plan to add a glossary at
+some point.

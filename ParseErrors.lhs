@@ -7,23 +7,6 @@ plus output error location in emacs friendly format.
 
 > import Text.Parsec
 
-bit of boilerplate to allow errors to be displayed easily
-
-> data ExtendedError = ExtendedError ParseError String
-
-> instance Show ExtendedError where
->    show (ExtendedError _ x) = x
-
-> convertToExtendedError :: Either ParseError b
->                        -> String
->                        -> String
->                        -> Either ExtendedError b
-> convertToExtendedError f fn src =
->      case f of
->             Left er -> Left $ ExtendedError er (showEr er fn src)
->             Right l -> Right l
-
-
 > showEr :: ParseError -> String -> String -> String
 > showEr er fn src =
 >     let  pos  = errorPos er
@@ -48,3 +31,19 @@ bit of boilerplate to allow errors to be displayed easily
 >                       else a !! i
 >       trimLines = trimStartLines . reverse . trimStartLines . reverse
 >       trimStartLines = dropWhile (=="")
+
+give access to the nicer error text via Show
+
+> data ExtendedError = ExtendedError ParseError String
+
+> instance Show ExtendedError where
+>    show (ExtendedError _ x) = x
+
+> convertToExtendedError :: Either ParseError b
+>                        -> String
+>                        -> String
+>                        -> Either ExtendedError b
+> convertToExtendedError f fn src =
+>      case f of
+>             Left er -> Left $ ExtendedError er (showEr er fn src)
+>             Right l -> Right l

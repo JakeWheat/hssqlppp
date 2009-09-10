@@ -284,6 +284,10 @@ TODO: do something more correct
 
 ================================================================================
 
+This writes out the default scope using show, which you can then
+compile. The output is all on one big line and compiles very slowly
+for the catalog of a standard template1 database...
+
 > getScopeCommand :: CallEntry
 > getScopeCommand = CallEntry
 >                   "getscope"

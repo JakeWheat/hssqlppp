@@ -8,7 +8,8 @@ A lot of the haskell code has been moved into AstUtils.lhs, it is
 intended that only small amounts of code appear (i.e. one-liners)
 inline in this file, and larger bits go in AstUtils.lhs. These are
 only divided because the attribute grammar system uses a custom syntax
-with a custom preprocessor.
+with a custom preprocessor. These guidelines aren't followed very
+well.
 
 Dynamic note:
 
@@ -17,18 +18,13 @@ works. The main problem is that you can e.g. exec create table
 statements inside a function. This is something that the type checker
 will probably not be able to deal for a while if ever. (Will need
 hooks into postgresql to do this properly, which might not be
-impossible...)
-
-Part of the syntax extension system design is to provide some
-specialized methods for generating sql code in a way that can be type
-checked statically without having to run the code.
-
-Probably not many people do this sort of thing so it might not be a
-big limitation.
+impossible...).
 
 ================================================================================
 
-Basic common attributes:
+= main attributes used
+
+Here are the main attributes used in the type checking:
 
 sourcePos - holds the source position used in messages, not very
 accurate at the moment, just gives you the position of the first
@@ -53,11 +49,13 @@ ATTR AllNodes Root ExpressionRoot
 
 {-
 
+Node types
+
 we set all the node types to unknown to start with, this allows the
 type checking to be implemented bit by bit. When the type checking is
 more complete, these might be removed or changed to something more
 specific. The listnodes' behaviour is actually used by the working
-typing checking code.
+typing checking code in places.
 
 -}
 
@@ -84,6 +82,20 @@ appendTypeList t1 t2 = TypeList (t1:t2:[])
 
 {-
 
+this bit goes with the default rules above, just a hack to get things
+working, will probably disappear at some point.
+-}
+SEM MaybeExpression
+    | Just lhs.nodeType = @just.nodeType
+    | Nothing lhs.nodeType = TypeList []
+
+
+{-
+
+================================================================================
+
+semantics for source positions
+
 source positions aren't collected by the parser properly yet, so we
 just get what's available and propagate that. All the type errors
 should collect the source position information properly, so when it
@@ -101,79 +113,10 @@ SEM Root
 SEM ExpressionRoot
   | ExpressionRoot expr.sourcePos = ("",0,0)
 
-
---bit hacky, used to work with maybe bits in attribute grammar code
-SEM MaybeExpression
-    | Just lhs.nodeType = @just.nodeType
-    | Nothing lhs.nodeType = TypeList []
-
 {-
 ================================================================================
 
-= notes and todo
-
-
-containment guide for select expressions:
-combineselect 2 selects
-insert ?select
-createtableas 1 select
-createview 1 select
-return query 1 select
-forselect 1 select
-select->subselect select
-expression->exists select
-            scalarsubquery select
-            inselect select
-
-containment guide for statements:
-forselect [statement]
-forinteger [statement]
-while [statement]
-casestatement [[statement]]
-if [[statement]]
-createfunction->fnbody [Statement]
-
-TODO
-
-some non type-check checks:
-check plpgsql only in plpgsql function
-orderby in top level select only
-copy followed immediately by copydata iff stdin, copydata only follows
-  copy from stdin
-count args to raise, etc., check same number as placeholders in string
-no natural with onexpr in joins
-typename -> setof (& fix parsing), what else like this?
-expressions: positionalarg in function, window function only in select
- list top level
-
-review all ast checks, and see if we can also catch them during
-parsing (e.g. typeName parses setof, but this should only be allowed
-for a function return, and we can make this a parse error when parsing
-from source code rather than checking a generated ast. This needs
-judgement to say whether a parse error is better than a check error, I
-think for setof it is, but e.g. for a continue not in a loop (which
-could be caught during parsing) works better as a check error, looking
-at the error message the user will get. This might be wrong, haven't
-thought too carefully about it yet).
-
-
-TODO: canonicalize ast process, as part of type checking produces a canonicalized ast which:
-all implicit casts appear explicitly in the ast (maybe distinguished from explicit casts?)
-all names fully qualified
-all types use canonical names
-literal values and selectors in one form (use row style?)
-nodes are tagged with types
-what else?
-
-Canonical form only defined for type consistent asts.
-
-This canonical form should pretty print and parse back to the same
-form, and type check correctly.
-
-
-================================================================================
-
-= some basics
+= some basic typing
 
 == type names
 
@@ -245,8 +188,6 @@ SEM Expression
             @funName
             @args.nodeType
 
-
-
 {-
 == case expression
 
@@ -296,7 +237,6 @@ splitIdentifier s = let (a,b) = span (/= '.') s
                          then ("", a)
                          else (a,tail b)
 }
-
 
 {-
 ================================================================================
@@ -470,23 +410,8 @@ SEM SelectExpression
 
 columnName is used to collect the column names that the select list
 produces, it is combined into an unnamedcompositetype in
-selectitemlist, which is also where expansion happens.
+selectitemlist, which is also where star expansion happens.
 
--}
-
-
-{-
-ATTR SelectItemList
-  [
-  | trefType : Type
-  |
-  ]
-
-ATTR SelectList
-  [
-  | trefType : Type
-  |
-  ]
 -}
 
 ATTR SelectItem
@@ -499,8 +424,10 @@ ATTR SelectItem
 if the select item is just an identifier, then that column is named
 after the identifier
 e.g. select a, b as c, b + c from d, gives three columns one named
-a, one named c, and one unnamed
+a, one named c, and one unnamed, even though only one has an alias
 -}
+
+--default value for non identifier nodes
 
 ATTR Expression
   [
@@ -513,29 +440,15 @@ fixedValue :: a -> a -> a -> a
 fixedValue a _ _ = a
 }
 
-
 {-
-=== semantics
-
-pass the type of the tableref into the select list:
-
--}
-{-
-SEM SelectExpression
-    | Select
-         selSelectList.trefType = @selTref.nodeType
--}
-
-{-
-
-collect the column names so that the type of the select list can be
-calculated
-
+override for identifer nodes, this only makes it out to the selectitem
+node if the identifier is not wrapped in parens, function calls, etc.
 -}
 
 SEM Expression
   | Identifier lhs.liftedColumnName = @i
 
+-- collect the aliases and column names for use by the selectitemlist nodes
 SEM SelectItem
     | SelExp lhs.columnName = case @ex.liftedColumnName of
                                 "" -> "?column?"
@@ -547,11 +460,18 @@ SEM SelectItem
 
 = static tests
 
+Try to use a list of message data types to hold all sorts of
+information which works its way out to the top level where the client
+code gets it. Want to have the lists concatted together automatically
+from subnodes to parent node, and then to be able to add extra
+messages to this list at each node also.
+
 Problem 1: can't have two sem statements for the same node type which
 both add messages, and then the messages get combined to provide the
-final message list attribute value for that node. Workaround is
-instead of having each check in it's own section, to combine them all
-into one SEM.
+final message list attribute value for that node. You want this so
+that e.g. that different sorts of checks appear in different
+sections. Workaround is instead of having each check in it's own
+section, to combine them all into one SEM.
 
 Problem 2: no shorthand to combine what the default rule for messages
 would be and then add a bit extra - so if you want all the children
@@ -561,7 +481,11 @@ loads of code.
 
 Both the workarounds to these seem a bit tedious and error prone, and
 will make the code much less readable. Maybe need a preprocessor to
-produce the ag file?
+produce the ag file? Alternatively, just attach the messages to each
+node (so this appears in the data types and isn't an attribute, then
+have a tree walker collect them all). Since an annotation field in
+each node is going to be added anyway, so each node can be labeled
+with a type, will probably do this at some point.
 
 ================================================================================
 
@@ -573,11 +497,13 @@ appear inside loops (for, while, loop)
 the only nodes that really need this attribute are the ones which can
 contain statements
 
-the idea with the messages attribute was to collect errors, warnings,
-notices outside of the type checking, but thinking about getting rid
-of this and moving all this into the types.
+The inloop test is the only thing which uses the messages atm. It
+shouldn't, at some point inloop testing will become part of the type
+checking.
 
-The inloop test is the only thing which uses the messages atm.
+This is just some example code, will probably do something a lot more
+heavy weight like symbolic interpretation - want to do all sorts of
+loop, return, nullability, etc. analysis.
 
 -}
 
@@ -603,10 +529,6 @@ SEM ExpressionRoot
 -- function statement, in case you have a create function inside a
 -- loop, seems unlikely you'd do this though
 
--- set the inloop stuff which nests, it's reset inside a create
--- function statement, in case you have a create function inside a
--- loop, seems unlikely you'd do this though
-
 SEM Statement
      | ForSelectStatement ForIntegerStatement WhileStatement sts.inLoop = True
      | CreateFunction body.inLoop = False
@@ -617,3 +539,69 @@ SEM Statement
     | ContinueStatement  lhs.messages = if not @lhs.inLoop
                                           then [Error @lhs.sourcePos ContinueNotInLoop]
                                           else []
+
+{-
+================================================================================
+
+= notes and todo
+
+
+containment guide for select expressions:
+combineselect 2 selects
+insert ?select
+createtableas 1 select
+createview 1 select
+return query 1 select
+forselect 1 select
+select->subselect select
+expression->exists select
+            scalarsubquery select
+            inselect select
+
+containment guide for statements:
+forselect [statement]
+forinteger [statement]
+while [statement]
+casestatement [[statement]]
+if [[statement]]
+createfunction->fnbody [Statement]
+
+TODO
+
+some non type-check checks:
+check plpgsql only in plpgsql function
+orderby in top level select only
+copy followed immediately by copydata iff stdin, copydata only follows
+  copy from stdin
+count args to raise, etc., check same number as placeholders in string
+no natural with onexpr in joins
+typename -> setof (& fix parsing), what else like this?
+expressions: positionalarg in function, window function only in select
+ list top level
+
+review all ast checks, and see if we can also catch them during
+parsing (e.g. typeName parses setof, but this should only be allowed
+for a function return, and we can make this a parse error when parsing
+from source code rather than checking a generated ast. This needs
+judgement to say whether a parse error is better than a check error, I
+think for setof it is, but e.g. for a continue not in a loop (which
+could be caught during parsing) works better as a check error, looking
+at the error message the user will get. This might be wrong, haven't
+thought too carefully about it yet).
+
+
+TODO: canonicalize ast process, as part of type checking produces a canonicalized ast which:
+all implicit casts appear explicitly in the ast (maybe distinguished from explicit casts?)
+all names fully qualified
+all types use canonical names
+literal values and selectors in one form (use row style?)
+nodes are tagged with types
+what else?
+
+Canonical form only defined for type consistent asts.
+
+This canonical form should pretty print and parse back to the same
+form, and type check correctly.
+
+
+-}

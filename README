@@ -67,32 +67,6 @@ jakewheatmail@gmail.com
 
 ================================================================================
 
-= Reporting problems
-
-If you would like some standard PostGreSQL syntax supported and can't
-code it yourself, a request should contain:
-
-* a single fully valid expression, or
-* a fully valid file of SQL statements
-
-with
-
-* the parse error produced when you parse them, or
-* the original SQL and the invalidly produced parsed and pretty
-  printed SQL.
-
-Unfortunately I can't make any promises to fix anything in a timely
-manner myself, although I will probably fix most small oversights
-quite quickly.
-
-If you want another SQL dialect supported and don't want to it
-yourself, please report this on the bug tracker or by emailing me.
-
-Report problems using the bug tracker on Launchpad or by emailing me
-(see above for info).
-
-================================================================================
-
 = Syntax supported/ not supported:
 
 == Parsing

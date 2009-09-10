@@ -7,6 +7,8 @@ Produces sort of readable code, but mainly just written to produce
 reparsable text. Could do with some work to make the outputted text
 layout better.
 
+Not much other comments, since it all should be pretty self evident.
+
 > module PrettyPrinter (
 >                       --convert a sql ast to text
 >                       printSql
@@ -31,7 +33,6 @@ Public functions
 
 > printExpression :: Expression -> String
 > printExpression = render . convExp
-
 
 ================================================================================
 

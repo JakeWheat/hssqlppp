@@ -1,9 +1,10 @@
 Copyright 2009 Jake Wheat
 
 Represents the types, identifiers, etc available. Used internally for
-little scopes in the type checker, as well as the input to the type
-checking routines if you want to supply different/extra definitions
-before type checking something.
+static and changing scopes in the type checker, as well as the input
+to the type checking routines if you want to supply different/extra
+definitions before type checking something, and you're not getting the
+extra definitions from an accessible database.
 
 > module Scope where
 
@@ -27,7 +28,9 @@ before type checking something.
 >                    ,scopeJoinIdentifiers :: [String]}
 >            deriving (Eq,Show)
 
-the way the scoping works is we have a list of prefixes/namespaces,
+= Attribute identifier scoping
+
+The way this scoping works is we have a list of prefixes/namespaces,
 which is generally the table/view name, or the alias given to it, and
 then a list of unaliased identifiers and their types. When we look
 something up, if it has an alias we just look in that list, if it is
@@ -37,11 +40,11 @@ unique then throw an error.
 
 The join identifiers is for expanding *. If we want to access the
 common attributes from one of the tables in a using or natural join,
-this attribute can be quialified with either of the table
-names/aliases. But when we expand the *, we only output these common
-fields once, so keep a separate list of these fields used just for
-expanding the star. The other twist is that these common fields appear
-first in the resultant field list.
+this attribute can be qualified with either of the table names/
+aliases. But when we expand the *, we only output these common fields
+once, so keep a separate list of these fields used just for expanding
+the star. The other twist is that these common fields appear first in
+the resultant field list.
 
 > type AliasedScope = (String, [(String,Type)])
 
@@ -56,8 +59,8 @@ first in the resultant field list.
 > scopeLookupID :: Scope -> MySourcePos -> String -> String -> Type
 > scopeLookupID scope sp alias iden =
 >   if alias == ""
->     then let types = concat $ map (filter (\(s,_) -> s == iden)) $
->                      map snd $ scopeIdentifierTypes scope
+>     then let types = concatMap (filter (\ (s, _) -> s == iden))
+>                        (map snd $ scopeIdentifierTypes scope)
 >          in case length types of
 >                 0 -> TypeError sp (UnrecognisedIdentifier iden)
 >                 1 -> (snd . head) types
@@ -108,4 +111,5 @@ first in the resultant field list.
 >                      | otherwise -> union a b
 
 combine scopes still seems to run slowly, so change it so that it
-chains scopes instead of unioning the lists and maps.
+chains scope lookups along a list of scopes instead of unioning the
+individual lists.

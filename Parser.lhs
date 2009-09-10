@@ -1,7 +1,7 @@
 Copyright 2009 Jake Wheat
 
-The main file for parsing sql, uses parsec (badly). Not sure if parsec
-is the right choice.
+The main file for parsing sql, uses parsec. Not sure if parsec is the
+right choice, but it seems to do the job pretty well at the moment.
 
 For syntax reference see
 http://savage.net.au/SQL/sql-2003-2.bnf.html
@@ -24,23 +24,9 @@ pdf about parsing, uses haskell and parser combinators for examples
 and exercises:
 http://www.cs.uu.nl/docs/vakken/gont/diktaat.pdf
 
-
-Notes on source positions:
-The constraints to try to satify are:
-Don't change the ast node datatypes
-Don't make the individual parsers in this file look like crap by
-putting source pos stuff all over them
-Plan:
-whilst parsing, store the token positions in the parser state, which
-will be some sort of tree
-individual terminal parsers will add individual tokensource positions
-to the state in a generic way
-
-the tree structure will appear by having a token position acceptor
-custom for each nonterminal parser which is saved in the state and
-filters the incoming tokens from the terminal parsers into the right
-tree structure then the parser will return the list of statements and
-a parallel tree of token positions (sounds mental?)
+The parsers are written top down as you go through the file, so the
+top level sql text parsers appear first, then the statements, then the
+fragments, then the utility parsers and other utilities at the bottom.
 
 
 > module Parser (

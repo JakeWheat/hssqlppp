@@ -3,6 +3,44 @@
 
 TODOs in rough order that they are intended to be done
 
+stage 1: do some stuff patchily to try to get a bunch of common sql
+   partially type-checking (focus is on getting the result types of
+   most select statements)
+
+todos for this stage:
+union, except, intersect
+creates - just enough to fill in the scope so references to these type
+   check
+support for domains implicitly casting to base types in function
+   lookup, result set resolution
+simple typing of aggregate args and return types
+SimpleTypeName - don't assume it is a Scalar, do proper lookup
+Pretty printer for types
+aliases in selects from functions - when the function returns a setof
+   single type instead of composite, then the single return attribute
+   takes the alias name as it's attribute name e.g. select x from
+   gen_series() as x
+coalesce, what other special functions are there?
+exists - support this cos it's pretty common
+type check selects against pg hidden fields (e.g. oid in catalogs).
+
+stage 2:
+make this useful by working on the showtypesdb function:
+instead of interspersing the types with the pretty printed statements,
+   insert or overwrite the type comments in the original source so we
+   preserve formatting and other comments.
+use the type pretty printer to make the type comments more readable
+want to also output types of parts of statements, e.g. the select in a
+   for statement or insert, etc.. Will probably have to add explicit
+   annotation field to most of the ast nodes to hold the type of every
+   node (this can also be used to store more accurate source
+   positioning, amongst other things)
+With this in place, the code actually has some use for real code, in
+   that we can use it to easily view the types of views, etc. inline
+   in the real sql source code
+
+stage 2:
+
 run through and finish or note missing bits for select expressions:
 group by, having
 order by
@@ -19,32 +57,45 @@ scalarsubquery
 rowctor
 casts
 
-selects should all be typable at this point. run through pg manual and
-fill in all the gaps, get test sql files working for selects
-(modify show types to look inside create functions)
-- then we can run a roundtrip process which adds all the types as
-   comments to have a look at
-
-write type checking support that reads a given database for the
-   defaultscope rather that using the hard coded template1 scope
-- can start to actually type check real sql at this point
-
-maybe before finishing selects, (partially) do create statements, and
-   fix it so e.g. a source file with a create table followed by a
-   select from that table type checks
-
-chain scope lookups instead of unioning them since unioning is too
-   slow - or maybe use maps/sets, but need to quickly scan whole lists
-   e.g. for function lookup, which can't really use any sort of key
-   based lookup, where the key the function lookup uses is the same as the
-   key the map/set uses.
-
-think about working on dot qualification
-think about doing null and not null aspects
+stage 3:
+review and choose
+* do null inference
+* some selective fixups here and there to the typing (e.g. type
+   checking constraints in create tables)
+* selectively add some missing syntax, to cover the most glaring holes
+* schema qualification
+* type check statements inside create function
+* something else from the todo for milestone 0.1 below
+* something else
 
 ================================================================================
 
-some disorganised syntax todo:
+rough milestones for release 0.1:
+in addition to all the stage 3 items above,
+
+add support for nearly all syntax for parsing and type checking,
+   instead of doing piecemeal bits, so go through the pg manual part
+   II, support almost everything, add comprehensive simple tests, go
+   through the sql reference section also. This is the time to
+   document more precisely what isn't supported so there is a clear
+   list
+do ? placeholders, and do typesafe haskell wrapper generation using this
+figure out what to do about tricky operator precedence parsing, etc.
+ability to type check all of chaos sql
+example for generating sql code from haskell using the ast
+get database loader and typesafe access generators good enough to use
+   in chaos
+example usage of each of these
+look at the error message formatting, particularly try to fix the
+   parser errors so they make more sense
+add annotation field to most ast nodes, store type and source
+   positioning in this field, fix parser to add lots of accurate
+   positioning information when parsing.
+
+
+================================================================================
+
+some syntax todo, not organised:
 
 ------------
 add support for following sql syntax (+ type checking)
@@ -116,26 +167,16 @@ in general, parsing operators is wrong, the lexer needs to be able to
 
 ================================================================================
 
-rough milestones for release 0.1:
-work through pg manual part II, add test plus parse and type check
-   support for everything mentioned. follow some links to sql
-   reference and add tests for stuff there also.
-figure out what to do about tricky operator precedence parsing, etc.
-ability to type check all of chaos sql
-get type info for ? style sql strings
-generate typesafe db access wrapper for selects and function calls,
-   plus other ? style sql strings?
-example for generating sql code from haskell using the ast
-get database loader and typesafe access generators good enough to use
-   in chaos
-example usage of each of these
+some other random ideas:
+
+chain scope lookups instead of unioning them since unioning is too
+   slow - or maybe use maps/sets, but need to quickly scan whole lists
+   e.g. for function lookup, which can't really use any sort of key
+   based lookup, where the key the function lookup uses is the same as the
+   key the map/set uses.
 
 incorporate pg regression test sql into parsing and type checking
    tests
-
-================================================================================
-
-some other random ideas:
 
 write a show for parsec errors which formats the lex tokens and
    expected lists properly (was broken when moved to the separate

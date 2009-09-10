@@ -9,8 +9,9 @@ written in a tdd style, which the coverage of the tests reflects.
 
 Also had some quickcheck stuff, but it got disabled since it failed
 depressingly often and the code has now gone very stale. The idea with
-this was to generate random asts, pretty print then parse them,
-and check the new ast was the same as the original.
+this was to generate random asts, pretty print then parse them, and
+check the new ast was the same as the original. Probably worth having
+another go at this some time soon.
 
 There are no tests for invalid sql at the moment.
 

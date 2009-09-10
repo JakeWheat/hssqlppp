@@ -53,6 +53,43 @@ the operator type, and the parser would have to be a lot cleverer
 
 = type checking utils
 
+The way most of the error handling works is all type errors live as
+types and get returned as types, instead of e.g. using exceptions or
+Either. Hopefully, all the type checking routines for each node are in
+the following form, or equivalent:
+
+3. Take the node types of the sub nodes (e.g. the args for a function
+invocation).
+
+2. Check each type for a type error, pass any errors on as the type for
+this node - so type errors filter up to the top level statements in
+this way.
+
+3. Check each type for unknown - this represents some type checking
+which hasn't been coded. All the type calculations give up completely
+when they come across an unknown type and just propagate that.
+
+4a. If the node has no nodeType rule, it uses the default one which
+just propagates the types of its subnodes. This sometimes results in
+them having an uncannily accurate type, and sometimes a really weird
+type, rather than returning unknown.
+
+4b. If the node has a nodeType rule, calculate the actual type we want
+for this node using the subnode types which we've already checked for
+unknowns and errors. Any new type errors become this node's type, or
+otherwise it is set to the calculated type.
+
+Using laziness, in code this usually looks something like
+
+thisNodeType =  checkErrors [@subnodea.nodeType
+                            ,@subnodeb.nodetype] calcThisNodeType
+where
+  calcThisNodeType = some code referring to @subnodea.nodeType
+                       and @subnodeb.nodetype
+
+The checkErrors function, and its auxiliary unkErr, does the error and
+unknown propagation.
+
 == checkErrors
 
 runs through the types in the first list looking for type errors or
@@ -68,12 +105,10 @@ messages.
 >                        Nothing -> checkErrors ts r
 > checkErrors [] r = r
 
-
 takes a type and returns any type errors, or if no errors, unknowns,
 returns nothing if it doesn't find any type errors or unknowns. Looks
 at the immediate type, or inside the first level if passed a type
 list, or unnamedcompositetype.
-
 
 > unkErr :: Type -> Maybe Type
 > unkErr t =

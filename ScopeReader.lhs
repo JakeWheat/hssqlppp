@@ -1,10 +1,17 @@
 Copyright 2009 Jake Wheat
 
 This file contains the code to read all the scope data from a
-postgresql database catalog. It writes out the resulting value using
-show, which you can then compile. The output is all on one big line
-and compiles very slowly for the catalog of a standard template1
-database...
+postgresql database catalog. This is used to generate the default
+scope, and to type check against a database schema in a live database.
+
+It basically runs through each field in the Scope data type and reads
+it out of the database, and turns it into the appropriate data
+types.
+
+Maps are use to hold oids during this process to e.g. hook up the
+types of table columns (which are read as oids which refer to the
+pg_type table) to the haskell values represent those types. These maps
+are discarded after the Scope value is created.
 
 > module ScopeReader (readScope) where
 
