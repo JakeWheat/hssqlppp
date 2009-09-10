@@ -315,6 +315,12 @@ todo:
 >         [SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
+>         --check the attribute order
+>      ,p "select * from (select 2 as b, 1 as a) a\n\
+>         \ natural inner join (select 4.5 as d, 1 as a) b;"
+>         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>                                           ,("b", typeInt)
+>                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \ natural inner join (select true as a, 4.5 as d) b;"
 >         [TypeError ("",1,1) (IncompatibleTypes [ScalarType "int4"
@@ -375,7 +381,7 @@ select g.fn from fn() g
 >           mapExprType = map $ uncurry $ checkExpressionType emptyScope
 >           mapStatementType = map $ uncurry checkStatementType
 >           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
->           makeScope = scopeReplaceIds defaultScope
+>           makeScope l = scopeReplaceIds defaultScope l []
 >           mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
 
 > checkAttrs :: String -> [Message] -> Test.Framework.Test

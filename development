@@ -7,11 +7,14 @@ Ast.ag for more information.
 
 Two of the files are generated:
 
-DefaultScope.hs -> generated using ./HsSqlSystem.lhs getscope template1
- (make a backup of this file if you want to regenerate it - you can
- get trapped without being able to run HsSqlSystem if the new file
- doesn't compile). You shouldn't need to regenerate this file unless
- you change the Scope data type.
+DefaultScope.hs -> generated using ./HsSqlSystem.lhs getscope
+ template1 (make a backup of this file if you want to regenerate it -
+ you can get trapped without being able to run HsSqlSystem if the new
+ file doesn't compile). You shouldn't need to regenerate this file
+ unless you change the Scope data type. There is a
+ DefaultScopeEmpty.hs file which you can copy over a busted
+ DefaultScope.hs, which will allow the generation of a new
+ DefaultScope.hs file.
 
 Ast.hs -> this is generated from Ast.ag and Typechecking.ag using
 uuagc, see Ast.ag for instructions on how to do this.
@@ -46,6 +49,10 @@ DatabaseLoaderTests.lhs: almost empty hunit tests, intended to be used
 
 DBAccess.lhs: some simple wrappers around hdbc to run sql statements
               and do simple selects.
+
+DefaultScopeEmpty.hs: an empty version of default scope, used to allow
+                      the default scope generation to run when you've
+                      hosed the DefaultScope.hs file.
 
 DefaultScope.hs: generated file which contains the scope from a
                  standard template1 database. The intended use is to

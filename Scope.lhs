@@ -23,7 +23,8 @@ before type checking something.
 >                     --this should be done better:
 >                    ,scopeAllFns :: [FunctionPrototype]
 >                    ,scopeAttrDefs :: [CompositeDef]
->                    ,scopeIdentifierTypes :: [AliasedScope]}
+>                    ,scopeIdentifierTypes :: [AliasedScope]
+>                    ,scopeJoinIdentifiers :: [String]}
 >            deriving (Eq,Show)
 
 the way the scoping works is we have a list of prefixes/namespaces,
@@ -34,13 +35,23 @@ not present or not unique then throw an error. Similarly with no
 alias, we look at all the lists, if the id is not present or not
 unique then throw an error.
 
+The join identifiers is for expanding *. If we want to access the
+common attributes from one of the tables in a using or natural join,
+this attribute can be quialified with either of the table
+names/aliases. But when we expand the *, we only output these common
+fields once, so keep a separate list of these fields used just for
+expanding the star. The other twist is that these common fields appear
+first in the resultant field list.
+
 > type AliasedScope = (String, [(String,Type)])
 
 > emptyScope :: Scope
-> emptyScope = Scope [] [] [] [] [] [] [] [] [] []
+> emptyScope = Scope [] [] [] [] [] [] [] [] [] [] []
 
-> scopeReplaceIds :: Scope -> [AliasedScope] -> Scope
-> scopeReplaceIds scope ids = scope { scopeIdentifierTypes = ids }
+> scopeReplaceIds :: Scope -> [AliasedScope] -> [String] -> Scope
+> scopeReplaceIds scope ids commonJoinFields =
+>     scope { scopeIdentifierTypes = ids
+>           ,scopeJoinIdentifiers = commonJoinFields }
 
 > scopeLookupID :: Scope -> MySourcePos -> String -> String -> Type
 > scopeLookupID scope sp alias iden =
@@ -60,7 +71,10 @@ unique then throw an error.
 > scopeExpandStar :: Scope -> MySourcePos -> String -> [(String,Type)]
 > scopeExpandStar scope sp alias =
 >     if alias == ""
->       then concatMap snd $ scopeIdentifierTypes scope
+>       then let allFields = concatMap snd $ scopeIdentifierTypes scope
+>                (commonFields,uncommonFields) =
+>                   partition (\(a,_) -> a `elem` scopeJoinIdentifiers scope) allFields
+>            in nub commonFields ++ uncommonFields
 >       else
 >           case lookup alias (scopeIdentifierTypes scope) of
 >             Nothing -> [("", TypeError sp $ UnrecognisedAlias alias)]
@@ -69,8 +83,8 @@ unique then throw an error.
 
 > combineScopes :: Scope -> Scope -> Scope
 > --base, overrides
-> combineScopes (Scope bt bc btc bpre bpost bbin bf baf bcd _)
->               (Scope ot oc otc opre opost obin off oaf ocd oi) =
+> combineScopes (Scope bt bc btc bpre bpost bbin bf baf bcd _ _)
+>               (Scope ot oc otc opre opost obin off oaf ocd oi oji) =
 >   Scope (funion ot bt)
 >         (funion oc bc)
 >         (funion otc btc)
@@ -81,6 +95,7 @@ unique then throw an error.
 >         (funion oaf baf)
 >         (funion ocd bcd)
 >         oi -- overwrites old scopes, might need to be looked at again
+>         oji
 >   where
 >     --without this it runs very slowly - guessing because it creates
 >     --a lot of garbage

@@ -342,11 +342,13 @@ SEM MTableRef
 SEM TableRef
     | SubTref lhs.nodeType = checkErrors [@sel.nodeType] $ unwrapSetOfComposite @sel.nodeType
               lhs.idens = [(@alias, unwrapComposite $ unwrapSetOf @sel.nodeType)]
+              lhs.joinIdens = []
     | TrefAlias Tref
         lhs.nodeType =
           case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
             Just (_,_,a@(UnnamedCompositeType _)) -> a
             _ -> TypeError @lhs.sourcePos (UnrecognisedRelation @tbl)
+        lhs.joinIdens = []
     | Tref
         lhs.idens = [(@tbl, unwrapComposite @lhs.nodeTypeCopy)]
     | TrefAlias
@@ -368,6 +370,7 @@ SEM TableRef
                                              ,ViewComposite] t of
                       Just (_,_,a@(UnnamedCompositeType _)) -> a
                       _ -> UnnamedCompositeType []
+        lhs.joinIdens = []
     | TrefFun
         lhs.idens = [("", unwrapComposite @lhs.nodeTypeCopy)]
     | TrefFunAlias
@@ -390,17 +393,22 @@ SEM TableRef
                                   s
                                   @tbl.nodeType
                                   @tbl1.nodeType
-              commonFieldNames t1 t2 =
-                  intersect (fn t1) (fn t2)
-              fn (UnnamedCompositeType s) = map fst s
-              fn _ = []
         lhs.idens = @tbl.idens ++ @tbl1.idens
+        lhs.joinIdens = commonFieldNames @tbl.nodeType @tbl1.nodeType
+{
+commonFieldNames t1 t2 =
+    intersect (fn t1) (fn t2)
+    where
+      fn (UnnamedCompositeType s) = map fst s
+      fn _ = []
+}
 
 
 
 SEM MTableRef
     | Nothing lhs.nodeType = TypeList []
               lhs.idens = []
+              lhs.joinIdens = []
     | Just lhs.nodeType = @just.nodeType
 
 
@@ -445,20 +453,20 @@ them into the selectlist and where parts)
 ATTR TableRef
          [
          |
-         | idens : {[AliasedScope]}
+         | idens : {[AliasedScope]} joinIdens : {[String]}
          ]
 
 ATTR MTableRef
          [
          |
-         | idens : {[AliasedScope]}
+         | idens : {[AliasedScope]} joinIdens : {[String]}
          ]
 
 
 SEM SelectExpression
     | Select
-         selSelectList.scope = scopeReplaceIds @lhs.scope @selTref.idens
-         selWhere.scope = scopeReplaceIds @lhs.scope @selTref.idens
+         selSelectList.scope = scopeReplaceIds @lhs.scope @selTref.idens @selTref.joinIdens
+         selWhere.scope = scopeReplaceIds @lhs.scope @selTref.idens @selTref.joinIdens
 
 {-
 

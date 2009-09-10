@@ -109,7 +109,7 @@ database...
 >                   prefixOps postfixOps binaryOps fnProts
 >                   (prefixOps ++ postfixOps ++ binaryOps ++ fnProts)
 >                   attrs
->                   []
+>                   [] []
 >    where
 >      convAttrRow jlt l =
 >         (l!!1, ty, atts)
