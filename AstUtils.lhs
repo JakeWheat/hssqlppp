@@ -230,25 +230,20 @@ changed
 > typeChar = ScalarType "char"
 > typeBool = ScalarType "bool"
 
-> canonicalizeType :: Type -> Type
-> canonicalizeType t =
->     case t of
->       ScalarType s -> cName s
->       ArrayType a -> ArrayType $ canonicalizeType a
->       SetOfType a -> SetOfType $ canonicalizeType a
->       t1@_ -> t1
->     where
->       cName s = case () of
->                   _ | s `elem` smallIntNames -> typeSmallInt
->                     | s `elem` intNames -> typeInt
->                     | s `elem` bigIntNames -> typeBigInt
->                     | s `elem` numericNames -> typeNumeric
->                     | s `elem` float4Names -> typeFloat4
->                     | s `elem` float8Names -> typeFloat8
->                     | s `elem` varcharNames -> typeVarChar
->                     | s `elem` charNames -> typeChar
->                     | s `elem` boolNames -> typeBool
->                     | otherwise -> ScalarType s
+> canonicalizeTypeName :: String -> String
+> canonicalizeTypeName s =
+>   case () of
+>                   _ | s `elem` smallIntNames -> "int2"
+>                     | s `elem` intNames -> "int4"
+>                     | s `elem` bigIntNames -> "int8"
+>                     | s `elem` numericNames -> "numeric"
+>                     | s `elem` float4Names -> "float4"
+>                     | s `elem` float8Names -> "float8"
+>                     | s `elem` varcharNames -> "varchar"
+>                     | s `elem` charNames -> "char"
+>                     | s `elem` boolNames -> "bool"
+>                     | otherwise -> s
+>   where
 >       smallIntNames = ["int2", "smallint"]
 >       intNames = ["int4", "integer", "int"]
 >       bigIntNames = ["int8", "bigint"]
@@ -264,6 +259,13 @@ changed
 >     if t `elem` scopeTypes scope
 >       then TypeList [] -- this works with the checkErrors function
 >       else TypeError sp (UnknownTypeError t)
+
+> lookupTypeByName :: Scope -> MySourcePos -> String -> Type
+> lookupTypeByName scope sp name =
+>     case lookup name (scopeTypeNames scope) of
+>       Just t -> t
+>       Nothing -> TypeError sp (UnknownTypeName name)
+
 
 ================================================================================
 

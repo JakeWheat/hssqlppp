@@ -5,6 +5,8 @@ function/operator resolution. See the pg manual chapter 10:
 
 http://www.postgresql.org/docs/8.4/interactive/typeconv.html
 
+This code is really spaghettified.
+
 findCallMatch - pass in a name and a list of arguments, and it returns
 the matching function. (pg manual 10.2,10.3)
 

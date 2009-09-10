@@ -4017,7 +4017,10 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
                     [_selTrefInodeType
                     ,_selSelectListInodeType
                     ,_selWhereInodeType]
-                    (SetOfType _selSelectListInodeType)
+                    (let t = _selSelectListInodeType
+                     in if t == UnnamedCompositeType [("?column?",Pseudo Void)]
+                        then Pseudo Void
+                        else SetOfType _selSelectListInodeType)
               _selSelectListOscope =
                   scopeReplaceIds _lhsIscope _selTrefIidens _selTrefIjoinIdens
               _selWhereOscope =
@@ -6879,10 +6882,7 @@ sem_TypeName_SimpleTypeName tn_  =
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TypeName
               _lhsOnodeType =
-                  let st = canonicalizeType $ ScalarType tn_
-                  in checkErrors
-                         [checkTypeExists _lhsIscope _lhsIsourcePos st]
-                         st
+                  lookupTypeByName _lhsIscope _lhsIsourcePos $ canonicalizeTypeName tn_
               _lhsOmessages =
                   []
               _actualValue =

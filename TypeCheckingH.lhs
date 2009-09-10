@@ -26,7 +26,7 @@ not very consistently applied at the moment.
 >     where
 >       ret = case fnName of
 >           "!arrayCtor" -> let t = resolveResultSetType scope sp $ unwrapTypeList argsType
->                                    in checkErrors [t] $ ArrayType t
+>                           in checkErrors [t] $ ArrayType t
 >           "!between" -> let f1 = lookupFn ">=" [as !! 0, as !! 1]
 >                             f2 = lookupFn "<=" [as !! 0, as !! 2]
 >                             f3 = lookupFn "!and" [f1,f2]

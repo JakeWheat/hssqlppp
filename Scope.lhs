@@ -15,6 +15,7 @@ extra definitions from an accessible database.
 > type FunctionPrototype = (String, [Type], Type)
 
 > data Scope = Scope {scopeTypes :: [Type]
+>                    ,scopeTypeNames :: [(String, Type)]
 >                    ,scopeCasts :: [(Type,Type,CastContext)]
 >                    ,scopeTypeCategories :: [(Type,String,Bool)]
 >                    ,scopePrefixOperators :: [FunctionPrototype]
@@ -49,7 +50,7 @@ the resultant field list.
 > type AliasedScope = (String, [(String,Type)])
 
 > emptyScope :: Scope
-> emptyScope = Scope [] [] [] [] [] [] [] [] [] [] []
+> emptyScope = Scope [] [] [] [] [] [] [] [] [] [] [] []
 
 > scopeReplaceIds :: Scope -> [AliasedScope] -> [String] -> Scope
 > scopeReplaceIds scope ids commonJoinFields =
@@ -89,9 +90,10 @@ the resultant field list.
 
 > combineScopes :: Scope -> Scope -> Scope
 > --base, overrides
-> combineScopes (Scope bt bc btc bpre bpost bbin bf baf bcd _ _)
->               (Scope ot oc otc opre opost obin off oaf ocd oi oji) =
+> combineScopes (Scope bt btn bc btc bpre bpost bbin bf baf bcd _ _)
+>               (Scope ot otn oc otc opre opost obin off oaf ocd oi oji) =
 >   Scope (funion ot bt)
+>         (funion otn btn)
 >         (funion oc bc)
 >         (funion otc btc)
 >         (funion opre bpre)

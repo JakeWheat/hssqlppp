@@ -1,7 +1,9 @@
 {-
 Copyright 2009 Jake Wheat
 
-This file contains the ast nodes, which aren't brilliantly designed.
+This file contains the ast nodes, which aren't brilliantly designed,
+and the api functions to pass an ast and get back type information.
+
 It uses the Utrecht University Attribute Grammar system:
 
 http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem

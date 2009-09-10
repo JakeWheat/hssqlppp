@@ -99,6 +99,7 @@ later on down the line.
 >                    -- | NeedOneOrMoreArgs
 >                    -- | OtherTypeError String
 >                    | UnknownTypeError Type
+>                    | UnknownTypeName String
 >                    -- | OperatorNeeds1Or2Args Int
 >                    | NoMatchingOperator String [Type]
 >                    -- | MultipleMatchingOperators String [Type]

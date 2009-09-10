@@ -129,10 +129,12 @@ SEM TypeName
      | SimpleTypeName
           --this needs to work a bit better, a simpletypename can match
           --domains, composite types, etc., not just scalar types
-          lhs.nodeType = let st = canonicalizeType $ ScalarType @tn
-                         in checkErrors
-                                [checkTypeExists @lhs.scope @lhs.sourcePos st]
-                                st
+          lhs.nodeType = lookupTypeByName @lhs.scope @lhs.sourcePos $ canonicalizeTypeName @tn
+
+--              let st = canonicalizeType $ ScalarType @tn
+--                         in checkErrors
+--                                [checkTypeExists @lhs.scope @lhs.sourcePos st]
+--                                st
 --     | PrecTypeName
 --          lhs.nodeType = if @tn `elem` defaultTypes
 --                           then ScalarType @tn
@@ -263,7 +265,10 @@ SEM SelectExpression
                           [@selTref.nodeType
                           ,@selSelectList.nodeType
                           ,@selWhere.nodeType]
-                          (SetOfType @selSelectList.nodeType)
+                          (let t = @selSelectList.nodeType
+                           in if t == UnnamedCompositeType [("?column?",Pseudo Void)]
+                              then Pseudo Void
+                              else SetOfType @selSelectList.nodeType)
 
 SEM TableRef
     | SubTref lhs.nodeType = checkErrors [@sel.nodeType] $ unwrapSetOfComposite @sel.nodeType

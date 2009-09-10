@@ -199,7 +199,7 @@ todo:
 >       p "cast ('1' as integer)"
 >         typeInt
 >      ,p "cast ('1' as baz)"
->         (TypeError nsp (UnknownTypeError $ ScalarType "baz"))
+>         (TypeError nsp (UnknownTypeName "baz"))
 >      ,p "array[]"
 >         (TypeError nsp TypelessEmptyArray)
 >      --todo: figure out how to do this

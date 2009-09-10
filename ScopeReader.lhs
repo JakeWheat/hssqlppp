@@ -42,9 +42,11 @@ are discarded after the Scope value is created.
 >                  \   and not exists(select 1 from pg_catalog.pg_type el\n\
 >                  \                       where el.typarray = t.oid)\n\
 >                  \  order by t.typname;" []
->    let typeAssoc = concatMap convTypeInfoRow typeInfo
+>    let typeStuff = concatMap convTypeInfoRow typeInfo
+>        typeAssoc = map (\(a,b,_) -> (a,b)) typeStuff
 >        typeMap = M.fromList typeAssoc
 >        types = map snd typeAssoc
+>        typeNames = map (\(_,a,b) -> (b,a)) typeStuff
 >    castInfo <- selectRelation conn
 >                  "select castsource,casttarget,castcontext from pg_cast;" []
 >    let jlt k = {-trace ("stuff:" ++ show k ++"//") $-} fromJust $ M.lookup k typeMap
@@ -112,7 +114,7 @@ are discarded after the Scope value is created.
 >    let attrs = map (convAttrRow jlt) attrInfo
 
 
->    return $ Scope types casts typeCats
+>    return $ Scope types typeNames casts typeCats
 >                   prefixOps postfixOps binaryOps fnProts
 >                   (prefixOps ++ postfixOps ++ binaryOps ++ fnProts)
 >                   attrs
@@ -162,9 +164,9 @@ are discarded after the Scope value is created.
 >                                                  "void" -> Void
 >                                                  _ -> error $ "internal error: unknown pseudo " ++ t))
 >                     _ -> error $ "internal error: unknown type type: " ++ (l !! 1)
->            scType = (head l, ctor name)
+>            scType = (head l, ctor name, name)
 >        in if (l!!4) /= "0"
->           then [(l!!5,ArrayType $ ctor name), scType]
+>           then [(l!!5,ArrayType $ ctor name, '_':name), scType]
 >           else [scType]
 
 
