@@ -321,6 +321,38 @@ todo:
 >                                                ,ScalarType "bool"])]
 >      ])
 
+>    ,testGroup "simple scalar identifier qualification"
+>     (mapStatementType [
+>       p "select a.* from \n\
+>         \(select 1 as a, 2 as b) a \n\
+>         \cross join (select 3 as c, 4 as d) b;"
+>         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>                                           ,("b", typeInt)]]
+>      ,p "select a.b,b.c from \n\
+>         \(select 1 as a, 2 as b) a \n\
+>         \natural inner join (select 3 as a, 4 as c) b;"
+>         [SetOfType $ UnnamedCompositeType [("b", typeInt)
+>                                           ,("c", typeInt)]]
+>      ,p "select a.a,b.a from \n\
+>         \(select 1 as a, 2 as b) a \n\
+>         \natural inner join (select 3 as a, 4 as c) b;"
+>         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>                                           ,("a", typeInt)]]
+
+>      ,p "select pg_attrdef.adsrc from pg_attrdef;"
+>         [SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
+
+>      ,p "select a.adsrc from pg_attrdef a;"
+>         [SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
+
+>      ,p "select pg_attrdef.adsrc from pg_attrdef a;"
+>         [TypeError ("",1,1) (UnrecognisedAlias "pg_attrdef")]
+
+select g.fn from fn() g
+
+
+>      ])
+
 >    ,testGroup "simple wheres"
 >     (mapStatementType [
 >       p "select 1 from pg_type where true;"

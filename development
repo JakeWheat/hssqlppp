@@ -2,8 +2,8 @@ Some brief notes on developing with this code.
 
 The project comes with a working cabal file.
 
-UUAGC is used to do support type checking, there are some links at the
-top of Ast.ag for more information.
+UUAGC is used in the type checking, there are some links at the top of
+Ast.ag for more information.
 
 Two of the files are generated:
 
@@ -36,9 +36,9 @@ AstCheckTests.lhs: hunit tests for type checking
 
 AstUtils.lhs: some utilities used mainly in type checking
 
-DatabaseLoader.lhs: beginnings of a program
-                     to load sql from source into postgresql, pretty
-                     rough and unfinished at the moment.
+DatabaseLoader.lhs: beginnings of a program to load sql from source
+                     into postgresql, pretty rough and unfinished at
+                     the moment.
 
 DatabaseLoaderTests.lhs: almost empty hunit tests, intended to be used
                          mainly for testing error source positioning
@@ -52,7 +52,7 @@ DefaultScope.hs: generated file which contains the scope from a
                  support parsing and typechecking sql without having
                  online access to postgresql. Not sure if this is
                  useful. It's definitely quick enough to read this
-                 information at type checking time.
+                 information from a database at type checking time.
 
 HsSqlSystem.lhs: program to expose some functionality on the command
                  line, mainly utilities to help with developing the

@@ -294,7 +294,7 @@ splitIdentifier :: String -> (String,String)
 splitIdentifier s = let (a,b) = span (/= '.') s
                     in if b == ""
                          then ("", a)
-                         else (a,b)
+                         else (a,tail b)
 }
 
 
@@ -394,7 +394,7 @@ SEM TableRef
                   intersect (fn t1) (fn t2)
               fn (UnnamedCompositeType s) = map fst s
               fn _ = []
-        lhs.idens = [("",unwrapComposite @lhs.nodeTypeCopy)]
+        lhs.idens = @tbl.idens ++ @tbl1.idens
 
 
 

@@ -159,7 +159,7 @@ splitIdentifier :: String -> (String,String)
 splitIdentifier s = let (a,b) = span (/= '.') s
                     in if b == ""
                          then ("", a)
-                         else (a,b)
+                         else (a,tail b)
 
 
 fixedValue :: a -> a -> a -> a
@@ -6364,7 +6364,7 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
                     fn (UnnamedCompositeType s) = map fst s
                     fn _ = []
               _lhsOidens =
-                  [("",unwrapComposite _lhsInodeTypeCopy)]
+                  _tblIidens ++ _tbl1Iidens
               _lhsOmessages =
                   _tblImessages ++ _natImessages ++ _joinTypeImessages ++ _tbl1Imessages ++ _onExprImessages
               _actualValue =

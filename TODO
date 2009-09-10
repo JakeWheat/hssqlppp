@@ -99,23 +99,15 @@ for in execute
 expressions:
 process string escapes, support dollar quoting and other quoting more
    robustly in the pretty printer
-full user operator support
+full user operator support (?)
 fix expression parser properly to handle things like between - see
    grammar in pg source for info on how to do this
 [:] array slices
 aggregate: all and distinct
 multi dimensional arrays: selectors and subscripting
-isnull, notnull, is [ not ] distinct from, is unknown, is not unknown
-basic ops: |/ ||/ ! !! $ | # ~ << >>
-substring regex variants
-position(in), trim(both from), overlay
-like, ilike, ~~ , etc.
-similar to
-matches: ~ ~* !~ !~*
+missing keyword operators
 datetime extract
 time zone
-geometric, text search, array operators <- should be covered by user
-   operator stuff
 subquery operators: any, some, all
 in general, parsing operators is wrong, the lexer needs to be able to
    lex sequences of symbols into single/multiple operators correctly,

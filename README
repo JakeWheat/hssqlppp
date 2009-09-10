@@ -185,5 +185,5 @@ Future plans:
   type safe wrappers (this placeholder version may be developed
   separately and designed to work on more than just PostGreSQL);
 
-* possibly a lightweight code generation/ simple symbolic macro
-  support to help with developing more robust PL/pgSQL code.
+* possibly a lightweight code generation/ simple macro support to help
+  with developing more robust PL/pgSQL code.
