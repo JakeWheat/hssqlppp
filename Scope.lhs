@@ -61,7 +61,10 @@ first in the resultant field list.
 >          in case length types of
 >                 0 -> TypeError sp (UnrecognisedIdentifier iden)
 >                 1 -> (snd . head) types
->                 _ -> TypeError sp (AmbiguousIdentifier iden)
+>                 _ -> --see if this identifier is in the join list
+>                      if iden `elem` scopeJoinIdentifiers scope
+>                        then (snd . head) types
+>                        else TypeError sp (AmbiguousIdentifier iden)
 >     else case lookup alias (scopeIdentifierTypes scope) of
 >            Nothing -> TypeError sp $ UnrecognisedAlias alias
 >            Just s -> case lookup iden s of

@@ -325,56 +325,24 @@ SEM SelectExpression
                           ,@selWhere.nodeType]
                           (SetOfType @selSelectList.nodeType)
 
-ATTR TableRef
-     [
-     | nodeTypeCopy : Type
-     |
-     ]
-
-
-SEM MTableRef
-    | Just just.nodeTypeCopy = @just.nodeType
-
---SEM TableRef
---    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
---          @nodeTypeCopy = @lhs.nodeType
-
 SEM TableRef
     | SubTref lhs.nodeType = checkErrors [@sel.nodeType] $ unwrapSetOfComposite @sel.nodeType
               lhs.idens = [(@alias, unwrapComposite $ unwrapSetOf @sel.nodeType)]
               lhs.joinIdens = []
     | TrefAlias Tref
-        lhs.nodeType =
-          case getAttrs @lhs.scope [TableComposite, ViewComposite] @tbl of
-            Just (_,_,a@(UnnamedCompositeType _)) -> a
-            _ -> TypeError @lhs.sourcePos (UnrecognisedRelation @tbl)
+        lhs.nodeType = getRelationType @lhs.scope @lhs.sourcePos @tbl
         lhs.joinIdens = []
     | Tref
-        lhs.idens = [(@tbl, unwrapComposite @lhs.nodeTypeCopy)]
+        lhs.idens = [(@tbl, unwrapComposite $ getRelationType @lhs.scope @lhs.sourcePos @tbl)]
     | TrefAlias
-        lhs.idens = [(@alias, unwrapComposite @lhs.nodeTypeCopy)]
+        lhs.idens = [(@alias, unwrapComposite $ getRelationType @lhs.scope @lhs.sourcePos @tbl)]
     | TrefFun TrefFunAlias
-        lhs.nodeType =
-            checkErrors [@fn.nodeType] $
-            case @fn.actualValue of
-              FunCall f _ ->
-                  case @fn.nodeType of
-                    SetOfType (CompositeType t) -> getCompositeType t
-                    SetOfType x -> UnnamedCompositeType [(f,x)]
-                    y -> UnnamedCompositeType [(f,y)]
-              x -> TypeError @lhs.sourcePos (ContextError "FunCall")
-              where
-                getCompositeType t =
-                    case getAttrs @lhs.scope [Composite
-                                             ,TableComposite
-                                             ,ViewComposite] t of
-                      Just (_,_,a@(UnnamedCompositeType _)) -> a
-                      _ -> UnnamedCompositeType []
+        lhs.nodeType = getFunTableType @lhs.scope @lhs.sourcePos @fn.actualValue @fn.nodeType
         lhs.joinIdens = []
     | TrefFun
-        lhs.idens = [("", unwrapComposite @lhs.nodeTypeCopy)]
+        lhs.idens = [("", unwrapComposite $ getFunTableType @lhs.scope @lhs.sourcePos @fn.actualValue @fn.nodeType)]
     | TrefFunAlias
-        lhs.idens = [(@alias, unwrapComposite @lhs.nodeTypeCopy)]
+        lhs.idens = [(@alias, unwrapComposite $ getFunTableType @lhs.scope @lhs.sourcePos @fn.actualValue @fn.nodeType)]
     | JoinedTref
         lhs.nodeType =
             checkErrors [@tbl.nodeType
@@ -396,6 +364,32 @@ SEM TableRef
         lhs.idens = @tbl.idens ++ @tbl1.idens
         lhs.joinIdens = commonFieldNames @tbl.nodeType @tbl1.nodeType
 {
+getRelationType :: Scope -> MySourcePos -> String -> Type
+getRelationType scope sp tbl =
+          case getAttrs scope [TableComposite, ViewComposite] tbl of
+            Just (_,_,a@(UnnamedCompositeType _)) -> a
+            _ -> TypeError sp (UnrecognisedRelation tbl)
+
+getFunTableType :: Scope -> MySourcePos -> Expression -> Type -> Type
+getFunTableType scope sp fnVal fnType =
+            checkErrors [fnType] $
+            case fnVal of
+              FunCall f _ ->
+                  case fnType of
+                    SetOfType (CompositeType t) -> getCompositeType t
+                    SetOfType x -> UnnamedCompositeType [(f,x)]
+                    y -> UnnamedCompositeType [(f,y)]
+              x -> TypeError sp (ContextError "FunCall")
+              where
+                getCompositeType t =
+                    case getAttrs scope [Composite
+                                        ,TableComposite
+                                        ,ViewComposite] t of
+                      Just (_,_,a@(UnnamedCompositeType _)) -> a
+                      _ -> UnnamedCompositeType []
+
+
+
 commonFieldNames t1 t2 =
     intersect (fn t1) (fn t2)
     where

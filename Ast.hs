@@ -162,6 +162,32 @@ splitIdentifier s = let (a,b) = span (/= '.') s
                          else (a,tail b)
 
 
+getRelationType :: Scope -> MySourcePos -> String -> Type
+getRelationType scope sp tbl =
+          case getAttrs scope [TableComposite, ViewComposite] tbl of
+            Just (_,_,a@(UnnamedCompositeType _)) -> a
+            _ -> TypeError sp (UnrecognisedRelation tbl)
+
+getFunTableType :: Scope -> MySourcePos -> Expression -> Type -> Type
+getFunTableType scope sp fnVal fnType =
+            checkErrors [fnType] $
+            case fnVal of
+              FunCall f _ ->
+                  case fnType of
+                    SetOfType (CompositeType t) -> getCompositeType t
+                    SetOfType x -> UnnamedCompositeType [(f,x)]
+                    y -> UnnamedCompositeType [(f,y)]
+              x -> TypeError sp (ContextError "FunCall")
+              where
+                getCompositeType t =
+                    case getAttrs scope [Composite
+                                        ,TableComposite
+                                        ,ViewComposite] t of
+                      Just (_,_,a@(UnnamedCompositeType _)) -> a
+                      _ -> UnnamedCompositeType []
+
+
+
 commonFieldNames t1 t2 =
     intersect (fn t1) (fn t2)
     where
@@ -2938,8 +2964,7 @@ sem_MTableRef_Just just_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _justOnodeTypeCopy :: Type
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: MTableRef
               _lhsOidens :: ([AliasedScope])
@@ -2952,9 +2977,6 @@ sem_MTableRef_Just just_  =
               _justIjoinIdens :: ([String])
               _justImessages :: ([Message])
               _justInodeType :: Type
-              _justInodeTypeCopy :: Type
-              _justOnodeTypeCopy =
-                  _justInodeType
               _lhsOnodeType =
                   _justInodeType
               _lhsOmessages =
@@ -2973,8 +2995,8 @@ sem_MTableRef_Just just_  =
                   _lhsIscope
               _justOsourcePos =
                   _lhsIsourcePos
-              ( _justIactualValue,_justIidens,_justIjoinIdens,_justImessages,_justInodeType,_justInodeTypeCopy) =
-                  (just_ _justOinLoop _justOnodeTypeCopy _justOscope _justOsourcePos )
+              ( _justIactualValue,_justIidens,_justIjoinIdens,_justImessages,_justInodeType) =
+                  (just_ _justOinLoop _justOscope _justOsourcePos )
           in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType)))
 sem_MTableRef_Nothing :: T_MTableRef 
 sem_MTableRef_Nothing  =
@@ -6292,19 +6314,18 @@ sem_TableRef (TrefFunAlias _fn _alias )  =
     (sem_TableRef_TrefFunAlias (sem_Expression _fn ) _alias )
 -- semantic domain
 type T_TableRef  = Bool ->
-                   Type ->
                    Scope ->
                    MySourcePos ->
-                   ( TableRef,([AliasedScope]),([String]),([Message]),Type,Type)
-data Inh_TableRef  = Inh_TableRef {inLoop_Inh_TableRef :: Bool,nodeTypeCopy_Inh_TableRef :: Type,scope_Inh_TableRef :: Scope,sourcePos_Inh_TableRef :: MySourcePos}
-data Syn_TableRef  = Syn_TableRef {actualValue_Syn_TableRef :: TableRef,idens_Syn_TableRef :: [AliasedScope],joinIdens_Syn_TableRef :: [String],messages_Syn_TableRef :: [Message],nodeType_Syn_TableRef :: Type,nodeTypeCopy_Syn_TableRef :: Type}
+                   ( TableRef,([AliasedScope]),([String]),([Message]),Type)
+data Inh_TableRef  = Inh_TableRef {inLoop_Inh_TableRef :: Bool,scope_Inh_TableRef :: Scope,sourcePos_Inh_TableRef :: MySourcePos}
+data Syn_TableRef  = Syn_TableRef {actualValue_Syn_TableRef :: TableRef,idens_Syn_TableRef :: [AliasedScope],joinIdens_Syn_TableRef :: [String],messages_Syn_TableRef :: [Message],nodeType_Syn_TableRef :: Type}
 wrap_TableRef :: T_TableRef  ->
                  Inh_TableRef  ->
                  Syn_TableRef 
-wrap_TableRef sem (Inh_TableRef _lhsIinLoop _lhsInodeTypeCopy _lhsIscope _lhsIsourcePos )  =
-    (let ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType,_lhsOnodeTypeCopy) =
-             (sem _lhsIinLoop _lhsInodeTypeCopy _lhsIscope _lhsIsourcePos )
-     in  (Syn_TableRef _lhsOactualValue _lhsOidens _lhsOjoinIdens _lhsOmessages _lhsOnodeType _lhsOnodeTypeCopy ))
+wrap_TableRef sem (Inh_TableRef _lhsIinLoop _lhsIscope _lhsIsourcePos )  =
+    (let ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType) =
+             (sem _lhsIinLoop _lhsIscope _lhsIsourcePos )
+     in  (Syn_TableRef _lhsOactualValue _lhsOidens _lhsOjoinIdens _lhsOmessages _lhsOnodeType ))
 sem_TableRef_JoinedTref :: T_TableRef  ->
                            T_Natural  ->
                            T_JoinType  ->
@@ -6313,7 +6334,6 @@ sem_TableRef_JoinedTref :: T_TableRef  ->
                            T_TableRef 
 sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
     (\ _lhsIinLoop
-       _lhsInodeTypeCopy
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
@@ -6321,9 +6341,7 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _lhsOjoinIdens :: ([String])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
-              _lhsOnodeTypeCopy :: Type
               _tblOinLoop :: Bool
-              _tblOnodeTypeCopy :: Type
               _tblOscope :: Scope
               _tblOsourcePos :: MySourcePos
               _natOinLoop :: Bool
@@ -6333,7 +6351,6 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _joinTypeOscope :: Scope
               _joinTypeOsourcePos :: MySourcePos
               _tbl1OinLoop :: Bool
-              _tbl1OnodeTypeCopy :: Type
               _tbl1Oscope :: Scope
               _tbl1OsourcePos :: MySourcePos
               _onExprOinLoop :: Bool
@@ -6344,7 +6361,6 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _tblIjoinIdens :: ([String])
               _tblImessages :: ([Message])
               _tblInodeType :: Type
-              _tblInodeTypeCopy :: Type
               _natIactualValue :: Natural
               _natImessages :: ([Message])
               _natInodeType :: Type
@@ -6356,7 +6372,6 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _tbl1IjoinIdens :: ([String])
               _tbl1Imessages :: ([Message])
               _tbl1InodeType :: Type
-              _tbl1InodeTypeCopy :: Type
               _onExprIactualValue :: OnExpr
               _onExprImessages :: ([Message])
               _onExprInodeType :: Type
@@ -6387,12 +6402,8 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
                   JoinedTref _tblIactualValue _natIactualValue _joinTypeIactualValue _tbl1IactualValue _onExprIactualValue
               _lhsOactualValue =
                   _actualValue
-              _lhsOnodeTypeCopy =
-                  _tbl1InodeTypeCopy
               _tblOinLoop =
                   _lhsIinLoop
-              _tblOnodeTypeCopy =
-                  _lhsInodeTypeCopy
               _tblOscope =
                   _lhsIscope
               _tblOsourcePos =
@@ -6411,8 +6422,6 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
                   _lhsIsourcePos
               _tbl1OinLoop =
                   _lhsIinLoop
-              _tbl1OnodeTypeCopy =
-                  _tblInodeTypeCopy
               _tbl1Oscope =
                   _lhsIscope
               _tbl1OsourcePos =
@@ -6423,23 +6432,22 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
                   _lhsIscope
               _onExprOsourcePos =
                   _lhsIsourcePos
-              ( _tblIactualValue,_tblIidens,_tblIjoinIdens,_tblImessages,_tblInodeType,_tblInodeTypeCopy) =
-                  (tbl_ _tblOinLoop _tblOnodeTypeCopy _tblOscope _tblOsourcePos )
+              ( _tblIactualValue,_tblIidens,_tblIjoinIdens,_tblImessages,_tblInodeType) =
+                  (tbl_ _tblOinLoop _tblOscope _tblOsourcePos )
               ( _natIactualValue,_natImessages,_natInodeType) =
                   (nat_ _natOinLoop _natOscope _natOsourcePos )
               ( _joinTypeIactualValue,_joinTypeImessages,_joinTypeInodeType) =
                   (joinType_ _joinTypeOinLoop _joinTypeOscope _joinTypeOsourcePos )
-              ( _tbl1IactualValue,_tbl1Iidens,_tbl1IjoinIdens,_tbl1Imessages,_tbl1InodeType,_tbl1InodeTypeCopy) =
-                  (tbl1_ _tbl1OinLoop _tbl1OnodeTypeCopy _tbl1Oscope _tbl1OsourcePos )
+              ( _tbl1IactualValue,_tbl1Iidens,_tbl1IjoinIdens,_tbl1Imessages,_tbl1InodeType) =
+                  (tbl1_ _tbl1OinLoop _tbl1Oscope _tbl1OsourcePos )
               ( _onExprIactualValue,_onExprImessages,_onExprInodeType) =
                   (onExpr_ _onExprOinLoop _onExprOscope _onExprOsourcePos )
-          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType,_lhsOnodeTypeCopy)))
+          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType)))
 sem_TableRef_SubTref :: T_SelectExpression  ->
                         String ->
                         T_TableRef 
 sem_TableRef_SubTref sel_ alias_  =
     (\ _lhsIinLoop
-       _lhsInodeTypeCopy
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
@@ -6447,7 +6455,6 @@ sem_TableRef_SubTref sel_ alias_  =
               _lhsOjoinIdens :: ([String])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
-              _lhsOnodeTypeCopy :: Type
               _selOinLoop :: Bool
               _selOscope :: Scope
               _selOsourcePos :: MySourcePos
@@ -6466,8 +6473,6 @@ sem_TableRef_SubTref sel_ alias_  =
                   SubTref _selIactualValue alias_
               _lhsOactualValue =
                   _actualValue
-              _lhsOnodeTypeCopy =
-                  _lhsInodeTypeCopy
               _selOinLoop =
                   _lhsIinLoop
               _selOscope =
@@ -6476,12 +6481,11 @@ sem_TableRef_SubTref sel_ alias_  =
                   _lhsIsourcePos
               ( _selIactualValue,_selImessages,_selInodeType) =
                   (sel_ _selOinLoop _selOscope _selOsourcePos )
-          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType,_lhsOnodeTypeCopy)))
+          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType)))
 sem_TableRef_Tref :: String ->
                      T_TableRef 
 sem_TableRef_Tref tbl_  =
     (\ _lhsIinLoop
-       _lhsInodeTypeCopy
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
@@ -6489,30 +6493,24 @@ sem_TableRef_Tref tbl_  =
               _lhsOidens :: ([AliasedScope])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
-              _lhsOnodeTypeCopy :: Type
               _lhsOnodeType =
-                  case getAttrs _lhsIscope [TableComposite, ViewComposite] tbl_ of
-                    Just (_,_,a@(UnnamedCompositeType _)) -> a
-                    _ -> TypeError _lhsIsourcePos (UnrecognisedRelation tbl_)
+                  getRelationType _lhsIscope _lhsIsourcePos tbl_
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  [(tbl_, unwrapComposite _lhsInodeTypeCopy)]
+                  [(tbl_, unwrapComposite $ getRelationType _lhsIscope _lhsIsourcePos tbl_)]
               _lhsOmessages =
                   []
               _actualValue =
                   Tref tbl_
               _lhsOactualValue =
                   _actualValue
-              _lhsOnodeTypeCopy =
-                  _lhsInodeTypeCopy
-          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType,_lhsOnodeTypeCopy)))
+          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType)))
 sem_TableRef_TrefAlias :: String ->
                           String ->
                           T_TableRef 
 sem_TableRef_TrefAlias tbl_ alias_  =
     (\ _lhsIinLoop
-       _lhsInodeTypeCopy
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
@@ -6520,29 +6518,23 @@ sem_TableRef_TrefAlias tbl_ alias_  =
               _lhsOidens :: ([AliasedScope])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
-              _lhsOnodeTypeCopy :: Type
               _lhsOnodeType =
-                  case getAttrs _lhsIscope [TableComposite, ViewComposite] tbl_ of
-                    Just (_,_,a@(UnnamedCompositeType _)) -> a
-                    _ -> TypeError _lhsIsourcePos (UnrecognisedRelation tbl_)
+                  getRelationType _lhsIscope _lhsIsourcePos tbl_
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  [(alias_, unwrapComposite _lhsInodeTypeCopy)]
+                  [(alias_, unwrapComposite $ getRelationType _lhsIscope _lhsIsourcePos tbl_)]
               _lhsOmessages =
                   []
               _actualValue =
                   TrefAlias tbl_ alias_
               _lhsOactualValue =
                   _actualValue
-              _lhsOnodeTypeCopy =
-                  _lhsInodeTypeCopy
-          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType,_lhsOnodeTypeCopy)))
+          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType)))
 sem_TableRef_TrefFun :: T_Expression  ->
                         T_TableRef 
 sem_TableRef_TrefFun fn_  =
     (\ _lhsIinLoop
-       _lhsInodeTypeCopy
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
@@ -6550,7 +6542,6 @@ sem_TableRef_TrefFun fn_  =
               _lhsOidens :: ([AliasedScope])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
-              _lhsOnodeTypeCopy :: Type
               _fnOinLoop :: Bool
               _fnOscope :: Scope
               _fnOsourcePos :: MySourcePos
@@ -6559,33 +6550,17 @@ sem_TableRef_TrefFun fn_  =
               _fnImessages :: ([Message])
               _fnInodeType :: Type
               _lhsOnodeType =
-                  checkErrors [_fnInodeType] $
-                  case _fnIactualValue of
-                    FunCall f _ ->
-                        case _fnInodeType of
-                          SetOfType (CompositeType t) -> getCompositeType t
-                          SetOfType x -> UnnamedCompositeType [(f,x)]
-                          y -> UnnamedCompositeType [(f,y)]
-                    x -> TypeError _lhsIsourcePos (ContextError "FunCall")
-                    where
-                      getCompositeType t =
-                          case getAttrs _lhsIscope [Composite
-                                                   ,TableComposite
-                                                   ,ViewComposite] t of
-                            Just (_,_,a@(UnnamedCompositeType _)) -> a
-                            _ -> UnnamedCompositeType []
+                  getFunTableType _lhsIscope _lhsIsourcePos _fnIactualValue _fnInodeType
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  [("", unwrapComposite _lhsInodeTypeCopy)]
+                  [("", unwrapComposite $ getFunTableType _lhsIscope _lhsIsourcePos _fnIactualValue _fnInodeType)]
               _lhsOmessages =
                   _fnImessages
               _actualValue =
                   TrefFun _fnIactualValue
               _lhsOactualValue =
                   _actualValue
-              _lhsOnodeTypeCopy =
-                  _lhsInodeTypeCopy
               _fnOinLoop =
                   _lhsIinLoop
               _fnOscope =
@@ -6594,13 +6569,12 @@ sem_TableRef_TrefFun fn_  =
                   _lhsIsourcePos
               ( _fnIactualValue,_fnIliftedColumnName,_fnImessages,_fnInodeType) =
                   (fn_ _fnOinLoop _fnOscope _fnOsourcePos )
-          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType,_lhsOnodeTypeCopy)))
+          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType)))
 sem_TableRef_TrefFunAlias :: T_Expression  ->
                              String ->
                              T_TableRef 
 sem_TableRef_TrefFunAlias fn_ alias_  =
     (\ _lhsIinLoop
-       _lhsInodeTypeCopy
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
@@ -6608,7 +6582,6 @@ sem_TableRef_TrefFunAlias fn_ alias_  =
               _lhsOidens :: ([AliasedScope])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
-              _lhsOnodeTypeCopy :: Type
               _fnOinLoop :: Bool
               _fnOscope :: Scope
               _fnOsourcePos :: MySourcePos
@@ -6617,33 +6590,17 @@ sem_TableRef_TrefFunAlias fn_ alias_  =
               _fnImessages :: ([Message])
               _fnInodeType :: Type
               _lhsOnodeType =
-                  checkErrors [_fnInodeType] $
-                  case _fnIactualValue of
-                    FunCall f _ ->
-                        case _fnInodeType of
-                          SetOfType (CompositeType t) -> getCompositeType t
-                          SetOfType x -> UnnamedCompositeType [(f,x)]
-                          y -> UnnamedCompositeType [(f,y)]
-                    x -> TypeError _lhsIsourcePos (ContextError "FunCall")
-                    where
-                      getCompositeType t =
-                          case getAttrs _lhsIscope [Composite
-                                                   ,TableComposite
-                                                   ,ViewComposite] t of
-                            Just (_,_,a@(UnnamedCompositeType _)) -> a
-                            _ -> UnnamedCompositeType []
+                  getFunTableType _lhsIscope _lhsIsourcePos _fnIactualValue _fnInodeType
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  [(alias_, unwrapComposite _lhsInodeTypeCopy)]
+                  [(alias_, unwrapComposite $ getFunTableType _lhsIscope _lhsIsourcePos _fnIactualValue _fnInodeType)]
               _lhsOmessages =
                   _fnImessages
               _actualValue =
                   TrefFunAlias _fnIactualValue alias_
               _lhsOactualValue =
                   _actualValue
-              _lhsOnodeTypeCopy =
-                  _lhsInodeTypeCopy
               _fnOinLoop =
                   _lhsIinLoop
               _fnOscope =
@@ -6652,7 +6609,7 @@ sem_TableRef_TrefFunAlias fn_ alias_  =
                   _lhsIsourcePos
               ( _fnIactualValue,_fnIliftedColumnName,_fnImessages,_fnInodeType) =
                   (fn_ _fnOinLoop _fnOscope _fnOsourcePos )
-          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType,_lhsOnodeTypeCopy)))
+          in  ( _lhsOactualValue,_lhsOidens,_lhsOjoinIdens,_lhsOmessages,_lhsOnodeType)))
 -- TypeAttributeDef --------------------------------------------
 data TypeAttributeDef  = TypeAttDef (String) (TypeName) 
                        deriving ( Eq,Show)

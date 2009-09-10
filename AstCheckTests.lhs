@@ -354,6 +354,10 @@ todo:
 >      ,p "select pg_attrdef.adsrc from pg_attrdef a;"
 >         [TypeError ("",1,1) (UnrecognisedAlias "pg_attrdef")]
 
+>      ,p "select a from (select 2 as b, 1 as a) a\n\
+>         \natural inner join (select 4.5 as d, 1 as a) b;"
+>         [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
+
 select g.fn from fn() g
 
 
