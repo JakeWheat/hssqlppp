@@ -3897,8 +3897,8 @@ sem_SelectExpression_CombineSelect ctype_ sel1_ sel2_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
               _lhsOactualValue :: SelectExpression
               _ctypeOinLoop :: Bool
               _ctypeOscope :: Scope
@@ -3918,10 +3918,15 @@ sem_SelectExpression_CombineSelect ctype_ sel1_ sel2_  =
               _sel2IactualValue :: SelectExpression
               _sel2Imessages :: ([Message])
               _sel2InodeType :: Type
+              _lhsOnodeType =
+                  checkErrors [_sel1InodeType,_sel2InodeType] $
+                              typeCheckCombineSelect
+                                        _lhsIscope
+                                        _lhsIsourcePos
+                                        _sel1InodeType
+                                        _sel2InodeType
               _lhsOmessages =
                   _ctypeImessages ++ _sel1Imessages ++ _sel2Imessages
-              _lhsOnodeType =
-                  _ctypeInodeType `setUnknown` _sel1InodeType `setUnknown` _sel2InodeType
               _actualValue =
                   CombineSelect _ctypeIactualValue _sel1IactualValue _sel2IactualValue
               _lhsOactualValue =

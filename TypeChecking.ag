@@ -269,11 +269,18 @@ SEM SelectExpression
                            in if t == UnnamedCompositeType [("?column?",Pseudo Void)]
                               then Pseudo Void
                               else SetOfType @selSelectList.nodeType)
+    | CombineSelect lhs.nodeType =
+        checkErrors [@sel1.nodeType,@sel2.nodeType] $
+                    typeCheckCombineSelect
+                              @lhs.scope
+                              @lhs.sourcePos
+                              @sel1.nodeType
+                              @sel2.nodeType
 
 SEM TableRef
     | SubTref lhs.nodeType = checkErrors [@sel.nodeType] $ unwrapSetOfComposite @sel.nodeType
               lhs.idens = [(@alias, unwrapComposite $ unwrapSetOf @sel.nodeType)]
-              lhs.joinIdens = []
+             lhs.joinIdens = []
     | TrefAlias Tref
         lhs.nodeType = getRelationType @lhs.scope @lhs.sourcePos @tbl
         lhs.joinIdens = []

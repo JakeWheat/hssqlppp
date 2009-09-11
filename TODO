@@ -38,7 +38,6 @@ The way types and type errors will work is that instead of / in
    views, assuming that the function params and return type properly,
    and are correct.
 
-
 = Current TODO list
 
 TODOs in rough order that they are intended to be done

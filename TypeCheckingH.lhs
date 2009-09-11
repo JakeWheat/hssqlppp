@@ -44,10 +44,17 @@ not very consistently applied at the moment.
 >         let rowsTs1 = unwrapTypeList vll
 >             --convert into [[Type]]
 >             rowsTs = map unwrapTypeList rowsTs1
->             --check all same length
->             lengths = map length rowsTs
+>         in unionRelTypes scope sp rowsTs
+
+> typeCheckCombineSelect :: Scope -> MySourcePos -> Type -> Type -> Type
+> typeCheckCombineSelect scope sp v1 v2 =
+>     unionRelTypes scope sp $ map (map snd . unwrapComposite . unwrapSetOf) [v1,v2]
+
+> unionRelTypes :: Scope -> MySourcePos -> [[Type]] -> Type
+> unionRelTypes scope sp rowsTs =
+>         let lengths = map length rowsTs
 >             error1 = case () of
->                       _ | null rowsTs1 ->
+>                       _ | null rowsTs ->
 >                             TypeError sp NoRowsGivenForValues
 >                         | not (all (==head lengths) lengths) ->
 >                             TypeError sp
@@ -60,7 +67,6 @@ not very consistently applied at the moment.
 >             colTypes = map (resolveResultSetType scope sp) colTypeLists
 >             ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
 >         in checkErrors (error1:colTypes) ty
-
 
 ================================================================================
 

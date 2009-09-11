@@ -245,6 +245,30 @@ todo:
 >      ,p "values (1,2,3),(1,2);" [TypeError ("",1,1) ValuesListsMustBeSameLength]
 >      ])
 
+>    ,testGroup "simple combine selects"
+>     (mapStatementType [
+>      p "select 1,2  union select '3', '4';" [SetOfType $
+>                                      UnnamedCompositeType
+>                                      [("column1", typeInt)
+>                                      ,("column2", typeInt)]]
+>      ,p "select 1,2 intersect select 'a', true;" [TypeError ("",1,1)
+>                                      (IncompatibleTypes [typeInt
+>                                                         ,typeBool])]
+>      ,p "select '3', '4' except select 1,2;" [SetOfType $
+>                                      UnnamedCompositeType
+>                                      [("column1", typeInt)
+>                                      ,("column2", typeInt)]]
+>      ,p "select 'a', true union select 1,2;" [TypeError ("",1,1)
+>                                      (IncompatibleTypes [typeBool
+>                                                         ,typeInt])]
+>      ,p "select 'a'::text, '2'::int2 intersect select '1','2';" [SetOfType $
+>                                      UnnamedCompositeType
+>                                      [("column1", ScalarType "text")
+>                                      ,("column2", typeSmallInt)]]
+>      ,p "select 1,2,3 except select 1,2;" [TypeError ("",1,1) ValuesListsMustBeSameLength]
+>      ])
+
+
 >    ,testGroup "simple selects from"
 >     (mapStatementType [
 >       p "select a from (select 1 as a, 2 as b) x;"
