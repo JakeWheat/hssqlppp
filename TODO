@@ -14,7 +14,6 @@ creates - just enough to fill in the scope so references to these type
 support for domains implicitly casting to base types in function
    lookup, result set resolution
 simple typing of aggregate args and return types
-SimpleTypeName - don't assume it is a Scalar, do proper lookup
 Pretty printer for types
 aliases in selects from functions - when the function returns a setof
    single type instead of composite, then the single return attribute
