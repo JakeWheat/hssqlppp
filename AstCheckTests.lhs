@@ -319,6 +319,10 @@ todo:
 >         [TypeError ("",1,1) (UnrecognisedIdentifier "c")]
 >      ,p "select typlen from pg_type;"
 >         [SetOfType $ UnnamedCompositeType [("typlen", typeSmallInt)]]
+>      ,p "select oid from pg_type;"
+>         [SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
+>      ,p "select p.oid from pg_type p;"
+>         [SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
 >      ,p "select typlen from nope;"
 >         [TypeError ("",1,1) (UnrecognisedRelation "nope")]
 >      ,p "select generate_series from generate_series(1,7);"

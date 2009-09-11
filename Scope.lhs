@@ -9,6 +9,7 @@ extra definitions from an accessible database.
 > module Scope where
 
 > import Data.List
+> import Debug.Trace
 
 > import TypeType
 
@@ -66,11 +67,14 @@ key references in the pg catalog.
 >     scope { scopeIdentifierTypes = ids
 >           ,scopeJoinIdentifiers = commonJoinFields }
 
+> catPair :: ([a],[a]) -> [a]
+> catPair = uncurry (++)
+
 > scopeLookupID :: Scope -> MySourcePos -> String -> String -> Type
 > scopeLookupID scope sp correlationName iden =
 >   if correlationName == ""
 >     then let types = concatMap (filter (\ (s, _) -> s == iden))
->                        (map (fst.snd) $ scopeIdentifierTypes scope)
+>                        (map (catPair.snd) $ scopeIdentifierTypes scope)
 >          in case length types of
 >                 0 -> TypeError sp (UnrecognisedIdentifier iden)
 >                 1 -> (snd . head) types
@@ -80,7 +84,7 @@ key references in the pg catalog.
 >                        else TypeError sp (AmbiguousIdentifier iden)
 >     else case lookup correlationName (scopeIdentifierTypes scope) of
 >            Nothing -> TypeError sp $ UnrecognisedCorrelationName correlationName
->            Just s -> case lookup iden (fst s) of
+>            Just s -> case lookup iden (catPair s) of
 >                        Nothing -> TypeError sp $ UnrecognisedIdentifier $ correlationName ++ "." ++ iden
 >                        Just t -> t
 
@@ -99,8 +103,8 @@ key references in the pg catalog.
 
 > combineScopes :: Scope -> Scope -> Scope
 > --base, overrides
-> combineScopes (Scope bt btn bc btc bpre bpost bbin bf bagg baf bcd _ _ _)
->               (Scope ot otn oc otc opre opost obin off oagg oaf ocd oi oji osc) =
+> combineScopes (Scope bt btn bc btc bpre bpost bbin bf bagg baf bcd basc _ _)
+>               (Scope ot otn oc otc opre opost obin off oagg oaf ocd oasc oi oji) =
 >   Scope (funion ot bt)
 >         (funion otn btn)
 >         (funion oc bc)
@@ -112,9 +116,9 @@ key references in the pg catalog.
 >         (funion oagg bagg)
 >         (funion oaf baf)
 >         (funion ocd bcd)
+>         (funion oasc basc)
 >         oi -- overwrites old scopes, might need to be looked at again
 >         oji
->         osc
 >   where
 >     --without this it runs very slowly - guessing because it creates
 >     --a lot of garbage

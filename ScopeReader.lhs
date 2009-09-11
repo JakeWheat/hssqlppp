@@ -49,7 +49,7 @@ are discarded after the Scope value is created.
 >        typeNames = map (\(_,a,b) -> (b,a)) typeStuff
 >    castInfo <- selectRelation conn
 >                  "select castsource,casttarget,castcontext from pg_cast;" []
->    let jlt k = {-trace ("stuff:" ++ show k ++"//") $-} fromJust $ M.lookup k typeMap
+>    let jlt k = fromJust $ M.lookup k typeMap
 >    let casts = flip map castInfo
 >                  (\l -> (jlt (l!!0), jlt (l!!1),
 >                          case (l!!2) of
@@ -126,12 +126,43 @@ are discarded after the Scope value is created.
 >                   \ order by relkind, relname;" []
 >    let attrs = map (convAttrRow jlt) attrInfo
 
+>    systemAttrInfo <- selectRelation conn
+>                   "select distinct\n\
+>                   \   cls.relkind,\n\
+>                   \   cls.relname,\n\
+>                   \     array_to_string(\n\
+>                   \       array_agg(attname || ';' || atttypid)\n\
+>                   \          over (partition by relname order by attnum\n\
+>                   \               range between unbounded preceding\n\
+>                   \               and unbounded following)\n\
+>                   \      ,',')\n\
+>                   \ from pg_attribute att\n\
+>                   \ inner join pg_class cls\n\
+>                   \   on cls.oid = attrelid\n\
+>                   \ where\n\
+>                   \   pg_catalog.pg_table_is_visible(cls.oid)\n\
+>                   \   and cls.relkind in ('r','v','c')\n\
+>                   \   and not attisdropped\n\
+>                   \   and attnum < 0\n\
+>                   \ order by relkind, relname;" []
+>    let systemAttrs = map (convAttrRow jlt) systemAttrInfo
 
->    return $ Scope types typeNames casts typeCats
->                   prefixOps postfixOps binaryOps fnProts aggProts
->                   (prefixOps ++ postfixOps ++ binaryOps ++ fnProts ++ aggProts)
->                   attrs
->                   [] [] []
+>    return $ Scope {scopeTypes = types
+>                   ,scopeTypeNames = typeNames
+>                   ,scopeCasts = casts
+>                   ,scopeTypeCategories = typeCats
+>                   ,scopePrefixOperators = prefixOps
+>                   ,scopePostfixOperators = postfixOps
+>                   ,scopeBinaryOperators =  binaryOps
+>                   ,scopeFunctions = fnProts
+>                   ,scopeAggregates =  aggProts
+>                   ,scopeAllFns = (prefixOps ++ postfixOps ++
+>                                   binaryOps ++ fnProts ++ aggProts)
+>                   ,scopeAttrDefs = attrs
+>                   ,scopeAttrSystemColumns = systemAttrs
+>                   ,scopeIdentifierTypes = []
+>                   ,scopeJoinIdentifiers = []}
+
 >    where
 >      convAttrRow jlt l =
 >         (l!!1, ty, atts)
@@ -189,16 +220,3 @@ are discarded after the Scope value is created.
 >                            in  l : case s' of
 >                                            [] -> []
 >                                            (_:s'') -> split c s''
-
-
-
-
-select proname,
-                              array_to_string(proargtypes,','),
-                              proretset,
-                              prorettype
-                       from pg_proc
-                       where pg_catalog.pg_function_is_visible(pg_proc.oid)
-                             and provariadic = 0
-                             and proiswindow
-                       order by proname,proargtypes;

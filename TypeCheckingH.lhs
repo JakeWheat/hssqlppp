@@ -7,6 +7,7 @@ type checking.
 
 > import Data.Maybe
 > import Data.List
+> import Debug.Trace
 
 > import TypeType
 > import Scope
@@ -87,13 +88,9 @@ the system columns second
 
 > getAttrs :: Scope -> [CompositeFlavour] -> String -> Maybe (CompositeDef, CompositeDef)
 > getAttrs scope f n =
->   let a = find (\(nm,fl,_) ->
->                     fl `elem` f
->                 && nm == n)
+>   let a = find (\(nm,fl,_) -> fl `elem` f && nm == n)
 >             (scopeAttrDefs scope)
->       b = find (\(nm,fl,_) ->
->                     fl `elem` f
->                 && nm == n)
+>       b = find (\(nm,_,_) -> nm == n)
 >             (scopeAttrSystemColumns scope)
 >   in case (a,b) of
 >      (Nothing,_) -> Nothing
