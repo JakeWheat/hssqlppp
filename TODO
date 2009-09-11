@@ -1,3 +1,43 @@
+Annotation planning
+add an annotation field to most nodes in the ast
+something like
+data Annotation = NonAnnotation
+                | SourcePosAnnotation SourcePos
+                | CheckedAnnotation SourcePos Type [Messages]
+
+alter the parser to add sourcepositions to these nodes - assume that
+   one source position per node will be enough for now (not
+   necessarily a good assumption with weird sql syntax), and see if
+   this gives us enough for good error messages, etc..
+
+question:
+if a node has no source position e.g. the all in select all or select
+   distinct may correspond to a token or may be synthesized as the
+   default if neither all or distinct is present. Should this have the
+   source position of where the token would have appeared, should it
+   inherit it from its parent, should there be a separate ctor to
+   represent this?
+
+The way the type checking will then work is that instead of producing
+   some attribute values it will produce a transformed ast tree with
+   the type and message fields filled in. Then supply some utility
+   functions to e.g. extract all the messages, extract all the type
+   errors, extract the top level types, etc. Use some sort of tree
+   walker to implement this utils
+
+The way types and type errors will work is that instead of / in
+   addition to the types being passed in attributes, they'll be saved
+   in the transformed tree. Type errors won't percolate up to the top
+   level, but sit with the node that is in error. Any parent nodes
+   which need this type to calculate their own type, will use a
+   separate error to say type unknown. If they can calculate their
+   type without depending on a type erroring child node, then they do
+   that, so e.g. typing a set of statements with create functions
+   and views which use those functions: if the statements inside the
+   functions have type errors, we can still find the types of the
+   views, assuming that the function params and return type properly,
+   and are correct.
+
 
 = Current TODO list
 
@@ -14,7 +54,7 @@ creates - just enough to fill in the scope so references to these type
 support for domains implicitly casting to base types in function
    lookup, result set resolution
 simple typing of aggregate args and return types
-Pretty printer for types
+Pretty printer for Type
 aliases in selects from functions - when the function returns a setof
    single type instead of composite, then the single return attribute
    takes the alias name as it's attribute name e.g. select x from

@@ -1624,8 +1624,8 @@ sem_Expression_Identifier i_  =
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: Expression
               _lhsOnodeType =
-                  let (alias,iden) = splitIdentifier i_
-                  in scopeLookupID _lhsIscope _lhsIsourcePos alias iden
+                  let (correlationName,iden) = splitIdentifier i_
+                  in scopeLookupID _lhsIscope _lhsIsourcePos correlationName iden
               _lhsOliftedColumnName =
                   i_
               _lhsOmessages =
@@ -2949,9 +2949,9 @@ sem_MTableRef Prelude.Nothing  =
 type T_MTableRef  = Bool ->
                     Scope ->
                     MySourcePos ->
-                    ( MTableRef,([AliasedScope]),([String]),([Message]),Type)
+                    ( MTableRef,([QualifiedScope]),([String]),([Message]),Type)
 data Inh_MTableRef  = Inh_MTableRef {inLoop_Inh_MTableRef :: Bool,scope_Inh_MTableRef :: Scope,sourcePos_Inh_MTableRef :: MySourcePos}
-data Syn_MTableRef  = Syn_MTableRef {actualValue_Syn_MTableRef :: MTableRef,idens_Syn_MTableRef :: [AliasedScope],joinIdens_Syn_MTableRef :: [String],messages_Syn_MTableRef :: [Message],nodeType_Syn_MTableRef :: Type}
+data Syn_MTableRef  = Syn_MTableRef {actualValue_Syn_MTableRef :: MTableRef,idens_Syn_MTableRef :: [QualifiedScope],joinIdens_Syn_MTableRef :: [String],messages_Syn_MTableRef :: [Message],nodeType_Syn_MTableRef :: Type}
 wrap_MTableRef :: T_MTableRef  ->
                   Inh_MTableRef  ->
                   Syn_MTableRef 
@@ -2968,13 +2968,13 @@ sem_MTableRef_Just just_  =
          (let _lhsOnodeType :: Type
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: MTableRef
-              _lhsOidens :: ([AliasedScope])
+              _lhsOidens :: ([QualifiedScope])
               _lhsOjoinIdens :: ([String])
               _justOinLoop :: Bool
               _justOscope :: Scope
               _justOsourcePos :: MySourcePos
               _justIactualValue :: TableRef
-              _justIidens :: ([AliasedScope])
+              _justIidens :: ([QualifiedScope])
               _justIjoinIdens :: ([String])
               _justImessages :: ([Message])
               _justInodeType :: Type
@@ -3005,7 +3005,7 @@ sem_MTableRef_Nothing  =
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
-              _lhsOidens :: ([AliasedScope])
+              _lhsOidens :: ([QualifiedScope])
               _lhsOjoinIdens :: ([String])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: MTableRef
@@ -3997,7 +3997,7 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
               _selSelectListImessages :: ([Message])
               _selSelectListInodeType :: Type
               _selTrefIactualValue :: MTableRef
-              _selTrefIidens :: ([AliasedScope])
+              _selTrefIidens :: ([QualifiedScope])
               _selTrefIjoinIdens :: ([String])
               _selTrefImessages :: ([Message])
               _selTrefInodeType :: Type
@@ -4267,9 +4267,9 @@ sem_SelectItemList_Cons hd_ tl_  =
               _tlInodeType :: Type
               _lhsOnodeType =
                   foldr consComposite _tlInodeType
-                     (let (alias,iden) = splitIdentifier _hdIcolumnName
+                     (let (correlationName,iden) = splitIdentifier _hdIcolumnName
                       in if iden == "*"
-                          then scopeExpandStar _lhsIscope _lhsIsourcePos alias
+                          then scopeExpandStar _lhsIscope _lhsIsourcePos correlationName
                           else [(iden, _hdInodeType)])
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
@@ -6320,9 +6320,9 @@ sem_TableRef (TrefFunAlias _fn _alias )  =
 type T_TableRef  = Bool ->
                    Scope ->
                    MySourcePos ->
-                   ( TableRef,([AliasedScope]),([String]),([Message]),Type)
+                   ( TableRef,([QualifiedScope]),([String]),([Message]),Type)
 data Inh_TableRef  = Inh_TableRef {inLoop_Inh_TableRef :: Bool,scope_Inh_TableRef :: Scope,sourcePos_Inh_TableRef :: MySourcePos}
-data Syn_TableRef  = Syn_TableRef {actualValue_Syn_TableRef :: TableRef,idens_Syn_TableRef :: [AliasedScope],joinIdens_Syn_TableRef :: [String],messages_Syn_TableRef :: [Message],nodeType_Syn_TableRef :: Type}
+data Syn_TableRef  = Syn_TableRef {actualValue_Syn_TableRef :: TableRef,idens_Syn_TableRef :: [QualifiedScope],joinIdens_Syn_TableRef :: [String],messages_Syn_TableRef :: [Message],nodeType_Syn_TableRef :: Type}
 wrap_TableRef :: T_TableRef  ->
                  Inh_TableRef  ->
                  Syn_TableRef 
@@ -6341,7 +6341,7 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
-              _lhsOidens :: ([AliasedScope])
+              _lhsOidens :: ([QualifiedScope])
               _lhsOjoinIdens :: ([String])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
@@ -6361,7 +6361,7 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _onExprOscope :: Scope
               _onExprOsourcePos :: MySourcePos
               _tblIactualValue :: TableRef
-              _tblIidens :: ([AliasedScope])
+              _tblIidens :: ([QualifiedScope])
               _tblIjoinIdens :: ([String])
               _tblImessages :: ([Message])
               _tblInodeType :: Type
@@ -6372,7 +6372,7 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _joinTypeImessages :: ([Message])
               _joinTypeInodeType :: Type
               _tbl1IactualValue :: TableRef
-              _tbl1Iidens :: ([AliasedScope])
+              _tbl1Iidens :: ([QualifiedScope])
               _tbl1IjoinIdens :: ([String])
               _tbl1Imessages :: ([Message])
               _tbl1InodeType :: Type
@@ -6455,7 +6455,7 @@ sem_TableRef_SubTref sel_ alias_  =
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
-              _lhsOidens :: ([AliasedScope])
+              _lhsOidens :: ([QualifiedScope])
               _lhsOjoinIdens :: ([String])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
@@ -6494,7 +6494,7 @@ sem_TableRef_Tref tbl_  =
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
               _lhsOjoinIdens :: ([String])
-              _lhsOidens :: ([AliasedScope])
+              _lhsOidens :: ([QualifiedScope])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
               _lhsOnodeType =
@@ -6519,7 +6519,7 @@ sem_TableRef_TrefAlias tbl_ alias_  =
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
               _lhsOjoinIdens :: ([String])
-              _lhsOidens :: ([AliasedScope])
+              _lhsOidens :: ([QualifiedScope])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
               _lhsOnodeType =
@@ -6543,7 +6543,7 @@ sem_TableRef_TrefFun fn_  =
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
               _lhsOjoinIdens :: ([String])
-              _lhsOidens :: ([AliasedScope])
+              _lhsOidens :: ([QualifiedScope])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
               _fnOinLoop :: Bool
@@ -6583,7 +6583,7 @@ sem_TableRef_TrefFunAlias fn_ alias_  =
        _lhsIsourcePos ->
          (let _lhsOnodeType :: Type
               _lhsOjoinIdens :: ([String])
-              _lhsOidens :: ([AliasedScope])
+              _lhsOidens :: ([QualifiedScope])
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
               _fnOinLoop :: Bool

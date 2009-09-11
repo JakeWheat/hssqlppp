@@ -111,7 +111,7 @@ later on down the line.
 >                    | NoRowsGivenForValues
 >                    | UnrecognisedIdentifier String
 >                    | UnrecognisedRelation String
->                    | UnrecognisedAlias String
+>                    | UnrecognisedCorrelationName String
 >                    | AmbiguousIdentifier String
 >                    | ContextError String
 >                    | MissingJoinAttribute

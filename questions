@@ -1,0 +1,65 @@
+here are some queries that need investigating, and possibly formatted
+so they can be posted to the appropriate mailing list
+
+= haskell questions
+
+generating the default scope looks awful when saved to a file. Is
+there an easy way to Show this value, with nice formatting? Is there a
+better way to serialize this value?
+
+= ghc questions
+
+getting
+ghc: panic! (the 'impossible' happened)
+  (GHC version 6.10.4 for i386-unknown-linux):
+	linkBCO: >= 64k insns in BCO
+
+Please report this as a GHC bug:  http://www.haskell.org/ghc/reportabug
+
+when compiling defaultscope, put together a bug report or something.
+
+-----
+getting segmentation fault when trying to run code with profiling on
+- ghc --make -prof -auto-all  HsSqlSystem.lhs +RTS -K64M
+
+= cabal
+
+when tried to install profiling, is there a short cut to reinstall all
+the dependent libs with the profiling option on, had to do this one or
+two libs at a time and it took ages.
+
+after cabal instructed that all the appropriate libs had profiling on,
+tried to build the code and got errors like HSHunit_p library not
+found, this was fixed by re-cabal installing some libraries with
+profiling on that cabal had missed - is this supposed to be handled in
+the configure stage?
+
+
+= postgresql questions
+
+is a null literal treated as a unknown string for the purposes of
+function resolution, resultset resolution, etc.
+
+how does the function resolution work for polymorphic functions
+
+what situations can an empty array type check successfully, and when
+is it rejected.
+
+is it possible to create a full view of all the casts that are used in
+implicit resolution, i.e. including the ones that aren't in pg_cast
+
+is it correct to use the resolve result set type algo when determining
+the type of common fields in a natural or using join?
+
+looking at postgresql-doc-8.4/html/query-path.html, it is unclear
+where type checking occurs - is it mainly in a separate stage, or
+intermingled in with the other stages
+
+is the way the keyword operators are typed correct (using the function
+call match algo to sort the implicit casts)?
+
+how does the parser handle parsing operators without knowing whether
+they are prefix, postfix or binary until later
+
+when is the b_expr parser used (should just need a grep over the
+grammar file)

@@ -226,8 +226,8 @@ pull id types out of scope for identifiers
 
 SEM Expression
     | Identifier lhs.nodeType =
-                   let (alias,iden) = splitIdentifier @i
-                   in scopeLookupID @lhs.scope @lhs.sourcePos alias iden
+                   let (correlationName,iden) = splitIdentifier @i
+                   in scopeLookupID @lhs.scope @lhs.sourcePos correlationName iden
 
 {
 -- i think this should be alright, an identifier referenced in an
@@ -366,9 +366,9 @@ SEM SelectItem
 SEM SelectItemList
     | Cons lhs.nodeType =
         foldr consComposite @tl.nodeType
-           (let (alias,iden) = splitIdentifier @hd.columnName
+           (let (correlationName,iden) = splitIdentifier @hd.columnName
             in if iden == "*"
-                then scopeExpandStar @lhs.scope @lhs.sourcePos alias
+                then scopeExpandStar @lhs.scope @lhs.sourcePos correlationName
                 else [(iden, @hd.nodeType)])
     | Nil lhs.nodeType = UnnamedCompositeType []
 
@@ -392,13 +392,13 @@ them into the selectlist and where parts)
 ATTR TableRef
          [
          |
-         | idens : {[AliasedScope]} joinIdens : {[String]}
+         | idens : {[QualifiedScope]} joinIdens : {[String]}
          ]
 
 ATTR MTableRef
          [
          |
-         | idens : {[AliasedScope]} joinIdens : {[String]}
+         | idens : {[QualifiedScope]} joinIdens : {[String]}
          ]
 
 

@@ -61,7 +61,7 @@ jakewheatmail@gmail.com
 == Parsing
 
 Partially supports:
-select statements (selectlists (*, qualified, aliased, expressions)
+select statements (selectlists (*, qualified, aliased/correlation names, expressions)
        distinct, basic window functions,
        from (with explicit joins - natural, inner, cross, left, right,
        full outer, on and using), aliases, from functions
