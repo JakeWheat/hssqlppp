@@ -384,7 +384,7 @@ DATA Expression | IntegerLit Integer
                        els : MaybeExpression
                 | Exists sel : SelectExpression
                 | FunCall funName:String args:ExpressionList
-                | InPredicate Expression Bool InList
+                | InPredicate expr:Expression i:Bool list:InList
                   -- windowfn selectitem partitionby orderby orderbyasc?
                 | WindowFn fn : Expression
                            partitionBy : ExpressionList
@@ -458,7 +458,8 @@ currently supported keyword operators.
 
 
 
-DATA InList | InList ExpressionList | InSelect sel : SelectExpression
+DATA InList | InList exprs : ExpressionList
+            | InSelect sel : SelectExpression
 
 -- some list nodes, not sure if all of these are needed as separately
 -- named node types

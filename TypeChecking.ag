@@ -289,7 +289,26 @@ SEM Expression
                        in case length f of
                           0 -> error "internal error: no columns in scalar subquery?"
                           1 -> head f
-                          2 -> error "internal error: rows types not yet supported in subquery"
+                          _ -> UnknownType
+{-
+== inlist
+-}
+SEM Expression
+    | InPredicate
+        lhs.nodeType =
+            let er = resolveResultSetType
+                         @lhs.scope
+                         @lhs.sourcePos
+                         [@expr.nodeType, @list.nodeType]
+            in checkErrors [er] typeBool
+
+SEM InList
+    | InList
+        lhs.nodeType = resolveResultSetType
+                         @lhs.scope
+                         @lhs.sourcePos
+                         $ unwrapTypeList @exprs.nodeType
+
 
 {-
 ================================================================================

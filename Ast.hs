@@ -1366,8 +1366,8 @@ sem_Expression (FunCall _funName _args )  =
     (sem_Expression_FunCall _funName (sem_ExpressionList _args ) )
 sem_Expression (Identifier _i )  =
     (sem_Expression_Identifier _i )
-sem_Expression (InPredicate _expression _bool _inList )  =
-    (sem_Expression_InPredicate (sem_Expression _expression ) _bool (sem_InList _inList ) )
+sem_Expression (InPredicate _expr _i _list )  =
+    (sem_Expression_InPredicate (sem_Expression _expr ) _i (sem_InList _list ) )
 sem_Expression (IntegerLit _integer )  =
     (sem_Expression_IntegerLit _integer )
 sem_Expression (NullLit )  =
@@ -1743,53 +1743,57 @@ sem_Expression_InPredicate :: T_Expression  ->
                               Bool ->
                               T_InList  ->
                               T_Expression 
-sem_Expression_InPredicate expression_ bool_ inList_  =
+sem_Expression_InPredicate expr_ i_ list_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOliftedColumnName :: String
+         (let _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
               _lhsOactualValue :: Expression
-              _expressionOinLoop :: Bool
-              _expressionOscope :: Scope
-              _expressionOsourcePos :: MySourcePos
-              _inListOinLoop :: Bool
-              _inListOscope :: Scope
-              _inListOsourcePos :: MySourcePos
-              _expressionIactualValue :: Expression
-              _expressionIliftedColumnName :: String
-              _expressionImessages :: ([Message])
-              _expressionInodeType :: Type
-              _inListIactualValue :: InList
-              _inListImessages :: ([Message])
-              _inListInodeType :: Type
-              _lhsOliftedColumnName =
-                  _expressionIliftedColumnName
-              _lhsOmessages =
-                  _expressionImessages ++ _inListImessages
+              _exprOinLoop :: Bool
+              _exprOscope :: Scope
+              _exprOsourcePos :: MySourcePos
+              _listOinLoop :: Bool
+              _listOscope :: Scope
+              _listOsourcePos :: MySourcePos
+              _exprIactualValue :: Expression
+              _exprIliftedColumnName :: String
+              _exprImessages :: ([Message])
+              _exprInodeType :: Type
+              _listIactualValue :: InList
+              _listImessages :: ([Message])
+              _listInodeType :: Type
               _lhsOnodeType =
-                  _expressionInodeType `setUnknown` _inListInodeType
+                  let er = resolveResultSetType
+                               _lhsIscope
+                               _lhsIsourcePos
+                               [_exprInodeType, _listInodeType]
+                  in checkErrors [er] typeBool
+              _lhsOliftedColumnName =
+                  _exprIliftedColumnName
+              _lhsOmessages =
+                  _exprImessages ++ _listImessages
               _actualValue =
-                  InPredicate _expressionIactualValue bool_ _inListIactualValue
+                  InPredicate _exprIactualValue i_ _listIactualValue
               _lhsOactualValue =
                   _actualValue
-              _expressionOinLoop =
+              _exprOinLoop =
                   _lhsIinLoop
-              _expressionOscope =
+              _exprOscope =
                   _lhsIscope
-              _expressionOsourcePos =
+              _exprOsourcePos =
                   _lhsIsourcePos
-              _inListOinLoop =
+              _listOinLoop =
                   _lhsIinLoop
-              _inListOscope =
+              _listOscope =
                   _lhsIscope
-              _inListOsourcePos =
+              _listOsourcePos =
                   _lhsIsourcePos
-              ( _expressionIactualValue,_expressionIliftedColumnName,_expressionImessages,_expressionInodeType) =
-                  (expression_ _expressionOinLoop _expressionOscope _expressionOsourcePos )
-              ( _inListIactualValue,_inListImessages,_inListInodeType) =
-                  (inList_ _inListOinLoop _inListOscope _inListOsourcePos )
+              ( _exprIactualValue,_exprIliftedColumnName,_exprImessages,_exprInodeType) =
+                  (expr_ _exprOinLoop _exprOscope _exprOsourcePos )
+              ( _listIactualValue,_listImessages,_listInodeType) =
+                  (list_ _listOinLoop _listOscope _listOsourcePos )
           in  ( _lhsOactualValue,_lhsOliftedColumnName,_lhsOmessages,_lhsOnodeType)))
 sem_Expression_IntegerLit :: Integer ->
                              T_Expression 
@@ -1874,7 +1878,7 @@ sem_Expression_ScalarSubQuery sel_  =
                   in case length f of
                      0 -> error "internal error: no columns in scalar subquery?"
                      1 -> head f
-                     2 -> error "internal error: rows types not yet supported in subquery"
+                     _ -> UnknownType
               _lhsOliftedColumnName =
                   ""
               _lhsOmessages =
@@ -2694,8 +2698,8 @@ data InList  = InList (ExpressionList)
 -- cata
 sem_InList :: InList  ->
               T_InList 
-sem_InList (InList _expressionList )  =
-    (sem_InList_InList (sem_ExpressionList _expressionList ) )
+sem_InList (InList _exprs )  =
+    (sem_InList_InList (sem_ExpressionList _exprs ) )
 sem_InList (InSelect _sel )  =
     (sem_InList_InSelect (sem_SelectExpression _sel ) )
 -- semantic domain
@@ -2714,35 +2718,38 @@ wrap_InList sem (Inh_InList _lhsIinLoop _lhsIscope _lhsIsourcePos )  =
      in  (Syn_InList _lhsOactualValue _lhsOmessages _lhsOnodeType ))
 sem_InList_InList :: T_ExpressionList  ->
                      T_InList 
-sem_InList_InList expressionList_  =
+sem_InList_InList exprs_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
               _lhsOactualValue :: InList
-              _expressionListOinLoop :: Bool
-              _expressionListOscope :: Scope
-              _expressionListOsourcePos :: MySourcePos
-              _expressionListIactualValue :: ExpressionList
-              _expressionListImessages :: ([Message])
-              _expressionListInodeType :: Type
-              _lhsOmessages =
-                  _expressionListImessages
+              _exprsOinLoop :: Bool
+              _exprsOscope :: Scope
+              _exprsOsourcePos :: MySourcePos
+              _exprsIactualValue :: ExpressionList
+              _exprsImessages :: ([Message])
+              _exprsInodeType :: Type
               _lhsOnodeType =
-                  _expressionListInodeType
+                  resolveResultSetType
+                    _lhsIscope
+                    _lhsIsourcePos
+                    $ unwrapTypeList _exprsInodeType
+              _lhsOmessages =
+                  _exprsImessages
               _actualValue =
-                  InList _expressionListIactualValue
+                  InList _exprsIactualValue
               _lhsOactualValue =
                   _actualValue
-              _expressionListOinLoop =
+              _exprsOinLoop =
                   _lhsIinLoop
-              _expressionListOscope =
+              _exprsOscope =
                   _lhsIscope
-              _expressionListOsourcePos =
+              _exprsOsourcePos =
                   _lhsIsourcePos
-              ( _expressionListIactualValue,_expressionListImessages,_expressionListInodeType) =
-                  (expressionList_ _expressionListOinLoop _expressionListOscope _expressionListOsourcePos )
+              ( _exprsIactualValue,_exprsImessages,_exprsInodeType) =
+                  (exprs_ _exprsOinLoop _exprsOscope _exprsOsourcePos )
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 sem_InList_InSelect :: T_SelectExpression  ->
                        T_InList 

@@ -475,6 +475,8 @@ select g.fn from fn() g
 >         \              from pg_namespace\n\
 >         \              where (nspname = 'public'))) and (relkind = 'r'));"
 >         [SetOfType $ UnnamedCompositeType [("relvar_name",ScalarType "name")]]
+>      ,p "select relname from pg_class where relkind in ('r', 'v');"
+>         [SetOfType $ UnnamedCompositeType [("relname",ScalarType "name")]]
 >      ])
 
 
