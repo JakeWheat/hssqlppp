@@ -379,6 +379,9 @@ DATA Expression | IntegerLit Integer
                 | Identifier i:String
                 | Case cases : CaseExpressionListExpressionPairList
                        els : MaybeExpression
+                | CaseSimple value : Expression
+                       cases : CaseExpressionListExpressionPairList
+                       els : MaybeExpression
                 | Exists sel : SelectExpression
                 | FunCall funName:String args:ExpressionList
                 | InPredicate Expression Bool InList

@@ -478,6 +478,17 @@ Conversion routines - convert Sql asts into Docs
 >             text "when" <+> hcatCsvMap convExp ex1
 >             <+> text "then" <+> convExp ex2
 
+> convExp (CaseSimple val whens els) =
+>   text "case" <+> convExp val
+>   $+$ nest 2 (vcat (map convWhen whens)
+>               $+$ maybeConv (\e -> text "else" <+> convExp e) els)
+>   $+$ text "end"
+>       where
+>         convWhen (ex1, ex2) =
+>             text "when" <+> hcatCsvMap convExp ex1
+>             <+> text "then" <+> convExp ex2
+
+
 > convExp (PositionalArg a) = text "$" <> integer a
 > convExp (Exists s) = text "exists" <+> parens (convSelectExpression True s)
 > convExp (Cast ex t) = text "cast" <> parens (convExp ex

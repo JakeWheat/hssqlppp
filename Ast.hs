@@ -1331,6 +1331,7 @@ sem_DropType_View  =
 -- Expression --------------------------------------------------
 data Expression  = BooleanLit (Bool) 
                  | Case (CaseExpressionListExpressionPairList) (MaybeExpression) 
+                 | CaseSimple (Expression) (CaseExpressionListExpressionPairList) (MaybeExpression) 
                  | Cast (Expression) (TypeName) 
                  | Exists (SelectExpression) 
                  | FloatLit (Double) 
@@ -1351,6 +1352,8 @@ sem_Expression (BooleanLit _bool )  =
     (sem_Expression_BooleanLit _bool )
 sem_Expression (Case _cases _els )  =
     (sem_Expression_Case (sem_CaseExpressionListExpressionPairList _cases ) (sem_MaybeExpression _els ) )
+sem_Expression (CaseSimple _value _cases _els )  =
+    (sem_Expression_CaseSimple (sem_Expression _value ) (sem_CaseExpressionListExpressionPairList _cases ) (sem_MaybeExpression _els ) )
 sem_Expression (Cast _expr _tn )  =
     (sem_Expression_Cast (sem_Expression _expr ) (sem_TypeName _tn ) )
 sem_Expression (Exists _sel )  =
@@ -1463,6 +1466,72 @@ sem_Expression_Case cases_ els_  =
                   _lhsIscope
               _elsOsourcePos =
                   _lhsIsourcePos
+              ( _casesIactualValue,_casesImessages,_casesInodeType) =
+                  (cases_ _casesOinLoop _casesOscope _casesOsourcePos )
+              ( _elsIactualValue,_elsImessages,_elsInodeType) =
+                  (els_ _elsOinLoop _elsOscope _elsOsourcePos )
+          in  ( _lhsOactualValue,_lhsOliftedColumnName,_lhsOmessages,_lhsOnodeType)))
+sem_Expression_CaseSimple :: T_Expression  ->
+                             T_CaseExpressionListExpressionPairList  ->
+                             T_MaybeExpression  ->
+                             T_Expression 
+sem_Expression_CaseSimple value_ cases_ els_  =
+    (\ _lhsIinLoop
+       _lhsIscope
+       _lhsIsourcePos ->
+         (let _lhsOliftedColumnName :: String
+              _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
+              _lhsOactualValue :: Expression
+              _valueOinLoop :: Bool
+              _valueOscope :: Scope
+              _valueOsourcePos :: MySourcePos
+              _casesOinLoop :: Bool
+              _casesOscope :: Scope
+              _casesOsourcePos :: MySourcePos
+              _elsOinLoop :: Bool
+              _elsOscope :: Scope
+              _elsOsourcePos :: MySourcePos
+              _valueIactualValue :: Expression
+              _valueIliftedColumnName :: String
+              _valueImessages :: ([Message])
+              _valueInodeType :: Type
+              _casesIactualValue :: CaseExpressionListExpressionPairList
+              _casesImessages :: ([Message])
+              _casesInodeType :: Type
+              _elsIactualValue :: MaybeExpression
+              _elsImessages :: ([Message])
+              _elsInodeType :: Type
+              _lhsOliftedColumnName =
+                  _valueIliftedColumnName
+              _lhsOmessages =
+                  _valueImessages ++ _casesImessages ++ _elsImessages
+              _lhsOnodeType =
+                  _valueInodeType `setUnknown` _casesInodeType `setUnknown` _elsInodeType
+              _actualValue =
+                  CaseSimple _valueIactualValue _casesIactualValue _elsIactualValue
+              _lhsOactualValue =
+                  _actualValue
+              _valueOinLoop =
+                  _lhsIinLoop
+              _valueOscope =
+                  _lhsIscope
+              _valueOsourcePos =
+                  _lhsIsourcePos
+              _casesOinLoop =
+                  _lhsIinLoop
+              _casesOscope =
+                  _lhsIscope
+              _casesOsourcePos =
+                  _lhsIsourcePos
+              _elsOinLoop =
+                  _lhsIinLoop
+              _elsOscope =
+                  _lhsIscope
+              _elsOsourcePos =
+                  _lhsIsourcePos
+              ( _valueIactualValue,_valueIliftedColumnName,_valueImessages,_valueInodeType) =
+                  (value_ _valueOinLoop _valueOscope _valueOsourcePos )
               ( _casesIactualValue,_casesImessages,_casesInodeType) =
                   (cases_ _casesOinLoop _casesOscope _casesOsourcePos )
               ( _elsIactualValue,_elsImessages,_elsInodeType) =

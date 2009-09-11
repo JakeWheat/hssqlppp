@@ -144,6 +144,12 @@ some slightly more complex stuff
 >               ,([Identifier "c"], IntegerLit 4)]
 >          (Just $ IntegerLit 5))
 
+>      ,p  "case 1 when 2 then 3 else 4 end"
+>         (CaseSimple (IntegerLit 1)
+>            [([IntegerLit 2], IntegerLit 3)]
+>          (Just $ IntegerLit 4))
+
+
 positional args used in sql and sometimes plpgsql functions
 
 >      ,p "$1" (PositionalArg 1)

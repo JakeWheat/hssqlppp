@@ -922,9 +922,14 @@ expression when value' currently
 
 > caseParse :: ParsecT [Token] ParseState Identity Expression
 > caseParse = keyword "case" >>
->             Case <$> many whenParse
+>             choice [
+>              try $ CaseSimple <$> expr
+>                               <*> many whenParse
+>                               <*> tryOptionMaybe (keyword "else" *> expr)
+>                                   <* keyword "end"
+>             ,Case <$> many whenParse
 >                  <*> tryOptionMaybe (keyword "else" *> expr)
->                       <* keyword "end"
+>                       <* keyword "end"]
 >   where
 >     whenParse = (,) <$> (keyword "when" *> commaSep1 expr)
 >                     <*> (keyword "then" *> expr)
