@@ -2759,8 +2759,8 @@ sem_InList_InSelect sel_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
               _lhsOactualValue :: InList
               _selOinLoop :: Bool
               _selOscope :: Scope
@@ -2768,10 +2768,14 @@ sem_InList_InSelect sel_  =
               _selIactualValue :: SelectExpression
               _selImessages :: ([Message])
               _selInodeType :: Type
+              _lhsOnodeType =
+                  let attrs = map snd $ unwrapComposite $ unwrapSetOf $ _selInodeType
+                  in case length attrs of
+                       0 -> error "internal error - got subquery with no columns? in inselect"
+                       1 -> head attrs
+                       _ -> UnknownType
               _lhsOmessages =
                   _selImessages
-              _lhsOnodeType =
-                  _selInodeType
               _actualValue =
                   InSelect _selIactualValue
               _lhsOactualValue =

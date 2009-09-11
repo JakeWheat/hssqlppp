@@ -481,8 +481,10 @@ select g.fn from fn() g
 >         [SetOfType $ UnnamedCompositeType [("relvar_name",ScalarType "name")]]
 >      ,p "select relname from pg_class where relkind in ('r', 'v');"
 >         [SetOfType $ UnnamedCompositeType [("relname",ScalarType "name")]]
+>      ,p "select * from generate_series(1,7) g\n\
+>         \where g not in (select * from generate_series(3,5));"
+>         [SetOfType (UnnamedCompositeType [("g",ScalarType "int4")])]
 >      ])
-
 
 >    ]
 >         where
