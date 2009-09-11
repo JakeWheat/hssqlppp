@@ -280,7 +280,7 @@ SEM SelectExpression
 SEM TableRef
     | SubTref lhs.nodeType = checkErrors [@sel.nodeType] $ unwrapSetOfComposite @sel.nodeType
               lhs.idens = [(@alias, unwrapComposite $ unwrapSetOf @sel.nodeType)]
-             lhs.joinIdens = []
+              lhs.joinIdens = []
     | TrefAlias Tref
         lhs.nodeType = getRelationType @lhs.scope @lhs.sourcePos @tbl
         lhs.joinIdens = []
@@ -435,6 +435,8 @@ if the select item is just an identifier, then that column is named
 after the identifier
 e.g. select a, b as c, b + c from d, gives three columns one named
 a, one named c, and one unnamed, even though only one has an alias
+if the select item is a function or aggregate call at the top level,
+then it is named after that function or aggregate
 -}
 
 --default value for non identifier nodes
@@ -457,6 +459,10 @@ node if the identifier is not wrapped in parens, function calls, etc.
 
 SEM Expression
   | Identifier lhs.liftedColumnName = @i
+  | FunCall lhs.liftedColumnName =
+      if isOperator @funName
+         then ""
+         else @funName
 
 -- collect the aliases and column names for use by the selectitemlist nodes
 SEM SelectItem

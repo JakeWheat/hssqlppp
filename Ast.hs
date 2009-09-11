@@ -1597,7 +1597,9 @@ sem_Expression_FunCall funName_ args_  =
                       funName_
                       _argsInodeType
               _lhsOliftedColumnName =
-                  ""
+                  if isOperator funName_
+                     then ""
+                     else funName_
               _lhsOmessages =
                   _argsImessages
               _actualValue =

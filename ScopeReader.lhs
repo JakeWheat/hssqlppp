@@ -92,6 +92,19 @@ are discarded after the Scope value is created.
 >                       \order by proname,proargtypes;" []
 >    let fnProts = map (convFnRow jlt) functionInfo
 
+>    aggregateInfo <- selectRelation conn
+>                       "select proname,\n\
+>                       \       array_to_string(proargtypes,','),\n\
+>                       \       proretset,\n\
+>                       \       prorettype\n\
+>                       \from pg_proc\n\
+>                       \where pg_catalog.pg_function_is_visible(pg_proc.oid)\n\
+>                       \      and provariadic = 0\n\
+>                       \      and proisagg\n\
+>                       \order by proname,proargtypes;" []
+>    let aggProts = map (convFnRow jlt) aggregateInfo
+
+
 >    attrInfo <- selectRelation conn
 >                   "select distinct\n\
 >                   \   cls.relkind,\n\
@@ -115,8 +128,8 @@ are discarded after the Scope value is created.
 
 
 >    return $ Scope types typeNames casts typeCats
->                   prefixOps postfixOps binaryOps fnProts
->                   (prefixOps ++ postfixOps ++ binaryOps ++ fnProts)
+>                   prefixOps postfixOps binaryOps fnProts aggProts
+>                   (prefixOps ++ postfixOps ++ binaryOps ++ fnProts ++ aggProts)
 >                   attrs
 >                   [] []
 >    where
@@ -176,3 +189,16 @@ are discarded after the Scope value is created.
 >                            in  l : case s' of
 >                                            [] -> []
 >                                            (_:s'') -> split c s''
+
+
+
+
+select proname,
+                              array_to_string(proargtypes,','),
+                              proretset,
+                              prorettype
+                       from pg_proc
+                       where pg_catalog.pg_function_is_visible(pg_proc.oid)
+                             and provariadic = 0
+                             and proiswindow
+                       order by proname,proargtypes;

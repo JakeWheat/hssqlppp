@@ -22,6 +22,7 @@ extra definitions from an accessible database.
 >                    ,scopePostfixOperators :: [FunctionPrototype]
 >                    ,scopeBinaryOperators :: [FunctionPrototype]
 >                    ,scopeFunctions :: [FunctionPrototype]
+>                    ,scopeAggregates :: [FunctionPrototype]
 >                     --this should be done better:
 >                    ,scopeAllFns :: [FunctionPrototype]
 >                    ,scopeAttrDefs :: [CompositeDef]
@@ -51,7 +52,7 @@ the resultant field list.
 > type QualifiedScope = (String, [(String,Type)])
 
 > emptyScope :: Scope
-> emptyScope = Scope [] [] [] [] [] [] [] [] [] [] [] []
+> emptyScope = Scope [] [] [] [] [] [] [] [] [] [] [] [] []
 
 > scopeReplaceIds :: Scope -> [QualifiedScope] -> [String] -> Scope
 > scopeReplaceIds scope ids commonJoinFields =
@@ -91,8 +92,8 @@ the resultant field list.
 
 > combineScopes :: Scope -> Scope -> Scope
 > --base, overrides
-> combineScopes (Scope bt btn bc btc bpre bpost bbin bf baf bcd _ _)
->               (Scope ot otn oc otc opre opost obin off oaf ocd oi oji) =
+> combineScopes (Scope bt btn bc btc bpre bpost bbin bf bagg baf bcd _ _)
+>               (Scope ot otn oc otc opre opost obin off oagg oaf ocd oi oji) =
 >   Scope (funion ot bt)
 >         (funion otn btn)
 >         (funion oc bc)
@@ -101,6 +102,7 @@ the resultant field list.
 >         (funion opost bpost)
 >         (funion obin bbin)
 >         (funion off bf)
+>         (funion oagg bagg)
 >         (funion oaf baf)
 >         (funion ocd bcd)
 >         oi -- overwrites old scopes, might need to be looked at again

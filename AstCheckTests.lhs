@@ -387,6 +387,12 @@ select g.fn from fn() g
 
 >      ])
 
+>    ,testGroup "aggregates"
+>     (mapStatementType [
+>        p "select max(prorettype::int) from pg_proc;"
+>         [SetOfType $ UnnamedCompositeType [("max", typeInt)]]
+>      ])
+
 >    ,testGroup "simple wheres"
 >     (mapStatementType [
 >       p "select 1 from pg_type where true;"
