@@ -230,6 +230,28 @@ SEM Expression
                @lhs.sourcePos
                thenTypes
 
+SEM Expression
+    | CaseSimple lhs.nodeType =
+        let elseThen =
+                case @els.nodeType of
+                  TypeList [] -> []
+                  t -> [t]
+            unwrappedLists = map unwrapTypeList $ unwrapTypeList @cases.nodeType
+            whenTypes :: [Type]
+            whenTypes = concat $ map unwrapTypeList $ map head unwrappedLists
+            thenTypes :: [Type]
+            thenTypes = map (head . tail) unwrappedLists ++ elseThen
+            checkWhenTypes = resolveResultSetType
+                               @lhs.scope
+                               @lhs.sourcePos
+                               (@value.nodeType:whenTypes)
+        in checkErrors (whenTypes ++ thenTypes ++ [checkWhenTypes]) $
+             resolveResultSetType
+               @lhs.scope
+               @lhs.sourcePos
+               thenTypes
+
+
 {-
 == identifiers
 pull id types out of scope for identifiers

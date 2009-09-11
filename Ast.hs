@@ -1485,9 +1485,9 @@ sem_Expression_CaseSimple value_ cases_ els_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOliftedColumnName :: String
+         (let _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
               _lhsOactualValue :: Expression
               _valueOinLoop :: Bool
               _valueOscope :: Scope
@@ -1508,12 +1508,29 @@ sem_Expression_CaseSimple value_ cases_ els_  =
               _elsIactualValue :: MaybeExpression
               _elsImessages :: ([Message])
               _elsInodeType :: Type
+              _lhsOnodeType =
+                  let elseThen =
+                          case _elsInodeType of
+                            TypeList [] -> []
+                            t -> [t]
+                      unwrappedLists = map unwrapTypeList $ unwrapTypeList _casesInodeType
+                      whenTypes :: [Type]
+                      whenTypes = concat $ map unwrapTypeList $ map head unwrappedLists
+                      thenTypes :: [Type]
+                      thenTypes = map (head . tail) unwrappedLists ++ elseThen
+                      checkWhenTypes = resolveResultSetType
+                                         _lhsIscope
+                                         _lhsIsourcePos
+                                         (_valueInodeType:whenTypes)
+                  in checkErrors (whenTypes ++ thenTypes ++ [checkWhenTypes]) $
+                       resolveResultSetType
+                         _lhsIscope
+                         _lhsIsourcePos
+                         thenTypes
               _lhsOliftedColumnName =
                   _valueIliftedColumnName
               _lhsOmessages =
                   _valueImessages ++ _casesImessages ++ _elsImessages
-              _lhsOnodeType =
-                  _valueInodeType `setUnknown` _casesInodeType `setUnknown` _elsInodeType
               _actualValue =
                   CaseSimple _valueIactualValue _casesIactualValue _elsIactualValue
               _lhsOactualValue =

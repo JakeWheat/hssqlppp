@@ -209,10 +209,13 @@ check casts from unknown string lits
 >                                   ,typeBool]))
 
 >      ,p "case 1 when 2 then 3 else 4 end" typeInt
->      ,p "case 1 when true then 3 else 4 end" typeInt
+>      ,p "case 1 when true then 3 else 4 end"
+>             (TypeError ("",0,0) (IncompatibleTypes [ScalarType "int4"
+>                                                    ,ScalarType "bool"]))
 >      ,p "case 1 when 2 then true else false end" typeBool
->      ,p "case 1 when 2 then 3 else false end" typeBool
-
+>      ,p "case 1 when 2 then 3 else false end"
+>             (TypeError ("",0,0) (IncompatibleTypes [ScalarType "int4"
+>                                                    ,ScalarType "bool"]))
 
 >      ])
 
