@@ -283,6 +283,21 @@ todo:
 >         [TypeError ("",1,1) (UnrecognisedRelation "nope")]
 >      ,p "select generate_series from generate_series(1,7);"
 >         [SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
+
+check aliasing
+
+>      ,p "select generate_series.generate_series from generate_series(1,7);"
+>         [SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
+>      ,p "select g from generate_series(1,7) g;"
+>         [SetOfType $ UnnamedCompositeType [("g", typeInt)]]
+>      ,p "select g.g from generate_series(1,7) g;"
+>         [SetOfType $ UnnamedCompositeType [("g", typeInt)]]
+>      ,p "select generate_series.g from generate_series(1,7) g;"
+>         [TypeError ("",1,1) (UnrecognisedCorrelationName "generate_series")]
+>      ,p "select g.generate_series from generate_series(1,7) g;"
+>         [TypeError ("",1,1) (UnrecognisedIdentifier "g.generate_series")]
+
+
 >      ,p "select * from pg_attrdef;"
 >         [SetOfType $ UnnamedCompositeType
 >          [("adrelid",ScalarType "oid")

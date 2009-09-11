@@ -288,13 +288,14 @@ SEM TableRef
         lhs.idens = [(@tbl, unwrapComposite $ getRelationType @lhs.scope @lhs.sourcePos @tbl)]
     | TrefAlias
         lhs.idens = [(@alias, unwrapComposite $ getRelationType @lhs.scope @lhs.sourcePos @tbl)]
-    | TrefFun TrefFunAlias
-        lhs.nodeType = getFunTableType @lhs.scope @lhs.sourcePos @fn.actualValue @fn.nodeType
-        lhs.joinIdens = []
     | TrefFun
-        lhs.idens = [("", unwrapComposite $ getFunTableType @lhs.scope @lhs.sourcePos @fn.actualValue @fn.nodeType)]
+        lhs.nodeType = getFnType @lhs.scope @lhs.sourcePos "" @fn.actualValue @fn.nodeType
+        lhs.joinIdens = []
+        lhs.idens = [second unwrapComposite $ getFunIdens @lhs.scope @lhs.sourcePos "" @fn.actualValue @fn.nodeType]
     | TrefFunAlias
-        lhs.idens = [(@alias, unwrapComposite $ getFunTableType @lhs.scope @lhs.sourcePos @fn.actualValue @fn.nodeType)]
+        lhs.nodeType = getFnType @lhs.scope @lhs.sourcePos @alias @fn.actualValue @fn.nodeType
+        lhs.joinIdens = []
+        lhs.idens = [second unwrapComposite $ getFunIdens @lhs.scope @lhs.sourcePos @alias @fn.actualValue @fn.nodeType]
     | JoinedTref
         lhs.nodeType =
             checkErrors [@tbl.nodeType
@@ -322,25 +323,29 @@ getRelationType scope sp tbl =
             Just (_,_,a@(UnnamedCompositeType _)) -> a
             _ -> TypeError sp (UnrecognisedRelation tbl)
 
-getFunTableType :: Scope -> MySourcePos -> Expression -> Type -> Type
-getFunTableType scope sp fnVal fnType =
-            checkErrors [fnType] $
-            case fnVal of
-              FunCall f _ ->
-                  case fnType of
-                    SetOfType (CompositeType t) -> getCompositeType t
-                    SetOfType x -> UnnamedCompositeType [(f,x)]
-                    y -> UnnamedCompositeType [(f,y)]
-              x -> TypeError sp (ContextError "FunCall")
-              where
-                getCompositeType t =
+getFnType :: Scope -> MySourcePos -> String -> Expression -> Type -> Type
+getFnType scope sp alias fnVal fnType =
+    checkErrors [fnType] $ snd $ getFunIdens scope sp alias fnVal fnType
+
+getFunIdens :: Scope -> MySourcePos -> String -> Expression -> Type -> (String, Type)
+getFunIdens scope sp alias fnVal fnType =
+   case fnVal of
+       FunCall f _ ->
+           let correlationName = if alias /= ""
+                                   then alias
+                                   else f
+           in (correlationName, case fnType of
+                SetOfType (CompositeType t) -> getCompositeType t
+                SetOfType x -> UnnamedCompositeType [(correlationName,x)]
+                y -> UnnamedCompositeType [(correlationName,y)])
+       x -> ("", TypeError sp (ContextError "FunCall"))
+   where
+     getCompositeType t =
                     case getAttrs scope [Composite
                                         ,TableComposite
                                         ,ViewComposite] t of
                       Just (_,_,a@(UnnamedCompositeType _)) -> a
                       _ -> UnnamedCompositeType []
-
-
 
 commonFieldNames t1 t2 =
     intersect (fn t1) (fn t2)

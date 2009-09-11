@@ -169,6 +169,33 @@ getRelationType scope sp tbl =
             Just (_,_,a@(UnnamedCompositeType _)) -> a
             _ -> TypeError sp (UnrecognisedRelation tbl)
 
+getFnType :: Scope -> MySourcePos -> String -> Expression -> Type -> Type
+getFnType scope sp alias fnVal fnType =
+    checkErrors [fnType] $ snd $ getFunIdens scope sp alias fnVal fnType
+
+getFunIdens :: Scope -> MySourcePos -> String -> Expression -> Type -> (String, Type)
+getFunIdens scope sp alias fnVal fnType =
+   case fnVal of
+       FunCall f _ ->
+           let correlationName = if alias /= ""
+                                   then alias
+                                   else f
+           in (correlationName, case fnType of
+                SetOfType (CompositeType t) -> getCompositeType t
+                SetOfType x -> UnnamedCompositeType [(correlationName,x)]
+                y -> UnnamedCompositeType [(correlationName,y)])
+       x -> ("", TypeError sp (ContextError "FunCall"))
+   where
+     getCompositeType t =
+                    case getAttrs scope [Composite
+                                        ,TableComposite
+                                        ,ViewComposite] t of
+                      Just (_,_,a@(UnnamedCompositeType _)) -> a
+                      _ -> UnnamedCompositeType []
+
+
+
+{-
 getFunTableType :: Scope -> MySourcePos -> Expression -> Type -> Type
 getFunTableType scope sp fnVal fnType =
             checkErrors [fnType] $
@@ -187,7 +214,7 @@ getFunTableType scope sp fnVal fnType =
                       Just (_,_,a@(UnnamedCompositeType _)) -> a
                       _ -> UnnamedCompositeType []
 
-
+-}
 
 commonFieldNames t1 t2 =
     intersect (fn t1) (fn t2)
@@ -6561,11 +6588,11 @@ sem_TableRef_TrefFun fn_  =
               _fnImessages :: ([Message])
               _fnInodeType :: Type
               _lhsOnodeType =
-                  getFunTableType _lhsIscope _lhsIsourcePos _fnIactualValue _fnInodeType
+                  getFnType _lhsIscope _lhsIsourcePos "" _fnIactualValue _fnInodeType
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  [("", unwrapComposite $ getFunTableType _lhsIscope _lhsIsourcePos _fnIactualValue _fnInodeType)]
+                  [second unwrapComposite $ getFunIdens _lhsIscope _lhsIsourcePos "" _fnIactualValue _fnInodeType]
               _lhsOmessages =
                   _fnImessages
               _actualValue =
@@ -6601,11 +6628,11 @@ sem_TableRef_TrefFunAlias fn_ alias_  =
               _fnImessages :: ([Message])
               _fnInodeType :: Type
               _lhsOnodeType =
-                  getFunTableType _lhsIscope _lhsIsourcePos _fnIactualValue _fnInodeType
+                  getFnType _lhsIscope _lhsIsourcePos alias_ _fnIactualValue _fnInodeType
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  [(alias_, unwrapComposite $ getFunTableType _lhsIscope _lhsIsourcePos _fnIactualValue _fnInodeType)]
+                  [second unwrapComposite $ getFunIdens _lhsIscope _lhsIsourcePos alias_ _fnIactualValue _fnInodeType]
               _lhsOmessages =
                   _fnImessages
               _actualValue =
