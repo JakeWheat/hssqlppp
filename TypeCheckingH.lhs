@@ -53,14 +53,20 @@ not very consistently applied at the moment.
 >         let rowsTs1 = unwrapTypeList vll
 >             --convert into [[Type]]
 >             rowsTs = map unwrapTypeList rowsTs1
->         in unionRelTypes scope sp rowsTs
+>             colNames = zipWith (++)
+>                            (repeat "column")
+>                            (map show [1..length $ head rowsTs])
+>         in unionRelTypes scope sp rowsTs colNames
 
 > typeCheckCombineSelect :: Scope -> MySourcePos -> Type -> Type -> Type
 > typeCheckCombineSelect scope sp v1 v2 =
->     unionRelTypes scope sp $ map (map snd . unwrapComposite . unwrapSetOf) [v1,v2]
+>     let colNames = map fst $ unwrapComposite $ unwrapSetOf v1
+>     in unionRelTypes scope sp
+>                   (map (map snd . unwrapComposite . unwrapSetOf) [v1,v2])
+>                   colNames
 
-> unionRelTypes :: Scope -> MySourcePos -> [[Type]] -> Type
-> unionRelTypes scope sp rowsTs =
+> unionRelTypes :: Scope -> MySourcePos -> [[Type]] -> [String] -> Type
+> unionRelTypes scope sp rowsTs colNames =
 >         let lengths = map length rowsTs
 >             error1 = case () of
 >                       _ | null rowsTs ->
@@ -69,9 +75,6 @@ not very consistently applied at the moment.
 >                             TypeError sp
 >                                  ValuesListsMustBeSameLength
 >                         | otherwise -> TypeList []
->             colNames = zipWith (++)
->                            (repeat "column")
->                            (map show [1..head lengths])
 >             colTypeLists = transpose rowsTs
 >             colTypes = map (resolveResultSetType scope sp) colTypeLists
 >             ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes

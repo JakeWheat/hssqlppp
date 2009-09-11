@@ -518,6 +518,10 @@ e.g. select a, b as c, b + c from d, gives three columns one named
 a, one named c, and one unnamed, even though only one has an alias
 if the select item is a function or aggregate call at the top level,
 then it is named after that function or aggregate
+
+if it is a cast, the column is named after the target data type name
+iff it is a simple type name
+
 -}
 
 --default value for non identifier nodes
@@ -544,6 +548,9 @@ SEM Expression
       if isOperator @funName
          then ""
          else @funName
+  | Cast lhs.liftedColumnName = case @tn.actualValue of
+                                  SimpleTypeName tn -> tn
+                                  _ -> ""
 
 -- collect the aliases and column names for use by the selectitemlist nodes
 SEM SelectItem

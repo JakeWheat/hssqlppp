@@ -1594,7 +1594,9 @@ sem_Expression_Cast expr_ tn_  =
                   checkErrors [_exprInodeType]
                     _tnInodeType
               _lhsOliftedColumnName =
-                  _exprIliftedColumnName
+                  case _tnIactualValue of
+                    SimpleTypeName tn -> tn
+                    _ -> ""
               _lhsOmessages =
                   _exprImessages ++ _tnImessages
               _actualValue =

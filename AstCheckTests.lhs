@@ -289,23 +289,27 @@ todo:
 >     (mapStatementType [
 >      p "select 1,2  union select '3', '4';" [SetOfType $
 >                                      UnnamedCompositeType
->                                      [("column1", typeInt)
->                                      ,("column2", typeInt)]]
+>                                      [("?column?", typeInt)
+>                                      ,("?column?", typeInt)]]
 >      ,p "select 1,2 intersect select 'a', true;" [TypeError ("",1,1)
 >                                      (IncompatibleTypes [typeInt
 >                                                         ,typeBool])]
 >      ,p "select '3', '4' except select 1,2;" [SetOfType $
 >                                      UnnamedCompositeType
->                                      [("column1", typeInt)
->                                      ,("column2", typeInt)]]
+>                                      [("?column?", typeInt)
+>                                      ,("?column?", typeInt)]]
 >      ,p "select 'a', true union select 1,2;" [TypeError ("",1,1)
 >                                      (IncompatibleTypes [typeBool
 >                                                         ,typeInt])]
 >      ,p "select 'a'::text, '2'::int2 intersect select '1','2';" [SetOfType $
 >                                      UnnamedCompositeType
->                                      [("column1", ScalarType "text")
->                                      ,("column2", typeSmallInt)]]
+>                                      [("text", ScalarType "text")
+>                                      ,("int2", typeSmallInt)]]
 >      ,p "select 1,2,3 except select 1,2;" [TypeError ("",1,1) ValuesListsMustBeSameLength]
+>      ,p "select '3' as a, '4' as b except select 1,2;" [SetOfType $
+>                                      UnnamedCompositeType
+>                                      [("a", typeInt)
+>                                      ,("b", typeInt)]]
 >      ])
 
 
