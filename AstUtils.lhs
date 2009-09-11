@@ -315,6 +315,20 @@ where these should live but probably not here.
 >  ,("!arraySub", [Pseudo AnyArray,typeInt], Pseudo AnyElement)
 >  ]
 
+special functions, stuck in here at random also
+
+> specialFunctionTypes :: [(String,[Type],Type)]
+> specialFunctionTypes = [
+>   ("coalesce", [Pseudo AnyElement],
+>     Pseudo AnyElement) -- needs variadic support to be correct,
+>                        -- uses special case in type checking
+>                        -- currently
+>  ,("nullif", [Pseudo AnyElement, Pseudo AnyElement], Pseudo AnyElement)
+>  ,("greatest", [Pseudo AnyElement], Pseudo AnyElement) --variadic, blah
+>  ,("least", [Pseudo AnyElement], Pseudo AnyElement) --also
+>  ]
+
+
 ================================================================================
 
 utilities for working with Types

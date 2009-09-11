@@ -33,6 +33,14 @@ not very consistently applied at the moment.
 >                         in checkErrors [f1,f2] f3
 >                         where
 >                           as = unwrapTypeList argsType
+>           "coalesce" -> let t = resolveResultSetType scope sp $ unwrapTypeList argsType
+>                         in checkErrors [t] t
+>           "greatest" -> let t = resolveResultSetType scope sp $ unwrapTypeList argsType
+>                             f1 = lookupFn ">=" [t,t]
+>                         in checkErrors [t, f1] t
+>           "least" -> let t = resolveResultSetType scope sp $ unwrapTypeList argsType
+>                          f1 = lookupFn "<=" [t,t]
+>                      in checkErrors [t, f1] t
 >           s ->  lookupFn s (unwrapTypeList argsType)
 >       lookupFn s1 args = case findCallMatch scope sp
 >                                              (if s1 == "u-" then "-" else s1) args of

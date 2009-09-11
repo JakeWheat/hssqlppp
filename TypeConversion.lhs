@@ -378,7 +378,7 @@ findCallMatch is a bit of a mess
 >       getHeadFn :: [ProtArgCast] -> FunctionPrototype
 >       getHeadFn l =  let ((hdFn, _):_) = l
 >                      in hdFn
->       allFns = keywordOperatorTypes ++ scopeAllFns scope
+>       allFns = keywordOperatorTypes ++ specialFunctionTypes ++ scopeAllFns scope
 
 >       none p = not . any p
 >       count p = length . filter p

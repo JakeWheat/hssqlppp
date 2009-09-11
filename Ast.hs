@@ -193,29 +193,6 @@ getFunIdens scope sp alias fnVal fnType =
                       Just (_,_,a@(UnnamedCompositeType _)) -> a
                       _ -> UnnamedCompositeType []
 
-
-
-{-
-getFunTableType :: Scope -> MySourcePos -> Expression -> Type -> Type
-getFunTableType scope sp fnVal fnType =
-            checkErrors [fnType] $
-            case fnVal of
-              FunCall f _ ->
-                  case fnType of
-                    SetOfType (CompositeType t) -> getCompositeType t
-                    SetOfType x -> UnnamedCompositeType [(f,x)]
-                    y -> UnnamedCompositeType [(f,y)]
-              x -> TypeError sp (ContextError "FunCall")
-              where
-                getCompositeType t =
-                    case getAttrs scope [Composite
-                                        ,TableComposite
-                                        ,ViewComposite] t of
-                      Just (_,_,a@(UnnamedCompositeType _)) -> a
-                      _ -> UnnamedCompositeType []
-
--}
-
 commonFieldNames t1 t2 =
     intersect (fn t1) (fn t2)
     where

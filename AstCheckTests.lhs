@@ -118,7 +118,29 @@ Set of tests to check the type checking code
 
 >      ,p "lower('TEST')" (ScalarType "text")
 >      ,p "lower(1)" (TypeError nsp (NoMatchingOperator "lower" [typeInt]))
+>      ])
 
+>    ,testGroup "special functions"
+>     (mapExprType [
+>       p "coalesce(null,1,2,null)" typeInt
+>      ,p "coalesce('3',1,2,null)" typeInt
+>      ,p "coalesce('3',1,true,null)"
+>             (TypeError ("",0,0)
+>              (IncompatibleTypes [UnknownStringLit
+>                                 ,ScalarType "int4"
+>                                 ,ScalarType "bool"
+>                                 ,UnknownStringLit]))
+>      ,p "nullif('hello','hello')" (ScalarType "text")
+>      ,p "nullif(3,4)" typeInt
+>      ,p "nullif(true,3)"
+>             (TypeError ("",0,0)
+>              (NoMatchingOperator "nullif" [ScalarType "bool"
+>                                           ,ScalarType "int4"]))
+>      ,p "greatest(3,5,6,4,3)" typeInt
+>      ,p "least(3,5,6,4,3)" typeInt
+>      ,p "least(5,true)"
+>             (TypeError nsp (IncompatibleTypes [ScalarType "int4"
+>                                               ,ScalarType "bool"]))
 >      ])
 
 implicit casting and function/operator choice tests:
