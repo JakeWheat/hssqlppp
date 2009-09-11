@@ -4145,9 +4145,9 @@ sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGr
                     ,_selSelectListInodeType
                     ,_selWhereInodeType]
                     (let t = _selSelectListInodeType
-                     in if t == UnnamedCompositeType [("?column?",Pseudo Void)]
-                        then Pseudo Void
-                        else SetOfType _selSelectListInodeType)
+                     in case t of
+                          UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
+                          _ -> SetOfType _selSelectListInodeType)
               _selSelectListOscope =
                   scopeReplaceIds _lhsIscope _selTrefIidens _selTrefIjoinIdens
               _selWhereOscope =

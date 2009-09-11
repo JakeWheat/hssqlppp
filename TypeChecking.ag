@@ -341,9 +341,9 @@ SEM SelectExpression
                           ,@selSelectList.nodeType
                           ,@selWhere.nodeType]
                           (let t = @selSelectList.nodeType
-                           in if t == UnnamedCompositeType [("?column?",Pseudo Void)]
-                              then Pseudo Void
-                              else SetOfType @selSelectList.nodeType)
+                           in case t of
+                                UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
+                                _ -> SetOfType @selSelectList.nodeType)
     | CombineSelect lhs.nodeType =
         checkErrors [@sel1.nodeType,@sel2.nodeType] $
                     typeCheckCombineSelect

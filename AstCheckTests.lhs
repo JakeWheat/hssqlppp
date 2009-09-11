@@ -360,6 +360,7 @@ check aliasing
 >         -- select 3 + generate_series(1,7);
 >      ])
 
+
 >    ,testGroup "simple selects from 2"
 >     (mapStatementTypeScope [
 >
@@ -376,6 +377,15 @@ check aliasing
 >                             ,("c", typeInt)])]})
 >         [SetOfType $ UnnamedCompositeType
 >          [("a",ScalarType "text"),("b",ScalarType "int4")]]
+
+>      ,t "select testfunc();"
+>         (let fn = ("testfunc", [], Pseudo Void)
+>          in emptyScope {scopeFunctions = [fn]
+>                        ,scopeAllFns = [fn]
+>                        ,scopeAttrDefs =
+>                         []})
+>         [Pseudo Void]
+
 >      ])
 
 >    ,testGroup "simple join selects"
