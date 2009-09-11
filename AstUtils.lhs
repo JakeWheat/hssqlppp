@@ -7,7 +7,8 @@ random implementation note:
 If you see one of these: TypeList [] - and don't get it - is used to
 represent a variety of different things, like node type checked ok
 when the node doesn't produce a type but can produce a type error,
-etc.. This could probably be reviewed and made to work a bit better.
+etc.. This could probably be reviewed and use a dedicated type or
+multiple dedicated types.
 
 > module AstUtils where
 
@@ -33,6 +34,8 @@ same name are all either binary, prefix or postfix, otherwise the
 getoperatortype would need the types of the arguments to determine
 the operator type, and the parser would have to be a lot cleverer
 
+this is why binary @ operator isn't currently supported
+
 > getOperatorType :: String -> OperatorType
 > getOperatorType s = case () of
 >                       _ | any (\(x,_,_) -> x == s) (scopeBinaryOperators defaultScope) ->
@@ -55,10 +58,10 @@ the operator type, and the parser would have to be a lot cleverer
 
 The way most of the error handling works is all type errors live as
 types and get returned as types, instead of e.g. using exceptions or
-Either. Hopefully, all the type checking routines for each node are in
-the following form, or equivalent:
+Either. All the type checking routines for each node should be in the
+following form, or equivalent:
 
-3. Take the node types of the sub nodes (e.g. the args for a function
+1. Take the node types of the sub nodes (e.g. the args for a function
 invocation).
 
 2. Check each type for a type error, pass any errors on as the type for
@@ -67,7 +70,7 @@ this way.
 
 3. Check each type for unknown - this represents some type checking
 which hasn't been coded. All the type calculations give up completely
-when they come across an unknown type and just propagate that.
+when they come across an unknown type and just propagate unknown.
 
 4a. If the node has no nodeType rule, it uses the default one which
 just propagates the types of its subnodes. This sometimes results in
@@ -108,7 +111,7 @@ messages.
 takes a type and returns any type errors, or if no errors, unknowns,
 returns nothing if it doesn't find any type errors or unknowns. Looks
 at the immediate type, or inside the first level if passed a type
-list, or unnamedcompositetype.
+list or unnamedcompositetype.
 
 > unkErr :: Type -> Maybe Type
 > unkErr t =
@@ -147,7 +150,7 @@ random notes on pg types:
 
 == domains:
 the point of domains is you can't put constraints on types, but you
-can wrap a type up in a domain and put a constraint on it there
+can wrap a type up in a domain and put a constraint on it there.
 
 == literals/selectors
 
@@ -155,34 +158,35 @@ source strings are parsed as unknown type: they can be implicitly cast
 to almost any type in the right contexts.
 
 rows ctors can also be implicitly cast to any composite type matching
-the elements (how exactly are they matched? - number of elements, type
-compatibility of elements, just by context?)
+the elements (now sure how exactly are they matched? - number of
+elements, type compatibility of elements, just by context?), type
+checking row constructors hasn't been done yet.
 
 string literals are not checked for valid syntax currently, but this
-will probably change so we can type check string literals statically,
-whereas pg defers all checking to runtime, because it has to cope with
-custom data types. this code isn't going to be able to support such
+will probably change so we can type check string literals statically.
+Postgres defers all checking to runtime, because it has to cope with
+custom data types. This code isn't going to be able to support such
 custom data types very well, so it can get away with doing more static
 checks on this sort of thing.
 
 == notes on type checking types
 
 === basic type checking
-at the moment - just check type exists in predetermined list of type
-names
-todo: option to read types from database catalog at time of type
-checking
+Currently can lookup type names against a default template1 list of
+types, or against the current list in a database (which is read before
+processing and sql code).
+
 todo: collect type names from current source file to check against
 A lot of the infrastructure to do this is already in place. We also
 need to do this for all other definitions, etc.
 
-Type aliases
+=== Type aliases
 
 Some types in postgresql have multiple names. I think this is
 hardcoded in the pg parser.
 
-For the canonical name, we use the name given in the postgresql
-pg_type catalog relvar.
+For the canonical name in this code, we use the name given in the
+postgresql pg_type catalog relvar.
 
 TODO: Change the ast canonical names: where there is a choice, prefer
 the sql standard name, where there are multiple sql standard names,
@@ -209,14 +213,13 @@ also, what can setof be applied to - don't know if it can apply to an
 array or setof type
 
 array types have to match an exact array type in the catalog, so we
-can't create an arbitrary array of any type
+can't create an arbitrary array of any type. Not sure if this is
+handled quite correctly in this code.
 
+=== canonical type name support
 
-
-aliases to protect client code if/when the ast canonical names are
-changed
-
-
+Introduce some aliases to protect client code if/when the ast
+canonical names are changed:
 
 > typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
 >   typeFloat8,typeVarChar,typeChar,typeBool :: Type
@@ -229,6 +232,8 @@ changed
 > typeVarChar = ScalarType "varchar"
 > typeChar = ScalarType "char"
 > typeBool = ScalarType "bool"
+
+this converts the name of a type to its canonical name
 
 > canonicalizeTypeName :: String -> String
 > canonicalizeTypeName s =
@@ -277,6 +282,8 @@ e.g. letting the haskell runtime throw a pattern match failure), then
 catch it in the top level type check routines in ast.ag, convert it to
 a regular either style error, all without dropping into IO.
 
+This isn't used at the moment.
+
 > data TInternalError = TInternalError String
 >                      deriving (Eq, Ord, Show)
 
@@ -300,6 +307,7 @@ where these should live but probably not here.
 >  ,("!arrayCtor", [Pseudo AnyElement], Pseudo AnyArray) -- not quite right,
 >                                         -- needs variadic support
 >                                         -- currently works via a special case
+>                                         -- in the type checking code
 >  ,("!between", [Pseudo AnyElement
 >               ,Pseudo AnyElement
 >               ,Pseudo AnyElement], Pseudo AnyElement)
@@ -342,8 +350,9 @@ utilities for working with Types
 
 ================================================================================
 
-old message stuff, used by the continue in loop checking, will
-disappear at some point
+message stuff, used by the continue in loop checking, will be
+repurposed once the type checking is complete and lint-style checking
+is introduced.
 
 > data Message = Error MySourcePos MessageStuff
 >              | Warning MySourcePos MessageStuff

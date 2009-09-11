@@ -11,13 +11,13 @@ DefaultScope.hs -> generated using ./HsSqlSystem.lhs getscope
  template1 (make a backup of this file if you want to regenerate it -
  you can get trapped without being able to run HsSqlSystem if the new
  file doesn't compile). You shouldn't need to regenerate this file
- unless you change the Scope data type. There is a
- DefaultScopeEmpty.hs file which you can copy over a busted
- DefaultScope.hs, which will allow the generation of a new
- DefaultScope.hs file.
+ unless you change the Scope data type, in which case you'll need to
+ use the DefaultScopeEmpty.hs file to be able to generate a new
+ scope. There is some info in the DefaultScopeEmpty.hs file along
+ these lines.
 
 Ast.hs -> this is generated from Ast.ag and Typechecking.ag using
-uuagc, see Ast.ag for instructions on how to do this.
+ uuagc, see Ast.ag for instructions on how to do this.
 
 If you are editing either of these files directly you're probably
 doing something wrong.
@@ -28,7 +28,8 @@ can run from the command line.
 
 There are rudimentary test for a lot of the functionality, see
 ParserTests.lhs and AstCheckTests.lhs (for type checking). These
-contain some small examples of how the code can be used.
+contain some small examples of how the code can be used. The
+HsSqlSystem.lhs file contains a few more examples.
 
 Source file overview:
 

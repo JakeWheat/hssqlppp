@@ -76,12 +76,12 @@ table data.
 
 Lexer for an individual token.
 
-What we should do is lex lazily and when the lexer reads a copy from
+What we could do is lex lazily and when the lexer reads a copy from
 stdin statement, it switches lexers to lex the inline table data, then
 switches back. Don't know how to do this in parsec, or even if it is
 possible, so as a work around, we use the state to trap if we've just
-seen 'from stdin;', if so, we read the copy payload, otherwise we read
-a normal token.
+seen 'from stdin;', if so, we read the copy payload as one big token,
+otherwise we read a normal token.
 
 > sqlToken :: ParsecT String ParseState Identity Token
 > sqlToken = do
@@ -159,7 +159,7 @@ make each character a separate element
 e.g. == lexes to ['=', '=']
 then the parser sorts this out
 
-Using approach 1 at the moment, see below
+Sort of using approach 1 at the moment, see below
 
 == notes on symbols in pg operators
 pg symbols can be made from:
@@ -177,17 +177,13 @@ Most of this isn't relevant for the current lexer.
 
 sql symbol is one of
 ()[],; - single character
-: or :: symbol
 +-*/<>=~!@#%^&|`? string - one or more of these, parsed until hit char
 which isn't one of these (including whitespace). This will parse some
 standard sql expressions wrongly at the moment, work around is to add
 whitespace e.g. i think 3*-4 is valid sql, should lex as '3' '*' '-'
 '4', but will currently lex as '3' '*-' '4'. This is planned to be
 fixed in the parser.
-
-some other special cases are operators with non standard chars in them
-e.g.
-.. := ::
+.. := :: : - other special cases
 
 > sqlSymbol :: ParsecT String ParseState Identity Tok
 > sqlSymbol =
@@ -214,7 +210,6 @@ include dots, * in all identifier strings during lexing. This parser
 is also used for keywords, so identifiers and keywords aren't
 distinguished until during proper parsing, and * and qualifiers aren't
 really examined until type checking
-
 
 > identifierString :: ParsecT String ParseState Identity String
 > identifierString = lexeme $ choice [

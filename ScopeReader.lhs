@@ -5,8 +5,8 @@ postgresql database catalog. This is used to generate the default
 scope, and to type check against a database schema in a live database.
 
 It basically runs through each field in the Scope data type and reads
-it out of the database, and turns it into the appropriate data
-types.
+the values for that field out of the database, and turns it into the
+appropriate data types.
 
 Maps are use to hold oids during this process to e.g. hook up the
 types of table columns (which are read as oids which refer to the

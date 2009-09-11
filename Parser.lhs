@@ -28,7 +28,6 @@ The parsers are written top down as you go through the file, so the
 top level sql text parsers appear first, then the statements, then the
 fragments, then the utility parsers and other utilities at the bottom.
 
-
 > module Parser (
 >               --parse fully formed sql statements from a string
 >               parseSql
@@ -88,12 +87,10 @@ parse fully formed sql
 >   x <- lexSqlFile fn
 >   return $ parseIt x sqlStatements fn sc startState
 
-
 Parse expression fragment, used for testing purposes
 
 > parseExpression :: String -> Either ExtendedError Expression
 > parseExpression s = parseIt (lexSqlText s) (expr <* eof) "" s startState
-
 
 parse plpgsql statements, used for testing purposes
 
@@ -366,8 +363,8 @@ multiple rows to insert and insert from select statements
 >      CreateTableAs tname <$> (keyword "as" *> selectExpression)
 >     ,uncurry (CreateTable tname) <$> readAttsAndCons]
 >   where
->     --parse our unordered list of attribute defs or constraints for
->     --each line, want to try the constraint parser first, then the
+>     --parse our unordered list of attribute defs or constraints, for
+>     --each line want to try the constraint parser first, then the
 >     --attribute parser, so we need the swap to feed them in the
 >     --right order into createtable
 >     readAttsAndCons = parens (swap <$> multiPerm
@@ -425,10 +422,9 @@ multiple rows to insert and insert from select statements
 >     typeAtt = TypeAttDef <$> idString <*> typeName
 
 
-create function, support sql functions and
-plpgsql functions. Actually parses the body in both cases
-and provides a statement list for the body rather than just
-a string
+create function, support sql functions and plpgsql functions. Parses
+the body in both cases and provides a statement list for the body
+rather than just a string.
 
 > createFunction :: ParsecT [Token] ParseState Identity Statement
 > createFunction = do
@@ -482,7 +478,7 @@ trailing semicolon optional
 >            SqlFnBody <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
 
 plpgsql function has an optional declare section, plus the statements
-are enclosed in begin ... end; (semi colon after end is optional
+are enclosed in begin ... end; (semi colon after end is optional(
 
 >         functionBody Plpgsql =
 >             PlpgsqlFnBody
@@ -743,8 +739,9 @@ optionalsuffix parsers to improve speed.
 
 One little speed optimisation, to help with pretty printed code which
 can contain a lot of parens - check for nested ((
-This little addition speeds up ./ParseFile.lhs sqltestfiles/system.sql on my system
-from ~4 minutes to ~4 seconds
+This little addition speeds up ./ParseFile.lhs sqltestfiles/system.sql
+on my system from ~4 minutes to ~4 seconds (most of the 4s is probably
+compilation overhead).
 
 >                try (lookAhead (symbol "(" >> symbol "(")) >> parens expr
 
@@ -800,8 +797,11 @@ http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTA
 
 will probably need something more custom to handle full range of sql
 syntactical novelty, in particular the precedence rules mix these
-operators up with irregular syntax operators, and you can create new
-operators dynamically.
+operators up with irregular syntax operators, you can create new
+operators during parsing, and some operators are prefix/postfix or
+binary depending on the types of their operands (how do you parse
+something like this?)/
+
 The full list of operators from DefaultScope.hs should be used here.
 
 > table :: [[Operator [Token] ParseState Identity Expression]]
@@ -867,6 +867,8 @@ some custom parsers
 fix problem parsing <> - don't parse as "<" if it is immediately
 followed by ">"
 
+don't know if this is needed anymore.
+
 >       lt _ = Infix (dontFollowWith "<" ">" >>
 >                     return (\l -> (\m -> FunCall "<" [l,m])))
 
@@ -875,9 +877,6 @@ followed by ">"
 >                                lookAhead $ symbol c2
 >                                fail "dont follow")
 >                             <|> return ())
-
-the first argument to these two above is ignored, it is there so the
-symbol can appear in the operator table above for readability purposes
 
 == factor parsers
 
@@ -903,7 +902,7 @@ row (expr)
 row (expr, expr1, ...)
 (expr, expr2,...) [implicit (no row keyword) version, at least two elements
                    must be present]
-notes:
+
 (expr) parses to just expr rather than row(expr)
 and () is a syntax error.
 
@@ -944,9 +943,6 @@ expression when value' currently
 > arrayLit :: ParsecT [Token] ParseState Identity Expression
 > arrayLit = keyword "array" >>
 >            FunCall "!arrayCtor" <$> squares (commaSep expr)
-
-when you put expr instead of identifier in arraysub, it stack
-overflows, not sure why.
 
 > arraySubSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > arraySubSuffix e = if e == Identifier "array"
@@ -1016,7 +1012,6 @@ TODO: copy this approach here.
 
 > castSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > castSuffix ex = Cast ex <$> (symbol "::" *> typeName)
-
 
 > substring :: ParsecT [Token] ParseState Identity Expression
 > substring = do

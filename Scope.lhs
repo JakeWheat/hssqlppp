@@ -39,7 +39,7 @@ not present or not unique then throw an error. Similarly with no
 alias, we look at all the lists, if the id is not present or not
 unique then throw an error.
 
-The join identifiers is for expanding *. If we want to access the
+scopeIdentifierTypes is for expanding *. If we want to access the
 common attributes from one of the tables in a using or natural join,
 this attribute can be qualified with either of the table names/
 aliases. But when we expand the *, we only output these common fields

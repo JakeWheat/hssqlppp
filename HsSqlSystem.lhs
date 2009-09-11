@@ -34,8 +34,9 @@ TODO 2: think of a name for this command
 
 > main :: IO ()
 > main = do
->   --do this to avoid having to put flushes everywhere when we
->   --provide "..." progress thingys, etc.
+>   -- do this to avoid having to put flushes everywhere when we
+>   -- provide "..." progress thingys, etc.. should be fixed so only
+>   -- used in commands that need it
 >   hSetBuffering stdout NoBuffering
 >   args <- getArgs
 >   case () of
@@ -86,7 +87,8 @@ TODO 2: think of a name for this command
 > loadSqlCommand :: CallEntry
 > loadSqlCommand = CallEntry
 >                  "loadsql"
->                  "This takes one or more files with sql source txt database given."
+>                  "This takes one or more files with sql source text, \
+>                  \parses them then loads them into the database given."
 >                  (Multiple loadSql)
 
 > loadSql :: [String] -> IO ()
@@ -285,8 +287,9 @@ TODO: do something more correct
 ================================================================================
 
 This writes out the default scope using show, which you can then
-compile. The output is all on one big line and compiles very slowly
-for the catalog of a standard template1 database...
+compile. The output is all on one big line (something like 400,000
+characters!) and compiles very slowly for the catalog of a standard
+template1 database...
 
 > getScopeCommand :: CallEntry
 > getScopeCommand = CallEntry

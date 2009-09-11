@@ -21,7 +21,7 @@ aliases in selects from functions - when the function returns a setof
    takes the alias name as it's attribute name e.g. select x from
    gen_series() as x
 coalesce, what other special functions are there?
-exists - support this cos it's pretty common
+exists, case exp when value - support these cos they're pretty common
 type check selects against pg hidden fields (e.g. oid in catalogs).
 
 stage 2:
@@ -39,7 +39,7 @@ With this in place, the code actually has some use for real code, in
    that we can use it to easily view the types of views, etc. inline
    in the real sql source code
 
-stage 2:
+stage 3:
 
 run through and finish or note missing bits for select expressions:
 group by, having
@@ -57,8 +57,8 @@ scalarsubquery
 rowctor
 casts
 
-stage 3:
-review and choose
+stage 4:
+review and choose from this list:
 * do null inference
 * some selective fixups here and there to the typing (e.g. type
    checking constraints in create tables)
@@ -78,7 +78,7 @@ add support for nearly all syntax for parsing and type checking,
    II, support almost everything, add comprehensive simple tests, go
    through the sql reference section also. This is the time to
    document more precisely what isn't supported so there is a clear
-   list
+   reference for this
 do ? placeholders, and do typesafe haskell wrapper generation using this
 figure out what to do about tricky operator precedence parsing, etc.
 ability to type check all of chaos sql
@@ -168,6 +168,11 @@ in general, parsing operators is wrong, the lexer needs to be able to
 ================================================================================
 
 some other random ideas:
+
+write a replacement psql shell, which can expose parse trees, type
+   checks, lint checks, and doesn't use a one line at a time style
+   interface (i.e. works more like writing and executing lisp in
+   emacs, not like bash).
 
 chain scope lookups instead of unioning them since unioning is too
    slow - or maybe use maps/sets, but need to quickly scan whole lists

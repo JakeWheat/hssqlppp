@@ -1,14 +1,14 @@
 Copyright 2009 Jake Wheat
 
-This file contains a few lightweight wrappers around hdbc for running
-commands and queries.
+This file contains a few (almost pointlessly) lightweight wrappers
+around hdbc for running commands and queries.
 
 > module DBAccess (runSqlCommand
->                  ,withConn
->                  ,selectValue
->                  ,catchSql
->                  ,seErrorMsg
->                  ,selectRelation) where
+>                 ,withConn
+>                 ,selectValue
+>                 ,catchSql
+>                 ,seErrorMsg
+>                 ,selectRelation) where
 
 > import qualified Database.HDBC.PostgreSQL as Pg
 > import Database.HDBC

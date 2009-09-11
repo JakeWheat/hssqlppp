@@ -77,7 +77,7 @@ setUnknown _ _ = UnknownType
 
 appendTypeList :: Type -> Type -> Type
 appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
-appendTypeList t1 t2 = TypeList (t1:t2:[])
+appendTypeList t1 t2 = TypeList [t1,t2]
 }
 
 {-
@@ -409,8 +409,6 @@ SEM SelectExpression
 
 {-
 
-
-
 == attributes
 
 columnName is used to collect the column names that the select list
@@ -446,7 +444,7 @@ fixedValue a _ _ = a
 }
 
 {-
-override for identifer nodes, this only makes it out to the selectitem
+override for identifier nodes, this only makes it out to the selectitem
 node if the identifier is not wrapped in parens, function calls, etc.
 -}
 
@@ -467,9 +465,9 @@ SEM SelectItem
 
 Try to use a list of message data types to hold all sorts of
 information which works its way out to the top level where the client
-code gets it. Want to have the lists concatted together automatically
-from subnodes to parent node, and then to be able to add extra
-messages to this list at each node also.
+code gets it. Want to have the lists concatenated together
+automatically from subnodes to parent node, and then to be able to add
+extra messages to this list at each node also.
 
 Problem 1: can't have two sem statements for the same node type which
 both add messages, and then the messages get combined to provide the
@@ -489,7 +487,7 @@ will make the code much less readable. Maybe need a preprocessor to
 produce the ag file? Alternatively, just attach the messages to each
 node (so this appears in the data types and isn't an attribute, then
 have a tree walker collect them all). Since an annotation field in
-each node is going to be added anyway, so each node can be labeled
+each node is going to be added anyway, so each node can be labelled
 with a type, will probably do this at some point.
 
 ================================================================================
@@ -595,8 +593,10 @@ at the error message the user will get. This might be wrong, haven't
 thought too carefully about it yet).
 
 
-TODO: canonicalize ast process, as part of type checking produces a canonicalized ast which:
-all implicit casts appear explicitly in the ast (maybe distinguished from explicit casts?)
+TODO: canonicalize ast process, as part of type checking produces a
+canonicalized ast which:
+all implicit casts appear explicitly in the ast (maybe distinguished
+from explicit casts?)
 all names fully qualified
 all types use canonical names
 literal values and selectors in one form (use row style?)

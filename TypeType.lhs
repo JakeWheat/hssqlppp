@@ -22,12 +22,14 @@ can have a column with type unknown.)
 pseudo types - mirror pg pseudo types
 Internal, LanguageHandler, Opaque probably won't ever be properly supported
 Not sure exactly what Any is, can't use it in functions like the other any types?
+ - update: seems that Any is like AnyElement, but multiple Anys don't
+   have to have the same type.
 AnyElement, AnyArray, AnyEnum, AnyNonArray - used to implement polymorphic functions,
   can only be used in these functions as params, return type (and local vars?).
 Cstring - treated as variant of text?
 record -dynamically typed, depends where it is used, i think is used
 for type inference in function return types (so you don't have to
-write the correct type, the compile fills it in), and as a dynamically
+write the correct type, the compiler fills it in), and as a dynamically
 typed variable in functions, where it can take any composite typed
 value.
 void is used for functions which return nothing
@@ -37,7 +39,7 @@ typelist is an internal type (not a pg type) used during type checking
 typeerror represents something which has failed to typecheck
 unknowntype is used to represent the type of anything which the code
 is currently unable to type check, this should disappear at some
-point, or at least become unused
+point
 
 The Type type identifies the type of a node, but doesn't necessarily
 describe the type.

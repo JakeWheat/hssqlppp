@@ -7,13 +7,14 @@ The loading system works by parsing a sql file then passing the
 [Statement] to this module which pretty prints each Statement. (There
 is no fundamental reason why it loads each statement one at a time
 instead of pretty printing the whole lot, just that the run command
-from hdbc only supports one command at a time.)
+from hdbc only supports one command at a time. This might be a
+postgresql limitation.)
 
-The next todo is to start adding token position information to the
-ast, Then when error (and notice, etc.) messages come back from the
-database when loading the sql, can show the pretty printed sql with
-the error pos highlighted, as well as providing the original position
-from the sql file.
+The next todo to help this code move along is to start adding token
+position information to the ast, Then when error (and notice, etc.)
+messages come back from the database when loading the sql, can show
+the pretty printed sql with the error pos highlighted, as well as
+providing the original position from the sql file.
 
 This seems like a whole lot of effort for nothing, but will then allow
 using transforming the ast so it no longer directly corresponds to the

@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.0
+Version:             0.0.2
 Description:         Sql parser and pretty printer
 License:             BSD3
 License-file:        LICENSE

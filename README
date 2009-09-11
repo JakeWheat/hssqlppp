@@ -18,33 +18,22 @@ utility functions to access some of the library code.
 
 It comes with a small test suite.
 
-The bits of SQL that are unlikely to be supported include stuff which
-falls above a certain threshold when considering the following factors
-together:
-* difficult to support
-* rarely used
-* having better ways of achieving the same effect
-* brain damaged area of SQL.
-
-I hope to put together something more precise when the code has
-progressed to an appropriate point.
-
 There is not much documentation at the moment. See the 'usage' file
-for what you can do right now with it. Most of the source files have
-plenty of comments, hopefully they can provide some illumination.
+where there are instructions on how to parse files, and type check
+them to see how well the code supports your SQL source.
+
+Most of the source files have plenty of comments, hopefully they can
+provide some illumination.
 
 It comes with a Cabal file, so you can compile it by unzipping and
 using cabal configure && cabal build in the usual way. It doesn't put
-any modules in a proper module hierarchy yet. The main requirement
-which you might not meet is it needs Parsec 3, I think it should work
+any modules in a proper module hierarchy yet. I think it should work
 on all GHC 6.10.x and possibly also GHC 6.8.x.
 
-See the file development for some notes on how to work with the source
-(there are a couple of generated Haskell files, but these generated
-files are also included in the zip file so you can build and try out
-the code without regenerating them).
+See the file development for some notes on how to work with the
+source.
 
-The main dependencies of this project are: Parsec, HUnit, HDBC and
+The main dependencies of this project are: Parsec 3, HUnit, HDBC and
 UUAGC.
 
 ================================================================================
@@ -134,11 +123,6 @@ is currently focused in this area, first to support most select
 statements, then insert, update and delete, and finally other DML and
 DDL.
 
-== Try it and see approach
-
-See the usage file where there are instructions on how to parse files,
-and type check them to see how well the code supports your SQL source.
-
 = Other current downsides:
 
 The AST node types aren't well designed, in particular they contain
@@ -156,7 +140,7 @@ Future plans:
 
 * support type checking simple SQL statements that you'd embed in
   Haskell code, including with ? placeholders, to support generating
-  type safe wrappers (this placeholder version may be developed
+  type safe wrappers (this placeholder version could be developed
   separately and designed to work on more than just PostGreSQL);
 
 * possibly a lightweight code generation/ simple macro support to help

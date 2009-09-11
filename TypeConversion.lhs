@@ -95,10 +95,12 @@ have params in wrong category - array, non array, enum.
 work out the base types for the polymorphic args at each spot based on
 the args passed - so each arg is unchanged except arrays which have
 the array part stripped off
-now we have a list of types, use resolveResultSetType to see if we
-can produce a match, if so, create a new prototype which is the same
-as the polymorphic function but with these args swapped in, work out the
-casts and add it into cand cast pairs, after exact match has been run.
+
+now we have a list of types to match against the polymorphic params,
+use resolveResultSetType to see if we can produce a match, if so,
+create a new prototype which is the same as the polymorphic function
+but with this matching arg swapped in, work out the casts and add it
+into cand cast pairs, after exact match has been run.
 
 
 findCallMatch is a bit of a mess

@@ -23,6 +23,14 @@ If you end up in this position, use
 cp DefaultScopeEmpty.hs DefaultScope.hs
 and you can then generate a new DefaultScope again using HsSqlPpp.
 
+Finally//
+
+You alter the scope type, and hssqlsystem won't run since the value in
+defaultscope no longer matches the scope type, overwrite
+DefaultScope.hs with this file and then you can regenerate the
+DefaultScope with the new type. Assuming you've updated ScopeReader
+also.
+
 Perhaps having the program to generate defaultscope.hs depend on it
 being a valid file before it can regenerate it is a bad design...
 

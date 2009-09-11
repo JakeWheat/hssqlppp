@@ -71,7 +71,8 @@ cleardb
 hacky util to clear a database
 
 loadsql
-This takes one or more files with sql source txt database given.
+This takes one or more files with sql source text, parses them then
+loads them into the database given.
 
 clearandloadsql
 cleardb then loadsql

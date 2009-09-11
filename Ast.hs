@@ -75,6 +75,7 @@ import Data.Maybe
 import Data.List
 import Debug.Trace
 import Control.Monad.Error
+import Control.Arrow
 
 import TypeType
 import AstUtils
@@ -105,7 +106,7 @@ getExpressionType scope ex =
 
 
 getStatementsType :: StatementList -> [Type]
-getStatementsType st = getStatementsTypeScope emptyScope st
+getStatementsType = getStatementsTypeScope emptyScope
 
 getStatementsTypeScope :: Scope -> StatementList -> [Type]
 getStatementsTypeScope scope st =
@@ -120,25 +121,25 @@ getStatementsTypeScope scope st =
 --without having to get the positions correct.
 
 resetSps :: [Statement] -> [Statement]
-resetSps sts = map resetSp sts
+resetSps = map resetSp
 
 resetSp :: Statement -> Statement
-resetSp (CreateFunction l n p r bq b v) = (CreateFunction l n p r bq
+resetSp (CreateFunction l n p r bq b v) = CreateFunction l n p r bq
                                               (case b of
                                                 SqlFnBody stss -> SqlFnBody (map resetSp' stss)
                                                 PlpgsqlFnBody vd stss -> PlpgsqlFnBody vd (map resetSp' stss))
-                                            v)
+                                            v
 resetSp (ForSelectStatement v s stss) = ForSelectStatement v s (map resetSp' stss)
 resetSp (ForIntegerStatement v f t stss) = ForIntegerStatement v f t (map resetSp' stss)
-resetSp (CaseStatement v cs els) = CaseStatement v (map (\(el,st) -> (el,map resetSp' st)) cs) (map resetSp' els)
-resetSp (If cs els) = If (map (\(el,st) -> (el,map resetSp' st)) cs) (map resetSp' els)
+resetSp (CaseStatement v cs els) = CaseStatement v (map (second (map resetSp')) cs) (map resetSp' els)
+resetSp (If cs els) = If (map (second (map resetSp')) cs) (map resetSp' els)
 resetSp a = a
 
 resetSp' :: SourcePosStatement -> SourcePosStatement
 resetSp' (_,st) = (nsp,resetSp st)
 
 resetSps' :: StatementList -> StatementList
-resetSps' sts = map resetSp' sts
+resetSps' = map resetSp'
 
 nsp :: MySourcePos
 nsp = ("", 0,0)
@@ -149,7 +150,7 @@ setUnknown _ _ = UnknownType
 
 appendTypeList :: Type -> Type -> Type
 appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
-appendTypeList t1 t2 = TypeList (t1:t2:[])
+appendTypeList t1 t2 = TypeList [t1,t2]
 
 
 -- i think this should be alright, an identifier referenced in an
