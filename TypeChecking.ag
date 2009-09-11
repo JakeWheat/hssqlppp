@@ -193,30 +193,42 @@ SEM Expression
 {-
 == case expression
 
-check the when expressions are boolean inside the pairs, then collect
-the then types to pass to resolveResultSetType
+for non simple cases, we need all the when expressions to be bool, and
+then to collect the types of the then parts to see if we can resolve a
+common type
+
+for simple cases, we need to check all the when parts have the same type
+as the value to check against, then we collect the then parts as above.
+
+so, the caseexpressionlistexpressionpair items each set their node
+type to a typelist with two elements, the first is a typelist of the
+when expressions, and the second is the type of the then
+expression. These can then be checked appropriately in the case or
+casesimple sem code.
 
 -}
 
-SEM CaseExpressionListExpressionPair
-    | Tuple lhs.nodeType =
-        let tl = unwrapTypeList @x1.nodeType
-            e1 = if not (all (==typeBool) tl)
-                   then TypeError @lhs.sourcePos (WrongTypes typeBool tl)
-                   else TypeList []
-        in checkErrors (@x1.nodeType:(tl ++ [e1])) @x2.nodeType
-
 SEM Expression
     | Case lhs.nodeType =
-        checkErrors [@els.nodeType,@cases.nodeType] $
+        let elseThen =
+                case @els.nodeType of
+                  TypeList [] -> []
+                  t -> [t]
+            unwrappedLists = map unwrapTypeList $ unwrapTypeList @cases.nodeType
+            whenTypes :: [Type]
+            whenTypes = concat $ map unwrapTypeList $ map head unwrappedLists
+            thenTypes :: [Type]
+            thenTypes = map (head . tail) unwrappedLists ++ elseThen
+            whensAllBool :: Type
+            whensAllBool = if any (/= typeBool) whenTypes
+                             then TypeError @lhs.sourcePos
+                                      (WrongTypes typeBool whenTypes)
+                             else TypeList []
+        in checkErrors (whenTypes ++ thenTypes ++ [whensAllBool]) $
              resolveResultSetType
                @lhs.scope
                @lhs.sourcePos
-               (unwrapTypeList
-                (case @els.nodeType of
-                   TypeList [] -> @cases.nodeType
-                   e -> TypeList $ (unwrapTypeList @cases.nodeType)
-                                  ++ [e]))
+               thenTypes
 
 {-
 == identifiers

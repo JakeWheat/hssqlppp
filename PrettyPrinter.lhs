@@ -488,7 +488,6 @@ Conversion routines - convert Sql asts into Docs
 >             text "when" <+> hcatCsvMap convExp ex1
 >             <+> text "then" <+> convExp ex2
 
-
 > convExp (PositionalArg a) = text "$" <> integer a
 > convExp (Exists s) = text "exists" <+> parens (convSelectExpression True s)
 > convExp (Cast ex t) = text "cast" <> parens (convExp ex

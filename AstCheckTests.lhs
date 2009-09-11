@@ -207,6 +207,13 @@ check casts from unknown string lits
 >                (IncompatibleTypes [typeBool
 >                                   ,typeInt
 >                                   ,typeBool]))
+
+>      ,p "case 1 when 2 then 3 else 4 end" typeInt
+>      ,p "case 1 when true then 3 else 4 end" typeInt
+>      ,p "case 1 when 2 then true else false end" typeBool
+>      ,p "case 1 when 2 then 3 else false end" typeBool
+
+
 >      ])
 
 >    ,testGroup "polymorphic functions"

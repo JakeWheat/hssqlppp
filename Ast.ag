@@ -552,7 +552,6 @@ SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpr
                Expression InList MaybeExpression
                StringStringListPair ExpressionListStatementListPair
                ExpressionStatementListPair
-               CaseExpressionListExpressionPair
                SourcePosStatement MTableRef OnExpr Where
 
 
@@ -565,6 +564,7 @@ SET ListNodes = SelectList ExpressionList ExpressionListList StringList
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList
                CaseExpressionListExpressionPairList CaseExpressionList
+               CaseExpressionListExpressionPair
 
 DERIVING AllNodes: Show,Eq
 

@@ -531,8 +531,8 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOnodeType :: Type
-              _lhsOmessages :: ([Message])
+         (let _lhsOmessages :: ([Message])
+              _lhsOnodeType :: Type
               _lhsOactualValue :: CaseExpressionListExpressionPair
               _x1OinLoop :: Bool
               _x1Oscope :: Scope
@@ -547,14 +547,10 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
               _x2IliftedColumnName :: String
               _x2Imessages :: ([Message])
               _x2InodeType :: Type
-              _lhsOnodeType =
-                  let tl = unwrapTypeList _x1InodeType
-                      e1 = if not (all (==typeBool) tl)
-                             then TypeError _lhsIsourcePos (WrongTypes typeBool tl)
-                             else TypeList []
-                  in checkErrors (_x1InodeType:(tl ++ [e1])) _x2InodeType
               _lhsOmessages =
                   _x1Imessages ++ _x2Imessages
+              _lhsOnodeType =
+                  _x1InodeType `appendTypeList` _x2InodeType
               _actualValue =
                   (_x1IactualValue,_x2IactualValue)
               _lhsOactualValue =
@@ -1437,15 +1433,25 @@ sem_Expression_Case cases_ els_  =
               _elsImessages :: ([Message])
               _elsInodeType :: Type
               _lhsOnodeType =
-                  checkErrors [_elsInodeType,_casesInodeType] $
+                  let elseThen =
+                          case _elsInodeType of
+                            TypeList [] -> []
+                            t -> [t]
+                      unwrappedLists = map unwrapTypeList $ unwrapTypeList _casesInodeType
+                      whenTypes :: [Type]
+                      whenTypes = concat $ map unwrapTypeList $ map head unwrappedLists
+                      thenTypes :: [Type]
+                      thenTypes = map (head . tail) unwrappedLists ++ elseThen
+                      whensAllBool :: Type
+                      whensAllBool = if any (/= typeBool) whenTypes
+                                       then TypeError _lhsIsourcePos
+                                                (WrongTypes typeBool whenTypes)
+                                       else TypeList []
+                  in checkErrors (whenTypes ++ thenTypes ++ [whensAllBool]) $
                        resolveResultSetType
                          _lhsIscope
                          _lhsIsourcePos
-                         (unwrapTypeList
-                          (case _elsInodeType of
-                             TypeList [] -> _casesInodeType
-                             e -> TypeList $ (unwrapTypeList _casesInodeType)
-                                            ++ [e]))
+                         thenTypes
               _lhsOliftedColumnName =
                   ""
               _lhsOmessages =
