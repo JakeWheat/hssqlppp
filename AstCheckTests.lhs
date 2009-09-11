@@ -163,9 +163,16 @@ check casts from unknown string lits
 >    ,testGroup "expressions and scope"
 >     (mapExprScopeType [
 >      t "a" (makeScope [("test", [("a", typeInt)])]) typeInt
->     ,t "b" (makeScope [("test", [("a", typeInt)])]) (TypeError nsp (UnrecognisedIdentifier "b"))
+>     ,t "b" (makeScope [("test", [("a", typeInt)])])
+>        (TypeError nsp (UnrecognisedIdentifier "b"))
 >     ])
 
+>    ,testGroup "random expressions"
+>     (mapExprType [
+>       p "exists (select 1 from pg_type)" typeBool
+>      ,p "exists (select testit from pg_type)"
+>        (TypeError nsp (UnrecognisedIdentifier "testit"))
+>     ])
 
 
 >    ,testGroup "case expressions"

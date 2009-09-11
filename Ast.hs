@@ -1526,9 +1526,9 @@ sem_Expression_Exists sel_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOliftedColumnName :: String
+         (let _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
               _lhsOactualValue :: Expression
               _selOinLoop :: Bool
               _selOscope :: Scope
@@ -1536,12 +1536,12 @@ sem_Expression_Exists sel_  =
               _selIactualValue :: SelectExpression
               _selImessages :: ([Message])
               _selInodeType :: Type
+              _lhsOnodeType =
+                  checkErrors [_selInodeType] typeBool
               _lhsOliftedColumnName =
                   ""
               _lhsOmessages =
                   _selImessages
-              _lhsOnodeType =
-                  _selInodeType
               _actualValue =
                   Exists _selIactualValue
               _lhsOactualValue =

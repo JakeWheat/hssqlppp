@@ -240,6 +240,9 @@ splitIdentifier s = let (a,b) = span (/= '.') s
                          else (a,tail b)
 }
 
+SEM Expression
+    | Exists lhs.nodeType = checkErrors [@sel.nodeType] typeBool
+
 {-
 ================================================================================
 
