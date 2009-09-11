@@ -1859,9 +1859,9 @@ sem_Expression_ScalarSubQuery sel_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOliftedColumnName :: String
+         (let _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
               _lhsOactualValue :: Expression
               _selOinLoop :: Bool
               _selOscope :: Scope
@@ -1869,12 +1869,16 @@ sem_Expression_ScalarSubQuery sel_  =
               _selIactualValue :: SelectExpression
               _selImessages :: ([Message])
               _selInodeType :: Type
+              _lhsOnodeType =
+                  let f = map snd $ unwrapComposite $ unwrapSetOf _selInodeType
+                  in case length f of
+                     0 -> error "internal error: no columns in scalar subquery?"
+                     1 -> head f
+                     2 -> error "internal error: rows types not yet supported in subquery"
               _lhsOliftedColumnName =
                   ""
               _lhsOmessages =
                   _selImessages
-              _lhsOnodeType =
-                  _selInodeType
               _actualValue =
                   ScalarSubQuery _selIactualValue
               _lhsOactualValue =

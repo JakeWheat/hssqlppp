@@ -466,6 +466,18 @@ select g.fn from fn() g
 >         [TypeError ("",1,1) (UnrecognisedIdentifier "what")]
 >      ])
 
+>    ,testGroup "subqueries"
+>     (mapStatementType [
+>       p "select relname as relvar_name\n\
+>         \    from pg_class\n\
+>         \    where ((relnamespace =\n\
+>         \           (select oid\n\
+>         \              from pg_namespace\n\
+>         \              where (nspname = 'public'))) and (relkind = 'r'));"
+>         [SetOfType $ UnnamedCompositeType [("relvar_name",ScalarType "name")]]
+>      ])
+
+
 >    ]
 >         where
 >           mapAttr = map $ uncurry checkAttrs

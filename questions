@@ -65,3 +65,15 @@ when is the b_expr parser used (should just need a grep over the
 grammar file)
 
 is the handling of between, coalesce, greatest, and least correct?
+
+why doesn't this work:
+select
+    att.oid,
+    cls.oid,
+    cls.relkind,
+    cls.relname,
+    att.typname
+  from pg_type att
+  inner join pg_class cls using(oid);
+
+-- column "oid" specified in USING clause does not exist in left table
