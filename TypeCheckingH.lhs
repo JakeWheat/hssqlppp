@@ -82,13 +82,23 @@ not very consistently applied at the moment.
 
 lookup a composite type name, restricting it to only certain kinds of
 composite type, returns the composite definition which you can get the
-attributes out of
+attributes out of which is a pair with the normal columns first, then
+the system columns second
 
-> getAttrs :: Scope -> [CompositeFlavour] -> String -> Maybe CompositeDef
-> getAttrs scope f n = find (\(nm,fl,_) ->
->                                fl `elem` f
->                                  && nm == n)
->                          (scopeAttrDefs scope)
+> getAttrs :: Scope -> [CompositeFlavour] -> String -> Maybe (CompositeDef, CompositeDef)
+> getAttrs scope f n =
+>   let a = find (\(nm,fl,_) ->
+>                     fl `elem` f
+>                 && nm == n)
+>             (scopeAttrDefs scope)
+>       b = find (\(nm,fl,_) ->
+>                     fl `elem` f
+>                 && nm == n)
+>             (scopeAttrSystemColumns scope)
+>   in case (a,b) of
+>      (Nothing,_) -> Nothing
+>      (Just x,Nothing) -> Just (x, (n,TableComposite,UnnamedCompositeType []))
+>      (Just x,Just y) -> Just (x,y)
 
 combine two relvar types when being joined, pass in a using list and
 it checks the types in the using list are compatible, and eliminates

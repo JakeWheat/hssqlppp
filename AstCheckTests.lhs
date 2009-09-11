@@ -10,6 +10,7 @@ Set of tests to check the type checking code
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
+> import Control.Arrow
 
 > import Ast
 > import Parser
@@ -469,7 +470,7 @@ select g.fn from fn() g
 >           mapExprType = map $ uncurry $ checkExpressionType emptyScope
 >           mapStatementType = map $ uncurry checkStatementType
 >           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
->           makeScope l = scopeReplaceIds defaultScope l []
+>           makeScope l = scopeReplaceIds defaultScope (map (second (\a->(a,[]))) l) []
 >           mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
 
 > checkAttrs :: String -> [Message] -> Test.Framework.Test

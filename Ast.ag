@@ -527,7 +527,8 @@ DERIVING ExpressionRoot: Show
 attributes which every node has
 -}
 
-SET AllNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpression JoinType
+SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
+               JoinExpression JoinType
                SelectList SelectItem CopySource AttributeDef RowConstraint
                Constraint TypeAttributeDef ParamDef VarDef RaiseType
                CombineType Volatility Language TypeName DropType Cascade
@@ -544,27 +545,28 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpressi
                SourcePosStatement MTableRef TableRef OnExpr Where
 
 
-SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef JoinExpression JoinType
-               SelectItem CopySource AttributeDef RowConstraint
-               Constraint TypeAttributeDef ParamDef VarDef RaiseType
-               CombineType Volatility Language TypeName DropType Cascade
-               Direction Distinct Natural IfExists RestartIdentity
-               Expression InList MaybeExpression
-               StringStringListPair ExpressionListStatementListPair
-               ExpressionStatementListPair
-               SourcePosStatement MTableRef OnExpr Where
+SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef
+                   JoinExpression JoinType
+                   SelectItem CopySource AttributeDef RowConstraint
+                   Constraint TypeAttributeDef ParamDef VarDef RaiseType
+                   CombineType Volatility Language TypeName DropType Cascade
+                   Direction Distinct Natural IfExists RestartIdentity
+                   Expression InList MaybeExpression
+                   StringStringListPair ExpressionListStatementListPair
+                   ExpressionStatementListPair
+                   SourcePosStatement MTableRef OnExpr Where
 
 
 SET ListNodes = SelectList ExpressionList ExpressionListList StringList
                 SetClauseList
-               AttributeDefList ConstraintList TypeAttributeDefList
-               ParamDefList StringStringListPairList
-               StatementList
-               ExpressionListStatementListPairList
-               ExpressionStatementListPairList VarDefList SelectItemList
-               RowConstraintList
-               CaseExpressionListExpressionPairList CaseExpressionList
-               CaseExpressionListExpressionPair
+                AttributeDefList ConstraintList TypeAttributeDefList
+                ParamDefList StringStringListPairList
+                StatementList
+                ExpressionListStatementListPairList
+                ExpressionStatementListPairList VarDefList SelectItemList
+                RowConstraintList
+                CaseExpressionListExpressionPairList CaseExpressionList
+                CaseExpressionListExpressionPair
 
 DERIVING AllNodes: Show,Eq
 

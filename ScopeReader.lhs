@@ -131,7 +131,7 @@ are discarded after the Scope value is created.
 >                   prefixOps postfixOps binaryOps fnProts aggProts
 >                   (prefixOps ++ postfixOps ++ binaryOps ++ fnProts ++ aggProts)
 >                   attrs
->                   [] []
+>                   [] [] []
 >    where
 >      convAttrRow jlt l =
 >         (l!!1, ty, atts)

@@ -163,11 +163,13 @@ splitIdentifier s = let (a,b) = span (/= '.') s
                          else (a,tail b)
 
 
-getRelationType :: Scope -> MySourcePos -> String -> Type
+--returns the type of the relation, and the system columns also
+getRelationType :: Scope -> MySourcePos -> String -> (Type,Type)
 getRelationType scope sp tbl =
           case getAttrs scope [TableComposite, ViewComposite] tbl of
-            Just (_,_,a@(UnnamedCompositeType _)) -> a
-            _ -> TypeError sp (UnrecognisedRelation tbl)
+            Just ((_,_,a@(UnnamedCompositeType _))
+                 ,(_,_,s@(UnnamedCompositeType _)) ) -> (a,s)
+            _ -> (TypeError sp (UnrecognisedRelation tbl), TypeList [])
 
 getFnType :: Scope -> MySourcePos -> String -> Expression -> Type -> Type
 getFnType scope sp alias fnVal fnType =
@@ -188,9 +190,9 @@ getFunIdens scope sp alias fnVal fnType =
    where
      getCompositeType t =
                     case getAttrs scope [Composite
-                                        ,TableComposite
-                                        ,ViewComposite] t of
-                      Just (_,_,a@(UnnamedCompositeType _)) -> a
+                                              ,TableComposite
+                                              ,ViewComposite] t of
+                      Just ((_,_,a@(UnnamedCompositeType _)), _) -> a
                       _ -> UnnamedCompositeType []
 
 commonFieldNames t1 t2 =
@@ -198,6 +200,10 @@ commonFieldNames t1 t2 =
     where
       fn (UnnamedCompositeType s) = map fst s
       fn _ = []
+
+both :: (a->b) -> (a,a) -> (b,b)
+both fn (x,y) = (fn x, fn y)
+
 
 
 fixedValue :: a -> a -> a -> a
@@ -6571,7 +6577,7 @@ sem_TableRef_SubTref sel_ alias_  =
               _lhsOnodeType =
                   checkErrors [_selInodeType] $ unwrapSetOfComposite _selInodeType
               _lhsOidens =
-                  [(alias_, unwrapComposite $ unwrapSetOf _selInodeType)]
+                  [(alias_, (unwrapComposite $ unwrapSetOf _selInodeType, []))]
               _lhsOjoinIdens =
                   []
               _lhsOmessages =
@@ -6601,11 +6607,11 @@ sem_TableRef_Tref tbl_  =
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
               _lhsOnodeType =
-                  getRelationType _lhsIscope _lhsIsourcePos tbl_
+                  fst $ getRelationType _lhsIscope _lhsIsourcePos tbl_
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  [(tbl_, unwrapComposite $ getRelationType _lhsIscope _lhsIsourcePos tbl_)]
+                  [(tbl_, both unwrapComposite $ getRelationType _lhsIscope _lhsIsourcePos tbl_)]
               _lhsOmessages =
                   []
               _actualValue =
@@ -6626,11 +6632,11 @@ sem_TableRef_TrefAlias tbl_ alias_  =
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: TableRef
               _lhsOnodeType =
-                  getRelationType _lhsIscope _lhsIsourcePos tbl_
+                  fst $ getRelationType _lhsIscope _lhsIsourcePos tbl_
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  [(alias_, unwrapComposite $ getRelationType _lhsIscope _lhsIsourcePos tbl_)]
+                  [(alias_, both unwrapComposite $ getRelationType _lhsIscope _lhsIsourcePos tbl_)]
               _lhsOmessages =
                   []
               _actualValue =
@@ -6661,7 +6667,7 @@ sem_TableRef_TrefFun fn_  =
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  [second unwrapComposite $ getFunIdens _lhsIscope _lhsIsourcePos "" _fnIactualValue _fnInodeType]
+                  [second (\l -> (unwrapComposite l, [])) $ getFunIdens _lhsIscope _lhsIsourcePos "" _fnIactualValue _fnInodeType]
               _lhsOmessages =
                   _fnImessages
               _actualValue =
@@ -6701,7 +6707,7 @@ sem_TableRef_TrefFunAlias fn_ alias_  =
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  [second unwrapComposite $ getFunIdens _lhsIscope _lhsIsourcePos alias_ _fnIactualValue _fnInodeType]
+                  [second (\l -> (unwrapComposite l, [])) $ getFunIdens _lhsIscope _lhsIsourcePos alias_ _fnIactualValue _fnInodeType]
               _lhsOmessages =
                   _fnImessages
               _actualValue =

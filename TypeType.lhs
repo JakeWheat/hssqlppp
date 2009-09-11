@@ -141,6 +141,8 @@ types of tables, views and other composite types.
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
 >                         deriving (Eq,Show)
 
+type is always an UnnamedCompositeType:
+
 > type CompositeDef = (String, CompositeFlavour, Type)
 
 > isOperator :: String -> Bool

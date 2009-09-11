@@ -26,6 +26,7 @@ extra definitions from an accessible database.
 >                     --this should be done better:
 >                    ,scopeAllFns :: [FunctionPrototype]
 >                    ,scopeAttrDefs :: [CompositeDef]
+>                    ,scopeAttrSystemColumns :: [CompositeDef]
 >                    ,scopeIdentifierTypes :: [QualifiedScope]
 >                    ,scopeJoinIdentifiers :: [String]}
 >            deriving (Eq,Show)
@@ -49,10 +50,16 @@ once, so keep a separate list of these fields used just for expanding
 the star. The other twist is that these common fields appear first in
 the resultant field list.
 
-> type QualifiedScope = (String, [(String,Type)])
+System columns: pg also has these - they have names and types like
+other attributes, but are not included when expanding stars, so you
+only get them when you explicitly ask for them. The main use is using
+the oid system column which is heavily used as a target for foreign
+key references in the pg catalog.
+
+> type QualifiedScope = (String, ([(String,Type)], [(String,Type)]))
 
 > emptyScope :: Scope
-> emptyScope = Scope [] [] [] [] [] [] [] [] [] [] [] [] []
+> emptyScope = Scope [] [] [] [] [] [] [] [] [] [] [] [] [] []
 
 > scopeReplaceIds :: Scope -> [QualifiedScope] -> [String] -> Scope
 > scopeReplaceIds scope ids commonJoinFields =
@@ -63,7 +70,7 @@ the resultant field list.
 > scopeLookupID scope sp correlationName iden =
 >   if correlationName == ""
 >     then let types = concatMap (filter (\ (s, _) -> s == iden))
->                        (map snd $ scopeIdentifierTypes scope)
+>                        (map (fst.snd) $ scopeIdentifierTypes scope)
 >          in case length types of
 >                 0 -> TypeError sp (UnrecognisedIdentifier iden)
 >                 1 -> (snd . head) types
@@ -73,27 +80,27 @@ the resultant field list.
 >                        else TypeError sp (AmbiguousIdentifier iden)
 >     else case lookup correlationName (scopeIdentifierTypes scope) of
 >            Nothing -> TypeError sp $ UnrecognisedCorrelationName correlationName
->            Just s -> case lookup iden s of
+>            Just s -> case lookup iden (fst s) of
 >                        Nothing -> TypeError sp $ UnrecognisedIdentifier $ correlationName ++ "." ++ iden
 >                        Just t -> t
 
 > scopeExpandStar :: Scope -> MySourcePos -> String -> [(String,Type)]
 > scopeExpandStar scope sp correlationName =
 >     if correlationName == ""
->       then let allFields = concatMap snd $ scopeIdentifierTypes scope
+>       then let allFields = concatMap (fst.snd) $ scopeIdentifierTypes scope
 >                (commonFields,uncommonFields) =
 >                   partition (\(a,_) -> a `elem` scopeJoinIdentifiers scope) allFields
 >            in nub commonFields ++ uncommonFields
 >       else
->           case lookup correlationName (scopeIdentifierTypes scope) of
+>           case lookup correlationName $ scopeIdentifierTypes scope of
 >             Nothing -> [("", TypeError sp $ UnrecognisedCorrelationName correlationName)]
->             Just s -> s
+>             Just s -> fst s
 
 
 > combineScopes :: Scope -> Scope -> Scope
 > --base, overrides
-> combineScopes (Scope bt btn bc btc bpre bpost bbin bf bagg baf bcd _ _)
->               (Scope ot otn oc otc opre opost obin off oagg oaf ocd oi oji) =
+> combineScopes (Scope bt btn bc btc bpre bpost bbin bf bagg baf bcd _ _ _)
+>               (Scope ot otn oc otc opre opost obin off oagg oaf ocd oi oji osc) =
 >   Scope (funion ot bt)
 >         (funion otn btn)
 >         (funion oc bc)
@@ -107,6 +114,7 @@ the resultant field list.
 >         (funion ocd bcd)
 >         oi -- overwrites old scopes, might need to be looked at again
 >         oji
+>         osc
 >   where
 >     --without this it runs very slowly - guessing because it creates
 >     --a lot of garbage
