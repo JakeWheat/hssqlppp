@@ -290,7 +290,7 @@ SEM Expression
                          case length f of
                           0 -> error "internal error: no columns in scalar subquery?"
                           1 -> head f
-                          _ -> UnknownType
+                          _ -> RowCtor f
 {-
 == inlist
 -}
@@ -314,7 +314,7 @@ SEM InList
         in case length attrs of
              0 -> error "internal error - got subquery with no columns? in inselect"
              1 -> head attrs
-             _ -> UnknownType
+             _ -> RowCtor attrs
 
 {-
 ================================================================================

@@ -1881,7 +1881,7 @@ sem_Expression_ScalarSubQuery sel_  =
                     case length f of
                      0 -> error "internal error: no columns in scalar subquery?"
                      1 -> head f
-                     _ -> UnknownType
+                     _ -> RowCtor f
               _lhsOliftedColumnName =
                   ""
               _lhsOmessages =
@@ -2774,7 +2774,7 @@ sem_InList_InSelect sel_  =
                   in case length attrs of
                        0 -> error "internal error - got subquery with no columns? in inselect"
                        1 -> head attrs
-                       _ -> UnknownType
+                       _ -> RowCtor attrs
               _lhsOmessages =
                   _selImessages
               _actualValue =
