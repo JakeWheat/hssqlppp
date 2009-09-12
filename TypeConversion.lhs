@@ -114,6 +114,7 @@ findCallMatch is a bit of a mess
 >       ,binOp1UnknownMatch
 >       ,polymorpicExactMatches
 >       ,reachable
+>       ,mostExactMatches
 >       ,filteredForPreferred
 >       ,unknownMatchesByCat]
 >       (TypeError sp (NoMatchingOperator f inArgs))
@@ -151,6 +152,22 @@ findCallMatch is a bit of a mess
 >       reachable :: [ProtArgCast]
 >       reachable = mergePolys (filterCandCastPairs (none (==CannotCast)) candCastPairs)
 >                     polymorphicMatches
+>
+>       mostExactMatches :: [ProtArgCast]
+>       mostExactMatches =
+>         let inArgsBase = map (replaceWithBase scope) inArgs
+>             exactCounts :: [Int]
+>             exactCounts =
+>               map (\l -> length $ filter
+>                            (\(a1,a2) -> a1==replaceWithBase scope a2)
+>                            $ zip inArgsBase l)
+>                 $ map (\((_,a,_),_) -> a) reachable
+>             pairs = zip reachable exactCounts
+>             maxm = maximum exactCounts
+>         in case () of
+>              _ | length reachable == 0 -> []
+>                | maxm > 0 -> map fst $ filter (\(_,b) -> b == maxm) pairs
+>                | otherwise -> []
 >
 >       -- keep the cands with the most casts to preferred types
 >       preferredTypesCounts = countPreferredTypeCasts reachable
@@ -430,18 +447,24 @@ code is not as much of a mess as findCallMatch
 >      ret = case () of
 >                    _ | null inArgs -> TypeError sp TypelessEmptyArray
 >                      | allSameType -> head inArgs
+>                      | allSameBaseType -> head inArgsBase
 >                      --todo: do domains
 >                      | allUnknown -> ScalarType "text"
->                      | not allSameCat -> TypeError sp (IncompatibleTypes inArgs)
+>                      | not allSameCat ->
+>                          TypeError sp (IncompatibleTypes inArgs)
 >                      | isJust targetType &&
->                          allConvertibleToFrom
->                          (fromJust targetType)
->                          inArgs -> fromJust targetType
+>                          allConvertibleToFrom (fromJust targetType) inArgs ->
+>                            fromJust targetType
 >                      | otherwise -> TypeError sp (IncompatibleTypes inArgs)
->      allSameType = all (== head inArgs) inArgs && head inArgs /= UnknownStringLit
->      allUnknown = all (==UnknownStringLit) inArgs
+>      allSameType = all (== head inArgs) inArgs &&
+>                      head inArgs /= UnknownStringLit
+>      allSameBaseType = all (== head inArgsBase) inArgsBase &&
+>                      head inArgsBase /= UnknownStringLit
+>      inArgsBase = map (replaceWithBase scope) inArgs
+>      allUnknown = all (==UnknownStringLit) inArgsBase
 >      allSameCat = let firstCat = getTypeCategory scope (head knownTypes)
->                   in all (\t -> getTypeCategory scope t == firstCat) knownTypes
+>                   in all (\t -> getTypeCategory scope t == firstCat)
+>                          knownTypes
 >      targetType = case catMaybes [firstPreferred, lastAllConvertibleTo] of
 >                     [] -> Nothing
 >                     (x:_) -> Just x
@@ -451,9 +474,17 @@ code is not as much of a mess as findCallMatch
 >                                       then Just x
 >                                       else firstAllConvertibleTo xs
 >      firstAllConvertibleTo [] = Nothing
->      matchOrImplicitToFrom t t1 = t == t1 || implicitlyCastableFromTo scope t1 t
->      knownTypes = filter (/=UnknownStringLit) inArgs
+>      matchOrImplicitToFrom t t1 = t == t1 ||
+>                                   implicitlyCastableFromTo scope t1 t
+>      knownTypes = filter (/=UnknownStringLit) inArgsBase
 >      allConvertibleToFrom = all . matchOrImplicitToFrom
+
+> replaceWithBase :: Scope -> Type -> Type
+> replaceWithBase scope t@(DomainType _) =
+>   case lookup t (scopeDomainDefs scope) of
+>     Nothing -> error $ "internal error - couldn't find base type for " ++ show t
+>     Just u -> replaceWithBase scope u
+> replaceWithBase _ t = t
 
 todo:
 row ctor implicitly and explicitly cast to a composite type

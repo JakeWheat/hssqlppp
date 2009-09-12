@@ -286,7 +286,8 @@ SEM Expression
 SEM Expression
     | ScalarSubQuery
         lhs.nodeType = let f = map snd $ unwrapComposite $ unwrapSetOf @sel.nodeType
-                       in case length f of
+                       in checkErrors [@sel.nodeType] $
+                         case length f of
                           0 -> error "internal error: no columns in scalar subquery?"
                           1 -> head f
                           _ -> UnknownType

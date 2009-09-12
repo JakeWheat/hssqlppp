@@ -1877,7 +1877,8 @@ sem_Expression_ScalarSubQuery sel_  =
               _selInodeType :: Type
               _lhsOnodeType =
                   let f = map snd $ unwrapComposite $ unwrapSetOf _selInodeType
-                  in case length f of
+                  in checkErrors [_selInodeType] $
+                    case length f of
                      0 -> error "internal error: no columns in scalar subquery?"
                      1 -> head f
                      _ -> UnknownType

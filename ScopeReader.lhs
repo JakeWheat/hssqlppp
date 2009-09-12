@@ -47,10 +47,17 @@ are discarded after the Scope value is created.
 >        typeMap = M.fromList typeAssoc
 >        types = map snd typeAssoc
 >        typeNames = map (\(_,a,b) -> (b,a)) typeStuff
+
+>    domainDefInfo <- selectRelation conn
+>                       "select oid, typbasetype\n\
+>                       \from pg_type where typtype = 'd'\n\
+>                       \     and  pg_catalog.pg_type_is_visible(oid);" []
+>    let jlt k = fromJust $ M.lookup k typeMap
+>    let domainDefs = map (\l -> (jlt (l!!0),  jlt (l!!1))) domainDefInfo
+>    let domainCasts = map (\(t,b) ->(t,b,ImplicitCastContext)) domainDefs
 >    castInfo <- selectRelation conn
 >                  "select castsource,casttarget,castcontext from pg_cast;" []
->    let jlt k = fromJust $ M.lookup k typeMap
->    let casts = flip map castInfo
+>    let casts = domainCasts ++ flip map castInfo
 >                  (\l -> (jlt (l!!0), jlt (l!!1),
 >                          case (l!!2) of
 >                                      "a" -> AssignmentCastContext
@@ -149,6 +156,7 @@ are discarded after the Scope value is created.
 
 >    return $ Scope {scopeTypes = types
 >                   ,scopeTypeNames = typeNames
+>                   ,scopeDomainDefs = domainDefs
 >                   ,scopeCasts = casts
 >                   ,scopeTypeCategories = typeCats
 >                   ,scopePrefixOperators = prefixOps

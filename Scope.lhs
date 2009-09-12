@@ -14,9 +14,11 @@ extra definitions from an accessible database.
 > import TypeType
 
 > type FunctionPrototype = (String, [Type], Type)
+> type DomainDefinition = (Type,Type)
 
 > data Scope = Scope {scopeTypes :: [Type]
 >                    ,scopeTypeNames :: [(String, Type)]
+>                    ,scopeDomainDefs :: [DomainDefinition]
 >                    ,scopeCasts :: [(Type,Type,CastContext)]
 >                    ,scopeTypeCategories :: [(Type,String,Bool)]
 >                    ,scopePrefixOperators :: [FunctionPrototype]
@@ -60,7 +62,7 @@ key references in the pg catalog.
 > type QualifiedScope = (String, ([(String,Type)], [(String,Type)]))
 
 > emptyScope :: Scope
-> emptyScope = Scope [] [] [] [] [] [] [] [] [] [] [] [] [] []
+> emptyScope = Scope [] [] [] [] [] [] [] [] [] [] [] [] [] [] []
 
 > scopeReplaceIds :: Scope -> [QualifiedScope] -> [String] -> Scope
 > scopeReplaceIds scope ids commonJoinFields =
@@ -103,10 +105,11 @@ key references in the pg catalog.
 
 > combineScopes :: Scope -> Scope -> Scope
 > --base, overrides
-> combineScopes (Scope bt btn bc btc bpre bpost bbin bf bagg baf bcd basc _ _)
->               (Scope ot otn oc otc opre opost obin off oagg oaf ocd oasc oi oji) =
+> combineScopes (Scope bt btn bdod bc btc bpre bpost bbin bf bagg baf bcd basc _ _)
+>               (Scope ot otn odod oc otc opre opost obin off oagg oaf ocd oasc oi oji) =
 >   Scope (funion ot bt)
 >         (funion otn btn)
+>         (funion odod bdod)
 >         (funion oc bc)
 >         (funion otc btc)
 >         (funion opre bpre)
