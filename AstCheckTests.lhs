@@ -175,6 +175,34 @@ check casts from unknown string lits
 >        (TypeError nsp (UnrecognisedIdentifier "testit"))
 >     ])
 
+rows different lengths
+rows match types pairwise, same and different types
+rows implicit cast from unknown
+rows don't match types
+
+
+>    ,testGroup "row comparison expressions"
+>     (mapExprType [
+>       p "row(1)" (RowCtor [typeInt])
+>      ,p "row(1,2)" (RowCtor [typeInt,typeInt])
+>      ,p "row('t1','t2')" (RowCtor [UnknownStringLit,UnknownStringLit])
+>      ,p "row(true,1,'t3')" (RowCtor [typeBool, typeInt,UnknownStringLit])
+>      ,p "(true,1,'t3',75.3)" (RowCtor [typeBool,typeInt
+>                                       ,UnknownStringLit,typeNumeric])
+>      ,p "row(1) = row(2)" typeBool
+>      ,p "row(1,2) = row(2,1)" typeBool
+>      ,p "(1,2) = (2,1)" typeBool
+>      ,p "(1,2,3) = (2,1)" (TypeError nsp ValuesListsMustBeSameLength)
+>      ,p "('1',2) = (2,'1')" typeBool
+>      ,p "(1,true) = (2,1)" (TypeError nsp (IncompatibleTypes [ScalarType "bool",ScalarType "int4"]))
+>      ,p "(1,2) <> (2,1)" typeBool
+>      ,p "(1,2) >= (2,1)" typeBool
+>      ,p "(1,2) <= (2,1)" typeBool
+>      ,p "(1,2) > (2,1)" typeBool
+>      ,p "(1,2) < (2,1)" typeBool
+>     ])
+
+
 
 >    ,testGroup "case expressions"
 >     (mapExprType [

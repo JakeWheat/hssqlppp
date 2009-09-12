@@ -60,7 +60,7 @@ out. If not, will have to add another type.
 >           | UnnamedCompositeType [(String,Type)]
 >           | DomainType String
 >           | EnumType String
->           | Row [Type]
+>           | RowCtor [Type]
 >           -- type list is used internally in the type checking.
 >           | TypeList [Type]
 >           | Pseudo PseudoType

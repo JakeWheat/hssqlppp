@@ -22,31 +22,55 @@ idea is to move these here from TypeChecking.ag if they get a bit big,
 not very consistently applied at the moment.
 
 > typeCheckFunCall :: Scope -> MySourcePos -> String -> Type -> Type
-> typeCheckFunCall scope sp fnName argsType =
->     checkErrors [argsType] ret
+> typeCheckFunCall scope sp fnName argsType' =
+>     checkErrors [argsType'] ret
 >     where
+>       argsType = unwrapTypeList argsType'
 >       ret = case fnName of
->           "!arrayCtor" -> let t = resolveResultSetType scope sp $ unwrapTypeList argsType
+
+do the special cases first, some of these will use the varidic support
+when it is done and no longer be special cases.
+
+>           "!arrayCtor" -> let t = resolveResultSetType scope sp argsType
 >                           in checkErrors [t] $ ArrayType t
->           "!between" -> let f1 = lookupFn ">=" [as !! 0, as !! 1]
->                             f2 = lookupFn "<=" [as !! 0, as !! 2]
+>           "!between" -> let f1 = lookupFn ">=" [argsType !! 0, argsType !! 1]
+>                             f2 = lookupFn "<=" [argsType !! 0, argsType !! 2]
 >                             f3 = lookupFn "!and" [f1,f2]
 >                         in checkErrors [f1,f2] f3
->                         where
->                           as = unwrapTypeList argsType
->           "coalesce" -> let t = resolveResultSetType scope sp $ unwrapTypeList argsType
+>           "coalesce" -> let t = resolveResultSetType scope sp argsType
 >                         in checkErrors [t] t
->           "greatest" -> let t = resolveResultSetType scope sp $ unwrapTypeList argsType
+>           "greatest" -> let t = resolveResultSetType scope sp argsType
 >                             f1 = lookupFn ">=" [t,t]
 >                         in checkErrors [t, f1] t
->           "least" -> let t = resolveResultSetType scope sp $ unwrapTypeList argsType
+>           "least" -> let t = resolveResultSetType scope sp argsType
 >                          f1 = lookupFn "<=" [t,t]
 >                      in checkErrors [t, f1] t
->           s ->  lookupFn s (unwrapTypeList argsType)
+>           "!rowCtor" -> RowCtor argsType
+
+special case the row comparison ops
+
+>           _ | let isRowCtor t = case t of
+>                                   RowCtor _ -> True
+>                                   _ -> False
+>               in fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
+>                      && length argsType == 2
+>                      && all isRowCtor argsType ->
+>                 checkRowTypesMatch (head argsType) (head $ tail argsType)
+
+>           s ->  lookupFn s argsType
 >       lookupFn s1 args = case findCallMatch scope sp
 >                                              (if s1 == "u-" then "-" else s1) args of
 >                                Left te -> te
 >                                Right (_,_,r) -> r
+>       checkRowTypesMatch (RowCtor t1s) (RowCtor t2s) =
+>         let e1 = if length t1s /= length t2s
+>                    then TypeError sp ValuesListsMustBeSameLength
+>                    else TypeList []
+>             t3s = map (resolveResultSetType scope sp) $ map (\(a,b) -> [a,b]) $ zip t1s t2s
+>         in checkErrors (e1:t3s) typeBool
+>       checkRowTypesMatch x y  =
+>         error $ "internal error: checkRowTypesMatch called with " ++ show x ++ "," ++ show y
+
 
 > typeCheckValuesExpr :: Scope -> MySourcePos -> Type -> Type
 > typeCheckValuesExpr scope sp vll =
