@@ -47,20 +47,9 @@ stage 1: do some stuff patchily to try to get a bunch of common sql
    most select statements)
 
 todos for this stage:
-union, except, intersect
 creates - just enough to fill in the scope so references to these type
    check
-support for domains implicitly casting to base types in function
-   lookup, result set resolution
-simple typing of aggregate args and return types
 Pretty printer for Type
-aliases in selects from functions - when the function returns a setof
-   single type instead of composite, then the single return attribute
-   takes the alias name as it's attribute name e.g. select x from
-   gen_series() as x
-coalesce, what other special functions are there?
-exists, case exp when value - support these cos they're pretty common
-type check selects against pg hidden fields (e.g. oid in catalogs).
 
 stage 2:
 make this useful by working on the showtypesdb function:

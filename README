@@ -50,9 +50,15 @@ Contact
 
 Let me know if you're using/ interesting in using the library, if you
 have any problems or suggestions, etc.. All contributions, comments
-and criticism welcome.
+and criticism welcome:
 
 jakewheatmail@gmail.com
+
+You can also report problems on the bug tracker on Launchpad. Let me
+know if you have any problems trying out the stuff in the 'usage'
+file, if you come across some SQL which doesn't parse or type check,
+and I'm also interested in surveying what other dialects of SQL you
+would be interested in using or contributing code for.
 
 ================================================================================
 

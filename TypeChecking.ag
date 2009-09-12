@@ -565,6 +565,47 @@ SEM SelectItem
                                 s -> s
     | SelectItem lhs.columnName = @name
 
+
+{-
+================================================================================
+
+= create table
+
+scope needs to be modified:
+types, typenames, typecats, attrdefs, systemcolumns
+
+produces a compositedef: (name, tablecomposite, unnamedcomp [(attrname, type)])
+
+@atts: attibutedeflist
+attributedef: name: string, type: typename
+
+-}
+
+ATTR AttributeDef
+  [
+  |
+  | attrName : String
+  ]
+
+SEM AttributeDef
+    | AttributeDef
+      lhs.attrName = @name
+      lhs.nodeType = @typ.nodeType
+
+SEM AttributeDefList
+    | Cons lhs.nodeType =
+        checkErrors [@tl.nodeType, @hd.nodeType] $
+        consComposite (@hd.attrName, @hd.nodeType) @tl.nodeType
+    | Nil lhs.nodeType = UnnamedCompositeType []
+
+SEM Statement
+    | CreateTable lhs.nodeType = @atts.nodeType
+                                 --(@name, TableComposite, @atts.nodeType)
+
+
+
+
+
 {-
 ================================================================================
 
