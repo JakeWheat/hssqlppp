@@ -121,8 +121,8 @@ SEM SourcePosStatement
   | Tuple x2.backType = @x2.nodeType
 
 SEM Statement
-  | SelectStatement Insert Update Delete Copy CopyData Truncate CreateTable
-    CreateTableAs CreateView CreateType CreateFunction CreateDomain
+  | Insert Update Delete Copy CopyData Truncate
+    CreateFunction CreateDomain
     DropFunction DropSomething Assignment Return ReturnNext ReturnQuery
     Raise NullStatement Perform Execute ExecuteInto ForSelectStatement
     ForIntegerStatement WhileStatement ContinueStatement CaseStatement
@@ -374,6 +374,7 @@ SEM InList
 
 SEM Statement
     | SelectStatement lhs.nodeType = @ex.nodeType
+                      lhs.statementInfo = SelectInfo @ex.nodeType
 
 SEM SelectExpression
     --assume we get TypeList (TypeList (Type)) out of vll
@@ -647,8 +648,51 @@ SEM AttributeDefList
 
 SEM Statement
     | CreateTable lhs.nodeType = @atts.nodeType
-                                 --(@name, TableComposite, @atts.nodeType)
+                  lhs.statementInfo = RelvarInfo (@name, TableComposite, @atts.nodeType)
 
+
+SEM Statement
+    | CreateTableAs lhs.statementInfo = RelvarInfo (@name, TableComposite, @expr.nodeType)
+
+
+{-
+================================================================================
+
+= create view
+
+-}
+
+SEM Statement
+    | CreateView lhs.statementInfo = RelvarInfo (@name, ViewComposite, @expr.nodeType)
+
+
+{-
+================================================================================
+
+= create type
+
+-}
+
+ATTR TypeAttributeDef
+   [
+   |
+   | attrName : String
+   ]
+
+
+SEM TypeAttributeDef
+    | TypeAttDef
+        lhs.nodeType = @typ.nodeType
+        lhs.attrName = @name
+
+SEM TypeAttributeDefList
+    | Cons lhs.nodeType =
+        checkErrors [@tl.nodeType, @hd.nodeType] $
+        consComposite (@hd.attrName, @hd.nodeType) @tl.nodeType
+    | Nil lhs.nodeType = UnnamedCompositeType []
+
+SEM Statement
+    | CreateType lhs.statementInfo = RelvarInfo (@name, Composite, @atts.nodeType)
 
 {-
 ================================================================================

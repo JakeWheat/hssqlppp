@@ -88,8 +88,14 @@ import DefaultScope
 
 
 data StatementInfo = DefaultStatementInfo Type
-                   | CreateTableInfo CompositeDef
+                   | RelvarInfo CompositeDef
                    | CreateFunctionInfo FunctionPrototype
+                   | SelectInfo Type
+                   | InsertInfo String Type
+                   | UpdateInfo String Type
+                   | DeleteInfo String Type
+                   | CreateDomainInfo String Type
+                   | DropInfo [(String,String)]
                      deriving (Eq,Show)
 
 
@@ -5271,8 +5277,8 @@ sem_Statement_CreateTable name_ atts_ cons_  =
        _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOstatementInfo :: StatementInfo
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOstatementInfo :: StatementInfo
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: Statement
               _lhsObackType :: Type
@@ -5288,10 +5294,10 @@ sem_Statement_CreateTable name_ atts_ cons_  =
               _consIactualValue :: ConstraintList
               _consImessages :: ([Message])
               _consInodeType :: Type
-              _lhsOstatementInfo =
-                  DefaultStatementInfo _lhsIbackType
               _lhsOnodeType =
                   _attsInodeType
+              _lhsOstatementInfo =
+                  RelvarInfo (name_, TableComposite, _attsInodeType)
               _lhsOmessages =
                   _attsImessages ++ _consImessages
               _actualValue =
@@ -5337,7 +5343,7 @@ sem_Statement_CreateTableAs name_ expr_  =
               _exprImessages :: ([Message])
               _exprInodeType :: Type
               _lhsOstatementInfo =
-                  DefaultStatementInfo _lhsIbackType
+                  RelvarInfo (name_, TableComposite, _exprInodeType)
               _lhsOmessages =
                   _exprImessages
               _lhsOnodeType =
@@ -5377,7 +5383,7 @@ sem_Statement_CreateType name_ atts_  =
               _attsImessages :: ([Message])
               _attsInodeType :: Type
               _lhsOstatementInfo =
-                  DefaultStatementInfo _lhsIbackType
+                  RelvarInfo (name_, Composite, _attsInodeType)
               _lhsOmessages =
                   _attsImessages
               _lhsOnodeType =
@@ -5417,7 +5423,7 @@ sem_Statement_CreateView name_ expr_  =
               _exprImessages :: ([Message])
               _exprInodeType :: Type
               _lhsOstatementInfo =
-                  DefaultStatementInfo _lhsIbackType
+                  RelvarInfo (name_, ViewComposite, _exprInodeType)
               _lhsOmessages =
                   _exprImessages
               _lhsOnodeType =
@@ -6182,8 +6188,8 @@ sem_Statement_SelectStatement ex_  =
        _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOstatementInfo :: StatementInfo
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOstatementInfo :: StatementInfo
               _lhsOmessages :: ([Message])
               _lhsOactualValue :: Statement
               _lhsObackType :: Type
@@ -6193,10 +6199,10 @@ sem_Statement_SelectStatement ex_  =
               _exIactualValue :: SelectExpression
               _exImessages :: ([Message])
               _exInodeType :: Type
-              _lhsOstatementInfo =
-                  DefaultStatementInfo _lhsIbackType
               _lhsOnodeType =
                   _exInodeType
+              _lhsOstatementInfo =
+                  SelectInfo _exInodeType
               _lhsOmessages =
                   _exImessages
               _actualValue =
@@ -7017,16 +7023,16 @@ sem_TypeAttributeDef (TypeAttDef _name _typ )  =
 type T_TypeAttributeDef  = Bool ->
                            Scope ->
                            MySourcePos ->
-                           ( TypeAttributeDef,([Message]),Type)
+                           ( TypeAttributeDef,String,([Message]),Type)
 data Inh_TypeAttributeDef  = Inh_TypeAttributeDef {inLoop_Inh_TypeAttributeDef :: Bool,scope_Inh_TypeAttributeDef :: Scope,sourcePos_Inh_TypeAttributeDef :: MySourcePos}
-data Syn_TypeAttributeDef  = Syn_TypeAttributeDef {actualValue_Syn_TypeAttributeDef :: TypeAttributeDef,messages_Syn_TypeAttributeDef :: [Message],nodeType_Syn_TypeAttributeDef :: Type}
+data Syn_TypeAttributeDef  = Syn_TypeAttributeDef {actualValue_Syn_TypeAttributeDef :: TypeAttributeDef,attrName_Syn_TypeAttributeDef :: String,messages_Syn_TypeAttributeDef :: [Message],nodeType_Syn_TypeAttributeDef :: Type}
 wrap_TypeAttributeDef :: T_TypeAttributeDef  ->
                          Inh_TypeAttributeDef  ->
                          Syn_TypeAttributeDef 
 wrap_TypeAttributeDef sem (Inh_TypeAttributeDef _lhsIinLoop _lhsIscope _lhsIsourcePos )  =
-    (let ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType) =
+    (let ( _lhsOactualValue,_lhsOattrName,_lhsOmessages,_lhsOnodeType) =
              (sem _lhsIinLoop _lhsIscope _lhsIsourcePos )
-     in  (Syn_TypeAttributeDef _lhsOactualValue _lhsOmessages _lhsOnodeType ))
+     in  (Syn_TypeAttributeDef _lhsOactualValue _lhsOattrName _lhsOmessages _lhsOnodeType ))
 sem_TypeAttributeDef_TypeAttDef :: String ->
                                    T_TypeName  ->
                                    T_TypeAttributeDef 
@@ -7034,8 +7040,9 @@ sem_TypeAttributeDef_TypeAttDef name_ typ_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOattrName :: String
+              _lhsOmessages :: ([Message])
               _lhsOactualValue :: TypeAttributeDef
               _typOinLoop :: Bool
               _typOscope :: Scope
@@ -7043,10 +7050,12 @@ sem_TypeAttributeDef_TypeAttDef name_ typ_  =
               _typIactualValue :: TypeName
               _typImessages :: ([Message])
               _typInodeType :: Type
-              _lhsOmessages =
-                  _typImessages
               _lhsOnodeType =
                   _typInodeType
+              _lhsOattrName =
+                  name_
+              _lhsOmessages =
+                  _typImessages
               _actualValue =
                   TypeAttDef name_ _typIactualValue
               _lhsOactualValue =
@@ -7059,7 +7068,7 @@ sem_TypeAttributeDef_TypeAttDef name_ typ_  =
                   _lhsIsourcePos
               ( _typIactualValue,_typImessages,_typInodeType) =
                   (typ_ _typOinLoop _typOscope _typOsourcePos )
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+          in  ( _lhsOactualValue,_lhsOattrName,_lhsOmessages,_lhsOnodeType)))
 -- TypeAttributeDefList ----------------------------------------
 type TypeAttributeDefList  = [(TypeAttributeDef)]
 -- cata
@@ -7088,8 +7097,8 @@ sem_TypeAttributeDefList_Cons hd_ tl_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
               _lhsOactualValue :: TypeAttributeDefList
               _hdOinLoop :: Bool
               _hdOscope :: Scope
@@ -7098,15 +7107,17 @@ sem_TypeAttributeDefList_Cons hd_ tl_  =
               _tlOscope :: Scope
               _tlOsourcePos :: MySourcePos
               _hdIactualValue :: TypeAttributeDef
+              _hdIattrName :: String
               _hdImessages :: ([Message])
               _hdInodeType :: Type
               _tlIactualValue :: TypeAttributeDefList
               _tlImessages :: ([Message])
               _tlInodeType :: Type
+              _lhsOnodeType =
+                  checkErrors [_tlInodeType, _hdInodeType] $
+                  consComposite (_hdIattrName, _hdInodeType) _tlInodeType
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
-              _lhsOnodeType =
-                  _hdInodeType `appendTypeList` _tlInodeType
               _actualValue =
                   (:) _hdIactualValue _tlIactualValue
               _lhsOactualValue =
@@ -7123,7 +7134,7 @@ sem_TypeAttributeDefList_Cons hd_ tl_  =
                   _lhsIscope
               _tlOsourcePos =
                   _lhsIsourcePos
-              ( _hdIactualValue,_hdImessages,_hdInodeType) =
+              ( _hdIactualValue,_hdIattrName,_hdImessages,_hdInodeType) =
                   (hd_ _hdOinLoop _hdOscope _hdOsourcePos )
               ( _tlIactualValue,_tlImessages,_tlInodeType) =
                   (tl_ _tlOinLoop _tlOscope _tlOsourcePos )
@@ -7133,13 +7144,13 @@ sem_TypeAttributeDefList_Nil  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOmessages :: ([Message])
               _lhsOactualValue :: TypeAttributeDefList
+              _lhsOnodeType =
+                  UnnamedCompositeType []
               _lhsOmessages =
                   []
-              _lhsOnodeType =
-                  TypeList []
               _actualValue =
                   []
               _lhsOactualValue =

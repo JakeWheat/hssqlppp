@@ -535,8 +535,14 @@ information to source code.
 
 {
 data StatementInfo = DefaultStatementInfo Type
-                   | CreateTableInfo CompositeDef
+                   | RelvarInfo CompositeDef
                    | CreateFunctionInfo FunctionPrototype
+                   | SelectInfo Type
+                   | InsertInfo String Type
+                   | UpdateInfo String Type
+                   | DeleteInfo String Type
+                   | CreateDomainInfo String Type
+                   | DropInfo [(String,String)]
                      deriving (Eq,Show)
 }
 
