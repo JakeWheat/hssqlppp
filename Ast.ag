@@ -259,7 +259,8 @@ TYPE Where = MAYBE Expression
 DATA FnBody | SqlFnBody sts : StatementList
             | PlpgsqlFnBody VarDefList sts : StatementList
 
-DATA SetClause | SetClause String Expression | RowSetClause StringList ExpressionList
+DATA SetClause | SetClause att:String val:Expression
+               | RowSetClause atts:StringList vals:ExpressionList
 
 DATA TableRef | Tref tbl:String
               | TrefAlias tbl : String
@@ -525,32 +526,6 @@ DERIVING ExpressionRoot: Show
 {-
 ================================================================================
 
-= statementinfo
-
-possibly temporary type used to expose more info about a statement
-than can be held in its type. Initially intended for adding extra
-information to source code.
-
--}
-
-{
-data StatementInfo = DefaultStatementInfo Type
-                   | RelvarInfo CompositeDef
-                   | CreateFunctionInfo FunctionPrototype
-                   | SelectInfo Type
-                   | InsertInfo String Type
-                   | UpdateInfo String Type
-                   | DeleteInfo String Type
-                   | CreateDomainInfo String Type
-                   | DropInfo [(String,String)]
-                   | DropFunctionInfo [(String,[Type])]
-                     deriving (Eq,Show)
-}
-
-
-{-
-================================================================================
-
 =some basic bookkeeping
 
 attributes which every node has
@@ -633,7 +608,6 @@ checkAst sts = let t = sem_Root (Root sts)
 = Types
 
 These are the utility functions which clients use to typecheck sql.
-
 
 -}
 

@@ -20,6 +20,11 @@ will probably not be able to deal for a while if ever. (Will need
 hooks into postgresql to do this properly, which might not be
 impossible...).
 
+The main current limitation is that the ddl statements aren't passed
+on in the scope so e.g. it doesn't type check a create table followed
+by a select from that table. The support for this is nearly complete
+and it should be working very soon.
+
 ================================================================================
 
 = main attributes used
@@ -90,7 +95,25 @@ create a new data type which is more descriptive than Type, so
 statements can expose information here. E.g. a create table can expose
 the table name, a create function can expose the function prototype
 
+This will evolve into the main annotation data type which is used to
+supply information, e.g. to intersperse into some sql source, or to
+get back for an individual statement interactively in an ide.
+
 -}
+
+{
+data StatementInfo = DefaultStatementInfo Type
+                   | RelvarInfo CompositeDef
+                   | CreateFunctionInfo FunctionPrototype
+                   | SelectInfo Type
+                   | InsertInfo String Type
+                   | UpdateInfo String Type
+                   | DeleteInfo String
+                   | CreateDomainInfo String Type
+                   | DropInfo [(String,String)]
+                   | DropFunctionInfo [(String,[Type])]
+                     deriving (Eq,Show)
+}
 
 ATTR Statement
   [
@@ -612,6 +635,51 @@ SEM SelectItem
                                 s -> s
     | SelectItem lhs.columnName = @name
 
+{-
+================================================================================
+
+= insert
+
+current todo:
+check table exists
+check target cols exist
+check insert data type compatible with target cols
+Insert table : String
+             targetCols : StringList
+             insData : SelectExpression
+             returning : (Maybe SelectList)
+-}
+{-
+================================================================================
+
+= update
+
+current todo:
+check table exists
+check assign targets exist
+check assign value types resolve
+check where is boolean
+ Update table : String
+             assigns : SetClauseList
+             whr : (Maybe Expression)
+             returning : (Maybe SelectList)
+-}
+
+{-
+================================================================================
+
+= delete
+
+current todo:
+check table exists
+check where is boolean
+ Delete table : String
+             whr : (Maybe Expression)
+             returning : (Maybe SelectList)
+DATA SetClause | SetClause att:String val:Expression
+               | RowSetClause atts:StringList vals:ExpressionList
+
+-}
 
 {-
 ================================================================================

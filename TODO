@@ -47,21 +47,26 @@ stage 1: do some stuff patchily to try to get a bunch of common sql
    most select statements)
 
 todos for this stage:
-creates - just enough to fill in the scope so references to these type
-   check
-Pretty printer for Type
+typecheck insert, update and delete
+integrate create types into scope, plus do drops with scope
+chain scopes when showinfo-ing multiple files
+Pretty printer for statementinfo
 
 stage 2:
 make this useful by working on the showtypesdb function:
-instead of interspersing the types with the pretty printed statements,
-   insert or overwrite the type comments in the original source so we
-   preserve formatting and other comments.
-use the type pretty printer to make the type comments more readable
+instead of interspersing the statementinfo with the pretty printed
+   statements, insert or overwrite the statementinfo comments in the
+   original source so we preserve formatting and other comments.
+use the type pretty printer to make the statementinfo comments more readable
 want to also output types of parts of statements, e.g. the select in a
    for statement or insert, etc.. Will probably have to add explicit
    annotation field to most of the ast nodes to hold the type of every
    node (this can also be used to store more accurate source
-   positioning, amongst other things)
+   positioning, amongst other things). Other things that could be
+   useful include adding the resolved function prototype for each
+   function used which has overloads so you can see which overload is
+   being called, write out the canonicalized ast: so e.g. we have all
+   the casts made explicit, etc.
 With this in place, the code actually has some use for real code, in
    that we can use it to easily view the types of views, etc. inline
    in the real sql source code
@@ -195,6 +200,24 @@ in general, parsing operators is wrong, the lexer needs to be able to
 ================================================================================
 
 some other random ideas:
+
+null treatement
+Basic motivation is to keep nulls carefully walled off. For each
+   value, etc. we determine statically if it might be null. This can
+   be done for return types of functions, fields in a select
+   expression, etc.. (can also do mappings e.g. if a functions inputs
+   are all non null, then the output is non null, etc.). Once this is
+   working ok, the second stage is to implement the anti null nazi
+   warnings. Allow nulls in tables, outer joins, select expressions,
+   and in coalesce (maybe add or remove from this list). Never allow
+   nulls to be part of a function call, expression, etc.. So everytime
+   you have a field being used in an expression and it cannot be
+   statically verified to be non null, you have to insert a
+   coalesce. So nulls can still be used to represent optional values,
+   n/a, etc.. and output to clients doing selects, but there is no
+   question of 3vl, what is the result of this function call if the
+   operands are null, what is the result of a sum aggregate if some of
+   the values are null, etc. because none of these things are allowed.
 
 write a replacement psql shell, which can expose parse trees, type
    checks, lint checks, and doesn't use a one line at a time style

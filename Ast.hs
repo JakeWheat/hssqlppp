@@ -87,19 +87,6 @@ import Scope
 import DefaultScope
 
 
-data StatementInfo = DefaultStatementInfo Type
-                   | RelvarInfo CompositeDef
-                   | CreateFunctionInfo FunctionPrototype
-                   | SelectInfo Type
-                   | InsertInfo String Type
-                   | UpdateInfo String Type
-                   | DeleteInfo String Type
-                   | CreateDomainInfo String Type
-                   | DropInfo [(String,String)]
-                   | DropFunctionInfo [(String,[Type])]
-                    deriving (Eq,Show)
-
-
 checkAst :: StatementList -> [Message]
 checkAst sts = let t = sem_Root (Root sts)
                in (messages_Syn_Root (wrap_Root t Inh_Root {scope_Inh_Root = defaultScope}))
@@ -177,6 +164,19 @@ setUnknown _ _ = UnknownType
 appendTypeList :: Type -> Type -> Type
 appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
 appendTypeList t1 t2 = TypeList [t1,t2]
+
+
+data StatementInfo = DefaultStatementInfo Type
+                   | RelvarInfo CompositeDef
+                   | CreateFunctionInfo FunctionPrototype
+                   | SelectInfo Type
+                   | InsertInfo String Type
+                   | UpdateInfo String Type
+                   | DeleteInfo String
+                   | CreateDomainInfo String Type
+                   | DropInfo [(String,String)]
+                   | DropFunctionInfo [(String,[Type])]
+                     deriving (Eq,Show)
 
 
 -- i think this should be alright, an identifier referenced in an
