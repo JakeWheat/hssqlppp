@@ -93,6 +93,8 @@ MODULE {Ast}
    ,getExpressionType
    ,getStatementsType
    ,getStatementsTypeScope
+   ,getStatementsInfo
+   ,getStatementsInfoScope
    ,resetSps
    ,resetSp
    ,resetSp'
@@ -523,6 +525,25 @@ DERIVING ExpressionRoot: Show
 {-
 ================================================================================
 
+= statementinfo
+
+possibly temporary type used to expose more info about a statement
+than can be held in its type. Initially intended for adding extra
+information to source code.
+
+-}
+
+{
+data StatementInfo = DefaultStatementInfo Type
+                   | CreateTableInfo CompositeDef
+                   | CreateFunctionInfo FunctionPrototype
+                     deriving (Eq,Show)
+}
+
+
+{-
+================================================================================
+
 =some basic bookkeeping
 
 attributes which every node has
@@ -622,9 +643,20 @@ getStatementsType = getStatementsTypeScope emptyScope
 getStatementsTypeScope :: Scope -> StatementList -> [Type]
 getStatementsTypeScope scope st =
     let t = sem_Root (Root st)
-        tl = (nodeType_Syn_Root
-              (wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}))
-    in unwrapTypeList tl
+        ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
+        tl = nodeType_Syn_Root ta
+    in (unwrapTypeList tl)
+
+getStatementsInfo :: StatementList -> [StatementInfo]
+getStatementsInfo = getStatementsInfoScope emptyScope
+
+getStatementsInfoScope :: Scope -> StatementList -> [StatementInfo]
+getStatementsInfoScope scope st =
+    let t = sem_Root (Root st)
+        ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
+        t2 = statementInfo_Syn_Root ta
+    in t2
+
 
 --hack job, often not interested in the source positions when testing
 --the asts produced, so this function will reset all the source

@@ -34,6 +34,11 @@ found, this was fixed by re-cabal installing some libraries with
 profiling on that cabal had missed - is this supposed to be handled in
 the configure stage?
 
+= uuagc
+
+compare with aspectag
+
+
 
 = postgresql questions
 

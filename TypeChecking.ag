@@ -81,6 +81,54 @@ appendTypeList t1 t2 = TypeList [t1,t2]
 }
 
 {-
+================================================================================
+
+= statement info
+
+slightly hacky, to support adding useful comments to sql source,
+create a new data type which is more descriptive than Type, so
+statements can expose information here. E.g. a create table can expose
+the table name, a create function can expose the function prototype
+
+-}
+
+ATTR Statement
+  [
+  | backType : Type
+  | statementInfo : StatementInfo
+  ]
+
+ATTR SourcePosStatement
+  [
+  |
+  | statementInfo : StatementInfo
+  ]
+
+ATTR Root StatementList
+  [
+  |
+  | statementInfo : {[StatementInfo]}
+  ]
+
+SEM StatementList
+  | Nil lhs.statementInfo = []
+  | Cons lhs.statementInfo = @hd.statementInfo : @tl.statementInfo
+
+
+-- don't know how to copy the nodetype to the statement info in the
+-- sem statement so bounce it out like this
+SEM SourcePosStatement
+  | Tuple x2.backType = @x2.nodeType
+
+SEM Statement
+  | SelectStatement Insert Update Delete Copy CopyData Truncate CreateTable
+    CreateTableAs CreateView CreateType CreateFunction CreateDomain
+    DropFunction DropSomething Assignment Return ReturnNext ReturnQuery
+    Raise NullStatement Perform Execute ExecuteInto ForSelectStatement
+    ForIntegerStatement WhileStatement ContinueStatement CaseStatement
+    If lhs.statementInfo = DefaultStatementInfo @lhs.backType
+
+{-
 
 this bit goes with the default rules above, just a hack to get things
 working, will probably disappear at some point.
@@ -88,7 +136,6 @@ working, will probably disappear at some point.
 SEM MaybeExpression
     | Just lhs.nodeType = @just.nodeType
     | Nothing lhs.nodeType = TypeList []
-
 
 {-
 
@@ -603,7 +650,23 @@ SEM Statement
                                  --(@name, TableComposite, @atts.nodeType)
 
 
+{-
+================================================================================
 
+= create function
+
+ignore body for now, just get the signature
+CreateFunction lang : Language
+                     name : String
+                     params : ParamDefList
+                     rettype : TypeName
+                     bodyQuote : String
+                     body : FnBody
+                     vol : Volatility
+-}
+
+--ATTR Statement
+--     | CreateFunction
 
 
 {-

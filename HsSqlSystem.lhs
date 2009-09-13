@@ -58,7 +58,9 @@ TODO 2: think of a name for this command
 >            ,roundTripCommand
 >            ,getScopeCommand
 >            ,showTypesCommand
->            ,showTypesDBCommand]
+>            ,showTypesDBCommand
+>            ,showInfoCommand
+>            ,showInfoDBCommand]
 
 > lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
 > lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
@@ -258,6 +260,56 @@ TODO: do something more correct
 >                let types = zip (getStatementsTypeScope scope sts) sts
 >                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
 >                                  putStrLn (printSql [st])) types
+
+
+================================================================================
+
+> showInfoCommand :: CallEntry
+> showInfoCommand = CallEntry
+>                    "showinfo"
+>                    "reads each file, parses, type checks, then outputs info on each statement \
+>                    \interspersed with the pretty printed statements"
+>                    (Multiple showInfo)
+
+> showInfo :: [FilePath] -> IO ()
+> showInfo = mapM_ pt
+>   where
+>     pt f = do
+>       x <- parseSqlFileWithState f
+>       case x of
+>            Left er -> print er
+>            Right sts -> do
+>                let info = zip (getStatementsInfo sts) sts
+>                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
+>                                  putStrLn (printSql [st])) info
+
+================================================================================
+
+> showInfoDBCommand :: CallEntry
+> showInfoDBCommand = CallEntry
+>                    "showinfodb"
+>                    "pass the name of a database first, then \
+>                    \filenames, reads each file, parses, type checks, \
+>                    \then outputs info on each statement interspersed with the \
+>                    \pretty printed statements, will type check \
+>                    \against the given database schema"
+>                    (Multiple showInfoDB)
+
+
+> showInfoDB :: [FilePath] -> IO ()
+> showInfoDB args = do
+>   let dbName = head args
+>   scope <- readScope dbName
+>   mapM_ (pt scope) $ tail args
+>   where
+>     pt scope f = do
+>       x <- parseSqlFileWithState f
+>       case x of
+>            Left er -> print er
+>            Right sts -> do
+>                let info = zip (getStatementsInfoScope scope sts) sts
+>                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
+>                                  putStrLn (printSql [st])) info
 
 
 ================================================================================
