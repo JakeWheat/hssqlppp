@@ -115,6 +115,19 @@ data StatementInfo = DefaultStatementInfo Type
                      deriving (Eq,Show)
 }
 
+{
+makeStatementInfo :: Type -> StatementInfo -> StatementInfo
+makeStatementInfo ty st =
+    if isError ty
+      then DefaultStatementInfo ty
+      else st
+    where
+      isError t = case t of
+                    TypeError _ _ -> True
+                    TypeList ts -> any isError ts
+                    _ -> False
+}
+
 ATTR Statement
   [
   | backType : Type
@@ -407,7 +420,7 @@ SEM InList
 
 SEM Statement
     | SelectStatement lhs.nodeType = @ex.nodeType
-                      lhs.statementInfo = SelectInfo @ex.nodeType
+                      lhs.statementInfo = makeStatementInfo @lhs.backType $ SelectInfo @ex.nodeType
 
 SEM SelectExpression
     --assume we get TypeList (TypeList (Type)) out of vll
@@ -676,7 +689,7 @@ SEM Statement
                                    ,checkColumnConsistency @lhs.scope @lhs.sourcePos @table @targetCols.strings @insData.nodeType]
                                  @insData.nodeType
         lhs.statementInfo =
-          InsertInfo @table $ UnnamedCompositeType $ getColumnTypes @lhs.scope @lhs.sourcePos @table @targetCols.strings
+          makeStatementInfo @lhs.backType $ InsertInfo @table $ UnnamedCompositeType $ getColumnTypes @lhs.scope @lhs.sourcePos @table @targetCols.strings
 
 {
 checkTableExists :: Scope -> MySourcePos -> String -> Type
@@ -695,7 +708,8 @@ checkColumnConsistency scope sp tbl cols' ty =
       cols = if length cols' == 0
                then map fst targetTableCols
                else cols'
-      wrongLengthError = if length targetTableCols /= length cols
+      insNameTypePairs = unwrapComposite $ unwrapSetOf ty
+      wrongLengthError = if length insNameTypePairs /= length cols
                            then TypeError sp WrongNumberOfColumns
                            else TypeList []
       --check the target cols appear in the target table and get their types
@@ -707,12 +721,12 @@ checkColumnConsistency scope sp tbl cols' ty =
       targetNameTypePairs = map (\l -> (l, fromJust $ lookup l targetTableCols)) cols
       --check the types of the insdata match the column targets
       --name datatype columntype
-      typeTriples = map (\(a,b) -> (a,b,fromJust $ lookup a targetTableCols)) targetNameTypePairs
+      typeTriples = map (\((a,b),c) -> (a,b,c)) $ zip targetNameTypePairs $ map snd insNameTypePairs
       matchingTypeErrors = map (\(_,b,c) -> checkAssignmentValid scope sp b c) typeTriples
-  in checkErrors ([targetTableType
-                  ,wrongLengthError
-                  ,nonMatchingErrors] ++
-                  matchingTypeErrors) $ TypeList []
+  in checkErrors [targetTableType
+                 ,wrongLengthError
+                 ,nonMatchingErrors
+                 ,TypeList matchingTypeErrors] $ TypeList []
   where
     makeUnknownColumnError c = TypeError sp (UnrecognisedIdentifier c)
 
@@ -801,11 +815,11 @@ SEM AttributeDefList
 
 SEM Statement
     | CreateTable lhs.nodeType = @atts.nodeType
-                  lhs.statementInfo = RelvarInfo (@name, TableComposite, @atts.nodeType)
+                  lhs.statementInfo = makeStatementInfo @lhs.backType $ RelvarInfo (@name, TableComposite, @atts.nodeType)
 
 
 SEM Statement
-    | CreateTableAs lhs.statementInfo = RelvarInfo (@name, TableComposite, @expr.nodeType)
+    | CreateTableAs lhs.statementInfo = makeStatementInfo @lhs.backType $ RelvarInfo (@name, TableComposite, @expr.nodeType)
 
 
 {-
@@ -816,7 +830,7 @@ SEM Statement
 -}
 
 SEM Statement
-    | CreateView lhs.statementInfo = RelvarInfo (@name, ViewComposite, @expr.nodeType)
+    | CreateView lhs.statementInfo = makeStatementInfo @lhs.backType $ RelvarInfo (@name, ViewComposite, @expr.nodeType)
 
 
 {-
@@ -846,7 +860,7 @@ SEM TypeAttributeDefList
 
 SEM Statement
     | CreateType
-        lhs.statementInfo = RelvarInfo (@name, Composite, @atts.nodeType)
+        lhs.statementInfo = makeStatementInfo @lhs.backType $ RelvarInfo (@name, Composite, @atts.nodeType)
 
 {-
 ================================================================================
@@ -857,7 +871,7 @@ SEM Statement
 
 SEM Statement
     | CreateDomain
-        lhs.statementInfo = CreateDomainInfo @name @typ.nodeType
+        lhs.statementInfo = makeStatementInfo @lhs.backType $ CreateDomainInfo @name @typ.nodeType
 
 {-
 ================================================================================
@@ -902,7 +916,7 @@ SEM ParamDefList
 SEM Statement
     | CreateFunction
         lhs.statementInfo =
-          CreateFunctionInfo (@name,map snd @params.params,@rettype.nodeType)
+          makeStatementInfo @lhs.backType $ CreateFunctionInfo (@name,map snd @params.params,@rettype.nodeType)
 
 
 {-

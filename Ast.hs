@@ -178,6 +178,18 @@ data StatementInfo = DefaultStatementInfo Type
                      deriving (Eq,Show)
 
 
+makeStatementInfo :: Type -> StatementInfo -> StatementInfo
+makeStatementInfo ty st =
+    if isError ty
+      then DefaultStatementInfo ty
+      else st
+    where
+      isError t = case t of
+                    TypeError _ _ -> True
+                    TypeList ts -> any isError ts
+                    _ -> False
+
+
 -- i think this should be alright, an identifier referenced in an
 -- expression can only have zero or one dot in it.
 
@@ -251,7 +263,8 @@ checkColumnConsistency scope sp tbl cols' ty =
       cols = if length cols' == 0
                then map fst targetTableCols
                else cols'
-      wrongLengthError = if length targetTableCols /= length cols
+      insNameTypePairs = unwrapComposite $ unwrapSetOf ty
+      wrongLengthError = if length insNameTypePairs /= length cols
                            then TypeError sp WrongNumberOfColumns
                            else TypeList []
       --check the target cols appear in the target table and get their types
@@ -263,12 +276,12 @@ checkColumnConsistency scope sp tbl cols' ty =
       targetNameTypePairs = map (\l -> (l, fromJust $ lookup l targetTableCols)) cols
       --check the types of the insdata match the column targets
       --name datatype columntype
-      typeTriples = map (\(a,b) -> (a,b,fromJust $ lookup a targetTableCols)) targetNameTypePairs
+      typeTriples = map (\((a,b),c) -> (a,b,c)) $ zip targetNameTypePairs $ map snd insNameTypePairs
       matchingTypeErrors = map (\(_,b,c) -> checkAssignmentValid scope sp b c) typeTriples
-  in checkErrors ([targetTableType
-                  ,wrongLengthError
-                  ,nonMatchingErrors] ++
-                  matchingTypeErrors) $ TypeList []
+  in checkErrors [targetTableType
+                 ,wrongLengthError
+                 ,nonMatchingErrors
+                 ,TypeList matchingTypeErrors] $ TypeList []
   where
     makeUnknownColumnError c = TypeError sp (UnrecognisedIdentifier c)
 
@@ -5223,7 +5236,7 @@ sem_Statement_CreateDomain name_ typ_ check_  =
               _typImessages :: ([Message])
               _typInodeType :: Type
               _lhsOstatementInfo =
-                  CreateDomainInfo name_ _typInodeType
+                  makeStatementInfo _lhsIbackType $ CreateDomainInfo name_ _typInodeType
               _lhsOmessages =
                   _typImessages
               _lhsOnodeType =
@@ -5293,7 +5306,7 @@ sem_Statement_CreateFunction lang_ name_ params_ rettype_ bodyQuote_ body_ vol_ 
               _volImessages :: ([Message])
               _volInodeType :: Type
               _lhsOstatementInfo =
-                  CreateFunctionInfo (name_,map snd _paramsIparams,_rettypeInodeType)
+                  makeStatementInfo _lhsIbackType $ CreateFunctionInfo (name_,map snd _paramsIparams,_rettypeInodeType)
               _bodyOinLoop =
                   False
               _lhsOmessages =
@@ -5374,7 +5387,7 @@ sem_Statement_CreateTable name_ atts_ cons_  =
               _lhsOnodeType =
                   _attsInodeType
               _lhsOstatementInfo =
-                  RelvarInfo (name_, TableComposite, _attsInodeType)
+                  makeStatementInfo _lhsIbackType $ RelvarInfo (name_, TableComposite, _attsInodeType)
               _lhsOmessages =
                   _attsImessages ++ _consImessages
               _actualValue =
@@ -5420,7 +5433,7 @@ sem_Statement_CreateTableAs name_ expr_  =
               _exprImessages :: ([Message])
               _exprInodeType :: Type
               _lhsOstatementInfo =
-                  RelvarInfo (name_, TableComposite, _exprInodeType)
+                  makeStatementInfo _lhsIbackType $ RelvarInfo (name_, TableComposite, _exprInodeType)
               _lhsOmessages =
                   _exprImessages
               _lhsOnodeType =
@@ -5460,7 +5473,7 @@ sem_Statement_CreateType name_ atts_  =
               _attsImessages :: ([Message])
               _attsInodeType :: Type
               _lhsOstatementInfo =
-                  RelvarInfo (name_, Composite, _attsInodeType)
+                  makeStatementInfo _lhsIbackType $ RelvarInfo (name_, Composite, _attsInodeType)
               _lhsOmessages =
                   _attsImessages
               _lhsOnodeType =
@@ -5500,7 +5513,7 @@ sem_Statement_CreateView name_ expr_  =
               _exprImessages :: ([Message])
               _exprInodeType :: Type
               _lhsOstatementInfo =
-                  RelvarInfo (name_, ViewComposite, _exprInodeType)
+                  makeStatementInfo _lhsIbackType $ RelvarInfo (name_, ViewComposite, _exprInodeType)
               _lhsOmessages =
                   _exprImessages
               _lhsOnodeType =
@@ -6015,7 +6028,7 @@ sem_Statement_Insert table_ targetCols_ insData_ returning_  =
                               ,checkColumnConsistency _lhsIscope _lhsIsourcePos table_ _targetColsIstrings _insDataInodeType]
                             _insDataInodeType
               _lhsOstatementInfo =
-                  InsertInfo table_ $ UnnamedCompositeType $ getColumnTypes _lhsIscope _lhsIsourcePos table_ _targetColsIstrings
+                  makeStatementInfo _lhsIbackType $ InsertInfo table_ $ UnnamedCompositeType $ getColumnTypes _lhsIscope _lhsIsourcePos table_ _targetColsIstrings
               _lhsOmessages =
                   _targetColsImessages ++ _insDataImessages
               _actualValue =
@@ -6285,7 +6298,7 @@ sem_Statement_SelectStatement ex_  =
               _lhsOnodeType =
                   _exInodeType
               _lhsOstatementInfo =
-                  SelectInfo _exInodeType
+                  makeStatementInfo _lhsIbackType $ SelectInfo _exInodeType
               _lhsOmessages =
                   _exImessages
               _actualValue =
