@@ -106,7 +106,8 @@ later on down the line.
 >                    | NoMatchingOperator String [Type]
 >                    -- | MultipleMatchingOperators String [Type]
 >                    | TypelessEmptyArray
->                    | IncompatibleTypes [Type]
+>                    | IncompatibleTypeSet [Type]
+>                    | IncompatibleTypes Type Type
 >                    | ValuesListsMustBeSameLength
 >                    | NoRowsGivenForValues
 >                    | UnrecognisedIdentifier String
@@ -116,6 +117,7 @@ later on down the line.
 >                    | ContextError String
 >                    | MissingJoinAttribute
 >                    | ExpressionMustBeBool
+>                    | WrongNumberOfColumns
 >                    -- | InternalError String
 >                      deriving (Eq,Show)
 

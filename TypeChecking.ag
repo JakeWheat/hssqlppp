@@ -144,7 +144,7 @@ SEM SourcePosStatement
   | Tuple x2.backType = @x2.nodeType
 
 SEM Statement
-  | Insert Update Delete Copy CopyData Truncate
+  | Update Delete Copy CopyData Truncate
     DropFunction DropSomething Assignment Return ReturnNext ReturnQuery
     Raise NullStatement Perform Execute ExecuteInto ForSelectStatement
     ForIntegerStatement WhileStatement ContinueStatement CaseStatement
@@ -152,12 +152,23 @@ SEM Statement
 
 {-
 
-this bit goes with the default rules above, just a hack to get things
-working, will probably disappear at some point.
+some helpers
+
 -}
 SEM MaybeExpression
     | Just lhs.nodeType = @just.nodeType
     | Nothing lhs.nodeType = TypeList []
+
+ATTR StringList
+     [
+     |
+     | strings : {[String]}
+     ]
+
+SEM StringList
+  | Cons lhs.strings = @hd : @tl.strings
+  | Nil lhs.strings = []
+
 
 {-
 
@@ -551,6 +562,12 @@ from tref -> select list
 (so we take the identifiers and types from the tref part, and send
 them into the selectlist and where parts)
 
+   1. from
+   2. where
+   3. group by
+   4. having
+   5. select
+
 -}
 
 ATTR TableRef
@@ -645,10 +662,77 @@ check table exists
 check target cols exist
 check insert data type compatible with target cols
 Insert table : String
-             targetCols : StringList
+             targetCols : TargetColumnList
              insData : SelectExpression
              returning : (Maybe SelectList)
+                   | InsertInfo String Type
+
 -}
+
+SEM Statement
+    | Insert
+        lhs.nodeType = checkErrors [checkTableExists @lhs.scope @lhs.sourcePos @table
+                                   ,@insData.nodeType
+                                   ,checkColumnConsistency @lhs.scope @lhs.sourcePos @table @targetCols.strings @insData.nodeType]
+                                 @insData.nodeType
+        lhs.statementInfo =
+          InsertInfo @table $ UnnamedCompositeType $ getColumnTypes @lhs.scope @lhs.sourcePos @table @targetCols.strings
+
+{
+checkTableExists :: Scope -> MySourcePos -> String -> Type
+checkTableExists scope sp tbl =
+          case getAttrs scope [TableComposite, ViewComposite] tbl of
+            Just _ -> TypeList []
+            _ -> TypeError sp (UnrecognisedRelation tbl)
+
+checkColumnConsistency :: Scope -> MySourcePos -> String -> [String] -> Type -> Type
+checkColumnConsistency scope sp tbl cols' ty =
+  let --todo: check the cols have no duplicates
+      --todo: check the missing target cols have defaults
+      targetTableType = fst $ getRelationType scope sp tbl
+      targetTableCols = unwrapComposite targetTableType
+      --check the num cols in the insdata match the number of cols
+      cols = if length cols' == 0
+               then map fst targetTableCols
+               else cols'
+      wrongLengthError = if length targetTableCols /= length cols
+                           then TypeError sp WrongNumberOfColumns
+                           else TypeList []
+      --check the target cols appear in the target table and get their types
+      nonMatchingColumns = cols \\ map fst targetTableCols
+      nonMatchingErrors = case length nonMatchingColumns of
+                            0 -> TypeList []
+                            1 -> makeUnknownColumnError $ head nonMatchingColumns
+                            _ -> TypeList $ map makeUnknownColumnError nonMatchingColumns
+      targetNameTypePairs = map (\l -> (l, fromJust $ lookup l targetTableCols)) cols
+      --check the types of the insdata match the column targets
+      --name datatype columntype
+      typeTriples = map (\(a,b) -> (a,b,fromJust $ lookup a targetTableCols)) targetNameTypePairs
+      matchingTypeErrors = map (\(_,b,c) -> checkAssignmentValid scope sp b c) typeTriples
+  in checkErrors ([targetTableType
+                  ,wrongLengthError
+                  ,nonMatchingErrors] ++
+                  matchingTypeErrors) $ TypeList []
+  where
+    makeUnknownColumnError c = TypeError sp (UnrecognisedIdentifier c)
+
+getColumnTypes :: Scope -> MySourcePos -> String -> [String] -> [(String,Type)]
+getColumnTypes scope sp tbl cols' =
+  let targetTableType = fst $ getRelationType scope sp tbl
+      targetTableCols = unwrapComposite targetTableType
+      cols = if length cols' == 0
+               then map fst targetTableCols
+               else cols'
+      nonMatchingColumns = cols \\ map fst targetTableCols
+      nonMatchingErrors = case length nonMatchingColumns of
+                            0 -> TypeList []
+                            1 -> makeUnknownColumnError $ head nonMatchingColumns
+                            _ -> TypeList $ map makeUnknownColumnError nonMatchingColumns
+  in map (\l -> (l, fromJust $ lookup l targetTableCols)) cols
+  where
+    makeUnknownColumnError c = TypeError sp (UnrecognisedIdentifier c)
+}
+
 {-
 ================================================================================
 
@@ -663,6 +747,7 @@ check where is boolean
              assigns : SetClauseList
              whr : (Maybe Expression)
              returning : (Maybe SelectList)
+                   | UpdateInfo String Type
 -}
 
 {-
@@ -678,6 +763,7 @@ check where is boolean
              returning : (Maybe SelectList)
 DATA SetClause | SetClause att:String val:Expression
                | RowSetClause atts:StringList vals:ExpressionList
+                   | DeleteInfo String
 
 -}
 

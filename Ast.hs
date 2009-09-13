@@ -97,7 +97,6 @@ checkAst sts = let t = sem_Root (Root sts)
 
 These are the utility functions which clients use to typecheck sql.
 
-
 -}
 
 getExpressionType :: Scope -> Expression -> Type
@@ -234,6 +233,60 @@ both fn (x,y) = (fn x, fn y)
 
 fixedValue :: a -> a -> a -> a
 fixedValue a _ _ = a
+
+
+checkTableExists :: Scope -> MySourcePos -> String -> Type
+checkTableExists scope sp tbl =
+          case getAttrs scope [TableComposite, ViewComposite] tbl of
+            Just _ -> TypeList []
+            _ -> TypeError sp (UnrecognisedRelation tbl)
+
+checkColumnConsistency :: Scope -> MySourcePos -> String -> [String] -> Type -> Type
+checkColumnConsistency scope sp tbl cols' ty =
+  let --todo: check the cols have no duplicates
+      --todo: check the missing target cols have defaults
+      targetTableType = fst $ getRelationType scope sp tbl
+      targetTableCols = unwrapComposite targetTableType
+      --check the num cols in the insdata match the number of cols
+      cols = if length cols' == 0
+               then map fst targetTableCols
+               else cols'
+      wrongLengthError = if length targetTableCols /= length cols
+                           then TypeError sp WrongNumberOfColumns
+                           else TypeList []
+      --check the target cols appear in the target table and get their types
+      nonMatchingColumns = cols \\ map fst targetTableCols
+      nonMatchingErrors = case length nonMatchingColumns of
+                            0 -> TypeList []
+                            1 -> makeUnknownColumnError $ head nonMatchingColumns
+                            _ -> TypeList $ map makeUnknownColumnError nonMatchingColumns
+      targetNameTypePairs = map (\l -> (l, fromJust $ lookup l targetTableCols)) cols
+      --check the types of the insdata match the column targets
+      --name datatype columntype
+      typeTriples = map (\(a,b) -> (a,b,fromJust $ lookup a targetTableCols)) targetNameTypePairs
+      matchingTypeErrors = map (\(_,b,c) -> checkAssignmentValid scope sp b c) typeTriples
+  in checkErrors ([targetTableType
+                  ,wrongLengthError
+                  ,nonMatchingErrors] ++
+                  matchingTypeErrors) $ TypeList []
+  where
+    makeUnknownColumnError c = TypeError sp (UnrecognisedIdentifier c)
+
+getColumnTypes :: Scope -> MySourcePos -> String -> [String] -> [(String,Type)]
+getColumnTypes scope sp tbl cols' =
+  let targetTableType = fst $ getRelationType scope sp tbl
+      targetTableCols = unwrapComposite targetTableType
+      cols = if length cols' == 0
+               then map fst targetTableCols
+               else cols'
+      nonMatchingColumns = cols \\ map fst targetTableCols
+      nonMatchingErrors = case length nonMatchingColumns of
+                            0 -> TypeList []
+                            1 -> makeUnknownColumnError $ head nonMatchingColumns
+                            _ -> TypeList $ map makeUnknownColumnError nonMatchingColumns
+  in map (\l -> (l, fromJust $ lookup l targetTableCols)) cols
+  where
+    makeUnknownColumnError c = TypeError sp (UnrecognisedIdentifier c)
 -- AttributeDef ------------------------------------------------
 data AttributeDef  = AttributeDef (String) (TypeName) (Maybe Expression) (RowConstraintList) 
                    deriving ( Eq,Show)
@@ -872,6 +925,7 @@ sem_Constraint_PrimaryKeyConstraint stringList_  =
               _stringListIactualValue :: StringList
               _stringListImessages :: ([Message])
               _stringListInodeType :: Type
+              _stringListIstrings :: ([String])
               _lhsOmessages =
                   _stringListImessages
               _lhsOnodeType =
@@ -886,7 +940,7 @@ sem_Constraint_PrimaryKeyConstraint stringList_  =
                   _lhsIscope
               _stringListOsourcePos =
                   _lhsIsourcePos
-              ( _stringListIactualValue,_stringListImessages,_stringListInodeType) =
+              ( _stringListIactualValue,_stringListImessages,_stringListInodeType,_stringListIstrings) =
                   (stringList_ _stringListOinLoop _stringListOscope _stringListOsourcePos )
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 sem_Constraint_ReferenceConstraint :: T_StringList  ->
@@ -917,9 +971,11 @@ sem_Constraint_ReferenceConstraint atts_ table_ tableAtts_ onUpdate_ onDelete_  
               _attsIactualValue :: StringList
               _attsImessages :: ([Message])
               _attsInodeType :: Type
+              _attsIstrings :: ([String])
               _tableAttsIactualValue :: StringList
               _tableAttsImessages :: ([Message])
               _tableAttsInodeType :: Type
+              _tableAttsIstrings :: ([String])
               _onUpdateIactualValue :: Cascade
               _onUpdateImessages :: ([Message])
               _onUpdateInodeType :: Type
@@ -958,9 +1014,9 @@ sem_Constraint_ReferenceConstraint atts_ table_ tableAtts_ onUpdate_ onDelete_  
                   _lhsIscope
               _onDeleteOsourcePos =
                   _lhsIsourcePos
-              ( _attsIactualValue,_attsImessages,_attsInodeType) =
+              ( _attsIactualValue,_attsImessages,_attsInodeType,_attsIstrings) =
                   (atts_ _attsOinLoop _attsOscope _attsOsourcePos )
-              ( _tableAttsIactualValue,_tableAttsImessages,_tableAttsInodeType) =
+              ( _tableAttsIactualValue,_tableAttsImessages,_tableAttsInodeType,_tableAttsIstrings) =
                   (tableAtts_ _tableAttsOinLoop _tableAttsOscope _tableAttsOsourcePos )
               ( _onUpdateIactualValue,_onUpdateImessages,_onUpdateInodeType) =
                   (onUpdate_ _onUpdateOinLoop _onUpdateOscope _onUpdateOsourcePos )
@@ -982,6 +1038,7 @@ sem_Constraint_UniqueConstraint stringList_  =
               _stringListIactualValue :: StringList
               _stringListImessages :: ([Message])
               _stringListInodeType :: Type
+              _stringListIstrings :: ([String])
               _lhsOmessages =
                   _stringListImessages
               _lhsOnodeType =
@@ -996,7 +1053,7 @@ sem_Constraint_UniqueConstraint stringList_  =
                   _lhsIscope
               _stringListOsourcePos =
                   _lhsIsourcePos
-              ( _stringListIactualValue,_stringListImessages,_stringListInodeType) =
+              ( _stringListIactualValue,_stringListImessages,_stringListInodeType,_stringListIstrings) =
                   (stringList_ _stringListOinLoop _stringListOscope _stringListOsourcePos )
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 -- ConstraintList ----------------------------------------------
@@ -2898,6 +2955,7 @@ sem_JoinExpression_JoinUsing stringList_  =
               _stringListIactualValue :: StringList
               _stringListImessages :: ([Message])
               _stringListInodeType :: Type
+              _stringListIstrings :: ([String])
               _lhsOmessages =
                   _stringListImessages
               _lhsOnodeType =
@@ -2912,7 +2970,7 @@ sem_JoinExpression_JoinUsing stringList_  =
                   _lhsIscope
               _stringListOsourcePos =
                   _lhsIsourcePos
-              ( _stringListIactualValue,_stringListImessages,_stringListInodeType) =
+              ( _stringListIactualValue,_stringListImessages,_stringListInodeType,_stringListIstrings) =
                   (stringList_ _stringListOinLoop _stringListOscope _stringListOsourcePos )
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 -- JoinType ----------------------------------------------------
@@ -4535,6 +4593,7 @@ sem_SelectList_SelectList items_ stringList_  =
               _stringListIactualValue :: StringList
               _stringListImessages :: ([Message])
               _stringListInodeType :: Type
+              _stringListIstrings :: ([String])
               _lhsOnodeType =
                   _itemsInodeType
               _lhsOmessages =
@@ -4557,7 +4616,7 @@ sem_SelectList_SelectList items_ stringList_  =
                   _lhsIsourcePos
               ( _itemsIactualValue,_itemsImessages,_itemsInodeType) =
                   (items_ _itemsOinLoop _itemsOscope _itemsOsourcePos )
-              ( _stringListIactualValue,_stringListImessages,_stringListInodeType) =
+              ( _stringListIactualValue,_stringListImessages,_stringListInodeType,_stringListIstrings) =
                   (stringList_ _stringListOinLoop _stringListOscope _stringListOsourcePos )
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 -- SetClause ---------------------------------------------------
@@ -4567,10 +4626,10 @@ data SetClause  = RowSetClause (StringList) (ExpressionList)
 -- cata
 sem_SetClause :: SetClause  ->
                  T_SetClause 
-sem_SetClause (RowSetClause _stringList _expressionList )  =
-    (sem_SetClause_RowSetClause (sem_StringList _stringList ) (sem_ExpressionList _expressionList ) )
-sem_SetClause (SetClause _string _expression )  =
-    (sem_SetClause_SetClause _string (sem_Expression _expression ) )
+sem_SetClause (RowSetClause _atts _vals )  =
+    (sem_SetClause_RowSetClause (sem_StringList _atts ) (sem_ExpressionList _vals ) )
+sem_SetClause (SetClause _att _val )  =
+    (sem_SetClause_SetClause _att (sem_Expression _val ) )
 -- semantic domain
 type T_SetClause  = Bool ->
                     Scope ->
@@ -4588,83 +4647,84 @@ wrap_SetClause sem (Inh_SetClause _lhsIinLoop _lhsIscope _lhsIsourcePos )  =
 sem_SetClause_RowSetClause :: T_StringList  ->
                               T_ExpressionList  ->
                               T_SetClause 
-sem_SetClause_RowSetClause stringList_ expressionList_  =
+sem_SetClause_RowSetClause atts_ vals_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
               _lhsOactualValue :: SetClause
-              _stringListOinLoop :: Bool
-              _stringListOscope :: Scope
-              _stringListOsourcePos :: MySourcePos
-              _expressionListOinLoop :: Bool
-              _expressionListOscope :: Scope
-              _expressionListOsourcePos :: MySourcePos
-              _stringListIactualValue :: StringList
-              _stringListImessages :: ([Message])
-              _stringListInodeType :: Type
-              _expressionListIactualValue :: ExpressionList
-              _expressionListImessages :: ([Message])
-              _expressionListInodeType :: Type
+              _attsOinLoop :: Bool
+              _attsOscope :: Scope
+              _attsOsourcePos :: MySourcePos
+              _valsOinLoop :: Bool
+              _valsOscope :: Scope
+              _valsOsourcePos :: MySourcePos
+              _attsIactualValue :: StringList
+              _attsImessages :: ([Message])
+              _attsInodeType :: Type
+              _attsIstrings :: ([String])
+              _valsIactualValue :: ExpressionList
+              _valsImessages :: ([Message])
+              _valsInodeType :: Type
               _lhsOmessages =
-                  _stringListImessages ++ _expressionListImessages
+                  _attsImessages ++ _valsImessages
               _lhsOnodeType =
-                  _stringListInodeType `setUnknown` _expressionListInodeType
+                  _attsInodeType `setUnknown` _valsInodeType
               _actualValue =
-                  RowSetClause _stringListIactualValue _expressionListIactualValue
+                  RowSetClause _attsIactualValue _valsIactualValue
               _lhsOactualValue =
                   _actualValue
-              _stringListOinLoop =
+              _attsOinLoop =
                   _lhsIinLoop
-              _stringListOscope =
+              _attsOscope =
                   _lhsIscope
-              _stringListOsourcePos =
+              _attsOsourcePos =
                   _lhsIsourcePos
-              _expressionListOinLoop =
+              _valsOinLoop =
                   _lhsIinLoop
-              _expressionListOscope =
+              _valsOscope =
                   _lhsIscope
-              _expressionListOsourcePos =
+              _valsOsourcePos =
                   _lhsIsourcePos
-              ( _stringListIactualValue,_stringListImessages,_stringListInodeType) =
-                  (stringList_ _stringListOinLoop _stringListOscope _stringListOsourcePos )
-              ( _expressionListIactualValue,_expressionListImessages,_expressionListInodeType) =
-                  (expressionList_ _expressionListOinLoop _expressionListOscope _expressionListOsourcePos )
+              ( _attsIactualValue,_attsImessages,_attsInodeType,_attsIstrings) =
+                  (atts_ _attsOinLoop _attsOscope _attsOsourcePos )
+              ( _valsIactualValue,_valsImessages,_valsInodeType) =
+                  (vals_ _valsOinLoop _valsOscope _valsOsourcePos )
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 sem_SetClause_SetClause :: String ->
                            T_Expression  ->
                            T_SetClause 
-sem_SetClause_SetClause string_ expression_  =
+sem_SetClause_SetClause att_ val_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
          (let _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
               _lhsOactualValue :: SetClause
-              _expressionOinLoop :: Bool
-              _expressionOscope :: Scope
-              _expressionOsourcePos :: MySourcePos
-              _expressionIactualValue :: Expression
-              _expressionIliftedColumnName :: String
-              _expressionImessages :: ([Message])
-              _expressionInodeType :: Type
+              _valOinLoop :: Bool
+              _valOscope :: Scope
+              _valOsourcePos :: MySourcePos
+              _valIactualValue :: Expression
+              _valIliftedColumnName :: String
+              _valImessages :: ([Message])
+              _valInodeType :: Type
               _lhsOmessages =
-                  _expressionImessages
+                  _valImessages
               _lhsOnodeType =
-                  _expressionInodeType
+                  _valInodeType
               _actualValue =
-                  SetClause string_ _expressionIactualValue
+                  SetClause att_ _valIactualValue
               _lhsOactualValue =
                   _actualValue
-              _expressionOinLoop =
+              _valOinLoop =
                   _lhsIinLoop
-              _expressionOscope =
+              _valOscope =
                   _lhsIscope
-              _expressionOsourcePos =
+              _valOsourcePos =
                   _lhsIsourcePos
-              ( _expressionIactualValue,_expressionIliftedColumnName,_expressionImessages,_expressionInodeType) =
-                  (expression_ _expressionOinLoop _expressionOscope _expressionOsourcePos )
+              ( _valIactualValue,_valIliftedColumnName,_valImessages,_valInodeType) =
+                  (val_ _valOinLoop _valOscope _valOsourcePos )
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 -- SetClauseList -----------------------------------------------
 type SetClauseList  = [(SetClause)]
@@ -5084,6 +5144,7 @@ sem_Statement_Copy table_ targetCols_ source_  =
               _targetColsIactualValue :: StringList
               _targetColsImessages :: ([Message])
               _targetColsInodeType :: Type
+              _targetColsIstrings :: ([String])
               _sourceIactualValue :: CopySource
               _sourceImessages :: ([Message])
               _sourceInodeType :: Type
@@ -5111,7 +5172,7 @@ sem_Statement_Copy table_ targetCols_ source_  =
                   _lhsIscope
               _sourceOsourcePos =
                   _lhsIsourcePos
-              ( _targetColsIactualValue,_targetColsImessages,_targetColsInodeType) =
+              ( _targetColsIactualValue,_targetColsImessages,_targetColsInodeType,_targetColsIstrings) =
                   (targetCols_ _targetColsOinLoop _targetColsOscope _targetColsOsourcePos )
               ( _sourceIactualValue,_sourceImessages,_sourceInodeType) =
                   (source_ _sourceOinLoop _sourceOscope _sourceOsourcePos )
@@ -5591,6 +5652,7 @@ sem_Statement_DropSomething dropType_ ifE_ names_ cascade_  =
               _namesIactualValue :: StringList
               _namesImessages :: ([Message])
               _namesInodeType :: Type
+              _namesIstrings :: ([String])
               _cascadeIactualValue :: Cascade
               _cascadeImessages :: ([Message])
               _cascadeInodeType :: Type
@@ -5634,7 +5696,7 @@ sem_Statement_DropSomething dropType_ ifE_ names_ cascade_  =
                   (dropType_ _dropTypeOinLoop _dropTypeOscope _dropTypeOsourcePos )
               ( _ifEIactualValue,_ifEImessages,_ifEInodeType) =
                   (ifE_ _ifEOinLoop _ifEOscope _ifEOsourcePos )
-              ( _namesIactualValue,_namesImessages,_namesInodeType) =
+              ( _namesIactualValue,_namesImessages,_namesInodeType,_namesIstrings) =
                   (names_ _namesOinLoop _namesOscope _namesOsourcePos )
               ( _cascadeIactualValue,_cascadeImessages,_cascadeInodeType) =
                   (cascade_ _cascadeOinLoop _cascadeOscope _cascadeOsourcePos )
@@ -5705,6 +5767,7 @@ sem_Statement_ExecuteInto expr_ targets_  =
               _targetsIactualValue :: StringList
               _targetsImessages :: ([Message])
               _targetsInodeType :: Type
+              _targetsIstrings :: ([String])
               _lhsOstatementInfo =
                   DefaultStatementInfo _lhsIbackType
               _lhsOmessages =
@@ -5731,7 +5794,7 @@ sem_Statement_ExecuteInto expr_ targets_  =
                   _lhsIsourcePos
               ( _exprIactualValue,_exprIliftedColumnName,_exprImessages,_exprInodeType) =
                   (expr_ _exprOinLoop _exprOscope _exprOsourcePos )
-              ( _targetsIactualValue,_targetsImessages,_targetsInodeType) =
+              ( _targetsIactualValue,_targetsImessages,_targetsInodeType,_targetsIstrings) =
                   (targets_ _targetsOinLoop _targetsOscope _targetsOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
 sem_Statement_ForIntegerStatement :: String ->
@@ -5928,9 +5991,9 @@ sem_Statement_Insert table_ targetCols_ insData_ returning_  =
        _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOstatementInfo :: StatementInfo
+         (let _lhsOnodeType :: Type
+              _lhsOstatementInfo :: StatementInfo
               _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
               _lhsOactualValue :: Statement
               _lhsObackType :: Type
               _targetColsOinLoop :: Bool
@@ -5942,15 +6005,19 @@ sem_Statement_Insert table_ targetCols_ insData_ returning_  =
               _targetColsIactualValue :: StringList
               _targetColsImessages :: ([Message])
               _targetColsInodeType :: Type
+              _targetColsIstrings :: ([String])
               _insDataIactualValue :: SelectExpression
               _insDataImessages :: ([Message])
               _insDataInodeType :: Type
+              _lhsOnodeType =
+                  checkErrors [checkTableExists _lhsIscope _lhsIsourcePos table_
+                              ,_insDataInodeType
+                              ,checkColumnConsistency _lhsIscope _lhsIsourcePos table_ _targetColsIstrings _insDataInodeType]
+                            _insDataInodeType
               _lhsOstatementInfo =
-                  DefaultStatementInfo _lhsIbackType
+                  InsertInfo table_ $ UnnamedCompositeType $ getColumnTypes _lhsIscope _lhsIsourcePos table_ _targetColsIstrings
               _lhsOmessages =
                   _targetColsImessages ++ _insDataImessages
-              _lhsOnodeType =
-                  _targetColsInodeType `setUnknown` _insDataInodeType
               _actualValue =
                   Insert table_ _targetColsIactualValue _insDataIactualValue returning_
               _lhsOactualValue =
@@ -5969,7 +6036,7 @@ sem_Statement_Insert table_ targetCols_ insData_ returning_  =
                   _lhsIscope
               _insDataOsourcePos =
                   _lhsIsourcePos
-              ( _targetColsIactualValue,_targetColsImessages,_targetColsInodeType) =
+              ( _targetColsIactualValue,_targetColsImessages,_targetColsInodeType,_targetColsIstrings) =
                   (targetCols_ _targetColsOinLoop _targetColsOscope _targetColsOsourcePos )
               ( _insDataIactualValue,_insDataImessages,_insDataInodeType) =
                   (insData_ _insDataOinLoop _insDataOscope _insDataOsourcePos )
@@ -6262,6 +6329,7 @@ sem_Statement_Truncate tables_ restartIdentity_ cascade_  =
               _tablesIactualValue :: StringList
               _tablesImessages :: ([Message])
               _tablesInodeType :: Type
+              _tablesIstrings :: ([String])
               _restartIdentityIactualValue :: RestartIdentity
               _restartIdentityImessages :: ([Message])
               _restartIdentityInodeType :: Type
@@ -6298,7 +6366,7 @@ sem_Statement_Truncate tables_ restartIdentity_ cascade_  =
                   _lhsIscope
               _cascadeOsourcePos =
                   _lhsIsourcePos
-              ( _tablesIactualValue,_tablesImessages,_tablesInodeType) =
+              ( _tablesIactualValue,_tablesImessages,_tablesInodeType,_tablesIstrings) =
                   (tables_ _tablesOinLoop _tablesOscope _tablesOsourcePos )
               ( _restartIdentityIactualValue,_restartIdentityImessages,_restartIdentityInodeType) =
                   (restartIdentity_ _restartIdentityOinLoop _restartIdentityOscope _restartIdentityOsourcePos )
@@ -6507,16 +6575,16 @@ sem_StringList list  =
 type T_StringList  = Bool ->
                      Scope ->
                      MySourcePos ->
-                     ( StringList,([Message]),Type)
+                     ( StringList,([Message]),Type,([String]))
 data Inh_StringList  = Inh_StringList {inLoop_Inh_StringList :: Bool,scope_Inh_StringList :: Scope,sourcePos_Inh_StringList :: MySourcePos}
-data Syn_StringList  = Syn_StringList {actualValue_Syn_StringList :: StringList,messages_Syn_StringList :: [Message],nodeType_Syn_StringList :: Type}
+data Syn_StringList  = Syn_StringList {actualValue_Syn_StringList :: StringList,messages_Syn_StringList :: [Message],nodeType_Syn_StringList :: Type,strings_Syn_StringList :: [String]}
 wrap_StringList :: T_StringList  ->
                    Inh_StringList  ->
                    Syn_StringList 
 wrap_StringList sem (Inh_StringList _lhsIinLoop _lhsIscope _lhsIsourcePos )  =
-    (let ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType) =
+    (let ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOstrings) =
              (sem _lhsIinLoop _lhsIscope _lhsIsourcePos )
-     in  (Syn_StringList _lhsOactualValue _lhsOmessages _lhsOnodeType ))
+     in  (Syn_StringList _lhsOactualValue _lhsOmessages _lhsOnodeType _lhsOstrings ))
 sem_StringList_Cons :: String ->
                        T_StringList  ->
                        T_StringList 
@@ -6524,7 +6592,8 @@ sem_StringList_Cons hd_ tl_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
+         (let _lhsOstrings :: ([String])
+              _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
               _lhsOactualValue :: StringList
               _tlOinLoop :: Bool
@@ -6533,6 +6602,9 @@ sem_StringList_Cons hd_ tl_  =
               _tlIactualValue :: StringList
               _tlImessages :: ([Message])
               _tlInodeType :: Type
+              _tlIstrings :: ([String])
+              _lhsOstrings =
+                  hd_ : _tlIstrings
               _lhsOmessages =
                   _tlImessages
               _lhsOnodeType =
@@ -6547,17 +6619,20 @@ sem_StringList_Cons hd_ tl_  =
                   _lhsIscope
               _tlOsourcePos =
                   _lhsIsourcePos
-              ( _tlIactualValue,_tlImessages,_tlInodeType) =
+              ( _tlIactualValue,_tlImessages,_tlInodeType,_tlIstrings) =
                   (tl_ _tlOinLoop _tlOscope _tlOsourcePos )
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOstrings)))
 sem_StringList_Nil :: T_StringList 
 sem_StringList_Nil  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
+         (let _lhsOstrings :: ([String])
+              _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
               _lhsOactualValue :: StringList
+              _lhsOstrings =
+                  []
               _lhsOmessages =
                   []
               _lhsOnodeType =
@@ -6566,7 +6641,7 @@ sem_StringList_Nil  =
                   []
               _lhsOactualValue =
                   _actualValue
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOstrings)))
 -- StringStringListPair ----------------------------------------
 type StringStringListPair  = ( (String),(StringList))
 -- cata
@@ -6604,6 +6679,7 @@ sem_StringStringListPair_Tuple x1_ x2_  =
               _x2IactualValue :: StringList
               _x2Imessages :: ([Message])
               _x2InodeType :: Type
+              _x2Istrings :: ([String])
               _lhsOmessages =
                   _x2Imessages
               _lhsOnodeType =
@@ -6618,7 +6694,7 @@ sem_StringStringListPair_Tuple x1_ x2_  =
                   _lhsIscope
               _x2OsourcePos =
                   _lhsIsourcePos
-              ( _x2IactualValue,_x2Imessages,_x2InodeType) =
+              ( _x2IactualValue,_x2Imessages,_x2InodeType,_x2Istrings) =
                   (x2_ _x2OinLoop _x2Oscope _x2OsourcePos )
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
 -- StringStringListPairList ------------------------------------

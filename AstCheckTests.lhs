@@ -52,7 +52,7 @@ Set of tests to check the type checking code
 >      ,p "array['a','b']" (ArrayType (ScalarType "text"))
 >      ,p "array[1,'b']" (ArrayType typeInt)
 >      ,p "array[1,true]" (TypeError ("",0,0)
->                         (IncompatibleTypes [typeInt,typeBool]))
+>                         (IncompatibleTypeSet [typeInt,typeBool]))
 >      ])
 
 >    ,testGroup "some expressions"
@@ -127,7 +127,7 @@ Set of tests to check the type checking code
 >      ,p "coalesce('3',1,2,null)" typeInt
 >      ,p "coalesce('3',1,true,null)"
 >             (TypeError ("",0,0)
->              (IncompatibleTypes [UnknownStringLit
+>              (IncompatibleTypeSet [UnknownStringLit
 >                                 ,ScalarType "int4"
 >                                 ,ScalarType "bool"
 >                                 ,UnknownStringLit]))
@@ -140,7 +140,7 @@ Set of tests to check the type checking code
 >      ,p "greatest(3,5,6,4,3)" typeInt
 >      ,p "least(3,5,6,4,3)" typeInt
 >      ,p "least(5,true)"
->             (TypeError nsp (IncompatibleTypes [ScalarType "int4"
+>             (TypeError nsp (IncompatibleTypeSet [ScalarType "int4"
 >                                               ,ScalarType "bool"]))
 >      ])
 
@@ -194,7 +194,7 @@ rows don't match types
 >      ,p "(1,2) = (2,1)" typeBool
 >      ,p "(1,2,3) = (2,1)" (TypeError nsp ValuesListsMustBeSameLength)
 >      ,p "('1',2) = (2,'1')" typeBool
->      ,p "(1,true) = (2,1)" (TypeError nsp (IncompatibleTypes [ScalarType "bool",ScalarType "int4"]))
+>      ,p "(1,true) = (2,1)" (TypeError nsp (IncompatibleTypeSet [ScalarType "bool",ScalarType "int4"]))
 >      ,p "(1,2) <> (2,1)" typeBool
 >      ,p "(1,2) >= (2,1)" typeBool
 >      ,p "(1,2) <= (2,1)" typeBool
@@ -225,7 +225,7 @@ rows don't match types
 >         \ when 2=3 then false\n\
 >         \ else 1\n\
 >         \end" (TypeError ("",0,0)
->                (IncompatibleTypes [typeBool
+>                (IncompatibleTypeSet [typeBool
 >                                   ,typeBool
 >                                   ,typeInt]))
 >      ,p "case\n\
@@ -233,17 +233,17 @@ rows don't match types
 >         \ when 2=3 then 1\n\
 >         \ else true\n\
 >         \end" (TypeError ("",0,0)
->                (IncompatibleTypes [typeBool
+>                (IncompatibleTypeSet [typeBool
 >                                   ,typeInt
 >                                   ,typeBool]))
 
 >      ,p "case 1 when 2 then 3 else 4 end" typeInt
 >      ,p "case 1 when true then 3 else 4 end"
->             (TypeError ("",0,0) (IncompatibleTypes [ScalarType "int4"
+>             (TypeError ("",0,0) (IncompatibleTypeSet [ScalarType "int4"
 >                                                    ,ScalarType "bool"]))
 >      ,p "case 1 when 2 then true else false end" typeBool
 >      ,p "case 1 when 2 then 3 else false end"
->             (TypeError ("",0,0) (IncompatibleTypes [ScalarType "int4"
+>             (TypeError ("",0,0) (IncompatibleTypeSet [ScalarType "int4"
 >                                                    ,ScalarType "bool"]))
 
 >      ])
@@ -297,14 +297,14 @@ todo:
 >                                      [("column1", typeInt)
 >                                      ,("column2", typeInt)]]
 >      ,p "values (1,2),('a', true);" [TypeError ("",1,1)
->                                      (IncompatibleTypes [typeInt
+>                                      (IncompatibleTypeSet [typeInt
 >                                                         ,typeBool])]
 >      ,p "values ('3', '4'),(1,2);" [SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", typeInt)
 >                                      ,("column2", typeInt)]]
 >      ,p "values ('a', true),(1,2);" [TypeError ("",1,1)
->                                      (IncompatibleTypes [typeBool
+>                                      (IncompatibleTypeSet [typeBool
 >                                                         ,typeInt])]
 >      ,p "values ('a'::text, '2'::int2),('1','2');" [SetOfType $
 >                                      UnnamedCompositeType
@@ -320,14 +320,14 @@ todo:
 >                                      [("?column?", typeInt)
 >                                      ,("?column?", typeInt)]]
 >      ,p "select 1,2 intersect select 'a', true;" [TypeError ("",1,1)
->                                      (IncompatibleTypes [typeInt
+>                                      (IncompatibleTypeSet [typeInt
 >                                                         ,typeBool])]
 >      ,p "select '3', '4' except select 1,2;" [SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("?column?", typeInt)
 >                                      ,("?column?", typeInt)]]
 >      ,p "select 'a', true union select 1,2;" [TypeError ("",1,1)
->                                      (IncompatibleTypes [typeBool
+>                                      (IncompatibleTypeSet [typeBool
 >                                                         ,typeInt])]
 >      ,p "select 'a'::text, '2'::int2 intersect select '1','2';" [SetOfType $
 >                                      UnnamedCompositeType
@@ -448,7 +448,7 @@ check aliasing
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \ natural inner join (select true as a, 4.5 as d) b;"
->         [TypeError ("",1,1) (IncompatibleTypes [ScalarType "int4"
+>         [TypeError ("",1,1) (IncompatibleTypeSet [ScalarType "int4"
 >                                                ,ScalarType "bool"])]
 >      ])
 

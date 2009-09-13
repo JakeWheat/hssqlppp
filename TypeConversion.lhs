@@ -13,12 +13,14 @@ the matching function. (pg manual 10.2,10.3)
 resolveResultSetType - pass in a set of types, and it tries to find
 the common type they can all be cast to. (pg manual 10.5)
 
-TODO
-pg manual 10.4 Value Storage
+checkAssignmentValid - pass in source type and target type, returns
+                typelist[] if ok, otherwise error, pg manual 10.4
+                Value Storage
 
 > module TypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
+>                       ,checkAssignmentValid
 >                       ) where
 
 > import Data.Maybe
@@ -422,6 +424,11 @@ findCallMatch is a bit of a mess
 >                                      any (==(from,to,ImplicitCastContext)) (scopeCasts scope)
 >
 
+> castableFromTo :: Scope -> Type -> Type -> Bool
+> castableFromTo scope from to = from == UnknownStringLit ||
+>                                any (\(a,b,_) -> (a,b)==(from,to)) (scopeCasts scope)
+
+
 
 resolveResultSetType -
 partially implement the typing of results sets where the types aren't
@@ -451,11 +458,11 @@ code is not as much of a mess as findCallMatch
 >                      --todo: do domains
 >                      | allUnknown -> ScalarType "text"
 >                      | not allSameCat ->
->                          TypeError sp (IncompatibleTypes inArgs)
+>                          TypeError sp (IncompatibleTypeSet inArgs)
 >                      | isJust targetType &&
 >                          allConvertibleToFrom (fromJust targetType) inArgs ->
 >                            fromJust targetType
->                      | otherwise -> TypeError sp (IncompatibleTypes inArgs)
+>                      | otherwise -> TypeError sp (IncompatibleTypeSet inArgs)
 >      allSameType = all (== head inArgs) inArgs &&
 >                      head inArgs /= UnknownStringLit
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&
@@ -489,3 +496,10 @@ code is not as much of a mess as findCallMatch
 todo:
 row ctor implicitly and explicitly cast to a composite type
 cast empty array, where else can an empty array work?
+
+> checkAssignmentValid :: Scope -> MySourcePos -> Type -> Type -> Type
+> checkAssignmentValid scope sp src tgt =
+>     case () of
+>       _ | src == tgt -> TypeList []
+>         | castableFromTo scope src tgt -> TypeList []
+>         | otherwise -> TypeError sp (IncompatibleTypes src tgt)

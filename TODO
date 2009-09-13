@@ -159,6 +159,7 @@ set, reset
 set constraints
 set role
 set transaction
+correlated subquery attrs
 
 plpgsql
 
@@ -208,16 +209,32 @@ Basic motivation is to keep nulls carefully walled off. For each
    expression, etc.. (can also do mappings e.g. if a functions inputs
    are all non null, then the output is non null, etc.). Once this is
    working ok, the second stage is to implement the anti null nazi
-   warnings. Allow nulls in tables, outer joins, select expressions,
-   and in coalesce (maybe add or remove from this list). Never allow
-   nulls to be part of a function call, expression, etc.. So everytime
-   you have a field being used in an expression and it cannot be
-   statically verified to be non null, you have to insert a
-   coalesce. So nulls can still be used to represent optional values,
-   n/a, etc.. and output to clients doing selects, but there is no
-   question of 3vl, what is the result of this function call if the
-   operands are null, what is the result of a sum aggregate if some of
-   the values are null, etc. because none of these things are allowed.
+   warnings.
+Allow nulls in tables, outer joins, select expressions, and in
+   coalesce (maybe add or remove from this allowed list).
+Never allow nulls to be and argument to a function call, (including
+   ops, keyword ops, etc.). So everytime you have a field being used
+   in an expression and it cannot be statically verified to be non
+   null, you have to insert a coalesce or fix it in some other way.
+So nulls can still be used to represent optional values, n/a,
+   etc.. and output to clients doing selects, but there is no need to
+   grapple with:
+* 3vl (or whatever it is that sql uses instead),
+* what the result of a function call is if the some or all the
+  arguments are null,
+* what the result of a sum aggregate is if some of the values are null,
+* etc.,
+because none of these things are allowed.
+
+make sure the lint process works on text dumps of databases.
+
+parser, converter and pretty printer for explain output, want to view
+   how a query is executed in human readable pseudocode. Add lint type
+   checks, etc. to this, which can suggest ways to rewrite the query
+   to get better performance. Another idea is to make the dependencies
+   on the values in the tables more explicit, so you can see how much
+   the data can change before another plan is chosen, or you can see a
+   bad assumption about the kind of data the query will be run on.
 
 write a replacement psql shell, which can expose parse trees, type
    checks, lint checks, and doesn't use a one line at a time style
