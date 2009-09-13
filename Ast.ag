@@ -322,8 +322,8 @@ DATA Constraint | UniqueConstraint StringList
 DATA TypeAttributeDef | TypeAttDef name : String
                                    typ : TypeName
 
-DATA ParamDef | ParamDef String TypeName
-              | ParamDefTp TypeName
+DATA ParamDef | ParamDef name:String typ:TypeName
+              | ParamDefTp typ:TypeName
 
 DATA VarDef | VarDef name : String
                      typ : TypeName
@@ -543,6 +543,7 @@ data StatementInfo = DefaultStatementInfo Type
                    | DeleteInfo String Type
                    | CreateDomainInfo String Type
                    | DropInfo [(String,String)]
+                   | DropFunctionInfo [(String,[Type])]
                      deriving (Eq,Show)
 }
 

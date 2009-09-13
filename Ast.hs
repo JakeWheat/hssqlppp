@@ -96,7 +96,8 @@ data StatementInfo = DefaultStatementInfo Type
                    | DeleteInfo String Type
                    | CreateDomainInfo String Type
                    | DropInfo [(String,String)]
-                     deriving (Eq,Show)
+                   | DropFunctionInfo [(String,[Type])]
+                    deriving (Eq,Show)
 
 
 checkAst :: StatementList -> [Message]
@@ -3389,89 +3390,95 @@ data ParamDef  = ParamDef (String) (TypeName)
 -- cata
 sem_ParamDef :: ParamDef  ->
                 T_ParamDef 
-sem_ParamDef (ParamDef _string _typeName )  =
-    (sem_ParamDef_ParamDef _string (sem_TypeName _typeName ) )
-sem_ParamDef (ParamDefTp _typeName )  =
-    (sem_ParamDef_ParamDefTp (sem_TypeName _typeName ) )
+sem_ParamDef (ParamDef _name _typ )  =
+    (sem_ParamDef_ParamDef _name (sem_TypeName _typ ) )
+sem_ParamDef (ParamDefTp _typ )  =
+    (sem_ParamDef_ParamDefTp (sem_TypeName _typ ) )
 -- semantic domain
 type T_ParamDef  = Bool ->
                    Scope ->
                    MySourcePos ->
-                   ( ParamDef,([Message]),Type)
+                   ( ParamDef,([Message]),Type,String)
 data Inh_ParamDef  = Inh_ParamDef {inLoop_Inh_ParamDef :: Bool,scope_Inh_ParamDef :: Scope,sourcePos_Inh_ParamDef :: MySourcePos}
-data Syn_ParamDef  = Syn_ParamDef {actualValue_Syn_ParamDef :: ParamDef,messages_Syn_ParamDef :: [Message],nodeType_Syn_ParamDef :: Type}
+data Syn_ParamDef  = Syn_ParamDef {actualValue_Syn_ParamDef :: ParamDef,messages_Syn_ParamDef :: [Message],nodeType_Syn_ParamDef :: Type,paramName_Syn_ParamDef :: String}
 wrap_ParamDef :: T_ParamDef  ->
                  Inh_ParamDef  ->
                  Syn_ParamDef 
 wrap_ParamDef sem (Inh_ParamDef _lhsIinLoop _lhsIscope _lhsIsourcePos )  =
-    (let ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType) =
+    (let ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOparamName) =
              (sem _lhsIinLoop _lhsIscope _lhsIsourcePos )
-     in  (Syn_ParamDef _lhsOactualValue _lhsOmessages _lhsOnodeType ))
+     in  (Syn_ParamDef _lhsOactualValue _lhsOmessages _lhsOnodeType _lhsOparamName ))
 sem_ParamDef_ParamDef :: String ->
                          T_TypeName  ->
                          T_ParamDef 
-sem_ParamDef_ParamDef string_ typeName_  =
+sem_ParamDef_ParamDef name_ typ_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOparamName :: String
+              _lhsOmessages :: ([Message])
               _lhsOactualValue :: ParamDef
-              _typeNameOinLoop :: Bool
-              _typeNameOscope :: Scope
-              _typeNameOsourcePos :: MySourcePos
-              _typeNameIactualValue :: TypeName
-              _typeNameImessages :: ([Message])
-              _typeNameInodeType :: Type
-              _lhsOmessages =
-                  _typeNameImessages
+              _typOinLoop :: Bool
+              _typOscope :: Scope
+              _typOsourcePos :: MySourcePos
+              _typIactualValue :: TypeName
+              _typImessages :: ([Message])
+              _typInodeType :: Type
               _lhsOnodeType =
-                  _typeNameInodeType
+                  _typInodeType
+              _lhsOparamName =
+                  name_
+              _lhsOmessages =
+                  _typImessages
               _actualValue =
-                  ParamDef string_ _typeNameIactualValue
+                  ParamDef name_ _typIactualValue
               _lhsOactualValue =
                   _actualValue
-              _typeNameOinLoop =
+              _typOinLoop =
                   _lhsIinLoop
-              _typeNameOscope =
+              _typOscope =
                   _lhsIscope
-              _typeNameOsourcePos =
+              _typOsourcePos =
                   _lhsIsourcePos
-              ( _typeNameIactualValue,_typeNameImessages,_typeNameInodeType) =
-                  (typeName_ _typeNameOinLoop _typeNameOscope _typeNameOsourcePos )
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+              ( _typIactualValue,_typImessages,_typInodeType) =
+                  (typ_ _typOinLoop _typOscope _typOsourcePos )
+          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOparamName)))
 sem_ParamDef_ParamDefTp :: T_TypeName  ->
                            T_ParamDef 
-sem_ParamDef_ParamDefTp typeName_  =
+sem_ParamDef_ParamDefTp typ_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
-              _lhsOnodeType :: Type
+         (let _lhsOnodeType :: Type
+              _lhsOparamName :: String
+              _lhsOmessages :: ([Message])
               _lhsOactualValue :: ParamDef
-              _typeNameOinLoop :: Bool
-              _typeNameOscope :: Scope
-              _typeNameOsourcePos :: MySourcePos
-              _typeNameIactualValue :: TypeName
-              _typeNameImessages :: ([Message])
-              _typeNameInodeType :: Type
-              _lhsOmessages =
-                  _typeNameImessages
+              _typOinLoop :: Bool
+              _typOscope :: Scope
+              _typOsourcePos :: MySourcePos
+              _typIactualValue :: TypeName
+              _typImessages :: ([Message])
+              _typInodeType :: Type
               _lhsOnodeType =
-                  _typeNameInodeType
+                  _typInodeType
+              _lhsOparamName =
+                  ""
+              _lhsOmessages =
+                  _typImessages
               _actualValue =
-                  ParamDefTp _typeNameIactualValue
+                  ParamDefTp _typIactualValue
               _lhsOactualValue =
                   _actualValue
-              _typeNameOinLoop =
+              _typOinLoop =
                   _lhsIinLoop
-              _typeNameOscope =
+              _typOscope =
                   _lhsIscope
-              _typeNameOsourcePos =
+              _typOsourcePos =
                   _lhsIsourcePos
-              ( _typeNameIactualValue,_typeNameImessages,_typeNameInodeType) =
-                  (typeName_ _typeNameOinLoop _typeNameOscope _typeNameOsourcePos )
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+              ( _typIactualValue,_typImessages,_typInodeType) =
+                  (typ_ _typOinLoop _typOscope _typOsourcePos )
+          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOparamName)))
 -- ParamDefList ------------------------------------------------
 type ParamDefList  = [(ParamDef)]
 -- cata
@@ -3483,16 +3490,16 @@ sem_ParamDefList list  =
 type T_ParamDefList  = Bool ->
                        Scope ->
                        MySourcePos ->
-                       ( ParamDefList,([Message]),Type)
+                       ( ParamDefList,([Message]),Type,([(String,Type)]))
 data Inh_ParamDefList  = Inh_ParamDefList {inLoop_Inh_ParamDefList :: Bool,scope_Inh_ParamDefList :: Scope,sourcePos_Inh_ParamDefList :: MySourcePos}
-data Syn_ParamDefList  = Syn_ParamDefList {actualValue_Syn_ParamDefList :: ParamDefList,messages_Syn_ParamDefList :: [Message],nodeType_Syn_ParamDefList :: Type}
+data Syn_ParamDefList  = Syn_ParamDefList {actualValue_Syn_ParamDefList :: ParamDefList,messages_Syn_ParamDefList :: [Message],nodeType_Syn_ParamDefList :: Type,params_Syn_ParamDefList :: [(String,Type)]}
 wrap_ParamDefList :: T_ParamDefList  ->
                      Inh_ParamDefList  ->
                      Syn_ParamDefList 
 wrap_ParamDefList sem (Inh_ParamDefList _lhsIinLoop _lhsIscope _lhsIsourcePos )  =
-    (let ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType) =
+    (let ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOparams) =
              (sem _lhsIinLoop _lhsIscope _lhsIsourcePos )
-     in  (Syn_ParamDefList _lhsOactualValue _lhsOmessages _lhsOnodeType ))
+     in  (Syn_ParamDefList _lhsOactualValue _lhsOmessages _lhsOnodeType _lhsOparams ))
 sem_ParamDefList_Cons :: T_ParamDef  ->
                          T_ParamDefList  ->
                          T_ParamDefList 
@@ -3500,7 +3507,8 @@ sem_ParamDefList_Cons hd_ tl_  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
+         (let _lhsOparams :: ([(String,Type)])
+              _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
               _lhsOactualValue :: ParamDefList
               _hdOinLoop :: Bool
@@ -3512,9 +3520,13 @@ sem_ParamDefList_Cons hd_ tl_  =
               _hdIactualValue :: ParamDef
               _hdImessages :: ([Message])
               _hdInodeType :: Type
+              _hdIparamName :: String
               _tlIactualValue :: ParamDefList
               _tlImessages :: ([Message])
               _tlInodeType :: Type
+              _tlIparams :: ([(String,Type)])
+              _lhsOparams =
+                  ((_hdIparamName, _hdInodeType) : _tlIparams)
               _lhsOmessages =
                   _hdImessages ++ _tlImessages
               _lhsOnodeType =
@@ -3535,19 +3547,22 @@ sem_ParamDefList_Cons hd_ tl_  =
                   _lhsIscope
               _tlOsourcePos =
                   _lhsIsourcePos
-              ( _hdIactualValue,_hdImessages,_hdInodeType) =
+              ( _hdIactualValue,_hdImessages,_hdInodeType,_hdIparamName) =
                   (hd_ _hdOinLoop _hdOscope _hdOsourcePos )
-              ( _tlIactualValue,_tlImessages,_tlInodeType) =
+              ( _tlIactualValue,_tlImessages,_tlInodeType,_tlIparams) =
                   (tl_ _tlOinLoop _tlOscope _tlOsourcePos )
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOparams)))
 sem_ParamDefList_Nil :: T_ParamDefList 
 sem_ParamDefList_Nil  =
     (\ _lhsIinLoop
        _lhsIscope
        _lhsIsourcePos ->
-         (let _lhsOmessages :: ([Message])
+         (let _lhsOparams :: ([(String,Type)])
+              _lhsOmessages :: ([Message])
               _lhsOnodeType :: Type
               _lhsOactualValue :: ParamDefList
+              _lhsOparams =
+                  []
               _lhsOmessages =
                   []
               _lhsOnodeType =
@@ -3556,7 +3571,7 @@ sem_ParamDefList_Nil  =
                   []
               _lhsOactualValue =
                   _actualValue
-          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType)))
+          in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOparams)))
 -- RaiseType ---------------------------------------------------
 data RaiseType  = RError 
                 | RException 
@@ -5147,7 +5162,7 @@ sem_Statement_CreateDomain name_ typ_ check_  =
               _typImessages :: ([Message])
               _typInodeType :: Type
               _lhsOstatementInfo =
-                  DefaultStatementInfo _lhsIbackType
+                  CreateDomainInfo name_ _typInodeType
               _lhsOmessages =
                   _typImessages
               _lhsOnodeType =
@@ -5206,6 +5221,7 @@ sem_Statement_CreateFunction lang_ name_ params_ rettype_ bodyQuote_ body_ vol_ 
               _paramsIactualValue :: ParamDefList
               _paramsImessages :: ([Message])
               _paramsInodeType :: Type
+              _paramsIparams :: ([(String,Type)])
               _rettypeIactualValue :: TypeName
               _rettypeImessages :: ([Message])
               _rettypeInodeType :: Type
@@ -5216,7 +5232,7 @@ sem_Statement_CreateFunction lang_ name_ params_ rettype_ bodyQuote_ body_ vol_ 
               _volImessages :: ([Message])
               _volInodeType :: Type
               _lhsOstatementInfo =
-                  DefaultStatementInfo _lhsIbackType
+                  CreateFunctionInfo (name_,map snd _paramsIparams,_rettypeInodeType)
               _bodyOinLoop =
                   False
               _lhsOmessages =
@@ -5259,7 +5275,7 @@ sem_Statement_CreateFunction lang_ name_ params_ rettype_ bodyQuote_ body_ vol_ 
                   _lhsIsourcePos
               ( _langIactualValue,_langImessages,_langInodeType) =
                   (lang_ _langOinLoop _langOscope _langOsourcePos )
-              ( _paramsIactualValue,_paramsImessages,_paramsInodeType) =
+              ( _paramsIactualValue,_paramsImessages,_paramsInodeType,_paramsIparams) =
                   (params_ _paramsOinLoop _paramsOscope _paramsOsourcePos )
               ( _rettypeIactualValue,_rettypeImessages,_rettypeInodeType) =
                   (rettype_ _rettypeOinLoop _rettypeOscope _rettypeOsourcePos )

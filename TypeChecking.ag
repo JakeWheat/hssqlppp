@@ -122,7 +122,6 @@ SEM SourcePosStatement
 
 SEM Statement
   | Insert Update Delete Copy CopyData Truncate
-    CreateFunction CreateDomain
     DropFunction DropSomething Assignment Return ReturnNext ReturnQuery
     Raise NullStatement Perform Execute ExecuteInto ForSelectStatement
     ForIntegerStatement WhileStatement ContinueStatement CaseStatement
@@ -692,7 +691,19 @@ SEM TypeAttributeDefList
     | Nil lhs.nodeType = UnnamedCompositeType []
 
 SEM Statement
-    | CreateType lhs.statementInfo = RelvarInfo (@name, Composite, @atts.nodeType)
+    | CreateType
+        lhs.statementInfo = RelvarInfo (@name, Composite, @atts.nodeType)
+
+{-
+================================================================================
+
+= create domain
+
+-}
+
+SEM Statement
+    | CreateDomain
+        lhs.statementInfo = CreateDomainInfo @name @typ.nodeType
 
 {-
 ================================================================================
@@ -707,10 +718,37 @@ CreateFunction lang : Language
                      bodyQuote : String
                      body : FnBody
                      vol : Volatility
+(String, [Type], Type)
 -}
 
---ATTR Statement
---     | CreateFunction
+ATTR ParamDef
+     [
+     |
+     | paramName : String
+     ]
+
+ATTR ParamDefList
+     [
+     |
+     | params : {[(String,Type)]}
+     ]
+
+SEM ParamDef
+    | ParamDef ParamDefTp
+        lhs.nodeType = @typ.nodeType
+    | ParamDef
+        lhs.paramName = @name
+    | ParamDefTp
+        lhs.paramName = ""
+
+SEM ParamDefList
+     | Nil lhs.params = []
+     | Cons lhs.params = ((@hd.paramName, @hd.nodeType) : @tl.params)
+
+SEM Statement
+    | CreateFunction
+        lhs.statementInfo =
+          CreateFunctionInfo (@name,map snd @params.params,@rettype.nodeType)
 
 
 {-
