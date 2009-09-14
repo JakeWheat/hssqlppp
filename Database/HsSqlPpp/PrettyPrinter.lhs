@@ -9,7 +9,7 @@ layout better.
 
 Not much other comments, since it all should be pretty self evident.
 
-> module PrettyPrinter (
+> module Database.HsSqlPpp.PrettyPrinter (
 >                       --convert a sql ast to text
 >                       printSql
 >                       --convert a single expression parse node to text
@@ -21,8 +21,8 @@ Not much other comments, since it all should be pretty self evident.
 > import Data.List (stripPrefix)
 > import Data.Maybe
 
-> import Ast
-> import TypeType
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.TypeType
 
 ================================================================================
 

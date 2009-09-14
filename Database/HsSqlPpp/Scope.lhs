@@ -6,12 +6,12 @@ to the type checking routines if you want to supply different/extra
 definitions before type checking something, and you're not getting the
 extra definitions from an accessible database.
 
-> module Scope where
+> module Database.HsSqlPpp.Scope where
 
 > import Data.List
 > import Debug.Trace
 
-> import TypeType
+> import Database.HsSqlPpp.TypeType
 
 > type FunctionPrototype = (String, [Type], Type)
 > type DomainDefinition = (Type,Type)

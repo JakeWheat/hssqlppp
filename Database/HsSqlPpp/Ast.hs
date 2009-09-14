@@ -1,7 +1,7 @@
 
 
 -- UUAGC 0.9.10 (Ast.ag)
-module Ast(
+module Database.HsSqlPpp.Ast(
     -- exports
     MySourcePos
 
@@ -82,12 +82,12 @@ import Debug.Trace
 import Control.Monad.Error
 import Control.Arrow
 
-import TypeType
-import AstUtils
-import TypeConversion
-import TypeCheckingH
-import Scope
-import DefaultScope
+import Database.HsSqlPpp.TypeType
+import Database.HsSqlPpp.AstUtils
+import Database.HsSqlPpp.TypeConversion
+import Database.HsSqlPpp.TypeCheckingH
+import Database.HsSqlPpp.Scope
+import Database.HsSqlPpp.DefaultScope
 
 
 checkAst :: StatementList -> [Message]

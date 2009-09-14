@@ -7,9 +7,9 @@ other files.
 
 
 > import Test.Framework
-> import ParserTests
-> import DatabaseLoaderTests
-> import AstCheckTests
+> import Database.HsSqlPpp.ParserTests
+> import Database.HsSqlPpp.DatabaseLoaderTests
+> import Database.HsSqlPpp.AstCheckTests
 
 > main :: IO ()
 > main =

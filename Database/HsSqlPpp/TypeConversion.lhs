@@ -17,7 +17,7 @@ checkAssignmentValid - pass in source type and target type, returns
                 typelist[] if ok, otherwise error, pg manual 10.4
                 Value Storage
 
-> module TypeConversion (
+> module Database.HsSqlPpp.TypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
 >                       ,checkAssignmentValid
@@ -26,9 +26,9 @@ checkAssignmentValid - pass in source type and target type, returns
 > import Data.Maybe
 > import Data.List
 
-> import TypeType
-> import Scope
-> import AstUtils
+> import Database.HsSqlPpp.TypeType
+> import Database.HsSqlPpp.Scope
+> import Database.HsSqlPpp.AstUtils
 
 
 = findCallMatch

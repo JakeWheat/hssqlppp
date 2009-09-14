@@ -1,23 +1,34 @@
 Name:                hssqlppp
 Version:             0.0.3
-Description:         Sql parser and pretty printer
+Synopsis:            Sql parser, pretty printer and type checker
+Description:         Sql parser, pretty printer and type checker, targets PostGreSQL SQL and PL/pgSQL, uses Parsec and UUAGC.
 License:             BSD3
 License-file:        LICENSE
 Author:              Jake Wheat
-Maintainer:          jakewheatblog@gmail.com
+Maintainer:          jakewheatmail@gmail.com
 Build-Type:          Simple
 Cabal-Version:       >=1.2
+copyright:           Copyright 2009 Jake Wheat
+stability:           pre-alpha
+homepage:            https://launchpad.net/hssqlppp
+bug-reports:         mailto:jakewheatmail@gmail.com
+category:            Database
 
 extra-source-files:  README,
                      TODO,
+                     development,
+                     questions,
+                     usage,
                      LICENSE
 Library
-  Build-Depends:     base,
+  Build-Depends:     base >= 3 && < 5,
                      mtl,
                      parsec >= 3,
                      pretty,
                      containers
-  Exposed-modules:   Parser, PrettyPrinter
+  Exposed-modules:   Database.HsSqlPpp.Parser,
+                     Database.HsSqlPpp.PrettyPrinter,
+                     Database.HsSqlPpp.Ast
 
 
 Executable HsSqlSystem
@@ -28,7 +39,7 @@ Executable HsSqlSystem
                      HDBC,
                      HDBC-postgresql,
                      directory
-  Other-Modules:     Parser, PrettyPrinter
+  Other-Modules:     Database.HsSqlPpp.Parser, Database.HsSqlPpp.PrettyPrinter
 
 Executable Tests
   Main-is:           Tests.lhs
@@ -37,4 +48,4 @@ Executable Tests
                      test-framework,
                      test-framework-hunit
 
-  Other-Modules:     Parser, PrettyPrinter
+  Other-Modules:     Database.HsSqlPpp.Parser, Database.HsSqlPpp.PrettyPrinter

@@ -15,16 +15,17 @@ another go at this some time soon.
 
 There are no tests for invalid sql at the moment.
 
-> module ParserTests (parserTests) where
+> module Database.HsSqlPpp.ParserTests (parserTests) where
 
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
-> import Ast
-> import Parser
-> import PrettyPrinter
-> import ParseErrors
+
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.PrettyPrinter
+> import Database.HsSqlPpp.ParseErrors
 
 > parserTests :: Test.Framework.Test
 > parserTests =

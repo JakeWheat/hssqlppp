@@ -27,9 +27,8 @@ Most of the source files have plenty of comments, hopefully they can
 provide some illumination.
 
 It comes with a Cabal file, so you can compile it by unzipping and
-using cabal configure && cabal build in the usual way. It doesn't put
-any modules in a proper module hierarchy yet. I think it should work
-on all GHC 6.10.x and possibly also GHC 6.8.x.
+using cabal configure && cabal build in the usual way. I think it
+should work on all GHC 6.10.x and possibly also GHC 6.8.x.
 
 See the file 'development' for some notes on how to work with the
 source.

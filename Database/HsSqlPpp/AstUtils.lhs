@@ -9,15 +9,15 @@ represent a variety of different things, like node type checked ok
 when the node doesn't produce a type but can produce a type error,
 etc.. This is just a hack that will be changed soon.
 
-> module AstUtils where
+> module Database.HsSqlPpp.AstUtils where
 
 > import Data.Maybe
 > import Data.List
 > import Control.Monad.Error
 
-> import TypeType
-> import Scope
-> import DefaultScope
+> import Database.HsSqlPpp.TypeType
+> import Database.HsSqlPpp.Scope
+> import Database.HsSqlPpp.DefaultScope
 
 ================================================================================
 

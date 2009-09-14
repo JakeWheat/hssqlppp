@@ -28,7 +28,7 @@ pretty printed stuff, don't know how much help this will be.
 
 This code is currently on the backburner, and is a massive mess.
 
-> module DatabaseLoader where
+> module Database.HsSqlPpp.DatabaseLoader where
 
 > import System.IO
 > import System.Directory
@@ -38,9 +38,9 @@ This code is currently on the backburner, and is a massive mess.
 > import Data.List
 > import Data.Maybe
 
-> import PrettyPrinter
-> import Ast
-> import DBAccess
+> import Database.HsSqlPpp.PrettyPrinter
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.DBAccess
 
 > loadIntoDatabase :: String -> String -> StatementList -> IO ()
 > loadIntoDatabase dbName fn ast =
@@ -89,9 +89,9 @@ This code is currently on the backburner, and is a massive mess.
 >               runSqlCommand conn "create procedural language plpgsql;"
 >     readInt x = read x :: Int
 
-> data Wrapper = CopyStdin Ast.Statement Ast.Statement
+> data Wrapper = CopyStdin Database.HsSqlPpp.Ast.Statement Database.HsSqlPpp.Ast.Statement
 >              | Skipit
->              | VanillaStatement Ast.Statement
+>              | VanillaStatement Database.HsSqlPpp.Ast.Statement
 
 ================================================================================
 
@@ -170,7 +170,7 @@ though
  >                            _ -> 0
  >     getLineStuffLength l = length (l =~ "^LINE ([0-9]+):" :: String) + 1
 
-> handleError :: String -> (String,Int,Int) -> Ast.Statement -> IO () -> IO ()
+> handleError :: String -> (String,Int,Int) -> Database.HsSqlPpp.Ast.Statement -> IO () -> IO ()
 > handleError fn (_, sl,sc) _ f = catchSql f
 >                    (\e -> do
 >                      --s <- readFile fn

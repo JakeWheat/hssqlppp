@@ -7,12 +7,12 @@ mapping from parsed and pretty printed sql back to the original source
 text.
 Will be revived when the DatabaseLoader code is being worked on again.
 
-> module DatabaseLoaderTests (databaseLoaderTests) where
+> module Database.HsSqlPpp.DatabaseLoaderTests (databaseLoaderTests) where
 
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
-> import DatabaseLoader
+> import Database.HsSqlPpp.DatabaseLoader
 
 > databaseLoaderTests :: Test.Framework.Test
 > databaseLoaderTests = testGroup "databaseLoaderTests" [

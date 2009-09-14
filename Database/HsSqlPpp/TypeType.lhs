@@ -49,7 +49,7 @@ Typing relational valued expressions:
 use SetOfType combined with composite type for now, see if it works
 out. If not, will have to add another type.
 
-> module TypeType where
+> module Database.HsSqlPpp.TypeType where
 
 > data Type = ScalarType String
 >           | ArrayType Type

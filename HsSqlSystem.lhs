@@ -20,13 +20,13 @@ TODO 2: think of a name for this command
 > import System.Directory
 > import Data.List
 
-> import Parser
-> import DatabaseLoader
-> import Lexer
-> import Ast
-> import PrettyPrinter
-> import DBAccess
-> import ScopeReader
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.DatabaseLoader
+> import Database.HsSqlPpp.Lexer
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.PrettyPrinter
+> import Database.HsSqlPpp.DBAccess
+> import Database.HsSqlPpp.ScopeReader
 
 ================================================================================
 
@@ -351,9 +351,9 @@ template1 database...
 > getScope :: String -> IO ()
 > getScope dbName = do
 >   s <- readScope dbName
->   putStrLn "module DefaultScope where"
->   putStrLn "import TypeType"
->   putStrLn "import Scope"
+>   putStrLn "module Database.HsSqlPpp.DefaultScope where"
+>   putStrLn "import Database.HsSqlPpp.TypeType"
+>   putStrLn "import Database.HsSqlPpp.Scope"
 >   putStrLn "defaultScope :: Scope"
 >   putStr "defaultScope = "
 >   print s

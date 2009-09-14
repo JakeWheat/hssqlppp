@@ -37,10 +37,10 @@ being a valid file before it can regenerate it is a bad design...
 -}
 
 
-module DefaultScope where
+module Database.HsSqlPpp.DefaultScope where
 
-import TypeType
-import Scope
+import Database.HsSqlPpp.TypeType
+import Database.HsSqlPpp.Scope
 
 
 defaultScope :: Scope

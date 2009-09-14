@@ -243,7 +243,7 @@ write some example programs with plenty of comments - will this mainly
 redo cabal file to add compile time options: exes, pg support, tests
  or split into separate packages?
 
-make a subfolder hierarchy/put code in a well named modules
+sort out modules/folder use
 
 work on error reporting, add tests for malformed sql
 
