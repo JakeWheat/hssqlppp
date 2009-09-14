@@ -362,6 +362,10 @@ utilities for working with Types
 >     UnnamedCompositeType (l:a)
 > consComposite a b = error $ "internal error: called consComposite on " ++ show (a,b)
 
+> unwrapRowCtor :: Type -> [Type]
+> unwrapRowCtor (RowCtor a) = a
+> unwrapRowCtor x = error $ "internal error: cannot unwrapRowCtor on " ++ show x
+
 ================================================================================
 
 message stuff, used by the continue in loop checking, will be

@@ -502,4 +502,4 @@ cast empty array, where else can an empty array work?
 >     case () of
 >       _ | src == tgt -> TypeList []
 >         | castableFromTo scope src tgt -> TypeList []
->         | otherwise -> TypeError sp (IncompatibleTypes src tgt)
+>         | otherwise -> TypeError sp (IncompatibleTypes tgt src)

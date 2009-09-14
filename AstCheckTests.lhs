@@ -524,6 +524,69 @@ select g.fn from fn() g
 >         [SetOfType (UnnamedCompositeType [("g",ScalarType "int4")])]
 >      ])
 
+insert
+
+>    ,testGroup "insert"
+>     (mapStatementInfo [
+>       p "insert into nope (a,b) values (c,d);"
+>         [DefaultStatementInfo (TypeError ("",1,1) (UnrecognisedRelation "nope"))]
+>      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
+>         \values (1,2, 'a', 'b');"
+>         [InsertInfo "pg_attrdef"
+>          (UnnamedCompositeType [("adrelid",ScalarType "oid")
+>                                 ,("adnum",ScalarType "int2")
+>                                 ,("adbin",ScalarType "text")
+>                                 ,("adsrc",ScalarType "text")])]
+>      ,p "insert into pg_attrdef\n\
+>         \values (1,2, 'a', 'b');"
+>         [InsertInfo "pg_attrdef"
+>          (UnnamedCompositeType [("adrelid",ScalarType "oid")
+>                                 ,("adnum",ScalarType "int2")
+>                                 ,("adbin",ScalarType "text")
+>                                 ,("adsrc",ScalarType "text")])]
+>      ,p "insert into pg_attrdef (hello,adnum,adbin,adsrc)\n\
+>         \values (1,2, 'a', 'b');"
+>         [DefaultStatementInfo (TypeError ("",1,1) (UnrecognisedIdentifier "hello"))]
+>      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
+>         \values (1,true, 'a', 'b');"
+>         [DefaultStatementInfo (TypeError ("",1,1) (IncompatibleTypes (ScalarType "int2") (ScalarType "bool")))]
+>      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
+>         \values (1,true, 'a', 'b','c');"
+>         [DefaultStatementInfo (TypeError ("",1,1) WrongNumberOfColumns)]
+
+>      ])
+
+>    ,testGroup "update"
+>     (mapStatementInfo [
+>       p "update nope set a = 1;"
+>         [DefaultStatementInfo (TypeError ("",1,1) (UnrecognisedRelation "nope"))]
+>      ,p "update pg_attrdef set adsrc = '' where 1;"
+>         [DefaultStatementInfo (TypeError ("",1,1) ExpressionMustBeBool)]
+>      ,p "update pg_attrdef set (adbin,adsrc) = ('a','b','c');"
+>         [DefaultStatementInfo (TypeError ("",1,1) WrongNumberOfColumns)]
+>      ,p "update pg_attrdef set (adrelid,adsrc) = (true,'b');"
+>         [DefaultStatementInfo (TypeError ("",1,1) (IncompatibleTypes (ScalarType "oid") typeBool))]
+>      ,p "update pg_attrdef set (shmadrelid,adsrc) = ('a','b');"
+>         [DefaultStatementInfo (TypeError ("",1,1) (UnrecognisedIdentifier "shmadrelid"))]
+>      ,p "update pg_attrdef set adsrc='';"
+>         [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
+>      ,p "update pg_attrdef set adsrc='' where 1=2;"
+>         [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
+>       -- TODO: actually, pg doesn't support this so need to generate error instead
+>      ,p "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
+>         [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adbin",ScalarType "text"),("adsrc",ScalarType "text")])]
+>      ])
+
+>    ,testGroup "delete"
+>     (mapStatementInfo [
+>       p "delete from nope;"
+>         [DefaultStatementInfo (TypeError ("",1,1) (UnrecognisedRelation "nope"))]
+>      ,p "delete from pg_attrdef where 1=2;"
+>         [DeleteInfo "pg_attrdef"]
+>      ,p "delete from pg_attrdef where 1;"
+>         [DefaultStatementInfo (TypeError ("",1,1) ExpressionMustBeBool)]
+>      ])
+
 >    ]
 >         where
 >           mapAttr = map $ uncurry checkAttrs
@@ -531,6 +594,7 @@ select g.fn from fn() g
 >           t a b c = (a,b,c)
 >           mapExprType = map $ uncurry $ checkExpressionType emptyScope
 >           mapStatementType = map $ uncurry checkStatementType
+>           mapStatementInfo = map $ uncurry checkStatementInfo
 >           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
 >           makeScope l = scopeReplaceIds defaultScope (map (second (\a->(a,[]))) l) []
 >           mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
@@ -554,6 +618,17 @@ select g.fn from fn() g
 > checkStatementTypeScope ::  Scope -> String -> [Type] -> Test.Framework.Test
 > checkStatementTypeScope scope src typ = testCase ("typecheck " ++ src) $
 >   assertEqual ("typecheck " ++ src) typ (parseAndGetTypeScope scope src)
+
+> checkStatementInfo :: String -> [StatementInfo] -> Test.Framework.Test
+> checkStatementInfo src typ = testCase ("typecheck " ++ src) $
+>   assertEqual ("typecheck " ++ src) typ (parseAndGetInfo src)
+
+> parseAndGetInfo :: String -> [StatementInfo]
+> parseAndGetInfo src =
+>   let ast = case parseSql src of
+>                               Left er -> error $ show er
+>                               Right l -> l
+>   in getStatementsInfo ast
 
 
 > parseAndGetType :: String -> [Type]

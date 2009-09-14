@@ -85,6 +85,7 @@ MODULE {Ast}
    ,Type (..)
    ,PseudoType (..)
    ,TypeErrorInfo (..)
+   ,StatementInfo (..)
    ,Scope(..)
    ,defaultScope
    ,emptyScope
@@ -151,11 +152,11 @@ DATA Statement
     --tablename setitems where returning
     | Update table : String
              assigns : SetClauseList
-             whr : (Maybe Expression)
+             whr : Where
              returning : (Maybe SelectList)
     --tablename, where, returning
     | Delete table : String
-             whr : (Maybe Expression)
+             whr : Where
              returning : (Maybe SelectList)
     --tablename column names, from
     | Copy table : String
