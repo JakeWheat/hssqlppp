@@ -47,6 +47,7 @@ module Ast(
    ,PseudoType (..)
    ,TypeErrorInfo (..)
    ,StatementInfo (..)
+   --scope
    ,Scope(..)
    ,defaultScope
    ,emptyScope
@@ -62,6 +63,7 @@ module Ast(
    ,resetSp'
    ,resetSps'
    ,nsp
+   --forward some defs
    ,typeSmallInt
    ,typeBigInt
    ,typeInt
@@ -179,6 +181,9 @@ data StatementInfo = DefaultStatementInfo Type
                      deriving (Eq,Show)
 
 
+--use this to make sure type errors are propagated into the statement
+--infos, temporary
+
 makeStatementInfo :: Type -> StatementInfo -> StatementInfo
 makeStatementInfo ty st =
     if isError ty
@@ -261,7 +266,7 @@ checkColumnConsistency scope sp tbl cols' insNameTypePairs =
       targetTableType = fst $ getRelationType scope sp tbl
       targetTableCols = unwrapComposite targetTableType
       --check the num cols in the insdata match the number of cols
-      cols = if length cols' == 0
+      cols = if null cols'
                then map fst targetTableCols
                else cols'
       wrongLengthError = if length insNameTypePairs /= length cols
@@ -283,13 +288,13 @@ checkColumnConsistency scope sp tbl cols' insNameTypePairs =
                  ,nonMatchingErrors
                  ,TypeList matchingTypeErrors] $ TypeList []
   where
-    makeUnknownColumnError c = TypeError sp (UnrecognisedIdentifier c)
+    makeUnknownColumnError = TypeError sp . UnrecognisedIdentifier
 
 getColumnTypes :: Scope -> MySourcePos -> String -> [String] -> [(String,Type)]
 getColumnTypes scope sp tbl cols' =
   let targetTableType = fst $ getRelationType scope sp tbl
       targetTableCols = unwrapComposite targetTableType
-      cols = if length cols' == 0
+      cols = if null cols'
                then map fst targetTableCols
                else cols'
       nonMatchingColumns = cols \\ map fst targetTableCols
@@ -299,7 +304,7 @@ getColumnTypes scope sp tbl cols' =
                             _ -> TypeList $ map makeUnknownColumnError nonMatchingColumns
   in map (\l -> (l, fromJust $ lookup l targetTableCols)) cols
   where
-    makeUnknownColumnError c = TypeError sp (UnrecognisedIdentifier c)
+    makeUnknownColumnError = TypeError sp . UnrecognisedIdentifier
 
 
 getRowTypes :: Type -> [Type]
