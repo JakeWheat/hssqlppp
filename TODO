@@ -182,7 +182,7 @@ in general, parsing operators is wrong, the lexer needs to be able to
 
 some other random ideas:
 
-null treatement
+null treatment
 Basic motivation is to keep nulls carefully walled off, controlled,
    and be able to catch them when they sneak back into expressions,
    etc.. For each value, etc. we determine statically if it might be
@@ -195,7 +195,7 @@ Allow nulls in tables, outer joins, in coalesce, to be produced by
    selects (maybe add or remove from this allowed list, maybe make it
    configurable on a per project basis).
 Never allow nulls to be an argument to a function call, (including
-   ops, keyword ops, etc.). So everytime you have a field being used
+   ops, keyword ops, etc.). So every time you have a field being used
    in an expression and it cannot be statically verified to be non
    null, you have to insert a coalesce or fix it in some other way.
 So nulls can still be used to represent optional values, n/a,
@@ -278,5 +278,4 @@ write libraries in haskell, and then write syntax extensions for
    same source code in the same language, with first class support for
    properly typed relation valued expressions, avoiding multiple
    languages and mapping/'impedance mismatch' between database types
-   and types in the language you write the ui in. A bit like Access
-   but with a non numpty dbms.
+   and types in the language you write the ui in.

@@ -56,6 +56,23 @@ definitions given in the same file though, which is a bit of a
 limitation, but you can load the sql files into pg first, then type
 check and see types for some views, functions, etc..
 
+some example output of showinfodb:
+
+/*
+RelvarInfo ("base_relvar_attributes",ViewComposite,SetOfType (UnnamedCompositeType [("attribute_name",ScalarType "name"),("type_name",ScalarType "name"),("relvar_name",ScalarType "name")]))*/
+
+create view base_relvar_attributes as
+  select attname as attribute_name,typname as type_name,relname as relvar_name
+    from pg_attribute
+         inner join pg_class on (attrelid = pg_class.oid)
+         inner join pg_type on (atttypid = pg_type.oid)
+         inner join base_relvars on (relname = base_relvars.relvar_name)
+    where (attnum >= 1);
+
+A pretty printer for the StatementInfo type is planned, to make this
+comment more readable.
+
+
 == reasonably up to date output of './HsSqlSystem.lhs help all'
 
 commands available

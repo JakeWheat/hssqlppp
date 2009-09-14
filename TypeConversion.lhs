@@ -160,14 +160,14 @@ findCallMatch is a bit of a mess
 >         let inArgsBase = map (replaceWithBase scope) inArgs
 >             exactCounts :: [Int]
 >             exactCounts =
->               map (\l -> length $ filter
->                            (\(a1,a2) -> a1==replaceWithBase scope a2)
->                            $ zip inArgsBase l)
->                 $ map (\((_,a,_),_) -> a) reachable
+>               map ((length
+>                       . filter (\(a1,a2) -> a1==replaceWithBase scope a2)
+>                       . zip inArgsBase)
+>                 . (\((_,a,_),_) -> a)) reachable
 >             pairs = zip reachable exactCounts
 >             maxm = maximum exactCounts
 >         in case () of
->              _ | length reachable == 0 -> []
+>              _ | null reachable -> []
 >                | maxm > 0 -> map fst $ filter (\(_,b) -> b == maxm) pairs
 >                | otherwise -> []
 >

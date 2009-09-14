@@ -28,7 +28,7 @@ not very consistently applied at the moment.
 >       argsType = unwrapTypeList argsType'
 >       ret = case fnName of
 
-do the special cases first, some of these will use the varidic support
+do the special cases first, some of these will use the variadic support
 when it is done and no longer be special cases.
 
 >           "!arrayCtor" -> let t = resolveResultSetType scope sp argsType
@@ -66,7 +66,7 @@ special case the row comparison ops
 >         let e1 = if length t1s /= length t2s
 >                    then TypeError sp ValuesListsMustBeSameLength
 >                    else TypeList []
->             t3s = map (resolveResultSetType scope sp) $ map (\(a,b) -> [a,b]) $ zip t1s t2s
+>             t3s = map (resolveResultSetType scope sp . (\(a,b) -> [a,b])) $ zip t1s t2s
 >         in checkErrors (e1:t3s) typeBool
 >       checkRowTypesMatch x y  =
 >         error $ "internal error: checkRowTypesMatch called with " ++ show x ++ "," ++ show y

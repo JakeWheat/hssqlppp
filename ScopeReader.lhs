@@ -154,7 +154,7 @@ are discarded after the Scope value is created.
 >                   \ order by relkind, relname;" []
 >    let systemAttrs = map (convAttrRow jlt) systemAttrInfo
 
->    return $ Scope {scopeTypes = types
+>    return   Scope {scopeTypes = types
 >                   ,scopeTypeNames = typeNames
 >                   ,scopeDomainDefs = domainDefs
 >                   ,scopeCasts = casts

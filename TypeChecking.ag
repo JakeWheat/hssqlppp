@@ -695,7 +695,7 @@ checkColumnConsistency scope sp tbl cols' insNameTypePairs =
       targetTableType = fst $ getRelationType scope sp tbl
       targetTableCols = unwrapComposite targetTableType
       --check the num cols in the insdata match the number of cols
-      cols = if length cols' == 0
+      cols = if null cols'
                then map fst targetTableCols
                else cols'
       wrongLengthError = if length insNameTypePairs /= length cols
@@ -717,13 +717,13 @@ checkColumnConsistency scope sp tbl cols' insNameTypePairs =
                  ,nonMatchingErrors
                  ,TypeList matchingTypeErrors] $ TypeList []
   where
-    makeUnknownColumnError c = TypeError sp (UnrecognisedIdentifier c)
+    makeUnknownColumnError = TypeError sp . UnrecognisedIdentifier
 
 getColumnTypes :: Scope -> MySourcePos -> String -> [String] -> [(String,Type)]
 getColumnTypes scope sp tbl cols' =
   let targetTableType = fst $ getRelationType scope sp tbl
       targetTableCols = unwrapComposite targetTableType
-      cols = if length cols' == 0
+      cols = if null cols'
                then map fst targetTableCols
                else cols'
       nonMatchingColumns = cols \\ map fst targetTableCols
@@ -733,7 +733,7 @@ getColumnTypes scope sp tbl cols' =
                             _ -> TypeList $ map makeUnknownColumnError nonMatchingColumns
   in map (\l -> (l, fromJust $ lookup l targetTableCols)) cols
   where
-    makeUnknownColumnError c = TypeError sp (UnrecognisedIdentifier c)
+    makeUnknownColumnError = TypeError sp . UnrecognisedIdentifier
 }
 
 {-
@@ -820,9 +820,6 @@ types, typenames, typecats, attrdefs, systemcolumns
 
 produces a compositedef: (name, tablecomposite, unnamedcomp [(attrname, type)])
 
-@atts: attibutedeflist
-attributedef: name: string, type: typename
-
 -}
 
 ATTR AttributeDef
@@ -908,14 +905,6 @@ SEM Statement
 = create function
 
 ignore body for now, just get the signature
-CreateFunction lang : Language
-                     name : String
-                     params : ParamDefList
-                     rettype : TypeName
-                     bodyQuote : String
-                     body : FnBody
-                     vol : Volatility
-(String, [Type], Type)
 -}
 
 ATTR ParamDef
