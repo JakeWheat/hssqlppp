@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.0.3
+Version:             0.0.4
 Synopsis:            Sql parser, pretty printer and type checker
 Description:         Sql parser, pretty printer and type checker, targets PostGreSQL SQL and PL/pgSQL, uses Parsec and UUAGC.
 License:             BSD3
