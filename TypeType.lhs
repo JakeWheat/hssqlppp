@@ -6,8 +6,6 @@ separately to Ast.ag.
 
 Types overview:
 
-Divide types up into some categories.
-
 Regular types: scalarType, arrayType, composite type, domaintype
 we can use these anywhere.
 

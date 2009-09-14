@@ -13,17 +13,7 @@ The attr and sem definitions are in TypeChecking.ag, which is included
 into this file.
 
 These ast nodes are both used as the result of successful parsing, and
-as the input to the pretty printer.
-
-Future plans:
-
-Investigate how much mileage can get out of making these nodes the
-parse tree nodes, and using a separate ast. Hinges on how much extra
-value can get from making the types more restrictive for the ast nodes
-compared to the parse tree.
-
-Would like to turn this back into regular Haskell file, maybe could
-use AspectAG instead of uuagc to make this happen?
+as the input to the type checker and the pretty printer.
 
 = compiling
 
@@ -86,6 +76,7 @@ MODULE {Ast}
    ,PseudoType (..)
    ,TypeErrorInfo (..)
    ,StatementInfo (..)
+   --scope
    ,Scope(..)
    ,defaultScope
    ,emptyScope
@@ -101,6 +92,7 @@ MODULE {Ast}
    ,resetSp'
    ,resetSps'
    ,nsp
+   --forward some defs
    ,typeSmallInt
    ,typeBigInt
    ,typeInt
@@ -400,22 +392,22 @@ TYPE MaybeExpression = MAYBE Expression
 
 {-
 
-list of expression flavours from postgresql with this ast equivs
+list of expression flavours from postgresql with the equivalents in this ast
 pg                                here
 --                                ----
-constant/literal                  integerlit, floatlit, stringlit, nulllit, boollit
+constant/literal                  integerlit, floatlit, unknownstringlit, nulllit, boollit
 column reference                  identifier
 positional parameter reference    positionalarg
-subscripted expression            fun arraysub
+subscripted expression            funcall
 field selection expression        identifier
-operator invocation               fun op
-function call                     fun simple
-aggregate expression              ?
+operator invocation               funcall
+function call                     funcall
+aggregate expression              funcall
 window function call              windowfn
 type cast                         cast
 scalar subquery                   scalarsubquery
-array constructor                 fun arrayval
-row constructor                   fun rowctor
+array constructor                 funcall
+row constructor                   funall
 
 Anything that is represented in the ast as some sort of name plus a
 list of expressions as arguments is treated as the same type of node:
@@ -432,10 +424,6 @@ arrayctors e.g. array[3,5,6]
 rowctors e.g. ROW (2,4,6)
 array subscripting
 
-All of these could be considered concrete syntax variants of function
-calls, which take none, one or more expressions as arguments, and
-return a single expression as the result.
-
 list of keyword operators (regular prefix, infix and postfix):
 and, or, not
 is null, is not null, isnull, notnull
@@ -450,9 +438,11 @@ between, not between, between symmetric
 overlay, substring, trim
 any, some, all
 
-Most of unusual syntax forms are not yet supported.
+Most of unusual syntax forms and keywords operators are not yet
+supported, so this is mainly a todo list.
 
-Keyword operators are encoded as operators, with a ! followed by a string
+Keyword operators are encoded with the function name as a ! followed
+by a string
 e.g.
 operator 'and' -> FunCall "!and" ...
 see keywordOperatorTypes value in AstUtils.lhs for the list of
@@ -669,3 +659,18 @@ resetSps' = map resetSp'
 nsp :: MySourcePos
 nsp = ("", 0,0)
 }
+
+{-
+
+Future plans:
+
+Investigate how much mileage can get out of making these nodes the
+parse tree nodes, and using a separate ast. Hinges on how much extra
+value can get from making the types more restrictive for the ast nodes
+compared to the parse tree.
+
+Would like to turn this back into regular Haskell file, maybe could
+use AspectAG instead of uuagc to make this happen?
+
+
+-}

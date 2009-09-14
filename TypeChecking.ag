@@ -11,8 +11,6 @@ only divided because the attribute grammar system uses a custom syntax
 with a custom preprocessor. These guidelines aren't followed very
 well.
 
-Dynamic note:
-
 The current type checking approach doesn't quite match how SQL
 works. The main problem is that you can e.g. exec create table
 statements inside a function. This is something that the type checker
@@ -25,6 +23,11 @@ on in the scope so e.g. it doesn't type check a create table followed
 by a select from that table. The support for this is nearly complete
 and it should be working very soon.
 
+Once most of the type checking is working, all the code and
+documentation will be overhauled quite a lot. Alternatively put, this
+code is in need of better documentation and organisation, and serious
+refactoring.
+
 ================================================================================
 
 = main attributes used
@@ -35,8 +38,8 @@ sourcePos - holds the source position used in messages, not very
 accurate at the moment, just gives you the position of the first
 character in the current statement
 
-actual value - add this to all nodes out of lazy programming. We use
-these values in a limited number of places in the code
+actual value - add this to all nodes out of laziness. We use these
+values in a limited number of places in the code
 
 -}
 
@@ -56,11 +59,11 @@ ATTR AllNodes Root ExpressionRoot
 
 Node types
 
-we set all the node types to unknown to start with, this allows the
-type checking to be implemented bit by bit. When the type checking is
-more complete, these might be removed or changed to something more
-specific. The listnodes' behaviour is actually used by the working
-typing checking code in places.
+Just a hack to get started, provide a default type to each node (even
+though it doesn't make sense for a lot of them), and provide default
+rules for this attribute, even though this also doesn't make a lot of
+sense. Will be reviewed and removed quite soon. (Some nodes will keep
+the node type attribute, most will lose it.)
 
 -}
 
@@ -97,7 +100,7 @@ the table name, a create function can expose the function prototype
 
 This will evolve into the main annotation data type which is used to
 supply information, e.g. to intersperse into some sql source, or to
-get back for an individual statement interactively in an ide.
+get back info on an individual sql statement interactively in an ide.
 
 -}
 
@@ -116,6 +119,9 @@ data StatementInfo = DefaultStatementInfo Type
 }
 
 {
+--use this to make sure type errors are propagated into the statement
+--infos, temporary
+
 makeStatementInfo :: Type -> StatementInfo -> StatementInfo
 makeStatementInfo ty st =
     if isError ty
@@ -152,7 +158,7 @@ SEM StatementList
 
 
 -- don't know how to copy the nodetype to the statement info in the
--- sem statement so bounce it out like this
+-- sem statement so bounce it out then back in like this
 SEM SourcePosStatement
   | Tuple x2.backType = @x2.nodeType
 
@@ -222,11 +228,6 @@ SEM TypeName
           --this needs to work a bit better, a simpletypename can match
           --domains, composite types, etc., not just scalar types
           lhs.nodeType = lookupTypeByName @lhs.scope @lhs.sourcePos $ canonicalizeTypeName @tn
-
---              let st = canonicalizeType $ ScalarType @tn
---                         in checkErrors
---                                [checkTypeExists @lhs.scope @lhs.sourcePos st]
---                                st
 --     | PrecTypeName
 --          lhs.nodeType = if @tn `elem` defaultTypes
 --                           then ScalarType @tn
@@ -798,15 +799,6 @@ getRowTypes x = error $ "cannot get row types from " ++ show x
 ================================================================================
 
 = delete
-
-current todo:
-check table exists
-check where is boolean
- Delete table : String
-             whr : (Maybe Expression)
-             returning : (Maybe SelectList)
-                   | DeleteInfo String
-
 -}
 
 SEM Statement

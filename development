@@ -33,6 +33,13 @@ HsSqlSystem.lhs file contains a few more examples.
 
 Source file overview:
 
+(The type checking code is a bit spread out, ideally would want one
+file for the ast, one file containing type checking code, and then
+some clear additional little lib files, but the ast and type checking
+are spread out in Ast.ag, AstUtils.lhs, TypeChecking.ag,
+TypeCheckingH.lhs and TypeType.lhs. (The little libs also used in the
+type checking are Scope.lhs, ScopeReader.lhs and TypeConversion.lhs.))
+
 Ast.ag: uuagc source for the ast data types and the api functions for
         type checking asts.
 
@@ -111,6 +118,7 @@ TypeType.lhs: Some types used by the type checker, should live with
 
 These files all have (hopefully) useful comments.
 
-You'll find the jargon easier to follow if you're familiar with SQL
-and with the work of Date, Darwen, et al.. I plan to add a glossary at
-some point.
+You'll find the jargon in this project easier to follow if you're
+familiar with SQL and with the work of Date, Darwen, et al.. I plan to
+add a glossary at some point, and to try to make the usage more
+consistent.

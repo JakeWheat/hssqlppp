@@ -13,7 +13,7 @@ system, they are in a very early alpha state.
 The most interesting commands are:
 * parsefile
 * roundtripfile, loadsql
-* showtypes, showtypesdb
+* showinfodb
 
 == parsefile
 
@@ -42,20 +42,16 @@ Loading the roundtripped sql into a database then running tests on it
 will hopefully can give a bit more confidence that the sql has been
 parsed accurately.
 
-== showtypes,showtypesdb
+== showinfodb
 
 This command will take a sql file, parse it, type check it and then
-pretty print the lines interspersed with comments containing the type
-of each command.
+pretty print the lines interspersed with comments containing some
+information for each command, either type errors, or some other
+information tailored to the statement type (e.g. create function shows
+function prototype, create view shows column names and types in view).
 
-At the moment you'll mostly get type errors, but you might be lucky
-enough to get the occasional actual type - you can improve your
-chances by including select statements which only select from the pg
-catalog.
-
-showtypesdb will type check against the schema in the given database,
-rather than a hardcoded copy of template1 (by accessing postgresql to
-read the catalogs at runtime). It still won't type check against
+You pass a database in as the first arg, and it type checks against
+the catalog of that database. It currently doesn't type check against
 definitions given in the same file though, which is a bit of a
 limitation, but you can load the sql files into pg first, then type
 check and see types for some views, functions, etc..
@@ -108,6 +104,16 @@ pass the name of a database first, then filenames, reads each file,
 parses, type checks, then outputs the types interspersed with the
 pretty printed statements, will type check against the given database
 schema
+
+showinfo
+reads each file, parses, type checks, then outputs info on each
+statement interspersed with the pretty printed statements
+
+showinfodb
+pass the name of a database first, then filenames, reads each file,
+parses, type checks, then outputs info on each statement interspersed
+with the pretty printed statements, will type check against the given
+database schema
 
 
 ================================================================================

@@ -1,11 +1,12 @@
-here are some queries that need investigating, and possibly formatted
-so they can be posted to the appropriate mailing list
+here are some queries that need investigating, and possibly posted to
+the appropriate mailing list.
 
 = haskell questions
 
-generating the default scope looks awful when saved to a file. Is
-there an easy way to Show this value, with nice formatting? Is there a
-better way to serialize this value?
+generating the default scope, the layout is awful when saved to a
+file. Is there an easy way to Show this value, with nice formatting?
+Is there a better way to serialize this value rather than as a haskell
+source file?
 
 = ghc questions
 
@@ -16,11 +17,13 @@ ghc: panic! (the 'impossible' happened)
 
 Please report this as a GHC bug:  http://www.haskell.org/ghc/reportabug
 
-when compiling defaultscope, put together a bug report or something.
+when compiling defaultscope with -Wall, put together a bug report or
+something.
 
 -----
 getting segmentation fault when trying to run code with profiling on
 - ghc --make -prof -auto-all  HsSqlSystem.lhs +RTS -K64M
+then run ./HsSqlSystem
 
 = cabal
 
@@ -28,22 +31,21 @@ when tried to install profiling, is there a short cut to reinstall all
 the dependent libs with the profiling option on, had to do this one or
 two libs at a time and it took ages.
 
-after cabal instructed that all the appropriate libs had profiling on,
-tried to build the code and got errors like HSHunit_p library not
-found, this was fixed by re-cabal installing some libraries with
-profiling on that cabal had missed - is this supposed to be handled in
-the configure stage?
+after cabal stop complaining about libs without profiling on, tried to
+build the code and got errors like HSHunit_p library not found, this
+was fixed by re-cabal installing some libraries with profiling on that
+cabal had missed - why did it pick up on some libs, and not others?
 
 = uuagc
 
-compare with aspectag
-
-
+compare with aspectag - what are the upsides/downsides? Hypothetically
+speaking, could ehc be changed to use aspectag, if not, what are the
+limitations which would prevent this?
 
 = postgresql questions
 
 is a null literal treated as a unknown string for the purposes of
-function resolution, resultset resolution, etc.
+function resolution, resultset resolution, etc.?
 
 how does the function resolution work for polymorphic functions
 
@@ -51,7 +53,7 @@ what situations can an empty array type check successfully, and when
 is it rejected.
 
 is it possible to create a full view of all the casts that are used in
-implicit resolution, i.e. including the ones that aren't in pg_cast
+implicit, etc., resolution, i.e. including the ones that aren't in pg_cast
 
 is it correct to use the resolve result set type algo when determining
 the type of common fields in a natural or using join?
@@ -69,7 +71,9 @@ they are prefix, postfix or binary until later
 when is the b_expr parser used (should just need a grep over the
 grammar file)
 
-is the handling of between, coalesce, greatest, and least correct?
+is the handling of between, coalesce, greatest, and least correct
+(delegating the checks to <= operators or whatever, coalesce uses
+resultsetresolution)
 
 why doesn't this work:
 select

@@ -7,8 +7,7 @@ random implementation note:
 If you see one of these: TypeList [] - and don't get it - is used to
 represent a variety of different things, like node type checked ok
 when the node doesn't produce a type but can produce a type error,
-etc.. This could probably be reviewed and use a dedicated type or
-multiple dedicated types.
+etc.. This is just a hack that will be changed soon.
 
 > module AstUtils where
 
@@ -26,15 +25,15 @@ multiple dedicated types.
 
 used by the pretty printer, not sure this is a very good design
 
-> data OperatorType = BinaryOp | PrefixOp | PostfixOp
->                   deriving (Eq,Show)
-
 for now, assume that all the overloaded operators that have the
 same name are all either binary, prefix or postfix, otherwise the
 getoperatortype would need the types of the arguments to determine
 the operator type, and the parser would have to be a lot cleverer
 
 this is why binary @ operator isn't currently supported
+
+> data OperatorType = BinaryOp | PrefixOp | PostfixOp
+>                   deriving (Eq,Show)
 
 > getOperatorType :: String -> OperatorType
 > getOperatorType s = case () of
@@ -92,6 +91,9 @@ where
 
 The checkErrors function, and its auxiliary unkErr, does the error and
 unknown propagation.
+
+Once the annotations are done properly, type errors won't need to rise
+up the tree like this.
 
 == checkErrors
 
@@ -155,19 +157,17 @@ can wrap a type up in a domain and put a constraint on it there.
 == literals/selectors
 
 source strings are parsed as unknown type: they can be implicitly cast
-to almost any type in the right contexts.
+to almost any type in the right context.
 
 rows ctors can also be implicitly cast to any composite type matching
 the elements (now sure how exactly are they matched? - number of
-elements, type compatibility of elements, just by context?), type
-checking row constructors hasn't been done yet.
+elements, type compatibility of elements, just by context?).
 
 string literals are not checked for valid syntax currently, but this
 will probably change so we can type check string literals statically.
 Postgres defers all checking to runtime, because it has to cope with
-custom data types. This code isn't going to be able to support such
-custom data types very well, so it can get away with doing more static
-checks on this sort of thing.
+custom data types. This code will allow adding a grammar checker for
+each type so you can optionally check the string lits statically.
 
 == notes on type checking types
 
@@ -206,8 +206,8 @@ character(n), char(n) -> char(n)
 
 TODO:
 
-what about PrecTypeName? - need to fix the ast and parser (these are
-called type modifiers in pg)
+what about PrecTypeName? - need to fix the ast and parser (found out
+these are called type modifiers in pg)
 
 also, what can setof be applied to - don't know if it can apply to an
 array or setof type

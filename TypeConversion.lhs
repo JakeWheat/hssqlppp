@@ -424,11 +424,6 @@ findCallMatch is a bit of a mess
 >                                      any (==(from,to,ImplicitCastContext)) (scopeCasts scope)
 >
 
-> castableFromTo :: Scope -> Type -> Type -> Bool
-> castableFromTo scope from to = from == UnknownStringLit ||
->                                any (\(a,b,_) -> (a,b)==(from,to)) (scopeCasts scope)
-
-
 
 resolveResultSetType -
 partially implement the typing of results sets where the types aren't
@@ -497,9 +492,22 @@ todo:
 row ctor implicitly and explicitly cast to a composite type
 cast empty array, where else can an empty array work?
 
+================================================================================
+
+= checkAssignmentValue
+
+assignment is ok if:
+types are equal
+there is a cast from src to target
+
 > checkAssignmentValid :: Scope -> MySourcePos -> Type -> Type -> Type
 > checkAssignmentValid scope sp src tgt =
 >     case () of
 >       _ | src == tgt -> TypeList []
->         | castableFromTo scope src tgt -> TypeList []
+>         | assignCastableFromTo scope src tgt -> TypeList []
 >         | otherwise -> TypeError sp (IncompatibleTypes tgt src)
+
+> assignCastableFromTo :: Scope -> Type -> Type -> Bool
+> assignCastableFromTo scope from to = from == UnknownStringLit ||
+>                                any (`elem` [(from,to,ImplicitCastContext)
+>                                            ,(from,to,AssignmentCastContext)]) (scopeCasts scope)

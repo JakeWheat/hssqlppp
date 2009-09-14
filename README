@@ -11,7 +11,8 @@ more details on what is supported and unsupported.
 
 It also has the beginnings of a type checker, which currently can type
 check a large subset of expressions and selects that the parser can
-parse, but is in an early state.
+parse, but is in an early state. You can run the type checker on your
+SQL, see the 'usage' file for details.
 
 There is a command line wrapper, HsSqlSystem.lhs, which provides some
 utility functions to access some of the library code.
@@ -30,7 +31,7 @@ using cabal configure && cabal build in the usual way. It doesn't put
 any modules in a proper module hierarchy yet. I think it should work
 on all GHC 6.10.x and possibly also GHC 6.8.x.
 
-See the file development for some notes on how to work with the
+See the file 'development' for some notes on how to work with the
 source.
 
 The main dependencies of this project are: Parsec 3, HUnit, HDBC and
@@ -58,7 +59,8 @@ You can also report problems on the bug tracker on Launchpad. Let me
 know if you have any problems trying out the stuff in the 'usage'
 file, if you come across some SQL which doesn't parse or type check,
 and I'm also interested in surveying what other dialects of SQL you
-would be interested in using or contributing code for.
+would be interested in using or contributing code for, and if you want
+to fork the project (which is something I have nothing against).
 
 ================================================================================
 
@@ -83,11 +85,10 @@ expressions: subselects, in, row ctors, strings + dollar strings,
 also partially supports:
 insert (with multiple values and select support), update, delete (all
 three with returning)
-create table, type, view, domain
-all constraint types
-drop function, table, domain, type, view
-sort of skips copy statements instead of erroring
+create and drop table, type, view, domain
 create function for sql and plpgsql functions
+all constraint types
+sort of skips copy statements instead of erroring
 
 plpgsql statements:
         select into
@@ -110,7 +111,7 @@ Many things are missing at the moment, in particular
   create and drop apart from table, view, domain, type, function
   transaction commands
   triggers and trigger functions
-  loop statement
+  loop statement, labels
   error trapping
   cursors
 This is a non-exhaustive list.
@@ -124,21 +125,25 @@ direction. Please let me know if you encounter such an error.
 == Type checking
 
 Type checking supports a good subset of expressions and select
-statements that the parser parses (and nothing else). Development work
-is currently focused in this area, first to support most select
-statements, then insert, update and delete, and finally other DML and
-DDL.
+statements that the parser parses, and has basic support for insert,
+update, delete and the various create statements that the parser
+supports. Development work is currently focused in this area.
 
 = Other current downsides:
 
 The AST node types aren't well designed, in particular they contain
-almost no location information, and no other annotations. Still
-thinking about the best way to code this up.
+almost no location information, and no other annotations. This is due
+to be fixed and is near the top of the TODO list.
 
 Not much work has been done on correctly rejecting invalid SQL and not
-much thought has been put into error messages and error reporting yet.
+much thought has been put into error messages and error reporting yet,
+this is slowly improving, and at some point will become a major focus.
 
-No thought has been given in respects to supporting other SQL dialects.
+Supporting other SQL dialects: I think it might be realistic to
+support portable select, insert, update and delete with ?
+placeholders. I think cross platform DDL isn't ever going to be
+sensible in non toy databases, and if you wanted to use this utility
+e.g. support MySQL or MS SQL Server, start by forking the code.
 
 Future plans:
 
@@ -146,8 +151,7 @@ Future plans:
 
 * support type checking simple SQL statements that you'd embed in
   Haskell code, including with ? placeholders, to support generating
-  type safe wrappers (this placeholder version could be developed
-  separately and designed to work on more than just PostGreSQL);
+  type safe wrappers;
 
 * possibly a lightweight code generation/ simple macro support to help
   with developing more robust PL/pgSQL code.

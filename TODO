@@ -16,14 +16,14 @@ if a node has no source position e.g. the all in select all or select
    default if neither all or distinct is present. Should this have the
    source position of where the token would have appeared, should it
    inherit it from its parent, should there be a separate ctor to
-   represent this?
+   represent a fake node with no source position?
 
 The way the type checking will then work is that instead of producing
    some attribute values it will produce a transformed ast tree with
    the type and message fields filled in. Then supply some utility
    functions to e.g. extract all the messages, extract all the type
    errors, extract the top level types, etc. Use some sort of tree
-   walker to implement this utils
+   walker to implement these utils
 
 The way types and type errors will work is that instead of / in
    addition to the types being passed in attributes, they'll be saved
@@ -32,11 +32,11 @@ The way types and type errors will work is that instead of / in
    which need this type to calculate their own type, will use a
    separate error to say type unknown. If they can calculate their
    type without depending on a type erroring child node, then they do
-   that, so e.g. typing a set of statements with create functions
-   and views which use those functions: if the statements inside the
+   that, so e.g. typing a set of statements with create functions and
+   views which use those functions: if the statements inside the
    functions have type errors, we can still find the types of the
-   views, assuming that the function params and return type properly,
-   and are correct.
+   views, assuming that the function params and return type check
+   properly, and are correct.
 
 = Current TODO list
 
@@ -47,54 +47,32 @@ stage 1: do some stuff patchily to try to get a bunch of common sql
    most select statements)
 
 todos for this stage:
-typecheck insert, update and delete
 integrate create types into scope, plus do drops with scope
 chain scopes when showinfo-ing multiple files
 Pretty printer for statementinfo
 
 stage 2:
-make this useful by working on the showtypesdb function:
+make this useful by working on the showinfodb function:
 instead of interspersing the statementinfo with the pretty printed
    statements, insert or overwrite the statementinfo comments in the
    original source so we preserve formatting and other comments.
 use the type pretty printer to make the statementinfo comments more readable
 want to also output types of parts of statements, e.g. the select in a
-   for statement or insert, etc.. Will probably have to add explicit
-   annotation field to most of the ast nodes to hold the type of every
-   node (this can also be used to store more accurate source
-   positioning, amongst other things). Other things that could be
-   useful include adding the resolved function prototype for each
-   function used which has overloads so you can see which overload is
-   being called, write out the canonicalized ast: so e.g. we have all
-   the casts made explicit, etc.
+   for statement or insert, etc.. Other things that could be useful
+   include adding the resolved function prototype for each function
+   used which has overloads so you can see which overload is being
+   called, write out the canonicalized ast: so e.g. we have all the
+   casts made explicit, etc.
 With this in place, the code actually has some use for real code, in
    that we can use it to easily view the types of views, etc. inline
    in the real sql source code
 
 stage 3:
-
-run through and finish or note missing bits for select expressions:
-group by, having
-order by
-limit, offset
-combineselect
-joinon expression
-natural and using fields check
-natural xor join expression in joins
-some missing expression bits:
-exists
-inpredicate
-windowfn
-scalarsubquery
-rowctor
-casts
-
-stage 4:
 review and choose from this list:
 * do null inference
 * some selective fixups here and there to the typing (e.g. type
    checking constraints in create tables)
-* selectively add some missing syntax, to cover the most glaring holes
+* selectively add some missing syntax, to cover the most glaring hole
 * schema qualification
 * type check statements inside create function
 * something else from the todo for milestone 0.1 below
@@ -123,6 +101,8 @@ look at the error message formatting, particularly try to fix the
 add annotation field to most ast nodes, store type and source
    positioning in this field, fix parser to add lots of accurate
    positioning information when parsing.
+make sure the lint process works on text dumps of databases.
+try checking the sample databases: http://pgfoundry.org/projects/dbsamples/
 
 
 ================================================================================
@@ -203,16 +183,18 @@ in general, parsing operators is wrong, the lexer needs to be able to
 some other random ideas:
 
 null treatement
-Basic motivation is to keep nulls carefully walled off. For each
-   value, etc. we determine statically if it might be null. This can
-   be done for return types of functions, fields in a select
-   expression, etc.. (can also do mappings e.g. if a functions inputs
-   are all non null, then the output is non null, etc.). Once this is
-   working ok, the second stage is to implement the anti null nazi
-   warnings.
-Allow nulls in tables, outer joins, select expressions, and in
-   coalesce (maybe add or remove from this allowed list).
-Never allow nulls to be and argument to a function call, (including
+Basic motivation is to keep nulls carefully walled off, controlled,
+   and be able to catch them when they sneak back into expressions,
+   etc.. For each value, etc. we determine statically if it might be
+   null. This can be done for return types of functions, fields in a
+   select expression, etc.. (will do mappings e.g. if a functions
+   inputs are all non null, then the output is non null, etc.). Once
+   this is working ok, the second stage is to implement the anti null
+   warnings/ errors.
+Allow nulls in tables, outer joins, in coalesce, to be produced by
+   selects (maybe add or remove from this allowed list, maybe make it
+   configurable on a per project basis).
+Never allow nulls to be an argument to a function call, (including
    ops, keyword ops, etc.). So everytime you have a field being used
    in an expression and it cannot be statically verified to be non
    null, you have to insert a coalesce or fix it in some other way.
@@ -226,7 +208,6 @@ So nulls can still be used to represent optional values, n/a,
 * etc.,
 because none of these things are allowed.
 
-make sure the lint process works on text dumps of databases.
 
 parser, converter and pretty printer for explain output, want to view
    how a query is executed in human readable pseudocode. Add lint type
@@ -285,6 +266,9 @@ get property checker working again - one problem is that the pretty
    printer will reject some asts (which the parser cannot
    produce), and the parser will probably reject some invalid sql that
    the pretty printer will happily produce from some asts.
+
+ability to write new lint checks, and choose which lint checks to use
+   on a per project basis.
 
 plpgsql on 'roids:
 write libraries in haskell, and then write syntax extensions for
