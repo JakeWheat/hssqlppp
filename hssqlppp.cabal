@@ -23,6 +23,9 @@ extra-source-files:  README,
                      Database/HsSqlPpp/Ast.ag
                      Database/HsSqlPpp/TypeChecking.ag
                      Database/HsSqlPpp/DefaultScopeEmpty.hs
+                     sqltestfiles/system.sql
+                     sqltestfiles/server.sql
+                     sqltestfiles/client.sql
 
 Library
   Build-Depends:     base >= 3 && < 5,

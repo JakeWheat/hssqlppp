@@ -17,8 +17,8 @@ around hdbc for running commands and queries.
 
 > runSqlCommand :: (IConnection conn) =>
 >           conn -> String -> IO ()
-> runSqlCommand conn query {-args-} = do
->     run conn query [] {- $ map toSql args-}
+> runSqlCommand conn query = do
+>     run conn query []
 >     commit conn
 
 > withConn :: String -> (Pg.Connection -> IO c) -> IO c
@@ -27,7 +27,7 @@ around hdbc for running commands and queries.
 > selectValue :: (IConnection conn) =>
 >                conn -> String -> IO String
 > selectValue conn query = do
->   r <- quickQuery' conn query [] -- $ map sToSql args
+>   r <- quickQuery' conn query []
 >   case length r of
 >     0 -> error $ "select value on " ++ query ++
 >                         " returned 0 rows, expected 1"

@@ -40,6 +40,18 @@ are spread out in Ast.ag, AstUtils.lhs, TypeChecking.ag,
 TypeCheckingH.lhs and TypeType.lhs. (The little libs also used in the
 type checking are Scope.lhs, ScopeReader.lhs and TypeConversion.lhs.))
 
+Executables:
+
+HsSqlSystem.lhs: program to expose some functionality on the command
+                 line, mainly utilities to help with developing the
+                 source. Run './HsSqlSystem.lhs help' to list the
+                 commands.
+
+HsSqlPppTests.lhs: small file to pull together the tests from other test
+                   suites, and make them into an executable.
+
+Other source files, in Database/HsSqlppp/
+
 Ast.ag: uuagc source for the ast data types and the api functions for
         type checking asts.
 
@@ -69,11 +81,6 @@ DefaultScope.hs: generated file which contains the scope from a
                  useful. It's definitely quick enough to read this
                  information from a database at type checking time.
 
-HsSqlSystem.lhs: program to expose some functionality on the command
-                 line, mainly utilities to help with developing the
-                 source. Run './HsSqlSystem.lhs help' to list the
-                 commands.
-
 Lexer.lhs: small file to lex sql source code.
 
 ParseErrors.lhs: small utility to add a bit of extra value to parsec errors.
@@ -92,9 +99,6 @@ Scope.lhs: data type to store mainly information from the pg catalog,
 ScopeReader.lhs: utility to read a scope data type from a
                  database. Can access this function from
                  HsSqlSystem.lhs.
-
-Tests.lhs: small file to pull together the tests from other test
-           suites, and make them into an executable.
 
 TypeChecking.ag: the uuagc ATTR and SEM constructs used in type
                  checking, plus the smaller bits of type checking code

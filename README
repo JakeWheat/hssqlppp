@@ -26,9 +26,16 @@ them to see how well the code supports your SQL source.
 Most of the source files have plenty of comments, hopefully they can
 provide some illumination.
 
-It comes with a Cabal file, so you can compile it by unzipping and
-using cabal configure && cabal build in the usual way. I think it
-should work on all GHC 6.10.x and possibly also GHC 6.8.x.
+It is Cabal-installable, run:
+cabal update
+then
+cabal install hssqlppp
+to install HsSqlSystem executable (and the test runner), if you want
+to try the utilities out, or run
+cabal unpack hssqlppp
+to download and view the source code easily.
+
+I think it should work on all GHC 6.10.x and possibly also GHC 6.8.x.
 
 See the file 'development' for some notes on how to work with the
 source.
@@ -45,6 +52,9 @@ http://launchpad.net/hssqlppp/
 
 You can get the latest code using Bazaar:
 bzr branch lp:~jakewheat/hssqlppp/trunk
+
+HackageDB page:
+http://hackage.haskell.org/package/hssqlppp
 
 Contact
 

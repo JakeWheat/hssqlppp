@@ -72,7 +72,7 @@ review and choose from this list:
 * do null inference
 * some selective fixups here and there to the typing (e.g. type
    checking constraints in create tables)
-* selectively add some missing syntax, to cover the most glaring hole
+* selectively add some missing syntax, to cover the most glaring holes
 * schema qualification
 * type check statements inside create function
 * something else from the todo for milestone 0.1 below

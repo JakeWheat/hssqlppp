@@ -92,17 +92,9 @@ later on down the line.
 
 >                    -- mostly expected,got
 > data TypeErrorInfo = WrongTypes Type [Type]
->                    -- | WrongTypeList [Type] [Type]
->                    -- | WrongNumArgs Int Int
->                    -- | WrongType Type Type
->                    -- | NotArrayType Type
->                    -- | NeedOneOrMoreArgs
->                    -- | OtherTypeError String
 >                    | UnknownTypeError Type
 >                    | UnknownTypeName String
->                    -- | OperatorNeeds1Or2Args Int
 >                    | NoMatchingOperator String [Type]
->                    -- | MultipleMatchingOperators String [Type]
 >                    | TypelessEmptyArray
 >                    | IncompatibleTypeSet [Type]
 >                    | IncompatibleTypes Type Type
@@ -116,7 +108,6 @@ later on down the line.
 >                    | MissingJoinAttribute
 >                    | ExpressionMustBeBool
 >                    | WrongNumberOfColumns
->                    -- | InternalError String
 >                      deriving (Eq,Show)
 
 need this here because it is used in type errors - this should be
