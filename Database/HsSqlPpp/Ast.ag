@@ -79,6 +79,10 @@ MODULE {Database.HsSqlPpp.Ast}
    ,resetSps'
    ,nsp
 
+   --AstAnnotationForwards
+   ,Annotation
+   ,AnnotationElement(..)
+
    --astutils forwards
    ,OperatorType(..)
    ,getOperatorType
@@ -106,6 +110,8 @@ import Database.HsSqlPpp.TypeConversion
 import Database.HsSqlPpp.TypeCheckingH
 import Database.HsSqlPpp.Scope
 import Database.HsSqlPpp.ScopeData
+import Database.HsSqlPpp.AstAnnotation
+
 }
 
 {-
@@ -121,47 +127,57 @@ DATA Statement
 
 --queries
 
-    | SelectStatement ex:SelectExpression
+    | SelectStatement ann:Annotation ex:SelectExpression
 
 -- dml
 
     --table targetcolumns insertdata(values or select statement) returning
-    | Insert table : String
+    | Insert ann:Annotation
+             table : String
              targetCols : StringList
              insData : SelectExpression
              returning : (Maybe SelectList)
     --tablename setitems where returning
-    | Update table : String
+    | Update ann:Annotation
+             table : String
              assigns : SetClauseList
              whr : Where
              returning : (Maybe SelectList)
     --tablename, where, returning
-    | Delete table : String
+    | Delete ann:Annotation
+             table : String
              whr : Where
              returning : (Maybe SelectList)
     --tablename column names, from
-    | Copy table : String
+    | Copy ann:Annotation
+           table : String
            targetCols : StringList
            source : CopySource
     --represents inline data for copy statement
-    | CopyData insData : String
-    | Truncate tables: StringList
+    | CopyData ann:Annotation insData : String
+    | Truncate ann:Annotation
+               tables: StringList
                restartIdentity : RestartIdentity
                cascade : Cascade
 
 -- ddl
 
-    | CreateTable name : String
+    | CreateTable ann:Annotation
+                  name : String
                   atts : AttributeDefList
                   cons : ConstraintList
-    | CreateTableAs name : String
+    | CreateTableAs ann:Annotation
+                    name : String
                     expr : SelectExpression
-    | CreateView name : String
+    | CreateView ann:Annotation
+                 name : String
                  expr : SelectExpression
-    | CreateType name : String
+    | CreateType ann:Annotation
+                 name : String
                  atts : TypeAttributeDefList
     -- language name args rettype bodyquoteused body vol
-    | CreateFunction lang : Language
+    | CreateFunction ann:Annotation
+                     lang : Language
                      name : String
                      params : ParamDefList
                      rettype : TypeName
@@ -169,49 +185,65 @@ DATA Statement
                      body : FnBody
                      vol : Volatility
     -- name type checkexpression
-    | CreateDomain name : String
+    | CreateDomain ann:Annotation
+                   name : String
                    typ : TypeName
                    check : (Maybe Expression)
     -- ifexists (name,argtypes)* cascadeorrestrict
-    | DropFunction ifE : IfExists
+    | DropFunction ann:Annotation
+                   ifE : IfExists
                    sigs : StringStringListPairList
                    cascade : Cascade
     -- ifexists names cascadeorrestrict
-    | DropSomething dropType : DropType
+    | DropSomething ann:Annotation
+                    dropType : DropType
                     ifE : IfExists
                     names : StringList
                     cascade : Cascade
-    | Assignment target : String
+    | Assignment ann:Annotation
+                 target : String
                  value : Expression
-    | Return value : (Maybe Expression)
-    | ReturnNext expr : Expression
-    | ReturnQuery sel : SelectExpression
-    | Raise level : RaiseType
+    | Return ann:Annotation
+             value : (Maybe Expression)
+    | ReturnNext ann:Annotation
+                 expr : Expression
+    | ReturnQuery ann:Annotation
+                  sel : SelectExpression
+    | Raise ann:Annotation
+            level : RaiseType
             message : String
             args : ExpressionList
-    | NullStatement
-    | Perform expr : Expression
-    | Execute expr : Expression
-    | ExecuteInto expr : Expression
+    | NullStatement ann:Annotation
+    | Perform ann:Annotation
+              expr : Expression
+    | Execute ann:Annotation
+              expr : Expression
+    | ExecuteInto ann:Annotation
+                  expr : Expression
                   targets : StringList
-    | ForSelectStatement var : String
+    | ForSelectStatement ann:Annotation
+                         var : String
                          sel : SelectExpression
                          sts : StatementList
-    | ForIntegerStatement var : String
+    | ForIntegerStatement ann:Annotation
+                          var : String
                           from : Expression
                           to : Expression
                           sts : StatementList
-    | WhileStatement expr : Expression
+    | WhileStatement ann:Annotation
+                     expr : Expression
                      sts : StatementList
-    | ContinueStatement
+    | ContinueStatement ann:Annotation
     --variable, list of when parts, else part
-    | CaseStatement val : Expression
+    | CaseStatement ann:Annotation
+                    val : Expression
                     cases : ExpressionListStatementListPairList
                     els : StatementList
     --list is
     --first if (condition, statements):elseifs(condition, statements)
     --last bit is else statements
-    | If cases : ExpressionStatementListPairList
+    | If ann:Annotation
+         cases : ExpressionStatementListPairList
          els : StatementList
 
 -- =============================================================================
@@ -628,15 +660,15 @@ resetSps :: [Statement] -> [Statement]
 resetSps = map resetSp
 
 resetSp :: Statement -> Statement
-resetSp (CreateFunction l n p r bq b v) = CreateFunction l n p r bq
+resetSp (CreateFunction a l n p r bq b v) = CreateFunction a l n p r bq
                                               (case b of
                                                 SqlFnBody stss -> SqlFnBody (map resetSp' stss)
                                                 PlpgsqlFnBody vd stss -> PlpgsqlFnBody vd (map resetSp' stss))
                                             v
-resetSp (ForSelectStatement v s stss) = ForSelectStatement v s (map resetSp' stss)
-resetSp (ForIntegerStatement v f t stss) = ForIntegerStatement v f t (map resetSp' stss)
-resetSp (CaseStatement v cs els) = CaseStatement v (map (second (map resetSp')) cs) (map resetSp' els)
-resetSp (If cs els) = If (map (second (map resetSp')) cs) (map resetSp' els)
+resetSp (ForSelectStatement a v s stss) = ForSelectStatement a v s (map resetSp' stss)
+resetSp (ForIntegerStatement a v f t stss) = ForIntegerStatement a v f t (map resetSp' stss)
+resetSp (CaseStatement a v cs els) = CaseStatement a v (map (second (map resetSp')) cs) (map resetSp' els)
+resetSp (If a cs els) = If a (map (second (map resetSp')) cs) (map resetSp' els)
 resetSp a = a
 
 resetSp' :: SourcePosStatement -> SourcePosStatement

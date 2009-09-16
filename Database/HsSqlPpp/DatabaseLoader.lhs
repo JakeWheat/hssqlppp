@@ -68,20 +68,20 @@ This code is currently on the backburner, and is a massive mess.
 >     filterStatements sts =
 >        map (\((xsrcp, x),(_,y)) ->
 >                 case (x,y) of
->                        (a@(Copy _ _ Stdin), b@(CopyData _)) -> (xsrcp,CopyStdin a b)
->                        (CopyData _, _) -> (xsrcp, Skipit)
+>                        (a@(Copy _ _ _ Stdin), b@(CopyData _ _)) -> (xsrcp,CopyStdin a b)
+>                        (CopyData _ _, _) -> (xsrcp, Skipit)
 >                        (vs,_) -> (xsrcp, VanillaStatement vs))
 >            statementWithNextStatement
 >            where
 >              statementWithNextStatement =
->                  zip sts (tail sts ++ [(("",0,0), NullStatement)])
+>                  zip sts (tail sts ++ [(("",0,0), NullStatement [])])
 >     runCopy conn a b srcp = case (a,b) of
->                          (Copy tb cl Stdin, CopyData s) ->
+>                          (Copy _ tb cl Stdin, CopyData _ s) ->
 >                            withTemporaryFile (\tfn -> do
 >                                writeFile tfn s
 >                                tfn1 <- canonicalizePath tfn
 >                                loadStatement conn
->                                  (srcp, VanillaStatement (Copy tb cl
+>                                  (srcp, VanillaStatement (Copy [] tb cl
 >                                                     (CopyFilename tfn1))))
 >                          _ -> error "internal error: pattern match fail in runCopy in loadIntoDatabase"
 >     loadPlpgsqlIntoDatabase conn = do

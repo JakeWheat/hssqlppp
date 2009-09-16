@@ -17,6 +17,7 @@ grammar code and aren't exposed.
 > data AnnotationElement = SourcePos String Int Int
 >                        | TypeAnnotation
 >                        | TypeErrorA TypeErrorInfo
+>                          deriving (Eq, Show)
 
 sourcepos
 types

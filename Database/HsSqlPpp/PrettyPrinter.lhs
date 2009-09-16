@@ -43,19 +43,19 @@ Conversion routines - convert Sql asts into Docs
 
 == selects
 
-> convStatement (SelectStatement s) =
+> convStatement (SelectStatement _ s) =
 >   convSelectExpression True s <> statementEnd
 
 == dml
 
-> convStatement (Insert tb atts idata rt) =
+> convStatement (Insert _ tb atts idata rt) =
 >   text "insert into" <+> text tb
 >   <+> ifNotEmpty (parens . hcatCsvMap text) atts
 >   $+$ convSelectExpression True idata
 >   $+$ convReturning rt
 >   <> statementEnd
 
-> convStatement (Update tb scs wh rt) =
+> convStatement (Update _ tb scs wh rt) =
 >    text "update" <+> text tb <+> text "set"
 >    <+> hcatCsvMap convSetClause scs
 >    <+> convWhere wh
@@ -67,12 +67,12 @@ Conversion routines - convert Sql asts into Docs
 >        <+> text "="
 >        <+> parens (hcatCsvMap convExp exs)
 
-> convStatement (Delete tbl wh rt) = text "delete from" <+> text tbl
+> convStatement (Delete _ tbl wh rt) = text "delete from" <+> text tbl
 >                                 <+> convWhere wh
 >                                 $+$ convReturning rt
 >                                 <> statementEnd
 
-> convStatement (Truncate names ri casc) =
+> convStatement (Truncate _ names ri casc) =
 >     text "truncate"
 >     <+> hcatCsvMap text names
 >     <+> text (case ri of
@@ -83,7 +83,7 @@ Conversion routines - convert Sql asts into Docs
 
 == ddl
 
-> convStatement (CreateTable tbl atts cns) =
+> convStatement (CreateTable _ tbl atts cns) =
 >     text "create table"
 >     <+> text tbl <+> lparen
 
@@ -120,13 +120,13 @@ Conversion routines - convert Sql asts into Docs
 
 
 
-> convStatement (CreateTableAs t sel) =
+> convStatement (CreateTableAs _ t sel) =
 >     text "create table"
 >     <+> text t <+> text "as"
 >     $+$ convSelectExpression True sel
 >     <> statementEnd
 
-> convStatement (CreateFunction lang name args retType qt body vol) =
+> convStatement (CreateFunction _ lang name args retType qt body vol) =
 >     text "create function" <+> text name
 >     <+> parens (hcatCsvMap convParamDef args)
 >     <+> text "returns" <+> convTypeName retType <+> text "as" <+> text qt
@@ -156,17 +156,17 @@ Conversion routines - convert Sql asts into Docs
 
 
 
-> convStatement (CreateView name sel) =
+> convStatement (CreateView _ name sel) =
 >     text "create view" <+> text name <+> text "as"
 >     $+$ nest 2 (convSelectExpression True sel) <> statementEnd
 
-> convStatement (CreateDomain name tp ex) =
+> convStatement (CreateDomain _ name tp ex) =
 >     text "create domain" <+> text name <+> text "as"
 >     <+> convTypeName tp <+> checkExp ex <> statementEnd
 >     where
 >       checkExp = maybeConv (\e -> text "check" <+> parens (convExp e))
 
-> convStatement (DropFunction ifExists fns casc) =
+> convStatement (DropFunction _ ifExists fns casc) =
 >   text "drop function"
 >   <+> convIfExists ifExists
 >   <+> hcatCsvMap doFunction fns
@@ -175,7 +175,7 @@ Conversion routines - convert Sql asts into Docs
 >   where
 >     doFunction (name,types) = text name <> parens (hcatCsvMap text types)
 
-> convStatement (DropSomething dropType ifExists names casc) =
+> convStatement (DropSomething _ dropType ifExists names casc) =
 >     text "drop"
 >     <+> text (case dropType of
 >                 Table -> "table"
@@ -187,7 +187,7 @@ Conversion routines - convert Sql asts into Docs
 >     <+> convCasc casc
 >     <> statementEnd
 
-> convStatement (CreateType name atts) =
+> convStatement (CreateType _ name atts) =
 >     text "create type" <+> text name <+> text "as" <+> lparen
 >     $+$ nest 2 (vcat (csv
 >           (map (\(TypeAttDef n t) -> text n <+> convTypeName t)  atts)))
@@ -195,22 +195,22 @@ Conversion routines - convert Sql asts into Docs
 
 == plpgsql
 
-> convStatement NullStatement = text "null" <> statementEnd
+> convStatement (NullStatement _) = text "null" <> statementEnd
 
-> convStatement (Assignment name val) =
+> convStatement (Assignment _ name val) =
 >     text name <+> text ":=" <+> convExp val <> statementEnd
 
-> convStatement (Return ex) =
+> convStatement (Return _ ex) =
 >     text "return" <+> maybeConv convExp ex <> statementEnd
 
-> convStatement (ReturnNext ex) =
+> convStatement (ReturnNext _ ex) =
 >     text "return" <+> text "next" <+> convExp ex <> statementEnd
 
-> convStatement (ReturnQuery sel) =
+> convStatement (ReturnQuery _ sel) =
 >     text "return" <+> text "query"
 >     <+> convSelectExpression True sel <> statementEnd
 
-> convStatement (Raise rt st exps) =
+> convStatement (Raise _ rt st exps) =
 >     text "raise"
 >     <+> case rt of
 >                 RNotice -> text "notice"
@@ -220,31 +220,31 @@ Conversion routines - convert Sql asts into Docs
 >     <> ifNotEmpty (\e -> comma <+> csvExp e) exps
 >     <> statementEnd
 
-> convStatement (ForSelectStatement i sel stmts) =
+> convStatement (ForSelectStatement _ i sel stmts) =
 >     text "for" <+> text i <+> text "in"
 >     <+> convSelectExpression True sel <+> text "loop"
 >     $+$ convNestedStatements stmts
 >     $+$ text "end loop" <> statementEnd
 
-> convStatement (ForIntegerStatement var st en stmts) =
+> convStatement (ForIntegerStatement _ var st en stmts) =
 >     text "for" <+> text var <+> text "in"
 >     <+> convExp st <+> text ".." <+> convExp en <+> text "loop"
 >     $+$ convNestedStatements stmts
 >     $+$ text "end loop" <> statementEnd
 
-> convStatement (WhileStatement ex stmts) =
+> convStatement (WhileStatement _ ex stmts) =
 >     text "while" <+> convExp ex <+> text "loop"
 >     $+$ convNestedStatements stmts
 >     $+$ text "end loop" <> statementEnd
 
-> convStatement (ContinueStatement) = text "continue" <> statementEnd
+> convStatement (ContinueStatement _) = text "continue" <> statementEnd
 
-> convStatement (Perform f@(FunCall _ _)) =
+> convStatement (Perform _ f@(FunCall _ _)) =
 >     text "perform" <+> convExp f <> statementEnd
-> convStatement (Perform x) =
+> convStatement (Perform _ x) =
 >    error $ "internal error: convStatement not supported for " ++ show x
 
-> convStatement (Copy tb cols src) =
+> convStatement (Copy _ tb cols src) =
 >     text "copy" <+> text tb
 >     <+> ifNotEmpty (parens . hcatCsvMap text) cols
 >     <+> text "from" <+> case src of
@@ -252,9 +252,9 @@ Conversion routines - convert Sql asts into Docs
 >                                  Stdin -> text "stdin"
 >     <> statementEnd
 
-> convStatement (CopyData s) = text s <> text "\\." <> newline
+> convStatement (CopyData _ s) = text s <> text "\\." <> newline
 
-> convStatement (If conds els) =
+> convStatement (If _ conds els) =
 >    text "if" <+> convCond (head conds)
 >    $+$ vcat (map (\c -> text "elseif" <+> convCond c) $ tail conds)
 >    $+$ ifNotEmpty (\e -> text "else" $+$ convNestedStatements e) els
@@ -262,12 +262,12 @@ Conversion routines - convert Sql asts into Docs
 >     where
 >       convCond (ex, sts) = convExp ex <+> text "then"
 >                            $+$ convNestedStatements sts
-> convStatement (Execute s) = text "execute" <+> convExp s <> statementEnd
-> convStatement (ExecuteInto s is) = text "execute" <+> convExp s
+> convStatement (Execute _ s) = text "execute" <+> convExp s <> statementEnd
+> convStatement (ExecuteInto _ s is) = text "execute" <+> convExp s
 >                                    <+> text "into" <+> hcatCsvMap text is
 >                                    <> statementEnd
 
-> convStatement (CaseStatement c conds els) =
+> convStatement (CaseStatement _ c conds els) =
 >     text "case" <+> convExp c
 >     $+$ nest 2 (
 >                 vcat (map (uncurry convWhenSt) conds)

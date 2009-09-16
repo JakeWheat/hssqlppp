@@ -50,6 +50,10 @@ module Database.HsSqlPpp.Ast(
    ,resetSps'
    ,nsp
 
+   --AstAnnotationForwards
+   ,Annotation
+   ,AnnotationElement(..)
+
    --astutils forwards
    ,OperatorType(..)
    ,getOperatorType
@@ -77,6 +81,8 @@ import Database.HsSqlPpp.TypeConversion
 import Database.HsSqlPpp.TypeCheckingH
 import Database.HsSqlPpp.Scope
 import Database.HsSqlPpp.ScopeData
+import Database.HsSqlPpp.AstAnnotation
+
 
 
 checkAst :: StatementList -> [Message]
@@ -128,15 +134,15 @@ resetSps :: [Statement] -> [Statement]
 resetSps = map resetSp
 
 resetSp :: Statement -> Statement
-resetSp (CreateFunction l n p r bq b v) = CreateFunction l n p r bq
+resetSp (CreateFunction a l n p r bq b v) = CreateFunction a l n p r bq
                                               (case b of
                                                 SqlFnBody stss -> SqlFnBody (map resetSp' stss)
                                                 PlpgsqlFnBody vd stss -> PlpgsqlFnBody vd (map resetSp' stss))
                                             v
-resetSp (ForSelectStatement v s stss) = ForSelectStatement v s (map resetSp' stss)
-resetSp (ForIntegerStatement v f t stss) = ForIntegerStatement v f t (map resetSp' stss)
-resetSp (CaseStatement v cs els) = CaseStatement v (map (second (map resetSp')) cs) (map resetSp' els)
-resetSp (If cs els) = If (map (second (map resetSp')) cs) (map resetSp' els)
+resetSp (ForSelectStatement a v s stss) = ForSelectStatement a v s (map resetSp' stss)
+resetSp (ForIntegerStatement a v f t stss) = ForIntegerStatement a v f t (map resetSp' stss)
+resetSp (CaseStatement a v cs els) = CaseStatement a v (map (second (map resetSp')) cs) (map resetSp' els)
+resetSp (If a cs els) = If a (map (second (map resetSp')) cs) (map resetSp' els)
 resetSp a = a
 
 resetSp' :: SourcePosStatement -> SourcePosStatement
@@ -4906,100 +4912,100 @@ sem_SourcePosStatement_Tuple x1_ x2_  =
                   (x2_ _x2ObackType _x2OinLoop _x2Oscope _x2OsourcePos )
           in  ( _lhsOactualValue,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
 -- Statement ---------------------------------------------------
-data Statement  = Assignment (String) (Expression) 
-                | CaseStatement (Expression) (ExpressionListStatementListPairList) (StatementList) 
-                | ContinueStatement 
-                | Copy (String) (StringList) (CopySource) 
-                | CopyData (String) 
-                | CreateDomain (String) (TypeName) (Maybe Expression) 
-                | CreateFunction (Language) (String) (ParamDefList) (TypeName) (String) (FnBody) (Volatility) 
-                | CreateTable (String) (AttributeDefList) (ConstraintList) 
-                | CreateTableAs (String) (SelectExpression) 
-                | CreateType (String) (TypeAttributeDefList) 
-                | CreateView (String) (SelectExpression) 
-                | Delete (String) (Where) (Maybe SelectList) 
-                | DropFunction (IfExists) (StringStringListPairList) (Cascade) 
-                | DropSomething (DropType) (IfExists) (StringList) (Cascade) 
-                | Execute (Expression) 
-                | ExecuteInto (Expression) (StringList) 
-                | ForIntegerStatement (String) (Expression) (Expression) (StatementList) 
-                | ForSelectStatement (String) (SelectExpression) (StatementList) 
-                | If (ExpressionStatementListPairList) (StatementList) 
-                | Insert (String) (StringList) (SelectExpression) (Maybe SelectList) 
-                | NullStatement 
-                | Perform (Expression) 
-                | Raise (RaiseType) (String) (ExpressionList) 
-                | Return (Maybe Expression) 
-                | ReturnNext (Expression) 
-                | ReturnQuery (SelectExpression) 
-                | SelectStatement (SelectExpression) 
-                | Truncate (StringList) (RestartIdentity) (Cascade) 
-                | Update (String) (SetClauseList) (Where) (Maybe SelectList) 
-                | WhileStatement (Expression) (StatementList) 
+data Statement  = Assignment (Annotation) (String) (Expression) 
+                | CaseStatement (Annotation) (Expression) (ExpressionListStatementListPairList) (StatementList) 
+                | ContinueStatement (Annotation) 
+                | Copy (Annotation) (String) (StringList) (CopySource) 
+                | CopyData (Annotation) (String) 
+                | CreateDomain (Annotation) (String) (TypeName) (Maybe Expression) 
+                | CreateFunction (Annotation) (Language) (String) (ParamDefList) (TypeName) (String) (FnBody) (Volatility) 
+                | CreateTable (Annotation) (String) (AttributeDefList) (ConstraintList) 
+                | CreateTableAs (Annotation) (String) (SelectExpression) 
+                | CreateType (Annotation) (String) (TypeAttributeDefList) 
+                | CreateView (Annotation) (String) (SelectExpression) 
+                | Delete (Annotation) (String) (Where) (Maybe SelectList) 
+                | DropFunction (Annotation) (IfExists) (StringStringListPairList) (Cascade) 
+                | DropSomething (Annotation) (DropType) (IfExists) (StringList) (Cascade) 
+                | Execute (Annotation) (Expression) 
+                | ExecuteInto (Annotation) (Expression) (StringList) 
+                | ForIntegerStatement (Annotation) (String) (Expression) (Expression) (StatementList) 
+                | ForSelectStatement (Annotation) (String) (SelectExpression) (StatementList) 
+                | If (Annotation) (ExpressionStatementListPairList) (StatementList) 
+                | Insert (Annotation) (String) (StringList) (SelectExpression) (Maybe SelectList) 
+                | NullStatement (Annotation) 
+                | Perform (Annotation) (Expression) 
+                | Raise (Annotation) (RaiseType) (String) (ExpressionList) 
+                | Return (Annotation) (Maybe Expression) 
+                | ReturnNext (Annotation) (Expression) 
+                | ReturnQuery (Annotation) (SelectExpression) 
+                | SelectStatement (Annotation) (SelectExpression) 
+                | Truncate (Annotation) (StringList) (RestartIdentity) (Cascade) 
+                | Update (Annotation) (String) (SetClauseList) (Where) (Maybe SelectList) 
+                | WhileStatement (Annotation) (Expression) (StatementList) 
                 deriving ( Eq,Show)
 -- cata
 sem_Statement :: Statement  ->
                  T_Statement 
-sem_Statement (Assignment _target _value )  =
-    (sem_Statement_Assignment _target (sem_Expression _value ) )
-sem_Statement (CaseStatement _val _cases _els )  =
-    (sem_Statement_CaseStatement (sem_Expression _val ) (sem_ExpressionListStatementListPairList _cases ) (sem_StatementList _els ) )
-sem_Statement (ContinueStatement )  =
-    (sem_Statement_ContinueStatement )
-sem_Statement (Copy _table _targetCols _source )  =
-    (sem_Statement_Copy _table (sem_StringList _targetCols ) (sem_CopySource _source ) )
-sem_Statement (CopyData _insData )  =
-    (sem_Statement_CopyData _insData )
-sem_Statement (CreateDomain _name _typ _check )  =
-    (sem_Statement_CreateDomain _name (sem_TypeName _typ ) _check )
-sem_Statement (CreateFunction _lang _name _params _rettype _bodyQuote _body _vol )  =
-    (sem_Statement_CreateFunction (sem_Language _lang ) _name (sem_ParamDefList _params ) (sem_TypeName _rettype ) _bodyQuote (sem_FnBody _body ) (sem_Volatility _vol ) )
-sem_Statement (CreateTable _name _atts _cons )  =
-    (sem_Statement_CreateTable _name (sem_AttributeDefList _atts ) (sem_ConstraintList _cons ) )
-sem_Statement (CreateTableAs _name _expr )  =
-    (sem_Statement_CreateTableAs _name (sem_SelectExpression _expr ) )
-sem_Statement (CreateType _name _atts )  =
-    (sem_Statement_CreateType _name (sem_TypeAttributeDefList _atts ) )
-sem_Statement (CreateView _name _expr )  =
-    (sem_Statement_CreateView _name (sem_SelectExpression _expr ) )
-sem_Statement (Delete _table _whr _returning )  =
-    (sem_Statement_Delete _table (sem_Where _whr ) _returning )
-sem_Statement (DropFunction _ifE _sigs _cascade )  =
-    (sem_Statement_DropFunction (sem_IfExists _ifE ) (sem_StringStringListPairList _sigs ) (sem_Cascade _cascade ) )
-sem_Statement (DropSomething _dropType _ifE _names _cascade )  =
-    (sem_Statement_DropSomething (sem_DropType _dropType ) (sem_IfExists _ifE ) (sem_StringList _names ) (sem_Cascade _cascade ) )
-sem_Statement (Execute _expr )  =
-    (sem_Statement_Execute (sem_Expression _expr ) )
-sem_Statement (ExecuteInto _expr _targets )  =
-    (sem_Statement_ExecuteInto (sem_Expression _expr ) (sem_StringList _targets ) )
-sem_Statement (ForIntegerStatement _var _from _to _sts )  =
-    (sem_Statement_ForIntegerStatement _var (sem_Expression _from ) (sem_Expression _to ) (sem_StatementList _sts ) )
-sem_Statement (ForSelectStatement _var _sel _sts )  =
-    (sem_Statement_ForSelectStatement _var (sem_SelectExpression _sel ) (sem_StatementList _sts ) )
-sem_Statement (If _cases _els )  =
-    (sem_Statement_If (sem_ExpressionStatementListPairList _cases ) (sem_StatementList _els ) )
-sem_Statement (Insert _table _targetCols _insData _returning )  =
-    (sem_Statement_Insert _table (sem_StringList _targetCols ) (sem_SelectExpression _insData ) _returning )
-sem_Statement (NullStatement )  =
-    (sem_Statement_NullStatement )
-sem_Statement (Perform _expr )  =
-    (sem_Statement_Perform (sem_Expression _expr ) )
-sem_Statement (Raise _level _message _args )  =
-    (sem_Statement_Raise (sem_RaiseType _level ) _message (sem_ExpressionList _args ) )
-sem_Statement (Return _value )  =
-    (sem_Statement_Return _value )
-sem_Statement (ReturnNext _expr )  =
-    (sem_Statement_ReturnNext (sem_Expression _expr ) )
-sem_Statement (ReturnQuery _sel )  =
-    (sem_Statement_ReturnQuery (sem_SelectExpression _sel ) )
-sem_Statement (SelectStatement _ex )  =
-    (sem_Statement_SelectStatement (sem_SelectExpression _ex ) )
-sem_Statement (Truncate _tables _restartIdentity _cascade )  =
-    (sem_Statement_Truncate (sem_StringList _tables ) (sem_RestartIdentity _restartIdentity ) (sem_Cascade _cascade ) )
-sem_Statement (Update _table _assigns _whr _returning )  =
-    (sem_Statement_Update _table (sem_SetClauseList _assigns ) (sem_Where _whr ) _returning )
-sem_Statement (WhileStatement _expr _sts )  =
-    (sem_Statement_WhileStatement (sem_Expression _expr ) (sem_StatementList _sts ) )
+sem_Statement (Assignment _ann _target _value )  =
+    (sem_Statement_Assignment _ann _target (sem_Expression _value ) )
+sem_Statement (CaseStatement _ann _val _cases _els )  =
+    (sem_Statement_CaseStatement _ann (sem_Expression _val ) (sem_ExpressionListStatementListPairList _cases ) (sem_StatementList _els ) )
+sem_Statement (ContinueStatement _ann )  =
+    (sem_Statement_ContinueStatement _ann )
+sem_Statement (Copy _ann _table _targetCols _source )  =
+    (sem_Statement_Copy _ann _table (sem_StringList _targetCols ) (sem_CopySource _source ) )
+sem_Statement (CopyData _ann _insData )  =
+    (sem_Statement_CopyData _ann _insData )
+sem_Statement (CreateDomain _ann _name _typ _check )  =
+    (sem_Statement_CreateDomain _ann _name (sem_TypeName _typ ) _check )
+sem_Statement (CreateFunction _ann _lang _name _params _rettype _bodyQuote _body _vol )  =
+    (sem_Statement_CreateFunction _ann (sem_Language _lang ) _name (sem_ParamDefList _params ) (sem_TypeName _rettype ) _bodyQuote (sem_FnBody _body ) (sem_Volatility _vol ) )
+sem_Statement (CreateTable _ann _name _atts _cons )  =
+    (sem_Statement_CreateTable _ann _name (sem_AttributeDefList _atts ) (sem_ConstraintList _cons ) )
+sem_Statement (CreateTableAs _ann _name _expr )  =
+    (sem_Statement_CreateTableAs _ann _name (sem_SelectExpression _expr ) )
+sem_Statement (CreateType _ann _name _atts )  =
+    (sem_Statement_CreateType _ann _name (sem_TypeAttributeDefList _atts ) )
+sem_Statement (CreateView _ann _name _expr )  =
+    (sem_Statement_CreateView _ann _name (sem_SelectExpression _expr ) )
+sem_Statement (Delete _ann _table _whr _returning )  =
+    (sem_Statement_Delete _ann _table (sem_Where _whr ) _returning )
+sem_Statement (DropFunction _ann _ifE _sigs _cascade )  =
+    (sem_Statement_DropFunction _ann (sem_IfExists _ifE ) (sem_StringStringListPairList _sigs ) (sem_Cascade _cascade ) )
+sem_Statement (DropSomething _ann _dropType _ifE _names _cascade )  =
+    (sem_Statement_DropSomething _ann (sem_DropType _dropType ) (sem_IfExists _ifE ) (sem_StringList _names ) (sem_Cascade _cascade ) )
+sem_Statement (Execute _ann _expr )  =
+    (sem_Statement_Execute _ann (sem_Expression _expr ) )
+sem_Statement (ExecuteInto _ann _expr _targets )  =
+    (sem_Statement_ExecuteInto _ann (sem_Expression _expr ) (sem_StringList _targets ) )
+sem_Statement (ForIntegerStatement _ann _var _from _to _sts )  =
+    (sem_Statement_ForIntegerStatement _ann _var (sem_Expression _from ) (sem_Expression _to ) (sem_StatementList _sts ) )
+sem_Statement (ForSelectStatement _ann _var _sel _sts )  =
+    (sem_Statement_ForSelectStatement _ann _var (sem_SelectExpression _sel ) (sem_StatementList _sts ) )
+sem_Statement (If _ann _cases _els )  =
+    (sem_Statement_If _ann (sem_ExpressionStatementListPairList _cases ) (sem_StatementList _els ) )
+sem_Statement (Insert _ann _table _targetCols _insData _returning )  =
+    (sem_Statement_Insert _ann _table (sem_StringList _targetCols ) (sem_SelectExpression _insData ) _returning )
+sem_Statement (NullStatement _ann )  =
+    (sem_Statement_NullStatement _ann )
+sem_Statement (Perform _ann _expr )  =
+    (sem_Statement_Perform _ann (sem_Expression _expr ) )
+sem_Statement (Raise _ann _level _message _args )  =
+    (sem_Statement_Raise _ann (sem_RaiseType _level ) _message (sem_ExpressionList _args ) )
+sem_Statement (Return _ann _value )  =
+    (sem_Statement_Return _ann _value )
+sem_Statement (ReturnNext _ann _expr )  =
+    (sem_Statement_ReturnNext _ann (sem_Expression _expr ) )
+sem_Statement (ReturnQuery _ann _sel )  =
+    (sem_Statement_ReturnQuery _ann (sem_SelectExpression _sel ) )
+sem_Statement (SelectStatement _ann _ex )  =
+    (sem_Statement_SelectStatement _ann (sem_SelectExpression _ex ) )
+sem_Statement (Truncate _ann _tables _restartIdentity _cascade )  =
+    (sem_Statement_Truncate _ann (sem_StringList _tables ) (sem_RestartIdentity _restartIdentity ) (sem_Cascade _cascade ) )
+sem_Statement (Update _ann _table _assigns _whr _returning )  =
+    (sem_Statement_Update _ann _table (sem_SetClauseList _assigns ) (sem_Where _whr ) _returning )
+sem_Statement (WhileStatement _ann _expr _sts )  =
+    (sem_Statement_WhileStatement _ann (sem_Expression _expr ) (sem_StatementList _sts ) )
 -- semantic domain
 type T_Statement  = Type ->
                     Bool ->
@@ -5015,10 +5021,11 @@ wrap_Statement sem (Inh_Statement _lhsIbackType _lhsIinLoop _lhsIscope _lhsIsour
     (let ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo) =
              (sem _lhsIbackType _lhsIinLoop _lhsIscope _lhsIsourcePos )
      in  (Syn_Statement _lhsOactualValue _lhsObackType _lhsOmessages _lhsOnodeType _lhsOstatementInfo ))
-sem_Statement_Assignment :: String ->
+sem_Statement_Assignment :: Annotation ->
+                            String ->
                             T_Expression  ->
                             T_Statement 
-sem_Statement_Assignment target_ value_  =
+sem_Statement_Assignment ann_ target_ value_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5042,7 +5049,7 @@ sem_Statement_Assignment target_ value_  =
               _lhsOnodeType =
                   _valueInodeType
               _actualValue =
-                  Assignment target_ _valueIactualValue
+                  Assignment ann_ target_ _valueIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5056,11 +5063,12 @@ sem_Statement_Assignment target_ value_  =
               ( _valueIactualValue,_valueIliftedColumnName,_valueImessages,_valueInodeType) =
                   (value_ _valueOinLoop _valueOscope _valueOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_CaseStatement :: T_Expression  ->
+sem_Statement_CaseStatement :: Annotation ->
+                               T_Expression  ->
                                T_ExpressionListStatementListPairList  ->
                                T_StatementList  ->
                                T_Statement 
-sem_Statement_CaseStatement val_ cases_ els_  =
+sem_Statement_CaseStatement ann_ val_ cases_ els_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5097,7 +5105,7 @@ sem_Statement_CaseStatement val_ cases_ els_  =
               _lhsOnodeType =
                   _valInodeType `setUnknown` _casesInodeType `setUnknown` _elsInodeType
               _actualValue =
-                  CaseStatement _valIactualValue _casesIactualValue _elsIactualValue
+                  CaseStatement ann_ _valIactualValue _casesIactualValue _elsIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5127,8 +5135,9 @@ sem_Statement_CaseStatement val_ cases_ els_  =
               ( _elsIactualValue,_elsImessages,_elsInodeType,_elsIstatementInfo) =
                   (els_ _elsOinLoop _elsOscope _elsOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_ContinueStatement :: T_Statement 
-sem_Statement_ContinueStatement  =
+sem_Statement_ContinueStatement :: Annotation ->
+                                   T_Statement 
+sem_Statement_ContinueStatement ann_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5147,17 +5156,18 @@ sem_Statement_ContinueStatement  =
               _lhsOnodeType =
                   UnknownType
               _actualValue =
-                  ContinueStatement
+                  ContinueStatement ann_
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
                   _lhsIbackType
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_Copy :: String ->
+sem_Statement_Copy :: Annotation ->
+                      String ->
                       T_StringList  ->
                       T_CopySource  ->
                       T_Statement 
-sem_Statement_Copy table_ targetCols_ source_  =
+sem_Statement_Copy ann_ table_ targetCols_ source_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5187,7 +5197,7 @@ sem_Statement_Copy table_ targetCols_ source_  =
               _lhsOnodeType =
                   _targetColsInodeType `setUnknown` _sourceInodeType
               _actualValue =
-                  Copy table_ _targetColsIactualValue _sourceIactualValue
+                  Copy ann_ table_ _targetColsIactualValue _sourceIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5209,9 +5219,10 @@ sem_Statement_Copy table_ targetCols_ source_  =
               ( _sourceIactualValue,_sourceImessages,_sourceInodeType) =
                   (source_ _sourceOinLoop _sourceOscope _sourceOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_CopyData :: String ->
+sem_Statement_CopyData :: Annotation ->
+                          String ->
                           T_Statement 
-sem_Statement_CopyData insData_  =
+sem_Statement_CopyData ann_ insData_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5228,17 +5239,18 @@ sem_Statement_CopyData insData_  =
               _lhsOnodeType =
                   UnknownType
               _actualValue =
-                  CopyData insData_
+                  CopyData ann_ insData_
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
                   _lhsIbackType
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_CreateDomain :: String ->
+sem_Statement_CreateDomain :: Annotation ->
+                              String ->
                               T_TypeName  ->
                               (Maybe Expression) ->
                               T_Statement 
-sem_Statement_CreateDomain name_ typ_ check_  =
+sem_Statement_CreateDomain ann_ name_ typ_ check_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5261,7 +5273,7 @@ sem_Statement_CreateDomain name_ typ_ check_  =
               _lhsOnodeType =
                   _typInodeType
               _actualValue =
-                  CreateDomain name_ _typIactualValue check_
+                  CreateDomain ann_ name_ _typIactualValue check_
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5275,7 +5287,8 @@ sem_Statement_CreateDomain name_ typ_ check_  =
               ( _typIactualValue,_typImessages,_typInodeType) =
                   (typ_ _typOinLoop _typOscope _typOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_CreateFunction :: T_Language  ->
+sem_Statement_CreateFunction :: Annotation ->
+                                T_Language  ->
                                 String ->
                                 T_ParamDefList  ->
                                 T_TypeName  ->
@@ -5283,7 +5296,7 @@ sem_Statement_CreateFunction :: T_Language  ->
                                 T_FnBody  ->
                                 T_Volatility  ->
                                 T_Statement 
-sem_Statement_CreateFunction lang_ name_ params_ rettype_ bodyQuote_ body_ vol_  =
+sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ vol_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5333,7 +5346,7 @@ sem_Statement_CreateFunction lang_ name_ params_ rettype_ bodyQuote_ body_ vol_ 
               _lhsOnodeType =
                   _langInodeType `setUnknown` _paramsInodeType `setUnknown` _rettypeInodeType `setUnknown` _bodyInodeType `setUnknown` _volInodeType
               _actualValue =
-                  CreateFunction _langIactualValue name_ _paramsIactualValue _rettypeIactualValue bodyQuote_ _bodyIactualValue _volIactualValue
+                  CreateFunction ann_ _langIactualValue name_ _paramsIactualValue _rettypeIactualValue bodyQuote_ _bodyIactualValue _volIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5377,11 +5390,12 @@ sem_Statement_CreateFunction lang_ name_ params_ rettype_ bodyQuote_ body_ vol_ 
               ( _volIactualValue,_volImessages,_volInodeType) =
                   (vol_ _volOinLoop _volOscope _volOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_CreateTable :: String ->
+sem_Statement_CreateTable :: Annotation ->
+                             String ->
                              T_AttributeDefList  ->
                              T_ConstraintList  ->
                              T_Statement 
-sem_Statement_CreateTable name_ atts_ cons_  =
+sem_Statement_CreateTable ann_ name_ atts_ cons_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5410,7 +5424,7 @@ sem_Statement_CreateTable name_ atts_ cons_  =
               _lhsOmessages =
                   _attsImessages ++ _consImessages
               _actualValue =
-                  CreateTable name_ _attsIactualValue _consIactualValue
+                  CreateTable ann_ name_ _attsIactualValue _consIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5432,10 +5446,11 @@ sem_Statement_CreateTable name_ atts_ cons_  =
               ( _consIactualValue,_consImessages,_consInodeType) =
                   (cons_ _consOinLoop _consOscope _consOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_CreateTableAs :: String ->
+sem_Statement_CreateTableAs :: Annotation ->
+                               String ->
                                T_SelectExpression  ->
                                T_Statement 
-sem_Statement_CreateTableAs name_ expr_  =
+sem_Statement_CreateTableAs ann_ name_ expr_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5458,7 +5473,7 @@ sem_Statement_CreateTableAs name_ expr_  =
               _lhsOnodeType =
                   _exprInodeType
               _actualValue =
-                  CreateTableAs name_ _exprIactualValue
+                  CreateTableAs ann_ name_ _exprIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5472,10 +5487,11 @@ sem_Statement_CreateTableAs name_ expr_  =
               ( _exprIactualValue,_exprImessages,_exprInodeType) =
                   (expr_ _exprOinLoop _exprOscope _exprOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_CreateType :: String ->
+sem_Statement_CreateType :: Annotation ->
+                            String ->
                             T_TypeAttributeDefList  ->
                             T_Statement 
-sem_Statement_CreateType name_ atts_  =
+sem_Statement_CreateType ann_ name_ atts_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5498,7 +5514,7 @@ sem_Statement_CreateType name_ atts_  =
               _lhsOnodeType =
                   _attsInodeType
               _actualValue =
-                  CreateType name_ _attsIactualValue
+                  CreateType ann_ name_ _attsIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5512,10 +5528,11 @@ sem_Statement_CreateType name_ atts_  =
               ( _attsIactualValue,_attsImessages,_attsInodeType) =
                   (atts_ _attsOinLoop _attsOscope _attsOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_CreateView :: String ->
+sem_Statement_CreateView :: Annotation ->
+                            String ->
                             T_SelectExpression  ->
                             T_Statement 
-sem_Statement_CreateView name_ expr_  =
+sem_Statement_CreateView ann_ name_ expr_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5538,7 +5555,7 @@ sem_Statement_CreateView name_ expr_  =
               _lhsOnodeType =
                   _exprInodeType
               _actualValue =
-                  CreateView name_ _exprIactualValue
+                  CreateView ann_ name_ _exprIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5552,11 +5569,12 @@ sem_Statement_CreateView name_ expr_  =
               ( _exprIactualValue,_exprImessages,_exprInodeType) =
                   (expr_ _exprOinLoop _exprOscope _exprOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_Delete :: String ->
+sem_Statement_Delete :: Annotation ->
+                        String ->
                         T_Where  ->
                         (Maybe SelectList) ->
                         T_Statement 
-sem_Statement_Delete table_ whr_ returning_  =
+sem_Statement_Delete ann_ table_ whr_ returning_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5581,7 +5599,7 @@ sem_Statement_Delete table_ whr_ returning_  =
               _lhsOmessages =
                   _whrImessages
               _actualValue =
-                  Delete table_ _whrIactualValue returning_
+                  Delete ann_ table_ _whrIactualValue returning_
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5595,11 +5613,12 @@ sem_Statement_Delete table_ whr_ returning_  =
               ( _whrIactualValue,_whrImessages,_whrInodeType) =
                   (whr_ _whrOinLoop _whrOscope _whrOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_DropFunction :: T_IfExists  ->
+sem_Statement_DropFunction :: Annotation ->
+                              T_IfExists  ->
                               T_StringStringListPairList  ->
                               T_Cascade  ->
                               T_Statement 
-sem_Statement_DropFunction ifE_ sigs_ cascade_  =
+sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5634,7 +5653,7 @@ sem_Statement_DropFunction ifE_ sigs_ cascade_  =
               _lhsOnodeType =
                   _ifEInodeType `setUnknown` _sigsInodeType `setUnknown` _cascadeInodeType
               _actualValue =
-                  DropFunction _ifEIactualValue _sigsIactualValue _cascadeIactualValue
+                  DropFunction ann_ _ifEIactualValue _sigsIactualValue _cascadeIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5664,12 +5683,13 @@ sem_Statement_DropFunction ifE_ sigs_ cascade_  =
               ( _cascadeIactualValue,_cascadeImessages,_cascadeInodeType) =
                   (cascade_ _cascadeOinLoop _cascadeOscope _cascadeOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_DropSomething :: T_DropType  ->
+sem_Statement_DropSomething :: Annotation ->
+                               T_DropType  ->
                                T_IfExists  ->
                                T_StringList  ->
                                T_Cascade  ->
                                T_Statement 
-sem_Statement_DropSomething dropType_ ifE_ names_ cascade_  =
+sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5711,7 +5731,7 @@ sem_Statement_DropSomething dropType_ ifE_ names_ cascade_  =
               _lhsOnodeType =
                   _dropTypeInodeType `setUnknown` _ifEInodeType `setUnknown` _namesInodeType `setUnknown` _cascadeInodeType
               _actualValue =
-                  DropSomething _dropTypeIactualValue _ifEIactualValue _namesIactualValue _cascadeIactualValue
+                  DropSomething ann_ _dropTypeIactualValue _ifEIactualValue _namesIactualValue _cascadeIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5749,9 +5769,10 @@ sem_Statement_DropSomething dropType_ ifE_ names_ cascade_  =
               ( _cascadeIactualValue,_cascadeImessages,_cascadeInodeType) =
                   (cascade_ _cascadeOinLoop _cascadeOscope _cascadeOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_Execute :: T_Expression  ->
+sem_Statement_Execute :: Annotation ->
+                         T_Expression  ->
                          T_Statement 
-sem_Statement_Execute expr_  =
+sem_Statement_Execute ann_ expr_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5775,7 +5796,7 @@ sem_Statement_Execute expr_  =
               _lhsOnodeType =
                   _exprInodeType
               _actualValue =
-                  Execute _exprIactualValue
+                  Execute ann_ _exprIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5789,10 +5810,11 @@ sem_Statement_Execute expr_  =
               ( _exprIactualValue,_exprIliftedColumnName,_exprImessages,_exprInodeType) =
                   (expr_ _exprOinLoop _exprOscope _exprOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_ExecuteInto :: T_Expression  ->
+sem_Statement_ExecuteInto :: Annotation ->
+                             T_Expression  ->
                              T_StringList  ->
                              T_Statement 
-sem_Statement_ExecuteInto expr_ targets_  =
+sem_Statement_ExecuteInto ann_ expr_ targets_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5823,7 +5845,7 @@ sem_Statement_ExecuteInto expr_ targets_  =
               _lhsOnodeType =
                   _exprInodeType `setUnknown` _targetsInodeType
               _actualValue =
-                  ExecuteInto _exprIactualValue _targetsIactualValue
+                  ExecuteInto ann_ _exprIactualValue _targetsIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5845,12 +5867,13 @@ sem_Statement_ExecuteInto expr_ targets_  =
               ( _targetsIactualValue,_targetsImessages,_targetsInodeType,_targetsIstrings) =
                   (targets_ _targetsOinLoop _targetsOscope _targetsOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_ForIntegerStatement :: String ->
+sem_Statement_ForIntegerStatement :: Annotation ->
+                                     String ->
                                      T_Expression  ->
                                      T_Expression  ->
                                      T_StatementList  ->
                                      T_Statement 
-sem_Statement_ForIntegerStatement var_ from_ to_ sts_  =
+sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5890,7 +5913,7 @@ sem_Statement_ForIntegerStatement var_ from_ to_ sts_  =
               _lhsOnodeType =
                   _fromInodeType `setUnknown` _toInodeType `setUnknown` _stsInodeType
               _actualValue =
-                  ForIntegerStatement var_ _fromIactualValue _toIactualValue _stsIactualValue
+                  ForIntegerStatement ann_ var_ _fromIactualValue _toIactualValue _stsIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5918,11 +5941,12 @@ sem_Statement_ForIntegerStatement var_ from_ to_ sts_  =
               ( _stsIactualValue,_stsImessages,_stsInodeType,_stsIstatementInfo) =
                   (sts_ _stsOinLoop _stsOscope _stsOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_ForSelectStatement :: String ->
+sem_Statement_ForSelectStatement :: Annotation ->
+                                    String ->
                                     T_SelectExpression  ->
                                     T_StatementList  ->
                                     T_Statement 
-sem_Statement_ForSelectStatement var_ sel_ sts_  =
+sem_Statement_ForSelectStatement ann_ var_ sel_ sts_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -5954,7 +5978,7 @@ sem_Statement_ForSelectStatement var_ sel_ sts_  =
               _lhsOnodeType =
                   _selInodeType `setUnknown` _stsInodeType
               _actualValue =
-                  ForSelectStatement var_ _selIactualValue _stsIactualValue
+                  ForSelectStatement ann_ var_ _selIactualValue _stsIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -5974,10 +5998,11 @@ sem_Statement_ForSelectStatement var_ sel_ sts_  =
               ( _stsIactualValue,_stsImessages,_stsInodeType,_stsIstatementInfo) =
                   (sts_ _stsOinLoop _stsOscope _stsOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_If :: T_ExpressionStatementListPairList  ->
+sem_Statement_If :: Annotation ->
+                    T_ExpressionStatementListPairList  ->
                     T_StatementList  ->
                     T_Statement 
-sem_Statement_If cases_ els_  =
+sem_Statement_If ann_ cases_ els_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6007,7 +6032,7 @@ sem_Statement_If cases_ els_  =
               _lhsOnodeType =
                   _casesInodeType `setUnknown` _elsInodeType
               _actualValue =
-                  If _casesIactualValue _elsIactualValue
+                  If ann_ _casesIactualValue _elsIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -6029,12 +6054,13 @@ sem_Statement_If cases_ els_  =
               ( _elsIactualValue,_elsImessages,_elsInodeType,_elsIstatementInfo) =
                   (els_ _elsOinLoop _elsOscope _elsOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_Insert :: String ->
+sem_Statement_Insert :: Annotation ->
+                        String ->
                         T_StringList  ->
                         T_SelectExpression  ->
                         (Maybe SelectList) ->
                         T_Statement 
-sem_Statement_Insert table_ targetCols_ insData_ returning_  =
+sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6067,7 +6093,7 @@ sem_Statement_Insert table_ targetCols_ insData_ returning_  =
               _lhsOmessages =
                   _targetColsImessages ++ _insDataImessages
               _actualValue =
-                  Insert table_ _targetColsIactualValue _insDataIactualValue returning_
+                  Insert ann_ table_ _targetColsIactualValue _insDataIactualValue returning_
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -6089,8 +6115,9 @@ sem_Statement_Insert table_ targetCols_ insData_ returning_  =
               ( _insDataIactualValue,_insDataImessages,_insDataInodeType) =
                   (insData_ _insDataOinLoop _insDataOscope _insDataOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_NullStatement :: T_Statement 
-sem_Statement_NullStatement  =
+sem_Statement_NullStatement :: Annotation ->
+                               T_Statement 
+sem_Statement_NullStatement ann_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6107,15 +6134,16 @@ sem_Statement_NullStatement  =
               _lhsOnodeType =
                   UnknownType
               _actualValue =
-                  NullStatement
+                  NullStatement ann_
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
                   _lhsIbackType
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_Perform :: T_Expression  ->
+sem_Statement_Perform :: Annotation ->
+                         T_Expression  ->
                          T_Statement 
-sem_Statement_Perform expr_  =
+sem_Statement_Perform ann_ expr_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6139,7 +6167,7 @@ sem_Statement_Perform expr_  =
               _lhsOnodeType =
                   _exprInodeType
               _actualValue =
-                  Perform _exprIactualValue
+                  Perform ann_ _exprIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -6153,11 +6181,12 @@ sem_Statement_Perform expr_  =
               ( _exprIactualValue,_exprIliftedColumnName,_exprImessages,_exprInodeType) =
                   (expr_ _exprOinLoop _exprOscope _exprOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_Raise :: T_RaiseType  ->
+sem_Statement_Raise :: Annotation ->
+                       T_RaiseType  ->
                        String ->
                        T_ExpressionList  ->
                        T_Statement 
-sem_Statement_Raise level_ message_ args_  =
+sem_Statement_Raise ann_ level_ message_ args_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6186,7 +6215,7 @@ sem_Statement_Raise level_ message_ args_  =
               _lhsOnodeType =
                   _levelInodeType `setUnknown` _argsInodeType
               _actualValue =
-                  Raise _levelIactualValue message_ _argsIactualValue
+                  Raise ann_ _levelIactualValue message_ _argsIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -6208,9 +6237,10 @@ sem_Statement_Raise level_ message_ args_  =
               ( _argsIactualValue,_argsImessages,_argsInodeType) =
                   (args_ _argsOinLoop _argsOscope _argsOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_Return :: (Maybe Expression) ->
+sem_Statement_Return :: Annotation ->
+                        (Maybe Expression) ->
                         T_Statement 
-sem_Statement_Return value_  =
+sem_Statement_Return ann_ value_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6227,15 +6257,16 @@ sem_Statement_Return value_  =
               _lhsOnodeType =
                   UnknownType
               _actualValue =
-                  Return value_
+                  Return ann_ value_
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
                   _lhsIbackType
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_ReturnNext :: T_Expression  ->
+sem_Statement_ReturnNext :: Annotation ->
+                            T_Expression  ->
                             T_Statement 
-sem_Statement_ReturnNext expr_  =
+sem_Statement_ReturnNext ann_ expr_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6259,7 +6290,7 @@ sem_Statement_ReturnNext expr_  =
               _lhsOnodeType =
                   _exprInodeType
               _actualValue =
-                  ReturnNext _exprIactualValue
+                  ReturnNext ann_ _exprIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -6273,9 +6304,10 @@ sem_Statement_ReturnNext expr_  =
               ( _exprIactualValue,_exprIliftedColumnName,_exprImessages,_exprInodeType) =
                   (expr_ _exprOinLoop _exprOscope _exprOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_ReturnQuery :: T_SelectExpression  ->
+sem_Statement_ReturnQuery :: Annotation ->
+                             T_SelectExpression  ->
                              T_Statement 
-sem_Statement_ReturnQuery sel_  =
+sem_Statement_ReturnQuery ann_ sel_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6298,7 +6330,7 @@ sem_Statement_ReturnQuery sel_  =
               _lhsOnodeType =
                   _selInodeType
               _actualValue =
-                  ReturnQuery _selIactualValue
+                  ReturnQuery ann_ _selIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -6312,9 +6344,10 @@ sem_Statement_ReturnQuery sel_  =
               ( _selIactualValue,_selImessages,_selInodeType) =
                   (sel_ _selOinLoop _selOscope _selOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_SelectStatement :: T_SelectExpression  ->
+sem_Statement_SelectStatement :: Annotation ->
+                                 T_SelectExpression  ->
                                  T_Statement 
-sem_Statement_SelectStatement ex_  =
+sem_Statement_SelectStatement ann_ ex_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6337,7 +6370,7 @@ sem_Statement_SelectStatement ex_  =
               _lhsOmessages =
                   _exImessages
               _actualValue =
-                  SelectStatement _exIactualValue
+                  SelectStatement ann_ _exIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -6351,11 +6384,12 @@ sem_Statement_SelectStatement ex_  =
               ( _exIactualValue,_exImessages,_exInodeType) =
                   (ex_ _exOinLoop _exOscope _exOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_Truncate :: T_StringList  ->
+sem_Statement_Truncate :: Annotation ->
+                          T_StringList  ->
                           T_RestartIdentity  ->
                           T_Cascade  ->
                           T_Statement 
-sem_Statement_Truncate tables_ restartIdentity_ cascade_  =
+sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6391,7 +6425,7 @@ sem_Statement_Truncate tables_ restartIdentity_ cascade_  =
               _lhsOnodeType =
                   _tablesInodeType `setUnknown` _restartIdentityInodeType `setUnknown` _cascadeInodeType
               _actualValue =
-                  Truncate _tablesIactualValue _restartIdentityIactualValue _cascadeIactualValue
+                  Truncate ann_ _tablesIactualValue _restartIdentityIactualValue _cascadeIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -6421,12 +6455,13 @@ sem_Statement_Truncate tables_ restartIdentity_ cascade_  =
               ( _cascadeIactualValue,_cascadeImessages,_cascadeInodeType) =
                   (cascade_ _cascadeOinLoop _cascadeOscope _cascadeOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_Update :: String ->
+sem_Statement_Update :: Annotation ->
+                        String ->
                         T_SetClauseList  ->
                         T_Where  ->
                         (Maybe SelectList) ->
                         T_Statement 
-sem_Statement_Update table_ assigns_ whr_ returning_  =
+sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6465,7 +6500,7 @@ sem_Statement_Update table_ assigns_ whr_ returning_  =
               _lhsOmessages =
                   _assignsImessages ++ _whrImessages
               _actualValue =
-                  Update table_ _assignsIactualValue _whrIactualValue returning_
+                  Update ann_ table_ _assignsIactualValue _whrIactualValue returning_
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =
@@ -6487,10 +6522,11 @@ sem_Statement_Update table_ assigns_ whr_ returning_  =
               ( _whrIactualValue,_whrImessages,_whrInodeType) =
                   (whr_ _whrOinLoop _whrOscope _whrOsourcePos )
           in  ( _lhsOactualValue,_lhsObackType,_lhsOmessages,_lhsOnodeType,_lhsOstatementInfo)))
-sem_Statement_WhileStatement :: T_Expression  ->
+sem_Statement_WhileStatement :: Annotation ->
+                                T_Expression  ->
                                 T_StatementList  ->
                                 T_Statement 
-sem_Statement_WhileStatement expr_ sts_  =
+sem_Statement_WhileStatement ann_ expr_ sts_  =
     (\ _lhsIbackType
        _lhsIinLoop
        _lhsIscope
@@ -6523,7 +6559,7 @@ sem_Statement_WhileStatement expr_ sts_  =
               _lhsOnodeType =
                   _exprInodeType `setUnknown` _stsInodeType
               _actualValue =
-                  WhileStatement _exprIactualValue _stsIactualValue
+                  WhileStatement ann_ _exprIactualValue _stsIactualValue
               _lhsOactualValue =
                   _actualValue
               _lhsObackType =

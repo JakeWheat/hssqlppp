@@ -170,7 +170,7 @@ expecting a plpgsql statement.
 recurses to support parsing excepts, unions, etc
 
 > selectStatement :: ParsecT [Token] ParseState Identity Statement
-> selectStatement = SelectStatement <$> selectExpression
+> selectStatement = SelectStatement [] <$> selectExpression
 
 > selectExpression :: ParsecT [Token] ParseState Identity SelectExpression
 > selectExpression =
@@ -290,14 +290,15 @@ multiple rows to insert and insert from select statements
 
 > insert :: ParsecT [Token] ParseState Identity Statement
 > insert = keyword "insert" >> keyword "into" >>
->          Insert <$> idString
->                 <*> option [] (try columnNameList)
->                 <*> selectExpression
->                 <*> tryOptionMaybe returning
+>          Insert []
+>          <$> idString
+>          <*> option [] (try columnNameList)
+>          <*> selectExpression
+>          <*> tryOptionMaybe returning
 
 > update :: ParsecT [Token] ParseState Identity Statement
 > update = keyword "update" >>
->          Update
+>          Update []
 >          <$> idString
 >          <*> (keyword "set" *> commaSep1 setClause)
 >          <*> tryOptionMaybe whereClause
@@ -311,14 +312,14 @@ multiple rows to insert and insert from select statements
 
 > delete :: ParsecT [Token] ParseState Identity Statement
 > delete = keyword "delete" >> keyword "from" >>
->          Delete
+>          Delete []
 >          <$> idString
 >          <*> tryOptionMaybe whereClause
 >          <*> tryOptionMaybe returning
 
 > truncateSt :: ParsecT [Token] ParseState Identity Statement
 > truncateSt = keyword "truncate" >> optional (keyword "table") >>
->            Truncate
+>            Truncate []
 >            <$> commaSep1 idString
 >            <*> option ContinueIdentity (choice [
 >                                 ContinueIdentity <$ (keyword "continue"
@@ -336,10 +337,10 @@ multiple rows to insert and insert from select statements
 >        src <- choice [
 >                CopyFilename <$> extrStr <$> stringLit
 >               ,Stdin <$ keyword "stdin"]
->        return $ Copy tableName cols src
+>        return $ Copy [] tableName cols src
 
 > copyData :: ParsecT [Token] ParseState Identity Statement
-> copyData = CopyData <$> mytoken (\tok ->
+> copyData = CopyData [] <$> mytoken (\tok ->
 >                                         case tok of
 >                                                  CopyPayloadTok n -> Just n
 >                                                  _ -> Nothing)
@@ -351,8 +352,8 @@ multiple rows to insert and insert from select statements
 >   keyword "table"
 >   tname <- idString
 >   choice [
->      CreateTableAs tname <$> (keyword "as" *> selectExpression)
->     ,uncurry (CreateTable tname) <$> readAttsAndCons]
+>      CreateTableAs [] tname <$> (keyword "as" *> selectExpression)
+>     ,uncurry (CreateTable [] tname) <$> readAttsAndCons]
 >   where
 >     --parse our unordered list of attribute defs or constraints, for
 >     --each line want to try the constraint parser first, then the
@@ -406,7 +407,7 @@ multiple rows to insert and insert from select statements
 
 > createType :: ParsecT [Token] ParseState Identity Statement
 > createType = keyword "type" >>
->              CreateType
+>              CreateType []
 >              <$> idString
 >              <*> (keyword "as" *> parens (commaSep1 typeAtt))
 >   where
@@ -428,7 +429,7 @@ rather than just a string.
 >   body <- stringLit
 >   lang <- readLang
 >   let (q, b) = parseBody lang body fnName bodypos
->   CreateFunction lang fnName params retType q b <$> pVol
+>   CreateFunction [] lang fnName params retType q b <$> pVol
 >     where
 >         pVol = matchAKeyword [("volatile", Volatile)
 >                              ,("stable", Stable)
@@ -500,13 +501,13 @@ variable declarations in a plpgsql function
 
 > createView :: ParsecT [Token] ParseState Identity Statement
 > createView = keyword "view" >>
->              CreateView
+>              CreateView []
 >              <$> idString
 >              <*> (keyword "as" *> selectExpression)
 
 > createDomain :: ParsecT [Token] ParseState Identity Statement
 > createDomain = keyword "domain" >>
->                CreateDomain
+>                CreateDomain []
 >                <$> idString
 >                <*> (tryOptionMaybe (keyword "as") *> typeName)
 >                <*> tryOptionMaybe (keyword "check" *> parens expr)
@@ -520,13 +521,13 @@ variable declarations in a plpgsql function
 >                 ,View <$ keyword "view"
 >             ])
 >   (i,e,r) <- parseDrop idString
->   return $ DropSomething x i e r
+>   return $ DropSomething [] x i e r
 
 > dropFunction :: ParsecT [Token] ParseState Identity Statement
 > dropFunction = do
 >                keyword "function"
 >                (i,e,r) <- parseDrop pFun
->                return $ DropFunction i e r
+>                return $ DropFunction [] i e r
 >                where
 >                  pFun = (,) <$> idString
 >                             <*> parens (many idString)
@@ -609,25 +610,25 @@ or after the whole list
 >                         <* symbol ";")
 
 > nullStatement :: ParsecT [Token] ParseState Identity Statement
-> nullStatement = NullStatement <$ keyword "null"
+> nullStatement = NullStatement [] <$ keyword "null"
 
 > continue :: ParsecT [Token] ParseState Identity Statement
-> continue = ContinueStatement <$ keyword "continue"
+> continue = ContinueStatement [] <$ keyword "continue"
 
 > perform :: ParsecT [Token] ParseState Identity Statement
 > perform = keyword "perform" >>
->           Perform <$> expr
+>           Perform [] <$> expr
 
 > execute :: ParsecT [Token] ParseState Identity Statement
 > execute = keyword "execute" >>
 >           optionalSuffix
->             Execute expr
->             ExecuteInto () readInto
+>             (Execute []) expr
+>             (ExecuteInto []) () readInto
 >     where
 >       readInto = keyword "into" *> commaSep1 idString
 
 > assignment :: ParsecT [Token] ParseState Identity Statement
-> assignment = Assignment
+> assignment = Assignment []
 >              -- put the := in the first try to attempt to get a
 >              -- better error if the code looks like malformed
 >              -- assignment statement
@@ -637,13 +638,13 @@ or after the whole list
 > returnSt :: ParsecT [Token] ParseState Identity Statement
 > returnSt = keyword "return" >>
 >            choice [
->             ReturnNext <$> (keyword "next" *> expr)
->            ,ReturnQuery <$> (keyword "query" *> selectExpression)
->            ,Return <$> tryOptionMaybe expr]
+>             ReturnNext [] <$> (keyword "next" *> expr)
+>            ,ReturnQuery [] <$> (keyword "query" *> selectExpression)
+>            ,Return [] <$> tryOptionMaybe expr]
 
 > raise :: ParsecT [Token] ParseState Identity Statement
 > raise = keyword "raise" >>
->         Raise
+>         Raise []
 >         <$> raiseType
 >         <*> (extrStr <$> stringLit)
 >         <*> option [] (symbol "," *> commaSep1 expr)
@@ -657,8 +658,8 @@ or after the whole list
 >                keyword "for"
 >                start <- idString
 >                keyword "in"
->                choice [(ForSelectStatement start <$> try selectExpression <*> theRest)
->                       ,(ForIntegerStatement start
+>                choice [(ForSelectStatement [] start <$> try selectExpression <*> theRest)
+>                       ,(ForIntegerStatement [] start
 >                               <$> expr
 >                               <*> (symbol ".." *> expr)
 >                               <*> theRest)]
@@ -668,13 +669,13 @@ or after the whole list
 
 > whileStatement :: ParsecT [Token] ParseState Identity Statement
 > whileStatement = keyword "while" >>
->                  WhileStatement
+>                  WhileStatement []
 >                  <$> (expr <* keyword "loop")
 >                  <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
 
 > ifStatement :: ParsecT [Token] ParseState Identity Statement
 > ifStatement = keyword "if" >>
->               If
+>               If []
 >               <$> (ifPart <:> elseifParts)
 >               <*> (elsePart <* endIf)
 >   where
@@ -690,9 +691,9 @@ or after the whole list
 
 > caseStatement :: ParsecT [Token] ParseState Identity Statement
 > caseStatement = keyword "case" >>
->     CaseStatement <$> expr
->                   <*> many whenSt
->                   <*> option [] (keyword "else" *> many plPgsqlStatement)
+>     CaseStatement [] <$> expr
+>                      <*> many whenSt
+>                      <*> option [] (keyword "else" *> many plPgsqlStatement)
 >                           <* keyword "end" <* keyword "case"
 >     where
 >       whenSt = keyword "when" >>
