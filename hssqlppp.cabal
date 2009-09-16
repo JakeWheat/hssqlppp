@@ -34,13 +34,10 @@ Library
                      pretty,
                      containers
   Exposed-modules:   Database.HsSqlPpp.Ast,
-                     Database.HsSqlPpp.DefaultScope,
-                     Database.HsSqlPpp.Lexer,
-                     Database.HsSqlPpp.ParseErrors,
                      Database.HsSqlPpp.Parser,
                      Database.HsSqlPpp.PrettyPrinter,
                      Database.HsSqlPpp.Scope,
-                     Database.HsSqlPpp.ScopeReader
+                     Database.HsSqlPpp.DatabaseLoader
 
 Executable HsSqlSystem
   Main-is:           HsSqlSystem.lhs
@@ -50,7 +47,8 @@ Executable HsSqlSystem
                      HDBC,
                      HDBC-postgresql,
                      directory
-  Other-Modules:     Database.HsSqlPpp.Ast,
+  Other-Modules:     Database.HsSqlPpp.AstAnnotation,
+                     Database.HsSqlPpp.Ast,
                      Database.HsSqlPpp.AstUtils,
                      Database.HsSqlPpp.DatabaseLoader,
                      Database.HsSqlPpp.DBAccess,
@@ -59,6 +57,7 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.ParseErrors,
                      Database.HsSqlPpp.Parser,
                      Database.HsSqlPpp.PrettyPrinter,
+                     Database.HsSqlPpp.ScopeData,
                      Database.HsSqlPpp.Scope,
                      Database.HsSqlPpp.ScopeReader,
                      Database.HsSqlPpp.TypeCheckingH,
@@ -72,7 +71,8 @@ Executable HsSqlPppTests
                      test-framework,
                      test-framework-hunit
 
-  Other-Modules:     Database.HsSqlPpp.AstCheckTests,
+  Other-Modules:     Database.HsSqlPpp.AstAnnotation,
+                     Database.HsSqlPpp.AstCheckTests,
                      Database.HsSqlPpp.Ast,
                      Database.HsSqlPpp.AstUtils,
                      Database.HsSqlPpp.DatabaseLoader,
@@ -84,6 +84,7 @@ Executable HsSqlPppTests
                      Database.HsSqlPpp.Parser,
                      Database.HsSqlPpp.ParserTests,
                      Database.HsSqlPpp.PrettyPrinter,
+                     Database.HsSqlPpp.ScopeData,
                      Database.HsSqlPpp.Scope,
                      Database.HsSqlPpp.ScopeReader,
                      Database.HsSqlPpp.TypeCheckingH,

@@ -2,11 +2,9 @@
 
 -- UUAGC 0.9.10 (Ast.ag)
 module Database.HsSqlPpp.Ast(
-    -- exports
-    MySourcePos
-
+    --from the ag files:
     --ast nodes
-   ,Statement (..)
+    Statement (..)
    ,SelectExpression (..)
    ,FnBody (..)
    ,SetClause (..)
@@ -35,45 +33,36 @@ module Database.HsSqlPpp.Ast(
    ,IfExists (..)
    ,RestartIdentity (..)
    ,Expression (..)
-   ,OperatorType (..)
-   ,getOperatorType
    ,InList (..)
    ,StatementList
-   --checking stuff
-   ,Message (..)
-   ,MessageStuff (..)
-   --types
-   ,Type (..)
-   ,PseudoType (..)
-   ,TypeErrorInfo (..)
-   ,StatementInfo (..)
-   --scope
-   ,Scope(..)
-   ,defaultScope
-   ,emptyScope
-   --fns
+
+   -- annotations
    ,checkAst
    ,getExpressionType
    ,getStatementsType
    ,getStatementsTypeScope
    ,getStatementsInfo
    ,getStatementsInfoScope
+   --annotation utils
    ,resetSps
    ,resetSp
    ,resetSp'
    ,resetSps'
    ,nsp
-   --forward some defs
-   ,typeSmallInt
-   ,typeBigInt
-   ,typeInt
-   ,typeNumeric
-   ,typeFloat4
-   ,typeFloat8
-   ,typeVarChar
-   ,typeChar
-   ,typeBool
 
+   --astutils forwards
+   ,OperatorType(..)
+   ,getOperatorType
+   ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
+   ,typeFloat8,typeVarChar,typeChar,typeBool
+   ,Message(..)
+   ,MessageStuff(..)
+   --typetype
+   ,Type (..)
+   ,PseudoType (..)
+   ,TypeErrorInfo (..)
+   ,StatementInfo (..)
+   ,MySourcePos
 ) where
 
 import Data.Maybe
@@ -87,7 +76,7 @@ import Database.HsSqlPpp.AstUtils
 import Database.HsSqlPpp.TypeConversion
 import Database.HsSqlPpp.TypeCheckingH
 import Database.HsSqlPpp.Scope
-import Database.HsSqlPpp.DefaultScope
+import Database.HsSqlPpp.ScopeData
 
 
 checkAst :: StatementList -> [Message]

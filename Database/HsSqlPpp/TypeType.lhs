@@ -138,3 +138,6 @@ type is always an UnnamedCompositeType:
 
 > isOperator :: String -> Bool
 > isOperator = any (`elem` "+-*/<>=~!@#%^&|`?")
+
+> type FunctionPrototype = (String, [Type], Type)
+> type DomainDefinition = (Type,Type)

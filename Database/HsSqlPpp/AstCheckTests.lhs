@@ -1,5 +1,3 @@
-#!/usr/bin/env runghc
-
 Copyright 2009 Jake Wheat
 
 Set of tests to check the type checking code
@@ -15,6 +13,7 @@ Set of tests to check the type checking code
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Scope
+> import Database.HsSqlPpp.ScopeData
 > import Database.HsSqlPpp.TypeType
 
 > astCheckTests :: Test.Framework.Test

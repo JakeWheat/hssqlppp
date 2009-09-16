@@ -9,7 +9,29 @@ represent a variety of different things, like node type checked ok
 when the node doesn't produce a type but can produce a type error,
 etc.. This is just a hack that will be changed soon.
 
-> module Database.HsSqlPpp.AstUtils where
+> module Database.HsSqlPpp.AstUtils
+>     (
+>      OperatorType(..)
+>     ,getOperatorType
+>     ,checkErrors
+>     ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
+>     ,typeFloat8,typeVarChar,typeChar,typeBool
+>     ,canonicalizeTypeName
+>     ,checkTypeExists
+>     ,lookupTypeByName
+>     ,keywordOperatorTypes
+>     ,specialFunctionTypes
+>     ,isArrayType
+>     ,unwrapTypeList
+>     ,unwrapArray
+>     ,unwrapSetOfComposite
+>     ,unwrapSetOf
+>     ,unwrapComposite
+>     ,consComposite
+>     ,unwrapRowCtor
+>     ,Message(..)
+>     ,MessageStuff(..)
+>     ) where
 
 > import Data.Maybe
 > import Data.List

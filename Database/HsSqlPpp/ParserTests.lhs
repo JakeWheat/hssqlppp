@@ -1,5 +1,3 @@
-#!/usr/bin/env runghc
-
 Copyright 2009 Jake Wheat
 
 The automated tests, uses hunit to check a bunch of text expressions
@@ -25,7 +23,6 @@ There are no tests for invalid sql at the moment.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.PrettyPrinter
-> import Database.HsSqlPpp.ParseErrors
 
 > parserTests :: Test.Framework.Test
 > parserTests =
@@ -1103,9 +1100,9 @@ parse and then pretty print and parse an expression
 >               Right l -> l
 >   assertEqual ("reparse " ++ pp) ast ast''
 
-> parseUtil1 :: String
+> parseUtil1 :: (Show a) => String
 >            -> [Statement]
->            -> (String -> Either ExtendedError StatementList)
+>            -> (String -> Either a StatementList)
 >            -> Test.Framework.Test
 > parseUtil1 src ast parser = testCase ("parse " ++ src) $ do
 >   let ast' = case parser src of

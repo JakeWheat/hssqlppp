@@ -28,7 +28,10 @@ pretty printed stuff, don't know how much help this will be.
 
 This code is currently on the backburner, and is a massive mess.
 
-> module Database.HsSqlPpp.DatabaseLoader where
+> module Database.HsSqlPpp.DatabaseLoader
+>     (
+>      loadIntoDatabase
+>     ) where
 
 > import System.IO
 > import System.Directory

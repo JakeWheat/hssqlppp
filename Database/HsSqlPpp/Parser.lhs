@@ -33,9 +33,6 @@ fragments, then the utility parsers and other utilities at the bottom.
 >               parseSql
 >               --parse a file containing sql statements only
 >              ,parseSqlFile
->               --parse a file and return the parse tree and the
->               --parser state also
->              ,parseSqlFileWithState
 >               --parse an expression (one expression plus whitespace
 >               --only allowed
 >              ,parseExpression
@@ -66,7 +63,7 @@ fragments, then the utility parsers and other utilities at the bottom.
 > toMySp :: SourcePos -> MySourcePos
 > toMySp sp = (sourceName sp, sourceLine sp, sourceColumn sp)
 
-=====================================W==========================================
+================================================================================
 
 = Top level parsing functions
 
@@ -80,12 +77,6 @@ parse fully formed sql
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
 >   return $ statementsOnly $ parseIt x sqlStatements fn sc startState
-
-> parseSqlFileWithState :: String -> IO (Either ExtendedError StatementList)
-> parseSqlFileWithState fn = do
->   sc <- readFile fn
->   x <- lexSqlFile fn
->   return $ parseIt x sqlStatements fn sc startState
 
 Parse expression fragment, used for testing purposes
 

@@ -21,7 +21,7 @@ are discarded after the Scope value is created.
 > import Debug.Trace
 
 > import Database.HsSqlPpp.DBAccess
-> import Database.HsSqlPpp.Scope
+> import Database.HsSqlPpp.ScopeData
 > import Database.HsSqlPpp.TypeType
 
 

@@ -1,55 +1,75 @@
-Annotation planning
-add an annotation field to most nodes in the ast
-something like
-data Annotation = NonAnnotation
-                | SourcePosAnnotation SourcePos
-                | CheckedAnnotation SourcePos Type [Messages]
-
-alter the parser to add sourcepositions to these nodes - assume that
-   one source position per node will be enough for now (not
-   necessarily a good assumption with weird sql syntax), and see if
-   this gives us enough for good error messages, etc..
-
-question:
-if a node has no source position e.g. the all in select all or select
-   distinct may correspond to a token or may be synthesized as the
-   default if neither all or distinct is present. Should this have the
-   source position of where the token would have appeared, should it
-   inherit it from its parent, should there be a separate ctor to
-   represent a fake node with no source position?
-
-The way the type checking will then work is that instead of producing
-   some attribute values it will produce a transformed ast tree with
-   the type and message fields filled in. Then supply some utility
-   functions to e.g. extract all the messages, extract all the type
-   errors, extract the top level types, etc. Use some sort of tree
-   walker to implement these utils
-
-The way types and type errors will work is that instead of / in
-   addition to the types being passed in attributes, they'll be saved
-   in the transformed tree. Type errors won't percolate up to the top
-   level, but sit with the node that is in error. Any parent nodes
-   which need this type to calculate their own type, will use a
-   separate error to say type unknown. If they can calculate their
-   type without depending on a type erroring child node, then they do
-   that, so e.g. typing a set of statements with create functions and
-   views which use those functions: if the statements inside the
-   functions have type errors, we can still find the types of the
-   views, assuming that the function params and return type check
-   properly, and are correct.
 
 = Current TODO list
 
 TODOs in rough order that they are intended to be done
 
-stage 1: do some stuff patchily to try to get a bunch of common sql
-   partially type-checking (focus is on getting the result types of
-   most select statements)
+work on annotation system
+review Type data type (get rid of type error, type list)
+review use of attributes, particularly node type which is disappearing
+get scope updating whilst checking
+pretty printer for info, type, etc. for inserting into source
+start work on type checking inside functions - start with params,
+   return types, non plpgsql statements, stuff with selects (e.g. for).
+work on parsing and type checking pg_dump output
+sort out api + do haddock
+provide installation instructions for non haskell programmers
+move developer info/notes out of readme file and usage file
+chain scopes when typechecking multiple files from util, provide api
+   to do this from code
 
-todos for this stage:
-integrate create types into scope, plus do drops with scope
-chain scopes when showinfo-ing multiple files
-Pretty printer for statementinfo
+API rough sketch:
+import Ast (only) to use and generate asts
+import Parser to add the parse functions - review these
+import Pretty to add the pretty printer functions - just 2?
+scope: to work with scopes (if you don't need to, ast will be enough)
+       refactor scope data type and utils to ScopeData.
+       add new scope module which forwards scope data and utils that a
+         client might use, forward default scope value and scope
+         reader function. Scope utils that only the type checker uses
+         aren't forwarded by Scope module
+database loader: decide a rough api to document?
+other public stuff: annotation stuff is forwarded by Ast for public
+   use
+   Types are forwarded by ast for public use
+   what about parse errors: provide more that just a showable value?
+     if so, forward parse error stuff in parser module
+
+parse and/or type check todo list:
+"identifier"
+6.5e-5
+type 'string' style type cast
+[:] slice
+missing keyword ops
+default template1 operators should all parse
+composite field selection
+agg(all expr) agg(distinct expr), agg(*)
+window frame clauses, named windows
+parse inside string literals when cast, for common types
+multidimensional arrays
+implicit casting row values to composites
+default values
+serial
+make sure can type check everything that parses
+constraint names
+provide list of keys in info for create/alter table: include unique
+   not null and serials
+type check fks, and other constraints
+alter table: add/remove column
+                        constraint
+                        default value
+                        column type
+                        rename column
+                        rename table
+what other alters/creates
+views, functions, operators, types, domains, triggers, rules
+selects:
+implicit joins
+group by, having + group by with unaggregated and aggregated fields
+distinct, on
+order by - do properly
+limit, offset
+with queries
+upto datatypes ch 8 in pg manual
 
 stage 2:
 make this useful by working on the showinfodb function:

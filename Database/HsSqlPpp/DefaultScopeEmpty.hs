@@ -40,7 +40,7 @@ being a valid file before it can regenerate it is a bad design...
 module Database.HsSqlPpp.DefaultScope where
 
 import Database.HsSqlPpp.TypeType
-import Database.HsSqlPpp.Scope
+import Database.HsSqlPpp.ScopeData
 
 
 defaultScope :: Scope

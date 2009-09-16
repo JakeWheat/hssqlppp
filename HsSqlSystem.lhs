@@ -26,7 +26,7 @@ TODO 2: think of a name for this command
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.DBAccess
-> import Database.HsSqlPpp.ScopeReader
+> import Database.HsSqlPpp.Scope
 
 ================================================================================
 
@@ -97,7 +97,7 @@ TODO 2: think of a name for this command
 > loadSql args =
 >   let (db:fns) = args
 >   in forM_ fns $ \fn -> do
->   res <- parseSqlFileWithState fn
+>   res <- parseSqlFile fn
 >   case res of
 >     Left er -> error $ show er
 >     Right ast -> putStrLn ("loading " ++ fn)
@@ -162,7 +162,7 @@ TODO: do something more correct
 >   where
 >     pf f = do
 >       putStrLn $ "parsing " ++ show f
->       x <- parseSqlFileWithState f
+>       x <- parseSqlFile f
 >       case x of
 >            Left er -> print er
 >            Right st -> do
@@ -191,7 +191,7 @@ TODO: do something more correct
 >   where
 >     pf f = do
 >       putStrLn $ "parsing " ++ show f
->       x <- parseSqlFileWithState f
+>       x <- parseSqlFile f
 >       case x of
 >            Left er -> print er
 >            Right st -> do
@@ -225,7 +225,7 @@ TODO: do something more correct
 > showTypes = mapM_ pt
 >   where
 >     pt f = do
->       x <- parseSqlFileWithState f
+>       x <- parseSqlFile f
 >       case x of
 >            Left er -> print er
 >            Right sts -> do
@@ -253,7 +253,7 @@ TODO: do something more correct
 >   mapM_ (pt scope) $ tail args
 >   where
 >     pt scope f = do
->       x <- parseSqlFileWithState f
+>       x <- parseSqlFile f
 >       case x of
 >            Left er -> print er
 >            Right sts -> do
@@ -275,7 +275,7 @@ TODO: do something more correct
 > showInfo = mapM_ pt
 >   where
 >     pt f = do
->       x <- parseSqlFileWithState f
+>       x <- parseSqlFile f
 >       case x of
 >            Left er -> print er
 >            Right sts -> do
@@ -303,7 +303,7 @@ TODO: do something more correct
 >   mapM_ (pt scope) $ tail args
 >   where
 >     pt scope f = do
->       x <- parseSqlFileWithState f
+>       x <- parseSqlFile f
 >       case x of
 >            Left er -> print er
 >            Right sts -> do
@@ -353,7 +353,7 @@ template1 database...
 >   s <- readScope dbName
 >   putStrLn "module Database.HsSqlPpp.DefaultScope where"
 >   putStrLn "import Database.HsSqlPpp.TypeType"
->   putStrLn "import Database.HsSqlPpp.Scope"
+>   putStrLn "import Database.HsSqlPpp.ScopeData"
 >   putStrLn "defaultScope :: Scope"
 >   putStr "defaultScope = "
 >   print s
