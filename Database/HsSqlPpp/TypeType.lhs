@@ -62,7 +62,7 @@ out. If not, will have to add another type.
 >           -- type list is used internally in the type checking.
 >           | TypeList [Type]
 >           | Pseudo PseudoType
->           | TypeError MySourcePos TypeErrorInfo
+>           | TypeError TypeErrorInfo
 >           | UnknownType -- represents something which the type checker
 >                         -- doesn't know how to type check
 >           | UnknownStringLit -- represents a string literal
@@ -109,13 +109,6 @@ later on down the line.
 >                    | ExpressionMustBeBool
 >                    | WrongNumberOfColumns
 >                      deriving (Eq,Show)
-
-need this here because it is used in type errors - this should be
-fixed, so a typeerror type doesn't hold location info, we use
-(SourcePosInfo, TypeError), not going to worry about this until focus
-is on good error messages.
-
-> type MySourcePos = (String, Int, Int)
 
 some random stuff needed here because of compilation orders
 

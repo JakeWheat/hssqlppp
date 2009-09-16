@@ -23,7 +23,7 @@ Set of tests to check the type checking code
 >       p "select 1;" []
 >      ])
 >    ,testGroup "loop tests"
->     (mapAttr [
+>     (mapAttr [] {-
 >       p "create function cont_test1() returns void as $$\n\
 >         \declare\n\
 >         \  r record;\n\
@@ -39,7 +39,8 @@ Set of tests to check the type checking code
 >         \    continue;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;\n" [Error ("",3,5) ContinueNotInLoop]
->      ])
+>      ]-}
+>      )
 
 >    ,testGroup "basic literal types"
 >     (mapExprType [
@@ -50,30 +51,28 @@ Set of tests to check the type checking code
 >      ,p "array[1,2,3]" (ArrayType typeInt)
 >      ,p "array['a','b']" (ArrayType (ScalarType "text"))
 >      ,p "array[1,'b']" (ArrayType typeInt)
->      ,p "array[1,true]" (TypeError ("",0,0)
->                         (IncompatibleTypeSet [typeInt,typeBool]))
+>      ,p "array[1,true]" (TypeError (IncompatibleTypeSet [typeInt,typeBool]))
 >      ])
 
 >    ,testGroup "some expressions"
 >     (mapExprType [
 >       p "1=1" typeBool
->      ,p "1=true" (TypeError ("",0,0)
->                     (NoMatchingOperator "=" [typeInt,typeBool]))
+>      ,p "1=true" (TypeError (NoMatchingOperator "=" [typeInt,typeBool]))
 >      ,p "substring('aqbc' from 2 for 2)" (ScalarType "text")
 
->      ,p "substring(3 from 2 for 2)" (TypeError ("",0,0)
+>      ,p "substring(3 from 2 for 2)" (TypeError
 >                                      (NoMatchingOperator "!substring"
 >                                       [ScalarType "int4"
 >                                       ,ScalarType "int4"
 >                                       ,ScalarType "int4"]))
->      ,p "substring('aqbc' from 2 for true)" (TypeError ("",0,0)
+>      ,p "substring('aqbc' from 2 for true)" (TypeError
 >                     (NoMatchingOperator "!substring"
 >                      [UnknownStringLit
 >                      ,ScalarType "int4"
 >                      ,ScalarType "bool"]))
 
 >      ,p "3 between 2 and 4" typeBool
->      ,p "3 between true and 4" (TypeError ("",0,0)
+>      ,p "3 between true and 4" (TypeError
 >                                (NoMatchingOperator ">="
 >                                 [typeInt
 >                                 ,typeBool]))
@@ -87,15 +86,15 @@ Set of tests to check the type checking code
  >                                    UnknownStringLit))
 
 >      ,p "not true" typeBool
->      ,p "not 1" (TypeError ("",0,0)
+>      ,p "not 1" (TypeError
 >                  (NoMatchingOperator "!not" [typeInt]))
 
 >      ,p "@ 3" typeInt
->      ,p "@ true" (TypeError ("",0,0)
+>      ,p "@ true" (TypeError
 >                  (NoMatchingOperator "@" [ScalarType "bool"]))
 
 >      ,p "-3" typeInt
->      ,p "-'a'" (TypeError ("",0,0)
+>      ,p "-'a'" (TypeError
 >                  (NoMatchingOperator "-" [UnknownStringLit]))
 
 >      ,p "4-3" typeInt
@@ -110,14 +109,14 @@ Set of tests to check the type checking code
 >      ,p "2^10" typeFloat8
 >      ,p "17%5" typeInt
 
->      ,p "3 and 4" (TypeError ("",0,0)
+>      ,p "3 and 4" (TypeError
 >                   (NoMatchingOperator "!and" [typeInt,typeInt]))
 
 >      ,p "True and False" typeBool
 >      ,p "false or true" typeBool
 
 >      ,p "lower('TEST')" (ScalarType "text")
->      ,p "lower(1)" (TypeError nsp (NoMatchingOperator "lower" [typeInt]))
+>      ,p "lower(1)" (TypeError (NoMatchingOperator "lower" [typeInt]))
 >      ])
 
 >    ,testGroup "special functions"
@@ -125,7 +124,7 @@ Set of tests to check the type checking code
 >       p "coalesce(null,1,2,null)" typeInt
 >      ,p "coalesce('3',1,2,null)" typeInt
 >      ,p "coalesce('3',1,true,null)"
->             (TypeError ("",0,0)
+>             (TypeError
 >              (IncompatibleTypeSet [UnknownStringLit
 >                                 ,ScalarType "int4"
 >                                 ,ScalarType "bool"
@@ -133,13 +132,13 @@ Set of tests to check the type checking code
 >      ,p "nullif('hello','hello')" (ScalarType "text")
 >      ,p "nullif(3,4)" typeInt
 >      ,p "nullif(true,3)"
->             (TypeError ("",0,0)
+>             (TypeError
 >              (NoMatchingOperator "nullif" [ScalarType "bool"
 >                                           ,ScalarType "int4"]))
 >      ,p "greatest(3,5,6,4,3)" typeInt
 >      ,p "least(3,5,6,4,3)" typeInt
 >      ,p "least(5,true)"
->             (TypeError nsp (IncompatibleTypeSet [ScalarType "int4"
+>             (TypeError (IncompatibleTypeSet [ScalarType "int4"
 >                                               ,ScalarType "bool"]))
 >      ])
 
@@ -154,7 +153,7 @@ check casts from unknown string lits
 >     (mapExprType [
 >       p "3 + '4'" typeInt
 >      ,p "3.0 + '4'" typeNumeric
->      ,p "'3' + '4'" (TypeError ("",0,0)
+>      ,p "'3' + '4'" (TypeError
 >                       (NoMatchingOperator "+" [UnknownStringLit
 >                                               ,UnknownStringLit]))
 >      ])
@@ -164,14 +163,14 @@ check casts from unknown string lits
 >     (mapExprScopeType [
 >      t "a" (makeScope [("test", [("a", typeInt)])]) typeInt
 >     ,t "b" (makeScope [("test", [("a", typeInt)])])
->        (TypeError nsp (UnrecognisedIdentifier "b"))
+>        (TypeError (UnrecognisedIdentifier "b"))
 >     ])
 
 >    ,testGroup "random expressions"
 >     (mapExprType [
 >       p "exists (select 1 from pg_type)" typeBool
 >      ,p "exists (select testit from pg_type)"
->        (TypeError nsp (UnrecognisedIdentifier "testit"))
+>        (TypeError (UnrecognisedIdentifier "testit"))
 >     ])
 
 rows different lengths
@@ -191,9 +190,9 @@ rows don't match types
 >      ,p "row(1) = row(2)" typeBool
 >      ,p "row(1,2) = row(2,1)" typeBool
 >      ,p "(1,2) = (2,1)" typeBool
->      ,p "(1,2,3) = (2,1)" (TypeError nsp ValuesListsMustBeSameLength)
+>      ,p "(1,2,3) = (2,1)" (TypeError ValuesListsMustBeSameLength)
 >      ,p "('1',2) = (2,'1')" typeBool
->      ,p "(1,true) = (2,1)" (TypeError nsp (IncompatibleTypeSet [ScalarType "bool",ScalarType "int4"]))
+>      ,p "(1,true) = (2,1)" (TypeError (IncompatibleTypeSet [ScalarType "bool",ScalarType "int4"]))
 >      ,p "(1,2) <> (2,1)" typeBool
 >      ,p "(1,2) >= (2,1)" typeBool
 >      ,p "(1,2) <= (2,1)" typeBool
@@ -217,13 +216,13 @@ rows don't match types
 >         \ when 1=2 then 'stuff'\n\
 >         \ when true=3 then 'blah'\n\
 >         \ else 'test'\n\
->         \end" (TypeError ("",0,0)
+>         \end" (TypeError
 >                (NoMatchingOperator "=" [typeBool,typeInt]))
 >      ,p "case\n\
 >         \ when 1=2 then true\n\
 >         \ when 2=3 then false\n\
 >         \ else 1\n\
->         \end" (TypeError ("",0,0)
+>         \end" (TypeError
 >                (IncompatibleTypeSet [typeBool
 >                                   ,typeBool
 >                                   ,typeInt]))
@@ -231,18 +230,18 @@ rows don't match types
 >         \ when 1=2 then false\n\
 >         \ when 2=3 then 1\n\
 >         \ else true\n\
->         \end" (TypeError ("",0,0)
+>         \end" (TypeError
 >                (IncompatibleTypeSet [typeBool
 >                                   ,typeInt
 >                                   ,typeBool]))
 
 >      ,p "case 1 when 2 then 3 else 4 end" typeInt
 >      ,p "case 1 when true then 3 else 4 end"
->             (TypeError ("",0,0) (IncompatibleTypeSet [ScalarType "int4"
+>             (TypeError (IncompatibleTypeSet [ScalarType "int4"
 >                                                    ,ScalarType "bool"]))
 >      ,p "case 1 when 2 then true else false end" typeBool
 >      ,p "case 1 when 2 then 3 else false end"
->             (TypeError ("",0,0) (IncompatibleTypeSet [ScalarType "int4"
+>             (TypeError (IncompatibleTypeSet [ScalarType "int4"
 >                                                    ,ScalarType "bool"]))
 
 >      ])
@@ -266,9 +265,9 @@ todo:
 >       p "cast ('1' as integer)"
 >         typeInt
 >      ,p "cast ('1' as baz)"
->         (TypeError nsp (UnknownTypeName "baz"))
+>         (TypeError (UnknownTypeName "baz"))
 >      ,p "array[]"
->         (TypeError nsp TypelessEmptyArray)
+>         (TypeError TypelessEmptyArray)
 >      --todo: figure out how to do this
 >      --,p "array[] :: text[]"
 >      --   (ArrayType (ScalarType "text"))
@@ -295,21 +294,21 @@ todo:
 >                                      UnnamedCompositeType
 >                                      [("column1", typeInt)
 >                                      ,("column2", typeInt)]]
->      ,p "values (1,2),('a', true);" [TypeError ("",1,1)
+>      ,p "values (1,2),('a', true);" [TypeError
 >                                      (IncompatibleTypeSet [typeInt
 >                                                         ,typeBool])]
 >      ,p "values ('3', '4'),(1,2);" [SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", typeInt)
 >                                      ,("column2", typeInt)]]
->      ,p "values ('a', true),(1,2);" [TypeError ("",1,1)
+>      ,p "values ('a', true),(1,2);" [TypeError
 >                                      (IncompatibleTypeSet [typeBool
 >                                                         ,typeInt])]
 >      ,p "values ('a'::text, '2'::int2),('1','2');" [SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", ScalarType "text")
 >                                      ,("column2", typeSmallInt)]]
->      ,p "values (1,2,3),(1,2);" [TypeError ("",1,1) ValuesListsMustBeSameLength]
+>      ,p "values (1,2,3),(1,2);" [TypeError ValuesListsMustBeSameLength]
 >      ])
 
 >    ,testGroup "simple combine selects"
@@ -318,21 +317,21 @@ todo:
 >                                      UnnamedCompositeType
 >                                      [("?column?", typeInt)
 >                                      ,("?column?", typeInt)]]
->      ,p "select 1,2 intersect select 'a', true;" [TypeError ("",1,1)
+>      ,p "select 1,2 intersect select 'a', true;" [TypeError
 >                                      (IncompatibleTypeSet [typeInt
 >                                                         ,typeBool])]
 >      ,p "select '3', '4' except select 1,2;" [SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("?column?", typeInt)
 >                                      ,("?column?", typeInt)]]
->      ,p "select 'a', true union select 1,2;" [TypeError ("",1,1)
+>      ,p "select 'a', true union select 1,2;" [TypeError
 >                                      (IncompatibleTypeSet [typeBool
 >                                                         ,typeInt])]
 >      ,p "select 'a'::text, '2'::int2 intersect select '1','2';" [SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("text", ScalarType "text")
 >                                      ,("int2", typeSmallInt)]]
->      ,p "select 1,2,3 except select 1,2;" [TypeError ("",1,1) ValuesListsMustBeSameLength]
+>      ,p "select 1,2,3 except select 1,2;" [TypeError ValuesListsMustBeSameLength]
 >      ,p "select '3' as a, '4' as b except select 1,2;" [SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("a", typeInt)
@@ -347,7 +346,7 @@ todo:
 >      ,p "select b from (select 1 as a, 2 as b) x;"
 >         [SetOfType $ UnnamedCompositeType [("b", typeInt)]]
 >      ,p "select c from (select 1 as a, 2 as b) x;"
->         [TypeError ("",1,1) (UnrecognisedIdentifier "c")]
+>         [TypeError (UnrecognisedIdentifier "c")]
 >      ,p "select typlen from pg_type;"
 >         [SetOfType $ UnnamedCompositeType [("typlen", typeSmallInt)]]
 >      ,p "select oid from pg_type;"
@@ -355,7 +354,7 @@ todo:
 >      ,p "select p.oid from pg_type p;"
 >         [SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
 >      ,p "select typlen from nope;"
->         [TypeError ("",1,1) (UnrecognisedRelation "nope")]
+>         [TypeError (UnrecognisedRelation "nope")]
 >      ,p "select generate_series from generate_series(1,7);"
 >         [SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
 
@@ -368,9 +367,9 @@ check aliasing
 >      ,p "select g.g from generate_series(1,7) g;"
 >         [SetOfType $ UnnamedCompositeType [("g", typeInt)]]
 >      ,p "select generate_series.g from generate_series(1,7) g;"
->         [TypeError ("",1,1) (UnrecognisedCorrelationName "generate_series")]
+>         [TypeError (UnrecognisedCorrelationName "generate_series")]
 >      ,p "select g.generate_series from generate_series(1,7) g;"
->         [TypeError ("",1,1) (UnrecognisedIdentifier "g.generate_series")]
+>         [TypeError (UnrecognisedIdentifier "g.generate_series")]
 
 
 >      ,p "select * from pg_attrdef;"
@@ -447,7 +446,7 @@ check aliasing
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \ natural inner join (select true as a, 4.5 as d) b;"
->         [TypeError ("",1,1) (IncompatibleTypeSet [ScalarType "int4"
+>         [TypeError (IncompatibleTypeSet [ScalarType "int4"
 >                                                ,ScalarType "bool"])]
 >      ])
 
@@ -476,7 +475,7 @@ check aliasing
 >         [SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
 
 >      ,p "select pg_attrdef.adsrc from pg_attrdef a;"
->         [TypeError ("",1,1) (UnrecognisedCorrelationName "pg_attrdef")]
+>         [TypeError (UnrecognisedCorrelationName "pg_attrdef")]
 
 >      ,p "select a from (select 2 as b, 1 as a) a\n\
 >         \natural inner join (select 4.5 as d, 1 as a) b;"
@@ -498,13 +497,13 @@ select g.fn from fn() g
 >       p "select 1 from pg_type where true;"
 >         [SetOfType $ UnnamedCompositeType [("?column?", typeInt)]]
 >      ,p "select 1 from pg_type where 1;"
->         [TypeError ("",1,1) ExpressionMustBeBool]
+>         [TypeError ExpressionMustBeBool]
 >      ,p "select typname from pg_type where typbyval;"
 >         [SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
 >      ,p "select typname from pg_type where typtype = 'b';"
 >         [SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
 >      ,p "select typname from pg_type where what = 'b';"
->         [TypeError ("",1,1) (UnrecognisedIdentifier "what")]
+>         [TypeError (UnrecognisedIdentifier "what")]
 >      ])
 
 >    ,testGroup "subqueries"
@@ -528,7 +527,7 @@ insert
 >    ,testGroup "insert"
 >     (mapStatementInfo [
 >       p "insert into nope (a,b) values (c,d);"
->         [DefaultStatementInfo (TypeError ("",1,1) (UnrecognisedRelation "nope"))]
+>         [DefaultStatementInfo (TypeError (UnrecognisedRelation "nope"))]
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
 >         [InsertInfo "pg_attrdef"
@@ -545,28 +544,28 @@ insert
 >                                 ,("adsrc",ScalarType "text")])]
 >      ,p "insert into pg_attrdef (hello,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
->         [DefaultStatementInfo (TypeError ("",1,1) (UnrecognisedIdentifier "hello"))]
+>         [DefaultStatementInfo (TypeError (UnrecognisedIdentifier "hello"))]
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,true, 'a', 'b');"
->         [DefaultStatementInfo (TypeError ("",1,1) (IncompatibleTypes (ScalarType "int2") (ScalarType "bool")))]
+>         [DefaultStatementInfo (TypeError (IncompatibleTypes (ScalarType "int2") (ScalarType "bool")))]
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,true, 'a', 'b','c');"
->         [DefaultStatementInfo (TypeError ("",1,1) WrongNumberOfColumns)]
+>         [DefaultStatementInfo (TypeError WrongNumberOfColumns)]
 
 >      ])
 
 >    ,testGroup "update"
 >     (mapStatementInfo [
 >       p "update nope set a = 1;"
->         [DefaultStatementInfo (TypeError ("",1,1) (UnrecognisedRelation "nope"))]
+>         [DefaultStatementInfo (TypeError (UnrecognisedRelation "nope"))]
 >      ,p "update pg_attrdef set adsrc = '' where 1;"
->         [DefaultStatementInfo (TypeError ("",1,1) ExpressionMustBeBool)]
+>         [DefaultStatementInfo (TypeError ExpressionMustBeBool)]
 >      ,p "update pg_attrdef set (adbin,adsrc) = ('a','b','c');"
->         [DefaultStatementInfo (TypeError ("",1,1) WrongNumberOfColumns)]
+>         [DefaultStatementInfo (TypeError WrongNumberOfColumns)]
 >      ,p "update pg_attrdef set (adrelid,adsrc) = (true,'b');"
->         [DefaultStatementInfo (TypeError ("",1,1) (IncompatibleTypes (ScalarType "oid") typeBool))]
+>         [DefaultStatementInfo (TypeError (IncompatibleTypes (ScalarType "oid") typeBool))]
 >      ,p "update pg_attrdef set (shmadrelid,adsrc) = ('a','b');"
->         [DefaultStatementInfo (TypeError ("",1,1) (UnrecognisedIdentifier "shmadrelid"))]
+>         [DefaultStatementInfo (TypeError (UnrecognisedIdentifier "shmadrelid"))]
 >      ,p "update pg_attrdef set adsrc='';"
 >         [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
 >      ,p "update pg_attrdef set adsrc='' where 1=2;"
@@ -579,11 +578,11 @@ insert
 >    ,testGroup "delete"
 >     (mapStatementInfo [
 >       p "delete from nope;"
->         [DefaultStatementInfo (TypeError ("",1,1) (UnrecognisedRelation "nope"))]
+>         [DefaultStatementInfo (TypeError (UnrecognisedRelation "nope"))]
 >      ,p "delete from pg_attrdef where 1=2;"
 >         [DeleteInfo "pg_attrdef"]
 >      ,p "delete from pg_attrdef where 1;"
->         [DefaultStatementInfo (TypeError ("",1,1) ExpressionMustBeBool)]
+>         [DefaultStatementInfo (TypeError ExpressionMustBeBool)]
 >      ])
 
 >    ]

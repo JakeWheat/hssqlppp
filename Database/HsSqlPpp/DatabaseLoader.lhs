@@ -53,12 +53,12 @@ This code is currently on the backburner, and is a massive mess.
 >                 loadStatement conn st
 >                 >> putStr ".") (filterStatements ast)
 >   where
->     loadStatement conn (srcp, st) = case st of
+>     loadStatement conn st = case st of
 >                                          Skipit -> return ()
 >                                          VanillaStatement vs ->
->                                              handleError fn srcp vs (runSqlCommand conn
->                                                       (printSql [(srcp,vs)]))
->                                          CopyStdin a b -> runCopy conn a b srcp
+>                                              handleError fn ("",0::Int,0::Int) vs (runSqlCommand conn
+>                                                       (printSql [vs]))
+>                                          CopyStdin a b -> runCopy conn a b ("",0::Int,0::Int)
 >     --hack cos we don't have support in hdbc for copy from stdin
 >     --(which libpq does support - adding this properly should be a todo)
 >     --we need the copy from stdin and the copydata to be processed in one go,
@@ -66,22 +66,22 @@ This code is currently on the backburner, and is a massive mess.
 >     --and a dummy statement following. Well dodgy, don't really know
 >     --how it manages to work correctly.
 >     filterStatements sts =
->        map (\((xsrcp, x),(_,y)) ->
+>        map (\(x,y) ->
 >                 case (x,y) of
->                        (a@(Copy _ _ _ Stdin), b@(CopyData _ _)) -> (xsrcp,CopyStdin a b)
->                        (CopyData _ _, _) -> (xsrcp, Skipit)
->                        (vs,_) -> (xsrcp, VanillaStatement vs))
+>                        (a@(Copy _ _ _ Stdin), b@(CopyData _ _)) -> (CopyStdin a b)
+>                        (CopyData _ _, _) -> Skipit
+>                        (vs,_) -> VanillaStatement vs)
 >            statementWithNextStatement
 >            where
 >              statementWithNextStatement =
->                  zip sts (tail sts ++ [(("",0,0), NullStatement [])])
->     runCopy conn a b srcp = case (a,b) of
+>                  zip sts (tail sts ++ [NullStatement []])
+>     runCopy conn a b _ = case (a,b) of
 >                          (Copy _ tb cl Stdin, CopyData _ s) ->
 >                            withTemporaryFile (\tfn -> do
 >                                writeFile tfn s
 >                                tfn1 <- canonicalizePath tfn
 >                                loadStatement conn
->                                  (srcp, VanillaStatement (Copy [] tb cl
+>                                  (VanillaStatement (Copy [] tb cl
 >                                                     (CopyFilename tfn1))))
 >                          _ -> error "internal error: pattern match fail in runCopy in loadIntoDatabase"
 >     loadPlpgsqlIntoDatabase conn = do

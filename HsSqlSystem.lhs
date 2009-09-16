@@ -204,7 +204,7 @@ TODO: do something more correct
 >                --check roundtrip
 >                case parseSql pp of
 >                  Left er -> error $ "roundtrip failed: " ++ show er
->                  Right st' -> if resetSps' st == resetSps' st'
+>                  Right st' -> if map wipeAnnotations st == map wipeAnnotations st'
 >                                then putStrLn "roundtrip ok"
 >                                else putStrLn "roundtrip failed: different ast"
 >       return ()
@@ -309,8 +309,7 @@ TODO: do something more correct
 >            Right sts -> do
 >                let info = zip (getStatementsInfoScope scope sts) sts
 >                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
->                                  putStrLn (printSql [st])) info
-
+>                                  putStrLn (printSqlAnn show [st])) info
 
 ================================================================================
 

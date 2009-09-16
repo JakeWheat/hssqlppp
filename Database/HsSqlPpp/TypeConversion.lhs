@@ -119,7 +119,7 @@ findCallMatch is a bit of a mess
 >       ,mostExactMatches
 >       ,filteredForPreferred
 >       ,unknownMatchesByCat]
->       (TypeError sp (NoMatchingOperator f inArgs))
+>       (TypeError (NoMatchingOperator f inArgs))
 >     where
 >       -- basic lists which roughly mirror algo
 >       -- get the possibly matching candidates
@@ -282,7 +282,7 @@ findCallMatch is a bit of a mess
 >                 in {-trace ("\nresolve types: " ++ show typeList ++ "\n") $-}
 >                    case resolveResultSetType scope sp typeList of
 >                      UnknownType -> Nothing
->                      TypeError _ _ -> Nothing
+>                      TypeError _ -> Nothing
 >                      x -> Just x
 >             instantiatePolyType :: ProtArgCast -> Type -> ProtArgCast
 >             instantiatePolyType pac t =
@@ -447,17 +447,17 @@ code is not as much of a mess as findCallMatch
 >    checkErrors [TypeList inArgs] ret
 >    where
 >      ret = case () of
->                    _ | null inArgs -> TypeError sp TypelessEmptyArray
+>                    _ | null inArgs -> TypeError TypelessEmptyArray
 >                      | allSameType -> head inArgs
 >                      | allSameBaseType -> head inArgsBase
 >                      --todo: do domains
 >                      | allUnknown -> ScalarType "text"
 >                      | not allSameCat ->
->                          TypeError sp (IncompatibleTypeSet inArgs)
+>                          TypeError (IncompatibleTypeSet inArgs)
 >                      | isJust targetType &&
 >                          allConvertibleToFrom (fromJust targetType) inArgs ->
 >                            fromJust targetType
->                      | otherwise -> TypeError sp (IncompatibleTypeSet inArgs)
+>                      | otherwise -> TypeError (IncompatibleTypeSet inArgs)
 >      allSameType = all (== head inArgs) inArgs &&
 >                      head inArgs /= UnknownStringLit
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&
@@ -505,9 +505,11 @@ there is a cast from src to target
 >     case () of
 >       _ | src == tgt -> TypeList []
 >         | assignCastableFromTo scope src tgt -> TypeList []
->         | otherwise -> TypeError sp (IncompatibleTypes tgt src)
+>         | otherwise -> TypeError (IncompatibleTypes tgt src)
 
 > assignCastableFromTo :: Scope -> Type -> Type -> Bool
 > assignCastableFromTo scope from to = from == UnknownStringLit ||
 >                                any (`elem` [(from,to,ImplicitCastContext)
 >                                            ,(from,to,AssignmentCastContext)]) (scopeCasts scope)
+
+> type MySourcePos = (String,Int,Int)

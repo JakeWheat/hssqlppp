@@ -41,6 +41,8 @@ etc.. This is just a hack that will be changed soon.
 > import Database.HsSqlPpp.Scope
 > import Database.HsSqlPpp.DefaultScope
 
+> type MySourcePos = (String,Int,Int)
+
 ================================================================================
 
 = getOperatorType
@@ -140,7 +142,7 @@ list or unnamedcompositetype.
 > unkErr :: Type -> Maybe Type
 > unkErr t =
 >     case t of
->       a@(TypeError _ _) -> Just a
+>       a@(TypeError _) -> Just a
 >       UnknownType -> Just UnknownType
 >       TypeList l -> doTypeList l
 >       UnnamedCompositeType c -> doTypeList (map snd c)
@@ -156,7 +158,7 @@ list or unnamedcompositetype.
 >                                      UnknownType -> True
 >                                      _ -> False) ts
 >               errs = filter (\u -> case u of
->                                      TypeError _ _ -> True
+>                                      TypeError _ -> True
 >                                      _ -> False) ts
 >           in case () of
 >                _ | length errs > 0 ->
@@ -285,13 +287,13 @@ this converts the name of a type to its canonical name
 > checkTypeExists scope sp t =
 >     if t `elem` scopeTypes scope
 >       then TypeList [] -- this works with the checkErrors function
->       else TypeError sp (UnknownTypeError t)
+>       else TypeError (UnknownTypeError t)
 
 > lookupTypeByName :: Scope -> MySourcePos -> String -> Type
 > lookupTypeByName scope sp name =
 >     case lookup name (scopeTypeNames scope) of
 >       Just t -> t
->       Nothing -> TypeError sp (UnknownTypeName name)
+>       Nothing -> TypeError (UnknownTypeName name)
 
 
 ================================================================================

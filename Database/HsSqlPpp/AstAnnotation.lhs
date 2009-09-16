@@ -19,6 +19,19 @@ grammar code and aren't exposed.
 >                        | TypeErrorA TypeErrorInfo
 >                          deriving (Eq, Show)
 
+> class Annotated a where
+>     ann :: a -> Annotation
+>     setAnn :: a -> Annotation -> a
+>     changeAnn :: a -> (Annotation -> Annotation) -> a
+>     changeAnn a f = setAnn a $ f $ ann a
+>     changeAnnRecurse :: (Annotation -> Annotation) -> a -> a
+
+ > changeAnnotations :: Annotated a => (Annotation -> Annotation) -> [a] -> [a]
+ > changeAnnotations f as = map (changeAnnRecurse f) as
+
+> stripAnnotations :: Annotated a => a -> a
+> stripAnnotations a = changeAnnRecurse (const []) a
+
 sourcepos
 types
 errors

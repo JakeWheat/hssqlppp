@@ -64,7 +64,7 @@ special case the row comparison ops
 >                                Right (_,_,r) -> r
 >       checkRowTypesMatch (RowCtor t1s) (RowCtor t2s) =
 >         let e1 = if length t1s /= length t2s
->                    then TypeError sp ValuesListsMustBeSameLength
+>                    then TypeError ValuesListsMustBeSameLength
 >                    else TypeList []
 >             t3s = map (resolveResultSetType scope sp . (\(a,b) -> [a,b])) $ zip t1s t2s
 >         in checkErrors (e1:t3s) typeBool
@@ -94,10 +94,9 @@ special case the row comparison ops
 >         let lengths = map length rowsTs
 >             error1 = case () of
 >                       _ | null rowsTs ->
->                             TypeError sp NoRowsGivenForValues
+>                             TypeError NoRowsGivenForValues
 >                         | not (all (==head lengths) lengths) ->
->                             TypeError sp
->                                  ValuesListsMustBeSameLength
+>                             TypeError ValuesListsMustBeSameLength
 >                         | otherwise -> TypeList []
 >             colTypeLists = transpose rowsTs
 >             colTypes = map (resolveResultSetType scope sp) colTypeLists
@@ -138,7 +137,7 @@ type of the joined tables.
 >         names2 = getNames t2
 >         error1 = if not (contained l names1) ||
 >                     not (contained l names2)
->                    then TypeError sp MissingJoinAttribute
+>                    then TypeError MissingJoinAttribute
 >                    else TypeList []
 >         --check the types
 >         joinColumns = map (getColumnType t1 t2) l
@@ -156,3 +155,5 @@ type of the joined tables.
 >               ct2 = getFieldType t2 f
 >           in (f, resolveResultSetType scope sp [ct1,ct2])
 >       getFieldType t f = snd $ fromJust $ find (\(s,_) -> s == f) t
+
+> type MySourcePos = (String,Int,Int)

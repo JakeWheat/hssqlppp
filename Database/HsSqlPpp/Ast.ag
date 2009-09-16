@@ -73,11 +73,7 @@ MODULE {Database.HsSqlPpp.Ast}
    ,getStatementsInfo
    ,getStatementsInfoScope
    --annotation utils
-   ,resetSps
-   ,resetSp
-   ,resetSp'
-   ,resetSps'
-   ,nsp
+   ,wipeAnnotations
 
    --AstAnnotationForwards
    ,Annotation
@@ -95,7 +91,6 @@ MODULE {Database.HsSqlPpp.Ast}
    ,PseudoType (..)
    ,TypeErrorInfo (..)
    ,StatementInfo (..)
-   ,MySourcePos
 }
 {
 import Data.Maybe
@@ -517,8 +512,7 @@ has been put off for no good reason.
 
 -}
 
-TYPE SourcePosStatement = (MySourcePos, Statement)
-TYPE StatementList = [SourcePosStatement]
+TYPE StatementList = [Statement]
 
 
 
@@ -558,7 +552,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               SourcePosStatement MTableRef TableRef OnExpr Where
+               MTableRef TableRef OnExpr Where
 
 
 SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef
@@ -570,7 +564,7 @@ SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef
                    Expression InList MaybeExpression
                    StringStringListPair ExpressionListStatementListPair
                    ExpressionStatementListPair
-                   SourcePosStatement MTableRef OnExpr Where
+                   MTableRef OnExpr Where
 
 
 SET ListNodes = SelectList ExpressionList ExpressionListList StringList
@@ -650,35 +644,125 @@ getStatementsInfoScope scope st =
         t2 = statementInfo_Syn_Root ta
     in t2
 
+instance Annotated Statement where
+  ann a =
+      case a of
+        SelectStatement ann _ -> ann
+        Insert ann _ _ _ _ -> ann
+        Update ann _ _ _ _ -> ann
+        Delete ann _ _ _ -> ann
+        Copy ann _ _ _ -> ann
+        CopyData ann _ -> ann
+        Truncate ann _ _ _ -> ann
+        CreateTable ann _ _ _ -> ann
+        CreateTableAs ann _ _ -> ann
+        CreateView ann _ _ -> ann
+        CreateType ann _ _ -> ann
+        CreateFunction ann _ _ _ _ _ _ _ -> ann
+        CreateDomain ann _ _ _ -> ann
+        DropFunction ann _ _ _ -> ann
+        DropSomething ann _ _ _ _ -> ann
+        Assignment ann _ _ -> ann
+        Return ann _ -> ann
+        ReturnNext ann _ -> ann
+        ReturnQuery ann _ -> ann
+        Raise ann _ _ _ -> ann
+        NullStatement  ann -> ann
+        Perform ann _ -> ann
+        Execute ann _ -> ann
+        ExecuteInto ann _ _ -> ann
+        ForSelectStatement ann _ _ _ -> ann
+        ForIntegerStatement ann _ _ _ _ -> ann
+        WhileStatement ann _ _ -> ann
+        ContinueStatement ann -> ann
+        CaseStatement ann _ _ _ -> ann
+        If ann _ _  -> ann
+  setAnn st a =
+      case st of
+        SelectStatement _ ex -> SelectStatement a ex
+        Insert _ tbl cols ins ret -> Insert a tbl cols ins ret
+        Update _ tbl as whr ret -> Update a tbl as whr ret
+        Delete _ tbl whr ret -> Delete a tbl whr ret
+        Copy _ tbl cols src -> Copy a tbl cols src
+        CopyData _ i -> CopyData a i
+        Truncate _ tbls ri cs -> Truncate a tbls ri cs
+        CreateTable _ name atts cons -> CreateTable a name atts cons
+        CreateTableAs _ name ex -> CreateTableAs a name ex
+        CreateView _ name expr -> CreateView a name expr
+        CreateType _ name atts -> CreateType a name atts
+        CreateFunction _ lang name params rettype bodyQuote body vol ->
+            CreateFunction a lang name params rettype bodyQuote body vol
+        CreateDomain _ name typ check -> CreateDomain a name typ check
+        DropFunction _ i s cs -> DropFunction a i s cs
+        DropSomething _ dt i nms cs -> DropSomething a dt i nms cs
+        Assignment _ tgt val -> Assignment a tgt val
+        Return _ v -> Return a v
+        ReturnNext _ ex -> ReturnNext a ex
+        ReturnQuery _ sel -> ReturnQuery a sel
+        Raise _ l m args -> Raise a l m args
+        NullStatement _ -> NullStatement a
+        Perform _ expr -> Perform a expr
+        Execute _ expr -> Execute a expr
+        ExecuteInto _ expr tgts -> ExecuteInto a expr tgts
+        ForSelectStatement _ var sel sts -> ForSelectStatement a var sel sts
+        ForIntegerStatement _ var from to sts -> ForIntegerStatement a var from to sts
+        WhileStatement _ expr sts -> WhileStatement a expr sts
+        ContinueStatement _ -> ContinueStatement a
+        CaseStatement _ val cases els -> CaseStatement a val cases els
+        If _ cases els -> If a cases els
 
---hack job, often not interested in the source positions when testing
---the asts produced, so this function will reset all the source
---positions to empty ("", 0, 0) so we can compare them for equality, etc.
---without having to get the positions correct.
+  changeAnnRecurse f st =
+    case st of
+        SelectStatement a ex -> SelectStatement (f a) ex
+        Insert a tbl cols ins ret -> Insert (f a) tbl cols ins ret
+        Update a tbl as whr ret -> Update (f a) tbl as whr ret
+        Delete a tbl whr ret -> Delete (f a) tbl whr ret
+        Copy a tbl cols src -> Copy (f a) tbl cols src
+        CopyData a i -> CopyData (f a) i
+        Truncate a tbls ri cs -> Truncate (f a) tbls ri cs
+        CreateTable a name atts cons -> CreateTable (f a) name atts cons
+        CreateTableAs a name ex -> CreateTableAs (f a) name ex
+        CreateView a name expr -> CreateView (f a) name expr
+        CreateType a name atts -> CreateType (f a) name atts
+        CreateFunction a lang name params rettype bodyQuote body vol ->
+            CreateFunction (f a) lang name params rettype bodyQuote doBody vol
+            where
+              doBody = case body of
+                         SqlFnBody sts -> SqlFnBody $ cars f sts
+                         PlpgsqlFnBody vars sts -> PlpgsqlFnBody vars $ cars f sts
+        CreateDomain a name typ check -> CreateDomain (f a) name typ check
+        DropFunction a i s cs -> DropFunction (f a) i s cs
+        DropSomething a dt i nms cs -> DropSomething (f a) dt i nms cs
+        Assignment a tgt val -> Assignment (f a) tgt val
+        Return a v -> Return (f a) v
+        ReturnNext a ex -> ReturnNext (f a) ex
+        ReturnQuery a sel -> ReturnQuery (f a) sel
+        Raise a l m args -> Raise (f a) l m args
+        NullStatement a -> NullStatement (f a)
+        Perform a expr -> Perform (f a) expr
+        Execute a expr -> Execute (f a) expr
+        ExecuteInto a expr tgts -> ExecuteInto (f a) expr tgts
+        ForSelectStatement a var sel sts -> ForSelectStatement (f a) var sel $ cars f sts
+        ForIntegerStatement a var from to sts -> ForIntegerStatement (f a) var from to $ cars f sts
+        WhileStatement a expr sts -> WhileStatement (f a) expr $ cars f sts
+        ContinueStatement a -> ContinueStatement (f a)
+        CaseStatement a val cases els -> CaseStatement (f a) val doCases $ cars f els
+            where
+              doCases = map (\(ex,sts) -> (ex,cars f sts)) cases
+        If a cases els -> If (f a) doCases $ cars f els
+            where
+              doCases = map (\(ex,sts) -> (ex,cars f sts)) cases
 
-resetSps :: [Statement] -> [Statement]
-resetSps = map resetSp
+cars f sts = map (changeAnnRecurse f) sts
 
-resetSp :: Statement -> Statement
-resetSp (CreateFunction a l n p r bq b v) = CreateFunction a l n p r bq
-                                              (case b of
-                                                SqlFnBody stss -> SqlFnBody (map resetSp' stss)
-                                                PlpgsqlFnBody vd stss -> PlpgsqlFnBody vd (map resetSp' stss))
-                                            v
-resetSp (ForSelectStatement a v s stss) = ForSelectStatement a v s (map resetSp' stss)
-resetSp (ForIntegerStatement a v f t stss) = ForIntegerStatement a v f t (map resetSp' stss)
-resetSp (CaseStatement a v cs els) = CaseStatement a v (map (second (map resetSp')) cs) (map resetSp' els)
-resetSp (If a cs els) = If a (map (second (map resetSp')) cs) (map resetSp' els)
-resetSp a = a
+-- hack job, often not interested in the source positions when testing
+-- the asts produced, so this function will reset all the source
+-- positions to empty ("", 0, 0) so we can compare them for equality, etc.
+-- without having to get the positions correct.
 
-resetSp' :: SourcePosStatement -> SourcePosStatement
-resetSp' (_,st) = (nsp,resetSp st)
+wipeAnnotations :: Annotated a => a -> a
+wipeAnnotations a = changeAnnRecurse (const []) a
 
-resetSps' :: StatementList -> StatementList
-resetSps' = map resetSp'
-
-nsp :: MySourcePos
-nsp = ("", 0,0)
 }
 
 {-

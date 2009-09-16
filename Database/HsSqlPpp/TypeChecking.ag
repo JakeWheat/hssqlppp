@@ -44,8 +44,8 @@ values in a limited number of places in the code
 -}
 
 ATTR AllNodes
-  [ sourcePos: MySourcePos
-  |
+  [
+  | sourcePos: MySourcePos
   |
   ]
 
@@ -129,7 +129,7 @@ makeStatementInfo ty st =
       else st
     where
       isError t = case t of
-                    TypeError _ _ -> True
+                    TypeError _ -> True
                     TypeList ts -> any isError ts
                     _ -> False
 }
@@ -140,11 +140,18 @@ ATTR Statement
   | statementInfo : StatementInfo
   ]
 
-ATTR SourcePosStatement
-  [
-  |
-  | statementInfo : StatementInfo
-  ]
+SEM StatementList
+  | Cons hd.backType = @hd.nodeType
+
+{-SEM Statement
+  | SelectStatement Insert Update Delete Copy CopyData Truncate
+    CreateTable CreateTableAs CreateView CreateType CreateFunction
+    CreateDomain DropFunction DropSomething Assignment Return
+    ReturnNext ReturnQuery Raise NullStatement Perform Execute
+    ExecuteInto ForSelectStatement ForIntegerStatement WhileStatement
+    ContinueStatement CaseStatement If
+      backType = lhs.nodeType
+-}
 
 ATTR Root StatementList
   [
@@ -157,22 +164,18 @@ SEM StatementList
   | Cons lhs.statementInfo = @hd.statementInfo : @tl.statementInfo
 
 
--- don't know how to copy the nodetype to the statement info in the
--- sem statement so bounce it out then back in like this
-SEM SourcePosStatement
-  | Tuple x2.backType = @x2.nodeType
-
 SEM Statement
   | Copy CopyData Truncate
     DropFunction DropSomething Assignment Return ReturnNext ReturnQuery
     Raise NullStatement Perform Execute ExecuteInto ForSelectStatement
     ForIntegerStatement WhileStatement ContinueStatement CaseStatement
-    If lhs.statementInfo = DefaultStatementInfo @lhs.backType
+    If lhs.statementInfo = DefaultStatementInfo $ TypeList []
 
 {-
 
-some helpers
 
+
+some helpers
 -}
 SEM MaybeExpression
     | Just lhs.nodeType = @just.nodeType
@@ -202,8 +205,22 @@ start giving accurate positions.
 
 -}
 
-SEM SourcePosStatement
-    | Tuple x2.sourcePos = @x1
+SEM Statement
+  | SelectStatement Insert Update Delete Copy CopyData Truncate
+    CreateTable CreateTableAs CreateView CreateType CreateFunction
+    CreateDomain DropFunction DropSomething Assignment Return
+    ReturnNext ReturnQuery Raise NullStatement Perform Execute
+    ExecuteInto ForSelectStatement ForIntegerStatement WhileStatement
+    ContinueStatement CaseStatement If
+        lhs.sourcePos = getSourcePos @ann
+
+{
+getSourcePos :: Annotation -> (String,Int,Int)
+getSourcePos (a:as) = case a of
+                        SourcePos f l c -> (f,l,c)
+                        _ -> getSourcePos as
+getSourcePos _ = ("unknown", -1, -1)
+}
 
 SEM Root
   | Root statements.sourcePos = ("",0,0)
@@ -314,8 +331,7 @@ SEM Expression
             thenTypes = map (head . tail) unwrappedLists ++ elseThen
             whensAllBool :: Type
             whensAllBool = if any (/= typeBool) whenTypes
-                             then TypeError @lhs.sourcePos
-                                      (WrongTypes typeBool whenTypes)
+                             then TypeError (WrongTypes typeBool whenTypes)
                              else TypeList []
         in checkErrors (whenTypes ++ thenTypes ++ [whensAllBool]) $
              resolveResultSetType
@@ -493,7 +509,7 @@ getRelationType scope sp tbl =
           case getAttrs scope [TableComposite, ViewComposite] tbl of
             Just ((_,_,a@(UnnamedCompositeType _))
                  ,(_,_,s@(UnnamedCompositeType _)) ) -> (a,s)
-            _ -> (TypeError sp (UnrecognisedRelation tbl), TypeList [])
+            _ -> (TypeError (UnrecognisedRelation tbl), TypeList [])
 
 getFnType :: Scope -> MySourcePos -> String -> Expression -> Type -> Type
 getFnType scope sp alias fnVal fnType =
@@ -510,7 +526,7 @@ getFunIdens scope sp alias fnVal fnType =
                 SetOfType (CompositeType t) -> getCompositeType t
                 SetOfType x -> UnnamedCompositeType [(correlationName,x)]
                 y -> UnnamedCompositeType [(correlationName,y)])
-       x -> ("", TypeError sp (ContextError "FunCall"))
+       x -> ("", TypeError (ContextError "FunCall"))
    where
      getCompositeType t =
                     case getAttrs scope [Composite
@@ -545,7 +561,7 @@ SEM Where
         checkErrors
           [@just.nodeType]
           (if @just.nodeType /= typeBool
-             then TypeError @lhs.sourcePos ExpressionMustBeBool
+             then TypeError ExpressionMustBeBool
              else typeBool)
 
 SEM SelectItem
@@ -686,7 +702,7 @@ checkTableExists :: Scope -> MySourcePos -> String -> Type
 checkTableExists scope sp tbl =
           case getAttrs scope [TableComposite, ViewComposite] tbl of
             Just _ -> TypeList []
-            _ -> TypeError sp (UnrecognisedRelation tbl)
+            _ -> TypeError (UnrecognisedRelation tbl)
 
 checkColumnConsistency :: Scope -> MySourcePos -> String -> [String] -> [(String,Type)] -> Type
 checkColumnConsistency scope sp tbl cols' insNameTypePairs =
@@ -699,7 +715,7 @@ checkColumnConsistency scope sp tbl cols' insNameTypePairs =
                then map fst targetTableCols
                else cols'
       wrongLengthError = if length insNameTypePairs /= length cols
-                           then TypeError sp WrongNumberOfColumns
+                           then TypeError WrongNumberOfColumns
                            else TypeList []
       --check the target cols appear in the target table and get their types
       nonMatchingColumns = cols \\ map fst targetTableCols
@@ -717,7 +733,7 @@ checkColumnConsistency scope sp tbl cols' insNameTypePairs =
                  ,nonMatchingErrors
                  ,TypeList matchingTypeErrors] $ TypeList []
   where
-    makeUnknownColumnError = TypeError sp . UnrecognisedIdentifier
+    makeUnknownColumnError = TypeError . UnrecognisedIdentifier
 
 getColumnTypes :: Scope -> MySourcePos -> String -> [String] -> [(String,Type)]
 getColumnTypes scope sp tbl cols' =
@@ -733,7 +749,7 @@ getColumnTypes scope sp tbl cols' =
                             _ -> TypeList $ map makeUnknownColumnError nonMatchingColumns
   in map (\l -> (l, fromJust $ lookup l targetTableCols)) cols
   where
-    makeUnknownColumnError = TypeError sp . UnrecognisedIdentifier
+    makeUnknownColumnError = TypeError . UnrecognisedIdentifier
 }
 
 {-
@@ -783,7 +799,7 @@ SEM SetClause
           let atts = @atts.strings
               types = getRowTypes @vals.nodeType
               lengthError = if length atts /= length types
-                              then TypeError @lhs.sourcePos WrongNumberOfColumns
+                              then TypeError WrongNumberOfColumns
                               else TypeList []
           in checkErrors [lengthError] $ TypeList []
         lhs.pairs = zip @atts.strings $ getRowTypes @vals.nodeType
