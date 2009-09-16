@@ -827,7 +827,7 @@ The full list of operators from DefaultScope.hs should be used here.
 > table :: [[Operator [Token] ParseState Identity Expression]]
 > table = [--[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
->          [prefix "-" (FunCall "u-")]
+>          [prefix "-" (FunCall [] "u-")]
 >         ,[binary "^" AssocLeft]
 >         ,[binary "*" AssocLeft
 >          ,idHackBinary "*" AssocLeft
@@ -836,14 +836,14 @@ The full list of operators from DefaultScope.hs should be used here.
 >         ,[binary "+" AssocLeft
 >          ,binary "-" AssocLeft]
 >          --should be is isnull and notnull
->         ,[postfixks ["is", "not", "null"] (FunCall "!isNotNull")
->          ,postfixks ["is", "null"] (FunCall "!isNull")]
+>         ,[postfixks ["is", "not", "null"] (FunCall [] "!isNotNull")
+>          ,postfixks ["is", "null"] (FunCall [] "!isNull")]
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "<->" AssocNone
 >          ,binary "<=" AssocRight
 >          ,binary ">=" AssocRight
 >          ,binary "||" AssocLeft
->          ,prefix "@" (FunCall "@")
+>          ,prefix "@" (FunCall [] "@")
 >          ]
 >          --in should be here, but is treated as a factor instead
 >          --between
@@ -855,7 +855,7 @@ The full list of operators from DefaultScope.hs should be used here.
 >          ,binary ">" AssocNone]
 >         ,[binary "=" AssocRight
 >          ,binary "<>" AssocNone]
->         ,[prefixk "not" (FunCall "!not")]
+>         ,[prefixk "not" (FunCall [] "!not")]
 >         ,[binaryk "and" "!and" AssocLeft
 >          ,binaryk "or" "!or" AssocLeft]]
 >     where
@@ -880,7 +880,7 @@ The full list of operators from DefaultScope.hs should be used here.
 >       postfixks ss f
 >          = Postfix (try (mapM_ keyword ss >> return (unaryF f)))
 >       unaryF f l = f [l]
->       binaryF s l m = FunCall s [l,m]
+>       binaryF s l m = FunCall [] s [l,m]
 
 some custom parsers
 
@@ -890,7 +890,7 @@ followed by ">"
 don't know if this is needed anymore.
 
 >       lt _ = Infix (dontFollowWith "<" ">" >>
->                     return (\l -> (\m -> FunCall "<" [l,m])))
+>                     return (\l -> (\m -> FunCall [] "<" [l,m])))
 
 >       dontFollowWith c1 c2 =
 >         try $ symbol c1 *> ((do
@@ -902,7 +902,7 @@ don't know if this is needed anymore.
 
 > scalarSubQuery :: ParsecT [Token] ParseState Identity Expression
 > scalarSubQuery = try (symbol "(" *> lookAhead (keyword "select")) >>
->                  ScalarSubQuery
+>                  ScalarSubQuery []
 >                  <$> selectExpression <* symbol ")"
 
 in predicate - an identifier or row constructor followed by 'in'
@@ -910,7 +910,7 @@ then a list of expressions or a subselect
 
 > inPredicateSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > inPredicateSuffix e =
->   InPredicate e
+>   InPredicate [] e
 >   <$> option True (False <$ keyword "not")
 >   <*> (keyword "in" *> parens ((InSelect <$> selectExpression)
 >                                <|>
@@ -927,15 +927,15 @@ row (expr, expr1, ...)
 and () is a syntax error.
 
 > rowCtor :: ParsecT [Token] ParseState Identity Expression
-> rowCtor = FunCall "!rowCtor" <$> choice [
+> rowCtor = FunCall [] "!rowCtor" <$> choice [
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
 
 > floatLit :: ParsecT [Token] ParseState Identity Expression
-> floatLit = FloatLit <$> float
+> floatLit = FloatLit [] <$> float
 
 > integerLit :: ParsecT [Token] ParseState Identity Expression
-> integerLit = IntegerLit <$> integer
+> integerLit = IntegerLit [] <$> integer
 
 case - only supports 'case when condition' flavour and not 'case
 expression when value' currently
@@ -943,11 +943,11 @@ expression when value' currently
 > caseParse :: ParsecT [Token] ParseState Identity Expression
 > caseParse = keyword "case" >>
 >             choice [
->              try $ CaseSimple <$> expr
+>              try $ CaseSimple [] <$> expr
 >                               <*> many whenParse
 >                               <*> tryOptionMaybe (keyword "else" *> expr)
 >                                   <* keyword "end"
->             ,Case <$> many whenParse
+>             ,Case [] <$> many whenParse
 >                  <*> tryOptionMaybe (keyword "else" *> expr)
 >                       <* keyword "end"]
 >   where
@@ -956,23 +956,23 @@ expression when value' currently
 
 > exists :: ParsecT [Token] ParseState Identity Expression
 > exists = keyword "exists" >>
->          Exists <$> parens selectExpression
+>          Exists [] <$> parens selectExpression
 
 > booleanLit :: ParsecT [Token] ParseState Identity Expression
-> booleanLit = BooleanLit <$> (True <$ keyword "true"
+> booleanLit = BooleanLit [] <$> (True <$ keyword "true"
 >                                <|> False <$ keyword "false")
 
 > nullLit :: ParsecT [Token] ParseState Identity Expression
-> nullLit = NullLit <$ keyword "null"
+> nullLit = NullLit [] <$ keyword "null"
 
 > arrayLit :: ParsecT [Token] ParseState Identity Expression
 > arrayLit = keyword "array" >>
->            FunCall "!arrayCtor" <$> squares (commaSep expr)
+>            FunCall [] "!arrayCtor" <$> squares (commaSep expr)
 
 > arraySubSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> arraySubSuffix e = if e == Identifier "array"
+> arraySubSuffix e = if e == Identifier [] "array"
 >                      then fail "can't use array as identifier name"
->                      else FunCall "!arraySub" <$> ((e:) <$> squares (commaSep1 expr))
+>                      else FunCall [] "!arraySub" <$> ((e:) <$> squares (commaSep1 expr))
 
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
@@ -986,7 +986,7 @@ rows between unbounded preceding and current row
 rows between unbounded preceding and unbounded following
 
 > windowFnSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> windowFnSuffix e = WindowFn e
+> windowFnSuffix e = WindowFn [] e
 >                    <$> (keyword "over" *> (symbol "(" *> option [] partitionBy))
 >                    <*> option [] orderBy1
 >                    <*> option Asc (try $ choice [
@@ -1003,7 +1003,7 @@ rows between unbounded preceding and unbounded following
 >   b <- dodgyParseElement
 >   keyword "and"
 >   c <- dodgyParseElement
->   return $ FunCall "!between" [a,b,c]
+>   return $ FunCall [] "!between" [a,b,c]
 >              --can't use the full expression parser at this time
 >              --because of a conflict between the operator 'and' and
 >              --the 'and' part of a between
@@ -1027,16 +1027,16 @@ TODO: copy this approach here.
 >                dodgyParseElement = factor
 
 > functionCallSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> functionCallSuffix (Identifier fnName) = FunCall fnName <$> parens (commaSep expr)
+> functionCallSuffix (Identifier _ fnName) = FunCall [] fnName <$> parens (commaSep expr)
 > functionCallSuffix s = error $ "internal error: cannot make functioncall from " ++ show s
 
 > castKeyword :: ParsecT [Token] ParseState Identity Expression
 > castKeyword = keyword "cast" *> symbol "(" >>
->               Cast <$> expr
+>               Cast [] <$> expr
 >                    <*> (keyword "as" *> typeName <* symbol ")")
 
 > castSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> castSuffix ex = Cast ex <$> (symbol "::" *> typeName)
+> castSuffix ex = Cast [] ex <$> (symbol "::" *> typeName)
 
 > substring :: ParsecT [Token] ParseState Identity Expression
 > substring = do
@@ -1048,10 +1048,10 @@ TODO: copy this approach here.
 >             keyword "for"
 >             c <- expr
 >             symbol ")"
->             return $ FunCall "!substring" [a,b,c]
+>             return $ FunCall [] "!substring" [a,b,c]
 
 > identifier :: ParsecT [Token] ParseState Identity Expression
-> identifier = Identifier <$> idString
+> identifier = Identifier [] <$> idString
 
 ================================================================================
 
@@ -1087,7 +1087,7 @@ identifier which happens to start with a complete keyword
 >                                     _ -> Nothing)
 
 > positionalArg :: ParsecT [Token] ParseState Identity Expression
-> positionalArg = PositionalArg <$> mytoken (\tok -> case tok of
+> positionalArg = PositionalArg [] <$> mytoken (\tok -> case tok of
 >                                     PositionalArgTok n -> Just n
 >                                     _ -> Nothing)
 
@@ -1099,7 +1099,7 @@ identifier which happens to start with a complete keyword
 > stringLit :: MyParser Expression
 > stringLit = mytoken (\tok ->
 >                   case tok of
->                            StringTok d s -> Just $ StringLit d s
+>                            StringTok d s -> Just $ StringLit [] d s
 >                            _ -> Nothing)
 
 couple of helper functions which extract the actual string
@@ -1107,11 +1107,11 @@ from a StringLD or StringL, and the delimiters which were used
 (either ' or a dollar tag)
 
 > extrStr :: Expression -> String
-> extrStr (StringLit _ s) = s
+> extrStr (StringLit _ _ s) = s
 > extrStr x = error $ "internal error: extrStr not supported for this type " ++ show x
 
 > quoteOfString :: Expression -> String
-> quoteOfString (StringLit tag _) = tag
+> quoteOfString (StringLit _ tag _) = tag
 > quoteOfString x = error $ "internal error: quoteType not supported for this type " ++ show x
 
 == combinatory things

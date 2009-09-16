@@ -109,8 +109,8 @@ findCallMatch is a bit of a mess
 
 > type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
 
-> findCallMatch :: Scope -> MySourcePos -> String -> [Type] ->  Either Type FunctionPrototype
-> findCallMatch scope sp f inArgs =
+> findCallMatch :: Scope -> String -> [Type] ->  Either TypeError FunctionPrototype
+> findCallMatch scope f inArgs =
 >     returnIfOnne [
 >        exactMatch
 >       ,binOp1UnknownMatch
@@ -119,7 +119,7 @@ findCallMatch is a bit of a mess
 >       ,mostExactMatches
 >       ,filteredForPreferred
 >       ,unknownMatchesByCat]
->       (TypeError (NoMatchingOperator f inArgs))
+>       (NoMatchingOperator f inArgs)
 >     where
 >       -- basic lists which roughly mirror algo
 >       -- get the possibly matching candidates
@@ -280,10 +280,9 @@ findCallMatch is a bit of a mess
 >                                                   Pseudo AnyNonArray -> Just ia
 >                                                   _ -> Nothing)
 >                 in {-trace ("\nresolve types: " ++ show typeList ++ "\n") $-}
->                    case resolveResultSetType scope sp typeList of
->                      UnknownType -> Nothing
->                      TypeError _ -> Nothing
->                      x -> Just x
+>                    case resolveResultSetType scope typeList of
+>                      Left _ -> Nothing
+>                      Right t -> Just t
 >             instantiatePolyType :: ProtArgCast -> Type -> ProtArgCast
 >             instantiatePolyType pac t =
 >               let ((fn,a,r),_) = pac
@@ -442,22 +441,22 @@ check all can convert to selected type else fail
 code is not as much of a mess as findCallMatch
 
 
-> resolveResultSetType :: Scope -> MySourcePos -> [Type] -> Type
-> resolveResultSetType scope sp inArgs =
->    checkErrors [TypeList inArgs] ret
->    where
+> resolveResultSetType :: Scope -> [Type] -> Either TypeError Type
+> resolveResultSetType scope inArgs =
+>   checkTypes inArgs ret
+>   where
 >      ret = case () of
->                    _ | null inArgs -> TypeError TypelessEmptyArray
->                      | allSameType -> head inArgs
->                      | allSameBaseType -> head inArgsBase
+>                    _ | null inArgs -> Left TypelessEmptyArray
+>                      | allSameType -> Right $ head inArgs
+>                      | allSameBaseType -> Right $ head inArgsBase
 >                      --todo: do domains
->                      | allUnknown -> ScalarType "text"
+>                      | allUnknown -> Right $ ScalarType "text"
 >                      | not allSameCat ->
->                          TypeError (IncompatibleTypeSet inArgs)
+>                          Left (IncompatibleTypeSet inArgs)
 >                      | isJust targetType &&
 >                          allConvertibleToFrom (fromJust targetType) inArgs ->
->                            fromJust targetType
->                      | otherwise -> TypeError (IncompatibleTypeSet inArgs)
+>                            Right $ fromJust targetType
+>                      | otherwise -> Left $ (IncompatibleTypeSet inArgs)
 >      allSameType = all (== head inArgs) inArgs &&
 >                      head inArgs /= UnknownStringLit
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&
@@ -500,16 +499,14 @@ assignment is ok if:
 types are equal
 there is a cast from src to target
 
-> checkAssignmentValid :: Scope -> MySourcePos -> Type -> Type -> Type
-> checkAssignmentValid scope sp src tgt =
+> checkAssignmentValid :: Scope -> Type -> Type -> Either TypeError ()
+> checkAssignmentValid scope src tgt =
 >     case () of
->       _ | src == tgt -> TypeList []
->         | assignCastableFromTo scope src tgt -> TypeList []
->         | otherwise -> TypeError (IncompatibleTypes tgt src)
+>       _ | src == tgt -> Right()
+>         | assignCastableFromTo scope src tgt -> Right ()
+>         | otherwise -> Left (IncompatibleTypes tgt src)
 
 > assignCastableFromTo :: Scope -> Type -> Type -> Bool
 > assignCastableFromTo scope from to = from == UnknownStringLit ||
 >                                any (`elem` [(from,to,ImplicitCastContext)
 >                                            ,(from,to,AssignmentCastContext)]) (scopeCasts scope)
-
-> type MySourcePos = (String,Int,Int)

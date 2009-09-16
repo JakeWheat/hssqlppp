@@ -18,10 +18,11 @@ Set of tests to check the type checking code
 
 > astCheckTests :: Test.Framework.Test
 > astCheckTests = testGroup "astCheckTests" [
->     testGroup "test test"
->     (mapAttr [
->       p "select 1;" []
->      ])
+>     --testGroup "test test"
+>     --(mapAttr [
+>     --  p "select 1;" []
+>     -- ])
+> {-
 >    ,testGroup "loop tests"
 >     (mapAttr [] {-
 >       p "create function cont_test1() returns void as $$\n\
@@ -40,24 +41,24 @@ Set of tests to check the type checking code
 >         \end;\n\
 >         \$$ language plpgsql volatile;\n" [Error ("",3,5) ContinueNotInLoop]
 >      ]-}
->      )
+>      )-}
 
->    ,testGroup "basic literal types"
+>    testGroup "basic literal types"
 >     (mapExprType [
->       p "1" typeInt
->      ,p "1.0" typeNumeric
->      ,p "'test'" UnknownStringLit
->      ,p "true" typeBool
->      ,p "array[1,2,3]" (ArrayType typeInt)
->      ,p "array['a','b']" (ArrayType (ScalarType "text"))
->      ,p "array[1,'b']" (ArrayType typeInt)
->      ,p "array[1,true]" (TypeError (IncompatibleTypeSet [typeInt,typeBool]))
+>       p "1" $ Right typeInt
+>      ,p "1.0" $ Right typeNumeric
+>      ,p "'test'" $ Right UnknownStringLit
+>      ,p "true" $ Right typeBool
+>      ,p "array[1,2,3]" $ Right (ArrayType typeInt)
+>      ,p "array['a','b']" $ Right (ArrayType (ScalarType "text"))
+>      ,p "array[1,'b']" $ Right (ArrayType typeInt)
+>      ,p "array[1,true]" $ Left (IncompatibleTypeSet [typeInt,typeBool])
 >      ])
-
+> {-
 >    ,testGroup "some expressions"
 >     (mapExprType [
->       p "1=1" typeBool
->      ,p "1=true" (TypeError (NoMatchingOperator "=" [typeInt,typeBool]))
+>       p "1=1" 4 Right typeBool
+>      ,p "1=true" (NoMatchingOperator "=" [typeInt,typeBool]))
 >      ,p "substring('aqbc' from 2 for 2)" (ScalarType "text")
 
 >      ,p "substring(3 from 2 for 2)" (TypeError
@@ -274,7 +275,7 @@ todo:
 
 >      ])
 
-
+> -}{-
 >    ,testGroup "simple selects"
 >     (mapStatementType [
 >       p "select 1;" [SetOfType $ UnnamedCompositeType [("?column?", typeInt)]]
@@ -584,19 +585,20 @@ insert
 >      ,p "delete from pg_attrdef where 1;"
 >         [DefaultStatementInfo (TypeError ExpressionMustBeBool)]
 >      ])
-
+> -}
 >    ]
 >         where
->           mapAttr = map $ uncurry checkAttrs
+>           --mapAttr = map $ uncurry checkAttrs
 >           p a b = (a,b)
 >           t a b c = (a,b,c)
->           mapExprType = map $ uncurry $ checkExpressionType emptyScope
->           mapStatementType = map $ uncurry checkStatementType
->           mapStatementInfo = map $ uncurry checkStatementInfo
->           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
->           makeScope l = scopeReplaceIds defaultScope (map (second (\a->(a,[]))) l) []
->           mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
+>           mapExprType = map (uncurry $ checkExpressionType emptyScope)
+>           --mapStatementType = map $ uncurry checkStatementType
+>           --mapStatementInfo = map $ uncurry checkStatementInfo
+>           --mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
+>           --makeScope l = scopeReplaceIds defaultScope (map (second (\a->(a,[]))) l) []
+>           --mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
 
+> {-
 > checkAttrs :: String -> [Message] -> Test.Framework.Test
 > checkAttrs src msgs = testCase ("check " ++ src) $ do
 >   let ast = case parseSql src of
@@ -604,11 +606,13 @@ insert
 >                Right l -> l
 >       msgs1 = checkAst ast
 >   assertEqual ("check " ++ src) msgs msgs1
+> -}
 
-> checkExpressionType :: Scope -> String -> Type -> Test.Framework.Test
-> checkExpressionType scope src typ = testCase ("typecheck " ++ src) $
->   assertEqual ("typecheck " ++ src) typ (parseAndGetExpressionType scope src)
+> checkExpressionType :: Scope -> String -> Either TypeError Type -> Test.Framework.Test
+> checkExpressionType scope src typ = undefined {-testCase ("typecheck " ++ src) $
+>   assertEqual ("typecheck " ++ src) typ (parseAndGetExpressionType scope src)-}
 
+> {-
 > checkStatementType :: String -> [Type] -> Test.Framework.Test
 > checkStatementType src typ = testCase ("typecheck " ++ src) $
 >   assertEqual ("typecheck " ++ src) typ (parseAndGetType src)
@@ -642,7 +646,7 @@ insert
 >                               Left er -> error $ show er
 >                               Right l -> l
 >   in getStatementsTypeScope scope ast
-
+> -}
 
 > parseAndGetExpressionType :: Scope -> String -> Type
 > parseAndGetExpressionType scope src =

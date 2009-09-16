@@ -66,12 +66,12 @@ MODULE {Database.HsSqlPpp.Ast}
    ,StatementList
 
    -- annotations
-   ,checkAst
-   ,getExpressionType
-   ,getStatementsType
-   ,getStatementsTypeScope
-   ,getStatementsInfo
-   ,getStatementsInfoScope
+   ,annotateAst
+   ,annotateAstScope
+   ,annotateExpression
+   ,getTopLevelTypes
+   ,getTypeErrors
+   ,getTopLevelInfos
    --annotation utils
    ,wipeAnnotations
 
@@ -89,8 +89,8 @@ MODULE {Database.HsSqlPpp.Ast}
    --typetype
    ,Type (..)
    ,PseudoType (..)
-   ,TypeErrorInfo (..)
-   ,StatementInfo (..)
+   ,TypeError (..)
+   --,StatementInfo (..)
 }
 {
 import Data.Maybe
@@ -380,29 +380,43 @@ appear in different places.  Maybe this should be called scalar
 expression?
 
 -}
-DATA Expression | IntegerLit Integer
-                | FloatLit Double
-                | StringLit quote : String
+DATA Expression | IntegerLit ann:Annotation i:Integer
+                | FloatLit ann:Annotation d:Double
+                | StringLit ann:Annotation
+                            quote : String
                             value : String
-                | NullLit
-                | BooleanLit Bool
-                | PositionalArg Integer
-                | Cast expr:Expression tn:TypeName
-                | Identifier i:String
-                | Case cases : CaseExpressionListExpressionPairList
-                       els : MaybeExpression
-                | CaseSimple value : Expression
+                | NullLit ann:Annotation
+                | BooleanLit ann:Annotation b:Bool
+                | PositionalArg ann:Annotation p:Integer
+                | Cast ann:Annotation
+                       expr:Expression
+                       tn:TypeName
+                | Identifier ann:Annotation
+                             i:String
+                | Case ann:Annotation
                        cases : CaseExpressionListExpressionPairList
                        els : MaybeExpression
-                | Exists sel : SelectExpression
-                | FunCall funName:String args:ExpressionList
-                | InPredicate expr:Expression i:Bool list:InList
+                | CaseSimple ann:Annotation
+                             value : Expression
+                             cases : CaseExpressionListExpressionPairList
+                             els : MaybeExpression
+                | Exists ann:Annotation
+                         sel : SelectExpression
+                | FunCall ann:Annotation
+                          funName:String
+                          args:ExpressionList
+                | InPredicate ann:Annotation
+                              expr:Expression
+                              i:Bool
+                              list:InList
                   -- windowfn selectitem partitionby orderby orderbyasc?
-                | WindowFn fn : Expression
+                | WindowFn ann:Annotation
+                           fn : Expression
                            partitionBy : ExpressionList
                            orderBy : ExpressionList
                            dir : Direction
-                | ScalarSubQuery sel : SelectExpression
+                | ScalarSubQuery ann:Annotation
+                                 sel : SelectExpression
 
 TYPE MaybeExpression = MAYBE Expression
 
@@ -514,8 +528,6 @@ has been put off for no good reason.
 
 TYPE StatementList = [Statement]
 
-
-
 -- Add a root data type so we can put initial values for inherited
 -- attributes in the section which defines and uses those attributes
 -- rather than in the sem_ calls
@@ -554,7 +566,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                CaseExpressionListExpressionPairList CaseExpressionList
                MTableRef TableRef OnExpr Where
 
-
+{-
 SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef
                    JoinExpression JoinType
                    SelectItem CopySource AttributeDef RowConstraint
@@ -577,6 +589,7 @@ SET ListNodes = SelectList ExpressionList ExpressionListList StringList
                 RowConstraintList
                 CaseExpressionListExpressionPairList CaseExpressionList
                 CaseExpressionListExpressionPair
+-}
 
 DERIVING AllNodes: Show,Eq
 
@@ -605,9 +618,54 @@ bit stale
 
 -}
 {
+
+{-
 checkAst :: StatementList -> [Message]
 checkAst sts = let t = sem_Root (Root sts)
                in (messages_Syn_Root (wrap_Root t Inh_Root {scope_Inh_Root = defaultScope}))
+-}
+
+annotateAst :: StatementList -> StatementList
+annotateAst = annotateAstScope defaultScope
+
+annotateAstScope :: Scope -> StatementList -> StatementList
+annotateAstScope scope sts = undefined
+{-    let t = sem_Root (Root sts)
+        ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
+        tl = annotatedTree_Syn_Root ta
+    in tl-}
+
+annotateExpression :: Scope -> Expression -> Expression
+annotateExpression scope ex = undefined
+{-    let t = sem_ExpressionRoot (ExpressionRoot ex)
+    in (nodeType_Syn_ExpressionRoot
+        (wrap_ExpressionRoot t Inh_ExpressionRoot {scope_Inh_ExpressionRoot = combineScopes defaultScope scope}))
+-}
+
+getTopLevelTypes :: Annotated a => [a] -> [Type]
+getTopLevelTypes sts = undefined {-map (\st -> getTypeAnnotation $ ann st) sts-}
+
+getTypeAnnotation :: Annotation -> Type
+getTypeAnnotation (x:xs) = undefined {-case x of
+                             TypeAnnotation t -> t
+                             _ -> getTypeAnnotation xs -}
+getTypeAnnotation _ = error "couldn't find type annotation"
+
+getTypeErrors :: Annotated a => [a] -> [TypeError]
+getTypeErrors sts = undefined {-
+    concatMap (\st -> collectAnn (\a -> gte a) st) sts
+    where
+      gte (a:as) = case a of
+                    TypeErrorA e -> [e]
+                    _ -> gte as
+      gte _ = []-}
+
+data StatementInfo = StatementInfo
+
+getTopLevelInfos :: Annotated a => [a] -> [StatementInfo]
+getTopLevelInfos sts = undefined {-map (\st -> getTypeAnnotation $ ann st) sts-}
+
+
 {-
 ================================================================================
 
@@ -616,20 +674,20 @@ checkAst sts = let t = sem_Root (Root sts)
 These are the utility functions which clients use to typecheck sql.
 
 -}
-
+{-
 getExpressionType :: Scope -> Expression -> Type
 getExpressionType scope ex =
     let t = sem_ExpressionRoot (ExpressionRoot ex)
     in (nodeType_Syn_ExpressionRoot
         (wrap_ExpressionRoot t Inh_ExpressionRoot {scope_Inh_ExpressionRoot = combineScopes defaultScope scope}))
-
-
+-}
+{-
 getStatementsType :: StatementList -> [Type]
 getStatementsType = getStatementsTypeScope emptyScope
 
 getStatementsTypeScope :: Scope -> StatementList -> [Type]
 getStatementsTypeScope scope st =
-    let t = sem_Root (Root st)
+.    let t = sem_Root (Root st)
         ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
         tl = nodeType_Syn_Root ta
     in (unwrapTypeList tl)
@@ -643,6 +701,7 @@ getStatementsInfoScope scope st =
         ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
         t2 = statementInfo_Syn_Root ta
     in t2
+-}
 
 instance Annotated Statement where
   ann a =
@@ -754,6 +813,61 @@ instance Annotated Statement where
               doCases = map (\(ex,sts) -> (ex,cars f sts)) cases
 
 cars f sts = map (changeAnnRecurse f) sts
+
+instance Annotated Expression where
+  ann a =
+      case a of
+        IntegerLit ann _ -> ann
+        FloatLit ann _ -> ann
+        StringLit ann _ _ -> ann
+        NullLit ann -> ann
+        BooleanLit ann _ -> ann
+        PositionalArg ann _ -> ann
+        Cast ann _ _ -> ann
+        Identifier ann _ -> ann
+        Case ann _ _ -> ann
+        CaseSimple ann _ _ _ -> ann
+        Exists ann _ -> ann
+        FunCall ann _ _ -> ann
+        InPredicate ann _ _ _ -> ann
+        WindowFn ann _ _ _ _ -> ann
+        ScalarSubQuery ann _ -> ann
+  setAnn st a =
+    case st of
+      IntegerLit _ i -> IntegerLit a i
+      FloatLit _ d -> FloatLit a d
+      StringLit _ q v -> StringLit a q v
+      NullLit _ -> NullLit a
+      BooleanLit _ b -> BooleanLit a b
+      PositionalArg _ p -> PositionalArg a p
+      Cast _ expr tn -> Cast a expr tn
+      Identifier _ i -> Identifier a i
+      Case _ cases els -> Case a cases els
+      CaseSimple _ val cases els -> CaseSimple a val cases els
+      Exists _ sel -> Exists a sel
+      FunCall _ funName args -> FunCall a funName args
+      InPredicate _ expr i list -> InPredicate a expr i list
+      WindowFn _ fn par ord dir -> WindowFn a fn par ord dir
+      ScalarSubQuery _ sel -> ScalarSubQuery a sel
+
+  changeAnnRecurse f st =
+    case st of
+      IntegerLit a i -> IntegerLit (f a) i
+      FloatLit a d -> FloatLit (f a) d
+      StringLit a q v -> StringLit (f a) q v
+      NullLit a -> NullLit a
+      BooleanLit a b -> BooleanLit (f a) b
+      PositionalArg a p -> PositionalArg (f a) p
+      Cast a expr tn -> Cast (f a) (changeAnnRecurse f expr) tn
+      Identifier a i -> Identifier (f a) i
+      Case a cases els -> Case (f a) cases els
+      CaseSimple a val cases els -> CaseSimple (f a) val cases els
+      Exists a sel -> Exists (f a) sel
+      FunCall a funName args -> FunCall (f a) funName args
+      InPredicate a expr i list -> InPredicate (f a) expr i list
+      WindowFn a fn par ord dir -> WindowFn (f a) fn par ord dir
+      ScalarSubQuery a sel -> ScalarSubQuery (f a) sel
+
 
 -- hack job, often not interested in the source positions when testing
 -- the asts produced, so this function will reset all the source

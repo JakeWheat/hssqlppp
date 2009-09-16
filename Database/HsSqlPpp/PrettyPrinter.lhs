@@ -240,7 +240,7 @@ Conversion routines - convert Sql asts into Docs
 >                 RNotice -> text "notice"
 >                 RException -> text "exception"
 >                 RError -> text "error"
->     <+> convExp (StringLit "'" st)
+>     <+> convExp (StringLit [] "'" st)
 >     <> ifNotEmpty (\e -> comma <+> csvExp e) exps
 >     <> statementEnd
 
@@ -267,7 +267,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (ContinueStatement ann) =
 >     convPa ca ann <+> text "continue" <> statementEnd
 
-> convStatement ca (Perform ann f@(FunCall _ _)) =
+> convStatement ca (Perform ann f@(FunCall _ _ _)) =
 >     convPa ca ann <+>
 >     text "perform" <+> convExp f <> statementEnd
 > convStatement _ (Perform _ x) =
@@ -369,10 +369,10 @@ Conversion routines - convert Sql asts into Docs
 >     convTref (SubTref sub alias) =
 >         parens (convSelectExpression True sub)
 >         <+> text "as" <+> text alias
->     convTref (TrefFun f@(FunCall _ _)) = convExp f
+>     convTref (TrefFun f@(FunCall _ _ _)) = convExp f
 >     convTref (TrefFun x) =
 >         error $ "internal error: node not supported in function tref: " ++ show x
->     convTref (TrefFunAlias f@(FunCall _ _) a) =
+>     convTref (TrefFunAlias f@(FunCall _ _ _) a) =
 >         convExp f <+> text "as" <+> text a
 >     convTref (TrefFunAlias x _) =
 >         error $ "internal error: node not supported in function tref: " ++ show x
@@ -437,16 +437,16 @@ Conversion routines - convert Sql asts into Docs
 = Expressions
 
 > convExp :: Expression -> Doc
-> convExp (Identifier i) = text i
-> convExp (IntegerLit n) = integer n
-> convExp (FloatLit n) = double n
-> convExp (StringLit tag s) = text tag <> text replaceQuotes <> text tag
+> convExp (Identifier _ i) = text i
+> convExp (IntegerLit _ n) = integer n
+> convExp (FloatLit _ n) = double n
+> convExp (StringLit _ tag s) = text tag <> text replaceQuotes <> text tag
 >                           where
 >                             replaceQuotes = if tag == "'"
 >                                               then replace "'" "''" s
 >                                               else s
 
-> convExp (FunCall n es) =
+> convExp (FunCall _ n es) =
 >     --check for special operators
 >    case n of
 >      "!arrayCtor" -> text "array" <> brackets (csvExp es)
@@ -459,7 +459,7 @@ Conversion routines - convert Sql asts into Docs
 >                                 <+> text "from" <+> convExp (es !! 1)
 >                                 <+> text "for" <+> convExp (es !! 2))
 >      "!arraySub" -> case es of
->                        ((Identifier i):es1) -> text i <> brackets (csvExp es1)
+>                        ((Identifier _ i):es1) -> text i <> brackets (csvExp es1)
 >                        _ -> parens (convExp (head es)) <> brackets (csvExp (tail es))
 >      "!rowCtor" -> text "row" <> parens (hcatCsvMap convExp es)
 >      _ | isOperator n ->
@@ -484,15 +484,15 @@ Conversion routines - convert Sql asts into Docs
 >                          "!like" -> "like"
 >                          x -> x
 
-> convExp (BooleanLit b) = bool b
-> convExp (InPredicate att t lst) =
+> convExp (BooleanLit _ b) = bool b
+> convExp (InPredicate _ att t lst) =
 >   convExp att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
 >                        InList expr -> csvExp expr
 >                        InSelect sel -> convSelectExpression True sel)
-> convExp (ScalarSubQuery s) = parens (convSelectExpression True s)
-> convExp NullLit = text "null"
-> convExp (WindowFn fn partition order asc) =
+> convExp (ScalarSubQuery _ s) = parens (convSelectExpression True s)
+> convExp (NullLit _) = text "null"
+> convExp (WindowFn _ fn partition order asc) =
 >   convExp fn <+> text "over"
 >   <+> (if hp || ho
 >        then
@@ -507,7 +507,7 @@ Conversion routines - convert Sql asts into Docs
 >   where
 >     hp = not (null partition)
 >     ho = not (null order)
-> convExp (Case whens els) =
+> convExp (Case _ whens els) =
 >   text "case"
 >   $+$ nest 2 (vcat (map convWhen whens)
 >               $+$ maybeConv (\e -> text "else" <+> convExp e) els)
@@ -517,7 +517,7 @@ Conversion routines - convert Sql asts into Docs
 >             text "when" <+> hcatCsvMap convExp ex1
 >             <+> text "then" <+> convExp ex2
 
-> convExp (CaseSimple val whens els) =
+> convExp (CaseSimple _ val whens els) =
 >   text "case" <+> convExp val
 >   $+$ nest 2 (vcat (map convWhen whens)
 >               $+$ maybeConv (\e -> text "else" <+> convExp e) els)
@@ -527,9 +527,9 @@ Conversion routines - convert Sql asts into Docs
 >             text "when" <+> hcatCsvMap convExp ex1
 >             <+> text "then" <+> convExp ex2
 
-> convExp (PositionalArg a) = text "$" <> integer a
-> convExp (Exists s) = text "exists" <+> parens (convSelectExpression True s)
-> convExp (Cast ex t) = text "cast" <> parens (convExp ex
+> convExp (PositionalArg _ a) = text "$" <> integer a
+> convExp (Exists _ s) = text "exists" <+> parens (convSelectExpression True s)
+> convExp (Cast _ ex t) = text "cast" <> parens (convExp ex
 >                                              <+> text "as"
 >                                              <+> convTypeName t)
 

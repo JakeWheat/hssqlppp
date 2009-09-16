@@ -8,11 +8,23 @@ type checking.
 > import Data.Maybe
 > import Data.List
 > import Debug.Trace
+> import Data.Either
 
 > import Database.HsSqlPpp.TypeType
 > import Database.HsSqlPpp.Scope
 > import Database.HsSqlPpp.AstUtils
 > import Database.HsSqlPpp.TypeConversion
+
+
+> checkEither :: [Either a b] -> Either a b
+> checkEither ((Left e):_) = Left e
+> checkEither (e:[]) = e
+> checkEither (_:es) = checkEither es
+> checkEither [] = error "empty list for checkEither"
+
+> unsafeRight :: Either a b -> b
+> unsafeRight (Right r) = r
+> unsafeRight (Left _) = error "tried to get unsafe right on left"
 
 ================================================================================
 
@@ -21,31 +33,31 @@ type checking.
 idea is to move these here from TypeChecking.ag if they get a bit big,
 not very consistently applied at the moment.
 
-> typeCheckFunCall :: Scope -> MySourcePos -> String -> Type -> Type
-> typeCheckFunCall scope sp fnName argsType' =
->     checkErrors [argsType'] ret
+> typeCheckFunCall :: Scope ->String -> [Type] -> Either TypeError Type
+> typeCheckFunCall scope fnName argsType =
+>     checkTypes argsType ret
 >     where
->       argsType = unwrapTypeList argsType'
 >       ret = case fnName of
 
 do the special cases first, some of these will use the variadic support
 when it is done and no longer be special cases.
 
->           "!arrayCtor" -> let t = resolveResultSetType scope sp argsType
->                           in checkErrors [t] $ ArrayType t
+>           "!arrayCtor" -> case resolveResultSetType scope argsType of
+>                             Left e -> Left e
+>                             Right t -> Right $ ArrayType t
 >           "!between" -> let f1 = lookupFn ">=" [argsType !! 0, argsType !! 1]
 >                             f2 = lookupFn "<=" [argsType !! 0, argsType !! 2]
->                             f3 = lookupFn "!and" [f1,f2]
->                         in checkErrors [f1,f2] f3
->           "coalesce" -> let t = resolveResultSetType scope sp argsType
->                         in checkErrors [t] t
->           "greatest" -> let t = resolveResultSetType scope sp argsType
->                             f1 = lookupFn ">=" [t,t]
->                         in checkErrors [t, f1] t
->           "least" -> let t = resolveResultSetType scope sp argsType
->                          f1 = lookupFn "<=" [t,t]
->                      in checkErrors [t, f1] t
->           "!rowCtor" -> RowCtor argsType
+>                             f3 = lookupFn "!and" [unsafeRight f1,unsafeRight f2]
+>                         in checkEither [f1,f2,f3]
+>           "coalesce" -> resolveResultSetType scope argsType
+>           "greatest" -> let t = resolveResultSetType scope argsType
+>                             f1 = lookupFn ">=" [unsafeRight t,unsafeRight t]
+>                         in checkEither [t, f1, t]
+>           "least" -> let t :: Either TypeError Type
+>                          t = resolveResultSetType scope argsType
+>                          f1 = lookupFn "<=" [unsafeRight t,unsafeRight t]
+>                      in checkEither [t, f1, t]
+>           "!rowCtor" -> Right $ RowCtor argsType
 
 special case the row comparison ops
 
@@ -58,50 +70,49 @@ special case the row comparison ops
 >                 checkRowTypesMatch (head argsType) (head $ tail argsType)
 
 >           s ->  lookupFn s argsType
->       lookupFn s1 args = case findCallMatch scope sp
->                                              (if s1 == "u-" then "-" else s1) args of
->                                Left te -> te
->                                Right (_,_,r) -> r
+>       lookupFn :: String -> [Type] -> Either TypeError Type
+>       lookupFn s1 args = case findCallMatch scope
+>                                 (if s1 == "u-" then "-" else s1) args of
+>                                Left te -> Left te
+>                                Right (_,_,r) -> Right r
 >       checkRowTypesMatch (RowCtor t1s) (RowCtor t2s) =
->         let e1 = if length t1s /= length t2s
->                    then TypeError ValuesListsMustBeSameLength
->                    else TypeList []
->             t3s = map (resolveResultSetType scope sp . (\(a,b) -> [a,b])) $ zip t1s t2s
->         in checkErrors (e1:t3s) typeBool
+>         if length t1s /= length t2s
+>           then Left ValuesListsMustBeSameLength
+>           else let ts = map (resolveResultSetType scope . (\(a,b) -> [a,b])) $ zip t1s t2s
+>                in checkEither $ ts ++ [Right typeBool]
 >       checkRowTypesMatch x y  =
 >         error $ "internal error: checkRowTypesMatch called with " ++ show x ++ "," ++ show y
 
 
-> typeCheckValuesExpr :: Scope -> MySourcePos -> Type -> Type
-> typeCheckValuesExpr scope sp vll =
->         let rowsTs1 = unwrapTypeList vll
->             --convert into [[Type]]
->             rowsTs = map unwrapTypeList rowsTs1
+> typeCheckValuesExpr :: Scope -> [[Type]] -> Either TypeError Type
+> typeCheckValuesExpr scope rowsTs =
+>         let --convert into [[Type]]
+>             --rowsTs = map unwrapTypeList rowsTs1
 >             colNames = zipWith (++)
 >                            (repeat "column")
 >                            (map show [1..length $ head rowsTs])
->         in unionRelTypes scope sp rowsTs colNames
+>         in unionRelTypes scope rowsTs colNames
 
-> typeCheckCombineSelect :: Scope -> MySourcePos -> Type -> Type -> Type
-> typeCheckCombineSelect scope sp v1 v2 =
+> typeCheckCombineSelect :: Scope -> Type -> Type -> Either TypeError Type
+> typeCheckCombineSelect scope v1 v2 =
 >     let colNames = map fst $ unwrapComposite $ unwrapSetOf v1
->     in unionRelTypes scope sp
+>     in unionRelTypes scope
 >                   (map (map snd . unwrapComposite . unwrapSetOf) [v1,v2])
 >                   colNames
 
-> unionRelTypes :: Scope -> MySourcePos -> [[Type]] -> [String] -> Type
-> unionRelTypes scope sp rowsTs colNames =
->         let lengths = map length rowsTs
->             error1 = case () of
->                       _ | null rowsTs ->
->                             TypeError NoRowsGivenForValues
->                         | not (all (==head lengths) lengths) ->
->                             TypeError ValuesListsMustBeSameLength
->                         | otherwise -> TypeList []
->             colTypeLists = transpose rowsTs
->             colTypes = map (resolveResultSetType scope sp) colTypeLists
->             ty = SetOfType $ UnnamedCompositeType $ zip colNames colTypes
->         in checkErrors (error1:colTypes) ty
+> unionRelTypes :: Scope -> [[Type]] -> [String] -> Either TypeError Type
+> unionRelTypes scope rowsTs colNames =
+>   let lengths = map length rowsTs
+>   in case () of
+>              _ | null rowsTs ->
+>                    Left NoRowsGivenForValues
+>                | not (all (==head lengths) lengths) ->
+>                    Left ValuesListsMustBeSameLength
+>                | otherwise ->
+>                    let colTypeLists = transpose rowsTs
+>                        colTypes = map (resolveResultSetType scope ) colTypeLists
+>                        ty = Right $ SetOfType $ UnnamedCompositeType $ zip colNames $ rights colTypes
+>                    in checkEither $ colTypes ++ [ty]
 
 ================================================================================
 
@@ -128,8 +139,8 @@ it checks the types in the using list are compatible, and eliminates
 duplicate columns of the attrs in the using list, returns the relvar
 type of the joined tables.
 
-> combineTableTypesWithUsingList :: Scope -> MySourcePos -> [String] -> Type -> Type -> Type
-> combineTableTypesWithUsingList scope sp l t1c t2c =
+> combineTableTypesWithUsingList :: Scope -> [String] -> Type -> Type -> Either TypeError Type
+> combineTableTypesWithUsingList scope l t1c t2c =
 >     --check t1 and t2 have l
 >     let t1 = unwrapComposite t1c
 >         t2 = unwrapComposite t2c
@@ -137,23 +148,37 @@ type of the joined tables.
 >         names2 = getNames t2
 >         error1 = if not (contained l names1) ||
 >                     not (contained l names2)
->                    then TypeError MissingJoinAttribute
->                    else TypeList []
+>                    then Just MissingJoinAttribute
+>                    else Nothing
 >         --check the types
->         joinColumns = map (getColumnType t1 t2) l
+>         joinColumnTypes = map (getColumnType t1 t2) l
 >         nonJoinColumns =
 >             let notJoin = (\(s,_) -> s `notElem` l)
 >             in filter notJoin t1 ++ filter notJoin t2
->     in checkErrors [error1]
->                    (UnnamedCompositeType $ joinColumns ++ nonJoinColumns)
+>         checkColumns :: Either TypeError Type
+>         checkColumns =
+>           case catEither joinColumnTypes of
+>             Left e -> Left e
+>             Right cols -> Right (UnnamedCompositeType $ zip l cols ++ nonJoinColumns)
+
+>     in case error1 of
+>          Just e -> Left e
+>          Nothing -> checkColumns
 >     where
 >       getNames :: [(String,Type)] -> [String]
 >       getNames = map fst
 >       contained l1 l2 = all (`elem` l2) l1
+>       getColumnType :: [(String,Type)] -> [(String,Type)] -> String -> Either TypeError Type
 >       getColumnType t1 t2 f =
 >           let ct1 = getFieldType t1 f
 >               ct2 = getFieldType t2 f
->           in (f, resolveResultSetType scope sp [ct1,ct2])
+>           in resolveResultSetType scope [ct1,ct2]
 >       getFieldType t f = snd $ fromJust $ find (\(s,_) -> s == f) t
 
-> type MySourcePos = (String,Int,Int)
+> catEither :: [Either a b] -> Either a [b]
+> catEither l =
+>   catEither' l []
+>   where
+>     catEither' (Left a:_) _ = Left a
+>     catEither' (Right b:es) bs = catEither' es (b:bs)
+>     catEither' [] bs = Right $ reverse bs

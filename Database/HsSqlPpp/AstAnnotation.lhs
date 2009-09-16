@@ -15,8 +15,8 @@ grammar code and aren't exposed.
 > type Annotation = [AnnotationElement]
 
 > data AnnotationElement = SourcePos String Int Int
->                        | TypeAnnotation
->                        | TypeErrorA TypeErrorInfo
+>                        | TypeAnnotation Type
+>                        | TypeErrorA TypeError
 >                          deriving (Eq, Show)
 
 > class Annotated a where
@@ -31,6 +31,9 @@ grammar code and aren't exposed.
 
 > stripAnnotations :: Annotated a => a -> a
 > stripAnnotations a = changeAnnRecurse (const []) a
+
+> collectAnn :: Annotated a => (Annotation -> r) -> a -> [r]
+> collectAnn f a = [f $ ann a] --todo - need to recurse
 
 sourcepos
 types

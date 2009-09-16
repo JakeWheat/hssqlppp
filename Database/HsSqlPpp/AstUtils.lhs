@@ -3,17 +3,11 @@ Copyright 2009 Jake Wheat
 This file contains a bunch of small low level utilities to help with
 type checking.
 
-random implementation note:
-If you see one of these: TypeList [] - and don't get it - is used to
-represent a variety of different things, like node type checked ok
-when the node doesn't produce a type but can produce a type error,
-etc.. This is just a hack that will be changed soon.
-
 > module Database.HsSqlPpp.AstUtils
 >     (
 >      OperatorType(..)
 >     ,getOperatorType
->     ,checkErrors
+>     ,checkTypes
 >     ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
 >     ,typeFloat8,typeVarChar,typeChar,typeBool
 >     ,canonicalizeTypeName
@@ -22,7 +16,6 @@ etc.. This is just a hack that will be changed soon.
 >     ,keywordOperatorTypes
 >     ,specialFunctionTypes
 >     ,isArrayType
->     ,unwrapTypeList
 >     ,unwrapArray
 >     ,unwrapSetOfComposite
 >     ,unwrapSetOf
@@ -40,8 +33,6 @@ etc.. This is just a hack that will be changed soon.
 > import Database.HsSqlPpp.TypeType
 > import Database.HsSqlPpp.Scope
 > import Database.HsSqlPpp.DefaultScope
-
-> type MySourcePos = (String,Int,Int)
 
 ================================================================================
 
@@ -128,45 +119,10 @@ unknowns. It will only return errors from the first type containing
 errors, which might need looking at when the focus is on good error
 messages.
 
-> checkErrors :: [Type] -> Type -> Type
-> checkErrors (t:ts) r = case unkErr t of
->                        Just e -> e
->                        Nothing -> checkErrors ts r
-> checkErrors [] r = r
-
-takes a type and returns any type errors, or if no errors, unknowns,
-returns nothing if it doesn't find any type errors or unknowns. Looks
-at the immediate type, or inside the first level if passed a type
-list or unnamedcompositetype.
-
-> unkErr :: Type -> Maybe Type
-> unkErr t =
->     case t of
->       a@(TypeError _) -> Just a
->       UnknownType -> Just UnknownType
->       TypeList l -> doTypeList l
->       UnnamedCompositeType c -> doTypeList (map snd c)
->       _ -> Nothing
->     where
->       -- run through the type list, if there are any errors, collect
->       -- them all into a list
->       -- otherwise, if there are any unknowns, then the type is
->       -- unknown
->       -- otherwise, return nothing
->       doTypeList ts =
->           let unks = filter (\u -> case u of
->                                      UnknownType -> True
->                                      _ -> False) ts
->               errs = filter (\u -> case u of
->                                      TypeError _ -> True
->                                      _ -> False) ts
->           in case () of
->                _ | length errs > 0 ->
->                      Just $ case () of
->                                     _ | length errs == 1 -> head errs
->                                       | otherwise -> TypeList errs
->                  | length unks > 0 -> Just UnknownType
->                  | otherwise -> Nothing
+> checkTypes :: [Type] -> Either TypeError Type -> Either TypeError Type
+> checkTypes (TypeCheckFailed:_) _ = Right TypeCheckFailed
+> checkTypes (_:ts) r = checkTypes ts r
+> checkTypes [] r = r
 
 ================================================================================
 
@@ -283,17 +239,17 @@ this converts the name of a type to its canonical name
 >       charNames = ["character", "char"]
 >       boolNames = ["boolean", "bool"]
 
-> checkTypeExists :: Scope -> MySourcePos -> Type -> Type
-> checkTypeExists scope sp t =
+> checkTypeExists :: Scope -> Type -> Either TypeError ()
+> checkTypeExists scope t =
 >     if t `elem` scopeTypes scope
->       then TypeList [] -- this works with the checkErrors function
->       else TypeError (UnknownTypeError t)
+>       then Right ()
+>       else Left (UnknownTypeError t)
 
-> lookupTypeByName :: Scope -> MySourcePos -> String -> Type
-> lookupTypeByName scope sp name =
+> lookupTypeByName :: Scope -> String -> Either TypeError Type
+> lookupTypeByName scope name =
 >     case lookup name (scopeTypeNames scope) of
->       Just t -> t
->       Nothing -> TypeError (UnknownTypeName name)
+>       Just t -> Right t
+>       Nothing -> Left (UnknownTypeName name)
 
 
 ================================================================================
@@ -361,9 +317,9 @@ utilities for working with Types
 > isArrayType (ArrayType _) = True
 > isArrayType _ = False
 
-> unwrapTypeList :: Type -> [Type]
-> unwrapTypeList (TypeList ts) = ts
-> unwrapTypeList x = error $ "internal error: can't get types from list " ++ show x
+ > unwrapTypeList :: Type -> [Type]
+ > unwrapTypeList (TypeList ts) = ts
+ > unwrapTypeList x = error $ "internal error: can't get types from list " ++ show x
 
 > unwrapArray :: Type -> Type
 > unwrapArray (ArrayType t) = t
@@ -396,25 +352,26 @@ message stuff, used by the continue in loop checking, will be
 repurposed once the type checking is complete and lint-style checking
 is introduced.
 
-> data Message = Error MySourcePos MessageStuff
->              | Warning MySourcePos MessageStuff
->              | Notice MySourcePos MessageStuff
->                deriving (Eq)
+> data Message = Error MessageStuff
+>              | Warning MessageStuff
+>              | Notice MessageStuff
+>                deriving (Eq,Show)
 >
 > data MessageStuff = ContinueNotInLoop
 >                   | CustomMessage String
 >                     deriving (Eq,Show)
 >
-> instance Show Message where
->    show = showMessage
->
-> showMessage :: Message -> String
-> showMessage m = case m of
->                   Error sp s -> showit "Error" sp s
->                   Warning sp s -> showit "Warning" sp s
->                   Notice sp s -> showit "Notice" sp s
->                 where
->                   showit lev (fn,l,c) s = lev ++ "\n" ++ fn ++ ":"
->                                           ++ show l ++ ":" ++ show c ++ ":\n"
->                                           ++ show s ++ "\n"
->
+
+ > instance Show Message where
+ >    show = showMessage
+ >
+ > showMessage :: Message -> String
+ > showMessage m = case m of
+ >                   Error s -> showit "Error" s
+ >                   Warning s -> showit "Warning" s
+ >                   Notice s -> showit "Notice" s
+ >                 where
+ >                   showit lev (fn,l,c) s = lev ++ "\n" ++ fn ++ ":"
+ >                                           ++ show l ++ ":" ++ show c ++ ":\n"
+ >                                           ++ show s ++ "\n"
+ >

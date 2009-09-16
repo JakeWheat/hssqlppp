@@ -33,9 +33,7 @@ value.
 void is used for functions which return nothing
 trigger is a tag to say a function is used in triggers, used as a
 return type only
-typelist is an internal type (not a pg type) used during type checking
-typeerror represents something which has failed to typecheck
-unknowntype is used to represent the type of anything which the code
+typecheckfailed is used to represent the type of anything which the code
 is currently unable to type check, this should disappear at some
 point
 
@@ -59,12 +57,10 @@ out. If not, will have to add another type.
 >           | DomainType String
 >           | EnumType String
 >           | RowCtor [Type]
->           -- type list is used internally in the type checking.
->           | TypeList [Type]
 >           | Pseudo PseudoType
->           | TypeError TypeErrorInfo
->           | UnknownType -- represents something which the type checker
->                         -- doesn't know how to type check
+>           | TypeCheckFailed -- represents something which the type checker
+>                             -- doesn't know how to type check
+>                             -- or it cannot work the type out because of errors
 >           | UnknownStringLit -- represents a string literal
 >                              -- token whose type isn't yet
 >                              -- determined
@@ -91,24 +87,24 @@ string. It is intended for this code to produce highly useful errors
 later on down the line.
 
 >                    -- mostly expected,got
-> data TypeErrorInfo = WrongTypes Type [Type]
->                    | UnknownTypeError Type
->                    | UnknownTypeName String
->                    | NoMatchingOperator String [Type]
->                    | TypelessEmptyArray
->                    | IncompatibleTypeSet [Type]
->                    | IncompatibleTypes Type Type
->                    | ValuesListsMustBeSameLength
->                    | NoRowsGivenForValues
->                    | UnrecognisedIdentifier String
->                    | UnrecognisedRelation String
->                    | UnrecognisedCorrelationName String
->                    | AmbiguousIdentifier String
->                    | ContextError String
->                    | MissingJoinAttribute
->                    | ExpressionMustBeBool
->                    | WrongNumberOfColumns
->                      deriving (Eq,Show)
+> data TypeError = WrongTypes Type [Type]
+>                | UnknownTypeError Type
+>                | UnknownTypeName String
+>                | NoMatchingOperator String [Type]
+>                | TypelessEmptyArray
+>                | IncompatibleTypeSet [Type]
+>                | IncompatibleTypes Type Type
+>                | ValuesListsMustBeSameLength
+>                | NoRowsGivenForValues
+>                | UnrecognisedIdentifier String
+>                | UnrecognisedRelation String
+>                | UnrecognisedCorrelationName String
+>                | AmbiguousIdentifier String
+>                | ContextError String
+>                | MissingJoinAttribute
+>                | ExpressionMustBeBool
+>                | WrongNumberOfColumns
+>                  deriving (Eq,Show)
 
 some random stuff needed here because of compilation orders
 

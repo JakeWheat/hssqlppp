@@ -78,37 +78,35 @@ key references in the pg catalog.
 > catPair :: ([a],[a]) -> [a]
 > catPair = uncurry (++)
 
-> type MySourcePos = (String,Int,Int)
-
-> scopeLookupID :: Scope -> MySourcePos -> String -> String -> Type
-> scopeLookupID scope sp correlationName iden =
+> scopeLookupID :: Scope -> String -> String -> Either TypeError Type
+> scopeLookupID scope correlationName iden =
 >   if correlationName == ""
 >     then let types = concatMap (filter (\ (s, _) -> s == iden))
 >                        (map (catPair.snd) $ scopeIdentifierTypes scope)
 >          in case length types of
->                 0 -> TypeError (UnrecognisedIdentifier iden)
->                 1 -> (snd . head) types
+>                 0 -> Left $ UnrecognisedIdentifier iden
+>                 1 -> Right $ (snd . head) types
 >                 _ -> --see if this identifier is in the join list
 >                      if iden `elem` scopeJoinIdentifiers scope
->                        then (snd . head) types
->                        else TypeError (AmbiguousIdentifier iden)
+>                        then Right $ (snd . head) types
+>                        else Left (AmbiguousIdentifier iden)
 >     else case lookup correlationName (scopeIdentifierTypes scope) of
->            Nothing -> TypeError $ UnrecognisedCorrelationName correlationName
+>            Nothing -> Left $ UnrecognisedCorrelationName correlationName
 >            Just s -> case lookup iden (catPair s) of
->                        Nothing -> TypeError $ UnrecognisedIdentifier $ correlationName ++ "." ++ iden
->                        Just t -> t
+>                        Nothing -> Left $ UnrecognisedIdentifier $ correlationName ++ "." ++ iden
+>                        Just t -> Right t
 
-> scopeExpandStar :: Scope -> MySourcePos -> String -> [(String,Type)]
-> scopeExpandStar scope sp correlationName =
+> scopeExpandStar :: Scope -> String -> Either TypeError [(String,Type)]
+> scopeExpandStar scope correlationName =
 >     if correlationName == ""
 >       then let allFields = concatMap (fst.snd) $ scopeIdentifierTypes scope
 >                (commonFields,uncommonFields) =
 >                   partition (\(a,_) -> a `elem` scopeJoinIdentifiers scope) allFields
->            in nub commonFields ++ uncommonFields
+>            in Right $ nub commonFields ++ uncommonFields
 >       else
 >           case lookup correlationName $ scopeIdentifierTypes scope of
->             Nothing -> [("", TypeError $ UnrecognisedCorrelationName correlationName)]
->             Just s -> fst s
+>             Nothing -> Left $ UnrecognisedCorrelationName correlationName
+>             Just s -> Right $ fst s
 
 
 > combineScopes :: Scope -> Scope -> Scope

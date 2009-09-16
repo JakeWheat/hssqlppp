@@ -42,19 +42,19 @@ actual value - add this to all nodes out of laziness. We use these
 values in a limited number of places in the code
 
 -}
-
+{-
 ATTR AllNodes
   [
-  | sourcePos: MySourcePos
+  | sourcePos : (String,Int,Int)
   |
   ]
-
+-}
 ATTR AllNodes Root ExpressionRoot
   [ scope : Scope
   |
-  | actualValue: SELF
+  | --actualValue : SELF
   ]
-
+{-
 {-
 
 Node types
@@ -66,7 +66,27 @@ sense. Will be reviewed and removed quite soon. (Some nodes will keep
 the node type attribute, most will lose it.)
 
 -}
+-}
 
+ATTR ExpressionRoot
+  [
+  |
+  | nodeType : Type
+  ]
+
+ATTR Expression
+  [
+  |
+  | nodeType : Type
+  ]
+
+SEM Expression
+    |IntegerLit FloatLit StringLit NullLit BooleanLit PositionalArg
+      Cast Identifier Case CaseSimple Exists FunCall InPredicate WindowFn
+      ScalarSubQuery
+        lhs.nodeType = TypeCheckFailed
+
+{-
 ATTR NonListNodes Root ExpressionRoot
   [
   |
@@ -244,7 +264,7 @@ SEM TypeName
      | SimpleTypeName
           --this needs to work a bit better, a simpletypename can match
           --domains, composite types, etc., not just scalar types
-          lhs.nodeType = lookupTypeByName @lhs.scope @lhs.sourcePos $ canonicalizeTypeName @tn
+          lhs.nodeType = lookupTypeByName @lhs.scope $ canonicalizeTypeName @tn
 --     | PrecTypeName
 --          lhs.nodeType = if @tn `elem` defaultTypes
 --                           then ScalarType @tn
@@ -254,7 +274,7 @@ SEM TypeName
           lhs.nodeType = let t = ArrayType @typ.nodeType
                          in checkErrors
                                 [@typ.nodeType
-                                ,checkTypeExists @lhs.scope @lhs.sourcePos t]
+                                ,checkTypeExists @lhs.scope t]
                                 t
      | SetOfTypeName
           lhs.nodeType = checkErrors [@typ.nodeType]
@@ -296,7 +316,6 @@ SEM Expression
         checkErrors [@args.nodeType] $
           typeCheckFunCall
             @lhs.scope
-            @lhs.sourcePos
             @funName
             @args.nodeType
 
@@ -319,7 +338,7 @@ casesimple sem code.
 -}
 
 SEM Expression
-    | Case lhs.nodeType =
+    | Case lhs.nodeType = 
         let elseThen =
                 case @els.nodeType of
                   TypeList [] -> []
@@ -336,7 +355,6 @@ SEM Expression
         in checkErrors (whenTypes ++ thenTypes ++ [whensAllBool]) $
              resolveResultSetType
                @lhs.scope
-               @lhs.sourcePos
                thenTypes
 
 SEM Expression
@@ -352,12 +370,10 @@ SEM Expression
             thenTypes = map (head . tail) unwrappedLists ++ elseThen
             checkWhenTypes = resolveResultSetType
                                @lhs.scope
-                               @lhs.sourcePos
                                (@value.nodeType:whenTypes)
         in checkErrors (whenTypes ++ thenTypes ++ [checkWhenTypes]) $
              resolveResultSetType
                @lhs.scope
-               @lhs.sourcePos
                thenTypes
 
 
@@ -370,7 +386,7 @@ pull id types out of scope for identifiers
 SEM Expression
     | Identifier lhs.nodeType =
                    let (correlationName,iden) = splitIdentifier @i
-                   in scopeLookupID @lhs.scope @lhs.sourcePos correlationName iden
+                   in scopeLookupID @lhs.scope correlationName iden
 
 {
 -- i think this should be alright, an identifier referenced in an
@@ -408,7 +424,6 @@ SEM Expression
         lhs.nodeType =
             let er = resolveResultSetType
                          @lhs.scope
-                         @lhs.sourcePos
                          [@expr.nodeType, @list.nodeType]
             in checkErrors [er] typeBool
 
@@ -416,7 +431,6 @@ SEM InList
     | InList
         lhs.nodeType = resolveResultSetType
                          @lhs.scope
-                         @lhs.sourcePos
                          $ unwrapTypeList @exprs.nodeType
     | InSelect lhs.nodeType =
         let attrs = map snd $ unwrapComposite $ unwrapSetOf $ @sel.nodeType
@@ -444,7 +458,6 @@ SEM SelectExpression
         checkErrors [@vll.nodeType] $
                     typeCheckValuesExpr
                               @lhs.scope
-                              @lhs.sourcePos
                               @vll.nodeType
     | Select
          lhs.nodeType = checkErrors
@@ -459,7 +472,6 @@ SEM SelectExpression
         checkErrors [@sel1.nodeType,@sel2.nodeType] $
                     typeCheckCombineSelect
                               @lhs.scope
-                              @lhs.sourcePos
                               @sel1.nodeType
                               @sel2.nodeType
 
@@ -468,20 +480,20 @@ SEM TableRef
               lhs.idens = [(@alias, (unwrapComposite $ unwrapSetOf @sel.nodeType, []))]
               lhs.joinIdens = []
     | TrefAlias Tref
-        lhs.nodeType = fst $ getRelationType @lhs.scope @lhs.sourcePos @tbl
+        lhs.nodeType = fst $ getRelationType @lhs.scope @tbl
         lhs.joinIdens = []
     | Tref
-        lhs.idens = [(@tbl, both unwrapComposite $ getRelationType @lhs.scope @lhs.sourcePos @tbl)]
+        lhs.idens = [(@tbl, both unwrapComposite $ getRelationType @lhs.scope @tbl)]
     | TrefAlias
-        lhs.idens = [(@alias, both unwrapComposite $ getRelationType @lhs.scope @lhs.sourcePos @tbl)]
+        lhs.idens = [(@alias, both unwrapComposite $ getRelationType @lhs.scope @tbl)]
     | TrefFun
-        lhs.nodeType = getFnType @lhs.scope @lhs.sourcePos "" @fn.actualValue @fn.nodeType
+        lhs.nodeType = getFnType @lhs.scope "" @fn.actualValue @fn.nodeType
         lhs.joinIdens = []
-        lhs.idens = [second (\l -> (unwrapComposite l, [])) $ getFunIdens @lhs.scope @lhs.sourcePos "" @fn.actualValue @fn.nodeType]
+        lhs.idens = [second (\l -> (unwrapComposite l, [])) $ getFunIdens @lhs.scope "" @fn.actualValue @fn.nodeType]
     | TrefFunAlias
-        lhs.nodeType = getFnType @lhs.scope @lhs.sourcePos @alias @fn.actualValue @fn.nodeType
+        lhs.nodeType = getFnType @lhs.scope @alias @fn.actualValue @fn.nodeType
         lhs.joinIdens = []
-        lhs.idens = [second (\l -> (unwrapComposite l, [])) $ getFunIdens @lhs.scope @lhs.sourcePos @alias @fn.actualValue @fn.nodeType]
+        lhs.idens = [second (\l -> (unwrapComposite l, [])) $ getFunIdens @lhs.scope @alias @fn.actualValue @fn.nodeType]
     | JoinedTref
         lhs.nodeType =
             checkErrors [@tbl.nodeType
@@ -496,7 +508,6 @@ SEM TableRef
                       _ -> unionJoinList []
               unionJoinList s = combineTableTypesWithUsingList
                                   @lhs.scope
-                                  @lhs.sourcePos
                                   s
                                   @tbl.nodeType
                                   @tbl1.nodeType
@@ -504,19 +515,19 @@ SEM TableRef
         lhs.joinIdens = commonFieldNames @tbl.nodeType @tbl1.nodeType
 {
 --returns the type of the relation, and the system columns also
-getRelationType :: Scope -> MySourcePos -> String -> (Type,Type)
-getRelationType scope sp tbl =
+getRelationType :: Scope -> String -> (Type,Type)
+getRelationType scope tbl =
           case getAttrs scope [TableComposite, ViewComposite] tbl of
             Just ((_,_,a@(UnnamedCompositeType _))
                  ,(_,_,s@(UnnamedCompositeType _)) ) -> (a,s)
             _ -> (TypeError (UnrecognisedRelation tbl), TypeList [])
 
-getFnType :: Scope -> MySourcePos -> String -> Expression -> Type -> Type
-getFnType scope sp alias fnVal fnType =
-    checkErrors [fnType] $ snd $ getFunIdens scope sp alias fnVal fnType
+getFnType :: Scope -> String -> Expression -> Type -> Type
+getFnType scope alias fnVal fnType =
+    checkErrors [fnType] $ snd $ getFunIdens scope alias fnVal fnType
 
-getFunIdens :: Scope -> MySourcePos -> String -> Expression -> Type -> (String, Type)
-getFunIdens scope sp alias fnVal fnType =
+getFunIdens :: Scope-> String -> Expression -> Type -> (String, Type)
+getFunIdens scope alias fnVal fnType =
    case fnVal of
        FunCall f _ ->
            let correlationName = if alias /= ""
@@ -572,7 +583,7 @@ SEM SelectItemList
         foldr consComposite @tl.nodeType
            (let (correlationName,iden) = splitIdentifier @hd.columnName
             in if iden == "*"
-                then scopeExpandStar @lhs.scope @lhs.sourcePos correlationName
+                then scopeExpandStar @lhs.scope correlationName
                 else [(iden, @hd.nodeType)])
     | Nil lhs.nodeType = UnnamedCompositeType []
 
@@ -690,25 +701,25 @@ SEM SelectItem
 
 SEM Statement
     | Insert
-        lhs.nodeType = checkErrors [checkTableExists @lhs.scope @lhs.sourcePos @table
+        lhs.nodeType = checkErrors [checkTableExists @lhs.scope @table
                                    ,@insData.nodeType
-                                   ,checkColumnConsistency @lhs.scope @lhs.sourcePos @table @targetCols.strings (unwrapComposite $ unwrapSetOf @insData.nodeType)]
+                                   ,checkColumnConsistency @lhs.scope @table @targetCols.strings (unwrapComposite $ unwrapSetOf @insData.nodeType)]
                                  @insData.nodeType
         lhs.statementInfo =
-          makeStatementInfo @lhs.backType $ InsertInfo @table $ UnnamedCompositeType $ getColumnTypes @lhs.scope @lhs.sourcePos @table @targetCols.strings
+          makeStatementInfo @lhs.backType $ InsertInfo @table $ UnnamedCompositeType $ getColumnTypes @lhs.scope @table @targetCols.strings
 
 {
-checkTableExists :: Scope -> MySourcePos -> String -> Type
-checkTableExists scope sp tbl =
+checkTableExists :: Scope -> String -> Type
+checkTableExists scope tbl =
           case getAttrs scope [TableComposite, ViewComposite] tbl of
             Just _ -> TypeList []
             _ -> TypeError (UnrecognisedRelation tbl)
 
-checkColumnConsistency :: Scope -> MySourcePos -> String -> [String] -> [(String,Type)] -> Type
-checkColumnConsistency scope sp tbl cols' insNameTypePairs =
+checkColumnConsistency :: Scope ->  String -> [String] -> [(String,Type)] -> Type
+checkColumnConsistency scope tbl cols' insNameTypePairs =
   let --todo: check the cols have no duplicates
       --todo: check the missing target cols have defaults
-      targetTableType = fst $ getRelationType scope sp tbl
+      targetTableType = fst $ getRelationType scope tbl
       targetTableCols = unwrapComposite targetTableType
       --check the num cols in the insdata match the number of cols
       cols = if null cols'
@@ -727,7 +738,7 @@ checkColumnConsistency scope sp tbl cols' insNameTypePairs =
       --check the types of the insdata match the column targets
       --name datatype columntype
       typeTriples = map (\((a,b),c) -> (a,b,c)) $ zip targetNameTypePairs $ map snd insNameTypePairs
-      matchingTypeErrors = map (\(_,b,c) -> checkAssignmentValid scope sp c b) typeTriples
+      matchingTypeErrors = map (\(_,b,c) -> checkAssignmentValid scope c b) typeTriples
   in checkErrors [targetTableType
                  ,wrongLengthError
                  ,nonMatchingErrors
@@ -735,9 +746,9 @@ checkColumnConsistency scope sp tbl cols' insNameTypePairs =
   where
     makeUnknownColumnError = TypeError . UnrecognisedIdentifier
 
-getColumnTypes :: Scope -> MySourcePos -> String -> [String] -> [(String,Type)]
-getColumnTypes scope sp tbl cols' =
-  let targetTableType = fst $ getRelationType scope sp tbl
+getColumnTypes :: Scope -> String -> [String] -> [(String,Type)]
+getColumnTypes scope tbl cols' =
+  let targetTableType = fst $ getRelationType scope tbl
       targetTableCols = unwrapComposite targetTableType
       cols = if null cols'
                then map fst targetTableCols
@@ -761,10 +772,10 @@ getColumnTypes scope sp tbl cols' =
 SEM Statement
     | Update
         lhs.nodeType =
-          checkErrors [checkTableExists @lhs.scope @lhs.sourcePos @table
+          checkErrors [checkTableExists @lhs.scope @table
                       ,@whr.nodeType
                       ,@assigns.nodeType
-                      ,checkColumnConsistency @lhs.scope @lhs.sourcePos
+                      ,checkColumnConsistency @lhs.scope
                                               @table colNames colTypes]
             @assigns.nodeType
           where
@@ -772,7 +783,7 @@ SEM Statement
             colTypes = @assigns.pairs
         lhs.statementInfo =
           makeStatementInfo @lhs.backType $ UpdateInfo @table $
-            UnnamedCompositeType $ getColumnTypes @lhs.scope @lhs.sourcePos @table $ map fst @assigns.pairs
+            UnnamedCompositeType $ getColumnTypes @lhs.scope @table $ map fst @assigns.pairs
 
 ATTR SetClauseList
      [
@@ -820,7 +831,7 @@ getRowTypes x = error $ "cannot get row types from " ++ show x
 SEM Statement
     | Delete
         lhs.nodeType =
-          checkErrors [checkTableExists @lhs.scope @lhs.sourcePos @table
+          checkErrors [checkTableExists @lhs.scope @table
                       ,@whr.nodeType]
             $ TypeList []
         lhs.statementInfo =
@@ -952,7 +963,7 @@ SEM Statement
         lhs.statementInfo =
           makeStatementInfo @lhs.backType $ CreateFunctionInfo (@name,map snd @params.params,@rettype.nodeType)
 
-
+-}
 {-
 ================================================================================
 
@@ -1004,7 +1015,7 @@ heavy weight like symbolic interpretation - want to do all sorts of
 loop, return, nullability, etc. analysis.
 
 -}
-
+{-
 ATTR AllNodes Root ExpressionRoot
   [
   |
@@ -1035,8 +1046,9 @@ SEM Statement
 -- right context
 SEM Statement
     | ContinueStatement  lhs.messages = if not @lhs.inLoop
-                                          then [Error @lhs.sourcePos ContinueNotInLoop]
+                                          then [Error ContinueNotInLoop]
                                           else []
+-}
 
 {-
 ================================================================================
