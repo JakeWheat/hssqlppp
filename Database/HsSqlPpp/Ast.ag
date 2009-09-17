@@ -629,36 +629,38 @@ annotateAst :: StatementList -> StatementList
 annotateAst = annotateAstScope defaultScope
 
 annotateAstScope :: Scope -> StatementList -> StatementList
-annotateAstScope scope sts = undefined
-{-    let t = sem_Root (Root sts)
+annotateAstScope scope sts = undefined {-
+    let t = sem_Root (Root sts)
         ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
         tl = annotatedTree_Syn_Root ta
     in tl-}
 
 annotateExpression :: Scope -> Expression -> Expression
-annotateExpression scope ex = undefined
-{-    let t = sem_ExpressionRoot (ExpressionRoot ex)
-    in (nodeType_Syn_ExpressionRoot
-        (wrap_ExpressionRoot t Inh_ExpressionRoot {scope_Inh_ExpressionRoot = combineScopes defaultScope scope}))
--}
+annotateExpression scope ex =
+    let t = sem_ExpressionRoot (ExpressionRoot ex)
+        rt = (annotatedTree_Syn_ExpressionRoot
+              (wrap_ExpressionRoot t Inh_ExpressionRoot {scope_Inh_ExpressionRoot = combineScopes defaultScope scope}))
+    in case rt of
+         ExpressionRoot e -> e
+
 
 getTopLevelTypes :: Annotated a => [a] -> [Type]
-getTopLevelTypes sts = undefined {-map (\st -> getTypeAnnotation $ ann st) sts-}
+getTopLevelTypes sts = map (\st -> getTypeAnnotation $ ann st) sts
 
 getTypeAnnotation :: Annotation -> Type
-getTypeAnnotation (x:xs) = undefined {-case x of
+getTypeAnnotation (x:xs) = case x of
                              TypeAnnotation t -> t
-                             _ -> getTypeAnnotation xs -}
+                             _ -> getTypeAnnotation xs
 getTypeAnnotation _ = error "couldn't find type annotation"
 
 getTypeErrors :: Annotated a => [a] -> [TypeError]
-getTypeErrors sts = undefined {-
-    concatMap (\st -> collectAnn (\a -> gte a) st) sts
+getTypeErrors sts =
+    concatMap (\a -> gte $ ann a) sts
     where
       gte (a:as) = case a of
                     TypeErrorA e -> [e]
                     _ -> gte as
-      gte _ = []-}
+      gte _ = []
 
 data StatementInfo = StatementInfo
 

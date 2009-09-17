@@ -9,12 +9,12 @@ other files.
 > import Test.Framework
 > import Database.HsSqlPpp.ParserTests
 > --import Database.HsSqlPpp.DatabaseLoaderTests
-> --import Database.HsSqlPpp.AstCheckTests
+> import Database.HsSqlPpp.AstCheckTests
 
 > main :: IO ()
 > main =
 >   defaultMain [
 >     parserTests
->    --,astCheckTests
+>    ,astCheckTests
 >    --,databaseLoaderTests
 >    ]

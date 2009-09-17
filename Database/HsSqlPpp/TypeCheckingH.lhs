@@ -1,4 +1,4 @@
-Copyright 2009 Jake Wheat
+1Copyright 2009 Jake Wheat
 
 This file contains some utility functions for working with types and
 type checking.
@@ -33,7 +33,7 @@ type checking.
 idea is to move these here from TypeChecking.ag if they get a bit big,
 not very consistently applied at the moment.
 
-> typeCheckFunCall :: Scope ->String -> [Type] -> Either TypeError Type
+> typeCheckFunCall :: Scope -> String -> [Type] -> Either TypeError Type
 > typeCheckFunCall scope fnName argsType =
 >     checkTypes argsType ret
 >     where

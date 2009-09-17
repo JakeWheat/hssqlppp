@@ -52,53 +52,17 @@ ATTR AllNodes
 ATTR AllNodes Root ExpressionRoot
   [ scope : Scope
   |
-  | --actualValue : SELF
+  | annotatedTree : SELF
   ]
-{-
-{-
 
-Node types
-
-Just a hack to get started, provide a default type to each node (even
-though it doesn't make sense for a lot of them), and provide default
-rules for this attribute, even though this also doesn't make a lot of
-sense. Will be reviewed and removed quite soon. (Some nodes will keep
-the node type attribute, most will lose it.)
-
--}
--}
-
-ATTR ExpressionRoot
-  [
-  |
-  | nodeType : Type
-  ]
 
 ATTR Expression
   [
   |
-  | nodeType : Type
+  | nodeType USE {`(fixedValue TypeCheckFailed)`} {TypeCheckFailed} : Type
   ]
-
-SEM Expression
-    |IntegerLit FloatLit StringLit NullLit BooleanLit PositionalArg
-      Cast Identifier Case CaseSimple Exists FunCall InPredicate WindowFn
-      ScalarSubQuery
-        lhs.nodeType = TypeCheckFailed
 
 {-
-ATTR NonListNodes Root ExpressionRoot
-  [
-  |
-  | nodeType USE {`setUnknown`} {UnknownType} : {Type}
-  ]
-
-ATTR ListNodes
-  [
-  |
-  | nodeType USE {`appendTypeList`} {TypeList []} : {Type}
-  ]
-
 {
 setUnknown :: Type -> Type -> Type
 setUnknown _ _ = UnknownType
@@ -251,7 +215,35 @@ SEM ExpressionRoot
 {-
 ================================================================================
 
-= some basic typing
+= expressions
+
+-}
+-}
+
+SEM Expression
+    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall
+        loc.nt = case @loc.tpe of
+                   Left _ -> TypeCheckFailed
+                   Right TypeCheckFailed -> TypeCheckFailed
+                   Right t -> t
+        loc.typeErrors = case @loc.tpe of
+                          Left a@(_) -> [a]
+                          Right b -> []
+        lhs.annotatedTree = changeAnn @loc.backTree $
+                              (([TypeAnnotation @loc.nt] ++
+                                map TypeErrorA @loc.typeErrors) ++)
+        lhs.nodeType = @loc.nt
+
+{-
+SEM Expression
+    | IntegerLit StringLit FloatLit BooleanLit NullLit PositionalArg
+      Cast Identifier Case CaseSimple Exists FunCall InPredicate WindowFn
+      ScalarSubQuery
+        lhs.backTree = @lhs.annotatedTree
+-}
+
+{-
+{-
 
 == type names
 
@@ -283,21 +275,32 @@ SEM TypeName
 {-
 == literals
 -}
+-}
 
 SEM Expression
-     | IntegerLit lhs.nodeType = typeInt
-     | StringLit lhs.nodeType = UnknownStringLit
-     | FloatLit lhs.nodeType = typeNumeric
-     | BooleanLit lhs.nodeType = typeBool
-     -- I think a null types like an unknown string lit
-     | NullLit lhs.nodeType = UnknownStringLit
+    | IntegerLit
+        loc.backTree = IntegerLit @ann @i
+    | StringLit
+        loc.backTree = StringLit @ann @quote @value
+    | FloatLit
+        loc.backTree = FloatLit @ann @d
+    | BooleanLit
+        loc.backTree = BooleanLit @ann @b
+    | NullLit
+        loc.backTree = NullLit @ann
 
+SEM Expression
+     | IntegerLit loc.tpe = Right typeInt
+     | StringLit loc.tpe = Right UnknownStringLit
+     | FloatLit loc.tpe = Right typeNumeric
+     | BooleanLit loc.tpe = Right typeBool
+     -- I think a null types like an unknown string lit
+     | NullLit loc.tpe = Right UnknownStringLit
 
 
 {-
-================================================================================
 
-= expressions
+{-
 
 == cast expression
 
@@ -307,18 +310,25 @@ SEM Expression
     | Cast lhs.nodeType = checkErrors [@expr.nodeType]
                             @tn.nodeType
 
+-}
+
+{-
+
 {-
 == operators and functions
 -}
-
+-}
 SEM Expression
-    | FunCall lhs.nodeType =
-        checkErrors [@args.nodeType] $
-          typeCheckFunCall
-            @lhs.scope
-            @funName
-            @args.nodeType
+    | FunCall
+        loc.tpe = checkTypes @args.typeList $
+                    typeCheckFunCall
+                      @lhs.scope
+                      @funName
+                      @args.typeList
+        loc.backTree = FunCall @ann @funName @args.annotatedTree
 
+--SEM 
+{-
 {-
 == case expression
 
@@ -438,6 +448,21 @@ SEM InList
              0 -> error "internal error - got subquery with no columns? in inselect"
              1 -> head attrs
              _ -> RowCtor attrs
+
+-}
+
+ATTR ExpressionList
+     [
+     |
+     | typeList : {[Type]}
+     ]
+
+SEM ExpressionList
+    | Cons lhs.typeList = @hd.nodeType : @tl.typeList
+    | Nil lhs.typeList = []
+
+
+{-
 
 {-
 ================================================================================

@@ -2,13 +2,14 @@ Copyright 2009 Jake Wheat
 
 Set of tests to check the type checking code
 
-> module Database.HsSqlPpp.AstCheckTests (astCheckTests, parseAndGetType) where
+> module Database.HsSqlPpp.AstCheckTests (astCheckTests) where
 
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
 > import Control.Arrow
+> import Debug.Trace
 
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Parser
@@ -52,75 +53,75 @@ Set of tests to check the type checking code
 >      ,p "array[1,2,3]" $ Right (ArrayType typeInt)
 >      ,p "array['a','b']" $ Right (ArrayType (ScalarType "text"))
 >      ,p "array[1,'b']" $ Right (ArrayType typeInt)
->      ,p "array[1,true]" $ Left (IncompatibleTypeSet [typeInt,typeBool])
+>      ,p "array[1,true]" $ Left [IncompatibleTypeSet [typeInt,typeBool]]
 >      ])
-> {-
+>
 >    ,testGroup "some expressions"
 >     (mapExprType [
->       p "1=1" 4 Right typeBool
->      ,p "1=true" (NoMatchingOperator "=" [typeInt,typeBool]))
->      ,p "substring('aqbc' from 2 for 2)" (ScalarType "text")
+>       p "1=1" $ Right typeBool
+>      ,p "1=true" $ Left [NoMatchingOperator "=" [typeInt,typeBool]]
+>      ,p "substring('aqbc' from 2 for 2)" $ Right (ScalarType "text")
 
->      ,p "substring(3 from 2 for 2)" (TypeError
->                                      (NoMatchingOperator "!substring"
+>      ,p "substring(3 from 2 for 2)" $ Left
+>                                      [NoMatchingOperator "!substring"
 >                                       [ScalarType "int4"
 >                                       ,ScalarType "int4"
->                                       ,ScalarType "int4"]))
->      ,p "substring('aqbc' from 2 for true)" (TypeError
->                     (NoMatchingOperator "!substring"
+>                                       ,ScalarType "int4"]]
+>      ,p "substring('aqbc' from 2 for true)" $ Left
+>                     [NoMatchingOperator "!substring"
 >                      [UnknownStringLit
 >                      ,ScalarType "int4"
->                      ,ScalarType "bool"]))
+>                      ,ScalarType "bool"]]
 
->      ,p "3 between 2 and 4" typeBool
->      ,p "3 between true and 4" (TypeError
->                                (NoMatchingOperator ">="
+>      ,p "3 between 2 and 4" $ Right typeBool
+>      ,p "3 between true and 4" $ Left
+>                                [NoMatchingOperator ">="
 >                                 [typeInt
->                                 ,typeBool]))
+>                                 ,typeBool]]
 
->      ,p "array[1,2,3][2]" typeInt
->      ,p "array['a','b'][1]" (ScalarType "text")
+>      ,p "array[1,2,3][2]" $ Right typeInt
+>      ,p "array['a','b'][1]" $ Right (ScalarType "text")
 
  >      ,p "array['a','b'][true]" (TypeError ("",0,0)
  >                                   (WrongType
  >                                    typeInt
  >                                    UnknownStringLit))
 
->      ,p "not true" typeBool
->      ,p "not 1" (TypeError
->                  (NoMatchingOperator "!not" [typeInt]))
+>      ,p "not true" $ Right typeBool
+>      ,p "not 1" $ Left
+>                  [NoMatchingOperator "!not" [typeInt]]
 
->      ,p "@ 3" typeInt
->      ,p "@ true" (TypeError
->                  (NoMatchingOperator "@" [ScalarType "bool"]))
+>      ,p "@ 3" $ Right typeInt
+>      ,p "@ true" $ Left
+>                  [NoMatchingOperator "@" [ScalarType "bool"]]
 
->      ,p "-3" typeInt
->      ,p "-'a'" (TypeError
->                  (NoMatchingOperator "-" [UnknownStringLit]))
+>      ,p "-3" $ Right typeInt
+>      ,p "-'a'" $ Left
+>                  [NoMatchingOperator "-" [UnknownStringLit]]
 
->      ,p "4-3" typeInt
+>      ,p "4-3" $ Right typeInt
 
 >      --,p "1 is null" typeBool
 >      --,p "1 is not null" typeBool
 
->      ,p "1+1" typeInt
->      ,p "1+1" typeInt
->      ,p "31*511" typeInt
->      ,p "5/2" typeInt
->      ,p "2^10" typeFloat8
->      ,p "17%5" typeInt
+>      ,p "1+1" $ Right typeInt
+>      ,p "1+1" $ Right typeInt
+>      ,p "31*511" $ Right typeInt
+>      ,p "5/2" $ Right typeInt
+>      ,p "2^10" $ Right typeFloat8
+>      ,p "17%5" $ Right typeInt
 
->      ,p "3 and 4" (TypeError
->                   (NoMatchingOperator "!and" [typeInt,typeInt]))
+>      ,p "3 and 4" $ Left
+>                   [NoMatchingOperator "!and" [typeInt,typeInt]]
 
->      ,p "True and False" typeBool
->      ,p "false or true" typeBool
+>      ,p "True and False" $ Right typeBool
+>      ,p "false or true" $ Right typeBool
 
->      ,p "lower('TEST')" (ScalarType "text")
->      ,p "lower(1)" (TypeError (NoMatchingOperator "lower" [typeInt]))
+>      ,p "lower('TEST')" $ Right (ScalarType "text")
+>      ,p "lower(1)" $ Left [NoMatchingOperator "lower" [typeInt]]
 >      ])
 
->    ,testGroup "special functions"
+> {-   ,testGroup "special functions"
 >     (mapExprType [
 >       p "coalesce(null,1,2,null)" typeInt
 >      ,p "coalesce('3',1,2,null)" typeInt
@@ -608,9 +609,21 @@ insert
 >   assertEqual ("check " ++ src) msgs msgs1
 > -}
 
-> checkExpressionType :: Scope -> String -> Either TypeError Type -> Test.Framework.Test
-> checkExpressionType scope src typ = undefined {-testCase ("typecheck " ++ src) $
->   assertEqual ("typecheck " ++ src) typ (parseAndGetExpressionType scope src)-}
+> checkExpressionType :: Scope -> String -> Either [TypeError] Type -> Test.Framework.Test
+> checkExpressionType scope src typ = testCase ("typecheck " ++ src) $
+>   let ast = case parseExpression src of
+>                                      Left e -> error $ show e
+>                                      Right l -> l
+>       aast = annotateExpression scope ast
+>       ty = getTopLevelTypes [aast]
+>       er = getTypeErrors [aast]
+>       combo :: Either [TypeError] Type
+>       combo = if length er /= 0
+>                 then Left er
+>                 else Right $ head ty
+>   in if length er == 0 || ty == [TypeCheckFailed]
+>        then assertEqual ("typecheck " ++ src) typ combo
+>        else error "didn't get the right number of types and errors"
 
 > {-
 > checkStatementType :: String -> [Type] -> Test.Framework.Test
@@ -648,9 +661,10 @@ insert
 >   in getStatementsTypeScope scope ast
 > -}
 
-> parseAndGetExpressionType :: Scope -> String -> Type
-> parseAndGetExpressionType scope src =
->   let ast = case parseExpression src of
->                                      Left er -> error $ show er
->                                      Right l -> l
->   in getExpressionType scope ast
+ > parseAndGetExpressionType :: Scope -> String -> Type
+ > parseAndGetExpressionType scope src = undefined
+
+ >   let ast = case parseExpression src of
+ >                                      Left er -> error $ show er
+ >                                      Right l -> l
+ >   in getExpressionType scope ast
