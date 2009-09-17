@@ -341,6 +341,16 @@ instance Annotated Expression where
 wipeAnnotations :: Annotated a => a -> a
 wipeAnnotations a = changeAnnRecurse (const []) a
 
+
+
+-- i think this should be alright, an identifier referenced in an
+-- expression can only have zero or one dot in it.
+
+splitIdentifier :: String -> (String,String)
+splitIdentifier s = let (a,b) = span (/= '.') s
+                    in if b == ""
+                         then ("", a)
+                         else (a,tail b)
 -- AttributeDef ------------------------------------------------
 data AttributeDef  = AttributeDef (String) (TypeName) (Maybe Expression) (RowConstraintList) 
                    deriving ( Eq,Show)
@@ -1231,16 +1241,31 @@ sem_Expression_Exists :: Annotation ->
                          T_Expression 
 sem_Expression_Exists ann_ sel_  =
     (\ _lhsIscope ->
-         (let _lhsOnodeType :: Type
-              _lhsOannotatedTree :: Expression
+         (let _lhsOannotatedTree :: Expression
+              _lhsOnodeType :: Type
               _selOscope :: Scope
               _selIannotatedTree :: SelectExpression
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
               _lhsOnodeType =
-                  TypeCheckFailed
+                  _nt
+              _tpe =
+                  Right typeBool
+              _backTree =
+                  Exists ann_ _selIannotatedTree
               _annotatedTree =
                   Exists ann_ _selIannotatedTree
-              _lhsOannotatedTree =
-                  _annotatedTree
               _selOscope =
                   _lhsIscope
               ( _selIannotatedTree) =
@@ -1321,14 +1346,30 @@ sem_Expression_Identifier :: Annotation ->
                              T_Expression 
 sem_Expression_Identifier ann_ i_  =
     (\ _lhsIscope ->
-         (let _lhsOnodeType :: Type
-              _lhsOannotatedTree :: Expression
+         (let _lhsOannotatedTree :: Expression
+              _lhsOnodeType :: Type
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
               _lhsOnodeType =
-                  TypeCheckFailed
+                  _nt
+              _tpe =
+                  let (correlationName,iden) = splitIdentifier i_
+                  in scopeLookupID _lhsIscope correlationName iden
+              _backTree =
+                  Identifier ann_ i_
               _annotatedTree =
                   Identifier ann_ i_
-              _lhsOannotatedTree =
-                  _annotatedTree
           in  ( _lhsOannotatedTree,_lhsOnodeType)))
 sem_Expression_InPredicate :: Annotation ->
                               T_Expression  ->

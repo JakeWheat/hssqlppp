@@ -121,27 +121,25 @@ Set of tests to check the type checking code
 >      ,p "lower(1)" $ Left [NoMatchingOperator "lower" [typeInt]]
 >      ])
 
-> {-   ,testGroup "special functions"
+>    ,testGroup "special functions"
 >     (mapExprType [
->       p "coalesce(null,1,2,null)" typeInt
->      ,p "coalesce('3',1,2,null)" typeInt
+>       p "coalesce(null,1,2,null)" $ Right typeInt
+>      ,p "coalesce('3',1,2,null)" $ Right typeInt
 >      ,p "coalesce('3',1,true,null)"
->             (TypeError
->              (IncompatibleTypeSet [UnknownStringLit
+>             $ Left [IncompatibleTypeSet [UnknownStringLit
 >                                 ,ScalarType "int4"
 >                                 ,ScalarType "bool"
->                                 ,UnknownStringLit]))
->      ,p "nullif('hello','hello')" (ScalarType "text")
->      ,p "nullif(3,4)" typeInt
+>                                 ,UnknownStringLit]]
+>      ,p "nullif('hello','hello')" $ Right (ScalarType "text")
+>      ,p "nullif(3,4)" $ Right typeInt
 >      ,p "nullif(true,3)"
->             (TypeError
->              (NoMatchingOperator "nullif" [ScalarType "bool"
->                                           ,ScalarType "int4"]))
->      ,p "greatest(3,5,6,4,3)" typeInt
->      ,p "least(3,5,6,4,3)" typeInt
+>             $ Left [NoMatchingOperator "nullif" [ScalarType "bool"
+>                                           ,ScalarType "int4"]]
+>      ,p "greatest(3,5,6,4,3)" $ Right typeInt
+>      ,p "least(3,5,6,4,3)" $ Right typeInt
 >      ,p "least(5,true)"
->             (TypeError (IncompatibleTypeSet [ScalarType "int4"
->                                               ,ScalarType "bool"]))
+>             $ Left [IncompatibleTypeSet [ScalarType "int4"
+>                                               ,ScalarType "bool"]]
 >      ])
 
 implicit casting and function/operator choice tests:
@@ -153,26 +151,25 @@ check casts from unknown string lits
 
 >    ,testGroup "some expressions"
 >     (mapExprType [
->       p "3 + '4'" typeInt
->      ,p "3.0 + '4'" typeNumeric
->      ,p "'3' + '4'" (TypeError
->                       (NoMatchingOperator "+" [UnknownStringLit
->                                               ,UnknownStringLit]))
+>       p "3 + '4'" $ Right typeInt
+>      ,p "3.0 + '4'" $ Right typeNumeric
+>      ,p "'3' + '4'" $ Left [NoMatchingOperator "+" [UnknownStringLit
+>                                               ,UnknownStringLit]]
 >      ])
 >
 
 >    ,testGroup "expressions and scope"
 >     (mapExprScopeType [
->      t "a" (makeScope [("test", [("a", typeInt)])]) typeInt
+>      t "a" (makeScope [("test", [("a", typeInt)])]) $ Right typeInt
 >     ,t "b" (makeScope [("test", [("a", typeInt)])])
->        (TypeError (UnrecognisedIdentifier "b"))
+>        $ Left [UnrecognisedIdentifier "b"]
 >     ])
 
 >    ,testGroup "random expressions"
 >     (mapExprType [
->       p "exists (select 1 from pg_type)" typeBool
+>       p "exists (select 1 from pg_type)" $ Right typeBool
 >      ,p "exists (select testit from pg_type)"
->        (TypeError (UnrecognisedIdentifier "testit"))
+>        $ Left [UnrecognisedIdentifier "testit"]
 >     ])
 
 rows different lengths
@@ -183,28 +180,28 @@ rows don't match types
 
 >    ,testGroup "row comparison expressions"
 >     (mapExprType [
->       p "row(1)" (RowCtor [typeInt])
->      ,p "row(1,2)" (RowCtor [typeInt,typeInt])
->      ,p "row('t1','t2')" (RowCtor [UnknownStringLit,UnknownStringLit])
->      ,p "row(true,1,'t3')" (RowCtor [typeBool, typeInt,UnknownStringLit])
->      ,p "(true,1,'t3',75.3)" (RowCtor [typeBool,typeInt
+>       p "row(1)" $ Right (RowCtor [typeInt])
+>      ,p "row(1,2)" $ Right (RowCtor [typeInt,typeInt])
+>      ,p "row('t1','t2')" $ Right (RowCtor [UnknownStringLit,UnknownStringLit])
+>      ,p "row(true,1,'t3')" $ Right (RowCtor [typeBool, typeInt,UnknownStringLit])
+>      ,p "(true,1,'t3',75.3)" $ Right (RowCtor [typeBool,typeInt
 >                                       ,UnknownStringLit,typeNumeric])
->      ,p "row(1) = row(2)" typeBool
->      ,p "row(1,2) = row(2,1)" typeBool
->      ,p "(1,2) = (2,1)" typeBool
->      ,p "(1,2,3) = (2,1)" (TypeError ValuesListsMustBeSameLength)
->      ,p "('1',2) = (2,'1')" typeBool
->      ,p "(1,true) = (2,1)" (TypeError (IncompatibleTypeSet [ScalarType "bool",ScalarType "int4"]))
->      ,p "(1,2) <> (2,1)" typeBool
->      ,p "(1,2) >= (2,1)" typeBool
->      ,p "(1,2) <= (2,1)" typeBool
->      ,p "(1,2) > (2,1)" typeBool
->      ,p "(1,2) < (2,1)" typeBool
+>      ,p "row(1) = row(2)" $ Right typeBool
+>      ,p "row(1,2) = row(2,1)" $ Right typeBool
+>      ,p "(1,2) = (2,1)" $ Right typeBool
+>      ,p "(1,2,3) = (2,1)" $ Left [ValuesListsMustBeSameLength]
+>      ,p "('1',2) = (2,'1')" $ Right typeBool
+>      ,p "(1,true) = (2,1)" $ Left [IncompatibleTypeSet [ScalarType "bool",ScalarType "int4"]]
+>      ,p "(1,2) <> (2,1)" $ Right typeBool
+>      ,p "(1,2) >= (2,1)" $ Right typeBool
+>      ,p "(1,2) <= (2,1)" $ Right typeBool
+>      ,p "(1,2) > (2,1)" $ Right typeBool
+>      ,p "(1,2) < (2,1)" $ Right typeBool
 >     ])
 
 
 
->    ,testGroup "case expressions"
+>  {-  ,testGroup "case expressions"
 >     (mapExprType [
 >       p "case\n\
 >         \ when true then 1\n\
@@ -595,8 +592,8 @@ insert
 >           mapExprType = map (uncurry $ checkExpressionType emptyScope)
 >           --mapStatementType = map $ uncurry checkStatementType
 >           --mapStatementInfo = map $ uncurry checkStatementInfo
->           --mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
->           --makeScope l = scopeReplaceIds defaultScope (map (second (\a->(a,[]))) l) []
+>           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
+>           makeScope l = scopeReplaceIds defaultScope (map (second (\a->(a,[]))) l) []
 >           --mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
 
 > {-

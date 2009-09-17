@@ -221,7 +221,8 @@ SEM ExpressionRoot
 -}
 
 SEM Expression
-    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall
+    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
+      Exists
         loc.nt = case @loc.tpe of
                    Left _ -> TypeCheckFailed
                    Right TypeCheckFailed -> TypeCheckFailed
@@ -234,13 +235,6 @@ SEM Expression
                                 map TypeErrorA @loc.typeErrors) ++)
         lhs.nodeType = @loc.nt
 
-{-
-SEM Expression
-    | IntegerLit StringLit FloatLit BooleanLit NullLit PositionalArg
-      Cast Identifier Case CaseSimple Exists FunCall InPredicate WindowFn
-      ScalarSubQuery
-        lhs.backTree = @lhs.annotatedTree
--}
 
 {-
 {-
@@ -392,11 +386,12 @@ SEM Expression
 pull id types out of scope for identifiers
 
 -}
-
+-}
 SEM Expression
-    | Identifier lhs.nodeType =
-                   let (correlationName,iden) = splitIdentifier @i
-                   in scopeLookupID @lhs.scope correlationName iden
+    | Identifier
+        loc.tpe = let (correlationName,iden) = splitIdentifier @i
+                  in scopeLookupID @lhs.scope correlationName iden
+        loc.backTree = Identifier @ann @i
 
 {
 -- i think this should be alright, an identifier referenced in an
@@ -410,8 +405,11 @@ splitIdentifier s = let (a,b) = span (/= '.') s
 }
 
 SEM Expression
-    | Exists lhs.nodeType = checkErrors [@sel.nodeType] typeBool
+    | Exists
+        loc.tpe = {-checkTypes @sel.nodeType] $-} Right typeBool
+        loc.backTree = Exists @ann @sel.annotatedTree
 
+{-
 {-
 == scalar subquery
 1 col -> type of that col
