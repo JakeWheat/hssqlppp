@@ -8,7 +8,19 @@ want to use when looking at an ast. Internal annotations which are
 used in the type-checking/ annotation process use the attribute
 grammar code and aren't exposed.
 
-> module Database.HsSqlPpp.AstAnnotation where
+> {-# OPTIONS -fglasgow-exts #-}
+
+> module Database.HsSqlPpp.AstAnnotation
+>     (
+>      Annotated(..)
+>     ,Annotation
+>     ,AnnotationElement(..)
+>     ,stripAnnotations
+>     ,getTopLevelTypes
+>     ,getTypeAnnotation
+>     ,getTypeErrors
+>     ,pack
+>     ) where
 
 > import Database.HsSqlPpp.TypeType
 
@@ -23,17 +35,77 @@ grammar code and aren't exposed.
 >     ann :: a -> Annotation
 >     setAnn :: a -> Annotation -> a
 >     changeAnn :: a -> (Annotation -> Annotation) -> a
->     changeAnn a f = setAnn a $ f $ ann a
+>     changeAnn a = setAnn a . ($ ann a)
 >     changeAnnRecurse :: (Annotation -> Annotation) -> a -> a
+>     getAnnChildren :: a -> [Annotatable]
+
+> data Annotatable = forall a . Annotated a => MkAnnotatable a
+
+> pack :: Annotated a => a -> Annotatable
+> pack = MkAnnotatable
 
  > changeAnnotations :: Annotated a => (Annotation -> Annotation) -> [a] -> [a]
  > changeAnnotations f as = map (changeAnnRecurse f) as
 
-> stripAnnotations :: Annotated a => a -> a
-> stripAnnotations a = changeAnnRecurse (const []) a
+hack job, often not interested in the source positions when testing
+the asts produced, so this function will reset all the source
+positions to empty ("", 0, 0) so we can compare them for equality, etc.
+without having to get the positions correct.
 
-> collectAnn :: Annotated a => (Annotation -> r) -> a -> [r]
-> collectAnn f a = [f $ ann a] --todo - need to recurse
+> stripAnnotations :: Annotated a => a -> a
+> stripAnnotations = changeAnnRecurse (const [])
+
+> getTopLevelTypes :: Annotated a => [a] -> [Type]
+> getTopLevelTypes = map getTypeAnnotation
+
+> getTypeAnnotation :: Annotated a => a  -> Type
+> getTypeAnnotation at = let as = ann at
+>                        in gta as
+>                        where
+>                          gta (x:xs) = case x of
+>                                         TypeAnnotation t -> t
+>                                         _ -> gta xs
+>                          gta _ = error "couldn't find type annotation"
+
+> getAnnotationsRecurse :: Annotated a => a -> [Annotation]
+> getAnnotationsRecurse a =
+>   ann a : concatMap getAnnotationsRecurse' (getAnnChildren a)
+>   where
+>     getAnnotationsRecurse' :: Annotatable -> [Annotation]
+>     getAnnotationsRecurse' an =
+>       hann an : concatMap getAnnotationsRecurse' (hgac an)
+>     hann (MkAnnotatable an) = ann an
+>     hgac (MkAnnotatable an) = getAnnChildren an
+
+
+ > getAnnotationsRecurse :: Annotated a => a -> [Annotation]
+ > getAnnotationsRecurse a =
+ >   ann a : concatMap getAnnotationsRecurse' (getAnnChildren a)
+ >   where
+ >     getAnnotationsRecurse' :: Annotatable -> [Annotation]
+ >     getAnnotationsRecurse' = undefined
+ >     --hann (MkAnnotatable an) = ann an
+ >     hgac (MkAnnotatable an) = getAnnChildren an
+
+
+> getTypeErrors :: Annotated a => [a] -> [TypeError]
+> getTypeErrors sts =
+>     concatMap (concatMap gte . getAnnotationsRecurse) sts
+>     where
+>       gte (a:as) = case a of
+>                     TypeErrorA e -> [e]
+>                     _ -> gte as
+>       gte _ = []
+
+
+
+
+
+
+
+
+
+
 
 sourcepos
 types

@@ -44,7 +44,7 @@ module Database.HsSqlPpp.Ast(
    ,getTypeErrors
    ,getTopLevelInfos
    --annotation utils
-   ,wipeAnnotations
+   ,stripAnnotations
 
    --AstAnnotationForwards
    ,Annotation
@@ -104,29 +104,6 @@ annotateExpression scope ex =
               (wrap_ExpressionRoot t Inh_ExpressionRoot {scope_Inh_ExpressionRoot = combineScopes defaultScope scope}))
     in case rt of
          ExpressionRoot e -> e
-
-
-getTopLevelTypes :: Annotated a => [a] -> [Type]
-getTopLevelTypes sts = map getTypeAnnotation sts
-
-getTypeAnnotation :: Annotated a => a  -> Type
-getTypeAnnotation at = let as = ann at
-                       in gta as
-                       where
-                         gta (x:xs) = case x of
-                                        TypeAnnotation t -> t
-                                        _ -> gta xs
-                         gta _ = error "couldn't find type annotation"
-
-
-getTypeErrors :: Annotated a => [a] -> [TypeError]
-getTypeErrors sts =
-    concatMap (\a -> gte $ ann a) sts
-    where
-      gte (a:as) = case a of
-                    TypeErrorA e -> [e]
-                    _ -> gte as
-      gte _ = []
 
 data StatementInfo = StatementInfo
 
@@ -279,6 +256,56 @@ instance Annotated Statement where
         If a cases els -> If (f a) doCases $ cars f els
             where
               doCases = map (\(ex,sts) -> (ex,cars f sts)) cases
+    --where
+     -- doCases cs = map (\(ex,sts) -> (ex,cars f sts)) cs
+  getAnnChildren st =
+    case st of
+        SelectStatement _ ex -> mp $ gacse ex
+        Insert _ _ _ ins _ -> mp $ gacse ins
+        Update _ _ as whr _ -> mp (gacscl as) ++ gacme whr
+        Delete _ _ whr _ -> gacme whr
+        --Copy _ _ _ _ -> []
+        --CopyData _ _ -> []
+        --Truncate _ _ _ _ -> []
+        --CreateTable _ _ _ _ -> []
+        --CreateTableAs _ _ _ -> []
+        CreateView _ _ expr -> mp $ gacse expr
+        --CreateType _ _ _ -> []
+        --CreateFunction a lang name params rettype bodyQuote body vol ->
+        CreateFunction _ _    _    _      _       _         body _   ->
+            case body of
+              SqlFnBody sts -> mp sts
+              PlpgsqlFnBody _ sts -> mp sts
+        --CreateDomain _ _ _ _ -> []
+        --DropFunction _ _ _ _ -> []
+        --DropSomething _ _ _ _ _ -> []
+        --Assignment _ _ _ -> []
+        --Return a v -> Return (f a) v
+        --ReturnNext a ex -> ReturnNext (f a) ex
+        --ReturnQuery a sel -> ReturnQuery (f a) sel
+        --Raise a l m args -> Raise (f a) l m args
+        --NullStatement a -> NullStatement (f a)
+        --Perform a expr -> Perform (f a) expr
+        --Execute a expr -> Execute (f a) expr
+        --ExecuteInto a expr tgts -> ExecuteInto (f a) expr tgts
+        ForSelectStatement _ _ sel sts -> mp $ gacse sel ++ sts
+        ForIntegerStatement _ _ _ _ sts -> mp sts
+        WhileStatement _ expr sts -> pack expr : mp sts
+        --ContinueStatement a -> ContinueStatement (f a)
+        CaseStatement _ val cases els -> pack val : mp (doCases cases) ++ mp els
+        If _ cases els -> mp $ doCases cases ++ els
+        _ -> []
+    where
+      doCases cs = concatMap snd cs
+      gacse :: Annotated a => SelectExpression -> [a]
+      gacse _ = []
+      gacscl :: Annotated a => SetClauseList -> [a]
+      gacscl _ = []
+      --gacme :: Annotated a => Maybe Expression -> [a]
+      gacme e = case e of
+                  Nothing -> []
+                  Just e1 -> [pack e1]
+      mp = map pack
 
 cars f sts = map (changeAnnRecurse f) sts
 
@@ -300,8 +327,8 @@ instance Annotated Expression where
         InPredicate ann _ _ _ -> ann
         WindowFn ann _ _ _ _ -> ann
         ScalarSubQuery ann _ -> ann
-  setAnn st a =
-    case st of
+  setAnn ex a =
+    case ex of
       IntegerLit _ i -> IntegerLit a i
       FloatLit _ d -> FloatLit a d
       StringLit _ q v -> StringLit a q v
@@ -318,8 +345,8 @@ instance Annotated Expression where
       WindowFn _ fn par ord dir -> WindowFn a fn par ord dir
       ScalarSubQuery _ sel -> ScalarSubQuery a sel
 
-  changeAnnRecurse f st =
-    case st of
+  changeAnnRecurse f ex =
+    case ex of
       IntegerLit a i -> IntegerLit (f a) i
       FloatLit a d -> FloatLit (f a) d
       StringLit a q v -> StringLit (f a) q v
@@ -336,14 +363,25 @@ instance Annotated Expression where
       WindowFn a fn par ord dir -> WindowFn (f a) fn par ord dir
       ScalarSubQuery a sel -> ScalarSubQuery (f a) sel
 
+  getAnnChildren ex =
+    case ex of
+      Cast _ expr _ -> mp [expr]
+      Case _ cases els -> gacce cases els
+      CaseSimple _ val cases els -> pack val : gacce cases els
+      --Exists a sel -> Exists (f a) sel
+      FunCall _ _ args -> mp args
+      --InPredicate a expr i list -> InPredicate (f a) expr i list
+      --WindowFn a fn par ord dir -> WindowFn (f a) fn par ord dir
+      --ScalarSubQuery a sel -> ScalarSubQuery (f a) sel
+      _ -> []
+    where
+      gacme e = case e of
+                  Nothing -> []
+                  Just e1 -> [pack e1]
+      gacce cs el = mp (concatMap (\(el,e) -> el ++ [e]) cs) ++ gacme el
+      mp = map pack
 
--- hack job, often not interested in the source positions when testing
--- the asts produced, so this function will reset all the source
--- positions to empty ("", 0, 0) so we can compare them for equality, etc.
--- without having to get the positions correct.
 
-wipeAnnotations :: Annotated a => a -> a
-wipeAnnotations a = changeAnnRecurse (const []) a
 
 
 

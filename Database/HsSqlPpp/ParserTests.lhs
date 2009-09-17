@@ -1107,11 +1107,11 @@ parse and then pretty print and parse an expression
 >   let ast' = case parser src of
 >               Left er -> error $ show er
 >               Right l -> l
->   assertEqual ("parse " ++ src) ast $ map wipeAnnotations ast'
+>   assertEqual ("parse " ++ src) ast $ map stripAnnotations ast'
 >   -- pretty print then parse to check
 >   let pp = printSql ast'
 >   let ast'' = case parser pp of
 >               Left er -> error $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >               Right l -> l
->   assertEqual ("reparse " ++ pp) ast $ map wipeAnnotations ast''
+>   assertEqual ("reparse " ++ pp) ast $ map stripAnnotations ast''
 

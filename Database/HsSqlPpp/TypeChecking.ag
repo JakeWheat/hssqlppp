@@ -385,44 +385,6 @@ SEM Expression
         loc.backTree = CaseSimple @ann @value.annotatedTree @cases.annotatedTree @els.annotatedTree
 
 {-
--- bring the when types up to the case
-
-ATTR CaseExpressionListExpressionPairList
-     CaseExpressionListExpressionPair
-     CaseExpressionList
-     [
-     |
-     | whenTypes : {[Type]}
-     ]
-
-SEM CaseExpressionList
-    | Cons lhs.whenTypes = (getTypeAnnotation @hd.annotatedTree) : @tl.whenTypes
-    | Nil lhs.whenTypes = []
-
--- bring the then types up
-
-ATTR CaseExpressionListExpressionPairList
-     [
-     |
-     | thenTypes : {[Type]}
-     ]
-
-ATTR CaseExpressionListExpressionPair
-     [
-     |
-     | thenType : Type
-     ]
-
-
-SEM CaseExpressionListExpressionPair
-    | Tuple lhs.thenTypes = (getTypeAnnotation @hd.annotatedTree) : @tl.whenTypes
-
-SEM CaseExpressionListExpressionPairList
-    | Cons lhs.thenTypes = 
-    | Nil lhs.thenTypes = []
--}
-
-{-
 {-
 == identifiers
 pull id types out of scope for identifiers
