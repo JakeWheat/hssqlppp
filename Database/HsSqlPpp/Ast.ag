@@ -645,13 +645,17 @@ annotateExpression scope ex =
 
 
 getTopLevelTypes :: Annotated a => [a] -> [Type]
-getTopLevelTypes sts = map (\st -> getTypeAnnotation $ ann st) sts
+getTopLevelTypes sts = map getTypeAnnotation sts
 
-getTypeAnnotation :: Annotation -> Type
-getTypeAnnotation (x:xs) = case x of
-                             TypeAnnotation t -> t
-                             _ -> getTypeAnnotation xs
-getTypeAnnotation _ = error "couldn't find type annotation"
+getTypeAnnotation :: Annotated a => a  -> Type
+getTypeAnnotation at = let as = ann at
+                       in gta as
+                       where
+                         gta (x:xs) = case x of
+                                        TypeAnnotation t -> t
+                                        _ -> gta xs
+                         gta _ = error "couldn't find type annotation"
+
 
 getTypeErrors :: Annotated a => [a] -> [TypeError]
 getTypeErrors sts =

@@ -201,65 +201,62 @@ rows don't match types
 
 
 
->  {-  ,testGroup "case expressions"
+>    ,testGroup "case expressions"
 >     (mapExprType [
 >       p "case\n\
 >         \ when true then 1\n\
->         \end" typeInt
+>         \end" $ Right typeInt
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 'blah'\n\
 >         \ else 'test'\n\
->         \end" (ScalarType "text")
+>         \end" $ Right (ScalarType "text")
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when true=3 then 'blah'\n\
 >         \ else 'test'\n\
->         \end" (TypeError
->                (NoMatchingOperator "=" [typeBool,typeInt]))
+>         \end" $ Left [NoMatchingOperator "=" [typeBool,typeInt]]
 >      ,p "case\n\
 >         \ when 1=2 then true\n\
 >         \ when 2=3 then false\n\
 >         \ else 1\n\
->         \end" (TypeError
->                (IncompatibleTypeSet [typeBool
->                                   ,typeBool
->                                   ,typeInt]))
+>         \end" $ Left [IncompatibleTypeSet [typeBool
+>                                         ,typeBool
+>                                         ,typeInt]]
 >      ,p "case\n\
 >         \ when 1=2 then false\n\
 >         \ when 2=3 then 1\n\
 >         \ else true\n\
->         \end" (TypeError
->                (IncompatibleTypeSet [typeBool
->                                   ,typeInt
->                                   ,typeBool]))
+>         \end" $ Left [IncompatibleTypeSet [typeBool
+>                                           ,typeInt
+>                                           ,typeBool]]
 
->      ,p "case 1 when 2 then 3 else 4 end" typeInt
+>      ,p "case 1 when 2 then 3 else 4 end" $ Right typeInt
 >      ,p "case 1 when true then 3 else 4 end"
->             (TypeError (IncompatibleTypeSet [ScalarType "int4"
->                                                    ,ScalarType "bool"]))
->      ,p "case 1 when 2 then true else false end" typeBool
+>             $ Left [IncompatibleTypeSet [ScalarType "int4"
+>                                          ,ScalarType "bool"]]
+>      ,p "case 1 when 2 then true else false end" $ Right typeBool
 >      ,p "case 1 when 2 then 3 else false end"
->             (TypeError (IncompatibleTypeSet [ScalarType "int4"
->                                                    ,ScalarType "bool"]))
+>             $ Left [IncompatibleTypeSet [ScalarType "int4"
+>                                          ,ScalarType "bool"]]
 
 >      ])
 
 >    ,testGroup "polymorphic functions"
 >     (mapExprType [
 >       p "array_append(ARRAY[1,2], 3)"
->         (ArrayType typeInt)
+>         $ Right (ArrayType typeInt)
 >      ,p "array_append(ARRAY['a','b'], 'c')"
->         (ArrayType $ ScalarType "text")
+>         $ Right (ArrayType $ ScalarType "text")
 >      ,p "array_append(ARRAY['a'::int,'b'], 'c')"
->         (ArrayType typeInt)
+>         $ Right (ArrayType typeInt)
 >      ])
 
 todo:
 
 
 
->    ,testGroup "cast expressions"
+>  {-  ,testGroup "cast expressions"
 >     (mapExprType [
 >       p "cast ('1' as integer)"
 >         typeInt

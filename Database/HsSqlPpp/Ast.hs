@@ -107,13 +107,17 @@ annotateExpression scope ex =
 
 
 getTopLevelTypes :: Annotated a => [a] -> [Type]
-getTopLevelTypes sts = map (\st -> getTypeAnnotation $ ann st) sts
+getTopLevelTypes sts = map getTypeAnnotation sts
 
-getTypeAnnotation :: Annotation -> Type
-getTypeAnnotation (x:xs) = case x of
-                             TypeAnnotation t -> t
-                             _ -> getTypeAnnotation xs
-getTypeAnnotation _ = error "couldn't find type annotation"
+getTypeAnnotation :: Annotated a => a  -> Type
+getTypeAnnotation at = let as = ann at
+                       in gta as
+                       where
+                         gta (x:xs) = case x of
+                                        TypeAnnotation t -> t
+                                        _ -> gta xs
+                         gta _ = error "couldn't find type annotation"
+
 
 getTypeErrors :: Annotated a => [a] -> [TypeError]
 getTypeErrors sts =
@@ -1152,18 +1156,48 @@ sem_Expression_Case :: Annotation ->
                        T_Expression 
 sem_Expression_Case ann_ cases_ els_  =
     (\ _lhsIscope ->
-         (let _lhsOnodeType :: Type
-              _lhsOannotatedTree :: Expression
+         (let _lhsOannotatedTree :: Expression
+              _lhsOnodeType :: Type
               _casesOscope :: Scope
               _elsOscope :: Scope
               _casesIannotatedTree :: CaseExpressionListExpressionPairList
               _elsIannotatedTree :: MaybeExpression
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
               _lhsOnodeType =
-                  TypeCheckFailed
+                  _nt
+              _whenTypes =
+                  map getTypeAnnotation $ concatMap fst $
+                  _casesIannotatedTree
+              _thenTypes =
+                  map getTypeAnnotation $
+                      (map snd $ _casesIannotatedTree) ++
+                        case _elsIannotatedTree of
+                          Nothing -> []
+                          Just e -> [e]
+              _tpe =
+                  checkTypes _whenTypes     $
+                     if any (/= typeBool) _whenTypes
+                       then Left (WrongTypes typeBool _whenTypes    )
+                       else checkTypes _thenTypes     $
+                              resolveResultSetType
+                                _lhsIscope
+                                _thenTypes
+              _backTree =
+                  Case ann_ _casesIannotatedTree _elsIannotatedTree
               _annotatedTree =
                   Case ann_ _casesIannotatedTree _elsIannotatedTree
-              _lhsOannotatedTree =
-                  _annotatedTree
               _casesOscope =
                   _lhsIscope
               _elsOscope =
@@ -1180,8 +1214,8 @@ sem_Expression_CaseSimple :: Annotation ->
                              T_Expression 
 sem_Expression_CaseSimple ann_ value_ cases_ els_  =
     (\ _lhsIscope ->
-         (let _lhsOnodeType :: Type
-              _lhsOannotatedTree :: Expression
+         (let _lhsOannotatedTree :: Expression
+              _lhsOnodeType :: Type
               _valueOscope :: Scope
               _casesOscope :: Scope
               _elsOscope :: Scope
@@ -1189,12 +1223,45 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
               _valueInodeType :: Type
               _casesIannotatedTree :: CaseExpressionListExpressionPairList
               _elsIannotatedTree :: MaybeExpression
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
               _lhsOnodeType =
-                  _valueInodeType
+                  _nt
+              _whenTypes =
+                  map getTypeAnnotation $ concatMap fst $
+                  _casesIannotatedTree
+              _thenTypes =
+                  map getTypeAnnotation $
+                      (map snd $ _casesIannotatedTree) ++
+                        case _elsIannotatedTree of
+                          Nothing -> []
+                          Just e -> [e]
+              _tpe =
+                  let checkWhenTypes = resolveResultSetType
+                                         _lhsIscope
+                                         (getTypeAnnotation _valueIannotatedTree: _whenTypes    )
+                  in checkTypes _whenTypes     $
+                     case checkWhenTypes of
+                       Left a -> Left a
+                       Right _ -> checkTypes _thenTypes     $
+                                    resolveResultSetType
+                                      _lhsIscope
+                                      _thenTypes
+              _backTree =
+                  CaseSimple ann_ _valueIannotatedTree _casesIannotatedTree _elsIannotatedTree
               _annotatedTree =
                   CaseSimple ann_ _valueIannotatedTree _casesIannotatedTree _elsIannotatedTree
-              _lhsOannotatedTree =
-                  _annotatedTree
               _valueOscope =
                   _lhsIscope
               _casesOscope =

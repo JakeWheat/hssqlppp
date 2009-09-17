@@ -222,7 +222,7 @@ SEM ExpressionRoot
 
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
-      Exists
+      Exists Case CaseSimple
         loc.nt = case @loc.tpe of
                    Left _ -> TypeCheckFailed
                    Right TypeCheckFailed -> TypeCheckFailed
@@ -245,27 +245,32 @@ Types with type modifiers (called PrecTypeName here, to be changed),
 are not supported at the moment.
 
 -}
+-}
+{-
+ATTR TypeName
+     [
+     |
+     | typeNameType : Type
+     ]
 
 SEM TypeName
      | SimpleTypeName
-          --this needs to work a bit better, a simpletypename can match
-          --domains, composite types, etc., not just scalar types
-          lhs.nodeType = lookupTypeByName @lhs.scope $ canonicalizeTypeName @tn
---     | PrecTypeName
---          lhs.nodeType = if @tn `elem` defaultTypes
---                           then ScalarType @tn
---                           else TypeError @lhs.sourcePos
---                                  (UnknownTypeError @tn)
+        loc.tpe = lookupTypeByName @lhs.scope $ canonicalizeTypeName @tn
+        loc.backTree = SimpleTypeName @ann @tn
      | ArrayTypeName
-          lhs.nodeType = let t = ArrayType @typ.nodeType
-                         in checkErrors
-                                [@typ.nodeType
-                                ,checkTypeExists @lhs.scope t]
-                                t
+        loc.tpe = let t = ArrayType (getTypeAnnotation @typ.annotatedTree)
+                  in checkTypes
+                         [@typ.nodeType
+                         ,checkTypeExists @lhs.scope t]
+                         $ Right t
+        loc.backTree = ArrayTypeName @ann @typ.annotatedTree
      | SetOfTypeName
-          lhs.nodeType = checkErrors [@typ.nodeType]
-                           (SetOfType @typ.nodeType)
+        loc.tpe = checkErrors [@typ.nodeType]
+                    (SetOfType @typ.nodeType)
+        loc.backTree = SetOfTypeName @ann @typ.annotatedTree
+-}
 
+{-
 {-
 == literals
 -}
@@ -321,7 +326,6 @@ SEM Expression
                       @args.typeList
         loc.backTree = FunCall @ann @funName @args.annotatedTree
 
---SEM 
 {-
 {-
 == case expression
@@ -340,47 +344,85 @@ expression. These can then be checked appropriately in the case or
 casesimple sem code.
 
 -}
+-}
 
 SEM Expression
-    | Case lhs.nodeType = 
-        let elseThen =
-                case @els.nodeType of
-                  TypeList [] -> []
-                  t -> [t]
-            unwrappedLists = map unwrapTypeList $ unwrapTypeList @cases.nodeType
-            whenTypes :: [Type]
-            whenTypes = concat $ map unwrapTypeList $ map head unwrappedLists
-            thenTypes :: [Type]
-            thenTypes = map (head . tail) unwrappedLists ++ elseThen
-            whensAllBool :: Type
-            whensAllBool = if any (/= typeBool) whenTypes
-                             then TypeError (WrongTypes typeBool whenTypes)
-                             else TypeList []
-        in checkErrors (whenTypes ++ thenTypes ++ [whensAllBool]) $
-             resolveResultSetType
-               @lhs.scope
-               thenTypes
+    | Case CaseSimple
+        loc.whenTypes = map getTypeAnnotation $ concatMap fst $
+                        @cases.annotatedTree
+        loc.thenTypes = map getTypeAnnotation $
+                            (map snd $ @cases.annotatedTree) ++
+                              case @els.annotatedTree of
+                                Nothing -> []
+                                Just e -> [e]
 
 SEM Expression
-    | CaseSimple lhs.nodeType =
-        let elseThen =
-                case @els.nodeType of
-                  TypeList [] -> []
-                  t -> [t]
-            unwrappedLists = map unwrapTypeList $ unwrapTypeList @cases.nodeType
-            whenTypes :: [Type]
-            whenTypes = concat $ map unwrapTypeList $ map head unwrappedLists
-            thenTypes :: [Type]
-            thenTypes = map (head . tail) unwrappedLists ++ elseThen
-            checkWhenTypes = resolveResultSetType
-                               @lhs.scope
-                               (@value.nodeType:whenTypes)
-        in checkErrors (whenTypes ++ thenTypes ++ [checkWhenTypes]) $
-             resolveResultSetType
-               @lhs.scope
-               thenTypes
+    | Case
+        loc.tpe =
+            checkTypes @loc.whenTypes $
+               if any (/= typeBool) @loc.whenTypes
+                 then Left (WrongTypes typeBool @loc.whenTypes)
+                 else checkTypes @loc.thenTypes $
+                        resolveResultSetType
+                          @lhs.scope
+                          @loc.thenTypes
+        loc.backTree = Case @ann @cases.annotatedTree @els.annotatedTree
 
 
+SEM Expression
+    | CaseSimple
+        loc.tpe =
+          let checkWhenTypes = resolveResultSetType
+                                 @lhs.scope
+                                 (getTypeAnnotation @value.annotatedTree: @loc.whenTypes)
+          in checkTypes @loc.whenTypes $
+             case checkWhenTypes of
+               Left a -> Left a
+               Right _ -> checkTypes @loc.thenTypes $
+                            resolveResultSetType
+                              @lhs.scope
+                              @loc.thenTypes
+        loc.backTree = CaseSimple @ann @value.annotatedTree @cases.annotatedTree @els.annotatedTree
+
+{-
+-- bring the when types up to the case
+
+ATTR CaseExpressionListExpressionPairList
+     CaseExpressionListExpressionPair
+     CaseExpressionList
+     [
+     |
+     | whenTypes : {[Type]}
+     ]
+
+SEM CaseExpressionList
+    | Cons lhs.whenTypes = (getTypeAnnotation @hd.annotatedTree) : @tl.whenTypes
+    | Nil lhs.whenTypes = []
+
+-- bring the then types up
+
+ATTR CaseExpressionListExpressionPairList
+     [
+     |
+     | thenTypes : {[Type]}
+     ]
+
+ATTR CaseExpressionListExpressionPair
+     [
+     |
+     | thenType : Type
+     ]
+
+
+SEM CaseExpressionListExpressionPair
+    | Tuple lhs.thenTypes = (getTypeAnnotation @hd.annotatedTree) : @tl.whenTypes
+
+SEM CaseExpressionListExpressionPairList
+    | Cons lhs.thenTypes = 
+    | Nil lhs.thenTypes = []
+-}
+
+{-
 {-
 == identifiers
 pull id types out of scope for identifiers
@@ -406,7 +448,7 @@ splitIdentifier s = let (a,b) = span (/= '.') s
 
 SEM Expression
     | Exists
-        loc.tpe = {-checkTypes @sel.nodeType] $-} Right typeBool
+        loc.tpe = Right typeBool
         loc.backTree = Exists @ann @sel.annotatedTree
 
 {-
@@ -474,6 +516,7 @@ SEM ExpressionList
 SEM Statement
     | SelectStatement lhs.nodeType = @ex.nodeType
                       lhs.statementInfo = makeStatementInfo @lhs.backType $ SelectInfo @ex.nodeType
+
 
 SEM SelectExpression
     --assume we get TypeList (TypeList (Type)) out of vll
