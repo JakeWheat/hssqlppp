@@ -424,6 +424,7 @@ sem_AttributeDef_AttributeDef name_ typ_ check_ cons_  =
               _typOscope :: Scope
               _consOscope :: Scope
               _typIannotatedTree :: TypeName
+              _typInamedType :: (Either TypeError Type)
               _consIannotatedTree :: RowConstraintList
               _annotatedTree =
                   AttributeDef name_ _typIannotatedTree check_ _consIannotatedTree
@@ -433,7 +434,7 @@ sem_AttributeDef_AttributeDef name_ typ_ check_ cons_  =
                   _lhsIscope
               _consOscope =
                   _lhsIscope
-              ( _typIannotatedTree) =
+              ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOscope )
               ( _consIannotatedTree) =
                   (cons_ _consOscope )
@@ -1319,26 +1320,42 @@ sem_Expression_Cast :: Annotation ->
                        T_Expression 
 sem_Expression_Cast ann_ expr_ tn_  =
     (\ _lhsIscope ->
-         (let _lhsOnodeType :: Type
-              _lhsOannotatedTree :: Expression
+         (let _lhsOannotatedTree :: Expression
+              _lhsOnodeType :: Type
               _exprOscope :: Scope
               _tnOscope :: Scope
               _exprIannotatedTree :: Expression
               _exprInodeType :: Type
               _tnIannotatedTree :: TypeName
+              _tnInamedType :: (Either TypeError Type)
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
               _lhsOnodeType =
-                  _exprInodeType
+                  _nt
+              _tpe =
+                  _tnInamedType
+              _backTree =
+                  Cast ann_ _exprIannotatedTree _tnIannotatedTree
               _annotatedTree =
                   Cast ann_ _exprIannotatedTree _tnIannotatedTree
-              _lhsOannotatedTree =
-                  _annotatedTree
               _exprOscope =
                   _lhsIscope
               _tnOscope =
                   _lhsIscope
               ( _exprIannotatedTree,_exprInodeType) =
                   (expr_ _exprOscope )
-              ( _tnIannotatedTree) =
+              ( _tnIannotatedTree,_tnInamedType) =
                   (tn_ _tnOscope )
           in  ( _lhsOannotatedTree,_lhsOnodeType)))
 sem_Expression_Exists :: Annotation ->
@@ -2550,13 +2567,14 @@ sem_ParamDef_ParamDef name_ typ_  =
          (let _lhsOannotatedTree :: ParamDef
               _typOscope :: Scope
               _typIannotatedTree :: TypeName
+              _typInamedType :: (Either TypeError Type)
               _annotatedTree =
                   ParamDef name_ _typIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _typOscope =
                   _lhsIscope
-              ( _typIannotatedTree) =
+              ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOscope )
           in  ( _lhsOannotatedTree)))
 sem_ParamDef_ParamDefTp :: T_TypeName  ->
@@ -2566,13 +2584,14 @@ sem_ParamDef_ParamDefTp typ_  =
          (let _lhsOannotatedTree :: ParamDef
               _typOscope :: Scope
               _typIannotatedTree :: TypeName
+              _typInamedType :: (Either TypeError Type)
               _annotatedTree =
                   ParamDefTp _typIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _typOscope =
                   _lhsIscope
-              ( _typIannotatedTree) =
+              ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOscope )
           in  ( _lhsOannotatedTree)))
 -- ParamDefList ------------------------------------------------
@@ -3537,13 +3556,14 @@ sem_Statement_CreateDomain ann_ name_ typ_ check_  =
          (let _lhsOannotatedTree :: Statement
               _typOscope :: Scope
               _typIannotatedTree :: TypeName
+              _typInamedType :: (Either TypeError Type)
               _annotatedTree =
                   CreateDomain ann_ name_ _typIannotatedTree check_
               _lhsOannotatedTree =
                   _annotatedTree
               _typOscope =
                   _lhsIscope
-              ( _typIannotatedTree) =
+              ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOscope )
           in  ( _lhsOannotatedTree)))
 sem_Statement_CreateFunction :: Annotation ->
@@ -3566,6 +3586,7 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
               _langIannotatedTree :: Language
               _paramsIannotatedTree :: ParamDefList
               _rettypeIannotatedTree :: TypeName
+              _rettypeInamedType :: (Either TypeError Type)
               _bodyIannotatedTree :: FnBody
               _volIannotatedTree :: Volatility
               _annotatedTree =
@@ -3586,7 +3607,7 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
                   (lang_ _langOscope )
               ( _paramsIannotatedTree) =
                   (params_ _paramsOscope )
-              ( _rettypeIannotatedTree) =
+              ( _rettypeIannotatedTree,_rettypeInamedType) =
                   (rettype_ _rettypeOscope )
               ( _bodyIannotatedTree) =
                   (body_ _bodyOscope )
@@ -4474,13 +4495,14 @@ sem_TypeAttributeDef_TypeAttDef name_ typ_  =
          (let _lhsOannotatedTree :: TypeAttributeDef
               _typOscope :: Scope
               _typIannotatedTree :: TypeName
+              _typInamedType :: (Either TypeError Type)
               _annotatedTree =
                   TypeAttDef name_ _typIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _typOscope =
                   _lhsIscope
-              ( _typIannotatedTree) =
+              ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOscope )
           in  ( _lhsOannotatedTree)))
 -- TypeAttributeDefList ----------------------------------------
@@ -4553,69 +4575,83 @@ sem_TypeName (SimpleTypeName _tn )  =
     (sem_TypeName_SimpleTypeName _tn )
 -- semantic domain
 type T_TypeName  = Scope ->
-                   ( TypeName)
+                   ( TypeName,(Either TypeError Type))
 data Inh_TypeName  = Inh_TypeName {scope_Inh_TypeName :: Scope}
-data Syn_TypeName  = Syn_TypeName {annotatedTree_Syn_TypeName :: TypeName}
+data Syn_TypeName  = Syn_TypeName {annotatedTree_Syn_TypeName :: TypeName,namedType_Syn_TypeName :: Either TypeError Type}
 wrap_TypeName :: T_TypeName  ->
                  Inh_TypeName  ->
                  Syn_TypeName 
 wrap_TypeName sem (Inh_TypeName _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOnamedType) =
              (sem _lhsIscope )
-     in  (Syn_TypeName _lhsOannotatedTree ))
+     in  (Syn_TypeName _lhsOannotatedTree _lhsOnamedType ))
 sem_TypeName_ArrayTypeName :: T_TypeName  ->
                               T_TypeName 
 sem_TypeName_ArrayTypeName typ_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: TypeName
+         (let _lhsOnamedType :: (Either TypeError Type)
+              _lhsOannotatedTree :: TypeName
               _typOscope :: Scope
               _typIannotatedTree :: TypeName
+              _typInamedType :: (Either TypeError Type)
+              _lhsOnamedType =
+                  either Left (Right . ArrayType) _typInamedType
+              _lhsOannotatedTree =
+                  ArrayTypeName _typIannotatedTree
               _annotatedTree =
                   ArrayTypeName _typIannotatedTree
-              _lhsOannotatedTree =
-                  _annotatedTree
               _typOscope =
                   _lhsIscope
-              ( _typIannotatedTree) =
+              ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOnamedType)))
 sem_TypeName_PrecTypeName :: String ->
                              Integer ->
                              T_TypeName 
 sem_TypeName_PrecTypeName tn_ prec_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: TypeName
+         (let _lhsOnamedType :: (Either TypeError Type)
+              _lhsOannotatedTree :: TypeName
+              _lhsOnamedType =
+                  Right TypeCheckFailed
+              _lhsOannotatedTree =
+                  PrecTypeName tn_ prec_
               _annotatedTree =
                   PrecTypeName tn_ prec_
-              _lhsOannotatedTree =
-                  _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOnamedType)))
 sem_TypeName_SetOfTypeName :: T_TypeName  ->
                               T_TypeName 
 sem_TypeName_SetOfTypeName typ_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: TypeName
+         (let _lhsOnamedType :: (Either TypeError Type)
+              _lhsOannotatedTree :: TypeName
               _typOscope :: Scope
               _typIannotatedTree :: TypeName
+              _typInamedType :: (Either TypeError Type)
+              _lhsOnamedType =
+                  either Left (Right . SetOfType) _typInamedType
+              _lhsOannotatedTree =
+                  SetOfTypeName _typIannotatedTree
               _annotatedTree =
                   SetOfTypeName _typIannotatedTree
-              _lhsOannotatedTree =
-                  _annotatedTree
               _typOscope =
                   _lhsIscope
-              ( _typIannotatedTree) =
+              ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOnamedType)))
 sem_TypeName_SimpleTypeName :: String ->
                                T_TypeName 
 sem_TypeName_SimpleTypeName tn_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: TypeName
+         (let _lhsOnamedType :: (Either TypeError Type)
+              _lhsOannotatedTree :: TypeName
+              _lhsOnamedType =
+                  lookupTypeByName _lhsIscope $ canonicalizeTypeName tn_
+              _lhsOannotatedTree =
+                  SimpleTypeName tn_
               _annotatedTree =
                   SimpleTypeName tn_
-              _lhsOannotatedTree =
-                  _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOnamedType)))
 -- VarDef ------------------------------------------------------
 data VarDef  = VarDef (String) (TypeName) (Maybe Expression) 
              deriving ( Eq,Show)
@@ -4645,13 +4681,14 @@ sem_VarDef_VarDef name_ typ_ value_  =
          (let _lhsOannotatedTree :: VarDef
               _typOscope :: Scope
               _typIannotatedTree :: TypeName
+              _typInamedType :: (Either TypeError Type)
               _annotatedTree =
                   VarDef name_ _typIannotatedTree value_
               _lhsOannotatedTree =
                   _annotatedTree
               _typOscope =
                   _lhsIscope
-              ( _typIannotatedTree) =
+              ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOscope )
           in  ( _lhsOannotatedTree)))
 -- VarDefList --------------------------------------------------

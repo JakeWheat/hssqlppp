@@ -222,7 +222,7 @@ SEM ExpressionRoot
 
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
-      Exists Case CaseSimple
+      Exists Case CaseSimple Cast
         loc.nt = case @loc.tpe of
                    Left _ -> TypeCheckFailed
                    Right TypeCheckFailed -> TypeCheckFailed
@@ -237,7 +237,6 @@ SEM Expression
 
 
 {-
-{-
 
 == type names
 
@@ -245,35 +244,29 @@ Types with type modifiers (called PrecTypeName here, to be changed),
 are not supported at the moment.
 
 -}
--}
-{-
+
 ATTR TypeName
      [
      |
-     | typeNameType : Type
+     | namedType : {Either TypeError Type}
      ]
 
 SEM TypeName
      | SimpleTypeName
-        loc.tpe = lookupTypeByName @lhs.scope $ canonicalizeTypeName @tn
-        loc.backTree = SimpleTypeName @ann @tn
+        lhs.namedType = lookupTypeByName @lhs.scope $ canonicalizeTypeName @tn
+        lhs.annotatedTree = SimpleTypeName @tn
      | ArrayTypeName
-        loc.tpe = let t = ArrayType (getTypeAnnotation @typ.annotatedTree)
-                  in checkTypes
-                         [@typ.nodeType
-                         ,checkTypeExists @lhs.scope t]
-                         $ Right t
-        loc.backTree = ArrayTypeName @ann @typ.annotatedTree
+        lhs.namedType = either Left (Right . ArrayType) @typ.namedType
+        lhs.annotatedTree = ArrayTypeName @typ.annotatedTree
      | SetOfTypeName
-        loc.tpe = checkErrors [@typ.nodeType]
-                    (SetOfType @typ.nodeType)
-        loc.backTree = SetOfTypeName @ann @typ.annotatedTree
--}
+        lhs.namedType = either Left (Right . SetOfType) @typ.namedType
+        lhs.annotatedTree = SetOfTypeName @typ.annotatedTree
+     | PrecTypeName
+        lhs.namedType = Right TypeCheckFailed
+        lhs.annotatedTree = PrecTypeName @tn @prec
 
 {-
-{-
 == literals
--}
 -}
 
 SEM Expression
@@ -299,23 +292,16 @@ SEM Expression
 
 {-
 
-{-
-
 == cast expression
 
 -}
 
 SEM Expression
-    | Cast lhs.nodeType = checkErrors [@expr.nodeType]
-                            @tn.nodeType
-
--}
-
-{-
+    | Cast loc.tpe = @tn.namedType
+           loc.backTree = Cast @ann @expr.annotatedTree @tn.annotatedTree
 
 {-
 == operators and functions
--}
 -}
 SEM Expression
     | FunCall
