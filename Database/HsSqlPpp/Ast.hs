@@ -43,6 +43,7 @@ module Database.HsSqlPpp.Ast(
    ,getTopLevelTypes
    ,getTypeErrors
    ,getTopLevelInfos
+   ,StatementInfo(..)
    --annotation utils
    ,stripAnnotations
 
@@ -91,11 +92,12 @@ annotateAst :: StatementList -> StatementList
 annotateAst = annotateAstScope defaultScope
 
 annotateAstScope :: Scope -> StatementList -> StatementList
-annotateAstScope scope sts = undefined {-
+annotateAstScope scope sts =
     let t = sem_Root (Root sts)
         ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
         tl = annotatedTree_Syn_Root ta
-    in tl-}
+    in case tl of
+         Root r -> r
 
 annotateExpression :: Scope -> Expression -> Expression
 annotateExpression scope ex =
@@ -105,10 +107,8 @@ annotateExpression scope ex =
     in case rt of
          ExpressionRoot e -> e
 
-data StatementInfo = StatementInfo
-
 getTopLevelInfos :: Annotated a => [a] -> [StatementInfo]
-getTopLevelInfos sts = undefined {-map (\st -> getTypeAnnotation $ ann st) sts-}
+getTopLevelInfos sts = map getSIAnnotation sts
 
 
 {-
@@ -383,16 +383,97 @@ instance Annotated Expression where
 
 
 
+instance Annotated SelectExpression where
+  ann a =
+      case a of
+        Select ann _ _ _ _ _ _ _ _ _ _ -> ann
+        CombineSelect ann _ _ _ -> ann
+        Values ann _ -> ann
+  setAnn ex a =
+    case ex of
+        Select _ dis sl tref whr grp hav ord dir lim off ->
+          Select a dis sl tref whr grp hav ord dir lim off
+        CombineSelect _ ctype sel1 sel2 -> CombineSelect a ctype sel1 sel2
+        Values _ vll -> Values a vll
+  changeAnnRecurse f ex =
+    case ex of
+      Select a dis sl tref whr grp hav ord dir lim off ->
+          Select (f a) dis sl tref whr grp hav ord dir lim off
+      CombineSelect a ctype sel1 sel2 -> CombineSelect (f a) ctype
+                                             (changeAnnRecurse f sel1)
+                                             (changeAnnRecurse f sel2)
+      Values a vll -> Values (f a) vll
+  getAnnChildren ex =
+    case ex of
+      _ -> []
+
+instance Annotated TableRef where
+  ann a =
+      case a of
+        Tref ann _ -> ann
+        TrefAlias ann _ _ -> ann
+        JoinedTref ann _ _ _ _ _ -> ann
+        SubTref ann _ _ -> ann
+        TrefFun ann _ -> ann
+        TrefFunAlias ann _ _ -> ann
+  setAnn ex a =
+    case ex of
+        Tref _ tbl -> Tref a tbl
+        TrefAlias _ tbl alias -> TrefAlias a tbl alias
+        JoinedTref _ tbl nat joinType tbl1 onExpr -> JoinedTref a tbl nat joinType tbl1 onExpr
+        SubTref _ sel alias -> SubTref a sel alias
+        TrefFun _ fn -> TrefFun a fn
+        TrefFunAlias _ fn alias -> TrefFunAlias a fn alias
+  changeAnnRecurse f ex =
+    case ex of
+        Tref a tbl -> Tref (f a) tbl
+        TrefAlias a tbl alias -> TrefAlias (f a) tbl alias
+        JoinedTref a tbl nat joinType tbl1 onExpr ->
+          JoinedTref (f a)
+                     (changeAnnRecurse f tbl)
+                     nat
+                     joinType
+                     (changeAnnRecurse f tbl1)
+                     onExpr
+        SubTref a sel alias -> SubTref (f a) (changeAnnRecurse f sel) alias
+        TrefFun a fn -> TrefFun (f a) (changeAnnRecurse f fn)
+        TrefFunAlias a fn alias -> TrefFunAlias (f a) (changeAnnRecurse f fn) alias
+  getAnnChildren ex =
+    case ex of
+      _ -> []
 
 
--- i think this should be alright, an identifier referenced in an
--- expression can only have zero or one dot in it.
+getTbCols t = unwrapComposite $ unwrapSetOf $ getTypeAnnotation t
 
-splitIdentifier :: String -> (String,String)
-splitIdentifier s = let (a,b) = span (/= '.') s
-                    in if b == ""
-                         then ("", a)
-                         else (a,tail b)
+
+
+getFnType :: Scope -> String -> Expression -> Either TypeError Type
+getFnType scope alias fnVal =
+    either Left (Right . snd) $ getFunIdens scope alias fnVal
+
+getFunIdens :: Scope -> String -> Expression -> Either TypeError (String,Type)
+getFunIdens scope alias fnVal =
+   case fnVal of
+       FunCall _ f _ ->
+           let correlationName = if alias /= ""
+                                   then alias
+                                   else f
+           in Right (correlationName, case getTypeAnnotation fnVal of
+                SetOfType (CompositeType t) -> getCompositeType t
+                SetOfType x -> UnnamedCompositeType [(correlationName,x)]
+                y -> UnnamedCompositeType [(correlationName,y)])
+       x -> Left (ContextError "FunCall")
+   where
+     getCompositeType t =
+                    case getAttrs scope [Composite
+                                              ,TableComposite
+                                              ,ViewComposite] t of
+                      Just ((_,_,a@(UnnamedCompositeType _)), _) -> a
+                      _ -> UnnamedCompositeType []
+
+
+fixedValue :: a -> a -> a -> a
+fixedValue a _ _ = a
 -- AttributeDef ------------------------------------------------
 data AttributeDef  = AttributeDef (String) (TypeName) (Maybe Expression) (RowConstraintList) 
                    deriving ( Eq,Show)
@@ -559,7 +640,7 @@ sem_CaseExpressionList_Cons hd_ tl_  =
               _hdOscope :: Scope
               _tlOscope :: Scope
               _hdIannotatedTree :: Expression
-              _hdInodeType :: Type
+              _hdIliftedColumnName :: String
               _tlIannotatedTree :: CaseExpressionList
               _annotatedTree =
                   (:) _hdIannotatedTree _tlIannotatedTree
@@ -569,7 +650,7 @@ sem_CaseExpressionList_Cons hd_ tl_  =
                   _lhsIscope
               _tlOscope =
                   _lhsIscope
-              ( _hdIannotatedTree,_hdInodeType) =
+              ( _hdIannotatedTree,_hdIliftedColumnName) =
                   (hd_ _hdOscope )
               ( _tlIannotatedTree) =
                   (tl_ _tlOscope )
@@ -612,7 +693,7 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
               _x2Oscope :: Scope
               _x1IannotatedTree :: CaseExpressionList
               _x2IannotatedTree :: Expression
-              _x2InodeType :: Type
+              _x2IliftedColumnName :: String
               _annotatedTree =
                   (_x1IannotatedTree,_x2IannotatedTree)
               _lhsOannotatedTree =
@@ -623,7 +704,7 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
                   _lhsIscope
               ( _x1IannotatedTree) =
                   (x1_ _x1Oscope )
-              ( _x2IannotatedTree,_x2InodeType) =
+              ( _x2IannotatedTree,_x2IliftedColumnName) =
                   (x2_ _x2Oscope )
           in  ( _lhsOannotatedTree)))
 -- CaseExpressionListExpressionPairList ------------------------
@@ -778,14 +859,14 @@ sem_Constraint_CheckConstraint expression_  =
          (let _lhsOannotatedTree :: Constraint
               _expressionOscope :: Scope
               _expressionIannotatedTree :: Expression
-              _expressionInodeType :: Type
+              _expressionIliftedColumnName :: String
               _annotatedTree =
                   CheckConstraint _expressionIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _expressionOscope =
                   _lhsIscope
-              ( _expressionIannotatedTree,_expressionInodeType) =
+              ( _expressionIannotatedTree,_expressionIliftedColumnName) =
                   (expression_ _expressionOscope )
           in  ( _lhsOannotatedTree)))
 sem_Constraint_PrimaryKeyConstraint :: T_StringList  ->
@@ -1150,23 +1231,23 @@ sem_Expression (WindowFn _ann _fn _partitionBy _orderBy _dir )  =
     (sem_Expression_WindowFn _ann (sem_Expression _fn ) (sem_ExpressionList _partitionBy ) (sem_ExpressionList _orderBy ) (sem_Direction _dir ) )
 -- semantic domain
 type T_Expression  = Scope ->
-                     ( Expression,Type)
+                     ( Expression,String)
 data Inh_Expression  = Inh_Expression {scope_Inh_Expression :: Scope}
-data Syn_Expression  = Syn_Expression {annotatedTree_Syn_Expression :: Expression,nodeType_Syn_Expression :: Type}
+data Syn_Expression  = Syn_Expression {annotatedTree_Syn_Expression :: Expression,liftedColumnName_Syn_Expression :: String}
 wrap_Expression :: T_Expression  ->
                    Inh_Expression  ->
                    Syn_Expression 
 wrap_Expression sem (Inh_Expression _lhsIscope )  =
-    (let ( _lhsOannotatedTree,_lhsOnodeType) =
+    (let ( _lhsOannotatedTree,_lhsOliftedColumnName) =
              (sem _lhsIscope )
-     in  (Syn_Expression _lhsOannotatedTree _lhsOnodeType ))
+     in  (Syn_Expression _lhsOannotatedTree _lhsOliftedColumnName ))
 sem_Expression_BooleanLit :: Annotation ->
                              Bool ->
                              T_Expression 
 sem_Expression_BooleanLit ann_ b_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
@@ -1180,15 +1261,15 @@ sem_Expression_BooleanLit ann_ b_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _backTree =
                   BooleanLit ann_ b_
               _tpe =
                   Right typeBool
+              _lhsOliftedColumnName =
+                  ""
               _annotatedTree =
                   BooleanLit ann_ b_
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_Case :: Annotation ->
                        T_CaseExpressionListExpressionPairList  ->
                        T_MaybeExpression  ->
@@ -1196,7 +1277,7 @@ sem_Expression_Case :: Annotation ->
 sem_Expression_Case ann_ cases_ els_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _casesOscope :: Scope
               _elsOscope :: Scope
               _casesIannotatedTree :: CaseExpressionListExpressionPairList
@@ -1214,8 +1295,6 @@ sem_Expression_Case ann_ cases_ els_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _whenTypes =
                   map getTypeAnnotation $ concatMap fst $
                   _casesIannotatedTree
@@ -1235,6 +1314,8 @@ sem_Expression_Case ann_ cases_ els_  =
                                 _thenTypes
               _backTree =
                   Case ann_ _casesIannotatedTree _elsIannotatedTree
+              _lhsOliftedColumnName =
+                  ""
               _annotatedTree =
                   Case ann_ _casesIannotatedTree _elsIannotatedTree
               _casesOscope =
@@ -1245,7 +1326,7 @@ sem_Expression_Case ann_ cases_ els_  =
                   (cases_ _casesOscope )
               ( _elsIannotatedTree) =
                   (els_ _elsOscope )
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_CaseSimple :: Annotation ->
                              T_Expression  ->
                              T_CaseExpressionListExpressionPairList  ->
@@ -1254,12 +1335,12 @@ sem_Expression_CaseSimple :: Annotation ->
 sem_Expression_CaseSimple ann_ value_ cases_ els_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _valueOscope :: Scope
               _casesOscope :: Scope
               _elsOscope :: Scope
               _valueIannotatedTree :: Expression
-              _valueInodeType :: Type
+              _valueIliftedColumnName :: String
               _casesIannotatedTree :: CaseExpressionListExpressionPairList
               _elsIannotatedTree :: MaybeExpression
               _nt =
@@ -1275,8 +1356,6 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _whenTypes =
                   map getTypeAnnotation $ concatMap fst $
                   _casesIannotatedTree
@@ -1299,6 +1378,8 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
                                       _thenTypes
               _backTree =
                   CaseSimple ann_ _valueIannotatedTree _casesIannotatedTree _elsIannotatedTree
+              _lhsOliftedColumnName =
+                  _valueIliftedColumnName
               _annotatedTree =
                   CaseSimple ann_ _valueIannotatedTree _casesIannotatedTree _elsIannotatedTree
               _valueOscope =
@@ -1307,13 +1388,13 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
                   _lhsIscope
               _elsOscope =
                   _lhsIscope
-              ( _valueIannotatedTree,_valueInodeType) =
+              ( _valueIannotatedTree,_valueIliftedColumnName) =
                   (value_ _valueOscope )
               ( _casesIannotatedTree) =
                   (cases_ _casesOscope )
               ( _elsIannotatedTree) =
                   (els_ _elsOscope )
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_Cast :: Annotation ->
                        T_Expression  ->
                        T_TypeName  ->
@@ -1321,11 +1402,11 @@ sem_Expression_Cast :: Annotation ->
 sem_Expression_Cast ann_ expr_ tn_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _exprOscope :: Scope
               _tnOscope :: Scope
               _exprIannotatedTree :: Expression
-              _exprInodeType :: Type
+              _exprIliftedColumnName :: String
               _tnIannotatedTree :: TypeName
               _tnInamedType :: (Either TypeError Type)
               _nt =
@@ -1341,30 +1422,32 @@ sem_Expression_Cast ann_ expr_ tn_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _tpe =
                   _tnInamedType
               _backTree =
                   Cast ann_ _exprIannotatedTree _tnIannotatedTree
+              _lhsOliftedColumnName =
+                  case _tnIannotatedTree of
+                    SimpleTypeName tn -> tn
+                    _ -> ""
               _annotatedTree =
                   Cast ann_ _exprIannotatedTree _tnIannotatedTree
               _exprOscope =
                   _lhsIscope
               _tnOscope =
                   _lhsIscope
-              ( _exprIannotatedTree,_exprInodeType) =
+              ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOscope )
               ( _tnIannotatedTree,_tnInamedType) =
                   (tn_ _tnOscope )
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_Exists :: Annotation ->
                          T_SelectExpression  ->
                          T_Expression 
 sem_Expression_Exists ann_ sel_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _selOscope :: Scope
               _selIannotatedTree :: SelectExpression
               _nt =
@@ -1380,26 +1463,26 @@ sem_Expression_Exists ann_ sel_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _tpe =
                   Right typeBool
               _backTree =
                   Exists ann_ _selIannotatedTree
+              _lhsOliftedColumnName =
+                  ""
               _annotatedTree =
                   Exists ann_ _selIannotatedTree
               _selOscope =
                   _lhsIscope
               ( _selIannotatedTree) =
                   (sel_ _selOscope )
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_FloatLit :: Annotation ->
                            Double ->
                            T_Expression 
 sem_Expression_FloatLit ann_ d_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
@@ -1413,15 +1496,15 @@ sem_Expression_FloatLit ann_ d_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _backTree =
                   FloatLit ann_ d_
               _tpe =
                   Right typeNumeric
+              _lhsOliftedColumnName =
+                  ""
               _annotatedTree =
                   FloatLit ann_ d_
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_FunCall :: Annotation ->
                           String ->
                           T_ExpressionList  ->
@@ -1429,7 +1512,7 @@ sem_Expression_FunCall :: Annotation ->
 sem_Expression_FunCall ann_ funName_ args_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _argsOscope :: Scope
               _argsIannotatedTree :: ExpressionList
               _argsItypeList :: ([Type])
@@ -1446,8 +1529,6 @@ sem_Expression_FunCall ann_ funName_ args_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _tpe =
                   checkTypes _argsItypeList $
                     typeCheckFunCall
@@ -1456,20 +1537,24 @@ sem_Expression_FunCall ann_ funName_ args_  =
                       _argsItypeList
               _backTree =
                   FunCall ann_ funName_ _argsIannotatedTree
+              _lhsOliftedColumnName =
+                  if isOperator funName_
+                     then ""
+                     else funName_
               _annotatedTree =
                   FunCall ann_ funName_ _argsIannotatedTree
               _argsOscope =
                   _lhsIscope
               ( _argsIannotatedTree,_argsItypeList) =
                   (args_ _argsOscope )
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_Identifier :: Annotation ->
                              String ->
                              T_Expression 
 sem_Expression_Identifier ann_ i_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
@@ -1483,16 +1568,16 @@ sem_Expression_Identifier ann_ i_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _tpe =
                   let (correlationName,iden) = splitIdentifier i_
                   in scopeLookupID _lhsIscope correlationName iden
               _backTree =
                   Identifier ann_ i_
+              _lhsOliftedColumnName =
+                  i_
               _annotatedTree =
                   Identifier ann_ i_
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_InPredicate :: Annotation ->
                               T_Expression  ->
                               Bool ->
@@ -1500,15 +1585,15 @@ sem_Expression_InPredicate :: Annotation ->
                               T_Expression 
 sem_Expression_InPredicate ann_ expr_ i_ list_  =
     (\ _lhsIscope ->
-         (let _lhsOnodeType :: Type
+         (let _lhsOliftedColumnName :: String
               _lhsOannotatedTree :: Expression
               _exprOscope :: Scope
               _listOscope :: Scope
               _exprIannotatedTree :: Expression
-              _exprInodeType :: Type
+              _exprIliftedColumnName :: String
               _listIannotatedTree :: InList
-              _lhsOnodeType =
-                  _exprInodeType
+              _lhsOliftedColumnName =
+                  _exprIliftedColumnName
               _annotatedTree =
                   InPredicate ann_ _exprIannotatedTree i_ _listIannotatedTree
               _lhsOannotatedTree =
@@ -1517,18 +1602,18 @@ sem_Expression_InPredicate ann_ expr_ i_ list_  =
                   _lhsIscope
               _listOscope =
                   _lhsIscope
-              ( _exprIannotatedTree,_exprInodeType) =
+              ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOscope )
               ( _listIannotatedTree) =
                   (list_ _listOscope )
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_IntegerLit :: Annotation ->
                              Integer ->
                              T_Expression 
 sem_Expression_IntegerLit ann_ i_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
@@ -1542,21 +1627,21 @@ sem_Expression_IntegerLit ann_ i_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _backTree =
                   IntegerLit ann_ i_
               _tpe =
                   Right typeInt
+              _lhsOliftedColumnName =
+                  ""
               _annotatedTree =
                   IntegerLit ann_ i_
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_NullLit :: Annotation ->
                           T_Expression 
 sem_Expression_NullLit ann_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
@@ -1570,40 +1655,40 @@ sem_Expression_NullLit ann_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _backTree =
                   NullLit ann_
               _tpe =
                   Right UnknownStringLit
+              _lhsOliftedColumnName =
+                  ""
               _annotatedTree =
                   NullLit ann_
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_PositionalArg :: Annotation ->
                                 Integer ->
                                 T_Expression 
 sem_Expression_PositionalArg ann_ p_  =
     (\ _lhsIscope ->
-         (let _lhsOnodeType :: Type
+         (let _lhsOliftedColumnName :: String
               _lhsOannotatedTree :: Expression
-              _lhsOnodeType =
-                  TypeCheckFailed
+              _lhsOliftedColumnName =
+                  ""
               _annotatedTree =
                   PositionalArg ann_ p_
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_ScalarSubQuery :: Annotation ->
                                  T_SelectExpression  ->
                                  T_Expression 
 sem_Expression_ScalarSubQuery ann_ sel_  =
     (\ _lhsIscope ->
-         (let _lhsOnodeType :: Type
+         (let _lhsOliftedColumnName :: String
               _lhsOannotatedTree :: Expression
               _selOscope :: Scope
               _selIannotatedTree :: SelectExpression
-              _lhsOnodeType =
-                  TypeCheckFailed
+              _lhsOliftedColumnName =
+                  ""
               _annotatedTree =
                   ScalarSubQuery ann_ _selIannotatedTree
               _lhsOannotatedTree =
@@ -1612,7 +1697,7 @@ sem_Expression_ScalarSubQuery ann_ sel_  =
                   _lhsIscope
               ( _selIannotatedTree) =
                   (sel_ _selOscope )
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_StringLit :: Annotation ->
                             String ->
                             String ->
@@ -1620,7 +1705,7 @@ sem_Expression_StringLit :: Annotation ->
 sem_Expression_StringLit ann_ quote_ value_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
-              _lhsOnodeType :: Type
+              _lhsOliftedColumnName :: String
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
@@ -1634,15 +1719,15 @@ sem_Expression_StringLit ann_ quote_ value_  =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
-              _lhsOnodeType =
-                  _nt
               _backTree =
                   StringLit ann_ quote_ value_
               _tpe =
                   Right UnknownStringLit
+              _lhsOliftedColumnName =
+                  ""
               _annotatedTree =
                   StringLit ann_ quote_ value_
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_WindowFn :: Annotation ->
                            T_Expression  ->
                            T_ExpressionList  ->
@@ -1651,21 +1736,21 @@ sem_Expression_WindowFn :: Annotation ->
                            T_Expression 
 sem_Expression_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_  =
     (\ _lhsIscope ->
-         (let _lhsOnodeType :: Type
+         (let _lhsOliftedColumnName :: String
               _lhsOannotatedTree :: Expression
               _fnOscope :: Scope
               _partitionByOscope :: Scope
               _orderByOscope :: Scope
               _dirOscope :: Scope
               _fnIannotatedTree :: Expression
-              _fnInodeType :: Type
+              _fnIliftedColumnName :: String
               _partitionByIannotatedTree :: ExpressionList
               _partitionByItypeList :: ([Type])
               _orderByIannotatedTree :: ExpressionList
               _orderByItypeList :: ([Type])
               _dirIannotatedTree :: Direction
-              _lhsOnodeType =
-                  _fnInodeType
+              _lhsOliftedColumnName =
+                  _fnIliftedColumnName
               _annotatedTree =
                   WindowFn ann_ _fnIannotatedTree _partitionByIannotatedTree _orderByIannotatedTree _dirIannotatedTree
               _lhsOannotatedTree =
@@ -1678,7 +1763,7 @@ sem_Expression_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_  =
                   _lhsIscope
               _dirOscope =
                   _lhsIscope
-              ( _fnIannotatedTree,_fnInodeType) =
+              ( _fnIannotatedTree,_fnIliftedColumnName) =
                   (fn_ _fnOscope )
               ( _partitionByIannotatedTree,_partitionByItypeList) =
                   (partitionBy_ _partitionByOscope )
@@ -1686,7 +1771,7 @@ sem_Expression_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_  =
                   (orderBy_ _orderByOscope )
               ( _dirIannotatedTree) =
                   (dir_ _dirOscope )
-          in  ( _lhsOannotatedTree,_lhsOnodeType)))
+          in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 -- ExpressionList ----------------------------------------------
 type ExpressionList  = [(Expression)]
 -- cata
@@ -1716,11 +1801,11 @@ sem_ExpressionList_Cons hd_ tl_  =
               _hdOscope :: Scope
               _tlOscope :: Scope
               _hdIannotatedTree :: Expression
-              _hdInodeType :: Type
+              _hdIliftedColumnName :: String
               _tlIannotatedTree :: ExpressionList
               _tlItypeList :: ([Type])
               _lhsOtypeList =
-                  _hdInodeType : _tlItypeList
+                  getTypeAnnotation _hdIannotatedTree : _tlItypeList
               _annotatedTree =
                   (:) _hdIannotatedTree _tlIannotatedTree
               _lhsOannotatedTree =
@@ -1729,7 +1814,7 @@ sem_ExpressionList_Cons hd_ tl_  =
                   _lhsIscope
               _tlOscope =
                   _lhsIscope
-              ( _hdIannotatedTree,_hdInodeType) =
+              ( _hdIannotatedTree,_hdIliftedColumnName) =
                   (hd_ _hdOscope )
               ( _tlIannotatedTree,_tlItypeList) =
                   (tl_ _tlOscope )
@@ -1919,14 +2004,14 @@ sem_ExpressionRoot_ExpressionRoot expr_  =
          (let _lhsOannotatedTree :: ExpressionRoot
               _exprOscope :: Scope
               _exprIannotatedTree :: Expression
-              _exprInodeType :: Type
+              _exprIliftedColumnName :: String
               _annotatedTree =
                   ExpressionRoot _exprIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _exprOscope =
                   _lhsIscope
-              ( _exprIannotatedTree,_exprInodeType) =
+              ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOscope )
           in  ( _lhsOannotatedTree)))
 -- ExpressionStatementListPair ---------------------------------
@@ -1957,7 +2042,7 @@ sem_ExpressionStatementListPair_Tuple x1_ x2_  =
               _x1Oscope :: Scope
               _x2Oscope :: Scope
               _x1IannotatedTree :: Expression
-              _x1InodeType :: Type
+              _x1IliftedColumnName :: String
               _x2IannotatedTree :: StatementList
               _annotatedTree =
                   (_x1IannotatedTree,_x2IannotatedTree)
@@ -1967,7 +2052,7 @@ sem_ExpressionStatementListPair_Tuple x1_ x2_  =
                   _lhsIscope
               _x2Oscope =
                   _lhsIscope
-              ( _x1IannotatedTree,_x1InodeType) =
+              ( _x1IannotatedTree,_x1IliftedColumnName) =
                   (x1_ _x1Oscope )
               ( _x2IannotatedTree) =
                   (x2_ _x2Oscope )
@@ -2212,14 +2297,14 @@ sem_JoinExpression_JoinOn expression_  =
          (let _lhsOannotatedTree :: JoinExpression
               _expressionOscope :: Scope
               _expressionIannotatedTree :: Expression
-              _expressionInodeType :: Type
+              _expressionIliftedColumnName :: String
               _annotatedTree =
                   JoinOn _expressionIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _expressionOscope =
                   _lhsIscope
-              ( _expressionIannotatedTree,_expressionInodeType) =
+              ( _expressionIannotatedTree,_expressionIliftedColumnName) =
                   (expression_ _expressionOscope )
           in  ( _lhsOannotatedTree)))
 sem_JoinExpression_JoinUsing :: T_StringList  ->
@@ -2356,6 +2441,53 @@ sem_Language_Sql  =
               _lhsOannotatedTree =
                   _annotatedTree
           in  ( _lhsOannotatedTree)))
+-- MExpression -------------------------------------------------
+type MExpression  = (Maybe (Expression))
+-- cata
+sem_MExpression :: MExpression  ->
+                   T_MExpression 
+sem_MExpression (Prelude.Just x )  =
+    (sem_MExpression_Just (sem_Expression x ) )
+sem_MExpression Prelude.Nothing  =
+    sem_MExpression_Nothing
+-- semantic domain
+type T_MExpression  = Scope ->
+                      ( MExpression)
+data Inh_MExpression  = Inh_MExpression {scope_Inh_MExpression :: Scope}
+data Syn_MExpression  = Syn_MExpression {annotatedTree_Syn_MExpression :: MExpression}
+wrap_MExpression :: T_MExpression  ->
+                    Inh_MExpression  ->
+                    Syn_MExpression 
+wrap_MExpression sem (Inh_MExpression _lhsIscope )  =
+    (let ( _lhsOannotatedTree) =
+             (sem _lhsIscope )
+     in  (Syn_MExpression _lhsOannotatedTree ))
+sem_MExpression_Just :: T_Expression  ->
+                        T_MExpression 
+sem_MExpression_Just just_  =
+    (\ _lhsIscope ->
+         (let _lhsOannotatedTree :: MExpression
+              _justOscope :: Scope
+              _justIannotatedTree :: Expression
+              _justIliftedColumnName :: String
+              _annotatedTree =
+                  Just _justIannotatedTree
+              _lhsOannotatedTree =
+                  _annotatedTree
+              _justOscope =
+                  _lhsIscope
+              ( _justIannotatedTree,_justIliftedColumnName) =
+                  (just_ _justOscope )
+          in  ( _lhsOannotatedTree)))
+sem_MExpression_Nothing :: T_MExpression 
+sem_MExpression_Nothing  =
+    (\ _lhsIscope ->
+         (let _lhsOannotatedTree :: MExpression
+              _annotatedTree =
+                  Nothing
+              _lhsOannotatedTree =
+                  _annotatedTree
+          in  ( _lhsOannotatedTree)))
 -- MTableRef ---------------------------------------------------
 type MTableRef  = (Maybe (TableRef))
 -- cata
@@ -2367,41 +2499,55 @@ sem_MTableRef Prelude.Nothing  =
     sem_MTableRef_Nothing
 -- semantic domain
 type T_MTableRef  = Scope ->
-                    ( MTableRef)
+                    ( MTableRef,([QualifiedScope]),([String]))
 data Inh_MTableRef  = Inh_MTableRef {scope_Inh_MTableRef :: Scope}
-data Syn_MTableRef  = Syn_MTableRef {annotatedTree_Syn_MTableRef :: MTableRef}
+data Syn_MTableRef  = Syn_MTableRef {annotatedTree_Syn_MTableRef :: MTableRef,idens_Syn_MTableRef :: [QualifiedScope],joinIdens_Syn_MTableRef :: [String]}
 wrap_MTableRef :: T_MTableRef  ->
                   Inh_MTableRef  ->
                   Syn_MTableRef 
 wrap_MTableRef sem (Inh_MTableRef _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens) =
              (sem _lhsIscope )
-     in  (Syn_MTableRef _lhsOannotatedTree ))
+     in  (Syn_MTableRef _lhsOannotatedTree _lhsOidens _lhsOjoinIdens ))
 sem_MTableRef_Just :: T_TableRef  ->
                       T_MTableRef 
 sem_MTableRef_Just just_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: MTableRef
+              _lhsOidens :: ([QualifiedScope])
+              _lhsOjoinIdens :: ([String])
               _justOscope :: Scope
               _justIannotatedTree :: TableRef
+              _justIidens :: ([QualifiedScope])
+              _justIjoinIdens :: ([String])
               _annotatedTree =
                   Just _justIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
+              _lhsOidens =
+                  _justIidens
+              _lhsOjoinIdens =
+                  _justIjoinIdens
               _justOscope =
                   _lhsIscope
-              ( _justIannotatedTree) =
+              ( _justIannotatedTree,_justIidens,_justIjoinIdens) =
                   (just_ _justOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 sem_MTableRef_Nothing :: T_MTableRef 
 sem_MTableRef_Nothing  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: MTableRef
+         (let _lhsOidens :: ([QualifiedScope])
+              _lhsOjoinIdens :: ([String])
+              _lhsOannotatedTree :: MTableRef
+              _lhsOidens =
+                  []
+              _lhsOjoinIdens =
+                  []
               _annotatedTree =
                   Nothing
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 -- MaybeExpression ---------------------------------------------
 type MaybeExpression  = (Maybe (Expression))
 -- cata
@@ -2430,14 +2576,14 @@ sem_MaybeExpression_Just just_  =
          (let _lhsOannotatedTree :: MaybeExpression
               _justOscope :: Scope
               _justIannotatedTree :: Expression
-              _justInodeType :: Type
+              _justIliftedColumnName :: String
               _annotatedTree =
                   Just _justIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _justOscope =
                   _lhsIscope
-              ( _justIannotatedTree,_justInodeType) =
+              ( _justIannotatedTree,_justIliftedColumnName) =
                   (just_ _justOscope )
           in  ( _lhsOannotatedTree)))
 sem_MaybeExpression_Nothing :: T_MaybeExpression 
@@ -2835,14 +2981,14 @@ sem_RowConstraint_RowCheckConstraint expression_  =
          (let _lhsOannotatedTree :: RowConstraint
               _expressionOscope :: Scope
               _expressionIannotatedTree :: Expression
-              _expressionInodeType :: Type
+              _expressionIliftedColumnName :: String
               _annotatedTree =
                   RowCheckConstraint _expressionIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _expressionOscope =
                   _lhsIscope
-              ( _expressionIannotatedTree,_expressionInodeType) =
+              ( _expressionIannotatedTree,_expressionIliftedColumnName) =
                   (expression_ _expressionOscope )
           in  ( _lhsOannotatedTree)))
 sem_RowConstraint_RowPrimaryKeyConstraint :: T_RowConstraint 
@@ -2940,19 +3086,19 @@ sem_RowConstraintList_Nil  =
                   _annotatedTree
           in  ( _lhsOannotatedTree)))
 -- SelectExpression --------------------------------------------
-data SelectExpression  = CombineSelect (CombineType) (SelectExpression) (SelectExpression) 
-                       | Select (Distinct) (SelectList) (MTableRef) (Where) (ExpressionList) (Maybe Expression) (ExpressionList) (Direction) (Maybe Expression) (Maybe Expression) 
-                       | Values (ExpressionListList) 
+data SelectExpression  = CombineSelect (Annotation) (CombineType) (SelectExpression) (SelectExpression) 
+                       | Select (Annotation) (Distinct) (SelectList) (MTableRef) (Where) (ExpressionList) (MExpression) (ExpressionList) (Direction) (MExpression) (MExpression) 
+                       | Values (Annotation) (ExpressionListList) 
                        deriving ( Eq,Show)
 -- cata
 sem_SelectExpression :: SelectExpression  ->
                         T_SelectExpression 
-sem_SelectExpression (CombineSelect _ctype _sel1 _sel2 )  =
-    (sem_SelectExpression_CombineSelect (sem_CombineType _ctype ) (sem_SelectExpression _sel1 ) (sem_SelectExpression _sel2 ) )
-sem_SelectExpression (Select _selDistinct _selSelectList _selTref _selWhere _selGroupBy _selHaving _selOrderBy _selDir _selLimit _selOffset )  =
-    (sem_SelectExpression_Select (sem_Distinct _selDistinct ) (sem_SelectList _selSelectList ) (sem_MTableRef _selTref ) (sem_Where _selWhere ) (sem_ExpressionList _selGroupBy ) _selHaving (sem_ExpressionList _selOrderBy ) (sem_Direction _selDir ) _selLimit _selOffset )
-sem_SelectExpression (Values _vll )  =
-    (sem_SelectExpression_Values (sem_ExpressionListList _vll ) )
+sem_SelectExpression (CombineSelect _ann _ctype _sel1 _sel2 )  =
+    (sem_SelectExpression_CombineSelect _ann (sem_CombineType _ctype ) (sem_SelectExpression _sel1 ) (sem_SelectExpression _sel2 ) )
+sem_SelectExpression (Select _ann _selDistinct _selSelectList _selTref _selWhere _selGroupBy _selHaving _selOrderBy _selDir _selLimit _selOffset )  =
+    (sem_SelectExpression_Select _ann (sem_Distinct _selDistinct ) (sem_SelectList _selSelectList ) (sem_MTableRef _selTref ) (sem_Where _selWhere ) (sem_ExpressionList _selGroupBy ) (sem_MExpression _selHaving ) (sem_ExpressionList _selOrderBy ) (sem_Direction _selDir ) (sem_MExpression _selLimit ) (sem_MExpression _selOffset ) )
+sem_SelectExpression (Values _ann _vll )  =
+    (sem_SelectExpression_Values _ann (sem_ExpressionListList _vll ) )
 -- semantic domain
 type T_SelectExpression  = Scope ->
                            ( SelectExpression)
@@ -2965,11 +3111,12 @@ wrap_SelectExpression sem (Inh_SelectExpression _lhsIscope )  =
     (let ( _lhsOannotatedTree) =
              (sem _lhsIscope )
      in  (Syn_SelectExpression _lhsOannotatedTree ))
-sem_SelectExpression_CombineSelect :: T_CombineType  ->
+sem_SelectExpression_CombineSelect :: Annotation ->
+                                      T_CombineType  ->
                                       T_SelectExpression  ->
                                       T_SelectExpression  ->
                                       T_SelectExpression 
-sem_SelectExpression_CombineSelect ctype_ sel1_ sel2_  =
+sem_SelectExpression_CombineSelect ann_ ctype_ sel1_ sel2_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: SelectExpression
               _ctypeOscope :: Scope
@@ -2978,10 +3125,30 @@ sem_SelectExpression_CombineSelect ctype_ sel1_ sel2_  =
               _ctypeIannotatedTree :: CombineType
               _sel1IannotatedTree :: SelectExpression
               _sel2IannotatedTree :: SelectExpression
-              _annotatedTree =
-                  CombineSelect _ctypeIannotatedTree _sel1IannotatedTree _sel2IannotatedTree
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
               _lhsOannotatedTree =
-                  _annotatedTree
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  let sel1t = getTypeAnnotation _sel1IannotatedTree
+                      sel2t = getTypeAnnotation _sel2IannotatedTree
+                  in checkTypes [sel1t, sel2t] $
+                        typeCheckCombineSelect _lhsIscope sel1t sel2t
+              _backTree =
+                  CombineSelect ann_ _ctypeIannotatedTree
+                                _sel1IannotatedTree
+                                _sel2IannotatedTree
+              _annotatedTree =
+                  CombineSelect ann_ _ctypeIannotatedTree _sel1IannotatedTree _sel2IannotatedTree
               _ctypeOscope =
                   _lhsIscope
               _sel1Oscope =
@@ -2995,80 +3162,158 @@ sem_SelectExpression_CombineSelect ctype_ sel1_ sel2_  =
               ( _sel2IannotatedTree) =
                   (sel2_ _sel2Oscope )
           in  ( _lhsOannotatedTree)))
-sem_SelectExpression_Select :: T_Distinct  ->
+sem_SelectExpression_Select :: Annotation ->
+                               T_Distinct  ->
                                T_SelectList  ->
                                T_MTableRef  ->
                                T_Where  ->
                                T_ExpressionList  ->
-                               (Maybe Expression) ->
+                               T_MExpression  ->
                                T_ExpressionList  ->
                                T_Direction  ->
-                               (Maybe Expression) ->
-                               (Maybe Expression) ->
+                               T_MExpression  ->
+                               T_MExpression  ->
                                T_SelectExpression 
-sem_SelectExpression_Select selDistinct_ selSelectList_ selTref_ selWhere_ selGroupBy_ selHaving_ selOrderBy_ selDir_ selLimit_ selOffset_  =
+sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGroupBy_ selHaving_ selOrderBy_ selDir_ selLimit_ selOffset_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: SelectExpression
-              _selDistinctOscope :: Scope
               _selSelectListOscope :: Scope
-              _selTrefOscope :: Scope
               _selWhereOscope :: Scope
+              _selDistinctOscope :: Scope
+              _selTrefOscope :: Scope
               _selGroupByOscope :: Scope
+              _selHavingOscope :: Scope
               _selOrderByOscope :: Scope
               _selDirOscope :: Scope
+              _selLimitOscope :: Scope
+              _selOffsetOscope :: Scope
               _selDistinctIannotatedTree :: Distinct
               _selSelectListIannotatedTree :: SelectList
+              _selSelectListItpe :: (Either TypeError Type)
               _selTrefIannotatedTree :: MTableRef
+              _selTrefIidens :: ([QualifiedScope])
+              _selTrefIjoinIdens :: ([String])
               _selWhereIannotatedTree :: Where
               _selGroupByIannotatedTree :: ExpressionList
               _selGroupByItypeList :: ([Type])
+              _selHavingIannotatedTree :: MExpression
               _selOrderByIannotatedTree :: ExpressionList
               _selOrderByItypeList :: ([Type])
               _selDirIannotatedTree :: Direction
-              _annotatedTree =
-                  Select _selDistinctIannotatedTree _selSelectListIannotatedTree _selTrefIannotatedTree _selWhereIannotatedTree _selGroupByIannotatedTree selHaving_ _selOrderByIannotatedTree _selDirIannotatedTree selLimit_ selOffset_
+              _selLimitIannotatedTree :: MExpression
+              _selOffsetIannotatedTree :: MExpression
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
               _lhsOannotatedTree =
-                  _annotatedTree
-              _selDistinctOscope =
-                  _lhsIscope
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  let whereTpe = case fmap getTypeAnnotation _selWhereIannotatedTree of
+                                   Nothing -> Right typeBool
+                                   Just x | x == typeBool -> Right typeBool
+                                          | otherwise -> Left ExpressionMustBeBool
+                  in checkTypes (case fmap getTypeAnnotation _selTrefIannotatedTree of
+                                   Nothing -> []
+                                   Just t -> [t]) $
+                       case _selSelectListItpe of
+                              Right TypeCheckFailed -> Right TypeCheckFailed
+                              Left _ -> Right TypeCheckFailed
+                              Right slt ->
+                                  flip (either Left) whereTpe $
+                                  const $ case slt of
+                                            UnnamedCompositeType [(_,Pseudo Void)] ->
+                                                Right $ Pseudo Void
+                                            _ -> Right $ SetOfType slt
+              _backTree =
+                  Select ann_
+                         _selDistinctIannotatedTree
+                         _selSelectListIannotatedTree
+                         _selTrefIannotatedTree
+                         _selWhereIannotatedTree
+                         _selGroupByIannotatedTree
+                         _selHavingIannotatedTree
+                         _selOrderByIannotatedTree
+                         _selDirIannotatedTree
+                         _selLimitIannotatedTree
+                         _selOffsetIannotatedTree
               _selSelectListOscope =
+                  scopeReplaceIds _lhsIscope _selTrefIidens _selTrefIjoinIdens
+              _selWhereOscope =
+                  scopeReplaceIds _lhsIscope _selTrefIidens _selTrefIjoinIdens
+              _annotatedTree =
+                  Select ann_ _selDistinctIannotatedTree _selSelectListIannotatedTree _selTrefIannotatedTree _selWhereIannotatedTree _selGroupByIannotatedTree _selHavingIannotatedTree _selOrderByIannotatedTree _selDirIannotatedTree _selLimitIannotatedTree _selOffsetIannotatedTree
+              _selDistinctOscope =
                   _lhsIscope
               _selTrefOscope =
                   _lhsIscope
-              _selWhereOscope =
-                  _lhsIscope
               _selGroupByOscope =
+                  _lhsIscope
+              _selHavingOscope =
                   _lhsIscope
               _selOrderByOscope =
                   _lhsIscope
               _selDirOscope =
                   _lhsIscope
+              _selLimitOscope =
+                  _lhsIscope
+              _selOffsetOscope =
+                  _lhsIscope
               ( _selDistinctIannotatedTree) =
                   (selDistinct_ _selDistinctOscope )
-              ( _selSelectListIannotatedTree) =
+              ( _selSelectListIannotatedTree,_selSelectListItpe) =
                   (selSelectList_ _selSelectListOscope )
-              ( _selTrefIannotatedTree) =
+              ( _selTrefIannotatedTree,_selTrefIidens,_selTrefIjoinIdens) =
                   (selTref_ _selTrefOscope )
               ( _selWhereIannotatedTree) =
                   (selWhere_ _selWhereOscope )
               ( _selGroupByIannotatedTree,_selGroupByItypeList) =
                   (selGroupBy_ _selGroupByOscope )
+              ( _selHavingIannotatedTree) =
+                  (selHaving_ _selHavingOscope )
               ( _selOrderByIannotatedTree,_selOrderByItypeList) =
                   (selOrderBy_ _selOrderByOscope )
               ( _selDirIannotatedTree) =
                   (selDir_ _selDirOscope )
+              ( _selLimitIannotatedTree) =
+                  (selLimit_ _selLimitOscope )
+              ( _selOffsetIannotatedTree) =
+                  (selOffset_ _selOffsetOscope )
           in  ( _lhsOannotatedTree)))
-sem_SelectExpression_Values :: T_ExpressionListList  ->
+sem_SelectExpression_Values :: Annotation ->
+                               T_ExpressionListList  ->
                                T_SelectExpression 
-sem_SelectExpression_Values vll_  =
+sem_SelectExpression_Values ann_ vll_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: SelectExpression
               _vllOscope :: Scope
               _vllIannotatedTree :: ExpressionListList
-              _annotatedTree =
-                  Values _vllIannotatedTree
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
               _lhsOannotatedTree =
-                  _annotatedTree
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  Right TypeCheckFailed
+              _backTree =
+                  Values ann_ _vllIannotatedTree
+              _annotatedTree =
+                  Values ann_ _vllIannotatedTree
               _vllOscope =
                   _lhsIscope
               ( _vllIannotatedTree) =
@@ -3087,51 +3332,65 @@ sem_SelectItem (SelectItem _ex _name )  =
     (sem_SelectItem_SelectItem (sem_Expression _ex ) _name )
 -- semantic domain
 type T_SelectItem  = Scope ->
-                     ( SelectItem)
+                     ( SelectItem,String,Type)
 data Inh_SelectItem  = Inh_SelectItem {scope_Inh_SelectItem :: Scope}
-data Syn_SelectItem  = Syn_SelectItem {annotatedTree_Syn_SelectItem :: SelectItem}
+data Syn_SelectItem  = Syn_SelectItem {annotatedTree_Syn_SelectItem :: SelectItem,columnName_Syn_SelectItem :: String,itemType_Syn_SelectItem :: Type}
 wrap_SelectItem :: T_SelectItem  ->
                    Inh_SelectItem  ->
                    Syn_SelectItem 
 wrap_SelectItem sem (Inh_SelectItem _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOcolumnName,_lhsOitemType) =
              (sem _lhsIscope )
-     in  (Syn_SelectItem _lhsOannotatedTree ))
+     in  (Syn_SelectItem _lhsOannotatedTree _lhsOcolumnName _lhsOitemType ))
 sem_SelectItem_SelExp :: T_Expression  ->
                          T_SelectItem 
 sem_SelectItem_SelExp ex_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: SelectItem
+         (let _lhsOitemType :: Type
+              _lhsOcolumnName :: String
+              _lhsOannotatedTree :: SelectItem
               _exOscope :: Scope
               _exIannotatedTree :: Expression
-              _exInodeType :: Type
+              _exIliftedColumnName :: String
+              _lhsOitemType =
+                  getTypeAnnotation _exIannotatedTree
+              _lhsOcolumnName =
+                  case _exIliftedColumnName of
+                    "" -> "?column?"
+                    s -> s
               _annotatedTree =
                   SelExp _exIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _exOscope =
                   _lhsIscope
-              ( _exIannotatedTree,_exInodeType) =
+              ( _exIannotatedTree,_exIliftedColumnName) =
                   (ex_ _exOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOcolumnName,_lhsOitemType)))
 sem_SelectItem_SelectItem :: T_Expression  ->
                              String ->
                              T_SelectItem 
 sem_SelectItem_SelectItem ex_ name_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: SelectItem
+         (let _lhsOitemType :: Type
+              _lhsOcolumnName :: String
+              _lhsOannotatedTree :: SelectItem
               _exOscope :: Scope
               _exIannotatedTree :: Expression
-              _exInodeType :: Type
+              _exIliftedColumnName :: String
+              _lhsOitemType =
+                  getTypeAnnotation _exIannotatedTree
+              _lhsOcolumnName =
+                  name_
               _annotatedTree =
                   SelectItem _exIannotatedTree name_
               _lhsOannotatedTree =
                   _annotatedTree
               _exOscope =
                   _lhsIscope
-              ( _exIannotatedTree,_exInodeType) =
+              ( _exIannotatedTree,_exIliftedColumnName) =
                   (ex_ _exOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOcolumnName,_lhsOitemType)))
 -- SelectItemList ----------------------------------------------
 type SelectItemList  = [(SelectItem)]
 -- cata
@@ -3141,26 +3400,32 @@ sem_SelectItemList list  =
     (Prelude.foldr sem_SelectItemList_Cons sem_SelectItemList_Nil (Prelude.map sem_SelectItem list) )
 -- semantic domain
 type T_SelectItemList  = Scope ->
-                         ( SelectItemList)
+                         ( SelectItemList,(Either TypeError Type))
 data Inh_SelectItemList  = Inh_SelectItemList {scope_Inh_SelectItemList :: Scope}
-data Syn_SelectItemList  = Syn_SelectItemList {annotatedTree_Syn_SelectItemList :: SelectItemList}
+data Syn_SelectItemList  = Syn_SelectItemList {annotatedTree_Syn_SelectItemList :: SelectItemList,tpe_Syn_SelectItemList :: Either TypeError Type}
 wrap_SelectItemList :: T_SelectItemList  ->
                        Inh_SelectItemList  ->
                        Syn_SelectItemList 
 wrap_SelectItemList sem (Inh_SelectItemList _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOtpe) =
              (sem _lhsIscope )
-     in  (Syn_SelectItemList _lhsOannotatedTree ))
+     in  (Syn_SelectItemList _lhsOannotatedTree _lhsOtpe ))
 sem_SelectItemList_Cons :: T_SelectItem  ->
                            T_SelectItemList  ->
                            T_SelectItemList 
 sem_SelectItemList_Cons hd_ tl_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: SelectItemList
+         (let _lhsOtpe :: (Either TypeError Type)
+              _lhsOannotatedTree :: SelectItemList
               _hdOscope :: Scope
               _tlOscope :: Scope
               _hdIannotatedTree :: SelectItem
+              _hdIcolumnName :: String
+              _hdIitemType :: Type
               _tlIannotatedTree :: SelectItemList
+              _tlItpe :: (Either TypeError Type)
+              _lhsOtpe =
+                  doSelectItemListTpe _lhsIscope _hdIcolumnName _hdIitemType _tlItpe
               _annotatedTree =
                   (:) _hdIannotatedTree _tlIannotatedTree
               _lhsOannotatedTree =
@@ -3169,20 +3434,23 @@ sem_SelectItemList_Cons hd_ tl_  =
                   _lhsIscope
               _tlOscope =
                   _lhsIscope
-              ( _hdIannotatedTree) =
+              ( _hdIannotatedTree,_hdIcolumnName,_hdIitemType) =
                   (hd_ _hdOscope )
-              ( _tlIannotatedTree) =
+              ( _tlIannotatedTree,_tlItpe) =
                   (tl_ _tlOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOtpe)))
 sem_SelectItemList_Nil :: T_SelectItemList 
 sem_SelectItemList_Nil  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: SelectItemList
+         (let _lhsOtpe :: (Either TypeError Type)
+              _lhsOannotatedTree :: SelectItemList
+              _lhsOtpe =
+                  Right $ UnnamedCompositeType []
               _annotatedTree =
                   []
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOtpe)))
 -- SelectList --------------------------------------------------
 data SelectList  = SelectList (SelectItemList) (StringList) 
                  deriving ( Eq,Show)
@@ -3193,26 +3461,30 @@ sem_SelectList (SelectList _items _stringList )  =
     (sem_SelectList_SelectList (sem_SelectItemList _items ) (sem_StringList _stringList ) )
 -- semantic domain
 type T_SelectList  = Scope ->
-                     ( SelectList)
+                     ( SelectList,(Either TypeError Type))
 data Inh_SelectList  = Inh_SelectList {scope_Inh_SelectList :: Scope}
-data Syn_SelectList  = Syn_SelectList {annotatedTree_Syn_SelectList :: SelectList}
+data Syn_SelectList  = Syn_SelectList {annotatedTree_Syn_SelectList :: SelectList,tpe_Syn_SelectList :: Either TypeError Type}
 wrap_SelectList :: T_SelectList  ->
                    Inh_SelectList  ->
                    Syn_SelectList 
 wrap_SelectList sem (Inh_SelectList _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOtpe) =
              (sem _lhsIscope )
-     in  (Syn_SelectList _lhsOannotatedTree ))
+     in  (Syn_SelectList _lhsOannotatedTree _lhsOtpe ))
 sem_SelectList_SelectList :: T_SelectItemList  ->
                              T_StringList  ->
                              T_SelectList 
 sem_SelectList_SelectList items_ stringList_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: SelectList
+         (let _lhsOtpe :: (Either TypeError Type)
+              _lhsOannotatedTree :: SelectList
               _itemsOscope :: Scope
               _stringListOscope :: Scope
               _itemsIannotatedTree :: SelectItemList
+              _itemsItpe :: (Either TypeError Type)
               _stringListIannotatedTree :: StringList
+              _lhsOtpe =
+                  _itemsItpe
               _annotatedTree =
                   SelectList _itemsIannotatedTree _stringListIannotatedTree
               _lhsOannotatedTree =
@@ -3221,11 +3493,11 @@ sem_SelectList_SelectList items_ stringList_  =
                   _lhsIscope
               _stringListOscope =
                   _lhsIscope
-              ( _itemsIannotatedTree) =
+              ( _itemsIannotatedTree,_itemsItpe) =
                   (items_ _itemsOscope )
               ( _stringListIannotatedTree) =
                   (stringList_ _stringListOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOtpe)))
 -- SetClause ---------------------------------------------------
 data SetClause  = RowSetClause (StringList) (ExpressionList) 
                 | SetClause (String) (Expression) 
@@ -3281,14 +3553,14 @@ sem_SetClause_SetClause att_ val_  =
          (let _lhsOannotatedTree :: SetClause
               _valOscope :: Scope
               _valIannotatedTree :: Expression
-              _valInodeType :: Type
+              _valIliftedColumnName :: String
               _annotatedTree =
                   SetClause att_ _valIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _valOscope =
                   _lhsIscope
-              ( _valIannotatedTree,_valInodeType) =
+              ( _valIannotatedTree,_valIliftedColumnName) =
                   (val_ _valOscope )
           in  ( _lhsOannotatedTree)))
 -- SetClauseList -----------------------------------------------
@@ -3458,14 +3730,14 @@ sem_Statement_Assignment ann_ target_ value_  =
          (let _lhsOannotatedTree :: Statement
               _valueOscope :: Scope
               _valueIannotatedTree :: Expression
-              _valueInodeType :: Type
+              _valueIliftedColumnName :: String
               _annotatedTree =
                   Assignment ann_ target_ _valueIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _valueOscope =
                   _lhsIscope
-              ( _valueIannotatedTree,_valueInodeType) =
+              ( _valueIannotatedTree,_valueIliftedColumnName) =
                   (value_ _valueOscope )
           in  ( _lhsOannotatedTree)))
 sem_Statement_CaseStatement :: Annotation ->
@@ -3480,7 +3752,7 @@ sem_Statement_CaseStatement ann_ val_ cases_ els_  =
               _casesOscope :: Scope
               _elsOscope :: Scope
               _valIannotatedTree :: Expression
-              _valInodeType :: Type
+              _valIliftedColumnName :: String
               _casesIannotatedTree :: ExpressionListStatementListPairList
               _elsIannotatedTree :: StatementList
               _annotatedTree =
@@ -3493,7 +3765,7 @@ sem_Statement_CaseStatement ann_ val_ cases_ els_  =
                   _lhsIscope
               _elsOscope =
                   _lhsIscope
-              ( _valIannotatedTree,_valInodeType) =
+              ( _valIannotatedTree,_valIliftedColumnName) =
                   (val_ _valOscope )
               ( _casesIannotatedTree) =
                   (cases_ _casesOscope )
@@ -3789,14 +4061,14 @@ sem_Statement_Execute ann_ expr_  =
          (let _lhsOannotatedTree :: Statement
               _exprOscope :: Scope
               _exprIannotatedTree :: Expression
-              _exprInodeType :: Type
+              _exprIliftedColumnName :: String
               _annotatedTree =
                   Execute ann_ _exprIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _exprOscope =
                   _lhsIscope
-              ( _exprIannotatedTree,_exprInodeType) =
+              ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOscope )
           in  ( _lhsOannotatedTree)))
 sem_Statement_ExecuteInto :: Annotation ->
@@ -3809,7 +4081,7 @@ sem_Statement_ExecuteInto ann_ expr_ targets_  =
               _exprOscope :: Scope
               _targetsOscope :: Scope
               _exprIannotatedTree :: Expression
-              _exprInodeType :: Type
+              _exprIliftedColumnName :: String
               _targetsIannotatedTree :: StringList
               _annotatedTree =
                   ExecuteInto ann_ _exprIannotatedTree _targetsIannotatedTree
@@ -3819,7 +4091,7 @@ sem_Statement_ExecuteInto ann_ expr_ targets_  =
                   _lhsIscope
               _targetsOscope =
                   _lhsIscope
-              ( _exprIannotatedTree,_exprInodeType) =
+              ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOscope )
               ( _targetsIannotatedTree) =
                   (targets_ _targetsOscope )
@@ -3837,9 +4109,9 @@ sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
               _toOscope :: Scope
               _stsOscope :: Scope
               _fromIannotatedTree :: Expression
-              _fromInodeType :: Type
+              _fromIliftedColumnName :: String
               _toIannotatedTree :: Expression
-              _toInodeType :: Type
+              _toIliftedColumnName :: String
               _stsIannotatedTree :: StatementList
               _annotatedTree =
                   ForIntegerStatement ann_ var_ _fromIannotatedTree _toIannotatedTree _stsIannotatedTree
@@ -3851,9 +4123,9 @@ sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
                   _lhsIscope
               _stsOscope =
                   _lhsIscope
-              ( _fromIannotatedTree,_fromInodeType) =
+              ( _fromIannotatedTree,_fromIliftedColumnName) =
                   (from_ _fromOscope )
-              ( _toIannotatedTree,_toInodeType) =
+              ( _toIannotatedTree,_toIliftedColumnName) =
                   (to_ _toOscope )
               ( _stsIannotatedTree) =
                   (sts_ _stsOscope )
@@ -3951,14 +4223,14 @@ sem_Statement_Perform ann_ expr_  =
          (let _lhsOannotatedTree :: Statement
               _exprOscope :: Scope
               _exprIannotatedTree :: Expression
-              _exprInodeType :: Type
+              _exprIliftedColumnName :: String
               _annotatedTree =
                   Perform ann_ _exprIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _exprOscope =
                   _lhsIscope
-              ( _exprIannotatedTree,_exprInodeType) =
+              ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOscope )
           in  ( _lhsOannotatedTree)))
 sem_Statement_Raise :: Annotation ->
@@ -4006,14 +4278,14 @@ sem_Statement_ReturnNext ann_ expr_  =
          (let _lhsOannotatedTree :: Statement
               _exprOscope :: Scope
               _exprIannotatedTree :: Expression
-              _exprInodeType :: Type
+              _exprIliftedColumnName :: String
               _annotatedTree =
                   ReturnNext ann_ _exprIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _exprOscope =
                   _lhsIscope
-              ( _exprIannotatedTree,_exprInodeType) =
+              ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOscope )
           in  ( _lhsOannotatedTree)))
 sem_Statement_ReturnQuery :: Annotation ->
@@ -4041,10 +4313,26 @@ sem_Statement_SelectStatement ann_ ex_  =
          (let _lhsOannotatedTree :: Statement
               _exOscope :: Scope
               _exIannotatedTree :: SelectExpression
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn (SelectStatement ann_ _exIannotatedTree) $
+                    (([TypeAnnotation _nt
+                      ,StatementInfoA _statementInfo    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  Right $ Pseudo Void
+              _statementInfo =
+                  SelectInfo $ getTypeAnnotation _exIannotatedTree
               _annotatedTree =
                   SelectStatement ann_ _exIannotatedTree
-              _lhsOannotatedTree =
-                  _annotatedTree
               _exOscope =
                   _lhsIscope
               ( _exIannotatedTree) =
@@ -4117,7 +4405,7 @@ sem_Statement_WhileStatement ann_ expr_ sts_  =
               _exprOscope :: Scope
               _stsOscope :: Scope
               _exprIannotatedTree :: Expression
-              _exprInodeType :: Type
+              _exprIliftedColumnName :: String
               _stsIannotatedTree :: StatementList
               _annotatedTree =
                   WhileStatement ann_ _exprIannotatedTree _stsIannotatedTree
@@ -4127,7 +4415,7 @@ sem_Statement_WhileStatement ann_ expr_ sts_  =
                   _lhsIscope
               _stsOscope =
                   _lhsIscope
-              ( _exprIannotatedTree,_exprInodeType) =
+              ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOscope )
               ( _stsIannotatedTree) =
                   (sts_ _stsOscope )
@@ -4316,63 +4604,106 @@ sem_StringStringListPairList_Nil  =
                   _annotatedTree
           in  ( _lhsOannotatedTree)))
 -- TableRef ----------------------------------------------------
-data TableRef  = JoinedTref (TableRef) (Natural) (JoinType) (TableRef) (OnExpr) 
-               | SubTref (SelectExpression) (String) 
-               | Tref (String) 
-               | TrefAlias (String) (String) 
-               | TrefFun (Expression) 
-               | TrefFunAlias (Expression) (String) 
+data TableRef  = JoinedTref (Annotation) (TableRef) (Natural) (JoinType) (TableRef) (OnExpr) 
+               | SubTref (Annotation) (SelectExpression) (String) 
+               | Tref (Annotation) (String) 
+               | TrefAlias (Annotation) (String) (String) 
+               | TrefFun (Annotation) (Expression) 
+               | TrefFunAlias (Annotation) (Expression) (String) 
                deriving ( Eq,Show)
 -- cata
 sem_TableRef :: TableRef  ->
                 T_TableRef 
-sem_TableRef (JoinedTref _tbl _nat _joinType _tbl1 _onExpr )  =
-    (sem_TableRef_JoinedTref (sem_TableRef _tbl ) (sem_Natural _nat ) (sem_JoinType _joinType ) (sem_TableRef _tbl1 ) (sem_OnExpr _onExpr ) )
-sem_TableRef (SubTref _sel _alias )  =
-    (sem_TableRef_SubTref (sem_SelectExpression _sel ) _alias )
-sem_TableRef (Tref _tbl )  =
-    (sem_TableRef_Tref _tbl )
-sem_TableRef (TrefAlias _tbl _alias )  =
-    (sem_TableRef_TrefAlias _tbl _alias )
-sem_TableRef (TrefFun _fn )  =
-    (sem_TableRef_TrefFun (sem_Expression _fn ) )
-sem_TableRef (TrefFunAlias _fn _alias )  =
-    (sem_TableRef_TrefFunAlias (sem_Expression _fn ) _alias )
+sem_TableRef (JoinedTref _ann _tbl _nat _joinType _tbl1 _onExpr )  =
+    (sem_TableRef_JoinedTref _ann (sem_TableRef _tbl ) (sem_Natural _nat ) (sem_JoinType _joinType ) (sem_TableRef _tbl1 ) (sem_OnExpr _onExpr ) )
+sem_TableRef (SubTref _ann _sel _alias )  =
+    (sem_TableRef_SubTref _ann (sem_SelectExpression _sel ) _alias )
+sem_TableRef (Tref _ann _tbl )  =
+    (sem_TableRef_Tref _ann _tbl )
+sem_TableRef (TrefAlias _ann _tbl _alias )  =
+    (sem_TableRef_TrefAlias _ann _tbl _alias )
+sem_TableRef (TrefFun _ann _fn )  =
+    (sem_TableRef_TrefFun _ann (sem_Expression _fn ) )
+sem_TableRef (TrefFunAlias _ann _fn _alias )  =
+    (sem_TableRef_TrefFunAlias _ann (sem_Expression _fn ) _alias )
 -- semantic domain
 type T_TableRef  = Scope ->
-                   ( TableRef)
+                   ( TableRef,([QualifiedScope]),([String]))
 data Inh_TableRef  = Inh_TableRef {scope_Inh_TableRef :: Scope}
-data Syn_TableRef  = Syn_TableRef {annotatedTree_Syn_TableRef :: TableRef}
+data Syn_TableRef  = Syn_TableRef {annotatedTree_Syn_TableRef :: TableRef,idens_Syn_TableRef :: [QualifiedScope],joinIdens_Syn_TableRef :: [String]}
 wrap_TableRef :: T_TableRef  ->
                  Inh_TableRef  ->
                  Syn_TableRef 
 wrap_TableRef sem (Inh_TableRef _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens) =
              (sem _lhsIscope )
-     in  (Syn_TableRef _lhsOannotatedTree ))
-sem_TableRef_JoinedTref :: T_TableRef  ->
+     in  (Syn_TableRef _lhsOannotatedTree _lhsOidens _lhsOjoinIdens ))
+sem_TableRef_JoinedTref :: Annotation ->
+                           T_TableRef  ->
                            T_Natural  ->
                            T_JoinType  ->
                            T_TableRef  ->
                            T_OnExpr  ->
                            T_TableRef 
-sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
+sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: TableRef
+              _lhsOidens :: ([QualifiedScope])
+              _lhsOjoinIdens :: ([String])
               _tblOscope :: Scope
               _natOscope :: Scope
               _joinTypeOscope :: Scope
               _tbl1Oscope :: Scope
               _onExprOscope :: Scope
               _tblIannotatedTree :: TableRef
+              _tblIidens :: ([QualifiedScope])
+              _tblIjoinIdens :: ([String])
               _natIannotatedTree :: Natural
               _joinTypeIannotatedTree :: JoinType
               _tbl1IannotatedTree :: TableRef
+              _tbl1Iidens :: ([QualifiedScope])
+              _tbl1IjoinIdens :: ([String])
               _onExprIannotatedTree :: OnExpr
-              _annotatedTree =
-                  JoinedTref _tblIannotatedTree _natIannotatedTree _joinTypeIannotatedTree _tbl1IannotatedTree _onExprIannotatedTree
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
               _lhsOannotatedTree =
-                  _annotatedTree
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  checkTypes [tblt
+                            ,tbl1t] $
+                     case (_natIannotatedTree, _onExprIannotatedTree) of
+                            (Natural, _) -> unionJoinList $
+                                            commonFieldNames tblt tbl1t
+                            (_,Just (JoinUsing s)) -> unionJoinList s
+                            _ -> unionJoinList []
+                  where
+                    tblt = getTypeAnnotation _tblIannotatedTree
+                    tbl1t = getTypeAnnotation _tbl1IannotatedTree
+                    unionJoinList s =
+                        combineTableTypesWithUsingList _lhsIscope s tblt tbl1t
+              _lhsOidens =
+                  _tblIidens ++ _tbl1Iidens
+              _lhsOjoinIdens =
+                  commonFieldNames (getTypeAnnotation _tblIannotatedTree)
+                                   (getTypeAnnotation _tbl1IannotatedTree)
+              _backTree =
+                  JoinedTref ann_
+                             _tblIannotatedTree
+                             _natIannotatedTree
+                             _joinTypeIannotatedTree
+                             _tbl1IannotatedTree
+                             _onExprIannotatedTree
+              _annotatedTree =
+                  JoinedTref ann_ _tblIannotatedTree _natIannotatedTree _joinTypeIannotatedTree _tbl1IannotatedTree _onExprIannotatedTree
               _tblOscope =
                   _lhsIscope
               _natOscope =
@@ -4383,90 +4714,221 @@ sem_TableRef_JoinedTref tbl_ nat_ joinType_ tbl1_ onExpr_  =
                   _lhsIscope
               _onExprOscope =
                   _lhsIscope
-              ( _tblIannotatedTree) =
+              ( _tblIannotatedTree,_tblIidens,_tblIjoinIdens) =
                   (tbl_ _tblOscope )
               ( _natIannotatedTree) =
                   (nat_ _natOscope )
               ( _joinTypeIannotatedTree) =
                   (joinType_ _joinTypeOscope )
-              ( _tbl1IannotatedTree) =
+              ( _tbl1IannotatedTree,_tbl1Iidens,_tbl1IjoinIdens) =
                   (tbl1_ _tbl1Oscope )
               ( _onExprIannotatedTree) =
                   (onExpr_ _onExprOscope )
-          in  ( _lhsOannotatedTree)))
-sem_TableRef_SubTref :: T_SelectExpression  ->
+          in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
+sem_TableRef_SubTref :: Annotation ->
+                        T_SelectExpression  ->
                         String ->
                         T_TableRef 
-sem_TableRef_SubTref sel_ alias_  =
+sem_TableRef_SubTref ann_ sel_ alias_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: TableRef
+              _lhsOidens :: ([QualifiedScope])
+              _lhsOjoinIdens :: ([String])
               _selOscope :: Scope
               _selIannotatedTree :: SelectExpression
-              _annotatedTree =
-                  SubTref _selIannotatedTree alias_
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
               _lhsOannotatedTree =
-                  _annotatedTree
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  checkTypes [getTypeAnnotation _selIannotatedTree] $
+                  Right $ unwrapSetOfComposite $ getTypeAnnotation _selIannotatedTree
+              _backTree =
+                  SubTref ann_ _selIannotatedTree alias_
+              _lhsOidens =
+                  [(alias_, (getTbCols _selIannotatedTree, []))]
+              _lhsOjoinIdens =
+                  []
+              _annotatedTree =
+                  SubTref ann_ _selIannotatedTree alias_
               _selOscope =
                   _lhsIscope
               ( _selIannotatedTree) =
                   (sel_ _selOscope )
-          in  ( _lhsOannotatedTree)))
-sem_TableRef_Tref :: String ->
+          in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
+sem_TableRef_Tref :: Annotation ->
+                     String ->
                      T_TableRef 
-sem_TableRef_Tref tbl_  =
+sem_TableRef_Tref ann_ tbl_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: TableRef
-              _annotatedTree =
-                  Tref tbl_
+              _lhsOjoinIdens :: ([String])
+              _lhsOidens :: ([QualifiedScope])
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
               _lhsOannotatedTree =
-                  _annotatedTree
-          in  ( _lhsOannotatedTree)))
-sem_TableRef_TrefAlias :: String ->
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  either Left (Right . fst) _relType
+              _lhsOjoinIdens =
+                  []
+              _relType =
+                  getRelationType _lhsIscope tbl_
+              _unwrappedRelType =
+                  either (const ([], [])) (both unwrapComposite) _relType
+              _lhsOidens =
+                  [(tbl_, _unwrappedRelType    )]
+              _backTree =
+                  Tref ann_ tbl_
+              _annotatedTree =
+                  Tref ann_ tbl_
+          in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
+sem_TableRef_TrefAlias :: Annotation ->
+                          String ->
                           String ->
                           T_TableRef 
-sem_TableRef_TrefAlias tbl_ alias_  =
+sem_TableRef_TrefAlias ann_ tbl_ alias_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: TableRef
-              _annotatedTree =
-                  TrefAlias tbl_ alias_
+              _lhsOjoinIdens :: ([String])
+              _lhsOidens :: ([QualifiedScope])
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
               _lhsOannotatedTree =
-                  _annotatedTree
-          in  ( _lhsOannotatedTree)))
-sem_TableRef_TrefFun :: T_Expression  ->
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  either Left (Right . fst) _relType
+              _lhsOjoinIdens =
+                  []
+              _relType =
+                  getRelationType _lhsIscope tbl_
+              _unwrappedRelType =
+                  either (const ([], [])) (both unwrapComposite) _relType
+              _lhsOidens =
+                  [(alias_, _unwrappedRelType    )]
+              _backTree =
+                  TrefAlias ann_ tbl_ alias_
+              _annotatedTree =
+                  TrefAlias ann_ tbl_ alias_
+          in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
+sem_TableRef_TrefFun :: Annotation ->
+                        T_Expression  ->
                         T_TableRef 
-sem_TableRef_TrefFun fn_  =
+sem_TableRef_TrefFun ann_ fn_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: TableRef
+              _lhsOjoinIdens :: ([String])
+              _lhsOidens :: ([QualifiedScope])
               _fnOscope :: Scope
               _fnIannotatedTree :: Expression
-              _fnInodeType :: Type
-              _annotatedTree =
-                  TrefFun _fnIannotatedTree
+              _fnIliftedColumnName :: String
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
               _lhsOannotatedTree =
-                  _annotatedTree
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  getFnType _lhsIscope _alias _fnIannotatedTree
+              _lhsOjoinIdens =
+                  []
+              _lhsOidens =
+                  case  getFunIdens
+                            _lhsIscope _alias
+                            _fnIannotatedTree of
+                    Left e -> []
+                    Right x -> [second (\l -> (unwrapComposite l, [])) x]
+              _alias =
+                  ""
+              _backTree =
+                  TrefFun ann_ _fnIannotatedTree
+              _annotatedTree =
+                  TrefFun ann_ _fnIannotatedTree
               _fnOscope =
                   _lhsIscope
-              ( _fnIannotatedTree,_fnInodeType) =
+              ( _fnIannotatedTree,_fnIliftedColumnName) =
                   (fn_ _fnOscope )
-          in  ( _lhsOannotatedTree)))
-sem_TableRef_TrefFunAlias :: T_Expression  ->
+          in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
+sem_TableRef_TrefFunAlias :: Annotation ->
+                             T_Expression  ->
                              String ->
                              T_TableRef 
-sem_TableRef_TrefFunAlias fn_ alias_  =
+sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: TableRef
+              _lhsOjoinIdens :: ([String])
+              _lhsOidens :: ([QualifiedScope])
               _fnOscope :: Scope
               _fnIannotatedTree :: Expression
-              _fnInodeType :: Type
-              _annotatedTree =
-                  TrefFunAlias _fnIannotatedTree alias_
+              _fnIliftedColumnName :: String
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
               _lhsOannotatedTree =
-                  _annotatedTree
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  getFnType _lhsIscope alias_ _fnIannotatedTree
+              _lhsOjoinIdens =
+                  []
+              _lhsOidens =
+                  case  getFunIdens
+                            _lhsIscope _alias
+                            _fnIannotatedTree of
+                    Left e -> []
+                    Right x -> [second (\l -> (unwrapComposite l, [])) x]
+              _alias =
+                  alias_
+              _backTree =
+                  TrefFunAlias ann_ _fnIannotatedTree alias_
+              _annotatedTree =
+                  TrefFunAlias ann_ _fnIannotatedTree _alias
               _fnOscope =
                   _lhsIscope
-              ( _fnIannotatedTree,_fnInodeType) =
+              ( _fnIannotatedTree,_fnIliftedColumnName) =
                   (fn_ _fnOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 -- TypeAttributeDef --------------------------------------------
 data TypeAttributeDef  = TypeAttDef (String) (TypeName) 
                        deriving ( Eq,Show)
@@ -4823,14 +5285,14 @@ sem_Where_Just just_  =
          (let _lhsOannotatedTree :: Where
               _justOscope :: Scope
               _justIannotatedTree :: Expression
-              _justInodeType :: Type
+              _justIliftedColumnName :: String
               _annotatedTree =
                   Just _justIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _justOscope =
                   _lhsIscope
-              ( _justIannotatedTree,_justInodeType) =
+              ( _justIannotatedTree,_justIliftedColumnName) =
                   (just_ _justOscope )
           in  ( _lhsOannotatedTree)))
 sem_Where_Nothing :: T_Where 

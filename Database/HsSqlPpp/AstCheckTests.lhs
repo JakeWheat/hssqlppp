@@ -256,58 +256,60 @@ todo:
 
 
 
->  {-  ,testGroup "cast expressions"
+>    ,testGroup "cast expressions"
 >     (mapExprType [
 >       p "cast ('1' as integer)"
->         typeInt
+>         $ Right typeInt
 >      ,p "cast ('1' as baz)"
->         (TypeError (UnknownTypeName "baz"))
+>         $ Left [UnknownTypeName "baz"]
 >      ,p "array[]"
->         (TypeError TypelessEmptyArray)
+>         $ Left [TypelessEmptyArray]
 >      --todo: figure out how to do this
 >      --,p "array[] :: text[]"
 >      --   (ArrayType (ScalarType "text"))
 
 >      ])
 
-> -}{-
 >    ,testGroup "simple selects"
->     (mapStatementType [
->       p "select 1;" [SetOfType $ UnnamedCompositeType [("?column?", typeInt)]]
->      ,p "select 1 as a;" [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
->      ,p "select 1,2;" [SetOfType $ UnnamedCompositeType [("?column?", typeInt)
->                                                         ,("?column?", typeInt)]]
->      ,p "select 1 as a, 2 as b;" [SetOfType $ UnnamedCompositeType [("a", typeInt)
->                                                                    ,("b", typeInt)]]
->      ,p "select 1+2 as a, 'a' || 'b';" [SetOfType $
->                                         UnnamedCompositeType [("a", typeInt)
->                                                              ,("?column?", ScalarType "text")]]
->      ,p "values (1,2);" [SetOfType $
+>     (mapStatementInfo [
+>       p "select 1;" $ Right [SelectInfo $ SetOfType $
+>                              UnnamedCompositeType [("?column?", typeInt)]]
+>      ,p "select 1 as a;" $
+>         Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)]]
+>      ,p "select 1,2;" $
+>         Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("?column?", typeInt)
+>                                                 ,("?column?", typeInt)]]
+>      ,p "select 1 as a, 2 as b;" $
+>         Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
+>                                                 ,("b", typeInt)]]
+>      ,p "select 1+2 as a, 'a' || 'b';" $
+>         Right [SelectInfo $ SetOfType $
+>                UnnamedCompositeType [("a", typeInt)
+>                                     ,("?column?", ScalarType "text")]]
+>      ,p "values (1,2);" $ Right [SelectInfo $ SetOfType $
 >                          UnnamedCompositeType
 >                          [("column1", typeInt)
 >                          ,("column2", typeInt)]]
->      ,p "values (1,2),('3', '4');" [SetOfType $
+>      ,p "values (1,2),('3', '4');" $ Right [SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", typeInt)
 >                                      ,("column2", typeInt)]]
->      ,p "values (1,2),('a', true);" [TypeError
->                                      (IncompatibleTypeSet [typeInt
->                                                         ,typeBool])]
->      ,p "values ('3', '4'),(1,2);" [SetOfType $
+>      ,p "values (1,2),('a', true);" $ Left [IncompatibleTypeSet [typeInt
+>                                                                 ,typeBool]]
+>      ,p "values ('3', '4'),(1,2);" $ Right [SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", typeInt)
 >                                      ,("column2", typeInt)]]
->      ,p "values ('a', true),(1,2);" [TypeError
->                                      (IncompatibleTypeSet [typeBool
->                                                         ,typeInt])]
->      ,p "values ('a'::text, '2'::int2),('1','2');" [SetOfType $
+>      ,p "values ('a', true),(1,2);" $ Left [IncompatibleTypeSet [typeBool
+>                                                                 ,typeInt]]
+>      ,p "values ('a'::text, '2'::int2),('1','2');" $ Right [SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", ScalarType "text")
 >                                      ,("column2", typeSmallInt)]]
->      ,p "values (1,2,3),(1,2);" [TypeError ValuesListsMustBeSameLength]
+>      ,p "values (1,2,3),(1,2);" $ Left [ValuesListsMustBeSameLength]
 >      ])
 
->    ,testGroup "simple combine selects"
+>  {-  ,testGroup "simple combine selects"
 >     (mapStatementType [
 >      p "select 1,2  union select '3', '4';" [SetOfType $
 >                                      UnnamedCompositeType
@@ -588,7 +590,7 @@ insert
 >           t a b c = (a,b,c)
 >           mapExprType = map (uncurry $ checkExpressionType emptyScope)
 >           --mapStatementType = map $ uncurry checkStatementType
->           --mapStatementInfo = map $ uncurry checkStatementInfo
+>           mapStatementInfo = map $ uncurry checkStatementInfo
 >           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
 >           makeScope l = scopeReplaceIds defaultScope (map (second (\a->(a,[]))) l) []
 >           --mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
@@ -618,6 +620,21 @@ insert
 >   in if length er == 0 || ty == [TypeCheckFailed]
 >        then assertEqual ("typecheck " ++ src) typ combo
 >        else error "didn't get the right number of types and errors"
+
+> checkStatementInfo :: String -> Either [TypeError] [StatementInfo] -> Test.Framework.Test
+> checkStatementInfo src sis = testCase ("typecheck " ++ src) $
+>   let ast = case parseSql src of
+>                               Left e -> error $ show e
+>                               Right l -> l
+>       aast = annotateAst ast
+>       is = getTopLevelInfos aast
+>       er = getTypeErrors aast
+>       combo :: Either [TypeError] [StatementInfo]
+>       combo = if length er /= 0
+>                 then Left er
+>                 else Right is
+>   in assertEqual ("typecheck " ++ src) sis combo
+
 
 > {-
 > checkStatementType :: String -> [Type] -> Test.Framework.Test

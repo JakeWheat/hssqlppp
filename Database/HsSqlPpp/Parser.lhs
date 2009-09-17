@@ -194,14 +194,14 @@ recurses to support parsing excepts, unions, etc
 >       choice [
 >         --don't know if this does associativity in the correct order for
 >         --statements with multiple excepts/ intersects and no parens
->         CombineSelect Except s1 <$> (keyword "except" *> selectExpression)
->        ,CombineSelect Intersect s1 <$> (keyword "intersect" *> selectExpression)
->        ,CombineSelect UnionAll s1 <$> (try (keyword "union"
+>         CombineSelect [] Except s1 <$> (keyword "except" *> selectExpression)
+>        ,CombineSelect [] Intersect s1 <$> (keyword "intersect" *> selectExpression)
+>        ,CombineSelect [] UnionAll s1 <$> (try (keyword "union"
 >                                              *> keyword "all") *> selectExpression)
->        ,CombineSelect Union s1 <$> (keyword "union" *> selectExpression)
+>        ,CombineSelect [] Union s1 <$> (keyword "union" *> selectExpression)
 >        ,return s1]
 >       where
->         selQuerySpec = Select
+>         selQuerySpec = Select []
 >                    <$> option Dupes (Distinct <$ keyword "distinct")
 >                    <*> selectList
 >                    <*> tryOptionMaybe from
@@ -232,21 +232,21 @@ recurses to support parsing excepts, unions, etc
 >         -- then cope with joins recursively using joinpart below
 >         tref = threadOptionalSuffix getFirstTref joinPart
 >         getFirstTref = choice [
->                         SubTref
+>                         SubTref []
 >                         <$> parens selectExpression
 >                         <*> (optional (keyword "as") *> nkwid)
 >                        ,optionalSuffix
->                           TrefFun (try $ identifier >>= functionCallSuffix)
->                           TrefFunAlias () (optional (keyword "as") *> nkwid)
+>                           (TrefFun []) (try $ identifier >>= functionCallSuffix)
+>                           (TrefFunAlias []) () (optional (keyword "as") *> nkwid)
 >                        ,optionalSuffix
->                           Tref nkwid
->                           TrefAlias () (optional (keyword "as") *> nkwid)]
+>                           (Tref []) nkwid
+>                           (TrefAlias []) () (optional (keyword "as") *> nkwid)]
 >         --joinpart: parse a join after the first part of the tableref
 >         --(which is a table name, aliased table name or subselect) -
 >         --takes this tableref as an arg so it can recurse to multiple
 >         --joins
 >         joinPart tr1 = threadOptionalSuffix (readOneJoinPart tr1) joinPart
->         readOneJoinPart tr1 = JoinedTref tr1
+>         readOneJoinPart tr1 = JoinedTref [] tr1
 >              --look for the join flavour first
 >              <$> option Unnatural (Natural <$ keyword "natural")
 >              <*> choice [
@@ -292,7 +292,7 @@ recurses to support parsing excepts, unions, etc
 >                    then fail "not keyword"
 >                    else return x
 >     values = keyword "values" >>
->              Values <$> commaSep1 (parens $ commaSep1 expr)
+>              Values [] <$> commaSep1 (parens $ commaSep1 expr)
 
 
 = insert, update and delete

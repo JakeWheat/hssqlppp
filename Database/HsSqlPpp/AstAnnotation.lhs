@@ -20,6 +20,8 @@ grammar code and aren't exposed.
 >     ,getTypeAnnotation
 >     ,getTypeErrors
 >     ,pack
+>     ,StatementInfo(..)
+>     ,getSIAnnotation
 >     ) where
 
 > import Database.HsSqlPpp.TypeType
@@ -29,6 +31,7 @@ grammar code and aren't exposed.
 > data AnnotationElement = SourcePos String Int Int
 >                        | TypeAnnotation Type
 >                        | TypeErrorA TypeError
+>                        | StatementInfoA StatementInfo
 >                          deriving (Eq, Show)
 
 > class Annotated a where
@@ -67,6 +70,16 @@ without having to get the positions correct.
 >                                         _ -> gta xs
 >                          gta _ = error "couldn't find type annotation"
 
+> getSIAnnotation :: Annotated a => a  -> StatementInfo
+> getSIAnnotation at = let as = ann at
+>                        in gta as
+>                        where
+>                          gta (x:xs) = case x of
+>                                         StatementInfoA t -> t
+>                                         _ -> gta xs
+>                          gta _ = error "couldn't find type annotation"
+
+
 > getAnnotationsRecurse :: Annotated a => a -> [Annotation]
 > getAnnotationsRecurse a =
 >   ann a : concatMap getAnnotationsRecurse' (getAnnChildren a)
@@ -101,7 +114,17 @@ without having to get the positions correct.
 
 
 
-
+> data StatementInfo = DefaultStatementInfo Type
+>                    | RelvarInfo CompositeDef
+>                    | CreateFunctionInfo FunctionPrototype
+>                    | SelectInfo Type
+>                    | InsertInfo String Type
+>                    | UpdateInfo String Type
+>                    | DeleteInfo String
+>                    | CreateDomainInfo String Type
+>                    | DropInfo [(String,String)]
+>                    | DropFunctionInfo [(String,[Type])]
+>                      deriving (Eq,Show)
 
 
 

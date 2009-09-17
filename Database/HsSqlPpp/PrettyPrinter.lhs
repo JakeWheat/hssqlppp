@@ -328,7 +328,7 @@ Conversion routines - convert Sql asts into Docs
 == selects
 
 > convSelectExpression :: Bool -> SelectExpression -> Doc
-> convSelectExpression writeSelect (Select dis l tb wh grp hav
+> convSelectExpression writeSelect (Select _ dis l tb wh grp hav
 >                                 ord orddir lim off) =
 >   text (if writeSelect then "select" else "")
 >   <+> (case dis of
@@ -345,9 +345,9 @@ Conversion routines - convert Sql asts into Docs
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 >   <+> maybeConv (\offs -> text "offset" <+> convExp offs) off
 >   where
->     convTref (Tref f) = text f
->     convTref (TrefAlias f a) = text f <+> text a
->     convTref (JoinedTref t1 nat jt t2 ex) =
+>     convTref (Tref _ f) = text f
+>     convTref (TrefAlias _ f a) = text f <+> text a
+>     convTref (JoinedTref _ t1 nat jt t2 ex) =
 >         convTref t1
 >         $+$ (case nat of
 >                       Natural -> text "natural"
@@ -366,18 +366,18 @@ Conversion routines - convert Sql asts into Docs
 >           convJoinExpression (JoinUsing ids) =
 >               text "using" <+> parens (hcatCsvMap text ids)
 
->     convTref (SubTref sub alias) =
+>     convTref (SubTref _ sub alias) =
 >         parens (convSelectExpression True sub)
 >         <+> text "as" <+> text alias
->     convTref (TrefFun f@(FunCall _ _ _)) = convExp f
->     convTref (TrefFun x) =
+>     convTref (TrefFun _ f@(FunCall _ _ _)) = convExp f
+>     convTref (TrefFun _ x) =
 >         error $ "internal error: node not supported in function tref: " ++ show x
->     convTref (TrefFunAlias f@(FunCall _ _ _) a) =
+>     convTref (TrefFunAlias _ f@(FunCall _ _ _) a) =
 >         convExp f <+> text "as" <+> text a
->     convTref (TrefFunAlias x _) =
+>     convTref (TrefFunAlias _ x _) =
 >         error $ "internal error: node not supported in function tref: " ++ show x
 
-> convSelectExpression writeSelect (CombineSelect tp s1 s2) =
+> convSelectExpression writeSelect (CombineSelect _ tp s1 s2) =
 >   convSelectExpression writeSelect s1
 >   $+$ (case tp of
 >          Except -> text "except"
@@ -385,7 +385,7 @@ Conversion routines - convert Sql asts into Docs
 >          UnionAll -> text "union" <+> text "all"
 >          Intersect -> text "intersect")
 >   $+$ convSelectExpression True s2
-> convSelectExpression _ (Values expss) =
+> convSelectExpression _ (Values _ expss) =
 >   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
 
 > convDir :: Direction -> Doc

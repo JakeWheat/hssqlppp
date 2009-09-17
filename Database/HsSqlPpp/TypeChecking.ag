@@ -55,13 +55,6 @@ ATTR AllNodes Root ExpressionRoot
   | annotatedTree : SELF
   ]
 
-
-ATTR Expression
-  [
-  |
-  | nodeType USE {`(fixedValue TypeCheckFailed)`} {TypeCheckFailed} : Type
-  ]
-
 {-
 {
 setUnknown :: Type -> Type -> Type
@@ -87,21 +80,9 @@ supply information, e.g. to intersperse into some sql source, or to
 get back info on an individual sql statement interactively in an ide.
 
 -}
+-}
 
-{
-data StatementInfo = DefaultStatementInfo Type
-                   | RelvarInfo CompositeDef
-                   | CreateFunctionInfo FunctionPrototype
-                   | SelectInfo Type
-                   | InsertInfo String Type
-                   | UpdateInfo String Type
-                   | DeleteInfo String
-                   | CreateDomainInfo String Type
-                   | DropInfo [(String,String)]
-                   | DropFunctionInfo [(String,[Type])]
-                     deriving (Eq,Show)
-}
-
+{-
 {
 --use this to make sure type errors are propagated into the statement
 --infos, temporary
@@ -212,12 +193,12 @@ SEM Root
 SEM ExpressionRoot
   | ExpressionRoot expr.sourcePos = ("",0,0)
 
+-}
 {-
 ================================================================================
 
 = expressions
 
--}
 -}
 
 SEM Expression
@@ -233,7 +214,6 @@ SEM Expression
         lhs.annotatedTree = changeAnn @loc.backTree $
                               (([TypeAnnotation @loc.nt] ++
                                 map TypeErrorA @loc.typeErrors) ++)
-        lhs.nodeType = @loc.nt
 
 
 {-
@@ -383,17 +363,6 @@ SEM Expression
                   in scopeLookupID @lhs.scope correlationName iden
         loc.backTree = Identifier @ann @i
 
-{
--- i think this should be alright, an identifier referenced in an
--- expression can only have zero or one dot in it.
-
-splitIdentifier :: String -> (String,String)
-splitIdentifier s = let (a,b) = span (/= '.') s
-                    in if b == ""
-                         then ("", a)
-                         else (a,tail b)
-}
-
 SEM Expression
     | Exists
         loc.tpe = Right typeBool
@@ -446,13 +415,42 @@ ATTR ExpressionList
      ]
 
 SEM ExpressionList
-    | Cons lhs.typeList = @hd.nodeType : @tl.typeList
+    | Cons lhs.typeList = getTypeAnnotation @hd.annotatedTree : @tl.typeList
     | Nil lhs.typeList = []
 
 
 {-
+================================================================================
+
+= statements
+
+-}
+{-
+SEM Statement
+    | SelectStatement Insert Update Delete Copy CopyData Truncate
+      CreateTable CreateTableAs CreateView CreateType CreateFunction
+      CreateDomain DropFunction DropSomething Assignment Return
+      ReturnNext ReturnQuery Raise NullStatement Perform Execute
+      ExecuteInfo ForSelectStatement ForIntegerStatement WhileStatement
+      ContinueStatement CaseStatement If
+-}
+
+SEM Statement
+    | SelectStatement
+        loc.nt = case @loc.tpe of
+                   Left _ -> TypeCheckFailed
+                   Right TypeCheckFailed -> TypeCheckFailed
+                   Right t -> t
+        loc.typeErrors = case @loc.tpe of
+                          Left a@(_) -> [a]
+                          Right b -> []
+        lhs.annotatedTree = changeAnn (SelectStatement @ann @ex.annotatedTree) $
+                              (([TypeAnnotation @loc.nt
+                                ,StatementInfoA @loc.statementInfo] ++
+                                map TypeErrorA @loc.typeErrors) ++)
 
 {-
+
 ================================================================================
 
 = basic select statements
@@ -462,96 +460,168 @@ SEM ExpressionList
 -}
 
 SEM Statement
-    | SelectStatement lhs.nodeType = @ex.nodeType
-                      lhs.statementInfo = makeStatementInfo @lhs.backType $ SelectInfo @ex.nodeType
+    | SelectStatement
+        loc.tpe = Right $ Pseudo Void
+        loc.statementInfo = SelectInfo $ getTypeAnnotation @ex.annotatedTree
 
 
 SEM SelectExpression
-    --assume we get TypeList (TypeList (Type)) out of vll
-    | Values lhs.nodeType =
-        checkErrors [@vll.nodeType] $
-                    typeCheckValuesExpr
-                              @lhs.scope
-                              @vll.nodeType
+    | Values Select CombineSelect
+        loc.nt = case @loc.tpe of
+                   Left _ -> TypeCheckFailed
+                   Right TypeCheckFailed -> TypeCheckFailed
+                   Right t -> t
+        loc.typeErrors = case @loc.tpe of
+                          Left a@(_) -> [a]
+                          Right b -> []
+        lhs.annotatedTree = changeAnn @loc.backTree $
+                              (([TypeAnnotation @loc.nt] ++
+                                map TypeErrorA @loc.typeErrors) ++)
+
+
+SEM SelectExpression
+    | Values
+        loc.tpe = Right TypeCheckFailed --typeCheckValuesExpr
+                  --            @lhs.scope
+                  --            @vll.nodeType
+        loc.backTree = Values @ann @vll.annotatedTree
     | Select
-         lhs.nodeType = checkErrors
-                          [@selTref.nodeType
-                          ,@selSelectList.nodeType
-                          ,@selWhere.nodeType]
-                          (let t = @selSelectList.nodeType
-                           in case t of
-                                UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
-                                _ -> SetOfType @selSelectList.nodeType)
-    | CombineSelect lhs.nodeType =
-        checkErrors [@sel1.nodeType,@sel2.nodeType] $
-                    typeCheckCombineSelect
-                              @lhs.scope
-                              @sel1.nodeType
-                              @sel2.nodeType
+        loc.tpe =
+           let whereTpe = case fmap getTypeAnnotation @selWhere.annotatedTree of
+                            Nothing -> Right typeBool
+                            Just x | x == typeBool -> Right typeBool
+                                   | otherwise -> Left ExpressionMustBeBool
+           in checkTypes (case fmap getTypeAnnotation @selTref.annotatedTree of
+                            Nothing -> []
+                            Just t -> [t]) $
+                case @selSelectList.tpe of
+                       Right TypeCheckFailed -> Right TypeCheckFailed
+                       Left _ -> Right TypeCheckFailed
+                       Right slt ->
+                           flip (either Left) whereTpe $
+                           const $ case slt of
+                                     UnnamedCompositeType [(_,Pseudo Void)] ->
+                                         Right $ Pseudo Void
+                                     _ -> Right $ SetOfType slt
+        loc.backTree = Select @ann
+                              @selDistinct.annotatedTree
+                              @selSelectList.annotatedTree
+                              @selTref.annotatedTree
+                              @selWhere.annotatedTree
+                              @selGroupBy.annotatedTree
+                              @selHaving.annotatedTree
+                              @selOrderBy.annotatedTree
+                              @selDir.annotatedTree
+                              @selLimit.annotatedTree
+                              @selOffset.annotatedTree
+    | CombineSelect
+        loc.tpe =
+          let sel1t = getTypeAnnotation @sel1.annotatedTree
+              sel2t = getTypeAnnotation @sel2.annotatedTree
+          in checkTypes [sel1t, sel2t] $
+                typeCheckCombineSelect @lhs.scope sel1t sel2t
+        loc.backTree = CombineSelect @ann @ctype.annotatedTree
+                                     @sel1.annotatedTree
+                                     @sel2.annotatedTree
+
+{
+getTbCols t = unwrapComposite $ unwrapSetOf $ getTypeAnnotation t
+}
+
+ATTR TableRef MTableRef
+         [
+         |
+         | idens : {[QualifiedScope]}
+           joinIdens : {[String]}
+         ]
 
 SEM TableRef
-    | SubTref lhs.nodeType = checkErrors [@sel.nodeType] $ unwrapSetOfComposite @sel.nodeType
-              lhs.idens = [(@alias, (unwrapComposite $ unwrapSetOf @sel.nodeType, []))]
+    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
+        loc.nt = case @loc.tpe of
+                   Left _ -> TypeCheckFailed
+                   Right TypeCheckFailed -> TypeCheckFailed
+                   Right t -> t
+        loc.typeErrors = case @loc.tpe of
+                          Left a@(_) -> [a]
+                          Right b -> []
+        lhs.annotatedTree = changeAnn @loc.backTree $
+                              (([TypeAnnotation @loc.nt] ++
+                                map TypeErrorA @loc.typeErrors) ++)
+
+
+SEM TableRef
+    | SubTref loc.tpe = checkTypes [getTypeAnnotation @sel.annotatedTree] $
+                        Right $ unwrapSetOfComposite $ getTypeAnnotation @sel.annotatedTree
+              loc.backTree = SubTref @ann @sel.annotatedTree @alias
+              lhs.idens = [(@alias, (getTbCols @sel.annotatedTree, []))]
               lhs.joinIdens = []
     | TrefAlias Tref
-        lhs.nodeType = fst $ getRelationType @lhs.scope @tbl
+        loc.tpe = either Left (Right . fst) @loc.relType
         lhs.joinIdens = []
+        loc.relType = getRelationType @lhs.scope @tbl
+        loc.unwrappedRelType = either (const ([], [])) (both unwrapComposite) @loc.relType
     | Tref
-        lhs.idens = [(@tbl, both unwrapComposite $ getRelationType @lhs.scope @tbl)]
+        lhs.idens = [(@tbl, @loc.unwrappedRelType)]
+        loc.backTree = Tref @ann @tbl
     | TrefAlias
-        lhs.idens = [(@alias, both unwrapComposite $ getRelationType @lhs.scope @tbl)]
+        lhs.idens = [(@alias, @loc.unwrappedRelType)]
+        loc.backTree = TrefAlias @ann @tbl @alias
+    | TrefFun TrefFunAlias
+        loc.tpe = getFnType @lhs.scope @alias @fn.annotatedTree
+        lhs.joinIdens = []
+        lhs.idens = case  getFunIdens
+                              @lhs.scope @loc.alias
+                              @fn.annotatedTree of
+                      Left e -> []
+                      Right x -> [second (\l -> (unwrapComposite l, [])) x]
     | TrefFun
-        lhs.nodeType = getFnType @lhs.scope "" @fn.actualValue @fn.nodeType
-        lhs.joinIdens = []
-        lhs.idens = [second (\l -> (unwrapComposite l, [])) $ getFunIdens @lhs.scope "" @fn.actualValue @fn.nodeType]
+        loc.alias = ""
+        loc.backTree = TrefFun @ann @fn.annotatedTree
     | TrefFunAlias
-        lhs.nodeType = getFnType @lhs.scope @alias @fn.actualValue @fn.nodeType
-        lhs.joinIdens = []
-        lhs.idens = [second (\l -> (unwrapComposite l, [])) $ getFunIdens @lhs.scope @alias @fn.actualValue @fn.nodeType]
+        loc.alias = @alias
+        loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
     | JoinedTref
-        lhs.nodeType =
-            checkErrors [@tbl.nodeType
-                        ,@tbl1.nodeType]
-                        ret
-            where
-              ret = case (@nat.actualValue, @onExpr.actualValue) of
-                      (Natural, _) -> unionJoinList $ commonFieldNames
-                                                        @tbl.nodeType
-                                                        @tbl1.nodeType
+        loc.tpe =
+            checkTypes [tblt
+                      ,tbl1t] $
+               case (@nat.annotatedTree, @onExpr.annotatedTree) of
+                      (Natural, _) -> unionJoinList $
+                                      commonFieldNames tblt tbl1t
                       (_,Just (JoinUsing s)) -> unionJoinList s
                       _ -> unionJoinList []
-              unionJoinList s = combineTableTypesWithUsingList
-                                  @lhs.scope
-                                  s
-                                  @tbl.nodeType
-                                  @tbl1.nodeType
+            where
+              tblt = getTypeAnnotation @tbl.annotatedTree
+              tbl1t = getTypeAnnotation @tbl1.annotatedTree
+              unionJoinList s =
+                  combineTableTypesWithUsingList @lhs.scope s tblt tbl1t
         lhs.idens = @tbl.idens ++ @tbl1.idens
-        lhs.joinIdens = commonFieldNames @tbl.nodeType @tbl1.nodeType
+        lhs.joinIdens = commonFieldNames (getTypeAnnotation @tbl.annotatedTree)
+                                         (getTypeAnnotation @tbl1.annotatedTree)
+        loc.backTree = JoinedTref @ann
+                                  @tbl.annotatedTree
+                                  @nat.annotatedTree
+                                  @joinType.annotatedTree
+                                  @tbl1.annotatedTree
+                                  @onExpr.annotatedTree
+
 {
---returns the type of the relation, and the system columns also
-getRelationType :: Scope -> String -> (Type,Type)
-getRelationType scope tbl =
-          case getAttrs scope [TableComposite, ViewComposite] tbl of
-            Just ((_,_,a@(UnnamedCompositeType _))
-                 ,(_,_,s@(UnnamedCompositeType _)) ) -> (a,s)
-            _ -> (TypeError (UnrecognisedRelation tbl), TypeList [])
 
-getFnType :: Scope -> String -> Expression -> Type -> Type
-getFnType scope alias fnVal fnType =
-    checkErrors [fnType] $ snd $ getFunIdens scope alias fnVal fnType
+getFnType :: Scope -> String -> Expression -> Either TypeError Type
+getFnType scope alias fnVal =
+    either Left (Right . snd) $ getFunIdens scope alias fnVal
 
-getFunIdens :: Scope-> String -> Expression -> Type -> (String, Type)
-getFunIdens scope alias fnVal fnType =
+getFunIdens :: Scope -> String -> Expression -> Either TypeError (String,Type)
+getFunIdens scope alias fnVal =
    case fnVal of
-       FunCall f _ ->
+       FunCall _ f _ ->
            let correlationName = if alias /= ""
                                    then alias
                                    else f
-           in (correlationName, case fnType of
+           in Right (correlationName, case getTypeAnnotation fnVal of
                 SetOfType (CompositeType t) -> getCompositeType t
                 SetOfType x -> UnnamedCompositeType [(correlationName,x)]
                 y -> UnnamedCompositeType [(correlationName,y)])
-       x -> ("", TypeError (ContextError "FunCall"))
+       x -> Left (ContextError "FunCall")
    where
      getCompositeType t =
                     case getAttrs scope [Composite
@@ -559,50 +629,43 @@ getFunIdens scope alias fnVal fnType =
                                               ,ViewComposite] t of
                       Just ((_,_,a@(UnnamedCompositeType _)), _) -> a
                       _ -> UnnamedCompositeType []
-
-commonFieldNames t1 t2 =
-    intersect (fn t1) (fn t2)
-    where
-      fn (UnnamedCompositeType s) = map fst s
-      fn _ = []
-
-both :: (a->b) -> (a,a) -> (b,b)
-both fn (x,y) = (fn x, fn y)
-
 }
 
-
-
 SEM MTableRef
-    | Nothing lhs.nodeType = TypeList []
+    | Nothing --lhs.nodeType = TypeList []
               lhs.idens = []
               lhs.joinIdens = []
-    | Just lhs.nodeType = @just.nodeType
+--    | Just lhs.nodeType = @just.nodeType
 
 
-SEM Where
-    | Nothing lhs.nodeType = typeBool
-    | Just lhs.nodeType =
-        checkErrors
-          [@just.nodeType]
-          (if @just.nodeType /= typeBool
-             then TypeError ExpressionMustBeBool
-             else typeBool)
 
-SEM SelectItem
-    | SelExp SelectItem lhs.nodeType = @ex.nodeType
+--SEM SelectItem
+--    | SelExp SelectItem lhs.nodeType = @ex.nodeType
+
+ATTR SelectItemList SelectList
+  [
+  |
+  | tpe : {Either TypeError Type}
+  ]
 
 SEM SelectItemList
-    | Cons lhs.nodeType =
-        foldr consComposite @tl.nodeType
-           (let (correlationName,iden) = splitIdentifier @hd.columnName
-            in if iden == "*"
-                then scopeExpandStar @lhs.scope correlationName
-                else [(iden, @hd.nodeType)])
-    | Nil lhs.nodeType = UnnamedCompositeType []
+    | Cons lhs.tpe = doSelectItemListTpe @lhs.scope @hd.columnName @hd.itemType @tl.tpe
+    | Nil lhs.tpe = Right $ UnnamedCompositeType []
+
+ATTR SelectItem
+     [
+     |
+     | itemType : Type
+     ]
+
+SEM SelectItem
+    | SelExp SelectItem
+        lhs.itemType = getTypeAnnotation @ex.annotatedTree
 
 SEM SelectList
-    | SelectList lhs.nodeType = @items.nodeType
+    | SelectList
+        lhs.tpe = @items.tpe
+
 
 {-
 
@@ -623,19 +686,6 @@ them into the selectlist and where parts)
    5. select
 
 -}
-
-ATTR TableRef
-         [
-         |
-         | idens : {[QualifiedScope]} joinIdens : {[String]}
-         ]
-
-ATTR MTableRef
-         [
-         |
-         | idens : {[QualifiedScope]} joinIdens : {[String]}
-         ]
-
 
 SEM SelectExpression
     | Select
@@ -695,7 +745,7 @@ SEM Expression
       if isOperator @funName
          then ""
          else @funName
-  | Cast lhs.liftedColumnName = case @tn.actualValue of
+  | Cast lhs.liftedColumnName = case @tn.annotatedTree of
                                   SimpleTypeName tn -> tn
                                   _ -> ""
 
@@ -706,6 +756,7 @@ SEM SelectItem
                                 s -> s
     | SelectItem lhs.columnName = @name
 
+{-
 {-
 ================================================================================
 

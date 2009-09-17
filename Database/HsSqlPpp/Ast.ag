@@ -72,6 +72,7 @@ MODULE {Database.HsSqlPpp.Ast}
    ,getTopLevelTypes
    ,getTypeErrors
    ,getTopLevelInfos
+   ,StatementInfo(..)
    --annotation utils
    ,stripAnnotations
 
@@ -247,23 +248,27 @@ DATA Statement
 
 -- maybe this should be called relation valued expression?
 DATA SelectExpression
-    | Select selDistinct : Distinct
+    | Select ann:Annotation
+             selDistinct : Distinct
              selSelectList : SelectList
              selTref : MTableRef
              selWhere : Where
              selGroupBy : ExpressionList
-             selHaving : (Maybe Expression)
+             selHaving : MExpression
              selOrderBy : ExpressionList
              selDir : Direction
-             selLimit : (Maybe Expression)
-             selOffset : (Maybe Expression)
-    | CombineSelect ctype : CombineType
+             selLimit : MExpression
+             selOffset : MExpression
+    | CombineSelect ann:Annotation
+                    ctype : CombineType
                     sel1 : SelectExpression
                     sel2 : SelectExpression
-    | Values vll:ExpressionListList
+    | Values ann:Annotation
+             vll:ExpressionListList
 
 TYPE MTableRef = MAYBE TableRef
 TYPE Where = MAYBE Expression
+TYPE MExpression = MAYBE Expression
 
 DATA FnBody | SqlFnBody sts : StatementList
             | PlpgsqlFnBody VarDefList sts : StatementList
@@ -271,17 +276,25 @@ DATA FnBody | SqlFnBody sts : StatementList
 DATA SetClause | SetClause att:String val:Expression
                | RowSetClause atts:StringList vals:ExpressionList
 
-DATA TableRef | Tref tbl:String
-              | TrefAlias tbl : String
+DATA TableRef | Tref ann:Annotation
+                     tbl:String
+              | TrefAlias ann:Annotation
+                          tbl : String
                           alias : String
-              | JoinedTref tbl : TableRef
+              | JoinedTref ann:Annotation
+                           tbl : TableRef
                            nat : Natural
                            joinType : JoinType
                            tbl1 : TableRef
                            onExpr : OnExpr
-              | SubTref sel : SelectExpression alias : String
-              | TrefFun fn:Expression
-              | TrefFunAlias fn:Expression alias:String
+              | SubTref ann:Annotation
+                        sel : SelectExpression
+                        alias : String
+              | TrefFun ann:Annotation
+                        fn:Expression
+              | TrefFunAlias ann:Annotation
+                             fn:Expression
+                             alias:String
 
 TYPE OnExpr = MAYBE JoinExpression
 
@@ -564,7 +577,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               MTableRef TableRef OnExpr Where
+               MTableRef TableRef OnExpr Where MExpression
 
 {-
 SET NonListNodes = Statement SelectExpression FnBody SetClause TableRef
@@ -629,11 +642,12 @@ annotateAst :: StatementList -> StatementList
 annotateAst = annotateAstScope defaultScope
 
 annotateAstScope :: Scope -> StatementList -> StatementList
-annotateAstScope scope sts = undefined {-
+annotateAstScope scope sts =
     let t = sem_Root (Root sts)
         ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
         tl = annotatedTree_Syn_Root ta
-    in tl-}
+    in case tl of
+         Root r -> r
 
 annotateExpression :: Scope -> Expression -> Expression
 annotateExpression scope ex =
@@ -643,10 +657,8 @@ annotateExpression scope ex =
     in case rt of
          ExpressionRoot e -> e
 
-data StatementInfo = StatementInfo
-
 getTopLevelInfos :: Annotated a => [a] -> [StatementInfo]
-getTopLevelInfos sts = undefined {-map (\st -> getTypeAnnotation $ ann st) sts-}
+getTopLevelInfos sts = map getSIAnnotation sts
 
 
 {-
@@ -921,6 +933,64 @@ instance Annotated Expression where
 
 
 
+instance Annotated SelectExpression where
+  ann a =
+      case a of
+        Select ann _ _ _ _ _ _ _ _ _ _ -> ann
+        CombineSelect ann _ _ _ -> ann
+        Values ann _ -> ann
+  setAnn ex a =
+    case ex of
+        Select _ dis sl tref whr grp hav ord dir lim off ->
+          Select a dis sl tref whr grp hav ord dir lim off
+        CombineSelect _ ctype sel1 sel2 -> CombineSelect a ctype sel1 sel2
+        Values _ vll -> Values a vll
+  changeAnnRecurse f ex =
+    case ex of
+      Select a dis sl tref whr grp hav ord dir lim off ->
+          Select (f a) dis sl tref whr grp hav ord dir lim off
+      CombineSelect a ctype sel1 sel2 -> CombineSelect (f a) ctype
+                                             (changeAnnRecurse f sel1)
+                                             (changeAnnRecurse f sel2)
+      Values a vll -> Values (f a) vll
+  getAnnChildren ex =
+    case ex of
+      _ -> []
+
+instance Annotated TableRef where
+  ann a =
+      case a of
+        Tref ann _ -> ann
+        TrefAlias ann _ _ -> ann
+        JoinedTref ann _ _ _ _ _ -> ann
+        SubTref ann _ _ -> ann
+        TrefFun ann _ -> ann
+        TrefFunAlias ann _ _ -> ann
+  setAnn ex a =
+    case ex of
+        Tref _ tbl -> Tref a tbl
+        TrefAlias _ tbl alias -> TrefAlias a tbl alias
+        JoinedTref _ tbl nat joinType tbl1 onExpr -> JoinedTref a tbl nat joinType tbl1 onExpr
+        SubTref _ sel alias -> SubTref a sel alias
+        TrefFun _ fn -> TrefFun a fn
+        TrefFunAlias _ fn alias -> TrefFunAlias a fn alias
+  changeAnnRecurse f ex =
+    case ex of
+        Tref a tbl -> Tref (f a) tbl
+        TrefAlias a tbl alias -> TrefAlias (f a) tbl alias
+        JoinedTref a tbl nat joinType tbl1 onExpr ->
+          JoinedTref (f a)
+                     (changeAnnRecurse f tbl)
+                     nat
+                     joinType
+                     (changeAnnRecurse f tbl1)
+                     onExpr
+        SubTref a sel alias -> SubTref (f a) (changeAnnRecurse f sel) alias
+        TrefFun a fn -> TrefFun (f a) (changeAnnRecurse f fn)
+        TrefFunAlias a fn alias -> TrefFunAlias (f a) (changeAnnRecurse f fn) alias
+  getAnnChildren ex =
+    case ex of
+      _ -> []
 }
 
 {-

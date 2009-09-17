@@ -11,9 +11,10 @@ type checking.
 > import Data.Either
 
 > import Database.HsSqlPpp.TypeType
-> import Database.HsSqlPpp.Scope
 > import Database.HsSqlPpp.AstUtils
 > import Database.HsSqlPpp.TypeConversion
+> import Database.HsSqlPpp.ScopeData
+
 
 
 > checkEither :: [Either a b] -> Either a b
@@ -182,3 +183,48 @@ type of the joined tables.
 >     catEither' (Left a:_) _ = Left a
 >     catEither' (Right b:es) bs = catEither' es (b:bs)
 >     catEither' [] bs = Right $ reverse bs
+
+
+> doSelectItemListTpe :: Scope
+>                     -> String
+>                     -> Type
+>                     -> Either TypeError Type
+>                     -> Either TypeError Type
+> doSelectItemListTpe scope colName colType tpes =
+>         flip (either Left) tpes $ \types ->
+>         either Left (combine types) newCols
+>         where
+>          newCols = let (correlationName,iden) = splitIdentifier colName
+>                    in if iden == "*"
+>                          then scopeExpandStar scope correlationName
+>                          else Right [(iden, colType)]
+>          combine :: Type -> [(String,Type)] -> Either TypeError Type
+>          combine ty = Right . foldr consComposite ty
+
+I think this should be alright, an identifier referenced in an
+expression can only have zero or one dot in it.
+
+> splitIdentifier :: String -> (String,String)
+> splitIdentifier s = let (a,b) = span (/= '.') s
+>                     in if b == ""
+>                          then ("", a)
+>                          else (a,tail b)
+
+
+returns the type of the relation, and the system columns also
+
+> getRelationType :: Scope -> String -> Either TypeError (Type,Type)
+> getRelationType scope tbl =
+>           case getAttrs scope [TableComposite, ViewComposite] tbl of
+>             Just ((_,_,a@(UnnamedCompositeType _))
+>                  ,(_,_,s@(UnnamedCompositeType _))) -> Right (a,s)
+>             _ -> Left (UnrecognisedRelation tbl)
+
+> commonFieldNames t1 t2 =
+>     intersect (fn t1) (fn t2)
+>     where
+>       fn (UnnamedCompositeType s) = map fst s
+>       fn _ = []
+
+> both :: (a->b) -> (a,a) -> (b,b)
+> both fn (x,y) = (fn x, fn y)
