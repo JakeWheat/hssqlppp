@@ -69,6 +69,7 @@ key references in the pg catalog.
 
 > type QualifiedScope = (String, ([(String,Type)], [(String,Type)]))
 
+> -- | scope containing nothing
 > emptyScope :: Scope
 > emptyScope = Scope [] [] [] [] [] [] [] [] [] [] [] [] [] [] []
 
@@ -111,7 +112,11 @@ key references in the pg catalog.
 >             Just s -> Right $ fst s
 
 
-> combineScopes :: Scope -> Scope -> Scope
+> -- | combine two scopes, e.g. this can be used to take the default scope and
+> -- add a few definitions to it before type checking an ast
+> combineScopes :: Scope -- ^ base scope
+>               -> Scope -- ^ additional scope - this adds to and overrides items in the base scope
+>               -> Scope
 > --base, overrides
 > combineScopes (Scope bt btn bdod bc btc bpre bpost bbin bf bagg baf bcd basc _ _)
 >               (Scope ot otn odod oc otc opre opost obin off oagg oaf ocd oasc oi oji) =

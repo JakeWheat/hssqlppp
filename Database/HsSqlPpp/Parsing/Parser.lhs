@@ -54,7 +54,8 @@ fragments, then the utility parsers and other utilities at the bottom.
 
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parsing.ParseErrors
-> import Database.HsSqlPpp.TypeChecking.Ast as A
+> import Database.HsSqlPpp.TypeChecking.Ast
+> import Database.HsSqlPpp.TypeChecking.TypeChecker as A
 
 > type MySourcePos = (String,Int,Int)
 > type ParseState = [MySourcePos]

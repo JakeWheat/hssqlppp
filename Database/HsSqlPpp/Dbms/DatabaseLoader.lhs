@@ -45,7 +45,11 @@ This code is currently on the backburner, and is a massive mess.
 > import Database.HsSqlPpp.TypeChecking.Ast as Ast
 > import Database.HsSqlPpp.Dbms.DBAccess
 
-> loadIntoDatabase :: String -> String -> StatementList -> IO ()
+> loadIntoDatabase :: String -- ^ database name
+>                  -> FilePath -- ^ filename to include in error messages
+>                              -- (this file is not accessed)
+>                  -> StatementList -- ^ ast to load into database
+>                  -> IO ()
 > loadIntoDatabase dbName fn ast =
 >   withConn ("dbname=" ++ dbName) $ \conn -> do
 >          loadPlpgsqlIntoDatabase conn

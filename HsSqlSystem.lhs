@@ -24,6 +24,7 @@ TODO 2: think of a name for this command
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.TypeChecking.Ast
+> import Database.HsSqlPpp.TypeChecking.TypeChecker
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.TypeChecking.Scope
@@ -275,6 +276,7 @@ template1 database...
 >   putStrLn "module Database.HsSqlPpp.TypeChecking.DefaultScope where"
 >   putStrLn "import Database.HsSqlPpp.TypeChecking.TypeType"
 >   putStrLn "import Database.HsSqlPpp.TypeChecking.ScopeData"
+>   putStrLn "-- | Scope value representing the catalog from a default template1 database"
 >   putStrLn "defaultScope :: Scope"
 >   putStr "defaultScope = "
 >   print s

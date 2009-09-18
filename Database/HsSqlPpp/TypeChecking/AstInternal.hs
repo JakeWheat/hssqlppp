@@ -1,7 +1,7 @@
 
 
--- UUAGC 0.9.10 (Ast.ag)
-module Database.HsSqlPpp.TypeChecking.Ast(
+-- UUAGC 0.9.10 (AstInternal.ag)
+module Database.HsSqlPpp.TypeChecking.AstInternal(
     --from the ag files:
     --ast nodes
     Statement (..)
@@ -88,9 +88,15 @@ checkAst sts = let t = sem_Root (Root sts)
                in (messages_Syn_Root (wrap_Root t Inh_Root {scope_Inh_Root = defaultScope}))
 -}
 
+-- | Takes an ast, and adds annotations, including types, type errors,
+-- and statement info. Type checks against defaultScope.
 annotateAst :: StatementList -> StatementList
 annotateAst = annotateAstScope defaultScope
 
+-- | As annotateAst but you supply an additional scope to add to the
+-- defaultScope to type check against. See Scope module for how to
+-- read a scope from an existing database so you can type check
+-- against it.
 annotateAstScope :: Scope -> StatementList -> StatementList
 annotateAstScope scope sts =
     let t = sem_Root (Root sts)
@@ -99,6 +105,8 @@ annotateAstScope scope sts =
     in case tl of
          Root r -> r
 
+-- | Testing utility, mainly used to check an expression for type errors
+-- or to get its type.
 annotateExpression :: Scope -> Expression -> Expression
 annotateExpression scope ex =
     let t = sem_ExpressionRoot (ExpressionRoot ex)
@@ -107,7 +115,11 @@ annotateExpression scope ex =
     in case rt of
          ExpressionRoot e -> e
 
-getTopLevelInfos :: Annotated a => [a] -> [StatementInfo]
+-- | Run through the ast given and return a list of statementinfos
+-- from the top level items.
+getTopLevelInfos :: Annotated a =>
+                    [a] -- ^ the ast to check
+                 -> [StatementInfo]
 getTopLevelInfos sts = map getSIAnnotation sts
 
 
@@ -146,6 +158,15 @@ getStatementsInfoScope scope st =
         ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
         t2 = statementInfo_Syn_Root ta
     in t2
+-}
+
+{-
+
+Instances for Annotated.
+
+Hopefully, some sort of SYB approach can be used to autogenerate these
+in the future.
+
 -}
 
 instance Annotated Statement where

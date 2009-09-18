@@ -23,19 +23,24 @@ Not much other comments, since it all should be pretty self evident.
 > import Data.Maybe
 
 > import Database.HsSqlPpp.TypeChecking.Ast
+> import Database.HsSqlPpp.TypeChecking.TypeChecker
 > import Database.HsSqlPpp.TypeChecking.TypeType
 
 ================================================================================
 
 Public functions
 
+> -- | convert an ast back to valid SQL source, it's also almost human readable.
 > printSql :: StatementList -> String
 > printSql ast = printSqlAnn (const "") ast
 
+> -- | convert the ast back to valid source, and convert any annotations to
+> -- text using the function provided and interpolate the output of this function
+> -- (inside comments) with the SQL source.
 > printSqlAnn :: (Annotation -> String) -> StatementList -> String
 > printSqlAnn f ast = render $ vcat (map (convStatement f) ast) <> text "\n"
 
-
+> -- | Testing function, pretty print an expression
 > printExpression :: Expression -> String
 > printExpression = render . convExp
 

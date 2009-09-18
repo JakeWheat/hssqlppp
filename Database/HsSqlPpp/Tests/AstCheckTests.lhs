@@ -12,6 +12,7 @@ Set of tests to check the type checking code
 > import Debug.Trace
 
 > import Database.HsSqlPpp.TypeChecking.Ast
+> import Database.HsSqlPpp.TypeChecking.TypeChecker
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.TypeChecking.Scope
 > import Database.HsSqlPpp.TypeChecking.ScopeData

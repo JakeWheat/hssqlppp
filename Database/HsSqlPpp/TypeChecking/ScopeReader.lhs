@@ -26,8 +26,9 @@ are discarded after the Scope value is created.
 > import Database.HsSqlPpp.TypeChecking.ScopeData
 > import Database.HsSqlPpp.TypeChecking.TypeType
 
-
-> readScope :: String -> IO Scope
+> -- | creates a scope value from the database given
+> readScope :: String -- ^ name of the database to read
+>           -> IO Scope
 > readScope dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
 >    typeInfo <- selectRelation conn
 >                  "select t.oid as oid,\n\

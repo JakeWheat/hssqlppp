@@ -21,6 +21,7 @@ There are no tests for invalid sql at the moment.
 > import Data.Char
 
 > import Database.HsSqlPpp.TypeChecking.Ast
+> import Database.HsSqlPpp.TypeChecking.TypeChecker
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 

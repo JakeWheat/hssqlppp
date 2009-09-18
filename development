@@ -3,7 +3,7 @@ Some brief notes on developing with this code.
 The project comes with a working cabal file.
 
 UUAGC is used in the type checking, there are some links at the top of
-Ast.ag for more information.
+AstInternal.ag for more information.
 
 Two of the files are generated:
 
@@ -16,8 +16,8 @@ DefaultScope.hs -> generated using ./HsSqlSystem.lhs getscope
  scope. There is some info in the DefaultScopeEmpty.hs file along
  these lines.
 
-Ast.hs -> this is generated from Ast.ag and Typechecking.ag using
- uuagc, see Ast.ag for instructions on how to do this.
+AstInternal.hs -> this is generated from AstInternal.ag and Typechecking.ag using
+ uuagc, see AstInternal.ag for instructions on how to do this.
 
 If you are editing either of these files directly you're probably
 doing something wrong.
@@ -52,7 +52,7 @@ HsSqlPppTests.lhs: small file to pull together the tests from other test
 
 Other source files, in Database/HsSqlppp/
 
-Ast.ag: uuagc source for the ast data types and the api functions for
+AstInternal.ag: uuagc source for the ast data types and the api functions for
         type checking asts.
 
 AstCheckTests.lhs: hunit tests for type checking

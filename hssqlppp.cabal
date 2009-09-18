@@ -21,7 +21,7 @@ extra-source-files:  README,
                      usage,
                      LICENSE,
                      changelog,
-                     Database/HsSqlPpp/TypeChecking/Ast.ag
+                     Database/HsSqlPpp/TypeChecking/AstInternal.ag
                      Database/HsSqlPpp/TypeChecking/TypeChecking.ag
                      Database/HsSqlPpp/TypeChecking/DefaultScopeEmpty.hs
                      sqltestfiles/system.sql
@@ -41,6 +41,7 @@ Library
   Exposed-modules:   Database.HsSqlPpp.TypeChecking.Ast,
                      Database.HsSqlPpp.Parsing.Parser,
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
+                     Database.HsSqlPpp.TypeChecking.TypeChecker,
                      Database.HsSqlPpp.TypeChecking.Scope,
                      Database.HsSqlPpp.Dbms.DatabaseLoader
 
@@ -54,6 +55,8 @@ Executable HsSqlSystem
                      directory
   Other-Modules:     Database.HsSqlPpp.TypeChecking.AstAnnotation,
                      Database.HsSqlPpp.TypeChecking.Ast,
+                     Database.HsSqlPpp.TypeChecking.AstInternal,
+                     Database.HsSqlPpp.TypeChecking.TypeChecker,
                      Database.HsSqlPpp.TypeChecking.AstUtils,
                      Database.HsSqlPpp.Dbms.DatabaseLoader,
                      Database.HsSqlPpp.Dbms.DBAccess,
@@ -83,6 +86,8 @@ Executable HsSqlPppTests
   Other-Modules:     Database.HsSqlPpp.TypeChecking.AstAnnotation,
                      Database.HsSqlPpp.Tests.AstCheckTests,
                      Database.HsSqlPpp.TypeChecking.Ast,
+                     Database.HsSqlPpp.TypeChecking.AstInternal,
+                     Database.HsSqlPpp.TypeChecking.TypeChecker,
                      Database.HsSqlPpp.TypeChecking.AstUtils,
                      Database.HsSqlPpp.Dbms.DatabaseLoader,
                      Database.HsSqlPpp.Tests.DatabaseLoaderTests,
