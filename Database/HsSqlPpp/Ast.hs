@@ -486,6 +486,16 @@ getFunIdens scope alias fnVal =
                       _ -> UnnamedCompositeType []
 
 
+fixStar ex =
+  changeAnnRecurse fs ex
+  where
+    fs a = if all (`elem` a) badList
+             then filter (`notElem` badList) a
+             else a
+    badList = [TypeAnnotation TypeCheckFailed
+              ,TypeErrorA (UnrecognisedIdentifier "*")]
+
+
 fixedValue :: a -> a -> a -> a
 fixedValue a _ _ = a
 -- AttributeDef ------------------------------------------------
@@ -3378,12 +3388,12 @@ sem_SelectItem_SelExp ex_  =
               _exIliftedColumnName :: String
               _lhsOitemType =
                   getTypeAnnotation _exIannotatedTree
+              _annotatedTree =
+                  SelExp $ fixStar _exIannotatedTree
               _lhsOcolumnName =
                   case _exIliftedColumnName of
                     "" -> "?column?"
                     s -> s
-              _annotatedTree =
-                  SelExp _exIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _exOscope =
@@ -3404,6 +3414,8 @@ sem_SelectItem_SelectItem ex_ name_  =
               _exIliftedColumnName :: String
               _lhsOitemType =
                   getTypeAnnotation _exIannotatedTree
+              _backTree =
+                  SelectItem (fixStar _exIannotatedTree) name_
               _lhsOcolumnName =
                   name_
               _annotatedTree =

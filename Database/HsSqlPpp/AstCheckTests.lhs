@@ -454,6 +454,11 @@ check aliasing
 >         \cross join (select 3 as c, 4 as d) b;"
 >         [SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)]]
+>      ,p "select nothere.* from \n\
+>         \(select 1 as a, 2 as b) a \n\
+>         \cross join (select 3 as c, 4 as d) b;"
+>         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>                                           ,("b", typeInt)]]
 >      ,p "select a.b,b.c from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \natural inner join (select 3 as a, 4 as c) b;"
@@ -626,7 +631,7 @@ insert
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
 >       er = getTypeErrors aast
->   in case (length er, length is) of
+>   in {-trace (show aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er

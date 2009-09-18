@@ -675,6 +675,26 @@ SEM SelectItem
     | SelExp SelectItem
         lhs.itemType = getTypeAnnotation @ex.annotatedTree
 
+-- hack to fix up for errors for ok *
+SEM SelectItem
+    | SelExp
+        loc.annotatedTree = SelExp $ fixStar @ex.annotatedTree
+    | SelectItem
+        loc.backTree = SelectItem (fixStar @ex.annotatedTree) @name
+
+{
+fixStar ex =
+  changeAnnRecurse fs ex
+  where
+    fs a = if all (`elem` a) badList
+             then filter (`notElem` badList) a
+             else a
+    badList = [TypeAnnotation TypeCheckFailed
+              ,TypeErrorA (UnrecognisedIdentifier "*")]
+}
+
+--[TypeAnnotation TypeCheckFailed,TypeErrorA (UnrecognisedIdentifier "*")]
+
 SEM SelectList
     | SelectList
         lhs.tpe = @items.tpe
