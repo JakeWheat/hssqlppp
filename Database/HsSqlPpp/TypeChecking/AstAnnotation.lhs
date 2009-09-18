@@ -9,6 +9,7 @@ used in the type-checking/ annotation process use the attribute
 grammar code and aren't exposed.
 
 > {-# OPTIONS -fglasgow-exts #-}
+> {-# OPTIONS_HADDOCK hide #-}
 
 > module Database.HsSqlPpp.TypeChecking.AstAnnotation
 >     (

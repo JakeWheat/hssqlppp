@@ -28,15 +28,16 @@ The parsers are written top down as you go through the file, so the
 top level sql text parsers appear first, then the statements, then the
 fragments, then the utility parsers and other utilities at the bottom.
 
+> {- | This module contains two functions to parse SQL from a string or
+> from a file, one testing function to parse an expression, and one to
+> parse SQL which includes plpgsql statements at the top level.
+> -}
 > module Database.HsSqlPpp.Parsing.Parser (
->               --parse fully formed sql statements from a string
+>              -- * Main
 >               parseSql
->               --parse a file containing sql statements only
 >              ,parseSqlFile
->               --parse an expression (one expression plus whitespace
->               --only allowed
+>              -- * Testing
 >              ,parseExpression
->              --parse fully formed plpgsql statements from a string
 >              ,parsePlpgsql
 >              )
 >     where
@@ -68,25 +69,29 @@ fragments, then the utility parsers and other utilities at the bottom.
 
 = Top level parsing functions
 
-parse fully formed sql
-
-> parseSql :: String -> Either ExtendedError StatementList
+> parseSql :: String -- ^ a string containing the sql to parse
+>          -> Either ExtendedError StatementList
 > parseSql s = statementsOnly $ parseIt (lexSqlText s) sqlStatements "" s startState
 
-> parseSqlFile :: String -> IO (Either ExtendedError StatementList)
+> parseSqlFile :: FilePath -- ^ file name of file containing sql
+>              -> IO (Either ExtendedError StatementList)
 > parseSqlFile fn = do
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
 >   return $ statementsOnly $ parseIt x sqlStatements fn sc startState
 
-Parse expression fragment, used for testing purposes
-
-> parseExpression :: String -> Either ExtendedError Expression
+> -- | Parse expression fragment, used for testing purposes
+> parseExpression :: String -- ^ sql string containing a single expression, with no
+>                           -- trailing ';'
+>                 -> Either ExtendedError Expression
 > parseExpression s = parseIt (lexSqlText s) (expr <* eof) "" s startState
 
-parse plpgsql statements, used for testing purposes
-
-> parsePlpgsql :: String -> Either ExtendedError StatementList
+> -- | Parse plpgsql statements, used for testing purposes -
+> -- this can be used to parse a list of plpgsql statements which
+> -- aren't contained in a create function.
+> -- (The produced ast won't pass a type check.)
+> parsePlpgsql :: String
+>              -> Either ExtendedError StatementList
 > parsePlpgsql s =  parseIt (lexSqlText s) (many plPgsqlStatement <* eof) "" s startState
 
 utility function to do error handling in one place

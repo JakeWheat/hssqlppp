@@ -12,6 +12,8 @@ int
 float
 copy payload (used to lex copy from stdin data)
 
+> {-# OPTIONS_HADDOCK hide #-}
+
 > module Database.HsSqlPpp.Parsing.Lexer (
 >               Token
 >              ,Tok(..)

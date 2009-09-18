@@ -271,6 +271,7 @@ template1 database...
 > getScope :: String -> IO ()
 > getScope dbName = do
 >   s <- readScope dbName
+>   putStrLn "{-# OPTIONS_HADDOCK hide #-}"
 >   putStrLn "module Database.HsSqlPpp.TypeChecking.DefaultScope where"
 >   putStrLn "import Database.HsSqlPpp.TypeChecking.TypeType"
 >   putStrLn "import Database.HsSqlPpp.TypeChecking.ScopeData"

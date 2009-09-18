@@ -5,7 +5,7 @@ mapping from parsed and pretty printed sql back to the original source
 text.
 Will be revived when the DatabaseLoader code is being worked on again.
 
-> module Database.HsSqlPpp.Dbms.DatabaseLoaderTests (databaseLoaderTests) where
+> module Database.HsSqlPpp.Tests.DatabaseLoaderTests (databaseLoaderTests) where
 
 > import Test.HUnit
 > import Test.Framework

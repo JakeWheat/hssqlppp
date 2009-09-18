@@ -1,7 +1,9 @@
-1Copyright 2009 Jake Wheat
+Copyright 2009 Jake Wheat
 
 This file contains some utility functions for working with types and
 type checking.
+
+> {-# OPTIONS_HADDOCK hide #-}
 
 > module Database.HsSqlPpp.TypeChecking.TypeCheckingH where
 

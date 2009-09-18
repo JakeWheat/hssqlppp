@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide #-}
 module Database.HsSqlPpp.TypeChecking.DefaultScope where
 import Database.HsSqlPpp.TypeChecking.TypeType
 import Database.HsSqlPpp.TypeChecking.ScopeData

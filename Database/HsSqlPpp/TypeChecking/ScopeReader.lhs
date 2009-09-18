@@ -13,6 +13,8 @@ types of table columns (which are read as oids which refer to the
 pg_type table) to the haskell values represent those types. These maps
 are discarded after the Scope value is created.
 
+> {-# OPTIONS_HADDOCK hide #-}
+
 > module Database.HsSqlPpp.TypeChecking.ScopeReader (readScope) where
 
 > import qualified Data.Map as M

@@ -17,6 +17,8 @@ checkAssignmentValid - pass in source type and target type, returns
                 typelist[] if ok, otherwise error, pg manual 10.4
                 Value Storage
 
+> {-# OPTIONS_HADDOCK hide #-}
+
 > module Database.HsSqlPpp.TypeChecking.TypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType

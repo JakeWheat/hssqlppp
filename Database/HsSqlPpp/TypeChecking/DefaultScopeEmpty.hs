@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide #-}
 {-
 Copyright 2009 Jake Wheat
 
@@ -35,6 +36,8 @@ Perhaps having the program to generate defaultscope.hs depend on it
 being a valid file before it can regenerate it is a bad design...
 
 -}
+
+
 
 
 module Database.HsSqlPpp.TypeChecking.DefaultScope where

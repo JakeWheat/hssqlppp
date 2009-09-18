@@ -3,3 +3,4 @@ test.sql
 notes
 *.hi
 resetchaos.sh
+dist

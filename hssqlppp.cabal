@@ -33,7 +33,11 @@ Library
                      mtl,
                      parsec >= 3,
                      pretty,
-                     containers
+                     containers,
+                     regex-posix,
+                     HDBC,
+                     HDBC-postgresql,
+                     directory
   Exposed-modules:   Database.HsSqlPpp.TypeChecking.Ast,
                      Database.HsSqlPpp.Parsing.Parser,
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
@@ -70,7 +74,11 @@ Executable HsSqlPppTests
   Build-Depends:     base,
                      HUnit,
                      test-framework,
-                     test-framework-hunit
+                     test-framework-hunit,
+                     regex-posix,
+                     HDBC,
+                     HDBC-postgresql,
+                     directory
 
   Other-Modules:     Database.HsSqlPpp.TypeChecking.AstAnnotation,
                      Database.HsSqlPpp.Tests.AstCheckTests,

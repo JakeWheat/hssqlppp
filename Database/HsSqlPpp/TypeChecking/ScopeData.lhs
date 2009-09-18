@@ -6,6 +6,8 @@ to the type checking routines if you want to supply different/extra
 definitions before type checking something, and you're not getting the
 extra definitions from an accessible database.
 
+> {-# OPTIONS_HADDOCK hide #-}
+
 > module Database.HsSqlPpp.TypeChecking.ScopeData
 >     (
 >      Scope(..)

@@ -3,6 +3,8 @@ Copyright 2009 Jake Wheat
 This file contains a few (almost pointlessly) lightweight wrappers
 around hdbc for running commands and queries.
 
+> {-# OPTIONS_HADDOCK hide #-}
+
 > module Database.HsSqlPpp.Dbms.DBAccess (runSqlCommand
 >                 ,withConn
 >                 ,selectValue
