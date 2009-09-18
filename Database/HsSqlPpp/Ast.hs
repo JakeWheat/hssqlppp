@@ -1624,26 +1624,48 @@ sem_Expression_InPredicate :: Annotation ->
                               T_Expression 
 sem_Expression_InPredicate ann_ expr_ i_ list_  =
     (\ _lhsIscope ->
-         (let _lhsOliftedColumnName :: String
-              _lhsOannotatedTree :: Expression
+         (let _lhsOannotatedTree :: Expression
+              _lhsOliftedColumnName :: String
               _exprOscope :: Scope
               _listOscope :: Scope
               _exprIannotatedTree :: Expression
               _exprIliftedColumnName :: String
               _listIannotatedTree :: InList
+              _listIlistType :: (Either TypeError Type)
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  let ty = case _listIlistType of
+                             Left e -> Left e
+                             Right lt -> resolveResultSetType
+                                           _lhsIscope
+                                           [getTypeAnnotation _exprIannotatedTree
+                                           ,lt]
+                  in either Left (const $ Right typeBool) ty
+              _backTree =
+                  InPredicate ann_ _exprIannotatedTree i_ _listIannotatedTree
               _lhsOliftedColumnName =
                   _exprIliftedColumnName
               _annotatedTree =
                   InPredicate ann_ _exprIannotatedTree i_ _listIannotatedTree
-              _lhsOannotatedTree =
-                  _annotatedTree
               _exprOscope =
                   _lhsIscope
               _listOscope =
                   _lhsIscope
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOscope )
-              ( _listIannotatedTree) =
+              ( _listIannotatedTree,_listIlistType) =
                   (list_ _listOscope )
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_IntegerLit :: Annotation ->
@@ -1722,16 +1744,37 @@ sem_Expression_ScalarSubQuery :: Annotation ->
                                  T_Expression 
 sem_Expression_ScalarSubQuery ann_ sel_  =
     (\ _lhsIscope ->
-         (let _lhsOliftedColumnName :: String
-              _lhsOannotatedTree :: Expression
+         (let _lhsOannotatedTree :: Expression
+              _lhsOliftedColumnName :: String
               _selOscope :: Scope
               _selIannotatedTree :: SelectExpression
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  let selType = getTypeAnnotation _selIannotatedTree
+                  in checkTypes [selType]
+                       $ let f = map snd $ unwrapComposite $ unwrapSetOf selType
+                         in case length f of
+                              0 -> error "internal error: no columns in scalar subquery?"
+                              1 -> Right $ head f
+                              _ -> Right $ RowCtor f
+              _backTree =
+                  ScalarSubQuery ann_ _selIannotatedTree
               _lhsOliftedColumnName =
                   ""
               _annotatedTree =
                   ScalarSubQuery ann_ _selIannotatedTree
-              _lhsOannotatedTree =
-                  _annotatedTree
               _selOscope =
                   _lhsIscope
               ( _selIannotatedTree) =
@@ -2270,24 +2313,29 @@ sem_InList (InSelect _sel )  =
     (sem_InList_InSelect (sem_SelectExpression _sel ) )
 -- semantic domain
 type T_InList  = Scope ->
-                 ( InList)
+                 ( InList,(Either TypeError Type))
 data Inh_InList  = Inh_InList {scope_Inh_InList :: Scope}
-data Syn_InList  = Syn_InList {annotatedTree_Syn_InList :: InList}
+data Syn_InList  = Syn_InList {annotatedTree_Syn_InList :: InList,listType_Syn_InList :: Either TypeError Type}
 wrap_InList :: T_InList  ->
                Inh_InList  ->
                Syn_InList 
 wrap_InList sem (Inh_InList _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOlistType) =
              (sem _lhsIscope )
-     in  (Syn_InList _lhsOannotatedTree ))
+     in  (Syn_InList _lhsOannotatedTree _lhsOlistType ))
 sem_InList_InList :: T_ExpressionList  ->
                      T_InList 
 sem_InList_InList exprs_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: InList
+         (let _lhsOlistType :: (Either TypeError Type)
+              _lhsOannotatedTree :: InList
               _exprsOscope :: Scope
               _exprsIannotatedTree :: ExpressionList
               _exprsItypeList :: ([Type])
+              _lhsOlistType =
+                  resolveResultSetType
+                    _lhsIscope
+                    _exprsItypeList
               _annotatedTree =
                   InList _exprsIannotatedTree
               _lhsOannotatedTree =
@@ -2296,14 +2344,22 @@ sem_InList_InList exprs_  =
                   _lhsIscope
               ( _exprsIannotatedTree,_exprsItypeList) =
                   (exprs_ _exprsOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOlistType)))
 sem_InList_InSelect :: T_SelectExpression  ->
                        T_InList 
 sem_InList_InSelect sel_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: InList
+         (let _lhsOlistType :: (Either TypeError Type)
+              _lhsOannotatedTree :: InList
               _selOscope :: Scope
               _selIannotatedTree :: SelectExpression
+              _lhsOlistType =
+                  let attrs = map snd $ unwrapComposite $ unwrapSetOf $ getTypeAnnotation _selIannotatedTree
+                      typ =  case length attrs of
+                               0 -> error "internal error - got subquery with no columns? in inselect"
+                               1 -> head attrs
+                               _ -> RowCtor attrs
+                  in checkTypes attrs $ Right typ
               _annotatedTree =
                   InSelect _selIannotatedTree
               _lhsOannotatedTree =
@@ -2312,7 +2368,7 @@ sem_InList_InSelect sel_  =
                   _lhsIscope
               ( _selIannotatedTree) =
                   (sel_ _selOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOlistType)))
 -- JoinExpression ----------------------------------------------
 data JoinExpression  = JoinOn (Expression) 
                      | JoinUsing (StringList) 
@@ -3265,6 +3321,7 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
                   let whereTpe = case fmap getTypeAnnotation _selWhereIannotatedTree of
                                    Nothing -> Right typeBool
                                    Just x | x == typeBool -> Right typeBool
+                                          | x == TypeCheckFailed -> Right TypeCheckFailed
                                           | otherwise -> Left ExpressionMustBeBool
                   in checkTypes (case fmap getTypeAnnotation _selTrefIannotatedTree of
                                    Nothing -> []

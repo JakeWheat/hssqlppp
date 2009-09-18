@@ -486,45 +486,45 @@ select g.fn from fn() g
 
 >      ])
 
-> {-   ,testGroup "aggregates"
->     (mapStatementType [
+>    ,testGroup "aggregates"
+>     (mapStatementInfo [
 >        p "select max(prorettype::int) from pg_proc;"
->         [SetOfType $ UnnamedCompositeType [("max", typeInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("max", typeInt)]]
 >      ])
 
 >    ,testGroup "simple wheres"
->     (mapStatementType [
+>     (mapStatementInfo [
 >       p "select 1 from pg_type where true;"
->         [SetOfType $ UnnamedCompositeType [("?column?", typeInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("?column?", typeInt)]]
 >      ,p "select 1 from pg_type where 1;"
->         [TypeError ExpressionMustBeBool]
+>         $ Left [ExpressionMustBeBool]
 >      ,p "select typname from pg_type where typbyval;"
->         [SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
 >      ,p "select typname from pg_type where typtype = 'b';"
->         [SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
 >      ,p "select typname from pg_type where what = 'b';"
->         [TypeError (UnrecognisedIdentifier "what")]
+>         $ Left [UnrecognisedIdentifier "what"]
 >      ])
 
 >    ,testGroup "subqueries"
->     (mapStatementType [
+>     (mapStatementInfo [
 >       p "select relname as relvar_name\n\
 >         \    from pg_class\n\
 >         \    where ((relnamespace =\n\
 >         \           (select oid\n\
 >         \              from pg_namespace\n\
 >         \              where (nspname = 'public'))) and (relkind = 'r'));"
->         [SetOfType $ UnnamedCompositeType [("relvar_name",ScalarType "name")]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("relvar_name",ScalarType "name")]]
 >      ,p "select relname from pg_class where relkind in ('r', 'v');"
->         [SetOfType $ UnnamedCompositeType [("relname",ScalarType "name")]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("relname",ScalarType "name")]]
 >      ,p "select * from generate_series(1,7) g\n\
 >         \where g not in (select * from generate_series(3,5));"
->         [SetOfType (UnnamedCompositeType [("g",ScalarType "int4")])]
+>         $ Right [SelectInfo $ SetOfType (UnnamedCompositeType [("g",ScalarType "int4")])]
 >      ])
 
 insert
 
->    ,testGroup "insert"
+> {-   ,testGroup "insert"
 >     (mapStatementInfo [
 >       p "insert into nope (a,b) values (c,d);"
 >         [DefaultStatementInfo (TypeError (UnrecognisedRelation "nope"))]

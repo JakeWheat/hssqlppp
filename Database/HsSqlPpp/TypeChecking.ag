@@ -203,7 +203,8 @@ SEM ExpressionRoot
 
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
-      Exists Case CaseSimple Cast
+      Exists Case CaseSimple Cast InPredicate ScalarSubQuery
+      --PositionalArg WindowFn
         loc.nt = case @loc.tpe of
                    Left _ -> TypeCheckFailed
                    Right TypeCheckFailed -> TypeCheckFailed
@@ -368,7 +369,7 @@ SEM Expression
         loc.tpe = Right typeBool
         loc.backTree = Exists @ann @sel.annotatedTree
 
-{-
+
 {-
 == scalar subquery
 1 col -> type of that col
@@ -377,36 +378,53 @@ SEM Expression
 
 SEM Expression
     | ScalarSubQuery
-        lhs.nodeType = let f = map snd $ unwrapComposite $ unwrapSetOf @sel.nodeType
-                       in checkErrors [@sel.nodeType] $
-                         case length f of
-                          0 -> error "internal error: no columns in scalar subquery?"
-                          1 -> head f
-                          _ -> RowCtor f
+        loc.tpe = let selType = getTypeAnnotation @sel.annotatedTree
+                  in checkTypes [selType]
+                       $ let f = map snd $ unwrapComposite $ unwrapSetOf selType
+                         in case length f of
+                              0 -> error "internal error: no columns in scalar subquery?"
+                              1 -> Right $ head f
+                              _ -> Right $ RowCtor f
+
+        loc.backTree = ScalarSubQuery @ann @sel.annotatedTree
 {-
 == inlist
 -}
+
 SEM Expression
     | InPredicate
-        lhs.nodeType =
-            let er = resolveResultSetType
-                         @lhs.scope
-                         [@expr.nodeType, @list.nodeType]
-            in checkErrors [er] typeBool
+        loc.tpe =
+            let ty = case @list.listType of
+                       Left e -> Left e
+                       Right lt -> resolveResultSetType
+                                     @lhs.scope
+                                     [getTypeAnnotation @expr.annotatedTree
+                                     ,lt]
+            in either Left (const $ Right typeBool) ty
+        loc.backTree = InPredicate @ann @expr.annotatedTree @i @list.annotatedTree
+
+
+ATTR InList
+   [
+   |
+   | listType : {Either TypeError Type}
+   ]
 
 SEM InList
     | InList
-        lhs.nodeType = resolveResultSetType
+        lhs.listType = resolveResultSetType
                          @lhs.scope
-                         $ unwrapTypeList @exprs.nodeType
-    | InSelect lhs.nodeType =
-        let attrs = map snd $ unwrapComposite $ unwrapSetOf $ @sel.nodeType
-        in case length attrs of
-             0 -> error "internal error - got subquery with no columns? in inselect"
-             1 -> head attrs
-             _ -> RowCtor attrs
+                         @exprs.typeList
+    | InSelect
+        lhs.listType =
+           let attrs = map snd $ unwrapComposite $ unwrapSetOf $ getTypeAnnotation @sel.annotatedTree
+               typ =  case length attrs of
+                        0 -> error "internal error - got subquery with no columns? in inselect"
+                        1 -> head attrs
+                        _ -> RowCtor attrs
+           in checkTypes attrs $ Right typ
 
--}
+
 
 ATTR ExpressionList
      [
@@ -503,6 +521,7 @@ SEM SelectExpression
            let whereTpe = case fmap getTypeAnnotation @selWhere.annotatedTree of
                             Nothing -> Right typeBool
                             Just x | x == typeBool -> Right typeBool
+                                   | x == TypeCheckFailed -> Right TypeCheckFailed
                                    | otherwise -> Left ExpressionMustBeBool
            in checkTypes (case fmap getTypeAnnotation @selTref.annotatedTree of
                             Nothing -> []
