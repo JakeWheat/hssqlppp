@@ -455,7 +455,7 @@ SEM Statement
 -}
 
 SEM Statement
-    | SelectStatement Insert Update
+    | SelectStatement Insert Update Delete
         loc.nt = case @loc.tpe of
                    Left _ -> TypeCheckFailed
                    Right TypeCheckFailed -> TypeCheckFailed
@@ -927,7 +927,6 @@ getRowTypes ts = ts
 }
 
 {-
-{-
 ================================================================================
 
 = delete
@@ -935,13 +934,18 @@ getRowTypes ts = ts
 
 SEM Statement
     | Delete
-        lhs.nodeType =
-          checkErrors [checkTableExists @lhs.scope @table
-                      ,@whr.nodeType]
-            $ TypeList []
-        lhs.statementInfo =
-          makeStatementInfo @lhs.backType $ DeleteInfo @table
+        loc.tpe =
+            case checkRelationExists @lhs.scope @table of
+              Just e -> Left e
+              Nothing -> case fmap getTypeAnnotation @whr.annotatedTree of
+                           Nothing -> Right $ Pseudo Void
+                           Just x | x == typeBool -> Right $ Pseudo Void
+                                  | x == TypeCheckFailed -> Right TypeCheckFailed
+                                  | otherwise -> Left ExpressionMustBeBool
+        loc.statementInfo = DeleteInfo @table
+        loc.backTree = Delete @ann @table @whr.annotatedTree @returning
 
+{-
 {-
 ================================================================================
 
@@ -978,7 +982,6 @@ SEM Statement
 
 SEM Statement
     | CreateTableAs lhs.statementInfo = makeStatementInfo @lhs.backType $ RelvarInfo (@name, TableComposite, @expr.nodeType)
-
 
 {-
 ================================================================================

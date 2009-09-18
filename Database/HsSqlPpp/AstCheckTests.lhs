@@ -575,16 +575,16 @@ insert
 >         $ Right [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adbin",ScalarType "text"),("adsrc",ScalarType "text")])]
 >      ])
 
-> {-   ,testGroup "delete"
+>    ,testGroup "delete"
 >     (mapStatementInfo [
 >       p "delete from nope;"
->         [DefaultStatementInfo (TypeError (UnrecognisedRelation "nope"))]
+>         $ Left [UnrecognisedRelation "nope"]
 >      ,p "delete from pg_attrdef where 1=2;"
->         [DeleteInfo "pg_attrdef"]
+>         $ Right [DeleteInfo "pg_attrdef"]
 >      ,p "delete from pg_attrdef where 1;"
->         [DefaultStatementInfo (TypeError ExpressionMustBeBool)]
+>         $ Left [ExpressionMustBeBool]
 >      ])
-> -}
+>
 >    ]
 >         where
 >           --mapAttr = map $ uncurry checkAttrs

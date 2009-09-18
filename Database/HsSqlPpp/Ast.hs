@@ -4130,10 +4130,34 @@ sem_Statement_Delete ann_ table_ whr_ returning_  =
          (let _lhsOannotatedTree :: Statement
               _whrOscope :: Scope
               _whrIannotatedTree :: Where
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt
+                      ,StatementInfoA _statementInfo    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  case checkRelationExists _lhsIscope table_ of
+                    Just e -> Left e
+                    Nothing -> case fmap getTypeAnnotation _whrIannotatedTree of
+                                 Nothing -> Right $ Pseudo Void
+                                 Just x | x == typeBool -> Right $ Pseudo Void
+                                        | x == TypeCheckFailed -> Right TypeCheckFailed
+                                        | otherwise -> Left ExpressionMustBeBool
+              _statementInfo =
+                  DeleteInfo table_
+              _backTree =
+                  Delete ann_ table_ _whrIannotatedTree returning_
               _annotatedTree =
                   Delete ann_ table_ _whrIannotatedTree returning_
-              _lhsOannotatedTree =
-                  _annotatedTree
               _whrOscope =
                   _lhsIscope
               ( _whrIannotatedTree) =
