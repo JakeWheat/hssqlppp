@@ -524,37 +524,37 @@ select g.fn from fn() g
 
 insert
 
-> {-   ,testGroup "insert"
+>    ,testGroup "insert"
 >     (mapStatementInfo [
 >       p "insert into nope (a,b) values (c,d);"
->         [DefaultStatementInfo (TypeError (UnrecognisedRelation "nope"))]
+>         $ Left [UnrecognisedRelation "nope",UnrecognisedIdentifier "c",UnrecognisedIdentifier "d"]
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
->         [InsertInfo "pg_attrdef"
+>         $ Right [InsertInfo "pg_attrdef"
 >          (UnnamedCompositeType [("adrelid",ScalarType "oid")
 >                                 ,("adnum",ScalarType "int2")
 >                                 ,("adbin",ScalarType "text")
 >                                 ,("adsrc",ScalarType "text")])]
 >      ,p "insert into pg_attrdef\n\
 >         \values (1,2, 'a', 'b');"
->         [InsertInfo "pg_attrdef"
+>         $ Right [InsertInfo "pg_attrdef"
 >          (UnnamedCompositeType [("adrelid",ScalarType "oid")
 >                                 ,("adnum",ScalarType "int2")
 >                                 ,("adbin",ScalarType "text")
 >                                 ,("adsrc",ScalarType "text")])]
 >      ,p "insert into pg_attrdef (hello,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
->         [DefaultStatementInfo (TypeError (UnrecognisedIdentifier "hello"))]
+>         $ Left [UnrecognisedIdentifier "hello"]
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,true, 'a', 'b');"
->         [DefaultStatementInfo (TypeError (IncompatibleTypes (ScalarType "int2") (ScalarType "bool")))]
+>         $ Left [IncompatibleTypes (ScalarType "int2") (ScalarType "bool")]
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,true, 'a', 'b','c');"
->         [DefaultStatementInfo (TypeError WrongNumberOfColumns)]
+>         $ Left [WrongNumberOfColumns]
 
 >      ])
 
->    ,testGroup "update"
+> {-   ,testGroup "update"
 >     (mapStatementInfo [
 >       p "update nope set a = 1;"
 >         [DefaultStatementInfo (TypeError (UnrecognisedRelation "nope"))]

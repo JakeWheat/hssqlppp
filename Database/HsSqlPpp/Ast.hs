@@ -915,13 +915,14 @@ sem_Constraint_PrimaryKeyConstraint stringList_  =
          (let _lhsOannotatedTree :: Constraint
               _stringListOscope :: Scope
               _stringListIannotatedTree :: StringList
+              _stringListIstrings :: ([String])
               _annotatedTree =
                   PrimaryKeyConstraint _stringListIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _stringListOscope =
                   _lhsIscope
-              ( _stringListIannotatedTree) =
+              ( _stringListIannotatedTree,_stringListIstrings) =
                   (stringList_ _stringListOscope )
           in  ( _lhsOannotatedTree)))
 sem_Constraint_ReferenceConstraint :: T_StringList  ->
@@ -938,7 +939,9 @@ sem_Constraint_ReferenceConstraint atts_ table_ tableAtts_ onUpdate_ onDelete_  
               _onUpdateOscope :: Scope
               _onDeleteOscope :: Scope
               _attsIannotatedTree :: StringList
+              _attsIstrings :: ([String])
               _tableAttsIannotatedTree :: StringList
+              _tableAttsIstrings :: ([String])
               _onUpdateIannotatedTree :: Cascade
               _onDeleteIannotatedTree :: Cascade
               _annotatedTree =
@@ -953,9 +956,9 @@ sem_Constraint_ReferenceConstraint atts_ table_ tableAtts_ onUpdate_ onDelete_  
                   _lhsIscope
               _onDeleteOscope =
                   _lhsIscope
-              ( _attsIannotatedTree) =
+              ( _attsIannotatedTree,_attsIstrings) =
                   (atts_ _attsOscope )
-              ( _tableAttsIannotatedTree) =
+              ( _tableAttsIannotatedTree,_tableAttsIstrings) =
                   (tableAtts_ _tableAttsOscope )
               ( _onUpdateIannotatedTree) =
                   (onUpdate_ _onUpdateOscope )
@@ -969,13 +972,14 @@ sem_Constraint_UniqueConstraint stringList_  =
          (let _lhsOannotatedTree :: Constraint
               _stringListOscope :: Scope
               _stringListIannotatedTree :: StringList
+              _stringListIstrings :: ([String])
               _annotatedTree =
                   UniqueConstraint _stringListIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _stringListOscope =
                   _lhsIscope
-              ( _stringListIannotatedTree) =
+              ( _stringListIannotatedTree,_stringListIstrings) =
                   (stringList_ _stringListOscope )
           in  ( _lhsOannotatedTree)))
 -- ConstraintList ----------------------------------------------
@@ -2416,13 +2420,14 @@ sem_JoinExpression_JoinUsing stringList_  =
          (let _lhsOannotatedTree :: JoinExpression
               _stringListOscope :: Scope
               _stringListIannotatedTree :: StringList
+              _stringListIstrings :: ([String])
               _annotatedTree =
                   JoinUsing _stringListIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _stringListOscope =
                   _lhsIscope
-              ( _stringListIannotatedTree) =
+              ( _stringListIannotatedTree,_stringListIstrings) =
                   (stringList_ _stringListOscope )
           in  ( _lhsOannotatedTree)))
 -- JoinType ----------------------------------------------------
@@ -3591,6 +3596,7 @@ sem_SelectList_SelectList items_ stringList_  =
               _itemsIannotatedTree :: SelectItemList
               _itemsItpe :: (Either TypeError Type)
               _stringListIannotatedTree :: StringList
+              _stringListIstrings :: ([String])
               _lhsOtpe =
                   _itemsItpe
               _annotatedTree =
@@ -3603,7 +3609,7 @@ sem_SelectList_SelectList items_ stringList_  =
                   _lhsIscope
               ( _itemsIannotatedTree,_itemsItpe) =
                   (items_ _itemsOscope )
-              ( _stringListIannotatedTree) =
+              ( _stringListIannotatedTree,_stringListIstrings) =
                   (stringList_ _stringListOscope )
           in  ( _lhsOannotatedTree,_lhsOtpe)))
 -- SetClause ---------------------------------------------------
@@ -3638,6 +3644,7 @@ sem_SetClause_RowSetClause atts_ vals_  =
               _attsOscope :: Scope
               _valsOscope :: Scope
               _attsIannotatedTree :: StringList
+              _attsIstrings :: ([String])
               _valsIannotatedTree :: ExpressionList
               _valsItypeList :: ([Type])
               _annotatedTree =
@@ -3648,7 +3655,7 @@ sem_SetClause_RowSetClause atts_ vals_  =
                   _lhsIscope
               _valsOscope =
                   _lhsIscope
-              ( _attsIannotatedTree) =
+              ( _attsIannotatedTree,_attsIstrings) =
                   (atts_ _attsOscope )
               ( _valsIannotatedTree,_valsItypeList) =
                   (vals_ _valsOscope )
@@ -3901,6 +3908,7 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
               _targetColsOscope :: Scope
               _sourceOscope :: Scope
               _targetColsIannotatedTree :: StringList
+              _targetColsIstrings :: ([String])
               _sourceIannotatedTree :: CopySource
               _annotatedTree =
                   Copy ann_ table_ _targetColsIannotatedTree _sourceIannotatedTree
@@ -3910,7 +3918,7 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
                   _lhsIscope
               _sourceOscope =
                   _lhsIscope
-              ( _targetColsIannotatedTree) =
+              ( _targetColsIannotatedTree,_targetColsIstrings) =
                   (targetCols_ _targetColsOscope )
               ( _sourceIannotatedTree) =
                   (source_ _sourceOscope )
@@ -4139,6 +4147,7 @@ sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
               _dropTypeIannotatedTree :: DropType
               _ifEIannotatedTree :: IfExists
               _namesIannotatedTree :: StringList
+              _namesIstrings :: ([String])
               _cascadeIannotatedTree :: Cascade
               _annotatedTree =
                   DropSomething ann_ _dropTypeIannotatedTree _ifEIannotatedTree _namesIannotatedTree _cascadeIannotatedTree
@@ -4156,7 +4165,7 @@ sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
                   (dropType_ _dropTypeOscope )
               ( _ifEIannotatedTree) =
                   (ifE_ _ifEOscope )
-              ( _namesIannotatedTree) =
+              ( _namesIannotatedTree,_namesIstrings) =
                   (names_ _namesOscope )
               ( _cascadeIannotatedTree) =
                   (cascade_ _cascadeOscope )
@@ -4191,6 +4200,7 @@ sem_Statement_ExecuteInto ann_ expr_ targets_  =
               _exprIannotatedTree :: Expression
               _exprIliftedColumnName :: String
               _targetsIannotatedTree :: StringList
+              _targetsIstrings :: ([String])
               _annotatedTree =
                   ExecuteInto ann_ _exprIannotatedTree _targetsIannotatedTree
               _lhsOannotatedTree =
@@ -4201,7 +4211,7 @@ sem_Statement_ExecuteInto ann_ expr_ targets_  =
                   _lhsIscope
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOscope )
-              ( _targetsIannotatedTree) =
+              ( _targetsIannotatedTree,_targetsIstrings) =
                   (targets_ _targetsOscope )
           in  ( _lhsOannotatedTree)))
 sem_Statement_ForIntegerStatement :: Annotation ->
@@ -4299,16 +4309,47 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _targetColsOscope :: Scope
               _insDataOscope :: Scope
               _targetColsIannotatedTree :: StringList
+              _targetColsIstrings :: ([String])
               _insDataIannotatedTree :: SelectExpression
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt
+                      ,StatementInfoA _statementInfo    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _columnStuff =
+                  checkColumnConsistency _lhsIscope
+                                         table_
+                                         _targetColsIstrings
+                                         (unwrapComposite $ unwrapSetOf $
+                                                          getTypeAnnotation _insDataIannotatedTree)
+              _tpe =
+                  checkTypes [getTypeAnnotation _insDataIannotatedTree] $
+                    case _columnStuff     of
+                      Left tes -> Left $ head tes
+                      Right _ -> Right $ Pseudo Void
+              _statementInfo =
+                  InsertInfo table_ $ case _columnStuff     of
+                                        Left _ -> TypeCheckFailed
+                                        Right c -> UnnamedCompositeType c
+              _backTree =
+                  Insert ann_ table_ _targetColsIannotatedTree
+                         _insDataIannotatedTree returning_
               _annotatedTree =
                   Insert ann_ table_ _targetColsIannotatedTree _insDataIannotatedTree returning_
-              _lhsOannotatedTree =
-                  _annotatedTree
               _targetColsOscope =
                   _lhsIscope
               _insDataOscope =
                   _lhsIscope
-              ( _targetColsIannotatedTree) =
+              ( _targetColsIannotatedTree,_targetColsIstrings) =
                   (targetCols_ _targetColsOscope )
               ( _insDataIannotatedTree) =
                   (insData_ _insDataOscope )
@@ -4431,14 +4472,16 @@ sem_Statement_SelectStatement ann_ ex_  =
                    Left a@(_) -> [a]
                    Right b -> []
               _lhsOannotatedTree =
-                  changeAnn (SelectStatement ann_ _exIannotatedTree) $
+                  changeAnn _backTree     $
                     (([TypeAnnotation _nt
                       ,StatementInfoA _statementInfo    ] ++
                       map TypeErrorA _typeErrors    ) ++)
               _tpe =
-                  Right $ Pseudo Void
+                  checkTypes [getTypeAnnotation _exIannotatedTree] $ Right $ Pseudo Void
               _statementInfo =
                   SelectInfo $ getTypeAnnotation _exIannotatedTree
+              _backTree =
+                  SelectStatement ann_ _exIannotatedTree
               _annotatedTree =
                   SelectStatement ann_ _exIannotatedTree
               _exOscope =
@@ -4458,6 +4501,7 @@ sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_  =
               _restartIdentityOscope :: Scope
               _cascadeOscope :: Scope
               _tablesIannotatedTree :: StringList
+              _tablesIstrings :: ([String])
               _restartIdentityIannotatedTree :: RestartIdentity
               _cascadeIannotatedTree :: Cascade
               _annotatedTree =
@@ -4470,7 +4514,7 @@ sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_  =
                   _lhsIscope
               _cascadeOscope =
                   _lhsIscope
-              ( _tablesIannotatedTree) =
+              ( _tablesIannotatedTree,_tablesIstrings) =
                   (tables_ _tablesOscope )
               ( _restartIdentityIannotatedTree) =
                   (restartIdentity_ _restartIdentityOscope )
@@ -4588,42 +4632,49 @@ sem_StringList list  =
     (Prelude.foldr sem_StringList_Cons sem_StringList_Nil list )
 -- semantic domain
 type T_StringList  = Scope ->
-                     ( StringList)
+                     ( StringList,([String]))
 data Inh_StringList  = Inh_StringList {scope_Inh_StringList :: Scope}
-data Syn_StringList  = Syn_StringList {annotatedTree_Syn_StringList :: StringList}
+data Syn_StringList  = Syn_StringList {annotatedTree_Syn_StringList :: StringList,strings_Syn_StringList :: [String]}
 wrap_StringList :: T_StringList  ->
                    Inh_StringList  ->
                    Syn_StringList 
 wrap_StringList sem (Inh_StringList _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOstrings) =
              (sem _lhsIscope )
-     in  (Syn_StringList _lhsOannotatedTree ))
+     in  (Syn_StringList _lhsOannotatedTree _lhsOstrings ))
 sem_StringList_Cons :: String ->
                        T_StringList  ->
                        T_StringList 
 sem_StringList_Cons hd_ tl_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: StringList
+         (let _lhsOstrings :: ([String])
+              _lhsOannotatedTree :: StringList
               _tlOscope :: Scope
               _tlIannotatedTree :: StringList
+              _tlIstrings :: ([String])
+              _lhsOstrings =
+                  hd_ : _tlIstrings
               _annotatedTree =
                   (:) hd_ _tlIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _tlOscope =
                   _lhsIscope
-              ( _tlIannotatedTree) =
+              ( _tlIannotatedTree,_tlIstrings) =
                   (tl_ _tlOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOstrings)))
 sem_StringList_Nil :: T_StringList 
 sem_StringList_Nil  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: StringList
+         (let _lhsOstrings :: ([String])
+              _lhsOannotatedTree :: StringList
+              _lhsOstrings =
+                  []
               _annotatedTree =
                   []
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOstrings)))
 -- StringStringListPair ----------------------------------------
 type StringStringListPair  = ( (String),(StringList))
 -- cata
@@ -4651,13 +4702,14 @@ sem_StringStringListPair_Tuple x1_ x2_  =
          (let _lhsOannotatedTree :: StringStringListPair
               _x2Oscope :: Scope
               _x2IannotatedTree :: StringList
+              _x2Istrings :: ([String])
               _annotatedTree =
                   (x1_,_x2IannotatedTree)
               _lhsOannotatedTree =
                   _annotatedTree
               _x2Oscope =
                   _lhsIscope
-              ( _x2IannotatedTree) =
+              ( _x2IannotatedTree,_x2Istrings) =
                   (x2_ _x2Oscope )
           in  ( _lhsOannotatedTree)))
 -- StringStringListPairList ------------------------------------

@@ -81,7 +81,7 @@ without having to get the positions correct.
 >                          gta (x:xs) = case x of
 >                                         StatementInfoA t -> t
 >                                         _ -> gta xs
->                          gta _ = error "couldn't find type annotation"
+>                          gta _ = error "couldn't find statement info annotation"
 
 
 > getAnnotationsRecurse :: Annotated a => a -> [Annotation]

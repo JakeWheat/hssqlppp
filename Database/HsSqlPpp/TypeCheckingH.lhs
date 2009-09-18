@@ -220,6 +220,7 @@ returns the type of the relation, and the system columns also
 >                  ,(_,_,s@(UnnamedCompositeType _))) -> Right (a,s)
 >             _ -> Left (UnrecognisedRelation tbl)
 
+> commonFieldNames :: Type -> Type -> [String]
 > commonFieldNames t1 t2 =
 >     intersect (fn t1) (fn t2)
 >     where
@@ -228,3 +229,56 @@ returns the type of the relation, and the system columns also
 
 > both :: (a->b) -> (a,a) -> (b,b)
 > both fn (x,y) = (fn x, fn y)
+
+> chainLeft :: Either a b -> (b -> Either a c) -> Either a c
+> chainLeft a f = case a of
+>                   Left e -> Left e
+>                   Right b -> f b
+
+> checkColumnConsistency :: Scope ->  String -> [String] -> [(String,Type)]
+>                        -> Either [TypeError] [(String,Type)]
+> checkColumnConsistency scope tbl cols' insNameTypePairs =
+>   case getTargetTableCols of
+>     Left e -> Left [e]
+>     Right ttcols ->
+>       let errs = catMaybes
+>                    [checkNumCols ttcols
+>                    ,checkTargetColMatch ttcols
+>                    ,checkColumnTypesCompatible ttcols]
+>       in if null errs
+>             then Right ttcols
+>             else Left $ head errs
+>   where
+>     getTargetTableCols :: Either TypeError [(String,Type)]
+>     getTargetTableCols =
+>       chainLeft (getRelationType scope tbl) $ Right . unwrapComposite . fst
+>     cols :: [(String,Type)] -> [String]
+>     cols targetTableCols = if null cols'
+>                              then map fst targetTableCols
+>                              else cols'
+>     checkNumCols :: [(String,Type)] -> Maybe [TypeError]
+>     checkNumCols targetTableCols =
+>       --check the num cols in the insdata match the number of cols
+>       if length insNameTypePairs /= length (cols targetTableCols)
+>         then Just [WrongNumberOfColumns]
+>         else Nothing
+
+>     checkTargetColMatch :: [(String,Type)] -> Maybe [TypeError]
+>     checkTargetColMatch targetTableCols =
+>        let nonMatchingColumns = cols targetTableCols \\ map fst targetTableCols
+>        in case length nonMatchingColumns of
+>               0 -> Nothing
+>               1 -> Just $ [UnrecognisedIdentifier $ head nonMatchingColumns]
+>               _ -> Just $ map UnrecognisedIdentifier nonMatchingColumns
+
+>     checkColumnTypesCompatible :: [(String,Type)] -> Maybe [TypeError]
+>     checkColumnTypesCompatible targetTableCols =
+>       let targetNameTypePairs = map (\l -> (l, fromJust $ lookup l targetTableCols)) $ cols targetTableCols
+>           --check the types of the insdata match the column targets
+>           --name datatype columntype
+>           typeTriples = map (\((a,b),c) -> (a,b,c)) $ zip targetNameTypePairs $ map snd insNameTypePairs
+>           errs = lefts $ map (\(_,b,c) -> checkAssignmentValid scope c b) typeTriples
+>       in if null errs
+>            then Nothing
+>            else Just errs
+
