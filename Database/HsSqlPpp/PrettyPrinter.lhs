@@ -578,7 +578,7 @@ then hcatcsv the results
 
 > convPa :: (Annotation -> String) -> Annotation -> Doc
 > convPa ca a = let s = ca a
->               in if s == "asda"
+>               in if s == ""
 >                    then empty
 >                    else text "/*\n" <+> text s
 >                         <+> text "*/\n"

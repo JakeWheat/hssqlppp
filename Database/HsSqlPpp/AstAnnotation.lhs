@@ -72,7 +72,7 @@ without having to get the positions correct.
 >                          gta (x:xs) = case x of
 >                                         TypeAnnotation t -> t
 >                                         _ -> gta xs
->                          gta _ = error "couldn't find type annotation"
+>                          gta _ = TypeCheckFailed -- error "couldn't find type annotation"
 
 > getSIAnnotation :: Annotated a => a  -> StatementInfo
 > getSIAnnotation at = let as = ann at

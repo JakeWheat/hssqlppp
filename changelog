@@ -1,0 +1,27 @@
+
+secondtypechecking
+
+typechecks a fair amount of select statements, and does some type
+checking of insert, update, delete and create statements. It can also
+take a sql file and parse, type check, and spit it back out with type
+checking information interspersed with the statements (but with the
+formatting mangled and the comments stripped).
+
+
+earlytypechecking
+
+hasn't fixed the error messages, but can now type check some select
+statements, it includes a command to read a sql file in, type check it
+against a database, then pretty print the ast interspersed with the
+inferred types of each statement in comments.
+
+
+lexing
+
+parses with a separate lexer, unfortunately the error messages have
+gone wrong.
+
+
+prealpha1
+
+parses without a separate lexer and gives ok error messages

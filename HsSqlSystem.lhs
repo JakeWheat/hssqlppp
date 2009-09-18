@@ -53,12 +53,9 @@ TODO 2: think of a name for this command
 >            ,loadSqlCommand
 >            ,clearAndLoadSqlCommand
 >            ,lexFileCommand
->            ,showFileAttsCommand
 >            ,parseFileCommand
 >            ,roundTripCommand
 >            ,getScopeCommand
->            ,showTypesCommand
->            ,showTypesDBCommand
 >            ,showInfoCommand
 >            ,showInfoDBCommand]
 
@@ -151,29 +148,6 @@ TODO: do something more correct
 
 ================================================================================
 
-> showFileAttsCommand :: CallEntry
-> showFileAttsCommand = CallEntry
->                       "showFileAtts"
->                       "run the ag over the given files and return all the attributes computed"
->                       (Multiple showfileatts)
-
-> showfileatts :: [String] -> IO ()
-> showfileatts = mapM_ pf
->   where
->     pf f = do
->       putStrLn $ "parsing " ++ show f
->       x <- parseSqlFile f
->       case x of
->            Left er -> print er
->            Right st -> do
->                mapM_ print st
->                putStrLn "\nchecking ast"
->                let y = checkAst st
->                print y
->       return ()
-
-================================================================================
-
 > parseFileCommand :: CallEntry
 > parseFileCommand = CallEntry
 >                    "parsefile"
@@ -204,63 +178,10 @@ TODO: do something more correct
 >                --check roundtrip
 >                case parseSql pp of
 >                  Left er -> error $ "roundtrip failed: " ++ show er
->                  Right st' -> if map wipeAnnotations st == map wipeAnnotations st'
+>                  Right st' -> if map stripAnnotations st == map stripAnnotations st'
 >                                then putStrLn "roundtrip ok"
 >                                else putStrLn "roundtrip failed: different ast"
 >       return ()
-
-================================================================================
-
-> showTypesCommand :: CallEntry
-> showTypesCommand = CallEntry
->                    "showtypes"
->                    "reads each file, parses, type checks, then outputs the types \
->                    \interspersed with the pretty printed statements"
->                    -- todo: modify this so that is inserts the types as comments into the
->                    -- original source, get it to work correctly when run multiple times or
->                    -- the types have changed between runs (i.e. add or update the comments)
->                    (Multiple showTypes)
-
-> showTypes :: [FilePath] -> IO ()
-> showTypes = mapM_ pt
->   where
->     pt f = do
->       x <- parseSqlFile f
->       case x of
->            Left er -> print er
->            Right sts -> do
->                let types = zip (getStatementsType sts) sts
->                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
->                                  putStrLn (printSql [st])) types
-
-================================================================================
-
-> showTypesDBCommand :: CallEntry
-> showTypesDBCommand = CallEntry
->                    "showtypesdb"
->                    "pass the name of a database first, then \
->                    \filenames, reads each file, parses, type checks, \
->                    \then outputs the types interspersed with the \
->                    \pretty printed statements, will type check \
->                    \against the given database schema"
->                    (Multiple showTypesDB)
-
-
-> showTypesDB :: [FilePath] -> IO ()
-> showTypesDB args = do
->   let dbName = head args
->   scope <- readScope dbName
->   mapM_ (pt scope) $ tail args
->   where
->     pt scope f = do
->       x <- parseSqlFile f
->       case x of
->            Left er -> print er
->            Right sts -> do
->                let types = zip (getStatementsTypeScope scope sts) sts
->                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
->                                  putStrLn (printSql [st])) types
-
 
 ================================================================================
 
@@ -279,9 +200,8 @@ TODO: do something more correct
 >       case x of
 >            Left er -> print er
 >            Right sts -> do
->                let info = zip (getStatementsInfo sts) sts
->                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
->                                  putStrLn (printSql [st])) info
+>                let aast = annotateAst sts
+>                mapM_ (putStrLn . printSqlAnn show . (:[])) aast
 
 ================================================================================
 
@@ -307,9 +227,10 @@ TODO: do something more correct
 >       case x of
 >            Left er -> print er
 >            Right sts -> do
->                let info = zip (getStatementsInfoScope scope sts) sts
->                mapM_ (\(t,st) -> putStrLn ("/*\n" ++ show t ++ "*/\n") >>
->                                  putStrLn (printSqlAnn show [st])) info
+>                let aast = annotateAstScope scope sts
+>                mapM_ (putStrLn . printSqlAnn annotToS . (:[])) aast
+>     annotToS :: Annotation -> String
+>     annotToS a = concat $ intersperse "\n" $ map show a
 
 ================================================================================
 
