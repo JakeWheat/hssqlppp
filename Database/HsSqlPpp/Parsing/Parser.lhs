@@ -28,7 +28,7 @@ The parsers are written top down as you go through the file, so the
 top level sql text parsers appear first, then the statements, then the
 fragments, then the utility parsers and other utilities at the bottom.
 
-> module Database.HsSqlPpp.Parser (
+> module Database.HsSqlPpp.Parsing.Parser (
 >               --parse fully formed sql statements from a string
 >               parseSql
 >               --parse a file containing sql statements only
@@ -51,9 +51,9 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Data.Maybe
 > import Data.Char
 
-> import Database.HsSqlPpp.Lexer
-> import Database.HsSqlPpp.ParseErrors
-> import Database.HsSqlPpp.Ast as A
+> import Database.HsSqlPpp.Parsing.Lexer
+> import Database.HsSqlPpp.Parsing.ParseErrors
+> import Database.HsSqlPpp.TypeChecking.Ast as A
 
 > type MySourcePos = (String,Int,Int)
 > type ParseState = [MySourcePos]

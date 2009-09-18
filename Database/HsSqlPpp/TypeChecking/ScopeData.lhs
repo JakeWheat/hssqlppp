@@ -6,7 +6,7 @@ to the type checking routines if you want to supply different/extra
 definitions before type checking something, and you're not getting the
 extra definitions from an accessible database.
 
-> module Database.HsSqlPpp.ScopeData
+> module Database.HsSqlPpp.TypeChecking.ScopeData
 >     (
 >      Scope(..)
 >      ,QualifiedScope
@@ -20,7 +20,7 @@ extra definitions from an accessible database.
 > import Data.List
 > import Debug.Trace
 
-> import Database.HsSqlPpp.TypeType
+> import Database.HsSqlPpp.TypeChecking.TypeType
 
 > data Scope = Scope {scopeTypes :: [Type]
 >                    ,scopeTypeNames :: [(String, Type)]

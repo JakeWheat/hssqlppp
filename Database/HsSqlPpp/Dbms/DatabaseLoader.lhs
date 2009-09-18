@@ -28,7 +28,7 @@ pretty printed stuff, don't know how much help this will be.
 
 This code is currently on the backburner, and is a massive mess.
 
-> module Database.HsSqlPpp.DatabaseLoader
+> module Database.HsSqlPpp.Dbms.DatabaseLoader
 >     (
 >      loadIntoDatabase
 >     ) where
@@ -41,9 +41,9 @@ This code is currently on the backburner, and is a massive mess.
 > import Data.List
 > import Data.Maybe
 
-> import Database.HsSqlPpp.PrettyPrinter
-> import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.DBAccess
+> import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
+> import Database.HsSqlPpp.TypeChecking.Ast as Ast
+> import Database.HsSqlPpp.Dbms.DBAccess
 
 > loadIntoDatabase :: String -> String -> StatementList -> IO ()
 > loadIntoDatabase dbName fn ast =
@@ -92,9 +92,9 @@ This code is currently on the backburner, and is a massive mess.
 >               runSqlCommand conn "create procedural language plpgsql;"
 >     readInt x = read x :: Int
 
-> data Wrapper = CopyStdin Database.HsSqlPpp.Ast.Statement Database.HsSqlPpp.Ast.Statement
+> data Wrapper = CopyStdin Ast.Statement Ast.Statement
 >              | Skipit
->              | VanillaStatement Database.HsSqlPpp.Ast.Statement
+>              | VanillaStatement Ast.Statement
 
 ================================================================================
 
@@ -173,7 +173,7 @@ though
  >                            _ -> 0
  >     getLineStuffLength l = length (l =~ "^LINE ([0-9]+):" :: String) + 1
 
-> handleError :: String -> (String,Int,Int) -> Database.HsSqlPpp.Ast.Statement -> IO () -> IO ()
+> handleError :: String -> (String,Int,Int) -> Ast.Statement -> IO () -> IO ()
 > handleError fn (_, sl,sc) _ f = catchSql f
 >                    (\e -> do
 >                      --s <- readFile fn

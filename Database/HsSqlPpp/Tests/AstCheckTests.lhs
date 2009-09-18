@@ -2,7 +2,7 @@ Copyright 2009 Jake Wheat
 
 Set of tests to check the type checking code
 
-> module Database.HsSqlPpp.AstCheckTests (astCheckTests) where
+> module Database.HsSqlPpp.Tests.AstCheckTests (astCheckTests) where
 
 > import Test.HUnit
 > import Test.Framework
@@ -11,11 +11,11 @@ Set of tests to check the type checking code
 > import Control.Arrow
 > import Debug.Trace
 
-> import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.Scope
-> import Database.HsSqlPpp.ScopeData
-> import Database.HsSqlPpp.TypeType
+> import Database.HsSqlPpp.TypeChecking.Ast
+> import Database.HsSqlPpp.Parsing.Parser
+> import Database.HsSqlPpp.TypeChecking.Scope
+> import Database.HsSqlPpp.TypeChecking.ScopeData
+> import Database.HsSqlPpp.TypeChecking.TypeType
 
 > astCheckTests :: Test.Framework.Test
 > astCheckTests = testGroup "astCheckTests" [

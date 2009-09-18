@@ -4,7 +4,7 @@ This module just forwards the public components of ScopeData,
 ScopeReader and DefaultScope. Some of the exported functions in
 ScopeData are only used by the type checker and are not fowarded.
 
-> module Database.HsSqlPpp.Scope
+> module Database.HsSqlPpp.TypeChecking.Scope
 >     (
 >     --fowarded scopedata
 >      Scope(..)
@@ -17,6 +17,6 @@ ScopeData are only used by the type checker and are not fowarded.
 >      ,defaultScope
 > ) where
 
-> import Database.HsSqlPpp.ScopeData
-> import Database.HsSqlPpp.ScopeReader
-> import Database.HsSqlPpp.DefaultScope
+> import Database.HsSqlPpp.TypeChecking.ScopeData
+> import Database.HsSqlPpp.TypeChecking.ScopeReader
+> import Database.HsSqlPpp.TypeChecking.DefaultScope

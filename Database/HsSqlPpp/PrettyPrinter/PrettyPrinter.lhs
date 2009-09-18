@@ -9,7 +9,7 @@ layout better.
 
 Not much other comments, since it all should be pretty self evident.
 
-> module Database.HsSqlPpp.PrettyPrinter (
+> module Database.HsSqlPpp.PrettyPrinter.PrettyPrinter (
 >                       --convert a sql ast to text
 >                       printSql
 >                      ,printSqlAnn
@@ -22,8 +22,8 @@ Not much other comments, since it all should be pretty self evident.
 > import Data.List (stripPrefix)
 > import Data.Maybe
 
-> import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.TypeType
+> import Database.HsSqlPpp.TypeChecking.Ast
+> import Database.HsSqlPpp.TypeChecking.TypeType
 
 ================================================================================
 

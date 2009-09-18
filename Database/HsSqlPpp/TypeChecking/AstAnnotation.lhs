@@ -10,7 +10,7 @@ grammar code and aren't exposed.
 
 > {-# OPTIONS -fglasgow-exts #-}
 
-> module Database.HsSqlPpp.AstAnnotation
+> module Database.HsSqlPpp.TypeChecking.AstAnnotation
 >     (
 >      Annotated(..)
 >     ,Annotation
@@ -24,7 +24,7 @@ grammar code and aren't exposed.
 >     ,getSIAnnotation
 >     ) where
 
-> import Database.HsSqlPpp.TypeType
+> import Database.HsSqlPpp.TypeChecking.TypeType
 
 > type Annotation = [AnnotationElement]
 

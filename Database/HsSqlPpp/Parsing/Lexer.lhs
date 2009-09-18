@@ -12,7 +12,7 @@ int
 float
 copy payload (used to lex copy from stdin data)
 
-> module Database.HsSqlPpp.Lexer (
+> module Database.HsSqlPpp.Parsing.Lexer (
 >               Token
 >              ,Tok(..)
 >              ,lexSqlFile
@@ -29,7 +29,7 @@ copy payload (used to lex copy from stdin data)
 
 > import Data.Char
 
-> import Database.HsSqlPpp.ParseErrors
+> import Database.HsSqlPpp.Parsing.ParseErrors
 
 ================================================================================
 

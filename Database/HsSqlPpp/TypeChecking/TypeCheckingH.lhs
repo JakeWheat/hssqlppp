@@ -3,17 +3,17 @@
 This file contains some utility functions for working with types and
 type checking.
 
-> module Database.HsSqlPpp.TypeCheckingH where
+> module Database.HsSqlPpp.TypeChecking.TypeCheckingH where
 
 > import Data.Maybe
 > import Data.List
 > import Debug.Trace
 > import Data.Either
 
-> import Database.HsSqlPpp.TypeType
-> import Database.HsSqlPpp.AstUtils
-> import Database.HsSqlPpp.TypeConversion
-> import Database.HsSqlPpp.ScopeData
+> import Database.HsSqlPpp.TypeChecking.TypeType
+> import Database.HsSqlPpp.TypeChecking.AstUtils
+> import Database.HsSqlPpp.TypeChecking.TypeConversion
+> import Database.HsSqlPpp.TypeChecking.ScopeData
 
 
 

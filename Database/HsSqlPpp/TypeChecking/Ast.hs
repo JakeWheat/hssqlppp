@@ -1,7 +1,7 @@
 
 
 -- UUAGC 0.9.10 (Ast.ag)
-module Database.HsSqlPpp.Ast(
+module Database.HsSqlPpp.TypeChecking.Ast(
     --from the ag files:
     --ast nodes
     Statement (..)
@@ -71,13 +71,13 @@ import Debug.Trace
 import Control.Monad.Error
 import Control.Arrow
 
-import Database.HsSqlPpp.TypeType
-import Database.HsSqlPpp.AstUtils
-import Database.HsSqlPpp.TypeConversion
-import Database.HsSqlPpp.TypeCheckingH
-import Database.HsSqlPpp.Scope
-import Database.HsSqlPpp.ScopeData
-import Database.HsSqlPpp.AstAnnotation
+import Database.HsSqlPpp.TypeChecking.TypeType
+import Database.HsSqlPpp.TypeChecking.AstUtils
+import Database.HsSqlPpp.TypeChecking.TypeConversion
+import Database.HsSqlPpp.TypeChecking.TypeCheckingH
+import Database.HsSqlPpp.TypeChecking.Scope
+import Database.HsSqlPpp.TypeChecking.ScopeData
+import Database.HsSqlPpp.TypeChecking.AstAnnotation
 
 
 

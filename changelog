@@ -1,3 +1,7 @@
+annotated tree
+
+in progress: now uses annotations inline in the ast as part of the
+progress towards having a semi sane api
 
 secondtypechecking
 

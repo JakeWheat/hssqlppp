@@ -3,7 +3,7 @@ Copyright 2009 Jake Wheat
 This file contains a bunch of small low level utilities to help with
 type checking.
 
-> module Database.HsSqlPpp.AstUtils
+> module Database.HsSqlPpp.TypeChecking.AstUtils
 >     (
 >      OperatorType(..)
 >     ,getOperatorType
@@ -30,9 +30,9 @@ type checking.
 > import Data.List
 > import Control.Monad.Error
 
-> import Database.HsSqlPpp.TypeType
-> import Database.HsSqlPpp.Scope
-> import Database.HsSqlPpp.DefaultScope
+> import Database.HsSqlPpp.TypeChecking.TypeType
+> import Database.HsSqlPpp.TypeChecking.Scope
+> import Database.HsSqlPpp.TypeChecking.DefaultScope
 
 ================================================================================
 
