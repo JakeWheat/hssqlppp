@@ -419,6 +419,17 @@ SEM ExpressionList
     | Nil lhs.typeList = []
 
 
+ATTR ExpressionListList
+     [
+     |
+     | typeListList : {[[Type]]}
+     ]
+
+SEM ExpressionListList
+    | Cons lhs.typeListList = @hd.typeList : @tl.typeListList
+    | Nil lhs.typeListList = []
+
+
 {-
 ================================================================================
 
@@ -479,11 +490,13 @@ SEM SelectExpression
                                 map TypeErrorA @loc.typeErrors) ++)
 
 
+
+
 SEM SelectExpression
     | Values
-        loc.tpe = Right TypeCheckFailed --typeCheckValuesExpr
-                  --            @lhs.scope
-                  --            @vll.nodeType
+        loc.tpe = typeCheckValuesExpr
+                              @lhs.scope
+                              @vll.typeListList
         loc.backTree = Values @ann @vll.annotatedTree
     | Select
         loc.tpe =

@@ -599,7 +599,7 @@ insert
 > checkAttrs :: String -> [Message] -> Test.Framework.Test
 > checkAttrs src msgs = testCase ("check " ++ src) $ do
 >   let ast = case parseSql src of
->                Left er -> error $ show er
+>                Left er -> assertFailure $ show er
 >                Right l -> l
 >       msgs1 = checkAst ast
 >   assertEqual ("check " ++ src) msgs msgs1
@@ -613,13 +613,11 @@ insert
 >       aast = annotateExpression scope ast
 >       ty = getTopLevelTypes [aast]
 >       er = getTypeErrors [aast]
->       combo :: Either [TypeError] Type
->       combo = if length er /= 0
->                 then Left er
->                 else Right $ head ty
->   in if length er == 0 || ty == [TypeCheckFailed]
->        then assertEqual ("typecheck " ++ src) typ combo
->        else error "didn't get the right number of types and errors"
+>   in case (length er, length ty) of
+>        (0,0) -> assertFailure "didn't get any types?"
+>        (0,1) -> assertEqual ("typecheck " ++ src) typ $ Right $ head ty
+>        (0,_) -> assertFailure "got too many types"
+>        _ -> assertEqual ("typecheck " ++ src) typ $ Left er
 
 > checkStatementInfo :: String -> Either [TypeError] [StatementInfo] -> Test.Framework.Test
 > checkStatementInfo src sis = testCase ("typecheck " ++ src) $
@@ -629,11 +627,13 @@ insert
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
 >       er = getTypeErrors aast
->       combo :: Either [TypeError] [StatementInfo]
->       combo = if length er /= 0
->                 then Left er
->                 else Right is
->   in assertEqual ("typecheck " ++ src) sis combo
+>   in case (length er, length is) of
+>        (0,0) -> assertFailure "didn't get any infos?"
+>        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
+>        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
+
+
+ >   in {-trace (show aast) $-} assertEqual ("typecheck " ++ src) sis combo
 
 
 > {-

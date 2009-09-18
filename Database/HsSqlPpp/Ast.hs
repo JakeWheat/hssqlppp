@@ -260,8 +260,8 @@ instance Annotated Statement where
      -- doCases cs = map (\(ex,sts) -> (ex,cars f sts)) cs
   getAnnChildren st =
     case st of
-        SelectStatement _ ex -> mp $ gacse ex
-        Insert _ _ _ ins _ -> mp $ gacse ins
+        SelectStatement _ ex -> gacse ex
+        Insert _ _ _ ins _ -> gacse ins
         Update _ _ as whr _ -> mp (gacscl as) ++ gacme whr
         Delete _ _ whr _ -> gacme whr
         --Copy _ _ _ _ -> []
@@ -269,7 +269,7 @@ instance Annotated Statement where
         --Truncate _ _ _ _ -> []
         --CreateTable _ _ _ _ -> []
         --CreateTableAs _ _ _ -> []
-        CreateView _ _ expr -> mp $ gacse expr
+        CreateView _ _ expr -> gacse expr
         --CreateType _ _ _ -> []
         --CreateFunction a lang name params rettype bodyQuote body vol ->
         CreateFunction _ _    _    _      _       _         body _   ->
@@ -288,7 +288,7 @@ instance Annotated Statement where
         --Perform a expr -> Perform (f a) expr
         --Execute a expr -> Execute (f a) expr
         --ExecuteInto a expr tgts -> ExecuteInto (f a) expr tgts
-        ForSelectStatement _ _ sel sts -> mp $ gacse sel ++ sts
+        ForSelectStatement _ _ sel sts -> gacse sel ++ mp sts
         ForIntegerStatement _ _ _ _ sts -> mp sts
         WhileStatement _ expr sts -> pack expr : mp sts
         --ContinueStatement a -> ContinueStatement (f a)
@@ -297,8 +297,8 @@ instance Annotated Statement where
         _ -> []
     where
       doCases cs = concatMap snd cs
-      gacse :: Annotated a => SelectExpression -> [a]
-      gacse _ = []
+      --gacse :: Annotated a => SelectExpression -> [a]
+      gacse se = [pack se]
       gacscl :: Annotated a => SetClauseList -> [a]
       gacscl _ = []
       --gacme :: Annotated a => Maybe Expression -> [a]
@@ -368,7 +368,7 @@ instance Annotated Expression where
       Cast _ expr _ -> mp [expr]
       Case _ cases els -> gacce cases els
       CaseSimple _ val cases els -> pack val : gacce cases els
-      --Exists a sel -> Exists (f a) sel
+      Exists a sel -> [pack sel]
       FunCall _ _ args -> mp args
       --InPredicate a expr i list -> InPredicate (f a) expr i list
       --WindowFn a fn par ord dir -> WindowFn (f a) fn par ord dir
@@ -405,7 +405,21 @@ instance Annotated SelectExpression where
       Values a vll -> Values (f a) vll
   getAnnChildren ex =
     case ex of
-      _ -> []
+      Select a dis sl tref whr grp hav ord dir lim off ->
+          doSl ++ doME whr ++ mp grp ++ doME hav ++ mp ord ++ doME lim ++ doME off
+          where
+            doSl = let SelectList x _ = sl
+                       ses = map (\s -> case s of
+                                         SelExp se -> se
+                                         SelectItem se _ -> se) x
+                   in map pack ses
+            doME me = case me of
+                        Nothing -> []
+                        Just e -> [pack e]
+      CombineSelect _ _ sel1 sel2 -> [pack sel1,pack sel2]
+      Values _ vll -> mp $ concat vll
+    where
+      mp = map pack
 
 instance Annotated TableRef where
   ann a =
@@ -1840,27 +1854,31 @@ sem_ExpressionListList list  =
     (Prelude.foldr sem_ExpressionListList_Cons sem_ExpressionListList_Nil (Prelude.map sem_ExpressionList list) )
 -- semantic domain
 type T_ExpressionListList  = Scope ->
-                             ( ExpressionListList)
+                             ( ExpressionListList,([[Type]]))
 data Inh_ExpressionListList  = Inh_ExpressionListList {scope_Inh_ExpressionListList :: Scope}
-data Syn_ExpressionListList  = Syn_ExpressionListList {annotatedTree_Syn_ExpressionListList :: ExpressionListList}
+data Syn_ExpressionListList  = Syn_ExpressionListList {annotatedTree_Syn_ExpressionListList :: ExpressionListList,typeListList_Syn_ExpressionListList :: [[Type]]}
 wrap_ExpressionListList :: T_ExpressionListList  ->
                            Inh_ExpressionListList  ->
                            Syn_ExpressionListList 
 wrap_ExpressionListList sem (Inh_ExpressionListList _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOtypeListList) =
              (sem _lhsIscope )
-     in  (Syn_ExpressionListList _lhsOannotatedTree ))
+     in  (Syn_ExpressionListList _lhsOannotatedTree _lhsOtypeListList ))
 sem_ExpressionListList_Cons :: T_ExpressionList  ->
                                T_ExpressionListList  ->
                                T_ExpressionListList 
 sem_ExpressionListList_Cons hd_ tl_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: ExpressionListList
+         (let _lhsOtypeListList :: ([[Type]])
+              _lhsOannotatedTree :: ExpressionListList
               _hdOscope :: Scope
               _tlOscope :: Scope
               _hdIannotatedTree :: ExpressionList
               _hdItypeList :: ([Type])
               _tlIannotatedTree :: ExpressionListList
+              _tlItypeListList :: ([[Type]])
+              _lhsOtypeListList =
+                  _hdItypeList : _tlItypeListList
               _annotatedTree =
                   (:) _hdIannotatedTree _tlIannotatedTree
               _lhsOannotatedTree =
@@ -1871,18 +1889,21 @@ sem_ExpressionListList_Cons hd_ tl_  =
                   _lhsIscope
               ( _hdIannotatedTree,_hdItypeList) =
                   (hd_ _hdOscope )
-              ( _tlIannotatedTree) =
+              ( _tlIannotatedTree,_tlItypeListList) =
                   (tl_ _tlOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOtypeListList)))
 sem_ExpressionListList_Nil :: T_ExpressionListList 
 sem_ExpressionListList_Nil  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: ExpressionListList
+         (let _lhsOtypeListList :: ([[Type]])
+              _lhsOannotatedTree :: ExpressionListList
+              _lhsOtypeListList =
+                  []
               _annotatedTree =
                   []
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOtypeListList)))
 -- ExpressionListStatementListPair -----------------------------
 type ExpressionListStatementListPair  = ( (ExpressionList),(StatementList))
 -- cata
@@ -3295,6 +3316,7 @@ sem_SelectExpression_Values ann_ vll_  =
          (let _lhsOannotatedTree :: SelectExpression
               _vllOscope :: Scope
               _vllIannotatedTree :: ExpressionListList
+              _vllItypeListList :: ([[Type]])
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
@@ -3309,14 +3331,16 @@ sem_SelectExpression_Values ann_ vll_  =
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
               _tpe =
-                  Right TypeCheckFailed
+                  typeCheckValuesExpr
+                              _lhsIscope
+                              _vllItypeListList
               _backTree =
                   Values ann_ _vllIannotatedTree
               _annotatedTree =
                   Values ann_ _vllIannotatedTree
               _vllOscope =
                   _lhsIscope
-              ( _vllIannotatedTree) =
+              ( _vllIannotatedTree,_vllItypeListList) =
                   (vll_ _vllOscope )
           in  ( _lhsOannotatedTree)))
 -- SelectItem --------------------------------------------------
