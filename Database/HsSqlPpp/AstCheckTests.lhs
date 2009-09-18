@@ -309,28 +309,27 @@ todo:
 >      ,p "values (1,2,3),(1,2);" $ Left [ValuesListsMustBeSameLength]
 >      ])
 
->  {-  ,testGroup "simple combine selects"
->     (mapStatementType [
->      p "select 1,2  union select '3', '4';" [SetOfType $
+>    ,testGroup "simple combine selects"
+>     (mapStatementInfo [
+>      p "select 1,2  union select '3', '4';" $ Right [SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("?column?", typeInt)
 >                                      ,("?column?", typeInt)]]
->      ,p "select 1,2 intersect select 'a', true;" [TypeError
->                                      (IncompatibleTypeSet [typeInt
->                                                         ,typeBool])]
->      ,p "select '3', '4' except select 1,2;" [SetOfType $
+>      ,p "select 1,2 intersect select 'a', true;" $ Left [IncompatibleTypeSet [typeInt
+>                                                         ,typeBool]]
+>      ,p "select '3', '4' except select 1,2;" $ Right [SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("?column?", typeInt)
 >                                      ,("?column?", typeInt)]]
->      ,p "select 'a', true union select 1,2;" [TypeError
->                                      (IncompatibleTypeSet [typeBool
->                                                         ,typeInt])]
->      ,p "select 'a'::text, '2'::int2 intersect select '1','2';" [SetOfType $
+>      ,p "select 'a', true union select 1,2;"
+>                                      $ Left [IncompatibleTypeSet [typeBool
+>                                                         ,typeInt]]
+>      ,p "select 'a'::text, '2'::int2 intersect select '1','2';" $ Right [SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("text", ScalarType "text")
 >                                      ,("int2", typeSmallInt)]]
->      ,p "select 1,2,3 except select 1,2;" [TypeError ValuesListsMustBeSameLength]
->      ,p "select '3' as a, '4' as b except select 1,2;" [SetOfType $
+>      ,p "select 1,2,3 except select 1,2;" $ Left [ValuesListsMustBeSameLength]
+>      ,p "select '3' as a, '4' as b except select 1,2;" $ Right [SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("a", typeInt)
 >                                      ,("b", typeInt)]]
@@ -338,46 +337,46 @@ todo:
 
 
 >    ,testGroup "simple selects from"
->     (mapStatementType [
+>     (mapStatementInfo [
 >       p "select a from (select 1 as a, 2 as b) x;"
->         [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)]]
 >      ,p "select b from (select 1 as a, 2 as b) x;"
->         [SetOfType $ UnnamedCompositeType [("b", typeInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("b", typeInt)]]
 >      ,p "select c from (select 1 as a, 2 as b) x;"
->         [TypeError (UnrecognisedIdentifier "c")]
+>         $ Left [UnrecognisedIdentifier "c"]
 >      ,p "select typlen from pg_type;"
->         [SetOfType $ UnnamedCompositeType [("typlen", typeSmallInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("typlen", typeSmallInt)]]
 >      ,p "select oid from pg_type;"
->         [SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
 >      ,p "select p.oid from pg_type p;"
->         [SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
 >      ,p "select typlen from nope;"
->         [TypeError (UnrecognisedRelation "nope")]
+>         $ Left [UnrecognisedRelation "nope"]
 >      ,p "select generate_series from generate_series(1,7);"
->         [SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
 
 check aliasing
 
 >      ,p "select generate_series.generate_series from generate_series(1,7);"
->         [SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
 >      ,p "select g from generate_series(1,7) g;"
->         [SetOfType $ UnnamedCompositeType [("g", typeInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("g", typeInt)]]
 >      ,p "select g.g from generate_series(1,7) g;"
->         [SetOfType $ UnnamedCompositeType [("g", typeInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("g", typeInt)]]
 >      ,p "select generate_series.g from generate_series(1,7) g;"
->         [TypeError (UnrecognisedCorrelationName "generate_series")]
+>         $ Left [UnrecognisedCorrelationName "generate_series"]
 >      ,p "select g.generate_series from generate_series(1,7) g;"
->         [TypeError (UnrecognisedIdentifier "g.generate_series")]
+>         $ Left [UnrecognisedIdentifier "g.generate_series"]
 
 
 >      ,p "select * from pg_attrdef;"
->         [SetOfType $ UnnamedCompositeType
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType
 >          [("adrelid",ScalarType "oid")
 >          ,("adnum",ScalarType "int2")
 >          ,("adbin",ScalarType "text")
 >          ,("adsrc",ScalarType "text")]]
 >      ,p "select abs from abs(3);"
->         [SetOfType $ UnnamedCompositeType [("abs", typeInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("abs", typeInt)]]
 >         --todo: these are both valid,
 >         --the second one means select 3+generate_series from generate_series(1,7)
 >         --  select generate_series(1,7);
@@ -385,7 +384,7 @@ check aliasing
 >      ])
 
 
->    ,testGroup "simple selects from 2"
+>  {-  ,testGroup "simple selects from 2"
 >     (mapStatementTypeScope [
 >
 >       t "select a,b from testfunc();"
