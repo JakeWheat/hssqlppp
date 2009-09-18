@@ -282,3 +282,8 @@ returns the type of the relation, and the system columns also
 >            then Nothing
 >            else Just errs
 
+> checkRelationExists :: Scope -> String -> Maybe TypeError
+> checkRelationExists scope tbl =
+>           case getAttrs scope [TableComposite, ViewComposite] tbl of
+>             Just _ -> Nothing
+>             _ -> Just $ UnrecognisedRelation tbl

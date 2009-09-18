@@ -513,6 +513,11 @@ fixStar ex =
 
 fixedValue :: a -> a -> a -> a
 fixedValue a _ _ = a
+
+
+getRowTypes :: [Type] -> [Type]
+getRowTypes [RowCtor ts] = ts
+getRowTypes ts = ts
 -- AttributeDef ------------------------------------------------
 data AttributeDef  = AttributeDef (String) (TypeName) (Maybe Expression) (RowConstraintList) 
                    deriving ( Eq,Show)
@@ -3625,32 +3630,44 @@ sem_SetClause (SetClause _att _val )  =
     (sem_SetClause_SetClause _att (sem_Expression _val ) )
 -- semantic domain
 type T_SetClause  = Scope ->
-                    ( SetClause)
+                    ( SetClause,([(String,Type)]),(Maybe TypeError))
 data Inh_SetClause  = Inh_SetClause {scope_Inh_SetClause :: Scope}
-data Syn_SetClause  = Syn_SetClause {annotatedTree_Syn_SetClause :: SetClause}
+data Syn_SetClause  = Syn_SetClause {annotatedTree_Syn_SetClause :: SetClause,pairs_Syn_SetClause :: [(String,Type)],rowSetError_Syn_SetClause :: Maybe TypeError}
 wrap_SetClause :: T_SetClause  ->
                   Inh_SetClause  ->
                   Syn_SetClause 
 wrap_SetClause sem (Inh_SetClause _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOpairs,_lhsOrowSetError) =
              (sem _lhsIscope )
-     in  (Syn_SetClause _lhsOannotatedTree ))
+     in  (Syn_SetClause _lhsOannotatedTree _lhsOpairs _lhsOrowSetError ))
 sem_SetClause_RowSetClause :: T_StringList  ->
                               T_ExpressionList  ->
                               T_SetClause 
 sem_SetClause_RowSetClause atts_ vals_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: SetClause
+         (let _lhsOpairs :: ([(String,Type)])
+              _lhsOannotatedTree :: SetClause
+              _lhsOrowSetError :: (Maybe TypeError)
               _attsOscope :: Scope
               _valsOscope :: Scope
               _attsIannotatedTree :: StringList
               _attsIstrings :: ([String])
               _valsIannotatedTree :: ExpressionList
               _valsItypeList :: ([Type])
+              _rowSetError =
+                  let atts = _attsIstrings
+                      types = getRowTypes _valsItypeList
+                  in if length atts /= length types
+                       then Just WrongNumberOfColumns
+                       else Nothing
+              _lhsOpairs =
+                  zip _attsIstrings $ getRowTypes _valsItypeList
               _annotatedTree =
                   RowSetClause _attsIannotatedTree _valsIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
+              _lhsOrowSetError =
+                  _rowSetError
               _attsOscope =
                   _lhsIscope
               _valsOscope =
@@ -3659,16 +3676,22 @@ sem_SetClause_RowSetClause atts_ vals_  =
                   (atts_ _attsOscope )
               ( _valsIannotatedTree,_valsItypeList) =
                   (vals_ _valsOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOpairs,_lhsOrowSetError)))
 sem_SetClause_SetClause :: String ->
                            T_Expression  ->
                            T_SetClause 
 sem_SetClause_SetClause att_ val_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: SetClause
+         (let _lhsOpairs :: ([(String,Type)])
+              _lhsOrowSetError :: (Maybe TypeError)
+              _lhsOannotatedTree :: SetClause
               _valOscope :: Scope
               _valIannotatedTree :: Expression
               _valIliftedColumnName :: String
+              _lhsOpairs =
+                  [(att_, getTypeAnnotation _valIannotatedTree)]
+              _lhsOrowSetError =
+                  Nothing
               _annotatedTree =
                   SetClause att_ _valIannotatedTree
               _lhsOannotatedTree =
@@ -3677,7 +3700,7 @@ sem_SetClause_SetClause att_ val_  =
                   _lhsIscope
               ( _valIannotatedTree,_valIliftedColumnName) =
                   (val_ _valOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOpairs,_lhsOrowSetError)))
 -- SetClauseList -----------------------------------------------
 type SetClauseList  = [(SetClause)]
 -- cata
@@ -3687,26 +3710,36 @@ sem_SetClauseList list  =
     (Prelude.foldr sem_SetClauseList_Cons sem_SetClauseList_Nil (Prelude.map sem_SetClause list) )
 -- semantic domain
 type T_SetClauseList  = Scope ->
-                        ( SetClauseList)
+                        ( SetClauseList,([(String,Type)]),([TypeError]))
 data Inh_SetClauseList  = Inh_SetClauseList {scope_Inh_SetClauseList :: Scope}
-data Syn_SetClauseList  = Syn_SetClauseList {annotatedTree_Syn_SetClauseList :: SetClauseList}
+data Syn_SetClauseList  = Syn_SetClauseList {annotatedTree_Syn_SetClauseList :: SetClauseList,pairs_Syn_SetClauseList :: [(String,Type)],rowSetErrors_Syn_SetClauseList :: [TypeError]}
 wrap_SetClauseList :: T_SetClauseList  ->
                       Inh_SetClauseList  ->
                       Syn_SetClauseList 
 wrap_SetClauseList sem (Inh_SetClauseList _lhsIscope )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOpairs,_lhsOrowSetErrors) =
              (sem _lhsIscope )
-     in  (Syn_SetClauseList _lhsOannotatedTree ))
+     in  (Syn_SetClauseList _lhsOannotatedTree _lhsOpairs _lhsOrowSetErrors ))
 sem_SetClauseList_Cons :: T_SetClause  ->
                           T_SetClauseList  ->
                           T_SetClauseList 
 sem_SetClauseList_Cons hd_ tl_  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: SetClauseList
+         (let _lhsOpairs :: ([(String,Type)])
+              _lhsOrowSetErrors :: ([TypeError])
+              _lhsOannotatedTree :: SetClauseList
               _hdOscope :: Scope
               _tlOscope :: Scope
               _hdIannotatedTree :: SetClause
+              _hdIpairs :: ([(String,Type)])
+              _hdIrowSetError :: (Maybe TypeError)
               _tlIannotatedTree :: SetClauseList
+              _tlIpairs :: ([(String,Type)])
+              _tlIrowSetErrors :: ([TypeError])
+              _lhsOpairs =
+                  _hdIpairs ++ _tlIpairs
+              _lhsOrowSetErrors =
+                  maybeToList _hdIrowSetError ++ _tlIrowSetErrors
               _annotatedTree =
                   (:) _hdIannotatedTree _tlIannotatedTree
               _lhsOannotatedTree =
@@ -3715,20 +3748,26 @@ sem_SetClauseList_Cons hd_ tl_  =
                   _lhsIscope
               _tlOscope =
                   _lhsIscope
-              ( _hdIannotatedTree) =
+              ( _hdIannotatedTree,_hdIpairs,_hdIrowSetError) =
                   (hd_ _hdOscope )
-              ( _tlIannotatedTree) =
+              ( _tlIannotatedTree,_tlIpairs,_tlIrowSetErrors) =
                   (tl_ _tlOscope )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOpairs,_lhsOrowSetErrors)))
 sem_SetClauseList_Nil :: T_SetClauseList 
 sem_SetClauseList_Nil  =
     (\ _lhsIscope ->
-         (let _lhsOannotatedTree :: SetClauseList
+         (let _lhsOpairs :: ([(String,Type)])
+              _lhsOrowSetErrors :: ([TypeError])
+              _lhsOannotatedTree :: SetClauseList
+              _lhsOpairs =
+                  []
+              _lhsOrowSetErrors =
+                  []
               _annotatedTree =
                   []
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOpairs,_lhsOrowSetErrors)))
 -- Statement ---------------------------------------------------
 data Statement  = Assignment (Annotation) (String) (Expression) 
                 | CaseStatement (Annotation) (Expression) (ExpressionListStatementListPairList) (StatementList) 
@@ -4533,16 +4572,63 @@ sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
               _assignsOscope :: Scope
               _whrOscope :: Scope
               _assignsIannotatedTree :: SetClauseList
+              _assignsIpairs :: ([(String,Type)])
+              _assignsIrowSetErrors :: ([TypeError])
               _whrIannotatedTree :: Where
+              _nt =
+                  case _tpe     of
+                    Left _ -> TypeCheckFailed
+                    Right TypeCheckFailed -> TypeCheckFailed
+                    Right t -> t
+              _typeErrors =
+                  case _tpe     of
+                   Left a@(_) -> [a]
+                   Right b -> []
+              _lhsOannotatedTree =
+                  changeAnn _backTree     $
+                    (([TypeAnnotation _nt
+                      ,StatementInfoA _statementInfo    ] ++
+                      map TypeErrorA _typeErrors    ) ++)
+              _tpe =
+                  let errs1 = catMaybes [
+                         tblExists
+                        ,whereBool]
+                      assignsFail = any (==TypeCheckFailed) $ map snd _assignsIpairs
+                  in if not (null errs1)
+                       then Left $ head errs1
+                       else if assignsFail
+                              then Right TypeCheckFailed
+                              else
+                                case length _assignsIrowSetErrors of
+                                  0 -> case _columnsConsistent     of
+                                         Left er -> Left $ head er
+                                         Right _ ->Right $ Pseudo Void
+                                  _ -> Left $ head _assignsIrowSetErrors
+                  where
+                    tblExists = checkRelationExists _lhsIscope table_
+                    whereBool = case fmap getTypeAnnotation _whrIannotatedTree of
+                                  Nothing -> Nothing
+                                  Just x | x == typeBool -> Nothing
+                                         | x == TypeCheckFailed -> Nothing
+                                         | otherwise -> Just ExpressionMustBeBool
+              _columnsConsistent =
+                  checkColumnConsistency _lhsIscope table_ (map fst _assignsIpairs) _assignsIpairs
+              _statementInfo =
+                  UpdateInfo table_ $ case _columnsConsistent     of
+                                        Left _ -> TypeCheckFailed
+                                        Right c -> let colNames = map fst _assignsIpairs
+                                                   in UnnamedCompositeType $ map (\t -> (t,getType c t)) colNames
+                  where
+                    getType cols t = fromJust $ lookup t cols
+              _backTree =
+                  Update ann_ table_ _assignsIannotatedTree _whrIannotatedTree returning_
               _annotatedTree =
                   Update ann_ table_ _assignsIannotatedTree _whrIannotatedTree returning_
-              _lhsOannotatedTree =
-                  _annotatedTree
               _assignsOscope =
                   _lhsIscope
               _whrOscope =
                   _lhsIscope
-              ( _assignsIannotatedTree) =
+              ( _assignsIannotatedTree,_assignsIpairs,_assignsIrowSetErrors) =
                   (assigns_ _assignsOscope )
               ( _whrIannotatedTree) =
                   (whr_ _whrOscope )

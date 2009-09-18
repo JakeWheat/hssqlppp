@@ -455,7 +455,7 @@ SEM Statement
 -}
 
 SEM Statement
-    | SelectStatement Insert
+    | SelectStatement Insert Update
         loc.nt = case @loc.tpe of
                    Left _ -> TypeCheckFailed
                    Right TypeCheckFailed -> TypeCheckFailed
@@ -845,7 +845,6 @@ SEM StringList
   | Nil lhs.strings = []
 
 {-
-{-
 ================================================================================
 
 = update
@@ -853,57 +852,81 @@ SEM StringList
 -}
 SEM Statement
     | Update
-        lhs.nodeType =
-          checkErrors [checkTableExists @lhs.scope @table
-                      ,@whr.nodeType
-                      ,@assigns.nodeType
-                      ,checkColumnConsistency @lhs.scope
-                                              @table colNames colTypes]
-            @assigns.nodeType
-          where
-            colNames = map fst @assigns.pairs
-            colTypes = @assigns.pairs
-        lhs.statementInfo =
-          makeStatementInfo @lhs.backType $ UpdateInfo @table $
-            UnnamedCompositeType $ getColumnTypes @lhs.scope @table $ map fst @assigns.pairs
+        loc.tpe =
+            let errs1 = catMaybes [
+                   tblExists
+                  ,whereBool]
+                assignsFail = any (==TypeCheckFailed) $ map snd @assigns.pairs
+            in if not (null errs1)
+                 then Left $ head errs1
+                 else if assignsFail
+                        then Right TypeCheckFailed
+                        else
+                          case length @assigns.rowSetErrors of
+                            0 -> case @loc.columnsConsistent of
+                                   Left er -> Left $ head er
+                                   Right _ ->Right $ Pseudo Void
+                            _ -> Left $ head @assigns.rowSetErrors
+
+            where
+              tblExists = checkRelationExists @lhs.scope @table
+              whereBool = case fmap getTypeAnnotation @whr.annotatedTree of
+                            Nothing -> Nothing
+                            Just x | x == typeBool -> Nothing
+                                   | x == TypeCheckFailed -> Nothing
+                                   | otherwise -> Just ExpressionMustBeBool
+        loc.columnsConsistent =
+            checkColumnConsistency @lhs.scope @table (map fst @assigns.pairs) @assigns.pairs
+        loc.statementInfo =
+            UpdateInfo @table $ case @loc.columnsConsistent of
+                                  Left _ -> TypeCheckFailed
+                                  Right c -> let colNames = map fst @assigns.pairs
+                                             in UnnamedCompositeType $ map (\t -> (t,getType c t)) colNames
+            where
+              getType cols t = fromJust $ lookup t cols
+        loc.backTree = Update @ann @table @assigns.annotatedTree @whr.annotatedTree @returning
 
 ATTR SetClauseList
      [
      |
      | pairs : {[(String,Type)]}
+       rowSetErrors : {[TypeError]}
      ]
+
+SEM SetClauseList
+  | Cons lhs.pairs = @hd.pairs ++ @tl.pairs
+         lhs.rowSetErrors = maybeToList @hd.rowSetError ++ @tl.rowSetErrors
+  | Nil lhs.pairs = []
+        lhs.rowSetErrors = []
 
 ATTR SetClause
      [
      |
      | pairs : {[(String,Type)]}
+       rowSetError : {Maybe TypeError}
      ]
 
-SEM SetClauseList
-  | Cons lhs.pairs = @hd.pairs ++ @tl.pairs
-  | Nil lhs.pairs = []
 
 SEM SetClause
     | SetClause
-        lhs.nodeType = checkErrors [@val.nodeType] $ TypeList []
-        lhs.pairs = [(@att, @val.nodeType)]
+        lhs.pairs = [(@att, getTypeAnnotation @val.annotatedTree)]
+        lhs.rowSetError = Nothing
     | RowSetClause
-        lhs.nodeType =
+        loc.rowSetError =
           let atts = @atts.strings
-              types = getRowTypes @vals.nodeType
-              lengthError = if length atts /= length types
-                              then TypeError WrongNumberOfColumns
-                              else TypeList []
-          in checkErrors [lengthError] $ TypeList []
-        lhs.pairs = zip @atts.strings $ getRowTypes @vals.nodeType
+              types = getRowTypes @vals.typeList
+          in if length atts /= length types
+               then Just WrongNumberOfColumns
+               else Nothing
+        lhs.pairs = zip @atts.strings $ getRowTypes @vals.typeList
 
 {
-getRowTypes :: Type -> [Type]
-getRowTypes (TypeList [(RowCtor ts)]) = ts
-getRowTypes (TypeList ts) = ts
-getRowTypes x = error $ "cannot get row types from " ++ show x
+getRowTypes :: [Type] -> [Type]
+getRowTypes [RowCtor ts] = ts
+getRowTypes ts = ts
 }
 
+{-
 {-
 ================================================================================
 

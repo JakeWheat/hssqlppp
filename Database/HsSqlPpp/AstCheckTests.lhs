@@ -554,28 +554,28 @@ insert
 
 >      ])
 
-> {-   ,testGroup "update"
+>    ,testGroup "update"
 >     (mapStatementInfo [
 >       p "update nope set a = 1;"
->         [DefaultStatementInfo (TypeError (UnrecognisedRelation "nope"))]
+>         $ Left [UnrecognisedRelation "nope"]
 >      ,p "update pg_attrdef set adsrc = '' where 1;"
->         [DefaultStatementInfo (TypeError ExpressionMustBeBool)]
+>         $ Left [ExpressionMustBeBool]
 >      ,p "update pg_attrdef set (adbin,adsrc) = ('a','b','c');"
->         [DefaultStatementInfo (TypeError WrongNumberOfColumns)]
+>         $ Left [WrongNumberOfColumns]
 >      ,p "update pg_attrdef set (adrelid,adsrc) = (true,'b');"
->         [DefaultStatementInfo (TypeError (IncompatibleTypes (ScalarType "oid") typeBool))]
+>         $ Left [IncompatibleTypes (ScalarType "oid") typeBool]
 >      ,p "update pg_attrdef set (shmadrelid,adsrc) = ('a','b');"
->         [DefaultStatementInfo (TypeError (UnrecognisedIdentifier "shmadrelid"))]
+>         $ Left [UnrecognisedIdentifier "shmadrelid"]
 >      ,p "update pg_attrdef set adsrc='';"
->         [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
+>         $ Right [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
 >      ,p "update pg_attrdef set adsrc='' where 1=2;"
->         [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
+>         $ Right [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
 >       -- TODO: actually, pg doesn't support this so need to generate error instead
 >      ,p "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
->         [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adbin",ScalarType "text"),("adsrc",ScalarType "text")])]
+>         $ Right [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adbin",ScalarType "text"),("adsrc",ScalarType "text")])]
 >      ])
 
->    ,testGroup "delete"
+> {-   ,testGroup "delete"
 >     (mapStatementInfo [
 >       p "delete from nope;"
 >         [DefaultStatementInfo (TypeError (UnrecognisedRelation "nope"))]
