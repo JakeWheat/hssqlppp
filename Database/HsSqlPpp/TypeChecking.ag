@@ -686,11 +686,18 @@ SEM SelectItem
 fixStar ex =
   changeAnnRecurse fs ex
   where
-    fs a = if all (`elem` a) badList
-             then filter (`notElem` badList) a
+    fs a = if (TypeAnnotation TypeCheckFailed) `elem` a
+              && any (\an ->
+                       case an of
+                         TypeErrorA (UnrecognisedIdentifier x) |
+                           let (_,iden) = splitIdentifier x
+                           in iden == "*" -> True
+                         _ -> False) a
+             then filter (\an -> case an of
+                                   TypeAnnotation TypeCheckFailed -> False
+                                   TypeErrorA (UnrecognisedIdentifier _) -> False
+                                   _ -> True) a
              else a
-    badList = [TypeAnnotation TypeCheckFailed
-              ,TypeErrorA (UnrecognisedIdentifier "*")]
 }
 
 --[TypeAnnotation TypeCheckFailed,TypeErrorA (UnrecognisedIdentifier "*")]

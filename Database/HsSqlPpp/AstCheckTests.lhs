@@ -351,7 +351,7 @@ todo:
 >      ,p "select p.oid from pg_type p;"
 >         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
 >      ,p "select typlen from nope;"
->         $ Left [UnrecognisedRelation "nope"]
+>         $ Left [UnrecognisedIdentifier "typlen",UnrecognisedRelation "nope"]
 >      ,p "select generate_series from generate_series(1,7);"
 >         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
 
@@ -384,9 +384,8 @@ check aliasing
 >      ])
 
 
->  {-  ,testGroup "simple selects from 2"
->     (mapStatementTypeScope [
->
+>    ,testGroup "simple selects from 2"
+>     (mapStatementInfoScope [
 >       t "select a,b from testfunc();"
 >         (let fn = ("testfunc", [], SetOfType $ CompositeType "testType")
 >          in emptyScope {scopeFunctions = [fn]
@@ -398,8 +397,8 @@ check aliasing
 >                             [("a", ScalarType "text")
 >                             ,("b", typeInt)
 >                             ,("c", typeInt)])]})
->         [SetOfType $ UnnamedCompositeType
->          [("a",ScalarType "text"),("b",ScalarType "int4")]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType
+>                  [("a",ScalarType "text"),("b",ScalarType "int4")]]
 
 >      ,t "select testfunc();"
 >         (let fn = ("testfunc", [], Pseudo Void)
@@ -407,88 +406,87 @@ check aliasing
 >                        ,scopeAllFns = [fn]
 >                        ,scopeAttrDefs =
 >                         []})
->         [Pseudo Void]
+>         $ Right [SelectInfo $ Pseudo Void]
 
 >      ])
 
 >    ,testGroup "simple join selects"
->     (mapStatementType [
+>     (mapStatementInfo [
 >       p "select * from (select 1 as a, 2 as b) a\n\
 >         \  cross join (select true as c, 4.5 as d) b;"
->         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("c", typeBool)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select true as c, 4.5 as d) b on true;"
->         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("c", typeBool)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select 1 as a, 4.5 as d) b using(a);"
->         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \ natural inner join (select 1 as a, 4.5 as d) b;"
->         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
 >         --check the attribute order
 >      ,p "select * from (select 2 as b, 1 as a) a\n\
 >         \ natural inner join (select 4.5 as d, 1 as a) b;"
->         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \ natural inner join (select true as a, 4.5 as d) b;"
->         [TypeError (IncompatibleTypeSet [ScalarType "int4"
->                                                ,ScalarType "bool"])]
+>         $ Left [IncompatibleTypeSet [ScalarType "int4"
+>                                      ,ScalarType "bool"]]
 >      ])
 
 >    ,testGroup "simple scalar identifier qualification"
->     (mapStatementType [
+>     (mapStatementInfo [
 >       p "select a.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \cross join (select 3 as c, 4 as d) b;"
->         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)]]
 >      ,p "select nothere.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \cross join (select 3 as c, 4 as d) b;"
->         [SetOfType $ UnnamedCompositeType [("a", typeInt)
->                                           ,("b", typeInt)]]
+>         $ Left [UnrecognisedCorrelationName "nothere"]
 >      ,p "select a.b,b.c from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \natural inner join (select 3 as a, 4 as c) b;"
->         [SetOfType $ UnnamedCompositeType [("b", typeInt)
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("b", typeInt)
 >                                           ,("c", typeInt)]]
 >      ,p "select a.a,b.a from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \natural inner join (select 3 as a, 4 as c) b;"
->         [SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("a", typeInt)]]
 
 >      ,p "select pg_attrdef.adsrc from pg_attrdef;"
->         [SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
 
 >      ,p "select a.adsrc from pg_attrdef a;"
->         [SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
 
 >      ,p "select pg_attrdef.adsrc from pg_attrdef a;"
->         [TypeError (UnrecognisedCorrelationName "pg_attrdef")]
+>         $ Left [UnrecognisedCorrelationName "pg_attrdef"]
 
 >      ,p "select a from (select 2 as b, 1 as a) a\n\
 >         \natural inner join (select 4.5 as d, 1 as a) b;"
->         [SetOfType $ UnnamedCompositeType [("a", typeInt)]]
+>         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)]]
 
 select g.fn from fn() g
 
 
 >      ])
 
->    ,testGroup "aggregates"
+> {-   ,testGroup "aggregates"
 >     (mapStatementType [
 >        p "select max(prorettype::int) from pg_proc;"
 >         [SetOfType $ UnnamedCompositeType [("max", typeInt)]]
@@ -597,7 +595,7 @@ insert
 >           mapStatementInfo = map $ uncurry checkStatementInfo
 >           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
 >           makeScope l = scopeReplaceIds defaultScope (map (second (\a->(a,[]))) l) []
->           --mapStatementTypeScope = map (\(a,b,c) -> checkStatementTypeScope b a c)
+>           mapStatementInfoScope = map (\(a,b,c) -> checkStatementInfoScope b a c)
 
 > {-
 > checkAttrs :: String -> [Message] -> Test.Framework.Test
@@ -631,13 +629,23 @@ insert
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
 >       er = getTypeErrors aast
->   in {-trace (show aast) $-} case (length er, length is) of
+>   in {-trace (show aast) $ -} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
 
-
- >   in {-trace (show aast) $-} assertEqual ("typecheck " ++ src) sis combo
+> checkStatementInfoScope :: Scope -> String -> Either [TypeError] [StatementInfo] -> Test.Framework.Test
+> checkStatementInfoScope scope src sis = testCase ("typecheck " ++ src) $
+>   let ast = case parseSql src of
+>                               Left e -> error $ show e
+>                               Right l -> l
+>       aast = annotateAstScope scope ast
+>       is = getTopLevelInfos aast
+>       er = getTypeErrors aast
+>   in case (length er, length is) of
+>        (0,0) -> assertFailure "didn't get any infos?"
+>        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
+>        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
 
 
 > {-

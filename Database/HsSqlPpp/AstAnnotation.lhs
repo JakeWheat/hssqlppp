@@ -42,9 +42,13 @@ grammar code and aren't exposed.
 >     changeAnnRecurse :: (Annotation -> Annotation) -> a -> a
 >     getAnnChildren :: a -> [Annotatable]
 
-> data Annotatable = forall a . Annotated a => MkAnnotatable a
+> data Annotatable = forall a . (Annotated a, Show a) => MkAnnotatable a
 
-> pack :: Annotated a => a -> Annotatable
+> instance Show Annotatable
+>   where
+>   showsPrec p (MkAnnotatable a) = showsPrec p a
+
+> pack :: (Annotated a, Show a) => a -> Annotatable
 > pack = MkAnnotatable
 
  > changeAnnotations :: Annotated a => (Annotation -> Annotation) -> [a] -> [a]

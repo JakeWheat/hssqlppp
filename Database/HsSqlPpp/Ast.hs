@@ -406,7 +406,9 @@ instance Annotated SelectExpression where
   getAnnChildren ex =
     case ex of
       Select a dis sl tref whr grp hav ord dir lim off ->
-          doSl ++ doME whr ++ mp grp ++ doME hav ++ mp ord ++ doME lim ++ doME off
+          doSl ++
+          map pack (maybeToList tref) ++
+          doME whr ++ mp grp ++ doME hav ++ mp ord ++ doME lim ++ doME off
           where
             doSl = let SelectList x _ = sl
                        ses = map (\s -> case s of
@@ -454,7 +456,13 @@ instance Annotated TableRef where
         TrefFunAlias a fn alias -> TrefFunAlias (f a) (changeAnnRecurse f fn) alias
   getAnnChildren ex =
     case ex of
-      _ -> []
+        Tref a tbl -> []
+        TrefAlias a tbl alias -> []
+        JoinedTref _ tbl _ _ tbl1 onExpr ->
+          getAnnChildren tbl ++ getAnnChildren tbl1
+        SubTref a sel alias -> getAnnChildren sel
+        TrefFun a fn -> getAnnChildren fn
+        TrefFunAlias a fn alias -> getAnnChildren fn
 
 
 getTbCols t = unwrapComposite $ unwrapSetOf $ getTypeAnnotation t
@@ -489,11 +497,18 @@ getFunIdens scope alias fnVal =
 fixStar ex =
   changeAnnRecurse fs ex
   where
-    fs a = if all (`elem` a) badList
-             then filter (`notElem` badList) a
+    fs a = if (TypeAnnotation TypeCheckFailed) `elem` a
+              && any (\an ->
+                       case an of
+                         TypeErrorA (UnrecognisedIdentifier x) |
+                           let (_,iden) = splitIdentifier x
+                           in iden == "*" -> True
+                         _ -> False) a
+             then filter (\an -> case an of
+                                   TypeAnnotation TypeCheckFailed -> False
+                                   TypeErrorA (UnrecognisedIdentifier _) -> False
+                                   _ -> True) a
              else a
-    badList = [TypeAnnotation TypeCheckFailed
-              ,TypeErrorA (UnrecognisedIdentifier "*")]
 
 
 fixedValue :: a -> a -> a -> a
