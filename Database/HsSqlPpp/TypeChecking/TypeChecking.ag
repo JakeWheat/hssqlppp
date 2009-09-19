@@ -60,19 +60,22 @@ ATTR AllNodes Root ExpressionRoot
 
 -}
 
+{
+annTypesAndErrors :: Annotated a => a -> Type -> [TypeError]
+                  -> Maybe AnnotationElement -> a
+annTypesAndErrors item nt errs add =
+    changeAnn item $
+     (([TypeAnnotation nt] ++ maybeToList add ++
+       map TypeErrorA errs) ++)
+}
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery
       --PositionalArg WindowFn
-        loc.nt = case @loc.tpe of
-                   Left _ -> TypeCheckFailed
-                   Right t -> t
-        loc.typeErrors = case @loc.tpe of
-                          Left a -> a
-                          Right b -> []
-        lhs.annotatedTree = changeAnn @loc.backTree $
-                              (([TypeAnnotation @loc.nt] ++
-                                map TypeErrorA @loc.typeErrors) ++)
+        lhs.annotatedTree = annTypesAndErrors @loc.backTree
+                              (errorToTypeFail @loc.tpe)
+                              (getErrors @loc.tpe)
+                              Nothing
 
 {-
 == literals
@@ -300,17 +303,10 @@ SEM ExpressionListList
 SEM Statement
     | SelectStatement Insert Update Delete CreateView CreateDomain
       CreateFunction CreateType CreateTable
-        loc.nt = case @loc.tpe of
-                   Left _ -> TypeCheckFailed
-                   Right t -> t
-        loc.typeErrors = case @loc.tpe of
-                          Left a -> a
-                          Right b -> []
-        lhs.annotatedTree = changeAnn @loc.backTree $
-                              (([TypeAnnotation @loc.nt
-                                ,StatementInfoA @loc.statementInfo] ++
-                                map TypeErrorA @loc.typeErrors) ++)
-
+        lhs.annotatedTree = annTypesAndErrors @loc.backTree
+                              (errorToTypeFail @loc.tpe)
+                              (getErrors @loc.tpe)
+                              $ Just $ StatementInfoA @loc.statementInfo
 {-
 
 ================================================================================
@@ -330,17 +326,10 @@ SEM Statement
 
 SEM SelectExpression
     | Values Select CombineSelect
-        loc.nt = case @loc.tpe of
-                   Left _ -> TypeCheckFailed
-                   Right t -> t
-        loc.typeErrors = case @loc.tpe of
-                          Left a -> a
-                          Right b -> []
-        lhs.annotatedTree = changeAnn @loc.backTree $
-                              (([TypeAnnotation @loc.nt] ++
-                                map TypeErrorA @loc.typeErrors) ++)
-
-
+        lhs.annotatedTree = annTypesAndErrors @loc.backTree
+                              (errorToTypeFail @loc.tpe)
+                              (getErrors @loc.tpe)
+                              Nothing
 
 {
 checkExpressionBool :: Maybe Expression -> Either [TypeError] Type
@@ -363,7 +352,7 @@ SEM SelectExpression
            whereType <- checkExpressionBool @selWhere.annotatedTree
            let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
                                                     @selTref.annotatedTree
-           slType <- @selSelectList.tpe
+               slType = @selSelectList.listType
            chainTypeCheckFailed [trefType, whereType, slType] $
              Right $ case slType of
                        UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
@@ -402,16 +391,10 @@ ATTR TableRef MTableRef
 
 SEM TableRef
     | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
-        loc.nt = case @loc.tpe of
-                   Left _ -> TypeCheckFailed
-                   Right t -> t
-        loc.typeErrors = case @loc.tpe of
-                          Left a -> a
-                          Right b -> []
-        lhs.annotatedTree = changeAnn @loc.backTree $
-                              (([TypeAnnotation @loc.nt] ++
-                                map TypeErrorA @loc.typeErrors) ++)
-
+        lhs.annotatedTree = annTypesAndErrors @loc.backTree
+                              (errorToTypeFail @loc.tpe)
+                              (getErrors @loc.tpe)
+                              Nothing
 
 SEM TableRef
     | SubTref loc.tpe = checkTypes [getTypeAnnotation @sel.annotatedTree] $
@@ -503,12 +486,12 @@ SEM MTableRef
 ATTR SelectItemList SelectList
   [
   |
-  | tpe : {Either [TypeError] Type}
+  | listType : Type
   ]
 
 SEM SelectItemList
-    | Cons lhs.tpe = doSelectItemListTpe @lhs.scope @hd.columnName @hd.itemType @tl.tpe
-    | Nil lhs.tpe = Right $ UnnamedCompositeType []
+    | Cons lhs.listType = doSelectItemListTpe @lhs.scope @hd.columnName @hd.itemType @tl.listType
+    | Nil lhs.listType = UnnamedCompositeType []
 
 ATTR SelectItem
      [
@@ -549,7 +532,7 @@ fixStar ex =
 
 SEM SelectList
     | SelectList
-        lhs.tpe = @items.tpe
+        lhs.listType = @items.listType
 
 
 {-
@@ -657,14 +640,12 @@ SEM Statement
                                    @targetCols.strings
                                    (unwrapComposite $ unwrapSetOf $
                                                     getTypeAnnotation @insData.annotatedTree)
-        loc.tpe = checkTypes [getTypeAnnotation @insData.annotatedTree] $
-                    case @loc.columnStuff of
-                      Left tes -> Left tes
-                      Right _ -> Right $ Pseudo Void
+        loc.tpe =
+            checkTypes [getTypeAnnotation @insData.annotatedTree] $ do
+              @loc.columnStuff
+              Right $ Pseudo Void
         loc.statementInfo =
-            InsertInfo @table $ case @loc.columnStuff of
-                                  Left _ -> TypeCheckFailed
-                                  Right c -> UnnamedCompositeType c
+            InsertInfo @table $ errorToTypeFailF UnnamedCompositeType @loc.columnStuff
         loc.backTree = Insert @ann @table @targetCols.annotatedTree
                               @insData.annotatedTree @returning
 
@@ -685,38 +666,29 @@ SEM StringList
 = update
 
 -}
+
+{
+
+}
+
 SEM Statement
     | Update
         loc.tpe =
-            let errs1 = catMaybes [
-                   tblExists
-                  ,whereBool]
-                assignsFail = any (==TypeCheckFailed) $ map snd @assigns.pairs
-            in if not (null errs1)
-                 then Left errs1
-                 else if assignsFail
-                        then Right TypeCheckFailed
-                        else
-                          case length @assigns.rowSetErrors of
-                            0 -> case @loc.columnsConsistent of
-                                   Left er -> Left er
-                                   Right _ ->Right $ Pseudo Void
-                            _ -> Left @assigns.rowSetErrors
-
-            where
-              tblExists = checkRelationExists @lhs.scope @table
-              whereBool = case fmap getTypeAnnotation @whr.annotatedTree of
-                            Nothing -> Nothing
-                            Just x | x == typeBool -> Nothing
-                                   | x == TypeCheckFailed -> Nothing
-                                   | otherwise -> Just ExpressionMustBeBool
+            do
+            let re = checkRelationExists @lhs.scope @table
+            when (isJust re) $
+                 Left [fromJust $ re]
+            whereType <- checkExpressionBool @whr.annotatedTree
+            chainTypeCheckFailed (whereType:map snd @assigns.pairs) $ do
+              @loc.columnsConsistent
+              checkErrorList @assigns.rowSetErrors $ Pseudo Void
         loc.columnsConsistent =
             checkColumnConsistency @lhs.scope @table (map fst @assigns.pairs) @assigns.pairs
         loc.statementInfo =
-            UpdateInfo @table $ case @loc.columnsConsistent of
-                                  Left _ -> TypeCheckFailed
-                                  Right c -> let colNames = map fst @assigns.pairs
-                                             in UnnamedCompositeType $ map (\t -> (t,getType c t)) colNames
+            UpdateInfo @table $ flip errorToTypeFailF @loc.columnsConsistent $
+                                     \c -> let colNames = map fst @assigns.pairs
+                                           in UnnamedCompositeType $ map (\t -> (t,getType c t)) colNames
+
             where
               getType cols t = fromJust $ lookup t cols
         loc.backTree = Update @ann @table @assigns.annotatedTree @whr.annotatedTree @returning
@@ -772,11 +744,9 @@ SEM Statement
         loc.tpe =
             case checkRelationExists @lhs.scope @table of
               Just e -> Left [e]
-              Nothing -> case fmap getTypeAnnotation @whr.annotatedTree of
-                           Nothing -> Right $ Pseudo Void
-                           Just x | x == typeBool -> Right $ Pseudo Void
-                                  | x == TypeCheckFailed -> Right TypeCheckFailed
-                                  | otherwise -> Left [ExpressionMustBeBool]
+              Nothing -> do
+                whereType <- checkExpressionBool @whr.annotatedTree
+                return $ Pseudo Void
         loc.statementInfo = DeleteInfo @table
         loc.backTree = Delete @ann @table @whr.annotatedTree @returning
 
@@ -816,20 +786,11 @@ SEM AttributeDefList
 SEM Statement
     | CreateTable
         loc.attrTypes = map snd @atts.attrs
-        loc.tpe =
-            let errs :: [TypeError]
-                errs = concat $ lefts @loc.attrTypes
-            in if null errs
-                 then Right $ Pseudo Void
-                 else Left errs
+        loc.tpe = checkErrorList (concat $ lefts @loc.attrTypes) $ Pseudo Void
         loc.compositeType =
-            case @loc.tpe of
-              Left _ -> TypeCheckFailed
-              Right _ -> UnnamedCompositeType doneAtts
+            errorToTypeFailF (const $ UnnamedCompositeType doneAtts) @loc.tpe
             where
-              doneAtts = map (\(s,t) -> (s, case t of
-                                             Left _ -> TypeCheckFailed
-                                             Right t -> t)) @atts.attrs
+              doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateTable @ann @name @atts.annotatedTree @cons.annotatedTree
         loc.statementInfo = RelvarInfo (@name, TableComposite, @loc.compositeType)
 
@@ -886,18 +847,11 @@ SEM Statement
     | CreateType
         loc.attrTypes = map snd @atts.attrs
         loc.tpe =
-            let errs = concat $ lefts @loc.attrTypes
-            in if null errs
-                 then Right $ Pseudo Void
-                 else Left errs
+            checkErrorList (concat $ lefts @loc.attrTypes) $ Pseudo Void
         loc.compositeType =
-            case @loc.tpe of
-              Left _ -> TypeCheckFailed
-              Right _ -> UnnamedCompositeType doneAtts
+            errorToTypeFailF (const $ UnnamedCompositeType doneAtts) @loc.tpe
             where
-              doneAtts = map (\(s,t) -> (s, case t of
-                                              Left _ -> TypeCheckFailed
-                                              Right t -> t)) @atts.attrs
+              doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateType @ann @name @atts.annotatedTree
         loc.statementInfo = RelvarInfo (@name, Composite, @loc.compositeType)
 {-
@@ -956,22 +910,17 @@ SEM ParamDefList
 
 SEM Statement
     | CreateFunction
-        loc.retTypeType = case @rettype.namedType of
-                            Left _ -> TypeCheckFailed
-                            Right x -> x
-        loc.paramTypes = let tpes = map snd @params.params
-                             errs = concat $ lefts tpes
-                         in if null errs
-                              then rights tpes
-                              else [TypeCheckFailed]
+        loc.retTypeType = errorToTypeFail @rettype.namedType
+        loc.paramTypes =
+            let tpes = map snd @params.params
+            in if null $ concat $ lefts tpes
+               then rights tpes
+               else [TypeCheckFailed]
         loc.tpe =
-            case @rettype.namedType of
-              Left e -> Left e
-              Right _ -> let tpes = map snd @params.params
-                             errs = concat $ lefts tpes
-                         in if null errs
-                              then Right $ Pseudo Void
-                              else Left errs
+            do
+              @rettype.namedType
+              let tpes = map snd @params.params
+              checkErrorList (concat $ lefts tpes) $ Pseudo Void
         loc.backTree = CreateFunction @ann
                                       @lang.annotatedTree
                                       @name

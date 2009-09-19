@@ -154,20 +154,17 @@ type of the joined tables.
 > doSelectItemListTpe :: Scope
 >                     -> String
 >                     -> Type
->                     -> Either [TypeError] Type
->                     -> Either [TypeError] Type
-> doSelectItemListTpe scope colName colType tpes =
->     case tpes of
->       Left _ -> Right TypeCheckFailed
->       Right types ->
->         chainTypeCheckFailed [types] $ do
->         let (correlationName,iden) = splitIdentifier colName
->         let newCols = if iden == "*"
+>                     -> Type
+>                     -> Type
+> doSelectItemListTpe scope colName colType types =
+>     if types == TypeCheckFailed
+>        then types
+>        else
+>          let (correlationName,iden) = splitIdentifier colName
+>              newCols = if iden == "*"
 >                          then scopeExpandStar scope correlationName
 >                          else return [(iden, colType)]
->         return $ case newCols of
->                               Left _ -> TypeCheckFailed
->                               Right nc ->  foldr consComposite types nc
+>          in errorToTypeFailF  (foldr consComposite types) newCols
 
 I think this should be alright, an identifier referenced in an
 expression can only have zero or one dot in it.

@@ -11,6 +11,10 @@ type checking.
 >     ,getOperatorType
 >     ,checkTypes
 >     ,chainTypeCheckFailed
+>     ,errorToTypeFail
+>     ,errorToTypeFailF
+>     ,checkErrorList
+>     ,getErrors
 >     ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
 >     ,typeFloat8,typeVarChar,typeChar,typeBool
 >     ,canonicalizeTypeName
@@ -131,8 +135,26 @@ messages.
 >     then Right TypeCheckFailed
 >     else b
 
+> errorToTypeFail :: Either [TypeError] Type -> Type
+> errorToTypeFail tpe = case tpe of
+>                         Left _ -> TypeCheckFailed
+>                         Right t -> t
 
-================================================================================
+> errorToTypeFailF :: (t -> Type) -> Either [TypeError] t -> Type
+> errorToTypeFailF f tpe = case tpe of
+>                                   Left _ -> TypeCheckFailed
+>                                   Right t -> f t
+
+
+> checkErrorList :: [TypeError] -> Type -> Either [TypeError] Type
+> checkErrorList es t = if null es
+>                      then Right t
+>                      else Left es
+
+> getErrors :: Either [TypeError] Type -> [TypeError]
+> getErrors e = either id (const []) e
+
+===============================================================================
 
 = basic types
 

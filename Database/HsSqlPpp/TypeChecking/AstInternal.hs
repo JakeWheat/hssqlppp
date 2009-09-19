@@ -441,6 +441,14 @@ instance Annotated TableRef where
         TrefFunAlias a fn alias -> getAnnChildren fn
 
 
+annTypesAndErrors :: Annotated a => a -> Type -> [TypeError]
+                  -> Maybe AnnotationElement -> a
+annTypesAndErrors item nt errs add =
+    changeAnn item $
+     (([TypeAnnotation nt] ++ maybeToList add ++
+       map TypeErrorA errs) ++)
+
+
 checkExpressionBool :: Maybe Expression -> Either [TypeError] Type
 checkExpressionBool whr = do
   let ty = fromMaybe typeBool $ fmap getTypeAnnotation whr
@@ -497,6 +505,9 @@ fixStar ex =
 
 fixedValue :: a -> a -> a -> a
 fixedValue a _ _ = a
+
+
+
 
 
 getRowTypes :: [Type] -> [Type]
@@ -1295,18 +1306,11 @@ sem_Expression_BooleanLit ann_ b_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _backTree =
                   BooleanLit ann_ b_
               _tpe =
@@ -1328,18 +1332,11 @@ sem_Expression_Case ann_ cases_ els_  =
               _elsOscope :: Scope
               _casesIannotatedTree :: CaseExpressionListExpressionPairList
               _elsIannotatedTree :: MaybeExpression
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _whenTypes =
                   map getTypeAnnotation $ concatMap fst $
                   _casesIannotatedTree
@@ -1386,18 +1383,11 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
               _valueIliftedColumnName :: String
               _casesIannotatedTree :: CaseExpressionListExpressionPairList
               _elsIannotatedTree :: MaybeExpression
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _whenTypes =
                   map getTypeAnnotation $ concatMap fst $
                   _casesIannotatedTree
@@ -1447,18 +1437,11 @@ sem_Expression_Cast ann_ expr_ tn_  =
               _exprIliftedColumnName :: String
               _tnIannotatedTree :: TypeName
               _tnInamedType :: (Either [TypeError] Type)
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   _tnInamedType
               _backTree =
@@ -1487,18 +1470,11 @@ sem_Expression_Exists ann_ sel_  =
               _lhsOliftedColumnName :: String
               _selOscope :: Scope
               _selIannotatedTree :: SelectExpression
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   Right typeBool
               _backTree =
@@ -1519,18 +1495,11 @@ sem_Expression_FloatLit ann_ d_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _backTree =
                   FloatLit ann_ d_
               _tpe =
@@ -1551,18 +1520,11 @@ sem_Expression_FunCall ann_ funName_ args_  =
               _argsOscope :: Scope
               _argsIannotatedTree :: ExpressionList
               _argsItypeList :: ([Type])
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   checkTypes _argsItypeList $
                     typeCheckFunCall
@@ -1589,18 +1551,11 @@ sem_Expression_Identifier ann_ i_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   let (correlationName,iden) = splitIdentifier i_
                   in scopeLookupID _lhsIscope correlationName iden
@@ -1626,18 +1581,11 @@ sem_Expression_InPredicate ann_ expr_ i_ list_  =
               _exprIliftedColumnName :: String
               _listIannotatedTree :: InList
               _listIlistType :: (Either [TypeError] Type)
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   do
                     lt <- _listIlistType
@@ -1667,18 +1615,11 @@ sem_Expression_IntegerLit ann_ i_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _backTree =
                   IntegerLit ann_ i_
               _tpe =
@@ -1694,18 +1635,11 @@ sem_Expression_NullLit ann_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _backTree =
                   NullLit ann_
               _tpe =
@@ -1738,18 +1672,11 @@ sem_Expression_ScalarSubQuery ann_ sel_  =
               _lhsOliftedColumnName :: String
               _selOscope :: Scope
               _selIannotatedTree :: SelectExpression
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   let selType = getTypeAnnotation _selIannotatedTree
                   in checkTypes [selType]
@@ -1777,18 +1704,11 @@ sem_Expression_StringLit ann_ quote_ value_  =
     (\ _lhsIscope ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _backTree =
                   StringLit ann_ quote_ value_
               _tpe =
@@ -3237,18 +3157,11 @@ sem_SelectExpression_CombineSelect ann_ ctype_ sel1_ sel2_  =
               _ctypeIannotatedTree :: CombineType
               _sel1IannotatedTree :: SelectExpression
               _sel2IannotatedTree :: SelectExpression
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   let sel1t = getTypeAnnotation _sel1IannotatedTree
                       sel2t = getTypeAnnotation _sel2IannotatedTree
@@ -3300,7 +3213,7 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
               _selOffsetOscope :: Scope
               _selDistinctIannotatedTree :: Distinct
               _selSelectListIannotatedTree :: SelectList
-              _selSelectListItpe :: (Either [TypeError] Type)
+              _selSelectListIlistType :: Type
               _selTrefIannotatedTree :: MTableRef
               _selTrefIidens :: ([QualifiedScope])
               _selTrefIjoinIdens :: ([String])
@@ -3313,24 +3226,17 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
               _selDirIannotatedTree :: Direction
               _selLimitIannotatedTree :: MExpression
               _selOffsetIannotatedTree :: MExpression
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   do
                   whereType <- checkExpressionBool _selWhereIannotatedTree
                   let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
                                                            _selTrefIannotatedTree
-                  slType <- _selSelectListItpe
+                      slType = _selSelectListIlistType
                   chainTypeCheckFailed [trefType, whereType, slType] $
                     Right $ case slType of
                               UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
@@ -3371,7 +3277,7 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
                   _lhsIscope
               ( _selDistinctIannotatedTree) =
                   (selDistinct_ _selDistinctOscope )
-              ( _selSelectListIannotatedTree,_selSelectListItpe) =
+              ( _selSelectListIannotatedTree,_selSelectListIlistType) =
                   (selSelectList_ _selSelectListOscope )
               ( _selTrefIannotatedTree,_selTrefIidens,_selTrefIjoinIdens) =
                   (selTref_ _selTrefOscope )
@@ -3399,18 +3305,11 @@ sem_SelectExpression_Values ann_ vll_  =
               _vllOscope :: Scope
               _vllIannotatedTree :: ExpressionListList
               _vllItypeListList :: ([[Type]])
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   typeCheckValuesExpr
                               _lhsIscope
@@ -3507,22 +3406,22 @@ sem_SelectItemList list  =
     (Prelude.foldr sem_SelectItemList_Cons sem_SelectItemList_Nil (Prelude.map sem_SelectItem list) )
 -- semantic domain
 type T_SelectItemList  = Scope ->
-                         ( SelectItemList,(Either [TypeError] Type))
+                         ( SelectItemList,Type)
 data Inh_SelectItemList  = Inh_SelectItemList {scope_Inh_SelectItemList :: Scope}
-data Syn_SelectItemList  = Syn_SelectItemList {annotatedTree_Syn_SelectItemList :: SelectItemList,tpe_Syn_SelectItemList :: Either [TypeError] Type}
+data Syn_SelectItemList  = Syn_SelectItemList {annotatedTree_Syn_SelectItemList :: SelectItemList,listType_Syn_SelectItemList :: Type}
 wrap_SelectItemList :: T_SelectItemList  ->
                        Inh_SelectItemList  ->
                        Syn_SelectItemList 
 wrap_SelectItemList sem (Inh_SelectItemList _lhsIscope )  =
-    (let ( _lhsOannotatedTree,_lhsOtpe) =
+    (let ( _lhsOannotatedTree,_lhsOlistType) =
              (sem _lhsIscope )
-     in  (Syn_SelectItemList _lhsOannotatedTree _lhsOtpe ))
+     in  (Syn_SelectItemList _lhsOannotatedTree _lhsOlistType ))
 sem_SelectItemList_Cons :: T_SelectItem  ->
                            T_SelectItemList  ->
                            T_SelectItemList 
 sem_SelectItemList_Cons hd_ tl_  =
     (\ _lhsIscope ->
-         (let _lhsOtpe :: (Either [TypeError] Type)
+         (let _lhsOlistType :: Type
               _lhsOannotatedTree :: SelectItemList
               _hdOscope :: Scope
               _tlOscope :: Scope
@@ -3530,9 +3429,9 @@ sem_SelectItemList_Cons hd_ tl_  =
               _hdIcolumnName :: String
               _hdIitemType :: Type
               _tlIannotatedTree :: SelectItemList
-              _tlItpe :: (Either [TypeError] Type)
-              _lhsOtpe =
-                  doSelectItemListTpe _lhsIscope _hdIcolumnName _hdIitemType _tlItpe
+              _tlIlistType :: Type
+              _lhsOlistType =
+                  doSelectItemListTpe _lhsIscope _hdIcolumnName _hdIitemType _tlIlistType
               _annotatedTree =
                   (:) _hdIannotatedTree _tlIannotatedTree
               _lhsOannotatedTree =
@@ -3543,21 +3442,21 @@ sem_SelectItemList_Cons hd_ tl_  =
                   _lhsIscope
               ( _hdIannotatedTree,_hdIcolumnName,_hdIitemType) =
                   (hd_ _hdOscope )
-              ( _tlIannotatedTree,_tlItpe) =
+              ( _tlIannotatedTree,_tlIlistType) =
                   (tl_ _tlOscope )
-          in  ( _lhsOannotatedTree,_lhsOtpe)))
+          in  ( _lhsOannotatedTree,_lhsOlistType)))
 sem_SelectItemList_Nil :: T_SelectItemList 
 sem_SelectItemList_Nil  =
     (\ _lhsIscope ->
-         (let _lhsOtpe :: (Either [TypeError] Type)
+         (let _lhsOlistType :: Type
               _lhsOannotatedTree :: SelectItemList
-              _lhsOtpe =
-                  Right $ UnnamedCompositeType []
+              _lhsOlistType =
+                  UnnamedCompositeType []
               _annotatedTree =
                   []
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree,_lhsOtpe)))
+          in  ( _lhsOannotatedTree,_lhsOlistType)))
 -- SelectList --------------------------------------------------
 data SelectList  = SelectList (SelectItemList) (StringList) 
                  deriving ( Eq,Show)
@@ -3568,31 +3467,31 @@ sem_SelectList (SelectList _items _stringList )  =
     (sem_SelectList_SelectList (sem_SelectItemList _items ) (sem_StringList _stringList ) )
 -- semantic domain
 type T_SelectList  = Scope ->
-                     ( SelectList,(Either [TypeError] Type))
+                     ( SelectList,Type)
 data Inh_SelectList  = Inh_SelectList {scope_Inh_SelectList :: Scope}
-data Syn_SelectList  = Syn_SelectList {annotatedTree_Syn_SelectList :: SelectList,tpe_Syn_SelectList :: Either [TypeError] Type}
+data Syn_SelectList  = Syn_SelectList {annotatedTree_Syn_SelectList :: SelectList,listType_Syn_SelectList :: Type}
 wrap_SelectList :: T_SelectList  ->
                    Inh_SelectList  ->
                    Syn_SelectList 
 wrap_SelectList sem (Inh_SelectList _lhsIscope )  =
-    (let ( _lhsOannotatedTree,_lhsOtpe) =
+    (let ( _lhsOannotatedTree,_lhsOlistType) =
              (sem _lhsIscope )
-     in  (Syn_SelectList _lhsOannotatedTree _lhsOtpe ))
+     in  (Syn_SelectList _lhsOannotatedTree _lhsOlistType ))
 sem_SelectList_SelectList :: T_SelectItemList  ->
                              T_StringList  ->
                              T_SelectList 
 sem_SelectList_SelectList items_ stringList_  =
     (\ _lhsIscope ->
-         (let _lhsOtpe :: (Either [TypeError] Type)
+         (let _lhsOlistType :: Type
               _lhsOannotatedTree :: SelectList
               _itemsOscope :: Scope
               _stringListOscope :: Scope
               _itemsIannotatedTree :: SelectItemList
-              _itemsItpe :: (Either [TypeError] Type)
+              _itemsIlistType :: Type
               _stringListIannotatedTree :: StringList
               _stringListIstrings :: ([String])
-              _lhsOtpe =
-                  _itemsItpe
+              _lhsOlistType =
+                  _itemsIlistType
               _annotatedTree =
                   SelectList _itemsIannotatedTree _stringListIannotatedTree
               _lhsOannotatedTree =
@@ -3601,11 +3500,11 @@ sem_SelectList_SelectList items_ stringList_  =
                   _lhsIscope
               _stringListOscope =
                   _lhsIscope
-              ( _itemsIannotatedTree,_itemsItpe) =
+              ( _itemsIannotatedTree,_itemsIlistType) =
                   (items_ _itemsOscope )
               ( _stringListIannotatedTree,_stringListIstrings) =
                   (stringList_ _stringListOscope )
-          in  ( _lhsOannotatedTree,_lhsOtpe)))
+          in  ( _lhsOannotatedTree,_lhsOlistType)))
 -- SetClause ---------------------------------------------------
 data SetClause  = RowSetClause (StringList) (ExpressionList) 
                 | SetClause (String) (Expression) 
@@ -3973,19 +3872,11 @@ sem_Statement_CreateDomain ann_ name_ typ_ check_  =
               _typOscope :: Scope
               _typIannotatedTree :: TypeName
               _typInamedType :: (Either [TypeError] Type)
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt
-                      ,StatementInfoA _statementInfo    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    $ Just $ StatementInfoA _statementInfo
               _namedTypeType =
                   case _typInamedType of
                     Left _ -> TypeCheckFailed
@@ -4027,37 +3918,23 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
               _rettypeInamedType :: (Either [TypeError] Type)
               _bodyIannotatedTree :: FnBody
               _volIannotatedTree :: Volatility
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt
-                      ,StatementInfoA _statementInfo    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    $ Just $ StatementInfoA _statementInfo
               _retTypeType =
-                  case _rettypeInamedType of
-                    Left _ -> TypeCheckFailed
-                    Right x -> x
+                  errorToTypeFail _rettypeInamedType
               _paramTypes =
                   let tpes = map snd _paramsIparams
-                      errs = concat $ lefts tpes
-                  in if null errs
-                       then rights tpes
-                       else [TypeCheckFailed]
+                  in if null $ concat $ lefts tpes
+                     then rights tpes
+                     else [TypeCheckFailed]
               _tpe =
-                  case _rettypeInamedType of
-                    Left e -> Left e
-                    Right _ -> let tpes = map snd _paramsIparams
-                                   errs = concat $ lefts tpes
-                               in if null errs
-                                    then Right $ Pseudo Void
-                                    else Left errs
+                  do
+                    _rettypeInamedType
+                    let tpes = map snd _paramsIparams
+                    checkErrorList (concat $ lefts tpes) $ Pseudo Void
               _backTree =
                   CreateFunction ann_
                                  _langIannotatedTree
@@ -4105,35 +3982,19 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
               _attsIannotatedTree :: AttributeDefList
               _attsIattrs :: ([(String, Either [TypeError] Type)])
               _consIannotatedTree :: ConstraintList
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt
-                      ,StatementInfoA _statementInfo    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    $ Just $ StatementInfoA _statementInfo
               _attrTypes =
                   map snd _attsIattrs
               _tpe =
-                  let errs :: [TypeError]
-                      errs = concat $ lefts _attrTypes
-                  in if null errs
-                       then Right $ Pseudo Void
-                       else Left errs
+                  checkErrorList (concat $ lefts _attrTypes    ) $ Pseudo Void
               _compositeType =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right _ -> UnnamedCompositeType doneAtts
+                  errorToTypeFailF (const $ UnnamedCompositeType doneAtts) _tpe
                   where
-                    doneAtts = map (\(s,t) -> (s, case t of
-                                                   Left _ -> TypeCheckFailed
-                                                   Right t -> t)) _attsIattrs
+                    doneAtts = map (second errorToTypeFail) _attsIattrs
               _backTree =
                   CreateTable ann_ name_ _attsIannotatedTree _consIannotatedTree
               _statementInfo =
@@ -4185,34 +4046,19 @@ sem_Statement_CreateType ann_ name_ atts_  =
               _attsOscope :: Scope
               _attsIannotatedTree :: TypeAttributeDefList
               _attsIattrs :: ([(String, Either [TypeError] Type)])
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt
-                      ,StatementInfoA _statementInfo    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    $ Just $ StatementInfoA _statementInfo
               _attrTypes =
                   map snd _attsIattrs
               _tpe =
-                  let errs = concat $ lefts _attrTypes
-                  in if null errs
-                       then Right $ Pseudo Void
-                       else Left errs
+                  checkErrorList (concat $ lefts _attrTypes    ) $ Pseudo Void
               _compositeType =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right _ -> UnnamedCompositeType doneAtts
+                  errorToTypeFailF (const $ UnnamedCompositeType doneAtts) _tpe
                   where
-                    doneAtts = map (\(s,t) -> (s, case t of
-                                                    Left _ -> TypeCheckFailed
-                                                    Right t -> t)) _attsIattrs
+                    doneAtts = map (second errorToTypeFail) _attsIattrs
               _backTree =
                   CreateType ann_ name_ _attsIannotatedTree
               _statementInfo =
@@ -4233,19 +4079,11 @@ sem_Statement_CreateView ann_ name_ expr_  =
          (let _lhsOannotatedTree :: Statement
               _exprOscope :: Scope
               _exprIannotatedTree :: SelectExpression
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt
-                      ,StatementInfoA _statementInfo    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    $ Just $ StatementInfoA _statementInfo
               _tpe =
                   checkTypes [getTypeAnnotation _exprIannotatedTree] $ Right $ Pseudo Void
               _backTree =
@@ -4269,27 +4107,17 @@ sem_Statement_Delete ann_ table_ whr_ returning_  =
          (let _lhsOannotatedTree :: Statement
               _whrOscope :: Scope
               _whrIannotatedTree :: Where
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt
-                      ,StatementInfoA _statementInfo    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    $ Just $ StatementInfoA _statementInfo
               _tpe =
                   case checkRelationExists _lhsIscope table_ of
                     Just e -> Left [e]
-                    Nothing -> case fmap getTypeAnnotation _whrIannotatedTree of
-                                 Nothing -> Right $ Pseudo Void
-                                 Just x | x == typeBool -> Right $ Pseudo Void
-                                        | x == TypeCheckFailed -> Right TypeCheckFailed
-                                        | otherwise -> Left [ExpressionMustBeBool]
+                    Nothing -> do
+                      whereType <- checkExpressionBool _whrIannotatedTree
+                      return $ Pseudo Void
               _statementInfo =
                   DeleteInfo table_
               _backTree =
@@ -4512,19 +4340,11 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _targetColsIannotatedTree :: StringList
               _targetColsIstrings :: ([String])
               _insDataIannotatedTree :: SelectExpression
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt
-                      ,StatementInfoA _statementInfo    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    $ Just $ StatementInfoA _statementInfo
               _columnStuff =
                   checkColumnConsistency _lhsIscope
                                          table_
@@ -4532,14 +4352,11 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
                                          (unwrapComposite $ unwrapSetOf $
                                                           getTypeAnnotation _insDataIannotatedTree)
               _tpe =
-                  checkTypes [getTypeAnnotation _insDataIannotatedTree] $
-                    case _columnStuff     of
-                      Left tes -> Left tes
-                      Right _ -> Right $ Pseudo Void
+                  checkTypes [getTypeAnnotation _insDataIannotatedTree] $ do
+                    _columnStuff
+                    Right $ Pseudo Void
               _statementInfo =
-                  InsertInfo table_ $ case _columnStuff     of
-                                        Left _ -> TypeCheckFailed
-                                        Right c -> UnnamedCompositeType c
+                  InsertInfo table_ $ errorToTypeFailF UnnamedCompositeType _columnStuff
               _backTree =
                   Insert ann_ table_ _targetColsIannotatedTree
                          _insDataIannotatedTree returning_
@@ -4662,19 +4479,11 @@ sem_Statement_SelectStatement ann_ ex_  =
          (let _lhsOannotatedTree :: Statement
               _exOscope :: Scope
               _exIannotatedTree :: SelectExpression
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt
-                      ,StatementInfoA _statementInfo    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    $ Just $ StatementInfoA _statementInfo
               _tpe =
                   checkTypes [getTypeAnnotation _exIannotatedTree] $ Right $ Pseudo Void
               _statementInfo =
@@ -4735,48 +4544,26 @@ sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
               _assignsIpairs :: ([(String,Type)])
               _assignsIrowSetErrors :: ([TypeError])
               _whrIannotatedTree :: Where
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt
-                      ,StatementInfoA _statementInfo    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    $ Just $ StatementInfoA _statementInfo
               _tpe =
-                  let errs1 = catMaybes [
-                         tblExists
-                        ,whereBool]
-                      assignsFail = any (==TypeCheckFailed) $ map snd _assignsIpairs
-                  in if not (null errs1)
-                       then Left errs1
-                       else if assignsFail
-                              then Right TypeCheckFailed
-                              else
-                                case length _assignsIrowSetErrors of
-                                  0 -> case _columnsConsistent     of
-                                         Left er -> Left er
-                                         Right _ ->Right $ Pseudo Void
-                                  _ -> Left _assignsIrowSetErrors
-                  where
-                    tblExists = checkRelationExists _lhsIscope table_
-                    whereBool = case fmap getTypeAnnotation _whrIannotatedTree of
-                                  Nothing -> Nothing
-                                  Just x | x == typeBool -> Nothing
-                                         | x == TypeCheckFailed -> Nothing
-                                         | otherwise -> Just ExpressionMustBeBool
+                  do
+                  let re = checkRelationExists _lhsIscope table_
+                  when (isJust re) $
+                       Left [fromJust $ re]
+                  whereType <- checkExpressionBool _whrIannotatedTree
+                  chainTypeCheckFailed (whereType:map snd _assignsIpairs) $ do
+                    _columnsConsistent
+                    checkErrorList _assignsIrowSetErrors $ Pseudo Void
               _columnsConsistent =
                   checkColumnConsistency _lhsIscope table_ (map fst _assignsIpairs) _assignsIpairs
               _statementInfo =
-                  UpdateInfo table_ $ case _columnsConsistent     of
-                                        Left _ -> TypeCheckFailed
-                                        Right c -> let colNames = map fst _assignsIpairs
-                                                   in UnnamedCompositeType $ map (\t -> (t,getType c t)) colNames
+                  UpdateInfo table_ $ flip errorToTypeFailF _columnsConsistent     $
+                                           \c -> let colNames = map fst _assignsIpairs
+                                                 in UnnamedCompositeType $ map (\t -> (t,getType c t)) colNames
                   where
                     getType cols t = fromJust $ lookup t cols
               _backTree =
@@ -5069,18 +4856,11 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _tbl1Iidens :: ([QualifiedScope])
               _tbl1IjoinIdens :: ([String])
               _onExprIannotatedTree :: OnExpr
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   checkTypes [tblt
                             ,tbl1t] $
@@ -5140,18 +4920,11 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               _lhsOjoinIdens :: ([String])
               _selOscope :: Scope
               _selIannotatedTree :: SelectExpression
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   checkTypes [getTypeAnnotation _selIannotatedTree] $
                   Right $ unwrapSetOfComposite $ getTypeAnnotation _selIannotatedTree
@@ -5176,18 +4949,11 @@ sem_TableRef_Tref ann_ tbl_  =
          (let _lhsOannotatedTree :: TableRef
               _lhsOjoinIdens :: ([String])
               _lhsOidens :: ([QualifiedScope])
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   either Left (Right . fst) _relType
               _lhsOjoinIdens =
@@ -5212,18 +4978,11 @@ sem_TableRef_TrefAlias ann_ tbl_ alias_  =
          (let _lhsOannotatedTree :: TableRef
               _lhsOjoinIdens :: ([String])
               _lhsOidens :: ([QualifiedScope])
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   either Left (Right . fst) _relType
               _lhsOjoinIdens =
@@ -5250,24 +5009,17 @@ sem_TableRef_TrefFun ann_ fn_  =
               _fnOscope :: Scope
               _fnIannotatedTree :: Expression
               _fnIliftedColumnName :: String
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   getFnType _lhsIscope _alias _fnIannotatedTree
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  case  getFunIdens
+                  case getFunIdens
                             _lhsIscope _alias
                             _fnIannotatedTree of
                     Left e -> []
@@ -5295,24 +5047,17 @@ sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
               _fnOscope :: Scope
               _fnIannotatedTree :: Expression
               _fnIliftedColumnName :: String
-              _nt =
-                  case _tpe     of
-                    Left _ -> TypeCheckFailed
-                    Right t -> t
-              _typeErrors =
-                  case _tpe     of
-                   Left a -> a
-                   Right b -> []
               _lhsOannotatedTree =
-                  changeAnn _backTree     $
-                    (([TypeAnnotation _nt    ] ++
-                      map TypeErrorA _typeErrors    ) ++)
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    Nothing
               _tpe =
                   getFnType _lhsIscope alias_ _fnIannotatedTree
               _lhsOjoinIdens =
                   []
               _lhsOidens =
-                  case  getFunIdens
+                  case getFunIdens
                             _lhsIscope _alias
                             _fnIannotatedTree of
                     Left e -> []
