@@ -106,6 +106,7 @@ later on down the line.
 >                | MissingJoinAttribute
 >                | ExpressionMustBeBool
 >                | WrongNumberOfColumns
+>                | MiscError String
 >                  deriving (Eq,Show)
 
 some random stuff needed here because of compilation orders

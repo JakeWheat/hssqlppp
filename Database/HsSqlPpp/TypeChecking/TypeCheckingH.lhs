@@ -4,30 +4,19 @@ This file contains some utility functions for working with types and
 type checking.
 
 > {-# OPTIONS_HADDOCK hide #-}
-
+> {-# LANGUAGE FlexibleInstances #-}
 > module Database.HsSqlPpp.TypeChecking.TypeCheckingH where
 
 > import Data.Maybe
 > import Data.List
 > import Debug.Trace
 > import Data.Either
+> import Control.Monad.Error
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.AstUtils
 > import Database.HsSqlPpp.TypeChecking.TypeConversion
 > import Database.HsSqlPpp.TypeChecking.ScopeData
-
-
-
-> checkEither :: [Either a b] -> Either a b
-> checkEither ((Left e):_) = Left e
-> checkEither (e:[]) = e
-> checkEither (_:es) = checkEither es
-> checkEither [] = error "empty list for checkEither"
-
-> unsafeRight :: Either a b -> b
-> unsafeRight (Right r) = r
-> unsafeRight (Left _) = error "tried to get unsafe right on left"
 
 ================================================================================
 
@@ -229,63 +218,52 @@ returns the type of the relation, and the system columns also
 >       fn (UnnamedCompositeType s) = map fst s
 >       fn _ = []
 
-> both :: (a->b) -> (a,a) -> (b,b)
-> both fn (x,y) = (fn x, fn y)
+> instance Error ([TypeError]) where
+>   noMsg = [MiscError "Unknown error"]
+>   strMsg str = [MiscError str]
 
-> chainLeft :: Either a b -> (b -> Either a c) -> Either a c
-> chainLeft a f = case a of
->                   Left e -> Left e
->                   Right b -> f b
+> liftE :: Either a b -> Either [a] b
+> liftE = either (Left . (:[])) Right
 
 > checkColumnConsistency :: Scope ->  String -> [String] -> [(String,Type)]
 >                        -> Either [TypeError] [(String,Type)]
-> checkColumnConsistency scope tbl cols' insNameTypePairs =
->   case getTargetTableCols of
->     Left e -> Left [e]
->     Right ttcols ->
->       let errs = catMaybes
->                    [checkNumCols ttcols
->                    ,checkTargetColMatch ttcols
->                    ,checkColumnTypesCompatible ttcols]
->       in if null errs
->             then Right ttcols
->             else Left $ head errs
->   where
->     getTargetTableCols :: Either TypeError [(String,Type)]
->     getTargetTableCols =
->       chainLeft (getRelationType scope tbl) $ Right . unwrapComposite . fst
->     cols :: [(String,Type)] -> [String]
->     cols targetTableCols = if null cols'
->                              then map fst targetTableCols
->                              else cols'
->     checkNumCols :: [(String,Type)] -> Maybe [TypeError]
->     checkNumCols targetTableCols =
->       --check the num cols in the insdata match the number of cols
->       if length insNameTypePairs /= length (cols targetTableCols)
->         then Just [WrongNumberOfColumns]
->         else Nothing
-
->     checkTargetColMatch :: [(String,Type)] -> Maybe [TypeError]
->     checkTargetColMatch targetTableCols =
->        let nonMatchingColumns = cols targetTableCols \\ map fst targetTableCols
->        in case length nonMatchingColumns of
->               0 -> Nothing
->               1 -> Just [UnrecognisedIdentifier $ head nonMatchingColumns]
->               _ -> Just $ map UnrecognisedIdentifier nonMatchingColumns
-
->     checkColumnTypesCompatible :: [(String,Type)] -> Maybe [TypeError]
->     checkColumnTypesCompatible targetTableCols =
->       let targetNameTypePairs = map (\l -> (l, fromJust $ lookup l targetTableCols)) $ cols targetTableCols
->           --check the types of the insdata match the column targets
->           --name datatype columntype
->           typeTriples = map (\((a,b),c) -> (a,b,c)) $ zip targetNameTypePairs $ map snd insNameTypePairs
->           errs = lefts $ map (\(_,b,c) -> checkAssignmentValid scope c b) typeTriples
->       in if null errs
->            then Nothing
->            else Just errs
+> checkColumnConsistency scope tbl cols' insNameTypePairs = do
+>   rt <- liftE $ getRelationType scope tbl
+>   let ttcols :: [(String,Type)]
+>       ttcols = unwrapComposite $ fst rt
+>       cols :: [String]
+>       cols = if null cols'
+>                then map fst ttcols
+>                else cols'
+>   when (length insNameTypePairs /= length cols) $
+>        Left [WrongNumberOfColumns]
+>   let nonMatchingColumns = cols \\ map fst ttcols
+>   when (not $ null nonMatchingColumns) $
+>        Left $ map UnrecognisedIdentifier nonMatchingColumns
+>   let targetNameTypePairs =
+>         map (\l -> (l,fromJust $ lookup l ttcols)) cols
+>         --check the types of the insdata match the column targets
+>         --name datatype columntype
+>       typeTriples = map (\((a,b),c) -> (a,b,c)) $ zip targetNameTypePairs $ map snd insNameTypePairs
+>       errs = lefts $ map (\(_,b,c) -> checkAssignmentValid scope c b) typeTriples
+>   unless (null errs) $ Left errs
+>   return ttcols
 
 > checkRelationExists :: Scope -> String -> Maybe TypeError
 > checkRelationExists scope tbl =
 >           case getAttrs scope [TableComposite, ViewComposite] tbl of
 >             Just _ -> Nothing
 >             _ -> Just $ UnrecognisedRelation tbl
+
+> checkEither :: [Either a b] -> Either a b
+> checkEither ((Left e):_) = Left e
+> checkEither (e:[]) = e
+> checkEither (_:es) = checkEither es
+> checkEither [] = error "empty list for checkEither"
+
+> unsafeRight :: Either a b -> b
+> unsafeRight (Right r) = r
+> unsafeRight (Left _) = error "tried to get unsafe right on left"
+
+> both :: (a->b) -> (a,a) -> (b,b)
+> both fn (x,y) = (fn x, fn y)

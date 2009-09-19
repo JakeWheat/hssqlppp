@@ -45,10 +45,11 @@ parsed accurately.
 == showinfodb
 
 This command will take a sql file, parse it, type check it and then
-pretty print the lines interspersed with comments containing some
-information for each command, either type errors, or some other
-information tailored to the statement type (e.g. create function shows
-function prototype, create view shows column names and types in view).
+pretty print the lines interspersed with comments containing
+annotation information gathered during type checking (including type
+errors), and other information tailored to the statement type
+(e.g. create function shows function prototype, create view shows
+column names and types in view).
 
 You pass a database in as the first arg, and it type checks against
 the catalog of that database. It currently doesn't type check against
@@ -58,10 +59,12 @@ check and see types for some views, functions, etc..
 
 some example output of showinfodb:
 
-/*
-RelvarInfo ("base_relvar_attributes",ViewComposite,SetOfType (UnnamedCompositeType [("attribute_name",ScalarType "name"),("type_name",ScalarType "name"),("relvar_name",ScalarType "name")]))*/
 
-create view base_relvar_attributes as
+/*
+ TypeAnnotation (Pseudo Void)
+StatementInfoA (RelvarInfo ("base_relvar_attributes",ViewComposite,SetOfType (UnnamedCompositeType [("attribute_name",ScalarType "name"),("type_name",ScalarType "name"),("relvar_name",ScalarType "name")])))
+SourcePos "sqltestfiles/system.sql" 67 13 */
+ create view base_relvar_attributes as
   select attname as attribute_name,typname as type_name,relname as relvar_name
     from pg_attribute
          inner join pg_class on (attrelid = pg_class.oid)
@@ -69,13 +72,14 @@ create view base_relvar_attributes as
          inner join base_relvars on (relname = base_relvars.relvar_name)
     where (attnum >= 1);
 
-A pretty printer for the StatementInfo type is planned, to make this
+Pretty printers for the Annotation types are planned, to make this
 comment more readable.
 
 
 == reasonably up to date output of './HsSqlSystem.lhs help all'
 
 commands available
+help
 use 'help' to see a list of commands
 use 'help all' to see a list of commands with descriptions
 use 'help [command]' to see the description for that command
@@ -93,9 +97,6 @@ cleardb then loadsql
 lexfile
 lex the file given and output the tokens on separate lines
 
-showFileAtts
-run the ag over the given files and return all the attributes computed
-
 parsefile
 Routine to parse sql from a file, check that it appears to parse ok,
 that pretty printing it and parsing that text gives the same ast, and
@@ -112,16 +113,6 @@ getscope
 read the catalogs for the given db and dump a scope variable source
 text to stdout
 
-showtypes
-reads each file, parses, type checks, then outputs the types
-interspersed with the pretty printed statements
-
-showtypesdb
-pass the name of a database first, then filenames, reads each file,
-parses, type checks, then outputs the types interspersed with the
-pretty printed statements, will type check against the given database
-schema
-
 showinfo
 reads each file, parses, type checks, then outputs info on each
 statement interspersed with the pretty printed statements
@@ -131,7 +122,6 @@ pass the name of a database first, then filenames, reads each file,
 parses, type checks, then outputs info on each statement interspersed
 with the pretty printed statements, will type check against the given
 database schema
-
 
 ================================================================================
 
@@ -169,5 +159,5 @@ load AstCheckTests.lhs, use parseAndGetType:
 
 = run the automated tests
 
-To run the test suite run ./Tests.lhs. This will run the tests for parsing
-and pretty printing, and for type checking.
+To run the test suite run ./HsSqlPppTests.lhs. This will run the tests
+for parsing and pretty printing, and for type checking.
