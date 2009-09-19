@@ -119,7 +119,7 @@ unknowns. It will only return errors from the first type containing
 errors, which might need looking at when the focus is on good error
 messages.
 
-> checkTypes :: [Type] -> Either TypeError Type -> Either TypeError Type
+> checkTypes :: [Type] -> Either [TypeError] Type -> Either [TypeError] Type
 > checkTypes (TypeCheckFailed:_) _ = Right TypeCheckFailed
 > checkTypes (_:ts) r = checkTypes ts r
 > checkTypes [] r = r
@@ -239,17 +239,17 @@ this converts the name of a type to its canonical name
 >       charNames = ["character", "char"]
 >       boolNames = ["boolean", "bool"]
 
-> checkTypeExists :: Scope -> Type -> Either TypeError ()
+> checkTypeExists :: Scope -> Type -> Either [TypeError] Type
 > checkTypeExists scope t =
 >     if t `elem` scopeTypes scope
->       then Right ()
->       else Left (UnknownTypeError t)
+>       then Right t
+>       else Left [UnknownTypeError t]
 
-> lookupTypeByName :: Scope -> String -> Either TypeError Type
+> lookupTypeByName :: Scope -> String -> Either [TypeError] Type
 > lookupTypeByName scope name =
 >     case lookup name (scopeTypeNames scope) of
 >       Just t -> Right t
->       Nothing -> Left (UnknownTypeName name)
+>       Nothing -> Left [UnknownTypeName name]
 
 
 ================================================================================

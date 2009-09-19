@@ -81,25 +81,25 @@ key references in the pg catalog.
 > catPair :: ([a],[a]) -> [a]
 > catPair = uncurry (++)
 
-> scopeLookupID :: Scope -> String -> String -> Either TypeError Type
+> scopeLookupID :: Scope -> String -> String -> Either [TypeError] Type
 > scopeLookupID scope correlationName iden =
 >   if correlationName == ""
 >     then let types = concatMap (filter (\ (s, _) -> s == iden))
 >                        (map (catPair.snd) $ scopeIdentifierTypes scope)
 >          in case length types of
->                 0 -> Left $ UnrecognisedIdentifier iden
+>                 0 -> Left [UnrecognisedIdentifier iden]
 >                 1 -> Right $ (snd . head) types
 >                 _ -> --see if this identifier is in the join list
 >                      if iden `elem` scopeJoinIdentifiers scope
 >                        then Right $ (snd . head) types
->                        else Left (AmbiguousIdentifier iden)
+>                        else Left [AmbiguousIdentifier iden]
 >     else case lookup correlationName (scopeIdentifierTypes scope) of
->            Nothing -> Left $ UnrecognisedCorrelationName correlationName
+>            Nothing -> Left [UnrecognisedCorrelationName correlationName]
 >            Just s -> case lookup iden (catPair s) of
->                        Nothing -> Left $ UnrecognisedIdentifier $ correlationName ++ "." ++ iden
+>                        Nothing -> Left [UnrecognisedIdentifier $ correlationName ++ "." ++ iden]
 >                        Just t -> Right t
 
-> scopeExpandStar :: Scope -> String -> Either TypeError [(String,Type)]
+> scopeExpandStar :: Scope -> String -> Either [TypeError] [(String,Type)]
 > scopeExpandStar scope correlationName =
 >     if correlationName == ""
 >       then let allFields = concatMap (fst.snd) $ scopeIdentifierTypes scope
@@ -108,7 +108,7 @@ key references in the pg catalog.
 >            in Right $ nub commonFields ++ uncommonFields
 >       else
 >           case lookup correlationName $ scopeIdentifierTypes scope of
->             Nothing -> Left $ UnrecognisedCorrelationName correlationName
+>             Nothing -> Left [UnrecognisedCorrelationName correlationName]
 >             Just s -> Right $ fst s
 
 

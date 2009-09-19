@@ -433,6 +433,9 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                 | ScalarSubQuery ann:Annotation
                                  sel : SelectExpression
 
+DATA InList | InList exprs : ExpressionList
+            | InSelect sel : SelectExpression
+
 TYPE MaybeExpression = MAYBE Expression
 
 {-
@@ -494,11 +497,6 @@ see keywordOperatorTypes value in AstUtils.lhs for the list of
 currently supported keyword operators.
 
 -}
-
-
-
-DATA InList | InList exprs : ExpressionList
-            | InSelect sel : SelectExpression
 
 -- some list nodes, not sure if all of these are needed as separately
 -- named node types

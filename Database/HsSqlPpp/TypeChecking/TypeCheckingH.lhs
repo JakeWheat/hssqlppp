@@ -5,6 +5,7 @@ type checking.
 
 > {-# OPTIONS_HADDOCK hide #-}
 > {-# LANGUAGE FlexibleInstances #-}
+
 > module Database.HsSqlPpp.TypeChecking.TypeCheckingH where
 
 > import Data.Maybe
@@ -12,6 +13,7 @@ type checking.
 > import Debug.Trace
 > import Data.Either
 > import Control.Monad.Error
+> import Control.Applicative
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.AstUtils
@@ -25,58 +27,57 @@ type checking.
 idea is to move these here from TypeChecking.ag if they get a bit big,
 not very consistently applied at the moment.
 
-> typeCheckFunCall :: Scope -> String -> [Type] -> Either TypeError Type
-> typeCheckFunCall scope fnName argsType =
->     checkTypes argsType ret
+> typeCheckFunCall :: Scope -> String -> [Type] -> Either [TypeError] Type
+> typeCheckFunCall scope fnName argsType = do
+>     if (any (==TypeCheckFailed) argsType)
+>       then return TypeCheckFailed
+>       else do
+>       case fnName of
+>               -- do the special cases first, some of these will use
+>               -- the variadic support when it is done and no longer
+>               -- be special cases.
+>               "!arrayCtor" -> do
+>                     a <- resolveResultSetType scope argsType
+>                     return $ ArrayType a
+>               "!between" -> do
+>                     f1 <- lookupFn ">=" [argsType !! 0, argsType !! 1]
+>                     f2 <- lookupFn "<=" [argsType !! 0, argsType !! 2]
+>                     lookupFn "!and" [f1,f2]
+>               "coalesce" -> resolveResultSetType scope argsType
+>               "greatest" -> do
+>                     t <- resolveResultSetType scope argsType
+>                     lookupFn ">=" [t,t]
+>                     return t
+>               "least" -> do
+>                     t <- resolveResultSetType scope argsType
+>                     lookupFn "<=" [t,t]
+>                     return t
+>               "!rowCtor" -> return $ RowCtor argsType
+>                     -- special case the row comparison ops
+>               _ | let isRowCtor t = case t of
+>                                       RowCtor _ -> True
+>                                       _ -> False
+>                   in fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
+>                          && length argsType == 2
+>                          && all isRowCtor argsType ->
+>                     checkRowTypesMatch (head argsType) (head $ tail argsType)
+>               s -> lookupFn s argsType
 >     where
->       ret = case fnName of
-
-do the special cases first, some of these will use the variadic support
-when it is done and no longer be special cases.
-
->           "!arrayCtor" -> case resolveResultSetType scope argsType of
->                             Left e -> Left e
->                             Right t -> Right $ ArrayType t
->           "!between" -> let f1 = lookupFn ">=" [argsType !! 0, argsType !! 1]
->                             f2 = lookupFn "<=" [argsType !! 0, argsType !! 2]
->                             f3 = lookupFn "!and" [unsafeRight f1,unsafeRight f2]
->                         in checkEither [f1,f2,f3]
->           "coalesce" -> resolveResultSetType scope argsType
->           "greatest" -> let t = resolveResultSetType scope argsType
->                             f1 = lookupFn ">=" [unsafeRight t,unsafeRight t]
->                         in checkEither [t, f1, t]
->           "least" -> let t :: Either TypeError Type
->                          t = resolveResultSetType scope argsType
->                          f1 = lookupFn "<=" [unsafeRight t,unsafeRight t]
->                      in checkEither [t, f1, t]
->           "!rowCtor" -> Right $ RowCtor argsType
-
-special case the row comparison ops
-
->           _ | let isRowCtor t = case t of
->                                   RowCtor _ -> True
->                                   _ -> False
->               in fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
->                      && length argsType == 2
->                      && all isRowCtor argsType ->
->                 checkRowTypesMatch (head argsType) (head $ tail argsType)
-
->           s ->  lookupFn s argsType
->       lookupFn :: String -> [Type] -> Either TypeError Type
->       lookupFn s1 args = case findCallMatch scope
->                                 (if s1 == "u-" then "-" else s1) args of
->                                Left te -> Left te
->                                Right (_,_,r) -> Right r
+>       lookupFn :: String -> [Type] -> Either [TypeError] Type
+>       lookupFn s1 args = do
+>         (_,_,r) <- findCallMatch scope
+>                              (if s1 == "u-" then "-" else s1) args
+>         return r
 >       checkRowTypesMatch (RowCtor t1s) (RowCtor t2s) =
 >         if length t1s /= length t2s
->           then Left ValuesListsMustBeSameLength
+>           then Left [ValuesListsMustBeSameLength]
 >           else let ts = map (resolveResultSetType scope . (\(a,b) -> [a,b])) $ zip t1s t2s
 >                in checkEither $ ts ++ [Right typeBool]
 >       checkRowTypesMatch x y  =
 >         error $ "internal error: checkRowTypesMatch called with " ++ show x ++ "," ++ show y
 
 
-> typeCheckValuesExpr :: Scope -> [[Type]] -> Either TypeError Type
+> typeCheckValuesExpr :: Scope -> [[Type]] -> Either [TypeError] Type
 > typeCheckValuesExpr scope rowsTs =
 >         let --convert into [[Type]]
 >             --rowsTs = map unwrapTypeList rowsTs1
@@ -85,21 +86,21 @@ special case the row comparison ops
 >                            (map show [1..length $ head rowsTs])
 >         in unionRelTypes scope rowsTs colNames
 
-> typeCheckCombineSelect :: Scope -> Type -> Type -> Either TypeError Type
+> typeCheckCombineSelect :: Scope -> Type -> Type -> Either [TypeError] Type
 > typeCheckCombineSelect scope v1 v2 =
 >     let colNames = map fst $ unwrapComposite $ unwrapSetOf v1
 >     in unionRelTypes scope
 >                   (map (map snd . unwrapComposite . unwrapSetOf) [v1,v2])
 >                   colNames
 
-> unionRelTypes :: Scope -> [[Type]] -> [String] -> Either TypeError Type
+> unionRelTypes :: Scope -> [[Type]] -> [String] -> Either [TypeError] Type
 > unionRelTypes scope rowsTs colNames =
 >   let lengths = map length rowsTs
 >   in case () of
 >              _ | null rowsTs ->
->                    Left NoRowsGivenForValues
+>                    Left [NoRowsGivenForValues]
 >                | not (all (==head lengths) lengths) ->
->                    Left ValuesListsMustBeSameLength
+>                    Left [ValuesListsMustBeSameLength]
 >                | otherwise ->
 >                    let colTypeLists = transpose rowsTs
 >                        colTypes = map (resolveResultSetType scope ) colTypeLists
@@ -131,7 +132,7 @@ it checks the types in the using list are compatible, and eliminates
 duplicate columns of the attrs in the using list, returns the relvar
 type of the joined tables.
 
-> combineTableTypesWithUsingList :: Scope -> [String] -> Type -> Type -> Either TypeError Type
+> combineTableTypesWithUsingList :: Scope -> [String] -> Type -> Type -> Either [TypeError] Type
 > combineTableTypesWithUsingList scope l t1c t2c =
 >     --check t1 and t2 have l
 >     let t1 = unwrapComposite t1c
@@ -147,20 +148,20 @@ type of the joined tables.
 >         nonJoinColumns =
 >             let notJoin = (\(s,_) -> s `notElem` l)
 >             in filter notJoin t1 ++ filter notJoin t2
->         checkColumns :: Either TypeError Type
+>         checkColumns :: Either [TypeError] Type
 >         checkColumns =
 >           case catEither joinColumnTypes of
 >             Left e -> Left e
 >             Right cols -> Right (UnnamedCompositeType $ zip l cols ++ nonJoinColumns)
 
 >     in case error1 of
->          Just e -> Left e
+>          Just e -> Left [e]
 >          Nothing -> checkColumns
 >     where
 >       getNames :: [(String,Type)] -> [String]
 >       getNames = map fst
 >       contained l1 l2 = all (`elem` l2) l1
->       getColumnType :: [(String,Type)] -> [(String,Type)] -> String -> Either TypeError Type
+>       getColumnType :: [(String,Type)] -> [(String,Type)] -> String -> Either [TypeError] Type
 >       getColumnType t1 t2 f =
 >           let ct1 = getFieldType t1 f
 >               ct2 = getFieldType t2 f
@@ -179,8 +180,8 @@ type of the joined tables.
 > doSelectItemListTpe :: Scope
 >                     -> String
 >                     -> Type
->                     -> Either TypeError Type
->                     -> Either TypeError Type
+>                     -> Either [TypeError] Type
+>                     -> Either [TypeError] Type
 > doSelectItemListTpe scope colName colType tpes =
 >         flip (either Left) tpes $ \types ->
 >         either Left (combine types) newCols
@@ -189,7 +190,7 @@ type of the joined tables.
 >                    in if iden == "*"
 >                          then scopeExpandStar scope correlationName
 >                          else Right [(iden, colType)]
->          combine :: Type -> [(String,Type)] -> Either TypeError Type
+>          combine :: Type -> [(String,Type)] -> Either [TypeError] Type
 >          combine ty = Right . foldr consComposite ty
 
 I think this should be alright, an identifier referenced in an
@@ -204,12 +205,12 @@ expression can only have zero or one dot in it.
 
 returns the type of the relation, and the system columns also
 
-> getRelationType :: Scope -> String -> Either TypeError (Type,Type)
+> getRelationType :: Scope -> String -> Either [TypeError] (Type,Type)
 > getRelationType scope tbl =
 >           case getAttrs scope [TableComposite, ViewComposite] tbl of
 >             Just ((_,_,a@(UnnamedCompositeType _))
 >                  ,(_,_,s@(UnnamedCompositeType _))) -> Right (a,s)
->             _ -> Left (UnrecognisedRelation tbl)
+>             _ -> Left [UnrecognisedRelation tbl]
 
 > commonFieldNames :: Type -> Type -> [String]
 > commonFieldNames t1 t2 =
@@ -222,13 +223,10 @@ returns the type of the relation, and the system columns also
 >   noMsg = [MiscError "Unknown error"]
 >   strMsg str = [MiscError str]
 
-> liftE :: Either a b -> Either [a] b
-> liftE = either (Left . (:[])) Right
-
 > checkColumnConsistency :: Scope ->  String -> [String] -> [(String,Type)]
 >                        -> Either [TypeError] [(String,Type)]
 > checkColumnConsistency scope tbl cols' insNameTypePairs = do
->   rt <- liftE $ getRelationType scope tbl
+>   rt <- getRelationType scope tbl
 >   let ttcols :: [(String,Type)]
 >       ttcols = unwrapComposite $ fst rt
 >       cols :: [String]
@@ -245,7 +243,8 @@ returns the type of the relation, and the system columns also
 >         --check the types of the insdata match the column targets
 >         --name datatype columntype
 >       typeTriples = map (\((a,b),c) -> (a,b,c)) $ zip targetNameTypePairs $ map snd insNameTypePairs
->       errs = lefts $ map (\(_,b,c) -> checkAssignmentValid scope c b) typeTriples
+>       errs :: [TypeError]
+>       errs = concat $ lefts $ map (\(_,b,c) -> checkAssignmentValid scope c b) typeTriples
 >   unless (null errs) $ Left errs
 >   return ttcols
 

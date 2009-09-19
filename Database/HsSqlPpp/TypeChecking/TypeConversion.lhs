@@ -111,7 +111,7 @@ findCallMatch is a bit of a mess
 
 > type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
 
-> findCallMatch :: Scope -> String -> [Type] ->  Either TypeError FunctionPrototype
+> findCallMatch :: Scope -> String -> [Type] ->  Either [TypeError] FunctionPrototype
 > findCallMatch scope f inArgs =
 >     returnIfOnne [
 >        exactMatch
@@ -121,7 +121,7 @@ findCallMatch is a bit of a mess
 >       ,mostExactMatches
 >       ,filteredForPreferred
 >       ,unknownMatchesByCat]
->       (NoMatchingOperator f inArgs)
+>       [NoMatchingOperator f inArgs]
 >     where
 >       -- basic lists which roughly mirror algo
 >       -- get the possibly matching candidates
@@ -443,22 +443,22 @@ check all can convert to selected type else fail
 code is not as much of a mess as findCallMatch
 
 
-> resolveResultSetType :: Scope -> [Type] -> Either TypeError Type
+> resolveResultSetType :: Scope -> [Type] -> Either [TypeError] Type
 > resolveResultSetType scope inArgs =
 >   checkTypes inArgs ret
 >   where
 >      ret = case () of
->                    _ | null inArgs -> Left TypelessEmptyArray
+>                    _ | null inArgs -> Left [TypelessEmptyArray]
 >                      | allSameType -> Right $ head inArgs
 >                      | allSameBaseType -> Right $ head inArgsBase
 >                      --todo: do domains
 >                      | allUnknown -> Right $ ScalarType "text"
 >                      | not allSameCat ->
->                          Left (IncompatibleTypeSet inArgs)
+>                          Left [IncompatibleTypeSet inArgs]
 >                      | isJust targetType &&
 >                          allConvertibleToFrom (fromJust targetType) inArgs ->
 >                            Right $ fromJust targetType
->                      | otherwise -> Left $ IncompatibleTypeSet inArgs
+>                      | otherwise -> Left [IncompatibleTypeSet inArgs]
 >      allSameType = all (== head inArgs) inArgs &&
 >                      head inArgs /= UnknownStringLit
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&
@@ -501,12 +501,12 @@ assignment is ok if:
 types are equal
 there is a cast from src to target
 
-> checkAssignmentValid :: Scope -> Type -> Type -> Either TypeError ()
+> checkAssignmentValid :: Scope -> Type -> Type -> Either [TypeError] ()
 > checkAssignmentValid scope src tgt =
 >     case () of
 >       _ | src == tgt -> Right()
 >         | assignCastableFromTo scope src tgt -> Right ()
->         | otherwise -> Left (IncompatibleTypes tgt src)
+>         | otherwise -> Left [IncompatibleTypes tgt src]
 
 > assignCastableFromTo :: Scope -> Type -> Type -> Bool
 > assignCastableFromTo scope from to = from == UnknownStringLit ||
