@@ -23,7 +23,7 @@ TODO 2: think of a name for this command
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
 > import Database.HsSqlPpp.Parsing.Lexer
-> import Database.HsSqlPpp.TypeChecking.Ast
+> --import Database.HsSqlPpp.TypeChecking.Ast
 > import Database.HsSqlPpp.TypeChecking.TypeChecker
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.Dbms.DBAccess
@@ -41,16 +41,14 @@ TODO 2: think of a name for this command
 >   hSetBuffering stdout NoBuffering
 >   args <- getArgs
 >   case () of
->        _ | null args -> putStrLn "no command given" >> help False
->          | args == ["help"] -> help False
->          | args == ["help", "all"] -> help True
->          | head args == "help" -> helpCommand (args !! 1)
+>        _ | null args -> putStrLn "no command given" >> help []
 >          | otherwise -> case lookupCaller commands (head args) of
->                           Nothing -> putStrLn "unrecognised command" >> help False
+>                           Nothing -> putStrLn "unrecognised command" >> help []
 >                           Just c -> call c $ tail args
 
 > commands :: [CallEntry]
-> commands = [clearDBCommand
+> commands = [helpCommand
+>            ,clearDBCommand
 >            ,loadSqlCommand
 >            ,clearAndLoadSqlCommand
 >            ,lexFileCommand
@@ -63,21 +61,35 @@ TODO 2: think of a name for this command
 > lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
 > lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
 
-> help :: Bool -> IO ()
-> help full = do
->   putStrLn "commands available"
->   putStrLn "use 'help' to see a list of commands"
->   putStrLn "use 'help all' to see a list of commands with descriptions"
->   putStrLn "use 'help [command]' to see the description for that command\n"
->   mapM_ putStrLn $ flip map commands (\(CallEntry nm desc _)  ->
+================================================================================
+
+> helpCommand :: CallEntry
+> helpCommand = CallEntry
+>                  "help"
+>                  "use 'help' to see a list of commands\n\
+>                  \use 'help all' to see a list of commands with descriptions\n\
+>                  \use 'help [command]' to see the description for that command"
+>                   (Multiple help)
+
+
+> help :: [String] -> IO ()
+> help args =
+>   case args of
+>             ["all"] -> showCommands True
+>             [x] -> helpForCommand x
+>             _ -> showCommands False
+>   where
+>     showCommands full = do
+>       putStrLn "commands available"
+>       mapM_ putStrLn $ flip map commands (\(CallEntry nm desc _)  ->
 >                                           if full
 >                                             then nm ++ "\n" ++ desc ++ "\n"
 >                                             else nm ++ "\n")
 
-> helpCommand :: String -> IO ()
-> helpCommand c =
+> helpForCommand :: String -> IO ()
+> helpForCommand c =
 >     case lookupCaller commands c of
->       Nothing -> putStrLn "unrecognised command" >> help False
+>       Nothing -> putStrLn "unrecognised command" >> help []
 >       Just (CallEntry nm desc _) -> putStrLn $ nm ++ "\n" ++ desc
 
 ================================================================================
