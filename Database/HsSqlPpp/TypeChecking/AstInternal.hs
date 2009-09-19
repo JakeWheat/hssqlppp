@@ -1,4 +1,3 @@
-{-# OPTIONS_HADDOCK hide #-}
 
 
 -- UUAGC 0.9.10 (AstInternal.ag)

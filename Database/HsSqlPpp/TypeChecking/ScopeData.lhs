@@ -6,7 +6,9 @@ to the type checking routines if you want to supply different/extra
 definitions before type checking something, and you're not getting the
 extra definitions from an accessible database.
 
-> {-# OPTIONS_HADDOCK hide #-}
+> {-# OPTIONS_HADDOCK hide  #-}
+
+ > {-# LANGUAGE DeriveDataTypeable #-}
 
 > module Database.HsSqlPpp.TypeChecking.ScopeData
 >     (
@@ -21,6 +23,9 @@ extra definitions from an accessible database.
 
 > import Data.List
 > import Debug.Trace
+
+ > import Data.Generics
+ > import Data.Binary
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
 
@@ -40,7 +45,7 @@ extra definitions from an accessible database.
 >                    ,scopeAttrSystemColumns :: [CompositeDef]
 >                    ,scopeIdentifierTypes :: [QualifiedScope]
 >                    ,scopeJoinIdentifiers :: [String]}
->            deriving (Eq,Show)
+>            deriving (Eq,Show {-,Typeable,Data-})
 
 = Attribute identifier scoping
 
@@ -146,3 +151,25 @@ key references in the pg catalog.
 combine scopes still seems to run slowly, so change it so that it
 chains scope lookups along a list of scopes instead of unioning the
 individual lists.
+
+= binary instance
+
+instructions from here:
+http://hackage.haskell.org/packages/archive/binary/0.4.1/doc/html/Data-Binary.html
+
+get the file:
+http://darcs.haskell.org/binary/tools/derive/BinaryDerive.hs
+run
+ghci -fglasgow-exts BinaryDerive.hs
+enter:
+:a Database.HsSqlPpp.TypeChecking.Scope
+then:
+BinaryDerive.deriveM (undefined::Database.HsSqlPpp.TypeChecking.Scope.Scope)
+
+paste the code in here:
+
+> {-
+> instance Binary Database.HsSqlPpp.TypeChecking.ScopeData.Scope where
+>     put (Scope a b c d e f g h i j k l m n o) = put a >> put b >> put c >> put d >> put e >> put f >> put g >> put h >> put i >> put j >> put k >> put l >> put m >> put n >> put o
+>     get = get >>= \a -> get >>= \b -> get >>= \c -> get >>= \d -> get >>= \e -> get >>= \f -> get >>= \g -> get >>= \h -> get >>= \i -> get >>= \j -> get >>= \k -> get >>= \l -> get >>= \m -> get >>= \n -> get >>= \o -> return (Scope a b c d e f g h i j k l m n o)
+> -}

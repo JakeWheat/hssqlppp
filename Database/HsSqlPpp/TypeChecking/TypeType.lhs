@@ -49,7 +49,12 @@ out. If not, will have to add another type.
 
 > {-# OPTIONS_HADDOCK hide #-}
 
+ > {-# LANGUAGE DeriveDataTypeable #-}
+
 > module Database.HsSqlPpp.TypeChecking.TypeType where
+
+ > import Data.Generics
+ > import Data.Binary
 
 > data Type = ScalarType String
 >           | ArrayType Type
@@ -66,7 +71,7 @@ out. If not, will have to add another type.
 >           | UnknownStringLit -- represents a string literal
 >                              -- token whose type isn't yet
 >                              -- determined
->             deriving (Eq,Show)
+>             deriving (Eq,Show {-,Typeable,Data-})
 
 > data PseudoType = Any
 >                 | AnyArray
@@ -80,7 +85,7 @@ out. If not, will have to add another type.
 >                 | Internal
 >                 | LanguageHandler
 >                 | Opaque
->                   deriving (Eq,Show)
+>                   deriving (Eq,Show {-,Typeable,Data-})
 
 this list will need reviewing, probably refactor to a completely
 different set of infos, also will want to add more information to
@@ -117,13 +122,13 @@ cast context - used in the casts catalog
 > data CastContext = ImplicitCastContext
 >                  | AssignmentCastContext
 >                  | ExplicitCastContext
->                    deriving (Eq,Show)
+>                    deriving (Eq,Show {-,Typeable,Data-})
 
 used in the attribute catalog which holds the attribute names and
 types of tables, views and other composite types.
 
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
->                         deriving (Eq,Show)
+>                         deriving (Eq,Show {-,Typeable,Data-})
 
 type is always an UnnamedCompositeType:
 
@@ -134,3 +139,87 @@ type is always an UnnamedCompositeType:
 
 > type FunctionPrototype = (String, [Type], Type)
 > type DomainDefinition = (Type,Type)
+
+> {-
+> instance Binary Database.HsSqlPpp.TypeChecking.TypeType.CompositeFlavour where
+>   put Composite = putWord8 0
+>   put TableComposite = putWord8 1
+>   put ViewComposite = putWord8 2
+>   get = do
+>     tag_ <- getWord8
+>     case tag_ of
+>       0 -> return Composite
+>       1 -> return TableComposite
+>       2 -> return ViewComposite
+>       _ -> fail "no parse"
+
+> instance Binary Database.HsSqlPpp.TypeChecking.TypeType.CastContext where
+>   put ImplicitCastContext = putWord8 0
+>   put AssignmentCastContext = putWord8 1
+>   put ExplicitCastContext = putWord8 2
+>   get = do
+>     tag_ <- getWord8
+>     case tag_ of
+>       0 -> return ImplicitCastContext
+>       1 -> return AssignmentCastContext
+>       2 -> return ExplicitCastContext
+>       _ -> fail "no parse"
+
+> instance Binary Database.HsSqlPpp.TypeChecking.TypeType.Type where
+>   put (ScalarType a) = putWord8 0 >> put a
+>   put (ArrayType a) = putWord8 1 >> put a
+>   put (SetOfType a) = putWord8 2 >> put a
+>   put (CompositeType a) = putWord8 3 >> put a
+>   put (UnnamedCompositeType a) = putWord8 4 >> put a
+>   put (DomainType a) = putWord8 5 >> put a
+>   put (EnumType a) = putWord8 6 >> put a
+>   put (RowCtor a) = putWord8 7 >> put a
+>   put (Pseudo a) = putWord8 8 >> put a
+>   put TypeCheckFailed = putWord8 9
+>   put UnknownStringLit = putWord8 10
+>   get = do
+>     tag_ <- getWord8
+>     case tag_ of
+>       0 -> get >>= \a -> return (ScalarType a)
+>       1 -> get >>= \a -> return (ArrayType a)
+>       2 -> get >>= \a -> return (SetOfType a)
+>       3 -> get >>= \a -> return (CompositeType a)
+>       4 -> get >>= \a -> return (UnnamedCompositeType a)
+>       5 -> get >>= \a -> return (DomainType a)
+>       6 -> get >>= \a -> return (EnumType a)
+>       7 -> get >>= \a -> return (RowCtor a)
+>       8 -> get >>= \a -> return (Pseudo a)
+>       9 -> return TypeCheckFailed
+>       10 -> return UnknownStringLit
+>       _ -> fail "no parse"
+
+> instance Binary Database.HsSqlPpp.TypeChecking.TypeType.PseudoType where
+>   put Any = putWord8 0
+>   put AnyArray = putWord8 1
+>   put AnyElement = putWord8 2
+>   put AnyEnum = putWord8 3
+>   put AnyNonArray = putWord8 4
+>   put Cstring = putWord8 5
+>   put Record = putWord8 6
+>   put Trigger = putWord8 7
+>   put Void = putWord8 8
+>   put Internal = putWord8 9
+>   put LanguageHandler = putWord8 10
+>   put Opaque = putWord8 11
+>   get = do
+>     tag_ <- getWord8
+>     case tag_ of
+>       0 -> return Any
+>       1 -> return AnyArray
+>       2 -> return AnyElement
+>       3 -> return AnyEnum
+>       4 -> return AnyNonArray
+>       5 -> return Cstring
+>       6 -> return Record
+>       7 -> return Trigger
+>       8 -> return Void
+>       9 -> return Internal
+>       10 -> return LanguageHandler
+>       11 -> return Opaque
+>       _ -> fail "no parse"
+>-}
