@@ -18,10 +18,12 @@ Description:         Sql parser, pretty printer and type checker, targets PostGr
                      'Scope' to read a catalog from a database to type check against, or
                      to generate catalog information;
 
-                     'DatabaseLoader' for the beginnings of a routine to load SQL into
-                       a database (e.g. to generate an ast then load it into a database
-                       without loading it via psql). It just about does the job but error
-                       handling is a bit crap at the moment.
+                     'DatabaseLoader' for the beginnings of a routine
+                       to load SQL into a database (e.g. to generate
+                       an ast then load it into a database without
+                       loading it via psql). The loader just about
+                       does the job but error handling is a bit crap
+                       at the moment.
 
                      Comes with a HUnit test suite which you can run using the HsSqlPppTests
                      executable, and command line access to some functions via a exe called

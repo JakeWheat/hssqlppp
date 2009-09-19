@@ -3,19 +3,19 @@
 
 TODOs in rough order that they are intended to be done
 
-provide errors with source positions
+provide type check errors with source positions
 sort out source position collection in parser
 investigate syb for annotation instances
 use f :: Annotation -> Doc for pretty printing annotations
 work on statement info
 get scope updating whilst checking
-pretty printer for info, type, etc. for inserting into source
 start work on type checking inside functions - start with params,
    return types, non plpgsql statements, stuff with selects (e.g. for).
-work on parsing and type checking pg_dump output
+work on parsing and type checking pg_dump output, then do a util to
+   dump and type check a live database (this will lead to being able
+   to run the lint process on a live database rather than source)
 sort out api + do haddock
 provide installation instructions for non haskell programmers
-move developer info/notes out of readme file and usage file
 chain scopes when typechecking multiple files from util, provide api
    to do this from code
 

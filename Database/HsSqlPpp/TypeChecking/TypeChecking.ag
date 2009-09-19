@@ -4,12 +4,12 @@ Copyright 2009 Jake Wheat
 This file contains the attr and sem definitions, which do the type
 checking, etc..
 
-A lot of the haskell code has been moved into other files: TypeCheckingH, AstUtils.lhs, it is
-intended that only small amounts of code appear (i.e. one-liners)
-inline in this file, and larger bits go in AstUtils.lhs. These are
-only divided because the attribute grammar system uses a custom syntax
-with a custom preprocessor. These guidelines aren't followed very
-well.
+A lot of the haskell code has been moved into other files:
+TypeCheckingH, AstUtils.lhs, it is intended that only small amounts of
+code appear (i.e. one-liners) inline in this file, and larger bits go
+in AstUtils.lhs. These are only divided because the attribute grammar
+system uses a custom syntax with a custom preprocessor. These
+guidelines aren't followed very well.
 
 The current type checking approach doesn't quite match how SQL
 works. The main problem is that you can e.g. exec create table
@@ -28,8 +28,8 @@ documentation will be overhauled quite a lot. Alternatively put, this
 code is in need of better documentation and organisation, and serious
 refactoring.
 
-An unholy mixture of Maybe, Either, Either Monad and TypeCheckFailed is used to do
-error handling.
+An unholy mixture of Maybe, Either, Either Monad and TypeCheckFailed
+is used to do error handling.
 
 TODO: document pattern of typecheckfailed propagation, loc.tpe usage.
 

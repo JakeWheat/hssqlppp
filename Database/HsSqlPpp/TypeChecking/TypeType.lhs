@@ -106,6 +106,7 @@ later on down the line.
 >                | MissingJoinAttribute
 >                | ExpressionMustBeBool
 >                | WrongNumberOfColumns
+>                 --shoved in to humour the Either Monad
 >                | MiscError String
 >                  deriving (Eq,Show)
 

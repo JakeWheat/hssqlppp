@@ -23,15 +23,12 @@ There is not much documentation at the moment. See the 'usage' file
 where there are instructions on how to parse files, and type check
 them to see how well the code supports your SQL source.
 
-Most of the source files have plenty of comments, hopefully they can
-provide some illumination.
-
 It is Cabal-installable, run:
 cabal update
 then
 cabal install hssqlppp
-to install HsSqlSystem executable (and the test runner), if you want
-to try the utilities out, or run
+to install the libraries and HsSqlSystem executable (and the test
+runner executable), if you want to try the utilities out, or run
 cabal unpack hssqlppp
 to download and view the source code easily.
 
@@ -55,6 +52,8 @@ bzr branch lp:~jakewheat/hssqlppp/trunk
 
 HackageDB page:
 http://hackage.haskell.org/package/hssqlppp
+This should hopefully have some basic Haddock documentation to view
+when version 0.0.6 is uploaded.
 
 Contact
 
@@ -64,12 +63,7 @@ and criticism welcome:
 
 jakewheatmail@gmail.com
 
-You can also report problems on the bug tracker on Launchpad. Let me
-know if you have any problems trying out the stuff in the 'usage'
-file, if you come across some SQL which doesn't parse or type check,
-and I'm also interested in surveying what other dialects of SQL you
-would be interested in using or contributing code for, and if you want
-to fork the project (which is something I have nothing against).
+You can also report problems on the bug tracker on Launchpad.
 
 ================================================================================
 
@@ -141,18 +135,21 @@ supports. Development work is currently focused in this area.
 = Other current downsides:
 
 The AST node types aren't well designed, in particular they contain
-almost no location information, and no other annotations. This is due
-to be fixed and is near the top of the TODO list.
+patchy location information, and limited other annotations. This is
+being worked on.
 
-Not much work has been done on correctly rejecting invalid SQL and not
-much thought has been put into error messages and error reporting yet,
-this is slowly improving, and at some point will become a major focus.
+Not much work has been done on correctly rejecting invalid SQL
+(although it does pretty well despite this) and not much thought has
+been put into error messages and error reporting yet, this is slowly
+improving, and at some point will become a major focus.
 
 Supporting other SQL dialects: I think it might be realistic to
 support portable select, insert, update and delete with ?
 placeholders. I think cross platform DDL isn't ever going to be
 sensible in non toy databases, and if you wanted to use this utility
-e.g. support MySQL or MS SQL Server, start by forking the code.
+e.g. support MySQL or MS SQL Server, it might be best to start by
+forking the code, I would be happy to help support this in any way I
+can.
 
 Future plans:
 
@@ -160,7 +157,7 @@ Future plans:
 
 * support type checking simple SQL statements that you'd embed in
   Haskell code, including with ? placeholders, to support generating
-  type safe wrappers;
+  type safe wrappers - could integrate with MetaHDBC?;
 
 * possibly a lightweight code generation/ simple macro support to help
   with developing more robust PL/pgSQL code.

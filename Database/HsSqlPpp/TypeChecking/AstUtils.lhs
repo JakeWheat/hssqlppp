@@ -75,59 +75,17 @@ this is why binary @ operator isn't currently supported
 
 = type checking utils
 
-The way most of the error handling works is all type errors live as
-types and get returned as types, instead of e.g. using exceptions or
-Either. All the type checking routines for each node should be in the
-following form, or equivalent:
-
-1. Take the node types of the sub nodes (e.g. the args for a function
-invocation).
-
-2. Check each type for a type error, pass any errors on as the type for
-this node - so type errors filter up to the top level statements in
-this way.
-
-3. Check each type for unknown - this represents some type checking
-which hasn't been coded. All the type calculations give up completely
-when they come across an unknown type and just propagate unknown.
-
-4a. If the node has no nodeType rule, it uses the default one which
-just propagates the types of its subnodes. This sometimes results in
-them having an uncannily accurate type, and sometimes a really weird
-type, rather than returning unknown.
-
-4b. If the node has a nodeType rule, calculate the actual type we want
-for this node using the subnode types which we've already checked for
-unknowns and errors. Any new type errors become this node's type, or
-otherwise it is set to the calculated type.
-
-Using laziness, in code this usually looks something like
-
-thisNodeType =  checkErrors [@subnodea.nodeType
-                            ,@subnodeb.nodetype] calcThisNodeType
-where
-  calcThisNodeType = some code referring to @subnodea.nodeType
-                       and @subnodeb.nodetype
-
-The checkErrors function, and its auxiliary unkErr, does the error and
-unknown propagation.
-
-Once the annotations are done properly, type errors won't need to rise
-up the tree like this.
-
 == checkErrors
 
-runs through the types in the first list looking for type errors or
-unknowns, if it finds any, return them, else return the second
-argument. See unkErr below for exactly how it finds errors and
-unknowns. It will only return errors from the first type containing
-errors, which might need looking at when the focus is on good error
-messages.
+if we find a typecheckfailed in the list, then propagate that, else
+use the final argument.
 
 > checkTypes :: [Type] -> Either [TypeError] Type -> Either [TypeError] Type
 > checkTypes (TypeCheckFailed:_) _ = Right TypeCheckFailed
 > checkTypes (_:ts) r = checkTypes ts r
 > checkTypes [] r = r
+
+small variant, not sure if both are needed
 
 > chainTypeCheckFailed :: [Type] -> Either a Type -> Either a Type
 > chainTypeCheckFailed a b =
@@ -135,21 +93,28 @@ messages.
 >     then Right TypeCheckFailed
 >     else b
 
+convert an 'either [typeerror] type' to a type
+
 > errorToTypeFail :: Either [TypeError] Type -> Type
 > errorToTypeFail tpe = case tpe of
 >                         Left _ -> TypeCheckFailed
 >                         Right t -> t
+
+convert an 'either [typeerror] x' to a type, using an x->type function
 
 > errorToTypeFailF :: (t -> Type) -> Either [TypeError] t -> Type
 > errorToTypeFailF f tpe = case tpe of
 >                                   Left _ -> TypeCheckFailed
 >                                   Right t -> f t
 
+used to pass a regular type on iff the list of errors is null
 
 > checkErrorList :: [TypeError] -> Type -> Either [TypeError] Type
 > checkErrorList es t = if null es
->                      then Right t
->                      else Left es
+>                         then Right t
+>                         else Left es
+
+extract errors from an either, gives empty list if right
 
 > getErrors :: Either [TypeError] Type -> [TypeError]
 > getErrors e = either id (const []) e
@@ -329,7 +294,8 @@ where these should live but probably not here.
 >  ,("!arraySub", [Pseudo AnyArray,typeInt], Pseudo AnyElement)
 >  ]
 
-special functions, stuck in here at random also
+special functions, stuck in here at random also, these look like
+functions, but don't appear in the postgresql catalog.
 
 > specialFunctionTypes :: [(String,[Type],Type)]
 > specialFunctionTypes = [

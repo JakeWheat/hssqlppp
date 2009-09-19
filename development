@@ -7,24 +7,23 @@ AstInternal.ag for more information.
 
 Two of the files are generated:
 
-DefaultScope.hs -> generated using ./HsSqlSystem.lhs getscope
- template1 (make a backup of this file if you want to regenerate it -
- you can get trapped without being able to run HsSqlSystem if the new
- file doesn't compile). You shouldn't need to regenerate this file
- unless you change the Scope data type, in which case you'll need to
- use the DefaultScopeEmpty.hs file to be able to generate a new
- scope. There is some info in the DefaultScopeEmpty.hs file along
- these lines.
+DefaultScope.hs -> generated using
+ ./HsSqlSystem.lhs getscope template1 > something && cp something ...
+ You shouldn't need to regenerate this file unless you change the
+ Scope data type, in which case you'll need to use the
+ DefaultScopeEmpty.hs file to be able to generate a new scope. There
+ is some info in the DefaultScopeEmpty.hs file along these lines.
 
-AstInternal.hs -> this is generated from AstInternal.ag and Typechecking.ag using
- uuagc, see AstInternal.ag for instructions on how to do this.
+AstInternal.hs -> this is generated from AstInternal.ag and
+ Typechecking.ag using uuagc, see AstInternal.ag for the exact
+ arguments to use.
 
-If you are editing either of these files directly you're probably
-doing something wrong.
+If you are editing either of these generated files directly you're
+probably doing something wrong.
 
-See the file usage which gives some information on helper functions
-you can try from ghci, and documents a bunch of utility functions you
-can run from the command line.
+See the file 'usage' which documents a bunch of utility functions you
+can run from the command line, you can look and HsSqlSystem.lhs source
+for some example usage.
 
 There are rudimentary test for a lot of the functionality, see
 ParserTests.lhs and AstCheckTests.lhs (for type checking). These
@@ -50,10 +49,18 @@ HsSqlSystem.lhs: program to expose some functionality on the command
 HsSqlPppTests.lhs: small file to pull together the tests from other test
                    suites, and make them into an executable.
 
-Other source files, in Database/HsSqlppp/
+Other source files, under Database/HsSqlppp/
 
 AstInternal.ag: uuagc source for the ast data types and the api functions for
         type checking asts.
+
+Ast.hs, TypeChecker.hs: forwarder modules for the generated
+                        AstInternal.hs and additional utility
+                        modules. These are the public APIs for the
+                        Ast, and the type checking.
+
+AstAnnotation.lhs: data types for the annotation, and some utilities
+                   for working with annotated stuff
 
 AstCheckTests.lhs: hunit tests for type checking
 
@@ -121,8 +128,3 @@ TypeType.lhs: Some types used by the type checker, should live with
               TypeCheckingH.lhs exists.
 
 These files all have (hopefully) useful comments.
-
-You'll find the jargon in this project easier to follow if you're
-familiar with SQL and with the work of Date, Darwen, et al.. I plan to
-add a glossary at some point, and to try to make the usage more
-consistent.

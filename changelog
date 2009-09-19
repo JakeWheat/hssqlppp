@@ -1,8 +1,9 @@
 annotated tree
 
-now uses annotations inline in the ast, has rudimentary haddock
-documentation, and the beginnings of an API. No progress on parsing or
-typechecking since last release.
+The API and type checking code has had a major overhaul, now uses
+annotations inline in the ast, has rudimentary haddock documentation,
+and the API is starting to take shape. No significant progress on
+actual parsing or typechecking since last release.
 
 secondtypechecking
 

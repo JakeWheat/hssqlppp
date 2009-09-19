@@ -624,6 +624,8 @@ in the future. It is imperative that this or template haskell or
 something similar be used because doing it by hand guarantees some
 bits will be missed.
 
+Stupidity watch update: use attributes to do this. Doh.
+
 -}
 
 instance Annotated Statement where
@@ -950,7 +952,7 @@ Future plans:
 Investigate how much mileage can get out of making these nodes the
 parse tree nodes, and using a separate ast. Hinges on how much extra
 value can get from making the types more restrictive for the ast nodes
-compared to the parse tree.
+compared to the parse tree. Starting to think this won't be worth it.
 
 Would like to turn this back into regular Haskell file, maybe could
 use AspectAG instead of uuagc to make this happen?

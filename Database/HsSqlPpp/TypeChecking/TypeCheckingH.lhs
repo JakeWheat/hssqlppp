@@ -227,15 +227,5 @@ returns the type of the relation, and the system columns also
 >             Just _ -> Nothing
 >             _ -> Just $ UnrecognisedRelation tbl
 
-> checkEither :: [Either a b] -> Either a b
-> checkEither ((Left e):_) = Left e
-> checkEither (e:[]) = e
-> checkEither (_:es) = checkEither es
-> checkEither [] = error "empty list for checkEither"
-
-> unsafeRight :: Either a b -> b
-> unsafeRight (Right r) = r
-> unsafeRight (Left _) = error "tried to get unsafe right on left"
-
 > both :: (a->b) -> (a,a) -> (b,b)
 > both fn (x,y) = (fn x, fn y)

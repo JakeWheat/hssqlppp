@@ -125,35 +125,13 @@ database schema
 
 ================================================================================
 
-= Using ghci
+= library usage
 
-by loading different files into ghci, you can try commands out
-interactively, here are some highlights:
-
-load Parser.lhs, use parseSql:
-
-Prelude Parser> parseSql "select a from b;"
-Right [(("",1,1),SelectStatement (Select Dupes (SelectList [SelExp (Identifier "a")] []) (Just (Tref "b")) Nothing [] Nothing [] Asc Nothing Nothing))]
-Prelude Parser> parseSql "select a b c from d;"
-Left 
----------------------
-(line 1, column 10):
-unexpected IdStringTok "b"
-expecting operator
-FILENAMESTUFF:
-:1:10
-------------
-Check it out:
-select a b c from d;
-         ^
-ERROR HERE
-
------------------
-
-load AstCheckTests.lhs, use parseAndGetType:
-
-*AstCheckTests> parseAndGetType "select * from pg_attribute inner join pg_type on pg_attribute.atttypid = pg_type.oid;"
-[SetOfType (UnnamedCompositeType [("attrelid",ScalarType "oid"),("attname",ScalarType "name"),("atttypid",ScalarType "oid"),("attstattarget",ScalarType "int4"),("attlen",ScalarType "int2"),("attnum",ScalarType "int2"),("attndims",ScalarType "int4"),("attcacheoff",ScalarType "int4"),("atttypmod",ScalarType "int4"),("attbyval",ScalarType "bool"),("attstorage",ScalarType "char"),("attalign",ScalarType "char"),("attnotnull",ScalarType "bool"),("atthasdef",ScalarType "bool"),("attisdropped",ScalarType "bool"),("attislocal",ScalarType "bool"),("attinhcount",ScalarType "int4"),("attacl",ArrayType (ScalarType "aclitem")),("typname",ScalarType "name"),("typnamespace",ScalarType "oid"),("typowner",ScalarType "oid"),("typlen",ScalarType "int2"),("typbyval",ScalarType "bool"),("typtype",ScalarType "char"),("typcategory",ScalarType "char"),("typispreferred",ScalarType "bool"),("typisdefined",ScalarType "bool"),("typdelim",ScalarType "char"),("typrelid",ScalarType "oid"),("typelem",ScalarType "oid"),("typarray",ScalarType "oid"),("typinput",ScalarType "regproc"),("typoutput",ScalarType "regproc"),("typreceive",ScalarType "regproc"),("typsend",ScalarType "regproc"),("typmodin",ScalarType "regproc"),("typmodout",ScalarType "regproc"),("typanalyze",ScalarType "regproc"),("typalign",ScalarType "char"),("typstorage",ScalarType "char"),("typnotnull",ScalarType "bool"),("typbasetype",ScalarType "oid"),("typtypmod",ScalarType "int4"),("typndims",ScalarType "int4"),("typdefaultbin",ScalarType "text"),("typdefault",ScalarType "text")])]
+see the haddock docs to get a basic idea of using the libraries. The
+source for HsSqlSystem.lhs might also be worth a look for some
+examples. Hopefully, haddock docs will be online at
+http://hackage.haskell.org/package/hssqlppp
+when 0.0.6 is uploaded.
 
 ================================================================================
 

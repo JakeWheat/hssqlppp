@@ -6,7 +6,7 @@ the appropriate mailing list.
 generating the default scope, the layout is awful when saved to a
 file. Is there an easy way to Show this value, with nice formatting?
 Is there a better way to serialize this value rather than as a haskell
-source file?
+source file? Todo - try Data.Binary
 
 = ghc questions
 
@@ -28,22 +28,20 @@ then run ./HsSqlSystem
 = cabal
 
 when tried to install profiling, is there a short cut to reinstall all
-the dependent libs with the profiling option on, had to do this one or
+the dependent libs with the profiling option on? had to do this one or
 two libs at a time and it took ages.
 
 after cabal stop complaining about libs without profiling on, tried to
 build the code and got errors like HSHunit_p library not found, this
 was fixed by re-cabal installing some libraries with profiling on that
-cabal had missed - why did it pick up on some libs, and not others?
+cabal had missed - it picked up on some libs, and not others?
 
 cabal haddock - top level documentation from cabal file appears to
 have whitespace stripping, destroying paragraphs and lists
 
 = uuagc
 
-compare with aspectag - what are the upsides/downsides? Hypothetically
-speaking, could ehc be changed to use aspectag, if not, what are the
-limitations which would prevent this?
+compare with aspectag - what are the upsides/downsides?
 
 = postgresql questions
 

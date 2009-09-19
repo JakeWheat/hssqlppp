@@ -3,6 +3,7 @@ Copyright 2009 Jake Wheat
 This module just forwards the public components of ScopeData,
 ScopeReader and DefaultScope. Some of the exported functions in
 ScopeData are only used by the type checker and are not fowarded.
+Don't really know if using the word scope for this is correct English?
 
 > {- | This module contains the scope data type and a few helper functions,
 >  not really ready for public consumption yet. It serves the following purposes:

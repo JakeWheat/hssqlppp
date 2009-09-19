@@ -55,6 +55,12 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Database.HsSqlPpp.TypeChecking.Ast
 > import Database.HsSqlPpp.TypeChecking.TypeChecker as A
 
+
+
+The parse state is used to keep track of source positions inside
+function bodies, these bodies are parsed separately to the rest of the
+code which is why we need to do this.
+
 > type MySourcePos = (String,Int,Int)
 > type ParseState = [MySourcePos]
 

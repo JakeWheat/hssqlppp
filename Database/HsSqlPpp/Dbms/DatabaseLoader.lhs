@@ -126,7 +126,7 @@ Later on, when working with generated code may need to make guesses as
 to which line, and possibly supply multiple references (e.g. for a
 template you might want to see the part of the template which is
 causing the error, plus the arguments being passed to that template
-instantion call (if nested, you want to see all of them back up to the
+instantiation call (if nested, you want to see all of them back up to the
 top level).
 
 So, for now: want to get the line number and column number from the
