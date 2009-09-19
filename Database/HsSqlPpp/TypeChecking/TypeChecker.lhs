@@ -58,3 +58,5 @@ This is the public module for the type checking functionality.
 
 > import Database.HsSqlPpp.TypeChecking.AstInternal
 > import Database.HsSqlPpp.TypeChecking.TypeType
+> import Database.HsSqlPpp.TypeChecking.AstAnnotation
+> import Database.HsSqlPpp.TypeChecking.AstUtils

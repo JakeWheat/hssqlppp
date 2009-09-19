@@ -36,6 +36,9 @@ build the code and got errors like HSHunit_p library not found, this
 was fixed by re-cabal installing some libraries with profiling on that
 cabal had missed - why did it pick up on some libs, and not others?
 
+cabal haddock - top level documentation from cabal file appears to
+have whitespace stripping, destroying paragraphs and lists
+
 = uuagc
 
 compare with aspectag - what are the upsides/downsides? Hypothetically

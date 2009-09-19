@@ -40,29 +40,6 @@ module Database.HsSqlPpp.TypeChecking.AstInternal(
    ,annotateAst
    ,annotateAstScope
    ,annotateExpression
-   ,getTopLevelTypes
-   ,getTypeErrors
-   ,getTopLevelInfos
-   ,StatementInfo(..)
-   --annotation utils
-   ,stripAnnotations
-
-   --AstAnnotationForwards
-   ,Annotation
-   ,AnnotationElement(..)
-
-   --astutils forwards
-   ,OperatorType(..)
-   ,getOperatorType
-   ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
-   ,typeFloat8,typeVarChar,typeChar,typeBool
-   ,Message(..)
-   ,MessageStuff(..)
-   --typetype
-   ,Type (..)
-   ,PseudoType (..)
-   ,TypeError (..)
-   --,StatementInfo (..)
 ) where
 
 import Data.Maybe
@@ -80,13 +57,6 @@ import Database.HsSqlPpp.TypeChecking.ScopeData
 import Database.HsSqlPpp.TypeChecking.AstAnnotation
 
 
-
-
-{-
-checkAst :: StatementList -> [Message]
-checkAst sts = let t = sem_Root (Root sts)
-               in (messages_Syn_Root (wrap_Root t Inh_Root {scope_Inh_Root = defaultScope}))
--}
 
 -- | Takes an ast, and adds annotations, including types, type errors,
 -- and statement info. Type checks against defaultScope.
@@ -115,54 +85,11 @@ annotateExpression scope ex =
     in case rt of
          ExpressionRoot e -> e
 
--- | Run through the ast given and return a list of statementinfos
--- from the top level items.
-getTopLevelInfos :: Annotated a =>
-                    [a] -- ^ the ast to check
-                 -> [StatementInfo]
-getTopLevelInfos sts = map getSIAnnotation sts
-
-
 {-
+
 ================================================================================
 
-= Types
-
-These are the utility functions which clients use to typecheck sql.
-
--}
-{-
-getExpressionType :: Scope -> Expression -> Type
-getExpressionType scope ex =
-    let t = sem_ExpressionRoot (ExpressionRoot ex)
-    in (nodeType_Syn_ExpressionRoot
-        (wrap_ExpressionRoot t Inh_ExpressionRoot {scope_Inh_ExpressionRoot = combineScopes defaultScope scope}))
--}
-{-
-getStatementsType :: StatementList -> [Type]
-getStatementsType = getStatementsTypeScope emptyScope
-
-getStatementsTypeScope :: Scope -> StatementList -> [Type]
-getStatementsTypeScope scope st =
-.    let t = sem_Root (Root st)
-        ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
-        tl = nodeType_Syn_Root ta
-    in (unwrapTypeList tl)
-
-getStatementsInfo :: StatementList -> [StatementInfo]
-getStatementsInfo = getStatementsInfoScope emptyScope
-
-getStatementsInfoScope :: Scope -> StatementList -> [StatementInfo]
-getStatementsInfoScope scope st =
-    let t = sem_Root (Root st)
-        ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
-        t2 = statementInfo_Syn_Root ta
-    in t2
--}
-
-{-
-
-Instances for Annotated.
+= instances for Annotated.
 
 Hopefully, some sort of SYB approach can be used to autogenerate these
 in the future.

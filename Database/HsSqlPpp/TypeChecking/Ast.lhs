@@ -54,4 +54,5 @@ This is the public module for the ast nodes.
 >     ) where
 
 > import Database.HsSqlPpp.TypeChecking.AstInternal
+> import Database.HsSqlPpp.TypeChecking.AstUtils
 

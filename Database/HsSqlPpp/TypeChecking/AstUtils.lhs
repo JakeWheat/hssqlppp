@@ -24,8 +24,6 @@ type checking.
 >     ,unwrapComposite
 >     ,consComposite
 >     ,unwrapRowCtor
->     ,Message(..)
->     ,MessageStuff(..)
 >     ) where
 
 > import Data.Maybe
@@ -319,10 +317,6 @@ utilities for working with Types
 > isArrayType (ArrayType _) = True
 > isArrayType _ = False
 
- > unwrapTypeList :: Type -> [Type]
- > unwrapTypeList (TypeList ts) = ts
- > unwrapTypeList x = error $ "internal error: can't get types from list " ++ show x
-
 > unwrapArray :: Type -> Type
 > unwrapArray (ArrayType t) = t
 > unwrapArray x = error $ "internal error: can't get types from non array " ++ show x
@@ -347,33 +341,3 @@ utilities for working with Types
 > unwrapRowCtor :: Type -> [Type]
 > unwrapRowCtor (RowCtor a) = a
 > unwrapRowCtor x = error $ "internal error: cannot unwrapRowCtor on " ++ show x
-
-================================================================================
-
-message stuff, used by the continue in loop checking, will be
-repurposed once the type checking is complete and lint-style checking
-is introduced.
-
-> data Message = Error MessageStuff
->              | Warning MessageStuff
->              | Notice MessageStuff
->                deriving (Eq,Show)
->
-> data MessageStuff = ContinueNotInLoop
->                   | CustomMessage String
->                     deriving (Eq,Show)
->
-
- > instance Show Message where
- >    show = showMessage
- >
- > showMessage :: Message -> String
- > showMessage m = case m of
- >                   Error s -> showit "Error" s
- >                   Warning s -> showit "Warning" s
- >                   Notice s -> showit "Notice" s
- >                 where
- >                   showit lev (fn,l,c) s = lev ++ "\n" ++ fn ++ ":"
- >                                           ++ show l ++ ":" ++ show c ++ ":\n"
- >                                           ++ show s ++ "\n"
- >

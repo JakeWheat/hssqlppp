@@ -4,7 +4,7 @@ Copyright 2009 Jake Wheat
 This file contains the attr and sem definitions, which do the type
 checking, etc..
 
-A lot of the haskell code has been moved into AstUtils.lhs, it is
+A lot of the haskell code has been moved into other files: TypeCheckingH, AstUtils.lhs, it is
 intended that only small amounts of code appear (i.e. one-liners)
 inline in this file, and larger bits go in AstUtils.lhs. These are
 only divided because the attribute grammar system uses a custom syntax
@@ -28,26 +28,24 @@ documentation will be overhauled quite a lot. Alternatively put, this
 code is in need of better documentation and organisation, and serious
 refactoring.
 
+An unholy mixture of Maybe, Either and TypeCheckFailed is used to do
+error handling.
+
+TODO: document pattern of typecheckfailed propagation, loc.tpe usage.
+
 ================================================================================
 
 = main attributes used
 
 Here are the main attributes used in the type checking:
 
-sourcePos - holds the source position used in messages, not very
-accurate at the moment, just gives you the position of the first
-character in the current statement
+scope is used to chain the scopes up and down the tree, to allow
+access to the catalog information, and to store the in scope
+identifier names and types e.g. inside a select expression.
 
-actual value - add this to all nodes out of laziness. We use these
-values in a limited number of places in the code
+annotatedTree is used to create a copy of the ast with the type,
+etc. annotations.
 
--}
-{-
-ATTR AllNodes
-  [
-  | sourcePos : (String,Int,Int)
-  |
-  ]
 -}
 ATTR AllNodes Root ExpressionRoot
   [ scope : Scope
@@ -55,135 +53,6 @@ ATTR AllNodes Root ExpressionRoot
   | annotatedTree : SELF
   ]
 
-{-
-{
-setUnknown :: Type -> Type -> Type
-setUnknown _ _ = UnknownType
-
-appendTypeList :: Type -> Type -> Type
-appendTypeList t1 (TypeList ts) = TypeList (t1:ts)
-appendTypeList t1 t2 = TypeList [t1,t2]
-}
-
-{-
-================================================================================
-
-= statement info
-
-slightly hacky, to support adding useful comments to sql source,
-create a new data type which is more descriptive than Type, so
-statements can expose information here. E.g. a create table can expose
-the table name, a create function can expose the function prototype
-
-This will evolve into the main annotation data type which is used to
-supply information, e.g. to intersperse into some sql source, or to
-get back info on an individual sql statement interactively in an ide.
-
--}
--}
-
-{-
-{
---use this to make sure type errors are propagated into the statement
---infos, temporary
-
-makeStatementInfo :: Type -> StatementInfo -> StatementInfo
-makeStatementInfo ty st =
-    if isError ty
-      then DefaultStatementInfo ty
-      else st
-    where
-      isError t = case t of
-                    TypeError _ -> True
-                    TypeList ts -> any isError ts
-                    _ -> False
-}
-
-ATTR Statement
-  [
-  | backType : Type
-  | statementInfo : StatementInfo
-  ]
-
-SEM StatementList
-  | Cons hd.backType = @hd.nodeType
-
-{-SEM Statement
-  | SelectStatement Insert Update Delete Copy CopyData Truncate
-    CreateTable CreateTableAs CreateView CreateType CreateFunction
-    CreateDomain DropFunction DropSomething Assignment Return
-    ReturnNext ReturnQuery Raise NullStatement Perform Execute
-    ExecuteInto ForSelectStatement ForIntegerStatement WhileStatement
-    ContinueStatement CaseStatement If
-      backType = lhs.nodeType
--}
-
-ATTR Root StatementList
-  [
-  |
-  | statementInfo : {[StatementInfo]}
-  ]
-
-SEM StatementList
-  | Nil lhs.statementInfo = []
-  | Cons lhs.statementInfo = @hd.statementInfo : @tl.statementInfo
-
-
-SEM Statement
-  | Copy CopyData Truncate
-    DropFunction DropSomething Assignment Return ReturnNext ReturnQuery
-    Raise NullStatement Perform Execute ExecuteInto ForSelectStatement
-    ForIntegerStatement WhileStatement ContinueStatement CaseStatement
-    If lhs.statementInfo = DefaultStatementInfo $ TypeList []
-
-{-
-
-
-
-some helpers
--}
-SEM MaybeExpression
-    | Just lhs.nodeType = @just.nodeType
-    | Nothing lhs.nodeType = TypeList []
-
-{-
-
-================================================================================
-
-semantics for source positions
-
-source positions aren't collected by the parser properly yet, so we
-just get what's available and propagate that. All the type errors
-should collect the source position information properly, so when it
-appears in the ast nodes, we can hook it up here and the errors should
-start giving accurate positions.
-
--}
-
-SEM Statement
-  | SelectStatement Insert Update Delete Copy CopyData Truncate
-    CreateTable CreateTableAs CreateView CreateType CreateFunction
-    CreateDomain DropFunction DropSomething Assignment Return
-    ReturnNext ReturnQuery Raise NullStatement Perform Execute
-    ExecuteInto ForSelectStatement ForIntegerStatement WhileStatement
-    ContinueStatement CaseStatement If
-        lhs.sourcePos = getSourcePos @ann
-
-{
-getSourcePos :: Annotation -> (String,Int,Int)
-getSourcePos (a:as) = case a of
-                        SourcePos f l c -> (f,l,c)
-                        _ -> getSourcePos as
-getSourcePos _ = ("unknown", -1, -1)
-}
-
-SEM Root
-  | Root statements.sourcePos = ("",0,0)
-
-SEM ExpressionRoot
-  | ExpressionRoot expr.sourcePos = ("",0,0)
-
--}
 {-
 ================================================================================
 
@@ -205,36 +74,6 @@ SEM Expression
         lhs.annotatedTree = changeAnn @loc.backTree $
                               (([TypeAnnotation @loc.nt] ++
                                 map TypeErrorA @loc.typeErrors) ++)
-
-
-{-
-
-== type names
-
-Types with type modifiers (called PrecTypeName here, to be changed),
-are not supported at the moment.
-
--}
-
-ATTR TypeName
-     [
-     |
-     | namedType : {Either TypeError Type}
-     ]
-
-SEM TypeName
-     | SimpleTypeName
-        lhs.namedType = lookupTypeByName @lhs.scope $ canonicalizeTypeName @tn
-        lhs.annotatedTree = SimpleTypeName @tn
-     | ArrayTypeName
-        lhs.namedType = either Left (Right . ArrayType) @typ.namedType
-        lhs.annotatedTree = ArrayTypeName @typ.annotatedTree
-     | SetOfTypeName
-        lhs.namedType = either Left (Right . SetOfType) @typ.namedType
-        lhs.annotatedTree = SetOfTypeName @typ.annotatedTree
-     | PrecTypeName
-        lhs.namedType = Right TypeCheckFailed
-        lhs.annotatedTree = PrecTypeName @tn @prec
 
 {-
 == literals
@@ -272,6 +111,35 @@ SEM Expression
            loc.backTree = Cast @ann @expr.annotatedTree @tn.annotatedTree
 
 {-
+
+== type names
+
+Types with type modifiers (called PrecTypeName here, to be changed),
+are not supported at the moment.
+
+-}
+
+ATTR TypeName
+     [
+     |
+     | namedType : {Either TypeError Type}
+     ]
+
+SEM TypeName
+     | SimpleTypeName
+        lhs.namedType = lookupTypeByName @lhs.scope $ canonicalizeTypeName @tn
+        lhs.annotatedTree = SimpleTypeName @tn
+     | ArrayTypeName
+        lhs.namedType = either Left (Right . ArrayType) @typ.namedType
+        lhs.annotatedTree = ArrayTypeName @typ.annotatedTree
+     | SetOfTypeName
+        lhs.namedType = either Left (Right . SetOfType) @typ.namedType
+        lhs.annotatedTree = SetOfTypeName @typ.annotatedTree
+     | PrecTypeName
+        lhs.namedType = Right TypeCheckFailed
+        lhs.annotatedTree = PrecTypeName @tn @prec
+
+{-
 == operators and functions
 -}
 SEM Expression
@@ -284,7 +152,6 @@ SEM Expression
         loc.backTree = FunCall @ann @funName @args.annotatedTree
 
 {-
-{-
 == case expression
 
 for non simple cases, we need all the when expressions to be bool, and
@@ -294,13 +161,6 @@ common type
 for simple cases, we need to check all the when parts have the same type
 as the value to check against, then we collect the then parts as above.
 
-so, the caseexpressionlistexpressionpair items each set their node
-type to a typelist with two elements, the first is a typelist of the
-when expressions, and the second is the type of the then
-expression. These can then be checked appropriately in the case or
-casesimple sem code.
-
--}
 -}
 
 SEM Expression
@@ -342,12 +202,11 @@ SEM Expression
         loc.backTree = CaseSimple @ann @value.annotatedTree @cases.annotatedTree @els.annotatedTree
 
 {-
-{-
 == identifiers
 pull id types out of scope for identifiers
 
 -}
--}
+
 SEM Expression
     | Identifier
         loc.tpe = let (correlationName,iden) = splitIdentifier @i
@@ -443,15 +302,6 @@ SEM ExpressionListList
 
 = statements
 
--}
-{-
-SEM Statement
-    | SelectStatement Insert Update Delete Copy CopyData Truncate
-      CreateTable CreateTableAs CreateView CreateType CreateFunction
-      CreateDomain DropFunction DropSomething Assignment Return
-      ReturnNext ReturnQuery Raise NullStatement Perform Execute
-      ExecuteInfo ForSelectStatement ForIntegerStatement WhileStatement
-      ContinueStatement CaseStatement If
 -}
 
 SEM Statement
@@ -655,15 +505,9 @@ getFunIdens scope alias fnVal =
 }
 
 SEM MTableRef
-    | Nothing --lhs.nodeType = TypeList []
-              lhs.idens = []
-              lhs.joinIdens = []
---    | Just lhs.nodeType = @just.nodeType
-
-
-
---SEM SelectItem
---    | SelExp SelectItem lhs.nodeType = @ex.nodeType
+    | Nothing
+        lhs.idens = []
+        lhs.joinIdens = []
 
 ATTR SelectItemList SelectList
   [

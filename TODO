@@ -3,9 +3,11 @@
 
 TODOs in rough order that they are intended to be done
 
-work on annotation system
-review Type data type (get rid of type error, type list)
-review use of attributes, particularly node type which is disappearing
+provide errors with source positions
+sort out source position collection in parser
+investigate syb for annotation instances
+use f :: Annotation -> Doc for pretty printing annotations
+work on statement info
 get scope updating whilst checking
 pretty printer for info, type, etc. for inserting into source
 start work on type checking inside functions - start with params,
@@ -17,22 +19,6 @@ move developer info/notes out of readme file and usage file
 chain scopes when typechecking multiple files from util, provide api
    to do this from code
 
-API rough sketch:
-import Ast (only) to use and generate asts
-import Parser to add the parse functions - review these
-import Pretty to add the pretty printer functions - just 2?
-scope: to work with scopes (if you don't need to, ast will be enough)
-       refactor scope data type and utils to ScopeData.
-       add new scope module which forwards scope data and utils that a
-         client might use, forward default scope value and scope
-         reader function. Scope utils that only the type checker uses
-         aren't forwarded by Scope module
-database loader: decide a rough api to document?
-other public stuff: annotation stuff is forwarded by Ast for public
-   use
-   Types are forwarded by ast for public use
-   what about parse errors: provide more that just a showable value?
-     if so, forward parse error stuff in parser module
 
 parse and/or type check todo list:
 "identifier"

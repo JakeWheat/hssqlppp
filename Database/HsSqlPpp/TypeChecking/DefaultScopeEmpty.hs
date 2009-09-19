@@ -13,9 +13,6 @@ data.binary to serialize and unserialize it.
 
 -}
 
-
-
-
 module Database.HsSqlPpp.TypeChecking.DefaultScope where
 
 import Database.HsSqlPpp.TypeChecking.TypeType

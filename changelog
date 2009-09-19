@@ -1,7 +1,8 @@
 annotated tree
 
-in progress: now uses annotations inline in the ast as part of the
-progress towards having a semi sane api
+now uses annotations inline in the ast, has rudimentary haddock
+documentation, and the beginnings of an API. No progress on parsing or
+typechecking since last release.
 
 secondtypechecking
 
