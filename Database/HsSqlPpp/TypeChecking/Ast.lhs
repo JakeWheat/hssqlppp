@@ -43,6 +43,33 @@ This is the public module for the ast nodes.
 >     ,RaiseType (..)
 >     ,Volatility (..)
 >     ,Language (..)
+>      -- ** typedefs
+>     ,ExpressionListStatementListPairList
+>     ,ExpressionListStatementListPair
+>     ,ExpressionList
+>     ,StringList
+>     ,ParamDefList
+>     ,AttributeDefList
+>     ,ConstraintList
+>     ,TypeAttributeDefList
+>     ,Where
+>     ,StringStringListPairList
+>     ,StringStringListPair
+>     ,ExpressionStatementListPairList
+>     ,SetClauseList
+>     ,CaseExpressionListExpressionPairList
+>     ,MaybeExpression
+>     ,MTableRef
+>     ,ExpressionListList
+>     ,SelectItemList
+>     ,OnExpr
+>     ,RowConstraintList
+>     ,VarDefList
+>     ,ExpressionStatementListPair
+>     ,MExpression
+>     ,CaseExpressionListExpressionPair
+>     ,CaseExpressionList
+
 >      -- * operator utils
 >     ,OperatorType(..)
 >     ,getOperatorType

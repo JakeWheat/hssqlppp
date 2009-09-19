@@ -28,7 +28,9 @@ pretty printed stuff, don't know how much help this will be.
 
 This code is currently on the backburner, and is a massive mess.
 
-> {- | Start of code to load SQL into a database. -}
+> {- | Routine load SQL into a database. Should work alright, but if
+>  you get any errors from PostGreSQL it won't be easy to track them
+>   down in the original source.-}
 > module Database.HsSqlPpp.Dbms.DatabaseLoader
 >     (
 >      loadIntoDatabase

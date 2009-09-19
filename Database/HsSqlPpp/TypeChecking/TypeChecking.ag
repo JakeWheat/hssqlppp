@@ -399,7 +399,7 @@ SEM SelectExpression
                                      @sel2.annotatedTree
 
 {
-getTbCols t = unwrapComposite $ unwrapSetOf $ getTypeAnnotation t
+getTbCols = unwrapComposite . unwrapSetOf . getTypeAnnotation
 }
 
 ATTR TableRef MTableRef
@@ -481,8 +481,8 @@ SEM TableRef
 {
 
 getFnType :: Scope -> String -> Expression -> Either TypeError Type
-getFnType scope alias fnVal =
-    either Left (Right . snd) $ getFunIdens scope alias fnVal
+getFnType scope alias =
+    either Left (Right . snd) . getFunIdens scope alias
 
 getFunIdens :: Scope -> String -> Expression -> Either TypeError (String,Type)
 getFunIdens scope alias fnVal =
@@ -541,7 +541,7 @@ SEM SelectItem
 fixStar ex =
   changeAnnRecurse fs ex
   where
-    fs a = if (TypeAnnotation TypeCheckFailed) `elem` a
+    fs a = if TypeAnnotation TypeCheckFailed `elem` a
               && any (\an ->
                        case an of
                          TypeErrorA (UnrecognisedIdentifier x) |

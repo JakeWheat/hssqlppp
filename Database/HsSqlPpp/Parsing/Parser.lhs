@@ -28,9 +28,7 @@ The parsers are written top down as you go through the file, so the
 top level sql text parsers appear first, then the statements, then the
 fragments, then the utility parsers and other utilities at the bottom.
 
-> {- | This module contains two functions to parse SQL from a string or
-> from a file, one testing function to parse an expression, and one to
-> parse SQL which includes plpgsql statements at the top level.
+> {- | Functions to parse sql.
 > -}
 > module Database.HsSqlPpp.Parsing.Parser (
 >              -- * Main

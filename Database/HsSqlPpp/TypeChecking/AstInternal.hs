@@ -35,7 +35,31 @@ module Database.HsSqlPpp.TypeChecking.AstInternal(
    ,Expression (..)
    ,InList (..)
    ,StatementList
-
+   ,ExpressionListStatementListPairList
+   ,ExpressionListStatementListPair
+   ,ExpressionList
+   ,StringList
+   ,ParamDefList
+   ,AttributeDefList
+   ,ConstraintList
+   ,TypeAttributeDefList
+   ,Where
+   ,StringStringListPairList
+   ,StringStringListPair
+   ,ExpressionStatementListPairList
+   ,SetClauseList
+   ,CaseExpressionListExpressionPairList
+   ,MaybeExpression
+   ,MTableRef
+   ,ExpressionListList
+   ,SelectItemList
+   ,OnExpr
+   ,RowConstraintList
+   ,VarDefList
+   ,ExpressionStatementListPair
+   ,MExpression
+   ,CaseExpressionListExpressionPair
+   ,CaseExpressionList
    -- annotations
    ,annotateAst
    ,annotateAstScope
@@ -203,10 +227,10 @@ instance Annotated Statement where
         ContinueStatement a -> ContinueStatement (f a)
         CaseStatement a val cases els -> CaseStatement (f a) val doCases $ cars f els
             where
-              doCases = map (\(ex,sts) -> (ex,cars f sts)) cases
+              doCases = map (second (cars f)) cases
         If a cases els -> If (f a) doCases $ cars f els
             where
-              doCases = map (\(ex,sts) -> (ex,cars f sts)) cases
+              doCases = map (second (cars f)) cases
     --where
      -- doCases cs = map (\(ex,sts) -> (ex,cars f sts)) cs
   getAnnChildren st =
@@ -247,7 +271,7 @@ instance Annotated Statement where
         If _ cases els -> mp $ doCases cases ++ els
         _ -> []
     where
-      doCases cs = concatMap snd cs
+      doCases = concatMap snd
       --gacse :: Annotated a => SelectExpression -> [a]
       gacse se = [pack se]
       gacscl :: Annotated a => SetClauseList -> [a]
@@ -258,7 +282,7 @@ instance Annotated Statement where
                   Just e1 -> [pack e1]
       mp = map pack
 
-cars f sts = map (changeAnnRecurse f) sts
+cars = map . changeAnnRecurse
 
 instance Annotated Expression where
   ann a =
@@ -416,13 +440,13 @@ instance Annotated TableRef where
         TrefFunAlias a fn alias -> getAnnChildren fn
 
 
-getTbCols t = unwrapComposite $ unwrapSetOf $ getTypeAnnotation t
+getTbCols = unwrapComposite . unwrapSetOf . getTypeAnnotation
 
 
 
 getFnType :: Scope -> String -> Expression -> Either TypeError Type
-getFnType scope alias fnVal =
-    either Left (Right . snd) $ getFunIdens scope alias fnVal
+getFnType scope alias =
+    either Left (Right . snd) . getFunIdens scope alias
 
 getFunIdens :: Scope -> String -> Expression -> Either TypeError (String,Type)
 getFunIdens scope alias fnVal =
@@ -448,7 +472,7 @@ getFunIdens scope alias fnVal =
 fixStar ex =
   changeAnnRecurse fs ex
   where
-    fs a = if (TypeAnnotation TypeCheckFailed) `elem` a
+    fs a = if TypeAnnotation TypeCheckFailed `elem` a
               && any (\an ->
                        case an of
                          TypeErrorA (UnrecognisedIdentifier x) |
