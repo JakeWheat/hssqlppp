@@ -1,7 +1,32 @@
 Name:                hssqlppp
 Version:             0.0.5
 Synopsis:            Sql parser and type checker
-Description:         Sql parser, pretty printer and type checker, targets PostGreSQL SQL and PL/pgSQL, uses Parsec and UUAGC.
+Description:         Sql parser, pretty printer and type checker, targets PostGreSQL SQL
+                     and PL/pgSQL, uses Parsec and UUAGC.
+
+                     Overview:
+
+                     see the module 'Database.HsSqlPpp.TypeChecking.Ast' for the Ast types;
+
+                     'Parser' for converting text to asts;
+
+                     'PrettyPrinter' for converting asts to text;
+
+                     'TypeChecker' for annotating asts (this does the
+                     type checking), and working with annotated trees;
+
+                     'Scope' to read a catalog from a database to type check against, or
+                     to generate catalog information;
+
+                     'DatabaseLoader' for the start of a routine to load SQL into
+                       a database (e.g. to generate an ast then load it into a database
+                       without loading it via psql).
+
+                     Comes with a HUnit test suite which you can run using the HsSqlPppTests
+                     executable, and command line access to some functions via a exe called
+                     HsSqlSystem. See the project page <https://launchpad.net/hssqlppp>
+                     for more information and documentation links.
+
 License:             BSD3
 License-file:        LICENSE
 Author:              Jake Wheat

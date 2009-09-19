@@ -9,6 +9,10 @@ layout better.
 
 Not much other comments, since it all should be pretty self evident.
 
+> {- | Functions to convert sql asts to valid SQL source code. Includes
+>    a function - 'printSqlAnn' - to output the annotations from a tree
+>    in comments in the outputted sql source.
+> -}
 > module Database.HsSqlPpp.PrettyPrinter.PrettyPrinter (
 >                       --convert a sql ast to text
 >                       printSql
