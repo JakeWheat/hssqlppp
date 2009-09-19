@@ -76,6 +76,7 @@ import Data.List
 import Debug.Trace
 import Control.Monad.Error
 import Control.Arrow
+import Data.Either
 
 import Database.HsSqlPpp.TypeChecking.TypeType
 import Database.HsSqlPpp.TypeChecking.AstUtils
@@ -596,7 +597,9 @@ annotateExpression scope ex =
 = instances for Annotated.
 
 Hopefully, some sort of SYB approach can be used to autogenerate these
-in the future.
+in the future. It is imperative that this or template haskell or
+something similar be used because doing it by hand guarantees some
+bits will be missed.
 
 -}
 
