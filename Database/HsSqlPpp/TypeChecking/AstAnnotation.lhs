@@ -8,7 +8,7 @@ want to use when looking at an ast. Internal annotations which are
 used in the type-checking/ annotation process use the attribute
 grammar code and aren't exposed.
 
-> {-# OPTIONS -fglasgow-exts #-}
+> {-# LANGUAGE ExistentialQuantification #-}
 > {-# OPTIONS_HADDOCK hide #-}
 
 > module Database.HsSqlPpp.TypeChecking.AstAnnotation
@@ -122,7 +122,7 @@ without having to get the positions correct.
 > getTopLevelInfos :: Annotated a =>
 >                     [a] -- ^ the ast to check
 >                  -> [StatementInfo]
-> getTopLevelInfos sts = map getSIAnnotation sts
+> getTopLevelInfos = map getSIAnnotation
 
 
 > data StatementInfo = DefaultStatementInfo Type

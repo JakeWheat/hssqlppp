@@ -458,7 +458,7 @@ code is not as much of a mess as findCallMatch
 >                      | isJust targetType &&
 >                          allConvertibleToFrom (fromJust targetType) inArgs ->
 >                            Right $ fromJust targetType
->                      | otherwise -> Left $ (IncompatibleTypeSet inArgs)
+>                      | otherwise -> Left $ IncompatibleTypeSet inArgs
 >      allSameType = all (== head inArgs) inArgs &&
 >                      head inArgs /= UnknownStringLit
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&

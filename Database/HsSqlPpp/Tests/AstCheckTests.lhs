@@ -24,6 +24,10 @@ Set of tests to check the type checking code
 >     --(mapAttr [
 >     --  p "select 1;" []
 >     -- ])
+
+this is disabled because the messages are getting a rethink, the code
+that supports this test passing is commented out also
+
 > {-
 >    ,testGroup "loop tests"
 >     (mapAttr [] {-
@@ -598,16 +602,6 @@ insert
 >           makeScope l = scopeReplaceIds defaultScope (map (second (\a->(a,[]))) l) []
 >           mapStatementInfoScope = map (\(a,b,c) -> checkStatementInfoScope b a c)
 
-> {-
-> checkAttrs :: String -> [Message] -> Test.Framework.Test
-> checkAttrs src msgs = testCase ("check " ++ src) $ do
->   let ast = case parseSql src of
->                Left er -> assertFailure $ show er
->                Right l -> l
->       msgs1 = checkAst ast
->   assertEqual ("check " ++ src) msgs msgs1
-> -}
-
 > checkExpressionType :: Scope -> String -> Either [TypeError] Type -> Test.Framework.Test
 > checkExpressionType scope src typ = testCase ("typecheck " ++ src) $
 >   let ast = case parseExpression src of
@@ -647,48 +641,3 @@ insert
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
-
-
-> {-
-> checkStatementType :: String -> [Type] -> Test.Framework.Test
-> checkStatementType src typ = testCase ("typecheck " ++ src) $
->   assertEqual ("typecheck " ++ src) typ (parseAndGetType src)
-
-> checkStatementTypeScope ::  Scope -> String -> [Type] -> Test.Framework.Test
-> checkStatementTypeScope scope src typ = testCase ("typecheck " ++ src) $
->   assertEqual ("typecheck " ++ src) typ (parseAndGetTypeScope scope src)
-
-> checkStatementInfo :: String -> [StatementInfo] -> Test.Framework.Test
-> checkStatementInfo src typ = testCase ("typecheck " ++ src) $
->   assertEqual ("typecheck " ++ src) typ (parseAndGetInfo src)
-
-> parseAndGetInfo :: String -> [StatementInfo]
-> parseAndGetInfo src =
->   let ast = case parseSql src of
->                               Left er -> error $ show er
->                               Right l -> l
->   in getStatementsInfo ast
-
-
-> parseAndGetType :: String -> [Type]
-> parseAndGetType src =
->   let ast = case parseSql src of
->                               Left er -> error $ show er
->                               Right l -> l
->   in getStatementsType ast
-
-> parseAndGetTypeScope :: Scope -> String -> [Type]
-> parseAndGetTypeScope scope src =
->   let ast = case parseSql src of
->                               Left er -> error $ show er
->                               Right l -> l
->   in getStatementsTypeScope scope ast
-> -}
-
- > parseAndGetExpressionType :: Scope -> String -> Type
- > parseAndGetExpressionType scope src = undefined
-
- >   let ast = case parseExpression src of
- >                                      Left er -> error $ show er
- >                                      Right l -> l
- >   in getExpressionType scope ast

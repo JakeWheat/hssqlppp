@@ -622,7 +622,7 @@ or after the whole list
 = plpgsql statements
 
 > plPgsqlStatement :: ParsecT [Token] ParseState Identity Statement
-> plPgsqlStatement = do
+> plPgsqlStatement =
 >    sqlStatement True
 >     <|> (choice [
 >                          continue

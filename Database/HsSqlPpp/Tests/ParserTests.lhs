@@ -1051,7 +1051,7 @@ complicated statements
 >           mapPlpgsql = map $ uncurry checkParsePlpgsql
 >           p a b = (a,b)
 >           selIL = map selI
->           selI = SelExp . (Identifier [])
+>           selI = SelExp . Identifier []
 >           sl a = SelectList a []
 >           selectE selList = Select [] Dupes selList
 >                             Nothing Nothing [] Nothing [] Asc Nothing Nothing

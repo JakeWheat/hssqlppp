@@ -36,7 +36,7 @@ Public functions
 
 > -- | convert an ast back to valid SQL source, it's also almost human readable.
 > printSql :: StatementList -> String
-> printSql ast = printSqlAnn (const "") ast
+> printSql = printSqlAnn (const "")
 
 > -- | convert the ast back to valid source, and convert any annotations to
 > -- text using the function provided and interpolate the output of this function

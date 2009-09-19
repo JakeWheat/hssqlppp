@@ -270,7 +270,7 @@ returns the type of the relation, and the system columns also
 >        let nonMatchingColumns = cols targetTableCols \\ map fst targetTableCols
 >        in case length nonMatchingColumns of
 >               0 -> Nothing
->               1 -> Just $ [UnrecognisedIdentifier $ head nonMatchingColumns]
+>               1 -> Just [UnrecognisedIdentifier $ head nonMatchingColumns]
 >               _ -> Just $ map UnrecognisedIdentifier nonMatchingColumns
 
 >     checkColumnTypesCompatible :: [(String,Type)] -> Maybe [TypeError]

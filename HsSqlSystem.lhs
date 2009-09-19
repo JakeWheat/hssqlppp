@@ -243,7 +243,7 @@ TODO: do something more correct
 >                let aast = annotateAstScope scope sts
 >                mapM_ (putStrLn . printSqlAnn annotToS . (:[])) aast
 >     annotToS :: Annotation -> String
->     annotToS a = concat $ intersperse "\n" $ map show a
+>     annotToS = concat . intersperse "\n" . map show
 
 ================================================================================
 
