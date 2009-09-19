@@ -28,7 +28,7 @@ documentation will be overhauled quite a lot. Alternatively put, this
 code is in need of better documentation and organisation, and serious
 refactoring.
 
-An unholy mixture of Maybe, Either and TypeCheckFailed is used to do
+An unholy mixture of Maybe, Either, Either Monad and TypeCheckFailed is used to do
 error handling.
 
 TODO: document pattern of typecheckfailed propagation, loc.tpe usage.
@@ -66,10 +66,9 @@ SEM Expression
       --PositionalArg WindowFn
         loc.nt = case @loc.tpe of
                    Left _ -> TypeCheckFailed
-                   Right TypeCheckFailed -> TypeCheckFailed
                    Right t -> t
         loc.typeErrors = case @loc.tpe of
-                          Left a@(_) -> a
+                          Left a -> a
                           Right b -> []
         lhs.annotatedTree = changeAnn @loc.backTree $
                               (([TypeAnnotation @loc.nt] ++
@@ -130,10 +129,10 @@ SEM TypeName
         lhs.namedType = lookupTypeByName @lhs.scope $ canonicalizeTypeName @tn
         lhs.annotatedTree = SimpleTypeName @tn
      | ArrayTypeName
-        lhs.namedType = either Left (Right . ArrayType) @typ.namedType
+        lhs.namedType = ArrayType <$> @typ.namedType
         lhs.annotatedTree = ArrayTypeName @typ.annotatedTree
      | SetOfTypeName
-        lhs.namedType = either Left (Right . SetOfType) @typ.namedType
+        lhs.namedType = SetOfType <$> @typ.namedType
         lhs.annotatedTree = SetOfTypeName @typ.annotatedTree
      | PrecTypeName
         lhs.namedType = Right TypeCheckFailed
@@ -169,17 +168,15 @@ SEM Expression
                         @cases.annotatedTree
         loc.thenTypes = map getTypeAnnotation $
                             (map snd $ @cases.annotatedTree) ++
-                              case @els.annotatedTree of
-                                Nothing -> []
-                                Just e -> [e]
+                              maybeToList @els.annotatedTree
 
 SEM Expression
     | Case
         loc.tpe =
-            checkTypes @loc.whenTypes $
-               if any (/= typeBool) @loc.whenTypes
-                 then Left [WrongTypes typeBool @loc.whenTypes]
-                 else checkTypes @loc.thenTypes $
+            checkTypes @loc.whenTypes $ do
+               when (any (/= typeBool) @loc.whenTypes) $
+                 Left [WrongTypes typeBool @loc.whenTypes]
+               checkTypes @loc.thenTypes $
                         resolveResultSetType
                           @lhs.scope
                           @loc.thenTypes
@@ -189,14 +186,12 @@ SEM Expression
 SEM Expression
     | CaseSimple
         loc.tpe =
-          let checkWhenTypes = resolveResultSetType
+          checkTypes @loc.whenTypes $ do
+          checkWhenTypes <- resolveResultSetType
                                  @lhs.scope
                                  (getTypeAnnotation @value.annotatedTree: @loc.whenTypes)
-          in checkTypes @loc.whenTypes $
-             case checkWhenTypes of
-               Left a -> Left a
-               Right _ -> checkTypes @loc.thenTypes $
-                            resolveResultSetType
+          checkTypes @loc.thenTypes $
+                     resolveResultSetType
                               @lhs.scope
                               @loc.thenTypes
         loc.backTree = CaseSimple @ann @value.annotatedTree @cases.annotatedTree @els.annotatedTree
@@ -242,14 +237,12 @@ SEM Expression
 
 SEM Expression
     | InPredicate
-        loc.tpe =
-            let ty = case @list.listType of
-                       Left e -> Left e
-                       Right lt -> resolveResultSetType
-                                     @lhs.scope
-                                     [getTypeAnnotation @expr.annotatedTree
-                                     ,lt]
-            in either Left (const $ Right typeBool) ty
+        loc.tpe = do
+                    lt <- @list.listType
+                    ty <- resolveResultSetType
+                            @lhs.scope
+                            [getTypeAnnotation @expr.annotatedTree, lt]
+                    return typeBool
         loc.backTree = InPredicate @ann @expr.annotatedTree @i @list.annotatedTree
 
 
@@ -309,7 +302,6 @@ SEM Statement
       CreateFunction CreateType CreateTable
         loc.nt = case @loc.tpe of
                    Left _ -> TypeCheckFailed
-                   Right TypeCheckFailed -> TypeCheckFailed
                    Right t -> t
         loc.typeErrors = case @loc.tpe of
                           Left a -> a
@@ -340,7 +332,6 @@ SEM SelectExpression
     | Values Select CombineSelect
         loc.nt = case @loc.tpe of
                    Left _ -> TypeCheckFailed
-                   Right TypeCheckFailed -> TypeCheckFailed
                    Right t -> t
         loc.typeErrors = case @loc.tpe of
                           Left a -> a
@@ -351,6 +342,14 @@ SEM SelectExpression
 
 
 
+{
+checkExpressionBool :: Maybe Expression -> Either [TypeError] Type
+checkExpressionBool whr = do
+  let ty = fromMaybe typeBool $ fmap getTypeAnnotation whr
+  when (ty `notElem` [typeBool, TypeCheckFailed]) $
+       Left [ExpressionMustBeBool]
+  return ty
+}
 
 SEM SelectExpression
     | Values
@@ -360,23 +359,15 @@ SEM SelectExpression
         loc.backTree = Values @ann @vll.annotatedTree
     | Select
         loc.tpe =
-           let whereTpe = case fmap getTypeAnnotation @selWhere.annotatedTree of
-                            Nothing -> Right typeBool
-                            Just x | x == typeBool -> Right typeBool
-                                   | x == TypeCheckFailed -> Right TypeCheckFailed
-                                   | otherwise -> Left [ExpressionMustBeBool]
-           in checkTypes (case fmap getTypeAnnotation @selTref.annotatedTree of
-                            Nothing -> []
-                            Just t -> [t]) $
-                case @selSelectList.tpe of
-                       Right TypeCheckFailed -> Right TypeCheckFailed
-                       Left _ -> Right TypeCheckFailed
-                       Right slt ->
-                           flip (either Left) whereTpe $
-                           const $ case slt of
-                                     UnnamedCompositeType [(_,Pseudo Void)] ->
-                                         Right $ Pseudo Void
-                                     _ -> Right $ SetOfType slt
+           do
+           whereType <- checkExpressionBool @selWhere.annotatedTree
+           let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
+                                                    @selTref.annotatedTree
+           slType <- @selSelectList.tpe
+           chainTypeCheckFailed [trefType, whereType, slType] $
+             Right $ case slType of
+                       UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
+                       _ -> SetOfType slType
         loc.backTree = Select @ann
                               @selDistinct.annotatedTree
                               @selSelectList.annotatedTree
@@ -413,7 +404,6 @@ SEM TableRef
     | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
         loc.nt = case @loc.tpe of
                    Left _ -> TypeCheckFailed
-                   Right TypeCheckFailed -> TypeCheckFailed
                    Right t -> t
         loc.typeErrors = case @loc.tpe of
                           Left a -> a
@@ -443,7 +433,7 @@ SEM TableRef
     | TrefFun TrefFunAlias
         loc.tpe = getFnType @lhs.scope @alias @fn.annotatedTree
         lhs.joinIdens = []
-        lhs.idens = case  getFunIdens
+        lhs.idens = case getFunIdens
                               @lhs.scope @loc.alias
                               @fn.annotatedTree of
                       Left e -> []

@@ -442,23 +442,22 @@ check all can convert to selected type else fail
 
 code is not as much of a mess as findCallMatch
 
-
 > resolveResultSetType :: Scope -> [Type] -> Either [TypeError] Type
 > resolveResultSetType scope inArgs =
->   checkTypes inArgs ret
+>   chainTypeCheckFailed inArgs $ do
+>       case () of
+>               _ | null inArgs -> Left [TypelessEmptyArray]
+>                 | allSameType -> Right $ head inArgs
+>                 | allSameBaseType -> Right $ head inArgsBase
+>                 --todo: do domains
+>                 | allUnknown -> Right $ ScalarType "text"
+>                 | not allSameCat ->
+>                     Left [IncompatibleTypeSet inArgs]
+>                 | isJust targetType &&
+>                   allConvertibleToFrom (fromJust targetType) inArgs ->
+>                       Right $ fromJust targetType
+>                 | otherwise -> Left [IncompatibleTypeSet inArgs]
 >   where
->      ret = case () of
->                    _ | null inArgs -> Left [TypelessEmptyArray]
->                      | allSameType -> Right $ head inArgs
->                      | allSameBaseType -> Right $ head inArgsBase
->                      --todo: do domains
->                      | allUnknown -> Right $ ScalarType "text"
->                      | not allSameCat ->
->                          Left [IncompatibleTypeSet inArgs]
->                      | isJust targetType &&
->                          allConvertibleToFrom (fromJust targetType) inArgs ->
->                            Right $ fromJust targetType
->                      | otherwise -> Left [IncompatibleTypeSet inArgs]
 >      allSameType = all (== head inArgs) inArgs &&
 >                      head inArgs /= UnknownStringLit
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&

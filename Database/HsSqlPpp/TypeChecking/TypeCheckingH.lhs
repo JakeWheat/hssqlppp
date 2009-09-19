@@ -29,16 +29,13 @@ not very consistently applied at the moment.
 
 > typeCheckFunCall :: Scope -> String -> [Type] -> Either [TypeError] Type
 > typeCheckFunCall scope fnName argsType = do
->     if (any (==TypeCheckFailed) argsType)
->       then return TypeCheckFailed
->       else do
+>     chainTypeCheckFailed argsType $
 >       case fnName of
 >               -- do the special cases first, some of these will use
 >               -- the variadic support when it is done and no longer
 >               -- be special cases.
->               "!arrayCtor" -> do
->                     a <- resolveResultSetType scope argsType
->                     return $ ArrayType a
+>               "!arrayCtor" ->
+>                     ArrayType <$> resolveResultSetType scope argsType
 >               "!between" -> do
 >                     f1 <- lookupFn ">=" [argsType !! 0, argsType !! 1]
 >                     f2 <- lookupFn "<=" [argsType !! 0, argsType !! 2]
@@ -68,20 +65,17 @@ not very consistently applied at the moment.
 >         (_,_,r) <- findCallMatch scope
 >                              (if s1 == "u-" then "-" else s1) args
 >         return r
->       checkRowTypesMatch (RowCtor t1s) (RowCtor t2s) =
->         if length t1s /= length t2s
->           then Left [ValuesListsMustBeSameLength]
->           else let ts = map (resolveResultSetType scope . (\(a,b) -> [a,b])) $ zip t1s t2s
->                in checkEither $ ts ++ [Right typeBool]
+>       checkRowTypesMatch (RowCtor t1s) (RowCtor t2s) = do
+>         when (length t1s /= length t2s) $ Left [ValuesListsMustBeSameLength]
+>         mapM_ (resolveResultSetType scope . (\(a,b) -> [a,b])) $ zip t1s t2s
+>         return typeBool
 >       checkRowTypesMatch x y  =
 >         error $ "internal error: checkRowTypesMatch called with " ++ show x ++ "," ++ show y
 
 
 > typeCheckValuesExpr :: Scope -> [[Type]] -> Either [TypeError] Type
 > typeCheckValuesExpr scope rowsTs =
->         let --convert into [[Type]]
->             --rowsTs = map unwrapTypeList rowsTs1
->             colNames = zipWith (++)
+>         let colNames = zipWith (++)
 >                            (repeat "column")
 >                            (map show [1..length $ head rowsTs])
 >         in unionRelTypes scope rowsTs colNames
@@ -101,11 +95,9 @@ not very consistently applied at the moment.
 >                    Left [NoRowsGivenForValues]
 >                | not (all (==head lengths) lengths) ->
 >                    Left [ValuesListsMustBeSameLength]
->                | otherwise ->
->                    let colTypeLists = transpose rowsTs
->                        colTypes = map (resolveResultSetType scope ) colTypeLists
->                        ty = Right $ SetOfType $ UnnamedCompositeType $ zip colNames $ rights colTypes
->                    in checkEither $ colTypes ++ [ty]
+>                | otherwise -> do
+>                    mapM (resolveResultSetType scope) (transpose rowsTs) >>=
+>                      (return . SetOfType . UnnamedCompositeType . zip colNames)
 
 ================================================================================
 
@@ -133,30 +125,21 @@ duplicate columns of the attrs in the using list, returns the relvar
 type of the joined tables.
 
 > combineTableTypesWithUsingList :: Scope -> [String] -> Type -> Type -> Either [TypeError] Type
-> combineTableTypesWithUsingList scope l t1c t2c =
+> combineTableTypesWithUsingList scope l t1c t2c = do
 >     --check t1 and t2 have l
 >     let t1 = unwrapComposite t1c
 >         t2 = unwrapComposite t2c
 >         names1 = getNames t1
 >         names2 = getNames t2
->         error1 = if not (contained l names1) ||
->                     not (contained l names2)
->                    then Just MissingJoinAttribute
->                    else Nothing
->         --check the types
->         joinColumnTypes = map (getColumnType t1 t2) l
->         nonJoinColumns =
+>     when (not (contained l names1) ||
+>               not (contained l names2)) $
+>          Left [MissingJoinAttribute]
+>     --check the types
+>     joinColumnTypes <- mapM (getColumnType t1 t2) l
+>     let nonJoinColumns =
 >             let notJoin = (\(s,_) -> s `notElem` l)
 >             in filter notJoin t1 ++ filter notJoin t2
->         checkColumns :: Either [TypeError] Type
->         checkColumns =
->           case catEither joinColumnTypes of
->             Left e -> Left e
->             Right cols -> Right (UnnamedCompositeType $ zip l cols ++ nonJoinColumns)
-
->     in case error1 of
->          Just e -> Left [e]
->          Nothing -> checkColumns
+>     return $ UnnamedCompositeType $ zip l joinColumnTypes ++ nonJoinColumns
 >     where
 >       getNames :: [(String,Type)] -> [String]
 >       getNames = map fst
@@ -168,30 +151,23 @@ type of the joined tables.
 >           in resolveResultSetType scope [ct1,ct2]
 >       getFieldType t f = snd $ fromJust $ find (\(s,_) -> s == f) t
 
-> catEither :: [Either a b] -> Either a [b]
-> catEither l =
->   catEither' l []
->   where
->     catEither' (Left a:_) _ = Left a
->     catEither' (Right b:es) bs = catEither' es (b:bs)
->     catEither' [] bs = Right $ reverse bs
-
-
 > doSelectItemListTpe :: Scope
 >                     -> String
 >                     -> Type
 >                     -> Either [TypeError] Type
 >                     -> Either [TypeError] Type
 > doSelectItemListTpe scope colName colType tpes =
->         flip (either Left) tpes $ \types ->
->         either Left (combine types) newCols
->         where
->          newCols = let (correlationName,iden) = splitIdentifier colName
->                    in if iden == "*"
+>     case tpes of
+>       Left _ -> Right TypeCheckFailed
+>       Right types ->
+>         chainTypeCheckFailed [types] $ do
+>         let (correlationName,iden) = splitIdentifier colName
+>         let newCols = if iden == "*"
 >                          then scopeExpandStar scope correlationName
->                          else Right [(iden, colType)]
->          combine :: Type -> [(String,Type)] -> Either [TypeError] Type
->          combine ty = Right . foldr consComposite ty
+>                          else return [(iden, colType)]
+>         return $ case newCols of
+>                               Left _ -> TypeCheckFailed
+>                               Right nc ->  foldr consComposite types nc
 
 I think this should be alright, an identifier referenced in an
 expression can only have zero or one dot in it.

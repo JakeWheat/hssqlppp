@@ -101,6 +101,7 @@ import Debug.Trace
 import Control.Monad.Error
 import Control.Arrow
 import Data.Either
+import Control.Applicative
 
 import Database.HsSqlPpp.TypeChecking.TypeType
 import Database.HsSqlPpp.TypeChecking.AstUtils

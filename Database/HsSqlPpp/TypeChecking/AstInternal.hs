@@ -72,6 +72,7 @@ import Debug.Trace
 import Control.Monad.Error
 import Control.Arrow
 import Data.Either
+import Control.Applicative
 
 import Database.HsSqlPpp.TypeChecking.TypeType
 import Database.HsSqlPpp.TypeChecking.AstUtils
@@ -438,6 +439,14 @@ instance Annotated TableRef where
         SubTref a sel alias -> getAnnChildren sel
         TrefFun a fn -> getAnnChildren fn
         TrefFunAlias a fn alias -> getAnnChildren fn
+
+
+checkExpressionBool :: Maybe Expression -> Either [TypeError] Type
+checkExpressionBool whr = do
+  let ty = fromMaybe typeBool $ fmap getTypeAnnotation whr
+  when (ty `notElem` [typeBool, TypeCheckFailed]) $
+       Left [ExpressionMustBeBool]
+  return ty
 
 
 getTbCols = unwrapComposite . unwrapSetOf . getTypeAnnotation
@@ -1289,11 +1298,10 @@ sem_Expression_BooleanLit ann_ b_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1323,11 +1331,10 @@ sem_Expression_Case ann_ cases_ els_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1339,14 +1346,12 @@ sem_Expression_Case ann_ cases_ els_  =
               _thenTypes =
                   map getTypeAnnotation $
                       (map snd $ _casesIannotatedTree) ++
-                        case _elsIannotatedTree of
-                          Nothing -> []
-                          Just e -> [e]
+                        maybeToList _elsIannotatedTree
               _tpe =
-                  checkTypes _whenTypes     $
-                     if any (/= typeBool) _whenTypes
-                       then Left [WrongTypes typeBool _whenTypes    ]
-                       else checkTypes _thenTypes     $
+                  checkTypes _whenTypes     $ do
+                     when (any (/= typeBool) _whenTypes    ) $
+                       Left [WrongTypes typeBool _whenTypes    ]
+                     checkTypes _thenTypes     $
                               resolveResultSetType
                                 _lhsIscope
                                 _thenTypes
@@ -1384,11 +1389,10 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1400,18 +1404,14 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
               _thenTypes =
                   map getTypeAnnotation $
                       (map snd $ _casesIannotatedTree) ++
-                        case _elsIannotatedTree of
-                          Nothing -> []
-                          Just e -> [e]
+                        maybeToList _elsIannotatedTree
               _tpe =
-                  let checkWhenTypes = resolveResultSetType
+                  checkTypes _whenTypes     $ do
+                  checkWhenTypes <- resolveResultSetType
                                          _lhsIscope
                                          (getTypeAnnotation _valueIannotatedTree: _whenTypes    )
-                  in checkTypes _whenTypes     $
-                     case checkWhenTypes of
-                       Left a -> Left a
-                       Right _ -> checkTypes _thenTypes     $
-                                    resolveResultSetType
+                  checkTypes _thenTypes     $
+                             resolveResultSetType
                                       _lhsIscope
                                       _thenTypes
               _backTree =
@@ -1450,11 +1450,10 @@ sem_Expression_Cast ann_ expr_ tn_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1491,11 +1490,10 @@ sem_Expression_Exists ann_ sel_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1524,11 +1522,10 @@ sem_Expression_FloatLit ann_ d_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1557,11 +1554,10 @@ sem_Expression_FunCall ann_ funName_ args_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1596,11 +1592,10 @@ sem_Expression_Identifier ann_ i_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1634,24 +1629,22 @@ sem_Expression_InPredicate ann_ expr_ i_ list_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
               _tpe =
-                  let ty = case _listIlistType of
-                             Left e -> Left e
-                             Right lt -> resolveResultSetType
-                                           _lhsIscope
-                                           [getTypeAnnotation _exprIannotatedTree
-                                           ,lt]
-                  in either Left (const $ Right typeBool) ty
+                  do
+                    lt <- _listIlistType
+                    ty <- resolveResultSetType
+                            _lhsIscope
+                            [getTypeAnnotation _exprIannotatedTree, lt]
+                    return typeBool
               _backTree =
                   InPredicate ann_ _exprIannotatedTree i_ _listIannotatedTree
               _lhsOliftedColumnName =
@@ -1677,11 +1670,10 @@ sem_Expression_IntegerLit ann_ i_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1705,11 +1697,10 @@ sem_Expression_NullLit ann_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1750,11 +1741,10 @@ sem_Expression_ScalarSubQuery ann_ sel_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -1790,11 +1780,10 @@ sem_Expression_StringLit ann_ quote_ value_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
-                   Left a@(_) -> a
+                   Left a -> a
                    Right b -> []
               _lhsOannotatedTree =
                   changeAnn _backTree     $
@@ -3251,7 +3240,6 @@ sem_SelectExpression_CombineSelect ann_ ctype_ sel1_ sel2_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -3328,7 +3316,6 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -3339,23 +3326,15 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
                     (([TypeAnnotation _nt    ] ++
                       map TypeErrorA _typeErrors    ) ++)
               _tpe =
-                  let whereTpe = case fmap getTypeAnnotation _selWhereIannotatedTree of
-                                   Nothing -> Right typeBool
-                                   Just x | x == typeBool -> Right typeBool
-                                          | x == TypeCheckFailed -> Right TypeCheckFailed
-                                          | otherwise -> Left [ExpressionMustBeBool]
-                  in checkTypes (case fmap getTypeAnnotation _selTrefIannotatedTree of
-                                   Nothing -> []
-                                   Just t -> [t]) $
-                       case _selSelectListItpe of
-                              Right TypeCheckFailed -> Right TypeCheckFailed
-                              Left _ -> Right TypeCheckFailed
-                              Right slt ->
-                                  flip (either Left) whereTpe $
-                                  const $ case slt of
-                                            UnnamedCompositeType [(_,Pseudo Void)] ->
-                                                Right $ Pseudo Void
-                                            _ -> Right $ SetOfType slt
+                  do
+                  whereType <- checkExpressionBool _selWhereIannotatedTree
+                  let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
+                                                           _selTrefIannotatedTree
+                  slType <- _selSelectListItpe
+                  chainTypeCheckFailed [trefType, whereType, slType] $
+                    Right $ case slType of
+                              UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
+                              _ -> SetOfType slType
               _backTree =
                   Select ann_
                          _selDistinctIannotatedTree
@@ -3423,7 +3402,6 @@ sem_SelectExpression_Values ann_ vll_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -3998,7 +3976,6 @@ sem_Statement_CreateDomain ann_ name_ typ_ check_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -4053,7 +4030,6 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -4132,7 +4108,6 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -4213,7 +4188,6 @@ sem_Statement_CreateType ann_ name_ atts_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -4262,7 +4236,6 @@ sem_Statement_CreateView ann_ name_ expr_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -4299,7 +4272,6 @@ sem_Statement_Delete ann_ table_ whr_ returning_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -4543,7 +4515,6 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -4694,7 +4665,6 @@ sem_Statement_SelectStatement ann_ ex_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -4768,7 +4738,6 @@ sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -5103,7 +5072,6 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -5175,7 +5143,6 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -5212,7 +5179,6 @@ sem_TableRef_Tref ann_ tbl_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -5249,7 +5215,6 @@ sem_TableRef_TrefAlias ann_ tbl_ alias_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -5288,7 +5253,6 @@ sem_TableRef_TrefFun ann_ fn_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -5334,7 +5298,6 @@ sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
               _nt =
                   case _tpe     of
                     Left _ -> TypeCheckFailed
-                    Right TypeCheckFailed -> TypeCheckFailed
                     Right t -> t
               _typeErrors =
                   case _tpe     of
@@ -5508,7 +5471,7 @@ sem_TypeName_ArrayTypeName typ_  =
               _typIannotatedTree :: TypeName
               _typInamedType :: (Either [TypeError] Type)
               _lhsOnamedType =
-                  either Left (Right . ArrayType) _typInamedType
+                  ArrayType <$> _typInamedType
               _lhsOannotatedTree =
                   ArrayTypeName _typIannotatedTree
               _annotatedTree =
@@ -5542,7 +5505,7 @@ sem_TypeName_SetOfTypeName typ_  =
               _typIannotatedTree :: TypeName
               _typInamedType :: (Either [TypeError] Type)
               _lhsOnamedType =
-                  either Left (Right . SetOfType) _typInamedType
+                  SetOfType <$> _typInamedType
               _lhsOannotatedTree =
                   SetOfTypeName _typIannotatedTree
               _annotatedTree =

@@ -10,6 +10,7 @@ type checking.
 >      OperatorType(..)
 >     ,getOperatorType
 >     ,checkTypes
+>     ,chainTypeCheckFailed
 >     ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
 >     ,typeFloat8,typeVarChar,typeChar,typeBool
 >     ,canonicalizeTypeName
@@ -123,6 +124,13 @@ messages.
 > checkTypes (TypeCheckFailed:_) _ = Right TypeCheckFailed
 > checkTypes (_:ts) r = checkTypes ts r
 > checkTypes [] r = r
+
+> chainTypeCheckFailed :: [Type] -> Either a Type -> Either a Type
+> chainTypeCheckFailed a b =
+>   if any (==TypeCheckFailed) a
+>     then Right TypeCheckFailed
+>     else b
+
 
 ================================================================================
 
@@ -245,11 +253,15 @@ this converts the name of a type to its canonical name
 >       then Right t
 >       else Left [UnknownTypeError t]
 
+> liftME :: a -> Maybe b -> Either a b
+> liftME d m = case m of
+>                Nothing -> Left d
+>                Just b -> Right b
+
 > lookupTypeByName :: Scope -> String -> Either [TypeError] Type
 > lookupTypeByName scope name =
->     case lookup name (scopeTypeNames scope) of
->       Just t -> Right t
->       Nothing -> Left [UnknownTypeName name]
+>     liftME [UnknownTypeName name] $
+>       lookup name (scopeTypeNames scope)
 
 
 ================================================================================
