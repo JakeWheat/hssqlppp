@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide #-}
 
 
 -- UUAGC 0.9.10 (AstInternal.ag)
@@ -121,6 +122,8 @@ Hopefully, some sort of SYB approach can be used to autogenerate these
 in the future. It is imperative that this or template haskell or
 something similar be used because doing it by hand guarantees some
 bits will be missed.
+
+Stupidity watch update: use attributes to do this. Doh.
 
 -}
 
