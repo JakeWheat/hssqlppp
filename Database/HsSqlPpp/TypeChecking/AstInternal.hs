@@ -81,7 +81,7 @@ import Database.HsSqlPpp.TypeChecking.TypeCheckingH
 import Database.HsSqlPpp.TypeChecking.Scope
 import Database.HsSqlPpp.TypeChecking.ScopeData
 import Database.HsSqlPpp.TypeChecking.AstAnnotation
-
+import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 
 
 -- | Takes an ast, and adds annotations, including types, type errors,
@@ -119,10 +119,10 @@ annotateExpression scope ex =
 
 Hopefully, some sort of SYB approach can be used to autogenerate these
 in the future. It is imperative that this or template haskell or
-something similar be used because doing it by hand guarantees some
+ something similar be used because doing it by hand guarantees some
 bits will be missed.
 
-Stupidity watch update: use attributes to do this. Doh.
+Can't use attributes to make updating the annotations any easier.
 
 -}
 
@@ -1536,7 +1536,7 @@ sem_Expression_FunCall ann_ funName_ args_  =
               _backTree =
                   FunCall ann_ funName_ _argsIannotatedTree
               _lhsOliftedColumnName =
-                  if isOperator funName_
+                  if isOperatorName funName_
                      then ""
                      else funName_
               _annotatedTree =

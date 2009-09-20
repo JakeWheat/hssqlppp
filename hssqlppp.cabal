@@ -1,33 +1,34 @@
 Name:                hssqlppp
-Version:             0.0.6
+Version:             0.0.7
 Synopsis:            Sql parser and type checker
-Description:         Sql parser, pretty printer and type checker, targets PostGreSQL SQL
-                     and PL/pgSQL, uses Parsec and UUAGC.
-                     .
-                     Overview:
-                     .
-                     see the module 'Database.HsSqlPpp.TypeChecking.Ast' for the ast types;
-                     .
-                     'Parser' for converting text to asts;
-                     .
-                     'PrettyPrinter' for converting asts to text;
-                     .
-                     'TypeChecker' for annotating asts (this does the
-                     type checking), and working with annotated trees;
-                     .
-                     'Scope' to read a catalog from a database to type check against, or
-                     to generate catalog information;
-                     .
-                     'DatabaseLoader' for the beginnings of a routine
-                     to load SQL into a database (e.g. to generate an
-                     ast then load it into a database without loading
-                     it via psql). The loader just about does the job
-                     but error handling is a bit crap at the moment.
-                     .
-                     Comes with a HUnit test suite which you can run using the HsSqlPppTests
-                     executable, and command line access to some functions via a exe called
-                     HsSqlSystem. See the project page <https://launchpad.net/hssqlppp>
-                     for more information and documentation links.
+Description:
+    Sql parser, pretty printer and type checker, targets PostGreSQL SQL
+    and PL/pgSQL, uses Parsec and UUAGC.
+    .
+    Overview:
+    .
+    see the module 'Database.HsSqlPpp.TypeChecking.Ast' for the ast
+    types;
+    .
+    'Parser' for converting text to asts;
+    .
+    'PrettyPrinter' for converting asts to text;
+    .
+    'TypeChecker' for annotating asts (this does the type checking),
+    and working with annotated trees;
+    .
+    'Scope' to read a catalog from a database to type check against,
+    or to generate catalog information;
+    .
+    'DatabaseLoader' for the beginnings of a routine to load SQL into
+    a database (e.g. to generate an ast then load it into a database
+    without loading it via psql). The loader just about does the job
+    but error handling is a bit crap at the moment.
+    .
+    Comes with a HUnit test suite which you can run using the HsSqlPppTests
+    executable, and command line access to some functions via a exe called
+    HsSqlSystem. See the project page <https://launchpad.net/hssqlppp>
+    for more information and documentation links.
 License:             BSD3
 License-file:        LICENSE
 Author:              Jake Wheat
@@ -69,6 +70,7 @@ Library
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
                      Database.HsSqlPpp.TypeChecking.TypeChecker,
                      Database.HsSqlPpp.TypeChecking.Scope,
+                     Database.HsSqlPpp.TypeChecking.Environment,
                      Database.HsSqlPpp.Dbms.DatabaseLoader
 
 Executable HsSqlSystem
@@ -96,7 +98,10 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.TypeChecking.ScopeReader,
                      Database.HsSqlPpp.TypeChecking.TypeCheckingH,
                      Database.HsSqlPpp.TypeChecking.TypeConversion,
-                     Database.HsSqlPpp.TypeChecking.TypeType
+                     Database.HsSqlPpp.TypeChecking.TypeType,
+                     Database.HsSqlPpp.TypeChecking.Environment,
+                     Database.HsSqlPpp.TypeChecking.EnvironmentInternal,
+                     Database.HsSqlPpp.TypeChecking.EnvironmentReader
 
 Executable HsSqlPppTests
   Main-is:           HsSqlPppTests.lhs
@@ -129,4 +134,7 @@ Executable HsSqlPppTests
                      Database.HsSqlPpp.TypeChecking.ScopeReader,
                      Database.HsSqlPpp.TypeChecking.TypeCheckingH,
                      Database.HsSqlPpp.TypeChecking.TypeConversion,
-                     Database.HsSqlPpp.TypeChecking.TypeType
+                     Database.HsSqlPpp.TypeChecking.TypeType,
+                     Database.HsSqlPpp.TypeChecking.Environment,
+                     Database.HsSqlPpp.TypeChecking.EnvironmentInternal,
+                     Database.HsSqlPpp.TypeChecking.EnvironmentReader

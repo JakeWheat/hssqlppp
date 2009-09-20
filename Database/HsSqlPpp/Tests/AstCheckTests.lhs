@@ -16,7 +16,7 @@ Set of tests to check the type checking code
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.TypeChecking.Scope
 > import Database.HsSqlPpp.TypeChecking.ScopeData
-> import Database.HsSqlPpp.TypeChecking.TypeType
+> import Database.HsSqlPpp.TypeChecking.Environment
 
 > astCheckTests :: Test.Framework.Test
 > astCheckTests = testGroup "astCheckTests" [

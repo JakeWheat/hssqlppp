@@ -27,6 +27,7 @@ grammar code and aren't exposed.
 >     ) where
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
+> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 
 > -- | Annotation type - one of these is attached to most of the
 > -- data types used in the ast.

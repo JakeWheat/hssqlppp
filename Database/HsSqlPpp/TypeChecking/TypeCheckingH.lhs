@@ -4,7 +4,6 @@ This file contains some utility functions for working with types and
 type checking.
 
 > {-# OPTIONS_HADDOCK hide #-}
-> {-# LANGUAGE FlexibleInstances #-}
 
 > module Database.HsSqlPpp.TypeChecking.TypeCheckingH where
 
@@ -12,13 +11,14 @@ type checking.
 > import Data.List
 > import Debug.Trace
 > import Data.Either
-> import Control.Monad.Error
 > import Control.Applicative
+> import Control.Monad
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.AstUtils
 > import Database.HsSqlPpp.TypeChecking.TypeConversion
 > import Database.HsSqlPpp.TypeChecking.ScopeData
+> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 
 ================================================================================
 
@@ -28,7 +28,7 @@ idea is to move these here from TypeChecking.ag if they get a bit big,
 not very consistently applied at the moment.
 
 > typeCheckFunCall :: Scope -> String -> [Type] -> Either [TypeError] Type
-> typeCheckFunCall scope fnName argsType = do
+> typeCheckFunCall scope fnName argsType =
 >     chainTypeCheckFailed argsType $
 >       case fnName of
 >               -- do the special cases first, some of these will use
@@ -67,6 +67,7 @@ not very consistently applied at the moment.
 >         return r
 >       checkRowTypesMatch (RowCtor t1s) (RowCtor t2s) = do
 >         when (length t1s /= length t2s) $ Left [ValuesListsMustBeSameLength]
+>         --this is wrong - we want all the errors, not just the first set
 >         mapM_ (resolveResultSetType scope . (\(a,b) -> [a,b])) $ zip t1s t2s
 >         return typeBool
 >       checkRowTypesMatch x y  =
@@ -96,6 +97,7 @@ not very consistently applied at the moment.
 >                | not (all (==head lengths) lengths) ->
 >                    Left [ValuesListsMustBeSameLength]
 >                | otherwise -> do
+>                    --i don't think this propagates all the errors, just the first set
 >                    mapM (resolveResultSetType scope) (transpose rowsTs) >>=
 >                      (return . SetOfType . UnnamedCompositeType . zip colNames)
 
@@ -191,10 +193,6 @@ returns the type of the relation, and the system columns also
 >     where
 >       fn (UnnamedCompositeType s) = map fst s
 >       fn _ = []
-
-> instance Error ([TypeError]) where
->   noMsg = [MiscError "Unknown error"]
->   strMsg str = [MiscError str]
 
 > checkColumnConsistency :: Scope ->  String -> [String] -> [(String,Type)]
 >                        -> Either [TypeError] [(String,Type)]

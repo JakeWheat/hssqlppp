@@ -110,7 +110,7 @@ import Database.HsSqlPpp.TypeChecking.TypeCheckingH
 import Database.HsSqlPpp.TypeChecking.Scope
 import Database.HsSqlPpp.TypeChecking.ScopeData
 import Database.HsSqlPpp.TypeChecking.AstAnnotation
-
+import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 }
 
 {-
@@ -621,10 +621,10 @@ annotateExpression scope ex =
 
 Hopefully, some sort of SYB approach can be used to autogenerate these
 in the future. It is imperative that this or template haskell or
-something similar be used because doing it by hand guarantees some
+ something similar be used because doing it by hand guarantees some
 bits will be missed.
 
-Stupidity watch update: use attributes to do this. Doh.
+Can't use attributes to make updating the annotations any easier.
 
 -}
 

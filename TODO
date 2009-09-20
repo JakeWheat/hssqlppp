@@ -3,22 +3,27 @@
 
 TODOs in rough order that they are intended to be done
 
-provide type check errors with source positions
+fixup environment data type and auxiliaries (currently called scope)
+do tests and code for ddl providing the correct env updates
+do tests and code for env updates being processed correctly
+update hsssqlsystem to process using environment updates
+RELEASE
+annotation work:
+investigate syb for reading/processing/updating annotations
+collect source positions with type errors -> is syb or ag the easiest
+   way to to this?
+add annotations to most remaining ast nodes
 sort out source position collection in parser
-investigate syb for annotation instances
-use f :: Annotation -> Doc for pretty printing annotations
-work on statement info
-get scope updating whilst checking
+RELEASE
+
+unordered stuff follows:
 start work on type checking inside functions - start with params,
    return types, non plpgsql statements, stuff with selects (e.g. for).
 work on parsing and type checking pg_dump output, then do a util to
    dump and type check a live database (this will lead to being able
    to run the lint process on a live database rather than source)
-sort out api + do haddock
+work out api + do haddock
 provide installation instructions for non haskell programmers
-chain scopes when typechecking multiple files from util, provide api
-   to do this from code
-
 
 parse and/or type check todo list:
 "identifier"
@@ -58,17 +63,18 @@ with queries
 upto datatypes ch 8 in pg manual
 
 stage 2:
-make this useful by working on the showinfodb function:
-instead of interspersing the statementinfo with the pretty printed
-   statements, insert or overwrite the statementinfo comments in the
+instead of interspersing the annotation output with the pretty printed
+   statements, insert or overwrite the annotation comments in the
    original source so we preserve formatting and other comments.
-use the type pretty printer to make the statementinfo comments more readable
+make a better pretty printer for annotations
+use the f :: Annotation -> Doc for inserting/updating pretty printed
+   annotations in the original source
 want to also output types of parts of statements, e.g. the select in a
    for statement or insert, etc.. Other things that could be useful
    include adding the resolved function prototype for each function
    used which has overloads so you can see which overload is being
    called, write out the canonicalized ast: so e.g. we have all the
-   casts made explicit, etc.
+   casts made explicit, etc. -> use the annotation system for this
 With this in place, the code actually has some use for real code, in
    that we can use it to easily view the types of views, etc. inline
    in the real sql source code

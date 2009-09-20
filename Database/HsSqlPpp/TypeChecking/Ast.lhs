@@ -73,6 +73,7 @@ This is the public module for the ast nodes.
 >      -- * operator utils
 >     ,OperatorType(..)
 >     ,getOperatorType
+>     ,isOperatorName
 >      -- * type aliases
 >      -- | aliases for all the sql types with multiple names
 >      -- these give you the canonical names

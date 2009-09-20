@@ -28,7 +28,6 @@ Not much other comments, since it all should be pretty self evident.
 
 > import Database.HsSqlPpp.TypeChecking.Ast
 > import Database.HsSqlPpp.TypeChecking.TypeChecker
-> import Database.HsSqlPpp.TypeChecking.TypeType
 
 ================================================================================
 
@@ -471,7 +470,7 @@ Conversion routines - convert Sql asts into Docs
 >                        ((Identifier _ i):es1) -> text i <> brackets (csvExp es1)
 >                        _ -> parens (convExp (head es)) <> brackets (csvExp (tail es))
 >      "!rowCtor" -> text "row" <> parens (hcatCsvMap convExp es)
->      _ | isOperator n ->
+>      _ | isOperatorName n ->
 >         case getOperatorType n of
 >                           BinaryOp ->
 >                               parens (convExp (head es)

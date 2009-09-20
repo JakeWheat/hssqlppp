@@ -31,6 +31,7 @@ checkAssignmentValid - pass in source type and target type, returns
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.Scope
 > import Database.HsSqlPpp.TypeChecking.AstUtils
+> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 
 
 = findCallMatch
@@ -208,7 +209,7 @@ findCallMatch is a bit of a mess
 >
 >       getBinOp1UnknownMatch :: [ProtArgCast] -> [ProtArgCast]
 >       getBinOp1UnknownMatch cands =
->           if not (isOperator f &&
+>           if not (isOperatorName f &&
 >                   length inArgs == 2 &&
 >                   count (==UnknownStringLit) inArgs == 1)
 >             then []

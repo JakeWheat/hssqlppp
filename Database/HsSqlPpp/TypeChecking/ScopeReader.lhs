@@ -25,6 +25,7 @@ are discarded after the Scope value is created.
 > import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.TypeChecking.ScopeData
 > import Database.HsSqlPpp.TypeChecking.TypeType
+> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 
 > -- | creates a scope value from the database given
 > readScope :: String -- ^ name of the database to read

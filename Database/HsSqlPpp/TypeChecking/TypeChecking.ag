@@ -610,7 +610,7 @@ node if the identifier is not wrapped in parens, function calls, etc.
 SEM Expression
   | Identifier lhs.liftedColumnName = @i
   | FunCall lhs.liftedColumnName =
-      if isOperator @funName
+      if isOperatorName @funName
          then ""
          else @funName
   | Cast lhs.liftedColumnName = case @tn.annotatedTree of
@@ -932,6 +932,7 @@ SEM Statement
         loc.statementInfo = CreateFunctionInfo (@name,@loc.paramTypes,@loc.retTypeType)
 
 {-
+
 ================================================================================
 
 = static tests
@@ -1016,7 +1017,6 @@ SEM Statement
                                           then [Error ContinueNotInLoop]
                                           else []
 -}
-
 {-
 ================================================================================
 

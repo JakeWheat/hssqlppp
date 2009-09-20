@@ -23,6 +23,7 @@ extra definitions from an accessible database.
 
 > import Data.List
 > import Debug.Trace
+> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 
  > import Data.Generics
  > import Data.Binary
@@ -173,3 +174,66 @@ paste the code in here:
 >     put (Scope a b c d e f g h i j k l m n o) = put a >> put b >> put c >> put d >> put e >> put f >> put g >> put h >> put i >> put j >> put k >> put l >> put m >> put n >> put o
 >     get = get >>= \a -> get >>= \b -> get >>= \c -> get >>= \d -> get >>= \e -> get >>= \f -> get >>= \g -> get >>= \h -> get >>= \i -> get >>= \j -> get >>= \k -> get >>= \l -> get >>= \m -> get >>= \n -> get >>= \o -> return (Scope a b c d e f g h i j k l m n o)
 > -}
+
+================================================================================
+
+= new scope design plan:
+
+rename scope and *scope* to environment, use env as variable name
+make more abstract: our api is (keep using the word scope here to avoid confusion)
+combinescope goes. replaced with scope update data types, so to build one scope
+from another, we take the original scope, and apply a list of scope updates to
+it to get a new scope
+readscope: name this better -> we are reading a scope from a database. This returns
+a list of scope updates, not a scope. we can create a scope from this by applying the
+list of updates to emptyscope
+the api for client programs consists of:
+emptyEnvironment :: Environment
+data EnvironmentUpdate = EnvCreateTable ... | EnvCreateFunction ... | , etc.
+ - abstract away all the different bits of the internals e.g. type,
+   typecategories, typenames in separate lists
+readEnvironmentFromDatabase :: String -> IO [EnvironmentUpdate]
+updateEnvironment :: Environment -> [EnvironmentUpdate] -> Environment
+if needed, can code a destructEnvironment for inspection:
+destructEnvironment :: Environment -> [EnvironmentUpdate]
+with the propery:
+updateEnvironment emptyEnvironment (destructEnvironment env) === env
+=== supposed to be equivalent to symbol
+
+api that type checker uses:
+environmentReplaceIDs
+environmentExpandStar
+
+getCompositeAttributes (name, compositetypes allowed list, empty=all allowed)
+gettypecategories for a type
+canCast src tgt context
+getdomainbasetype
+lookupfunctionprotos by name
+
+astAnnotation fns take either
+no env -> use default
+env -> use this, doesn't combine with default
+env update list -> combines with default
+
+
+
+
+= ddl
+
+map from ddl statements to how the scope changes
+
+create table
+create table as
+create view
+create type
+add composite type to types,typenames
+add to type categories?
+add to attr defs, system columns
+
+create function
+functions, all functions
+
+create domain
+types, typenames, domain defs, casts?, typecategories,
+
+drop - reverses creates

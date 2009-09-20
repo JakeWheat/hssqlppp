@@ -29,6 +29,7 @@ type checking.
 >     ,unwrapComposite
 >     ,consComposite
 >     ,unwrapRowCtor
+>     ,isOperatorName
 >     ) where
 
 > import Data.Maybe
@@ -38,6 +39,7 @@ type checking.
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.Scope
 > import Database.HsSqlPpp.TypeChecking.DefaultScope
+> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 
 ================================================================================
 
@@ -191,48 +193,6 @@ array types have to match an exact array type in the catalog, so we
 can't create an arbitrary array of any type. Not sure if this is
 handled quite correctly in this code.
 
-=== canonical type name support
-
-Introduce some aliases to protect client code if/when the ast
-canonical names are changed:
-
-> typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
->   typeFloat8,typeVarChar,typeChar,typeBool :: Type
-> typeSmallInt = ScalarType "int2"
-> typeBigInt = ScalarType "int8"
-> typeInt = ScalarType "int4"
-> typeNumeric = ScalarType "numeric"
-> typeFloat4 = ScalarType "float4"
-> typeFloat8 = ScalarType "float8"
-> typeVarChar = ScalarType "varchar"
-> typeChar = ScalarType "char"
-> typeBool = ScalarType "bool"
-
-this converts the name of a type to its canonical name
-
-> canonicalizeTypeName :: String -> String
-> canonicalizeTypeName s =
->   case () of
->                   _ | s `elem` smallIntNames -> "int2"
->                     | s `elem` intNames -> "int4"
->                     | s `elem` bigIntNames -> "int8"
->                     | s `elem` numericNames -> "numeric"
->                     | s `elem` float4Names -> "float4"
->                     | s `elem` float8Names -> "float8"
->                     | s `elem` varcharNames -> "varchar"
->                     | s `elem` charNames -> "char"
->                     | s `elem` boolNames -> "bool"
->                     | otherwise -> s
->   where
->       smallIntNames = ["int2", "smallint"]
->       intNames = ["int4", "integer", "int"]
->       bigIntNames = ["int8", "bigint"]
->       numericNames = ["numeric", "decimal"]
->       float4Names = ["real", "float4"]
->       float8Names = ["double precision", "float"]
->       varcharNames = ["character varying", "varchar"]
->       charNames = ["character", "char"]
->       boolNames = ["boolean", "bool"]
 
 > checkTypeExists :: Scope -> Type -> Either [TypeError] Type
 > checkTypeExists scope t =
@@ -272,45 +232,6 @@ This isn't used at the moment.
 
 ================================================================================
 
-types for the keyword operators, for use in findCallMatch. Not sure
-where these should live but probably not here.
-
-> keywordOperatorTypes :: [(String,[Type],Type)]
-> keywordOperatorTypes = [
->   ("!and", [typeBool, typeBool], typeBool)
->  ,("!or", [typeBool, typeBool], typeBool)
->  ,("!like", [ScalarType "text", ScalarType "text"], typeBool)
->  ,("!not", [typeBool], typeBool)
->  ,("!isNull", [Pseudo AnyElement], typeBool)
->  ,("!isNotNull", [Pseudo AnyElement], typeBool)
->  ,("!arrayCtor", [Pseudo AnyElement], Pseudo AnyArray) -- not quite right,
->                                         -- needs variadic support
->                                         -- currently works via a special case
->                                         -- in the type checking code
->  ,("!between", [Pseudo AnyElement
->               ,Pseudo AnyElement
->               ,Pseudo AnyElement], Pseudo AnyElement)
->  ,("!substring", [ScalarType "text",typeInt,typeInt], ScalarType "text")
->  ,("!arraySub", [Pseudo AnyArray,typeInt], Pseudo AnyElement)
->  ]
-
-special functions, stuck in here at random also, these look like
-functions, but don't appear in the postgresql catalog.
-
-> specialFunctionTypes :: [(String,[Type],Type)]
-> specialFunctionTypes = [
->   ("coalesce", [Pseudo AnyElement],
->     Pseudo AnyElement) -- needs variadic support to be correct,
->                        -- uses special case in type checking
->                        -- currently
->  ,("nullif", [Pseudo AnyElement, Pseudo AnyElement], Pseudo AnyElement)
->  ,("greatest", [Pseudo AnyElement], Pseudo AnyElement) --variadic, blah
->  ,("least", [Pseudo AnyElement], Pseudo AnyElement) --also
->  ]
-
-
-================================================================================
-
 utilities for working with Types
 
 > isArrayType :: Type -> Bool
@@ -341,3 +262,8 @@ utilities for working with Types
 > unwrapRowCtor :: Type -> [Type]
 > unwrapRowCtor (RowCtor a) = a
 > unwrapRowCtor x = error $ "internal error: cannot unwrapRowCtor on " ++ show x
+
+
+
+> isOperatorName :: String -> Bool
+> isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?")

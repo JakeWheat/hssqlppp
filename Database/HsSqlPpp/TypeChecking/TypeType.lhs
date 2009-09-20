@@ -51,7 +51,12 @@ out. If not, will have to add another type.
 
  > {-# LANGUAGE DeriveDataTypeable #-}
 
+> {-# LANGUAGE FlexibleInstances #-}
+
+
 > module Database.HsSqlPpp.TypeChecking.TypeType where
+
+> import Control.Monad.Error
 
  > import Data.Generics
  > import Data.Binary
@@ -115,30 +120,53 @@ later on down the line.
 >                | MiscError String
 >                  deriving (Eq,Show)
 
-some random stuff needed here because of compilation orders
+> instance Error ([TypeError]) where
+>   noMsg = [MiscError "Unknown error"]
+>   strMsg str = [MiscError str]
 
-cast context - used in the casts catalog
+=== canonical type name support
 
-> data CastContext = ImplicitCastContext
->                  | AssignmentCastContext
->                  | ExplicitCastContext
->                    deriving (Eq,Show {-,Typeable,Data-})
+Introduce some aliases to protect client code if/when the ast
+canonical names are changed:
 
-used in the attribute catalog which holds the attribute names and
-types of tables, views and other composite types.
+> typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
+>   typeFloat8,typeVarChar,typeChar,typeBool :: Type
+> typeSmallInt = ScalarType "int2"
+> typeBigInt = ScalarType "int8"
+> typeInt = ScalarType "int4"
+> typeNumeric = ScalarType "numeric"
+> typeFloat4 = ScalarType "float4"
+> typeFloat8 = ScalarType "float8"
+> typeVarChar = ScalarType "varchar"
+> typeChar = ScalarType "char"
+> typeBool = ScalarType "bool"
 
-> data CompositeFlavour = Composite | TableComposite | ViewComposite
->                         deriving (Eq,Show {-,Typeable,Data-})
+this converts the name of a type to its canonical name
 
-type is always an UnnamedCompositeType:
+> canonicalizeTypeName :: String -> String
+> canonicalizeTypeName s =
+>   case () of
+>                   _ | s `elem` smallIntNames -> "int2"
+>                     | s `elem` intNames -> "int4"
+>                     | s `elem` bigIntNames -> "int8"
+>                     | s `elem` numericNames -> "numeric"
+>                     | s `elem` float4Names -> "float4"
+>                     | s `elem` float8Names -> "float8"
+>                     | s `elem` varcharNames -> "varchar"
+>                     | s `elem` charNames -> "char"
+>                     | s `elem` boolNames -> "bool"
+>                     | otherwise -> s
+>   where
+>       smallIntNames = ["int2", "smallint"]
+>       intNames = ["int4", "integer", "int"]
+>       bigIntNames = ["int8", "bigint"]
+>       numericNames = ["numeric", "decimal"]
+>       float4Names = ["real", "float4"]
+>       float8Names = ["double precision", "float"]
+>       varcharNames = ["character varying", "varchar"]
+>       charNames = ["character", "char"]
+>       boolNames = ["boolean", "bool"]
 
-> type CompositeDef = (String, CompositeFlavour, Type)
-
-> isOperator :: String -> Bool
-> isOperator = any (`elem` "+-*/<>=~!@#%^&|`?")
-
-> type FunctionPrototype = (String, [Type], Type)
-> type DomainDefinition = (Type,Type)
 
 > {-
 > instance Binary Database.HsSqlPpp.TypeChecking.TypeType.CompositeFlavour where
