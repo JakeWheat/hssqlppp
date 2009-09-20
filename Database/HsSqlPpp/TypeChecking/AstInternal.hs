@@ -82,6 +82,7 @@ import Database.HsSqlPpp.TypeChecking.Scope
 import Database.HsSqlPpp.TypeChecking.ScopeData
 import Database.HsSqlPpp.TypeChecking.AstAnnotation
 import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
+import Database.HsSqlPpp.Utils
 
 
 -- | Takes an ast, and adds annotations, including types, type errors,

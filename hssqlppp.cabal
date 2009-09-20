@@ -69,7 +69,6 @@ Library
                      Database.HsSqlPpp.Parsing.Parser,
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
                      Database.HsSqlPpp.TypeChecking.TypeChecker,
-                     Database.HsSqlPpp.TypeChecking.Scope,
                      Database.HsSqlPpp.TypeChecking.Environment,
                      Database.HsSqlPpp.Dbms.DatabaseLoader
 
@@ -101,7 +100,8 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.TypeChecking.TypeType,
                      Database.HsSqlPpp.TypeChecking.Environment,
                      Database.HsSqlPpp.TypeChecking.EnvironmentInternal,
-                     Database.HsSqlPpp.TypeChecking.EnvironmentReader
+                     Database.HsSqlPpp.TypeChecking.EnvironmentReader,
+                     Database.HsSqlPpp.Utils
 
 Executable HsSqlPppTests
   Main-is:           HsSqlPppTests.lhs
@@ -137,4 +137,5 @@ Executable HsSqlPppTests
                      Database.HsSqlPpp.TypeChecking.TypeType,
                      Database.HsSqlPpp.TypeChecking.Environment,
                      Database.HsSqlPpp.TypeChecking.EnvironmentInternal,
-                     Database.HsSqlPpp.TypeChecking.EnvironmentReader
+                     Database.HsSqlPpp.TypeChecking.EnvironmentReader,
+                     Database.HsSqlPpp.Utils

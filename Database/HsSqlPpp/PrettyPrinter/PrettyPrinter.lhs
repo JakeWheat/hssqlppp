@@ -28,6 +28,7 @@ Not much other comments, since it all should be pretty self evident.
 
 > import Database.HsSqlPpp.TypeChecking.Ast
 > import Database.HsSqlPpp.TypeChecking.TypeChecker
+> import Database.HsSqlPpp.Utils
 
 ================================================================================
 
@@ -577,12 +578,6 @@ then hcatcsv the results
 > newline :: Doc
 > newline = text "\n"
 
-> replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
-> replace _ _ [] = []
-> replace old new xs@(y:ys) =
->   case stripPrefix old xs of
->     Nothing -> y : replace old new ys
->     Just ys' -> new ++ replace old new ys'
 
 > convPa :: (Annotation -> String) -> Annotation -> Doc
 > convPa ca a = let s = ca a

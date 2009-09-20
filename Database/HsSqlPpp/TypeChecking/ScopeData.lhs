@@ -48,30 +48,6 @@ extra definitions from an accessible database.
 >                    ,scopeJoinIdentifiers :: [String]}
 >            deriving (Eq,Show {-,Typeable,Data-})
 
-= Attribute identifier scoping
-
-The way this scoping works is we have a list of prefixes/namespaces,
-which is generally the table/view name, or the alias given to it, and
-then a list of identifiers (with no dots) and their types. When we
-look up the type of an identifier, if it has an correlation name we
-try to match that against a table name or alias in that list, if it is
-not present or not unique then throw an error. Similarly with no
-correlation name, we look at all the lists, if the id is not present
-or not unique then throw an error.
-
-scopeIdentifierTypes is for expanding *. If we want to access the
-common attributes from one of the tables in a using or natural join,
-this attribute can be qualified with either of the table names/
-aliases. But when we expand the *, we only output these common fields
-once, so keep a separate list of these fields used just for expanding
-the star. The other twist is that these common fields appear first in
-the resultant field list.
-
-System columns: pg also has these - they have names and types like
-other attributes, but are not included when expanding stars, so you
-only get them when you explicitly ask for them. The main use is using
-the oid system column which is heavily used as a target for foreign
-key references in the pg catalog.
 
 > type QualifiedScope = (String, ([(String,Type)], [(String,Type)]))
 

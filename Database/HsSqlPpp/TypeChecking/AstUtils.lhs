@@ -40,6 +40,7 @@ type checking.
 > import Database.HsSqlPpp.TypeChecking.Scope
 > import Database.HsSqlPpp.TypeChecking.DefaultScope
 > import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
+> import Database.HsSqlPpp.Utils
 
 ================================================================================
 
@@ -200,35 +201,11 @@ handled quite correctly in this code.
 >       then Right t
 >       else Left [UnknownTypeError t]
 
-> liftME :: a -> Maybe b -> Either a b
-> liftME d m = case m of
->                Nothing -> Left d
->                Just b -> Right b
 
 > lookupTypeByName :: Scope -> String -> Either [TypeError] Type
 > lookupTypeByName scope name =
 >     liftME [UnknownTypeName name] $
 >       lookup name (scopeTypeNames scope)
-
-
-================================================================================
-
-Internal errors
-
-TODO: work out monad transformers and try to use these. Want to throw
-an internal error when a programming error is detected (instead of
-e.g. letting the haskell runtime throw a pattern match failure), then
-catch it in the top level type check routines in ast.ag, convert it to
-a regular either style error, all without dropping into IO.
-
-This isn't used at the moment.
-
-> data TInternalError = TInternalError String
->                      deriving (Eq, Ord, Show)
-
-> instance Error TInternalError where
->    noMsg  = TInternalError "oh noes!"
->    strMsg = TInternalError
 
 ================================================================================
 

@@ -13,12 +13,15 @@ type checking.
 > import Data.Either
 > import Control.Applicative
 > import Control.Monad
+> import Control.Arrow
+> import Control.Monad.Error
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.AstUtils
 > import Database.HsSqlPpp.TypeChecking.TypeConversion
 > import Database.HsSqlPpp.TypeChecking.ScopeData
 > import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
+> import Database.HsSqlPpp.Utils
 
 ================================================================================
 
@@ -204,8 +207,7 @@ returns the type of the relation, and the system columns also
 >       cols = if null cols'
 >                then map fst ttcols
 >                else cols'
->   when (length insNameTypePairs /= length cols) $
->        Left [WrongNumberOfColumns]
+>   errorWhen (length insNameTypePairs /= length cols) $ [WrongNumberOfColumns]
 >   let nonMatchingColumns = cols \\ map fst ttcols
 >   when (not $ null nonMatchingColumns) $
 >        Left $ map UnrecognisedIdentifier nonMatchingColumns
@@ -225,5 +227,4 @@ returns the type of the relation, and the system columns also
 >             Just _ -> Nothing
 >             _ -> Just $ UnrecognisedRelation tbl
 
-> both :: (a->b) -> (a,a) -> (b,b)
-> both fn (x,y) = (fn x, fn y)
+

@@ -32,6 +32,7 @@ module used by the type checking code.
 >     ,CompositeDef
 >     ,FunctionPrototype
 >     ,DomainDefinition
+>     ,FunFlav
 >      -- * 'Environment' values
 >     ,emptyEnvironment
 >     ,defaultEnvironment
