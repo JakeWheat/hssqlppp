@@ -472,7 +472,7 @@ Conversion routines - convert Sql asts into Docs
 >                        _ -> parens (convExp (head es)) <> brackets (csvExp (tail es))
 >      "!rowCtor" -> text "row" <> parens (hcatCsvMap convExp es)
 >      _ | isOperatorName n ->
->         case getOperatorType n of
+>         case getOperatorType defaultTemplate1Environment n of
 >                           BinaryOp ->
 >                               parens (convExp (head es)
 >                                       <+> text (filterKeyword n)

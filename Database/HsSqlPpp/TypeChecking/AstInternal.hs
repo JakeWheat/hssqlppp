@@ -80,13 +80,14 @@ import Database.HsSqlPpp.TypeChecking.TypeConversion
 import Database.HsSqlPpp.TypeChecking.TypeCheckingH
 import Database.HsSqlPpp.TypeChecking.AstAnnotation
 import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
+import Database.HsSqlPpp.TypeChecking.DefaultTemplate1Environment
 import Database.HsSqlPpp.Utils
 
 
 -- | Takes an ast, and adds annotations, including types, type errors,
 -- and statement info. Type checks against defaultEnv.
 annotateAst :: StatementList -> StatementList
-annotateAst = annotateAstEnv defaultEnvironment
+annotateAst = annotateAstEnv defaultTemplate1Environment
 
 -- | As annotateAst but you supply an environment to check
 -- against. See Environment module for how to read an Environment from

@@ -36,10 +36,6 @@ TODO 2: think of a name for this command
 
 > main :: IO ()
 > main = do
->   -- do this to avoid having to put flushes everywhere when we
->   -- provide "..." progress thingys, etc.. should be fixed so only
->   -- used in commands that need it
->   hSetBuffering stdout NoBuffering
 >   args <- getArgs
 >   case () of
 >        _ | null args -> putStrLn "no command given" >> help []
@@ -105,9 +101,12 @@ TODO 2: think of a name for this command
 >                  (Multiple loadSql)
 
 > loadSql :: [String] -> IO ()
-> loadSql args =
+> loadSql args = do
+>   -- do this to avoid having to put flushes everywhere when we
+>   -- provide "..." progress thingys, etc..
+>   hSetBuffering stdout NoBuffering
 >   let (db:fns) = args
->   in forM_ fns $ \fn -> do
+>   forM_ fns $ \fn -> do
 >   res <- parseSqlFile fn
 >   case res of
 >     Left er -> error $ show er
@@ -285,13 +284,26 @@ This reads an environment from a database and writes it out using show.
 > readEnv :: String -> IO ()
 > readEnv dbName = do
 >   s <- readEnvironmentFromDatabase dbName
->   putStrLn "{-# OPTIONS_HADDOCK hide #-}"
->   putStrLn "module Database.HsSqlPpp.TypeChecking.DefaultScope where"
->   putStrLn "import Database.HsSqlPpp.TypeChecking.TypeType"
->   putStrLn "import Database.HsSqlPpp.TypeChecking.ScopeData"
->   putStrLn "-- | Scope value representing the catalog from a default template1 database"
->   putStrLn "defaultScope :: Scope"
->   putStr "defaultScope = "
+>   putStr "\n\
+>          \Copyright 2009 Jake Wheat\n\
+>          \\n\
+>          \This file contains\n\
+>          \\n\
+>          \putStrLn> {-# OPTIONS_HADDOCK hide  #-}\n\
+>          \\n\
+>          \> module Database.HsSqlPpp.TypeChecking.DefaultTemplate1Environment\n\
+>          \>     (defaultTemplate1Environment\n\
+>          \>      ) where\n\
+>          \\n\
+>          \> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal\n\
+>          \> import Database.HsSqlPpp.TypeChecking.TypeType\n\
+>          \\n\
+>          \> defaultTemplate1Environment :: Environment\n\
+>          \> defaultTemplate1Environment = (\\l -> case l of\n\
+>          \>                                       Left x -> error $ show x\n\
+>          \>                                       Right e -> e)\n\
+>          \>                                 $ updateEnvironment defaultEnvironment "
+
 >   print s
 
 ================================================================================

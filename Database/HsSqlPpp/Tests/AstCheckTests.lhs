@@ -585,13 +585,13 @@ insert
 >           --mapAttr = map $ uncurry checkAttrs
 >           p a b = (a,b)
 >           t a b c = (a,b,c)
->           mapExprType = map (uncurry $ checkExpressionType defaultEnvironment)
+>           mapExprType = map (uncurry $ checkExpressionType defaultTemplate1Environment)
 >           --mapStatementType = map $ uncurry checkStatementType
 >           mapStatementInfo = map $ uncurry checkStatementInfo
 >           mapExprEnvType = map (\(a,b,c) -> checkExpressionType b a c)
 >           makeEnvIDs l = makeEnv
 >                          [EnvUpdateIDs (map (second (\a->(a,[]))) l) []]
->           makeEnv eu = case updateEnvironment defaultEnvironment eu of
+>           makeEnv eu = case updateEnvironment defaultTemplate1Environment eu of
 >                         Left x -> error $ show x
 >                         Right e -> e
 >           mapStatementInfoEnv = map (\(a,b,c) -> checkStatementInfoEnv b a c)

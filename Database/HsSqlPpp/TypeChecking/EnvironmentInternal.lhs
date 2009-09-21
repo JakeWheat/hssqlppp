@@ -32,9 +32,6 @@ modules.
 >     ,envTypeExists
 >     ,envLookupType
 >     ,envPreferredType
->      --temporary exports, will become internal
->     ,keywordOperatorTypes
->     ,specialFunctionTypes
 >     ,OperatorType(..)
 >     ,getOperatorType
 >     ,isOperatorName
@@ -42,6 +39,7 @@ modules.
 
 > import Control.Monad
 > import Data.List
+> import Debug.Trace
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.Utils
@@ -246,14 +244,25 @@ modules.
 >   let (_,fl1,r):[] = c
 >   return ((nm,fl1,r), (nm,fl1,UnnamedCompositeType []))
 
+> envGetCategoryInfo :: Environment -> Type -> (String, Bool)
+> envGetCategoryInfo env ty =
+>   case ty of
+>     ArrayType (Pseudo _) -> ("A",False)
+>     Pseudo _ -> ("P",False)
+>     _ -> let l = filter (\(t,_,_) -> ty == t) $ envTypeCategories env
+>          in if null l
+>               then error $ "no type category for " ++ show ty
+>               else let (_,c,p):_ =l
+>                    in (c,p)
+
 > envTypeCategory :: Environment -> Type -> String
 > envTypeCategory env ty =
->   let (_,c,_):_ = filter (\(t,_,_) -> ty == t) $ envTypeCategories env
+>   let (c,_) = envGetCategoryInfo env ty
 >   in c
 
 > envPreferredType :: Environment -> Type -> Bool
 > envPreferredType env ty =
->   let (_,_,p):_ = filter (\(t,_,_) -> ty == t) $ envTypeCategories env
+>   let (_,p) = envGetCategoryInfo env ty
 >   in p
 
 > envCast :: Environment -> CastContext -> Type -> Type -> Bool
@@ -270,7 +279,7 @@ modules.
 
 > envLookupFns :: Environment -> String -> [FunctionPrototype]
 > envLookupFns env name =
->     filter (\(nm,_,_) -> nm == name) envGetAllFns
+>     trace ("look for " ++ name ++ " in " ++ show (length envGetAllFns)) $ filter (\(nm,_,_) -> nm == name) envGetAllFns
 >     where
 >     envGetAllFns =
 >         concat [envPrefixOperators env
@@ -410,7 +419,6 @@ these look like functions, but don't appear in the postgresql catalog.
 >     --,Pseudo Opaque
 >     ]
 
-
 ================================================================================
 
 = getOperatorType
@@ -427,15 +435,15 @@ this is why binary @ operator isn't currently supported
 > data OperatorType = BinaryOp | PrefixOp | PostfixOp
 >                   deriving (Eq,Show)
 
-> getOperatorType :: String -> OperatorType
-> getOperatorType s = case () of
->                       _ | any (\(x,_,_) -> x == s) (envBinaryOperators defaultEnvironment) ->
+> getOperatorType :: Environment -> String -> OperatorType
+> getOperatorType env s = case () of
+>                       _ | any (\(x,_,_) -> x == s) (envBinaryOperators env) ->
 >                             BinaryOp
 >                         | any (\(x,_,_) -> x == s ||
 >                                            (x=="-" && s=="u-"))
->                               (envPrefixOperators defaultEnvironment) ->
+>                               (envPrefixOperators env) ->
 >                             PrefixOp
->                         | any (\(x,_,_) -> x == s) (envPostfixOperators defaultEnvironment) ->
+>                         | any (\(x,_,_) -> x == s) (envPostfixOperators env) ->
 >                             PostfixOp
 >                         | s `elem` ["!and", "!or","!like"] -> BinaryOp
 >                         | s `elem` ["!not"] -> PrefixOp

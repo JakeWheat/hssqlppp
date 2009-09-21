@@ -206,7 +206,7 @@ from a database.
 >                   \     cls.relkind,\n\
 >                   \     cls.relname,\n\
 >                   \     atts,\n\
->                   \     sysAtts\n\
+>                   \     coalesce(sysAtts,'')\n\
 >                   \   from att left outer join sysAtt using (attrelid)\n\
 >                   \   inner join pg_class cls\n\
 >                   \     on cls.oid = attrelid\n\
