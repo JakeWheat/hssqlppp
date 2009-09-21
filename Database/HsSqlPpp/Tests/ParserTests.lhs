@@ -1076,23 +1076,24 @@ parse and then pretty print and parse an expression
 > checkParsePlpgsql :: String -> [Statement] -> Test.Framework.Test
 > checkParsePlpgsql src ast = parseUtil1 src ast parsePlpgsql
 
-> parseUtil :: (Show t, Eq b, Show b) =>
->              String
->           -> b
->           -> (String -> Either t b)
->           -> (b -> String)
->           -> Test.Framework.Test
+ > parseUtil :: (Show t, Eq b, Show b, Data b, Annotated b) =>
+ >              String
+ >           -> b
+ >           -> (String -> Either t b)
+ >           -> (b -> String)
+ >           -> Test.Framework.Test
+
 > parseUtil src ast parser printer = testCase ("parse " ++ src) $ do
 >   let ast' = case parser src of
 >               Left er -> error $ show er
 >               Right l -> l
->   assertEqual ("parse " ++ src) ast ast'
+>   assertEqual ("parse " ++ src) ast $ stripAnnotations ast'
 >   -- pretty print then parse to check
 >   let pp = printer ast
 >   let ast'' = case parser pp of
 >               Left er -> error $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >               Right l -> l
->   assertEqual ("reparse " ++ pp) ast ast''
+>   assertEqual ("reparse " ++ pp) ast $ stripAnnotations ast''
 
 > parseUtil1 :: (Show a) => String
 >            -> [Statement]

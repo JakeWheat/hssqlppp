@@ -22,7 +22,7 @@ grammar code and aren't exposed.
 >     ,getTopLevelEnvUpdates
 >     ,getTypeAnnotation
 >     --,getTypeErrors
->     ,pack
+>     --,pack
 >     ,StatementInfo(..)
 >     ,getSIAnnotation
 >     ) where
@@ -51,14 +51,14 @@ grammar code and aren't exposed.
 >     changeAnn :: a -> (Annotation -> Annotation) -> a
 >     changeAnn a f = setAnn a (f $ ann a)
 
-> data Annotatable = forall a . (Annotated a, Show a) => MkAnnotatable a
+ > data Annotatable = forall a . (Annotated a, Show a) => MkAnnotatable a
 
-> instance Show Annotatable
->   where
->   showsPrec p (MkAnnotatable a) = showsPrec p a
+ > instance Show Annotatable
+ >   where
+ >   showsPrec p (MkAnnotatable a) = showsPrec p a
 
-> pack :: (Annotated a, Show a) => a -> Annotatable
-> pack = MkAnnotatable
+ > pack :: (Annotated a, Show a) => a -> Annotatable
+ > pack = MkAnnotatable
 
 
 > -- | run through the ast, and pull the type annotation from each

@@ -50,23 +50,19 @@ This is the public module for the type checking functionality.
 >     ,getTopLevelInfos
 >     ,getTopLevelEnvUpdates
 >     ,getTypeErrors
->     ,getTypeErrorsEx
 >     ,stripAnnotations
 >     ) where
 
 > import Data.Generics
-> import Data.Maybe
 
 > import Database.HsSqlPpp.TypeChecking.AstInternal
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.AstAnnotation
 
 
-> getAnnotationsRecurse :: Statement -> [AnnotationElement]
+> getAnnotationsRecurse :: (Data a,Annotated a) => a -> [AnnotationElement]
 > getAnnotationsRecurse st = listify (\(_::AnnotationElement) -> True) st
 
-> getAnnotationsRecurseEx :: Expression -> [AnnotationElement]
-> getAnnotationsRecurseEx st = listify (\(_::AnnotationElement) -> True) st
 
 hack job, often not interested in the source positions when testing
 the asts produced, so this function will reset all the source
@@ -75,31 +71,23 @@ without having to get the positions correct.
 
 > -- | strip all the annotations from a tree. E.g. can be used to compare
 > -- two asts are the same, ignoring any source position annotation differences.
-> stripAnnotations :: Statement -> Statement
+> stripAnnotations :: (Data a,Annotated a) => a -> a
 > stripAnnotations = everywhere (mkT stripAn)
-
-> stripAn :: [AnnotationElement] -> [AnnotationElement]
-> stripAn _ = []
+>                    where
+>                      stripAn :: [AnnotationElement] -> [AnnotationElement]
+>                      stripAn _ = []
 
 
 > -- | runs through the ast given and returns a list of all the type errors
 > -- in the ast. Recurses into all ast nodes to find type errors.
 > -- This is the function to use to see if an ast has passed the type checking process.
 > -- Source position information will be added to the return type at some point
-> getTypeErrors :: [Statement] -> [TypeError]
+> getTypeErrors :: (Data a,Annotated a) => a -> [TypeError]
 > getTypeErrors sts =
->     mapMaybe (gte . getAnnotationsRecurse) sts
+>     gte $ getAnnotationsRecurse sts
 >     where
 >       gte (a:as) = case a of
->                     TypeErrorA e -> Just e
+>                     TypeErrorA e -> e:gte as
 >                     _ -> gte as
->       gte _ = Nothing
+>       gte _ = []
 
-> getTypeErrorsEx :: [Expression] -> [TypeError]
-> getTypeErrorsEx sts =
->     mapMaybe (gte . getAnnotationsRecurseEx) sts
->     where
->       gte (a:as) = case a of
->                     TypeErrorA e -> Just e
->                     _ -> gte as
->       gte _ = Nothing

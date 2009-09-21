@@ -1,4 +1,4 @@
-Copyright 2009 Jake Wheat
+sCopyright 2009 Jake Wheat
 
 Set of tests to check the type checking code
 
@@ -666,7 +666,7 @@ check type of initial values
 >           --mapStatementType = map $ uncurry checkStatementType
 >           mapStatementInfo = map $ uncurry checkStatementInfo
 >           mapStatementInfoEu = map (\(a,b,c) ->  checkStatementInfoEu a b c)
->           mapExprEnvType = map (\(a,b,c) -> checkExpressionType b a c)
+>           {-mapExprEnvType = map (\(a,b,c) -> checkExpressionType b a c)-}
 >           makeEnv eu = case updateEnvironment defaultTemplate1Environment eu of
 >                         Left x -> error $ show x
 >                         Right e -> e
@@ -679,7 +679,7 @@ check type of initial values
 >                                      Right l -> l
 >       aast = annotateExpression env ast
 >       ty = getTopLevelTypes [aast]
->       er = getTypeErrorsEx [aast]
+>       er = getTypeErrors aast
 >   in case (length er, length ty) of
 >        (0,0) -> assertFailure "didn't get any types?"
 >        (0,1) -> assertEqual ("typecheck " ++ src) typ $ Right $ head ty
@@ -693,7 +693,7 @@ check type of initial values
 >                               Right l -> l
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
->       er = getTypeErrors aast
+>       er = concatMap getTypeErrors aast
 >   in {-trace (show aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
@@ -706,7 +706,7 @@ check type of initial values
 >                               Right l -> l
 >       aast = annotateAstEnv env ast
 >       is = getTopLevelInfos aast
->       er = getTypeErrors aast
+>       er = concatMap getTypeErrors aast
 >   in {-trace (show aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
@@ -719,7 +719,7 @@ check type of initial values
 >                               Right l -> l
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
->       er = getTypeErrors aast
+>       er = concatMap getTypeErrors aast
 >       eu' = getTopLevelEnvUpdates aast
 >   in {-trace (show aast) $-} case (length er, length is, length eu') of
 >        (0,0,0) -> assertFailure "didn't get any infos or envupdates?"

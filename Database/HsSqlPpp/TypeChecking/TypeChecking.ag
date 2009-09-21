@@ -567,10 +567,14 @@ SEM SelectItem
         loc.backTree = SelectItem (fixStar @ex.annotatedTree) @name
 
 {
-fixStar ex =
- changeAnn ex fs
-  where
-    fs a = if TypeAnnotation TypeCheckFailed `elem` a
+
+fixStar :: Expression -> Expression
+fixStar =
+    everywhere (mkT fixStar')
+    where
+      fixStar' :: Annotation -> Annotation
+      fixStar' a =
+          if TypeAnnotation TypeCheckFailed `elem` a
               && any (\an ->
                        case an of
                          TypeErrorA (UnrecognisedIdentifier x) |
