@@ -1913,12 +1913,16 @@ sem_ExpressionListStatementListPair_Tuple :: T_ExpressionList  ->
                                              T_ExpressionListStatementListPair 
 sem_ExpressionListStatementListPair_Tuple x1_ x2_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: ExpressionListStatementListPair
+         (let _x2OenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: ExpressionListStatementListPair
               _x1Oenv :: Environment
               _x2Oenv :: Environment
               _x1IannotatedTree :: ExpressionList
               _x1ItypeList :: ([Type])
               _x2IannotatedTree :: StatementList
+              _x2IenvUpdates :: ([EnvironmentUpdate])
+              _x2OenvUpdates =
+                  []
               _annotatedTree =
                   (_x1IannotatedTree,_x2IannotatedTree)
               _lhsOannotatedTree =
@@ -1929,8 +1933,8 @@ sem_ExpressionListStatementListPair_Tuple x1_ x2_  =
                   _lhsIenv
               ( _x1IannotatedTree,_x1ItypeList) =
                   (x1_ _x1Oenv )
-              ( _x2IannotatedTree) =
-                  (x2_ _x2Oenv )
+              ( _x2IannotatedTree,_x2IenvUpdates) =
+                  (x2_ _x2Oenv _x2OenvUpdates )
           in  ( _lhsOannotatedTree)))
 -- ExpressionListStatementListPairList -------------------------
 type ExpressionListStatementListPairList  = [(ExpressionListStatementListPair)]
@@ -2044,12 +2048,16 @@ sem_ExpressionStatementListPair_Tuple :: T_Expression  ->
                                          T_ExpressionStatementListPair 
 sem_ExpressionStatementListPair_Tuple x1_ x2_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: ExpressionStatementListPair
+         (let _x2OenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: ExpressionStatementListPair
               _x1Oenv :: Environment
               _x2Oenv :: Environment
               _x1IannotatedTree :: Expression
               _x1IliftedColumnName :: String
               _x2IannotatedTree :: StatementList
+              _x2IenvUpdates :: ([EnvironmentUpdate])
+              _x2OenvUpdates =
+                  []
               _annotatedTree =
                   (_x1IannotatedTree,_x2IannotatedTree)
               _lhsOannotatedTree =
@@ -2060,8 +2068,8 @@ sem_ExpressionStatementListPair_Tuple x1_ x2_  =
                   _lhsIenv
               ( _x1IannotatedTree,_x1IliftedColumnName) =
                   (x1_ _x1Oenv )
-              ( _x2IannotatedTree) =
-                  (x2_ _x2Oenv )
+              ( _x2IannotatedTree,_x2IenvUpdates) =
+                  (x2_ _x2Oenv _x2OenvUpdates )
           in  ( _lhsOannotatedTree)))
 -- ExpressionStatementListPairList -----------------------------
 type ExpressionStatementListPairList  = [(ExpressionStatementListPair)]
@@ -2142,11 +2150,15 @@ sem_FnBody_PlpgsqlFnBody :: T_VarDefList  ->
                             T_FnBody 
 sem_FnBody_PlpgsqlFnBody varDefList_ sts_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: FnBody
+         (let _stsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: FnBody
               _varDefListOenv :: Environment
               _stsOenv :: Environment
               _varDefListIannotatedTree :: VarDefList
               _stsIannotatedTree :: StatementList
+              _stsIenvUpdates :: ([EnvironmentUpdate])
+              _stsOenvUpdates =
+                  []
               _annotatedTree =
                   PlpgsqlFnBody _varDefListIannotatedTree _stsIannotatedTree
               _lhsOannotatedTree =
@@ -2157,24 +2169,28 @@ sem_FnBody_PlpgsqlFnBody varDefList_ sts_  =
                   _lhsIenv
               ( _varDefListIannotatedTree) =
                   (varDefList_ _varDefListOenv )
-              ( _stsIannotatedTree) =
-                  (sts_ _stsOenv )
+              ( _stsIannotatedTree,_stsIenvUpdates) =
+                  (sts_ _stsOenv _stsOenvUpdates )
           in  ( _lhsOannotatedTree)))
 sem_FnBody_SqlFnBody :: T_StatementList  ->
                         T_FnBody 
 sem_FnBody_SqlFnBody sts_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: FnBody
+         (let _stsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: FnBody
               _stsOenv :: Environment
               _stsIannotatedTree :: StatementList
+              _stsIenvUpdates :: ([EnvironmentUpdate])
+              _stsOenvUpdates =
+                  []
               _annotatedTree =
                   SqlFnBody _stsIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _stsOenv =
                   _lhsIenv
-              ( _stsIannotatedTree) =
-                  (sts_ _stsOenv )
+              ( _stsIannotatedTree,_stsIenvUpdates) =
+                  (sts_ _stsOenv _stsOenvUpdates )
           in  ( _lhsOannotatedTree)))
 -- IfExists ----------------------------------------------------
 data IfExists  = IfExists 
@@ -2951,17 +2967,21 @@ sem_Root_Root :: T_StatementList  ->
                  T_Root 
 sem_Root_Root statements_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Root
+         (let _statementsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Root
               _statementsOenv :: Environment
               _statementsIannotatedTree :: StatementList
+              _statementsIenvUpdates :: ([EnvironmentUpdate])
+              _statementsOenvUpdates =
+                  []
               _annotatedTree =
                   Root _statementsIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _statementsOenv =
                   _lhsIenv
-              ( _statementsIannotatedTree) =
-                  (statements_ _statementsOenv )
+              ( _statementsIannotatedTree,_statementsIenvUpdates) =
+                  (statements_ _statementsOenv _statementsOenvUpdates )
           in  ( _lhsOannotatedTree)))
 -- RowConstraint -----------------------------------------------
 data RowConstraint  = NotNullConstraint 
@@ -3807,6 +3827,7 @@ sem_Statement_CaseStatement :: Annotation ->
 sem_Statement_CaseStatement ann_ val_ cases_ els_  =
     (\ _lhsIenv ->
          (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _elsOenvUpdates :: ([EnvironmentUpdate])
               _lhsOannotatedTree :: Statement
               _valOenv :: Environment
               _casesOenv :: Environment
@@ -3815,7 +3836,10 @@ sem_Statement_CaseStatement ann_ val_ cases_ els_  =
               _valIliftedColumnName :: String
               _casesIannotatedTree :: ExpressionListStatementListPairList
               _elsIannotatedTree :: StatementList
+              _elsIenvUpdates :: ([EnvironmentUpdate])
               _lhsOenvUpdates =
+                  []
+              _elsOenvUpdates =
                   []
               _annotatedTree =
                   CaseStatement ann_ _valIannotatedTree _casesIannotatedTree _elsIannotatedTree
@@ -3831,8 +3855,8 @@ sem_Statement_CaseStatement ann_ val_ cases_ els_  =
                   (val_ _valOenv )
               ( _casesIannotatedTree) =
                   (cases_ _casesOenv )
-              ( _elsIannotatedTree) =
-                  (els_ _elsOenv )
+              ( _elsIannotatedTree,_elsIenvUpdates) =
+                  (els_ _elsOenv _elsOenvUpdates )
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ContinueStatement :: Annotation ->
                                    T_Statement 
@@ -4344,6 +4368,7 @@ sem_Statement_ForIntegerStatement :: Annotation ->
 sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
     (\ _lhsIenv ->
          (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _stsOenvUpdates :: ([EnvironmentUpdate])
               _lhsOannotatedTree :: Statement
               _fromOenv :: Environment
               _toOenv :: Environment
@@ -4353,7 +4378,10 @@ sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
               _toIannotatedTree :: Expression
               _toIliftedColumnName :: String
               _stsIannotatedTree :: StatementList
+              _stsIenvUpdates :: ([EnvironmentUpdate])
               _lhsOenvUpdates =
+                  []
+              _stsOenvUpdates =
                   []
               _annotatedTree =
                   ForIntegerStatement ann_ var_ _fromIannotatedTree _toIannotatedTree _stsIannotatedTree
@@ -4369,8 +4397,8 @@ sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
                   (from_ _fromOenv )
               ( _toIannotatedTree,_toIliftedColumnName) =
                   (to_ _toOenv )
-              ( _stsIannotatedTree) =
-                  (sts_ _stsOenv )
+              ( _stsIannotatedTree,_stsIenvUpdates) =
+                  (sts_ _stsOenv _stsOenvUpdates )
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ForSelectStatement :: Annotation ->
                                     String ->
@@ -4380,12 +4408,16 @@ sem_Statement_ForSelectStatement :: Annotation ->
 sem_Statement_ForSelectStatement ann_ var_ sel_ sts_  =
     (\ _lhsIenv ->
          (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _stsOenvUpdates :: ([EnvironmentUpdate])
               _lhsOannotatedTree :: Statement
               _selOenv :: Environment
               _stsOenv :: Environment
               _selIannotatedTree :: SelectExpression
               _stsIannotatedTree :: StatementList
+              _stsIenvUpdates :: ([EnvironmentUpdate])
               _lhsOenvUpdates =
+                  []
+              _stsOenvUpdates =
                   []
               _annotatedTree =
                   ForSelectStatement ann_ var_ _selIannotatedTree _stsIannotatedTree
@@ -4397,8 +4429,8 @@ sem_Statement_ForSelectStatement ann_ var_ sel_ sts_  =
                   _lhsIenv
               ( _selIannotatedTree) =
                   (sel_ _selOenv )
-              ( _stsIannotatedTree) =
-                  (sts_ _stsOenv )
+              ( _stsIannotatedTree,_stsIenvUpdates) =
+                  (sts_ _stsOenv _stsOenvUpdates )
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_If :: Annotation ->
                     T_ExpressionStatementListPairList  ->
@@ -4407,12 +4439,16 @@ sem_Statement_If :: Annotation ->
 sem_Statement_If ann_ cases_ els_  =
     (\ _lhsIenv ->
          (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _elsOenvUpdates :: ([EnvironmentUpdate])
               _lhsOannotatedTree :: Statement
               _casesOenv :: Environment
               _elsOenv :: Environment
               _casesIannotatedTree :: ExpressionStatementListPairList
               _elsIannotatedTree :: StatementList
+              _elsIenvUpdates :: ([EnvironmentUpdate])
               _lhsOenvUpdates =
+                  []
+              _elsOenvUpdates =
                   []
               _annotatedTree =
                   If ann_ _casesIannotatedTree _elsIannotatedTree
@@ -4424,8 +4460,8 @@ sem_Statement_If ann_ cases_ els_  =
                   _lhsIenv
               ( _casesIannotatedTree) =
                   (cases_ _casesOenv )
-              ( _elsIannotatedTree) =
-                  (els_ _elsOenv )
+              ( _elsIannotatedTree,_elsIenvUpdates) =
+                  (els_ _elsOenv _elsOenvUpdates )
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Insert :: Annotation ->
                         String ->
@@ -4725,13 +4761,17 @@ sem_Statement_WhileStatement :: Annotation ->
 sem_Statement_WhileStatement ann_ expr_ sts_  =
     (\ _lhsIenv ->
          (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _stsOenvUpdates :: ([EnvironmentUpdate])
               _lhsOannotatedTree :: Statement
               _exprOenv :: Environment
               _stsOenv :: Environment
               _exprIannotatedTree :: Expression
               _exprIliftedColumnName :: String
               _stsIannotatedTree :: StatementList
+              _stsIenvUpdates :: ([EnvironmentUpdate])
               _lhsOenvUpdates =
+                  []
+              _stsOenvUpdates =
                   []
               _annotatedTree =
                   WhileStatement ann_ _exprIannotatedTree _stsIannotatedTree
@@ -4743,8 +4783,8 @@ sem_Statement_WhileStatement ann_ expr_ sts_  =
                   _lhsIenv
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
-              ( _stsIannotatedTree) =
-                  (sts_ _stsOenv )
+              ( _stsIannotatedTree,_stsIenvUpdates) =
+                  (sts_ _stsOenv _stsOenvUpdates )
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 -- StatementList -----------------------------------------------
 type StatementList  = [(Statement)]
@@ -4755,49 +4795,62 @@ sem_StatementList list  =
     (Prelude.foldr sem_StatementList_Cons sem_StatementList_Nil (Prelude.map sem_Statement list) )
 -- semantic domain
 type T_StatementList  = Environment ->
-                        ( StatementList)
-data Inh_StatementList  = Inh_StatementList {env_Inh_StatementList :: Environment}
-data Syn_StatementList  = Syn_StatementList {annotatedTree_Syn_StatementList :: StatementList}
+                        ([EnvironmentUpdate]) ->
+                        ( StatementList,([EnvironmentUpdate]))
+data Inh_StatementList  = Inh_StatementList {env_Inh_StatementList :: Environment,envUpdates_Inh_StatementList :: [EnvironmentUpdate]}
+data Syn_StatementList  = Syn_StatementList {annotatedTree_Syn_StatementList :: StatementList,envUpdates_Syn_StatementList :: [EnvironmentUpdate]}
 wrap_StatementList :: T_StatementList  ->
                       Inh_StatementList  ->
                       Syn_StatementList 
-wrap_StatementList sem (Inh_StatementList _lhsIenv )  =
-    (let ( _lhsOannotatedTree) =
-             (sem _lhsIenv )
-     in  (Syn_StatementList _lhsOannotatedTree ))
+wrap_StatementList sem (Inh_StatementList _lhsIenv _lhsIenvUpdates )  =
+    (let ( _lhsOannotatedTree,_lhsOenvUpdates) =
+             (sem _lhsIenv _lhsIenvUpdates )
+     in  (Syn_StatementList _lhsOannotatedTree _lhsOenvUpdates ))
 sem_StatementList_Cons :: T_Statement  ->
                           T_StatementList  ->
                           T_StatementList 
 sem_StatementList_Cons hd_ tl_  =
-    (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: StatementList
-              _hdOenv :: Environment
+    (\ _lhsIenv
+       _lhsIenvUpdates ->
+         (let _hdOenv :: Environment
+              _tlOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: StatementList
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _tlOenv :: Environment
               _hdIannotatedTree :: Statement
               _hdIenvUpdates :: ([EnvironmentUpdate])
               _tlIannotatedTree :: StatementList
+              _tlIenvUpdates :: ([EnvironmentUpdate])
+              _hdOenv =
+                  fromRight _lhsIenv $ updateEnvironment _lhsIenv _lhsIenvUpdates
+              _tlOenvUpdates =
+                  _hdIenvUpdates
               _annotatedTree =
                   (:) _hdIannotatedTree _tlIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
-              _hdOenv =
-                  _lhsIenv
+              _lhsOenvUpdates =
+                  _tlIenvUpdates
               _tlOenv =
                   _lhsIenv
               ( _hdIannotatedTree,_hdIenvUpdates) =
                   (hd_ _hdOenv )
-              ( _tlIannotatedTree) =
-                  (tl_ _tlOenv )
-          in  ( _lhsOannotatedTree)))
+              ( _tlIannotatedTree,_tlIenvUpdates) =
+                  (tl_ _tlOenv _tlOenvUpdates )
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_StatementList_Nil :: T_StatementList 
 sem_StatementList_Nil  =
-    (\ _lhsIenv ->
+    (\ _lhsIenv
+       _lhsIenvUpdates ->
          (let _lhsOannotatedTree :: StatementList
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _annotatedTree =
                   []
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree)))
+              _lhsOenvUpdates =
+                  _lhsIenvUpdates
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 -- StringList --------------------------------------------------
 type StringList  = [(String)]
 -- cata

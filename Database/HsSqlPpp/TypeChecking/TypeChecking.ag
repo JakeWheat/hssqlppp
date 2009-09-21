@@ -325,10 +325,32 @@ SEM Statement
       WhileStatement
         lhs.envUpdates = []
 
---SEM StatementList
---    | Cons hd.env = case @tl of
---                      [] -> @lhs.env
---                      x:_ -> updateEnvironment 
+
+ATTR StatementList
+     [
+     | envUpdates : {[EnvironmentUpdate]}
+     |
+     ]
+
+SEM Root
+    | Root statements.envUpdates = []
+
+SEM StatementList
+    | Cons hd.env = fromRight @lhs.env $ updateEnvironment @lhs.env @lhs.envUpdates
+           tl.envUpdates = @hd.envUpdates
+
+
+SEM ExpressionListStatementListPair
+    | Tuple x2.envUpdates = []
+SEM ExpressionStatementListPair
+    | Tuple x2.envUpdates = []
+SEM FnBody
+    | PlpgsqlFnBody SqlFnBody sts.envUpdates = []
+SEM Statement
+    | CaseStatement If els.envUpdates = []
+SEM Statement
+    | ForIntegerStatement ForSelectStatement WhileStatement
+         sts.envUpdates = []
 
 {-
 

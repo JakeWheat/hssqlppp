@@ -60,7 +60,18 @@ distinct, on
 order by - do properly
 limit, offset
 with queries
-upto datatypes ch 8 in pg manual
+type modifiers
+data type names with spaces in them
+timestamps
+schemas
+alternative text for true and false
+enums
+geometric types weird syntax
+composites: selector variants, rowctors, component get/update
+do all keyword and template1 operators
+any/some/all subqueries and arrays
+check over rowwise comparisons
+indexes: create/alter/drop
 
 stage 2:
 instead of interspersing the annotation output with the pretty printed
