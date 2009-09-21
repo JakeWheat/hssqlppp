@@ -58,8 +58,8 @@ modules.
 >                    ,envAggregates :: [FunctionPrototype]
 >                    ,envAttrDefs :: [CompositeDef]
 >                    --,envAttrSystemColumns :: [CompositeDef]
->                    ,envIdentifierTypes :: [QualifiedIDs]
->                    ,envJoinIdentifiers :: [String]}
+>                    ,envIdentifierTypes :: [[QualifiedIDs]]
+>                    ,envStarTypes :: [QualifiedIDs]}
 
 
 > -- | Represents an empty environment. This doesn't contain things
@@ -85,7 +85,7 @@ modules.
 > -- components represent the qualifying name (empty string for no
 > -- qualifying name), the list of identifier names with their types,
 > -- and the list of system column identifier names with their types.
-> type QualifiedIDs = (String, ([(String,Type)], [(String,Type)]))
+> type QualifiedIDs = (String, [(String,Type)])
 
 > -- | Use to note what the flavour of a cast is, i.e. if/when it can
 > -- be used implicitly.
@@ -125,12 +125,14 @@ modules.
 >   | EnvCreateTable String [(String,Type)] [(String,Type)]
 >   | EnvCreateView String [(String,Type)]
 >   | EnvCreateFunction FunFlav String [Type] Type
->     -- | Update the available ids, used internally during type checking
->     -- The second part is a list of join ids, used to expand * correctly
->     -- (if an id is part of a natural join or using list, it only appears
->     -- once when * is expanded, otherwise it could appear once for each
->     -- relation in the join that it appears in.
->   | EnvUpdateIDs [QualifiedIDs] [String]
+>     -- | to allow an unqualified identifier reference to work you need to
+>     -- supply an extra entry with \"\" as the alias, and all the fields,
+>     -- in the case of joins, these unaliased fields need to have the
+>     -- duplicates removed and the types resolved
+>   | EnvStackIDs [QualifiedIDs]
+>     -- | to allow an unqualified star to work you need to
+>     -- supply an extra entry with \"\" as the alias, and all the fields
+>   | EnvSetStarExpansion [QualifiedIDs]
 >     deriving (Eq,Show)
 
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
@@ -204,10 +206,8 @@ modules.
 >               FunBinary -> env {envBinaryOperators=(nm,args,ret):envBinaryOperators env}
 >               FunAgg -> env {envAggregates=(nm,args,ret):envAggregates env}
 >               FunName -> env {envFunctions=(nm,args,ret):envFunctions env}
->         EnvUpdateIDs qids jids ->
->            -- not thought properly about this, for now we add the qids, and replace the jids
->            return $ env {envIdentifierTypes = qids ++ envIdentifierTypes env
->                         ,envJoinIdentifiers = jids}
+>         EnvStackIDs qids -> return $ env {envIdentifierTypes = qids:envIdentifierTypes env}
+>         EnvSetStarExpansion sids -> return $ env {envStarTypes = sids}
 >     addTypeWithArray env nm ty cat pref =
 >       env {envTypeNames =
 >                ('_':nm,ArrayType ty)
@@ -369,42 +369,65 @@ will also flag any ambiguous identifiers which resolve ok only because
 of stacking, this is a standard warning in many flavours of lint
 checkers.
 
+One last thing is that we need to make sure identifiers availability doesn't
+get inherited too far: e.g. a create function inside a create function
+can't access ids from the outer create function. This is pretty easy:
+the following things generate identifier bindings:
+select expressions, inside the expression
+parameter defs
+variable defs
+
+since select expressions can't contain statements, we don't need to
+worry about e.g. if statements, they want to inherit ids from params
+and variable defs, so the default is good.
+
+For environments being updated sequentially: since the environment is
+updated in a statement list (i.e. environment updates stack from one
+statement to the next within a single statement list), any var defs
+can't break out of the containing list, so we are covered e.g. for a
+variable def leaking from an inner block to an outer block.
+
+With ids going into select expressions: we want the default which is
+parameters, vardefs and ids from containing select expressions to be
+inherited. So, in the end the only case to deal with is a create
+function inside another create function. This isn't dealt with at the
+moment.
+
+
 
 > envExpandStar :: Environment -> String -> Either [TypeError] [(String,Type)]
 > envExpandStar env correlationName =
->     if correlationName == ""
->       then let allFields = concatMap (fst.snd) $ envIdentifierTypes env
->                (commonFields,uncommonFields) =
->                   partition (\(a,_) -> a `elem` envJoinIdentifiers env) allFields
->            in Right $ nub commonFields ++ uncommonFields
->       else
->           case lookup correlationName $ envIdentifierTypes env of
->             Nothing -> Left [UnrecognisedCorrelationName correlationName]
->             Just s -> Right $ fst s
+>     case lookup correlationName $ envStarTypes env of
+>       Nothing -> errorWhen (correlationName == "")
+>                            [InternalError "no star expansion found?"] >>
+>                  Left [UnrecognisedCorrelationName correlationName]
+>       Just l -> Right l
+
+-- >     if correlationName == ""
+-- >       then let allFields = concatMap (fst) $ envIdentifierTypes env
+-- >                (commonFields,uncommonFields) =
+-- >                   partition (\(a,_) -> a `elem` envJoinIdentifiers env) allFields
+-- >            in Right $ nub commonFields ++ uncommonFields
+-- >       else
+-- >           case lookup correlationName $ envIdentifierTypes env of
+-- >             Nothing -> Left [UnrecognisedCorrelationName correlationName]
+-- >             Just s -> Right $ fst s
 
 
 > envLookupID :: Environment -> String -> String -> Either [TypeError] Type
 > envLookupID env correlationName iden = {-trace ("lookup " ++ show iden ++ " in " ++ show (envIdentifierTypes env)) $ -}
->   if correlationName == ""
->     then let types = concatMap (filter (\ (s, _) -> s == iden))
->                        (map (catPair.snd) $ envIdentifierTypes env)
->          in do
->            errorWhen (null types) [UnrecognisedIdentifier iden]
->            if length types == 1
->               then Right $ (snd . head) types
->               else do
->                 --see if this identifier is in the join list
->                 errorWhen (iden `notElem` envJoinIdentifiers env)
->                           [AmbiguousIdentifier iden]
->                 return $ (snd . head) types
->     else case lookup correlationName (envIdentifierTypes env) of
->            Nothing -> Left [UnrecognisedCorrelationName correlationName]
->            Just s -> case lookup iden (catPair s) of
->                        Nothing -> Left [UnrecognisedIdentifier $ correlationName ++ "." ++ iden]
->                        Just t -> Right t
-
-> catPair :: ([a],[a]) -> [a]
-> catPair = uncurry (++)
+>   envLookupID' $ envIdentifierTypes env
+>   where
+>     envLookupID' (its:itss) =
+>       case lookup correlationName its of
+>         Nothing -> errorWhen (correlationName == "")
+>                              [UnrecognisedIdentifier iden] >>
+>                    Left [UnrecognisedCorrelationName correlationName]
+>         Just s -> case filter (\(n,_) -> n==iden) s of
+>                     [] -> envLookupID' itss
+>                     (_,t):[] -> Right t
+>                     _ -> Left [AmbiguousIdentifier iden]
+>     envLookupID' [] = Left [UnrecognisedIdentifier $ if correlationName == "" then iden else correlationName ++ "." ++ iden]
 
 > envTypeExists :: Environment -> Type -> Either [TypeError] Type
 > envTypeExists env t =
@@ -487,6 +510,8 @@ for now, assume that all the overloaded operators that have the
 same name are all either binary, prefix or postfix, otherwise the
 getoperatortype would need the types of the arguments to determine
 the operator type, and the parser would have to be a lot cleverer
+although, parsec handles - being unary and binary without breaking
+a sweat, so maybe this isn't too difficult?
 
 this is why binary @ operator isn't currently supported
 

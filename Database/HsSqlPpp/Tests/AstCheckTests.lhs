@@ -8,7 +8,6 @@ Set of tests to check the type checking code
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
-> import Control.Arrow
 > import Debug.Trace
 
 > import Database.HsSqlPpp.TypeChecking.Ast
@@ -160,13 +159,6 @@ check casts from unknown string lits
 >                                               ,UnknownStringLit]]
 >      ])
 >
-
->    ,testGroup "expressions and env"
->     (mapExprEnvType [
->      t "a" (makeEnvIDs [("test", [("a", typeInt)])]) $ Right typeInt
->     ,t "b" (makeEnvIDs [("test", [("a", typeInt)])])
->        $ Left [UnrecognisedIdentifier "b"]
->     ])
 
 >    ,testGroup "random expressions"
 >     (mapExprType [
@@ -625,6 +617,35 @@ insert
 
 >      ])
 
+================================================================================
+
+check the identifier resolution for functions:
+parameters
+variable declarations
+select expressions inside these:
+refer to param
+refer to variable
+override var with var
+override var with select iden
+todo: override var with param, override select iden with param
+
+>    ,testGroup "create function identifier resolution"
+>     (mapStatementInfo [
+>       p "create function t1(stuff text) returns text as $$\n\
+>         \begin\n\
+>         \  return stuff || ' and stuff';\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Right [Nothing])
+>      ,p "create function t1(stuff text) returns text as $$\n\
+>         \begin\n\
+>         \  return badstuff || ' and stuff';\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Left [UnrecognisedIdentifier "badstuff"])
+
+>      ])
+
 
 >
 >    ]
@@ -637,8 +658,6 @@ insert
 >           mapStatementInfo = map $ uncurry checkStatementInfo
 >           mapStatementInfoEu = map (\(a,b,c) ->  checkStatementInfoEu a b c)
 >           mapExprEnvType = map (\(a,b,c) -> checkExpressionType b a c)
->           makeEnvIDs l = makeEnv
->                          [EnvUpdateIDs (map (second (\a->(a,[]))) l) []]
 >           makeEnv eu = case updateEnvironment defaultTemplate1Environment eu of
 >                         Left x -> error $ show x
 >                         Right e -> e
@@ -666,7 +685,7 @@ insert
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
 >       er = getTypeErrors aast
->   in trace (show aast) $ case (length er, length is) of
+>   in {-trace (show aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er

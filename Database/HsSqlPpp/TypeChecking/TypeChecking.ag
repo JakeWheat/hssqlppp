@@ -436,7 +436,7 @@ getTbCols c = unwrapSetOfComposite (getTypeAnnotation c)
 ATTR TableRef MTableRef
          [
          |
-         | idens : {[QualifiedIDs]}
+         | idens : {[(String,([(String,Type)],[(String,Type)]))]}
            joinIdens : {[String]}
          ]
 
@@ -613,7 +613,8 @@ them into the selectlist and where parts)
 
 SEM SelectExpression
     | Select
-         loc.newEnv = case updateEnvironment @lhs.env [EnvUpdateIDs @selTref.idens @selTref.joinIdens] of
+         loc.newEnv = case updateEnvironment @lhs.env
+                            (convertToNewStyleUpdates @selTref.idens @selTref.joinIdens) of
                         Left x -> error $ show x -- @lhs.env
                         Right e -> e
          selSelectList.env = @loc.newEnv

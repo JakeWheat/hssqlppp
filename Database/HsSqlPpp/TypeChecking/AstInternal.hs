@@ -2813,9 +2813,9 @@ sem_MTableRef Prelude.Nothing  =
     sem_MTableRef_Nothing
 -- semantic domain
 type T_MTableRef  = Environment ->
-                    ( MTableRef,Environment,([QualifiedIDs]),([String]))
+                    ( MTableRef,Environment,([(String,([(String,Type)],[(String,Type)]))]),([String]))
 data Inh_MTableRef  = Inh_MTableRef {env_Inh_MTableRef :: Environment}
-data Syn_MTableRef  = Syn_MTableRef {annotatedTree_Syn_MTableRef :: MTableRef,env_Syn_MTableRef :: Environment,idens_Syn_MTableRef :: [QualifiedIDs],joinIdens_Syn_MTableRef :: [String]}
+data Syn_MTableRef  = Syn_MTableRef {annotatedTree_Syn_MTableRef :: MTableRef,env_Syn_MTableRef :: Environment,idens_Syn_MTableRef :: [(String,([(String,Type)],[(String,Type)]))],joinIdens_Syn_MTableRef :: [String]}
 wrap_MTableRef :: T_MTableRef  ->
                   Inh_MTableRef  ->
                   Syn_MTableRef 
@@ -2829,12 +2829,12 @@ sem_MTableRef_Just just_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: MTableRef
               _lhsOenv :: Environment
-              _lhsOidens :: ([QualifiedIDs])
+              _lhsOidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _lhsOjoinIdens :: ([String])
               _justOenv :: Environment
               _justIannotatedTree :: TableRef
               _justIenv :: Environment
-              _justIidens :: ([QualifiedIDs])
+              _justIidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _justIjoinIdens :: ([String])
               _annotatedTree =
                   Just _justIannotatedTree
@@ -2854,7 +2854,7 @@ sem_MTableRef_Just just_  =
 sem_MTableRef_Nothing :: T_MTableRef 
 sem_MTableRef_Nothing  =
     (\ _lhsIenv ->
-         (let _lhsOidens :: ([QualifiedIDs])
+         (let _lhsOidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _lhsOjoinIdens :: ([String])
               _lhsOannotatedTree :: MTableRef
               _lhsOenv :: Environment
@@ -3623,7 +3623,7 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
               _selSelectListIlistType :: Type
               _selTrefIannotatedTree :: MTableRef
               _selTrefIenv :: Environment
-              _selTrefIidens :: ([QualifiedIDs])
+              _selTrefIidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _selTrefIjoinIdens :: ([String])
               _selWhereIannotatedTree :: Where
               _selWhereIenv :: Environment
@@ -3669,7 +3669,8 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
                          _selLimitIannotatedTree
                          _selOffsetIannotatedTree
               _newEnv =
-                  case updateEnvironment _lhsIenv [EnvUpdateIDs _selTrefIidens _selTrefIjoinIdens] of
+                  case updateEnvironment _lhsIenv
+                        (convertToNewStyleUpdates _selTrefIidens _selTrefIjoinIdens) of
                     Left x -> error $ show x
                     Right e -> e
               _selSelectListOenv =
@@ -5614,9 +5615,9 @@ sem_TableRef (TrefFunAlias _ann _fn _alias )  =
     (sem_TableRef_TrefFunAlias _ann (sem_Expression _fn ) _alias )
 -- semantic domain
 type T_TableRef  = Environment ->
-                   ( TableRef,Environment,([QualifiedIDs]),([String]))
+                   ( TableRef,Environment,([(String,([(String,Type)],[(String,Type)]))]),([String]))
 data Inh_TableRef  = Inh_TableRef {env_Inh_TableRef :: Environment}
-data Syn_TableRef  = Syn_TableRef {annotatedTree_Syn_TableRef :: TableRef,env_Syn_TableRef :: Environment,idens_Syn_TableRef :: [QualifiedIDs],joinIdens_Syn_TableRef :: [String]}
+data Syn_TableRef  = Syn_TableRef {annotatedTree_Syn_TableRef :: TableRef,env_Syn_TableRef :: Environment,idens_Syn_TableRef :: [(String,([(String,Type)],[(String,Type)]))],joinIdens_Syn_TableRef :: [String]}
 wrap_TableRef :: T_TableRef  ->
                  Inh_TableRef  ->
                  Syn_TableRef 
@@ -5634,7 +5635,7 @@ sem_TableRef_JoinedTref :: Annotation ->
 sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: TableRef
-              _lhsOidens :: ([QualifiedIDs])
+              _lhsOidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _lhsOjoinIdens :: ([String])
               _lhsOenv :: Environment
               _tblOenv :: Environment
@@ -5644,7 +5645,7 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _onExprOenv :: Environment
               _tblIannotatedTree :: TableRef
               _tblIenv :: Environment
-              _tblIidens :: ([QualifiedIDs])
+              _tblIidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _tblIjoinIdens :: ([String])
               _natIannotatedTree :: Natural
               _natIenv :: Environment
@@ -5652,7 +5653,7 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _joinTypeIenv :: Environment
               _tbl1IannotatedTree :: TableRef
               _tbl1Ienv :: Environment
-              _tbl1Iidens :: ([QualifiedIDs])
+              _tbl1Iidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _tbl1IjoinIdens :: ([String])
               _onExprIannotatedTree :: OnExpr
               _onExprIenv :: Environment
@@ -5718,7 +5719,7 @@ sem_TableRef_SubTref :: Annotation ->
 sem_TableRef_SubTref ann_ sel_ alias_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: TableRef
-              _lhsOidens :: ([QualifiedIDs])
+              _lhsOidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _lhsOjoinIdens :: ([String])
               _lhsOenv :: Environment
               _selOenv :: Environment
@@ -5754,7 +5755,7 @@ sem_TableRef_Tref ann_ tbl_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: TableRef
               _lhsOjoinIdens :: ([String])
-              _lhsOidens :: ([QualifiedIDs])
+              _lhsOidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _lhsOenv :: Environment
               _lhsOannotatedTree =
                   annTypesAndErrors _backTree
@@ -5790,7 +5791,7 @@ sem_TableRef_TrefAlias ann_ tbl_ alias_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: TableRef
               _lhsOjoinIdens :: ([String])
-              _lhsOidens :: ([QualifiedIDs])
+              _lhsOidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _lhsOenv :: Environment
               _lhsOannotatedTree =
                   annTypesAndErrors _backTree
@@ -5825,7 +5826,7 @@ sem_TableRef_TrefFun ann_ fn_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: TableRef
               _lhsOjoinIdens :: ([String])
-              _lhsOidens :: ([QualifiedIDs])
+              _lhsOidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _lhsOenv :: Environment
               _fnOenv :: Environment
               _fnIannotatedTree :: Expression
@@ -5867,7 +5868,7 @@ sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: TableRef
               _lhsOjoinIdens :: ([String])
-              _lhsOidens :: ([QualifiedIDs])
+              _lhsOidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _lhsOenv :: Environment
               _fnOenv :: Environment
               _fnIannotatedTree :: Expression

@@ -218,3 +218,24 @@ returns the type of the relation, and the system columns also
 >           case getAttrs env [TableComposite, ViewComposite] tbl of
 >             Just _ -> Nothing
 >             _ -> Just $ UnrecognisedRelation tbl
+
+> convertToNewStyleUpdates :: [(String, ([(String,Type)], [(String,Type)]))] -> [String] -> [EnvironmentUpdate]
+> convertToNewStyleUpdates qualIdens joinIdens =
+>   -- we're given a list of qualified types, and a list of names of join columns
+>   -- want to produce a list of qualified types, with an additional one with "" qualification
+>   -- and produce a star expansion
+>     [EnvStackIDs newQualifiedList
+>     ,EnvSetStarExpansion newStarExpansion]
+>   where
+>     qualifiedFieldsCombined :: [(String,[(String,Type)])]
+>     qualifiedFieldsCombined = map (\(alias,(att,sysatt)) -> (alias, att++sysatt)) qualIdens
+>     isJoinField (n,_) = n `elem` joinIdens
+>     (joinFields,nonJoinFields) = partition isJoinField $ concatMap snd qualifiedFieldsCombined
+>     --need to resolve types instead of using nub
+>     newQualifiedList = ("", nub joinFields ++ nonJoinFields):qualifiedFieldsCombined
+>     qualifiedFieldsStarExp = map (\(alias,(att,_)) -> (alias, att)) qualIdens
+>     (joinFieldsStarExp,nonJoinFieldsStarExp) =
+>         partition isJoinField $ concatMap snd qualifiedFieldsStarExp
+>     --need to resolve types instead of using nub
+>     newStarExpansion = ("", nub joinFieldsStarExp ++ nonJoinFieldsStarExp):qualifiedFieldsStarExp
+
