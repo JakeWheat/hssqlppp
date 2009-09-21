@@ -110,10 +110,10 @@ composite type, returns the composite definition which you can get the
 attributes out of which is a pair with the normal columns first, then
 the system columns second
 
-> getAttrs :: Environment -> [CompositeFlavour] -> String -> Maybe (CompositeDef, CompositeDef)
+> getAttrs :: Environment -> [CompositeFlavour] -> String -> Maybe CompositeDef
 > getAttrs env f n = case envCompositeAttrs env f (CompositeType n) of
 >                      Left _ -> Nothing
->                      Right (a,b) -> Just (a,b)
+>                      Right a -> Just a
 
 combine two relvar types when being joined, pass in a using list and
 it checks the types in the using list are compatible, and eliminates
@@ -177,8 +177,8 @@ returns the type of the relation, and the system columns also
 > getRelationType :: Environment -> String -> Either [TypeError] (Type,Type)
 > getRelationType env tbl =
 >           case getAttrs env [TableComposite, ViewComposite] tbl of
->             Just ((_,_,a@(UnnamedCompositeType _))
->                  ,(_,_,s@(UnnamedCompositeType _))) -> Right (a,s)
+>             Just ((_,_,a@(UnnamedCompositeType _), s@(UnnamedCompositeType _)))
+>                  -> Right (a,s)
 >             _ -> Left [UnrecognisedRelation tbl]
 
 > commonFieldNames :: Type -> Type -> [String]
@@ -217,5 +217,3 @@ returns the type of the relation, and the system columns also
 >           case getAttrs env [TableComposite, ViewComposite] tbl of
 >             Just _ -> Nothing
 >             _ -> Just $ UnrecognisedRelation tbl
-
-

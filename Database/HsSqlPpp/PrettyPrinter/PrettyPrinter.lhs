@@ -29,6 +29,7 @@ Not much other comments, since it all should be pretty self evident.
 > import Database.HsSqlPpp.TypeChecking.TypeChecker
 > import Database.HsSqlPpp.TypeChecking.Environment
 > import Database.HsSqlPpp.Utils
+> import Debug.Trace
 
 ================================================================================
 

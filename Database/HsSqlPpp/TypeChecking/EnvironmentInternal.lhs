@@ -75,7 +75,10 @@ modules.
 > -- like \'and\', etc..
 > defaultEnvironment :: Environment
 > defaultEnvironment = emptyEnvironment {
->                       envTypeNames = map (\t@(Pseudo p) -> (show p,t))
+>                       envTypeNames = map (\t -> case t of
+>                                                   Pseudo p -> (show p,t)
+>                                                   ArrayType (Pseudo p) -> ('_':show p, t)
+>                                                   _ -> error $ "error in pseudo type list: " ++ show t)
 >                                          pseudoTypes
 >                      ,envBinaryOperators = keywordOperatorTypes
 >                      ,envFunctions = specialFunctionTypes}
@@ -106,7 +109,7 @@ modules.
 > -- the types of the composite attributes, and the types of the
 > -- system columns iff the composite represents a table type (the
 > -- third and fourth components are always 'UnnamedCompositeType's).
-> type CompositeDef = (String, CompositeFlavour, Type {-, Type-})
+> type CompositeDef = (String, CompositeFlavour, Type, Type)
 
 > -- | The components are: function (or operator) name, argument
 > -- types, and return type.
@@ -183,20 +186,20 @@ modules.
 >         EnvCreateComposite nm flds -> do
 >                 return $ (addTypeWithArray env nm (CompositeType nm) "C" False) {
 >                             envAttrDefs =
->                               (nm,Composite,UnnamedCompositeType flds)
+>                               (nm,Composite,UnnamedCompositeType flds, UnnamedCompositeType [])
 >                               : envAttrDefs env}
 >         EnvCreateCast src tgt ctx -> return $ env {envCasts = (src,tgt,ctx):envCasts env}
 >         EnvCreateTable nm attrs sysAttrs -> do
 >                 return $ (addTypeWithArray env nm
 >                             (CompositeType nm) "C" False) {
 >                             envAttrDefs =
->                               (nm,TableComposite,UnnamedCompositeType attrs)
+>                               (nm,TableComposite,UnnamedCompositeType attrs, UnnamedCompositeType sysAttrs)
 >                               : envAttrDefs env}
 >         EnvCreateView nm attrs ->  do
 >                 return $ (addTypeWithArray env nm
 >                             (CompositeType nm) "C" False) {
 >                             envAttrDefs =
->                               (nm,ViewComposite,UnnamedCompositeType attrs)
+>                               (nm,ViewComposite,UnnamedCompositeType attrs, UnnamedCompositeType [])
 >                               : envAttrDefs env}
 >         EnvCreateFunction f nm args ret ->
 >             return $ case f of
@@ -235,14 +238,14 @@ modules.
 
 = type checking stuff
 
-> envCompositeAttrs :: Environment -> [CompositeFlavour] -> Type -> Either [TypeError] (CompositeDef,CompositeDef)
+> envCompositeAttrs :: Environment -> [CompositeFlavour] -> Type -> Either [TypeError] (CompositeDef)
 > envCompositeAttrs env flvs ty = do
 >   let CompositeType nm = ty
->   let c = filter (\(n,t,_) -> n == nm && (null flvs || t `elem` flvs)) $ envAttrDefs env
+>   let c = filter (\(n,t,_,_) -> n == nm && (null flvs || t `elem` flvs)) $ envAttrDefs env
 >   errorWhen (length c == 0)
 >             [UnrecognisedRelation nm]
->   let (_,fl1,r):[] = c
->   return ((nm,fl1,r), (nm,fl1,UnnamedCompositeType []))
+>   let (_,fl1,r,s):[] = c
+>   return (nm,fl1,r,s)
 
 > envGetCategoryInfo :: Environment -> Type -> (String, Bool)
 > envGetCategoryInfo env ty =
@@ -279,7 +282,7 @@ modules.
 
 > envLookupFns :: Environment -> String -> [FunctionPrototype]
 > envLookupFns env name =
->     trace ("look for " ++ name ++ " in " ++ show (length envGetAllFns)) $ filter (\(nm,_,_) -> nm == name) envGetAllFns
+>     filter (\(nm,_,_) -> nm == name) envGetAllFns
 >     where
 >     envGetAllFns =
 >         concat [envPrefixOperators env
@@ -437,7 +440,10 @@ this is why binary @ operator isn't currently supported
 
 > getOperatorType :: Environment -> String -> OperatorType
 > getOperatorType env s = case () of
->                       _ | any (\(x,_,_) -> x == s) (envBinaryOperators env) ->
+>                       _ | s `elem` ["!and", "!or","!like"] -> BinaryOp
+>                         | s `elem` ["!not"] -> PrefixOp
+>                         | s `elem` ["!isNull", "!isNotNull"] -> PostfixOp
+>                         | any (\(x,_,_) -> x == s) (envBinaryOperators env) ->
 >                             BinaryOp
 >                         | any (\(x,_,_) -> x == s ||
 >                                            (x=="-" && s=="u-"))
@@ -445,9 +451,6 @@ this is why binary @ operator isn't currently supported
 >                             PrefixOp
 >                         | any (\(x,_,_) -> x == s) (envPostfixOperators env) ->
 >                             PostfixOp
->                         | s `elem` ["!and", "!or","!like"] -> BinaryOp
->                         | s `elem` ["!not"] -> PrefixOp
->                         | s `elem` ["!isNull", "!isNotNull"] -> PostfixOp
 >                         | otherwise ->
 >                             error $ "don't know flavour of operator " ++ s
 

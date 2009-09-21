@@ -483,7 +483,7 @@ getFunIdens env alias fnVal =
                     case getAttrs env [Composite
                                               ,TableComposite
                                               ,ViewComposite] t of
-                      Just ((_,_,a@(UnnamedCompositeType _)), _) -> a
+                      Just (_,_,a@(UnnamedCompositeType _), _) -> a
                       _ -> UnnamedCompositeType []
 
 
@@ -4003,7 +4003,7 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
               _backTree =
                   CreateTable ann_ name_ _attsIannotatedTree _consIannotatedTree
               _statementInfo =
-                  RelvarInfo (name_, TableComposite, _compositeType    )
+                  RelvarInfo (name_, TableComposite, _compositeType    , UnnamedCompositeType [])
               _annotatedTree =
                   CreateTable ann_ name_ _attsIannotatedTree _consIannotatedTree
               _attsOenv =
@@ -4031,7 +4031,7 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               _backTree =
                   CreateTableAs ann_ name_ _exprIannotatedTree
               _statementInfo =
-                  RelvarInfo (name_, TableComposite, _selType    )
+                  RelvarInfo (name_, TableComposite, _selType    , UnnamedCompositeType [])
               _annotatedTree =
                   CreateTableAs ann_ name_ _exprIannotatedTree
               _lhsOannotatedTree =
@@ -4067,7 +4067,7 @@ sem_Statement_CreateType ann_ name_ atts_  =
               _backTree =
                   CreateType ann_ name_ _attsIannotatedTree
               _statementInfo =
-                  RelvarInfo (name_, Composite, _compositeType    )
+                  RelvarInfo (name_, Composite, _compositeType    , UnnamedCompositeType [])
               _annotatedTree =
                   CreateType ann_ name_ _attsIannotatedTree
               _attsOenv =
@@ -4094,7 +4094,7 @@ sem_Statement_CreateView ann_ name_ expr_  =
               _backTree =
                   CreateView ann_ name_ _exprIannotatedTree
               _statementInfo =
-                  RelvarInfo (name_, ViewComposite, getTypeAnnotation _exprIannotatedTree)
+                  RelvarInfo (name_, ViewComposite, getTypeAnnotation _exprIannotatedTree, UnnamedCompositeType [])
               _annotatedTree =
                   CreateView ann_ name_ _exprIannotatedTree
               _exprOenv =

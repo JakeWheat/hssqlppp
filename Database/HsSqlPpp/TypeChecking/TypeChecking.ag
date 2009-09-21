@@ -474,7 +474,7 @@ getFunIdens env alias fnVal =
                     case getAttrs env [Composite
                                               ,TableComposite
                                               ,ViewComposite] t of
-                      Just ((_,_,a@(UnnamedCompositeType _)), _) -> a
+                      Just (_,_,a@(UnnamedCompositeType _), _) -> a
                       _ -> UnnamedCompositeType []
 }
 
@@ -795,14 +795,14 @@ SEM Statement
             where
               doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateTable @ann @name @atts.annotatedTree @cons.annotatedTree
-        loc.statementInfo = RelvarInfo (@name, TableComposite, @loc.compositeType)
+        loc.statementInfo = RelvarInfo (@name, TableComposite, @loc.compositeType, UnnamedCompositeType [])
 
 SEM Statement
     | CreateTableAs
         loc.selType = getTypeAnnotation @expr.annotatedTree
         loc.tpe = Right @loc.selType
         loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
-        loc.statementInfo = RelvarInfo (@name, TableComposite, @loc.selType)
+        loc.statementInfo = RelvarInfo (@name, TableComposite, @loc.selType, UnnamedCompositeType [])
 {-
 ================================================================================
 
@@ -814,7 +814,7 @@ SEM Statement
     | CreateView
         loc.tpe = checkTypes [getTypeAnnotation @expr.annotatedTree] $ Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
-        loc.statementInfo = RelvarInfo (@name, ViewComposite, getTypeAnnotation @expr.annotatedTree)
+        loc.statementInfo = RelvarInfo (@name, ViewComposite, getTypeAnnotation @expr.annotatedTree, UnnamedCompositeType [])
 
 
 {-
@@ -856,7 +856,7 @@ SEM Statement
             where
               doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateType @ann @name @atts.annotatedTree
-        loc.statementInfo = RelvarInfo (@name, Composite, @loc.compositeType)
+        loc.statementInfo = RelvarInfo (@name, Composite, @loc.compositeType, UnnamedCompositeType [])
 {-
 
 ================================================================================
