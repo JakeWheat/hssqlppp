@@ -579,6 +579,28 @@ insert
 >      ,p "delete from pg_attrdef where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ])
+
+
+================================================================================
+
+>    ,testGroup "createTable"
+>     (mapStatementInfoEu [
+>       t "create table t1 (\n\
+>         \   a int,\n\
+>         \   b text\n\
+>         \);"
+>         (Right [RelvarInfo ("t1"
+>                              ,TableComposite
+>                              ,UnnamedCompositeType [("a",ScalarType "int4")
+>                                                    ,("b",ScalarType "text")]
+>                              ,UnnamedCompositeType [])])
+>                 [[EnvCreateTable "t1" [("a",ScalarType "int4")
+>                                                    ,("b",ScalarType "text")]
+>                                                  []]]
+
+>      ])
+
+
 >
 >    ]
 >         where
@@ -588,6 +610,7 @@ insert
 >           mapExprType = map (uncurry $ checkExpressionType defaultTemplate1Environment)
 >           --mapStatementType = map $ uncurry checkStatementType
 >           mapStatementInfo = map $ uncurry checkStatementInfo
+>           mapStatementInfoEu = map (\(a,b,c) ->  checkStatementInfoEu a b c)
 >           mapExprEnvType = map (\(a,b,c) -> checkExpressionType b a c)
 >           makeEnvIDs l = makeEnv
 >                          [EnvUpdateIDs (map (second (\a->(a,[]))) l) []]
@@ -634,4 +657,20 @@ insert
 >   in case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
+>        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
+
+> checkStatementInfoEu :: String -> Either [TypeError] [StatementInfo] -> [[EnvironmentUpdate]] -> Test.Framework.Test
+> checkStatementInfoEu src sis eu = testCase ("typecheck " ++ src) $
+>   let ast = case parseSql src of
+>                               Left e -> error $ show e
+>                               Right l -> l
+>       aast = annotateAst ast
+>       is = getTopLevelInfos aast
+>       er = getTypeErrors aast
+>       eu' = getTopLevelEnvUpdates aast
+>   in {-trace (show aast) $-} case (length er, length is, length eu') of
+>        (0,0,0) -> assertFailure "didn't get any infos or envupdates?"
+>        (0,_,_) -> do
+>          assertEqual ("typecheck " ++ src) sis $ Right is
+>          assertEqual ("eu " ++ src) eu $ eu'
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er

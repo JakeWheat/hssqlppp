@@ -26,12 +26,12 @@ modules.
 >     ,envLookupID
 >     ,envCompositeAttrs
 >     ,envTypeCategory
+>     ,envPreferredType
 >     ,envCast
 >     ,envDomainBaseType
 >     ,envLookupFns
 >     ,envTypeExists
 >     ,envLookupType
->     ,envPreferredType
 >     ,OperatorType(..)
 >     ,getOperatorType
 >     ,isOperatorName
@@ -234,6 +234,10 @@ modules.
 > destructEnvironment = undefined
 > -}
 
+TODO -this shouldn't be too difficult, just bluff it and use quick
+check to see if it works
+
+
 ================================================================================
 
 = type checking stuff
@@ -246,17 +250,6 @@ modules.
 >             [UnrecognisedRelation nm]
 >   let (_,fl1,r,s):[] = c
 >   return (nm,fl1,r,s)
-
-> envGetCategoryInfo :: Environment -> Type -> (String, Bool)
-> envGetCategoryInfo env ty =
->   case ty of
->     ArrayType (Pseudo _) -> ("A",False)
->     Pseudo _ -> ("P",False)
->     _ -> let l = filter (\(t,_,_) -> ty == t) $ envTypeCategories env
->          in if null l
->               then error $ "no type category for " ++ show ty
->               else let (_,c,p):_ =l
->                    in (c,p)
 
 > envTypeCategory :: Environment -> Type -> String
 > envTypeCategory env ty =
@@ -290,6 +283,20 @@ modules.
 >                ,envBinaryOperators env
 >                ,envFunctions env
 >                ,envAggregates env]
+
+== internal support for type checker fns above
+
+> envGetCategoryInfo :: Environment -> Type -> (String, Bool)
+> envGetCategoryInfo env ty =
+>   case ty of
+>     ArrayType (Pseudo _) -> ("A",False)
+>     Pseudo _ -> ("P",False)
+>     _ -> let l = filter (\(t,_,_) -> ty == t) $ envTypeCategories env
+>          in if null l
+>               then error $ "no type category for " ++ show ty
+>               else let (_,c,p):_ =l
+>                    in (c,p)
+
 
 
 = Attribute identifier scoping

@@ -62,10 +62,10 @@ ATTR AllNodes Root ExpressionRoot
 
 {
 annTypesAndErrors :: Annotated a => a -> Type -> [TypeError]
-                  -> Maybe AnnotationElement -> a
+                  -> Maybe [AnnotationElement] -> a
 annTypesAndErrors item nt errs add =
     changeAnn item $
-     (([TypeAnnotation nt] ++ maybeToList add ++
+     (([TypeAnnotation nt] ++ fromMaybe [] add ++
        map TypeErrorA errs) ++)
 }
 SEM Expression
@@ -306,7 +306,8 @@ SEM Statement
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (errorToTypeFail @loc.tpe)
                               (getErrors @loc.tpe)
-                              $ Just $ StatementInfoA @loc.statementInfo
+                              $ Just [StatementInfoA @loc.statementInfo
+                                     ,EnvUpdates @loc.envUpdates]
 {-
 
 ================================================================================
@@ -322,6 +323,7 @@ SEM Statement
         loc.tpe = checkTypes [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
         loc.statementInfo = SelectInfo $ getTypeAnnotation @ex.annotatedTree
         loc.backTree = SelectStatement @ann @ex.annotatedTree
+        loc.envUpdates = []
 
 
 SEM SelectExpression
@@ -651,7 +653,7 @@ SEM Statement
             InsertInfo @table $ errorToTypeFailF UnnamedCompositeType @loc.columnStuff
         loc.backTree = Insert @ann @table @targetCols.annotatedTree
                               @insData.annotatedTree @returning
-
+        loc.envUpdates = []
 
 ATTR StringList
      [
@@ -695,6 +697,7 @@ SEM Statement
             where
               getType cols t = fromJust $ lookup t cols
         loc.backTree = Update @ann @table @assigns.annotatedTree @whr.annotatedTree @returning
+        loc.envUpdates = []
 
 ATTR SetClauseList
      [
@@ -752,6 +755,7 @@ SEM Statement
                 return $ Pseudo Void
         loc.statementInfo = DeleteInfo @table
         loc.backTree = Delete @ann @table @whr.annotatedTree @returning
+        loc.envUpdates = []
 
 {-
 ================================================================================
@@ -796,6 +800,7 @@ SEM Statement
               doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateTable @ann @name @atts.annotatedTree @cons.annotatedTree
         loc.statementInfo = RelvarInfo (@name, TableComposite, @loc.compositeType, UnnamedCompositeType [])
+        loc.envUpdates = [EnvCreateTable @name (unwrapComposite @loc.compositeType) []]
 
 SEM Statement
     | CreateTableAs
@@ -803,6 +808,7 @@ SEM Statement
         loc.tpe = Right @loc.selType
         loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
         loc.statementInfo = RelvarInfo (@name, TableComposite, @loc.selType, UnnamedCompositeType [])
+        loc.envUpdates = []
 {-
 ================================================================================
 
@@ -815,6 +821,7 @@ SEM Statement
         loc.tpe = checkTypes [getTypeAnnotation @expr.annotatedTree] $ Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
         loc.statementInfo = RelvarInfo (@name, ViewComposite, getTypeAnnotation @expr.annotatedTree, UnnamedCompositeType [])
+        loc.envUpdates = []
 
 
 {-
@@ -857,6 +864,8 @@ SEM Statement
               doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateType @ann @name @atts.annotatedTree
         loc.statementInfo = RelvarInfo (@name, Composite, @loc.compositeType, UnnamedCompositeType [])
+        loc.envUpdates = []
+
 {-
 
 ================================================================================
@@ -873,6 +882,7 @@ SEM Statement
         loc.tpe = checkTypes [@loc.namedTypeType] $ Right $ Pseudo Void
         loc.backTree = CreateDomain @ann @name @typ.annotatedTree @check
         loc.statementInfo = CreateDomainInfo @name @loc.namedTypeType
+        loc.envUpdates = []
 {-
 ================================================================================
 
@@ -933,6 +943,7 @@ SEM Statement
                                       @body.annotatedTree
                                       @vol.annotatedTree
         loc.statementInfo = CreateFunctionInfo (@name,@loc.paramTypes,@loc.retTypeType)
+        loc.envUpdates = []
 
 {-
 

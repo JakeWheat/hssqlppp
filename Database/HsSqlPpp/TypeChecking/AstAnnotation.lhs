@@ -19,6 +19,7 @@ grammar code and aren't exposed.
 >     ,stripAnnotations
 >     ,getTopLevelTypes
 >     ,getTopLevelInfos
+>     ,getTopLevelEnvUpdates
 >     ,getTypeAnnotation
 >     ,getTypeErrors
 >     ,pack
@@ -39,6 +40,7 @@ grammar code and aren't exposed.
 >                        | TypeAnnotation Type
 >                        | TypeErrorA TypeError
 >                        | StatementInfoA StatementInfo
+>                        | EnvUpdates [EnvironmentUpdate]
 >                          deriving (Eq, Show)
 
 > class Annotated a where
@@ -94,6 +96,15 @@ without having to get the positions correct.
 >                                         _ -> gta xs
 >                          gta _ = error "couldn't find statement info annotation"
 
+> getEuAnnotation :: Annotated a => a  -> [EnvironmentUpdate]
+> getEuAnnotation at = let as = ann at
+>                        in gta as
+>                        where
+>                          gta (x:xs) = case x of
+>                                         EnvUpdates t -> t
+>                                         _ -> gta xs
+>                          gta _ = []
+
 
 > getAnnotationsRecurse :: Annotated a => a -> [Annotation]
 > getAnnotationsRecurse a =
@@ -124,6 +135,11 @@ without having to get the positions correct.
 >                     [a] -- ^ the ast to check
 >                  -> [StatementInfo]
 > getTopLevelInfos = map getSIAnnotation
+
+> getTopLevelEnvUpdates :: Annotated a =>
+>                     [a] -- ^ the ast to check
+>                  -> [[EnvironmentUpdate]]
+> getTopLevelEnvUpdates = map getEuAnnotation
 
 
 > data StatementInfo = DefaultStatementInfo Type

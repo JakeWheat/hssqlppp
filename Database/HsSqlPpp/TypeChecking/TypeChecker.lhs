@@ -45,6 +45,7 @@ This is the public module for the type checking functionality.
 >      -- * Annotated tree utils
 >     ,getTopLevelTypes
 >     ,getTopLevelInfos
+>     ,getTopLevelEnvUpdates
 >     ,getTypeErrors
 >     ,stripAnnotations
 >     ) where

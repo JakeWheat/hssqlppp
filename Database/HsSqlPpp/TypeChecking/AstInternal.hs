@@ -443,10 +443,10 @@ instance Annotated TableRef where
 
 
 annTypesAndErrors :: Annotated a => a -> Type -> [TypeError]
-                  -> Maybe AnnotationElement -> a
+                  -> Maybe [AnnotationElement] -> a
 annTypesAndErrors item nt errs add =
     changeAnn item $
-     (([TypeAnnotation nt] ++ maybeToList add ++
+     (([TypeAnnotation nt] ++ fromMaybe [] add ++
        map TypeErrorA errs) ++)
 
 
@@ -3881,7 +3881,8 @@ sem_Statement_CreateDomain ann_ name_ typ_ check_  =
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
-                    $ Just $ StatementInfoA _statementInfo
+                    $ Just [StatementInfoA _statementInfo
+                           ,EnvUpdates _envUpdates    ]
               _namedTypeType =
                   case _typInamedType of
                     Left _ -> TypeCheckFailed
@@ -3892,6 +3893,8 @@ sem_Statement_CreateDomain ann_ name_ typ_ check_  =
                   CreateDomain ann_ name_ _typIannotatedTree check_
               _statementInfo =
                   CreateDomainInfo name_ _namedTypeType
+              _envUpdates =
+                  []
               _annotatedTree =
                   CreateDomain ann_ name_ _typIannotatedTree check_
               _typOenv =
@@ -3927,7 +3930,8 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
-                    $ Just $ StatementInfoA _statementInfo
+                    $ Just [StatementInfoA _statementInfo
+                           ,EnvUpdates _envUpdates    ]
               _retTypeType =
                   errorToTypeFail _rettypeInamedType
               _paramTypes =
@@ -3951,6 +3955,8 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
                                  _volIannotatedTree
               _statementInfo =
                   CreateFunctionInfo (name_,_paramTypes    ,_retTypeType    )
+              _envUpdates =
+                  []
               _annotatedTree =
                   CreateFunction ann_ _langIannotatedTree name_ _paramsIannotatedTree _rettypeIannotatedTree bodyQuote_ _bodyIannotatedTree _volIannotatedTree
               _langOenv =
@@ -3991,7 +3997,8 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
-                    $ Just $ StatementInfoA _statementInfo
+                    $ Just [StatementInfoA _statementInfo
+                           ,EnvUpdates _envUpdates    ]
               _attrTypes =
                   map snd _attsIattrs
               _tpe =
@@ -4004,6 +4011,8 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
                   CreateTable ann_ name_ _attsIannotatedTree _consIannotatedTree
               _statementInfo =
                   RelvarInfo (name_, TableComposite, _compositeType    , UnnamedCompositeType [])
+              _envUpdates =
+                  [EnvCreateTable name_ (unwrapComposite _compositeType    ) []]
               _annotatedTree =
                   CreateTable ann_ name_ _attsIannotatedTree _consIannotatedTree
               _attsOenv =
@@ -4032,6 +4041,8 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
                   CreateTableAs ann_ name_ _exprIannotatedTree
               _statementInfo =
                   RelvarInfo (name_, TableComposite, _selType    , UnnamedCompositeType [])
+              _envUpdates =
+                  []
               _annotatedTree =
                   CreateTableAs ann_ name_ _exprIannotatedTree
               _lhsOannotatedTree =
@@ -4055,7 +4066,8 @@ sem_Statement_CreateType ann_ name_ atts_  =
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
-                    $ Just $ StatementInfoA _statementInfo
+                    $ Just [StatementInfoA _statementInfo
+                           ,EnvUpdates _envUpdates    ]
               _attrTypes =
                   map snd _attsIattrs
               _tpe =
@@ -4068,6 +4080,8 @@ sem_Statement_CreateType ann_ name_ atts_  =
                   CreateType ann_ name_ _attsIannotatedTree
               _statementInfo =
                   RelvarInfo (name_, Composite, _compositeType    , UnnamedCompositeType [])
+              _envUpdates =
+                  []
               _annotatedTree =
                   CreateType ann_ name_ _attsIannotatedTree
               _attsOenv =
@@ -4088,13 +4102,16 @@ sem_Statement_CreateView ann_ name_ expr_  =
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
-                    $ Just $ StatementInfoA _statementInfo
+                    $ Just [StatementInfoA _statementInfo
+                           ,EnvUpdates _envUpdates    ]
               _tpe =
                   checkTypes [getTypeAnnotation _exprIannotatedTree] $ Right $ Pseudo Void
               _backTree =
                   CreateView ann_ name_ _exprIannotatedTree
               _statementInfo =
                   RelvarInfo (name_, ViewComposite, getTypeAnnotation _exprIannotatedTree, UnnamedCompositeType [])
+              _envUpdates =
+                  []
               _annotatedTree =
                   CreateView ann_ name_ _exprIannotatedTree
               _exprOenv =
@@ -4116,7 +4133,8 @@ sem_Statement_Delete ann_ table_ whr_ returning_  =
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
-                    $ Just $ StatementInfoA _statementInfo
+                    $ Just [StatementInfoA _statementInfo
+                           ,EnvUpdates _envUpdates    ]
               _tpe =
                   case checkRelationExists _lhsIenv table_ of
                     Just e -> Left [e]
@@ -4127,6 +4145,8 @@ sem_Statement_Delete ann_ table_ whr_ returning_  =
                   DeleteInfo table_
               _backTree =
                   Delete ann_ table_ _whrIannotatedTree returning_
+              _envUpdates =
+                  []
               _annotatedTree =
                   Delete ann_ table_ _whrIannotatedTree returning_
               _whrOenv =
@@ -4349,7 +4369,8 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
-                    $ Just $ StatementInfoA _statementInfo
+                    $ Just [StatementInfoA _statementInfo
+                           ,EnvUpdates _envUpdates    ]
               _columnStuff =
                   checkColumnConsistency _lhsIenv
                                          table_
@@ -4365,6 +4386,8 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _backTree =
                   Insert ann_ table_ _targetColsIannotatedTree
                          _insDataIannotatedTree returning_
+              _envUpdates =
+                  []
               _annotatedTree =
                   Insert ann_ table_ _targetColsIannotatedTree _insDataIannotatedTree returning_
               _targetColsOenv =
@@ -4488,13 +4511,16 @@ sem_Statement_SelectStatement ann_ ex_  =
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
-                    $ Just $ StatementInfoA _statementInfo
+                    $ Just [StatementInfoA _statementInfo
+                           ,EnvUpdates _envUpdates    ]
               _tpe =
                   checkTypes [getTypeAnnotation _exIannotatedTree] $ Right $ Pseudo Void
               _statementInfo =
                   SelectInfo $ getTypeAnnotation _exIannotatedTree
               _backTree =
                   SelectStatement ann_ _exIannotatedTree
+              _envUpdates =
+                  []
               _annotatedTree =
                   SelectStatement ann_ _exIannotatedTree
               _exOenv =
@@ -4553,7 +4579,8 @@ sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
-                    $ Just $ StatementInfoA _statementInfo
+                    $ Just [StatementInfoA _statementInfo
+                           ,EnvUpdates _envUpdates    ]
               _tpe =
                   do
                   let re = checkRelationExists _lhsIenv table_
@@ -4573,6 +4600,8 @@ sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
                     getType cols t = fromJust $ lookup t cols
               _backTree =
                   Update ann_ table_ _assignsIannotatedTree _whrIannotatedTree returning_
+              _envUpdates =
+                  []
               _annotatedTree =
                   Update ann_ table_ _assignsIannotatedTree _whrIannotatedTree returning_
               _assignsOenv =
