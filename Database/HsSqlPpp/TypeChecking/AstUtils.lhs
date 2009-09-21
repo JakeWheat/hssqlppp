@@ -18,7 +18,6 @@ type checking.
 > import Data.List
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
-> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 
 ================================================================================
 

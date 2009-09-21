@@ -166,8 +166,8 @@ from a database.
 >    comps <- map (\(kind:nm:atts:sysatts:[]) ->
 >              case kind of
 >                "c" -> EnvCreateComposite nm (convertAttString jlt atts)
->                "v" -> EnvCreateTable nm (convertAttString jlt atts) (convertAttString jlt sysatts)
->                "r" -> EnvCreateView nm (convertAttString jlt atts)
+>                "r" -> EnvCreateTable nm (convertAttString jlt atts) (convertAttString jlt sysatts)
+>                "v" -> EnvCreateView nm (convertAttString jlt atts)
 >                _ -> error $ "unrecognised relkind: " ++ kind) <$>
 >                 selectRelation conn
 >                   "with att1 as (\n\

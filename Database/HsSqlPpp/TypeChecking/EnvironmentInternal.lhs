@@ -372,6 +372,8 @@ key references in the pg catalog.
 keyword operators, all of these are built in and don't appear in any
 postgresql catalog
 
+This is wrong, these need to be separated into prefix, postfix, binary
+
 > keywordOperatorTypes :: [(String,[Type],Type)]
 > keywordOperatorTypes = [
 >   ("!and", [typeBool, typeBool], typeBool)
