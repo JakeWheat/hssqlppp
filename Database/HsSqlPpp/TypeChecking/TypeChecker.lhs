@@ -2,6 +2,8 @@ Copyright 2009 Jake Wheat
 
 This is the public module for the type checking functionality.
 
+> {-# LANGUAGE ScopedTypeVariables #-}
+
 > {- | Contains the data types and functions for annotating
 >  an ast and working with annotated trees, including the
 >  representations of SQL data types.
@@ -47,9 +49,55 @@ This is the public module for the type checking functionality.
 >     ,getTopLevelInfos
 >     ,getTopLevelEnvUpdates
 >     ,getTypeErrors
+>     ,getTypeErrorsEx
 >     ,stripAnnotations
 >     ) where
+
+> import Data.Generics
+> import Data.Maybe
 
 > import Database.HsSqlPpp.TypeChecking.AstInternal
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.AstAnnotation
+
+
+
+ > getAnnotationsRecurse :: Annotated a => a -> [Annotation]
+ > getAnnotationsRecurse a =
+ >   [ann a] -- : concatMap getAnnotationsRecurse' (getAnnChildren a)
+
+ >   where
+ >     getAnnotationsRecurse' :: Annotatable -> [Annotation]
+ >     getAnnotationsRecurse' an =
+ >       hann an : concatMap getAnnotationsRecurse' (hgac an)
+ >     hann (MkAnnotatable an) = ann an
+ >     hgac (MkAnnotatable an) = getAnnChildren an
+
+
+> getAnnotationsRecurse :: Statement -> [AnnotationElement]
+> getAnnotationsRecurse st = listify (\(_::AnnotationElement) -> True) st
+
+> getAnnotationsRecurseEx :: Expression -> [AnnotationElement]
+> getAnnotationsRecurseEx st = listify (\(_::AnnotationElement) -> True) st
+
+> -- | runs through the ast given and returns a list of all the type errors
+> -- in the ast. Recurses into all ast nodes to find type errors.
+> -- This is the function to use to see if an ast has passed the type checking process.
+> -- Source position information will be added to the return type at some point
+> getTypeErrors :: [Statement] -> [TypeError]
+> getTypeErrors sts =
+>     mapMaybe (gte . getAnnotationsRecurse) sts
+>     where
+>       gte (a:as) = case a of
+>                     TypeErrorA e -> Just e
+>                     _ -> gte as
+>       gte _ = Nothing
+
+> getTypeErrorsEx :: [Expression] -> [TypeError]
+> getTypeErrorsEx sts =
+>     mapMaybe (gte . getAnnotationsRecurseEx) sts
+>     where
+>       gte (a:as) = case a of
+>                     TypeErrorA e -> Just e
+>                     _ -> gte as
+>       gte _ = Nothing

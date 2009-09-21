@@ -4,6 +4,7 @@ This module contains the implementation of the Environment data types
 and functions, and provides the api for the other type checking
 modules.
 
+> {-# LANGUAGE DeriveDataTypeable #-}
 > {-# OPTIONS_HADDOCK hide  #-}
 
 > module Database.HsSqlPpp.TypeChecking.EnvironmentInternal
@@ -40,6 +41,7 @@ modules.
 > import Control.Monad
 > import Data.List
 > import Debug.Trace
+> import Data.Generics
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.Utils
@@ -92,7 +94,7 @@ modules.
 > data CastContext = ImplicitCastContext
 >                  | AssignmentCastContext
 >                  | ExplicitCastContext
->                    deriving (Eq,Show)
+>                    deriving (Eq,Show,Typeable,Data)
 
 > -- | Used to distinguish between standalone composite types, and
 > -- automatically generated ones, generated from a table or view
@@ -133,11 +135,11 @@ modules.
 >     -- | to allow an unqualified star to work you need to
 >     -- supply an extra entry with \"\" as the alias, and all the fields
 >   | EnvSetStarExpansion [QualifiedIDs]
->     deriving (Eq,Show)
+>     deriving (Eq,Show,Typeable,Data)
 
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
 >              | FunName | FunAgg
->                deriving (Eq,Show)
+>                deriving (Eq,Show,Typeable,Data)
 
 > -- | Applies a list of 'EnvironmentUpdate's to an 'Environment' value
 > -- to produce a new Environment value.

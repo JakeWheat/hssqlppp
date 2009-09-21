@@ -73,6 +73,7 @@ import Control.Monad.Error
 import Control.Arrow
 import Data.Either
 import Control.Applicative
+import Data.Generics
 
 import Database.HsSqlPpp.TypeChecking.TypeType
 import Database.HsSqlPpp.TypeChecking.AstUtils
@@ -195,7 +196,7 @@ instance Annotated Statement where
 
   changeAnnRecurse f st =
     case st of
-        SelectStatement a ex -> SelectStatement (f a) ex
+        SelectStatement a ex -> SelectStatement (f a) (rec ex)
         Insert a tbl cols ins ret -> Insert (f a) tbl cols ins ret
         Update a tbl as whr ret -> Update (f a) tbl as whr ret
         Delete a tbl whr ret -> Delete (f a) tbl whr ret
@@ -203,24 +204,24 @@ instance Annotated Statement where
         CopyData a i -> CopyData (f a) i
         Truncate a tbls ri cs -> Truncate (f a) tbls ri cs
         CreateTable a name atts cons -> CreateTable (f a) name atts cons
-        CreateTableAs a name ex -> CreateTableAs (f a) name ex
-        CreateView a name expr -> CreateView (f a) name expr
+        CreateTableAs a name ex -> CreateTableAs (f a) name (rec ex)
+        CreateView a name expr -> CreateView (f a) name (rec expr)
         CreateType a name atts -> CreateType (f a) name atts
         CreateFunction a lang name params rettype bodyQuote body vol ->
-            CreateFunction (f a) lang name params rettype bodyQuote (changeAnnRecurse f body) vol
+            CreateFunction (f a) lang name params rettype bodyQuote (rec body) vol
         CreateDomain a name typ check -> CreateDomain (f a) name typ check
         DropFunction a i s cs -> DropFunction (f a) i s cs
         DropSomething a dt i nms cs -> DropSomething (f a) dt i nms cs
         Assignment a tgt val -> Assignment (f a) tgt val
-        Return a v -> Return (f a) v
-        ReturnNext a ex -> ReturnNext (f a) ex
-        ReturnQuery a sel -> ReturnQuery (f a) sel
+        Return a v -> Return (f a) (fmap rec v)
+        ReturnNext a ex -> ReturnNext (f a) (rec ex)
+        ReturnQuery a sel -> ReturnQuery (f a) (rec sel)
         Raise a l m args -> Raise (f a) l m args
         NullStatement a -> NullStatement (f a)
         Perform a expr -> Perform (f a) expr
         Execute a expr -> Execute (f a) expr
         ExecuteInto a expr tgts -> ExecuteInto (f a) expr tgts
-        ForSelectStatement a var sel sts -> ForSelectStatement (f a) var sel $ cars f sts
+        ForSelectStatement a var sel sts -> ForSelectStatement (f a) var (rec sel) $ cars f sts
         ForIntegerStatement a var from to sts -> ForIntegerStatement (f a) var from to $ cars f sts
         WhileStatement a expr sts -> WhileStatement (f a) expr $ cars f sts
         ContinueStatement a -> ContinueStatement (f a)
@@ -230,6 +231,9 @@ instance Annotated Statement where
         If a cases els -> If (f a) doCases $ cars f els
             where
               doCases = map (second (cars f)) cases
+    where
+      rec :: Annotated a => a -> a
+      rec = changeAnnRecurse f
     --where
      -- doCases cs = map (\(ex,sts) -> (ex,cars f sts)) cs
   getAnnChildren st =
@@ -389,11 +393,16 @@ instance Annotated SelectExpression where
   changeAnnRecurse f ex =
     case ex of
       Select a dis sl tref whr grp hav ord dir lim off ->
-          Select (f a) dis sl tref whr grp hav ord dir lim off
+          Select (f a) dis sl (fmap (changeAnnRecurse f) tref) whr grp hav ord dir lim off
       CombineSelect a ctype sel1 sel2 -> CombineSelect (f a) ctype
                                              (changeAnnRecurse f sel1)
                                              (changeAnnRecurse f sel2)
       Values a vll -> Values (f a) vll
+    where
+      rec :: Annotated a => a -> a
+      rec = changeAnnRecurse f
+
+
   getAnnChildren ex =
     case ex of
       Select a dis sl tref whr grp hav ord dir lim off ->
@@ -536,7 +545,7 @@ getRowTypes [RowCtor ts] = ts
 getRowTypes ts = ts
 -- AttributeDef ------------------------------------------------
 data AttributeDef  = AttributeDef (String) (TypeName) (Maybe Expression) (RowConstraintList) 
-                   deriving ( Eq,Show)
+                   deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_AttributeDef :: AttributeDef  ->
                     T_AttributeDef 
@@ -662,7 +671,7 @@ sem_AttributeDefList_Nil  =
 -- Cascade -----------------------------------------------------
 data Cascade  = Cascade 
               | Restrict 
-              deriving ( Eq,Show)
+              deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Cascade :: Cascade  ->
                T_Cascade 
@@ -878,7 +887,7 @@ data CombineType  = Except
                   | Intersect 
                   | Union 
                   | UnionAll 
-                  deriving ( Eq,Show)
+                  deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_CombineType :: CombineType  ->
                    T_CombineType 
@@ -955,7 +964,7 @@ data Constraint  = CheckConstraint (Expression)
                  | PrimaryKeyConstraint (StringList) 
                  | ReferenceConstraint (StringList) (String) (StringList) (Cascade) (Cascade) 
                  | UniqueConstraint (StringList) 
-                 deriving ( Eq,Show)
+                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Constraint :: Constraint  ->
                   T_Constraint 
@@ -1151,7 +1160,7 @@ sem_ConstraintList_Nil  =
 -- CopySource --------------------------------------------------
 data CopySource  = CopyFilename (String) 
                  | Stdin 
-                 deriving ( Eq,Show)
+                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_CopySource :: CopySource  ->
                   T_CopySource 
@@ -1199,7 +1208,7 @@ sem_CopySource_Stdin  =
 -- Direction ---------------------------------------------------
 data Direction  = Asc 
                 | Desc 
-                deriving ( Eq,Show)
+                deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Direction :: Direction  ->
                  T_Direction 
@@ -1246,7 +1255,7 @@ sem_Direction_Desc  =
 -- Distinct ----------------------------------------------------
 data Distinct  = Distinct 
                | Dupes 
-               deriving ( Eq,Show)
+               deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Distinct :: Distinct  ->
                 T_Distinct 
@@ -1295,7 +1304,7 @@ data DropType  = Domain
                | Table 
                | Type 
                | View 
-               deriving ( Eq,Show)
+               deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_DropType :: DropType  ->
                 T_DropType 
@@ -1383,7 +1392,7 @@ data Expression  = BooleanLit (Annotation) (Bool)
                  | ScalarSubQuery (Annotation) (SelectExpression) 
                  | StringLit (Annotation) (String) (String) 
                  | WindowFn (Annotation) (Expression) (ExpressionList) (ExpressionList) (Direction) 
-                 deriving ( Eq,Show)
+                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Expression :: Expression  ->
                   T_Expression 
@@ -2356,7 +2365,7 @@ sem_ExpressionStatementListPairList_Nil  =
 -- FnBody ------------------------------------------------------
 data FnBody  = PlpgsqlFnBody (Annotation) (VarDefList) (StatementList) 
              | SqlFnBody (Annotation) (StatementList) 
-             deriving ( Eq,Show)
+             deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_FnBody :: FnBody  ->
               T_FnBody 
@@ -2438,7 +2447,7 @@ sem_FnBody_SqlFnBody ann_ sts_  =
 -- IfExists ----------------------------------------------------
 data IfExists  = IfExists 
                | Require 
-               deriving ( Eq,Show)
+               deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_IfExists :: IfExists  ->
                 T_IfExists 
@@ -2485,7 +2494,7 @@ sem_IfExists_Require  =
 -- InList ------------------------------------------------------
 data InList  = InList (ExpressionList) 
              | InSelect (SelectExpression) 
-             deriving ( Eq,Show)
+             deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_InList :: InList  ->
               T_InList 
@@ -2565,7 +2574,7 @@ sem_InList_InSelect sel_  =
 -- JoinExpression ----------------------------------------------
 data JoinExpression  = JoinOn (Expression) 
                      | JoinUsing (StringList) 
-                     deriving ( Eq,Show)
+                     deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_JoinExpression :: JoinExpression  ->
                       T_JoinExpression 
@@ -2633,7 +2642,7 @@ data JoinType  = Cross
                | Inner 
                | LeftOuter 
                | RightOuter 
-               deriving ( Eq,Show)
+               deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_JoinType :: JoinType  ->
                 T_JoinType 
@@ -2722,7 +2731,7 @@ sem_JoinType_RightOuter  =
 -- Language ----------------------------------------------------
 data Language  = Plpgsql 
                | Sql 
-               deriving ( Eq,Show)
+               deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Language :: Language  ->
                 T_Language 
@@ -2950,7 +2959,7 @@ sem_MaybeExpression_Nothing  =
 -- Natural -----------------------------------------------------
 data Natural  = Natural 
               | Unnatural 
-              deriving ( Eq,Show)
+              deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Natural :: Natural  ->
                T_Natural 
@@ -3050,7 +3059,7 @@ sem_OnExpr_Nothing  =
 -- ParamDef ----------------------------------------------------
 data ParamDef  = ParamDef (String) (TypeName) 
                | ParamDefTp (TypeName) 
-               deriving ( Eq,Show)
+               deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_ParamDef :: ParamDef  ->
                 T_ParamDef 
@@ -3197,7 +3206,7 @@ sem_ParamDefList_Nil  =
 data RaiseType  = RError 
                 | RException 
                 | RNotice 
-                deriving ( Eq,Show)
+                deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_RaiseType :: RaiseType  ->
                  T_RaiseType 
@@ -3258,7 +3267,7 @@ sem_RaiseType_RNotice  =
 -- RestartIdentity ---------------------------------------------
 data RestartIdentity  = ContinueIdentity 
                       | RestartIdentity 
-                      deriving ( Eq,Show)
+                      deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_RestartIdentity :: RestartIdentity  ->
                        T_RestartIdentity 
@@ -3353,7 +3362,7 @@ data RowConstraint  = NotNullConstraint
                     | RowPrimaryKeyConstraint 
                     | RowReferenceConstraint (String) (Maybe String) (Cascade) (Cascade) 
                     | RowUniqueConstraint 
-                    deriving ( Eq,Show)
+                    deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_RowConstraint :: RowConstraint  ->
                      T_RowConstraint 
@@ -3543,7 +3552,7 @@ sem_RowConstraintList_Nil  =
 data SelectExpression  = CombineSelect (Annotation) (CombineType) (SelectExpression) (SelectExpression) 
                        | Select (Annotation) (Distinct) (SelectList) (MTableRef) (Where) (ExpressionList) (MExpression) (ExpressionList) (Direction) (MExpression) (MExpression) 
                        | Values (Annotation) (ExpressionListList) 
-                       deriving ( Eq,Show)
+                       deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_SelectExpression :: SelectExpression  ->
                         T_SelectExpression 
@@ -3776,7 +3785,7 @@ sem_SelectExpression_Values ann_ vll_  =
 -- SelectItem --------------------------------------------------
 data SelectItem  = SelExp (Expression) 
                  | SelectItem (Expression) (String) 
-                 deriving ( Eq,Show)
+                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_SelectItem :: SelectItem  ->
                   T_SelectItem 
@@ -3925,7 +3934,7 @@ sem_SelectItemList_Nil  =
           in  ( _lhsOannotatedTree,_lhsOenv,_lhsOlistType)))
 -- SelectList --------------------------------------------------
 data SelectList  = SelectList (SelectItemList) (StringList) 
-                 deriving ( Eq,Show)
+                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_SelectList :: SelectList  ->
                   T_SelectList 
@@ -3979,7 +3988,7 @@ sem_SelectList_SelectList items_ stringList_  =
 -- SetClause ---------------------------------------------------
 data SetClause  = RowSetClause (StringList) (ExpressionList) 
                 | SetClause (String) (Expression) 
-                deriving ( Eq,Show)
+                deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_SetClause :: SetClause  ->
                  T_SetClause 
@@ -4175,7 +4184,7 @@ data Statement  = Assignment (Annotation) (String) (Expression)
                 | Truncate (Annotation) (StringList) (RestartIdentity) (Cascade) 
                 | Update (Annotation) (String) (SetClauseList) (Where) (Maybe SelectList) 
                 | WhileStatement (Annotation) (Expression) (StatementList) 
-                deriving ( Eq,Show)
+                deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Statement :: Statement  ->
                  T_Statement 
@@ -5647,7 +5656,7 @@ data TableRef  = JoinedTref (Annotation) (TableRef) (Natural) (JoinType) (TableR
                | TrefAlias (Annotation) (String) (String) 
                | TrefFun (Annotation) (Expression) 
                | TrefFunAlias (Annotation) (Expression) (String) 
-               deriving ( Eq,Show)
+               deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_TableRef :: TableRef  ->
                 T_TableRef 
@@ -5954,7 +5963,7 @@ sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
           in  ( _lhsOannotatedTree,_lhsOenv,_lhsOidens,_lhsOjoinIdens)))
 -- TypeAttributeDef --------------------------------------------
 data TypeAttributeDef  = TypeAttDef (String) (TypeName) 
-                       deriving ( Eq,Show)
+                       deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_TypeAttributeDef :: TypeAttributeDef  ->
                         T_TypeAttributeDef 
@@ -6073,7 +6082,7 @@ data TypeName  = ArrayTypeName (TypeName)
                | PrecTypeName (String) (Integer) 
                | SetOfTypeName (TypeName) 
                | SimpleTypeName (String) 
-               deriving ( Eq,Show)
+               deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_TypeName :: TypeName  ->
                 T_TypeName 
@@ -6180,7 +6189,7 @@ sem_TypeName_SimpleTypeName tn_  =
           in  ( _lhsOannotatedTree,_lhsOenv,_lhsOnamedType)))
 -- VarDef ------------------------------------------------------
 data VarDef  = VarDef (String) (TypeName) (Maybe Expression) 
-             deriving ( Eq,Show)
+             deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_VarDef :: VarDef  ->
               T_VarDef 
@@ -6295,7 +6304,7 @@ sem_VarDefList_Nil  =
 data Volatility  = Immutable 
                  | Stable 
                  | Volatile 
-                 deriving ( Eq,Show)
+                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Volatility :: Volatility  ->
                   T_Volatility 

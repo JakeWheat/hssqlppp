@@ -102,6 +102,7 @@ import Control.Monad.Error
 import Control.Arrow
 import Data.Either
 import Control.Applicative
+import Data.Generics
 
 import Database.HsSqlPpp.TypeChecking.TypeType
 import Database.HsSqlPpp.TypeChecking.AstUtils
@@ -562,7 +563,8 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                CaseExpressionListExpressionPairList CaseExpressionList
                MTableRef TableRef OnExpr Where MExpression
 
-DERIVING AllNodes: Show,Eq
+DERIVING AllNodes: Show,Eq,Typeable,Data
+
 
 INCLUDE "TypeChecking.ag"
 
@@ -697,7 +699,7 @@ instance Annotated Statement where
 
   changeAnnRecurse f st =
     case st of
-        SelectStatement a ex -> SelectStatement (f a) ex
+        SelectStatement a ex -> SelectStatement (f a) (rec ex)
         Insert a tbl cols ins ret -> Insert (f a) tbl cols ins ret
         Update a tbl as whr ret -> Update (f a) tbl as whr ret
         Delete a tbl whr ret -> Delete (f a) tbl whr ret
@@ -705,24 +707,24 @@ instance Annotated Statement where
         CopyData a i -> CopyData (f a) i
         Truncate a tbls ri cs -> Truncate (f a) tbls ri cs
         CreateTable a name atts cons -> CreateTable (f a) name atts cons
-        CreateTableAs a name ex -> CreateTableAs (f a) name ex
-        CreateView a name expr -> CreateView (f a) name expr
+        CreateTableAs a name ex -> CreateTableAs (f a) name (rec ex)
+        CreateView a name expr -> CreateView (f a) name (rec expr)
         CreateType a name atts -> CreateType (f a) name atts
         CreateFunction a lang name params rettype bodyQuote body vol ->
-            CreateFunction (f a) lang name params rettype bodyQuote (changeAnnRecurse f body) vol
+            CreateFunction (f a) lang name params rettype bodyQuote (rec body) vol
         CreateDomain a name typ check -> CreateDomain (f a) name typ check
         DropFunction a i s cs -> DropFunction (f a) i s cs
         DropSomething a dt i nms cs -> DropSomething (f a) dt i nms cs
         Assignment a tgt val -> Assignment (f a) tgt val
-        Return a v -> Return (f a) v
-        ReturnNext a ex -> ReturnNext (f a) ex
-        ReturnQuery a sel -> ReturnQuery (f a) sel
+        Return a v -> Return (f a) (fmap rec v)
+        ReturnNext a ex -> ReturnNext (f a) (rec ex)
+        ReturnQuery a sel -> ReturnQuery (f a) (rec sel)
         Raise a l m args -> Raise (f a) l m args
         NullStatement a -> NullStatement (f a)
         Perform a expr -> Perform (f a) expr
         Execute a expr -> Execute (f a) expr
         ExecuteInto a expr tgts -> ExecuteInto (f a) expr tgts
-        ForSelectStatement a var sel sts -> ForSelectStatement (f a) var sel $ cars f sts
+        ForSelectStatement a var sel sts -> ForSelectStatement (f a) var (rec sel) $ cars f sts
         ForIntegerStatement a var from to sts -> ForIntegerStatement (f a) var from to $ cars f sts
         WhileStatement a expr sts -> WhileStatement (f a) expr $ cars f sts
         ContinueStatement a -> ContinueStatement (f a)
@@ -732,6 +734,9 @@ instance Annotated Statement where
         If a cases els -> If (f a) doCases $ cars f els
             where
               doCases = map (second (cars f)) cases
+    where
+      rec :: Annotated a => a -> a
+      rec = changeAnnRecurse f
     --where
      -- doCases cs = map (\(ex,sts) -> (ex,cars f sts)) cs
   getAnnChildren st =
@@ -891,11 +896,16 @@ instance Annotated SelectExpression where
   changeAnnRecurse f ex =
     case ex of
       Select a dis sl tref whr grp hav ord dir lim off ->
-          Select (f a) dis sl tref whr grp hav ord dir lim off
+          Select (f a) dis sl (fmap (changeAnnRecurse f) tref) whr grp hav ord dir lim off
       CombineSelect a ctype sel1 sel2 -> CombineSelect (f a) ctype
                                              (changeAnnRecurse f sel1)
                                              (changeAnnRecurse f sel2)
       Values a vll -> Values (f a) vll
+    where
+      rec :: Annotated a => a -> a
+      rec = changeAnnRecurse f
+
+
   getAnnChildren ex =
     case ex of
       Select a dis sl tref whr grp hav ord dir lim off ->

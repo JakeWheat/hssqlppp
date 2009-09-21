@@ -8,7 +8,7 @@ want to use when looking at an ast. Internal annotations which are
 used in the type-checking/ annotation process use the attribute
 grammar code and aren't exposed.
 
-> {-# LANGUAGE ExistentialQuantification #-}
+> {-# LANGUAGE ExistentialQuantification, DeriveDataTypeable #-}
 > {-# OPTIONS_HADDOCK hide #-}
 
 > module Database.HsSqlPpp.TypeChecking.AstAnnotation
@@ -21,11 +21,13 @@ grammar code and aren't exposed.
 >     ,getTopLevelInfos
 >     ,getTopLevelEnvUpdates
 >     ,getTypeAnnotation
->     ,getTypeErrors
+>     --,getTypeErrors
 >     ,pack
 >     ,StatementInfo(..)
 >     ,getSIAnnotation
 >     ) where
+
+> import Data.Generics
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
@@ -41,7 +43,7 @@ grammar code and aren't exposed.
 >                        | TypeErrorA TypeError
 >                        | StatementInfoA StatementInfo
 >                        | EnvUpdates [EnvironmentUpdate]
->                          deriving (Eq, Show)
+>                          deriving (Eq, Show,Typeable,Data)
 
 > class Annotated a where
 >     ann :: a -> Annotation
@@ -67,8 +69,18 @@ without having to get the positions correct.
 
 > -- | strip all the annotations from a tree. E.g. can be used to compare
 > -- two asts are the same, ignoring any source position annotation differences.
+
 > stripAnnotations :: Annotated a => a -> a
 > stripAnnotations = changeAnnRecurse (const [])
+
+ > stripAnnotations :: Statement -> Statement
+ > stripAnnotations = everywhere (mkT (stripAnn))
+
+ > stripAnn :: [Annotation] -> [Annotation]
+ > incS (S s) = S (s * (1+k))
+
+
+
 
 > -- | run through the ast, and pull the type annotation from each
 > -- of the top level items.
@@ -106,29 +118,6 @@ without having to get the positions correct.
 >                          gta _ = []
 
 
-> getAnnotationsRecurse :: Annotated a => a -> [Annotation]
-> getAnnotationsRecurse a =
->   ann a : concatMap getAnnotationsRecurse' (getAnnChildren a)
->   where
->     getAnnotationsRecurse' :: Annotatable -> [Annotation]
->     getAnnotationsRecurse' an =
->       hann an : concatMap getAnnotationsRecurse' (hgac an)
->     hann (MkAnnotatable an) = ann an
->     hgac (MkAnnotatable an) = getAnnChildren an
-
-> -- | runs through the ast given and returns a list of all the type errors
-> -- in the ast. Recurses into all ast nodes to find type errors.
-> -- This is the function to use to see if an ast has passed the type checking process.
-> -- Source position information will be added to the return type at some point
-> getTypeErrors :: Annotated a => [a] -> [TypeError]
-> getTypeErrors sts =
->     concatMap (concatMap gte . getAnnotationsRecurse) sts
->     where
->       gte (a:as) = case a of
->                     TypeErrorA e -> [e]
->                     _ -> gte as
->       gte _ = []
-
 > -- | Run through the ast given and return a list of statementinfos
 > -- from the top level items.
 > getTopLevelInfos :: Annotated a =>
@@ -147,7 +136,7 @@ without having to get the positions correct.
 >                    | InsertInfo String Type
 >                    | UpdateInfo String Type
 >                    | DeleteInfo String
->                      deriving (Eq,Show)
+>                      deriving (Eq,Show,Typeable,Data)
 
 todo:
 add environment deltas to statementinfo

@@ -679,7 +679,7 @@ check type of initial values
 >                                      Right l -> l
 >       aast = annotateExpression env ast
 >       ty = getTopLevelTypes [aast]
->       er = getTypeErrors [aast]
+>       er = getTypeErrorsEx [aast]
 >   in case (length er, length ty) of
 >        (0,0) -> assertFailure "didn't get any types?"
 >        (0,1) -> assertEqual ("typecheck " ++ src) typ $ Right $ head ty
