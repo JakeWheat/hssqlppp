@@ -205,7 +205,8 @@ modules.
 >               FunAgg -> env {envAggregates=(nm,args,ret):envAggregates env}
 >               FunName -> env {envFunctions=(nm,args,ret):envFunctions env}
 >         EnvUpdateIDs qids jids ->
->            return $ env {envIdentifierTypes = qids
+>            -- not thought properly about this, for now we add the qids, and replace the jids
+>            return $ env {envIdentifierTypes = qids ++ envIdentifierTypes env
 >                         ,envJoinIdentifiers = jids}
 >     addTypeWithArray env nm ty cat pref =
 >       env {envTypeNames =
@@ -320,6 +321,55 @@ only get them when you explicitly ask for them. The main use is using
 the oid system column which is heavily used as a target for foreign
 key references in the pg catalog.
 
+This system still isn't working right. Subqueries are a
+problem. Aspects which don't work right now are:
+
+consider this query:
+select relname as relvar_name
+    from pg_class
+    where ((relnamespace =
+           (select oid
+              from pg_namespace
+              where (nspname = 'public'))) and (relkind = 'r'));
+
+we need to be able to access attributes from pg_class inside the subquery,
+but 1) they aren't inserted if you use * in the inner query
+2) they can't make an identifier ambiguous, so the oid here in the subquery
+is ok even though both the oid from pg_namespace and the oid from pg_class
+are in scope.
+
+So there are two problems with the current code:
+it's too aggressive at throwing ambiguous identifier errors
+it pulls in too many identifiers when expanding star
+
+Solution ideas:
+for the ambiguous errors, create a stack of identifiers, then split
+the EnvUpdateIDs into two, one to replace the current set, and one to
+push a new set on the stack. Then fix the lookup to walk the stack level by level.
+
+for the *, we already have special cases for system columns, and for
+join ids. I think the best solution is to provide a separate list of *
+columns and types, with a separate env update ctor, and get the type
+checker to resolve the list for * expansion rather than doing it here.
+
+This should also handle parameters and variable declarations in plpgsql
+functions too, these stack in the same way, with one complication to
+do with parameters:
+
+there is an additional complication with plpgsql, which isn't going to
+be handled for now: instead of stacking like everything else, for
+variable references inside select, insert, update and delete
+statements only, which aren't qualified and match a parameter name,
+then the parameter is used in lieu of variable declarations or
+attributes inside a select expression. This will be handled at some
+point.
+
+this is something the lint checker should flag when it's written, it
+will also flag any ambiguous identifiers which resolve ok only because
+of stacking, this is a standard warning in many flavours of lint
+checkers.
+
+
 > envExpandStar :: Environment -> String -> Either [TypeError] [(String,Type)]
 > envExpandStar env correlationName =
 >     if correlationName == ""
@@ -334,7 +384,7 @@ key references in the pg catalog.
 
 
 > envLookupID :: Environment -> String -> String -> Either [TypeError] Type
-> envLookupID env correlationName iden =
+> envLookupID env correlationName iden = {-trace ("lookup " ++ show iden ++ " in " ++ show (envIdentifierTypes env)) $ -}
 >   if correlationName == ""
 >     then let types = concatMap (filter (\ (s, _) -> s == iden))
 >                        (map (catPair.snd) $ envIdentifierTypes env)

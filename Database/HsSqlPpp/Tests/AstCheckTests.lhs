@@ -9,7 +9,7 @@ Set of tests to check the type checking code
 > import Test.Framework.Providers.HUnit
 > import Data.Char
 > import Control.Arrow
-> --import Debug.Trace
+> import Debug.Trace
 
 > import Database.HsSqlPpp.TypeChecking.Ast
 > import Database.HsSqlPpp.TypeChecking.TypeChecker
@@ -501,6 +501,9 @@ select g.fn from fn() g
 >         $ Left [UnrecognisedIdentifier "what"]
 >      ])
 
+TODO: check identifier stacking working, then remove the pg_namespace
+qualifier before oid and this should still work
+
 >    ,testGroup "subqueries"
 >     (mapStatementInfo [
 >       p "select relname as relvar_name\n\
@@ -663,7 +666,7 @@ insert
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
 >       er = getTypeErrors aast
->   in {-trace (show aast) $-} case (length er, length is) of
+>   in trace (show aast) $ case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
@@ -676,7 +679,7 @@ insert
 >       aast = annotateAstEnv env ast
 >       is = getTopLevelInfos aast
 >       er = getTypeErrors aast
->   in case (length er, length is) of
+>   in {-trace (show aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er

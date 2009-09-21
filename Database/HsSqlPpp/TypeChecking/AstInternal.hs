@@ -482,8 +482,8 @@ getFunIdens env alias fnVal =
    where
      getCompositeType t =
                     case getAttrs env [Composite
-                                              ,TableComposite
-                                              ,ViewComposite] t of
+                                      ,TableComposite
+                                      ,ViewComposite] t of
                       Just (_,_,a@(UnnamedCompositeType _), _) -> a
                       _ -> UnnamedCompositeType []
 
@@ -2525,7 +2525,9 @@ sem_InList_InSelect sel_  =
               _selIenv :: Environment
               _lhsOlistType =
                   do
-                    attrs <- map snd <$> (unwrapSetOfComposite $ getTypeAnnotation _selIannotatedTree)
+                    attrs <-  map snd <$> (unwrapSetOfComposite $
+                                let a = getTypeAnnotation _selIannotatedTree
+                                in                                      a)
                     typ <- case length attrs of
                                  0 -> Left [InternalError "got subquery with no columns? in inselect"]
                                  1 -> Right $ head attrs
@@ -3668,7 +3670,7 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
                          _selOffsetIannotatedTree
               _newEnv =
                   case updateEnvironment _lhsIenv [EnvUpdateIDs _selTrefIidens _selTrefIjoinIdens] of
-                    Left _ -> _lhsIenv
+                    Left x -> error $ show x
                     Right e -> e
               _selSelectListOenv =
                   _newEnv

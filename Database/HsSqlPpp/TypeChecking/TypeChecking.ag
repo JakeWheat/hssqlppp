@@ -264,7 +264,9 @@ SEM InList
     | InSelect
         lhs.listType =
             do
-              attrs <- map snd <$> (unwrapSetOfComposite $ getTypeAnnotation @sel.annotatedTree)
+              attrs <-  map snd <$> (unwrapSetOfComposite $
+                          let a = getTypeAnnotation @sel.annotatedTree
+                          in {-trace ("attrs is: " ++ show a) $-} a)
               typ <- case length attrs of
                            0 -> Left [InternalError "got subquery with no columns? in inselect"]
                            1 -> Right $ head attrs
@@ -526,8 +528,8 @@ getFunIdens env alias fnVal =
    where
      getCompositeType t =
                     case getAttrs env [Composite
-                                              ,TableComposite
-                                              ,ViewComposite] t of
+                                      ,TableComposite
+                                      ,ViewComposite] t of
                       Just (_,_,a@(UnnamedCompositeType _), _) -> a
                       _ -> UnnamedCompositeType []
 }
@@ -612,7 +614,7 @@ them into the selectlist and where parts)
 SEM SelectExpression
     | Select
          loc.newEnv = case updateEnvironment @lhs.env [EnvUpdateIDs @selTref.idens @selTref.joinIdens] of
-                        Left _ -> @lhs.env
+                        Left x -> error $ show x -- @lhs.env
                         Right e -> e
          selSelectList.env = @loc.newEnv
          selWhere.env = @loc.newEnv
