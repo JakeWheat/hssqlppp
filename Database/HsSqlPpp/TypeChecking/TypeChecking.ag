@@ -48,8 +48,8 @@ etc. annotations.
 
 -}
 ATTR AllNodes Root ExpressionRoot
-  [ env : Environment
-  |
+  [
+  | env : Environment
   | annotatedTree : SELF
   ]
 
@@ -336,8 +336,11 @@ SEM Root
     | Root statements.envUpdates = []
 
 SEM StatementList
-    | Cons hd.env = fromRight @lhs.env $ updateEnvironment @lhs.env @lhs.envUpdates
-           tl.envUpdates = @hd.envUpdates
+    | Cons
+        loc.newEnv = fromRight @lhs.env $ updateEnvironment @lhs.env @lhs.envUpdates
+        hd.env = @loc.newEnv
+        tl.env = @loc.newEnv
+        tl.envUpdates = @hd.envUpdates
 
 
 SEM ExpressionListStatementListPair
