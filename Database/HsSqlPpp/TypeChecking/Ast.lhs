@@ -69,11 +69,6 @@ This is the public module for the ast nodes.
 >     ,MExpression
 >     ,CaseExpressionListExpressionPair
 >     ,CaseExpressionList
-
->      -- * operator utils
->     ,OperatorType(..)
->     ,getOperatorType
->     ,isOperatorName
 >      -- * type aliases
 >      -- | aliases for all the sql types with multiple names
 >      -- these give you the canonical names
@@ -82,5 +77,5 @@ This is the public module for the ast nodes.
 >     ) where
 
 > import Database.HsSqlPpp.TypeChecking.AstInternal
-> import Database.HsSqlPpp.TypeChecking.AstUtils
+> import Database.HsSqlPpp.TypeChecking.TypeType
 

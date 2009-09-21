@@ -19,7 +19,7 @@ hooks into postgresql to do this properly, which might not be
 impossible...).
 
 The main current limitation is that the ddl statements aren't passed
-on in the scope so e.g. it doesn't type check a create table followed
+on in the environment so e.g. it doesn't type check a create table followed
 by a select from that table. The support for this is nearly complete
 and it should be working very soon.
 
@@ -39,8 +39,8 @@ TODO: document pattern of typecheckfailed propagation, loc.tpe usage.
 
 Here are the main attributes used in the type checking:
 
-scope is used to chain the scopes up and down the tree, to allow
-access to the catalog information, and to store the in scope
+env is used to chain the environments up and down the tree, to allow
+access to the catalog information, and to store the in environment
 identifier names and types e.g. inside a select expression.
 
 annotatedTree is used to create a copy of the ast with the type,
@@ -48,7 +48,7 @@ etc. annotations.
 
 -}
 ATTR AllNodes Root ExpressionRoot
-  [ scope : Scope
+  [ env : Environment
   |
   | annotatedTree : SELF
   ]
@@ -129,7 +129,7 @@ ATTR TypeName
 
 SEM TypeName
      | SimpleTypeName
-        lhs.namedType = lookupTypeByName @lhs.scope $ canonicalizeTypeName @tn
+        lhs.namedType = envLookupType @lhs.env $ canonicalizeTypeName @tn
         lhs.annotatedTree = SimpleTypeName @tn
      | ArrayTypeName
         lhs.namedType = ArrayType <$> @typ.namedType
@@ -148,7 +148,7 @@ SEM Expression
     | FunCall
         loc.tpe = checkTypes @args.typeList $
                     typeCheckFunCall
-                      @lhs.scope
+                      @lhs.env
                       @funName
                       @args.typeList
         loc.backTree = FunCall @ann @funName @args.annotatedTree
@@ -181,7 +181,7 @@ SEM Expression
                  Left [WrongTypes typeBool @loc.whenTypes]
                checkTypes @loc.thenTypes $
                         resolveResultSetType
-                          @lhs.scope
+                          @lhs.env
                           @loc.thenTypes
         loc.backTree = Case @ann @cases.annotatedTree @els.annotatedTree
 
@@ -191,24 +191,24 @@ SEM Expression
         loc.tpe =
           checkTypes @loc.whenTypes $ do
           checkWhenTypes <- resolveResultSetType
-                                 @lhs.scope
+                                 @lhs.env
                                  (getTypeAnnotation @value.annotatedTree: @loc.whenTypes)
           checkTypes @loc.thenTypes $
                      resolveResultSetType
-                              @lhs.scope
+                              @lhs.env
                               @loc.thenTypes
         loc.backTree = CaseSimple @ann @value.annotatedTree @cases.annotatedTree @els.annotatedTree
 
 {-
 == identifiers
-pull id types out of scope for identifiers
+pull id types out of env for identifiers
 
 -}
 
 SEM Expression
     | Identifier
         loc.tpe = let (correlationName,iden) = splitIdentifier @i
-                  in scopeLookupID @lhs.scope correlationName iden
+                  in envLookupID @lhs.env correlationName iden
         loc.backTree = Identifier @ann @i
 
 SEM Expression
@@ -243,7 +243,7 @@ SEM Expression
         loc.tpe = do
                     lt <- @list.listType
                     ty <- resolveResultSetType
-                            @lhs.scope
+                            @lhs.env
                             [getTypeAnnotation @expr.annotatedTree, lt]
                     return typeBool
         loc.backTree = InPredicate @ann @expr.annotatedTree @i @list.annotatedTree
@@ -258,7 +258,7 @@ ATTR InList
 SEM InList
     | InList
         lhs.listType = resolveResultSetType
-                         @lhs.scope
+                         @lhs.env
                          @exprs.typeList
     | InSelect
         lhs.listType =
@@ -343,7 +343,7 @@ checkExpressionBool whr = do
 SEM SelectExpression
     | Values
         loc.tpe = typeCheckValuesExpr
-                              @lhs.scope
+                              @lhs.env
                               @vll.typeListList
         loc.backTree = Values @ann @vll.annotatedTree
     | Select
@@ -373,7 +373,7 @@ SEM SelectExpression
           let sel1t = getTypeAnnotation @sel1.annotatedTree
               sel2t = getTypeAnnotation @sel2.annotatedTree
           in checkTypes [sel1t, sel2t] $
-                typeCheckCombineSelect @lhs.scope sel1t sel2t
+                typeCheckCombineSelect @lhs.env sel1t sel2t
         loc.backTree = CombineSelect @ann @ctype.annotatedTree
                                      @sel1.annotatedTree
                                      @sel2.annotatedTree
@@ -385,7 +385,7 @@ getTbCols = unwrapComposite . unwrapSetOf . getTypeAnnotation
 ATTR TableRef MTableRef
          [
          |
-         | idens : {[QualifiedScope]}
+         | idens : {[QualifiedIDs]}
            joinIdens : {[String]}
          ]
 
@@ -405,7 +405,7 @@ SEM TableRef
     | TrefAlias Tref
         loc.tpe = either Left (Right . fst) @loc.relType
         lhs.joinIdens = []
-        loc.relType = getRelationType @lhs.scope @tbl
+        loc.relType = getRelationType @lhs.env @tbl
         loc.unwrappedRelType = either (const ([], [])) (both unwrapComposite) @loc.relType
     | Tref
         lhs.idens = [(@tbl, @loc.unwrappedRelType)]
@@ -414,10 +414,10 @@ SEM TableRef
         lhs.idens = [(@alias, @loc.unwrappedRelType)]
         loc.backTree = TrefAlias @ann @tbl @alias
     | TrefFun TrefFunAlias
-        loc.tpe = getFnType @lhs.scope @alias @fn.annotatedTree
+        loc.tpe = getFnType @lhs.env @alias @fn.annotatedTree
         lhs.joinIdens = []
         lhs.idens = case getFunIdens
-                              @lhs.scope @loc.alias
+                              @lhs.env @loc.alias
                               @fn.annotatedTree of
                       Left e -> []
                       Right x -> [second (\l -> (unwrapComposite l, [])) x]
@@ -440,7 +440,7 @@ SEM TableRef
               tblt = getTypeAnnotation @tbl.annotatedTree
               tbl1t = getTypeAnnotation @tbl1.annotatedTree
               unionJoinList s =
-                  combineTableTypesWithUsingList @lhs.scope s tblt tbl1t
+                  combineTableTypesWithUsingList @lhs.env s tblt tbl1t
         lhs.idens = @tbl.idens ++ @tbl1.idens
         lhs.joinIdens = commonFieldNames (getTypeAnnotation @tbl.annotatedTree)
                                          (getTypeAnnotation @tbl1.annotatedTree)
@@ -453,12 +453,12 @@ SEM TableRef
 
 {
 
-getFnType :: Scope -> String -> Expression -> Either [TypeError] Type
-getFnType scope alias =
-    either Left (Right . snd) . getFunIdens scope alias
+getFnType :: Environment -> String -> Expression -> Either [TypeError] Type
+getFnType env alias =
+    either Left (Right . snd) . getFunIdens env alias
 
-getFunIdens :: Scope -> String -> Expression -> Either [TypeError] (String,Type)
-getFunIdens scope alias fnVal =
+getFunIdens :: Environment -> String -> Expression -> Either [TypeError] (String,Type)
+getFunIdens env alias fnVal =
    case fnVal of
        FunCall _ f _ ->
            let correlationName = if alias /= ""
@@ -471,7 +471,7 @@ getFunIdens scope alias fnVal =
        x -> Left [ContextError "FunCall"]
    where
      getCompositeType t =
-                    case getAttrs scope [Composite
+                    case getAttrs env [Composite
                                               ,TableComposite
                                               ,ViewComposite] t of
                       Just ((_,_,a@(UnnamedCompositeType _)), _) -> a
@@ -490,7 +490,7 @@ ATTR SelectItemList SelectList
   ]
 
 SEM SelectItemList
-    | Cons lhs.listType = doSelectItemListTpe @lhs.scope @hd.columnName @hd.itemType @tl.listType
+    | Cons lhs.listType = doSelectItemListTpe @lhs.env @hd.columnName @hd.itemType @tl.listType
     | Nil lhs.listType = UnnamedCompositeType []
 
 ATTR SelectItem
@@ -537,9 +537,9 @@ SEM SelectList
 
 {-
 
-== scope passing
+== env passing
 
-scope flow:
+env flow:
 current simple version:
 from tref -> select list
           -> where
@@ -557,8 +557,11 @@ them into the selectlist and where parts)
 
 SEM SelectExpression
     | Select
-         selSelectList.scope = scopeReplaceIds @lhs.scope @selTref.idens @selTref.joinIdens
-         selWhere.scope = scopeReplaceIds @lhs.scope @selTref.idens @selTref.joinIdens
+         loc.newEnv = case updateEnvironment @lhs.env [EnvUpdateIDs @selTref.idens @selTref.joinIdens] of
+                        Left _ -> @lhs.env
+                        Right e -> e
+         selSelectList.env = @loc.newEnv
+         selWhere.env = @loc.newEnv
 
 {-
 
@@ -635,7 +638,7 @@ SEM SelectItem
 SEM Statement
     | Insert
         loc.columnStuff =
-            checkColumnConsistency @lhs.scope
+            checkColumnConsistency @lhs.env
                                    @table
                                    @targetCols.strings
                                    (unwrapComposite $ unwrapSetOf $
@@ -675,7 +678,7 @@ SEM Statement
     | Update
         loc.tpe =
             do
-            let re = checkRelationExists @lhs.scope @table
+            let re = checkRelationExists @lhs.env @table
             when (isJust re) $
                  Left [fromJust $ re]
             whereType <- checkExpressionBool @whr.annotatedTree
@@ -683,7 +686,7 @@ SEM Statement
               @loc.columnsConsistent
               checkErrorList @assigns.rowSetErrors $ Pseudo Void
         loc.columnsConsistent =
-            checkColumnConsistency @lhs.scope @table (map fst @assigns.pairs) @assigns.pairs
+            checkColumnConsistency @lhs.env @table (map fst @assigns.pairs) @assigns.pairs
         loc.statementInfo =
             UpdateInfo @table $ flip errorToTypeFailF @loc.columnsConsistent $
                                      \c -> let colNames = map fst @assigns.pairs
@@ -742,7 +745,7 @@ getRowTypes ts = ts
 SEM Statement
     | Delete
         loc.tpe =
-            case checkRelationExists @lhs.scope @table of
+            case checkRelationExists @lhs.env @table of
               Just e -> Left [e]
               Nothing -> do
                 whereType <- checkExpressionBool @whr.annotatedTree
@@ -755,7 +758,7 @@ SEM Statement
 
 = create table
 
-scope needs to be modified:
+env needs to be modified:
 types, typenames, typecats, attrdefs, systemcolumns
 
 produces a compositedef: (name, tablecomposite, unnamedcomp [(attrname, type)])

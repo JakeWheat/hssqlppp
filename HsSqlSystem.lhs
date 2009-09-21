@@ -19,6 +19,7 @@ TODO 2: think of a name for this command
 > import Control.Monad
 > import System.Directory
 > import Data.List
+> import Control.Applicative
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
@@ -27,7 +28,7 @@ TODO 2: think of a name for this command
 > import Database.HsSqlPpp.TypeChecking.TypeChecker
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.Dbms.DBAccess
-> import Database.HsSqlPpp.TypeChecking.Scope
+> import Database.HsSqlPpp.TypeChecking.Environment
 
 ================================================================================
 
@@ -54,7 +55,7 @@ TODO 2: think of a name for this command
 >            ,lexFileCommand
 >            ,parseFileCommand
 >            ,roundTripCommand
->            ,getScopeCommand
+>            ,readEnvCommand
 >            ,showInfoCommand
 >            ,showInfoDBCommand]
 
@@ -232,15 +233,18 @@ TODO: do something more correct
 > showInfoDB :: [FilePath] -> IO ()
 > showInfoDB args = do
 >   let dbName = head args
->   scope <- readScope dbName
->   mapM_ (pt scope) $ tail args
+>   env1 <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
+>   case env1 of
+>     Left e -> error $ show e
+>     Right e1 ->
+>         mapM_ (pt e1) $ tail args
 >   where
->     pt scope f = do
+>     pt env f = do
 >       x <- parseSqlFile f
 >       case x of
 >            Left er -> print er
 >            Right sts -> do
->                let aast = annotateAstScope scope sts
+>                let aast = annotateAstEnv env sts
 >                mapM_ (putStrLn . printSqlAnn annotToS . (:[])) aast
 >     annotToS :: Annotation -> String
 >     annotToS = concat . intersperse "\n" . map show
@@ -271,19 +275,16 @@ TODO: do something more correct
 
 ================================================================================
 
-This writes out the default scope using show, which you can then
-compile. The output is all on one big line (something like 400,000
-characters!) and compiles very slowly for the catalog of a standard
-template1 database...
+This reads an environment from a database and writes it out using show.
 
-> getScopeCommand :: CallEntry
-> getScopeCommand = CallEntry
->                   "getscope"
->                   "read the catalogs for the given db and dump a scope variable source text to stdout"
->                   (Single getScope)
-> getScope :: String -> IO ()
-> getScope dbName = do
->   s <- readScope dbName
+> readEnvCommand :: CallEntry
+> readEnvCommand = CallEntry
+>                   "readenv"
+>                   "read the catalogs for the given db and dump a Environment value source text to stdout"
+>                   (Single readEnv)
+> readEnv :: String -> IO ()
+> readEnv dbName = do
+>   s <- readEnvironmentFromDatabase dbName
 >   putStrLn "{-# OPTIONS_HADDOCK hide #-}"
 >   putStrLn "module Database.HsSqlPpp.TypeChecking.DefaultScope where"
 >   putStrLn "import Database.HsSqlPpp.TypeChecking.TypeType"

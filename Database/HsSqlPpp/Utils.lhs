@@ -33,3 +33,10 @@ This file contains some generic utility stuff
 >     Nothing -> y : replace old new ys
 >     Just ys' -> new ++ replace old new ys'
 
+
+> split :: Char -> String -> [String]
+> split _ ""                =  []
+> split c s                 =  let (l, s') = break (== c) s
+>                            in  l : case s' of
+>                                            [] -> []
+>                                            (_:s'') -> split c s''

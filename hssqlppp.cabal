@@ -17,7 +17,7 @@ Description:
     'TypeChecker' for annotating asts (this does the type checking),
     and working with annotated trees;
     .
-    'Scope' to read a catalog from a database to type check against,
+    'Environment' to read a catalog from a database to type check against,
     or to generate catalog information;
     .
     'DatabaseLoader' for the beginnings of a routine to load SQL into
@@ -50,7 +50,6 @@ extra-source-files:  README,
                      changelog,
                      Database/HsSqlPpp/TypeChecking/AstInternal.ag
                      Database/HsSqlPpp/TypeChecking/TypeChecking.ag
-                     Database/HsSqlPpp/TypeChecking/DefaultScopeEmpty.hs
                      sqltestfiles/system.sql
                      sqltestfiles/server.sql
                      sqltestfiles/client.sql
@@ -87,14 +86,10 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.TypeChecking.AstUtils,
                      Database.HsSqlPpp.Dbms.DatabaseLoader,
                      Database.HsSqlPpp.Dbms.DBAccess,
-                     Database.HsSqlPpp.TypeChecking.DefaultScope,
                      Database.HsSqlPpp.Parsing.Lexer,
                      Database.HsSqlPpp.Parsing.ParseErrors,
                      Database.HsSqlPpp.Parsing.Parser,
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
-                     Database.HsSqlPpp.TypeChecking.ScopeData,
-                     Database.HsSqlPpp.TypeChecking.Scope,
-                     Database.HsSqlPpp.TypeChecking.ScopeReader,
                      Database.HsSqlPpp.TypeChecking.TypeCheckingH,
                      Database.HsSqlPpp.TypeChecking.TypeConversion,
                      Database.HsSqlPpp.TypeChecking.TypeType,
@@ -123,15 +118,11 @@ Executable HsSqlPppTests
                      Database.HsSqlPpp.Dbms.DatabaseLoader,
                      Database.HsSqlPpp.Tests.DatabaseLoaderTests,
                      Database.HsSqlPpp.Dbms.DBAccess,
-                     Database.HsSqlPpp.TypeChecking.DefaultScope,
                      Database.HsSqlPpp.Parsing.Lexer,
                      Database.HsSqlPpp.Parsing.ParseErrors,
                      Database.HsSqlPpp.Parsing.Parser,
                      Database.HsSqlPpp.Tests.ParserTests,
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
-                     Database.HsSqlPpp.TypeChecking.ScopeData,
-                     Database.HsSqlPpp.TypeChecking.Scope,
-                     Database.HsSqlPpp.TypeChecking.ScopeReader,
                      Database.HsSqlPpp.TypeChecking.TypeCheckingH,
                      Database.HsSqlPpp.TypeChecking.TypeConversion,
                      Database.HsSqlPpp.TypeChecking.TypeType,

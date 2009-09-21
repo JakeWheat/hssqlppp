@@ -32,7 +32,7 @@ module used by the type checking code.
 >     ,CompositeDef
 >     ,FunctionPrototype
 >     ,DomainDefinition
->     ,FunFlav
+>     ,FunFlav(..)
 >      -- * 'Environment' values
 >     ,emptyEnvironment
 >     ,defaultEnvironment
@@ -40,9 +40,12 @@ module used by the type checking code.
 >      -- * Functions
 >     ,readEnvironmentFromDatabase
 >     ,updateEnvironment
->     ,destructEnvironment
-
-> ) where
+>     --,destructEnvironment
+>      -- * operator utils
+>     ,OperatorType(..)
+>     ,getOperatorType
+>     ,isOperatorName
+>     ) where
 
 > import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 > import Database.HsSqlPpp.TypeChecking.EnvironmentReader

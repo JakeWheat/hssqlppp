@@ -90,7 +90,7 @@ MODULE {Database.HsSqlPpp.TypeChecking.AstInternal}
    ,CaseExpressionList
    -- annotations
    ,annotateAst
-   ,annotateAstScope
+   ,annotateAstEnv
    ,annotateExpression
 }
 
@@ -107,8 +107,6 @@ import Database.HsSqlPpp.TypeChecking.TypeType
 import Database.HsSqlPpp.TypeChecking.AstUtils
 import Database.HsSqlPpp.TypeChecking.TypeConversion
 import Database.HsSqlPpp.TypeChecking.TypeCheckingH
-import Database.HsSqlPpp.TypeChecking.Scope
-import Database.HsSqlPpp.TypeChecking.ScopeData
 import Database.HsSqlPpp.TypeChecking.AstAnnotation
 import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 import Database.HsSqlPpp.Utils
@@ -588,29 +586,28 @@ makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
 -}
 {
 -- | Takes an ast, and adds annotations, including types, type errors,
--- and statement info. Type checks against defaultScope.
+-- and statement info. Type checks against defaultEnv.
 annotateAst :: StatementList -> StatementList
-annotateAst = annotateAstScope defaultScope
+annotateAst = annotateAstEnv defaultEnvironment
 
--- | As annotateAst but you supply an additional scope to add to the
--- defaultScope to type check against. See Scope module for how to
--- read a scope from an existing database so you can type check
--- against it.
-annotateAstScope :: Scope -> StatementList -> StatementList
-annotateAstScope scope sts =
+-- | As annotateAst but you supply an environment to check
+-- against. See Environment module for how to read an Environment from
+-- an existing database so you can type check against it.
+annotateAstEnv :: Environment -> StatementList -> StatementList
+annotateAstEnv env sts =
     let t = sem_Root (Root sts)
-        ta = wrap_Root t Inh_Root {scope_Inh_Root = combineScopes defaultScope scope}
+        ta = wrap_Root t Inh_Root {env_Inh_Root = env}
         tl = annotatedTree_Syn_Root ta
     in case tl of
          Root r -> r
 
 -- | Testing utility, mainly used to check an expression for type errors
 -- or to get its type.
-annotateExpression :: Scope -> Expression -> Expression
-annotateExpression scope ex =
+annotateExpression :: Environment -> Expression -> Expression
+annotateExpression env ex =
     let t = sem_ExpressionRoot (ExpressionRoot ex)
         rt = (annotatedTree_Syn_ExpressionRoot
-              (wrap_ExpressionRoot t Inh_ExpressionRoot {scope_Inh_ExpressionRoot = combineScopes defaultScope scope}))
+              (wrap_ExpressionRoot t Inh_ExpressionRoot {env_Inh_ExpressionRoot = env}))
     in case rt of
          ExpressionRoot e -> e
 

@@ -3,7 +3,7 @@ Copyright 2009 Jake Wheat
 The annotation data types and utilities for working with them.
 
 Annotations are used to store source positions, types, errors,
-warnings, scope deltas, information, and other stuff a client might
+warnings, environment deltas, information, and other stuff a client might
 want to use when looking at an ast. Internal annotations which are
 used in the type-checking/ annotation process use the attribute
 grammar code and aren't exposed.
@@ -139,7 +139,7 @@ without having to get the positions correct.
 >                      deriving (Eq,Show)
 
 todo:
-add scope deltas to statementinfo
+add environment deltas to statementinfo
 
 question:
 if a node has no source position e.g. the all in select all or select

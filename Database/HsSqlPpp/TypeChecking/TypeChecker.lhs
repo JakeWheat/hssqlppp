@@ -38,16 +38,9 @@ This is the public module for the type checking functionality.
 >      -- types, e.g. the types of each select and subselect/sub query in a statement,
 >      -- any changes to the catalog the statement makes, and possibly much more information.
 >     ,StatementInfo(..)
->      -- * Additional types
->      -- | Used in Scope and type checking.
->     ,DomainDefinition
->     ,FunctionPrototype
->     ,CastContext
->     ,CompositeDef
->     ,CompositeFlavour
 >      -- * Annotation functions
 >     ,annotateAst
->     ,annotateAstScope
+>     ,annotateAstEnv
 >     ,annotateExpression
 >      -- * Annotated tree utils
 >     ,getTopLevelTypes
@@ -59,4 +52,3 @@ This is the public module for the type checking functionality.
 > import Database.HsSqlPpp.TypeChecking.AstInternal
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.AstAnnotation
-> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal

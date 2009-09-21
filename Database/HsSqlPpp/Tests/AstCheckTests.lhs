@@ -9,13 +9,11 @@ Set of tests to check the type checking code
 > import Test.Framework.Providers.HUnit
 > import Data.Char
 > import Control.Arrow
-> import Debug.Trace
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.TypeChecking.Ast
 > import Database.HsSqlPpp.TypeChecking.TypeChecker
 > import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.TypeChecking.Scope
-> import Database.HsSqlPpp.TypeChecking.ScopeData
 > import Database.HsSqlPpp.TypeChecking.Environment
 
 > astCheckTests :: Test.Framework.Test
@@ -163,10 +161,10 @@ check casts from unknown string lits
 >      ])
 >
 
->    ,testGroup "expressions and scope"
->     (mapExprScopeType [
->      t "a" (makeScope [("test", [("a", typeInt)])]) $ Right typeInt
->     ,t "b" (makeScope [("test", [("a", typeInt)])])
+>    ,testGroup "expressions and env"
+>     (mapExprEnvType [
+>      t "a" (makeEnvIDs [("test", [("a", typeInt)])]) $ Right typeInt
+>     ,t "b" (makeEnvIDs [("test", [("a", typeInt)])])
 >        $ Left [UnrecognisedIdentifier "b"]
 >     ])
 
@@ -390,27 +388,19 @@ check aliasing
 
 
 >    ,testGroup "simple selects from 2"
->     (mapStatementInfoScope [
+>     (mapStatementInfoEnv [
 >       t "select a,b from testfunc();"
->         (let fn = ("testfunc", [], SetOfType $ CompositeType "testType")
->          in emptyScope {scopeFunctions = [fn]
->                        ,scopeAllFns = [fn]
->                        ,scopeAttrDefs =
->                         [("testType"
->                          ,Composite
->                          ,UnnamedCompositeType
->                             [("a", ScalarType "text")
->                             ,("b", typeInt)
->                             ,("c", typeInt)])]})
+>         (makeEnv
+>              [EnvCreateComposite "testType" [("a", ScalarType "text")
+>                                             ,("b", typeInt)
+>                                             ,("c", typeInt)]
+>              ,EnvCreateFunction FunName "testfunc"  [] (SetOfType $ CompositeType "testType")])
 >         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType
 >                  [("a",ScalarType "text"),("b",ScalarType "int4")]]
 
 >      ,t "select testfunc();"
->         (let fn = ("testfunc", [], Pseudo Void)
->          in emptyScope {scopeFunctions = [fn]
->                        ,scopeAllFns = [fn]
->                        ,scopeAttrDefs =
->                         []})
+>         (makeEnv
+>              [EnvCreateFunction FunName "testfunc"  [] $ Pseudo Void])
 >         $ Right [SelectInfo $ Pseudo Void]
 
 >      ])
@@ -595,19 +585,23 @@ insert
 >           --mapAttr = map $ uncurry checkAttrs
 >           p a b = (a,b)
 >           t a b c = (a,b,c)
->           mapExprType = map (uncurry $ checkExpressionType emptyScope)
+>           mapExprType = map (uncurry $ checkExpressionType defaultEnvironment)
 >           --mapStatementType = map $ uncurry checkStatementType
 >           mapStatementInfo = map $ uncurry checkStatementInfo
->           mapExprScopeType = map (\(a,b,c) -> checkExpressionType b a c)
->           makeScope l = scopeReplaceIds defaultScope (map (second (\a->(a,[]))) l) []
->           mapStatementInfoScope = map (\(a,b,c) -> checkStatementInfoScope b a c)
+>           mapExprEnvType = map (\(a,b,c) -> checkExpressionType b a c)
+>           makeEnvIDs l = makeEnv
+>                          [EnvUpdateIDs (map (second (\a->(a,[]))) l) []]
+>           makeEnv eu = case updateEnvironment defaultEnvironment eu of
+>                         Left x -> error $ show x
+>                         Right e -> e
+>           mapStatementInfoEnv = map (\(a,b,c) -> checkStatementInfoEnv b a c)
 
-> checkExpressionType :: Scope -> String -> Either [TypeError] Type -> Test.Framework.Test
-> checkExpressionType scope src typ = testCase ("typecheck " ++ src) $
+> checkExpressionType :: Environment -> String -> Either [TypeError] Type -> Test.Framework.Test
+> checkExpressionType env src typ = testCase ("typecheck " ++ src) $
 >   let ast = case parseExpression src of
 >                                      Left e -> error $ show e
 >                                      Right l -> l
->       aast = annotateExpression scope ast
+>       aast = annotateExpression env ast
 >       ty = getTopLevelTypes [aast]
 >       er = getTypeErrors [aast]
 >   in case (length er, length ty) of
@@ -629,12 +623,12 @@ insert
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
 
-> checkStatementInfoScope :: Scope -> String -> Either [TypeError] [StatementInfo] -> Test.Framework.Test
-> checkStatementInfoScope scope src sis = testCase ("typecheck " ++ src) $
+> checkStatementInfoEnv :: Environment -> String -> Either [TypeError] [StatementInfo] -> Test.Framework.Test
+> checkStatementInfoEnv env src sis = testCase ("typecheck " ++ src) $
 >   let ast = case parseSql src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       aast = annotateAstScope scope ast
+>       aast = annotateAstEnv env ast
 >       is = getTopLevelInfos aast
 >       er = getTypeErrors aast
 >   in case (length er, length is) of

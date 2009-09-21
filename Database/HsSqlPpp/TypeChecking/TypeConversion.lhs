@@ -29,7 +29,6 @@ checkAssignmentValid - pass in source type and target type, returns
 > import Data.List
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
-> import Database.HsSqlPpp.TypeChecking.Scope
 > import Database.HsSqlPpp.TypeChecking.AstUtils
 > import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
 
@@ -112,8 +111,8 @@ findCallMatch is a bit of a mess
 
 > type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
 
-> findCallMatch :: Scope -> String -> [Type] ->  Either [TypeError] FunctionPrototype
-> findCallMatch scope f inArgs =
+> findCallMatch :: Environment -> String -> [Type] ->  Either [TypeError] FunctionPrototype
+> findCallMatch env f inArgs =
 >     returnIfOnne [
 >        exactMatch
 >       ,binOp1UnknownMatch
@@ -127,9 +126,9 @@ findCallMatch is a bit of a mess
 >       -- basic lists which roughly mirror algo
 >       -- get the possibly matching candidates
 >       initialCandList :: [FunctionPrototype]
->       initialCandList = filter (\(candf,candArgs,_) ->
->                                   (candf,length candArgs) == (f,length inArgs))
->                           allFns
+>       initialCandList = filter (\(_,candArgs,_) ->
+>                                   length candArgs == length inArgs) $
+>                                envLookupFns env f
 >
 >       -- record what casts are needed for each candidate
 >       castPairs :: [[ArgCastFlavour]]
@@ -160,11 +159,11 @@ findCallMatch is a bit of a mess
 >
 >       mostExactMatches :: [ProtArgCast]
 >       mostExactMatches =
->         let inArgsBase = map (replaceWithBase scope) inArgs
+>         let inArgsBase = map (replaceWithBase env) inArgs
 >             exactCounts :: [Int]
 >             exactCounts =
 >               map ((length
->                       . filter (\(a1,a2) -> a1==replaceWithBase scope a2)
+>                       . filter (\(a1,a2) -> a1==replaceWithBase env a2)
 >                       . zip inArgsBase)
 >                 . (\((_,a,_),_) -> a)) reachable
 >             pairs = zip reachable exactCounts
@@ -197,8 +196,8 @@ findCallMatch is a bit of a mess
 >                           listCastPairs' (ia:ias) (ca:cas) =
 >                               (case () of
 >                                  _ | ia == ca -> ExactMatch
->                                    | implicitlyCastableFromTo scope ia ca ->
->                                        if isPreferredType scope ca
+>                                    | implicitlyCastableFromTo env ia ca ->
+>                                        if envPreferredType env ca
 >                                          then ImplicitToPreferred
 >                                          else ImplicitToNonPreferred
 >                                    | otherwise -> CannotCast
@@ -283,7 +282,7 @@ findCallMatch is a bit of a mess
 >                                                   Pseudo AnyNonArray -> Just ia
 >                                                   _ -> Nothing)
 >                 in {-trace ("\nresolve types: " ++ show typeList ++ "\n") $-}
->                    case resolveResultSetType scope typeList of
+>                    case resolveResultSetType env typeList of
 >                      Left _ -> Nothing
 >                      Right t -> Just t
 >             instantiatePolyType :: ProtArgCast -> Type -> ProtArgCast
@@ -345,7 +344,7 @@ findCallMatch is a bit of a mess
 >                   getCandsCatAt :: Int -> Either () String
 >                   getCandsCatAt n' =
 >                       let typesAtN = map (!!n') candArgLists
->                           catsAtN = map (getTypeCategory scope) typesAtN
+>                           catsAtN = map (envTypeCategory env) typesAtN
 >                       in case () of
 >                            --if any are string choose string
 >                            _ | any (== "S") catsAtN -> Right "S"
@@ -369,7 +368,7 @@ findCallMatch is a bit of a mess
 >                            catMatches = filter (\c -> Right (getCatForArgN n c) ==
 >                                                      (cats !! n)) cands
 >                            prefMatches :: [ProtArgCast]
->                            prefMatches = filter (isPreferredType scope .
+>                            prefMatches = filter (envPreferredType env .
 >                                                    getTypeForArgN n) catMatches
 >                            keepMatches :: [ProtArgCast]
 >                            keepMatches = if length prefMatches > 0
@@ -379,7 +378,7 @@ findCallMatch is a bit of a mess
 >            getTypeForArgN :: Int -> ProtArgCast -> Type
 >            getTypeForArgN n ((_,a,_),_) = a !! n
 >            getCatForArgN :: Int -> ProtArgCast -> String
->            getCatForArgN n = getTypeCategory scope . getTypeForArgN n
+>            getCatForArgN n = envTypeCategory env . getTypeForArgN n
 >
 >       -- utils
 >       -- filter a candidate/cast flavours pair by a predicate on each
@@ -399,8 +398,6 @@ findCallMatch is a bit of a mess
 >       getHeadFn :: [ProtArgCast] -> FunctionPrototype
 >       getHeadFn l =  let ((hdFn, _):_) = l
 >                      in hdFn
->       allFns = keywordOperatorTypes ++ specialFunctionTypes ++ scopeAllFns scope
-
 >       none p = not . any p
 >       count p = length . filter p
 >
@@ -410,20 +407,9 @@ findCallMatch is a bit of a mess
 >                     | ImplicitToNonPreferred
 >                       deriving (Eq,Show)
 >
-> isPreferredType :: Scope -> Type -> Bool
-> isPreferredType scope t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories scope) of
->                       Nothing -> error $ "internal error: couldn't find type category information: " ++ show t
->                       Just (_,_,p) -> p
->
-> getTypeCategory :: Scope -> Type -> String
-> getTypeCategory scope t = case find (\(t1,_,_)-> t1==t) (scopeTypeCategories scope) of
->                       Nothing -> error $ "internal error: couldn't find type category information: " ++ show t
->                       Just (_,c,_) -> c
->
->
-> implicitlyCastableFromTo :: Scope -> Type -> Type -> Bool
-> implicitlyCastableFromTo scope from to = from == UnknownStringLit ||
->                                      any (==(from,to,ImplicitCastContext)) (scopeCasts scope)
+> implicitlyCastableFromTo :: Environment -> Type -> Type -> Bool
+> implicitlyCastableFromTo env from to = from == UnknownStringLit ||
+>                                          envCast env ImplicitCastContext from to
 >
 
 
@@ -443,8 +429,8 @@ check all can convert to selected type else fail
 
 code is not as much of a mess as findCallMatch
 
-> resolveResultSetType :: Scope -> [Type] -> Either [TypeError] Type
-> resolveResultSetType scope inArgs =
+> resolveResultSetType :: Environment -> [Type] -> Either [TypeError] Type
+> resolveResultSetType env inArgs =
 >   chainTypeCheckFailed inArgs $ do
 >       case () of
 >               _ | null inArgs -> Left [TypelessEmptyArray]
@@ -463,30 +449,27 @@ code is not as much of a mess as findCallMatch
 >                      head inArgs /= UnknownStringLit
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&
 >                      head inArgsBase /= UnknownStringLit
->      inArgsBase = map (replaceWithBase scope) inArgs
+>      inArgsBase = map (replaceWithBase env) inArgs
 >      allUnknown = all (==UnknownStringLit) inArgsBase
->      allSameCat = let firstCat = getTypeCategory scope (head knownTypes)
->                   in all (\t -> getTypeCategory scope t == firstCat)
+>      allSameCat = let firstCat = envTypeCategory env (head knownTypes)
+>                   in all (\t -> envTypeCategory env t == firstCat)
 >                          knownTypes
 >      targetType = case catMaybes [firstPreferred, lastAllConvertibleTo] of
 >                     [] -> Nothing
 >                     (x:_) -> Just x
->      firstPreferred = find (isPreferredType scope) knownTypes
+>      firstPreferred = find (envPreferredType env) knownTypes
 >      lastAllConvertibleTo = firstAllConvertibleTo (reverse knownTypes)
 >      firstAllConvertibleTo (x:xs) = if allConvertibleToFrom x xs
 >                                       then Just x
 >                                       else firstAllConvertibleTo xs
 >      firstAllConvertibleTo [] = Nothing
 >      matchOrImplicitToFrom t t1 = t == t1 ||
->                                   implicitlyCastableFromTo scope t1 t
+>                                   implicitlyCastableFromTo env t1 t
 >      knownTypes = filter (/=UnknownStringLit) inArgsBase
 >      allConvertibleToFrom = all . matchOrImplicitToFrom
 
-> replaceWithBase :: Scope -> Type -> Type
-> replaceWithBase scope t@(DomainType _) =
->   case lookup t (scopeDomainDefs scope) of
->     Nothing -> error $ "internal error - couldn't find base type for " ++ show t
->     Just u -> replaceWithBase scope u
+> replaceWithBase :: Environment -> Type -> Type
+> replaceWithBase env t@(DomainType _) = envDomainBaseType env t
 > replaceWithBase _ t = t
 
 todo:
@@ -501,14 +484,14 @@ assignment is ok if:
 types are equal
 there is a cast from src to target
 
-> checkAssignmentValid :: Scope -> Type -> Type -> Either [TypeError] ()
-> checkAssignmentValid scope src tgt =
+> checkAssignmentValid :: Environment -> Type -> Type -> Either [TypeError] ()
+> checkAssignmentValid env src tgt =
 >     case () of
 >       _ | src == tgt -> Right()
->         | assignCastableFromTo scope src tgt -> Right ()
+>         | assignCastableFromTo env src tgt -> Right ()
 >         | otherwise -> Left [IncompatibleTypes tgt src]
 
-> assignCastableFromTo :: Scope -> Type -> Type -> Bool
-> assignCastableFromTo scope from to = from == UnknownStringLit ||
->                                any (`elem` [(from,to,ImplicitCastContext)
->                                            ,(from,to,AssignmentCastContext)]) (scopeCasts scope)
+> assignCastableFromTo :: Environment -> Type -> Type -> Bool
+> assignCastableFromTo env from to = from == UnknownStringLit ||
+>                                    envCast env ImplicitCastContext from to ||
+>                                    envCast env AssignmentCastContext from to

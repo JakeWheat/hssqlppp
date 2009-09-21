@@ -15,12 +15,12 @@ modules.
 >     ,CompositeDef
 >     ,FunctionPrototype
 >     ,DomainDefinition
->     ,FunFlav
+>     ,FunFlav(..)
 >     ,emptyEnvironment
 >     ,defaultEnvironment
 >     ,EnvironmentUpdate(..)
 >     ,updateEnvironment
->     ,destructEnvironment
+>     --,destructEnvironment
 >     -- type checker stuff
 >     ,envExpandStar
 >     ,envLookupID
@@ -29,9 +29,15 @@ modules.
 >     ,envCast
 >     ,envDomainBaseType
 >     ,envLookupFns
+>     ,envTypeExists
+>     ,envLookupType
+>     ,envPreferredType
 >      --temporary exports, will become internal
 >     ,keywordOperatorTypes
 >     ,specialFunctionTypes
+>     ,OperatorType(..)
+>     ,getOperatorType
+>     ,isOperatorName
 >     ) where
 
 > import Control.Monad
@@ -53,7 +59,7 @@ modules.
 >                    ,envFunctions :: [FunctionPrototype]
 >                    ,envAggregates :: [FunctionPrototype]
 >                    ,envAttrDefs :: [CompositeDef]
->                    ,envAttrSystemColumns :: [CompositeDef]
+>                    --,envAttrSystemColumns :: [CompositeDef]
 >                    ,envIdentifierTypes :: [QualifiedIDs]
 >                    ,envJoinIdentifiers :: [String]}
 
@@ -62,7 +68,7 @@ modules.
 > -- like the \'and\' operator, and so if you try to use it it will
 > -- almost certainly not work.
 > emptyEnvironment :: Environment
-> emptyEnvironment = Environment [] [] [] [] [] [] [] [] [] [] [] [] []
+> emptyEnvironment = Environment [] [] [] [] [] [] [] [] [] [] [] []
 
 > -- | Represents what you probably want to use as a starting point if
 > -- you are building an environment from scratch. It contains
@@ -115,9 +121,9 @@ modules.
 > data EnvironmentUpdate =
 >     -- | add a new scalar type with the name given, also creates
 >     -- an array type automatically
->     EnvCreateType Type String Bool
+>     EnvCreateScalar Type String Bool
 >   | EnvCreateDomain Type Type
->   | EnvCreateComposite Type [(String,Type)]
+>   | EnvCreateComposite String [(String,Type)]
 >   | EnvCreateCast Type Type CastContext
 >   | EnvCreateTable String [(String,Type)] [(String,Type)]
 >   | EnvCreateView String [(String,Type)]
@@ -128,28 +134,11 @@ modules.
 >     -- once when * is expanded, otherwise it could appear once for each
 >     -- relation in the join that it appears in.
 >   | EnvUpdateIDs [QualifiedIDs] [String]
+>     deriving (Eq,Show)
 
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
 >              | FunName | FunAgg
-
-types is (string, type)
-domaintypes is type,type
-
-
-scalar, array, pseudo -> just types
-domain type -> type, base type (adds to types, cast also)
-composite -> type, unnamed composite type (adds to attr, type)
-cast: source type, target type, context
-table -> name, unnamed composite type, unnamed comp- adds to attr, type
-
-what about categories?
-
-function flavour: pref, post, bin, fun, agg
- - need name, args, ret
-
-attrs - name, flavour, cols, syscols
-
-
+>                deriving (Eq,Show)
 
 > -- | Applies a list of 'EnvironmentUpdate's to an 'Environment' value
 > -- to produce a new Environment value.
@@ -161,7 +150,7 @@ attrs - name, flavour, cols, syscols
 >   where
 >     updateEnv' env eu =
 >       case eu of
->         EnvCreateType ty cat pref -> do
+>         EnvCreateScalar ty cat pref -> do
 >                 errorWhen (not allowed) $
 >                   [BadEnvironmentUpdate $ "can only add scalar types\
 >                                           \this way, got " ++ show ty]
@@ -180,10 +169,12 @@ attrs - name, flavour, cols, syscols
 >                                           \based on scalars, got "
 >                                           ++ show baseTy]
 >                 let DomainType nm = ty
->                 cat <- envTypeCategory env baseTy
+>                 let cat = envTypeCategory env baseTy
 >                 return $ (addTypeWithArray env nm ty cat False) {
 >                                        envDomainDefs =
->                                          (ty,baseTy):envDomainDefs env}
+>                                          (ty,baseTy):envDomainDefs env
+>                                        ,envCasts =
+>                                          (ty,baseTy,ImplicitCastContext):envCasts env}
 >                 where
 >                   allowed = case ty of
 >                                     DomainType _ -> True
@@ -191,19 +182,11 @@ attrs - name, flavour, cols, syscols
 >                   baseAllowed = case baseTy of
 >                                   ScalarType _ -> True
 >                                   _ -> False
->         EnvCreateComposite ty flds -> do
->                 errorWhen (not allowed)
->                   [BadEnvironmentUpdate $ "can only add composite types\
->                                           \this way, got " ++ show ty]
->                 let CompositeType nm = ty
->                 return $ (addTypeWithArray env nm ty "C" False) {
+>         EnvCreateComposite nm flds -> do
+>                 return $ (addTypeWithArray env nm (CompositeType nm) "C" False) {
 >                             envAttrDefs =
 >                               (nm,Composite,UnnamedCompositeType flds)
 >                               : envAttrDefs env}
->                 where
->                   allowed = case ty of
->                                     CompositeType _ -> True
->                                     _ -> False
 >         EnvCreateCast src tgt ctx -> return $ env {envCasts = (src,tgt,ctx):envCasts env}
 >         EnvCreateTable nm attrs sysAttrs -> do
 >                 return $ (addTypeWithArray env nm
@@ -238,6 +221,7 @@ attrs - name, flavour, cols, syscols
 >                : envTypeCategories env}
 
 
+> {-
 > -- | Takes part an 'Environment' value to produce a list of 'EnvironmentUpdate's.
 > -- You can use this to look inside the Environment data type e.g. if you want to
 > -- examine a catalog. It should be the case that:
@@ -247,38 +231,53 @@ attrs - name, flavour, cols, syscols
 > -- @
 > destructEnvironment :: Environment -> [EnvironmentUpdate]
 > destructEnvironment = undefined
+> -}
 
 ================================================================================
 
 = type checking stuff
 
-> envCompositeAttrs :: Environment -> [CompositeFlavour] -> String -> Either [TypeError] (CompositeDef,CompositeDef)
-> envCompositeAttrs = undefined
+> envCompositeAttrs :: Environment -> [CompositeFlavour] -> Type -> Either [TypeError] (CompositeDef,CompositeDef)
+> envCompositeAttrs env flvs ty = do
+>   let CompositeType nm = ty
+>   let c = filter (\(n,t,_) -> n == nm && (null flvs || t `elem` flvs)) $ envAttrDefs env
+>   errorWhen (length c == 0)
+>             [UnrecognisedRelation nm]
+>   let (_,fl1,r):[] = c
+>   return ((nm,fl1,r), (nm,fl1,UnnamedCompositeType []))
 
-> envTypeCategory :: Environment -> Type -> Either [TypeError] String
-> envTypeCategory = undefined
+> envTypeCategory :: Environment -> Type -> String
+> envTypeCategory env ty =
+>   let (_,c,_):_ = filter (\(t,_,_) -> ty == t) $ envTypeCategories env
+>   in c
 
-> envCast :: Environment -> CastContext -> Type -> Type -> Either [TypeError] Bool
-> envCast = undefined
+> envPreferredType :: Environment -> Type -> Bool
+> envPreferredType env ty =
+>   let (_,_,p):_ = filter (\(t,_,_) -> ty == t) $ envTypeCategories env
+>   in p
 
-> envDomainBaseType :: Environment -> Type -> Either [TypeError] Type
+> envCast :: Environment -> CastContext -> Type -> Type -> Bool
+> envCast env ctx from to = any (==(from,to,ctx)) (envCasts env)
+
+
+> envDomainBaseType :: Environment -> Type -> Type
 > envDomainBaseType env ty = do
 >   --check type is domain, check it exists in main list
 >   case lookup ty (envDomainDefs env) of
->       Nothing -> Left [DomainDefNotFound ty]
->       Just t -> Right t
+>       Nothing -> error "domain not found" -- Left [DomainDefNotFound ty]
+>       Just t -> t
 
-> envGetAllFns :: Environment -> [FunctionPrototype]
-> envGetAllFns env =
->   concat [envPrefixOperators env
->          ,envPostfixOperators env
->          ,envBinaryOperators env
->          ,envFunctions env
->          ,envAggregates env]
 
 > envLookupFns :: Environment -> String -> [FunctionPrototype]
 > envLookupFns env name =
->     filter (\(nm,_,_) -> nm == name) $ envGetAllFns env
+>     filter (\(nm,_,_) -> nm == name) envGetAllFns
+>     where
+>     envGetAllFns =
+>         concat [envPrefixOperators env
+>                ,envPostfixOperators env
+>                ,envBinaryOperators env
+>                ,envFunctions env
+>                ,envAggregates env]
 
 
 = Attribute identifier scoping
@@ -292,7 +291,7 @@ not present or not unique then throw an error. Similarly with no
 correlation name, we look at all the lists, if the id is not present
 or not unique then throw an error.
 
-scopeIdentifierTypes is for expanding *. If we want to access the
+envIdentifierTypes is for expanding *. If we want to access the
 common attributes from one of the tables in a using or natural join,
 this attribute can be qualified with either of the table names/
 aliases. But when we expand the *, we only output these common fields
@@ -342,6 +341,18 @@ key references in the pg catalog.
 > catPair :: ([a],[a]) -> [a]
 > catPair = uncurry (++)
 
+> envTypeExists :: Environment -> Type -> Either [TypeError] Type
+> envTypeExists env t =
+>     errorWhen (t `notElem` (map snd $ envTypeNames env))
+>               [UnknownTypeError t] >>
+>     Right t
+
+> envLookupType :: Environment -> String -> Either [TypeError] Type
+> envLookupType env name =
+>     liftME [UnknownTypeName name] $
+>       lookup name (envTypeNames env)
+
+
 ================================================================================
 
 = built in stuff
@@ -382,4 +393,55 @@ these look like functions, but don't appear in the postgresql catalog.
 >  ]
 
 > pseudoTypes :: [Type]
-> pseudoTypes = undefined
+> pseudoTypes =
+>     [Pseudo Any
+>     ,Pseudo AnyArray
+>     ,Pseudo AnyElement
+>     ,Pseudo AnyEnum
+>     ,Pseudo AnyNonArray
+>     ,Pseudo Cstring
+>     ,Pseudo Record
+>     ,Pseudo Trigger
+>     ,Pseudo Void
+>     ,ArrayType $ Pseudo Cstring
+>     ,ArrayType $ Pseudo Record
+>     --,Pseudo Internal
+>     --,Pseudo LanguageHandler
+>     --,Pseudo Opaque
+>     ]
+
+
+================================================================================
+
+= getOperatorType
+
+used by the pretty printer, not sure this is a very good design
+
+for now, assume that all the overloaded operators that have the
+same name are all either binary, prefix or postfix, otherwise the
+getoperatortype would need the types of the arguments to determine
+the operator type, and the parser would have to be a lot cleverer
+
+this is why binary @ operator isn't currently supported
+
+> data OperatorType = BinaryOp | PrefixOp | PostfixOp
+>                   deriving (Eq,Show)
+
+> getOperatorType :: String -> OperatorType
+> getOperatorType s = case () of
+>                       _ | any (\(x,_,_) -> x == s) (envBinaryOperators defaultEnvironment) ->
+>                             BinaryOp
+>                         | any (\(x,_,_) -> x == s ||
+>                                            (x=="-" && s=="u-"))
+>                               (envPrefixOperators defaultEnvironment) ->
+>                             PrefixOp
+>                         | any (\(x,_,_) -> x == s) (envPostfixOperators defaultEnvironment) ->
+>                             PostfixOp
+>                         | s `elem` ["!and", "!or","!like"] -> BinaryOp
+>                         | s `elem` ["!not"] -> PrefixOp
+>                         | s `elem` ["!isNull", "!isNotNull"] -> PostfixOp
+>                         | otherwise ->
+>                             error $ "don't know flavour of operator " ++ s
+
+> isOperatorName :: String -> Bool
+> isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?")

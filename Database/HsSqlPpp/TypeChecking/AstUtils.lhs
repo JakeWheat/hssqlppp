@@ -8,20 +8,12 @@ type checking.
 > module Database.HsSqlPpp.TypeChecking.AstUtils
 >     (
 >      OperatorType(..)
->     ,getOperatorType
 >     ,checkTypes
 >     ,chainTypeCheckFailed
 >     ,errorToTypeFail
 >     ,errorToTypeFailF
 >     ,checkErrorList
 >     ,getErrors
->     ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
->     ,typeFloat8,typeVarChar,typeChar,typeBool
->     ,canonicalizeTypeName
->     ,checkTypeExists
->     ,lookupTypeByName
->     ,keywordOperatorTypes
->     ,specialFunctionTypes
 >     ,isArrayType
 >     ,unwrapArray
 >     ,unwrapSetOfComposite
@@ -32,47 +24,10 @@ type checking.
 >     ,isOperatorName
 >     ) where
 
-> import Data.Maybe
 > import Data.List
-> import Control.Monad.Error
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
-> import Database.HsSqlPpp.TypeChecking.Scope
-> import Database.HsSqlPpp.TypeChecking.DefaultScope
 > import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
-> import Database.HsSqlPpp.Utils
-
-================================================================================
-
-= getOperatorType
-
-used by the pretty printer, not sure this is a very good design
-
-for now, assume that all the overloaded operators that have the
-same name are all either binary, prefix or postfix, otherwise the
-getoperatortype would need the types of the arguments to determine
-the operator type, and the parser would have to be a lot cleverer
-
-this is why binary @ operator isn't currently supported
-
-> data OperatorType = BinaryOp | PrefixOp | PostfixOp
->                   deriving (Eq,Show)
-
-> getOperatorType :: String -> OperatorType
-> getOperatorType s = case () of
->                       _ | any (\(x,_,_) -> x == s) (scopeBinaryOperators defaultScope) ->
->                             BinaryOp
->                         | any (\(x,_,_) -> x == s ||
->                                            (x=="-" && s=="u-"))
->                               (scopePrefixOperators defaultScope) ->
->                             PrefixOp
->                         | any (\(x,_,_) -> x == s) (scopePostfixOperators defaultScope) ->
->                             PostfixOp
->                         | s `elem` ["!and", "!or","!like"] -> BinaryOp
->                         | s `elem` ["!not"] -> PrefixOp
->                         | s `elem` ["!isNull", "!isNotNull"] -> PostfixOp
->                         | otherwise ->
->                             error $ "don't know flavour of operator " ++ s
 
 ================================================================================
 
@@ -194,19 +149,6 @@ array types have to match an exact array type in the catalog, so we
 can't create an arbitrary array of any type. Not sure if this is
 handled quite correctly in this code.
 
-
-> checkTypeExists :: Scope -> Type -> Either [TypeError] Type
-> checkTypeExists scope t =
->     if t `elem` scopeTypes scope
->       then Right t
->       else Left [UnknownTypeError t]
-
-
-> lookupTypeByName :: Scope -> String -> Either [TypeError] Type
-> lookupTypeByName scope name =
->     liftME [UnknownTypeName name] $
->       lookup name (scopeTypeNames scope)
-
 ================================================================================
 
 utilities for working with Types
@@ -239,8 +181,3 @@ utilities for working with Types
 > unwrapRowCtor :: Type -> [Type]
 > unwrapRowCtor (RowCtor a) = a
 > unwrapRowCtor x = error $ "internal error: cannot unwrapRowCtor on " ++ show x
-
-
-
-> isOperatorName :: String -> Bool
-> isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?")

@@ -23,11 +23,11 @@ Not much other comments, since it all should be pretty self evident.
 >     where
 
 > import Text.PrettyPrint
-> import Data.List (stripPrefix)
 > import Data.Maybe
 
 > import Database.HsSqlPpp.TypeChecking.Ast
 > import Database.HsSqlPpp.TypeChecking.TypeChecker
+> import Database.HsSqlPpp.TypeChecking.Environment
 > import Database.HsSqlPpp.Utils
 
 ================================================================================
