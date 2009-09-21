@@ -273,8 +273,8 @@ TYPE MTableRef = MAYBE TableRef
 TYPE Where = MAYBE Expression
 TYPE MExpression = MAYBE Expression
 
-DATA FnBody | SqlFnBody sts : StatementList
-            | PlpgsqlFnBody VarDefList sts : StatementList
+DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
+            | PlpgsqlFnBody ann:Annotation vars:VarDefList sts : StatementList
 
 DATA SetClause | SetClause att:String val:Expression
                | RowSetClause atts:StringList vals:ExpressionList
@@ -709,11 +709,7 @@ instance Annotated Statement where
         CreateView a name expr -> CreateView (f a) name expr
         CreateType a name atts -> CreateType (f a) name atts
         CreateFunction a lang name params rettype bodyQuote body vol ->
-            CreateFunction (f a) lang name params rettype bodyQuote doBody vol
-            where
-              doBody = case body of
-                         SqlFnBody sts -> SqlFnBody $ cars f sts
-                         PlpgsqlFnBody vars sts -> PlpgsqlFnBody vars $ cars f sts
+            CreateFunction (f a) lang name params rettype bodyQuote (changeAnnRecurse f body) vol
         CreateDomain a name typ check -> CreateDomain (f a) name typ check
         DropFunction a i s cs -> DropFunction (f a) i s cs
         DropSomething a dt i nms cs -> DropSomething (f a) dt i nms cs
@@ -753,9 +749,7 @@ instance Annotated Statement where
         --CreateType _ _ _ -> []
         --CreateFunction a lang name params rettype bodyQuote body vol ->
         CreateFunction _ _    _    _      _       _         body _   ->
-            case body of
-              SqlFnBody sts -> mp sts
-              PlpgsqlFnBody _ sts -> mp sts
+            [pack body]
         --CreateDomain _ _ _ _ -> []
         --DropFunction _ _ _ _ -> []
         --DropSomething _ _ _ _ _ -> []
@@ -864,6 +858,23 @@ instance Annotated Expression where
       mp = map pack
 
 
+instance Annotated FnBody where
+  ann a =
+      case a of
+         SqlFnBody a _ -> a
+         PlpgsqlFnBody a _ _ -> a
+  setAnn ex a =
+    case ex of
+         SqlFnBody _ sts -> SqlFnBody a sts
+         PlpgsqlFnBody _ vars sts -> PlpgsqlFnBody a vars sts
+  changeAnnRecurse f ex =
+    case ex of
+         SqlFnBody a sts -> SqlFnBody (f a) $ cars f sts
+         PlpgsqlFnBody a vars sts -> PlpgsqlFnBody (f a) vars $ cars f sts
+  getAnnChildren ex =
+    case ex of
+         SqlFnBody a sts -> map pack sts
+         PlpgsqlFnBody a vars sts -> {- vars -} map pack sts
 
 instance Annotated SelectExpression where
   ann a =

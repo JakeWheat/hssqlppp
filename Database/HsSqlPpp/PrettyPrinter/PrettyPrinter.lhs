@@ -165,8 +165,11 @@ Conversion routines - convert Sql asts into Docs
 >                        Immutable -> "immutable")
 >     <> statementEnd
 >     where
->       convFnBody (SqlFnBody sts) = convNestedStatements ca sts
->       convFnBody (PlpgsqlFnBody decls sts) =
+>       convFnBody (SqlFnBody ann1 sts) =
+>         convPa ca ann1 <+>
+>         convNestedStatements ca sts
+>       convFnBody (PlpgsqlFnBody ann1 decls sts) =
+>           convPa ca ann1 <+>
 >           ifNotEmpty (\l -> text "declare"
 >                   $+$ nest 2 (vcat $ map convVarDef l)) decls
 >           $+$ text "begin"

@@ -629,6 +629,10 @@ override var with var
 override var with select iden
 todo: override var with param, override select iden with param
 
+check var defs:
+check type exists
+check type of initial values
+
 >    ,testGroup "create function identifier resolution"
 >     (mapStatementInfo [
 >       p "create function t1(stuff text) returns text as $$\n\
@@ -643,10 +647,15 @@ todo: override var with param, override select iden with param
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Left [UnrecognisedIdentifier "badstuff"])
-
+>      ,p "create function t1() returns text as $$\n\
+>         \declare\n\
+>         \  stuff text;\n\
+>         \begin\n\
+>         \  return stuff || ' and stuff';\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Right [Nothing])
 >      ])
-
-
 >
 >    ]
 >         where
@@ -685,7 +694,7 @@ todo: override var with param, override select iden with param
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
 >       er = getTypeErrors aast
->   in trace (show aast) $ case (length er, length is) of
+>   in {-trace (show aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er

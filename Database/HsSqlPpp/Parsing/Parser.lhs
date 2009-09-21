@@ -497,13 +497,13 @@ trailing semicolon optional
 >            a <- many (try $ sqlStatement True)
 >            -- this makes my head hurt, should probably write out
 >            -- more longhand
->            SqlFnBody <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
+>            SqlFnBody [] <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
 
 plpgsql function has an optional declare section, plus the statements
 are enclosed in begin ... end; (semi colon after end is optional(
 
 >         functionBody Plpgsql =
->             PlpgsqlFnBody
+>             PlpgsqlFnBody []
 >             <$> option [] declarePart
 >             <*> statementPart
 >             where

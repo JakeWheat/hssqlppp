@@ -1019,6 +1019,31 @@ SEM Statement
         body.env = if @loc.paramTypes == [TypeCheckFailed]
                      then @lhs.env
                      else fromRight @lhs.env $ updateEnvironment @lhs.env [EnvStackIDs [("", @loc.paramNameTypes), (@name, @loc.paramNameTypes)]]
+
+SEM FnBody
+    | PlpgsqlFnBody
+        sts.env = fromRight @lhs.env $ updateEnvironment @lhs.env [EnvStackIDs [("", @vars.defs)]]
+
+ATTR VarDef
+     [
+     |
+     | def : {(String,Type)}
+     ]
+
+ATTR VarDefList
+     [
+     |
+     | defs : {[(String,Type)]}
+     ]
+
+SEM VarDef
+    | VarDef lhs.def = (@name, errorToTypeFail @typ.namedType)
+
+SEM VarDefList
+    | Cons lhs.defs = @hd.def : @tl.defs
+    | Nil lhs.defs = []
+
+
 {-
 ================================================================================
 

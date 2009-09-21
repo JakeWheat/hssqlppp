@@ -207,11 +207,7 @@ instance Annotated Statement where
         CreateView a name expr -> CreateView (f a) name expr
         CreateType a name atts -> CreateType (f a) name atts
         CreateFunction a lang name params rettype bodyQuote body vol ->
-            CreateFunction (f a) lang name params rettype bodyQuote doBody vol
-            where
-              doBody = case body of
-                         SqlFnBody sts -> SqlFnBody $ cars f sts
-                         PlpgsqlFnBody vars sts -> PlpgsqlFnBody vars $ cars f sts
+            CreateFunction (f a) lang name params rettype bodyQuote (changeAnnRecurse f body) vol
         CreateDomain a name typ check -> CreateDomain (f a) name typ check
         DropFunction a i s cs -> DropFunction (f a) i s cs
         DropSomething a dt i nms cs -> DropSomething (f a) dt i nms cs
@@ -251,9 +247,7 @@ instance Annotated Statement where
         --CreateType _ _ _ -> []
         --CreateFunction a lang name params rettype bodyQuote body vol ->
         CreateFunction _ _    _    _      _       _         body _   ->
-            case body of
-              SqlFnBody sts -> mp sts
-              PlpgsqlFnBody _ sts -> mp sts
+            [pack body]
         --CreateDomain _ _ _ _ -> []
         --DropFunction _ _ _ _ -> []
         --DropSomething _ _ _ _ _ -> []
@@ -362,6 +356,23 @@ instance Annotated Expression where
       mp = map pack
 
 
+instance Annotated FnBody where
+  ann a =
+      case a of
+         SqlFnBody a _ -> a
+         PlpgsqlFnBody a _ _ -> a
+  setAnn ex a =
+    case ex of
+         SqlFnBody _ sts -> SqlFnBody a sts
+         PlpgsqlFnBody _ vars sts -> PlpgsqlFnBody a vars sts
+  changeAnnRecurse f ex =
+    case ex of
+         SqlFnBody a sts -> SqlFnBody (f a) $ cars f sts
+         PlpgsqlFnBody a vars sts -> PlpgsqlFnBody (f a) vars $ cars f sts
+  getAnnChildren ex =
+    case ex of
+         SqlFnBody a sts -> map pack sts
+         PlpgsqlFnBody a vars sts -> {- vars -} map pack sts
 
 instance Annotated SelectExpression where
   ann a =
@@ -2343,16 +2354,16 @@ sem_ExpressionStatementListPairList_Nil  =
                   _lhsIenv
           in  ( _lhsOannotatedTree,_lhsOenv)))
 -- FnBody ------------------------------------------------------
-data FnBody  = PlpgsqlFnBody (VarDefList) (StatementList) 
-             | SqlFnBody (StatementList) 
+data FnBody  = PlpgsqlFnBody (Annotation) (VarDefList) (StatementList) 
+             | SqlFnBody (Annotation) (StatementList) 
              deriving ( Eq,Show)
 -- cata
 sem_FnBody :: FnBody  ->
               T_FnBody 
-sem_FnBody (PlpgsqlFnBody _varDefList _sts )  =
-    (sem_FnBody_PlpgsqlFnBody (sem_VarDefList _varDefList ) (sem_StatementList _sts ) )
-sem_FnBody (SqlFnBody _sts )  =
-    (sem_FnBody_SqlFnBody (sem_StatementList _sts ) )
+sem_FnBody (PlpgsqlFnBody _ann _vars _sts )  =
+    (sem_FnBody_PlpgsqlFnBody _ann (sem_VarDefList _vars ) (sem_StatementList _sts ) )
+sem_FnBody (SqlFnBody _ann _sts )  =
+    (sem_FnBody_SqlFnBody _ann (sem_StatementList _sts ) )
 -- semantic domain
 type T_FnBody  = Environment ->
                  ( FnBody,Environment)
@@ -2365,41 +2376,44 @@ wrap_FnBody sem (Inh_FnBody _lhsIenv )  =
     (let ( _lhsOannotatedTree,_lhsOenv) =
              (sem _lhsIenv )
      in  (Syn_FnBody _lhsOannotatedTree _lhsOenv ))
-sem_FnBody_PlpgsqlFnBody :: T_VarDefList  ->
+sem_FnBody_PlpgsqlFnBody :: Annotation ->
+                            T_VarDefList  ->
                             T_StatementList  ->
                             T_FnBody 
-sem_FnBody_PlpgsqlFnBody varDefList_ sts_  =
+sem_FnBody_PlpgsqlFnBody ann_ vars_ sts_  =
     (\ _lhsIenv ->
          (let _stsOenvUpdates :: ([EnvironmentUpdate])
+              _stsOenv :: Environment
               _lhsOannotatedTree :: FnBody
               _lhsOenv :: Environment
-              _varDefListOenv :: Environment
-              _stsOenv :: Environment
-              _varDefListIannotatedTree :: VarDefList
-              _varDefListIenv :: Environment
+              _varsOenv :: Environment
+              _varsIannotatedTree :: VarDefList
+              _varsIdefs :: ([(String,Type)])
+              _varsIenv :: Environment
               _stsIannotatedTree :: StatementList
               _stsIenv :: Environment
               _stsIenvUpdates :: ([EnvironmentUpdate])
               _stsOenvUpdates =
                   []
+              _stsOenv =
+                  fromRight _lhsIenv $ updateEnvironment _lhsIenv [EnvStackIDs [("", _varsIdefs)]]
               _annotatedTree =
-                  PlpgsqlFnBody _varDefListIannotatedTree _stsIannotatedTree
+                  PlpgsqlFnBody ann_ _varsIannotatedTree _stsIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _lhsOenv =
                   _stsIenv
-              _varDefListOenv =
+              _varsOenv =
                   _lhsIenv
-              _stsOenv =
-                  _varDefListIenv
-              ( _varDefListIannotatedTree,_varDefListIenv) =
-                  (varDefList_ _varDefListOenv )
+              ( _varsIannotatedTree,_varsIdefs,_varsIenv) =
+                  (vars_ _varsOenv )
               ( _stsIannotatedTree,_stsIenv,_stsIenvUpdates) =
                   (sts_ _stsOenv _stsOenvUpdates )
           in  ( _lhsOannotatedTree,_lhsOenv)))
-sem_FnBody_SqlFnBody :: T_StatementList  ->
+sem_FnBody_SqlFnBody :: Annotation ->
+                        T_StatementList  ->
                         T_FnBody 
-sem_FnBody_SqlFnBody sts_  =
+sem_FnBody_SqlFnBody ann_ sts_  =
     (\ _lhsIenv ->
          (let _stsOenvUpdates :: ([EnvironmentUpdate])
               _lhsOannotatedTree :: FnBody
@@ -2411,7 +2425,7 @@ sem_FnBody_SqlFnBody sts_  =
               _stsOenvUpdates =
                   []
               _annotatedTree =
-                  SqlFnBody _stsIannotatedTree
+                  SqlFnBody ann_ _stsIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
               _lhsOenv =
@@ -6174,28 +6188,31 @@ sem_VarDef (VarDef _name _typ _value )  =
     (sem_VarDef_VarDef _name (sem_TypeName _typ ) _value )
 -- semantic domain
 type T_VarDef  = Environment ->
-                 ( VarDef,Environment)
+                 ( VarDef,((String,Type)),Environment)
 data Inh_VarDef  = Inh_VarDef {env_Inh_VarDef :: Environment}
-data Syn_VarDef  = Syn_VarDef {annotatedTree_Syn_VarDef :: VarDef,env_Syn_VarDef :: Environment}
+data Syn_VarDef  = Syn_VarDef {annotatedTree_Syn_VarDef :: VarDef,def_Syn_VarDef :: (String,Type),env_Syn_VarDef :: Environment}
 wrap_VarDef :: T_VarDef  ->
                Inh_VarDef  ->
                Syn_VarDef 
 wrap_VarDef sem (Inh_VarDef _lhsIenv )  =
-    (let ( _lhsOannotatedTree,_lhsOenv) =
+    (let ( _lhsOannotatedTree,_lhsOdef,_lhsOenv) =
              (sem _lhsIenv )
-     in  (Syn_VarDef _lhsOannotatedTree _lhsOenv ))
+     in  (Syn_VarDef _lhsOannotatedTree _lhsOdef _lhsOenv ))
 sem_VarDef_VarDef :: String ->
                      T_TypeName  ->
                      (Maybe Expression) ->
                      T_VarDef 
 sem_VarDef_VarDef name_ typ_ value_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: VarDef
+         (let _lhsOdef :: ((String,Type))
+              _lhsOannotatedTree :: VarDef
               _lhsOenv :: Environment
               _typOenv :: Environment
               _typIannotatedTree :: TypeName
               _typIenv :: Environment
               _typInamedType :: (Either [TypeError] Type)
+              _lhsOdef =
+                  (name_, errorToTypeFail _typInamedType)
               _annotatedTree =
                   VarDef name_ _typIannotatedTree value_
               _lhsOannotatedTree =
@@ -6206,7 +6223,7 @@ sem_VarDef_VarDef name_ typ_ value_  =
                   _lhsIenv
               ( _typIannotatedTree,_typIenv,_typInamedType) =
                   (typ_ _typOenv )
-          in  ( _lhsOannotatedTree,_lhsOenv)))
+          in  ( _lhsOannotatedTree,_lhsOdef,_lhsOenv)))
 -- VarDefList --------------------------------------------------
 type VarDefList  = [(VarDef)]
 -- cata
@@ -6216,29 +6233,34 @@ sem_VarDefList list  =
     (Prelude.foldr sem_VarDefList_Cons sem_VarDefList_Nil (Prelude.map sem_VarDef list) )
 -- semantic domain
 type T_VarDefList  = Environment ->
-                     ( VarDefList,Environment)
+                     ( VarDefList,([(String,Type)]),Environment)
 data Inh_VarDefList  = Inh_VarDefList {env_Inh_VarDefList :: Environment}
-data Syn_VarDefList  = Syn_VarDefList {annotatedTree_Syn_VarDefList :: VarDefList,env_Syn_VarDefList :: Environment}
+data Syn_VarDefList  = Syn_VarDefList {annotatedTree_Syn_VarDefList :: VarDefList,defs_Syn_VarDefList :: [(String,Type)],env_Syn_VarDefList :: Environment}
 wrap_VarDefList :: T_VarDefList  ->
                    Inh_VarDefList  ->
                    Syn_VarDefList 
 wrap_VarDefList sem (Inh_VarDefList _lhsIenv )  =
-    (let ( _lhsOannotatedTree,_lhsOenv) =
+    (let ( _lhsOannotatedTree,_lhsOdefs,_lhsOenv) =
              (sem _lhsIenv )
-     in  (Syn_VarDefList _lhsOannotatedTree _lhsOenv ))
+     in  (Syn_VarDefList _lhsOannotatedTree _lhsOdefs _lhsOenv ))
 sem_VarDefList_Cons :: T_VarDef  ->
                        T_VarDefList  ->
                        T_VarDefList 
 sem_VarDefList_Cons hd_ tl_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: VarDefList
+         (let _lhsOdefs :: ([(String,Type)])
+              _lhsOannotatedTree :: VarDefList
               _lhsOenv :: Environment
               _hdOenv :: Environment
               _tlOenv :: Environment
               _hdIannotatedTree :: VarDef
+              _hdIdef :: ((String,Type))
               _hdIenv :: Environment
               _tlIannotatedTree :: VarDefList
+              _tlIdefs :: ([(String,Type)])
               _tlIenv :: Environment
+              _lhsOdefs =
+                  _hdIdef : _tlIdefs
               _annotatedTree =
                   (:) _hdIannotatedTree _tlIannotatedTree
               _lhsOannotatedTree =
@@ -6249,23 +6271,26 @@ sem_VarDefList_Cons hd_ tl_  =
                   _lhsIenv
               _tlOenv =
                   _hdIenv
-              ( _hdIannotatedTree,_hdIenv) =
+              ( _hdIannotatedTree,_hdIdef,_hdIenv) =
                   (hd_ _hdOenv )
-              ( _tlIannotatedTree,_tlIenv) =
+              ( _tlIannotatedTree,_tlIdefs,_tlIenv) =
                   (tl_ _tlOenv )
-          in  ( _lhsOannotatedTree,_lhsOenv)))
+          in  ( _lhsOannotatedTree,_lhsOdefs,_lhsOenv)))
 sem_VarDefList_Nil :: T_VarDefList 
 sem_VarDefList_Nil  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: VarDefList
+         (let _lhsOdefs :: ([(String,Type)])
+              _lhsOannotatedTree :: VarDefList
               _lhsOenv :: Environment
+              _lhsOdefs =
+                  []
               _annotatedTree =
                   []
               _lhsOannotatedTree =
                   _annotatedTree
               _lhsOenv =
                   _lhsIenv
-          in  ( _lhsOannotatedTree,_lhsOenv)))
+          in  ( _lhsOannotatedTree,_lhsOdefs,_lhsOenv)))
 -- Volatility --------------------------------------------------
 data Volatility  = Immutable 
                  | Stable 

@@ -846,7 +846,7 @@ test functions
 >         \$$ language sql stable;"
 >       [CreateFunction [] Sql "t1" [ParamDefTp $ SimpleTypeName "text"]
 >        (SimpleTypeName "text") "$$"
->        (SqlFnBody
+>        (SqlFnBody []
 >         [SelectStatement [] $ selectFromWhere [SelExp (Identifier [] "a")] (Tref [] "t1")
 >          (FunCall [] "="
 >           [Identifier [] "b", PositionalArg [] 1])])
@@ -860,8 +860,8 @@ test functions
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
 >       [CreateFunction [] Plpgsql "fn" [] (SimpleTypeName "void") "$$"
->        (PlpgsqlFnBody [VarDef "a" (SimpleTypeName "int") Nothing
->                       ,VarDef "b" (SimpleTypeName "text") Nothing]
+>        (PlpgsqlFnBody [] [VarDef "a" (SimpleTypeName "int") Nothing
+>                          ,VarDef "b" (SimpleTypeName "text") Nothing]
 >         [NullStatement []])
 >        Volatile]
 >      ,p "create function fn() returns void as $$\n\
@@ -873,8 +873,8 @@ test functions
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
 >       [CreateFunction [] Plpgsql "fn" [] (SimpleTypeName "void") "$$"
->        (PlpgsqlFnBody [VarDef "a" (SimpleTypeName "int") Nothing
->                       ,VarDef "b" (SimpleTypeName "text") Nothing]
+>        (PlpgsqlFnBody [] [VarDef "a" (SimpleTypeName "int") Nothing
+>                          ,VarDef "b" (SimpleTypeName "text") Nothing]
 >         [NullStatement []])
 >        Volatile]
 >      ,p "create function fn(a text[]) returns int[] as $$\n\
@@ -887,7 +887,7 @@ test functions
 >       [CreateFunction [] Plpgsql "fn"
 >        [ParamDef "a" $ ArrayTypeName $ SimpleTypeName "text"]
 >        (ArrayTypeName $ SimpleTypeName "int") "$$"
->        (PlpgsqlFnBody
+>        (PlpgsqlFnBody []
 >         [VarDef "b" (ArrayTypeName $ SimpleTypeName "xtype") (Just $ stringQ "{}")]
 >         [NullStatement []])
 >        Immutable]
@@ -899,7 +899,7 @@ test functions
 >         \end;\n\
 >         \' language plpgsql stable;"
 >       [CreateFunction [] Plpgsql "fn" [] (SimpleTypeName "void") "'"
->        (PlpgsqlFnBody [VarDef "a" (SimpleTypeName "int") (Just $ IntegerLit [] 3)]
+>        (PlpgsqlFnBody [] [VarDef "a" (SimpleTypeName "int") (Just $ IntegerLit [] 3)]
 >         [NullStatement []])
 >        Stable]
 >      ,p "create function fn() returns setof int as $$\n\
@@ -909,7 +909,7 @@ test functions
 >         \$$ language plpgsql stable;"
 >       [CreateFunction [] Plpgsql "fn" []
 >        (SetOfTypeName $ SimpleTypeName "int") "$$"
->        (PlpgsqlFnBody [] [NullStatement []])
+>        (PlpgsqlFnBody [] [] [NullStatement []])
 >        Stable]
 >      ,p "create function fn() returns void as $$\n\
 >         \begin\n\
@@ -918,7 +918,7 @@ test functions
 >         \$$ language plpgsql stable;"
 >       [CreateFunction [] Plpgsql "fn" []
 >        (SimpleTypeName "void") "$$"
->        (PlpgsqlFnBody [] [NullStatement []])
+>        (PlpgsqlFnBody [] [] [NullStatement []])
 >        Stable]
 >      ,p "drop function test(text);"
 >       [DropFunction [] Require [("test",["text"])] Restrict]
