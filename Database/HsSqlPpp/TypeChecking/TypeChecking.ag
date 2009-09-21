@@ -306,7 +306,7 @@ SEM ExpressionListList
 
 SEM Statement
     | SelectStatement Insert Update Delete CreateView CreateDomain
-      CreateFunction CreateType CreateTable
+      CreateFunction CreateType CreateTable Return
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (errorToTypeFail @loc.tpe)
                               (getErrors @loc.tpe)
@@ -323,7 +323,7 @@ ATTR Statement
 SEM Statement
     | Assignment CaseStatement ContinueStatement Copy CopyData DropFunction
       DropSomething Execute ExecuteInto ForIntegerStatement ForSelectStatement
-      If NullStatement Perform Raise Return ReturnNext ReturnQuery Truncate
+      If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement
         lhs.envUpdates = []
 
@@ -996,6 +996,10 @@ SEM Statement
             in if null $ concat $ lefts tpes
                then rights tpes
                else [TypeCheckFailed]
+        loc.paramNameTypes =
+            mapMaybe (\(n,tpe) -> case tpe of
+                                  Left _ -> Nothing
+                                  Right t -> Just (n,t)) @params.params
         loc.tpe =
             do
               @rettype.namedType
@@ -1011,7 +1015,34 @@ SEM Statement
                                       @vol.annotatedTree
         loc.statementInfo = []
         loc.envUpdates = [EnvCreateFunction FunName @name @loc.paramTypes @loc.retTypeType]
+        --add the parameters to the environment for the contained statements
+        body.env = if @loc.paramTypes == [TypeCheckFailed]
+                     then @lhs.env
+                     else fromRight @lhs.env $ updateEnvironment @lhs.env [EnvStackIDs [("", @loc.paramNameTypes), (@name, @loc.paramNameTypes)]]
+{-
+================================================================================
 
+= plpgsql statements
+
+-}
+
+SEM Statement
+    | Return
+        loc.tpe = checkTypes [fromMaybe typeBool @value.exprType] $ Right $ Pseudo Void
+        loc.backTree = Return @ann @value.annotatedTree
+        loc.envUpdates = []
+        loc.statementInfo = []
+
+ATTR MaybeExpression
+     [
+     |
+     | exprType : {Maybe Type}
+     ]
+
+
+SEM MaybeExpression
+    | Just lhs.exprType = Just $ getTypeAnnotation @just.annotatedTree
+    | Nothing lhs.exprType = Nothing
 
 {-
 

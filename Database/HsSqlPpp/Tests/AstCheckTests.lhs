@@ -685,7 +685,7 @@ todo: override var with param, override select iden with param
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
 >       er = getTypeErrors aast
->   in {-trace (show aast) $-} case (length er, length is) of
+>   in trace (show aast) $ case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er

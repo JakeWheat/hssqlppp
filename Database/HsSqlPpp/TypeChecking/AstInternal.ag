@@ -203,7 +203,7 @@ DATA Statement
                  target : String
                  value : Expression
     | Return ann:Annotation
-             value : (Maybe Expression)
+             value : (MaybeExpression)
     | ReturnNext ann:Annotation
                  expr : Expression
     | ReturnQuery ann:Annotation
@@ -760,7 +760,9 @@ instance Annotated Statement where
         --DropFunction _ _ _ _ -> []
         --DropSomething _ _ _ _ _ -> []
         --Assignment _ _ _ -> []
-        --Return a v -> Return (f a) v
+        Return _ v -> case v of
+                        Nothing -> []
+                        Just v1 -> [pack v1]
         --ReturnNext a ex -> ReturnNext (f a) ex
         --ReturnQuery a sel -> ReturnQuery (f a) sel
         --Raise a l m args -> Raise (f a) l m args

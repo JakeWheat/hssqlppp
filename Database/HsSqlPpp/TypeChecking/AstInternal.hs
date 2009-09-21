@@ -258,7 +258,9 @@ instance Annotated Statement where
         --DropFunction _ _ _ _ -> []
         --DropSomething _ _ _ _ _ -> []
         --Assignment _ _ _ -> []
-        --Return a v -> Return (f a) v
+        Return _ v -> case v of
+                        Nothing -> []
+                        Just v1 -> [pack v1]
         --ReturnNext a ex -> ReturnNext (f a) ex
         --ReturnQuery a sel -> ReturnQuery (f a) sel
         --Raise a l m args -> Raise (f a) l m args
@@ -1455,6 +1457,7 @@ sem_Expression_Case ann_ cases_ els_  =
               _casesIenv :: Environment
               _elsIannotatedTree :: MaybeExpression
               _elsIenv :: Environment
+              _elsIexprType :: (Maybe Type)
               _lhsOannotatedTree =
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
@@ -1489,7 +1492,7 @@ sem_Expression_Case ann_ cases_ els_  =
                   _casesIenv
               ( _casesIannotatedTree,_casesIenv) =
                   (cases_ _casesOenv )
-              ( _elsIannotatedTree,_elsIenv) =
+              ( _elsIannotatedTree,_elsIenv,_elsIexprType) =
                   (els_ _elsOenv )
           in  ( _lhsOannotatedTree,_lhsOenv,_lhsOliftedColumnName)))
 sem_Expression_CaseSimple :: Annotation ->
@@ -1512,6 +1515,7 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
               _casesIenv :: Environment
               _elsIannotatedTree :: MaybeExpression
               _elsIenv :: Environment
+              _elsIexprType :: (Maybe Type)
               _lhsOannotatedTree =
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
@@ -1551,7 +1555,7 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
                   (value_ _valueOenv )
               ( _casesIannotatedTree,_casesIenv) =
                   (cases_ _casesOenv )
-              ( _elsIannotatedTree,_elsIenv) =
+              ( _elsIannotatedTree,_elsIenv,_elsIexprType) =
                   (els_ _elsOenv )
           in  ( _lhsOannotatedTree,_lhsOenv,_lhsOliftedColumnName)))
 sem_Expression_Cast :: Annotation ->
@@ -2880,26 +2884,29 @@ sem_MaybeExpression Prelude.Nothing  =
     sem_MaybeExpression_Nothing
 -- semantic domain
 type T_MaybeExpression  = Environment ->
-                          ( MaybeExpression,Environment)
+                          ( MaybeExpression,Environment,(Maybe Type))
 data Inh_MaybeExpression  = Inh_MaybeExpression {env_Inh_MaybeExpression :: Environment}
-data Syn_MaybeExpression  = Syn_MaybeExpression {annotatedTree_Syn_MaybeExpression :: MaybeExpression,env_Syn_MaybeExpression :: Environment}
+data Syn_MaybeExpression  = Syn_MaybeExpression {annotatedTree_Syn_MaybeExpression :: MaybeExpression,env_Syn_MaybeExpression :: Environment,exprType_Syn_MaybeExpression :: Maybe Type}
 wrap_MaybeExpression :: T_MaybeExpression  ->
                         Inh_MaybeExpression  ->
                         Syn_MaybeExpression 
 wrap_MaybeExpression sem (Inh_MaybeExpression _lhsIenv )  =
-    (let ( _lhsOannotatedTree,_lhsOenv) =
+    (let ( _lhsOannotatedTree,_lhsOenv,_lhsOexprType) =
              (sem _lhsIenv )
-     in  (Syn_MaybeExpression _lhsOannotatedTree _lhsOenv ))
+     in  (Syn_MaybeExpression _lhsOannotatedTree _lhsOenv _lhsOexprType ))
 sem_MaybeExpression_Just :: T_Expression  ->
                             T_MaybeExpression 
 sem_MaybeExpression_Just just_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: MaybeExpression
+         (let _lhsOexprType :: (Maybe Type)
+              _lhsOannotatedTree :: MaybeExpression
               _lhsOenv :: Environment
               _justOenv :: Environment
               _justIannotatedTree :: Expression
               _justIenv :: Environment
               _justIliftedColumnName :: String
+              _lhsOexprType =
+                  Just $ getTypeAnnotation _justIannotatedTree
               _annotatedTree =
                   Just _justIannotatedTree
               _lhsOannotatedTree =
@@ -2910,19 +2917,22 @@ sem_MaybeExpression_Just just_  =
                   _lhsIenv
               ( _justIannotatedTree,_justIenv,_justIliftedColumnName) =
                   (just_ _justOenv )
-          in  ( _lhsOannotatedTree,_lhsOenv)))
+          in  ( _lhsOannotatedTree,_lhsOenv,_lhsOexprType)))
 sem_MaybeExpression_Nothing :: T_MaybeExpression 
 sem_MaybeExpression_Nothing  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: MaybeExpression
+         (let _lhsOexprType :: (Maybe Type)
+              _lhsOannotatedTree :: MaybeExpression
               _lhsOenv :: Environment
+              _lhsOexprType =
+                  Nothing
               _annotatedTree =
                   Nothing
               _lhsOannotatedTree =
                   _annotatedTree
               _lhsOenv =
                   _lhsIenv
-          in  ( _lhsOannotatedTree,_lhsOenv)))
+          in  ( _lhsOannotatedTree,_lhsOenv,_lhsOexprType)))
 -- Natural -----------------------------------------------------
 data Natural  = Natural 
               | Unnatural 
@@ -4144,7 +4154,7 @@ data Statement  = Assignment (Annotation) (String) (Expression)
                 | NullStatement (Annotation) 
                 | Perform (Annotation) (Expression) 
                 | Raise (Annotation) (RaiseType) (String) (ExpressionList) 
-                | Return (Annotation) (Maybe Expression) 
+                | Return (Annotation) (MaybeExpression) 
                 | ReturnNext (Annotation) (Expression) 
                 | ReturnQuery (Annotation) (SelectExpression) 
                 | SelectStatement (Annotation) (SelectExpression) 
@@ -4202,7 +4212,7 @@ sem_Statement (Perform _ann _expr )  =
 sem_Statement (Raise _ann _level _message _args )  =
     (sem_Statement_Raise _ann (sem_RaiseType _level ) _message (sem_ExpressionList _args ) )
 sem_Statement (Return _ann _value )  =
-    (sem_Statement_Return _ann _value )
+    (sem_Statement_Return _ann (sem_MaybeExpression _value ) )
 sem_Statement (ReturnNext _ann _expr )  =
     (sem_Statement_ReturnNext _ann (sem_Expression _expr ) )
 sem_Statement (ReturnQuery _ann _sel )  =
@@ -4421,11 +4431,11 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
               _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _bodyOenv :: Environment
               _lhsOenv :: Environment
               _langOenv :: Environment
               _paramsOenv :: Environment
               _rettypeOenv :: Environment
-              _bodyOenv :: Environment
               _volOenv :: Environment
               _langIannotatedTree :: Language
               _langIenv :: Environment
@@ -4454,6 +4464,10 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
                   in if null $ concat $ lefts tpes
                      then rights tpes
                      else [TypeCheckFailed]
+              _paramNameTypes =
+                  mapMaybe (\(n,tpe) -> case tpe of
+                                        Left _ -> Nothing
+                                        Right t -> Just (n,t)) _paramsIparams
               _tpe =
                   do
                     _rettypeInamedType
@@ -4472,6 +4486,10 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
                   []
               _envUpdates =
                   [EnvCreateFunction FunName name_ _paramTypes     _retTypeType    ]
+              _bodyOenv =
+                  if _paramTypes     == [TypeCheckFailed]
+                    then _lhsIenv
+                    else fromRight _lhsIenv $ updateEnvironment _lhsIenv [EnvStackIDs [("", _paramNameTypes    ), (name_, _paramNameTypes    )]]
               _annotatedTree =
                   CreateFunction ann_ _langIannotatedTree name_ _paramsIannotatedTree _rettypeIannotatedTree bodyQuote_ _bodyIannotatedTree _volIannotatedTree
               _lhsOenv =
@@ -4482,8 +4500,6 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
                   _langIenv
               _rettypeOenv =
                   _paramsIenv
-              _bodyOenv =
-                  _rettypeIenv
               _volOenv =
                   _bodyIenv
               ( _langIannotatedTree,_langIenv) =
@@ -5116,21 +5132,41 @@ sem_Statement_Raise ann_ level_ message_ args_  =
                   (args_ _argsOenv )
           in  ( _lhsOannotatedTree,_lhsOenv,_lhsOenvUpdates)))
 sem_Statement_Return :: Annotation ->
-                        (Maybe Expression) ->
+                        T_MaybeExpression  ->
                         T_Statement 
 sem_Statement_Return ann_ value_  =
     (\ _lhsIenv ->
-         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
-              _lhsOannotatedTree :: Statement
+         (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _lhsOenv :: Environment
+              _valueOenv :: Environment
+              _valueIannotatedTree :: MaybeExpression
+              _valueIenv :: Environment
+              _valueIexprType :: (Maybe Type)
+              _lhsOannotatedTree =
+                  annTypesAndErrors _backTree
+                    (errorToTypeFail _tpe    )
+                    (getErrors _tpe    )
+                    $ Just (map StatementInfoA _statementInfo     ++
+                            [EnvUpdates _envUpdates    ])
               _lhsOenvUpdates =
+                  _envUpdates
+              _tpe =
+                  checkTypes [fromMaybe typeBool _valueIexprType] $ Right $ Pseudo Void
+              _backTree =
+                  Return ann_ _valueIannotatedTree
+              _envUpdates =
+                  []
+              _statementInfo =
                   []
               _annotatedTree =
-                  Return ann_ value_
-              _lhsOannotatedTree =
-                  _annotatedTree
+                  Return ann_ _valueIannotatedTree
               _lhsOenv =
+                  _valueIenv
+              _valueOenv =
                   _lhsIenv
+              ( _valueIannotatedTree,_valueIenv,_valueIexprType) =
+                  (value_ _valueOenv )
           in  ( _lhsOannotatedTree,_lhsOenv,_lhsOenvUpdates)))
 sem_Statement_ReturnNext :: Annotation ->
                             T_Expression  ->
