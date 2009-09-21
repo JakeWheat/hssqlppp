@@ -30,6 +30,7 @@ cabal install uuagc
 -}
 MODULE {Database.HsSqlPpp.TypeChecking.AstInternal}
 {
+    -- {-# LANGUAGE DeriveDataTypeable #-}
     --from the ag files:
     --ast nodes
     Statement (..)
@@ -697,99 +698,6 @@ instance Annotated Statement where
         CaseStatement _ val cases els -> CaseStatement a val cases els
         If _ cases els -> If a cases els
 
-  changeAnnRecurse f st =
-    case st of
-        SelectStatement a ex -> SelectStatement (f a) (rec ex)
-        Insert a tbl cols ins ret -> Insert (f a) tbl cols ins ret
-        Update a tbl as whr ret -> Update (f a) tbl as whr ret
-        Delete a tbl whr ret -> Delete (f a) tbl whr ret
-        Copy a tbl cols src -> Copy (f a) tbl cols src
-        CopyData a i -> CopyData (f a) i
-        Truncate a tbls ri cs -> Truncate (f a) tbls ri cs
-        CreateTable a name atts cons -> CreateTable (f a) name atts cons
-        CreateTableAs a name ex -> CreateTableAs (f a) name (rec ex)
-        CreateView a name expr -> CreateView (f a) name (rec expr)
-        CreateType a name atts -> CreateType (f a) name atts
-        CreateFunction a lang name params rettype bodyQuote body vol ->
-            CreateFunction (f a) lang name params rettype bodyQuote (rec body) vol
-        CreateDomain a name typ check -> CreateDomain (f a) name typ check
-        DropFunction a i s cs -> DropFunction (f a) i s cs
-        DropSomething a dt i nms cs -> DropSomething (f a) dt i nms cs
-        Assignment a tgt val -> Assignment (f a) tgt val
-        Return a v -> Return (f a) (fmap rec v)
-        ReturnNext a ex -> ReturnNext (f a) (rec ex)
-        ReturnQuery a sel -> ReturnQuery (f a) (rec sel)
-        Raise a l m args -> Raise (f a) l m args
-        NullStatement a -> NullStatement (f a)
-        Perform a expr -> Perform (f a) expr
-        Execute a expr -> Execute (f a) expr
-        ExecuteInto a expr tgts -> ExecuteInto (f a) expr tgts
-        ForSelectStatement a var sel sts -> ForSelectStatement (f a) var (rec sel) $ cars f sts
-        ForIntegerStatement a var from to sts -> ForIntegerStatement (f a) var from to $ cars f sts
-        WhileStatement a expr sts -> WhileStatement (f a) expr $ cars f sts
-        ContinueStatement a -> ContinueStatement (f a)
-        CaseStatement a val cases els -> CaseStatement (f a) val doCases $ cars f els
-            where
-              doCases = map (second (cars f)) cases
-        If a cases els -> If (f a) doCases $ cars f els
-            where
-              doCases = map (second (cars f)) cases
-    where
-      rec :: Annotated a => a -> a
-      rec = changeAnnRecurse f
-    --where
-     -- doCases cs = map (\(ex,sts) -> (ex,cars f sts)) cs
-  getAnnChildren st =
-    case st of
-        SelectStatement _ ex -> gacse ex
-        Insert _ _ _ ins _ -> gacse ins
-        Update _ _ as whr _ -> mp (gacscl as) ++ gacme whr
-        Delete _ _ whr _ -> gacme whr
-        --Copy _ _ _ _ -> []
-        --CopyData _ _ -> []
-        --Truncate _ _ _ _ -> []
-        --CreateTable _ _ _ _ -> []
-        --CreateTableAs _ _ _ -> []
-        CreateView _ _ expr -> gacse expr
-        --CreateType _ _ _ -> []
-        --CreateFunction a lang name params rettype bodyQuote body vol ->
-        CreateFunction _ _    _    _      _       _         body _   ->
-            [pack body]
-        --CreateDomain _ _ _ _ -> []
-        --DropFunction _ _ _ _ -> []
-        --DropSomething _ _ _ _ _ -> []
-        --Assignment _ _ _ -> []
-        Return _ v -> case v of
-                        Nothing -> []
-                        Just v1 -> [pack v1]
-        --ReturnNext a ex -> ReturnNext (f a) ex
-        --ReturnQuery a sel -> ReturnQuery (f a) sel
-        --Raise a l m args -> Raise (f a) l m args
-        --NullStatement a -> NullStatement (f a)
-        --Perform a expr -> Perform (f a) expr
-        --Execute a expr -> Execute (f a) expr
-        --ExecuteInto a expr tgts -> ExecuteInto (f a) expr tgts
-        ForSelectStatement _ _ sel sts -> gacse sel ++ mp sts
-        ForIntegerStatement _ _ _ _ sts -> mp sts
-        WhileStatement _ expr sts -> pack expr : mp sts
-        --ContinueStatement a -> ContinueStatement (f a)
-        CaseStatement _ val cases els -> pack val : mp (doCases cases) ++ mp els
-        If _ cases els -> mp $ doCases cases ++ els
-        _ -> []
-    where
-      doCases = concatMap snd
-      --gacse :: Annotated a => SelectExpression -> [a]
-      gacse se = [pack se]
-      gacscl :: Annotated a => SetClauseList -> [a]
-      gacscl _ = []
-      --gacme :: Annotated a => Maybe Expression -> [a]
-      gacme e = case e of
-                  Nothing -> []
-                  Just e1 -> [pack e1]
-      mp = map pack
-
-cars = map . changeAnnRecurse
-
 instance Annotated Expression where
   ann a =
       case a of
@@ -826,42 +734,6 @@ instance Annotated Expression where
       WindowFn _ fn par ord dir -> WindowFn a fn par ord dir
       ScalarSubQuery _ sel -> ScalarSubQuery a sel
 
-  changeAnnRecurse f ex =
-    case ex of
-      IntegerLit a i -> IntegerLit (f a) i
-      FloatLit a d -> FloatLit (f a) d
-      StringLit a q v -> StringLit (f a) q v
-      NullLit a -> NullLit a
-      BooleanLit a b -> BooleanLit (f a) b
-      PositionalArg a p -> PositionalArg (f a) p
-      Cast a expr tn -> Cast (f a) (changeAnnRecurse f expr) tn
-      Identifier a i -> Identifier (f a) i
-      Case a cases els -> Case (f a) cases els
-      CaseSimple a val cases els -> CaseSimple (f a) val cases els
-      Exists a sel -> Exists (f a) sel
-      FunCall a funName args -> FunCall (f a) funName args
-      InPredicate a expr i list -> InPredicate (f a) expr i list
-      WindowFn a fn par ord dir -> WindowFn (f a) fn par ord dir
-      ScalarSubQuery a sel -> ScalarSubQuery (f a) sel
-
-  getAnnChildren ex =
-    case ex of
-      Cast _ expr _ -> mp [expr]
-      Case _ cases els -> gacce cases els
-      CaseSimple _ val cases els -> pack val : gacce cases els
-      Exists a sel -> [pack sel]
-      FunCall _ _ args -> mp args
-      --InPredicate a expr i list -> InPredicate (f a) expr i list
-      --WindowFn a fn par ord dir -> WindowFn (f a) fn par ord dir
-      --ScalarSubQuery a sel -> ScalarSubQuery (f a) sel
-      _ -> []
-    where
-      gacme e = case e of
-                  Nothing -> []
-                  Just e1 -> [pack e1]
-      gacce cs el = mp (concatMap (\(el,e) -> el ++ [e]) cs) ++ gacme el
-      mp = map pack
-
 
 instance Annotated FnBody where
   ann a =
@@ -872,14 +744,6 @@ instance Annotated FnBody where
     case ex of
          SqlFnBody _ sts -> SqlFnBody a sts
          PlpgsqlFnBody _ vars sts -> PlpgsqlFnBody a vars sts
-  changeAnnRecurse f ex =
-    case ex of
-         SqlFnBody a sts -> SqlFnBody (f a) $ cars f sts
-         PlpgsqlFnBody a vars sts -> PlpgsqlFnBody (f a) vars $ cars f sts
-  getAnnChildren ex =
-    case ex of
-         SqlFnBody a sts -> map pack sts
-         PlpgsqlFnBody a vars sts -> {- vars -} map pack sts
 
 instance Annotated SelectExpression where
   ann a =
@@ -893,38 +757,6 @@ instance Annotated SelectExpression where
           Select a dis sl tref whr grp hav ord dir lim off
         CombineSelect _ ctype sel1 sel2 -> CombineSelect a ctype sel1 sel2
         Values _ vll -> Values a vll
-  changeAnnRecurse f ex =
-    case ex of
-      Select a dis sl tref whr grp hav ord dir lim off ->
-          Select (f a) dis sl (fmap (changeAnnRecurse f) tref) whr grp hav ord dir lim off
-      CombineSelect a ctype sel1 sel2 -> CombineSelect (f a) ctype
-                                             (changeAnnRecurse f sel1)
-                                             (changeAnnRecurse f sel2)
-      Values a vll -> Values (f a) vll
-    where
-      rec :: Annotated a => a -> a
-      rec = changeAnnRecurse f
-
-
-  getAnnChildren ex =
-    case ex of
-      Select a dis sl tref whr grp hav ord dir lim off ->
-          doSl ++
-          map pack (maybeToList tref) ++
-          doME whr ++ mp grp ++ doME hav ++ mp ord ++ doME lim ++ doME off
-          where
-            doSl = let SelectList x _ = sl
-                       ses = map (\s -> case s of
-                                         SelExp se -> se
-                                         SelectItem se _ -> se) x
-                   in map pack ses
-            doME me = case me of
-                        Nothing -> []
-                        Just e -> [pack e]
-      CombineSelect _ _ sel1 sel2 -> [pack sel1,pack sel2]
-      Values _ vll -> mp $ concat vll
-    where
-      mp = map pack
 
 instance Annotated TableRef where
   ann a =
@@ -943,29 +775,6 @@ instance Annotated TableRef where
         SubTref _ sel alias -> SubTref a sel alias
         TrefFun _ fn -> TrefFun a fn
         TrefFunAlias _ fn alias -> TrefFunAlias a fn alias
-  changeAnnRecurse f ex =
-    case ex of
-        Tref a tbl -> Tref (f a) tbl
-        TrefAlias a tbl alias -> TrefAlias (f a) tbl alias
-        JoinedTref a tbl nat joinType tbl1 onExpr ->
-          JoinedTref (f a)
-                     (changeAnnRecurse f tbl)
-                     nat
-                     joinType
-                     (changeAnnRecurse f tbl1)
-                     onExpr
-        SubTref a sel alias -> SubTref (f a) (changeAnnRecurse f sel) alias
-        TrefFun a fn -> TrefFun (f a) (changeAnnRecurse f fn)
-        TrefFunAlias a fn alias -> TrefFunAlias (f a) (changeAnnRecurse f fn) alias
-  getAnnChildren ex =
-    case ex of
-        Tref a tbl -> []
-        TrefAlias a tbl alias -> []
-        JoinedTref _ tbl _ _ tbl1 onExpr ->
-          getAnnChildren tbl ++ getAnnChildren tbl1
-        SubTref a sel alias -> getAnnChildren sel
-        TrefFun a fn -> getAnnChildren fn
-        TrefFunAlias a fn alias -> getAnnChildren fn
 }
 
 {-

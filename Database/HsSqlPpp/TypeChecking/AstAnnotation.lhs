@@ -16,7 +16,7 @@ grammar code and aren't exposed.
 >      Annotated(..)
 >     ,Annotation
 >     ,AnnotationElement(..)
->     ,stripAnnotations
+>     --,stripAnnotations
 >     ,getTopLevelTypes
 >     ,getTopLevelInfos
 >     ,getTopLevelEnvUpdates
@@ -49,9 +49,7 @@ grammar code and aren't exposed.
 >     ann :: a -> Annotation
 >     setAnn :: a -> Annotation -> a
 >     changeAnn :: a -> (Annotation -> Annotation) -> a
->     changeAnn a = setAnn a . ($ ann a)
->     changeAnnRecurse :: (Annotation -> Annotation) -> a -> a
->     getAnnChildren :: a -> [Annotatable]
+>     changeAnn a f = setAnn a (f $ ann a)
 
 > data Annotatable = forall a . (Annotated a, Show a) => MkAnnotatable a
 
@@ -61,25 +59,6 @@ grammar code and aren't exposed.
 
 > pack :: (Annotated a, Show a) => a -> Annotatable
 > pack = MkAnnotatable
-
-hack job, often not interested in the source positions when testing
-the asts produced, so this function will reset all the source
-positions to empty ("", 0, 0) so we can compare them for equality, etc.
-without having to get the positions correct.
-
-> -- | strip all the annotations from a tree. E.g. can be used to compare
-> -- two asts are the same, ignoring any source position annotation differences.
-
-> stripAnnotations :: Annotated a => a -> a
-> stripAnnotations = changeAnnRecurse (const [])
-
- > stripAnnotations :: Statement -> Statement
- > stripAnnotations = everywhere (mkT (stripAnn))
-
- > stripAnn :: [Annotation] -> [Annotation]
- > incS (S s) = S (s * (1+k))
-
-
 
 
 > -- | run through the ast, and pull the type annotation from each

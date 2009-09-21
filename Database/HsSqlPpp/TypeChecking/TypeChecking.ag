@@ -568,7 +568,7 @@ SEM SelectItem
 
 {
 fixStar ex =
-  changeAnnRecurse fs ex
+ changeAnn ex fs
   where
     fs a = if TypeAnnotation TypeCheckFailed `elem` a
               && any (\an ->

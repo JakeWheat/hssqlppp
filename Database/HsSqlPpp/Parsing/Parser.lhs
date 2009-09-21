@@ -161,8 +161,8 @@ parse a statement
 >   p <- toSp <$> getPosition
 >   s <- getState
 >   case s of
->     [] -> return [p]
->     x:_ -> return [adjustPos x p]
+>     [] -> return $ [p]
+>     x:_ -> return $ [adjustPos x p]
 >   where
 >     toSp sp = A.SourcePos (sourceName sp) (sourceLine sp) (sourceColumn sp)
 >     adjustPos (fn,pl,_) (A.SourcePos _ l c) = A.SourcePos fn (pl+l-1) c
