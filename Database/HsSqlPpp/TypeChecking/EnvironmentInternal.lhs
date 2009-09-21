@@ -348,7 +348,7 @@ key references in the pg catalog.
 >               then Right $ (snd . head) types
 >               else do
 >                 --see if this identifier is in the join list
->                 errorWhen (not $ iden `notElem` envJoinIdentifiers env)
+>                 errorWhen (iden `notElem` envJoinIdentifiers env)
 >                           [AmbiguousIdentifier iden]
 >                 return $ (snd . head) types
 >     else case lookup correlationName (envIdentifierTypes env) of
