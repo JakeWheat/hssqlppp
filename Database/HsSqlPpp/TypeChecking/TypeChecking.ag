@@ -808,7 +808,7 @@ SEM Statement
         loc.tpe = Right @loc.selType
         loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
         loc.statementInfo = RelvarInfo (@name, TableComposite, @loc.selType, UnnamedCompositeType [])
-        loc.envUpdates = []
+        loc.envUpdates = [EnvCreateTable @name (unwrapComposite @loc.selType) []]
 {-
 ================================================================================
 
@@ -821,7 +821,8 @@ SEM Statement
         loc.tpe = checkTypes [getTypeAnnotation @expr.annotatedTree] $ Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
         loc.statementInfo = RelvarInfo (@name, ViewComposite, getTypeAnnotation @expr.annotatedTree, UnnamedCompositeType [])
-        loc.envUpdates = []
+        loc.envUpdates = [EnvCreateView @name ((unwrapComposite . unwrapSetOf) $ getTypeAnnotation @expr.annotatedTree)]
+
 
 
 {-
@@ -864,7 +865,7 @@ SEM Statement
               doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateType @ann @name @atts.annotatedTree
         loc.statementInfo = RelvarInfo (@name, Composite, @loc.compositeType, UnnamedCompositeType [])
-        loc.envUpdates = []
+        loc.envUpdates = [EnvCreateComposite @name (unwrapComposite @loc.compositeType)]
 
 {-
 
@@ -943,7 +944,8 @@ SEM Statement
                                       @body.annotatedTree
                                       @vol.annotatedTree
         loc.statementInfo = CreateFunctionInfo (@name,@loc.paramTypes,@loc.retTypeType)
-        loc.envUpdates = []
+        loc.envUpdates = [EnvCreateFunction FunName @name @loc.paramTypes @loc.retTypeType]
+
 
 {-
 

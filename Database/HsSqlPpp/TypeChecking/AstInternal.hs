@@ -3956,7 +3956,7 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
               _statementInfo =
                   CreateFunctionInfo (name_,_paramTypes    ,_retTypeType    )
               _envUpdates =
-                  []
+                  [EnvCreateFunction FunName name_ _paramTypes     _retTypeType    ]
               _annotatedTree =
                   CreateFunction ann_ _langIannotatedTree name_ _paramsIannotatedTree _rettypeIannotatedTree bodyQuote_ _bodyIannotatedTree _volIannotatedTree
               _langOenv =
@@ -4042,7 +4042,7 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               _statementInfo =
                   RelvarInfo (name_, TableComposite, _selType    , UnnamedCompositeType [])
               _envUpdates =
-                  []
+                  [EnvCreateTable name_ (unwrapComposite _selType    ) []]
               _annotatedTree =
                   CreateTableAs ann_ name_ _exprIannotatedTree
               _lhsOannotatedTree =
@@ -4081,7 +4081,7 @@ sem_Statement_CreateType ann_ name_ atts_  =
               _statementInfo =
                   RelvarInfo (name_, Composite, _compositeType    , UnnamedCompositeType [])
               _envUpdates =
-                  []
+                  [EnvCreateComposite name_ (unwrapComposite _compositeType    )]
               _annotatedTree =
                   CreateType ann_ name_ _attsIannotatedTree
               _attsOenv =
@@ -4111,7 +4111,7 @@ sem_Statement_CreateView ann_ name_ expr_  =
               _statementInfo =
                   RelvarInfo (name_, ViewComposite, getTypeAnnotation _exprIannotatedTree, UnnamedCompositeType [])
               _envUpdates =
-                  []
+                  [EnvCreateView name_ ((unwrapComposite . unwrapSetOf) $ getTypeAnnotation _exprIannotatedTree)]
               _annotatedTree =
                   CreateView ann_ name_ _exprIannotatedTree
               _exprOenv =

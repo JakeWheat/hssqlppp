@@ -583,7 +583,7 @@ insert
 
 ================================================================================
 
->    ,testGroup "createTable"
+>    ,testGroup "creates"
 >     (mapStatementInfoEu [
 >       t "create table t1 (\n\
 >         \   a int,\n\
@@ -594,9 +594,40 @@ insert
 >                              ,UnnamedCompositeType [("a",ScalarType "int4")
 >                                                    ,("b",ScalarType "text")]
 >                              ,UnnamedCompositeType [])])
->                 [[EnvCreateTable "t1" [("a",ScalarType "int4")
+>         [[EnvCreateTable "t1" [("a",ScalarType "int4")
+>                               ,("b",ScalarType "text")]
+>           []]]
+>      ,t "create type t1 as (\n\
+>         \   a int,\n\
+>         \   b text\n\
+>         \);"
+>         (Right [RelvarInfo ("t1"
+>                              ,Composite
+>                              ,UnnamedCompositeType [("a",ScalarType "int4")
 >                                                    ,("b",ScalarType "text")]
->                                                  []]]
+>                              ,UnnamedCompositeType [])])
+>         [[EnvCreateComposite "t1" [("a",ScalarType "int4")
+>                                   ,("b",ScalarType "text")]]]
+
+>      ,t "create view v1 as select * from pg_attrdef;"
+>         (Right [RelvarInfo ("v1"
+>                            ,ViewComposite
+>                            ,SetOfType $ UnnamedCompositeType [("adrelid",ScalarType "oid")
+>                                                  ,("adnum",ScalarType "int2")
+>                                                  ,("adbin",ScalarType "text")
+>                                                  ,("adsrc",ScalarType "text")]
+>                            ,UnnamedCompositeType [])])
+>         [[EnvCreateView "v1" [("adrelid",ScalarType "oid")
+>                              ,("adnum",ScalarType "int2")
+>                              ,("adbin",ScalarType "text")
+>                              ,("adsrc",ScalarType "text")]]]
+
+>      ,t "create function t1(text) returns text as $$\n\
+>         \null;\n\
+>         \$$ language sql stable;"
+>         (Right [CreateFunctionInfo ("t1",[ScalarType "text"],ScalarType "text")])
+>         [[EnvCreateFunction FunName "t1" [ScalarType "text"]
+>                             (ScalarType "text")]]
 
 >      ])
 
