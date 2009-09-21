@@ -306,8 +306,8 @@ SEM Statement
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (errorToTypeFail @loc.tpe)
                               (getErrors @loc.tpe)
-                              $ Just [StatementInfoA @loc.statementInfo
-                                     ,EnvUpdates @loc.envUpdates]
+                              $ Just (map StatementInfoA @loc.statementInfo ++
+                                      [EnvUpdates @loc.envUpdates])
 {-
 
 ================================================================================
@@ -321,7 +321,7 @@ SEM Statement
 SEM Statement
     | SelectStatement
         loc.tpe = checkTypes [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
-        loc.statementInfo = SelectInfo $ getTypeAnnotation @ex.annotatedTree
+        loc.statementInfo = [SelectInfo $ getTypeAnnotation @ex.annotatedTree]
         loc.backTree = SelectStatement @ann @ex.annotatedTree
         loc.envUpdates = []
 
@@ -650,7 +650,7 @@ SEM Statement
               @loc.columnStuff
               Right $ Pseudo Void
         loc.statementInfo =
-            InsertInfo @table $ errorToTypeFailF UnnamedCompositeType @loc.columnStuff
+            [InsertInfo @table $ errorToTypeFailF UnnamedCompositeType @loc.columnStuff]
         loc.backTree = Insert @ann @table @targetCols.annotatedTree
                               @insData.annotatedTree @returning
         loc.envUpdates = []
@@ -690,9 +690,9 @@ SEM Statement
         loc.columnsConsistent =
             checkColumnConsistency @lhs.env @table (map fst @assigns.pairs) @assigns.pairs
         loc.statementInfo =
-            UpdateInfo @table $ flip errorToTypeFailF @loc.columnsConsistent $
+            [UpdateInfo @table $ flip errorToTypeFailF @loc.columnsConsistent $
                                      \c -> let colNames = map fst @assigns.pairs
-                                           in UnnamedCompositeType $ map (\t -> (t,getType c t)) colNames
+                                           in UnnamedCompositeType $ map (\t -> (t,getType c t)) colNames]
 
             where
               getType cols t = fromJust $ lookup t cols
@@ -753,7 +753,7 @@ SEM Statement
               Nothing -> do
                 whereType <- checkExpressionBool @whr.annotatedTree
                 return $ Pseudo Void
-        loc.statementInfo = DeleteInfo @table
+        loc.statementInfo = [DeleteInfo @table]
         loc.backTree = Delete @ann @table @whr.annotatedTree @returning
         loc.envUpdates = []
 
@@ -799,7 +799,7 @@ SEM Statement
             where
               doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateTable @ann @name @atts.annotatedTree @cons.annotatedTree
-        loc.statementInfo = RelvarInfo (@name, TableComposite, @loc.compositeType, UnnamedCompositeType [])
+        loc.statementInfo = []
         loc.envUpdates = [EnvCreateTable @name (unwrapComposite @loc.compositeType) []]
 
 SEM Statement
@@ -807,7 +807,7 @@ SEM Statement
         loc.selType = getTypeAnnotation @expr.annotatedTree
         loc.tpe = Right @loc.selType
         loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
-        loc.statementInfo = RelvarInfo (@name, TableComposite, @loc.selType, UnnamedCompositeType [])
+        loc.statementInfo = []
         loc.envUpdates = [EnvCreateTable @name (unwrapComposite @loc.selType) []]
 {-
 ================================================================================
@@ -820,7 +820,7 @@ SEM Statement
     | CreateView
         loc.tpe = checkTypes [getTypeAnnotation @expr.annotatedTree] $ Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
-        loc.statementInfo = RelvarInfo (@name, ViewComposite, getTypeAnnotation @expr.annotatedTree, UnnamedCompositeType [])
+        loc.statementInfo = []
         loc.envUpdates = [EnvCreateView @name ((unwrapComposite . unwrapSetOf) $ getTypeAnnotation @expr.annotatedTree)]
 
 
@@ -864,7 +864,7 @@ SEM Statement
             where
               doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateType @ann @name @atts.annotatedTree
-        loc.statementInfo = RelvarInfo (@name, Composite, @loc.compositeType, UnnamedCompositeType [])
+        loc.statementInfo = []
         loc.envUpdates = [EnvCreateComposite @name (unwrapComposite @loc.compositeType)]
 
 {-
@@ -882,8 +882,8 @@ SEM Statement
                               Right x -> x
         loc.tpe = checkTypes [@loc.namedTypeType] $ Right $ Pseudo Void
         loc.backTree = CreateDomain @ann @name @typ.annotatedTree @check
-        loc.statementInfo = CreateDomainInfo @name @loc.namedTypeType
-        loc.envUpdates = []
+        loc.statementInfo = []
+        loc.envUpdates = [EnvCreateDomain (ScalarType @name) @loc.namedTypeType]
 {-
 ================================================================================
 
@@ -943,7 +943,7 @@ SEM Statement
                                       @bodyQuote
                                       @body.annotatedTree
                                       @vol.annotatedTree
-        loc.statementInfo = CreateFunctionInfo (@name,@loc.paramTypes,@loc.retTypeType)
+        loc.statementInfo = []
         loc.envUpdates = [EnvCreateFunction FunName @name @loc.paramTypes @loc.retTypeType]
 
 

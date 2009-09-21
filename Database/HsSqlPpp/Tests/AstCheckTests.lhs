@@ -275,37 +275,37 @@ todo:
 
 >    ,testGroup "simple selects"
 >     (mapStatementInfo [
->       p "select 1;" $ Right [SelectInfo $ SetOfType $
+>       p "select 1;" $ Right [Just $ SelectInfo $ SetOfType $
 >                              UnnamedCompositeType [("?column?", typeInt)]]
 >      ,p "select 1 as a;" $
->         Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)]]
+>         Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)]]
 >      ,p "select 1,2;" $
->         Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("?column?", typeInt)
+>         Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("?column?", typeInt)
 >                                                 ,("?column?", typeInt)]]
 >      ,p "select 1 as a, 2 as b;" $
->         Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                                 ,("b", typeInt)]]
 >      ,p "select 1+2 as a, 'a' || 'b';" $
->         Right [SelectInfo $ SetOfType $
+>         Right [Just $ SelectInfo $ SetOfType $
 >                UnnamedCompositeType [("a", typeInt)
 >                                     ,("?column?", ScalarType "text")]]
->      ,p "values (1,2);" $ Right [SelectInfo $ SetOfType $
+>      ,p "values (1,2);" $ Right [Just $ SelectInfo $ SetOfType $
 >                          UnnamedCompositeType
 >                          [("column1", typeInt)
 >                          ,("column2", typeInt)]]
->      ,p "values (1,2),('3', '4');" $ Right [SelectInfo $ SetOfType $
+>      ,p "values (1,2),('3', '4');" $ Right [Just $ SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", typeInt)
 >                                      ,("column2", typeInt)]]
 >      ,p "values (1,2),('a', true);" $ Left [IncompatibleTypeSet [typeInt
 >                                                                 ,typeBool]]
->      ,p "values ('3', '4'),(1,2);" $ Right [SelectInfo $ SetOfType $
+>      ,p "values ('3', '4'),(1,2);" $ Right [Just $ SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", typeInt)
 >                                      ,("column2", typeInt)]]
 >      ,p "values ('a', true),(1,2);" $ Left [IncompatibleTypeSet [typeBool
 >                                                                 ,typeInt]]
->      ,p "values ('a'::text, '2'::int2),('1','2');" $ Right [SelectInfo $ SetOfType $
+>      ,p "values ('a'::text, '2'::int2),('1','2');" $ Right [Just $ SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("column1", ScalarType "text")
 >                                      ,("column2", typeSmallInt)]]
@@ -314,25 +314,25 @@ todo:
 
 >    ,testGroup "simple combine selects"
 >     (mapStatementInfo [
->      p "select 1,2  union select '3', '4';" $ Right [SelectInfo $ SetOfType $
+>      p "select 1,2  union select '3', '4';" $ Right [Just $ SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("?column?", typeInt)
 >                                      ,("?column?", typeInt)]]
 >      ,p "select 1,2 intersect select 'a', true;" $ Left [IncompatibleTypeSet [typeInt
 >                                                         ,typeBool]]
->      ,p "select '3', '4' except select 1,2;" $ Right [SelectInfo $ SetOfType $
+>      ,p "select '3', '4' except select 1,2;" $ Right [Just $ SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("?column?", typeInt)
 >                                      ,("?column?", typeInt)]]
 >      ,p "select 'a', true union select 1,2;"
 >                                      $ Left [IncompatibleTypeSet [typeBool
 >                                                         ,typeInt]]
->      ,p "select 'a'::text, '2'::int2 intersect select '1','2';" $ Right [SelectInfo $ SetOfType $
+>      ,p "select 'a'::text, '2'::int2 intersect select '1','2';" $ Right [Just $ SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("text", ScalarType "text")
 >                                      ,("int2", typeSmallInt)]]
 >      ,p "select 1,2,3 except select 1,2;" $ Left [ValuesListsMustBeSameLength]
->      ,p "select '3' as a, '4' as b except select 1,2;" $ Right [SelectInfo $ SetOfType $
+>      ,p "select '3' as a, '4' as b except select 1,2;" $ Right [Just $ SelectInfo $ SetOfType $
 >                                      UnnamedCompositeType
 >                                      [("a", typeInt)
 >                                      ,("b", typeInt)]]
@@ -342,30 +342,30 @@ todo:
 >    ,testGroup "simple selects from"
 >     (mapStatementInfo [
 >       p "select a from (select 1 as a, 2 as b) x;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)]]
 >      ,p "select b from (select 1 as a, 2 as b) x;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("b", typeInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("b", typeInt)]]
 >      ,p "select c from (select 1 as a, 2 as b) x;"
 >         $ Left [UnrecognisedIdentifier "c"]
 >      ,p "select typlen from pg_type;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("typlen", typeSmallInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("typlen", typeSmallInt)]]
 >      ,p "select oid from pg_type;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
 >      ,p "select p.oid from pg_type p;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("oid", ScalarType "oid")]]
 >      ,p "select typlen from nope;"
 >         $ Left [UnrecognisedIdentifier "typlen",UnrecognisedRelation "nope"]
 >      ,p "select generate_series from generate_series(1,7);"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
 
 check aliasing
 
 >      ,p "select generate_series.generate_series from generate_series(1,7);"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("generate_series", typeInt)]]
 >      ,p "select g from generate_series(1,7) g;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("g", typeInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("g", typeInt)]]
 >      ,p "select g.g from generate_series(1,7) g;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("g", typeInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("g", typeInt)]]
 >      ,p "select generate_series.g from generate_series(1,7) g;"
 >         $ Left [UnrecognisedCorrelationName "generate_series"]
 >      ,p "select g.generate_series from generate_series(1,7) g;"
@@ -373,13 +373,13 @@ check aliasing
 
 
 >      ,p "select * from pg_attrdef;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType
 >          [("adrelid",ScalarType "oid")
 >          ,("adnum",ScalarType "int2")
 >          ,("adbin",ScalarType "text")
 >          ,("adsrc",ScalarType "text")]]
 >      ,p "select abs from abs(3);"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("abs", typeInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("abs", typeInt)]]
 >         --todo: these are both valid,
 >         --the second one means select 3+generate_series from generate_series(1,7)
 >         --  select generate_series(1,7);
@@ -395,13 +395,13 @@ check aliasing
 >                                             ,("b", typeInt)
 >                                             ,("c", typeInt)]
 >              ,EnvCreateFunction FunName "testfunc"  [] (SetOfType $ CompositeType "testType")])
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType
 >                  [("a",ScalarType "text"),("b",ScalarType "int4")]]
 
 >      ,t "select testfunc();"
 >         (makeEnv
 >              [EnvCreateFunction FunName "testfunc"  [] $ Pseudo Void])
->         $ Right [SelectInfo $ Pseudo Void]
+>         $ Right [Just $ SelectInfo $ Pseudo Void]
 
 >      ])
 
@@ -409,30 +409,30 @@ check aliasing
 >     (mapStatementInfo [
 >       p "select * from (select 1 as a, 2 as b) a\n\
 >         \  cross join (select true as c, 4.5 as d) b;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("c", typeBool)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select true as c, 4.5 as d) b on true;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("c", typeBool)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select 1 as a, 4.5 as d) b using(a);"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \ natural inner join (select 1 as a, 4.5 as d) b;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
 >         --check the attribute order
 >      ,p "select * from (select 2 as b, 1 as a) a\n\
 >         \ natural inner join (select 4.5 as d, 1 as a) b;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
@@ -446,7 +446,7 @@ check aliasing
 >       p "select a.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \cross join (select 3 as c, 4 as d) b;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)]]
 >      ,p "select nothere.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
@@ -455,26 +455,26 @@ check aliasing
 >      ,p "select a.b,b.c from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \natural inner join (select 3 as a, 4 as c) b;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("b", typeInt)
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("b", typeInt)
 >                                           ,("c", typeInt)]]
 >      ,p "select a.a,b.a from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \natural inner join (select 3 as a, 4 as c) b;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("a", typeInt)]]
 
 >      ,p "select pg_attrdef.adsrc from pg_attrdef;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
 
 >      ,p "select a.adsrc from pg_attrdef a;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("adsrc", ScalarType "text")]]
 
 >      ,p "select pg_attrdef.adsrc from pg_attrdef a;"
 >         $ Left [UnrecognisedCorrelationName "pg_attrdef"]
 
 >      ,p "select a from (select 2 as b, 1 as a) a\n\
 >         \natural inner join (select 4.5 as d, 1 as a) b;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)]]
 
 select g.fn from fn() g
 
@@ -484,19 +484,19 @@ select g.fn from fn() g
 >    ,testGroup "aggregates"
 >     (mapStatementInfo [
 >        p "select max(prorettype::int) from pg_proc;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("max", typeInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("max", typeInt)]]
 >      ])
 
 >    ,testGroup "simple wheres"
 >     (mapStatementInfo [
 >       p "select 1 from pg_type where true;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("?column?", typeInt)]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("?column?", typeInt)]]
 >      ,p "select 1 from pg_type where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ,p "select typname from pg_type where typbyval;"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
 >      ,p "select typname from pg_type where typtype = 'b';"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("typname", ScalarType "name")]]
 >      ,p "select typname from pg_type where what = 'b';"
 >         $ Left [UnrecognisedIdentifier "what"]
 >      ])
@@ -509,12 +509,12 @@ select g.fn from fn() g
 >         \           (select oid\n\
 >         \              from pg_namespace\n\
 >         \              where (nspname = 'public'))) and (relkind = 'r'));"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("relvar_name",ScalarType "name")]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("relvar_name",ScalarType "name")]]
 >      ,p "select relname from pg_class where relkind in ('r', 'v');"
->         $ Right [SelectInfo $ SetOfType $ UnnamedCompositeType [("relname",ScalarType "name")]]
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("relname",ScalarType "name")]]
 >      ,p "select * from generate_series(1,7) g\n\
 >         \where g not in (select * from generate_series(3,5));"
->         $ Right [SelectInfo $ SetOfType (UnnamedCompositeType [("g",ScalarType "int4")])]
+>         $ Right [Just $ SelectInfo $ SetOfType (UnnamedCompositeType [("g",ScalarType "int4")])]
 >      ])
 
 insert
@@ -525,14 +525,14 @@ insert
 >         $ Left [UnrecognisedRelation "nope",UnrecognisedIdentifier "c",UnrecognisedIdentifier "d"]
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
->         $ Right [InsertInfo "pg_attrdef"
+>         $ Right [Just $ InsertInfo "pg_attrdef"
 >          (UnnamedCompositeType [("adrelid",ScalarType "oid")
 >                                 ,("adnum",ScalarType "int2")
 >                                 ,("adbin",ScalarType "text")
 >                                 ,("adsrc",ScalarType "text")])]
 >      ,p "insert into pg_attrdef\n\
 >         \values (1,2, 'a', 'b');"
->         $ Right [InsertInfo "pg_attrdef"
+>         $ Right [Just $ InsertInfo "pg_attrdef"
 >          (UnnamedCompositeType [("adrelid",ScalarType "oid")
 >                                 ,("adnum",ScalarType "int2")
 >                                 ,("adbin",ScalarType "text")
@@ -562,12 +562,12 @@ insert
 >      ,p "update pg_attrdef set (shmadrelid,adsrc) = ('a','b');"
 >         $ Left [UnrecognisedIdentifier "shmadrelid"]
 >      ,p "update pg_attrdef set adsrc='';"
->         $ Right [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
 >      ,p "update pg_attrdef set adsrc='' where 1=2;"
->         $ Right [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
 >       -- TODO: actually, pg doesn't support this so need to generate error instead
 >      ,p "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
->         $ Right [UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adbin",ScalarType "text"),("adsrc",ScalarType "text")])]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adbin",ScalarType "text"),("adsrc",ScalarType "text")])]
 >      ])
 
 >    ,testGroup "delete"
@@ -575,7 +575,7 @@ insert
 >       p "delete from nope;"
 >         $ Left [UnrecognisedRelation "nope"]
 >      ,p "delete from pg_attrdef where 1=2;"
->         $ Right [DeleteInfo "pg_attrdef"]
+>         $ Right [Just $ DeleteInfo "pg_attrdef"]
 >      ,p "delete from pg_attrdef where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ])
@@ -589,11 +589,7 @@ insert
 >         \   a int,\n\
 >         \   b text\n\
 >         \);"
->         (Right [RelvarInfo ("t1"
->                              ,TableComposite
->                              ,UnnamedCompositeType [("a",ScalarType "int4")
->                                                    ,("b",ScalarType "text")]
->                              ,UnnamedCompositeType [])])
+>         (Right [Nothing])
 >         [[EnvCreateTable "t1" [("a",ScalarType "int4")
 >                               ,("b",ScalarType "text")]
 >           []]]
@@ -601,22 +597,17 @@ insert
 >         \   a int,\n\
 >         \   b text\n\
 >         \);"
->         (Right [RelvarInfo ("t1"
->                              ,Composite
->                              ,UnnamedCompositeType [("a",ScalarType "int4")
->                                                    ,("b",ScalarType "text")]
->                              ,UnnamedCompositeType [])])
+>         (Right [Nothing])
 >         [[EnvCreateComposite "t1" [("a",ScalarType "int4")
 >                                   ,("b",ScalarType "text")]]]
 
+>      ,t "create domain t1 as text;"
+>         (Right [Nothing])
+>         [[EnvCreateDomain (ScalarType "t1") (ScalarType "text")]]
+
+
 >      ,t "create view v1 as select * from pg_attrdef;"
->         (Right [RelvarInfo ("v1"
->                            ,ViewComposite
->                            ,SetOfType $ UnnamedCompositeType [("adrelid",ScalarType "oid")
->                                                  ,("adnum",ScalarType "int2")
->                                                  ,("adbin",ScalarType "text")
->                                                  ,("adsrc",ScalarType "text")]
->                            ,UnnamedCompositeType [])])
+>         (Right [Nothing])
 >         [[EnvCreateView "v1" [("adrelid",ScalarType "oid")
 >                              ,("adnum",ScalarType "int2")
 >                              ,("adbin",ScalarType "text")
@@ -625,7 +616,7 @@ insert
 >      ,t "create function t1(text) returns text as $$\n\
 >         \null;\n\
 >         \$$ language sql stable;"
->         (Right [CreateFunctionInfo ("t1",[ScalarType "text"],ScalarType "text")])
+>         (Right [Nothing])
 >         [[EnvCreateFunction FunName "t1" [ScalarType "text"]
 >                             (ScalarType "text")]]
 
@@ -664,7 +655,7 @@ insert
 >        (0,_) -> assertFailure "got too many types"
 >        _ -> assertEqual ("typecheck " ++ src) typ $ Left er
 
-> checkStatementInfo :: String -> Either [TypeError] [StatementInfo] -> Test.Framework.Test
+> checkStatementInfo :: String -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
 > checkStatementInfo src sis = testCase ("typecheck " ++ src) $
 >   let ast = case parseSql src of
 >                               Left e -> error $ show e
@@ -677,7 +668,7 @@ insert
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
 
-> checkStatementInfoEnv :: Environment -> String -> Either [TypeError] [StatementInfo] -> Test.Framework.Test
+> checkStatementInfoEnv :: Environment -> String -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
 > checkStatementInfoEnv env src sis = testCase ("typecheck " ++ src) $
 >   let ast = case parseSql src of
 >                               Left e -> error $ show e
@@ -690,7 +681,7 @@ insert
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
 
-> checkStatementInfoEu :: String -> Either [TypeError] [StatementInfo] -> [[EnvironmentUpdate]] -> Test.Framework.Test
+> checkStatementInfoEu :: String -> Either [TypeError] [Maybe StatementInfo] -> [[EnvironmentUpdate]] -> Test.Framework.Test
 > checkStatementInfoEu src sis eu = testCase ("typecheck " ++ src) $
 >   let ast = case parseSql src of
 >                               Left e -> error $ show e

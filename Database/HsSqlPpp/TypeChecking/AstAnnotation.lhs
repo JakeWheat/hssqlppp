@@ -87,14 +87,14 @@ without having to get the positions correct.
 >                                         _ -> gta xs
 >                          gta _ = TypeCheckFailed -- error "couldn't find type annotation"
 
-> getSIAnnotation :: Annotated a => a  -> StatementInfo
+> getSIAnnotation :: Annotated a => a  -> Maybe StatementInfo
 > getSIAnnotation at = let as = ann at
 >                        in gta as
 >                        where
 >                          gta (x:xs) = case x of
->                                         StatementInfoA t -> t
+>                                         StatementInfoA t -> Just t
 >                                         _ -> gta xs
->                          gta _ = error "couldn't find statement info annotation"
+>                          gta _ = Nothing
 
 > getEuAnnotation :: Annotated a => a  -> [EnvironmentUpdate]
 > getEuAnnotation at = let as = ann at
@@ -133,7 +133,7 @@ without having to get the positions correct.
 > -- from the top level items.
 > getTopLevelInfos :: Annotated a =>
 >                     [a] -- ^ the ast to check
->                  -> [StatementInfo]
+>                  -> [Maybe StatementInfo]
 > getTopLevelInfos = map getSIAnnotation
 
 > getTopLevelEnvUpdates :: Annotated a =>
@@ -143,15 +143,10 @@ without having to get the positions correct.
 
 
 > data StatementInfo = DefaultStatementInfo Type
->                    | RelvarInfo CompositeDef
->                    | CreateFunctionInfo FunctionPrototype
 >                    | SelectInfo Type
 >                    | InsertInfo String Type
 >                    | UpdateInfo String Type
 >                    | DeleteInfo String
->                    | CreateDomainInfo String Type
->                    | DropInfo [(String,String)]
->                    | DropFunctionInfo [(String,[Type])]
 >                      deriving (Eq,Show)
 
 todo:
