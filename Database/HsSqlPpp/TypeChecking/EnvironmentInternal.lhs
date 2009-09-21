@@ -75,11 +75,7 @@ modules.
 > -- like \'and\', etc..
 > defaultEnvironment :: Environment
 > defaultEnvironment = emptyEnvironment {
->                       envTypeNames = map (\t -> case t of
->                                                   Pseudo p -> (show p,t)
->                                                   ArrayType (Pseudo p) -> ('_':show p, t)
->                                                   _ -> error $ "error in pseudo type list: " ++ show t)
->                                          pseudoTypes
+>                       envTypeNames = pseudoTypes
 >                      ,envBinaryOperators = keywordOperatorTypes
 >                      ,envFunctions = specialFunctionTypes}
 
@@ -413,19 +409,19 @@ these look like functions, but don't appear in the postgresql catalog.
 >  ,("least", [Pseudo AnyElement], Pseudo AnyElement) --also
 >  ]
 
-> pseudoTypes :: [Type]
+> pseudoTypes :: [(String, Type)]
 > pseudoTypes =
->     [Pseudo Any
->     ,Pseudo AnyArray
->     ,Pseudo AnyElement
->     ,Pseudo AnyEnum
->     ,Pseudo AnyNonArray
->     ,Pseudo Cstring
->     ,Pseudo Record
->     ,Pseudo Trigger
->     ,Pseudo Void
->     ,ArrayType $ Pseudo Cstring
->     ,ArrayType $ Pseudo Record
+>     [("any",Pseudo Any)
+>     ,("anyarray",Pseudo AnyArray)
+>     ,("anyelement",Pseudo AnyElement)
+>     ,("anyenum",Pseudo AnyEnum)
+>     ,("anynonarray",Pseudo AnyNonArray)
+>     ,("cstring",Pseudo Cstring)
+>     ,("record",Pseudo Record)
+>     ,("trigger",Pseudo Trigger)
+>     ,("void",Pseudo Void)
+>     ,("_cstring",ArrayType $ Pseudo Cstring)
+>     ,("_record",ArrayType $ Pseudo Record)
 >     --,Pseudo Internal
 >     --,Pseudo LanguageHandler
 >     --,Pseudo Opaque

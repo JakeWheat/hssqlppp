@@ -591,6 +591,7 @@ makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
 annotateAst :: StatementList -> StatementList
 annotateAst = annotateAstEnv defaultTemplate1Environment
 
+
 -- | As annotateAst but you supply an environment to check
 -- against. See Environment module for how to read an Environment from
 -- an existing database so you can type check against it.

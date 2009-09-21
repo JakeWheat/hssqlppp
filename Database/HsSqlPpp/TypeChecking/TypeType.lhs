@@ -119,6 +119,7 @@ later on down the line.
 >                | ExpectedDomainType Type
 >                | DomainDefNotFound Type
 >                | BadEnvironmentUpdate String
+>                | InternalError String
 >                 --shoved in to humour the Either Monad
 >                | MiscError String
 >                  deriving (Eq,Show)
@@ -250,30 +251,34 @@ utilities for working with Types
 > isArrayType (ArrayType _) = True
 > isArrayType _ = False
 
-> unwrapArray :: Type -> Type
-> unwrapArray (ArrayType t) = t
-> unwrapArray x = error $ "internal error: can't get types from non array " ++ show x
+> unwrapArray :: Type -> Either [TypeError] Type
+> unwrapArray (ArrayType t) = Right t
+> unwrapArray x = Left $ [InternalError $ "can't get types from non array " ++ show x]
 
-> unwrapSetOfComposite :: Type -> Type
-> unwrapSetOfComposite (SetOfType a@(UnnamedCompositeType _)) = a
-> unwrapSetOfComposite x = error $ "internal error: tried to unwrapSetOfComposite on " ++ show x
+> unwrapSetOfWhenComposite :: Type -> Either [TypeError] Type
+> unwrapSetOfWhenComposite (SetOfType a@(UnnamedCompositeType _)) = Right a
+> unwrapSetOfWhenComposite x = Left $ [InternalError $ "tried to unwrapSetOfWhenComposite on " ++ show x]
 
-> unwrapSetOf :: Type -> Type
-> unwrapSetOf (SetOfType a) = a
-> unwrapSetOf x = error $ "internal error: tried to unwrapSetOf on " ++ show x
+> unwrapSetOfComposite :: Type -> Either [TypeError]  [(String,Type)]
+> unwrapSetOfComposite (SetOfType (UnnamedCompositeType a)) = Right a
+> unwrapSetOfComposite x = Left $ [InternalError $ "tried to unwrapSetOfComposite on " ++ show x]
 
-> unwrapComposite :: Type -> [(String,Type)]
-> unwrapComposite (UnnamedCompositeType a) = a
-> unwrapComposite x = error $ "internal error: cannot unwrapComposite on " ++ show x
 
-> consComposite :: (String,Type) -> Type -> Type
-> consComposite l (UnnamedCompositeType a) =
->     UnnamedCompositeType (l:a)
-> consComposite a b = error $ "internal error: called consComposite on " ++ show (a,b)
+> unwrapSetOf :: Type -> Either [TypeError] Type
+> unwrapSetOf (SetOfType a) = Right a
+> unwrapSetOf x = Left $ [InternalError $ "tried to unwrapSetOf on " ++ show x]
 
-> unwrapRowCtor :: Type -> [Type]
-> unwrapRowCtor (RowCtor a) = a
-> unwrapRowCtor x = error $ "internal error: cannot unwrapRowCtor on " ++ show x
+> unwrapComposite :: Type -> Either [TypeError] [(String,Type)]
+> unwrapComposite (UnnamedCompositeType a) = Right a
+> unwrapComposite x = Left $ [InternalError $ "cannot unwrapComposite on " ++ show x]
+
+> consComposite :: (String,Type) -> Type -> Either [TypeError] Type
+> consComposite l (UnnamedCompositeType a) = Right $ UnnamedCompositeType (l:a)
+> consComposite a b = Left $ [InternalError $ "called consComposite on " ++ show (a,b)]
+
+> unwrapRowCtor :: Type -> Either [TypeError] [Type]
+> unwrapRowCtor (RowCtor a) = Right a
+> unwrapRowCtor x = Left $ [InternalError $ "cannot unwrapRowCtor on " ++ show x]
 
 
 

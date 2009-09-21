@@ -25,6 +25,13 @@ This file contains some generic utility stuff
 > both :: (a->b) -> (a,a) -> (b,b)
 > both fn = (fn *** fn)
 
+> eitherToMaybe :: Either a b -> Maybe b
+> eitherToMaybe (Left _) = Nothing
+> eitherToMaybe (Right b) = Just b
+
+> fromRight :: b -> Either a b -> b
+> fromRight b (Left _) = b
+> fromRight _ (Right r) = r
 
 > replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
 > replace _ _ [] = []

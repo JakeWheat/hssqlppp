@@ -27,10 +27,12 @@ checkAssignmentValid - pass in source type and target type, returns
 
 > import Data.Maybe
 > import Data.List
+> import Control.Applicative
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.AstUtils
 > import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
+> import Database.HsSqlPpp.Utils
 
 
 = findCallMatch
@@ -269,14 +271,15 @@ findCallMatch is a bit of a mess
 >             resolvePolyType ((_,fnArgs,_),_) =
 >                 {-trace ("\nresolving " ++ show fnArgs ++ " against " ++ show inArgs ++ "\n") $-}
 >                 let argPairs = zip inArgs fnArgs
+>                     typeList :: [Type]
 >                     typeList = catMaybes $ flip map argPairs
 >                                  (\(ia,fa) -> case fa of
 >                                                   Pseudo Any -> if isArrayType ia
->                                                                          then Just $ unwrapArray ia
+>                                                                          then eitherToMaybe $ unwrapArray ia
 >                                                                          else Just ia
->                                                   Pseudo AnyArray -> Just $ unwrapArray ia
+>                                                   Pseudo AnyArray -> eitherToMaybe $ unwrapArray ia
 >                                                   Pseudo AnyElement -> if isArrayType ia
->                                                                          then Just $ unwrapArray ia
+>                                                                          then eitherToMaybe $ unwrapArray ia
 >                                                                          else Just ia
 >                                                   Pseudo AnyEnum -> Nothing
 >                                                   Pseudo AnyNonArray -> Just ia
@@ -411,7 +414,6 @@ findCallMatch is a bit of a mess
 > implicitlyCastableFromTo env from to = from == UnknownStringLit ||
 >                                          envCast env ImplicitCastContext from to
 >
-
 
 resolveResultSetType -
 partially implement the typing of results sets where the types aren't

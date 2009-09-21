@@ -82,11 +82,13 @@ not very consistently applied at the moment.
 >         in unionRelTypes env rowsTs colNames
 
 > typeCheckCombineSelect :: Environment -> Type -> Type -> Either [TypeError] Type
-> typeCheckCombineSelect env v1 v2 =
->     let colNames = map fst $ unwrapComposite $ unwrapSetOf v1
->     in unionRelTypes env
->                   (map (map snd . unwrapComposite . unwrapSetOf) [v1,v2])
->                   colNames
+> typeCheckCombineSelect env v1 v2 = do
+>     u1 <- unwrapSetOfComposite v1
+>     let colNames = map fst u1
+>     u2 <- unwrapSetOfComposite v2
+>     let colTypes1 = map snd u1
+>     let colTypes2 = map snd u2
+>     unionRelTypes env [colTypes1,colTypes2] colNames
 
 > unionRelTypes :: Environment -> [[Type]] -> [String] -> Either [TypeError] Type
 > unionRelTypes env rowsTs colNames =
@@ -123,10 +125,10 @@ type of the joined tables.
 > combineTableTypesWithUsingList :: Environment -> [String] -> Type -> Type -> Either [TypeError] Type
 > combineTableTypesWithUsingList env l t1c t2c = do
 >     --check t1 and t2 have l
->     let t1 = unwrapComposite t1c
->         t2 = unwrapComposite t2c
->         names1 = getNames t1
->         names2 = getNames t2
+>     t1 <-unwrapComposite t1c
+>     t2 <- unwrapComposite t2c
+>     let names1 = getNames t1
+>     let names2 = getNames t2
 >     when (not (contained l names1) ||
 >               not (contained l names2)) $
 >          Left [MissingJoinAttribute]
@@ -155,12 +157,12 @@ type of the joined tables.
 > doSelectItemListTpe env colName colType types =
 >     if types == TypeCheckFailed
 >        then types
->        else
+>        else errorToTypeFail (do
 >          let (correlationName,iden) = splitIdentifier colName
->              newCols = if iden == "*"
+>          newCols <- if iden == "*"
 >                          then envExpandStar env correlationName
 >                          else return [(iden, colType)]
->          in errorToTypeFailF  (foldr consComposite types) newCols
+>          foldM (flip consComposite) types $ reverse newCols)
 
 I think this should be alright, an identifier referenced in an
 expression can only have zero or one dot in it.
@@ -192,9 +194,8 @@ returns the type of the relation, and the system columns also
 >                        -> Either [TypeError] [(String,Type)]
 > checkColumnConsistency env tbl cols' insNameTypePairs = do
 >   rt <- getRelationType env tbl
->   let ttcols :: [(String,Type)]
->       ttcols = unwrapComposite $ fst rt
->       cols :: [String]
+>   ttcols <- unwrapComposite $ fst rt
+>   let cols :: [String]
 >       cols = if null cols'
 >                then map fst ttcols
 >                else cols'

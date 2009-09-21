@@ -227,9 +227,10 @@ SEM Expression
     | ScalarSubQuery
         loc.tpe = let selType = getTypeAnnotation @sel.annotatedTree
                   in checkTypes [selType]
-                       $ let f = map snd $ unwrapComposite $ unwrapSetOf selType
-                         in case length f of
-                              0 -> error "internal error: no columns in scalar subquery?"
+                       $ do
+                         f <- map snd <$> unwrapSetOfComposite selType
+                         case length f of
+                              0 -> Left [InternalError "no columns in scalar subquery?"]
                               1 -> Right $ head f
                               _ -> Right $ RowCtor f
 
@@ -262,12 +263,13 @@ SEM InList
                          @exprs.typeList
     | InSelect
         lhs.listType =
-           let attrs = map snd $ unwrapComposite $ unwrapSetOf $ getTypeAnnotation @sel.annotatedTree
-               typ =  case length attrs of
-                        0 -> error "internal error - got subquery with no columns? in inselect"
-                        1 -> head attrs
-                        _ -> RowCtor attrs
-           in checkTypes attrs $ Right typ
+            do
+              attrs <- map snd <$> (unwrapSetOfComposite $ getTypeAnnotation @sel.annotatedTree)
+              typ <- case length attrs of
+                           0 -> Left [InternalError "got subquery with no columns? in inselect"]
+                           1 -> Right $ head attrs
+                           _ -> Right $ RowCtor attrs
+              checkTypes attrs $ Right typ
 
 
 
@@ -308,6 +310,26 @@ SEM Statement
                               (getErrors @loc.tpe)
                               $ Just (map StatementInfoA @loc.statementInfo ++
                                       [EnvUpdates @loc.envUpdates])
+        lhs.envUpdates = @loc.envUpdates
+
+ATTR Statement
+    [
+    |
+    | envUpdates : {[EnvironmentUpdate]}
+    ]
+
+SEM Statement
+    | Assignment CaseStatement ContinueStatement Copy CopyData DropFunction
+      DropSomething Execute ExecuteInto ForIntegerStatement ForSelectStatement
+      If NullStatement Perform Raise Return ReturnNext ReturnQuery Truncate
+      WhileStatement
+        lhs.envUpdates = []
+
+--SEM StatementList
+--    | Cons hd.env = case @tl of
+--                      [] -> @lhs.env
+--                      x:_ -> updateEnvironment 
+
 {-
 
 ================================================================================
@@ -381,7 +403,7 @@ SEM SelectExpression
                                      @sel2.annotatedTree
 
 {
-getTbCols = unwrapComposite . unwrapSetOf . getTypeAnnotation
+getTbCols c = unwrapSetOfComposite (getTypeAnnotation c)
 }
 
 ATTR TableRef MTableRef
@@ -399,16 +421,21 @@ SEM TableRef
                               Nothing
 
 SEM TableRef
-    | SubTref loc.tpe = checkTypes [getTypeAnnotation @sel.annotatedTree] $
-                        Right $ unwrapSetOfComposite $ getTypeAnnotation @sel.annotatedTree
+    | SubTref loc.tpe = checkTypes [getTypeAnnotation @sel.annotatedTree] <$>
+                        unwrapSetOfWhenComposite $ getTypeAnnotation @sel.annotatedTree
               loc.backTree = SubTref @ann @sel.annotatedTree @alias
-              lhs.idens = [(@alias, (getTbCols @sel.annotatedTree, []))]
+              lhs.idens = [(@alias, (fromRight [] $ getTbCols @sel.annotatedTree, []))]
               lhs.joinIdens = []
     | TrefAlias Tref
         loc.tpe = either Left (Right . fst) @loc.relType
         lhs.joinIdens = []
         loc.relType = getRelationType @lhs.env @tbl
-        loc.unwrappedRelType = either (const ([], [])) (both unwrapComposite) @loc.relType
+        loc.unwrappedRelType =
+            fromRight ([],[]) $
+            do
+              lrt <- @loc.relType
+              let (UnnamedCompositeType a,UnnamedCompositeType b) = lrt
+              return (a,b)
     | Tref
         lhs.idens = [(@tbl, @loc.unwrappedRelType)]
         loc.backTree = Tref @ann @tbl
@@ -421,8 +448,8 @@ SEM TableRef
         lhs.idens = case getFunIdens
                               @lhs.env @loc.alias
                               @fn.annotatedTree of
-                      Left e -> []
-                      Right x -> [second (\l -> (unwrapComposite l, [])) x]
+                      Right (s, UnnamedCompositeType c) -> [(s,(c,[]))]
+                      _ -> []
     | TrefFun
         loc.alias = ""
         loc.backTree = TrefFun @ann @fn.annotatedTree
@@ -636,6 +663,12 @@ SEM SelectItem
 = insert
 
 -}
+{
+getCAtts t =
+    case t of
+      SetOfType (UnnamedCompositeType t) -> t
+      _ -> []
+}
 
 SEM Statement
     | Insert
@@ -643,8 +676,7 @@ SEM Statement
             checkColumnConsistency @lhs.env
                                    @table
                                    @targetCols.strings
-                                   (unwrapComposite $ unwrapSetOf $
-                                                    getTypeAnnotation @insData.annotatedTree)
+                                   (getCAtts $ getTypeAnnotation @insData.annotatedTree)
         loc.tpe =
             checkTypes [getTypeAnnotation @insData.annotatedTree] $ do
               @loc.columnStuff
@@ -800,7 +832,10 @@ SEM Statement
               doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateTable @ann @name @atts.annotatedTree @cons.annotatedTree
         loc.statementInfo = []
-        loc.envUpdates = [EnvCreateTable @name (unwrapComposite @loc.compositeType) []]
+        loc.attrs = case @loc.compositeType of
+                      UnnamedCompositeType c -> c
+                      _-> []
+        loc.envUpdates = [EnvCreateTable @name @loc.attrs []]
 
 SEM Statement
     | CreateTableAs
@@ -808,7 +843,10 @@ SEM Statement
         loc.tpe = Right @loc.selType
         loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
         loc.statementInfo = []
-        loc.envUpdates = [EnvCreateTable @name (unwrapComposite @loc.selType) []]
+        loc.attrs = case @loc.selType of
+                      UnnamedCompositeType c -> c
+                      _-> []
+        loc.envUpdates = [EnvCreateTable @name @loc.attrs []]
 {-
 ================================================================================
 
@@ -821,7 +859,10 @@ SEM Statement
         loc.tpe = checkTypes [getTypeAnnotation @expr.annotatedTree] $ Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
         loc.statementInfo = []
-        loc.envUpdates = [EnvCreateView @name ((unwrapComposite . unwrapSetOf) $ getTypeAnnotation @expr.annotatedTree)]
+        loc.attrs = case getTypeAnnotation @expr.annotatedTree of
+                      SetOfType (UnnamedCompositeType c) -> c
+                      _ -> []
+        loc.envUpdates = [EnvCreateView @name @loc.attrs]
 
 
 
@@ -859,13 +900,10 @@ SEM Statement
         loc.attrTypes = map snd @atts.attrs
         loc.tpe =
             checkErrorList (concat $ lefts @loc.attrTypes) $ Pseudo Void
-        loc.compositeType =
-            errorToTypeFailF (const $ UnnamedCompositeType doneAtts) @loc.tpe
-            where
-              doneAtts = map (second errorToTypeFail) @atts.attrs
+        loc.doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateType @ann @name @atts.annotatedTree
         loc.statementInfo = []
-        loc.envUpdates = [EnvCreateComposite @name (unwrapComposite @loc.compositeType)]
+        loc.envUpdates = [EnvCreateComposite @name @loc.doneAtts]
 
 {-
 

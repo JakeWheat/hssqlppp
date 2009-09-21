@@ -89,6 +89,7 @@ import Database.HsSqlPpp.Utils
 annotateAst :: StatementList -> StatementList
 annotateAst = annotateAstEnv defaultTemplate1Environment
 
+
 -- | As annotateAst but you supply an environment to check
 -- against. See Environment module for how to read an Environment from
 -- an existing database so you can type check against it.
@@ -458,7 +459,7 @@ checkExpressionBool whr = do
   return ty
 
 
-getTbCols = unwrapComposite . unwrapSetOf . getTypeAnnotation
+getTbCols c = unwrapSetOfComposite (getTypeAnnotation c)
 
 
 
@@ -506,6 +507,12 @@ fixStar ex =
 
 fixedValue :: a -> a -> a -> a
 fixedValue a _ _ = a
+
+
+getCAtts t =
+    case t of
+      SetOfType (UnnamedCompositeType t) -> t
+      _ -> []
 
 
 
@@ -1681,9 +1688,10 @@ sem_Expression_ScalarSubQuery ann_ sel_  =
               _tpe =
                   let selType = getTypeAnnotation _selIannotatedTree
                   in checkTypes [selType]
-                       $ let f = map snd $ unwrapComposite $ unwrapSetOf selType
-                         in case length f of
-                              0 -> error "internal error: no columns in scalar subquery?"
+                       $ do
+                         f <- map snd <$> unwrapSetOfComposite selType
+                         case length f of
+                              0 -> Left [InternalError "no columns in scalar subquery?"]
                               1 -> Right $ head f
                               _ -> Right $ RowCtor f
               _backTree =
@@ -2263,12 +2271,13 @@ sem_InList_InSelect sel_  =
               _selOenv :: Environment
               _selIannotatedTree :: SelectExpression
               _lhsOlistType =
-                  let attrs = map snd $ unwrapComposite $ unwrapSetOf $ getTypeAnnotation _selIannotatedTree
-                      typ =  case length attrs of
-                               0 -> error "internal error - got subquery with no columns? in inselect"
-                               1 -> head attrs
-                               _ -> RowCtor attrs
-                  in checkTypes attrs $ Right typ
+                  do
+                    attrs <- map snd <$> (unwrapSetOfComposite $ getTypeAnnotation _selIannotatedTree)
+                    typ <- case length attrs of
+                                 0 -> Left [InternalError "got subquery with no columns? in inselect"]
+                                 1 -> Right $ head attrs
+                                 _ -> Right $ RowCtor attrs
+                    checkTypes attrs $ Right typ
               _annotatedTree =
                   InSelect _selIannotatedTree
               _lhsOannotatedTree =
@@ -3758,26 +3767,29 @@ sem_Statement (WhileStatement _ann _expr _sts )  =
     (sem_Statement_WhileStatement _ann (sem_Expression _expr ) (sem_StatementList _sts ) )
 -- semantic domain
 type T_Statement  = Environment ->
-                    ( Statement)
+                    ( Statement,([EnvironmentUpdate]))
 data Inh_Statement  = Inh_Statement {env_Inh_Statement :: Environment}
-data Syn_Statement  = Syn_Statement {annotatedTree_Syn_Statement :: Statement}
+data Syn_Statement  = Syn_Statement {annotatedTree_Syn_Statement :: Statement,envUpdates_Syn_Statement :: [EnvironmentUpdate]}
 wrap_Statement :: T_Statement  ->
                   Inh_Statement  ->
                   Syn_Statement 
 wrap_Statement sem (Inh_Statement _lhsIenv )  =
-    (let ( _lhsOannotatedTree) =
+    (let ( _lhsOannotatedTree,_lhsOenvUpdates) =
              (sem _lhsIenv )
-     in  (Syn_Statement _lhsOannotatedTree ))
+     in  (Syn_Statement _lhsOannotatedTree _lhsOenvUpdates ))
 sem_Statement_Assignment :: Annotation ->
                             String ->
                             T_Expression  ->
                             T_Statement 
 sem_Statement_Assignment ann_ target_ value_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _valueOenv :: Environment
               _valueIannotatedTree :: Expression
               _valueIliftedColumnName :: String
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   Assignment ann_ target_ _valueIannotatedTree
               _lhsOannotatedTree =
@@ -3786,7 +3798,7 @@ sem_Statement_Assignment ann_ target_ value_  =
                   _lhsIenv
               ( _valueIannotatedTree,_valueIliftedColumnName) =
                   (value_ _valueOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CaseStatement :: Annotation ->
                                T_Expression  ->
                                T_ExpressionListStatementListPairList  ->
@@ -3794,7 +3806,8 @@ sem_Statement_CaseStatement :: Annotation ->
                                T_Statement 
 sem_Statement_CaseStatement ann_ val_ cases_ els_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _valOenv :: Environment
               _casesOenv :: Environment
               _elsOenv :: Environment
@@ -3802,6 +3815,8 @@ sem_Statement_CaseStatement ann_ val_ cases_ els_  =
               _valIliftedColumnName :: String
               _casesIannotatedTree :: ExpressionListStatementListPairList
               _elsIannotatedTree :: StatementList
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   CaseStatement ann_ _valIannotatedTree _casesIannotatedTree _elsIannotatedTree
               _lhsOannotatedTree =
@@ -3818,17 +3833,20 @@ sem_Statement_CaseStatement ann_ val_ cases_ els_  =
                   (cases_ _casesOenv )
               ( _elsIannotatedTree) =
                   (els_ _elsOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ContinueStatement :: Annotation ->
                                    T_Statement 
 sem_Statement_ContinueStatement ann_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   ContinueStatement ann_
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Copy :: Annotation ->
                       String ->
                       T_StringList  ->
@@ -3836,12 +3854,15 @@ sem_Statement_Copy :: Annotation ->
                       T_Statement 
 sem_Statement_Copy ann_ table_ targetCols_ source_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _targetColsOenv :: Environment
               _sourceOenv :: Environment
               _targetColsIannotatedTree :: StringList
               _targetColsIstrings :: ([String])
               _sourceIannotatedTree :: CopySource
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   Copy ann_ table_ _targetColsIannotatedTree _sourceIannotatedTree
               _lhsOannotatedTree =
@@ -3854,18 +3875,21 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
                   (targetCols_ _targetColsOenv )
               ( _sourceIannotatedTree) =
                   (source_ _sourceOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CopyData :: Annotation ->
                           String ->
                           T_Statement 
 sem_Statement_CopyData ann_ insData_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   CopyData ann_ insData_
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateDomain :: Annotation ->
                               String ->
                               T_TypeName  ->
@@ -3874,6 +3898,7 @@ sem_Statement_CreateDomain :: Annotation ->
 sem_Statement_CreateDomain ann_ name_ typ_ check_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _typOenv :: Environment
               _typIannotatedTree :: TypeName
               _typInamedType :: (Either [TypeError] Type)
@@ -3883,6 +3908,8 @@ sem_Statement_CreateDomain ann_ name_ typ_ check_  =
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
+              _lhsOenvUpdates =
+                  _envUpdates
               _namedTypeType =
                   case _typInamedType of
                     Left _ -> TypeCheckFailed
@@ -3901,7 +3928,7 @@ sem_Statement_CreateDomain ann_ name_ typ_ check_  =
                   _lhsIenv
               ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateFunction :: Annotation ->
                                 T_Language  ->
                                 String ->
@@ -3914,6 +3941,7 @@ sem_Statement_CreateFunction :: Annotation ->
 sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ vol_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _langOenv :: Environment
               _paramsOenv :: Environment
               _rettypeOenv :: Environment
@@ -3932,6 +3960,8 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
+              _lhsOenvUpdates =
+                  _envUpdates
               _retTypeType =
                   errorToTypeFail _rettypeInamedType
               _paramTypes =
@@ -3979,7 +4009,7 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
                   (body_ _bodyOenv )
               ( _volIannotatedTree) =
                   (vol_ _volOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateTable :: Annotation ->
                              String ->
                              T_AttributeDefList  ->
@@ -3988,6 +4018,7 @@ sem_Statement_CreateTable :: Annotation ->
 sem_Statement_CreateTable ann_ name_ atts_ cons_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _attsOenv :: Environment
               _consOenv :: Environment
               _attsIannotatedTree :: AttributeDefList
@@ -3999,6 +4030,8 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
+              _lhsOenvUpdates =
+                  _envUpdates
               _attrTypes =
                   map snd _attsIattrs
               _tpe =
@@ -4011,8 +4044,12 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
                   CreateTable ann_ name_ _attsIannotatedTree _consIannotatedTree
               _statementInfo =
                   []
+              _attrs =
+                  case _compositeType     of
+                    UnnamedCompositeType c -> c
+                    _-> []
               _envUpdates =
-                  [EnvCreateTable name_ (unwrapComposite _compositeType    ) []]
+                  [EnvCreateTable name_ _attrs     []]
               _annotatedTree =
                   CreateTable ann_ name_ _attsIannotatedTree _consIannotatedTree
               _attsOenv =
@@ -4023,7 +4060,7 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
                   (atts_ _attsOenv )
               ( _consIannotatedTree) =
                   (cons_ _consOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateTableAs :: Annotation ->
                                String ->
                                T_SelectExpression  ->
@@ -4031,6 +4068,7 @@ sem_Statement_CreateTableAs :: Annotation ->
 sem_Statement_CreateTableAs ann_ name_ expr_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _exprOenv :: Environment
               _exprIannotatedTree :: SelectExpression
               _selType =
@@ -4041,17 +4079,23 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
                   CreateTableAs ann_ name_ _exprIannotatedTree
               _statementInfo =
                   []
+              _attrs =
+                  case _selType     of
+                    UnnamedCompositeType c -> c
+                    _-> []
               _envUpdates =
-                  [EnvCreateTable name_ (unwrapComposite _selType    ) []]
+                  [EnvCreateTable name_ _attrs     []]
               _annotatedTree =
                   CreateTableAs ann_ name_ _exprIannotatedTree
               _lhsOannotatedTree =
                   _annotatedTree
+              _lhsOenvUpdates =
+                  _envUpdates
               _exprOenv =
                   _lhsIenv
               ( _exprIannotatedTree) =
                   (expr_ _exprOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateType :: Annotation ->
                             String ->
                             T_TypeAttributeDefList  ->
@@ -4059,6 +4103,7 @@ sem_Statement_CreateType :: Annotation ->
 sem_Statement_CreateType ann_ name_ atts_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _attsOenv :: Environment
               _attsIannotatedTree :: TypeAttributeDefList
               _attsIattrs :: ([(String, Either [TypeError] Type)])
@@ -4068,27 +4113,27 @@ sem_Statement_CreateType ann_ name_ atts_  =
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
+              _lhsOenvUpdates =
+                  _envUpdates
               _attrTypes =
                   map snd _attsIattrs
               _tpe =
                   checkErrorList (concat $ lefts _attrTypes    ) $ Pseudo Void
-              _compositeType =
-                  errorToTypeFailF (const $ UnnamedCompositeType doneAtts) _tpe
-                  where
-                    doneAtts = map (second errorToTypeFail) _attsIattrs
+              _doneAtts =
+                  map (second errorToTypeFail) _attsIattrs
               _backTree =
                   CreateType ann_ name_ _attsIannotatedTree
               _statementInfo =
                   []
               _envUpdates =
-                  [EnvCreateComposite name_ (unwrapComposite _compositeType    )]
+                  [EnvCreateComposite name_ _doneAtts    ]
               _annotatedTree =
                   CreateType ann_ name_ _attsIannotatedTree
               _attsOenv =
                   _lhsIenv
               ( _attsIannotatedTree,_attsIattrs) =
                   (atts_ _attsOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateView :: Annotation ->
                             String ->
                             T_SelectExpression  ->
@@ -4096,6 +4141,7 @@ sem_Statement_CreateView :: Annotation ->
 sem_Statement_CreateView ann_ name_ expr_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _exprOenv :: Environment
               _exprIannotatedTree :: SelectExpression
               _lhsOannotatedTree =
@@ -4104,21 +4150,27 @@ sem_Statement_CreateView ann_ name_ expr_  =
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
+              _lhsOenvUpdates =
+                  _envUpdates
               _tpe =
                   checkTypes [getTypeAnnotation _exprIannotatedTree] $ Right $ Pseudo Void
               _backTree =
                   CreateView ann_ name_ _exprIannotatedTree
               _statementInfo =
                   []
+              _attrs =
+                  case getTypeAnnotation _exprIannotatedTree of
+                    SetOfType (UnnamedCompositeType c) -> c
+                    _ -> []
               _envUpdates =
-                  [EnvCreateView name_ ((unwrapComposite . unwrapSetOf) $ getTypeAnnotation _exprIannotatedTree)]
+                  [EnvCreateView name_ _attrs    ]
               _annotatedTree =
                   CreateView ann_ name_ _exprIannotatedTree
               _exprOenv =
                   _lhsIenv
               ( _exprIannotatedTree) =
                   (expr_ _exprOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Delete :: Annotation ->
                         String ->
                         T_Where  ->
@@ -4127,6 +4179,7 @@ sem_Statement_Delete :: Annotation ->
 sem_Statement_Delete ann_ table_ whr_ returning_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _whrOenv :: Environment
               _whrIannotatedTree :: Where
               _lhsOannotatedTree =
@@ -4135,6 +4188,8 @@ sem_Statement_Delete ann_ table_ whr_ returning_  =
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
+              _lhsOenvUpdates =
+                  _envUpdates
               _tpe =
                   case checkRelationExists _lhsIenv table_ of
                     Just e -> Left [e]
@@ -4153,7 +4208,7 @@ sem_Statement_Delete ann_ table_ whr_ returning_  =
                   _lhsIenv
               ( _whrIannotatedTree) =
                   (whr_ _whrOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_DropFunction :: Annotation ->
                               T_IfExists  ->
                               T_StringStringListPairList  ->
@@ -4161,13 +4216,16 @@ sem_Statement_DropFunction :: Annotation ->
                               T_Statement 
 sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _ifEOenv :: Environment
               _sigsOenv :: Environment
               _cascadeOenv :: Environment
               _ifEIannotatedTree :: IfExists
               _sigsIannotatedTree :: StringStringListPairList
               _cascadeIannotatedTree :: Cascade
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   DropFunction ann_ _ifEIannotatedTree _sigsIannotatedTree _cascadeIannotatedTree
               _lhsOannotatedTree =
@@ -4184,7 +4242,7 @@ sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
                   (sigs_ _sigsOenv )
               ( _cascadeIannotatedTree) =
                   (cascade_ _cascadeOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_DropSomething :: Annotation ->
                                T_DropType  ->
                                T_IfExists  ->
@@ -4193,7 +4251,8 @@ sem_Statement_DropSomething :: Annotation ->
                                T_Statement 
 sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _dropTypeOenv :: Environment
               _ifEOenv :: Environment
               _namesOenv :: Environment
@@ -4203,6 +4262,8 @@ sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
               _namesIannotatedTree :: StringList
               _namesIstrings :: ([String])
               _cascadeIannotatedTree :: Cascade
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   DropSomething ann_ _dropTypeIannotatedTree _ifEIannotatedTree _namesIannotatedTree _cascadeIannotatedTree
               _lhsOannotatedTree =
@@ -4223,16 +4284,19 @@ sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
                   (names_ _namesOenv )
               ( _cascadeIannotatedTree) =
                   (cascade_ _cascadeOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Execute :: Annotation ->
                          T_Expression  ->
                          T_Statement 
 sem_Statement_Execute ann_ expr_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _exprOenv :: Environment
               _exprIannotatedTree :: Expression
               _exprIliftedColumnName :: String
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   Execute ann_ _exprIannotatedTree
               _lhsOannotatedTree =
@@ -4241,20 +4305,23 @@ sem_Statement_Execute ann_ expr_  =
                   _lhsIenv
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ExecuteInto :: Annotation ->
                              T_Expression  ->
                              T_StringList  ->
                              T_Statement 
 sem_Statement_ExecuteInto ann_ expr_ targets_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _exprOenv :: Environment
               _targetsOenv :: Environment
               _exprIannotatedTree :: Expression
               _exprIliftedColumnName :: String
               _targetsIannotatedTree :: StringList
               _targetsIstrings :: ([String])
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   ExecuteInto ann_ _exprIannotatedTree _targetsIannotatedTree
               _lhsOannotatedTree =
@@ -4267,7 +4334,7 @@ sem_Statement_ExecuteInto ann_ expr_ targets_  =
                   (expr_ _exprOenv )
               ( _targetsIannotatedTree,_targetsIstrings) =
                   (targets_ _targetsOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ForIntegerStatement :: Annotation ->
                                      String ->
                                      T_Expression  ->
@@ -4276,7 +4343,8 @@ sem_Statement_ForIntegerStatement :: Annotation ->
                                      T_Statement 
 sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _fromOenv :: Environment
               _toOenv :: Environment
               _stsOenv :: Environment
@@ -4285,6 +4353,8 @@ sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
               _toIannotatedTree :: Expression
               _toIliftedColumnName :: String
               _stsIannotatedTree :: StatementList
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   ForIntegerStatement ann_ var_ _fromIannotatedTree _toIannotatedTree _stsIannotatedTree
               _lhsOannotatedTree =
@@ -4301,7 +4371,7 @@ sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
                   (to_ _toOenv )
               ( _stsIannotatedTree) =
                   (sts_ _stsOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ForSelectStatement :: Annotation ->
                                     String ->
                                     T_SelectExpression  ->
@@ -4309,11 +4379,14 @@ sem_Statement_ForSelectStatement :: Annotation ->
                                     T_Statement 
 sem_Statement_ForSelectStatement ann_ var_ sel_ sts_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _selOenv :: Environment
               _stsOenv :: Environment
               _selIannotatedTree :: SelectExpression
               _stsIannotatedTree :: StatementList
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   ForSelectStatement ann_ var_ _selIannotatedTree _stsIannotatedTree
               _lhsOannotatedTree =
@@ -4326,18 +4399,21 @@ sem_Statement_ForSelectStatement ann_ var_ sel_ sts_  =
                   (sel_ _selOenv )
               ( _stsIannotatedTree) =
                   (sts_ _stsOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_If :: Annotation ->
                     T_ExpressionStatementListPairList  ->
                     T_StatementList  ->
                     T_Statement 
 sem_Statement_If ann_ cases_ els_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _casesOenv :: Environment
               _elsOenv :: Environment
               _casesIannotatedTree :: ExpressionStatementListPairList
               _elsIannotatedTree :: StatementList
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   If ann_ _casesIannotatedTree _elsIannotatedTree
               _lhsOannotatedTree =
@@ -4350,7 +4426,7 @@ sem_Statement_If ann_ cases_ els_  =
                   (cases_ _casesOenv )
               ( _elsIannotatedTree) =
                   (els_ _elsOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Insert :: Annotation ->
                         String ->
                         T_StringList  ->
@@ -4360,6 +4436,7 @@ sem_Statement_Insert :: Annotation ->
 sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _targetColsOenv :: Environment
               _insDataOenv :: Environment
               _targetColsIannotatedTree :: StringList
@@ -4371,12 +4448,13 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
+              _lhsOenvUpdates =
+                  _envUpdates
               _columnStuff =
                   checkColumnConsistency _lhsIenv
                                          table_
                                          _targetColsIstrings
-                                         (unwrapComposite $ unwrapSetOf $
-                                                          getTypeAnnotation _insDataIannotatedTree)
+                                         (getCAtts $ getTypeAnnotation _insDataIannotatedTree)
               _tpe =
                   checkTypes [getTypeAnnotation _insDataIannotatedTree] $ do
                     _columnStuff
@@ -4398,26 +4476,32 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
                   (targetCols_ _targetColsOenv )
               ( _insDataIannotatedTree) =
                   (insData_ _insDataOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_NullStatement :: Annotation ->
                                T_Statement 
 sem_Statement_NullStatement ann_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   NullStatement ann_
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Perform :: Annotation ->
                          T_Expression  ->
                          T_Statement 
 sem_Statement_Perform ann_ expr_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _exprOenv :: Environment
               _exprIannotatedTree :: Expression
               _exprIliftedColumnName :: String
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   Perform ann_ _exprIannotatedTree
               _lhsOannotatedTree =
@@ -4426,7 +4510,7 @@ sem_Statement_Perform ann_ expr_  =
                   _lhsIenv
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Raise :: Annotation ->
                        T_RaiseType  ->
                        String ->
@@ -4434,12 +4518,15 @@ sem_Statement_Raise :: Annotation ->
                        T_Statement 
 sem_Statement_Raise ann_ level_ message_ args_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _levelOenv :: Environment
               _argsOenv :: Environment
               _levelIannotatedTree :: RaiseType
               _argsIannotatedTree :: ExpressionList
               _argsItypeList :: ([Type])
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   Raise ann_ _levelIannotatedTree message_ _argsIannotatedTree
               _lhsOannotatedTree =
@@ -4452,27 +4539,33 @@ sem_Statement_Raise ann_ level_ message_ args_  =
                   (level_ _levelOenv )
               ( _argsIannotatedTree,_argsItypeList) =
                   (args_ _argsOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Return :: Annotation ->
                         (Maybe Expression) ->
                         T_Statement 
 sem_Statement_Return ann_ value_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   Return ann_ value_
               _lhsOannotatedTree =
                   _annotatedTree
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ReturnNext :: Annotation ->
                             T_Expression  ->
                             T_Statement 
 sem_Statement_ReturnNext ann_ expr_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _exprOenv :: Environment
               _exprIannotatedTree :: Expression
               _exprIliftedColumnName :: String
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   ReturnNext ann_ _exprIannotatedTree
               _lhsOannotatedTree =
@@ -4481,15 +4574,18 @@ sem_Statement_ReturnNext ann_ expr_  =
                   _lhsIenv
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ReturnQuery :: Annotation ->
                              T_SelectExpression  ->
                              T_Statement 
 sem_Statement_ReturnQuery ann_ sel_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _selOenv :: Environment
               _selIannotatedTree :: SelectExpression
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   ReturnQuery ann_ _selIannotatedTree
               _lhsOannotatedTree =
@@ -4498,13 +4594,14 @@ sem_Statement_ReturnQuery ann_ sel_  =
                   _lhsIenv
               ( _selIannotatedTree) =
                   (sel_ _selOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_SelectStatement :: Annotation ->
                                  T_SelectExpression  ->
                                  T_Statement 
 sem_Statement_SelectStatement ann_ ex_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _exOenv :: Environment
               _exIannotatedTree :: SelectExpression
               _lhsOannotatedTree =
@@ -4513,6 +4610,8 @@ sem_Statement_SelectStatement ann_ ex_  =
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
+              _lhsOenvUpdates =
+                  _envUpdates
               _tpe =
                   checkTypes [getTypeAnnotation _exIannotatedTree] $ Right $ Pseudo Void
               _statementInfo =
@@ -4527,7 +4626,7 @@ sem_Statement_SelectStatement ann_ ex_  =
                   _lhsIenv
               ( _exIannotatedTree) =
                   (ex_ _exOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Truncate :: Annotation ->
                           T_StringList  ->
                           T_RestartIdentity  ->
@@ -4535,7 +4634,8 @@ sem_Statement_Truncate :: Annotation ->
                           T_Statement 
 sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _tablesOenv :: Environment
               _restartIdentityOenv :: Environment
               _cascadeOenv :: Environment
@@ -4543,6 +4643,8 @@ sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_  =
               _tablesIstrings :: ([String])
               _restartIdentityIannotatedTree :: RestartIdentity
               _cascadeIannotatedTree :: Cascade
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   Truncate ann_ _tablesIannotatedTree _restartIdentityIannotatedTree _cascadeIannotatedTree
               _lhsOannotatedTree =
@@ -4559,7 +4661,7 @@ sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_  =
                   (restartIdentity_ _restartIdentityOenv )
               ( _cascadeIannotatedTree) =
                   (cascade_ _cascadeOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Update :: Annotation ->
                         String ->
                         T_SetClauseList  ->
@@ -4569,6 +4671,7 @@ sem_Statement_Update :: Annotation ->
 sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Statement
+              _lhsOenvUpdates :: ([EnvironmentUpdate])
               _assignsOenv :: Environment
               _whrOenv :: Environment
               _assignsIannotatedTree :: SetClauseList
@@ -4581,6 +4684,8 @@ sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
+              _lhsOenvUpdates =
+                  _envUpdates
               _tpe =
                   do
                   let re = checkRelationExists _lhsIenv table_
@@ -4612,19 +4717,22 @@ sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
                   (assigns_ _assignsOenv )
               ( _whrIannotatedTree) =
                   (whr_ _whrOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_WhileStatement :: Annotation ->
                                 T_Expression  ->
                                 T_StatementList  ->
                                 T_Statement 
 sem_Statement_WhileStatement ann_ expr_ sts_  =
     (\ _lhsIenv ->
-         (let _lhsOannotatedTree :: Statement
+         (let _lhsOenvUpdates :: ([EnvironmentUpdate])
+              _lhsOannotatedTree :: Statement
               _exprOenv :: Environment
               _stsOenv :: Environment
               _exprIannotatedTree :: Expression
               _exprIliftedColumnName :: String
               _stsIannotatedTree :: StatementList
+              _lhsOenvUpdates =
+                  []
               _annotatedTree =
                   WhileStatement ann_ _exprIannotatedTree _stsIannotatedTree
               _lhsOannotatedTree =
@@ -4637,7 +4745,7 @@ sem_Statement_WhileStatement ann_ expr_ sts_  =
                   (expr_ _exprOenv )
               ( _stsIannotatedTree) =
                   (sts_ _stsOenv )
-          in  ( _lhsOannotatedTree)))
+          in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 -- StatementList -----------------------------------------------
 type StatementList  = [(Statement)]
 -- cata
@@ -4666,6 +4774,7 @@ sem_StatementList_Cons hd_ tl_  =
               _hdOenv :: Environment
               _tlOenv :: Environment
               _hdIannotatedTree :: Statement
+              _hdIenvUpdates :: ([EnvironmentUpdate])
               _tlIannotatedTree :: StatementList
               _annotatedTree =
                   (:) _hdIannotatedTree _tlIannotatedTree
@@ -4675,7 +4784,7 @@ sem_StatementList_Cons hd_ tl_  =
                   _lhsIenv
               _tlOenv =
                   _lhsIenv
-              ( _hdIannotatedTree) =
+              ( _hdIannotatedTree,_hdIenvUpdates) =
                   (hd_ _hdOenv )
               ( _tlIannotatedTree) =
                   (tl_ _tlOenv )
@@ -4960,12 +5069,12 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
                     (getErrors _tpe    )
                     Nothing
               _tpe =
-                  checkTypes [getTypeAnnotation _selIannotatedTree] $
-                  Right $ unwrapSetOfComposite $ getTypeAnnotation _selIannotatedTree
+                  checkTypes [getTypeAnnotation _selIannotatedTree] <$>
+                  unwrapSetOfWhenComposite $ getTypeAnnotation _selIannotatedTree
               _backTree =
                   SubTref ann_ _selIannotatedTree alias_
               _lhsOidens =
-                  [(alias_, (getTbCols _selIannotatedTree, []))]
+                  [(alias_, (fromRight [] $ getTbCols _selIannotatedTree, []))]
               _lhsOjoinIdens =
                   []
               _annotatedTree =
@@ -4995,7 +5104,11 @@ sem_TableRef_Tref ann_ tbl_  =
               _relType =
                   getRelationType _lhsIenv tbl_
               _unwrappedRelType =
-                  either (const ([], [])) (both unwrapComposite) _relType
+                  fromRight ([],[]) $
+                  do
+                    lrt <- _relType
+                    let (UnnamedCompositeType a,UnnamedCompositeType b) = lrt
+                    return (a,b)
               _lhsOidens =
                   [(tbl_, _unwrappedRelType    )]
               _backTree =
@@ -5024,7 +5137,11 @@ sem_TableRef_TrefAlias ann_ tbl_ alias_  =
               _relType =
                   getRelationType _lhsIenv tbl_
               _unwrappedRelType =
-                  either (const ([], [])) (both unwrapComposite) _relType
+                  fromRight ([],[]) $
+                  do
+                    lrt <- _relType
+                    let (UnnamedCompositeType a,UnnamedCompositeType b) = lrt
+                    return (a,b)
               _lhsOidens =
                   [(alias_, _unwrappedRelType    )]
               _backTree =
@@ -5056,8 +5173,8 @@ sem_TableRef_TrefFun ann_ fn_  =
                   case getFunIdens
                             _lhsIenv _alias
                             _fnIannotatedTree of
-                    Left e -> []
-                    Right x -> [second (\l -> (unwrapComposite l, [])) x]
+                    Right (s, UnnamedCompositeType c) -> [(s,(c,[]))]
+                    _ -> []
               _alias =
                   ""
               _backTree =
@@ -5094,8 +5211,8 @@ sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
                   case getFunIdens
                             _lhsIenv _alias
                             _fnIannotatedTree of
-                    Left e -> []
-                    Right x -> [second (\l -> (unwrapComposite l, [])) x]
+                    Right (s, UnnamedCompositeType c) -> [(s,(c,[]))]
+                    _ -> []
               _alias =
                   alias_
               _backTree =
