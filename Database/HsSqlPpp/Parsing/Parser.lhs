@@ -338,17 +338,16 @@ multiple rows to insert and insert from select statements
 >                        <*> (symbol "=" *> expr)]
 
 > delete :: ParsecT [Token] ParseState Identity Statement
-> delete = keyword "delete" >> keyword "from" >>
->          Delete
->          <$> pos
+> delete = Delete
+>          <$> pos <* keyword "delete" <* keyword "from"
 >          <*> idString
 >          <*> tryOptionMaybe whereClause
 >          <*> tryOptionMaybe returning
 
 > truncateSt :: ParsecT [Token] ParseState Identity Statement
-> truncateSt = keyword "truncate" >> optional (keyword "table") >>
+> truncateSt =
 >            Truncate
->            <$> pos
+>            <$> pos <* keyword "truncate" <* optional (keyword "table")
 >            <*> commaSep1 idString
 >            <*> option ContinueIdentity (choice [
 >                                 ContinueIdentity <$ (keyword "continue"
@@ -437,9 +436,8 @@ multiple rows to insert and insert from select statements
 
 
 > createType :: ParsecT [Token] ParseState Identity Statement
-> createType = keyword "type" >>
->              CreateType
->              <$> pos
+> createType = CreateType
+>              <$> pos <* keyword "type"
 >              <*> idString
 >              <*> (keyword "as" *> parens (commaSep1 typeAtt))
 >   where
@@ -497,17 +495,19 @@ sql function is just a list of statements, the last one has the
 trailing semicolon optional
 
 >         functionBody Sql = do
+>            p <- pos
 >            a <- many (try $ sqlStatement True)
 >            -- this makes my head hurt, should probably write out
 >            -- more longhand
->            SqlFnBody [] <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
+>            SqlFnBody p <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
 
 plpgsql function has an optional declare section, plus the statements
 are enclosed in begin ... end; (semi colon after end is optional(
 
 >         functionBody Plpgsql =
->             PlpgsqlFnBody []
->             <$> option [] declarePart
+>             PlpgsqlFnBody
+>             <$> pos
+>             <*> option [] declarePart
 >             <*> statementPart
 >             where
 >               statementPart = keyword "begin"
@@ -533,16 +533,14 @@ variable declarations in a plpgsql function
 
 
 > createView :: ParsecT [Token] ParseState Identity Statement
-> createView = keyword "view" >>
->              CreateView
->              <$> pos
+> createView = CreateView
+>              <$> pos <* keyword "view"
 >              <*> idString
 >              <*> (keyword "as" *> selectExpression)
 
 > createDomain :: ParsecT [Token] ParseState Identity Statement
-> createDomain = keyword "domain" >>
->                CreateDomain
->                <$> pos
+> createDomain = CreateDomain
+>                <$> pos <* keyword "domain"
 >                <*> idString
 >                <*> (tryOptionMaybe (keyword "as") *> typeName)
 >                <*> tryOptionMaybe (keyword "check" *> parens expr)
@@ -915,16 +913,19 @@ don't know if this is needed anymore.
 
 > scalarSubQuery :: ParsecT [Token] ParseState Identity Expression
 > scalarSubQuery = try (symbol "(" *> lookAhead (keyword "select")) >>
->                  ScalarSubQuery []
->                  <$> selectExpression <* symbol ")"
+>                  ScalarSubQuery
+>                  <$> pos
+>                  <*> selectExpression <* symbol ")"
 
 in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
 
 > inPredicateSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > inPredicateSuffix e =
->   InPredicate [] e
->   <$> option True (False <$ keyword "not")
+>   InPredicate
+>   <$> pos
+>   <*> return e
+>   <*> option True (False <$ keyword "not")
 >   <*> (keyword "in" *> parens ((InSelect <$> selectExpression)
 >                                <|>
 >                                (InList <$> commaSep1 expr)))
@@ -940,52 +941,59 @@ row (expr, expr1, ...)
 and () is a syntax error.
 
 > rowCtor :: ParsecT [Token] ParseState Identity Expression
-> rowCtor = FunCall [] "!rowCtor" <$> choice [
+> rowCtor = FunCall
+>           <$> pos
+>           <*> return "!rowCtor"
+>           <*> choice [
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
 
 > floatLit :: ParsecT [Token] ParseState Identity Expression
-> floatLit = FloatLit [] <$> float
+> floatLit = FloatLit <$> pos <*> float
 
 > integerLit :: ParsecT [Token] ParseState Identity Expression
-> integerLit = IntegerLit [] <$> integer
+> integerLit = IntegerLit <$> pos <*> integer
 
 case - only supports 'case when condition' flavour and not 'case
 expression when value' currently
 
 > caseParse :: ParsecT [Token] ParseState Identity Expression
-> caseParse = keyword "case" >>
->             choice [
->              try $ CaseSimple [] <$> expr
->                               <*> many whenParse
->                               <*> tryOptionMaybe (keyword "else" *> expr)
->                                   <* keyword "end"
->             ,Case [] <$> many whenParse
->                  <*> tryOptionMaybe (keyword "else" *> expr)
->                       <* keyword "end"]
+> caseParse = do
+>   p <- pos
+>   keyword "case"
+>   choice [
+>              try $ CaseSimple p <$> expr
+>                                 <*> many whenParse
+>                                 <*> tryOptionMaybe (keyword "else" *> expr)
+>                                         <* keyword "end"
+>             ,Case p <$> many whenParse
+>                     <*> tryOptionMaybe (keyword "else" *> expr)
+>                             <* keyword "end"]
 >   where
 >     whenParse = (,) <$> (keyword "when" *> commaSep1 expr)
 >                     <*> (keyword "then" *> expr)
 
 > exists :: ParsecT [Token] ParseState Identity Expression
-> exists = keyword "exists" >>
->          Exists [] <$> parens selectExpression
+> exists = Exists <$> pos <* keyword "exists" <*> parens selectExpression
 
 > booleanLit :: ParsecT [Token] ParseState Identity Expression
-> booleanLit = BooleanLit [] <$> (True <$ keyword "true"
->                                <|> False <$ keyword "false")
+> booleanLit = BooleanLit <$> pos <*> (True <$ keyword "true"
+>                                      <|> False <$ keyword "false")
 
 > nullLit :: ParsecT [Token] ParseState Identity Expression
-> nullLit = NullLit [] <$ keyword "null"
+> nullLit = NullLit <$> pos <* keyword "null"
 
 > arrayLit :: ParsecT [Token] ParseState Identity Expression
-> arrayLit = keyword "array" >>
->            FunCall [] "!arrayCtor" <$> squares (commaSep expr)
+> arrayLit = FunCall <$> pos <* keyword "array"
+>                    <*> return "!arrayCtor"
+>                    <*> squares (commaSep expr)
 
 > arraySubSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > arraySubSuffix e = if e == Identifier [] "array"
 >                      then fail "can't use array as identifier name"
->                      else FunCall [] "!arraySub" <$> ((e:) <$> squares (commaSep1 expr))
+>                      else FunCall <$> pos
+>                                   <*> return "!arraySub"
+>                                   <*> ((e:) <$> squares (commaSep1 expr))
 
 supports basic window functions of the form
 fn() over ([partition bit]? [order bit]?)
@@ -999,8 +1007,8 @@ rows between unbounded preceding and current row
 rows between unbounded preceding and unbounded following
 
 > windowFnSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> windowFnSuffix e = WindowFn [] e
->                    <$> (keyword "over" *> (symbol "(" *> option [] partitionBy))
+> windowFnSuffix e = WindowFn <$> pos <*> return e
+>                    <*> (keyword "over" *> (symbol "(" *> option [] partitionBy))
 >                    <*> option [] orderBy1
 >                    <*> option Asc (try $ choice [
 >                                             Asc <$ keyword "asc"
@@ -1012,11 +1020,12 @@ rows between unbounded preceding and unbounded following
 
 > betweenSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > betweenSuffix a = do
+>   p <- pos
 >   keyword "between"
 >   b <- dodgyParseElement
 >   keyword "and"
 >   c <- dodgyParseElement
->   return $ FunCall [] "!between" [a,b,c]
+>   return $ FunCall p "!between" [a,b,c]
 >              --can't use the full expression parser at this time
 >              --because of a conflict between the operator 'and' and
 >              --the 'and' part of a between
@@ -1044,15 +1053,17 @@ TODO: copy this approach here.
 > functionCallSuffix s = error $ "internal error: cannot make functioncall from " ++ show s
 
 > castKeyword :: ParsecT [Token] ParseState Identity Expression
-> castKeyword = keyword "cast" *> symbol "(" >>
->               Cast [] <$> expr
->                    <*> (keyword "as" *> typeName <* symbol ")")
+> castKeyword = Cast
+>               <$> pos <* keyword "cast" <* symbol "("
+>               <*> expr
+>               <*> (keyword "as" *> typeName <* symbol ")")
 
 > castSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > castSuffix ex = Cast [] ex <$> (symbol "::" *> typeName)
 
 > substring :: ParsecT [Token] ParseState Identity Expression
 > substring = do
+>             p <- pos
 >             keyword "substring"
 >             symbol "("
 >             a <- expr
@@ -1061,10 +1072,10 @@ TODO: copy this approach here.
 >             keyword "for"
 >             c <- expr
 >             symbol ")"
->             return $ FunCall [] "!substring" [a,b,c]
+>             return $ FunCall p "!substring" [a,b,c]
 
 > identifier :: ParsecT [Token] ParseState Identity Expression
-> identifier = Identifier [] <$> idString
+> identifier = Identifier <$> pos <*> idString
 
 ================================================================================
 
