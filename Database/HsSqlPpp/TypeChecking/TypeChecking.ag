@@ -58,15 +58,30 @@ ATTR AllNodes Root ExpressionRoot
 
 = expressions
 
+everywhere
+(forall a. Data a => a -> a) -> forall a. Data a => a -> a
+Data.Data	gmapT :: Data a => (b -> b) -> a -> a
+
 -}
 
 {
-annTypesAndErrors :: Annotated a => a -> Type -> [TypeError]
+annTypesAndErrors :: (Data a, Annotated a) => a -> Type -> [TypeError]
                   -> Maybe [AnnotationElement] -> a
 annTypesAndErrors item nt errs add =
-    changeAnn item $
-     (([TypeAnnotation nt] ++ fromMaybe [] add ++
+    oneLevel (mkT modifier) item
+    --gmapT modifier item
+    --changeAnn item modifier
+    where
+      modifier :: [AnnotationElement] -> [AnnotationElement]
+      modifier = (([TypeAnnotation nt] ++ fromMaybe [] add ++
        map TypeErrorA errs) ++)
+
+oneLevel :: (forall a. Data a => a -> a)
+         -> (forall a. Data a => a -> a)
+oneLevel f = gmapT f
+
+
+
 }
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier

@@ -8,7 +8,8 @@ want to use when looking at an ast. Internal annotations which are
 used in the type-checking/ annotation process use the attribute
 grammar code and aren't exposed.
 
-> {-# LANGUAGE ExistentialQuantification, DeriveDataTypeable #-}
+> {-# LANGUAGE ExistentialQuantification, DeriveDataTypeable,ScopedTypeVariables,
+>   RankNTypes #-}
 > {-# OPTIONS_HADDOCK hide #-}
 
 > module Database.HsSqlPpp.TypeChecking.AstAnnotation
@@ -21,6 +22,8 @@ grammar code and aren't exposed.
 >     ,getTopLevelInfos
 >     ,getTopLevelEnvUpdates
 >     ,getTypeAnnotation
+>     ,getTypeErrors
+>     ,stripAnnotations
 >     --,getTypeErrors
 >     --,pack
 >     ,StatementInfo(..)
@@ -28,6 +31,7 @@ grammar code and aren't exposed.
 >     ) where
 
 > import Data.Generics
+> import Data.Maybe
 
 > import Database.HsSqlPpp.TypeChecking.TypeType
 > import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
@@ -51,23 +55,34 @@ grammar code and aren't exposed.
 >     changeAnn :: a -> (Annotation -> Annotation) -> a
 >     changeAnn a f = setAnn a (f $ ann a)
 
- > data Annotatable = forall a . (Annotated a, Show a) => MkAnnotatable a
-
- > instance Show Annotatable
- >   where
- >   showsPrec p (MkAnnotatable a) = showsPrec p a
-
- > pack :: (Annotated a, Show a) => a -> Annotatable
- > pack = MkAnnotatable
-
-
 > -- | run through the ast, and pull the type annotation from each
 > -- of the top level items.
-> getTopLevelTypes :: Annotated a =>
->                     [a] -- ^ the ast items
->                  -> [Type] -- ^ the type annotations, this list should be the same
->                            -- length as the argument
-> getTopLevelTypes = map getTypeAnnotation
+> getTopLevelTypes :: Data a => [a] -> [Type]
+> getTopLevelTypes st =
+>     getTopLevelXs typeAnnot st
+>     where
+>       typeAnnot :: AnnotationElement -> [Maybe Type]
+>       typeAnnot e = case e of
+>                            TypeAnnotation t -> [Just t]
+>                            _ -> [Nothing]
+
+> getTopLevelXs :: forall a b a1.(Data a1, Typeable b) =>
+>                  (b -> [Maybe a]) -> a1 -> [a]
+> getTopLevelXs p st =
+>     catMaybes $ everythingOne (++) (mkQ [] p) st
+
+
+> everythingOne :: (r -> r -> r) -> GenericQ r -> GenericQ r
+> everythingOne k f x
+>  = foldl k (f x) (gmapQ (everythingTwo k f) x)
+
+> everythingZero :: (r -> r -> r) -> GenericQ r -> GenericQ r
+> everythingZero k f x
+>  = foldl k (f x) (gmapQ f x)
+
+> everythingTwo :: (r -> r -> r) -> GenericQ r -> GenericQ r
+> everythingTwo k f x
+>  = foldl k (f x) (gmapQ (everythingZero k f) x)
 
 > getTypeAnnotation :: Annotated a => a  -> Type
 > getTypeAnnotation at = let as = ann at
@@ -109,7 +124,6 @@ grammar code and aren't exposed.
 >                  -> [[EnvironmentUpdate]]
 > getTopLevelEnvUpdates = map getEuAnnotation
 
-
 > data StatementInfo = DefaultStatementInfo Type
 >                    | SelectInfo Type
 >                    | InsertInfo String Type
@@ -127,3 +141,36 @@ if a node has no source position e.g. the all in select all or select
    source position of where the token would have appeared, should it
    inherit it from its parent, should there be a separate ctor to
    represent a fake node with no source position?
+
+
+> getAnnotationsRecurse :: (Data a) => a -> [AnnotationElement]
+> getAnnotationsRecurse st = listify (\(_::AnnotationElement) -> True) st
+
+
+hack job, often not interested in the source positions when testing
+the asts produced, so this function will reset all the source
+positions to empty ("", 0, 0) so we can compare them for equality, etc.
+without having to get the positions correct.
+
+> -- | strip all the annotations from a tree. E.g. can be used to compare
+> -- two asts are the same, ignoring any source position annotation differences.
+> stripAnnotations :: (Data a) => a -> a
+> stripAnnotations = everywhere (mkT stripAn)
+>                    where
+>                      stripAn :: [AnnotationElement] -> [AnnotationElement]
+>                      stripAn _ = []
+
+
+> -- | runs through the ast given and returns a list of all the type errors
+> -- in the ast. Recurses into all ast nodes to find type errors.
+> -- This is the function to use to see if an ast has passed the type checking process.
+> -- Source position information will be added to the return type at some point
+> getTypeErrors :: (Data a) => a -> [TypeError]
+> getTypeErrors sts =
+>     gte $ getAnnotationsRecurse sts
+>     where
+>       gte (a:as) = case a of
+>                     TypeErrorA e -> e:gte as
+>                     _ -> gte as
+>       gte _ = []
+

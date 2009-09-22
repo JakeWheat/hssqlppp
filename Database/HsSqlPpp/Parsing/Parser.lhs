@@ -316,18 +316,16 @@ insert statement: supports option column name list,
 multiple rows to insert and insert from select statements
 
 > insert :: ParsecT [Token] ParseState Identity Statement
-> insert = keyword "insert" >> keyword "into" >>
->          Insert
->          <$> pos
+> insert = Insert
+>          <$> pos <* keyword "insert" <* keyword "into"
 >          <*> idString
 >          <*> option [] (try columnNameList)
 >          <*> selectExpression
 >          <*> tryOptionMaybe returning
 
 > update :: ParsecT [Token] ParseState Identity Statement
-> update = keyword "update" >>
->          Update
->          <$> pos
+> update = Update
+>          <$> pos <* keyword "update"
 >          <*> idString
 >          <*> (keyword "set" *> commaSep1 setClause)
 >          <*> tryOptionMaybe whereClause
