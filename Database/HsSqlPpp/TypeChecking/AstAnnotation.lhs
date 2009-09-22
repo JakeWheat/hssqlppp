@@ -61,27 +61,25 @@ grammar code and aren't exposed.
 > getTopLevelTypes st =
 >     getTopLevelXs typeAnnot st
 >     where
->       typeAnnot :: AnnotationElement -> [Maybe Type]
->       typeAnnot e = case e of
->                            TypeAnnotation t -> [Just t]
->                            _ -> [Nothing]
+>       typeAnnot :: Annotation -> [Type]
+>       typeAnnot (x:xs) = case x of
+>                                 TypeAnnotation t -> [t]
+>                                 _ -> typeAnnot xs
+>       typeAnnot [] = [TypeCheckFailed] -- error "couldn't find type annotation"
 
-> getTopLevelXs :: forall a b a1.(Data a1, Typeable b) =>
->                  (b -> [Maybe a]) -> a1 -> [a]
 > getTopLevelXs p st =
->     catMaybes $ everythingOne (++) (mkQ [] p) st
+>     everythingOne (++) (mkQ [] p) st
 
-
-> everythingOne :: (r -> r -> r) -> GenericQ r -> GenericQ r
-> everythingOne k f x
->  = foldl k (f x) (gmapQ (everythingTwo k f) x)
+> everythingTwo :: (r -> r -> r) -> GenericQ r -> GenericQ r
+> everythingTwo k f x
+>  = foldl k (f x) (gmapQ (everythingOne k f) x)
 
 > everythingZero :: (r -> r -> r) -> GenericQ r -> GenericQ r
 > everythingZero k f x
 >  = foldl k (f x) (gmapQ f x)
 
-> everythingTwo :: (r -> r -> r) -> GenericQ r -> GenericQ r
-> everythingTwo k f x
+> everythingOne :: (r -> r -> r) -> GenericQ r -> GenericQ r
+> everythingOne k f x
 >  = foldl k (f x) (gmapQ (everythingZero k f) x)
 
 > getTypeAnnotation :: Annotated a => a  -> Type
