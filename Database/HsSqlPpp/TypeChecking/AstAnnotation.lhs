@@ -14,8 +14,7 @@ grammar code and aren't exposed.
 
 > module Database.HsSqlPpp.TypeChecking.AstAnnotation
 >     (
->      Annotated(..)
->     ,Annotation
+>      Annotation
 >     ,AnnotationElement(..)
 >     --,stripAnnotations
 >     ,getTopLevelTypes
@@ -49,11 +48,11 @@ grammar code and aren't exposed.
 >                        | EnvUpdates [EnvironmentUpdate]
 >                          deriving (Eq, Show,Typeable,Data)
 
-> class Annotated a where
->     ann :: a -> Annotation
->     setAnn :: a -> Annotation -> a
->     changeAnn :: a -> (Annotation -> Annotation) -> a
->     changeAnn a f = setAnn a (f $ ann a)
+Use syb to pull annotation values from an ast.
+
+I like to cut and paste code from the internet which I don't
+understand, then keep changing it till it compiles and passes the tests.
+
 
 > -- | run through the ast, and pull the type annotation from each
 > -- of the top level items.
@@ -67,12 +66,35 @@ grammar code and aren't exposed.
 >                                 _ -> typeAnnot xs
 >       typeAnnot [] = [TypeCheckFailed] -- error "couldn't find type annotation"
 
+> getTopLevelXs :: forall a b a1.
+>                  (Data a1, Typeable b) =>
+>                 (b -> [a]) -> a1 -> [a]
 > getTopLevelXs p st =
 >     everythingOne (++) (mkQ [] p) st
 
-> everythingTwo :: (r -> r -> r) -> GenericQ r -> GenericQ r
-> everythingTwo k f x
->  = foldl k (f x) (gmapQ (everythingOne k f) x)
+
+> getTypeAnnotation :: Data a => a -> Type
+> getTypeAnnotation st =
+>     case getTopLevelX typeAnnot st of
+>       x:_ -> x
+>       [] -> TypeCheckFailed
+>     where
+>       typeAnnot :: Annotation -> [Type]
+>       typeAnnot (x:xs) = case x of
+>                                 TypeAnnotation t -> [t]
+>                                 _ -> typeAnnot xs
+>       typeAnnot [] = [TypeCheckFailed]
+
+> getTopLevelX :: forall a b a1.
+>                 (Data a1, Typeable b) =>
+>                (b -> [a]) -> a1 -> [a]
+> getTopLevelX p st =
+>     everythingOne (++) (mkQ [] p) st
+
+
+ > everythingTwo :: (r -> r -> r) -> GenericQ r -> GenericQ r
+ > everythingTwo k f x
+ >  = foldl k (f x) (gmapQ (everythingOne k f) x)
 
 > everythingZero :: (r -> r -> r) -> GenericQ r -> GenericQ r
 > everythingZero k f x
@@ -82,45 +104,26 @@ grammar code and aren't exposed.
 > everythingOne k f x
 >  = foldl k (f x) (gmapQ (everythingZero k f) x)
 
-> getTypeAnnotation :: Annotated a => a  -> Type
-> getTypeAnnotation at = let as = ann at
->                        in gta as
->                        where
->                          gta (x:xs) = case x of
->                                         TypeAnnotation t -> t
->                                         _ -> gta xs
->                          gta _ = TypeCheckFailed -- error "couldn't find type annotation"
+> getSIAnnotation :: Annotation -> [Maybe StatementInfo]
+> getSIAnnotation (x:xs) = case x of
+>                                 StatementInfoA t -> [Just t]
+>                                 _ -> getSIAnnotation xs
+> getSIAnnotation []  = [Nothing]
 
-> getSIAnnotation :: Annotated a => a  -> Maybe StatementInfo
-> getSIAnnotation at = let as = ann at
->                        in gta as
->                        where
->                          gta (x:xs) = case x of
->                                         StatementInfoA t -> Just t
->                                         _ -> gta xs
->                          gta _ = Nothing
-
-> getEuAnnotation :: Annotated a => a  -> [EnvironmentUpdate]
-> getEuAnnotation at = let as = ann at
->                        in gta as
->                        where
->                          gta (x:xs) = case x of
->                                         EnvUpdates t -> t
->                                         _ -> gta xs
->                          gta _ = []
+> getEuAnnotation :: Annotation -> [[EnvironmentUpdate]]
+> getEuAnnotation (x:xs) = case x of
+>                                 EnvUpdates t -> t:getEuAnnotation xs
+>                                 _ -> getEuAnnotation xs
+> getEuAnnotation [] = []
 
 
 > -- | Run through the ast given and return a list of statementinfos
 > -- from the top level items.
-> getTopLevelInfos :: Annotated a =>
->                     [a] -- ^ the ast to check
->                  -> [Maybe StatementInfo]
-> getTopLevelInfos = map getSIAnnotation
+> getTopLevelInfos :: Data a => [a] -> [Maybe StatementInfo]
+> getTopLevelInfos = getTopLevelXs getSIAnnotation
 
-> getTopLevelEnvUpdates :: Annotated a =>
->                     [a] -- ^ the ast to check
->                  -> [[EnvironmentUpdate]]
-> getTopLevelEnvUpdates = map getEuAnnotation
+> getTopLevelEnvUpdates ::  Data a => [a] -> [[EnvironmentUpdate]]
+> getTopLevelEnvUpdates = getTopLevelXs getEuAnnotation
 
 > data StatementInfo = DefaultStatementInfo Type
 >                    | SelectInfo Type
@@ -171,4 +174,3 @@ without having to get the positions correct.
 >                     TypeErrorA e -> e:gte as
 >                     _ -> gte as
 >       gte _ = []
-

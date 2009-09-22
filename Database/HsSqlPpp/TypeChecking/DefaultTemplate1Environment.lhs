@@ -3,7 +3,7 @@ Copyright 2009 Jake Wheat
 
 This file contains
 
-putStrLn> {-# OPTIONS_HADDOCK hide  #-}
+> {-# OPTIONS_HADDOCK hide  #-}
 
 > module Database.HsSqlPpp.TypeChecking.DefaultTemplate1Environment
 >     (defaultTemplate1Environment

@@ -289,7 +289,7 @@ This reads an environment from a database and writes it out using show.
 >          \\n\
 >          \This file contains\n\
 >          \\n\
->          \putStrLn> {-# OPTIONS_HADDOCK hide  #-}\n\
+>          \> {-# OPTIONS_HADDOCK hide  #-}\n\
 >          \\n\
 >          \> module Database.HsSqlPpp.TypeChecking.DefaultTemplate1Environment\n\
 >          \>     (defaultTemplate1Environment\n\

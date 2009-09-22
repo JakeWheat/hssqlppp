@@ -70,7 +70,7 @@ Library
                      Database.HsSqlPpp.TypeChecking.TypeChecker,
                      Database.HsSqlPpp.TypeChecking.Environment,
                      Database.HsSqlPpp.Dbms.DatabaseLoader
-  extensions:        DeriveDataTypeable
+  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
 
 Executable HsSqlSystem
   Main-is:           HsSqlSystem.lhs
@@ -98,7 +98,7 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.TypeChecking.EnvironmentInternal,
                      Database.HsSqlPpp.TypeChecking.EnvironmentReader,
                      Database.HsSqlPpp.Utils
-  extensions:        DeriveDataTypeable
+  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
 
 Executable HsSqlPppTests
   Main-is:           HsSqlPppTests.lhs
@@ -132,4 +132,4 @@ Executable HsSqlPppTests
                      Database.HsSqlPpp.TypeChecking.EnvironmentInternal,
                      Database.HsSqlPpp.TypeChecking.EnvironmentReader,
                      Database.HsSqlPpp.Utils
-  extensions:        DeriveDataTypeable
+  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables

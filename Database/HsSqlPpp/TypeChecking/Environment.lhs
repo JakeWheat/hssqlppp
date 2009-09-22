@@ -9,7 +9,7 @@ module used by the type checking code.
 >    from read them from a database to supply to the annotation function. If you
 >    only need to type check against the default template1 catalog, then you
 >    don't even need to do this - is you use the annotation function with
->    no Environment parameter, it uses the default template 1 catalog.
+>    no Environment parameter, it uses the default template1 catalog.
 >
 >    The environment data type serves the following purposes:
 >
