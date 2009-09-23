@@ -48,10 +48,7 @@ etc. annotations.
 
 -}
 ATTR AllNodes Root ExpressionRoot
-  [ env : Environment
-  |
-  | annotatedTree : SELF
-  ]
+  [ env : Environment || annotatedTree : SELF]
 
 {-
 ================================================================================
@@ -124,11 +121,7 @@ are not supported at the moment.
 
 -}
 
-ATTR TypeName
-     [
-     |
-     | namedType : Type
-     ]
+ATTR TypeName [||namedType : Type]
 
 SEM TypeName
      | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName
@@ -261,11 +254,7 @@ SEM Expression
         loc.backTree = InPredicate @ann @expr.annotatedTree @i @list.annotatedTree
 
 
-ATTR InList
-   [
-   |
-   | listType : {Either [TypeError] Type}
-   ]
+ATTR InList [||listType : {Either [TypeError] Type}]
 
 SEM InList
     | InList
@@ -286,22 +275,14 @@ SEM InList
 
 
 
-ATTR ExpressionList
-     [
-     |
-     | typeList : {[Type]}
-     ]
+ATTR ExpressionList [||typeList : {[Type]}]
 
 SEM ExpressionList
     | Cons lhs.typeList = getTypeAnnotation @hd.annotatedTree : @tl.typeList
     | Nil lhs.typeList = []
 
 
-ATTR ExpressionListList
-     [
-     |
-     | typeListList : {[[Type]]}
-     ]
+ATTR ExpressionListList  [||typeListList : {[[Type]]}]
 
 SEM ExpressionListList
     | Cons lhs.typeListList = @hd.typeList : @tl.typeListList
@@ -325,11 +306,7 @@ SEM Statement
                                       [EnvUpdates @loc.envUpdates])
         lhs.envUpdates = @loc.envUpdates
 
-ATTR Statement
-    [
-    |
-    | envUpdates : {[EnvironmentUpdate]}
-    ]
+ATTR Statement [||envUpdates : {[EnvironmentUpdate]}]
 
 SEM Statement
     | Assignment CaseStatement ContinueStatement Copy CopyData DropFunction
@@ -339,11 +316,7 @@ SEM Statement
         lhs.envUpdates = []
 
 
-ATTR StatementList
-     [
-     | envUpdates : {[EnvironmentUpdate]}
-     |
-     ]
+ATTR StatementList [ envUpdates : {[EnvironmentUpdate]}||]
 
 SEM Root
     | Root statements.envUpdates = []
@@ -434,12 +407,8 @@ SEM SelectExpression
 getTbCols c = unwrapSetOfComposite (getTypeAnnotation c)
 }
 
-ATTR TableRef MaybeTableRef
-         [
-         |
-         | idens : {[(String,([(String,Type)],[(String,Type)]))]}
-           joinIdens : {[String]}
-         ]
+ATTR TableRef MaybeTableRef [||idens : {[(String,([(String,Type)],[(String,Type)]))]}
+                                  joinIdens : {[String]} ]
 
 SEM TableRef
     | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
@@ -540,21 +509,13 @@ SEM MaybeTableRef
         lhs.idens = []
         lhs.joinIdens = []
 
-ATTR SelectItemList SelectList
-  [
-  |
-  | listType : Type
-  ]
+ATTR SelectItemList SelectList [||listType : Type]
 
 SEM SelectItemList
     | Cons lhs.listType = doSelectItemListTpe @lhs.env @hd.columnName @hd.itemType @tl.listType
     | Nil lhs.listType = UnnamedCompositeType []
 
-ATTR SelectItem
-     [
-     |
-     | itemType : Type
-     ]
+ATTR SelectItem [||itemType : Type]
 
 SEM SelectItem
     | SelExp SelectItem
@@ -635,11 +596,7 @@ selectitemlist, which is also where star expansion happens.
 
 -}
 
-ATTR SelectItem
-  [
-  |
-  | columnName : String
-  ]
+ATTR SelectItem [||columnName : String]
 
 {-
 if the select item is just an identifier, then that column is named
@@ -656,11 +613,7 @@ iff it is a simple type name
 
 --default value for non identifier nodes
 
-ATTR Expression
-  [
-  |
-  | liftedColumnName USE {`(fixedValue "")`} {""}: String
-  ]
+ATTR Expression [||liftedColumnName USE {`(fixedValue "")`} {""}: String]
 
 {
 fixedValue :: a -> a -> a -> a
@@ -720,11 +673,7 @@ SEM Statement
                               @insData.annotatedTree @returning
         loc.envUpdates = []
 
-ATTR StringList
-     [
-     |
-     | strings : {[String]}
-     ]
+ATTR StringList [||strings : {[String]}]
 
 SEM StringList
   | Cons lhs.strings = @hd : @tl.strings
@@ -763,12 +712,8 @@ SEM Statement
         loc.backTree = Update @ann @table @assigns.annotatedTree @whr.annotatedTree @returning
         loc.envUpdates = []
 
-ATTR SetClauseList
-     [
-     |
-     | pairs : {[(String,Type)]}
-       rowSetErrors : {[TypeError]}
-     ]
+ATTR SetClauseList [||pairs : {[(String,Type)]}
+                         rowSetErrors : {[TypeError]}]
 
 SEM SetClauseList
   | Cons lhs.pairs = @hd.pairs ++ @tl.pairs
@@ -776,13 +721,8 @@ SEM SetClauseList
   | Nil lhs.pairs = []
         lhs.rowSetErrors = []
 
-ATTR SetClause
-     [
-     |
-     | pairs : {[(String,Type)]}
-       rowSetError : {Maybe TypeError}
-     ]
-
+ATTR SetClause [||pairs : {[(String,Type)]}
+                     rowSetError : {Maybe TypeError}]
 
 SEM SetClause
     | SetClause
@@ -830,23 +770,15 @@ types, typenames, typecats, attrdefs, systemcolumns
 produces a compositedef: (name, tablecomposite, unnamedcomp [(attrname, type)])
 
 -}
-ATTR AttributeDef
-  [
-  |
-  | attrName : String
-    namedType : Type
-  ]
+ATTR AttributeDef [||attrName : String
+                        namedType : Type]
 
 SEM AttributeDef
     | AttributeDef
       lhs.attrName = @name
       lhs.namedType = @typ.namedType
 
-ATTR AttributeDefList
-  [
-  |
-  | attrs : {[(String, Type)]}
-  ]
+ATTR AttributeDefList [||attrs : {[(String, Type)]}]
 
 SEM AttributeDefList
     | Cons lhs.attrs = (@hd.attrName, @hd.namedType) : @tl.attrs
@@ -895,24 +827,15 @@ SEM Statement
 = create type
 
 -}
-ATTR TypeAttributeDef
-   [
-   |
-   | attrName : String
-     namedType : Type
-   ]
-
+ATTR TypeAttributeDef [||attrName : String
+                            namedType : Type]
 
 SEM TypeAttributeDef
     | TypeAttDef
         lhs.attrName = @name
         lhs.namedType = @typ.namedType
 
-ATTR TypeAttributeDefList
-     [
-     |
-     | attrs : {[(String, Type)]}
-     ]
+ATTR TypeAttributeDefList [||attrs : {[(String, Type)]}]
 
 SEM TypeAttributeDefList
     | Cons lhs.attrs = (@hd.attrName, @hd.namedType) : @tl.attrs
@@ -952,23 +875,11 @@ SEM Statement
 ignore body for now, just get the signature
 -}
 
-ATTR ParamDef
-     [
-     |
-     | paramName : String
-     ]
+ATTR ParamDef [||paramName : String]
 
-ATTR ParamDefList
-     [
-     |
-     | params : {[(String, Type)]}
-     ]
+ATTR ParamDefList [||params : {[(String, Type)]}]
 
-ATTR ParamDef
-     [
-     |
-     | namedType : Type
-     ]
+ATTR ParamDef [||namedType : Type]
 
 SEM ParamDef
     | ParamDef ParamDefTp
@@ -1004,17 +915,9 @@ SEM FnBody
     | PlpgsqlFnBody
         sts.env = fromRight @lhs.env $ updateEnvironment @lhs.env [EnvStackIDs [("", @vars.defs)]]
 
-ATTR VarDef
-     [
-     |
-     | def : {(String,Type)}
-     ]
+ATTR VarDef [||def : {(String,Type)}]
 
-ATTR VarDefList
-     [
-     |
-     | defs : {[(String,Type)]}
-     ]
+ATTR VarDefList [||defs : {[(String,Type)]}]
 
 SEM VarDef
     | VarDef lhs.def = (@name, @typ.namedType)
@@ -1038,12 +941,7 @@ SEM MaybeBoolExpression
                           @just.annotatedTree
             else Just $ @just.annotatedTree
 
-ATTR MaybeExpression
-     [
-     |
-     | exprType : {Maybe Type}
-     ]
-
+ATTR MaybeExpression [||exprType : {Maybe Type}]
 
 SEM MaybeExpression
     | Just lhs.exprType = Just $ getTypeAnnotation @just.annotatedTree
@@ -1119,17 +1017,10 @@ loop, return, nullability, etc. analysis.
 
 -}
 {-
-ATTR AllNodes Root ExpressionRoot
-  [
-  |
-  | messages USE {++} {[]} : {[Message]}
-  ]
+ATTR AllNodes Root ExpressionRoot [||messages USE {++} {[]} : {[Message]}]
 
 ATTR AllNodes
-  [ inLoop: Bool
-  |
-  |
-  ]
+  [ inLoop: Bool||]
 
 SEM Root
   | Root statements.inLoop = False
