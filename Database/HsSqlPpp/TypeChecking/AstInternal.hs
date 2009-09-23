@@ -8949,7 +8949,7 @@ sem_StringStringListPairList_Nil  =
          child fn             : Expression 
          visit 0:
             local tpe         : _
-            local alias       : _
+            local alias1      : _
             local backTree    : _
             local annotatedTree : _
       alternative TrefFunAlias:
@@ -8958,7 +8958,7 @@ sem_StringStringListPairList_Nil  =
          child alias          : {String}
          visit 0:
             local tpe         : _
-            local alias       : _
+            local alias1      : _
             local backTree    : _
             local annotatedTree : _
 -}
@@ -9328,7 +9328,7 @@ sem_TableRef_TrefFun ann_ fn_  =
               -- "./TypeChecking.ag"(line 474, column 9)
               _tpe =
                   {-# LINE 474 "./TypeChecking.ag" #-}
-                  getFnType _lhsIenv _alias _fnIannotatedTree
+                  getFnType _lhsIenv _alias1     _fnIannotatedTree
                   {-# LINE 9333 "AstInternal.hs" #-}
               -- "./TypeChecking.ag"(line 475, column 9)
               _lhsOjoinIdens =
@@ -9339,13 +9339,13 @@ sem_TableRef_TrefFun ann_ fn_  =
               _lhsOidens =
                   {-# LINE 476 "./TypeChecking.ag" #-}
                   case getFunIdens
-                            _lhsIenv _alias
+                            _lhsIenv _alias1
                             _fnIannotatedTree of
                     Right (s, UnnamedCompositeType c) -> [(s,(c,[]))]
                     _ -> []
                   {-# LINE 9347 "AstInternal.hs" #-}
               -- "./TypeChecking.ag"(line 482, column 9)
-              _alias =
+              _alias1 =
                   {-# LINE 482 "./TypeChecking.ag" #-}
                   ""
                   {-# LINE 9352 "AstInternal.hs" #-}
@@ -9397,7 +9397,7 @@ sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
               -- "./TypeChecking.ag"(line 474, column 9)
               _tpe =
                   {-# LINE 474 "./TypeChecking.ag" #-}
-                  getFnType _lhsIenv alias_ _fnIannotatedTree
+                  getFnType _lhsIenv _alias1     _fnIannotatedTree
                   {-# LINE 9402 "AstInternal.hs" #-}
               -- "./TypeChecking.ag"(line 475, column 9)
               _lhsOjoinIdens =
@@ -9408,13 +9408,13 @@ sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
               _lhsOidens =
                   {-# LINE 476 "./TypeChecking.ag" #-}
                   case getFunIdens
-                            _lhsIenv _alias
+                            _lhsIenv _alias1
                             _fnIannotatedTree of
                     Right (s, UnnamedCompositeType c) -> [(s,(c,[]))]
                     _ -> []
                   {-# LINE 9416 "AstInternal.hs" #-}
               -- "./TypeChecking.ag"(line 485, column 9)
-              _alias =
+              _alias1 =
                   {-# LINE 485 "./TypeChecking.ag" #-}
                   alias_
                   {-# LINE 9421 "AstInternal.hs" #-}
@@ -9426,7 +9426,7 @@ sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
               -- self rule
               _annotatedTree =
                   {-# LINE 53 "./TypeChecking.ag" #-}
-                  TrefFunAlias ann_ _fnIannotatedTree _alias
+                  TrefFunAlias ann_ _fnIannotatedTree alias_
                   {-# LINE 9431 "AstInternal.hs" #-}
               -- copy rule (up)
               _lhsOenv =

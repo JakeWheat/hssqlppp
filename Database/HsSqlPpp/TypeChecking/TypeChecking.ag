@@ -471,18 +471,18 @@ SEM TableRef
         lhs.idens = [(@alias, @loc.unwrappedRelType)]
         loc.backTree = TrefAlias @ann @tbl @alias
     | TrefFun TrefFunAlias
-        loc.tpe = getFnType @lhs.env @alias @fn.annotatedTree
+        loc.tpe = getFnType @lhs.env @loc.alias1 @fn.annotatedTree
         lhs.joinIdens = []
         lhs.idens = case getFunIdens
-                              @lhs.env @loc.alias
+                              @lhs.env @loc.alias1
                               @fn.annotatedTree of
                       Right (s, UnnamedCompositeType c) -> [(s,(c,[]))]
                       _ -> []
     | TrefFun
-        loc.alias = ""
+        loc.alias1 = ""
         loc.backTree = TrefFun @ann @fn.annotatedTree
     | TrefFunAlias
-        loc.alias = @alias
+        loc.alias1 = @alias
         loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
     | JoinedTref
         loc.tpe =
