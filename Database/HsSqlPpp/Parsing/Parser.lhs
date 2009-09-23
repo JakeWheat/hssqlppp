@@ -277,8 +277,8 @@ recurses to support parsing excepts, unions, etc
 >              <*> (keyword "join" *> tref)
 >              --now try and read the join condition
 >              <*> choice [
->                  Just <$> (JoinOn [] <$> (keyword "on" *> expr))
->                 ,Just <$> (JoinUsing [] <$> (keyword "using" *> columnNameList))
+>                  Just <$> (JoinOn <$> pos <*> (keyword "on" *> expr))
+>                 ,Just <$> (JoinUsing <$> pos <*> (keyword "using" *> columnNameList))
 >                 ,return Nothing]
 >         nkwid = try $ do
 >                  x <- idString
@@ -334,10 +334,12 @@ multiple rows to insert and insert from select statements
 >          <*> tryOptionMaybe returning
 >     where
 >       setClause = choice
->             [RowSetClause [] <$> parens (commaSep1 idString)
->                              <*> (symbol "=" *> parens (commaSep1 expr))
->             ,SetClause [] <$> idString
->                           <*> (symbol "=" *> expr)]
+>             [RowSetClause <$> pos
+>                           <*> parens (commaSep1 idString)
+>                           <*> (symbol "=" *> parens (commaSep1 expr))
+>             ,SetClause <$> pos
+>                        <*> idString
+>                        <*> (symbol "=" *> expr)]
 
 > delete :: ParsecT [Token] ParseState Identity Statement
 > delete = Delete
@@ -870,7 +872,7 @@ The full list of operators from DefaultScope.hs should be used here.
 >         ,[binaryk "like" "!like" AssocNone
 >          ,binarycust "!=" "<>" AssocNone]
 >          --(also ilike similar)
->         ,[lt "<" AssocNone
+>         ,[binary "<" AssocNone
 >          ,binary ">" AssocNone]
 >         ,[binary "=" AssocRight
 >          ,binary "<>" AssocNone]
@@ -901,21 +903,7 @@ The full list of operators from DefaultScope.hs should be used here.
 >       unaryF f l = f [l]
 >       binaryF s l m = FunCall [] s [l,m]
 
-some custom parsers
-
-fix problem parsing <> - don't parse as "<" if it is immediately
-followed by ">"
-
-don't know if this is needed anymore.
-
->       lt _ = Infix (dontFollowWith "<" ">" >>
->                     return (\l -> (\m -> FunCall [] "<" [l,m])))
-
->       dontFollowWith c1 c2 =
->         try $ symbol c1 *> ((do
->                                lookAhead $ symbol c2
->                                fail "dont follow")
->                             <|> return ())
+don't know how to fill in the source positions for the items above.
 
 == factor parsers
 
@@ -997,9 +985,9 @@ expression when value' currently
 >                    <*> squares (commaSep expr)
 
 > arraySubSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> arraySubSuffix e = if e == Identifier [] "array"
->                      then fail "can't use array as identifier name"
->                      else FunCall <$> pos
+> arraySubSuffix e = case e of
+>                      Identifier _ "array" -> fail "can't use array as identifier name"
+>                      _ -> FunCall <$> pos
 >                                   <*> return "!arraySub"
 >                                   <*> ((e:) <$> squares (commaSep1 expr))
 
@@ -1057,7 +1045,7 @@ TODO: copy this approach here.
 >                dodgyParseElement = factor
 
 > functionCallSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> functionCallSuffix (Identifier _ fnName) = FunCall [] fnName <$> parens (commaSep expr)
+> functionCallSuffix (Identifier _ fnName) = pos >>= \p -> FunCall p fnName <$> parens (commaSep expr)
 > functionCallSuffix s = error $ "internal error: cannot make functioncall from " ++ show s
 
 > castKeyword :: ParsecT [Token] ParseState Identity Expression
