@@ -48,8 +48,8 @@ etc. annotations.
 
 -}
 ATTR AllNodes Root ExpressionRoot
-  [
-  | env : Environment
+  [ env : Environment
+  |
   | annotatedTree : SELF
   ]
 
