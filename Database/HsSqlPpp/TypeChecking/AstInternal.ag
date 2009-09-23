@@ -106,7 +106,7 @@ import Control.Applicative
 import Data.Generics
 
 import Database.HsSqlPpp.TypeChecking.TypeType
-import Database.HsSqlPpp.TypeChecking.AstUtils
+--import Database.HsSqlPpp.TypeChecking.AstUtils
 import Database.HsSqlPpp.TypeChecking.TypeConversion
 import Database.HsSqlPpp.TypeChecking.TypeCheckingH
 import Database.HsSqlPpp.TypeChecking.AstAnnotation

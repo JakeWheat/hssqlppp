@@ -5,7 +5,27 @@ type checking.
 
 > {-# OPTIONS_HADDOCK hide #-}
 
-> module Database.HsSqlPpp.TypeChecking.TypeCheckingH where
+> module Database.HsSqlPpp.TypeChecking.TypeCheckingH
+>     (
+>      typeCheckFunCall
+>     ,typeCheckValuesExpr
+>     ,getAttrs
+>     ,combineTableTypesWithUsingList
+>     ,doSelectItemListTpe
+>     ,splitIdentifier
+>     ,getRelationType
+>     ,checkColumnConsistency
+>     ,checkRelationExists
+>     ,convertToNewStyleUpdates
+>     ,commonFieldNames
+>     ,typeCheckCombineSelect
+>     ,checkTypes
+>     ,chainTypeCheckFailed
+>     ,errorToTypeFail
+>     ,errorToTypeFailF
+>     ,checkErrorList
+>     ,getErrors
+>     ) where
 
 > import Data.Maybe
 > import Data.List
@@ -211,7 +231,7 @@ returns the type of the relation, and the system columns also
 >       errs :: [TypeError]
 >       errs = concat $ lefts $ map (\(_,b,c) -> checkAssignmentValid env c b) typeTriples
 >   unless (null errs) $ Left errs
->   return ttcols
+>   return $ targetNameTypePairs
 
 > checkRelationExists :: Environment -> String -> Maybe TypeError
 > checkRelationExists env tbl =
@@ -238,4 +258,3 @@ returns the type of the relation, and the system columns also
 >         partition isJoinField $ concatMap snd qualifiedFieldsStarExp
 >     --need to resolve types instead of using nub
 >     newStarExpansion = ("", nub joinFieldsStarExp ++ nonJoinFieldsStarExp):qualifiedFieldsStarExp
-

@@ -686,10 +686,6 @@ SEM StringList
 
 -}
 
-{
-
-}
-
 SEM Statement
     | Update
         loc.tpe =
@@ -701,19 +697,16 @@ SEM Statement
               @loc.columnsConsistent
               checkErrorList @assigns.rowSetErrors $ Pseudo Void
         loc.columnsConsistent =
-            checkColumnConsistency @lhs.env @table (map fst @assigns.pairs) @assigns.pairs
+            let cc = checkColumnConsistency @lhs.env @table (map fst @assigns.pairs) @assigns.pairs
+            in trace("assigns: " ++ show @assigns.pairs ++ "\n" ++
+                     "cc: " ++ show cc) cc
         loc.statementInfo =
-            [UpdateInfo @table $ flip errorToTypeFailF @loc.columnsConsistent $
-                                     \c -> let colNames = map fst @assigns.pairs
-                                           in UnnamedCompositeType $ map (\t -> (t,getType c t)) colNames]
-
-            where
-              getType cols t = fromJust $ lookup t cols
+            [UpdateInfo @table $ errorToTypeFailF UnnamedCompositeType @loc.columnsConsistent]
         loc.backTree = Update @ann @table @assigns.annotatedTree @whr.annotatedTree @returning
         loc.envUpdates = []
 
 ATTR SetClauseList [||pairs : {[(String,Type)]}
-                         rowSetErrors : {[TypeError]}]
+                      rowSetErrors : {[TypeError]}]
 
 SEM SetClauseList
   | Cons lhs.pairs = @hd.pairs ++ @tl.pairs
@@ -722,7 +715,7 @@ SEM SetClauseList
         lhs.rowSetErrors = []
 
 ATTR SetClause [||pairs : {[(String,Type)]}
-                     rowSetError : {Maybe TypeError}]
+                  rowSetError : {Maybe TypeError}]
 
 SEM SetClause
     | SetClause
