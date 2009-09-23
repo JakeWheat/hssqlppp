@@ -1055,7 +1055,7 @@ TODO: copy this approach here.
 >               <*> (keyword "as" *> typeName <* symbol ")")
 
 > castSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> castSuffix ex = Cast [] ex <$> (symbol "::" *> typeName)
+> castSuffix ex = pos >>= \p -> Cast p ex <$> (symbol "::" *> typeName)
 
 > substring :: ParsecT [Token] ParseState Identity Expression
 > substring = do

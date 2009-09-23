@@ -55,14 +55,14 @@ This is the public module for the ast nodes.
 >     ,AttributeDefList
 >     ,ConstraintList
 >     ,TypeAttributeDefList
->     ,Where
 >     ,StringStringListPairList
 >     ,StringStringListPair
 >     ,ExpressionStatementListPairList
 >     ,SetClauseList
 >     ,CaseExpressionListExpressionPairList
 >     ,MaybeExpression
->     ,MTableRef
+>     ,MaybeBoolExpression
+>     ,MaybeTableRef
 >     ,ExpressionListList
 >     ,SelectItemList
 >     ,OnExpr

@@ -393,15 +393,6 @@ SEM SelectExpression
                               (getErrors @loc.tpe)
                               Nothing
 
-{
-checkExpressionBool :: Maybe Expression -> Either [TypeError] Type
-checkExpressionBool whr = do
-  let ty = fromMaybe typeBool $ fmap getTypeAnnotation whr
-  when (ty `notElem` [typeBool, TypeCheckFailed]) $
-       Left [ExpressionMustBeBool]
-  return ty
-}
-
 SEM SelectExpression
     | Values
         loc.tpe = typeCheckValuesExpr
@@ -411,11 +402,10 @@ SEM SelectExpression
     | Select
         loc.tpe =
            do
-           whereType <- checkExpressionBool @selWhere.annotatedTree
            let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
                                                     @selTref.annotatedTree
                slType = @selSelectList.listType
-           chainTypeCheckFailed [trefType, whereType, slType] $
+           chainTypeCheckFailed [trefType, slType] $
              Right $ case slType of
                        UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
                        _ -> SetOfType slType
@@ -444,7 +434,7 @@ SEM SelectExpression
 getTbCols c = unwrapSetOfComposite (getTypeAnnotation c)
 }
 
-ATTR TableRef MTableRef
+ATTR TableRef MaybeTableRef
          [
          |
          | idens : {[(String,([(String,Type)],[(String,Type)]))]}
@@ -545,7 +535,7 @@ getFunIdens env alias fnVal =
                       _ -> UnnamedCompositeType []
 }
 
-SEM MTableRef
+SEM MaybeTableRef
     | Nothing
         lhs.idens = []
         lhs.joinIdens = []
@@ -758,8 +748,7 @@ SEM Statement
             let re = checkRelationExists @lhs.env @table
             when (isJust re) $
                  Left [fromJust $ re]
-            whereType <- checkExpressionBool @whr.annotatedTree
-            chainTypeCheckFailed (whereType:map snd @assigns.pairs) $ do
+            chainTypeCheckFailed (map snd @assigns.pairs) $ do
               @loc.columnsConsistent
               checkErrorList @assigns.rowSetErrors $ Pseudo Void
         loc.columnsConsistent =
@@ -825,9 +814,7 @@ SEM Statement
         loc.tpe =
             case checkRelationExists @lhs.env @table of
               Just e -> Left [e]
-              Nothing -> do
-                whereType <- checkExpressionBool @whr.annotatedTree
-                return $ Pseudo Void
+              Nothing -> Right $ Pseudo Void
         loc.statementInfo = [DeleteInfo @table]
         loc.backTree = Delete @ann @table @whr.annotatedTree @returning
         loc.envUpdates = []
@@ -954,7 +941,7 @@ SEM Statement
         --                      Left _ -> TypeCheckFailed
         --                      Right x -> x
         loc.tpe = Right $ Pseudo Void
-        loc.backTree = CreateDomain @ann @name @typ.annotatedTree @check
+        loc.backTree = CreateDomain @ann @name @typ.annotatedTree @check.annotatedTree
         loc.statementInfo = []
         loc.envUpdates = [EnvCreateDomain (ScalarType @name) @typ.namedType]
 {-
@@ -1036,8 +1023,36 @@ SEM VarDefList
     | Cons lhs.defs = @hd.def : @tl.defs
     | Nil lhs.defs = []
 
+{-
+================================================================================
+
+= statement common components
+
+-}
+
+SEM MaybeBoolExpression
+    | Just
+        lhs.annotatedTree =
+          if getTypeAnnotation @just.annotatedTree `notElem` [typeBool, TypeCheckFailed]
+            then Just $ setAnnotation ((TypeErrorA ExpressionMustBeBool) :)
+                          @just.annotatedTree
+            else Just $ @just.annotatedTree
+
+ATTR MaybeExpression
+     [
+     |
+     | exprType : {Maybe Type}
+     ]
+
+
+SEM MaybeExpression
+    | Just lhs.exprType = Just $ getTypeAnnotation @just.annotatedTree
+    | Nothing lhs.exprType = Nothing
+
+
 
 {-
+
 ================================================================================
 
 = plpgsql statements
@@ -1050,17 +1065,6 @@ SEM Statement
         loc.backTree = Return @ann @value.annotatedTree
         loc.envUpdates = []
         loc.statementInfo = []
-
-ATTR MaybeExpression
-     [
-     |
-     | exprType : {Maybe Type}
-     ]
-
-
-SEM MaybeExpression
-    | Just lhs.exprType = Just $ getTypeAnnotation @just.annotatedTree
-    | Nothing lhs.exprType = Nothing
 
 {-
 

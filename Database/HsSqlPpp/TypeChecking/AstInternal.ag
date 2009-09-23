@@ -73,14 +73,13 @@ MODULE {Database.HsSqlPpp.TypeChecking.AstInternal}
    ,AttributeDefList
    ,ConstraintList
    ,TypeAttributeDefList
-   ,Where
    ,StringStringListPairList
    ,StringStringListPair
    ,ExpressionStatementListPairList
    ,SetClauseList
    ,CaseExpressionListExpressionPairList
    ,MaybeExpression
-   ,MTableRef
+   ,MaybeTableRef
    ,ExpressionListList
    ,SelectItemList
    ,OnExpr
@@ -89,6 +88,7 @@ MODULE {Database.HsSqlPpp.TypeChecking.AstInternal}
    ,ExpressionStatementListPair
    ,CaseExpressionListExpressionPair
    ,CaseExpressionList
+   ,MaybeBoolExpression
    -- annotations
    ,annotateAst
    ,annotateAstEnv
@@ -142,12 +142,12 @@ DATA Statement
     | Update ann:Annotation
              table : String
              assigns : SetClauseList
-             whr : Where
+             whr : MaybeBoolExpression
              returning : (Maybe SelectList)
     --tablename, where, returning
     | Delete ann:Annotation
              table : String
-             whr : Where
+             whr : MaybeBoolExpression
              returning : (Maybe SelectList)
     --tablename column names, from
     | Copy ann:Annotation
@@ -189,7 +189,7 @@ DATA Statement
     | CreateDomain ann:Annotation
                    name : String
                    typ : TypeName
-                   check : (Maybe Expression)
+                   check : MaybeBoolExpression
     -- ifexists (name,argtypes)* cascadeorrestrict
     | DropFunction ann:Annotation
                    ifE : IfExists
@@ -256,10 +256,10 @@ DATA SelectExpression
     | Select ann:Annotation
              selDistinct : Distinct
              selSelectList : SelectList
-             selTref : MTableRef
-             selWhere : Where
+             selTref : MaybeTableRef
+             selWhere : MaybeBoolExpression
              selGroupBy : ExpressionList
-             selHaving : MaybeExpression
+             selHaving : MaybeBoolExpression
              selOrderBy : ExpressionList
              selDir : Direction
              selLimit : MaybeExpression
@@ -271,9 +271,9 @@ DATA SelectExpression
     | Values ann:Annotation
              vll:ExpressionListList
 
-TYPE MTableRef = MAYBE TableRef
-TYPE Where = MAYBE Expression
+TYPE MaybeTableRef = MAYBE TableRef
 TYPE MaybeExpression = MAYBE Expression
+TYPE MaybeBoolExpression = MAYBE Expression
 
 DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation vars:VarDefList sts : StatementList
@@ -323,7 +323,7 @@ DATA CopySource | CopyFilename String
 DATA AttributeDef | AttributeDef ann:Annotation
                                  name : String
                                  typ : TypeName
-                                 check : (Maybe Expression)
+                                 def: MaybeExpression
                                  cons : RowConstraintList
 
 --Constraints which appear attached to an individual field
@@ -559,7 +559,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                Constraint TypeAttributeDef ParamDef VarDef RaiseType
                CombineType Volatility Language TypeName DropType Cascade
                Direction Distinct Natural IfExists RestartIdentity
-               Expression InList MaybeExpression
+               Expression InList MaybeExpression MaybeBoolExpression
                ExpressionList ExpressionListList StringList SetClauseList
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList StringStringListPair StringStringListPairList
@@ -568,7 +568,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               MTableRef TableRef OnExpr Where
+               MaybeTableRef TableRef OnExpr
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
 
