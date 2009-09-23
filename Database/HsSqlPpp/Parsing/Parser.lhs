@@ -37,6 +37,8 @@ fragments, then the utility parsers and other utilities at the bottom.
 >              -- * Testing
 >              ,parseExpression
 >              ,parsePlpgsql
+>              -- * errors
+>              ,ExtendedError
 >              )
 >     where
 

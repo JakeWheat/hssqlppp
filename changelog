@@ -1,3 +1,9 @@
+environment
+
+new environment data type, abstracted implementation, can now process
+ddl in a script and type check against it. work on variable scoping,
+and annotations
+
 annotated tree
 
 The API and type checking code has had a major overhaul, now uses

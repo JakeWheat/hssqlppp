@@ -1,19 +1,31 @@
+immediate:
+add annotations to ast
+collect sourceposes properly
+review use of annotations/attributes in type checker
+tyidy up syb stuff
+run through error handling, fix spaghetti code and bizarre stuff
+add either to remaining utils, convert error to either
+check code ag <-> lhs
+review the typechecking modules -> can get rid of astutils?
+review ast/typechecking split, move ast to separate folder,
+  make sure don't have typechecking stuff in ast, and ast doesn't
+  depend on type checking stuff (problem: annotations?)
+new features:
+interpolate annot into original source + pretty printer for annot
+multiple file type check
+do type error output with source pos, emacs format
+
 
 = Current TODO list
 
 TODOs in rough order that they are intended to be done
 
-fixup environment data type and auxiliaries (currently called scope)
-do tests and code for ddl providing the correct env updates
-do tests and code for env updates being processed correctly
-update hsssqlsystem to process using environment updates
-RELEASE
-annotation work:
-investigate syb for reading/processing/updating annotations
+do interpolating annots in original source
 collect source positions with type errors -> is syb or ag the easiest
    way to to this?
+do emacs friendly type error output
 add annotations to most remaining ast nodes
-sort out source position collection in parser
+complete sorting out source position collection in parser
 RELEASE
 
 unordered stuff follows:
@@ -72,6 +84,8 @@ do all keyword and template1 operators
 any/some/all subqueries and arrays
 check over rowwise comparisons
 indexes: create/alter/drop
+
+go over what more type checking could be done
 
 stage 2:
 instead of interspersing the annotation output with the pretty printed
