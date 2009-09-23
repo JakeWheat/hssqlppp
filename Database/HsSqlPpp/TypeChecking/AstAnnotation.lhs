@@ -9,7 +9,7 @@ used in the type-checking/ annotation process use the attribute
 grammar code and aren't exposed.
 
 > {-# LANGUAGE ExistentialQuantification, DeriveDataTypeable,ScopedTypeVariables,
->   RankNTypes #-}
+>   RankNTypes,FlexibleContexts #-}
 > {-# OPTIONS_HADDOCK hide #-}
 
 > module Database.HsSqlPpp.TypeChecking.AstAnnotation
@@ -23,6 +23,7 @@ grammar code and aren't exposed.
 >     ,getTypeAnnotation
 >     ,getTypeErrors
 >     ,stripAnnotations
+>     ,setAnnotation
 >     --,getTypeErrors
 >     --,pack
 >     ,StatementInfo(..)
@@ -174,3 +175,13 @@ without having to get the positions correct.
 >                     TypeErrorA e -> e:gte as
 >                     _ -> gte as
 >       gte _ = []
+
+
+> setAnnotation :: forall a.(Data a) =>
+>                   (Annotation -> Annotation) -> a -> a
+> setAnnotation f a =
+>   oneLevel (mkT f) a
+
+> oneLevel :: (forall a.Data a => a -> a)
+>          -> (forall a.Data a => a -> a)
+> oneLevel f = gmapT f

@@ -69,7 +69,6 @@ This is the public module for the ast nodes.
 >     ,RowConstraintList
 >     ,VarDefList
 >     ,ExpressionStatementListPair
->     ,MExpression
 >     ,CaseExpressionListExpressionPair
 >     ,CaseExpressionList
 >      -- * type aliases

@@ -2,7 +2,7 @@ immediate:
 add annotations to ast
 collect sourceposes properly
 review use of annotations/attributes in type checker
-tyidy up syb stuff
+tidy up syb stuff
 run through error handling, fix spaghetti code and bizarre stuff
 add either to remaining utils, convert error to either
 check code ag <-> lhs

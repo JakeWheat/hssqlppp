@@ -277,8 +277,8 @@ recurses to support parsing excepts, unions, etc
 >              <*> (keyword "join" *> tref)
 >              --now try and read the join condition
 >              <*> choice [
->                  Just <$> (JoinOn <$> (keyword "on" *> expr))
->                 ,Just <$> (JoinUsing <$> (keyword "using" *> columnNameList))
+>                  Just <$> (JoinOn [] <$> (keyword "on" *> expr))
+>                 ,Just <$> (JoinUsing [] <$> (keyword "using" *> columnNameList))
 >                 ,return Nothing]
 >         nkwid = try $ do
 >                  x <- idString
@@ -334,10 +334,10 @@ multiple rows to insert and insert from select statements
 >          <*> tryOptionMaybe returning
 >     where
 >       setClause = choice
->             [RowSetClause <$> parens (commaSep1 idString)
->                           <*> (symbol "=" *> parens (commaSep1 expr))
->             ,SetClause <$> idString
->                        <*> (symbol "=" *> expr)]
+>             [RowSetClause [] <$> parens (commaSep1 idString)
+>                              <*> (symbol "=" *> parens (commaSep1 expr))
+>             ,SetClause [] <$> idString
+>                           <*> (symbol "=" *> expr)]
 
 > delete :: ParsecT [Token] ParseState Identity Statement
 > delete = Delete
@@ -397,22 +397,24 @@ multiple rows to insert and insert from select statements
 >                                          (symbol ","))
 >                       where swap (a,b) = (b,a)
 >     tableAtt = AttributeDef
->                <$> idString
+>                <$> pos
+>                <*> idString
 >                <*> typeName
 >                <*> tryOptionMaybe (keyword "default" *> expr)
 >                <*> many rowConstraint
 >     tableConstr = choice [
 >                    UniqueConstraint
->                    <$> try (keyword "unique" *> columnNameList)
+>                    <$> pos <*> try (keyword "unique" *> columnNameList)
 >                    ,PrimaryKeyConstraint
->                    <$> try (keyword "primary" *> keyword "key"
->                             *> choice [
->                                     (:[]) <$> idString
->                                    ,parens (commaSep1 idString)])
+>                    <$> pos <*> try (keyword "primary" *> keyword "key"
+>                                     *> choice [
+>                                             (:[]) <$> idString
+>                                            ,parens (commaSep1 idString)])
 >                    ,CheckConstraint
->                    <$> try (keyword "check" *> parens expr)
+>                    <$> pos <*> try (keyword "check" *> parens expr)
 >                    ,ReferenceConstraint
->                    <$> try (keyword "foreign" *> keyword "key"
+>                    <$> pos
+>                    <*> try (keyword "foreign" *> keyword "key"
 >                             *> parens (commaSep1 idString))
 >                    <*> (keyword "references" *> idString)
 >                    <*> option [] (parens $ commaSep1 idString)
@@ -420,13 +422,14 @@ multiple rows to insert and insert from select statements
 >                    <*> onUpdate]
 >     rowConstraint =
 >        choice [
->           RowUniqueConstraint <$ keyword "unique"
->          ,RowPrimaryKeyConstraint <$ keyword "primary" <* keyword "key"
->          ,RowCheckConstraint <$> (keyword "check" *> parens expr)
->          ,NullConstraint <$ keyword "null"
->          ,NotNullConstraint <$ (keyword "not" *> keyword "null")
+>           RowUniqueConstraint <$> pos <* keyword "unique"
+>          ,RowPrimaryKeyConstraint <$> pos <* keyword "primary" <* keyword "key"
+>          ,RowCheckConstraint <$> pos <*> (keyword "check" *> parens expr)
+>          ,NullConstraint <$> pos <* keyword "null"
+>          ,NotNullConstraint <$> pos <* (keyword "not" <* keyword "null")
 >          ,RowReferenceConstraint
->          <$> (keyword "references" *> idString)
+>          <$> pos
+>          <*> (keyword "references" *> idString)
 >          <*> option Nothing (try $ parens $ Just <$> idString)
 >          <*> onDelete
 >          <*> onUpdate
@@ -443,7 +446,7 @@ multiple rows to insert and insert from select statements
 >              <*> idString
 >              <*> (keyword "as" *> parens (commaSep1 typeAtt))
 >   where
->     typeAtt = TypeAttDef <$> idString <*> typeName
+>     typeAtt = TypeAttDef <$> pos <*> idString <*> typeName
 
 
 create function, support sql functions and plpgsql functions. Parses
@@ -522,14 +525,15 @@ params to a function
 
 > param :: ParsecT [Token] ParseState Identity ParamDef
 > param = choice [
->          try (ParamDef <$> idString <*> typeName)
->         ,ParamDefTp <$> typeName]
+>          try (ParamDef <$> pos <*> idString <*> typeName)
+>         ,ParamDefTp <$> pos <*> typeName]
 
 variable declarations in a plpgsql function
 
 > varDef :: ParsecT [Token] ParseState Identity VarDef
 > varDef = VarDef
->          <$> idString
+>          <$> pos
+>          <*> idString
 >          <*> typeName
 >          <*> tryOptionMaybe ((symbol ":=" <|> symbol "=")*> expr) <* symbol ";"
 
@@ -594,14 +598,15 @@ or after the whole list
 > selectList :: ParsecT [Token] ParseState Identity SelectList
 > selectList =
 >     choice [
->         flip SelectList <$> readInto <*> itemList
->        ,SelectList <$> itemList <*> option [] readInto]
+>         pos >>= \p -> flip (SelectList p) <$> readInto <*> itemList
+>        ,SelectList <$> pos <*> itemList <*> option [] readInto]
 >   where
 >     readInto = keyword "into" *> commaSep1 idString
 >     itemList = commaSep1 selectItem
->     selectItem = optionalSuffix
->                    SelExp expr
->                    SelectItem () (keyword "as" *> idString)
+>     selectItem = pos >>= \p ->
+>                  optionalSuffix
+>                    (SelExp p) expr
+>                    (SelectItem p) () (keyword "as" *> idString)
 
 > returning :: ParsecT [Token] ParseState Identity SelectList
 > returning = keyword "returning" *> selectList
@@ -611,13 +616,14 @@ or after the whole list
 
 > typeName :: ParsecT [Token] ParseState Identity TypeName
 > typeName = choice [
->             SetOfTypeName <$> (keyword "setof" *> typeName)
+>             SetOfTypeName <$> pos <*> (keyword "setof" *> typeName)
 >            ,do
+>              p <- pos
 >              s <- map toLower <$> idString
 >              choice [
->                PrecTypeName s <$> parens integer
->               ,ArrayTypeName (SimpleTypeName s) <$ symbol "[" <* symbol "]"
->               ,return $ SimpleTypeName s]]
+>                PrecTypeName p s <$> parens integer
+>               ,ArrayTypeName p (SimpleTypeName p s) <$ symbol "[" <* symbol "]"
+>               ,return $ SimpleTypeName p s]]
 
 > cascade :: ParsecT [Token] ParseState Identity Cascade
 > cascade = option Restrict (choice [
@@ -928,9 +934,9 @@ then a list of expressions or a subselect
 >   <$> pos
 >   <*> return e
 >   <*> option True (False <$ keyword "not")
->   <*> (keyword "in" *> parens ((InSelect <$> selectExpression)
+>   <*> (keyword "in" *> parens ((InSelect <$> pos <*> selectExpression)
 >                                <|>
->                                (InList <$> commaSep1 expr)))
+>                                (InList <$> pos <*> commaSep1 expr)))
 
 row ctor: one of
 row ()

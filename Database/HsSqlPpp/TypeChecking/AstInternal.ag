@@ -19,7 +19,7 @@ as the input to the type checker and the pretty printer.
 
 use
 
-uuagc -dcfws AstInternal.ag
+uuagc  -dcfwsp --cycle --genlinepragmas AstInternal.ag
 
 to generate a new AstInternal.hs from this file
 
@@ -30,7 +30,7 @@ cabal install uuagc
 -}
 MODULE {Database.HsSqlPpp.TypeChecking.AstInternal}
 {
-    -- {-# LANGUAGE DeriveDataTypeable #-}
+    -- {-# LANGUAGE DeriveDataTypeable,RankNTypes,ScopedTypeVariables #-}
     -- {-# OPTIONS_HADDOCK hide  #-}
     --from the ag files:
     --ast nodes
@@ -87,7 +87,6 @@ MODULE {Database.HsSqlPpp.TypeChecking.AstInternal}
    ,RowConstraintList
    ,VarDefList
    ,ExpressionStatementListPair
-   ,MExpression
    ,CaseExpressionListExpressionPair
    ,CaseExpressionList
    -- annotations
@@ -260,11 +259,11 @@ DATA SelectExpression
              selTref : MTableRef
              selWhere : Where
              selGroupBy : ExpressionList
-             selHaving : MExpression
+             selHaving : MaybeExpression
              selOrderBy : ExpressionList
              selDir : Direction
-             selLimit : MExpression
-             selOffset : MExpression
+             selLimit : MaybeExpression
+             selOffset : MaybeExpression
     | CombineSelect ann:Annotation
                     ctype : CombineType
                     sel1 : SelectExpression
@@ -274,13 +273,13 @@ DATA SelectExpression
 
 TYPE MTableRef = MAYBE TableRef
 TYPE Where = MAYBE Expression
-TYPE MExpression = MAYBE Expression
+TYPE MaybeExpression = MAYBE Expression
 
 DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation vars:VarDefList sts : StatementList
 
-DATA SetClause | SetClause att:String val:Expression
-               | RowSetClause atts:StringList vals:ExpressionList
+DATA SetClause | SetClause ann:Annotation att:String val:Expression
+               | RowSetClause ann:Annotation atts:StringList vals:ExpressionList
 
 DATA TableRef | Tref ann:Annotation
                      tbl:String
@@ -304,57 +303,64 @@ DATA TableRef | Tref ann:Annotation
 
 TYPE OnExpr = MAYBE JoinExpression
 
-DATA JoinExpression | JoinOn Expression | JoinUsing StringList
+DATA JoinExpression | JoinOn ann:Annotation Expression
+                    | JoinUsing ann:Annotation StringList
 
 DATA JoinType | Inner | LeftOuter| RightOuter | FullOuter | Cross
 
 -- select columns, into columns
 
-DATA SelectList | SelectList items:SelectItemList StringList
+DATA SelectList | SelectList ann:Annotation items:SelectItemList StringList
 
-DATA SelectItem | SelExp ex:Expression
-                | SelectItem ex:Expression name:String
+DATA SelectItem | SelExp ann:Annotation ex:Expression
+                | SelectItem ann:Annotation ex:Expression name:String
 
-DATA CopySource | CopyFilename String | Stdin
+DATA CopySource | CopyFilename String
+                | Stdin
 
 --name type default null constraint
 
-DATA AttributeDef | AttributeDef name : String
+DATA AttributeDef | AttributeDef ann:Annotation
+                                 name : String
                                  typ : TypeName
                                  check : (Maybe Expression)
                                  cons : RowConstraintList
 
 --Constraints which appear attached to an individual field
 
-DATA RowConstraint | NullConstraint
-                   | NotNullConstraint
-                   | RowCheckConstraint Expression
-                   | RowUniqueConstraint
-                   | RowPrimaryKeyConstraint
-                   | RowReferenceConstraint table : String
+DATA RowConstraint | NullConstraint ann:Annotation
+                   | NotNullConstraint ann:Annotation
+                   | RowCheckConstraint ann:Annotation Expression
+                   | RowUniqueConstraint ann:Annotation
+                   | RowPrimaryKeyConstraint ann:Annotation
+                   | RowReferenceConstraint ann:Annotation
+                                            table : String
                                             att : (Maybe String)
                                             onUpdate : Cascade
                                             onDelete : Cascade
 
 --constraints which appear on a separate row in the create table
 
-DATA Constraint | UniqueConstraint StringList
-                | PrimaryKeyConstraint StringList
-                | CheckConstraint Expression
+DATA Constraint | UniqueConstraint ann:Annotation StringList
+                | PrimaryKeyConstraint ann:Annotation StringList
+                | CheckConstraint ann:Annotation Expression
                   -- sourcecols targettable targetcols ondelete onupdate
-                | ReferenceConstraint atts : StringList
+                | ReferenceConstraint ann:Annotation
+                                      atts : StringList
                                       table : String
                                       tableAtts : StringList
                                       onUpdate : Cascade
                                       onDelete : Cascade
 
-DATA TypeAttributeDef | TypeAttDef name : String
+DATA TypeAttributeDef | TypeAttDef ann:Annotation
+                                   name : String
                                    typ : TypeName
 
-DATA ParamDef | ParamDef name:String typ:TypeName
-              | ParamDefTp typ:TypeName
+DATA ParamDef | ParamDef ann:Annotation name:String typ:TypeName
+              | ParamDefTp ann:Annotation typ:TypeName
 
-DATA VarDef | VarDef name : String
+DATA VarDef | VarDef ann:Annotation
+                     name : String
                      typ : TypeName
                      value : (Maybe Expression)
 
@@ -366,10 +372,10 @@ DATA Volatility | Volatile | Stable | Immutable
 
 DATA Language | Sql | Plpgsql
 
-DATA TypeName | SimpleTypeName tn:String
-              | PrecTypeName tn:String prec:Integer
-              | ArrayTypeName typ:TypeName
-              | SetOfTypeName typ:TypeName
+DATA TypeName | SimpleTypeName ann:Annotation tn:String
+              | PrecTypeName ann:Annotation tn:String prec:Integer
+              | ArrayTypeName ann:Annotation typ:TypeName
+              | SetOfTypeName ann:Annotation typ:TypeName
 
 DATA DropType | Table
               | Domain
@@ -437,10 +443,9 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                 | ScalarSubQuery ann:Annotation
                                  sel : SelectExpression
 
-DATA InList | InList exprs : ExpressionList
-            | InSelect sel : SelectExpression
+DATA InList | InList ann:Annotation exprs : ExpressionList
+            | InSelect ann:Annotation sel : SelectExpression
 
-TYPE MaybeExpression = MAYBE Expression
 
 {-
 
@@ -563,7 +568,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               MTableRef TableRef OnExpr Where MExpression
+               MTableRef TableRef OnExpr Where
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
 

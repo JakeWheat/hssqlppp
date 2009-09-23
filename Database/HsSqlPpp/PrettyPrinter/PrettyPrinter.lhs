@@ -79,8 +79,8 @@ Conversion routines - convert Sql asts into Docs
 >    <+> convWhere wh
 >    $+$ convReturning rt <> statementEnd
 >    where
->      convSetClause (SetClause att ex) = text att <+> text "=" <+> convExp ex
->      convSetClause (RowSetClause atts exs) =
+>      convSetClause (SetClause _ att ex) = text att <+> text "=" <+> convExp ex
+>      convSetClause (RowSetClause _ atts exs) =
 >        parens (hcatCsvMap text atts)
 >        <+> text "="
 >        <+> parens (hcatCsvMap convExp exs)
@@ -112,28 +112,28 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ nest 2 (vcat (csv (map convAttDef atts ++ map convCon cns)))
 >     $+$ rparen <> statementEnd
 >     where
->       convAttDef (AttributeDef n t def cons) =
+>       convAttDef (AttributeDef _ n t def cons) =
 >         text n <+> convTypeName t
 >         <+> maybeConv (\e -> text "default" <+> convExp e) def
 >         <+> hsep (map (\e -> (case e of
->                                 NullConstraint -> text "null"
->                                 NotNullConstraint -> text "not null"
->                                 RowCheckConstraint ew ->
+>                                 NullConstraint _ -> text "null"
+>                                 NotNullConstraint _ -> text "not null"
+>                                 RowCheckConstraint _ ew ->
 >                                     text "check" <+> parens (convExp ew)
->                                 RowUniqueConstraint -> text "unique"
->                                 RowPrimaryKeyConstraint -> text "primary key"
->                                 RowReferenceConstraint tb att ondel onupd ->
+>                                 RowUniqueConstraint _ -> text "unique"
+>                                 RowPrimaryKeyConstraint _ -> text "primary key"
+>                                 RowReferenceConstraint _ tb att ondel onupd ->
 >                                     text "references" <+> text tb
 >                                     <+> maybeConv (parens . text) att
 >                                     <+> text "on delete" <+> convCasc ondel
 >                                     <+> text "on update" <+> convCasc onupd
 >                         )) cons)
->       convCon (UniqueConstraint c) = text "unique"
+>       convCon (UniqueConstraint _ c) = text "unique"
 >                                      <+> parens (hcatCsvMap text c)
->       convCon (PrimaryKeyConstraint p) = text "primary key"
+>       convCon (PrimaryKeyConstraint _ p) = text "primary key"
 >                                          <+> parens (hcatCsvMap text p)
->       convCon (CheckConstraint c) = text "check" <+> parens (convExp c)
->       convCon (ReferenceConstraint at tb rat ondel onupd) =
+>       convCon (CheckConstraint _ c) = text "check" <+> parens (convExp c)
+>       convCon (ReferenceConstraint _ at tb rat ondel onupd) =
 >         text "foreign key" <+> parens (hcatCsvMap text at)
 >         <+> text "references" <+> text tb
 >         <+> ifNotEmpty (parens . hcatCsvMap text) rat
@@ -175,9 +175,9 @@ Conversion routines - convert Sql asts into Docs
 >           $+$ text "begin"
 >           $+$ convNestedStatements ca sts
 >           $+$ text "end;"
->       convParamDef (ParamDef n t) = text n <+> convTypeName t
->       convParamDef  (ParamDefTp t) = convTypeName t
->       convVarDef (VarDef n t v) =
+>       convParamDef (ParamDef _ n t) = text n <+> convTypeName t
+>       convParamDef  (ParamDefTp _ t) = convTypeName t
+>       convVarDef (VarDef _ n t v) =
 >         text n <+> convTypeName t
 >         <+> maybeConv (\x -> text ":=" <+> convExp x) v <> semi
 
@@ -222,7 +222,7 @@ Conversion routines - convert Sql asts into Docs
 >     convPa ca ann <+>
 >     text "create type" <+> text name <+> text "as" <+> lparen
 >     $+$ nest 2 (vcat (csv
->           (map (\(TypeAttDef n t) -> text n <+> convTypeName t)  atts)))
+>           (map (\(TypeAttDef _ n t) -> text n <+> convTypeName t)  atts)))
 >     $+$ rparen <> statementEnd
 
 == plpgsql
@@ -375,8 +375,8 @@ Conversion routines - convert Sql asts into Docs
 >         <+> convTref t2
 >         <+> maybeConv (nest 2 . convJoinExpression) ex
 >         where
->           convJoinExpression (JoinOn e) = text "on" <+> convExp e
->           convJoinExpression (JoinUsing ids) =
+>           convJoinExpression (JoinOn _ e) = text "on" <+> convExp e
+>           convJoinExpression (JoinUsing _ ids) =
 >               text "using" <+> parens (hcatCsvMap text ids)
 
 >     convTref (SubTref _ sub alias) =
@@ -412,12 +412,12 @@ Conversion routines - convert Sql asts into Docs
 > convWhere Nothing = empty
 
 > convSelList :: SelectList -> Doc
-> convSelList (SelectList ex into) =
+> convSelList (SelectList _ ex into) =
 >   hcatCsvMap convSelItem ex
 >   <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap text i) into
 >   where
->     convSelItem (SelectItem ex1 nm) = convExp ex1 <+> text "as" <+> text nm
->     convSelItem (SelExp e) = convExp e
+>     convSelItem (SelectItem _ ex1 nm) = convExp ex1 <+> text "as" <+> text nm
+>     convSelItem (SelExp _ e) = convExp e
 
 > convCasc :: Cascade -> Doc
 > convCasc casc = text $ case casc of
@@ -442,10 +442,10 @@ Conversion routines - convert Sql asts into Docs
 > convNestedStatements pa = nest 2 . vcat . map (convStatement pa)
 
 > convTypeName :: TypeName -> Doc
-> convTypeName (SimpleTypeName s) = text s
-> convTypeName (PrecTypeName s i) = text s <> parens(integer i)
-> convTypeName (ArrayTypeName t) = convTypeName t <> text "[]"
-> convTypeName (SetOfTypeName t) = text "setof" <+> convTypeName t
+> convTypeName (SimpleTypeName _ s) = text s
+> convTypeName (PrecTypeName _ s i) = text s <> parens(integer i)
+> convTypeName (ArrayTypeName _ t) = convTypeName t <> text "[]"
+> convTypeName (SetOfTypeName _ t) = text "setof" <+> convTypeName t
 
 = Expressions
 
@@ -501,8 +501,8 @@ Conversion routines - convert Sql asts into Docs
 > convExp (InPredicate _ att t lst) =
 >   convExp att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
->                        InList expr -> csvExp expr
->                        InSelect sel -> convSelectExpression True sel)
+>                        InList _ expr -> csvExp expr
+>                        InSelect _ sel -> convSelectExpression True sel)
 > convExp (ScalarSubQuery _ s) = parens (convSelectExpression True s)
 > convExp (NullLit _) = text "null"
 > convExp (WindowFn _ fn partition order asc) =

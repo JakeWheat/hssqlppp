@@ -64,17 +64,10 @@ ATTR AllNodes Root ExpressionRoot
 annTypesAndErrors :: Data a => a -> Type -> [TypeError]
                   -> Maybe [AnnotationElement] -> a
 annTypesAndErrors item nt errs add =
-    oneLevel (mkT modifier) item
+    setAnnotation modifier item
     where
-      modifier :: [AnnotationElement] -> [AnnotationElement]
       modifier = (([TypeAnnotation nt] ++ fromMaybe [] add ++
        map TypeErrorA errs) ++)
-
-oneLevel :: (forall a. Data a => a -> a)
-         -> (forall a. Data a => a -> a)
-oneLevel f = gmapT f
-
-
 
 }
 
@@ -119,7 +112,7 @@ SEM Expression
 -}
 
 SEM Expression
-    | Cast loc.tpe = @tn.namedType
+    | Cast loc.tpe = Right $ @tn.namedType
            loc.backTree = Cast @ann @expr.annotatedTree @tn.annotatedTree
 
 {-
@@ -134,22 +127,30 @@ are not supported at the moment.
 ATTR TypeName
      [
      |
-     | namedType : {Either [TypeError] Type}
+     | namedType : Type
      ]
 
 SEM TypeName
+     | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName
+         lhs.namedType = errorToTypeFail @loc.tpe
+         lhs.annotatedTree = setAnnotation
+                               ((map TypeErrorA $ getErrors @loc.tpe) ++)
+                               @loc.backTree --todo: get error from tpe
+
+
+SEM TypeName
      | SimpleTypeName
-        lhs.namedType = envLookupType @lhs.env $ canonicalizeTypeName @tn
-        lhs.annotatedTree = SimpleTypeName @tn
+        loc.tpe = envLookupType @lhs.env $ canonicalizeTypeName @tn
+        loc.backTree = SimpleTypeName @ann @tn
      | ArrayTypeName
-        lhs.namedType = ArrayType <$> @typ.namedType
-        lhs.annotatedTree = ArrayTypeName @typ.annotatedTree
+        loc.tpe = checkTypes [@typ.namedType] $ Right $ ArrayType @typ.namedType
+        loc.backTree = ArrayTypeName @ann @typ.annotatedTree
      | SetOfTypeName
-        lhs.namedType = SetOfType <$> @typ.namedType
-        lhs.annotatedTree = SetOfTypeName @typ.annotatedTree
+        loc.tpe = checkTypes [@typ.namedType] $ Right $ SetOfType @typ.namedType
+        loc.backTree = SetOfTypeName @ann @typ.annotatedTree
      | PrecTypeName
-        lhs.namedType = Right TypeCheckFailed
-        lhs.annotatedTree = PrecTypeName @tn @prec
+        loc.tpe = Right TypeCheckFailed
+        loc.backTree = PrecTypeName @ann @tn @prec
 
 {-
 == operators and functions
@@ -500,7 +501,7 @@ SEM TableRef
                case (@nat.annotatedTree, @onExpr.annotatedTree) of
                       (Natural, _) -> unionJoinList $
                                       commonFieldNames tblt tbl1t
-                      (_,Just (JoinUsing s)) -> unionJoinList s
+                      (_,Just (JoinUsing _ s)) -> unionJoinList s
                       _ -> unionJoinList []
             where
               tblt = getTypeAnnotation @tbl.annotatedTree
@@ -572,9 +573,9 @@ SEM SelectItem
 -- hack to fix up for errors for ok *
 SEM SelectItem
     | SelExp
-        loc.annotatedTree = SelExp $ fixStar @ex.annotatedTree
+        loc.annotatedTree = SelExp @ann $ fixStar @ex.annotatedTree
     | SelectItem
-        loc.backTree = SelectItem (fixStar @ex.annotatedTree) @name
+        loc.backTree = SelectItem @ann (fixStar @ex.annotatedTree) @name
 
 {
 
@@ -688,7 +689,7 @@ SEM Expression
          then ""
          else @funName
   | Cast lhs.liftedColumnName = case @tn.annotatedTree of
-                                  SimpleTypeName tn -> tn
+                                  SimpleTypeName _ tn -> tn
                                   _ -> ""
 
 -- collect the aliases and column names for use by the selectitemlist nodes
@@ -846,7 +847,7 @@ ATTR AttributeDef
   [
   |
   | attrName : String
-    namedType : {Either [TypeError] Type}
+    namedType : Type
   ]
 
 SEM AttributeDef
@@ -857,7 +858,7 @@ SEM AttributeDef
 ATTR AttributeDefList
   [
   |
-  | attrs : {[(String, Either [TypeError] Type)]}
+  | attrs : {[(String, Type)]}
   ]
 
 SEM AttributeDefList
@@ -867,17 +868,10 @@ SEM AttributeDefList
 SEM Statement
     | CreateTable
         loc.attrTypes = map snd @atts.attrs
-        loc.tpe = checkErrorList (concat $ lefts @loc.attrTypes) $ Pseudo Void
-        loc.compositeType =
-            errorToTypeFailF (const $ UnnamedCompositeType doneAtts) @loc.tpe
-            where
-              doneAtts = map (second errorToTypeFail) @atts.attrs
+        loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateTable @ann @name @atts.annotatedTree @cons.annotatedTree
         loc.statementInfo = []
-        loc.attrs = case @loc.compositeType of
-                      UnnamedCompositeType c -> c
-                      _-> []
-        loc.envUpdates = [EnvCreateTable @name @loc.attrs []]
+        loc.envUpdates = [EnvCreateTable @name @atts.attrs []]
 
 SEM Statement
     | CreateTableAs
@@ -918,7 +912,7 @@ ATTR TypeAttributeDef
    [
    |
    | attrName : String
-     namedType : {Either [TypeError] Type}
+     namedType : Type
    ]
 
 
@@ -930,7 +924,7 @@ SEM TypeAttributeDef
 ATTR TypeAttributeDefList
      [
      |
-     | attrs : {[(String, Either [TypeError] Type)]}
+     | attrs : {[(String, Type)]}
      ]
 
 SEM TypeAttributeDefList
@@ -939,13 +933,12 @@ SEM TypeAttributeDefList
 
 SEM Statement
     | CreateType
-        loc.attrTypes = map snd @atts.attrs
-        loc.tpe =
-            checkErrorList (concat $ lefts @loc.attrTypes) $ Pseudo Void
-        loc.doneAtts = map (second errorToTypeFail) @atts.attrs
+        --loc.attrTypes = map snd @atts.attrs
+        loc.tpe = Right $ Pseudo Void
+        --loc.doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateType @ann @name @atts.annotatedTree
         loc.statementInfo = []
-        loc.envUpdates = [EnvCreateComposite @name @loc.doneAtts]
+        loc.envUpdates = [EnvCreateComposite @name @atts.attrs]
 
 {-
 
@@ -957,13 +950,13 @@ SEM Statement
 
 SEM Statement
     | CreateDomain
-        loc.namedTypeType = case @typ.namedType of
-                              Left _ -> TypeCheckFailed
-                              Right x -> x
-        loc.tpe = checkTypes [@loc.namedTypeType] $ Right $ Pseudo Void
+        --loc.namedTypeType = case @typ.namedType of
+        --                      Left _ -> TypeCheckFailed
+        --                      Right x -> x
+        loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateDomain @ann @name @typ.annotatedTree @check
         loc.statementInfo = []
-        loc.envUpdates = [EnvCreateDomain (ScalarType @name) @loc.namedTypeType]
+        loc.envUpdates = [EnvCreateDomain (ScalarType @name) @typ.namedType]
 {-
 ================================================================================
 
@@ -981,13 +974,13 @@ ATTR ParamDef
 ATTR ParamDefList
      [
      |
-     | params : {[(String,Either [TypeError] Type)]}
+     | params : {[(String, Type)]}
      ]
 
 ATTR ParamDef
      [
      |
-     | namedType : {Either [TypeError] Type}
+     | namedType : Type
      ]
 
 SEM ParamDef
@@ -1004,21 +997,7 @@ SEM ParamDefList
 
 SEM Statement
     | CreateFunction
-        loc.retTypeType = errorToTypeFail @rettype.namedType
-        loc.paramTypes =
-            let tpes = map snd @params.params
-            in if null $ concat $ lefts tpes
-               then rights tpes
-               else [TypeCheckFailed]
-        loc.paramNameTypes =
-            mapMaybe (\(n,tpe) -> case tpe of
-                                  Left _ -> Nothing
-                                  Right t -> Just (n,t)) @params.params
-        loc.tpe =
-            do
-              @rettype.namedType
-              let tpes = map snd @params.params
-              checkErrorList (concat $ lefts tpes) $ Pseudo Void
+        loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateFunction @ann
                                       @lang.annotatedTree
                                       @name
@@ -1028,11 +1007,11 @@ SEM Statement
                                       @body.annotatedTree
                                       @vol.annotatedTree
         loc.statementInfo = []
-        loc.envUpdates = [EnvCreateFunction FunName @name @loc.paramTypes @loc.retTypeType]
+        loc.envUpdates = [EnvCreateFunction FunName @name (map snd @params.params) @rettype.namedType]
         --add the parameters to the environment for the contained statements
-        body.env = if @loc.paramTypes == [TypeCheckFailed]
-                     then @lhs.env
-                     else fromRight @lhs.env $ updateEnvironment @lhs.env [EnvStackIDs [("", @loc.paramNameTypes), (@name, @loc.paramNameTypes)]]
+        body.env = fromRight @lhs.env $
+                   updateEnvironment @lhs.env [EnvStackIDs [("", @params.params)
+                                                           ,(@name, @params.params)]]
 
 SEM FnBody
     | PlpgsqlFnBody
@@ -1051,7 +1030,7 @@ ATTR VarDefList
      ]
 
 SEM VarDef
-    | VarDef lhs.def = (@name, errorToTypeFail @typ.namedType)
+    | VarDef lhs.def = (@name, @typ.namedType)
 
 SEM VarDefList
     | Cons lhs.defs = @hd.def : @tl.defs
