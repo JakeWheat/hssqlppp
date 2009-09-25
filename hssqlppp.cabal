@@ -14,6 +14,8 @@ Description:
     .
     'PrettyPrinter' for converting asts to text;
     .
+    'AnnotateSource' for pretty printing annotations inline with original source,
+    .
     'TypeChecker' for annotating asts (this does the type checking),
     and working with annotated trees;
     .
@@ -67,6 +69,7 @@ Library
   Exposed-modules:   Database.HsSqlPpp.TypeChecking.Ast,
                      Database.HsSqlPpp.Parsing.Parser,
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
+                     Database.HsSqlPpp.PrettyPrinter.AnnotateSource,
                      Database.HsSqlPpp.TypeChecking.TypeChecker,
                      Database.HsSqlPpp.TypeChecking.Environment,
                      Database.HsSqlPpp.Dbms.DatabaseLoader
@@ -91,6 +94,7 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.Parsing.ParseErrors,
                      Database.HsSqlPpp.Parsing.Parser,
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
+                     Database.HsSqlPpp.PrettyPrinter.AnnotateSource,
                      Database.HsSqlPpp.TypeChecking.TypeCheckingH,
                      Database.HsSqlPpp.TypeChecking.TypeConversion,
                      Database.HsSqlPpp.TypeChecking.TypeType,
@@ -125,6 +129,7 @@ Executable HsSqlPppTests
                      Database.HsSqlPpp.Parsing.Parser,
                      Database.HsSqlPpp.Tests.ParserTests,
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
+                     Database.HsSqlPpp.PrettyPrinter.AnnotateSource,
                      Database.HsSqlPpp.TypeChecking.TypeCheckingH,
                      Database.HsSqlPpp.TypeChecking.TypeConversion,
                      Database.HsSqlPpp.TypeChecking.TypeType,

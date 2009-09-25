@@ -1,19 +1,19 @@
-immediate:
-add annotations to ast
-collect sourceposes properly
-review use of annotations/attributes in type checker
+new features:
+interpolate annot into original source + pretty printer for annot
+do type error output with source pos, emacs format
+collect sourcepositions in table in parser
+
+
 tidy up syb stuff
+review use of annotations/attributes in type checker
 run through error handling, fix spaghetti code and bizarre stuff
 add either to remaining utils, convert error to either
 check code ag <-> lhs
-review the typechecking modules -> can get rid of astutils?
-review ast/typechecking split, move ast to separate folder,
+review the typechecking modules -> can get rid of astutils? probably
+   not, but can rename it to errorhandling or similar
+review ast/typechecking split, move ast to separate folder?,
   make sure don't have typechecking stuff in ast, and ast doesn't
   depend on type checking stuff (problem: annotations?)
-new features:
-interpolate annot into original source + pretty printer for annot
-multiple file type check
-do type error output with source pos, emacs format
 
 lint stuff: ambiguous identifiers, null usage, duplicate definitions
 

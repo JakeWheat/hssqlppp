@@ -871,7 +871,25 @@ SEM Statement
 
 = create function
 
-ignore body for now, just get the signature
+get the signature, does some checking of the body, still a bit limited
+
+ISSUE:
+
+when writing an sql file, you can put a create function which refers
+to a table definition that is given later. As long as the function
+isn't called before the table definition is given, this is ok. To
+handle this, need to gather the function prototype, but delay checking
+the contents until either a) all the other type checking has been
+done, or b) the function is needed (list ways this can happen: used in
+a view (even then, not needed until view is used), function can be
+called directly, or indirectly in another function call, ...)
+
+No thoughts on how to do this - but at some point want to support
+'declarative' sql source code, where the order doesn't matter, and
+this code figures out an order to load it into the database which will
+get past pgs checks, so hopefully the solution will move towards this
+goal also.
+
 -}
 
 ATTR ParamDef [||paramName : String]
