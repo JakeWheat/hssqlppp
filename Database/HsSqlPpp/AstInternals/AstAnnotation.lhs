@@ -12,7 +12,7 @@ grammar code and aren't exposed.
 >   RankNTypes,FlexibleContexts #-}
 > {-# OPTIONS_HADDOCK hide #-}
 
-> module Database.HsSqlPpp.TypeChecking.AstAnnotation
+> module Database.HsSqlPpp.AstInternals.AstAnnotation
 >     (
 >      Annotation
 >     ,AnnotationElement(..)
@@ -33,8 +33,8 @@ grammar code and aren't exposed.
 > import Data.Generics
 > import Data.Maybe
 
-> import Database.HsSqlPpp.TypeChecking.TypeType
-> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.TypeType
+> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
 
 > -- | Annotation type - one of these is attached to most of the
 > -- data types used in the ast.

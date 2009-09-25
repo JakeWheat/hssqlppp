@@ -23,13 +23,14 @@ TODO 2: think of a name for this command
 > import Data.Either
 
 > import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Dbms.DatabaseLoader
 > import Database.HsSqlPpp.Parsing.Lexer
-> import Database.HsSqlPpp.TypeChecking.Ast
-> import Database.HsSqlPpp.TypeChecking.TypeChecker
+> import Database.HsSqlPpp.Ast.Ast
+> import Database.HsSqlPpp.Ast.Annotator
+> import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.Dbms.DBAccess
-> import Database.HsSqlPpp.TypeChecking.Environment
+> import Database.HsSqlPpp.Dbms.DatabaseLoader
 
 ================================================================================
 
@@ -289,12 +290,12 @@ This reads an environment from a database and writes it out using show.
 >          \\n\
 >          \> {-# OPTIONS_HADDOCK hide  #-}\n\
 >          \\n\
->          \> module Database.HsSqlPpp.TypeChecking.DefaultTemplate1Environment\n\
+>          \> module Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment\n\
 >          \>     (defaultTemplate1Environment\n\
 >          \>      ) where\n\
 >          \\n\
->          \> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal\n\
->          \> import Database.HsSqlPpp.TypeChecking.TypeType\n\
+>          \> import Database.HsSqlPpp.AstInternals.EnvironmentInternal\n\
+>          \> import Database.HsSqlPpp.AstInternals.TypeType\n\
 >          \\n\
 >          \> defaultTemplate1Environment :: Environment\n\
 >          \> defaultTemplate1Environment = (\\l -> case l of\n\

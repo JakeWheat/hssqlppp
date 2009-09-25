@@ -10,10 +10,10 @@ Set of tests to check the type checking code
 > import Data.Char
 > import Debug.Trace
 
-> import Database.HsSqlPpp.TypeChecking.Ast
-> import Database.HsSqlPpp.TypeChecking.TypeChecker
 > import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.TypeChecking.Environment
+> import Database.HsSqlPpp.Ast.Annotator
+> import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.Ast.Environment
 
 > astCheckTests :: Test.Framework.Test
 > astCheckTests = testGroup "astCheckTests" [

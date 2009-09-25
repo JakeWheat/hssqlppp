@@ -5,7 +5,7 @@ type checking.
 
 > {-# OPTIONS_HADDOCK hide #-}
 
-> module Database.HsSqlPpp.TypeChecking.TypeCheckingH
+> module Database.HsSqlPpp.AstInternals.TypeCheckingH
 >     (
 >      typeCheckFunCall
 >     ,typeCheckValuesExpr
@@ -33,10 +33,10 @@ type checking.
 > import Control.Applicative
 > import Control.Monad.Error
 
-> import Database.HsSqlPpp.TypeChecking.TypeType
-> import Database.HsSqlPpp.TypeChecking.AstUtils
-> import Database.HsSqlPpp.TypeChecking.TypeConversion
-> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.TypeType
+> import Database.HsSqlPpp.AstInternals.AstUtils
+> import Database.HsSqlPpp.AstInternals.TypeConversion
+> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
 > import Database.HsSqlPpp.Utils
 
 ================================================================================

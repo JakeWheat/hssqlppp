@@ -32,7 +32,7 @@ cabal install uuagc
 )
 
 -}
-MODULE {Database.HsSqlPpp.TypeChecking.AstInternal}
+MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
 {
     -- {-# LANGUAGE DeriveDataTypeable,RankNTypes,ScopedTypeVariables #-}
     -- {-# OPTIONS_HADDOCK hide  #-}
@@ -111,13 +111,12 @@ import Data.Either
 import Control.Applicative
 import Data.Generics
 
-import Database.HsSqlPpp.TypeChecking.TypeType
---import Database.HsSqlPpp.TypeChecking.AstUtils
-import Database.HsSqlPpp.TypeChecking.TypeConversion
-import Database.HsSqlPpp.TypeChecking.TypeCheckingH
-import Database.HsSqlPpp.TypeChecking.AstAnnotation
-import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
-import Database.HsSqlPpp.TypeChecking.DefaultTemplate1Environment
+import Database.HsSqlPpp.AstInternals.TypeType
+import Database.HsSqlPpp.AstInternals.TypeConversion
+import Database.HsSqlPpp.AstInternals.TypeCheckingH
+import Database.HsSqlPpp.AstInternals.AstAnnotation
+import Database.HsSqlPpp.AstInternals.EnvironmentInternal
+import Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
 import Database.HsSqlPpp.Utils
 }
 

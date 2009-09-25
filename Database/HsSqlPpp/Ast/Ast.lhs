@@ -7,7 +7,7 @@ This is the public module for the ast nodes.
 
 
 >    -}
-> module Database.HsSqlPpp.TypeChecking.Ast
+> module Database.HsSqlPpp.Ast.Ast
 >     (
 >      -- * Main nodes
 >      StatementList
@@ -71,13 +71,7 @@ This is the public module for the ast nodes.
 >     ,ExpressionStatementListPair
 >     ,CaseExpressionListExpressionPair
 >     ,CaseExpressionList
->      -- * type aliases
->      -- | aliases for all the sql types with multiple names
->      -- these give you the canonical names
->     ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
->     ,typeFloat8,typeVarChar,typeChar,typeBool
 >     ) where
 
-> import Database.HsSqlPpp.TypeChecking.AstInternal
-> import Database.HsSqlPpp.TypeChecking.TypeType
+> import Database.HsSqlPpp.AstInternals.AstInternal
 

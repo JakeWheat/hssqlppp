@@ -19,7 +19,7 @@ checkAssignmentValid - pass in source type and target type, returns
 
 > {-# OPTIONS_HADDOCK hide #-}
 
-> module Database.HsSqlPpp.TypeChecking.TypeConversion (
+> module Database.HsSqlPpp.AstInternals.TypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
 >                       ,checkAssignmentValid
@@ -29,9 +29,9 @@ checkAssignmentValid - pass in source type and target type, returns
 > import Data.List
 > import Control.Applicative
 
-> import Database.HsSqlPpp.TypeChecking.TypeType
-> import Database.HsSqlPpp.TypeChecking.AstUtils
-> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.TypeType
+> import Database.HsSqlPpp.AstInternals.AstUtils
+> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
 > import Database.HsSqlPpp.Utils
 
 

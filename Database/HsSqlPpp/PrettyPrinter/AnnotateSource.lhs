@@ -50,8 +50,8 @@ To replace existing comments rather than repeatedly add them:
 > module Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 >     (annotateSource) where
 
-> import Database.HsSqlPpp.TypeChecking.Ast
-> import Database.HsSqlPpp.TypeChecking.TypeChecker
+> import Database.HsSqlPpp.Ast.Ast
+> import Database.HsSqlPpp.Ast.Annotation
 
 > annotateSource :: String -> StatementList -> String
 > annotateSource src aast = undefined

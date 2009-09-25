@@ -14,8 +14,9 @@ There are no tests for invalid sql at the moment.
 > import Test.Framework.Providers.HUnit
 > import Data.Char
 
-> import Database.HsSqlPpp.TypeChecking.Ast
-> import Database.HsSqlPpp.TypeChecking.TypeChecker
+> import Database.HsSqlPpp.Ast.Ast
+> import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 

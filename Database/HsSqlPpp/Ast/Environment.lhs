@@ -32,7 +32,7 @@ module used by the type checking code.
 >  by looking at the 'EnvironmentUpdate' type.
 > -}
 
-> module Database.HsSqlPpp.TypeChecking.Environment
+> module Database.HsSqlPpp.Ast.Environment
 >     (
 >      -- * Data types
 >      Environment
@@ -60,6 +60,6 @@ module used by the type checking code.
 >     ,isOperatorName
 >     ) where
 
-> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
-> import Database.HsSqlPpp.TypeChecking.EnvironmentReader
-> import Database.HsSqlPpp.TypeChecking.DefaultTemplate1Environment
+> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.EnvironmentReader
+> import Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment

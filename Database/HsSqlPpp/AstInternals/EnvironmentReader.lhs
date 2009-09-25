@@ -7,7 +7,7 @@ from a database.
 
 
 
-> module Database.HsSqlPpp.TypeChecking.EnvironmentReader
+> module Database.HsSqlPpp.AstInternals.EnvironmentReader
 >     (readEnvironmentFromDatabase) where
 
 > import qualified Data.Map as M
@@ -15,9 +15,9 @@ from a database.
 > import Control.Applicative
 
 > import Database.HsSqlPpp.Dbms.DBAccess
-> import Database.HsSqlPpp.TypeChecking.TypeType
+> import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
 
 > -- | Creates an 'EnvironmentUpdate' list by reading the database given.
 > -- To create an Environment value from this, use

@@ -5,12 +5,12 @@ This file contains
 
 > {-# OPTIONS_HADDOCK hide  #-}
 
-> module Database.HsSqlPpp.TypeChecking.DefaultTemplate1Environment
+> module Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
 >     (defaultTemplate1Environment
 >      ) where
 
-> import Database.HsSqlPpp.TypeChecking.EnvironmentInternal
-> import Database.HsSqlPpp.TypeChecking.TypeType
+> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.TypeType
 
 > defaultTemplate1Environment :: Environment
 > defaultTemplate1Environment = (\l -> case l of

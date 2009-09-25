@@ -52,7 +52,7 @@ out. If not, will have to add another type.
 > {-# LANGUAGE FlexibleInstances,DeriveDataTypeable #-}
 
 
-> module Database.HsSqlPpp.TypeChecking.TypeType where
+> module Database.HsSqlPpp.AstInternals.TypeType where
 
 > import Control.Monad.Error
 

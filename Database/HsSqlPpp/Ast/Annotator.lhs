@@ -22,24 +22,10 @@ This is the public module for the type checking functionality.
 > * the parser fills in the source position nodes, but doesn't do a great job yet.
 >
 > -}
-> module Database.HsSqlPpp.TypeChecking.TypeChecker
+> module Database.HsSqlPpp.Ast.Annotator
 >     (
->      -- * Annotation type
->      Annotation
->     ,AnnotationElement(..)
->      -- * SQL types
->     ,Type (..)
->     ,PseudoType (..)
->      -- * Type errors
->     ,TypeError (..)
->      -- * Statement info
->      -- | This is the main annotation attached to each statement. Early days at the moment
->      -- but will be expanded to provide any type errors lurking inside a statement, any useful
->      -- types, e.g. the types of each select and subselect/sub query in a statement,
->      -- any changes to the catalog the statement makes, and possibly much more information.
->     ,StatementInfo(..)
 >      -- * Annotation functions
->     ,annotateAst
+>     annotateAst
 >     ,annotateAstEnv
 >     ,annotateExpression
 >     ,annotateAstsEnv
@@ -49,11 +35,7 @@ This is the public module for the type checking functionality.
 >     ,getTopLevelInfos
 >     ,getTopLevelEnvUpdates
 >     ,getTypeErrors
->     ,stripAnnotations
 >     ) where
 
-> import Data.Generics
-
-> import Database.HsSqlPpp.TypeChecking.AstInternal
-> import Database.HsSqlPpp.TypeChecking.TypeType
-> import Database.HsSqlPpp.TypeChecking.AstAnnotation
+> import Database.HsSqlPpp.AstInternals.AstInternal
+> import Database.HsSqlPpp.AstInternals.AstAnnotation

@@ -7,7 +7,7 @@ modules.
 > {-# LANGUAGE DeriveDataTypeable #-}
 > {-# OPTIONS_HADDOCK hide  #-}
 
-> module Database.HsSqlPpp.TypeChecking.EnvironmentInternal
+> module Database.HsSqlPpp.AstInternals.EnvironmentInternal
 >     (
 >      Environment
 >     ,QualifiedIDs
@@ -43,7 +43,7 @@ modules.
 > import Debug.Trace
 > import Data.Generics
 
-> import Database.HsSqlPpp.TypeChecking.TypeType
+> import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
 
 > -- | The main datatype, this holds the catalog and context

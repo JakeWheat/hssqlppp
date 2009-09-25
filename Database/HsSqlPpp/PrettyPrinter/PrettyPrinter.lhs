@@ -25,11 +25,10 @@ Not much other comments, since it all should be pretty self evident.
 > import Text.PrettyPrint
 > import Data.Maybe
 
-> import Database.HsSqlPpp.TypeChecking.Ast
-> import Database.HsSqlPpp.TypeChecking.TypeChecker
-> import Database.HsSqlPpp.TypeChecking.Environment
+> import Database.HsSqlPpp.Ast.Ast
+> import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Utils
-> import Debug.Trace
 
 ================================================================================
 

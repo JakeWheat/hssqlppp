@@ -45,7 +45,7 @@ This code is currently on the backburner, and is a massive mess.
 > import Data.Maybe
 
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
-> import Database.HsSqlPpp.TypeChecking.Ast as Ast
+> import Database.HsSqlPpp.Ast.Ast as Ast
 > import Database.HsSqlPpp.Dbms.DBAccess
 
 > loadIntoDatabase :: String -- ^ database name
