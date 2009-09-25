@@ -21,7 +21,11 @@ use
 
 uuagc  -dcfwsp --cycle --genlinepragmas AstInternal.ag
 
-to generate a new AstInternal.hs from this file
+to generate a new AstInternal.hs from this file (cycle will check for
+cycles - it's bad if you get any of these, and genlinepragmas mean
+that you'll be able to view the original source ag positions when
+there are errors or warnings compiling the generated hs file, which
+you want much more often than not).
 
 (install uuagc with
 cabal install uuagc
@@ -93,6 +97,8 @@ MODULE {Database.HsSqlPpp.TypeChecking.AstInternal}
    ,annotateAst
    ,annotateAstEnv
    ,annotateExpression
+   ,annotateAstsEnv
+   ,annotateAstEnvEnv
 }
 
 {
@@ -609,8 +615,26 @@ annotateAstEnv env sts =
     let t = sem_Root (Root sts)
         ta = wrap_Root t Inh_Root {env_Inh_Root = env}
         tl = annotatedTree_Syn_Root ta
-    in case tl of
+   in case tl of
          Root r -> r
+
+annotateAstsEnv :: Environment -> [StatementList] -> [StatementList]
+annotateAstsEnv env sts =
+    annInt env sts []
+    where
+      annInt e (s:ss) ress =
+          let (e1,res) = annotateAstEnvEnv e s
+          in annInt e1 ss (res:ress)
+      annInt _ [] ress = reverse ress
+
+annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
+annotateAstEnvEnv env sts =
+    let t = sem_Root (Root sts)
+        ta = wrap_Root t Inh_Root {env_Inh_Root = env}
+        tl = annotatedTree_Syn_Root ta
+        env1 = producedEnv_Syn_Root ta
+   in case tl of
+         Root r -> (env1,r)
 
 -- | Testing utility, mainly used to check an expression for type errors
 -- or to get its type.

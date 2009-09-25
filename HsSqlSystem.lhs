@@ -20,11 +20,12 @@ TODO 2: think of a name for this command
 > import System.Directory
 > import Data.List
 > import Control.Applicative
+> import Data.Either
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
 > import Database.HsSqlPpp.Parsing.Lexer
-> --import Database.HsSqlPpp.TypeChecking.Ast
+> import Database.HsSqlPpp.TypeChecking.Ast
 > import Database.HsSqlPpp.TypeChecking.TypeChecker
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.Dbms.DBAccess
@@ -206,15 +207,22 @@ TODO: do something more correct
 >                    (Multiple showInfo)
 
 > showInfo :: [FilePath] -> IO ()
-> showInfo = mapM_ pt
+> showInfo = showInfoEnv defaultTemplate1Environment
+
+> showInfoEnv :: Environment -> [FilePath] -> IO ()
+> showInfoEnv env fs = do
+>   astEithers <- mapM parseSqlFile fs
+>   let asts = rights astEithers
+>   let aasts = annotateAstsEnv env asts
+>   mapM_ print $ lefts astEithers
+>   mapM_ printAst aasts
 >   where
->     pt f = do
->       x <- parseSqlFile f
->       case x of
->            Left er -> print er
->            Right sts -> do
->                let aast = annotateAst sts
->                mapM_ (putStrLn . printSqlAnn show . (:[])) aast
+>     printAst :: StatementList -> IO ()
+>     printAst = mapM_ (putStrLn . printSqlAnn annotToS . (:[]))
+>     annotToS :: Annotation -> String
+>     annotToS = concat . intersperse "\n" . map show
+
+
 
 ================================================================================
 
@@ -230,23 +238,13 @@ TODO: do something more correct
 
 
 > showInfoDB :: [FilePath] -> IO ()
-> showInfoDB args = do
->   let dbName = head args
->   env1 <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
->   case env1 of
+> showInfoDB (dbName:fs) = do
+>   env <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
+>   case env of
 >     Left e -> error $ show e
 >     Right e1 ->
->         mapM_ (pt e1) $ tail args
->   where
->     pt env f = do
->       x <- parseSqlFile f
->       case x of
->            Left er -> print er
->            Right sts -> do
->                let aast = annotateAstEnv env sts
->                mapM_ (putStrLn . printSqlAnn annotToS . (:[])) aast
->     annotToS :: Annotation -> String
->     annotToS = concat . intersperse "\n" . map show
+>         showInfoEnv e1 fs
+> showInfoDB _ = error "please pass the database name plus at least one filename"
 
 ================================================================================
 

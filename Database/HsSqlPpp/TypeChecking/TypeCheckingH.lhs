@@ -19,7 +19,6 @@ type checking.
 >     ,convertToNewStyleUpdates
 >     ,commonFieldNames
 >     ,typeCheckCombineSelect
->     ,checkTypes
 >     ,chainTypeCheckFailed
 >     ,errorToTypeFail
 >     ,errorToTypeFailF

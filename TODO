@@ -15,6 +15,37 @@ interpolate annot into original source + pretty printer for annot
 multiple file type check
 do type error output with source pos, emacs format
 
+lint stuff: ambiguous identifiers, null usage, duplicate definitions
+
+
+error handling fixup
+not just error handling, but most of the code in the type checking
+files.
+1. don't use error, use InternalError as part of a Either, these
+   end up in the ast tree
+2. add eithers to a bunch of env functions - make sure we check
+   all the preconditions, e.g. check a view exists when trying
+   to look up the attributes. Also add a bunch of precondition
+   checks to the updateenvironment function, e.g. checking for
+   duplicate types
+3. make sure errors from updateenvironment aren't ignored, but
+   end up in the ast tree
+4. review the error handling utilities - probably could do with
+   a rethink, also definitely need better names. The kind of things
+   needed are: way to propagate typecheckfailed, dealing with
+   conversions from lists of eithers to single eithers by
+   concatenating the errors, if no errors take the last right,
+   etc.
+5. support variadic args to get rid of the current hacks to work
+   around this not being supported
+6. go through all the actual type checking code and work out some more
+   consistent way of writing the code, and work on making the
+   algorithms clearer, some are really obscure at the moment, mainly
+   due to programmer incompetence and also many changes to the way
+   various things are handled (particularly the error handling and
+   typecheckfailed propagation), and just need pretty much rewriting
+   from scratch.
+
 
 = Current TODO list
 

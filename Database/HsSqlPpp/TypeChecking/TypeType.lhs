@@ -118,6 +118,7 @@ later on down the line.
 >                | ExpectedDomainType Type
 >                | DomainDefNotFound Type
 >                | BadEnvironmentUpdate String
+>                | TypeAlreadyExists Type
 >                | InternalError String
 >                 --shoved in to humour the Either Monad
 >                | MiscError String

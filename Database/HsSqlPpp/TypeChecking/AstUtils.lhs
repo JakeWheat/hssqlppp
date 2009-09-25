@@ -7,8 +7,8 @@ type checking.
 
 > module Database.HsSqlPpp.TypeChecking.AstUtils
 >     (
->      checkTypes
->     ,chainTypeCheckFailed
+>      --checkTypes
+>      chainTypeCheckFailed
 >     ,errorToTypeFail
 >     ,errorToTypeFailF
 >     ,checkErrorList
@@ -27,13 +27,6 @@ type checking.
 
 if we find a typecheckfailed in the list, then propagate that, else
 use the final argument.
-
-> checkTypes :: [Type] -> Either [TypeError] Type -> Either [TypeError] Type
-> checkTypes (TypeCheckFailed:_) _ = Right TypeCheckFailed
-> checkTypes (_:ts) r = checkTypes ts r
-> checkTypes [] r = r
-
-small variant, not sure if both are needed
 
 > chainTypeCheckFailed :: [Type] -> Either a Type -> Either a Type
 > chainTypeCheckFailed a b =

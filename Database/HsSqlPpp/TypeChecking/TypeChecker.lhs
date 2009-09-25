@@ -42,6 +42,8 @@ This is the public module for the type checking functionality.
 >     ,annotateAst
 >     ,annotateAstEnv
 >     ,annotateExpression
+>     ,annotateAstsEnv
+>     ,annotateAstEnvEnv
 >      -- * Annotated tree utils
 >     ,getTopLevelTypes
 >     ,getTopLevelInfos

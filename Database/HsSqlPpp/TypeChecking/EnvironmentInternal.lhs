@@ -190,12 +190,14 @@ modules.
 >                               : envAttrDefs env}
 >         EnvCreateCast src tgt ctx -> return $ env {envCasts = (src,tgt,ctx):envCasts env}
 >         EnvCreateTable nm attrs sysAttrs -> do
+>                 checkTypeDoesntExist env nm (CompositeType nm)
 >                 return $ (addTypeWithArray env nm
 >                             (CompositeType nm) "C" False) {
 >                             envAttrDefs =
 >                               (nm,TableComposite,UnnamedCompositeType attrs, UnnamedCompositeType sysAttrs)
 >                               : envAttrDefs env}
->         EnvCreateView nm attrs ->  do
+>         EnvCreateView nm attrs -> {-trace ("create view:" ++ show nm) $-} do
+>                 checkTypeDoesntExist env nm (CompositeType nm)
 >                 return $ (addTypeWithArray env nm
 >                             (CompositeType nm) "C" False) {
 >                             envAttrDefs =
@@ -219,6 +221,12 @@ modules.
 >                (ArrayType ty,"A",False)
 >                : (ty,cat,pref)
 >                : envTypeCategories env}
+>     checkTypeDoesntExist env nm ty = do
+>         errorWhen (any (==nm) $ map fst $ envTypeNames env) $
+>             [TypeAlreadyExists ty]
+>         errorWhen (any (==ty) $ map snd $ envTypeNames env) $
+>             [TypeAlreadyExists ty]
+>         return ()
 
 
 > {-
@@ -247,8 +255,9 @@ check to see if it works
 >   let c = filter (\(n,t,_,_) -> n == nm && (null flvs || t `elem` flvs)) $ envAttrDefs env
 >   errorWhen (length c == 0)
 >             [UnrecognisedRelation nm]
->   let (_,fl1,r,s):[] = c
->   return (nm,fl1,r,s)
+>   case c of
+>     (_,fl1,r,s):[] -> return (nm,fl1,r,s)
+>     _ -> error $ "problem getting attributes for: " ++ show ty ++ ", " ++ show c
 
 > envTypeCategory :: Environment -> Type -> String
 > envTypeCategory env ty =
@@ -404,17 +413,6 @@ moment.
 >                            [InternalError "no star expansion found?"] >>
 >                  Left [UnrecognisedCorrelationName correlationName]
 >       Just l -> Right l
-
--- >     if correlationName == ""
--- >       then let allFields = concatMap (fst) $ envIdentifierTypes env
--- >                (commonFields,uncommonFields) =
--- >                   partition (\(a,_) -> a `elem` envJoinIdentifiers env) allFields
--- >            in Right $ nub commonFields ++ uncommonFields
--- >       else
--- >           case lookup correlationName $ envIdentifierTypes env of
--- >             Nothing -> Left [UnrecognisedCorrelationName correlationName]
--- >             Just s -> Right $ fst s
-
 
 > envLookupID :: Environment -> String -> String -> Either [TypeError] Type
 > envLookupID env correlationName iden = {-trace ("lookup " ++ show iden ++ " in " ++ show (envIdentifierTypes env)) $ -}

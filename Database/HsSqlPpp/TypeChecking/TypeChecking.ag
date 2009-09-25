@@ -50,6 +50,9 @@ etc. annotations.
 ATTR AllNodes Root ExpressionRoot
   [ env : Environment || annotatedTree : SELF]
 
+ATTR StatementList Root
+  [|| producedEnv : Environment]
+
 {-
 ================================================================================
 
@@ -136,10 +139,10 @@ SEM TypeName
         loc.tpe = envLookupType @lhs.env $ canonicalizeTypeName @tn
         loc.backTree = SimpleTypeName @ann @tn
      | ArrayTypeName
-        loc.tpe = checkTypes [@typ.namedType] $ Right $ ArrayType @typ.namedType
+        loc.tpe = chainTypeCheckFailed [@typ.namedType] $ Right $ ArrayType @typ.namedType
         loc.backTree = ArrayTypeName @ann @typ.annotatedTree
      | SetOfTypeName
-        loc.tpe = checkTypes [@typ.namedType] $ Right $ SetOfType @typ.namedType
+        loc.tpe = chainTypeCheckFailed [@typ.namedType] $ Right $ SetOfType @typ.namedType
         loc.backTree = SetOfTypeName @ann @typ.annotatedTree
      | PrecTypeName
         loc.tpe = Right TypeCheckFailed
@@ -150,7 +153,7 @@ SEM TypeName
 -}
 SEM Expression
     | FunCall
-        loc.tpe = checkTypes @args.typeList $
+        loc.tpe = chainTypeCheckFailed @args.typeList $
                     typeCheckFunCall
                       @lhs.env
                       @funName
@@ -180,10 +183,10 @@ SEM Expression
 SEM Expression
     | Case
         loc.tpe =
-            checkTypes @loc.whenTypes $ do
+            chainTypeCheckFailed @loc.whenTypes $ do
                when (any (/= typeBool) @loc.whenTypes) $
                  Left [WrongTypes typeBool @loc.whenTypes]
-               checkTypes @loc.thenTypes $
+               chainTypeCheckFailed @loc.thenTypes $
                         resolveResultSetType
                           @lhs.env
                           @loc.thenTypes
@@ -193,11 +196,11 @@ SEM Expression
 SEM Expression
     | CaseSimple
         loc.tpe =
-          checkTypes @loc.whenTypes $ do
+          chainTypeCheckFailed @loc.whenTypes $ do
           checkWhenTypes <- resolveResultSetType
                                  @lhs.env
                                  (getTypeAnnotation @value.annotatedTree: @loc.whenTypes)
-          checkTypes @loc.thenTypes $
+          chainTypeCheckFailed @loc.thenTypes $
                      resolveResultSetType
                               @lhs.env
                               @loc.thenTypes
@@ -230,7 +233,7 @@ SEM Expression
 SEM Expression
     | ScalarSubQuery
         loc.tpe = let selType = getTypeAnnotation @sel.annotatedTree
-                  in checkTypes [selType]
+                  in chainTypeCheckFailed [selType]
                        $ do
                          f <- map snd <$> unwrapSetOfComposite selType
                          case length f of
@@ -271,7 +274,7 @@ SEM InList
                            0 -> Left [InternalError "got subquery with no columns? in inselect"]
                            1 -> Right $ head attrs
                            _ -> Right $ RowCtor attrs
-              checkTypes attrs $ Right typ
+              chainTypeCheckFailed attrs $ Right typ
 
 
 
@@ -326,7 +329,12 @@ SEM StatementList
         loc.newEnv = fromRight @lhs.env $ updateEnvironment @lhs.env @lhs.envUpdates
         hd.env = @loc.newEnv
         tl.env = @loc.newEnv
+        lhs.producedEnv = case @tl.annotatedTree of
+                           [] -> @loc.newEnv
+                           _ -> @tl.producedEnv
         tl.envUpdates = @hd.envUpdates
+    | Nil
+        lhs.producedEnv = emptyEnvironment
 
 
 SEM ExpressionListStatementListPair
@@ -353,7 +361,7 @@ SEM Statement
 
 SEM Statement
     | SelectStatement
-        loc.tpe = checkTypes [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
+        loc.tpe = chainTypeCheckFailed [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
         loc.statementInfo = [SelectInfo $ getTypeAnnotation @ex.annotatedTree]
         loc.backTree = SelectStatement @ann @ex.annotatedTree
         loc.envUpdates = []
@@ -397,7 +405,7 @@ SEM SelectExpression
         loc.tpe =
           let sel1t = getTypeAnnotation @sel1.annotatedTree
               sel2t = getTypeAnnotation @sel2.annotatedTree
-          in checkTypes [sel1t, sel2t] $
+          in chainTypeCheckFailed [sel1t, sel2t] $
                 typeCheckCombineSelect @lhs.env sel1t sel2t
         loc.backTree = CombineSelect @ann @ctype.annotatedTree
                                      @sel1.annotatedTree
@@ -418,7 +426,7 @@ SEM TableRef
                               Nothing
 
 SEM TableRef
-    | SubTref loc.tpe = checkTypes [getTypeAnnotation @sel.annotatedTree] <$>
+    | SubTref loc.tpe = chainTypeCheckFailed [getTypeAnnotation @sel.annotatedTree] <$>
                         unwrapSetOfWhenComposite $ getTypeAnnotation @sel.annotatedTree
               loc.backTree = SubTref @ann @sel.annotatedTree @alias
               lhs.idens = [(@alias, (fromRight [] $ getTbCols @sel.annotatedTree, []))]
@@ -455,7 +463,7 @@ SEM TableRef
         loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
     | JoinedTref
         loc.tpe =
-            checkTypes [tblt
+            chainTypeCheckFailed [tblt
                       ,tbl1t] $
                case (@nat.annotatedTree, @onExpr.annotatedTree) of
                       (Natural, _) -> unionJoinList $
@@ -664,7 +672,7 @@ SEM Statement
                                    @targetCols.strings
                                    (getCAtts $ getTypeAnnotation @insData.annotatedTree)
         loc.tpe =
-            checkTypes [getTypeAnnotation @insData.annotatedTree] $ do
+            chainTypeCheckFailed [getTypeAnnotation @insData.annotatedTree] $ do
               @loc.columnStuff
               Right $ Pseudo Void
         loc.statementInfo =
@@ -697,9 +705,7 @@ SEM Statement
               @loc.columnsConsistent
               checkErrorList @assigns.rowSetErrors $ Pseudo Void
         loc.columnsConsistent =
-            let cc = checkColumnConsistency @lhs.env @table (map fst @assigns.pairs) @assigns.pairs
-            in trace("assigns: " ++ show @assigns.pairs ++ "\n" ++
-                     "cc: " ++ show cc) cc
+            checkColumnConsistency @lhs.env @table (map fst @assigns.pairs) @assigns.pairs
         loc.statementInfo =
             [UpdateInfo @table $ errorToTypeFailF UnnamedCompositeType @loc.columnsConsistent]
         loc.backTree = Update @ann @table @assigns.annotatedTree @whr.annotatedTree @returning
@@ -764,7 +770,7 @@ produces a compositedef: (name, tablecomposite, unnamedcomp [(attrname, type)])
 
 -}
 ATTR AttributeDef [||attrName : String
-                        namedType : Type]
+                     namedType : Type]
 
 SEM AttributeDef
     | AttributeDef
@@ -804,7 +810,7 @@ SEM Statement
 
 SEM Statement
     | CreateView
-        loc.tpe = checkTypes [getTypeAnnotation @expr.annotatedTree] $ Right $ Pseudo Void
+        loc.tpe = chainTypeCheckFailed [getTypeAnnotation @expr.annotatedTree] $ Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
         loc.statementInfo = []
         loc.attrs = case getTypeAnnotation @expr.annotatedTree of
@@ -952,7 +958,7 @@ SEM MaybeExpression
 
 SEM Statement
     | Return
-        loc.tpe = checkTypes [fromMaybe typeBool @value.exprType] $ Right $ Pseudo Void
+        loc.tpe = chainTypeCheckFailed [fromMaybe typeBool @value.exprType] $ Right $ Pseudo Void
         loc.backTree = Return @ann @value.annotatedTree
         loc.envUpdates = []
         loc.statementInfo = []
