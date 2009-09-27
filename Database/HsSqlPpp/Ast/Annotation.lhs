@@ -22,6 +22,8 @@ Copyright 2009 Jake Wheat
 >      -- any changes to the catalog the statement makes, and possibly much more information.
 >     ,StatementInfo(..)
 >     ,stripAnnotations
+>     ,setAnnotation
+>     ,getAnnotation
 >     ) where
 
 > import Database.HsSqlPpp.AstInternals.AstAnnotation

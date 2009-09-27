@@ -35,7 +35,10 @@ This is the public module for the type checking functionality.
 >     ,getTopLevelInfos
 >     ,getTopLevelEnvUpdates
 >     ,getTypeErrors
+>     ,getStatementAnnotations
 >     ) where
 
 > import Database.HsSqlPpp.AstInternals.AstInternal
 > import Database.HsSqlPpp.AstInternals.AstAnnotation
+> import Database.HsSqlPpp.AstInternals.AnnotationUtils
+

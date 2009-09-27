@@ -24,11 +24,15 @@ TODO 2: think of a name for this command
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
+
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotator
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Environment
+
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
+> import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
+
 > import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
 
@@ -54,6 +58,7 @@ TODO 2: think of a name for this command
 >            ,parseFileCommand
 >            ,roundTripCommand
 >            ,readEnvCommand
+>            ,annotateSourceCommand
 >            ,showInfoCommand
 >            ,showInfoDBCommand]
 
@@ -246,6 +251,28 @@ TODO: do something more correct
 >     Right e1 ->
 >         showInfoEnv e1 fs
 > showInfoDB _ = error "please pass the database name plus at least one filename"
+
+================================================================================
+
+> annotateSourceCommand :: CallEntry
+> annotateSourceCommand = CallEntry
+>                    "annotateSource"
+>                    "reads each file, parses, type checks, then outputs info on each statement \
+>                    \interspersed with the original source code"
+>                    (Single annotateSourceF)
+
+> annotateSourceF :: FilePath -> IO ()
+> annotateSourceF f = do
+>   aste <- parseSqlFile f
+>   case aste of
+>     Left er -> error $ show er
+>     Right ast -> do
+>                  src <- readFile f
+>                  let aast = annotateAst ast
+>                      srcnew = annotateSource src aast
+>                  putStr srcnew
+
+
 
 ================================================================================
 

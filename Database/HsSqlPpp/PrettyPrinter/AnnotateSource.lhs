@@ -16,6 +16,23 @@ Algorithm design
 Get all the annotations ordered by source position. Split the original
 text on these points, then zip it and output it.
 
+
+> {- | Function to pretty print annotation information interspersed with original source file, so e.g. you can view types, etc. inline in the source whilst preserving the original formatting and comments.
+> -}
+> module Database.HsSqlPpp.PrettyPrinter.AnnotateSource
+>     (annotateSource) where
+
+> import Data.List
+> import Data.Maybe
+> import Debug.Trace
+
+> import Database.HsSqlPpp.Ast.Ast
+> import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.Ast.Annotator
+
+> annotateSource :: String -> StatementList -> String
+> annotateSource src aast =
+
 Details:
 
 First need better syb so we can get two separate lists of annotations,
@@ -45,13 +62,31 @@ To replace existing comments rather than repeatedly add them:
    strip all the comments with this marker out after splitting the string on the annotation source positions, i.e. when we get to [(string,annotation)] or [(string,string)] stage.
 
 
-> {- | Function to pretty print annotation information interspersed with original source file, so e.g. you can view types, etc. inline in the source whilst preserving the original formatting and comments.
-> -}
-> module Database.HsSqlPpp.PrettyPrinter.AnnotateSource
->     (annotateSource) where
+>    let statementAnnotations = getStatementAnnotations aast
+>        split = mapMaybe (\l -> let notSp = filter (not.isSp) l
+>                                 in if notSp == []
+>                                      then Nothing
+>                                    else Just (find isSp l, notSp)) statementAnnotations
+>        splitsWithSps = catMaybes $ map (\(a,b) -> case a of
+>                                                      Nothing -> Nothing
+>                                                      Just a1 -> Just (a1,b)) split
+>        splitsStrings = map (\(a,b) -> (a, "\n/*" ++ show b ++ "*/\n")) splitsWithSps
+>        splitPoints = map (\(SourcePos _ l _) -> l - 1) $ map fst splitsStrings
+>        splitsSrc = splitAts src $ splitPoints
+>        anSrcPairs = zip splitsSrc $ map snd splitsStrings
+>    in concat (map (uncurry (++)) anSrcPairs)
+>           -- make sure we get the last bit of the source code
+>           ++ last splitsSrc
+>    where
+>      isSp t = case t of
+>                      SourcePos _ _ _ -> True
+>                      _ -> False
+>      splitAts :: String -> [Int] -> [String]
+>      splitAts s splits =
+>          let slines = lines s
+>              --make sure we get from the last split to the end of the file
+>              splits1 = splits ++ [length slines]
+>              pairs :: [(Int,Int)]
+>              pairs = zip (0:splits) splits1
+>          in map (\(st,en) -> unlines $ take (en - st) $ drop st slines) pairs
 
-> import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Ast.Annotation
-
-> annotateSource :: String -> StatementList -> String
-> annotateSource src aast = undefined

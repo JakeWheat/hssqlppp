@@ -24,6 +24,7 @@ grammar code and aren't exposed.
 >     ,getTypeErrors
 >     ,stripAnnotations
 >     ,setAnnotation
+>     ,getAnnotation
 >     --,getTypeErrors
 >     --,pack
 >     ,StatementInfo(..)
@@ -185,3 +186,15 @@ without having to get the positions correct.
 > oneLevel :: (forall a.Data a => a -> a)
 >          -> (forall a.Data a => a -> a)
 > oneLevel f = gmapT f
+
+> getAnnotation :: forall a.(Data a) => a -> Annotation
+> getAnnotation a =
+>   case oneLevelQ (mkQ [] f) a of
+>     an:_ -> an
+>     [] -> []
+>   where
+>     f :: Annotation -> Annotation
+>     f = id
+
+> oneLevelQ :: forall a.Data a => forall u. (forall d. (Data d) => d -> u) -> a -> [u]
+> oneLevelQ = gmapQ
