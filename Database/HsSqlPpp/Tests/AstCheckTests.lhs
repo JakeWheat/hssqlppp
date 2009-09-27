@@ -679,7 +679,7 @@ check type of initial values
 >                                      Right l -> l
 >       aast = annotateExpression env ast
 >       ty = getTopLevelTypes [aast]
->       er = getTypeErrors aast
+>       er = concatMap snd $ getTypeErrors aast
 >   in case (length er, length ty) of
 >        (0,0) -> assertFailure "didn't get any types?"
 >        (0,1) -> assertEqual ("typecheck " ++ src) typ $ Right $ head ty
@@ -693,8 +693,8 @@ check type of initial values
 >                               Right l -> l
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
->       er = concatMap getTypeErrors aast
->   in trace (show $ map getAnnotation aast) $ case (length er, length is) of
+>       er = concatMap snd $ getTypeErrors aast
+>   in {-trace (show $ map getAnnotation aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
@@ -706,7 +706,7 @@ check type of initial values
 >                               Right l -> l
 >       aast = annotateAstEnv env ast
 >       is = getTopLevelInfos aast
->       er = concatMap getTypeErrors aast
+>       er = concatMap snd $ getTypeErrors aast
 >   in {-trace (show aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
@@ -719,7 +719,7 @@ check type of initial values
 >                               Right l -> l
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
->       er = concatMap getTypeErrors aast
+>       er = concatMap snd $ getTypeErrors aast
 >       eu' = getTopLevelEnvUpdates aast
 >   in {-trace (show aast) $-} case (length er, length is, length eu') of
 >        (0,0,0) -> assertFailure "didn't get any infos or envupdates?"

@@ -25,6 +25,7 @@ grammar code and aren't exposed.
 >     ,stripAnnotations
 >     ,setAnnotation
 >     ,getAnnotation
+>     ,getAnnotations
 >     --,getTypeErrors
 >     --,pack
 >     ,StatementInfo(..)
@@ -146,10 +147,6 @@ if a node has no source position e.g. the all in select all or select
    represent a fake node with no source position?
 
 
-> getAnnotationsRecurse :: (Data a) => a -> [AnnotationElement]
-> getAnnotationsRecurse st = listify (\(_::AnnotationElement) -> True) st
-
-
 hack job, often not interested in the source positions when testing
 the asts produced, so this function will reset all the source
 positions to empty ("", 0, 0) so we can compare them for equality, etc.
@@ -167,15 +164,20 @@ without having to get the positions correct.
 > -- | runs through the ast given and returns a list of all the type errors
 > -- in the ast. Recurses into all ast nodes to find type errors.
 > -- This is the function to use to see if an ast has passed the type checking process.
-> -- Source position information will be added to the return type at some point
-> getTypeErrors :: (Data a) => a -> [TypeError]
+> getTypeErrors :: (Data a) => a -> [(Maybe AnnotationElement,[TypeError])]
 > getTypeErrors sts =
->     gte $ getAnnotationsRecurse sts
+>     filter (\(_,te) -> not $ null te) $ map (\an -> (gtsp an, gte an)) $ getAnnotations sts
 >     where
 >       gte (a:as) = case a of
 >                     TypeErrorA e -> e:gte as
 >                     _ -> gte as
 >       gte _ = []
+
+>       gtsp (a:as) = case a of
+>                     s@(SourcePos _ _ _) -> Just s
+>                     _ -> gtsp as
+>       gtsp _ = Nothing
+
 
 
 > setAnnotation :: forall a.(Data a) =>
@@ -198,3 +200,11 @@ without having to get the positions correct.
 
 > oneLevelQ :: forall a.Data a => forall u. (forall d. (Data d) => d -> u) -> a -> [u]
 > oneLevelQ = gmapQ
+
+
+> getAnnotations :: forall a.(Data a) =>
+>                   a -> [Annotation]
+> getAnnotations st = listifyWholeLists (\(_::Annotation) -> True) st
+
+> listifyWholeLists :: Typeable b => ([b] -> Bool) -> GenericQ [[b]]
+> listifyWholeLists blp = flip (synthesize id (.) (mkQ id (\bl _ -> if blp bl then (bl:) else id))) []

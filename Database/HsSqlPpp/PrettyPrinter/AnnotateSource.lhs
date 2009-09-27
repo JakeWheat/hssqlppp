@@ -62,22 +62,37 @@ To replace existing comments rather than repeatedly add them:
    strip all the comments with this marker out after splitting the string on the annotation source positions, i.e. when we get to [(string,annotation)] or [(string,string)] stage.
 
 
->    let statementAnnotations = getStatementAnnotations aast
->        split = mapMaybe (\l -> let notSp = filter (not.isSp) l
->                                 in if notSp == []
->                                      then Nothing
->                                    else Just (find isSp l, notSp)) statementAnnotations
->        splitsWithSps = catMaybes $ map (\(a,b) -> case a of
->                                                      Nothing -> Nothing
->                                                      Just a1 -> Just (a1,b)) split
->        splitsStrings = map (\(a,b) -> (a, "\n/*" ++ show b ++ "*/\n")) splitsWithSps
->        splitPoints = map (\(SourcePos _ l _) -> l - 1) $ map fst splitsStrings
+>    let allAnn = sortBy ordSps $ getStatementPosStringPairs ++ getTypeErrorPosPairs
+>        splitPoints = map (\(SourcePos _ l _) -> l - 1) $ map fst allAnn
 >        splitsSrc = splitAts src $ splitPoints
->        anSrcPairs = zip splitsSrc $ map snd splitsStrings
+>        anSrcPairs = zip splitsSrc $ map snd allAnn
 >    in concat (map (uncurry (++)) anSrcPairs)
 >           -- make sure we get the last bit of the source code
 >           ++ last splitsSrc
 >    where
+>      ordSps :: (AnnotationElement,String) -> (AnnotationElement,String) -> Ordering
+>      ordSps a b = case (a,b) of
+>                     ((SourcePos _ l c, _),(SourcePos _ l1 c1, _)) -> compare (l,c) (l1,c1)
+>                     _ -> EQ
+>      getTypeErrorPosPairs :: [(AnnotationElement, String)]
+>      getTypeErrorPosPairs =
+>          let typeErrors = getTypeErrors aast
+>              typeErrorsWithPositions = mapMaybe (\(a,b) -> case a of
+>                                                              Nothing -> Nothing
+>                                                              Just a1 -> Just (a1,b)) typeErrors
+>          in map (\(a,b) -> (a,"\n/*ERROR:" ++ show b ++ "*/\n")) typeErrorsWithPositions
+>      getStatementPosStringPairs :: [(AnnotationElement, String)]
+>      getStatementPosStringPairs =
+>          let statementAnnotations = getStatementAnnotations aast
+>              split = mapMaybe (\l -> let notSp = filter (not.isSp) l
+>                                      in if notSp == []
+>                                           then Nothing
+>                                           else Just (find isSp l, notSp)) statementAnnotations
+>              splitsWithSps = catMaybes $ map (\(a,b) -> case a of
+>                                                                Nothing -> Nothing
+>                                                                Just a1 -> Just (a1,b)) split
+>          in map (\(a,b) -> (a, "\n/*" ++ show b ++ "*/\n")) splitsWithSps
+
 >      isSp t = case t of
 >                      SourcePos _ _ _ -> True
 >                      _ -> False

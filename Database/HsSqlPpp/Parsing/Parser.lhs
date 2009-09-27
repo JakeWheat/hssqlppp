@@ -848,7 +848,7 @@ The full list of operators from DefaultScope.hs should be used here.
 > table :: [[Operator [Token] ParseState Identity Expression]]
 > table = [--[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
->          [prefix "-" (FunCall [] "u-")]
+>          [prefix "-" "u-"]
 >         ,[binary "^" AssocLeft]
 >         ,[binary "*" AssocLeft
 >          ,idHackBinary "*" AssocLeft
@@ -857,53 +857,45 @@ The full list of operators from DefaultScope.hs should be used here.
 >         ,[binary "+" AssocLeft
 >          ,binary "-" AssocLeft]
 >          --should be is isnull and notnull
->         ,[postfixks ["is", "not", "null"] (FunCall [] "!isNotNull")
->          ,postfixks ["is", "null"] (FunCall [] "!isNull")]
+>         ,[postfixks ["is", "not", "null"] "!isNotNull"
+>          ,postfixks ["is", "null"] "!isNull"]
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "<->" AssocNone
 >          ,binary "<=" AssocRight
 >          ,binary ">=" AssocRight
 >          ,binary "||" AssocLeft
->          ,prefix "@" (FunCall [] "@")
+>          ,prefix "@" "@"
 >          ]
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
 >         ,[binaryk "like" "!like" AssocNone
->          ,binarycust "!=" "<>" AssocNone]
+>          ,binarycust (symbol "!=") "<>" AssocNone]
 >          --(also ilike similar)
 >         ,[binary "<" AssocNone
 >          ,binary ">" AssocNone]
 >         ,[binary "=" AssocRight
 >          ,binary "<>" AssocNone]
->         ,[prefixk "not" (FunCall [] "!not")]
+>         ,[prefixk "not" "!not"]
 >         ,[binaryk "and" "!and" AssocLeft
 >          ,binaryk "or" "!or" AssocLeft]]
 >     where
->       --use different parsers for symbols and keywords to get the
->       --right whitespace behaviour
->       binary s
->          = Infix (try (symbol s >> return (binaryF s)))
->       binarycust s t
->          = Infix (try (symbol s >> return (binaryF t)))
+>       binary s = binarycust (symbol s) s
 >       -- * ends up being lexed as an id token rather than a symbol
 >       -- * token, so work around here
->       idHackBinary s
->           = Infix (try (keyword s >> return (binaryF s)))
->       prefix s f
->          = Prefix (try (symbol s >> return (unaryF f)))
->       binaryk s o
->          = Infix (try (keyword s >> return (binaryF o)))
->       prefixk s f
->          = Prefix (try (keyword s >> return (unaryF f)))
->       --postfixk s f
->       --   = Postfix (try (keyword s >> return f))
->       postfixks ss f
->          = Postfix (try (mapM_ keyword ss >> return (unaryF f)))
->       unaryF f l = f [l]
->       binaryF s l m = FunCall [] s [l,m]
-
-don't know how to fill in the source positions for the items above.
+>       idHackBinary s = binarycust (keyword s) s
+>       binaryk s o = binarycust (keyword s) o
+>       prefix s f = unaryCust Prefix (symbol s) f
+>       prefixk s f = unaryCust Prefix (keyword s) f
+>       postfixks ss f = unaryCust Postfix (mapM_ keyword ss) f
+>       binarycust opParse t =
+>         Infix $ try $ do
+>              f <- FunCall <$> pos <*> (t <$ opParse)
+>              return (\l -> \m -> f [l,m])
+>       unaryCust ctor opParse t =
+>         ctor $ try $ do
+>           f <- FunCall <$> pos <*> (t <$ opParse)
+>           return (\l -> f [l])
 
 == factor parsers
 
