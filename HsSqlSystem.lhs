@@ -270,7 +270,7 @@ TODO: do something more correct
 >     Right ast -> do
 >                  src <- readFile f
 >                  let aast = annotateAst ast
->                      srcnew = annotateSource src aast
+>                      srcnew = annotateSource False src aast
 >                  putStr srcnew
 
 ================================================================================

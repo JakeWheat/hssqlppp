@@ -30,8 +30,8 @@ text on these points, then zip it and output it.
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Annotator
 
-> annotateSource :: String -> StatementList -> String
-> annotateSource src aast =
+> annotateSource :: Bool -> String -> StatementList -> String
+> annotateSource doErrs src aast =
 
 Details:
 
@@ -76,14 +76,17 @@ To replace existing comments rather than repeatedly add them:
 >                     _ -> EQ
 >      getTypeErrorPosPairs :: [(AnnotationElement, String)]
 >      getTypeErrorPosPairs =
->          let typeErrors = getTypeErrors aast
->              typeErrorsWithPositions = mapMaybe (\(a,b) -> case a of
->                                                              Nothing -> Nothing
->                                                              Just a1 -> Just (a1,b)) typeErrors
->          in map (\(a,b) -> (a,"\n/*ERROR:" ++ show b ++ "*/\n")) typeErrorsWithPositions
+>          if doErrs
+>            then map (\(a,b) -> (a,"\n/*ERROR:" ++ show b ++ "*/\n")) typeErrorsWithPositions
+>            else []
+>          where
+>            typeErrorsWithPositions = mapMaybe (\(a,b) -> case a of
+>                                                                 Nothing -> Nothing
+>                                                                 Just a1 -> Just (a1,b)) typeErrors
+>            typeErrors = getTypeErrors aast
 >      getStatementPosStringPairs :: [(AnnotationElement, String)]
 >      getStatementPosStringPairs =
->          let statementAnnotations = getStatementAnnotations aast
+>          let statementAnnotations = map interestingAnn $ getStatementAnnotations aast
 >              split = mapMaybe (\l -> let notSp = filter (not.isSp) l
 >                                      in if notSp == []
 >                                           then Nothing
@@ -92,6 +95,13 @@ To replace existing comments rather than repeatedly add them:
 >                                                                Nothing -> Nothing
 >                                                                Just a1 -> Just (a1,b)) split
 >          in map (\(a,b) -> (a, "\n/*" ++ show b ++ "*/\n")) splitsWithSps
+>          where
+>            interestingAnn anns =
+>              flip filter anns (\a ->
+>                                case a of
+>                                       TypeAnnotation _ -> False
+>                                       EnvUpdates [] -> False
+>                                       _ -> True)
 
 >      isSp t = case t of
 >                      SourcePos _ _ _ -> True
