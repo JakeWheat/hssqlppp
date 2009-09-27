@@ -60,7 +60,8 @@ TODO 2: think of a name for this command
 >            ,readEnvCommand
 >            ,annotateSourceCommand
 >            ,showInfoCommand
->            ,showInfoDBCommand]
+>            ,showInfoDBCommand
+>            ,checkSourceCommand]
 
 > lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
 > lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
@@ -271,6 +272,30 @@ TODO: do something more correct
 >                  let aast = annotateAst ast
 >                      srcnew = annotateSource src aast
 >                  putStr srcnew
+
+================================================================================
+
+> checkSourceCommand :: CallEntry
+> checkSourceCommand = CallEntry
+>                    "checksource"
+>                    "reads each file, parses, type checks, then outputs any type errors"
+>                    (Multiple checkSource)
+
+> checkSource :: [FilePath] -> IO ()
+> checkSource fns = mapM_ cs fns
+>   where
+>     cs f = do
+>            aste <- parseSqlFile f
+>            case aste of
+>                      Left er -> error $ show er
+>                      Right ast ->
+>                        do
+>                        let aast = annotateAst ast
+>                            tes = getTypeErrors aast
+>                        mapM_ (putStrLn.showSpTe) tes
+>     showSpTe (Just (SourcePos fn l c), e) =
+>         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
+>     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
 
 
 
