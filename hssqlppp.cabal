@@ -114,6 +114,8 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.AstInternals.EnvironmentInternal,
                      Database.HsSqlPpp.AstInternals.EnvironmentReader,
                      Database.HsSqlPpp.Utils
+                     Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
+                     Database.HsSqlPpp.AstInternals.AnnotationUtils
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
 
 Executable HsSqlPppTests
@@ -151,4 +153,6 @@ Executable HsSqlPppTests
                      Database.HsSqlPpp.AstInternals.EnvironmentInternal,
                      Database.HsSqlPpp.AstInternals.EnvironmentReader,
                      Database.HsSqlPpp.Utils
+                     Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
+                     Database.HsSqlPpp.AstInternals.AnnotationUtils
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
