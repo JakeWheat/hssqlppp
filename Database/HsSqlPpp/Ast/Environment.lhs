@@ -1,8 +1,8 @@
 Copyright 2009 Jake Wheat
 
-This is the public api to the environment data type, it just
-forwards the public part of EnvironmentInternal, which is the
-module used by the type checking code.
+This is the public api to the environment data type, it just forwards
+the public part of EnvironmentInternal, which is the module used by
+the type checking code.
 
 > {- | This module contains the environment data types and a helper functions.
 >    You almost certainly will never have to do anything with Environments apart

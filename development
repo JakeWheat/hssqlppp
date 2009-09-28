@@ -5,14 +5,15 @@ The project comes with a working cabal file.
 UUAGC is used in the type checking, there are some links at the top of
 AstInternal.ag for more information.
 
+The code uses a few GHC extensions, I don't know if they are
+conservative extensions or not.
+
 Two of the files are generated:
 
-DefaultScope.hs -> generated using
- ./HsSqlSystem.lhs getscope template1 > something && cp something ...
+DefaultTemplate1Environment.hs -> generated using
+ ./HsSqlSystem.lhs readenv template1 > something && cp something ...
  You shouldn't need to regenerate this file unless you change the
- Scope data type, in which case you'll need to use the
- DefaultScopeEmpty.hs file to be able to generate a new scope. There
- is some info in the DefaultScopeEmpty.hs file along these lines.
+ Environment data type.
 
 AstInternal.hs -> this is generated from AstInternal.ag and
  Typechecking.ag using uuagc, see AstInternal.ag for the exact
@@ -32,99 +33,94 @@ HsSqlSystem.lhs file contains a few more examples.
 
 Source file overview:
 
-(The type checking code is a bit spread out, ideally would want one
-file for the ast, one file containing type checking code, and then
-some clear additional little lib files, but the ast and type checking
-are spread out in Ast.ag, AstUtils.lhs, TypeChecking.ag,
-TypeCheckingH.lhs and TypeType.lhs. (The little libs also used in the
-type checking are Scope.lhs, ScopeReader.lhs and TypeConversion.lhs.))
-
 Executables:
 
-HsSqlSystem.lhs: program to expose some functionality on the command
-                 line, mainly utilities to help with developing the
-                 source. Run './HsSqlSystem.lhs help' to list the
-                 commands.
+HsSqlSystem.lhs
 
-HsSqlPppTests.lhs: small file to pull together the tests from other test
-                   suites, and make them into an executable.
+program to expose some functionality on the command line, mainly
+utilities to help with developing the source. Run './HsSqlSystem.lhs
+help' to list the commands.
 
-Other source files, under Database/HsSqlppp/
+HsSqlPppTests.lhs
 
-AstInternal.ag: uuagc source for the ast data types and the api functions for
-        type checking asts.
+small file to pull together the tests from other test suites, and make
+them into an executable.
 
-Ast.hs, TypeChecker.hs: forwarder modules for the generated
-                        AstInternal.hs and additional utility
-                        modules. These are the public APIs for the
-                        Ast, and the type checking.
+Main code files:
 
-AstAnnotation.lhs: data types for the annotation, and some utilities
-                   for working with annotated stuff
+The main parsing code is in Database/HsSqlPpp/Parsing/Lexer.lhs and
+Database/HsSqlPpp/Parsing/Parser.lhs
 
-AstCheckTests.lhs: hunit tests for type checking
+The main pretty printing code is in
+Database/HsSqlPpp/PrettyPrinter/PrettyPrinter.lhs and there is also
+some code to insert types, etc. into the original source in
+Database/HsSqlPpp/PrettyPrinter/AnnotateSource.lhs
 
-AstUtils.lhs: some utilities used mainly in type checking
+The main ast and typechecking code is in the following files:
+attribute grammar files:
+Database/HsSqlPpp/AstInternals/AstInternal.ag contains the ast nodes
+Database/HsSqlPpp/AstInternals/TypeChecking.ag contains the ATTR and SEM code
+for type checking
+These are supplemented by a bunch of helper modules:
 
-DatabaseLoader.lhs: beginnings of a program to load sql from source
-                     into postgresql, pretty rough and unfinished at
-                     the moment.
+Database/HsSqlPpp/AstInternals/TypeConversion.lhs - contains the code
+which handles the implicit type cast resolution (these are postgresql
+algorithms used to lookup function calls, work out the types of result
+sets and check assignments).
 
-DatabaseLoaderTests.lhs: almost empty hunit tests, intended to be used
-                         mainly for testing error source positioning
-                         when using databaseloader.lhs
+Database/HsSqlPpp/AstInternals/TypeCheckingH.lhs - contains some code
+which has been moved out of TypeChecking.ag for ease of development
 
-DBAccess.lhs: some simple wrappers around hdbc to run sql statements
-              and do simple selects.
+Database/HsSqlPpp/AstInternals/AstAnnotation.lhs - contains the data
+types and a few helper functions for the annotation data types.
 
-DefaultScopeEmpty.hs: an empty version of default scope, used to allow
-                      the default scope generation to run when you've
-                      hosed the DefaultScope.hs file.
+Database/HsSqlPpp/AstInternals/TypeType.lhs - contains the data types
+and a few helper functions for postgresql types, and also type errors.
 
-DefaultScope.hs: generated file which contains the scope from a
-                 standard template1 database. The intended use is to
-                 support parsing and typechecking sql without having
-                 online access to postgresql. Not sure if this is
-                 useful. It's definitely quick enough to read this
-                 information from a database at type checking time.
+Database/HsSqlPpp/AstInternals/AstUtils.lhs - contains some error handling utils
 
-Lexer.lhs: small file to lex sql source code.
+Database/HsSqlPpp/AstInternals/AnnotationUtils.lhs - contains some
+additional annotation functions which depend on the ast nodes
 
-ParseErrors.lhs: small utility to add a bit of extra value to parsec errors.
+the code to track environment changes during type checking
+(e.g. catalog changes, variables/bindings) is in the following two files:
+Database/HsSqlPpp/AstInternals/EnvironmentInternal.lhs - the main code
+to create, update and use environments.
+Database/HsSqlPpp/AstInternals/EnvironmentReader.lhs - code to read a
+catalog from a database and produce an environment value.
+Database/HsSqlPpp/AstInternals/DefaultTemplate1Environment.lhs - this
+is a copy of the default template1 database environment
 
-Parser.lhs: one of the main files - takes the output of the lexer and
-            produces asts.
+The code under Database/HsSqlPpp/AstInternals/ is hidden behind the
+public modules in Database/HsSqlPpp/Ast/:
+Database/HsSqlPpp/Ast/Annotator.lhs
+Database/HsSqlPpp/Ast/Ast.lhs
+Database/HsSqlPpp/Ast/Environment.lhs
+Database/HsSqlPpp/Ast/Annotation.lhs
+These pretty much just forward exports, and add a bit of haddock
+organisation.
 
-ParserTests.lhs: lots of hunit tests for the parser.
+The hunit tests are in:
+Database/HsSqlPpp/Tests/AstCheckTests.lhs
+Database/HsSqlPpp/Tests/ParserTests.lhs
+and also this file which isn't really used yet:
+Database/HsSqlPpp/Tests/DatabaseLoaderTests.lhs
 
-PrettyPrinter.lhs: code to produce reparsable source from an ast.
+There are a few utilities to access databases in
+Database/HsSqlPpp/Dbms/, this code is very sketchy.
 
-Scope.lhs: data type to store mainly information from the pg catalog,
-           used during type checking, plus some utilities for this
-           datatype.
+These files all have (hopefully) useful comments, although mant of
+these haven't been kept up to date.
 
-ScopeReader.lhs: utility to read a scope data type from a
-                 database. Can access this function from
-                 HsSqlSystem.lhs.
+The error handling in the type
+checking code is in flux so quite a lot of the code there is a bit of
+a mess unfortunately (I'm still not sure what the best way to do this is.).
 
-TypeChecking.ag: the uuagc ATTR and SEM constructs used in type
-                 checking, plus the smaller bits of type checking code
-                 inline.
+ Also, some of the annotation functions use SYB which I'm a bit crap
+with so that code is also a bit of a mess.
 
-TypeCheckingH.lhs: larger bits of typechecking code and support types,
-                   functions, moved from TypeChecking.ag to mitigate
-                   some of the pain of developing using a
-                   preprocessor.
+The test coverage isn't really great, but it's not bad (this will be
+fixed at some point).
 
-TypeConversion.lhs: code to support the type conversion algorithms
-                    used in postgresql, which are quite complicated.
-                    In particular, the code used to match an exact
-                    function given a name and a bunch of args.
-
-
-TypeType.lhs: Some types used by the type checker, should live with
-              the ast nodes but are here to support splitting the code
-              out of the ag files for the same reason that
-              TypeCheckingH.lhs exists.
-
-These files all have (hopefully) useful comments.
+The bits which I hope aren't too bad are the ast node data types, the
+parser code, and the environment code.

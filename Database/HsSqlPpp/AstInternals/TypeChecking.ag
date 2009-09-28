@@ -18,20 +18,25 @@ will probably not be able to deal for a while if ever. (Will need
 hooks into postgresql to do this properly, which might not be
 impossible...).
 
-The main current limitation is that the ddl statements aren't passed
-on in the environment so e.g. it doesn't type check a create table followed
-by a select from that table. The support for this is nearly complete
-and it should be working very soon.
-
 Once most of the type checking is working, all the code and
 documentation will be overhauled quite a lot. Alternatively put, this
 code is in need of better documentation and organisation, and serious
 refactoring.
 
-An unholy mixture of Maybe, Either, Either Monad and TypeCheckFailed
+An unholy mixture of Maybe, Either, Either/Error Monad and TypeCheckFailed
 is used to do error handling.
 
-TODO: document pattern of typecheckfailed propagation, loc.tpe usage.
+One of the common patterns is when type checking a node:
+
+first check any types of subnodes which it depends on, if any are
+typecheckfailed, then this node's type is typecheckfailed and we stop
+there.
+
+otherwise, calculate the type of this node, or get an error if there
+is a problem, this is put into loc.tpe which is Either TypeError
+Type. Then some common code takes this value and sets the node type to
+the type or typecheckfailed if tpe is left, and if it is left add a
+type error annotation also.
 
 ================================================================================
 
@@ -64,7 +69,7 @@ ATTR StatementList Root
 annTypesAndErrors :: Data a => a -> Type -> [TypeError]
                   -> Maybe [AnnotationElement] -> a
 annTypesAndErrors item nt errs add =
-    setAnnotation modifier item
+    updateAnnotation modifier item
     where
       modifier = (([TypeAnnotation nt] ++ fromMaybe [] add ++
        map TypeErrorA errs) ++)
@@ -101,7 +106,7 @@ SEM Expression
      | StringLit loc.tpe = Right UnknownStringLit
      | FloatLit loc.tpe = Right typeNumeric
      | BooleanLit loc.tpe = Right typeBool
-     -- I think a null types like an unknown string lit
+     -- I think a null has the same type resolution as an unknown string lit
      | NullLit loc.tpe = Right UnknownStringLit
 
 
@@ -129,9 +134,9 @@ ATTR TypeName [||namedType : Type]
 SEM TypeName
      | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName
          lhs.namedType = errorToTypeFail @loc.tpe
-         lhs.annotatedTree = setAnnotation
+         lhs.annotatedTree = updateAnnotation
                                ((map TypeErrorA $ getErrors @loc.tpe) ++)
-                               @loc.backTree --todo: get error from tpe
+                               @loc.backTree
 
 
 SEM TypeName
@@ -355,7 +360,9 @@ SEM Statement
 
 = basic select statements
 
-== nodeTypes
+This is a bit of a mess, will be rewritten with a proper literate
+flavour once all the different bits are type checking ok, which should
+make it much more readble.
 
 -}
 
@@ -425,6 +432,7 @@ SEM TableRef
                               (getErrors @loc.tpe)
                               Nothing
 
+-- one of the main hairy bits of code which needs a serious refactor:
 SEM TableRef
     | SubTref loc.tpe = chainTypeCheckFailed [getTypeAnnotation @sel.annotatedTree] <$>
                         unwrapSetOfWhenComposite $ getTypeAnnotation @sel.annotatedTree
@@ -558,8 +566,6 @@ fixStar =
              else a
 }
 
---[TypeAnnotation TypeCheckFailed,TypeErrorA (UnrecognisedIdentifier "*")]
-
 SEM SelectList
     | SelectList
         lhs.listType = @items.listType
@@ -577,6 +583,7 @@ from tref -> select list
 (so we take the identifiers and types from the tref part, and send
 them into the selectlist and where parts)
 
+full order of identifier passing:
    1. from
    2. where
    3. group by
@@ -842,9 +849,7 @@ SEM TypeAttributeDefList
 
 SEM Statement
     | CreateType
-        --loc.attrTypes = map snd @atts.attrs
         loc.tpe = Right $ Pseudo Void
-        --loc.doneAtts = map (second errorToTypeFail) @atts.attrs
         loc.backTree = CreateType @ann @name @atts.annotatedTree
         loc.statementInfo = []
         loc.envUpdates = [EnvCreateComposite @name @atts.attrs]
@@ -859,9 +864,6 @@ SEM Statement
 
 SEM Statement
     | CreateDomain
-        --loc.namedTypeType = case @typ.namedType of
-        --                      Left _ -> TypeCheckFailed
-        --                      Right x -> x
         loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateDomain @ann @name @typ.annotatedTree @check.annotatedTree
         loc.statementInfo = []
@@ -888,7 +890,10 @@ No thoughts on how to do this - but at some point want to support
 'declarative' sql source code, where the order doesn't matter, and
 this code figures out an order to load it into the database which will
 get past pgs checks, so hopefully the solution will move towards this
-goal also.
+goal also. One additional consideration is that the error message in a
+situation like this would be really helpful if it could tell that a
+problem like this could be fixed with a reordering, and suggest that
+reordering.
 
 -}
 
@@ -954,7 +959,7 @@ SEM MaybeBoolExpression
     | Just
         lhs.annotatedTree =
           if getTypeAnnotation @just.annotatedTree `notElem` [typeBool, TypeCheckFailed]
-            then Just $ setAnnotation ((TypeErrorA ExpressionMustBeBool) :)
+            then Just $ updateAnnotation ((TypeErrorA ExpressionMustBeBool) :)
                           @just.annotatedTree
             else Just $ @just.annotatedTree
 

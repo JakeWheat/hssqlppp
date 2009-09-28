@@ -28,6 +28,8 @@ The parsers are written top down as you go through the file, so the
 top level sql text parsers appear first, then the statements, then the
 fragments, then the utility parsers and other utilities at the bottom.
 
+> {-# LANGUAGE RankNTypes,FlexibleContexts #-}
+
 > {- | Functions to parse sql.
 > -}
 > module Database.HsSqlPpp.Parsing.Parser (
@@ -56,8 +58,7 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Database.HsSqlPpp.Parsing.ParseErrors
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation as A
-
-
+> import Database.HsSqlPpp.Utils
 
 The parse state is used to keep track of source positions inside
 function bodies, these bodies are parsed separately to the rest of the
@@ -103,6 +104,13 @@ code which is why we need to do this.
 
 utility function to do error handling in one place
 
+> parseIt :: forall t s u b.(Stream s Identity t) =>
+>            Either ExtendedError s
+>         -> Parsec s u b
+>         -> SourceName
+>         -> String
+>         -> u
+>         -> Either ExtendedError b
 > parseIt lexed parser fn src ss =
 >     case lexed of
 >                Left er -> Left er
@@ -127,52 +135,27 @@ parse a statement
 > sqlStatement :: Bool -> ParsecT [Token] ParseState Identity Statement
 > sqlStatement reqSemi =
 >    (choice [
->                          selectStatement
->                         ,insert
->                         ,update
->                         ,delete
->                         ,truncateSt
->                         ,copy
->                         ,keyword "create" *>
->                                    choice [
->                                       createTable
->                                      ,createType
->                                      ,createFunction
->                                      ,createView
->                                      ,createDomain]
->                         ,keyword "drop" *>
->                                    choice [
->                                       dropSomething
->                                      ,dropFunction]
->                         ]
->        <* (if reqSemi
->              then symbol ";" >> return ()
->              else optional (symbol ";") >> return ()))
+>      selectStatement
+>     ,insert
+>     ,update
+>     ,delete
+>     ,truncateSt
+>     ,copy
+>     ,keyword "create" *>
+>              choice [
+>                 createTable
+>                ,createType
+>                ,createFunction
+>                ,createView
+>                ,createDomain]
+>     ,keyword "drop" *>
+>              choice [
+>                 dropSomething
+>                ,dropFunction]]
+>     <* (if reqSemi
+>           then symbol ";" >> return ()
+>           else optional (symbol ";") >> return ()))
 >    <|> copyData
-
-> getAdjustedPosition :: ParsecT [Token] ParseState Identity MySourcePos
-> getAdjustedPosition = do
->   p <- toMySp <$> getPosition
->   s <- getState
->   case s of
->     [] -> return p
->     x:_ -> return $ adjustPosition x p
-
-> pos :: ParsecT [Token] ParseState Identity Annotation
-> pos = do
->   p <- toSp <$> getPosition
->   s <- getState
->   case s of
->     [] -> return $ [p]
->     x:_ -> return $ [adjustPos x p]
->   where
->     toSp sp = A.SourcePos (sourceName sp) (sourceLine sp) (sourceColumn sp)
->     adjustPos (fn,pl,_) (A.SourcePos _ l c) = A.SourcePos fn (pl+l-1) c
->     adjustPos _ x = error $ "internal error - tried to adjust as sourcepos: " ++ show x
-
-
-> adjustPosition :: MySourcePos -> MySourcePos -> MySourcePos
-> adjustPosition (fn,pl,_) (_,l,c) = (fn,pl+l-1,c)
 
 ================================================================================
 
@@ -289,6 +272,7 @@ recurses to support parsing excepts, unions, etc
 >                  --works for the tests and the test sql files don't know
 >                  --if these should be allowed as aliases without "" or
 >                  --[]
+>                  -- TODO find out what the correct behaviour here is.
 >                  if map toLower x `elem` ["as"
 >                              ,"where"
 >                              ,"except"
@@ -599,9 +583,10 @@ or after the whole list
 
 > selectList :: ParsecT [Token] ParseState Identity SelectList
 > selectList =
+>     pos >>= \p ->
 >     choice [
->         pos >>= \p -> flip (SelectList p) <$> readInto <*> itemList
->        ,SelectList <$> pos <*> itemList <*> option [] readInto]
+>         flip (SelectList p) <$> readInto <*> itemList
+>        ,SelectList p  <$> itemList <*> option [] readInto]
 >   where
 >     readInto = keyword "into" *> commaSep1 idString
 >     itemList = commaSep1 selectItem
@@ -640,18 +625,18 @@ or after the whole list
 > plPgsqlStatement =
 >    sqlStatement True
 >     <|> (choice [
->                          continue
->                         ,execute
->                         ,caseStatement
->                         ,assignment
->                         ,ifStatement
->                         ,returnSt
->                         ,raise
->                         ,forStatement
->                         ,whileStatement
->                         ,perform
->                         ,nullStatement]
->                         <* symbol ";")
+>           continue
+>          ,execute
+>          ,caseStatement
+>          ,assignment
+>          ,ifStatement
+>          ,returnSt
+>          ,raise
+>          ,forStatement
+>          ,whileStatement
+>          ,perform
+>          ,nullStatement]
+>          <* symbol ";")
 
 > nullStatement :: ParsecT [Token] ParseState Identity Statement
 > nullStatement = NullStatement <$> (pos <* keyword "null")
@@ -660,8 +645,7 @@ or after the whole list
 > continue = ContinueStatement <$> (pos <* keyword "continue")
 
 > perform :: ParsecT [Token] ParseState Identity Statement
-> perform = keyword "perform" >>
->           Perform <$> pos <*> expr
+> perform = Perform <$> (pos <* keyword "perform") <*> expr
 
 > execute :: ParsecT [Token] ParseState Identity Statement
 > execute = pos >>= \p -> keyword "execute" >>
@@ -714,16 +698,14 @@ or after the whole list
 >               <* keyword "end" <* keyword "loop"
 
 > whileStatement :: ParsecT [Token] ParseState Identity Statement
-> whileStatement = keyword "while" >>
->                  WhileStatement
->                  <$> pos
+> whileStatement = WhileStatement
+>                  <$> (pos <* keyword "while")
 >                  <*> (expr <* keyword "loop")
 >                  <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
 
 > ifStatement :: ParsecT [Token] ParseState Identity Statement
-> ifStatement = keyword "if" >>
->               If
->               <$> pos
+> ifStatement = If
+>               <$> (pos <* keyword "if")
 >               <*> (ifPart <:> elseifParts)
 >               <*> (elsePart <* endIf)
 >   where
@@ -733,13 +715,13 @@ or after the whole list
 >     endIf = keyword "end" <* keyword "if"
 >     thn = keyword "then"
 >     elseif = keyword "elseif"
->     --might as well these in as well after all that
+>     --might as well throw this in as well after all that
 >     -- can't do <,> unfortunately, so use <.> instead
 >     (<.>) a b = (,) <$> a <*> b
 
 > caseStatement :: ParsecT [Token] ParseState Identity Statement
-> caseStatement = keyword "case" >>
->     CaseStatement <$> pos
+> caseStatement =
+>     CaseStatement <$> (pos <* keyword "case")
 >                   <*> expr
 >                   <*> many whenSt
 >                   <*> option [] (keyword "else" *> many plPgsqlStatement)
@@ -775,7 +757,8 @@ expression, and then add a suffix on
 >            fct = choice [
 
 order these so the ones which can be valid prefixes of others appear
-further down the list, probably want to refactor this to use the
+further down the list (used to be a lot more important when there
+wasn't a separate lexer), probably want to refactor this to use the
 optionalsuffix parsers to improve speed.
 
 One little speed optimisation, to help with pretty printed code which
@@ -789,29 +772,22 @@ compilation overhead).
 start with the factors which start with parens - eliminate scalar
 subqueries since they're easy to distinguish from the others then do in
 predicate before row constructor, since an in predicate can start with
-a row constructor, then finally vanilla parens
+a row constructor looking thing, then finally vanilla parens
 
 >               ,scalarSubQuery
 >               ,try $ threadOptionalSuffix rowCtor inPredicateSuffix
 >               ,parens expr
 
-we have two things which can start with a $,
-do the position arg first, then we can unconditionally
-try the dollar quoted string next
+try a few random things which can't start a different expression
 
 >               ,positionalArg
-
-string using quotes don't start like anything else and we've
-already tried the other thing which starts with a $, so can
-parse without a try
-
 >               ,stringLit
 
 >               ,floatLit
 >               ,integerLit
 
 put the factors which start with keywords before the ones which start
-with a function
+with a function, so we don't try an parse a keyword as a function name
 
 >               ,caseParse
 >               ,exists
@@ -832,7 +808,11 @@ to the next one)
 == operator table
 
 proper hacky, but sort of does the job
-the 'missing' notes refer to pg operators which aren't yet supported
+the 'missing' notes refer to pg operators which aren't yet supported,
+or supported in a different way (e.g. cast uses the type name parser
+for one of it's argument, not the expression parser - I don't know if
+there is a better way of doing this but there usually is in parsec)
+
 pg's operator table is on this page:
 http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTAX-OPERATORS
 
@@ -841,9 +821,10 @@ syntactical novelty, in particular the precedence rules mix these
 operators up with irregular syntax operators, you can create new
 operators during parsing, and some operators are prefix/postfix or
 binary depending on the types of their operands (how do you parse
-something like this?)/
+something like this?)
 
-The full list of operators from DefaultScope.hs should be used here.
+The full list of operators from a standard template1 database should
+be used here.
 
 > table :: [[Operator [Token] ParseState Identity Expression]]
 > table = [--[binary "::" (BinOpCall Cast) AssocLeft]
@@ -881,13 +862,13 @@ The full list of operators from DefaultScope.hs should be used here.
 >          ,binaryk "or" "!or" AssocLeft]]
 >     where
 >       binary s = binarycust (symbol s) s
->       -- * ends up being lexed as an id token rather than a symbol
->       -- * token, so work around here
+>       -- '*' is lexed as an id token rather than a symbol token, so
+>       -- work around here
 >       idHackBinary s = binarycust (keyword s) s
->       binaryk s o = binarycust (keyword s) o
->       prefix s f = unaryCust Prefix (symbol s) f
->       prefixk s f = unaryCust Prefix (keyword s) f
->       postfixks ss f = unaryCust Postfix (mapM_ keyword ss) f
+>       binaryk = binarycust . keyword
+>       prefix = unaryCust Prefix . symbol
+>       prefixk = unaryCust Prefix . keyword
+>       postfixks = unaryCust Postfix . mapM_ keyword
 >       binarycust opParse t =
 >         Infix $ try $ do
 >              f <- FunCall <$> pos <*> (t <$ opParse)
@@ -898,6 +879,8 @@ The full list of operators from DefaultScope.hs should be used here.
 >           return (\l -> f [l])
 
 == factor parsers
+
+I think the lookahead is used in an attempt to help the error messages.
 
 > scalarSubQuery :: ParsecT [Token] ParseState Identity Expression
 > scalarSubQuery = try (symbol "(" *> lookAhead (keyword "select")) >>
@@ -1029,8 +1012,6 @@ From postgresql src/backend/parser/gram.y
  * Note that '(' a_expr ')' is a b_expr, so an unrestricted expression can
  * always be used by surrounding it with parens.
 
-Thanks to Sam Mason for the heads up on this.
-
 TODO: copy this approach here.
 
 >              where
@@ -1156,12 +1137,6 @@ from a StringLD or StringL, and the delimiters which were used
 >           -> ParsecT [Token] ParseState Identity [a]
 > commaSep1 p = sepBy1 p (symbol ",")
 
-doesn't seem too gratuitous, comes up a few times
-
-> (<:>) :: (Applicative f) =>
->          f a -> f [a] -> f [a]
-> (<:>) a b = (:) <$> a <*> b
-
 pass a list of pairs of strings and values
 try each pair k,v in turn,
 if keyword k matches then return v
@@ -1278,6 +1253,34 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >     parseAorB = choice [
 >                   (\x -> (Just x,Nothing)) <$> p1
 >                  ,(\y -> (Nothing, Just y)) <$> p2]
+
+== position stuff
+
+getAdjustedPosition is used to modify the positions within a function
+body, to absolute positions within the file being parsed.
+
+> getAdjustedPosition :: ParsecT [Token] ParseState Identity MySourcePos
+> getAdjustedPosition = do
+>   p <- toMySp <$> getPosition
+>   s <- getState
+>   case s of
+>     [] -> return p
+>     x:_ -> return $ adjustPosition x p
+
+> adjustPosition :: MySourcePos -> MySourcePos -> MySourcePos
+> adjustPosition (fn,pl,_) (_,l,c) = (fn,pl+l-1,c)
+
+> pos :: ParsecT [Token] ParseState Identity Annotation
+> pos = do
+>   p <- toSp <$> getPosition
+>   s <- getState
+>   case s of
+>     [] -> return [p]
+>     x:_ -> return [adjustPos x p]
+>   where
+>     toSp sp = A.SourcePos (sourceName sp) (sourceLine sp) (sourceColumn sp)
+>     adjustPos (fn,pl,_) (A.SourcePos _ l c) = A.SourcePos fn (pl+l-1) c
+>     adjustPos _ x = error $ "internal error - tried to adjust as sourcepos: " ++ show x
 
 == lexer stuff
 

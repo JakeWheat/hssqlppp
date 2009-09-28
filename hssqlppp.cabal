@@ -13,13 +13,16 @@ Description:
     .
     'PrettyPrinter' for converting asts to text;
     .
-    'AnnotateSource' for pretty printing annotations inline with original source,
+    'AnnotateSource' for pretty printing annotations inline with original source;
     .
-    'Annotator' for annotating asts (this does the type checking),
+    'Annotator' for annotating asts (this does the type checking);
     and working with annotated trees;
     .
+    'SqlTypes' for the data types which represent SQL types, the data
+    type for type errors, and some support functions;
+    .
     'Annotation' for the annotation data types and utilities, this
-    also contains the data types for SQL types.
+    also contains the data types for SQL types;
     .
     'Environment' to read a catalog from a database to type check against,
     or to generate catalog information;
@@ -29,10 +32,13 @@ Description:
     without loading it via psql). The loader just about does the job
     but error handling is a bit crap at the moment.
     .
-    Comes with a HUnit test suite which you can run using the HsSqlPppTests
-    executable, and command line access to some functions via a exe called
-    HsSqlSystem. See the project page <https://launchpad.net/hssqlppp>
-    for more information and documentation links.
+    Comes with a HUnit test suite which you can run using the
+    HsSqlPppTests executable, and command line access to some
+    functions via a exe called HsSqlSystem, run this file with no
+    arguments to get some help. See the project page
+    <https://launchpad.net/hssqlppp> for more information and
+    documentation links.
+
 License:             BSD3
 License-file:        LICENSE
 Author:              Jake Wheat
@@ -75,6 +81,7 @@ Library
                      Database.HsSqlPpp.Ast.Annotator,
                      Database.HsSqlPpp.Ast.Environment,
                      Database.HsSqlPpp.Ast.Annotation,
+                     Database.HsSqlPpp.Ast.SqlTypes,
                      Database.HsSqlPpp.Dbms.DatabaseLoader
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
 
@@ -89,6 +96,7 @@ Executable HsSqlSystem
   Other-Modules:     Database.HsSqlPpp.AstInternals.AstAnnotation,
                      Database.HsSqlPpp.Ast.Ast,
                      Database.HsSqlPpp.Ast.Annotation,
+                     Database.HsSqlPpp.Ast.SqlTypes,
                      Database.HsSqlPpp.AstInternals.AstInternal,
                      Database.HsSqlPpp.Ast.Annotator,
                      Database.HsSqlPpp.AstInternals.AstUtils,
@@ -139,6 +147,7 @@ Executable HsSqlPppTests
                      Database.HsSqlPpp.AstInternals.TypeConversion,
                      Database.HsSqlPpp.AstInternals.TypeType,
                      Database.HsSqlPpp.Ast.Environment,
+                     Database.HsSqlPpp.Ast.SqlTypes,
                      Database.HsSqlPpp.AstInternals.EnvironmentInternal,
                      Database.HsSqlPpp.AstInternals.EnvironmentReader,
                      Database.HsSqlPpp.Utils

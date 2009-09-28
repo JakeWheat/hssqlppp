@@ -11,11 +11,11 @@ This file contains some generic utility stuff
 > import Data.Either
 > import Control.Arrow
 > import Control.Monad.Error
+> import Control.Applicative
 
 > errorWhen :: (Error a) =>
 >            Bool -> a -> Either a ()
-> errorWhen cond e = do
->     when (cond) $ Left e
+> errorWhen cond = when cond . Left
 
 > liftME :: a -> Maybe b -> Either a b
 > liftME d m = case m of
@@ -23,7 +23,11 @@ This file contains some generic utility stuff
 >                Just b -> Right b
 
 > both :: (a->b) -> (a,a) -> (b,b)
-> both fn = (fn *** fn)
+> both fn = fn *** fn
+
+> (<:>) :: (Applicative f) =>
+>          f a -> f [a] -> f [a]
+> (<:>) a b = (:) <$> a <*> b
 
 > eitherToMaybe :: Either a b -> Maybe b
 > eitherToMaybe (Left _) = Nothing

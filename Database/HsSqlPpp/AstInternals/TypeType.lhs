@@ -34,14 +34,16 @@ void is used for functions which return nothing
 trigger is a tag to say a function is used in triggers, used as a
 return type only
 typecheckfailed is used to represent the type of anything which the code
-is currently unable to type check, this should disappear at some
-point
+is currently unable to type check, this usage should disappear at some
+point, and then it will only represent code which doesn't type check
+because of a mistake.
 
 The Type type identifies the type of a node, but doesn't necessarily
 describe the type.
 Arraytype, setoftype and row are treated as type generators, and are
 unnamed so have structural equality. Other types sometimes effectively
-have structural equality depending on the context...
+have structural equality depending on the context... (SQL/ PostGreSQL
+wasn't designed by ML programmers!)
 
 Typing relational valued expressions:
 use SetOfType combined with composite type for now, see if it works
@@ -171,10 +173,6 @@ this converts the name of a type to its canonical name
 >       charNames = ["character", "char"]
 >       boolNames = ["boolean", "bool"]
 
-===============================================================================
-
-= basic types
-
 random notes on pg types:
 
 == domains:
@@ -247,38 +245,40 @@ handled quite correctly in this code.
 
 utilities for working with Types
 
+These may indicate that the haskell type system isn't being used very well.
+
 > isArrayType :: Type -> Bool
 > isArrayType (ArrayType _) = True
 > isArrayType _ = False
 
 > unwrapArray :: Type -> Either [TypeError] Type
 > unwrapArray (ArrayType t) = Right t
-> unwrapArray x = Left $ [InternalError $ "can't get types from non array " ++ show x]
+> unwrapArray x = Left [InternalError $ "can't get types from non array " ++ show x]
 
 > unwrapSetOfWhenComposite :: Type -> Either [TypeError] Type
 > unwrapSetOfWhenComposite (SetOfType a@(UnnamedCompositeType _)) = Right a
-> unwrapSetOfWhenComposite x = Left $ [InternalError $ "tried to unwrapSetOfWhenComposite on " ++ show x]
+> unwrapSetOfWhenComposite x = Left [InternalError $ "tried to unwrapSetOfWhenComposite on " ++ show x]
 
 > unwrapSetOfComposite :: Type -> Either [TypeError]  [(String,Type)]
 > unwrapSetOfComposite (SetOfType (UnnamedCompositeType a)) = Right a
-> unwrapSetOfComposite x = Left $ [InternalError $ "tried to unwrapSetOfComposite on " ++ show x]
+> unwrapSetOfComposite x = Left [InternalError $ "tried to unwrapSetOfComposite on " ++ show x]
 
 
 > unwrapSetOf :: Type -> Either [TypeError] Type
 > unwrapSetOf (SetOfType a) = Right a
-> unwrapSetOf x = Left $ [InternalError $ "tried to unwrapSetOf on " ++ show x]
+> unwrapSetOf x = Left [InternalError $ "tried to unwrapSetOf on " ++ show x]
 
 > unwrapComposite :: Type -> Either [TypeError] [(String,Type)]
 > unwrapComposite (UnnamedCompositeType a) = Right a
-> unwrapComposite x = Left $ [InternalError $ "cannot unwrapComposite on " ++ show x]
+> unwrapComposite x = Left [InternalError $ "cannot unwrapComposite on " ++ show x]
 
 > consComposite :: (String,Type) -> Type -> Either [TypeError] Type
 > consComposite l (UnnamedCompositeType a) = Right $ UnnamedCompositeType (l:a)
-> consComposite a b = Left $ [InternalError $ "called consComposite on " ++ show (a,b)]
+> consComposite a b = Left [InternalError $ "called consComposite on " ++ show (a,b)]
 
 > unwrapRowCtor :: Type -> Either [TypeError] [Type]
 > unwrapRowCtor (RowCtor a) = Right a
-> unwrapRowCtor x = Left $ [InternalError $ "cannot unwrapRowCtor on " ++ show x]
+> unwrapRowCtor x = Left [InternalError $ "cannot unwrapRowCtor on " ++ show x]
 
 
 

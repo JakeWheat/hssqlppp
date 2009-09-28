@@ -2,11 +2,10 @@ Copyright 2009 Jake Wheat
 
 This is the public module for the ast nodes.
 
-> {- | This module contains the ast node data types. They are very permissive, in that they allow
-> a lot of invalid SQL to be represented. The type checking process should event
-
-
->    -}
+> {- | This module contains the ast node data types. They are very
+>      permissive, in that they allow a lot of invalid SQL to be
+>      represented. The type checking process should catch
+>      all invalid trees, but doesn't quite manage at the moment. -}
 > module Database.HsSqlPpp.Ast.Ast
 >     (
 >      -- * Main nodes

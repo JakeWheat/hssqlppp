@@ -23,7 +23,7 @@ grammar code and aren't exposed.
 >     ,getTypeAnnotation
 >     ,getTypeErrors
 >     ,stripAnnotations
->     ,setAnnotation
+>     ,updateAnnotation
 >     ,getAnnotation
 >     ,getAnnotations
 >     --,getTypeErrors
@@ -34,6 +34,7 @@ grammar code and aren't exposed.
 
 > import Data.Generics
 > import Data.Maybe
+> import Control.Arrow
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.AstInternals.EnvironmentInternal
@@ -72,8 +73,7 @@ understand, then keep changing it till it compiles and passes the tests.
 > getTopLevelXs :: forall a b a1.
 >                  (Data a1, Typeable b) =>
 >                 (b -> [a]) -> a1 -> [a]
-> getTopLevelXs p st =
->     everythingOne (++) (mkQ [] p) st
+> getTopLevelXs st = everythingOne (++) $ mkQ [] st
 
 
 > getTypeAnnotation :: Data a => a -> Type
@@ -91,8 +91,7 @@ understand, then keep changing it till it compiles and passes the tests.
 > getTopLevelX :: forall a b a1.
 >                 (Data a1, Typeable b) =>
 >                (b -> [a]) -> a1 -> [a]
-> getTopLevelX p st =
->     everythingOne (++) (mkQ [] p) st
+> getTopLevelX p = everythingOne (++) (mkQ [] p)
 
 
  > everythingTwo :: (r -> r -> r) -> GenericQ r -> GenericQ r
@@ -164,9 +163,11 @@ without having to get the positions correct.
 > -- | runs through the ast given and returns a list of all the type errors
 > -- in the ast. Recurses into all ast nodes to find type errors.
 > -- This is the function to use to see if an ast has passed the type checking process.
+> -- Returns a Maybe SourcePos and the list of type errors for each node which has one or
+> -- more type errors.
 > getTypeErrors :: (Data a) => a -> [(Maybe AnnotationElement,[TypeError])]
 > getTypeErrors sts =
->     filter (\(_,te) -> not $ null te) $ map (\an -> (gtsp an, gte an)) $ getAnnotations sts
+>     filter (\(_,te) -> not $ null te) $ map (gtsp &&& gte) $ getAnnotations sts
 >     where
 >       gte (a:as) = case a of
 >                     TypeErrorA e -> e:gte as
@@ -180,10 +181,9 @@ without having to get the positions correct.
 
 
 
-> setAnnotation :: forall a.(Data a) =>
+> updateAnnotation :: forall a.(Data a) =>
 >                   (Annotation -> Annotation) -> a -> a
-> setAnnotation f a =
->   oneLevel (mkT f) a
+> updateAnnotation f = oneLevel (mkT f)
 
 > oneLevel :: (forall a.Data a => a -> a)
 >          -> (forall a.Data a => a -> a)
@@ -204,7 +204,7 @@ without having to get the positions correct.
 
 > getAnnotations :: forall a.(Data a) =>
 >                   a -> [Annotation]
-> getAnnotations st = listifyWholeLists (\(_::Annotation) -> True) st
+> getAnnotations = listifyWholeLists (\(_::Annotation) -> True)
 
 > listifyWholeLists :: Typeable b => ([b] -> Bool) -> GenericQ [[b]]
 > listifyWholeLists blp = flip (synthesize id (.) (mkQ id (\bl _ -> if blp bl then (bl:) else id))) []

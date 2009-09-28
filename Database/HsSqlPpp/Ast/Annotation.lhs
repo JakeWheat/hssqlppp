@@ -1,20 +1,16 @@
 Copyright 2009 Jake Wheat
 
+This is the public module to the annotation data types and support
+functions (not including those that depend on the ast data types).
+
+> {- | Contains the annotation data types and a few auxiliary functions.
+> -}
+
 > module Database.HsSqlPpp.Ast.Annotation
 >     (
 >      -- * Annotation data types
 >      Annotation
 >     ,AnnotationElement(..)
->      -- * SQL types
->     ,Type (..)
->     ,PseudoType (..)
->      -- * type aliases
->      -- | aliases for all the sql types with multiple names
->      -- these give you the canonical names
->     ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
->     ,typeFloat8,typeVarChar,typeChar,typeBool
->      -- * Type errors
->     ,TypeError (..)
 >      -- * Statement info
 >      -- | This is the main annotation attached to each statement. Early days at the moment
 >      -- but will be expanded to provide any type errors lurking inside a statement, any useful
@@ -22,9 +18,8 @@ Copyright 2009 Jake Wheat
 >      -- any changes to the catalog the statement makes, and possibly much more information.
 >     ,StatementInfo(..)
 >     ,stripAnnotations
->     ,setAnnotation
+>     ,updateAnnotation
 >     ,getAnnotation
 >     ) where
 
 > import Database.HsSqlPpp.AstInternals.AstAnnotation
-> import Database.HsSqlPpp.AstInternals.TypeType

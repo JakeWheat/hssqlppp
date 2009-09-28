@@ -58,5 +58,5 @@ used to pass a regular type on iff the list of errors is null
 extract errors from an either, gives empty list if right
 
 > getErrors :: Either [TypeError] Type -> [TypeError]
-> getErrors e = either id (const []) e
+> getErrors = either id (const [])
 

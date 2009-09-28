@@ -8,9 +8,9 @@ This is the public module for the type checking functionality.
 >
 > Annotations:
 >
-> * are attached to some of the ast node data types, but not all of them (yet?);
+> * are attached to some of the ast node data types, but not quite all of them;
 >
-> * types annotations are attached to most nodes;
+> * types annotations are attached to most nodes during type checking;
 >
 > * type errors are attached to the lowest down node that the type error is detected at;
 >
@@ -19,13 +19,13 @@ This is the public module for the type checking functionality.
 >
 > * each statement has an additional 'StatementInfo' annotation attached to it;
 >
-> * the parser fills in the source position nodes, but doesn't do a great job yet.
+> * the parser fills in the source position annotation in every annotatable ast node.
 >
 > -}
 > module Database.HsSqlPpp.Ast.Annotator
 >     (
 >      -- * Annotation functions
->     annotateAst
+>      annotateAst
 >     ,annotateAstEnv
 >     ,annotateExpression
 >     ,annotateAstsEnv

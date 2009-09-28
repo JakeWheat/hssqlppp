@@ -86,7 +86,7 @@ import Database.HsSqlPpp.AstInternals.EnvironmentInternal
 import Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
 import Database.HsSqlPpp.Utils
 
-{-# LINE 602 "AstInternal.ag" #-}
+{-# LINE 603 "AstInternal.ag" #-}
 
 -- | Takes an ast, and adds annotations, including types, type errors,
 -- and statement info. Type checks against defaultEnv.
@@ -105,6 +105,8 @@ annotateAstEnv env sts =
    in case tl of
          Root r -> r
 
+-- | Type check multiple asts, allowing type checking references in later
+--   files to definitions in earlier files.
 annotateAstsEnv :: Environment -> [StatementList] -> [StatementList]
 annotateAstsEnv env sts =
     annInt env sts []
@@ -114,6 +116,8 @@ annotateAstsEnv env sts =
           in annInt e1 ss (res:ress)
       annInt _ [] ress = reverse ress
 
+-- | Type check an ast, and return the resultant Environment as well
+--   as the annotated ast.
 annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 annotateAstEnvEnv env sts =
     let t = sem_Root (Root sts)
@@ -133,26 +137,26 @@ annotateExpression env ex =
     in case rt of
          ExpressionRoot e -> e
 
-{-# LINE 137 "AstInternal.hs" #-}
+{-# LINE 141 "AstInternal.hs" #-}
 
-{-# LINE 63 "./TypeChecking.ag" #-}
+{-# LINE 68 "./TypeChecking.ag" #-}
 
 annTypesAndErrors :: Data a => a -> Type -> [TypeError]
                   -> Maybe [AnnotationElement] -> a
 annTypesAndErrors item nt errs add =
-    setAnnotation modifier item
+    updateAnnotation modifier item
     where
       modifier = (([TypeAnnotation nt] ++ fromMaybe [] add ++
        map TypeErrorA errs) ++)
 
-{-# LINE 149 "AstInternal.hs" #-}
+{-# LINE 153 "AstInternal.hs" #-}
 
-{-# LINE 414 "./TypeChecking.ag" #-}
+{-# LINE 421 "./TypeChecking.ag" #-}
 
 getTbCols c = unwrapSetOfComposite (getTypeAnnotation c)
-{-# LINE 154 "AstInternal.hs" #-}
+{-# LINE 158 "AstInternal.hs" #-}
 
-{-# LINE 488 "./TypeChecking.ag" #-}
+{-# LINE 496 "./TypeChecking.ag" #-}
 
 
 getFnType :: Environment -> String -> Expression -> Either [TypeError] Type
@@ -178,9 +182,9 @@ getFunIdens env alias fnVal =
                                       ,ViewComposite] t of
                       Just (_,_,a@(UnnamedCompositeType _), _) -> a
                       _ -> UnnamedCompositeType []
-{-# LINE 182 "AstInternal.hs" #-}
+{-# LINE 186 "AstInternal.hs" #-}
 
-{-# LINE 539 "./TypeChecking.ag" #-}
+{-# LINE 547 "./TypeChecking.ag" #-}
 
 
 fixStar :: Expression -> Expression
@@ -201,28 +205,28 @@ fixStar =
                                    TypeErrorA (UnrecognisedIdentifier _) -> False
                                    _ -> True) a
              else a
-{-# LINE 205 "AstInternal.hs" #-}
+{-# LINE 209 "AstInternal.hs" #-}
 
-{-# LINE 626 "./TypeChecking.ag" #-}
+{-# LINE 633 "./TypeChecking.ag" #-}
 
 fixedValue :: a -> a -> a -> a
 fixedValue a _ _ = a
-{-# LINE 211 "AstInternal.hs" #-}
+{-# LINE 215 "AstInternal.hs" #-}
 
-{-# LINE 660 "./TypeChecking.ag" #-}
+{-# LINE 667 "./TypeChecking.ag" #-}
 
 getCAtts t =
     case t of
       SetOfType (UnnamedCompositeType t) -> t
       _ -> []
-{-# LINE 219 "AstInternal.hs" #-}
+{-# LINE 223 "AstInternal.hs" #-}
 
-{-# LINE 739 "./TypeChecking.ag" #-}
+{-# LINE 746 "./TypeChecking.ag" #-}
 
 getRowTypes :: [Type] -> [Type]
 getRowTypes [RowCtor ts] = ts
 getRowTypes ts = ts
-{-# LINE 226 "AstInternal.hs" #-}
+{-# LINE 230 "AstInternal.hs" #-}
 -- AttributeDef ------------------------------------------------
 {-
    visit 0:
@@ -282,19 +286,19 @@ sem_AttributeDef_AttributeDef ann_ name_ typ_ def_ cons_  =
               _lhsOnamedType :: Type
               -- copy rule (down)
               _consOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 288 "AstInternal.hs" #-}
+                  {-# LINE 292 "AstInternal.hs" #-}
               -- copy rule (down)
               _defOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 293 "AstInternal.hs" #-}
+                  {-# LINE 297 "AstInternal.hs" #-}
               -- copy rule (down)
               _typOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 298 "AstInternal.hs" #-}
+                  {-# LINE 302 "AstInternal.hs" #-}
               ( _consIannotatedTree) =
                   (cons_ _consOenv )
               ( _defIannotatedTree,_defIexprType) =
@@ -303,24 +307,24 @@ sem_AttributeDef_AttributeDef ann_ name_ typ_ def_ cons_  =
                   (typ_ _typOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   AttributeDef ann_ name_ _typIannotatedTree _defIannotatedTree _consIannotatedTree
-                  {-# LINE 309 "AstInternal.hs" #-}
+                  {-# LINE 313 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 314 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 777, column 7)
+                  {-# LINE 318 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 784, column 7)
               _lhsOattrName =
-                  {-# LINE 777 "./TypeChecking.ag" #-}
+                  {-# LINE 784 "./TypeChecking.ag" #-}
                   name_
-                  {-# LINE 319 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 778, column 7)
+                  {-# LINE 323 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 785, column 7)
               _lhsOnamedType =
-                  {-# LINE 778 "./TypeChecking.ag" #-}
+                  {-# LINE 785 "./TypeChecking.ag" #-}
                   _typInamedType
-                  {-# LINE 324 "AstInternal.hs" #-}
+                  {-# LINE 328 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOattrName,_lhsOnamedType)))
 -- AttributeDefList --------------------------------------------
 {-
@@ -374,33 +378,33 @@ sem_AttributeDefList_Cons hd_ tl_  =
               _lhsOattrs :: ([(String, Type)])
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 380 "AstInternal.hs" #-}
+                  {-# LINE 384 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 385 "AstInternal.hs" #-}
+                  {-# LINE 389 "AstInternal.hs" #-}
               ( _tlIannotatedTree,_tlIattrs) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree,_hdIattrName,_hdInamedType) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 394 "AstInternal.hs" #-}
+                  {-# LINE 398 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 399 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 783, column 12)
+                  {-# LINE 403 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 790, column 12)
               _lhsOattrs =
-                  {-# LINE 783 "./TypeChecking.ag" #-}
+                  {-# LINE 790 "./TypeChecking.ag" #-}
                   (_hdIattrName, _hdInamedType) : _tlIattrs
-                  {-# LINE 404 "AstInternal.hs" #-}
+                  {-# LINE 408 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOattrs)))
 sem_AttributeDefList_Nil :: T_AttributeDefList 
 sem_AttributeDefList_Nil  =
@@ -409,19 +413,19 @@ sem_AttributeDefList_Nil  =
               _lhsOattrs :: ([(String, Type)])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 415 "AstInternal.hs" #-}
+                  {-# LINE 419 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 420 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 784, column 11)
+                  {-# LINE 424 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 791, column 11)
               _lhsOattrs =
-                  {-# LINE 784 "./TypeChecking.ag" #-}
+                  {-# LINE 791 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 425 "AstInternal.hs" #-}
+                  {-# LINE 429 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOattrs)))
 -- Cascade -----------------------------------------------------
 {-
@@ -466,14 +470,14 @@ sem_Cascade_Cascade  =
          (let _lhsOannotatedTree :: Cascade
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Cascade
-                  {-# LINE 472 "AstInternal.hs" #-}
+                  {-# LINE 476 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 477 "AstInternal.hs" #-}
+                  {-# LINE 481 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_Cascade_Restrict :: T_Cascade 
 sem_Cascade_Restrict  =
@@ -481,14 +485,14 @@ sem_Cascade_Restrict  =
          (let _lhsOannotatedTree :: Cascade
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Restrict
-                  {-# LINE 487 "AstInternal.hs" #-}
+                  {-# LINE 491 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 492 "AstInternal.hs" #-}
+                  {-# LINE 496 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- CaseExpressionList ------------------------------------------
 {-
@@ -538,28 +542,28 @@ sem_CaseExpressionList_Cons hd_ tl_  =
               _lhsOannotatedTree :: CaseExpressionList
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 544 "AstInternal.hs" #-}
+                  {-# LINE 548 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 549 "AstInternal.hs" #-}
+                  {-# LINE 553 "AstInternal.hs" #-}
               ( _tlIannotatedTree) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree,_hdIliftedColumnName) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 558 "AstInternal.hs" #-}
+                  {-# LINE 562 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 563 "AstInternal.hs" #-}
+                  {-# LINE 567 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_CaseExpressionList_Nil :: T_CaseExpressionList 
 sem_CaseExpressionList_Nil  =
@@ -567,14 +571,14 @@ sem_CaseExpressionList_Nil  =
          (let _lhsOannotatedTree :: CaseExpressionList
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 573 "AstInternal.hs" #-}
+                  {-# LINE 577 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 578 "AstInternal.hs" #-}
+                  {-# LINE 582 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- CaseExpressionListExpressionPair ----------------------------
 {-
@@ -621,28 +625,28 @@ sem_CaseExpressionListExpressionPair_Tuple x1_ x2_  =
               _lhsOannotatedTree :: CaseExpressionListExpressionPair
               -- copy rule (down)
               _x2Oenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 627 "AstInternal.hs" #-}
+                  {-# LINE 631 "AstInternal.hs" #-}
               -- copy rule (down)
               _x1Oenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 632 "AstInternal.hs" #-}
+                  {-# LINE 636 "AstInternal.hs" #-}
               ( _x2IannotatedTree,_x2IliftedColumnName) =
                   (x2_ _x2Oenv )
               ( _x1IannotatedTree) =
                   (x1_ _x1Oenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (_x1IannotatedTree,_x2IannotatedTree)
-                  {-# LINE 641 "AstInternal.hs" #-}
+                  {-# LINE 645 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 646 "AstInternal.hs" #-}
+                  {-# LINE 650 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- CaseExpressionListExpressionPairList ------------------------
 {-
@@ -691,28 +695,28 @@ sem_CaseExpressionListExpressionPairList_Cons hd_ tl_  =
               _lhsOannotatedTree :: CaseExpressionListExpressionPairList
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 697 "AstInternal.hs" #-}
+                  {-# LINE 701 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 702 "AstInternal.hs" #-}
+                  {-# LINE 706 "AstInternal.hs" #-}
               ( _tlIannotatedTree) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 711 "AstInternal.hs" #-}
+                  {-# LINE 715 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 716 "AstInternal.hs" #-}
+                  {-# LINE 720 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_CaseExpressionListExpressionPairList_Nil :: T_CaseExpressionListExpressionPairList 
 sem_CaseExpressionListExpressionPairList_Nil  =
@@ -720,14 +724,14 @@ sem_CaseExpressionListExpressionPairList_Nil  =
          (let _lhsOannotatedTree :: CaseExpressionListExpressionPairList
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 726 "AstInternal.hs" #-}
+                  {-# LINE 730 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 731 "AstInternal.hs" #-}
+                  {-# LINE 735 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- CombineType -------------------------------------------------
 {-
@@ -784,14 +788,14 @@ sem_CombineType_Except  =
          (let _lhsOannotatedTree :: CombineType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Except
-                  {-# LINE 790 "AstInternal.hs" #-}
+                  {-# LINE 794 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 795 "AstInternal.hs" #-}
+                  {-# LINE 799 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_CombineType_Intersect :: T_CombineType 
 sem_CombineType_Intersect  =
@@ -799,14 +803,14 @@ sem_CombineType_Intersect  =
          (let _lhsOannotatedTree :: CombineType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Intersect
-                  {-# LINE 805 "AstInternal.hs" #-}
+                  {-# LINE 809 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 810 "AstInternal.hs" #-}
+                  {-# LINE 814 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_CombineType_Union :: T_CombineType 
 sem_CombineType_Union  =
@@ -814,14 +818,14 @@ sem_CombineType_Union  =
          (let _lhsOannotatedTree :: CombineType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Union
-                  {-# LINE 820 "AstInternal.hs" #-}
+                  {-# LINE 824 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 825 "AstInternal.hs" #-}
+                  {-# LINE 829 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_CombineType_UnionAll :: T_CombineType 
 sem_CombineType_UnionAll  =
@@ -829,14 +833,14 @@ sem_CombineType_UnionAll  =
          (let _lhsOannotatedTree :: CombineType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   UnionAll
-                  {-# LINE 835 "AstInternal.hs" #-}
+                  {-# LINE 839 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 840 "AstInternal.hs" #-}
+                  {-# LINE 844 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- Constraint --------------------------------------------------
 {-
@@ -910,21 +914,21 @@ sem_Constraint_CheckConstraint ann_ expression_  =
               _lhsOannotatedTree :: Constraint
               -- copy rule (down)
               _expressionOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 916 "AstInternal.hs" #-}
+                  {-# LINE 920 "AstInternal.hs" #-}
               ( _expressionIannotatedTree,_expressionIliftedColumnName) =
                   (expression_ _expressionOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   CheckConstraint ann_ _expressionIannotatedTree
-                  {-# LINE 923 "AstInternal.hs" #-}
+                  {-# LINE 927 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 928 "AstInternal.hs" #-}
+                  {-# LINE 932 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_Constraint_PrimaryKeyConstraint :: Annotation ->
                                        T_StringList  ->
@@ -937,21 +941,21 @@ sem_Constraint_PrimaryKeyConstraint ann_ stringList_  =
               _lhsOannotatedTree :: Constraint
               -- copy rule (down)
               _stringListOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 943 "AstInternal.hs" #-}
+                  {-# LINE 947 "AstInternal.hs" #-}
               ( _stringListIannotatedTree,_stringListIstrings) =
                   (stringList_ _stringListOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   PrimaryKeyConstraint ann_ _stringListIannotatedTree
-                  {-# LINE 950 "AstInternal.hs" #-}
+                  {-# LINE 954 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 955 "AstInternal.hs" #-}
+                  {-# LINE 959 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_Constraint_ReferenceConstraint :: Annotation ->
                                       T_StringList  ->
@@ -975,42 +979,42 @@ sem_Constraint_ReferenceConstraint ann_ atts_ table_ tableAtts_ onUpdate_ onDele
               _lhsOannotatedTree :: Constraint
               -- copy rule (down)
               _onDeleteOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 981 "AstInternal.hs" #-}
+                  {-# LINE 985 "AstInternal.hs" #-}
               ( _onDeleteIannotatedTree) =
                   (onDelete_ _onDeleteOenv )
               -- copy rule (down)
               _onUpdateOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 988 "AstInternal.hs" #-}
+                  {-# LINE 992 "AstInternal.hs" #-}
               ( _onUpdateIannotatedTree) =
                   (onUpdate_ _onUpdateOenv )
               -- copy rule (down)
               _tableAttsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 995 "AstInternal.hs" #-}
+                  {-# LINE 999 "AstInternal.hs" #-}
               ( _tableAttsIannotatedTree,_tableAttsIstrings) =
                   (tableAtts_ _tableAttsOenv )
               -- copy rule (down)
               _attsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1002 "AstInternal.hs" #-}
+                  {-# LINE 1006 "AstInternal.hs" #-}
               ( _attsIannotatedTree,_attsIstrings) =
                   (atts_ _attsOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ReferenceConstraint ann_ _attsIannotatedTree table_ _tableAttsIannotatedTree _onUpdateIannotatedTree _onDeleteIannotatedTree
-                  {-# LINE 1009 "AstInternal.hs" #-}
+                  {-# LINE 1013 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1014 "AstInternal.hs" #-}
+                  {-# LINE 1018 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_Constraint_UniqueConstraint :: Annotation ->
                                    T_StringList  ->
@@ -1023,21 +1027,21 @@ sem_Constraint_UniqueConstraint ann_ stringList_  =
               _lhsOannotatedTree :: Constraint
               -- copy rule (down)
               _stringListOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1029 "AstInternal.hs" #-}
+                  {-# LINE 1033 "AstInternal.hs" #-}
               ( _stringListIannotatedTree,_stringListIstrings) =
                   (stringList_ _stringListOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   UniqueConstraint ann_ _stringListIannotatedTree
-                  {-# LINE 1036 "AstInternal.hs" #-}
+                  {-# LINE 1040 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1041 "AstInternal.hs" #-}
+                  {-# LINE 1045 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- ConstraintList ----------------------------------------------
 {-
@@ -1086,28 +1090,28 @@ sem_ConstraintList_Cons hd_ tl_  =
               _lhsOannotatedTree :: ConstraintList
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1092 "AstInternal.hs" #-}
+                  {-# LINE 1096 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1097 "AstInternal.hs" #-}
+                  {-# LINE 1101 "AstInternal.hs" #-}
               ( _tlIannotatedTree) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 1106 "AstInternal.hs" #-}
+                  {-# LINE 1110 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1111 "AstInternal.hs" #-}
+                  {-# LINE 1115 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_ConstraintList_Nil :: T_ConstraintList 
 sem_ConstraintList_Nil  =
@@ -1115,14 +1119,14 @@ sem_ConstraintList_Nil  =
          (let _lhsOannotatedTree :: ConstraintList
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 1121 "AstInternal.hs" #-}
+                  {-# LINE 1125 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1126 "AstInternal.hs" #-}
+                  {-# LINE 1130 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- CopySource --------------------------------------------------
 {-
@@ -1169,14 +1173,14 @@ sem_CopySource_CopyFilename string_  =
          (let _lhsOannotatedTree :: CopySource
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   CopyFilename string_
-                  {-# LINE 1175 "AstInternal.hs" #-}
+                  {-# LINE 1179 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1180 "AstInternal.hs" #-}
+                  {-# LINE 1184 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_CopySource_Stdin :: T_CopySource 
 sem_CopySource_Stdin  =
@@ -1184,14 +1188,14 @@ sem_CopySource_Stdin  =
          (let _lhsOannotatedTree :: CopySource
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Stdin
-                  {-# LINE 1190 "AstInternal.hs" #-}
+                  {-# LINE 1194 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1195 "AstInternal.hs" #-}
+                  {-# LINE 1199 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- Direction ---------------------------------------------------
 {-
@@ -1236,14 +1240,14 @@ sem_Direction_Asc  =
          (let _lhsOannotatedTree :: Direction
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Asc
-                  {-# LINE 1242 "AstInternal.hs" #-}
+                  {-# LINE 1246 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1247 "AstInternal.hs" #-}
+                  {-# LINE 1251 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_Direction_Desc :: T_Direction 
 sem_Direction_Desc  =
@@ -1251,14 +1255,14 @@ sem_Direction_Desc  =
          (let _lhsOannotatedTree :: Direction
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Desc
-                  {-# LINE 1257 "AstInternal.hs" #-}
+                  {-# LINE 1261 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1262 "AstInternal.hs" #-}
+                  {-# LINE 1266 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- Distinct ----------------------------------------------------
 {-
@@ -1303,14 +1307,14 @@ sem_Distinct_Distinct  =
          (let _lhsOannotatedTree :: Distinct
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Distinct
-                  {-# LINE 1309 "AstInternal.hs" #-}
+                  {-# LINE 1313 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1314 "AstInternal.hs" #-}
+                  {-# LINE 1318 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_Distinct_Dupes :: T_Distinct 
 sem_Distinct_Dupes  =
@@ -1318,14 +1322,14 @@ sem_Distinct_Dupes  =
          (let _lhsOannotatedTree :: Distinct
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Dupes
-                  {-# LINE 1324 "AstInternal.hs" #-}
+                  {-# LINE 1328 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1329 "AstInternal.hs" #-}
+                  {-# LINE 1333 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- DropType ----------------------------------------------------
 {-
@@ -1382,14 +1386,14 @@ sem_DropType_Domain  =
          (let _lhsOannotatedTree :: DropType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Domain
-                  {-# LINE 1388 "AstInternal.hs" #-}
+                  {-# LINE 1392 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1393 "AstInternal.hs" #-}
+                  {-# LINE 1397 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_DropType_Table :: T_DropType 
 sem_DropType_Table  =
@@ -1397,14 +1401,14 @@ sem_DropType_Table  =
          (let _lhsOannotatedTree :: DropType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Table
-                  {-# LINE 1403 "AstInternal.hs" #-}
+                  {-# LINE 1407 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1408 "AstInternal.hs" #-}
+                  {-# LINE 1412 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_DropType_Type :: T_DropType 
 sem_DropType_Type  =
@@ -1412,14 +1416,14 @@ sem_DropType_Type  =
          (let _lhsOannotatedTree :: DropType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Type
-                  {-# LINE 1418 "AstInternal.hs" #-}
+                  {-# LINE 1422 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1423 "AstInternal.hs" #-}
+                  {-# LINE 1427 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_DropType_View :: T_DropType 
 sem_DropType_View  =
@@ -1427,14 +1431,14 @@ sem_DropType_View  =
          (let _lhsOannotatedTree :: DropType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   View
-                  {-# LINE 1433 "AstInternal.hs" #-}
+                  {-# LINE 1437 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1438 "AstInternal.hs" #-}
+                  {-# LINE 1442 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- Expression --------------------------------------------------
 {-
@@ -1616,29 +1620,29 @@ sem_Expression_BooleanLit ann_ b_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              -- "./TypeChecking.ag"(line 103, column 19)
+              -- "./TypeChecking.ag"(line 108, column 19)
               _tpe =
-                  {-# LINE 103 "./TypeChecking.ag" #-}
+                  {-# LINE 108 "./TypeChecking.ag" #-}
                   Right typeBool
-                  {-# LINE 1624 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 95, column 9)
+                  {-# LINE 1628 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 100, column 9)
               _backTree =
-                  {-# LINE 95 "./TypeChecking.ag" #-}
+                  {-# LINE 100 "./TypeChecking.ag" #-}
                   BooleanLit ann_ b_
-                  {-# LINE 1629 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 1633 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 1637 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 1641 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 1642 "AstInternal.hs" #-}
+                  {-# LINE 1646 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_Case :: Annotation ->
                        T_CaseExpressionListExpressionPairList  ->
@@ -1655,39 +1659,39 @@ sem_Expression_Case ann_ cases_ els_  =
               _lhsOliftedColumnName :: String
               -- copy rule (down)
               _elsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1661 "AstInternal.hs" #-}
+                  {-# LINE 1665 "AstInternal.hs" #-}
               -- copy rule (down)
               _casesOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1666 "AstInternal.hs" #-}
+                  {-# LINE 1670 "AstInternal.hs" #-}
               ( _elsIannotatedTree,_elsIexprType) =
                   (els_ _elsOenv )
               ( _casesIannotatedTree) =
                   (cases_ _casesOenv )
-              -- "./TypeChecking.ag"(line 193, column 9)
+              -- "./TypeChecking.ag"(line 198, column 9)
               _backTree =
-                  {-# LINE 193 "./TypeChecking.ag" #-}
+                  {-# LINE 198 "./TypeChecking.ag" #-}
                   Case ann_ _casesIannotatedTree _elsIannotatedTree
-                  {-# LINE 1675 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 179, column 9)
+                  {-# LINE 1679 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 184, column 9)
               _thenTypes =
-                  {-# LINE 179 "./TypeChecking.ag" #-}
+                  {-# LINE 184 "./TypeChecking.ag" #-}
                   map getTypeAnnotation $
                       (map snd $ _casesIannotatedTree) ++
                         maybeToList _elsIannotatedTree
-                  {-# LINE 1682 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 177, column 9)
+                  {-# LINE 1686 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 182, column 9)
               _whenTypes =
-                  {-# LINE 177 "./TypeChecking.ag" #-}
+                  {-# LINE 182 "./TypeChecking.ag" #-}
                   map getTypeAnnotation $ concatMap fst $
                   _casesIannotatedTree
-                  {-# LINE 1688 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 185, column 9)
+                  {-# LINE 1692 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 190, column 9)
               _tpe =
-                  {-# LINE 185 "./TypeChecking.ag" #-}
+                  {-# LINE 190 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed _whenTypes     $ do
                      when (any (/= typeBool) _whenTypes    ) $
                        Left [WrongTypes typeBool _whenTypes    ]
@@ -1695,20 +1699,20 @@ sem_Expression_Case ann_ cases_ els_  =
                               resolveResultSetType
                                 _lhsIenv
                                 _thenTypes
-                  {-# LINE 1699 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 1703 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 1707 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 1711 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 1712 "AstInternal.hs" #-}
+                  {-# LINE 1716 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_CaseSimple :: Annotation ->
                              T_Expression  ->
@@ -1729,46 +1733,46 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
               _lhsOliftedColumnName :: String
               -- copy rule (down)
               _elsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1735 "AstInternal.hs" #-}
+                  {-# LINE 1739 "AstInternal.hs" #-}
               -- copy rule (down)
               _casesOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1740 "AstInternal.hs" #-}
+                  {-# LINE 1744 "AstInternal.hs" #-}
               -- copy rule (down)
               _valueOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1745 "AstInternal.hs" #-}
+                  {-# LINE 1749 "AstInternal.hs" #-}
               ( _elsIannotatedTree,_elsIexprType) =
                   (els_ _elsOenv )
               ( _casesIannotatedTree) =
                   (cases_ _casesOenv )
               ( _valueIannotatedTree,_valueIliftedColumnName) =
                   (value_ _valueOenv )
-              -- "./TypeChecking.ag"(line 207, column 9)
+              -- "./TypeChecking.ag"(line 212, column 9)
               _backTree =
-                  {-# LINE 207 "./TypeChecking.ag" #-}
+                  {-# LINE 212 "./TypeChecking.ag" #-}
                   CaseSimple ann_ _valueIannotatedTree _casesIannotatedTree _elsIannotatedTree
-                  {-# LINE 1756 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 179, column 9)
+                  {-# LINE 1760 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 184, column 9)
               _thenTypes =
-                  {-# LINE 179 "./TypeChecking.ag" #-}
+                  {-# LINE 184 "./TypeChecking.ag" #-}
                   map getTypeAnnotation $
                       (map snd $ _casesIannotatedTree) ++
                         maybeToList _elsIannotatedTree
-                  {-# LINE 1763 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 177, column 9)
+                  {-# LINE 1767 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 182, column 9)
               _whenTypes =
-                  {-# LINE 177 "./TypeChecking.ag" #-}
+                  {-# LINE 182 "./TypeChecking.ag" #-}
                   map getTypeAnnotation $ concatMap fst $
                   _casesIannotatedTree
-                  {-# LINE 1769 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 198, column 9)
+                  {-# LINE 1773 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 203, column 9)
               _tpe =
-                  {-# LINE 198 "./TypeChecking.ag" #-}
+                  {-# LINE 203 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed _whenTypes     $ do
                   checkWhenTypes <- resolveResultSetType
                                          _lhsIenv
@@ -1777,20 +1781,20 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
                              resolveResultSetType
                                       _lhsIenv
                                       _thenTypes
-                  {-# LINE 1781 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 1785 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 1789 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 1793 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   _valueIliftedColumnName
-                  {-# LINE 1794 "AstInternal.hs" #-}
+                  {-# LINE 1798 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_Cast :: Annotation ->
                        T_Expression  ->
@@ -1808,43 +1812,43 @@ sem_Expression_Cast ann_ expr_ tn_  =
               _lhsOliftedColumnName :: String
               -- copy rule (down)
               _tnOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1814 "AstInternal.hs" #-}
+                  {-# LINE 1818 "AstInternal.hs" #-}
               -- copy rule (down)
               _exprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1819 "AstInternal.hs" #-}
+                  {-# LINE 1823 "AstInternal.hs" #-}
               ( _tnIannotatedTree,_tnInamedType) =
                   (tn_ _tnOenv )
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
-              -- "./TypeChecking.ag"(line 116, column 12)
+              -- "./TypeChecking.ag"(line 121, column 12)
               _backTree =
-                  {-# LINE 116 "./TypeChecking.ag" #-}
+                  {-# LINE 121 "./TypeChecking.ag" #-}
                   Cast ann_ _exprIannotatedTree _tnIannotatedTree
-                  {-# LINE 1828 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 115, column 12)
+                  {-# LINE 1832 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 120, column 12)
               _tpe =
-                  {-# LINE 115 "./TypeChecking.ag" #-}
+                  {-# LINE 120 "./TypeChecking.ag" #-}
                   Right $ _tnInamedType
-                  {-# LINE 1833 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 1837 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 1841 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 642, column 10)
+                  {-# LINE 1845 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 649, column 10)
               _lhsOliftedColumnName =
-                  {-# LINE 642 "./TypeChecking.ag" #-}
+                  {-# LINE 649 "./TypeChecking.ag" #-}
                   case _tnIannotatedTree of
                     SimpleTypeName _ tn -> tn
                     _ -> ""
-                  {-# LINE 1848 "AstInternal.hs" #-}
+                  {-# LINE 1852 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_Exists :: Annotation ->
                          T_SelectExpression  ->
@@ -1857,34 +1861,34 @@ sem_Expression_Exists ann_ sel_  =
               _lhsOliftedColumnName :: String
               -- copy rule (down)
               _selOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1863 "AstInternal.hs" #-}
+                  {-# LINE 1867 "AstInternal.hs" #-}
               ( _selIannotatedTree) =
                   (sel_ _selOenv )
-              -- "./TypeChecking.ag"(line 224, column 9)
+              -- "./TypeChecking.ag"(line 229, column 9)
               _backTree =
-                  {-# LINE 224 "./TypeChecking.ag" #-}
+                  {-# LINE 229 "./TypeChecking.ag" #-}
                   Exists ann_ _selIannotatedTree
-                  {-# LINE 1870 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 223, column 9)
+                  {-# LINE 1874 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 228, column 9)
               _tpe =
-                  {-# LINE 223 "./TypeChecking.ag" #-}
+                  {-# LINE 228 "./TypeChecking.ag" #-}
                   Right typeBool
-                  {-# LINE 1875 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 1879 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 1883 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 1887 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 1888 "AstInternal.hs" #-}
+                  {-# LINE 1892 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_FloatLit :: Annotation ->
                            Double ->
@@ -1893,29 +1897,29 @@ sem_Expression_FloatLit ann_ d_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              -- "./TypeChecking.ag"(line 102, column 17)
+              -- "./TypeChecking.ag"(line 107, column 17)
               _tpe =
-                  {-# LINE 102 "./TypeChecking.ag" #-}
+                  {-# LINE 107 "./TypeChecking.ag" #-}
                   Right typeNumeric
-                  {-# LINE 1901 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 93, column 9)
+                  {-# LINE 1905 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 98, column 9)
               _backTree =
-                  {-# LINE 93 "./TypeChecking.ag" #-}
+                  {-# LINE 98 "./TypeChecking.ag" #-}
                   FloatLit ann_ d_
-                  {-# LINE 1906 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 1910 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 1914 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 1918 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 1919 "AstInternal.hs" #-}
+                  {-# LINE 1923 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_FunCall :: Annotation ->
                           String ->
@@ -1930,40 +1934,40 @@ sem_Expression_FunCall ann_ funName_ args_  =
               _lhsOliftedColumnName :: String
               -- copy rule (down)
               _argsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 1936 "AstInternal.hs" #-}
+                  {-# LINE 1940 "AstInternal.hs" #-}
               ( _argsIannotatedTree,_argsItypeList) =
                   (args_ _argsOenv )
-              -- "./TypeChecking.ag"(line 161, column 9)
+              -- "./TypeChecking.ag"(line 166, column 9)
               _backTree =
-                  {-# LINE 161 "./TypeChecking.ag" #-}
+                  {-# LINE 166 "./TypeChecking.ag" #-}
                   FunCall ann_ funName_ _argsIannotatedTree
-                  {-# LINE 1943 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 156, column 9)
+                  {-# LINE 1947 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 161, column 9)
               _tpe =
-                  {-# LINE 156 "./TypeChecking.ag" #-}
+                  {-# LINE 161 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed _argsItypeList $
                     typeCheckFunCall
                       _lhsIenv
                       funName_
                       _argsItypeList
-                  {-# LINE 1952 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 1956 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 1960 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 638, column 13)
+                  {-# LINE 1964 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 645, column 13)
               _lhsOliftedColumnName =
-                  {-# LINE 638 "./TypeChecking.ag" #-}
+                  {-# LINE 645 "./TypeChecking.ag" #-}
                   if isOperatorName funName_
                      then ""
                      else funName_
-                  {-# LINE 1967 "AstInternal.hs" #-}
+                  {-# LINE 1971 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_Identifier :: Annotation ->
                              String ->
@@ -1972,30 +1976,30 @@ sem_Expression_Identifier ann_ i_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              -- "./TypeChecking.ag"(line 219, column 9)
+              -- "./TypeChecking.ag"(line 224, column 9)
               _backTree =
-                  {-# LINE 219 "./TypeChecking.ag" #-}
+                  {-# LINE 224 "./TypeChecking.ag" #-}
                   Identifier ann_ i_
-                  {-# LINE 1980 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 217, column 9)
+                  {-# LINE 1984 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 222, column 9)
               _tpe =
-                  {-# LINE 217 "./TypeChecking.ag" #-}
+                  {-# LINE 222 "./TypeChecking.ag" #-}
                   let (correlationName,iden) = splitIdentifier i_
                   in envLookupID _lhsIenv correlationName iden
-                  {-# LINE 1986 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 1990 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 1994 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 637, column 16)
+                  {-# LINE 1998 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 644, column 16)
               _lhsOliftedColumnName =
-                  {-# LINE 637 "./TypeChecking.ag" #-}
+                  {-# LINE 644 "./TypeChecking.ag" #-}
                   i_
-                  {-# LINE 1999 "AstInternal.hs" #-}
+                  {-# LINE 2003 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_InPredicate :: Annotation ->
                               T_Expression  ->
@@ -2014,46 +2018,46 @@ sem_Expression_InPredicate ann_ expr_ i_ list_  =
               _lhsOliftedColumnName :: String
               -- copy rule (down)
               _listOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2020 "AstInternal.hs" #-}
+                  {-# LINE 2024 "AstInternal.hs" #-}
               -- copy rule (down)
               _exprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2025 "AstInternal.hs" #-}
+                  {-# LINE 2029 "AstInternal.hs" #-}
               ( _listIannotatedTree,_listIlistType) =
                   (list_ _listOenv )
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
-              -- "./TypeChecking.ag"(line 257, column 9)
+              -- "./TypeChecking.ag"(line 262, column 9)
               _backTree =
-                  {-# LINE 257 "./TypeChecking.ag" #-}
+                  {-# LINE 262 "./TypeChecking.ag" #-}
                   InPredicate ann_ _exprIannotatedTree i_ _listIannotatedTree
-                  {-# LINE 2034 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 251, column 9)
+                  {-# LINE 2038 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 256, column 9)
               _tpe =
-                  {-# LINE 251 "./TypeChecking.ag" #-}
+                  {-# LINE 256 "./TypeChecking.ag" #-}
                   do
                     lt <- _listIlistType
                     ty <- resolveResultSetType
                             _lhsIenv
                             [getTypeAnnotation _exprIannotatedTree, lt]
                     return typeBool
-                  {-# LINE 2044 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 2048 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 2052 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 2056 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   _exprIliftedColumnName
-                  {-# LINE 2057 "AstInternal.hs" #-}
+                  {-# LINE 2061 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_IntegerLit :: Annotation ->
                              Integer ->
@@ -2062,29 +2066,29 @@ sem_Expression_IntegerLit ann_ i_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              -- "./TypeChecking.ag"(line 100, column 19)
+              -- "./TypeChecking.ag"(line 105, column 19)
               _tpe =
-                  {-# LINE 100 "./TypeChecking.ag" #-}
+                  {-# LINE 105 "./TypeChecking.ag" #-}
                   Right typeInt
-                  {-# LINE 2070 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 89, column 9)
+                  {-# LINE 2074 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 94, column 9)
               _backTree =
-                  {-# LINE 89 "./TypeChecking.ag" #-}
+                  {-# LINE 94 "./TypeChecking.ag" #-}
                   IntegerLit ann_ i_
-                  {-# LINE 2075 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 2079 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 2083 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 2087 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 2088 "AstInternal.hs" #-}
+                  {-# LINE 2092 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_NullLit :: Annotation ->
                           T_Expression 
@@ -2092,29 +2096,29 @@ sem_Expression_NullLit ann_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              -- "./TypeChecking.ag"(line 105, column 16)
+              -- "./TypeChecking.ag"(line 110, column 16)
               _tpe =
-                  {-# LINE 105 "./TypeChecking.ag" #-}
+                  {-# LINE 110 "./TypeChecking.ag" #-}
                   Right UnknownStringLit
-                  {-# LINE 2100 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 97, column 9)
+                  {-# LINE 2104 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 102, column 9)
               _backTree =
-                  {-# LINE 97 "./TypeChecking.ag" #-}
+                  {-# LINE 102 "./TypeChecking.ag" #-}
                   NullLit ann_
-                  {-# LINE 2105 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 2109 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 2113 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 2117 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 2118 "AstInternal.hs" #-}
+                  {-# LINE 2122 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_PositionalArg :: Annotation ->
                                 Integer ->
@@ -2125,19 +2129,19 @@ sem_Expression_PositionalArg ann_ p_  =
               _lhsOliftedColumnName :: String
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   PositionalArg ann_ p_
-                  {-# LINE 2131 "AstInternal.hs" #-}
+                  {-# LINE 2135 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2136 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 2140 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 2141 "AstInternal.hs" #-}
+                  {-# LINE 2145 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_ScalarSubQuery :: Annotation ->
                                  T_SelectExpression  ->
@@ -2150,19 +2154,19 @@ sem_Expression_ScalarSubQuery ann_ sel_  =
               _lhsOliftedColumnName :: String
               -- copy rule (down)
               _selOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2156 "AstInternal.hs" #-}
+                  {-# LINE 2160 "AstInternal.hs" #-}
               ( _selIannotatedTree) =
                   (sel_ _selOenv )
-              -- "./TypeChecking.ag"(line 244, column 9)
+              -- "./TypeChecking.ag"(line 249, column 9)
               _backTree =
-                  {-# LINE 244 "./TypeChecking.ag" #-}
+                  {-# LINE 249 "./TypeChecking.ag" #-}
                   ScalarSubQuery ann_ _selIannotatedTree
-                  {-# LINE 2163 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 235, column 9)
+                  {-# LINE 2167 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 240, column 9)
               _tpe =
-                  {-# LINE 235 "./TypeChecking.ag" #-}
+                  {-# LINE 240 "./TypeChecking.ag" #-}
                   let selType = getTypeAnnotation _selIannotatedTree
                   in chainTypeCheckFailed [selType]
                        $ do
@@ -2171,20 +2175,20 @@ sem_Expression_ScalarSubQuery ann_ sel_  =
                               0 -> Left [InternalError "no columns in scalar subquery?"]
                               1 -> Right $ head f
                               _ -> Right $ RowCtor f
-                  {-# LINE 2175 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 2179 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 2183 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 2187 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 2188 "AstInternal.hs" #-}
+                  {-# LINE 2192 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_StringLit :: Annotation ->
                             String ->
@@ -2194,29 +2198,29 @@ sem_Expression_StringLit ann_ quote_ value_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: Expression
               _lhsOliftedColumnName :: String
-              -- "./TypeChecking.ag"(line 101, column 18)
+              -- "./TypeChecking.ag"(line 106, column 18)
               _tpe =
-                  {-# LINE 101 "./TypeChecking.ag" #-}
+                  {-# LINE 106 "./TypeChecking.ag" #-}
                   Right UnknownStringLit
-                  {-# LINE 2202 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 91, column 9)
+                  {-# LINE 2206 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 96, column 9)
               _backTree =
-                  {-# LINE 91 "./TypeChecking.ag" #-}
+                  {-# LINE 96 "./TypeChecking.ag" #-}
                   StringLit ann_ quote_ value_
-                  {-# LINE 2207 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 78, column 9)
+                  {-# LINE 2211 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 83, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 78 "./TypeChecking.ag" #-}
+                  {-# LINE 83 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 2215 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 2219 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 2220 "AstInternal.hs" #-}
+                  {-# LINE 2224 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 sem_Expression_WindowFn :: Annotation ->
                            T_Expression  ->
@@ -2241,24 +2245,24 @@ sem_Expression_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_  =
               _lhsOliftedColumnName :: String
               -- copy rule (down)
               _orderByOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2247 "AstInternal.hs" #-}
+                  {-# LINE 2251 "AstInternal.hs" #-}
               -- copy rule (down)
               _partitionByOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2252 "AstInternal.hs" #-}
+                  {-# LINE 2256 "AstInternal.hs" #-}
               -- copy rule (down)
               _fnOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2257 "AstInternal.hs" #-}
+                  {-# LINE 2261 "AstInternal.hs" #-}
               -- copy rule (down)
               _dirOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2262 "AstInternal.hs" #-}
+                  {-# LINE 2266 "AstInternal.hs" #-}
               ( _dirIannotatedTree) =
                   (dir_ _dirOenv )
               ( _orderByIannotatedTree,_orderByItypeList) =
@@ -2269,19 +2273,19 @@ sem_Expression_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_  =
                   (fn_ _fnOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   WindowFn ann_ _fnIannotatedTree _partitionByIannotatedTree _orderByIannotatedTree _dirIannotatedTree
-                  {-# LINE 2275 "AstInternal.hs" #-}
+                  {-# LINE 2279 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2280 "AstInternal.hs" #-}
-              -- use rule "./TypeChecking.ag"(line 624, column 37)
+                  {-# LINE 2284 "AstInternal.hs" #-}
+              -- use rule "./TypeChecking.ag"(line 631, column 37)
               _lhsOliftedColumnName =
-                  {-# LINE 624 "./TypeChecking.ag" #-}
+                  {-# LINE 631 "./TypeChecking.ag" #-}
                   _fnIliftedColumnName
-                  {-# LINE 2285 "AstInternal.hs" #-}
+                  {-# LINE 2289 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOliftedColumnName)))
 -- ExpressionList ----------------------------------------------
 {-
@@ -2334,33 +2338,33 @@ sem_ExpressionList_Cons hd_ tl_  =
               _lhsOtypeList :: ([Type])
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2340 "AstInternal.hs" #-}
+                  {-# LINE 2344 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2345 "AstInternal.hs" #-}
+                  {-# LINE 2349 "AstInternal.hs" #-}
               ( _tlIannotatedTree,_tlItypeList) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree,_hdIliftedColumnName) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 2354 "AstInternal.hs" #-}
+                  {-# LINE 2358 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2359 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 284, column 12)
+                  {-# LINE 2363 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 289, column 12)
               _lhsOtypeList =
-                  {-# LINE 284 "./TypeChecking.ag" #-}
+                  {-# LINE 289 "./TypeChecking.ag" #-}
                   getTypeAnnotation _hdIannotatedTree : _tlItypeList
-                  {-# LINE 2364 "AstInternal.hs" #-}
+                  {-# LINE 2368 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOtypeList)))
 sem_ExpressionList_Nil :: T_ExpressionList 
 sem_ExpressionList_Nil  =
@@ -2369,19 +2373,19 @@ sem_ExpressionList_Nil  =
               _lhsOtypeList :: ([Type])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 2375 "AstInternal.hs" #-}
+                  {-# LINE 2379 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2380 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 285, column 11)
+                  {-# LINE 2384 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 290, column 11)
               _lhsOtypeList =
-                  {-# LINE 285 "./TypeChecking.ag" #-}
+                  {-# LINE 290 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 2385 "AstInternal.hs" #-}
+                  {-# LINE 2389 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOtypeList)))
 -- ExpressionListList ------------------------------------------
 {-
@@ -2434,33 +2438,33 @@ sem_ExpressionListList_Cons hd_ tl_  =
               _lhsOtypeListList :: ([[Type]])
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2440 "AstInternal.hs" #-}
+                  {-# LINE 2444 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2445 "AstInternal.hs" #-}
+                  {-# LINE 2449 "AstInternal.hs" #-}
               ( _tlIannotatedTree,_tlItypeListList) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree,_hdItypeList) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 2454 "AstInternal.hs" #-}
+                  {-# LINE 2458 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2459 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 291, column 12)
+                  {-# LINE 2463 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 296, column 12)
               _lhsOtypeListList =
-                  {-# LINE 291 "./TypeChecking.ag" #-}
+                  {-# LINE 296 "./TypeChecking.ag" #-}
                   _hdItypeList : _tlItypeListList
-                  {-# LINE 2464 "AstInternal.hs" #-}
+                  {-# LINE 2468 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOtypeListList)))
 sem_ExpressionListList_Nil :: T_ExpressionListList 
 sem_ExpressionListList_Nil  =
@@ -2469,19 +2473,19 @@ sem_ExpressionListList_Nil  =
               _lhsOtypeListList :: ([[Type]])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 2475 "AstInternal.hs" #-}
+                  {-# LINE 2479 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2480 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 292, column 11)
+                  {-# LINE 2484 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 297, column 11)
               _lhsOtypeListList =
-                  {-# LINE 292 "./TypeChecking.ag" #-}
+                  {-# LINE 297 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 2485 "AstInternal.hs" #-}
+                  {-# LINE 2489 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOtypeListList)))
 -- ExpressionListStatementListPair -----------------------------
 {-
@@ -2530,33 +2534,33 @@ sem_ExpressionListStatementListPair_Tuple x1_ x2_  =
               _lhsOannotatedTree :: ExpressionListStatementListPair
               -- copy rule (down)
               _x2Oenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2536 "AstInternal.hs" #-}
+                  {-# LINE 2540 "AstInternal.hs" #-}
               -- copy rule (down)
               _x1Oenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2541 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 341, column 13)
+                  {-# LINE 2545 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 346, column 13)
               _x2OenvUpdates =
-                  {-# LINE 341 "./TypeChecking.ag" #-}
+                  {-# LINE 346 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 2546 "AstInternal.hs" #-}
+                  {-# LINE 2550 "AstInternal.hs" #-}
               ( _x2IannotatedTree,_x2IproducedEnv) =
                   (x2_ _x2Oenv _x2OenvUpdates )
               ( _x1IannotatedTree,_x1ItypeList) =
                   (x1_ _x1Oenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (_x1IannotatedTree,_x2IannotatedTree)
-                  {-# LINE 2555 "AstInternal.hs" #-}
+                  {-# LINE 2559 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2560 "AstInternal.hs" #-}
+                  {-# LINE 2564 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- ExpressionListStatementListPairList -------------------------
 {-
@@ -2605,28 +2609,28 @@ sem_ExpressionListStatementListPairList_Cons hd_ tl_  =
               _lhsOannotatedTree :: ExpressionListStatementListPairList
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2611 "AstInternal.hs" #-}
+                  {-# LINE 2615 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2616 "AstInternal.hs" #-}
+                  {-# LINE 2620 "AstInternal.hs" #-}
               ( _tlIannotatedTree) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 2625 "AstInternal.hs" #-}
+                  {-# LINE 2629 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2630 "AstInternal.hs" #-}
+                  {-# LINE 2634 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_ExpressionListStatementListPairList_Nil :: T_ExpressionListStatementListPairList 
 sem_ExpressionListStatementListPairList_Nil  =
@@ -2634,14 +2638,14 @@ sem_ExpressionListStatementListPairList_Nil  =
          (let _lhsOannotatedTree :: ExpressionListStatementListPairList
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 2640 "AstInternal.hs" #-}
+                  {-# LINE 2644 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2645 "AstInternal.hs" #-}
+                  {-# LINE 2649 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- ExpressionRoot ----------------------------------------------
 {-
@@ -2685,21 +2689,21 @@ sem_ExpressionRoot_ExpressionRoot expr_  =
               _lhsOannotatedTree :: ExpressionRoot
               -- copy rule (down)
               _exprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2691 "AstInternal.hs" #-}
+                  {-# LINE 2695 "AstInternal.hs" #-}
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ExpressionRoot _exprIannotatedTree
-                  {-# LINE 2698 "AstInternal.hs" #-}
+                  {-# LINE 2702 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2703 "AstInternal.hs" #-}
+                  {-# LINE 2707 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- ExpressionStatementListPair ---------------------------------
 {-
@@ -2748,33 +2752,33 @@ sem_ExpressionStatementListPair_Tuple x1_ x2_  =
               _lhsOannotatedTree :: ExpressionStatementListPair
               -- copy rule (down)
               _x2Oenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2754 "AstInternal.hs" #-}
+                  {-# LINE 2758 "AstInternal.hs" #-}
               -- copy rule (down)
               _x1Oenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2759 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 343, column 13)
+                  {-# LINE 2763 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 348, column 13)
               _x2OenvUpdates =
-                  {-# LINE 343 "./TypeChecking.ag" #-}
+                  {-# LINE 348 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 2764 "AstInternal.hs" #-}
+                  {-# LINE 2768 "AstInternal.hs" #-}
               ( _x2IannotatedTree,_x2IproducedEnv) =
                   (x2_ _x2Oenv _x2OenvUpdates )
               ( _x1IannotatedTree,_x1IliftedColumnName) =
                   (x1_ _x1Oenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (_x1IannotatedTree,_x2IannotatedTree)
-                  {-# LINE 2773 "AstInternal.hs" #-}
+                  {-# LINE 2777 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2778 "AstInternal.hs" #-}
+                  {-# LINE 2782 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- ExpressionStatementListPairList -----------------------------
 {-
@@ -2823,28 +2827,28 @@ sem_ExpressionStatementListPairList_Cons hd_ tl_  =
               _lhsOannotatedTree :: ExpressionStatementListPairList
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2829 "AstInternal.hs" #-}
+                  {-# LINE 2833 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2834 "AstInternal.hs" #-}
+                  {-# LINE 2838 "AstInternal.hs" #-}
               ( _tlIannotatedTree) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 2843 "AstInternal.hs" #-}
+                  {-# LINE 2847 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2848 "AstInternal.hs" #-}
+                  {-# LINE 2852 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_ExpressionStatementListPairList_Nil :: T_ExpressionStatementListPairList 
 sem_ExpressionStatementListPairList_Nil  =
@@ -2852,14 +2856,14 @@ sem_ExpressionStatementListPairList_Nil  =
          (let _lhsOannotatedTree :: ExpressionStatementListPairList
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 2858 "AstInternal.hs" #-}
+                  {-# LINE 2862 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2863 "AstInternal.hs" #-}
+                  {-# LINE 2867 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- FnBody ------------------------------------------------------
 {-
@@ -2919,33 +2923,33 @@ sem_FnBody_PlpgsqlFnBody ann_ vars_ sts_  =
               _lhsOannotatedTree :: FnBody
               -- copy rule (down)
               _varsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2925 "AstInternal.hs" #-}
+                  {-# LINE 2929 "AstInternal.hs" #-}
               ( _varsIannotatedTree,_varsIdefs) =
                   (vars_ _varsOenv )
-              -- "./TypeChecking.ag"(line 933, column 9)
+              -- "./TypeChecking.ag"(line 938, column 9)
               _stsOenv =
-                  {-# LINE 933 "./TypeChecking.ag" #-}
+                  {-# LINE 938 "./TypeChecking.ag" #-}
                   fromRight _lhsIenv $ updateEnvironment _lhsIenv [EnvStackIDs [("", _varsIdefs)]]
-                  {-# LINE 2932 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 345, column 31)
+                  {-# LINE 2936 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 350, column 31)
               _stsOenvUpdates =
-                  {-# LINE 345 "./TypeChecking.ag" #-}
+                  {-# LINE 350 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 2937 "AstInternal.hs" #-}
+                  {-# LINE 2941 "AstInternal.hs" #-}
               ( _stsIannotatedTree,_stsIproducedEnv) =
                   (sts_ _stsOenv _stsOenvUpdates )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   PlpgsqlFnBody ann_ _varsIannotatedTree _stsIannotatedTree
-                  {-# LINE 2944 "AstInternal.hs" #-}
+                  {-# LINE 2948 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2949 "AstInternal.hs" #-}
+                  {-# LINE 2953 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_FnBody_SqlFnBody :: Annotation ->
                         T_StatementList  ->
@@ -2959,26 +2963,26 @@ sem_FnBody_SqlFnBody ann_ sts_  =
               _lhsOannotatedTree :: FnBody
               -- copy rule (down)
               _stsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 2965 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 345, column 31)
+                  {-# LINE 2969 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 350, column 31)
               _stsOenvUpdates =
-                  {-# LINE 345 "./TypeChecking.ag" #-}
+                  {-# LINE 350 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 2970 "AstInternal.hs" #-}
+                  {-# LINE 2974 "AstInternal.hs" #-}
               ( _stsIannotatedTree,_stsIproducedEnv) =
                   (sts_ _stsOenv _stsOenvUpdates )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   SqlFnBody ann_ _stsIannotatedTree
-                  {-# LINE 2977 "AstInternal.hs" #-}
+                  {-# LINE 2981 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2982 "AstInternal.hs" #-}
+                  {-# LINE 2986 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- IfExists ----------------------------------------------------
 {-
@@ -3023,14 +3027,14 @@ sem_IfExists_IfExists  =
          (let _lhsOannotatedTree :: IfExists
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   IfExists
-                  {-# LINE 3029 "AstInternal.hs" #-}
+                  {-# LINE 3033 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3034 "AstInternal.hs" #-}
+                  {-# LINE 3038 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_IfExists_Require :: T_IfExists 
 sem_IfExists_Require  =
@@ -3038,14 +3042,14 @@ sem_IfExists_Require  =
          (let _lhsOannotatedTree :: IfExists
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Require
-                  {-# LINE 3044 "AstInternal.hs" #-}
+                  {-# LINE 3048 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3049 "AstInternal.hs" #-}
+                  {-# LINE 3053 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- InList ------------------------------------------------------
 {-
@@ -3101,28 +3105,28 @@ sem_InList_InList ann_ exprs_  =
               _lhsOlistType :: (Either [TypeError] Type)
               -- copy rule (down)
               _exprsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 3107 "AstInternal.hs" #-}
+                  {-# LINE 3111 "AstInternal.hs" #-}
               ( _exprsIannotatedTree,_exprsItypeList) =
                   (exprs_ _exprsOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   InList ann_ _exprsIannotatedTree
-                  {-# LINE 3114 "AstInternal.hs" #-}
+                  {-# LINE 3118 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3119 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 264, column 9)
+                  {-# LINE 3123 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 269, column 9)
               _lhsOlistType =
-                  {-# LINE 264 "./TypeChecking.ag" #-}
+                  {-# LINE 269 "./TypeChecking.ag" #-}
                   resolveResultSetType
                     _lhsIenv
                     _exprsItypeList
-                  {-# LINE 3126 "AstInternal.hs" #-}
+                  {-# LINE 3130 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOlistType)))
 sem_InList_InSelect :: Annotation ->
                        T_SelectExpression  ->
@@ -3135,24 +3139,24 @@ sem_InList_InSelect ann_ sel_  =
               _lhsOlistType :: (Either [TypeError] Type)
               -- copy rule (down)
               _selOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 3141 "AstInternal.hs" #-}
+                  {-# LINE 3145 "AstInternal.hs" #-}
               ( _selIannotatedTree) =
                   (sel_ _selOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   InSelect ann_ _selIannotatedTree
-                  {-# LINE 3148 "AstInternal.hs" #-}
+                  {-# LINE 3152 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3153 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 268, column 9)
+                  {-# LINE 3157 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 273, column 9)
               _lhsOlistType =
-                  {-# LINE 268 "./TypeChecking.ag" #-}
+                  {-# LINE 273 "./TypeChecking.ag" #-}
                   do
                     attrs <-  map snd <$> (unwrapSetOfComposite $
                                 let a = getTypeAnnotation _selIannotatedTree
@@ -3162,7 +3166,7 @@ sem_InList_InSelect ann_ sel_  =
                                  1 -> Right $ head attrs
                                  _ -> Right $ RowCtor attrs
                     chainTypeCheckFailed attrs $ Right typ
-                  {-# LINE 3166 "AstInternal.hs" #-}
+                  {-# LINE 3170 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOlistType)))
 -- JoinExpression ----------------------------------------------
 {-
@@ -3216,21 +3220,21 @@ sem_JoinExpression_JoinOn ann_ expression_  =
               _lhsOannotatedTree :: JoinExpression
               -- copy rule (down)
               _expressionOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 3222 "AstInternal.hs" #-}
+                  {-# LINE 3226 "AstInternal.hs" #-}
               ( _expressionIannotatedTree,_expressionIliftedColumnName) =
                   (expression_ _expressionOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   JoinOn ann_ _expressionIannotatedTree
-                  {-# LINE 3229 "AstInternal.hs" #-}
+                  {-# LINE 3233 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3234 "AstInternal.hs" #-}
+                  {-# LINE 3238 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_JoinExpression_JoinUsing :: Annotation ->
                                 T_StringList  ->
@@ -3243,21 +3247,21 @@ sem_JoinExpression_JoinUsing ann_ stringList_  =
               _lhsOannotatedTree :: JoinExpression
               -- copy rule (down)
               _stringListOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 3249 "AstInternal.hs" #-}
+                  {-# LINE 3253 "AstInternal.hs" #-}
               ( _stringListIannotatedTree,_stringListIstrings) =
                   (stringList_ _stringListOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   JoinUsing ann_ _stringListIannotatedTree
-                  {-# LINE 3256 "AstInternal.hs" #-}
+                  {-# LINE 3260 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3261 "AstInternal.hs" #-}
+                  {-# LINE 3265 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- JoinType ----------------------------------------------------
 {-
@@ -3320,14 +3324,14 @@ sem_JoinType_Cross  =
          (let _lhsOannotatedTree :: JoinType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Cross
-                  {-# LINE 3326 "AstInternal.hs" #-}
+                  {-# LINE 3330 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3331 "AstInternal.hs" #-}
+                  {-# LINE 3335 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_JoinType_FullOuter :: T_JoinType 
 sem_JoinType_FullOuter  =
@@ -3335,14 +3339,14 @@ sem_JoinType_FullOuter  =
          (let _lhsOannotatedTree :: JoinType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   FullOuter
-                  {-# LINE 3341 "AstInternal.hs" #-}
+                  {-# LINE 3345 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3346 "AstInternal.hs" #-}
+                  {-# LINE 3350 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_JoinType_Inner :: T_JoinType 
 sem_JoinType_Inner  =
@@ -3350,14 +3354,14 @@ sem_JoinType_Inner  =
          (let _lhsOannotatedTree :: JoinType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Inner
-                  {-# LINE 3356 "AstInternal.hs" #-}
+                  {-# LINE 3360 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3361 "AstInternal.hs" #-}
+                  {-# LINE 3365 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_JoinType_LeftOuter :: T_JoinType 
 sem_JoinType_LeftOuter  =
@@ -3365,14 +3369,14 @@ sem_JoinType_LeftOuter  =
          (let _lhsOannotatedTree :: JoinType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   LeftOuter
-                  {-# LINE 3371 "AstInternal.hs" #-}
+                  {-# LINE 3375 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3376 "AstInternal.hs" #-}
+                  {-# LINE 3380 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_JoinType_RightOuter :: T_JoinType 
 sem_JoinType_RightOuter  =
@@ -3380,14 +3384,14 @@ sem_JoinType_RightOuter  =
          (let _lhsOannotatedTree :: JoinType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   RightOuter
-                  {-# LINE 3386 "AstInternal.hs" #-}
+                  {-# LINE 3390 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3391 "AstInternal.hs" #-}
+                  {-# LINE 3395 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- Language ----------------------------------------------------
 {-
@@ -3432,14 +3436,14 @@ sem_Language_Plpgsql  =
          (let _lhsOannotatedTree :: Language
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Plpgsql
-                  {-# LINE 3438 "AstInternal.hs" #-}
+                  {-# LINE 3442 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3443 "AstInternal.hs" #-}
+                  {-# LINE 3447 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_Language_Sql :: T_Language 
 sem_Language_Sql  =
@@ -3447,14 +3451,14 @@ sem_Language_Sql  =
          (let _lhsOannotatedTree :: Language
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Sql
-                  {-# LINE 3453 "AstInternal.hs" #-}
+                  {-# LINE 3457 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3458 "AstInternal.hs" #-}
+                  {-# LINE 3462 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- MaybeBoolExpression -----------------------------------------
 {-
@@ -3500,19 +3504,19 @@ sem_MaybeBoolExpression_Just just_  =
               _lhsOannotatedTree :: MaybeBoolExpression
               -- copy rule (down)
               _justOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 3506 "AstInternal.hs" #-}
+                  {-# LINE 3510 "AstInternal.hs" #-}
               ( _justIannotatedTree,_justIliftedColumnName) =
                   (just_ _justOenv )
-              -- "./TypeChecking.ag"(line 955, column 9)
+              -- "./TypeChecking.ag"(line 960, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 955 "./TypeChecking.ag" #-}
+                  {-# LINE 960 "./TypeChecking.ag" #-}
                   if getTypeAnnotation _justIannotatedTree `notElem` [typeBool, TypeCheckFailed]
-                    then Just $ setAnnotation ((TypeErrorA ExpressionMustBeBool) :)
+                    then Just $ updateAnnotation ((TypeErrorA ExpressionMustBeBool) :)
                                   _justIannotatedTree
                     else Just $ _justIannotatedTree
-                  {-# LINE 3516 "AstInternal.hs" #-}
+                  {-# LINE 3520 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_MaybeBoolExpression_Nothing :: T_MaybeBoolExpression 
 sem_MaybeBoolExpression_Nothing  =
@@ -3520,14 +3524,14 @@ sem_MaybeBoolExpression_Nothing  =
          (let _lhsOannotatedTree :: MaybeBoolExpression
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Nothing
-                  {-# LINE 3526 "AstInternal.hs" #-}
+                  {-# LINE 3530 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3531 "AstInternal.hs" #-}
+                  {-# LINE 3535 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- MaybeExpression ---------------------------------------------
 {-
@@ -3577,26 +3581,26 @@ sem_MaybeExpression_Just just_  =
               _lhsOexprType :: (Maybe Type)
               -- copy rule (down)
               _justOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 3583 "AstInternal.hs" #-}
+                  {-# LINE 3587 "AstInternal.hs" #-}
               ( _justIannotatedTree,_justIliftedColumnName) =
                   (just_ _justOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Just _justIannotatedTree
-                  {-# LINE 3590 "AstInternal.hs" #-}
+                  {-# LINE 3594 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3595 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 964, column 12)
+                  {-# LINE 3599 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 969, column 12)
               _lhsOexprType =
-                  {-# LINE 964 "./TypeChecking.ag" #-}
+                  {-# LINE 969 "./TypeChecking.ag" #-}
                   Just $ getTypeAnnotation _justIannotatedTree
-                  {-# LINE 3600 "AstInternal.hs" #-}
+                  {-# LINE 3604 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOexprType)))
 sem_MaybeExpression_Nothing :: T_MaybeExpression 
 sem_MaybeExpression_Nothing  =
@@ -3605,19 +3609,19 @@ sem_MaybeExpression_Nothing  =
               _lhsOexprType :: (Maybe Type)
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Nothing
-                  {-# LINE 3611 "AstInternal.hs" #-}
+                  {-# LINE 3615 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3616 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 965, column 15)
+                  {-# LINE 3620 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 970, column 15)
               _lhsOexprType =
-                  {-# LINE 965 "./TypeChecking.ag" #-}
+                  {-# LINE 970 "./TypeChecking.ag" #-}
                   Nothing
-                  {-# LINE 3621 "AstInternal.hs" #-}
+                  {-# LINE 3625 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOexprType)))
 -- MaybeTableRef -----------------------------------------------
 {-
@@ -3670,31 +3674,31 @@ sem_MaybeTableRef_Just just_  =
               _lhsOjoinIdens :: ([String])
               -- copy rule (down)
               _justOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 3676 "AstInternal.hs" #-}
+                  {-# LINE 3680 "AstInternal.hs" #-}
               ( _justIannotatedTree,_justIidens,_justIjoinIdens) =
                   (just_ _justOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Just _justIannotatedTree
-                  {-# LINE 3683 "AstInternal.hs" #-}
+                  {-# LINE 3687 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3688 "AstInternal.hs" #-}
+                  {-# LINE 3692 "AstInternal.hs" #-}
               -- copy rule (up)
               _lhsOidens =
-                  {-# LINE 418 "./TypeChecking.ag" #-}
+                  {-# LINE 425 "./TypeChecking.ag" #-}
                   _justIidens
-                  {-# LINE 3693 "AstInternal.hs" #-}
+                  {-# LINE 3697 "AstInternal.hs" #-}
               -- copy rule (up)
               _lhsOjoinIdens =
-                  {-# LINE 419 "./TypeChecking.ag" #-}
+                  {-# LINE 426 "./TypeChecking.ag" #-}
                   _justIjoinIdens
-                  {-# LINE 3698 "AstInternal.hs" #-}
+                  {-# LINE 3702 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 sem_MaybeTableRef_Nothing :: T_MaybeTableRef 
 sem_MaybeTableRef_Nothing  =
@@ -3704,24 +3708,24 @@ sem_MaybeTableRef_Nothing  =
               _lhsOjoinIdens :: ([String])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Nothing
-                  {-# LINE 3710 "AstInternal.hs" #-}
+                  {-# LINE 3714 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3715 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 517, column 9)
+                  {-# LINE 3719 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 525, column 9)
               _lhsOidens =
-                  {-# LINE 517 "./TypeChecking.ag" #-}
+                  {-# LINE 525 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 3720 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 518, column 9)
+                  {-# LINE 3724 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 526, column 9)
               _lhsOjoinIdens =
-                  {-# LINE 518 "./TypeChecking.ag" #-}
+                  {-# LINE 526 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 3725 "AstInternal.hs" #-}
+                  {-# LINE 3729 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 -- Natural -----------------------------------------------------
 {-
@@ -3766,14 +3770,14 @@ sem_Natural_Natural  =
          (let _lhsOannotatedTree :: Natural
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Natural
-                  {-# LINE 3772 "AstInternal.hs" #-}
+                  {-# LINE 3776 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3777 "AstInternal.hs" #-}
+                  {-# LINE 3781 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_Natural_Unnatural :: T_Natural 
 sem_Natural_Unnatural  =
@@ -3781,14 +3785,14 @@ sem_Natural_Unnatural  =
          (let _lhsOannotatedTree :: Natural
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Unnatural
-                  {-# LINE 3787 "AstInternal.hs" #-}
+                  {-# LINE 3791 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3792 "AstInternal.hs" #-}
+                  {-# LINE 3796 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- OnExpr ------------------------------------------------------
 {-
@@ -3835,21 +3839,21 @@ sem_OnExpr_Just just_  =
               _lhsOannotatedTree :: OnExpr
               -- copy rule (down)
               _justOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 3841 "AstInternal.hs" #-}
+                  {-# LINE 3845 "AstInternal.hs" #-}
               ( _justIannotatedTree) =
                   (just_ _justOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Just _justIannotatedTree
-                  {-# LINE 3848 "AstInternal.hs" #-}
+                  {-# LINE 3852 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3853 "AstInternal.hs" #-}
+                  {-# LINE 3857 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_OnExpr_Nothing :: T_OnExpr 
 sem_OnExpr_Nothing  =
@@ -3857,14 +3861,14 @@ sem_OnExpr_Nothing  =
          (let _lhsOannotatedTree :: OnExpr
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Nothing
-                  {-# LINE 3863 "AstInternal.hs" #-}
+                  {-# LINE 3867 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3868 "AstInternal.hs" #-}
+                  {-# LINE 3872 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- ParamDef ----------------------------------------------------
 {-
@@ -3924,31 +3928,31 @@ sem_ParamDef_ParamDef ann_ name_ typ_  =
               _lhsOparamName :: String
               -- copy rule (down)
               _typOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 3930 "AstInternal.hs" #-}
+                  {-# LINE 3934 "AstInternal.hs" #-}
               ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ParamDef ann_ name_ _typIannotatedTree
-                  {-# LINE 3937 "AstInternal.hs" #-}
+                  {-# LINE 3941 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3942 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 903, column 9)
+                  {-# LINE 3946 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 908, column 9)
               _lhsOnamedType =
-                  {-# LINE 903 "./TypeChecking.ag" #-}
+                  {-# LINE 908 "./TypeChecking.ag" #-}
                   _typInamedType
-                  {-# LINE 3947 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 905, column 9)
+                  {-# LINE 3951 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 910, column 9)
               _lhsOparamName =
-                  {-# LINE 905 "./TypeChecking.ag" #-}
+                  {-# LINE 910 "./TypeChecking.ag" #-}
                   name_
-                  {-# LINE 3952 "AstInternal.hs" #-}
+                  {-# LINE 3956 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOnamedType,_lhsOparamName)))
 sem_ParamDef_ParamDefTp :: Annotation ->
                            T_TypeName  ->
@@ -3963,31 +3967,31 @@ sem_ParamDef_ParamDefTp ann_ typ_  =
               _lhsOparamName :: String
               -- copy rule (down)
               _typOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 3969 "AstInternal.hs" #-}
+                  {-# LINE 3973 "AstInternal.hs" #-}
               ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ParamDefTp ann_ _typIannotatedTree
-                  {-# LINE 3976 "AstInternal.hs" #-}
+                  {-# LINE 3980 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3981 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 903, column 9)
+                  {-# LINE 3985 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 908, column 9)
               _lhsOnamedType =
-                  {-# LINE 903 "./TypeChecking.ag" #-}
+                  {-# LINE 908 "./TypeChecking.ag" #-}
                   _typInamedType
-                  {-# LINE 3986 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 907, column 9)
+                  {-# LINE 3990 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 912, column 9)
               _lhsOparamName =
-                  {-# LINE 907 "./TypeChecking.ag" #-}
+                  {-# LINE 912 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 3991 "AstInternal.hs" #-}
+                  {-# LINE 3995 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOnamedType,_lhsOparamName)))
 -- ParamDefList ------------------------------------------------
 {-
@@ -4041,33 +4045,33 @@ sem_ParamDefList_Cons hd_ tl_  =
               _lhsOparams :: ([(String, Type)])
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4047 "AstInternal.hs" #-}
+                  {-# LINE 4051 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4052 "AstInternal.hs" #-}
+                  {-# LINE 4056 "AstInternal.hs" #-}
               ( _tlIannotatedTree,_tlIparams) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree,_hdInamedType,_hdIparamName) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 4061 "AstInternal.hs" #-}
+                  {-# LINE 4065 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4066 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 911, column 13)
+                  {-# LINE 4070 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 916, column 13)
               _lhsOparams =
-                  {-# LINE 911 "./TypeChecking.ag" #-}
+                  {-# LINE 916 "./TypeChecking.ag" #-}
                   ((_hdIparamName, _hdInamedType) : _tlIparams)
-                  {-# LINE 4071 "AstInternal.hs" #-}
+                  {-# LINE 4075 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOparams)))
 sem_ParamDefList_Nil :: T_ParamDefList 
 sem_ParamDefList_Nil  =
@@ -4076,19 +4080,19 @@ sem_ParamDefList_Nil  =
               _lhsOparams :: ([(String, Type)])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 4082 "AstInternal.hs" #-}
+                  {-# LINE 4086 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4087 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 910, column 12)
+                  {-# LINE 4091 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 915, column 12)
               _lhsOparams =
-                  {-# LINE 910 "./TypeChecking.ag" #-}
+                  {-# LINE 915 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 4092 "AstInternal.hs" #-}
+                  {-# LINE 4096 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOparams)))
 -- RaiseType ---------------------------------------------------
 {-
@@ -4139,14 +4143,14 @@ sem_RaiseType_RError  =
          (let _lhsOannotatedTree :: RaiseType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   RError
-                  {-# LINE 4145 "AstInternal.hs" #-}
+                  {-# LINE 4149 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4150 "AstInternal.hs" #-}
+                  {-# LINE 4154 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_RaiseType_RException :: T_RaiseType 
 sem_RaiseType_RException  =
@@ -4154,14 +4158,14 @@ sem_RaiseType_RException  =
          (let _lhsOannotatedTree :: RaiseType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   RException
-                  {-# LINE 4160 "AstInternal.hs" #-}
+                  {-# LINE 4164 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4165 "AstInternal.hs" #-}
+                  {-# LINE 4169 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_RaiseType_RNotice :: T_RaiseType 
 sem_RaiseType_RNotice  =
@@ -4169,14 +4173,14 @@ sem_RaiseType_RNotice  =
          (let _lhsOannotatedTree :: RaiseType
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   RNotice
-                  {-# LINE 4175 "AstInternal.hs" #-}
+                  {-# LINE 4179 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4180 "AstInternal.hs" #-}
+                  {-# LINE 4184 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- RestartIdentity ---------------------------------------------
 {-
@@ -4221,14 +4225,14 @@ sem_RestartIdentity_ContinueIdentity  =
          (let _lhsOannotatedTree :: RestartIdentity
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ContinueIdentity
-                  {-# LINE 4227 "AstInternal.hs" #-}
+                  {-# LINE 4231 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4232 "AstInternal.hs" #-}
+                  {-# LINE 4236 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_RestartIdentity_RestartIdentity :: T_RestartIdentity 
 sem_RestartIdentity_RestartIdentity  =
@@ -4236,14 +4240,14 @@ sem_RestartIdentity_RestartIdentity  =
          (let _lhsOannotatedTree :: RestartIdentity
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   RestartIdentity
-                  {-# LINE 4242 "AstInternal.hs" #-}
+                  {-# LINE 4246 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4247 "AstInternal.hs" #-}
+                  {-# LINE 4251 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- Root --------------------------------------------------------
 {-
@@ -4290,31 +4294,31 @@ sem_Root_Root statements_  =
               _lhsOproducedEnv :: Environment
               -- copy rule (down)
               _statementsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4296 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 325, column 12)
+                  {-# LINE 4300 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 330, column 12)
               _statementsOenvUpdates =
-                  {-# LINE 325 "./TypeChecking.ag" #-}
+                  {-# LINE 330 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 4301 "AstInternal.hs" #-}
+                  {-# LINE 4305 "AstInternal.hs" #-}
               ( _statementsIannotatedTree,_statementsIproducedEnv) =
                   (statements_ _statementsOenv _statementsOenvUpdates )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Root _statementsIannotatedTree
-                  {-# LINE 4308 "AstInternal.hs" #-}
+                  {-# LINE 4312 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4313 "AstInternal.hs" #-}
+                  {-# LINE 4317 "AstInternal.hs" #-}
               -- copy rule (up)
               _lhsOproducedEnv =
-                  {-# LINE 54 "./TypeChecking.ag" #-}
+                  {-# LINE 59 "./TypeChecking.ag" #-}
                   _statementsIproducedEnv
-                  {-# LINE 4318 "AstInternal.hs" #-}
+                  {-# LINE 4322 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOproducedEnv)))
 -- RowConstraint -----------------------------------------------
 {-
@@ -4395,14 +4399,14 @@ sem_RowConstraint_NotNullConstraint ann_  =
          (let _lhsOannotatedTree :: RowConstraint
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   NotNullConstraint ann_
-                  {-# LINE 4401 "AstInternal.hs" #-}
+                  {-# LINE 4405 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4406 "AstInternal.hs" #-}
+                  {-# LINE 4410 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_RowConstraint_NullConstraint :: Annotation ->
                                     T_RowConstraint 
@@ -4411,14 +4415,14 @@ sem_RowConstraint_NullConstraint ann_  =
          (let _lhsOannotatedTree :: RowConstraint
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   NullConstraint ann_
-                  {-# LINE 4417 "AstInternal.hs" #-}
+                  {-# LINE 4421 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4422 "AstInternal.hs" #-}
+                  {-# LINE 4426 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_RowConstraint_RowCheckConstraint :: Annotation ->
                                         T_Expression  ->
@@ -4431,21 +4435,21 @@ sem_RowConstraint_RowCheckConstraint ann_ expression_  =
               _lhsOannotatedTree :: RowConstraint
               -- copy rule (down)
               _expressionOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4437 "AstInternal.hs" #-}
+                  {-# LINE 4441 "AstInternal.hs" #-}
               ( _expressionIannotatedTree,_expressionIliftedColumnName) =
                   (expression_ _expressionOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   RowCheckConstraint ann_ _expressionIannotatedTree
-                  {-# LINE 4444 "AstInternal.hs" #-}
+                  {-# LINE 4448 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4449 "AstInternal.hs" #-}
+                  {-# LINE 4453 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_RowConstraint_RowPrimaryKeyConstraint :: Annotation ->
                                              T_RowConstraint 
@@ -4454,14 +4458,14 @@ sem_RowConstraint_RowPrimaryKeyConstraint ann_  =
          (let _lhsOannotatedTree :: RowConstraint
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   RowPrimaryKeyConstraint ann_
-                  {-# LINE 4460 "AstInternal.hs" #-}
+                  {-# LINE 4464 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4465 "AstInternal.hs" #-}
+                  {-# LINE 4469 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_RowConstraint_RowReferenceConstraint :: Annotation ->
                                             String ->
@@ -4478,28 +4482,28 @@ sem_RowConstraint_RowReferenceConstraint ann_ table_ att_ onUpdate_ onDelete_  =
               _lhsOannotatedTree :: RowConstraint
               -- copy rule (down)
               _onDeleteOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4484 "AstInternal.hs" #-}
+                  {-# LINE 4488 "AstInternal.hs" #-}
               ( _onDeleteIannotatedTree) =
                   (onDelete_ _onDeleteOenv )
               -- copy rule (down)
               _onUpdateOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4491 "AstInternal.hs" #-}
+                  {-# LINE 4495 "AstInternal.hs" #-}
               ( _onUpdateIannotatedTree) =
                   (onUpdate_ _onUpdateOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   RowReferenceConstraint ann_ table_ att_ _onUpdateIannotatedTree _onDeleteIannotatedTree
-                  {-# LINE 4498 "AstInternal.hs" #-}
+                  {-# LINE 4502 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4503 "AstInternal.hs" #-}
+                  {-# LINE 4507 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_RowConstraint_RowUniqueConstraint :: Annotation ->
                                          T_RowConstraint 
@@ -4508,14 +4512,14 @@ sem_RowConstraint_RowUniqueConstraint ann_  =
          (let _lhsOannotatedTree :: RowConstraint
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   RowUniqueConstraint ann_
-                  {-# LINE 4514 "AstInternal.hs" #-}
+                  {-# LINE 4518 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4519 "AstInternal.hs" #-}
+                  {-# LINE 4523 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- RowConstraintList -------------------------------------------
 {-
@@ -4564,28 +4568,28 @@ sem_RowConstraintList_Cons hd_ tl_  =
               _lhsOannotatedTree :: RowConstraintList
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4570 "AstInternal.hs" #-}
+                  {-# LINE 4574 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4575 "AstInternal.hs" #-}
+                  {-# LINE 4579 "AstInternal.hs" #-}
               ( _tlIannotatedTree) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 4584 "AstInternal.hs" #-}
+                  {-# LINE 4588 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4589 "AstInternal.hs" #-}
+                  {-# LINE 4593 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_RowConstraintList_Nil :: T_RowConstraintList 
 sem_RowConstraintList_Nil  =
@@ -4593,14 +4597,14 @@ sem_RowConstraintList_Nil  =
          (let _lhsOannotatedTree :: RowConstraintList
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 4599 "AstInternal.hs" #-}
+                  {-# LINE 4603 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4604 "AstInternal.hs" #-}
+                  {-# LINE 4608 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- SelectExpression --------------------------------------------
 {-
@@ -4682,48 +4686,48 @@ sem_SelectExpression_CombineSelect ann_ ctype_ sel1_ sel2_  =
               _lhsOannotatedTree :: SelectExpression
               -- copy rule (down)
               _sel2Oenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4688 "AstInternal.hs" #-}
+                  {-# LINE 4692 "AstInternal.hs" #-}
               -- copy rule (down)
               _sel1Oenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4693 "AstInternal.hs" #-}
+                  {-# LINE 4697 "AstInternal.hs" #-}
               ( _sel2IannotatedTree) =
                   (sel2_ _sel2Oenv )
               ( _sel1IannotatedTree) =
                   (sel1_ _sel1Oenv )
               -- copy rule (down)
               _ctypeOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4702 "AstInternal.hs" #-}
+                  {-# LINE 4706 "AstInternal.hs" #-}
               ( _ctypeIannotatedTree) =
                   (ctype_ _ctypeOenv )
-              -- "./TypeChecking.ag"(line 410, column 9)
+              -- "./TypeChecking.ag"(line 417, column 9)
               _backTree =
-                  {-# LINE 410 "./TypeChecking.ag" #-}
+                  {-# LINE 417 "./TypeChecking.ag" #-}
                   CombineSelect ann_ _ctypeIannotatedTree
                                 _sel1IannotatedTree
                                 _sel2IannotatedTree
-                  {-# LINE 4711 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 405, column 9)
+                  {-# LINE 4715 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 412, column 9)
               _tpe =
-                  {-# LINE 405 "./TypeChecking.ag" #-}
+                  {-# LINE 412 "./TypeChecking.ag" #-}
                   let sel1t = getTypeAnnotation _sel1IannotatedTree
                       sel2t = getTypeAnnotation _sel2IannotatedTree
                   in chainTypeCheckFailed [sel1t, sel2t] $
                         typeCheckCombineSelect _lhsIenv sel1t sel2t
-                  {-# LINE 4719 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 372, column 9)
+                  {-# LINE 4723 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 379, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 372 "./TypeChecking.ag" #-}
+                  {-# LINE 379 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 4727 "AstInternal.hs" #-}
+                  {-# LINE 4731 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_SelectExpression_Select :: Annotation ->
                                T_Distinct  ->
@@ -4769,63 +4773,63 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
               _lhsOannotatedTree :: SelectExpression
               -- copy rule (down)
               _selOffsetOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4775 "AstInternal.hs" #-}
+                  {-# LINE 4779 "AstInternal.hs" #-}
               -- copy rule (down)
               _selLimitOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4780 "AstInternal.hs" #-}
+                  {-# LINE 4784 "AstInternal.hs" #-}
               -- copy rule (down)
               _selOrderByOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4785 "AstInternal.hs" #-}
+                  {-# LINE 4789 "AstInternal.hs" #-}
               -- copy rule (down)
               _selHavingOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4790 "AstInternal.hs" #-}
+                  {-# LINE 4794 "AstInternal.hs" #-}
               -- copy rule (down)
               _selGroupByOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4795 "AstInternal.hs" #-}
+                  {-# LINE 4799 "AstInternal.hs" #-}
               -- copy rule (down)
               _selTrefOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4800 "AstInternal.hs" #-}
+                  {-# LINE 4804 "AstInternal.hs" #-}
               ( _selTrefIannotatedTree,_selTrefIidens,_selTrefIjoinIdens) =
                   (selTref_ _selTrefOenv )
-              -- "./TypeChecking.ag"(line 590, column 10)
+              -- "./TypeChecking.ag"(line 597, column 10)
               _newEnv =
-                  {-# LINE 590 "./TypeChecking.ag" #-}
+                  {-# LINE 597 "./TypeChecking.ag" #-}
                   case updateEnvironment _lhsIenv
                         (convertToNewStyleUpdates _selTrefIidens _selTrefIjoinIdens) of
                     Left x -> error $ show x
                     Right e -> e
-                  {-# LINE 4810 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 595, column 10)
+                  {-# LINE 4814 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 602, column 10)
               _selWhereOenv =
-                  {-# LINE 595 "./TypeChecking.ag" #-}
+                  {-# LINE 602 "./TypeChecking.ag" #-}
                   _newEnv
-                  {-# LINE 4815 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 594, column 10)
+                  {-# LINE 4819 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 601, column 10)
               _selSelectListOenv =
-                  {-# LINE 594 "./TypeChecking.ag" #-}
+                  {-# LINE 601 "./TypeChecking.ag" #-}
                   _newEnv
-                  {-# LINE 4820 "AstInternal.hs" #-}
+                  {-# LINE 4824 "AstInternal.hs" #-}
               ( _selOffsetIannotatedTree,_selOffsetIexprType) =
                   (selOffset_ _selOffsetOenv )
               ( _selLimitIannotatedTree,_selLimitIexprType) =
                   (selLimit_ _selLimitOenv )
               -- copy rule (down)
               _selDirOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4829 "AstInternal.hs" #-}
+                  {-# LINE 4833 "AstInternal.hs" #-}
               ( _selDirIannotatedTree) =
                   (selDir_ _selDirOenv )
               ( _selOrderByIannotatedTree,_selOrderByItypeList) =
@@ -4840,14 +4844,14 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
                   (selSelectList_ _selSelectListOenv )
               -- copy rule (down)
               _selDistinctOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4846 "AstInternal.hs" #-}
+                  {-# LINE 4850 "AstInternal.hs" #-}
               ( _selDistinctIannotatedTree) =
                   (selDistinct_ _selDistinctOenv )
-              -- "./TypeChecking.ag"(line 393, column 9)
+              -- "./TypeChecking.ag"(line 400, column 9)
               _backTree =
-                  {-# LINE 393 "./TypeChecking.ag" #-}
+                  {-# LINE 400 "./TypeChecking.ag" #-}
                   Select ann_
                          _selDistinctIannotatedTree
                          _selSelectListIannotatedTree
@@ -4859,10 +4863,10 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
                          _selDirIannotatedTree
                          _selLimitIannotatedTree
                          _selOffsetIannotatedTree
-                  {-# LINE 4863 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 384, column 9)
+                  {-# LINE 4867 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 391, column 9)
               _tpe =
-                  {-# LINE 384 "./TypeChecking.ag" #-}
+                  {-# LINE 391 "./TypeChecking.ag" #-}
                   do
                   let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
                                                            _selTrefIannotatedTree
@@ -4871,15 +4875,15 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
                     Right $ case slType of
                               UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
                               _ -> SetOfType slType
-                  {-# LINE 4875 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 372, column 9)
+                  {-# LINE 4879 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 379, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 372 "./TypeChecking.ag" #-}
+                  {-# LINE 379 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 4883 "AstInternal.hs" #-}
+                  {-# LINE 4887 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_SelectExpression_Values :: Annotation ->
                                T_ExpressionListList  ->
@@ -4892,31 +4896,31 @@ sem_SelectExpression_Values ann_ vll_  =
               _lhsOannotatedTree :: SelectExpression
               -- copy rule (down)
               _vllOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4898 "AstInternal.hs" #-}
+                  {-# LINE 4902 "AstInternal.hs" #-}
               ( _vllIannotatedTree,_vllItypeListList) =
                   (vll_ _vllOenv )
-              -- "./TypeChecking.ag"(line 382, column 9)
+              -- "./TypeChecking.ag"(line 389, column 9)
               _backTree =
-                  {-# LINE 382 "./TypeChecking.ag" #-}
+                  {-# LINE 389 "./TypeChecking.ag" #-}
                   Values ann_ _vllIannotatedTree
-                  {-# LINE 4905 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 379, column 9)
+                  {-# LINE 4909 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 386, column 9)
               _tpe =
-                  {-# LINE 379 "./TypeChecking.ag" #-}
+                  {-# LINE 386 "./TypeChecking.ag" #-}
                   typeCheckValuesExpr
                               _lhsIenv
                               _vllItypeListList
-                  {-# LINE 4912 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 372, column 9)
+                  {-# LINE 4916 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 379, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 372 "./TypeChecking.ag" #-}
+                  {-# LINE 379 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 4920 "AstInternal.hs" #-}
+                  {-# LINE 4924 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- SelectItem --------------------------------------------------
 {-
@@ -4975,33 +4979,33 @@ sem_SelectItem_SelExp ann_ ex_  =
               _lhsOitemType :: Type
               -- copy rule (down)
               _exOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 4981 "AstInternal.hs" #-}
+                  {-# LINE 4985 "AstInternal.hs" #-}
               ( _exIannotatedTree,_exIliftedColumnName) =
                   (ex_ _exOenv )
-              -- "./TypeChecking.ag"(line 535, column 9)
+              -- "./TypeChecking.ag"(line 543, column 9)
               _annotatedTree =
-                  {-# LINE 535 "./TypeChecking.ag" #-}
+                  {-# LINE 543 "./TypeChecking.ag" #-}
                   SelExp ann_ $ fixStar _exIannotatedTree
-                  {-# LINE 4988 "AstInternal.hs" #-}
+                  {-# LINE 4992 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4993 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 648, column 14)
+                  {-# LINE 4997 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 655, column 14)
               _lhsOcolumnName =
-                  {-# LINE 648 "./TypeChecking.ag" #-}
+                  {-# LINE 655 "./TypeChecking.ag" #-}
                   case _exIliftedColumnName of
                     "" -> "?column?"
                     s -> s
-                  {-# LINE 5000 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 530, column 9)
+                  {-# LINE 5004 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 538, column 9)
               _lhsOitemType =
-                  {-# LINE 530 "./TypeChecking.ag" #-}
+                  {-# LINE 538 "./TypeChecking.ag" #-}
                   getTypeAnnotation _exIannotatedTree
-                  {-# LINE 5005 "AstInternal.hs" #-}
+                  {-# LINE 5009 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOcolumnName,_lhsOitemType)))
 sem_SelectItem_SelectItem :: Annotation ->
                              T_Expression  ->
@@ -5017,31 +5021,31 @@ sem_SelectItem_SelectItem ann_ ex_ name_  =
               _lhsOitemType :: Type
               -- copy rule (down)
               _exOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5023 "AstInternal.hs" #-}
+                  {-# LINE 5027 "AstInternal.hs" #-}
               ( _exIannotatedTree,_exIliftedColumnName) =
                   (ex_ _exOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   SelectItem ann_ _exIannotatedTree name_
-                  {-# LINE 5030 "AstInternal.hs" #-}
+                  {-# LINE 5034 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5035 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 651, column 18)
+                  {-# LINE 5039 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 658, column 18)
               _lhsOcolumnName =
-                  {-# LINE 651 "./TypeChecking.ag" #-}
+                  {-# LINE 658 "./TypeChecking.ag" #-}
                   name_
-                  {-# LINE 5040 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 530, column 9)
+                  {-# LINE 5044 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 538, column 9)
               _lhsOitemType =
-                  {-# LINE 530 "./TypeChecking.ag" #-}
+                  {-# LINE 538 "./TypeChecking.ag" #-}
                   getTypeAnnotation _exIannotatedTree
-                  {-# LINE 5045 "AstInternal.hs" #-}
+                  {-# LINE 5049 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOcolumnName,_lhsOitemType)))
 -- SelectItemList ----------------------------------------------
 {-
@@ -5095,33 +5099,33 @@ sem_SelectItemList_Cons hd_ tl_  =
               _lhsOlistType :: Type
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5101 "AstInternal.hs" #-}
+                  {-# LINE 5105 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5106 "AstInternal.hs" #-}
+                  {-# LINE 5110 "AstInternal.hs" #-}
               ( _tlIannotatedTree,_tlIlistType) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree,_hdIcolumnName,_hdIitemType) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 5115 "AstInternal.hs" #-}
+                  {-# LINE 5119 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5120 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 523, column 12)
+                  {-# LINE 5124 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 531, column 12)
               _lhsOlistType =
-                  {-# LINE 523 "./TypeChecking.ag" #-}
+                  {-# LINE 531 "./TypeChecking.ag" #-}
                   doSelectItemListTpe _lhsIenv _hdIcolumnName _hdIitemType _tlIlistType
-                  {-# LINE 5125 "AstInternal.hs" #-}
+                  {-# LINE 5129 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOlistType)))
 sem_SelectItemList_Nil :: T_SelectItemList 
 sem_SelectItemList_Nil  =
@@ -5130,19 +5134,19 @@ sem_SelectItemList_Nil  =
               _lhsOlistType :: Type
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 5136 "AstInternal.hs" #-}
+                  {-# LINE 5140 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5141 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 524, column 11)
+                  {-# LINE 5145 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 532, column 11)
               _lhsOlistType =
-                  {-# LINE 524 "./TypeChecking.ag" #-}
+                  {-# LINE 532 "./TypeChecking.ag" #-}
                   UnnamedCompositeType []
-                  {-# LINE 5146 "AstInternal.hs" #-}
+                  {-# LINE 5150 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOlistType)))
 -- SelectList --------------------------------------------------
 {-
@@ -5195,33 +5199,33 @@ sem_SelectList_SelectList ann_ items_ stringList_  =
               _lhsOlistType :: Type
               -- copy rule (down)
               _itemsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5201 "AstInternal.hs" #-}
+                  {-# LINE 5205 "AstInternal.hs" #-}
               -- copy rule (down)
               _stringListOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5206 "AstInternal.hs" #-}
+                  {-# LINE 5210 "AstInternal.hs" #-}
               ( _stringListIannotatedTree,_stringListIstrings) =
                   (stringList_ _stringListOenv )
               ( _itemsIannotatedTree,_itemsIlistType) =
                   (items_ _itemsOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   SelectList ann_ _itemsIannotatedTree _stringListIannotatedTree
-                  {-# LINE 5215 "AstInternal.hs" #-}
+                  {-# LINE 5219 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5220 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 565, column 9)
+                  {-# LINE 5224 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 571, column 9)
               _lhsOlistType =
-                  {-# LINE 565 "./TypeChecking.ag" #-}
+                  {-# LINE 571 "./TypeChecking.ag" #-}
                   _itemsIlistType
-                  {-# LINE 5225 "AstInternal.hs" #-}
+                  {-# LINE 5229 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOlistType)))
 -- SetClause ---------------------------------------------------
 {-
@@ -5286,47 +5290,47 @@ sem_SetClause_RowSetClause ann_ atts_ vals_  =
               _lhsOrowSetError :: (Maybe TypeError)
               -- copy rule (down)
               _valsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5292 "AstInternal.hs" #-}
+                  {-# LINE 5296 "AstInternal.hs" #-}
               ( _valsIannotatedTree,_valsItypeList) =
                   (vals_ _valsOenv )
               -- copy rule (down)
               _attsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5299 "AstInternal.hs" #-}
+                  {-# LINE 5303 "AstInternal.hs" #-}
               ( _attsIannotatedTree,_attsIstrings) =
                   (atts_ _attsOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   RowSetClause ann_ _attsIannotatedTree _valsIannotatedTree
-                  {-# LINE 5306 "AstInternal.hs" #-}
+                  {-# LINE 5310 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5311 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 737, column 9)
+                  {-# LINE 5315 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 744, column 9)
               _lhsOpairs =
-                  {-# LINE 737 "./TypeChecking.ag" #-}
+                  {-# LINE 744 "./TypeChecking.ag" #-}
                   zip _attsIstrings $ getRowTypes _valsItypeList
-                  {-# LINE 5316 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 731, column 9)
+                  {-# LINE 5320 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 738, column 9)
               _rowSetError =
-                  {-# LINE 731 "./TypeChecking.ag" #-}
+                  {-# LINE 738 "./TypeChecking.ag" #-}
                   let atts = _attsIstrings
                       types = getRowTypes _valsItypeList
                   in if length atts /= length types
                        then Just WrongNumberOfColumns
                        else Nothing
-                  {-# LINE 5325 "AstInternal.hs" #-}
+                  {-# LINE 5329 "AstInternal.hs" #-}
               -- copy rule (from local)
               _lhsOrowSetError =
-                  {-# LINE 724 "./TypeChecking.ag" #-}
+                  {-# LINE 731 "./TypeChecking.ag" #-}
                   _rowSetError
-                  {-# LINE 5330 "AstInternal.hs" #-}
+                  {-# LINE 5334 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOpairs,_lhsOrowSetError)))
 sem_SetClause_SetClause :: Annotation ->
                            String ->
@@ -5342,31 +5346,31 @@ sem_SetClause_SetClause ann_ att_ val_  =
               _lhsOrowSetError :: (Maybe TypeError)
               -- copy rule (down)
               _valOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5348 "AstInternal.hs" #-}
+                  {-# LINE 5352 "AstInternal.hs" #-}
               ( _valIannotatedTree,_valIliftedColumnName) =
                   (val_ _valOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   SetClause ann_ att_ _valIannotatedTree
-                  {-# LINE 5355 "AstInternal.hs" #-}
+                  {-# LINE 5359 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5360 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 728, column 9)
+                  {-# LINE 5364 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 735, column 9)
               _lhsOpairs =
-                  {-# LINE 728 "./TypeChecking.ag" #-}
+                  {-# LINE 735 "./TypeChecking.ag" #-}
                   [(att_, getTypeAnnotation _valIannotatedTree)]
-                  {-# LINE 5365 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 729, column 9)
+                  {-# LINE 5369 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 736, column 9)
               _lhsOrowSetError =
-                  {-# LINE 729 "./TypeChecking.ag" #-}
+                  {-# LINE 736 "./TypeChecking.ag" #-}
                   Nothing
-                  {-# LINE 5370 "AstInternal.hs" #-}
+                  {-# LINE 5374 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOpairs,_lhsOrowSetError)))
 -- SetClauseList -----------------------------------------------
 {-
@@ -5423,38 +5427,38 @@ sem_SetClauseList_Cons hd_ tl_  =
               _lhsOrowSetErrors :: ([TypeError])
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5429 "AstInternal.hs" #-}
+                  {-# LINE 5433 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5434 "AstInternal.hs" #-}
+                  {-# LINE 5438 "AstInternal.hs" #-}
               ( _tlIannotatedTree,_tlIpairs,_tlIrowSetErrors) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree,_hdIpairs,_hdIrowSetError) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 5443 "AstInternal.hs" #-}
+                  {-# LINE 5447 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5448 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 718, column 10)
+                  {-# LINE 5452 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 725, column 10)
               _lhsOpairs =
-                  {-# LINE 718 "./TypeChecking.ag" #-}
+                  {-# LINE 725 "./TypeChecking.ag" #-}
                   _hdIpairs ++ _tlIpairs
-                  {-# LINE 5453 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 719, column 10)
+                  {-# LINE 5457 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 726, column 10)
               _lhsOrowSetErrors =
-                  {-# LINE 719 "./TypeChecking.ag" #-}
+                  {-# LINE 726 "./TypeChecking.ag" #-}
                   maybeToList _hdIrowSetError ++ _tlIrowSetErrors
-                  {-# LINE 5458 "AstInternal.hs" #-}
+                  {-# LINE 5462 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOpairs,_lhsOrowSetErrors)))
 sem_SetClauseList_Nil :: T_SetClauseList 
 sem_SetClauseList_Nil  =
@@ -5464,24 +5468,24 @@ sem_SetClauseList_Nil  =
               _lhsOrowSetErrors :: ([TypeError])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 5470 "AstInternal.hs" #-}
+                  {-# LINE 5474 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5475 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 720, column 9)
+                  {-# LINE 5479 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 727, column 9)
               _lhsOpairs =
-                  {-# LINE 720 "./TypeChecking.ag" #-}
+                  {-# LINE 727 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 5480 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 721, column 9)
+                  {-# LINE 5484 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 728, column 9)
               _lhsOrowSetErrors =
-                  {-# LINE 721 "./TypeChecking.ag" #-}
+                  {-# LINE 728 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 5485 "AstInternal.hs" #-}
+                  {-# LINE 5489 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOpairs,_lhsOrowSetErrors)))
 -- Statement ---------------------------------------------------
 {-
@@ -5839,26 +5843,26 @@ sem_Statement_Assignment ann_ target_ value_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _valueOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5845 "AstInternal.hs" #-}
+                  {-# LINE 5849 "AstInternal.hs" #-}
               ( _valueIannotatedTree,_valueIliftedColumnName) =
                   (value_ _valueOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Assignment ann_ target_ _valueIannotatedTree
-                  {-# LINE 5852 "AstInternal.hs" #-}
+                  {-# LINE 5856 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5857 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 5861 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 5862 "AstInternal.hs" #-}
+                  {-# LINE 5866 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CaseStatement :: Annotation ->
                                T_Expression  ->
@@ -5880,24 +5884,24 @@ sem_Statement_CaseStatement ann_ val_ cases_ els_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _elsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5886 "AstInternal.hs" #-}
+                  {-# LINE 5890 "AstInternal.hs" #-}
               -- copy rule (down)
               _casesOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5891 "AstInternal.hs" #-}
+                  {-# LINE 5895 "AstInternal.hs" #-}
               -- copy rule (down)
               _valOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5896 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 347, column 24)
+                  {-# LINE 5900 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 352, column 24)
               _elsOenvUpdates =
-                  {-# LINE 347 "./TypeChecking.ag" #-}
+                  {-# LINE 352 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 5901 "AstInternal.hs" #-}
+                  {-# LINE 5905 "AstInternal.hs" #-}
               ( _elsIannotatedTree,_elsIproducedEnv) =
                   (els_ _elsOenv _elsOenvUpdates )
               ( _casesIannotatedTree) =
@@ -5906,19 +5910,19 @@ sem_Statement_CaseStatement ann_ val_ cases_ els_  =
                   (val_ _valOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   CaseStatement ann_ _valIannotatedTree _casesIannotatedTree _elsIannotatedTree
-                  {-# LINE 5912 "AstInternal.hs" #-}
+                  {-# LINE 5916 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5917 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 5921 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 5922 "AstInternal.hs" #-}
+                  {-# LINE 5926 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ContinueStatement :: Annotation ->
                                    T_Statement 
@@ -5928,19 +5932,19 @@ sem_Statement_ContinueStatement ann_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ContinueStatement ann_
-                  {-# LINE 5934 "AstInternal.hs" #-}
+                  {-# LINE 5938 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5939 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 5943 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 5944 "AstInternal.hs" #-}
+                  {-# LINE 5948 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Copy :: Annotation ->
                       String ->
@@ -5958,33 +5962,33 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _sourceOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5964 "AstInternal.hs" #-}
+                  {-# LINE 5968 "AstInternal.hs" #-}
               ( _sourceIannotatedTree) =
                   (source_ _sourceOenv )
               -- copy rule (down)
               _targetColsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 5971 "AstInternal.hs" #-}
+                  {-# LINE 5975 "AstInternal.hs" #-}
               ( _targetColsIannotatedTree,_targetColsIstrings) =
                   (targetCols_ _targetColsOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Copy ann_ table_ _targetColsIannotatedTree _sourceIannotatedTree
-                  {-# LINE 5978 "AstInternal.hs" #-}
+                  {-# LINE 5982 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 5983 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 5987 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 5988 "AstInternal.hs" #-}
+                  {-# LINE 5992 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CopyData :: Annotation ->
                           String ->
@@ -5995,19 +5999,19 @@ sem_Statement_CopyData ann_ insData_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   CopyData ann_ insData_
-                  {-# LINE 6001 "AstInternal.hs" #-}
+                  {-# LINE 6005 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6006 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6010 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6011 "AstInternal.hs" #-}
+                  {-# LINE 6015 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateDomain :: Annotation ->
                               String ->
@@ -6025,52 +6029,52 @@ sem_Statement_CreateDomain ann_ name_ typ_ check_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _checkOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6031 "AstInternal.hs" #-}
+                  {-# LINE 6035 "AstInternal.hs" #-}
               -- copy rule (down)
               _typOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6036 "AstInternal.hs" #-}
+                  {-# LINE 6040 "AstInternal.hs" #-}
               ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOenv )
-              -- "./TypeChecking.ag"(line 868, column 9)
+              -- "./TypeChecking.ag"(line 870, column 9)
               _envUpdates =
-                  {-# LINE 868 "./TypeChecking.ag" #-}
+                  {-# LINE 870 "./TypeChecking.ag" #-}
                   [EnvCreateDomain (ScalarType name_) _typInamedType]
-                  {-# LINE 6043 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 867, column 9)
+                  {-# LINE 6047 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 869, column 9)
               _statementInfo =
-                  {-# LINE 867 "./TypeChecking.ag" #-}
+                  {-# LINE 869 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6048 "AstInternal.hs" #-}
+                  {-# LINE 6052 "AstInternal.hs" #-}
               ( _checkIannotatedTree) =
                   (check_ _checkOenv )
-              -- "./TypeChecking.ag"(line 866, column 9)
+              -- "./TypeChecking.ag"(line 868, column 9)
               _backTree =
-                  {-# LINE 866 "./TypeChecking.ag" #-}
+                  {-# LINE 868 "./TypeChecking.ag" #-}
                   CreateDomain ann_ name_ _typIannotatedTree _checkIannotatedTree
-                  {-# LINE 6055 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 865, column 9)
+                  {-# LINE 6059 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 867, column 9)
               _tpe =
-                  {-# LINE 865 "./TypeChecking.ag" #-}
+                  {-# LINE 867 "./TypeChecking.ag" #-}
                   Right $ Pseudo Void
-                  {-# LINE 6060 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 305, column 9)
+                  {-# LINE 6064 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 310, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 305 "./TypeChecking.ag" #-}
+                  {-# LINE 310 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
-                  {-# LINE 6069 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 310, column 9)
+                  {-# LINE 6073 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 315, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 310 "./TypeChecking.ag" #-}
+                  {-# LINE 315 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 6074 "AstInternal.hs" #-}
+                  {-# LINE 6078 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateFunction :: Annotation ->
                                 T_Language  ->
@@ -6099,54 +6103,54 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _rettypeOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6105 "AstInternal.hs" #-}
+                  {-# LINE 6109 "AstInternal.hs" #-}
               -- copy rule (down)
               _paramsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6110 "AstInternal.hs" #-}
+                  {-# LINE 6114 "AstInternal.hs" #-}
               ( _paramsIannotatedTree,_paramsIparams) =
                   (params_ _paramsOenv )
-              -- "./TypeChecking.ag"(line 927, column 9)
+              -- "./TypeChecking.ag"(line 932, column 9)
               _bodyOenv =
-                  {-# LINE 927 "./TypeChecking.ag" #-}
+                  {-# LINE 932 "./TypeChecking.ag" #-}
                   fromRight _lhsIenv $
                   updateEnvironment _lhsIenv [EnvStackIDs [("", _paramsIparams)
                                                           ,(name_, _paramsIparams)]]
-                  {-# LINE 6119 "AstInternal.hs" #-}
+                  {-# LINE 6123 "AstInternal.hs" #-}
               ( _rettypeIannotatedTree,_rettypeInamedType) =
                   (rettype_ _rettypeOenv )
-              -- "./TypeChecking.ag"(line 925, column 9)
+              -- "./TypeChecking.ag"(line 930, column 9)
               _envUpdates =
-                  {-# LINE 925 "./TypeChecking.ag" #-}
+                  {-# LINE 930 "./TypeChecking.ag" #-}
                   [EnvCreateFunction FunName name_ (map snd _paramsIparams) _rettypeInamedType]
-                  {-# LINE 6126 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 924, column 9)
+                  {-# LINE 6130 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 929, column 9)
               _statementInfo =
-                  {-# LINE 924 "./TypeChecking.ag" #-}
+                  {-# LINE 929 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6131 "AstInternal.hs" #-}
+                  {-# LINE 6135 "AstInternal.hs" #-}
               -- copy rule (down)
               _volOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6136 "AstInternal.hs" #-}
+                  {-# LINE 6140 "AstInternal.hs" #-}
               ( _volIannotatedTree) =
                   (vol_ _volOenv )
               ( _bodyIannotatedTree) =
                   (body_ _bodyOenv )
               -- copy rule (down)
               _langOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6145 "AstInternal.hs" #-}
+                  {-# LINE 6149 "AstInternal.hs" #-}
               ( _langIannotatedTree) =
                   (lang_ _langOenv )
-              -- "./TypeChecking.ag"(line 916, column 9)
+              -- "./TypeChecking.ag"(line 921, column 9)
               _backTree =
-                  {-# LINE 916 "./TypeChecking.ag" #-}
+                  {-# LINE 921 "./TypeChecking.ag" #-}
                   CreateFunction ann_
                                  _langIannotatedTree
                                  name_
@@ -6155,26 +6159,26 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
                                  bodyQuote_
                                  _bodyIannotatedTree
                                  _volIannotatedTree
-                  {-# LINE 6159 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 915, column 9)
+                  {-# LINE 6163 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 920, column 9)
               _tpe =
-                  {-# LINE 915 "./TypeChecking.ag" #-}
+                  {-# LINE 920 "./TypeChecking.ag" #-}
                   Right $ Pseudo Void
-                  {-# LINE 6164 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 305, column 9)
+                  {-# LINE 6168 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 310, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 305 "./TypeChecking.ag" #-}
+                  {-# LINE 310 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
-                  {-# LINE 6173 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 310, column 9)
+                  {-# LINE 6177 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 315, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 310 "./TypeChecking.ag" #-}
+                  {-# LINE 315 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 6178 "AstInternal.hs" #-}
+                  {-# LINE 6182 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateTable :: Annotation ->
                              String ->
@@ -6192,52 +6196,52 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _consOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6198 "AstInternal.hs" #-}
+                  {-# LINE 6202 "AstInternal.hs" #-}
               -- copy rule (down)
               _attsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6203 "AstInternal.hs" #-}
+                  {-# LINE 6207 "AstInternal.hs" #-}
               ( _attsIannotatedTree,_attsIattrs) =
                   (atts_ _attsOenv )
-              -- "./TypeChecking.ag"(line 792, column 9)
+              -- "./TypeChecking.ag"(line 799, column 9)
               _envUpdates =
-                  {-# LINE 792 "./TypeChecking.ag" #-}
+                  {-# LINE 799 "./TypeChecking.ag" #-}
                   [EnvCreateTable name_ _attsIattrs []]
-                  {-# LINE 6210 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 791, column 9)
+                  {-# LINE 6214 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 798, column 9)
               _statementInfo =
-                  {-# LINE 791 "./TypeChecking.ag" #-}
+                  {-# LINE 798 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6215 "AstInternal.hs" #-}
+                  {-# LINE 6219 "AstInternal.hs" #-}
               ( _consIannotatedTree) =
                   (cons_ _consOenv )
-              -- "./TypeChecking.ag"(line 790, column 9)
+              -- "./TypeChecking.ag"(line 797, column 9)
               _backTree =
-                  {-# LINE 790 "./TypeChecking.ag" #-}
+                  {-# LINE 797 "./TypeChecking.ag" #-}
                   CreateTable ann_ name_ _attsIannotatedTree _consIannotatedTree
-                  {-# LINE 6222 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 789, column 9)
+                  {-# LINE 6226 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 796, column 9)
               _tpe =
-                  {-# LINE 789 "./TypeChecking.ag" #-}
+                  {-# LINE 796 "./TypeChecking.ag" #-}
                   Right $ Pseudo Void
-                  {-# LINE 6227 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 305, column 9)
+                  {-# LINE 6231 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 310, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 305 "./TypeChecking.ag" #-}
+                  {-# LINE 310 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
-                  {-# LINE 6236 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 310, column 9)
+                  {-# LINE 6240 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 315, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 310 "./TypeChecking.ag" #-}
+                  {-# LINE 315 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 6241 "AstInternal.hs" #-}
+                  {-# LINE 6245 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateTableAs :: Annotation ->
                                String ->
@@ -6251,43 +6255,43 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _exprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6257 "AstInternal.hs" #-}
+                  {-# LINE 6261 "AstInternal.hs" #-}
               ( _exprIannotatedTree) =
                   (expr_ _exprOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   CreateTableAs ann_ name_ _exprIannotatedTree
-                  {-# LINE 6264 "AstInternal.hs" #-}
+                  {-# LINE 6268 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6269 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 796, column 9)
+                  {-# LINE 6273 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 803, column 9)
               _selType =
-                  {-# LINE 796 "./TypeChecking.ag" #-}
+                  {-# LINE 803 "./TypeChecking.ag" #-}
                   getTypeAnnotation _exprIannotatedTree
-                  {-# LINE 6274 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 800, column 9)
+                  {-# LINE 6278 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 807, column 9)
               _attrs =
-                  {-# LINE 800 "./TypeChecking.ag" #-}
+                  {-# LINE 807 "./TypeChecking.ag" #-}
                   case _selType     of
                     UnnamedCompositeType c -> c
                     _-> []
-                  {-# LINE 6281 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 803, column 9)
+                  {-# LINE 6285 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 810, column 9)
               _envUpdates =
-                  {-# LINE 803 "./TypeChecking.ag" #-}
+                  {-# LINE 810 "./TypeChecking.ag" #-}
                   [EnvCreateTable name_ _attrs     []]
-                  {-# LINE 6286 "AstInternal.hs" #-}
+                  {-# LINE 6290 "AstInternal.hs" #-}
               -- copy rule (from local)
               _lhsOenvUpdates =
-                  {-# LINE 312 "./TypeChecking.ag" #-}
+                  {-# LINE 317 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 6291 "AstInternal.hs" #-}
+                  {-# LINE 6295 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateType :: Annotation ->
                             String ->
@@ -6302,45 +6306,45 @@ sem_Statement_CreateType ann_ name_ atts_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _attsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6308 "AstInternal.hs" #-}
+                  {-# LINE 6312 "AstInternal.hs" #-}
               ( _attsIannotatedTree,_attsIattrs) =
                   (atts_ _attsOenv )
-              -- "./TypeChecking.ag"(line 850, column 9)
+              -- "./TypeChecking.ag"(line 855, column 9)
               _envUpdates =
-                  {-# LINE 850 "./TypeChecking.ag" #-}
+                  {-# LINE 855 "./TypeChecking.ag" #-}
                   [EnvCreateComposite name_ _attsIattrs]
-                  {-# LINE 6315 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 849, column 9)
+                  {-# LINE 6319 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 854, column 9)
               _statementInfo =
-                  {-# LINE 849 "./TypeChecking.ag" #-}
+                  {-# LINE 854 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6320 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 848, column 9)
+                  {-# LINE 6324 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 853, column 9)
               _backTree =
-                  {-# LINE 848 "./TypeChecking.ag" #-}
+                  {-# LINE 853 "./TypeChecking.ag" #-}
                   CreateType ann_ name_ _attsIannotatedTree
-                  {-# LINE 6325 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 846, column 9)
+                  {-# LINE 6329 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 852, column 9)
               _tpe =
-                  {-# LINE 846 "./TypeChecking.ag" #-}
+                  {-# LINE 852 "./TypeChecking.ag" #-}
                   Right $ Pseudo Void
-                  {-# LINE 6330 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 305, column 9)
+                  {-# LINE 6334 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 310, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 305 "./TypeChecking.ag" #-}
+                  {-# LINE 310 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
-                  {-# LINE 6339 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 310, column 9)
+                  {-# LINE 6343 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 315, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 310 "./TypeChecking.ag" #-}
+                  {-# LINE 315 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 6344 "AstInternal.hs" #-}
+                  {-# LINE 6348 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_CreateView :: Annotation ->
                             String ->
@@ -6354,52 +6358,52 @@ sem_Statement_CreateView ann_ name_ expr_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _exprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6360 "AstInternal.hs" #-}
+                  {-# LINE 6364 "AstInternal.hs" #-}
               ( _exprIannotatedTree) =
                   (expr_ _exprOenv )
-              -- "./TypeChecking.ag"(line 816, column 9)
+              -- "./TypeChecking.ag"(line 823, column 9)
               _attrs =
-                  {-# LINE 816 "./TypeChecking.ag" #-}
+                  {-# LINE 823 "./TypeChecking.ag" #-}
                   case getTypeAnnotation _exprIannotatedTree of
                     SetOfType (UnnamedCompositeType c) -> c
                     _ -> []
-                  {-# LINE 6369 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 819, column 9)
+                  {-# LINE 6373 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 826, column 9)
               _envUpdates =
-                  {-# LINE 819 "./TypeChecking.ag" #-}
+                  {-# LINE 826 "./TypeChecking.ag" #-}
                   [EnvCreateView name_ _attrs    ]
-                  {-# LINE 6374 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 815, column 9)
+                  {-# LINE 6378 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 822, column 9)
               _statementInfo =
-                  {-# LINE 815 "./TypeChecking.ag" #-}
+                  {-# LINE 822 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6379 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 814, column 9)
+                  {-# LINE 6383 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 821, column 9)
               _backTree =
-                  {-# LINE 814 "./TypeChecking.ag" #-}
+                  {-# LINE 821 "./TypeChecking.ag" #-}
                   CreateView ann_ name_ _exprIannotatedTree
-                  {-# LINE 6384 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 813, column 9)
+                  {-# LINE 6388 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 820, column 9)
               _tpe =
-                  {-# LINE 813 "./TypeChecking.ag" #-}
+                  {-# LINE 820 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed [getTypeAnnotation _exprIannotatedTree] $ Right $ Pseudo Void
-                  {-# LINE 6389 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 305, column 9)
+                  {-# LINE 6393 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 310, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 305 "./TypeChecking.ag" #-}
+                  {-# LINE 310 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
-                  {-# LINE 6398 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 310, column 9)
+                  {-# LINE 6402 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 315, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 310 "./TypeChecking.ag" #-}
+                  {-# LINE 315 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 6403 "AstInternal.hs" #-}
+                  {-# LINE 6407 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Delete :: Annotation ->
                         String ->
@@ -6414,47 +6418,47 @@ sem_Statement_Delete ann_ table_ whr_ returning_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _whrOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6420 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 759, column 9)
+                  {-# LINE 6424 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 766, column 9)
               _envUpdates =
-                  {-# LINE 759 "./TypeChecking.ag" #-}
+                  {-# LINE 766 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6425 "AstInternal.hs" #-}
+                  {-# LINE 6429 "AstInternal.hs" #-}
               ( _whrIannotatedTree) =
                   (whr_ _whrOenv )
-              -- "./TypeChecking.ag"(line 758, column 9)
+              -- "./TypeChecking.ag"(line 765, column 9)
               _backTree =
-                  {-# LINE 758 "./TypeChecking.ag" #-}
+                  {-# LINE 765 "./TypeChecking.ag" #-}
                   Delete ann_ table_ _whrIannotatedTree returning_
-                  {-# LINE 6432 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 757, column 9)
+                  {-# LINE 6436 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 764, column 9)
               _statementInfo =
-                  {-# LINE 757 "./TypeChecking.ag" #-}
+                  {-# LINE 764 "./TypeChecking.ag" #-}
                   [DeleteInfo table_]
-                  {-# LINE 6437 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 753, column 9)
+                  {-# LINE 6441 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 760, column 9)
               _tpe =
-                  {-# LINE 753 "./TypeChecking.ag" #-}
+                  {-# LINE 760 "./TypeChecking.ag" #-}
                   case checkRelationExists _lhsIenv table_ of
                     Just e -> Left [e]
                     Nothing -> Right $ Pseudo Void
-                  {-# LINE 6444 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 305, column 9)
+                  {-# LINE 6448 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 310, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 305 "./TypeChecking.ag" #-}
+                  {-# LINE 310 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
-                  {-# LINE 6453 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 310, column 9)
+                  {-# LINE 6457 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 315, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 310 "./TypeChecking.ag" #-}
+                  {-# LINE 315 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 6458 "AstInternal.hs" #-}
+                  {-# LINE 6462 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_DropFunction :: Annotation ->
                               T_IfExists  ->
@@ -6473,40 +6477,40 @@ sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _cascadeOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6479 "AstInternal.hs" #-}
+                  {-# LINE 6483 "AstInternal.hs" #-}
               ( _cascadeIannotatedTree) =
                   (cascade_ _cascadeOenv )
               -- copy rule (down)
               _sigsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6486 "AstInternal.hs" #-}
+                  {-# LINE 6490 "AstInternal.hs" #-}
               ( _sigsIannotatedTree) =
                   (sigs_ _sigsOenv )
               -- copy rule (down)
               _ifEOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6493 "AstInternal.hs" #-}
+                  {-# LINE 6497 "AstInternal.hs" #-}
               ( _ifEIannotatedTree) =
                   (ifE_ _ifEOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   DropFunction ann_ _ifEIannotatedTree _sigsIannotatedTree _cascadeIannotatedTree
-                  {-# LINE 6500 "AstInternal.hs" #-}
+                  {-# LINE 6504 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6505 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6509 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6510 "AstInternal.hs" #-}
+                  {-# LINE 6514 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_DropSomething :: Annotation ->
                                T_DropType  ->
@@ -6529,47 +6533,47 @@ sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _cascadeOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6535 "AstInternal.hs" #-}
+                  {-# LINE 6539 "AstInternal.hs" #-}
               ( _cascadeIannotatedTree) =
                   (cascade_ _cascadeOenv )
               -- copy rule (down)
               _namesOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6542 "AstInternal.hs" #-}
+                  {-# LINE 6546 "AstInternal.hs" #-}
               ( _namesIannotatedTree,_namesIstrings) =
                   (names_ _namesOenv )
               -- copy rule (down)
               _ifEOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6549 "AstInternal.hs" #-}
+                  {-# LINE 6553 "AstInternal.hs" #-}
               ( _ifEIannotatedTree) =
                   (ifE_ _ifEOenv )
               -- copy rule (down)
               _dropTypeOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6556 "AstInternal.hs" #-}
+                  {-# LINE 6560 "AstInternal.hs" #-}
               ( _dropTypeIannotatedTree) =
                   (dropType_ _dropTypeOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   DropSomething ann_ _dropTypeIannotatedTree _ifEIannotatedTree _namesIannotatedTree _cascadeIannotatedTree
-                  {-# LINE 6563 "AstInternal.hs" #-}
+                  {-# LINE 6567 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6568 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6572 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6573 "AstInternal.hs" #-}
+                  {-# LINE 6577 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Execute :: Annotation ->
                          T_Expression  ->
@@ -6583,26 +6587,26 @@ sem_Statement_Execute ann_ expr_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _exprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6589 "AstInternal.hs" #-}
+                  {-# LINE 6593 "AstInternal.hs" #-}
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Execute ann_ _exprIannotatedTree
-                  {-# LINE 6596 "AstInternal.hs" #-}
+                  {-# LINE 6600 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6601 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6605 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6606 "AstInternal.hs" #-}
+                  {-# LINE 6610 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ExecuteInto :: Annotation ->
                              T_Expression  ->
@@ -6620,33 +6624,33 @@ sem_Statement_ExecuteInto ann_ expr_ targets_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _exprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6626 "AstInternal.hs" #-}
+                  {-# LINE 6630 "AstInternal.hs" #-}
               -- copy rule (down)
               _targetsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6631 "AstInternal.hs" #-}
+                  {-# LINE 6635 "AstInternal.hs" #-}
               ( _targetsIannotatedTree,_targetsIstrings) =
                   (targets_ _targetsOenv )
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ExecuteInto ann_ _exprIannotatedTree _targetsIannotatedTree
-                  {-# LINE 6640 "AstInternal.hs" #-}
+                  {-# LINE 6644 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6645 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6649 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6650 "AstInternal.hs" #-}
+                  {-# LINE 6654 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ForIntegerStatement :: Annotation ->
                                      String ->
@@ -6670,24 +6674,24 @@ sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _stsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6676 "AstInternal.hs" #-}
+                  {-# LINE 6680 "AstInternal.hs" #-}
               -- copy rule (down)
               _toOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6681 "AstInternal.hs" #-}
+                  {-# LINE 6685 "AstInternal.hs" #-}
               -- copy rule (down)
               _fromOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6686 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 350, column 10)
+                  {-# LINE 6690 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 355, column 10)
               _stsOenvUpdates =
-                  {-# LINE 350 "./TypeChecking.ag" #-}
+                  {-# LINE 355 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6691 "AstInternal.hs" #-}
+                  {-# LINE 6695 "AstInternal.hs" #-}
               ( _stsIannotatedTree,_stsIproducedEnv) =
                   (sts_ _stsOenv _stsOenvUpdates )
               ( _toIannotatedTree,_toIliftedColumnName) =
@@ -6696,19 +6700,19 @@ sem_Statement_ForIntegerStatement ann_ var_ from_ to_ sts_  =
                   (from_ _fromOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ForIntegerStatement ann_ var_ _fromIannotatedTree _toIannotatedTree _stsIannotatedTree
-                  {-# LINE 6702 "AstInternal.hs" #-}
+                  {-# LINE 6706 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6707 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6711 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6712 "AstInternal.hs" #-}
+                  {-# LINE 6716 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ForSelectStatement :: Annotation ->
                                     String ->
@@ -6727,38 +6731,38 @@ sem_Statement_ForSelectStatement ann_ var_ sel_ sts_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _stsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6733 "AstInternal.hs" #-}
+                  {-# LINE 6737 "AstInternal.hs" #-}
               -- copy rule (down)
               _selOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6738 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 350, column 10)
+                  {-# LINE 6742 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 355, column 10)
               _stsOenvUpdates =
-                  {-# LINE 350 "./TypeChecking.ag" #-}
+                  {-# LINE 355 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6743 "AstInternal.hs" #-}
+                  {-# LINE 6747 "AstInternal.hs" #-}
               ( _stsIannotatedTree,_stsIproducedEnv) =
                   (sts_ _stsOenv _stsOenvUpdates )
               ( _selIannotatedTree) =
                   (sel_ _selOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ForSelectStatement ann_ var_ _selIannotatedTree _stsIannotatedTree
-                  {-# LINE 6752 "AstInternal.hs" #-}
+                  {-# LINE 6756 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6757 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6761 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6762 "AstInternal.hs" #-}
+                  {-# LINE 6766 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_If :: Annotation ->
                     T_ExpressionStatementListPairList  ->
@@ -6776,38 +6780,38 @@ sem_Statement_If ann_ cases_ els_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _elsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6782 "AstInternal.hs" #-}
+                  {-# LINE 6786 "AstInternal.hs" #-}
               -- copy rule (down)
               _casesOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6787 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 347, column 24)
+                  {-# LINE 6791 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 352, column 24)
               _elsOenvUpdates =
-                  {-# LINE 347 "./TypeChecking.ag" #-}
+                  {-# LINE 352 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6792 "AstInternal.hs" #-}
+                  {-# LINE 6796 "AstInternal.hs" #-}
               ( _elsIannotatedTree,_elsIproducedEnv) =
                   (els_ _elsOenv _elsOenvUpdates )
               ( _casesIannotatedTree) =
                   (cases_ _casesOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   If ann_ _casesIannotatedTree _elsIannotatedTree
-                  {-# LINE 6801 "AstInternal.hs" #-}
+                  {-# LINE 6805 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6806 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6810 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6811 "AstInternal.hs" #-}
+                  {-# LINE 6815 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Insert :: Annotation ->
                         String ->
@@ -6826,63 +6830,63 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _insDataOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6832 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 682, column 9)
+                  {-# LINE 6836 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 689, column 9)
               _envUpdates =
-                  {-# LINE 682 "./TypeChecking.ag" #-}
+                  {-# LINE 689 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6837 "AstInternal.hs" #-}
+                  {-# LINE 6841 "AstInternal.hs" #-}
               ( _insDataIannotatedTree) =
                   (insData_ _insDataOenv )
               -- copy rule (down)
               _targetColsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6844 "AstInternal.hs" #-}
+                  {-# LINE 6848 "AstInternal.hs" #-}
               ( _targetColsIannotatedTree,_targetColsIstrings) =
                   (targetCols_ _targetColsOenv )
-              -- "./TypeChecking.ag"(line 680, column 9)
+              -- "./TypeChecking.ag"(line 687, column 9)
               _backTree =
-                  {-# LINE 680 "./TypeChecking.ag" #-}
+                  {-# LINE 687 "./TypeChecking.ag" #-}
                   Insert ann_ table_ _targetColsIannotatedTree
                          _insDataIannotatedTree returning_
-                  {-# LINE 6852 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 669, column 9)
+                  {-# LINE 6856 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 676, column 9)
               _columnStuff =
-                  {-# LINE 669 "./TypeChecking.ag" #-}
+                  {-# LINE 676 "./TypeChecking.ag" #-}
                   checkColumnConsistency _lhsIenv
                                          table_
                                          _targetColsIstrings
                                          (getCAtts $ getTypeAnnotation _insDataIannotatedTree)
-                  {-# LINE 6860 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 678, column 9)
+                  {-# LINE 6864 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 685, column 9)
               _statementInfo =
-                  {-# LINE 678 "./TypeChecking.ag" #-}
+                  {-# LINE 685 "./TypeChecking.ag" #-}
                   [InsertInfo table_ $ errorToTypeFailF UnnamedCompositeType _columnStuff    ]
-                  {-# LINE 6865 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 674, column 9)
+                  {-# LINE 6869 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 681, column 9)
               _tpe =
-                  {-# LINE 674 "./TypeChecking.ag" #-}
+                  {-# LINE 681 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed [getTypeAnnotation _insDataIannotatedTree] $ do
                     _columnStuff
                     Right $ Pseudo Void
-                  {-# LINE 6872 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 305, column 9)
+                  {-# LINE 6876 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 310, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 305 "./TypeChecking.ag" #-}
+                  {-# LINE 310 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
-                  {-# LINE 6881 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 310, column 9)
+                  {-# LINE 6885 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 315, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 310 "./TypeChecking.ag" #-}
+                  {-# LINE 315 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 6886 "AstInternal.hs" #-}
+                  {-# LINE 6890 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_NullStatement :: Annotation ->
                                T_Statement 
@@ -6892,19 +6896,19 @@ sem_Statement_NullStatement ann_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   NullStatement ann_
-                  {-# LINE 6898 "AstInternal.hs" #-}
+                  {-# LINE 6902 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6903 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6907 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6908 "AstInternal.hs" #-}
+                  {-# LINE 6912 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Perform :: Annotation ->
                          T_Expression  ->
@@ -6918,26 +6922,26 @@ sem_Statement_Perform ann_ expr_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _exprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6924 "AstInternal.hs" #-}
+                  {-# LINE 6928 "AstInternal.hs" #-}
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Perform ann_ _exprIannotatedTree
-                  {-# LINE 6931 "AstInternal.hs" #-}
+                  {-# LINE 6935 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6936 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6940 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6941 "AstInternal.hs" #-}
+                  {-# LINE 6945 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Raise :: Annotation ->
                        T_RaiseType  ->
@@ -6955,33 +6959,33 @@ sem_Statement_Raise ann_ level_ message_ args_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _argsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6961 "AstInternal.hs" #-}
+                  {-# LINE 6965 "AstInternal.hs" #-}
               ( _argsIannotatedTree,_argsItypeList) =
                   (args_ _argsOenv )
               -- copy rule (down)
               _levelOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 6968 "AstInternal.hs" #-}
+                  {-# LINE 6972 "AstInternal.hs" #-}
               ( _levelIannotatedTree) =
                   (level_ _levelOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Raise ann_ _levelIannotatedTree message_ _argsIannotatedTree
-                  {-# LINE 6975 "AstInternal.hs" #-}
+                  {-# LINE 6979 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6980 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 6984 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 6985 "AstInternal.hs" #-}
+                  {-# LINE 6989 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Return :: Annotation ->
                         T_MaybeExpression  ->
@@ -6995,45 +6999,45 @@ sem_Statement_Return ann_ value_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _valueOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7001 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 982, column 9)
+                  {-# LINE 7005 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 987, column 9)
               _statementInfo =
-                  {-# LINE 982 "./TypeChecking.ag" #-}
+                  {-# LINE 987 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7006 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 981, column 9)
+                  {-# LINE 7010 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 986, column 9)
               _envUpdates =
-                  {-# LINE 981 "./TypeChecking.ag" #-}
+                  {-# LINE 986 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7011 "AstInternal.hs" #-}
+                  {-# LINE 7015 "AstInternal.hs" #-}
               ( _valueIannotatedTree,_valueIexprType) =
                   (value_ _valueOenv )
-              -- "./TypeChecking.ag"(line 980, column 9)
+              -- "./TypeChecking.ag"(line 985, column 9)
               _backTree =
-                  {-# LINE 980 "./TypeChecking.ag" #-}
+                  {-# LINE 985 "./TypeChecking.ag" #-}
                   Return ann_ _valueIannotatedTree
-                  {-# LINE 7018 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 979, column 9)
+                  {-# LINE 7022 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 984, column 9)
               _tpe =
-                  {-# LINE 979 "./TypeChecking.ag" #-}
+                  {-# LINE 984 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed [fromMaybe typeBool _valueIexprType] $ Right $ Pseudo Void
-                  {-# LINE 7023 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 305, column 9)
+                  {-# LINE 7027 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 310, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 305 "./TypeChecking.ag" #-}
+                  {-# LINE 310 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
-                  {-# LINE 7032 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 310, column 9)
+                  {-# LINE 7036 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 315, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 310 "./TypeChecking.ag" #-}
+                  {-# LINE 315 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 7037 "AstInternal.hs" #-}
+                  {-# LINE 7041 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ReturnNext :: Annotation ->
                             T_Expression  ->
@@ -7047,26 +7051,26 @@ sem_Statement_ReturnNext ann_ expr_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _exprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7053 "AstInternal.hs" #-}
+                  {-# LINE 7057 "AstInternal.hs" #-}
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ReturnNext ann_ _exprIannotatedTree
-                  {-# LINE 7060 "AstInternal.hs" #-}
+                  {-# LINE 7064 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7065 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 7069 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7070 "AstInternal.hs" #-}
+                  {-# LINE 7074 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_ReturnQuery :: Annotation ->
                              T_SelectExpression  ->
@@ -7079,26 +7083,26 @@ sem_Statement_ReturnQuery ann_ sel_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _selOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7085 "AstInternal.hs" #-}
+                  {-# LINE 7089 "AstInternal.hs" #-}
               ( _selIannotatedTree) =
                   (sel_ _selOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   ReturnQuery ann_ _selIannotatedTree
-                  {-# LINE 7092 "AstInternal.hs" #-}
+                  {-# LINE 7096 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7097 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 7101 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7102 "AstInternal.hs" #-}
+                  {-# LINE 7106 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_SelectStatement :: Annotation ->
                                  T_SelectExpression  ->
@@ -7111,45 +7115,45 @@ sem_Statement_SelectStatement ann_ ex_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _exOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7117 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 367, column 9)
+                  {-# LINE 7121 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 374, column 9)
               _envUpdates =
-                  {-# LINE 367 "./TypeChecking.ag" #-}
+                  {-# LINE 374 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7122 "AstInternal.hs" #-}
+                  {-# LINE 7126 "AstInternal.hs" #-}
               ( _exIannotatedTree) =
                   (ex_ _exOenv )
-              -- "./TypeChecking.ag"(line 366, column 9)
+              -- "./TypeChecking.ag"(line 373, column 9)
               _backTree =
-                  {-# LINE 366 "./TypeChecking.ag" #-}
+                  {-# LINE 373 "./TypeChecking.ag" #-}
                   SelectStatement ann_ _exIannotatedTree
-                  {-# LINE 7129 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 365, column 9)
+                  {-# LINE 7133 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 372, column 9)
               _statementInfo =
-                  {-# LINE 365 "./TypeChecking.ag" #-}
+                  {-# LINE 372 "./TypeChecking.ag" #-}
                   [SelectInfo $ getTypeAnnotation _exIannotatedTree]
-                  {-# LINE 7134 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 364, column 9)
+                  {-# LINE 7138 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 371, column 9)
               _tpe =
-                  {-# LINE 364 "./TypeChecking.ag" #-}
+                  {-# LINE 371 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed [getTypeAnnotation _exIannotatedTree] $ Right $ Pseudo Void
-                  {-# LINE 7139 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 305, column 9)
+                  {-# LINE 7143 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 310, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 305 "./TypeChecking.ag" #-}
+                  {-# LINE 310 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
-                  {-# LINE 7148 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 310, column 9)
+                  {-# LINE 7152 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 315, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 310 "./TypeChecking.ag" #-}
+                  {-# LINE 315 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 7153 "AstInternal.hs" #-}
+                  {-# LINE 7157 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Truncate :: Annotation ->
                           T_StringList  ->
@@ -7169,40 +7173,40 @@ sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _cascadeOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7175 "AstInternal.hs" #-}
+                  {-# LINE 7179 "AstInternal.hs" #-}
               ( _cascadeIannotatedTree) =
                   (cascade_ _cascadeOenv )
               -- copy rule (down)
               _restartIdentityOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7182 "AstInternal.hs" #-}
+                  {-# LINE 7186 "AstInternal.hs" #-}
               ( _restartIdentityIannotatedTree) =
                   (restartIdentity_ _restartIdentityOenv )
               -- copy rule (down)
               _tablesOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7189 "AstInternal.hs" #-}
+                  {-# LINE 7193 "AstInternal.hs" #-}
               ( _tablesIannotatedTree,_tablesIstrings) =
                   (tables_ _tablesOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Truncate ann_ _tablesIannotatedTree _restartIdentityIannotatedTree _cascadeIannotatedTree
-                  {-# LINE 7196 "AstInternal.hs" #-}
+                  {-# LINE 7200 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7201 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 7205 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7206 "AstInternal.hs" #-}
+                  {-# LINE 7210 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_Update :: Annotation ->
                         String ->
@@ -7222,41 +7226,41 @@ sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _whrOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7228 "AstInternal.hs" #-}
+                  {-# LINE 7232 "AstInternal.hs" #-}
               -- copy rule (down)
               _assignsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7233 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 712, column 9)
+                  {-# LINE 7237 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 719, column 9)
               _envUpdates =
-                  {-# LINE 712 "./TypeChecking.ag" #-}
+                  {-# LINE 719 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7238 "AstInternal.hs" #-}
+                  {-# LINE 7242 "AstInternal.hs" #-}
               ( _whrIannotatedTree) =
                   (whr_ _whrOenv )
               ( _assignsIannotatedTree,_assignsIpairs,_assignsIrowSetErrors) =
                   (assigns_ _assignsOenv )
-              -- "./TypeChecking.ag"(line 711, column 9)
+              -- "./TypeChecking.ag"(line 718, column 9)
               _backTree =
-                  {-# LINE 711 "./TypeChecking.ag" #-}
+                  {-# LINE 718 "./TypeChecking.ag" #-}
                   Update ann_ table_ _assignsIannotatedTree _whrIannotatedTree returning_
-                  {-# LINE 7247 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 707, column 9)
+                  {-# LINE 7251 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 714, column 9)
               _columnsConsistent =
-                  {-# LINE 707 "./TypeChecking.ag" #-}
+                  {-# LINE 714 "./TypeChecking.ag" #-}
                   checkColumnConsistency _lhsIenv table_ (map fst _assignsIpairs) _assignsIpairs
-                  {-# LINE 7252 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 709, column 9)
+                  {-# LINE 7256 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 716, column 9)
               _statementInfo =
-                  {-# LINE 709 "./TypeChecking.ag" #-}
+                  {-# LINE 716 "./TypeChecking.ag" #-}
                   [UpdateInfo table_ $ errorToTypeFailF UnnamedCompositeType _columnsConsistent    ]
-                  {-# LINE 7257 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 699, column 9)
+                  {-# LINE 7261 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 706, column 9)
               _tpe =
-                  {-# LINE 699 "./TypeChecking.ag" #-}
+                  {-# LINE 706 "./TypeChecking.ag" #-}
                   do
                   let re = checkRelationExists _lhsIenv table_
                   when (isJust re) $
@@ -7264,21 +7268,21 @@ sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
                   chainTypeCheckFailed (map snd _assignsIpairs) $ do
                     _columnsConsistent
                     checkErrorList _assignsIrowSetErrors $ Pseudo Void
-                  {-# LINE 7268 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 305, column 9)
+                  {-# LINE 7272 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 310, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 305 "./TypeChecking.ag" #-}
+                  {-# LINE 310 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
-                  {-# LINE 7277 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 310, column 9)
+                  {-# LINE 7281 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 315, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 310 "./TypeChecking.ag" #-}
+                  {-# LINE 315 "./TypeChecking.ag" #-}
                   _envUpdates
-                  {-# LINE 7282 "AstInternal.hs" #-}
+                  {-# LINE 7286 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 sem_Statement_WhileStatement :: Annotation ->
                                 T_Expression  ->
@@ -7297,38 +7301,38 @@ sem_Statement_WhileStatement ann_ expr_ sts_  =
               _lhsOenvUpdates :: ([EnvironmentUpdate])
               -- copy rule (down)
               _stsOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7303 "AstInternal.hs" #-}
+                  {-# LINE 7307 "AstInternal.hs" #-}
               -- copy rule (down)
               _exprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7308 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 350, column 10)
+                  {-# LINE 7312 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 355, column 10)
               _stsOenvUpdates =
-                  {-# LINE 350 "./TypeChecking.ag" #-}
+                  {-# LINE 355 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7313 "AstInternal.hs" #-}
+                  {-# LINE 7317 "AstInternal.hs" #-}
               ( _stsIannotatedTree,_stsIproducedEnv) =
                   (sts_ _stsOenv _stsOenvUpdates )
               ( _exprIannotatedTree,_exprIliftedColumnName) =
                   (expr_ _exprOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   WhileStatement ann_ _exprIannotatedTree _stsIannotatedTree
-                  {-# LINE 7322 "AstInternal.hs" #-}
+                  {-# LINE 7326 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7327 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 319, column 9)
+                  {-# LINE 7331 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 324, column 9)
               _lhsOenvUpdates =
-                  {-# LINE 319 "./TypeChecking.ag" #-}
+                  {-# LINE 324 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7332 "AstInternal.hs" #-}
+                  {-# LINE 7336 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOenvUpdates)))
 -- StatementList -----------------------------------------------
 {-
@@ -7384,47 +7388,47 @@ sem_StatementList_Cons hd_ tl_  =
               _tlIproducedEnv :: Environment
               _lhsOannotatedTree :: StatementList
               _lhsOproducedEnv :: Environment
-              -- "./TypeChecking.ag"(line 329, column 9)
+              -- "./TypeChecking.ag"(line 334, column 9)
               _newEnv =
-                  {-# LINE 329 "./TypeChecking.ag" #-}
+                  {-# LINE 334 "./TypeChecking.ag" #-}
                   fromRight _lhsIenv $ updateEnvironment _lhsIenv _lhsIenvUpdates
-                  {-# LINE 7392 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 330, column 9)
+                  {-# LINE 7396 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 335, column 9)
               _hdOenv =
-                  {-# LINE 330 "./TypeChecking.ag" #-}
+                  {-# LINE 335 "./TypeChecking.ag" #-}
                   _newEnv
-                  {-# LINE 7397 "AstInternal.hs" #-}
+                  {-# LINE 7401 "AstInternal.hs" #-}
               ( _hdIannotatedTree,_hdIenvUpdates) =
                   (hd_ _hdOenv )
-              -- "./TypeChecking.ag"(line 335, column 9)
+              -- "./TypeChecking.ag"(line 340, column 9)
               _tlOenvUpdates =
-                  {-# LINE 335 "./TypeChecking.ag" #-}
+                  {-# LINE 340 "./TypeChecking.ag" #-}
                   _hdIenvUpdates
-                  {-# LINE 7404 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 331, column 9)
+                  {-# LINE 7408 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 336, column 9)
               _tlOenv =
-                  {-# LINE 331 "./TypeChecking.ag" #-}
+                  {-# LINE 336 "./TypeChecking.ag" #-}
                   _newEnv
-                  {-# LINE 7409 "AstInternal.hs" #-}
+                  {-# LINE 7413 "AstInternal.hs" #-}
               ( _tlIannotatedTree,_tlIproducedEnv) =
                   (tl_ _tlOenv _tlOenvUpdates )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 7416 "AstInternal.hs" #-}
+                  {-# LINE 7420 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7421 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 332, column 9)
+                  {-# LINE 7425 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 337, column 9)
               _lhsOproducedEnv =
-                  {-# LINE 332 "./TypeChecking.ag" #-}
+                  {-# LINE 337 "./TypeChecking.ag" #-}
                   case _tlIannotatedTree of
                    [] -> _newEnv
                    _ -> _tlIproducedEnv
-                  {-# LINE 7428 "AstInternal.hs" #-}
+                  {-# LINE 7432 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOproducedEnv)))
 sem_StatementList_Nil :: T_StatementList 
 sem_StatementList_Nil  =
@@ -7434,19 +7438,19 @@ sem_StatementList_Nil  =
               _lhsOproducedEnv :: Environment
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7440 "AstInternal.hs" #-}
+                  {-# LINE 7444 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7445 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 337, column 9)
+                  {-# LINE 7449 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 342, column 9)
               _lhsOproducedEnv =
-                  {-# LINE 337 "./TypeChecking.ag" #-}
+                  {-# LINE 342 "./TypeChecking.ag" #-}
                   emptyEnvironment
-                  {-# LINE 7450 "AstInternal.hs" #-}
+                  {-# LINE 7454 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOproducedEnv)))
 -- StringList --------------------------------------------------
 {-
@@ -7496,26 +7500,26 @@ sem_StringList_Cons hd_ tl_  =
               _lhsOstrings :: ([String])
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7502 "AstInternal.hs" #-}
+                  {-# LINE 7506 "AstInternal.hs" #-}
               ( _tlIannotatedTree,_tlIstrings) =
                   (tl_ _tlOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) hd_ _tlIannotatedTree
-                  {-# LINE 7509 "AstInternal.hs" #-}
+                  {-# LINE 7513 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7514 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 687, column 10)
+                  {-# LINE 7518 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 694, column 10)
               _lhsOstrings =
-                  {-# LINE 687 "./TypeChecking.ag" #-}
+                  {-# LINE 694 "./TypeChecking.ag" #-}
                   hd_ : _tlIstrings
-                  {-# LINE 7519 "AstInternal.hs" #-}
+                  {-# LINE 7523 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOstrings)))
 sem_StringList_Nil :: T_StringList 
 sem_StringList_Nil  =
@@ -7524,19 +7528,19 @@ sem_StringList_Nil  =
               _lhsOstrings :: ([String])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7530 "AstInternal.hs" #-}
+                  {-# LINE 7534 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7535 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 688, column 9)
+                  {-# LINE 7539 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 695, column 9)
               _lhsOstrings =
-                  {-# LINE 688 "./TypeChecking.ag" #-}
+                  {-# LINE 695 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7540 "AstInternal.hs" #-}
+                  {-# LINE 7544 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOstrings)))
 -- StringStringListPair ----------------------------------------
 {-
@@ -7581,21 +7585,21 @@ sem_StringStringListPair_Tuple x1_ x2_  =
               _lhsOannotatedTree :: StringStringListPair
               -- copy rule (down)
               _x2Oenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7587 "AstInternal.hs" #-}
+                  {-# LINE 7591 "AstInternal.hs" #-}
               ( _x2IannotatedTree,_x2Istrings) =
                   (x2_ _x2Oenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (x1_,_x2IannotatedTree)
-                  {-# LINE 7594 "AstInternal.hs" #-}
+                  {-# LINE 7598 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7599 "AstInternal.hs" #-}
+                  {-# LINE 7603 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- StringStringListPairList ------------------------------------
 {-
@@ -7644,28 +7648,28 @@ sem_StringStringListPairList_Cons hd_ tl_  =
               _lhsOannotatedTree :: StringStringListPairList
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7650 "AstInternal.hs" #-}
+                  {-# LINE 7654 "AstInternal.hs" #-}
               ( _tlIannotatedTree) =
                   (tl_ _tlOenv )
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7657 "AstInternal.hs" #-}
+                  {-# LINE 7661 "AstInternal.hs" #-}
               ( _hdIannotatedTree) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 7664 "AstInternal.hs" #-}
+                  {-# LINE 7668 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7669 "AstInternal.hs" #-}
+                  {-# LINE 7673 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_StringStringListPairList_Nil :: T_StringStringListPairList 
 sem_StringStringListPairList_Nil  =
@@ -7673,14 +7677,14 @@ sem_StringStringListPairList_Nil  =
          (let _lhsOannotatedTree :: StringStringListPairList
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7679 "AstInternal.hs" #-}
+                  {-# LINE 7683 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7684 "AstInternal.hs" #-}
+                  {-# LINE 7688 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 -- TableRef ----------------------------------------------------
 {-
@@ -7804,52 +7808,52 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _lhsOjoinIdens :: ([String])
               -- copy rule (down)
               _onExprOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7810 "AstInternal.hs" #-}
+                  {-# LINE 7814 "AstInternal.hs" #-}
               -- copy rule (down)
               _tbl1Oenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7815 "AstInternal.hs" #-}
+                  {-# LINE 7819 "AstInternal.hs" #-}
               -- copy rule (down)
               _tblOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7820 "AstInternal.hs" #-}
+                  {-# LINE 7824 "AstInternal.hs" #-}
               ( _onExprIannotatedTree) =
                   (onExpr_ _onExprOenv )
               ( _tbl1IannotatedTree,_tbl1Iidens,_tbl1IjoinIdens) =
                   (tbl1_ _tbl1Oenv )
               -- copy rule (down)
               _joinTypeOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7829 "AstInternal.hs" #-}
+                  {-# LINE 7833 "AstInternal.hs" #-}
               ( _joinTypeIannotatedTree) =
                   (joinType_ _joinTypeOenv )
               -- copy rule (down)
               _natOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7836 "AstInternal.hs" #-}
+                  {-# LINE 7840 "AstInternal.hs" #-}
               ( _natIannotatedTree) =
                   (nat_ _natOenv )
               ( _tblIannotatedTree,_tblIidens,_tblIjoinIdens) =
                   (tbl_ _tblOenv )
-              -- "./TypeChecking.ag"(line 481, column 9)
+              -- "./TypeChecking.ag"(line 489, column 9)
               _backTree =
-                  {-# LINE 481 "./TypeChecking.ag" #-}
+                  {-# LINE 489 "./TypeChecking.ag" #-}
                   JoinedTref ann_
                              _tblIannotatedTree
                              _natIannotatedTree
                              _joinTypeIannotatedTree
                              _tbl1IannotatedTree
                              _onExprIannotatedTree
-                  {-# LINE 7850 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 465, column 9)
+                  {-# LINE 7854 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 473, column 9)
               _tpe =
-                  {-# LINE 465 "./TypeChecking.ag" #-}
+                  {-# LINE 473 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed [tblt
                             ,tbl1t] $
                      case (_natIannotatedTree, _onExprIannotatedTree) of
@@ -7862,26 +7866,26 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_  =
                     tbl1t = getTypeAnnotation _tbl1IannotatedTree
                     unionJoinList s =
                         combineTableTypesWithUsingList _lhsIenv s tblt tbl1t
-                  {-# LINE 7866 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 423, column 9)
+                  {-# LINE 7870 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 430, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 423 "./TypeChecking.ag" #-}
+                  {-# LINE 430 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 7874 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 478, column 9)
+                  {-# LINE 7878 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 486, column 9)
               _lhsOidens =
-                  {-# LINE 478 "./TypeChecking.ag" #-}
+                  {-# LINE 486 "./TypeChecking.ag" #-}
                   _tblIidens ++ _tbl1Iidens
-                  {-# LINE 7879 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 479, column 9)
+                  {-# LINE 7883 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 487, column 9)
               _lhsOjoinIdens =
-                  {-# LINE 479 "./TypeChecking.ag" #-}
+                  {-# LINE 487 "./TypeChecking.ag" #-}
                   commonFieldNames (getTypeAnnotation _tblIannotatedTree)
                                    (getTypeAnnotation _tbl1IannotatedTree)
-                  {-# LINE 7885 "AstInternal.hs" #-}
+                  {-# LINE 7889 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 sem_TableRef_SubTref :: Annotation ->
                         T_SelectExpression  ->
@@ -7896,40 +7900,40 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               _lhsOjoinIdens :: ([String])
               -- copy rule (down)
               _selOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 7902 "AstInternal.hs" #-}
+                  {-# LINE 7906 "AstInternal.hs" #-}
               ( _selIannotatedTree) =
                   (sel_ _selOenv )
-              -- "./TypeChecking.ag"(line 431, column 15)
+              -- "./TypeChecking.ag"(line 439, column 15)
               _backTree =
-                  {-# LINE 431 "./TypeChecking.ag" #-}
+                  {-# LINE 439 "./TypeChecking.ag" #-}
                   SubTref ann_ _selIannotatedTree alias_
-                  {-# LINE 7909 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 429, column 15)
+                  {-# LINE 7913 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 437, column 15)
               _tpe =
-                  {-# LINE 429 "./TypeChecking.ag" #-}
+                  {-# LINE 437 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed [getTypeAnnotation _selIannotatedTree] <$>
                   unwrapSetOfWhenComposite $ getTypeAnnotation _selIannotatedTree
-                  {-# LINE 7915 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 423, column 9)
+                  {-# LINE 7919 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 430, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 423 "./TypeChecking.ag" #-}
+                  {-# LINE 430 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 7923 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 432, column 15)
+                  {-# LINE 7927 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 440, column 15)
               _lhsOidens =
-                  {-# LINE 432 "./TypeChecking.ag" #-}
+                  {-# LINE 440 "./TypeChecking.ag" #-}
                   [(alias_, (fromRight [] $ getTbCols _selIannotatedTree, []))]
-                  {-# LINE 7928 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 433, column 15)
+                  {-# LINE 7932 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 441, column 15)
               _lhsOjoinIdens =
-                  {-# LINE 433 "./TypeChecking.ag" #-}
+                  {-# LINE 441 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7933 "AstInternal.hs" #-}
+                  {-# LINE 7937 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 sem_TableRef_Tref :: Annotation ->
                      String ->
@@ -7939,48 +7943,48 @@ sem_TableRef_Tref ann_ tbl_  =
          (let _lhsOannotatedTree :: TableRef
               _lhsOidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _lhsOjoinIdens :: ([String])
-              -- "./TypeChecking.ag"(line 446, column 9)
+              -- "./TypeChecking.ag"(line 454, column 9)
               _backTree =
-                  {-# LINE 446 "./TypeChecking.ag" #-}
+                  {-# LINE 454 "./TypeChecking.ag" #-}
                   Tref ann_ tbl_
-                  {-# LINE 7947 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 437, column 9)
+                  {-# LINE 7951 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 445, column 9)
               _relType =
-                  {-# LINE 437 "./TypeChecking.ag" #-}
+                  {-# LINE 445 "./TypeChecking.ag" #-}
                   getRelationType _lhsIenv tbl_
-                  {-# LINE 7952 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 435, column 9)
+                  {-# LINE 7956 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 443, column 9)
               _tpe =
-                  {-# LINE 435 "./TypeChecking.ag" #-}
+                  {-# LINE 443 "./TypeChecking.ag" #-}
                   either Left (Right . fst) _relType
-                  {-# LINE 7957 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 423, column 9)
+                  {-# LINE 7961 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 430, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 423 "./TypeChecking.ag" #-}
+                  {-# LINE 430 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 7965 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 438, column 9)
+                  {-# LINE 7969 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 446, column 9)
               _unwrappedRelType =
-                  {-# LINE 438 "./TypeChecking.ag" #-}
+                  {-# LINE 446 "./TypeChecking.ag" #-}
                   fromRight ([],[]) $
                   do
                     lrt <- _relType
                     let (UnnamedCompositeType a,UnnamedCompositeType b) = lrt
                     return (a,b)
-                  {-# LINE 7974 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 445, column 9)
+                  {-# LINE 7978 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 453, column 9)
               _lhsOidens =
-                  {-# LINE 445 "./TypeChecking.ag" #-}
+                  {-# LINE 453 "./TypeChecking.ag" #-}
                   [(tbl_, _unwrappedRelType    )]
-                  {-# LINE 7979 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 436, column 9)
+                  {-# LINE 7983 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 444, column 9)
               _lhsOjoinIdens =
-                  {-# LINE 436 "./TypeChecking.ag" #-}
+                  {-# LINE 444 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 7984 "AstInternal.hs" #-}
+                  {-# LINE 7988 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 sem_TableRef_TrefAlias :: Annotation ->
                           String ->
@@ -7991,48 +7995,48 @@ sem_TableRef_TrefAlias ann_ tbl_ alias_  =
          (let _lhsOannotatedTree :: TableRef
               _lhsOidens :: ([(String,([(String,Type)],[(String,Type)]))])
               _lhsOjoinIdens :: ([String])
-              -- "./TypeChecking.ag"(line 449, column 9)
+              -- "./TypeChecking.ag"(line 457, column 9)
               _backTree =
-                  {-# LINE 449 "./TypeChecking.ag" #-}
+                  {-# LINE 457 "./TypeChecking.ag" #-}
                   TrefAlias ann_ tbl_ alias_
-                  {-# LINE 7999 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 437, column 9)
+                  {-# LINE 8003 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 445, column 9)
               _relType =
-                  {-# LINE 437 "./TypeChecking.ag" #-}
+                  {-# LINE 445 "./TypeChecking.ag" #-}
                   getRelationType _lhsIenv tbl_
-                  {-# LINE 8004 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 435, column 9)
+                  {-# LINE 8008 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 443, column 9)
               _tpe =
-                  {-# LINE 435 "./TypeChecking.ag" #-}
+                  {-# LINE 443 "./TypeChecking.ag" #-}
                   either Left (Right . fst) _relType
-                  {-# LINE 8009 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 423, column 9)
+                  {-# LINE 8013 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 430, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 423 "./TypeChecking.ag" #-}
+                  {-# LINE 430 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 8017 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 438, column 9)
+                  {-# LINE 8021 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 446, column 9)
               _unwrappedRelType =
-                  {-# LINE 438 "./TypeChecking.ag" #-}
+                  {-# LINE 446 "./TypeChecking.ag" #-}
                   fromRight ([],[]) $
                   do
                     lrt <- _relType
                     let (UnnamedCompositeType a,UnnamedCompositeType b) = lrt
                     return (a,b)
-                  {-# LINE 8026 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 448, column 9)
+                  {-# LINE 8030 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 456, column 9)
               _lhsOidens =
-                  {-# LINE 448 "./TypeChecking.ag" #-}
+                  {-# LINE 456 "./TypeChecking.ag" #-}
                   [(alias_, _unwrappedRelType    )]
-                  {-# LINE 8031 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 436, column 9)
+                  {-# LINE 8035 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 444, column 9)
               _lhsOjoinIdens =
-                  {-# LINE 436 "./TypeChecking.ag" #-}
+                  {-# LINE 444 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 8036 "AstInternal.hs" #-}
+                  {-# LINE 8040 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 sem_TableRef_TrefFun :: Annotation ->
                         T_Expression  ->
@@ -8047,48 +8051,48 @@ sem_TableRef_TrefFun ann_ fn_  =
               _lhsOjoinIdens :: ([String])
               -- copy rule (down)
               _fnOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 8053 "AstInternal.hs" #-}
+                  {-# LINE 8057 "AstInternal.hs" #-}
               ( _fnIannotatedTree,_fnIliftedColumnName) =
                   (fn_ _fnOenv )
-              -- "./TypeChecking.ag"(line 460, column 9)
+              -- "./TypeChecking.ag"(line 468, column 9)
               _backTree =
-                  {-# LINE 460 "./TypeChecking.ag" #-}
+                  {-# LINE 468 "./TypeChecking.ag" #-}
                   TrefFun ann_ _fnIannotatedTree
-                  {-# LINE 8060 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 459, column 9)
+                  {-# LINE 8064 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 467, column 9)
               _alias1 =
-                  {-# LINE 459 "./TypeChecking.ag" #-}
+                  {-# LINE 467 "./TypeChecking.ag" #-}
                   ""
-                  {-# LINE 8065 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 451, column 9)
+                  {-# LINE 8069 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 459, column 9)
               _tpe =
-                  {-# LINE 451 "./TypeChecking.ag" #-}
+                  {-# LINE 459 "./TypeChecking.ag" #-}
                   getFnType _lhsIenv _alias1     _fnIannotatedTree
-                  {-# LINE 8070 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 423, column 9)
+                  {-# LINE 8074 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 430, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 423 "./TypeChecking.ag" #-}
+                  {-# LINE 430 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 8078 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 453, column 9)
+                  {-# LINE 8082 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 461, column 9)
               _lhsOidens =
-                  {-# LINE 453 "./TypeChecking.ag" #-}
+                  {-# LINE 461 "./TypeChecking.ag" #-}
                   case getFunIdens
                             _lhsIenv _alias1
                             _fnIannotatedTree of
                     Right (s, UnnamedCompositeType c) -> [(s,(c,[]))]
                     _ -> []
-                  {-# LINE 8087 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 452, column 9)
+                  {-# LINE 8091 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 460, column 9)
               _lhsOjoinIdens =
-                  {-# LINE 452 "./TypeChecking.ag" #-}
+                  {-# LINE 460 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 8092 "AstInternal.hs" #-}
+                  {-# LINE 8096 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 sem_TableRef_TrefFunAlias :: Annotation ->
                              T_Expression  ->
@@ -8104,48 +8108,48 @@ sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
               _lhsOjoinIdens :: ([String])
               -- copy rule (down)
               _fnOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 8110 "AstInternal.hs" #-}
+                  {-# LINE 8114 "AstInternal.hs" #-}
               ( _fnIannotatedTree,_fnIliftedColumnName) =
                   (fn_ _fnOenv )
-              -- "./TypeChecking.ag"(line 463, column 9)
+              -- "./TypeChecking.ag"(line 471, column 9)
               _backTree =
-                  {-# LINE 463 "./TypeChecking.ag" #-}
+                  {-# LINE 471 "./TypeChecking.ag" #-}
                   TrefFunAlias ann_ _fnIannotatedTree alias_
-                  {-# LINE 8117 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 462, column 9)
+                  {-# LINE 8121 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 470, column 9)
               _alias1 =
-                  {-# LINE 462 "./TypeChecking.ag" #-}
+                  {-# LINE 470 "./TypeChecking.ag" #-}
                   alias_
-                  {-# LINE 8122 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 451, column 9)
+                  {-# LINE 8126 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 459, column 9)
               _tpe =
-                  {-# LINE 451 "./TypeChecking.ag" #-}
+                  {-# LINE 459 "./TypeChecking.ag" #-}
                   getFnType _lhsIenv _alias1     _fnIannotatedTree
-                  {-# LINE 8127 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 423, column 9)
+                  {-# LINE 8131 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 430, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 423 "./TypeChecking.ag" #-}
+                  {-# LINE 430 "./TypeChecking.ag" #-}
                   annTypesAndErrors _backTree
                     (errorToTypeFail _tpe    )
                     (getErrors _tpe    )
                     Nothing
-                  {-# LINE 8135 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 453, column 9)
+                  {-# LINE 8139 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 461, column 9)
               _lhsOidens =
-                  {-# LINE 453 "./TypeChecking.ag" #-}
+                  {-# LINE 461 "./TypeChecking.ag" #-}
                   case getFunIdens
                             _lhsIenv _alias1
                             _fnIannotatedTree of
                     Right (s, UnnamedCompositeType c) -> [(s,(c,[]))]
                     _ -> []
-                  {-# LINE 8144 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 452, column 9)
+                  {-# LINE 8148 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 460, column 9)
               _lhsOjoinIdens =
-                  {-# LINE 452 "./TypeChecking.ag" #-}
+                  {-# LINE 460 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 8149 "AstInternal.hs" #-}
+                  {-# LINE 8153 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOidens,_lhsOjoinIdens)))
 -- TypeAttributeDef --------------------------------------------
 {-
@@ -8197,31 +8201,31 @@ sem_TypeAttributeDef_TypeAttDef ann_ name_ typ_  =
               _lhsOnamedType :: Type
               -- copy rule (down)
               _typOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 8203 "AstInternal.hs" #-}
+                  {-# LINE 8207 "AstInternal.hs" #-}
               ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   TypeAttDef ann_ name_ _typIannotatedTree
-                  {-# LINE 8210 "AstInternal.hs" #-}
+                  {-# LINE 8214 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8215 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 834, column 9)
+                  {-# LINE 8219 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 841, column 9)
               _lhsOattrName =
-                  {-# LINE 834 "./TypeChecking.ag" #-}
+                  {-# LINE 841 "./TypeChecking.ag" #-}
                   name_
-                  {-# LINE 8220 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 835, column 9)
+                  {-# LINE 8224 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 842, column 9)
               _lhsOnamedType =
-                  {-# LINE 835 "./TypeChecking.ag" #-}
+                  {-# LINE 842 "./TypeChecking.ag" #-}
                   _typInamedType
-                  {-# LINE 8225 "AstInternal.hs" #-}
+                  {-# LINE 8229 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOattrName,_lhsOnamedType)))
 -- TypeAttributeDefList ----------------------------------------
 {-
@@ -8275,33 +8279,33 @@ sem_TypeAttributeDefList_Cons hd_ tl_  =
               _lhsOattrs :: ([(String, Type)])
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 8281 "AstInternal.hs" #-}
+                  {-# LINE 8285 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 8286 "AstInternal.hs" #-}
+                  {-# LINE 8290 "AstInternal.hs" #-}
               ( _tlIannotatedTree,_tlIattrs) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree,_hdIattrName,_hdInamedType) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 8295 "AstInternal.hs" #-}
+                  {-# LINE 8299 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8300 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 840, column 12)
+                  {-# LINE 8304 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 847, column 12)
               _lhsOattrs =
-                  {-# LINE 840 "./TypeChecking.ag" #-}
+                  {-# LINE 847 "./TypeChecking.ag" #-}
                   (_hdIattrName, _hdInamedType) : _tlIattrs
-                  {-# LINE 8305 "AstInternal.hs" #-}
+                  {-# LINE 8309 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOattrs)))
 sem_TypeAttributeDefList_Nil :: T_TypeAttributeDefList 
 sem_TypeAttributeDefList_Nil  =
@@ -8310,19 +8314,19 @@ sem_TypeAttributeDefList_Nil  =
               _lhsOattrs :: ([(String, Type)])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 8316 "AstInternal.hs" #-}
+                  {-# LINE 8320 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8321 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 841, column 11)
+                  {-# LINE 8325 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 848, column 11)
               _lhsOattrs =
-                  {-# LINE 841 "./TypeChecking.ag" #-}
+                  {-# LINE 848 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 8326 "AstInternal.hs" #-}
+                  {-# LINE 8330 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOattrs)))
 -- TypeName ----------------------------------------------------
 {-
@@ -8399,33 +8403,33 @@ sem_TypeName_ArrayTypeName ann_ typ_  =
               _lhsOnamedType :: Type
               -- copy rule (down)
               _typOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 8405 "AstInternal.hs" #-}
+                  {-# LINE 8409 "AstInternal.hs" #-}
               ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOenv )
-              -- "./TypeChecking.ag"(line 143, column 9)
+              -- "./TypeChecking.ag"(line 148, column 9)
               _backTree =
-                  {-# LINE 143 "./TypeChecking.ag" #-}
+                  {-# LINE 148 "./TypeChecking.ag" #-}
                   ArrayTypeName ann_ _typIannotatedTree
-                  {-# LINE 8412 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 142, column 9)
+                  {-# LINE 8416 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 147, column 9)
               _tpe =
-                  {-# LINE 142 "./TypeChecking.ag" #-}
+                  {-# LINE 147 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed [_typInamedType] $ Right $ ArrayType _typInamedType
-                  {-# LINE 8417 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 132, column 10)
+                  {-# LINE 8421 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 137, column 10)
               _lhsOannotatedTree =
-                  {-# LINE 132 "./TypeChecking.ag" #-}
-                  setAnnotation
+                  {-# LINE 137 "./TypeChecking.ag" #-}
+                  updateAnnotation
                     ((map TypeErrorA $ getErrors _tpe    ) ++)
                     _backTree
-                  {-# LINE 8424 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 131, column 10)
+                  {-# LINE 8428 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 136, column 10)
               _lhsOnamedType =
-                  {-# LINE 131 "./TypeChecking.ag" #-}
+                  {-# LINE 136 "./TypeChecking.ag" #-}
                   errorToTypeFail _tpe
-                  {-# LINE 8429 "AstInternal.hs" #-}
+                  {-# LINE 8433 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOnamedType)))
 sem_TypeName_PrecTypeName :: Annotation ->
                              String ->
@@ -8435,28 +8439,28 @@ sem_TypeName_PrecTypeName ann_ tn_ prec_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: TypeName
               _lhsOnamedType :: Type
-              -- "./TypeChecking.ag"(line 149, column 9)
+              -- "./TypeChecking.ag"(line 154, column 9)
               _backTree =
-                  {-# LINE 149 "./TypeChecking.ag" #-}
+                  {-# LINE 154 "./TypeChecking.ag" #-}
                   PrecTypeName ann_ tn_ prec_
-                  {-# LINE 8443 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 148, column 9)
+                  {-# LINE 8447 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 153, column 9)
               _tpe =
-                  {-# LINE 148 "./TypeChecking.ag" #-}
+                  {-# LINE 153 "./TypeChecking.ag" #-}
                   Right TypeCheckFailed
-                  {-# LINE 8448 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 132, column 10)
+                  {-# LINE 8452 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 137, column 10)
               _lhsOannotatedTree =
-                  {-# LINE 132 "./TypeChecking.ag" #-}
-                  setAnnotation
+                  {-# LINE 137 "./TypeChecking.ag" #-}
+                  updateAnnotation
                     ((map TypeErrorA $ getErrors _tpe    ) ++)
                     _backTree
-                  {-# LINE 8455 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 131, column 10)
+                  {-# LINE 8459 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 136, column 10)
               _lhsOnamedType =
-                  {-# LINE 131 "./TypeChecking.ag" #-}
+                  {-# LINE 136 "./TypeChecking.ag" #-}
                   errorToTypeFail _tpe
-                  {-# LINE 8460 "AstInternal.hs" #-}
+                  {-# LINE 8464 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOnamedType)))
 sem_TypeName_SetOfTypeName :: Annotation ->
                               T_TypeName  ->
@@ -8470,33 +8474,33 @@ sem_TypeName_SetOfTypeName ann_ typ_  =
               _lhsOnamedType :: Type
               -- copy rule (down)
               _typOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 8476 "AstInternal.hs" #-}
+                  {-# LINE 8480 "AstInternal.hs" #-}
               ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOenv )
-              -- "./TypeChecking.ag"(line 146, column 9)
+              -- "./TypeChecking.ag"(line 151, column 9)
               _backTree =
-                  {-# LINE 146 "./TypeChecking.ag" #-}
+                  {-# LINE 151 "./TypeChecking.ag" #-}
                   SetOfTypeName ann_ _typIannotatedTree
-                  {-# LINE 8483 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 145, column 9)
+                  {-# LINE 8487 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 150, column 9)
               _tpe =
-                  {-# LINE 145 "./TypeChecking.ag" #-}
+                  {-# LINE 150 "./TypeChecking.ag" #-}
                   chainTypeCheckFailed [_typInamedType] $ Right $ SetOfType _typInamedType
-                  {-# LINE 8488 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 132, column 10)
+                  {-# LINE 8492 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 137, column 10)
               _lhsOannotatedTree =
-                  {-# LINE 132 "./TypeChecking.ag" #-}
-                  setAnnotation
+                  {-# LINE 137 "./TypeChecking.ag" #-}
+                  updateAnnotation
                     ((map TypeErrorA $ getErrors _tpe    ) ++)
                     _backTree
-                  {-# LINE 8495 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 131, column 10)
+                  {-# LINE 8499 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 136, column 10)
               _lhsOnamedType =
-                  {-# LINE 131 "./TypeChecking.ag" #-}
+                  {-# LINE 136 "./TypeChecking.ag" #-}
                   errorToTypeFail _tpe
-                  {-# LINE 8500 "AstInternal.hs" #-}
+                  {-# LINE 8504 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOnamedType)))
 sem_TypeName_SimpleTypeName :: Annotation ->
                                String ->
@@ -8505,28 +8509,28 @@ sem_TypeName_SimpleTypeName ann_ tn_  =
     (\ _lhsIenv ->
          (let _lhsOannotatedTree :: TypeName
               _lhsOnamedType :: Type
-              -- "./TypeChecking.ag"(line 140, column 9)
+              -- "./TypeChecking.ag"(line 145, column 9)
               _backTree =
-                  {-# LINE 140 "./TypeChecking.ag" #-}
+                  {-# LINE 145 "./TypeChecking.ag" #-}
                   SimpleTypeName ann_ tn_
-                  {-# LINE 8513 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 139, column 9)
+                  {-# LINE 8517 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 144, column 9)
               _tpe =
-                  {-# LINE 139 "./TypeChecking.ag" #-}
+                  {-# LINE 144 "./TypeChecking.ag" #-}
                   envLookupType _lhsIenv $ canonicalizeTypeName tn_
-                  {-# LINE 8518 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 132, column 10)
+                  {-# LINE 8522 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 137, column 10)
               _lhsOannotatedTree =
-                  {-# LINE 132 "./TypeChecking.ag" #-}
-                  setAnnotation
+                  {-# LINE 137 "./TypeChecking.ag" #-}
+                  updateAnnotation
                     ((map TypeErrorA $ getErrors _tpe    ) ++)
                     _backTree
-                  {-# LINE 8525 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 131, column 10)
+                  {-# LINE 8529 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 136, column 10)
               _lhsOnamedType =
-                  {-# LINE 131 "./TypeChecking.ag" #-}
+                  {-# LINE 136 "./TypeChecking.ag" #-}
                   errorToTypeFail _tpe
-                  {-# LINE 8530 "AstInternal.hs" #-}
+                  {-# LINE 8534 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOnamedType)))
 -- VarDef ------------------------------------------------------
 {-
@@ -8578,26 +8582,26 @@ sem_VarDef_VarDef ann_ name_ typ_ value_  =
               _lhsOdef :: ((String,Type))
               -- copy rule (down)
               _typOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 8584 "AstInternal.hs" #-}
+                  {-# LINE 8588 "AstInternal.hs" #-}
               ( _typIannotatedTree,_typInamedType) =
                   (typ_ _typOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   VarDef ann_ name_ _typIannotatedTree value_
-                  {-# LINE 8591 "AstInternal.hs" #-}
+                  {-# LINE 8595 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8596 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 940, column 14)
+                  {-# LINE 8600 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 945, column 14)
               _lhsOdef =
-                  {-# LINE 940 "./TypeChecking.ag" #-}
+                  {-# LINE 945 "./TypeChecking.ag" #-}
                   (name_, _typInamedType)
-                  {-# LINE 8601 "AstInternal.hs" #-}
+                  {-# LINE 8605 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOdef)))
 -- VarDefList --------------------------------------------------
 {-
@@ -8650,33 +8654,33 @@ sem_VarDefList_Cons hd_ tl_  =
               _lhsOdefs :: ([(String,Type)])
               -- copy rule (down)
               _tlOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 8656 "AstInternal.hs" #-}
+                  {-# LINE 8660 "AstInternal.hs" #-}
               -- copy rule (down)
               _hdOenv =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _lhsIenv
-                  {-# LINE 8661 "AstInternal.hs" #-}
+                  {-# LINE 8665 "AstInternal.hs" #-}
               ( _tlIannotatedTree,_tlIdefs) =
                   (tl_ _tlOenv )
               ( _hdIannotatedTree,_hdIdef) =
                   (hd_ _hdOenv )
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   (:) _hdIannotatedTree _tlIannotatedTree
-                  {-# LINE 8670 "AstInternal.hs" #-}
+                  {-# LINE 8674 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8675 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 943, column 12)
+                  {-# LINE 8679 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 948, column 12)
               _lhsOdefs =
-                  {-# LINE 943 "./TypeChecking.ag" #-}
+                  {-# LINE 948 "./TypeChecking.ag" #-}
                   _hdIdef : _tlIdefs
-                  {-# LINE 8680 "AstInternal.hs" #-}
+                  {-# LINE 8684 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOdefs)))
 sem_VarDefList_Nil :: T_VarDefList 
 sem_VarDefList_Nil  =
@@ -8685,19 +8689,19 @@ sem_VarDefList_Nil  =
               _lhsOdefs :: ([(String,Type)])
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 8691 "AstInternal.hs" #-}
+                  {-# LINE 8695 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8696 "AstInternal.hs" #-}
-              -- "./TypeChecking.ag"(line 944, column 11)
+                  {-# LINE 8700 "AstInternal.hs" #-}
+              -- "./TypeChecking.ag"(line 949, column 11)
               _lhsOdefs =
-                  {-# LINE 944 "./TypeChecking.ag" #-}
+                  {-# LINE 949 "./TypeChecking.ag" #-}
                   []
-                  {-# LINE 8701 "AstInternal.hs" #-}
+                  {-# LINE 8705 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOdefs)))
 -- Volatility --------------------------------------------------
 {-
@@ -8748,14 +8752,14 @@ sem_Volatility_Immutable  =
          (let _lhsOannotatedTree :: Volatility
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Immutable
-                  {-# LINE 8754 "AstInternal.hs" #-}
+                  {-# LINE 8758 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8759 "AstInternal.hs" #-}
+                  {-# LINE 8763 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_Volatility_Stable :: T_Volatility 
 sem_Volatility_Stable  =
@@ -8763,14 +8767,14 @@ sem_Volatility_Stable  =
          (let _lhsOannotatedTree :: Volatility
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Stable
-                  {-# LINE 8769 "AstInternal.hs" #-}
+                  {-# LINE 8773 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8774 "AstInternal.hs" #-}
+                  {-# LINE 8778 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))
 sem_Volatility_Volatile :: T_Volatility 
 sem_Volatility_Volatile  =
@@ -8778,12 +8782,12 @@ sem_Volatility_Volatile  =
          (let _lhsOannotatedTree :: Volatility
               -- self rule
               _annotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   Volatile
-                  {-# LINE 8784 "AstInternal.hs" #-}
+                  {-# LINE 8788 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
-                  {-# LINE 51 "./TypeChecking.ag" #-}
+                  {-# LINE 56 "./TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8789 "AstInternal.hs" #-}
+                  {-# LINE 8793 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree)))

@@ -6,22 +6,18 @@ checker for a substantial portion of PostGreSQL SQL and PL/pgSQL.
 
 Status: it successfully parses and accurately pretty prints the three
 moderate sized SQL files from another project of mine, but there are
-lots of missing bits. Coverage of SQL is reasonable, see below for
-more details on what is supported and unsupported.
+lots of missing bits. Coverage of SQL is reasonable - it's possible
+that your SQL files will parse ok, but it's also possible that they
+won't parse at all - see below for more details on what is supported
+and unsupported.
 
 It also has the beginnings of a type checker, which currently can type
 check a large subset of expressions and selects that the parser can
-parse, but is in an early state. You can run the type checker on your
-SQL, see the 'usage' file for details.
-
-There is a command line wrapper, HsSqlSystem.lhs, which provides some
-utility functions to access some of the library code.
+parse, and some aspects of all of the DDL statements that parse, but
+is in an early state. You can run the type checker on your SQL in
+various ways from the command line, see the 'usage' file for details.
 
 It comes with a small test suite.
-
-There is not much documentation at the moment. See the 'usage' file
-where there are instructions on how to parse files, and type check
-them to see how well the code supports your SQL source.
 
 It is Cabal-installable, run:
 cabal update
@@ -37,23 +33,29 @@ I think it should work on all GHC 6.10.x and possibly also GHC 6.8.x.
 See the file 'development' for some notes on how to work with the
 source.
 
-The main dependencies of this project are: Parsec 3, HUnit, HDBC and
-UUAGC.
+The main dependencies of this project are: Parsec 3, HUnit, HDBC,
+UUAGC and Data.Generics. The tests run without accessing PostGreSQL,
+but some of the utility functions do need it.
 
 ================================================================================
 
 Homepage
 
-The project is hosted on Launchpad
-http://launchpad.net/hssqlppp/
+There isn't really a homepage or website yet, but you can view the
+Launchpad page where the code is hosted, and the HackageDB page.
 
-You can get the latest code using Bazaar:
-bzr branch lp:~jakewheat/hssqlppp/trunk
+Launchpad:
+http://launchpad.net/hssqlppp/
 
 HackageDB page:
 http://hackage.haskell.org/package/hssqlppp
-This should hopefully have some basic Haddock documentation to view
-when version 0.0.6 is uploaded.
+You can also browse the limited Haddock documentation online here.
+
+You can get the latest development code from Launchpad using Bazaar:
+bzr branch lp:~jakewheat/hssqlppp/trunk
+
+To get a snapshot release, see the downloads on the Launchpad page, or
+use cabal install.
 
 Contact
 
@@ -134,26 +136,23 @@ supports. Development work is currently focused in this area.
 
 = Other current downsides:
 
-The AST node types aren't well designed, in particular they contain
-patchy location information, and limited other annotations. This is
-being worked on.
+The design of the AST node types is pretty basic.
 
 Not much work has been done on correctly rejecting invalid SQL
 (although it does pretty well despite this) and not much thought has
 been put into error messages and error reporting yet, this is slowly
-improving, and at some point will become a major focus.
+improving, and at some point will become a major focus - I hope this
+code will provide substantial benefits when developing in PL/pgSQL in
+the future.
 
-Supporting other SQL dialects: I think it might be realistic to
-support portable select, insert, update and delete with ?
-placeholders. I think cross platform DDL isn't ever going to be
-sensible in non toy databases, and if you wanted to use this utility
-e.g. support MySQL or MS SQL Server, it might be best to start by
-forking the code, I would be happy to help support this in any way I
-can.
+Only supports PostGreSQL SQL and PL/pgSQL.
 
-Future plans:
+Future plans (provisional):
 
 * use this system to develop a Lint-type checker for PL/pgSQL;
+
+* provide support to help developing SQL from an IDE (targetting Emacs
+  mainly)
 
 * support type checking simple SQL statements that you'd embed in
   Haskell code, including with ? placeholders, to support generating

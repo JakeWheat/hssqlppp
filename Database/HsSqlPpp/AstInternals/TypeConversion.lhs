@@ -27,7 +27,6 @@ checkAssignmentValid - pass in source type and target type, returns
 
 > import Data.Maybe
 > import Data.List
-> import Control.Applicative
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.AstInternals.AstUtils
@@ -433,7 +432,7 @@ code is not as much of a mess as findCallMatch
 
 > resolveResultSetType :: Environment -> [Type] -> Either [TypeError] Type
 > resolveResultSetType env inArgs =
->   chainTypeCheckFailed inArgs $ do
+>   chainTypeCheckFailed inArgs $
 >       case () of
 >               _ | null inArgs -> Left [TypelessEmptyArray]
 >                 | allSameType -> Right $ head inArgs

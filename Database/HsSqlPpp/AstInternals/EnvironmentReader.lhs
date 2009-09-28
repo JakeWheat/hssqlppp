@@ -3,9 +3,10 @@ Copyright 2009 Jake Wheat
 This module contains the code to read a set of environment updates
 from a database.
 
+The code here hasn't been tidied up since the Environment data type
+was heavily changed so it's a bit messy.
+
 > {-# OPTIONS_HADDOCK hide  #-}
-
-
 
 > module Database.HsSqlPpp.AstInternals.EnvironmentReader
 >     (readEnvironmentFromDatabase) where
@@ -47,10 +48,8 @@ from a database.
 >    let typeStuff = concatMap convTypeInfoRow typeInfo
 >        typeAssoc = map (\(a,b,_) -> (a,b)) typeStuff
 >        typeMap = M.fromList typeAssoc
->        --types = map snd typeAssoc
->        --typeNames = map (\(_,a,b) -> (b,a)) typeStuff
 >    cts <- map (\(nm:cat:pref:[]) ->
->                EnvCreateScalar (ScalarType nm) cat ((read pref)::Bool)) <$>
+>                EnvCreateScalar (ScalarType nm) cat ( read pref :: Bool)) <$>
 >           selectRelation conn
 >                        "select t.typname,typcategory,typispreferred\n\
 >                        \from pg_type t\n\
@@ -73,11 +72,6 @@ from a database.
 >                                      "i" -> ImplicitCastContext
 >                                      "e" -> ExplicitCastContext
 >                                      _ -> error $ "internal error: unknown cast context " ++ (l!!2)))
->    --typeCatInfo <- selectRelation conn
->    --                    "select pg_type.oid, typcategory, typispreferred from pg_type\n\
->    --                    \where pg_catalog.pg_type_is_visible(pg_type.oid);" []
->    --let typeCats = flip map typeCatInfo
->    --                 (\l -> (jlt (l!!0), l!!1, read (l!!2)::Bool))
 >    operatorInfo <- selectRelation conn
 >                        "select oprname,\n\
 >                        \       oprleft,\n\
@@ -119,49 +113,6 @@ from a database.
 >                       \      and proisagg\n\
 >                       \order by proname,proargtypes;" []
 >    let aggProts = map (convFnRow jlt) aggregateInfo
-
-
--- >    attrInfo <- selectRelation conn
--- >                   "select distinct\n\
--- >                   \   cls.relkind,\n\
--- >                   \   cls.relname,\n\
--- >                   \     array_to_string(\n\
--- >                   \       array_agg(attname || ';' || atttypid)\n\
--- >                   \          over (partition by relname order by attnum\n\
--- >                   \               range between unbounded preceding\n\
--- >                   \               and unbounded following)\n\
--- >                   \      ,',')\n\
--- >                   \ from pg_attribute att\n\
--- >                   \ inner join pg_class cls\n\
--- >                   \   on cls.oid = attrelid\n\
--- >                   \ where\n\
--- >                   \   pg_catalog.pg_table_is_visible(cls.oid)\n\
--- >                   \   and cls.relkind in ('r','v','c')\n\
--- >                   \   and not attisdropped\n\
--- >                   \   and attnum > 0\n\
--- >                   \ order by relkind, relname;" []
--- >    --let attrs = map (convAttrRow jlt) attrInfo
-
--- >    systemAttrInfo <- selectRelation conn
--- >                   "select distinct\n\
--- >                   \   cls.relkind,\n\
--- >                   \   cls.relname,\n\
--- >                   \     array_to_string(\n\
--- >                   \       array_agg(attname || ';' || atttypid)\n\
--- >                   \          over (partition by relname order by attnum\n\
--- >                   \               range between unbounded preceding\n\
--- >                   \               and unbounded following)\n\
--- >                   \      ,',')\n\
--- >                   \ from pg_attribute att\n\
--- >                   \ inner join pg_class cls\n\
--- >                   \   on cls.oid = attrelid\n\
--- >                   \ where\n\
--- >                   \   pg_catalog.pg_table_is_visible(cls.oid)\n\
--- >                   \   and cls.relkind in ('r','v','c')\n\
--- >                   \   and not attisdropped\n\
--- >                   \   and attnum < 0\n\
--- >                   \ order by relkind, relname;" []
--- >    --let systemAttrs = map (convAttrRow jlt) systemAttrInfo
 
 >    comps <- map (\(kind:nm:atts:sysatts:[]) ->
 >              case kind of

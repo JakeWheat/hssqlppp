@@ -8,12 +8,13 @@ Set of tests to check the type checking code
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
-> import Debug.Trace
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.Annotator
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Environment
+> import Database.HsSqlPpp.Ast.SqlTypes
 
 > astCheckTests :: Test.Framework.Test
 > astCheckTests = testGroup "astCheckTests" [
@@ -725,5 +726,5 @@ check type of initial values
 >        (0,0,0) -> assertFailure "didn't get any infos or envupdates?"
 >        (0,_,_) -> do
 >          assertEqual ("typecheck " ++ src) sis $ Right is
->          assertEqual ("eu " ++ src) eu $ eu'
+>          assertEqual ("eu " ++ src) eu eu'
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er

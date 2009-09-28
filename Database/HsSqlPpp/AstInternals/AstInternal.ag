@@ -13,7 +13,8 @@ The attr and sem definitions are in TypeChecking.ag, which is included
 into this file.
 
 These ast nodes are both used as the result of successful parsing, and
-as the input to the type checker and the pretty printer.
+as the input to the type checker (and the output from the type
+checker), and the pretty printer.
 
 = compiling
 
@@ -617,6 +618,8 @@ annotateAstEnv env sts =
    in case tl of
          Root r -> r
 
+-- | Type check multiple asts, allowing type checking references in later
+--   files to definitions in earlier files.
 annotateAstsEnv :: Environment -> [StatementList] -> [StatementList]
 annotateAstsEnv env sts =
     annInt env sts []
@@ -626,6 +629,8 @@ annotateAstsEnv env sts =
           in annInt e1 ss (res:ress)
       annInt _ [] ress = reverse ress
 
+-- | Type check an ast, and return the resultant Environment as well
+--   as the annotated ast.
 annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 annotateAstEnvEnv env sts =
     let t = sem_Root (Root sts)

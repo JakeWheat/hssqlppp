@@ -40,7 +40,6 @@ modules.
 
 > import Control.Monad
 > import Data.List
-> import Debug.Trace
 > import Data.Generics
 
 > import Database.HsSqlPpp.AstInternals.TypeType
@@ -152,7 +151,7 @@ modules.
 >     updateEnv' env eu =
 >       case eu of
 >         EnvCreateScalar ty cat pref -> do
->                 errorWhen (not allowed) $
+>                 errorWhen (not allowed)
 >                   [BadEnvironmentUpdate $ "can only add scalar types\
 >                                           \this way, got " ++ show ty]
 >                 let ScalarType nm = ty
@@ -162,10 +161,10 @@ modules.
 >                                     ScalarType _ -> True
 >                                     _ -> False
 >         EnvCreateDomain ty baseTy -> do
->                 errorWhen (not allowed) $
+>                 errorWhen (not allowed)
 >                   [BadEnvironmentUpdate $ "can only add domain types\
 >                                           \this way, got " ++ show ty]
->                 errorWhen (not baseAllowed) $
+>                 errorWhen (not baseAllowed)
 >                   [BadEnvironmentUpdate $ "can only add domain types\
 >                                           \based on scalars, got "
 >                                           ++ show baseTy]
@@ -183,7 +182,7 @@ modules.
 >                   baseAllowed = case baseTy of
 >                                   ScalarType _ -> True
 >                                   _ -> False
->         EnvCreateComposite nm flds -> do
+>         EnvCreateComposite nm flds ->
 >                 return $ (addTypeWithArray env nm (CompositeType nm) "C" False) {
 >                             envAttrDefs =
 >                               (nm,Composite,UnnamedCompositeType flds, UnnamedCompositeType [])
@@ -222,9 +221,9 @@ modules.
 >                : (ty,cat,pref)
 >                : envTypeCategories env}
 >     checkTypeDoesntExist env nm ty = do
->         errorWhen (any (==nm) $ map fst $ envTypeNames env) $
+>         errorWhen (any (==nm) $ map fst $ envTypeNames env)
 >             [TypeAlreadyExists ty]
->         errorWhen (any (==ty) $ map snd $ envTypeNames env) $
+>         errorWhen (any (==ty) $ map snd $ envTypeNames env)
 >             [TypeAlreadyExists ty]
 >         return ()
 
@@ -253,7 +252,7 @@ check to see if it works
 > envCompositeAttrs env flvs ty = do
 >   let CompositeType nm = ty
 >   let c = filter (\(n,t,_,_) -> n == nm && (null flvs || t `elem` flvs)) $ envAttrDefs env
->   errorWhen (length c == 0)
+>   errorWhen (null c)
 >             [UnrecognisedRelation nm]
 >   case c of
 >     (_,fl1,r,s):[] -> return (nm,fl1,r,s)
@@ -274,7 +273,7 @@ check to see if it works
 
 
 > envDomainBaseType :: Environment -> Type -> Type
-> envDomainBaseType env ty = do
+> envDomainBaseType env ty =
 >   --check type is domain, check it exists in main list
 >   case lookup ty (envDomainDefs env) of
 >       Nothing -> error "domain not found" -- Left [DomainDefNotFound ty]
@@ -431,7 +430,7 @@ moment.
 
 > envTypeExists :: Environment -> Type -> Either [TypeError] Type
 > envTypeExists env t =
->     errorWhen (t `notElem` (map snd $ envTypeNames env))
+>     errorWhen (t `notElem` map snd (envTypeNames env))
 >               [UnknownTypeError t] >>
 >     Right t
 

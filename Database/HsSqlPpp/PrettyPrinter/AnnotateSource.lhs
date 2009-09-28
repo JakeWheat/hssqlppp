@@ -17,8 +17,10 @@ Get all the annotations ordered by source position. Split the original
 text on these points, then zip it and output it.
 
 
-> {- | Function to pretty print annotation information interspersed with original source file, so e.g. you can view types, etc. inline in the source whilst preserving the original formatting and comments.
-> -}
+> {- | Function to pretty print annotation information interspersed
+>      with original source file, so e.g. you can view types,
+>      etc. inline in the source whilst preserving the original
+>      formatting and comments.  -}
 > module Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 >     (annotateSource) where
 
@@ -63,10 +65,10 @@ To replace existing comments rather than repeatedly add them:
 
 
 >    let allAnn = sortBy ordSps $ getStatementPosStringPairs ++ getTypeErrorPosPairs
->        splitPoints = map (\(SourcePos _ l _) -> l - 1) $ map fst allAnn
->        splitsSrc = splitAts src $ splitPoints
+>        splitPoints = map ((\(SourcePos _ l _) -> l - 1) . fst) allAnn
+>        splitsSrc = splitAts src splitPoints
 >        anSrcPairs = zip splitsSrc $ map snd allAnn
->    in concat (map (uncurry (++)) anSrcPairs)
+>    in concatMap (uncurry (++)) anSrcPairs
 >           -- make sure we get the last bit of the source code
 >           ++ last splitsSrc
 >    where
@@ -91,9 +93,9 @@ To replace existing comments rather than repeatedly add them:
 >                                      in if notSp == []
 >                                           then Nothing
 >                                           else Just (find isSp l, notSp)) statementAnnotations
->              splitsWithSps = catMaybes $ map (\(a,b) -> case a of
->                                                                Nothing -> Nothing
->                                                                Just a1 -> Just (a1,b)) split
+>              splitsWithSps = mapMaybe (\(a,b) -> case a of
+>                                                         Nothing -> Nothing
+>                                                         Just a1 -> Just (a1,b)) split
 >          in map (\(a,b) -> (a, "\n/*" ++ show b ++ "*/\n")) splitsWithSps
 >          where
 >            interestingAnn anns =

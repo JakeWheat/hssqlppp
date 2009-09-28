@@ -3,9 +3,10 @@ Here are some notes on what you can currently do with the code:
 = HsSqlSystem
 
 Command line access to a number of functions is provided by
-HsSqlSystem.lhs. You can list the commands using './HsSqlSystem.lhs
-help', and you can get the descriptions of what these commands do
-using './HsSqlSystem.lhs help all'.
+HsSqlSystem.lhs. You can list the commands using 'HsSqlSystem help',
+and you can get the descriptions of what these commands do using
+'HsSqlSystem help all'. (Assuming you have cabal installed the
+software and have the cabal binary folder in your path.)
 
 The commands which access postgresql probably won't work right on your
 system, they are in a very early alpha state.
@@ -13,7 +14,9 @@ system, they are in a very early alpha state.
 The most interesting commands are:
 * parsefile
 * roundtripfile, loadsql
-* showinfodb
+* annotateSource
+* checksource
+
 
 == parsefile
 
@@ -42,39 +45,27 @@ Loading the roundtripped sql into a database then running tests on it
 will hopefully can give a bit more confidence that the sql has been
 parsed accurately.
 
-== showinfodb
+== annotateSource
 
-This command will take a sql file, parse it, type check it and then
-pretty print the lines interspersed with comments containing
-annotation information gathered during type checking (including type
-errors), and other information tailored to the statement type
-(e.g. create function shows function prototype, create view shows
-column names and types in view).
+This command takes a filename, parses and type checks the file, and
+then outputs a copy of the source with the main annotations attached
+to the statements interspersed into the source in comments. This can
+be used e.g. to view the attribute names and types of a view. After
+some more work has been done on this command, it is intended that this
+is expanded to provide lots of useful comments which are maintained in
+your actual source and checked in to source control, etc..
 
-You pass a database in as the first arg, and it type checks against
-the catalog of that database. It currently doesn't type check against
-definitions given in the same file though, which is a bit of a
-limitation, but you can load the sql files into pg first, then type
-check and see types for some views, functions, etc..
+== checksource
 
-some example output of showinfodb:
+This command takes a set of files and type checks each one in turn
+(later files can depend on definitions appearing in files earlier in
+the file list). It outputs all the type errors found in Emacs friendly
+format. This mostly just shows you all the bits that haven't been
+implemented in the type checker yet. This is the early precursor to
+the lint checking process.
 
-
-/*
- TypeAnnotation (Pseudo Void)
-StatementInfoA (RelvarInfo ("base_relvar_attributes",ViewComposite,SetOfType (UnnamedCompositeType [("attribute_name",ScalarType "name"),("type_name",ScalarType "name"),("relvar_name",ScalarType "name")])))
-SourcePos "sqltestfiles/system.sql" 67 13 */
- create view base_relvar_attributes as
-  select attname as attribute_name,typname as type_name,relname as relvar_name
-    from pg_attribute
-         inner join pg_class on (attrelid = pg_class.oid)
-         inner join pg_type on (atttypid = pg_type.oid)
-         inner join base_relvars on (relname = base_relvars.relvar_name)
-    where (attnum >= 1);
-
-Pretty printers for the Annotation types are planned, to make this
-comment more readable.
-
+Pretty printers and other work for the Annotation types are planned,
+to make the annotateSource comments and error messages more readable.
 
 == reasonably up to date output of './HsSqlSystem.lhs help all'
 
@@ -109,29 +100,27 @@ arguments, a source filename and a target filename. If the target file
 exists, it quits. Parses the source file then pretty prints it to the
 target filename.
 
-getscope
-read the catalogs for the given db and dump a scope variable source
+readenv
+read the catalogs for the given db and dump a Environment value source
 text to stdout
 
-showinfo
-reads each file, parses, type checks, then outputs info on each
-statement interspersed with the pretty printed statements
+annotateSource
+reads a file, parses, type checks, then outputs info on each statement
+interspersed with the original source code
 
-showinfodb
-pass the name of a database first, then filenames, reads each file,
-parses, type checks, then outputs info on each statement interspersed
-with the pretty printed statements, will type check against the given
-database schema
+checksource
+reads each file, parses, type checks, then outputs any type errors
 
 ================================================================================
 
 = library usage
 
-see the haddock docs to get a basic idea of using the libraries. The
+See the haddock docs to get a basic idea of using the libraries. The
 source for HsSqlSystem.lhs might also be worth a look for some
-examples. Hopefully, haddock docs will be online at
+examples. You should be able to view the haddock docs online on the
+hackagedb page here:
 http://hackage.haskell.org/package/hssqlppp
-when 0.0.6 is uploaded.
+
 
 ================================================================================
 

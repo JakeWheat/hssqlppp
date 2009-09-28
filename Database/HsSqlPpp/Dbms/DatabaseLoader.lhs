@@ -10,11 +10,9 @@ instead of pretty printing the whole lot, just that the run command
 from hdbc only supports one command at a time. This might be a
 postgresql limitation.)
 
-The next todo to help this code move along is to start adding token
-position information to the ast, Then when error (and notice, etc.)
-messages come back from the database when loading the sql, can show
-the pretty printed sql with the error pos highlighted, as well as
-providing the original position from the sql file.
+The next todo to help this code move along is to use the source
+position information in the ast when error (and notice, etc.)
+messages come back from the database whilst loading the sql, can try to show the source position from the original file, which will be different to what postgresql reports.
 
 This seems like a whole lot of effort for nothing, but will then allow
 using transforming the ast so it no longer directly corresponds to the
@@ -26,7 +24,7 @@ One option for some of the code is to use the original source code
 when it hasn't been changed for a given statement, instead of the
 pretty printed stuff, don't know how much help this will be.
 
-This code is currently on the backburner, and is a massive mess.
+This code is currently on the backburner, and is a mess.
 
 > {- | Routine load SQL into a database. Should work alright, but if
 >  you get any errors from PostGreSQL it won't be easy to track them

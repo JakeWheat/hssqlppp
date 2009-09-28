@@ -1,7 +1,8 @@
 Copyright 2009 Jake Wheat
 
 This file contains some utility functions for working with types and
-type checking.
+type checking, which have been moved out of TypeChecking.ag for ease
+of development (no uuagc mode for emacs is the problem).
 
 > {-# OPTIONS_HADDOCK hide #-}
 
@@ -42,9 +43,6 @@ type checking.
 ================================================================================
 
 = type check code
-
-idea is to move these here from TypeChecking.ag if they get a bit big,
-not very consistently applied at the moment.
 
 > typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] Type
 > typeCheckFunCall env fnName argsType =
@@ -117,7 +115,7 @@ not very consistently applied at the moment.
 >                    Left [NoRowsGivenForValues]
 >                | not (all (==head lengths) lengths) ->
 >                    Left [ValuesListsMustBeSameLength]
->                | otherwise -> do
+>                | otherwise ->
 >                    --i don't think this propagates all the errors, just the first set
 >                    mapM (resolveResultSetType env) (transpose rowsTs) >>=
 >                      (return . SetOfType . UnnamedCompositeType . zip colNames)
@@ -218,10 +216,10 @@ returns the type of the relation, and the system columns also
 >       cols = if null cols'
 >                then map fst ttcols
 >                else cols'
->   errorWhen (length insNameTypePairs /= length cols) $ [WrongNumberOfColumns]
+>   errorWhen (length insNameTypePairs /= length cols) [WrongNumberOfColumns]
 >   let nonMatchingColumns = cols \\ map fst ttcols
->   when (not $ null nonMatchingColumns) $
->        Left $ map UnrecognisedIdentifier nonMatchingColumns
+>   errorWhen (not $ null nonMatchingColumns) $
+>        map UnrecognisedIdentifier nonMatchingColumns
 >   let targetNameTypePairs =
 >         map (\l -> (l,fromJust $ lookup l ttcols)) cols
 >         --check the types of the insdata match the column targets
@@ -230,13 +228,16 @@ returns the type of the relation, and the system columns also
 >       errs :: [TypeError]
 >       errs = concat $ lefts $ map (\(_,b,c) -> checkAssignmentValid env c b) typeTriples
 >   unless (null errs) $ Left errs
->   return $ targetNameTypePairs
+>   return targetNameTypePairs
 
 > checkRelationExists :: Environment -> String -> Maybe TypeError
 > checkRelationExists env tbl =
 >           case getAttrs env [TableComposite, ViewComposite] tbl of
 >             Just _ -> Nothing
 >             _ -> Just $ UnrecognisedRelation tbl
+
+this function a bit of a mess - artefact of not fully updated code
+after the environment data type was changed.
 
 > convertToNewStyleUpdates :: [(String, ([(String,Type)], [(String,Type)]))] -> [String] -> [EnvironmentUpdate]
 > convertToNewStyleUpdates qualIdens joinIdens =

@@ -1,8 +1,11 @@
 environment
 
-new environment data type, abstracted implementation, can now process
-ddl in a script and type check against it. work on variable scoping,
-and annotations
+New environment data type with abstracted implementation, can now
+process ddl in a script and type check against it. Some work on
+variable scoping, and annotations. New commands: annotateSource (adds
+some annotations for statements into the original source code as
+comments), and checksource, which outputs type errors in emacs
+friendly format.
 
 annotated tree
 

@@ -1,13 +1,11 @@
 new features:
-interpolate annot into original source + pretty printer for annot
-do type error output with source pos, emacs format
-collect sourcepositions in table in parser
-
+pretty printer for annotations for annotatesource and checksource
 
 tidy up syb stuff
 review use of annotations/attributes in type checker
 run through error handling, fix spaghetti code and bizarre stuff
-add either to remaining utils, convert error to either
+add either to remaining utils, convert error to either so we get
+   internal errors in the aast instead of killing the program
 check code ag <-> lhs
 review the typechecking modules -> can get rid of astutils? probably
    not, but can rename it to errorhandling or similar
@@ -16,7 +14,6 @@ review ast/typechecking split, move ast to separate folder?,
   depend on type checking stuff (problem: annotations?)
 
 lint stuff: ambiguous identifiers, null usage, duplicate definitions
-
 
 error handling fixup
 not just error handling, but most of the code in the type checking
@@ -47,19 +44,10 @@ files.
    from scratch.
 
 
-= Current TODO list
+= Additional TODO list towards alpha release
 
-TODOs in rough order that they are intended to be done
-
-do interpolating annots in original source
-collect source positions with type errors -> is syb or ag the easiest
-   way to to this?
-do emacs friendly type error output
-add annotations to most remaining ast nodes
-complete sorting out source position collection in parser
-RELEASE
-
-unordered stuff follows:
+run through chaos sql and fix all type checking problems, make sure
+roundtripping through annotate source doesn't mangle the code
 start work on type checking inside functions - start with params,
    return types, non plpgsql statements, stuff with selects (e.g. for).
 work on parsing and type checking pg_dump output, then do a util to
@@ -122,9 +110,6 @@ stage 2:
 instead of interspersing the annotation output with the pretty printed
    statements, insert or overwrite the annotation comments in the
    original source so we preserve formatting and other comments.
-make a better pretty printer for annotations
-use the f :: Annotation -> Doc for inserting/updating pretty printed
-   annotations in the original source
 want to also output types of parts of statements, e.g. the select in a
    for statement or insert, etc.. Other things that could be useful
    include adding the resolved function prototype for each function
@@ -148,7 +133,7 @@ review and choose from this list:
 
 ================================================================================
 
-rough milestones for release 0.1:
+rough milestones for first alpha
 in addition to all the stage 3 items above,
 
 add support for nearly all syntax for parsing and type checking,

@@ -552,8 +552,6 @@ convert a list of expressions to horizontal csv
 > csvExp :: [Expression] -> Doc
 > csvExp = hcatCsvMap convExp
 
-run conversion function if Just, return empty if nothing
-
 > maybeConv :: (t -> Doc) -> Maybe t -> Doc
 > maybeConv f c =
 >     case c of
@@ -569,9 +567,6 @@ run conversion function if Just, return empty if nothing
 > ifNotEmpty :: ([a] -> Doc) -> [a] -> Doc
 > ifNotEmpty c l = if null l then empty else c l
 
-map the converter ex over a list
-then hcatcsv the results
-
 > hcatCsvMap :: (a -> Doc) -> [a] -> Doc
 > hcatCsvMap ex = hcatCsv . map ex
 
@@ -580,7 +575,6 @@ then hcatcsv the results
 
 > newline :: Doc
 > newline = text "\n"
-
 
 > convPa :: (Annotation -> String) -> Annotation -> Doc
 > convPa ca a = let s = ca a

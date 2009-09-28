@@ -19,13 +19,11 @@ TODO 2: think of a name for this command
 > import Control.Monad
 > import System.Directory
 > import Data.List
-> import Control.Applicative
 > import Data.Either
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
 
-> import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotator
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Environment
@@ -59,8 +57,6 @@ TODO 2: think of a name for this command
 >            ,roundTripCommand
 >            ,readEnvCommand
 >            ,annotateSourceCommand
->            ,showInfoCommand
->            ,showInfoDBCommand
 >            ,checkSourceCommand]
 
 > lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
@@ -206,59 +202,10 @@ TODO: do something more correct
 
 ================================================================================
 
-> showInfoCommand :: CallEntry
-> showInfoCommand = CallEntry
->                    "showinfo"
->                    "reads each file, parses, type checks, then outputs info on each statement \
->                    \interspersed with the pretty printed statements"
->                    (Multiple showInfo)
-
-> showInfo :: [FilePath] -> IO ()
-> showInfo = showInfoEnv defaultTemplate1Environment
-
-> showInfoEnv :: Environment -> [FilePath] -> IO ()
-> showInfoEnv env fs = do
->   astEithers <- mapM parseSqlFile fs
->   let asts = rights astEithers
->   let aasts = annotateAstsEnv env asts
->   mapM_ print $ lefts astEithers
->   mapM_ printAst aasts
->   where
->     printAst :: StatementList -> IO ()
->     printAst = mapM_ (putStrLn . printSqlAnn annotToS . (:[]))
->     annotToS :: Annotation -> String
->     annotToS = concat . intersperse "\n" . map show
-
-
-
-================================================================================
-
-> showInfoDBCommand :: CallEntry
-> showInfoDBCommand = CallEntry
->                    "showinfodb"
->                    "pass the name of a database first, then \
->                    \filenames, reads each file, parses, type checks, \
->                    \then outputs info on each statement interspersed with the \
->                    \pretty printed statements, will type check \
->                    \against the given database schema"
->                    (Multiple showInfoDB)
-
-
-> showInfoDB :: [FilePath] -> IO ()
-> showInfoDB (dbName:fs) = do
->   env <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
->   case env of
->     Left e -> error $ show e
->     Right e1 ->
->         showInfoEnv e1 fs
-> showInfoDB _ = error "please pass the database name plus at least one filename"
-
-================================================================================
-
 > annotateSourceCommand :: CallEntry
 > annotateSourceCommand = CallEntry
 >                    "annotateSource"
->                    "reads each file, parses, type checks, then outputs info on each statement \
+>                    "reads a file, parses, type checks, then outputs info on each statement \
 >                    \interspersed with the original source code"
 >                    (Single annotateSourceF)
 

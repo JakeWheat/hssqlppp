@@ -32,6 +32,7 @@ copy payload (used to lex copy from stdin data)
 > import Data.Char
 
 > import Database.HsSqlPpp.Parsing.ParseErrors
+> import Database.HsSqlPpp.Utils
 
 ================================================================================
 
@@ -186,6 +187,8 @@ whitespace e.g. i think 3*-4 is valid sql, should lex as '3' '*' '-'
 '4', but will currently lex as '3' '*-' '4'. This is planned to be
 fixed in the parser.
 .. := :: : - other special cases
+A single * will lex as an identifier rather than a symbol, the parser
+deals with this.
 
 > sqlSymbol :: ParsecT String ParseState Identity Tok
 > sqlSymbol =
@@ -237,12 +240,6 @@ its own on a line
 >                               then return ""
 >                               else (x++) <$> getLinesTillMatches s
 >     getALine = (++"\n") <$> manyTill anyChar (try newline)
-
-doesn't seem too gratuitous, comes up a few times
-
-> (<:>) :: (Applicative f) =>
->          f a -> f [a] -> f [a]
-> (<:>) a b = (:) <$> a <*> b
 
 > tryMaybeP :: GenParser tok st a
 >           -> ParsecT [tok] st Identity (Maybe a)
