@@ -151,7 +151,7 @@ Future plans (provisional):
 
 * use this system to develop a Lint-type checker for PL/pgSQL;
 
-* provide support to help developing SQL from an IDE (targetting Emacs
+* provide support to help developing SQL from an IDE (targeting Emacs
   mainly)
 
 * support type checking simple SQL statements that you'd embed in

@@ -45,7 +45,9 @@ annotations for now. (This could be made more general by allowing a
 different kind of annotation pretty printer depending on the node
 type, value or context?)
 
-filter these two lists, mainly to strip all the annotations from the non-statement annotation list except the source positions and the type errors.
+filter these two lists, mainly to strip all the annotations from the
+non-statement annotation list except the source positions and the type
+errors.
 
 merge these two lists and sort by source position, then map to get
 [(sourceposition, annotation without sourceposition)]
@@ -57,11 +59,15 @@ use a zip:
 zip splitSource $ ([]:map snd mungedAnnotationlist)
 to get [(string,annotation)]
 then do map second prettyPrint over this
-to gives us a [(string,string)] which we can concatenate to produce the output text.
+to gives us a [(string,string)] which we can concatenate to produce
+the output text.
 
 To replace existing comments rather than repeatedly add them:
 1) make sure the pretty printed comments have some marker
-   strip all the comments with this marker out after splitting the string on the annotation source positions, i.e. when we get to [(string,annotation)] or [(string,string)] stage.
+
+2) strip all the comments with this marker out after splitting the
+   string on the annotation source positions, i.e. when we get to
+   [(string,annotation)] or [(string,string)] stage.
 
 
 >    let allAnn = sortBy ordSps $ getStatementPosStringPairs ++ getTypeErrorPosPairs

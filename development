@@ -109,7 +109,7 @@ Database/HsSqlPpp/Tests/DatabaseLoaderTests.lhs
 There are a few utilities to access databases in
 Database/HsSqlPpp/Dbms/, this code is very sketchy.
 
-These files all have (hopefully) useful comments, although mant of
+These files all have (hopefully) useful comments, although many of
 these haven't been kept up to date.
 
 The error handling in the type

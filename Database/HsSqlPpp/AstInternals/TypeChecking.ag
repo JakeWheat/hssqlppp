@@ -362,7 +362,7 @@ SEM Statement
 
 This is a bit of a mess, will be rewritten with a proper literate
 flavour once all the different bits are type checking ok, which should
-make it much more readble.
+make it much more readable.
 
 -}
 

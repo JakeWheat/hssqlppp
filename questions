@@ -42,6 +42,7 @@ have whitespace stripping, destroying paragraphs and lists
 = uuagc
 
 compare with aspectag - what are the upsides/downsides?
+update - looks like the syntax still needs a lot of work for aspectag
 
 = postgresql questions
 
