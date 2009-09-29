@@ -513,6 +513,18 @@ qualifier before oid and this should still work
 >         $ Right [Just $ SelectInfo $ SetOfType (UnnamedCompositeType [("g",ScalarType "int4")])]
 >      ])
 
+identifiers in select parts
+
+>{-    ,testGroup "select part identifiers"
+>     (mapStatementInfo [
+>       p "select relname,attname from pg_class\n\
+>         \inner join pg_attribute\n\
+>         \on pg_attribute.attrelid = pg_class.oid;"
+>         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("relvar_name",ScalarType "name")]]
+>      ])-}
+
+
+
 insert
 
 >    ,testGroup "insert"

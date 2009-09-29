@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.0.7
+Version:             0.0.8
 Synopsis:            Sql parser and type checker
 Description:
     Sql parser, pretty printer and type checker, targets PostGreSQL SQL
@@ -65,7 +65,7 @@ extra-source-files:  README,
                      sqltestfiles/client.sql
 
 Library
-  Build-Depends:     base >= 3 && < 5,
+  Build-Depends:     base >= 4 && < 5,
                      mtl,
                      parsec >= 3,
                      pretty,
@@ -73,7 +73,8 @@ Library
                      regex-posix,
                      HDBC,
                      HDBC-postgresql,
-                     directory
+                     directory,
+                     syb
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast,
                      Database.HsSqlPpp.Parsing.Parser,
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
