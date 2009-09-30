@@ -16,6 +16,7 @@ of development (no uuagc mode for emacs is the problem).
 >     ,splitIdentifier
 >     ,getRelationType
 >     ,checkColumnConsistency
+>     ,getCompositeColumns
 >     ,checkRelationExists
 >     ,convertToNewStyleUpdates
 >     ,commonFieldNames
@@ -207,6 +208,14 @@ returns the type of the relation, and the system columns also
 >     where
 >       fn (UnnamedCompositeType s) = map fst s
 >       fn _ = []
+
+> getCompositeColumns :: Environment -> String -> Either [TypeError] [(String,Type)]
+> getCompositeColumns env tbl = do
+>   rt <- getRelationType env tbl
+>   cols <- unwrapComposite $ fst rt
+>   cols1 <- unwrapComposite $ snd rt
+>   return $ cols ++ cols1
+
 
 > checkColumnConsistency :: Environment ->  String -> [String] -> [(String,Type)]
 >                        -> Either [TypeError] [(String,Type)]

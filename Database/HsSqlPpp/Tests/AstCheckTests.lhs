@@ -578,6 +578,11 @@ insert
 >       -- TODO: actually, pg doesn't support this so need to generate error instead
 >      ,p "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
 >         $ Right [Just $ UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adbin",ScalarType "text"),("adsrc",ScalarType "text")])]
+>      --check where ids
+>      ,p "update pg_attrdef set adsrc='' where adsrc='';"
+>         $ Right [Just $ UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
+
+
 >      ])
 
 >    ,testGroup "delete"
@@ -588,6 +593,8 @@ insert
 >         $ Right [Just $ DeleteInfo "pg_attrdef"]
 >      ,p "delete from pg_attrdef where 1;"
 >         $ Left [ExpressionMustBeBool]
+>      ,p "delete from pg_attrdef where adsrc='';"
+>         $ Right [Just $ DeleteInfo "pg_attrdef"]
 >      ])
 
 
