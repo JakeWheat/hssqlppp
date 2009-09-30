@@ -10,7 +10,6 @@ modules.
 > module Database.HsSqlPpp.AstInternals.EnvironmentInternal
 >     (
 >      Environment
->     ,QualifiedIDs
 >     ,CastContext(..)
 >     ,CompositeFlavour(..)
 >     ,CompositeDef
@@ -23,8 +22,8 @@ modules.
 >     ,updateEnvironment
 >     --,destructEnvironment
 >     -- type checker stuff
->     ,envExpandStar
->     ,envLookupID
+>     --,envExpandStar
+>     --,envLookupID
 >     ,envCompositeAttrs
 >     ,envTypeCategory
 >     ,envPreferredType
@@ -57,17 +56,17 @@ modules.
 >                    ,envBinaryOperators :: [FunctionPrototype]
 >                    ,envFunctions :: [FunctionPrototype]
 >                    ,envAggregates :: [FunctionPrototype]
->                    ,envAttrDefs :: [CompositeDef]
+>                    ,envAttrDefs :: [CompositeDef]}
 >                    --,envAttrSystemColumns :: [CompositeDef]
->                    ,envIdentifierTypes :: [[QualifiedIDs]]
->                    ,envStarTypes :: [QualifiedIDs]}
+>                    --,envIdentifierTypes :: [[QualifiedIDs]]
+>                    --,envStarTypes :: [QualifiedIDs]}
 
 
 > -- | Represents an empty environment. This doesn't contain things
 > -- like the \'and\' operator, and so if you try to use it it will
 > -- almost certainly not work.
 > emptyEnvironment :: Environment
-> emptyEnvironment = Environment [] [] [] [] [] [] [] [] [] [] [] []
+> emptyEnvironment = Environment [] [] [] [] [] [] [] [] [] []
 
 > -- | Represents what you probably want to use as a starting point if
 > -- you are building an environment from scratch. It contains
@@ -80,13 +79,6 @@ modules.
 >                      ,envBinaryOperators = keywordOperatorTypes
 >                      ,envFunctions = specialFunctionTypes}
 
-> -- | Represents the types of the ids available, currently used for
-> -- resolving identifiers inside select expressions. Will probably
-> -- change as this is fixed to support more general contexts.  The
-> -- components represent the qualifying name (empty string for no
-> -- qualifying name), the list of identifier names with their types,
-> -- and the list of system column identifier names with their types.
-> type QualifiedIDs = (String, [(String,Type)])
 
 > -- | Use to note what the flavour of a cast is, i.e. if/when it can
 > -- be used implicitly.
@@ -126,14 +118,6 @@ modules.
 >   | EnvCreateTable String [(String,Type)] [(String,Type)]
 >   | EnvCreateView String [(String,Type)]
 >   | EnvCreateFunction FunFlav String [Type] Type
->     -- | to allow an unqualified identifier reference to work you need to
->     -- supply an extra entry with \"\" as the alias, and all the fields,
->     -- in the case of joins, these unaliased fields need to have the
->     -- duplicates removed and the types resolved
->   | EnvStackIDs [QualifiedIDs]
->     -- | to allow an unqualified star to work you need to
->     -- supply an extra entry with \"\" as the alias, and all the fields
->   | EnvSetStarExpansion [QualifiedIDs]
 >     deriving (Eq,Show,Typeable,Data)
 
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
@@ -209,8 +193,6 @@ modules.
 >               FunBinary -> env {envBinaryOperators=(nm,args,ret):envBinaryOperators env}
 >               FunAgg -> env {envAggregates=(nm,args,ret):envAggregates env}
 >               FunName -> env {envFunctions=(nm,args,ret):envFunctions env}
->         EnvStackIDs qids -> return $ env {envIdentifierTypes = qids:envIdentifierTypes env}
->         EnvSetStarExpansion sids -> return $ env {envStarTypes = sids}
 >     addTypeWithArray env nm ty cat pref =
 >       env {envTypeNames =
 >                ('_':nm,ArrayType ty)
@@ -303,130 +285,6 @@ check to see if it works
 >               then error $ "no type category for " ++ show ty
 >               else let (_,c,p):_ =l
 >                    in (c,p)
-
-
-
-= Attribute identifier scoping
-
-The way this scoping works is we have a list of prefixes/namespaces,
-which is generally the table/view name, or the alias given to it, and
-then a list of identifiers (with no dots) and their types. When we
-look up the type of an identifier, if it has an correlation name we
-try to match that against a table name or alias in that list, if it is
-not present or not unique then throw an error. Similarly with no
-correlation name, we look at all the lists, if the id is not present
-or not unique then throw an error.
-
-envIdentifierTypes is for expanding *. If we want to access the
-common attributes from one of the tables in a using or natural join,
-this attribute can be qualified with either of the table names/
-aliases. But when we expand the *, we only output these common fields
-once, so keep a separate list of these fields used just for expanding
-the star. The other twist is that these common fields appear first in
-the resultant field list.
-
-System columns: pg also has these - they have names and types like
-other attributes, but are not included when expanding stars, so you
-only get them when you explicitly ask for them. The main use is using
-the oid system column which is heavily used as a target for foreign
-key references in the pg catalog.
-
-This system still isn't working right. Subqueries are a
-problem. Aspects which don't work right now are:
-
-consider this query:
-select relname as relvar_name
-    from pg_class
-    where ((relnamespace =
-           (select oid
-              from pg_namespace
-              where (nspname = 'public'))) and (relkind = 'r'));
-
-we need to be able to access attributes from pg_class inside the subquery,
-but 1) they aren't inserted if you use * in the inner query
-2) they can't make an identifier ambiguous, so the oid here in the subquery
-is ok even though both the oid from pg_namespace and the oid from pg_class
-are in scope.
-
-So there are two problems with the current code:
-it's too aggressive at throwing ambiguous identifier errors
-it pulls in too many identifiers when expanding star
-
-Solution ideas:
-for the ambiguous errors, create a stack of identifiers, then split
-the EnvUpdateIDs into two, one to replace the current set, and one to
-push a new set on the stack. Then fix the lookup to walk the stack level by level.
-
-for the *, we already have special cases for system columns, and for
-join ids. I think the best solution is to provide a separate list of *
-columns and types, with a separate env update ctor, and get the type
-checker to resolve the list for * expansion rather than doing it here.
-
-This should also handle parameters and variable declarations in plpgsql
-functions too, these stack in the same way, with one complication to
-do with parameters:
-
-there is an additional complication with plpgsql, which isn't going to
-be handled for now: instead of stacking like everything else, for
-variable references inside select, insert, update and delete
-statements only, which aren't qualified and match a parameter name,
-then the parameter is used in lieu of variable declarations or
-attributes inside a select expression. This will be handled at some
-point.
-
-this is something the lint checker should flag when it's written, it
-will also flag any ambiguous identifiers which resolve ok only because
-of stacking, this is a standard warning in many flavours of lint
-checkers.
-
-One last thing is that we need to make sure identifiers availability doesn't
-get inherited too far: e.g. a create function inside a create function
-can't access ids from the outer create function. This is pretty easy:
-the following things generate identifier bindings:
-select expressions, inside the expression
-parameter defs
-variable defs
-
-since select expressions can't contain statements, we don't need to
-worry about e.g. if statements, they want to inherit ids from params
-and variable defs, so the default is good.
-
-For environments being updated sequentially: since the environment is
-updated in a statement list (i.e. environment updates stack from one
-statement to the next within a single statement list), any var defs
-can't break out of the containing list, so we are covered e.g. for a
-variable def leaking from an inner block to an outer block.
-
-With ids going into select expressions: we want the default which is
-parameters, vardefs and ids from containing select expressions to be
-inherited. So, in the end the only case to deal with is a create
-function inside another create function. This isn't dealt with at the
-moment.
-
-
-
-> envExpandStar :: Environment -> String -> Either [TypeError] [(String,Type)]
-> envExpandStar env correlationName =
->     case lookup correlationName $ envStarTypes env of
->       Nothing -> errorWhen (correlationName == "")
->                            [InternalError "no star expansion found?"] >>
->                  Left [UnrecognisedCorrelationName correlationName]
->       Just l -> Right l
-
-> envLookupID :: Environment -> String -> String -> Either [TypeError] Type
-> envLookupID env correlationName iden = {-trace ("lookup " ++ show iden ++ " in " ++ show (envIdentifierTypes env)) $ -}
->   envLookupID' $ envIdentifierTypes env
->   where
->     envLookupID' (its:itss) =
->       case lookup correlationName its of
->         Nothing -> errorWhen (correlationName == "")
->                              [UnrecognisedIdentifier iden] >>
->                    Left [UnrecognisedCorrelationName correlationName]
->         Just s -> case filter (\(n,_) -> n==iden) s of
->                     [] -> envLookupID' itss
->                     (_,t):[] -> Right t
->                     _ -> Left [AmbiguousIdentifier iden]
->     envLookupID' [] = Left [UnrecognisedIdentifier $ if correlationName == "" then iden else correlationName ++ "." ++ iden]
 
 > envTypeExists :: Environment -> Type -> Either [TypeError] Type
 > envTypeExists env t =

@@ -117,6 +117,7 @@ import Database.HsSqlPpp.AstInternals.TypeConversion
 import Database.HsSqlPpp.AstInternals.TypeCheckingH
 import Database.HsSqlPpp.AstInternals.AstAnnotation
 import Database.HsSqlPpp.AstInternals.EnvironmentInternal
+import Database.HsSqlPpp.AstInternals.LocalIdentifierBindings
 import Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
 import Database.HsSqlPpp.Utils
 }
@@ -613,7 +614,8 @@ annotateAst = annotateAstEnv defaultTemplate1Environment
 annotateAstEnv :: Environment -> StatementList -> StatementList
 annotateAstEnv env sts =
     let t = sem_Root (Root sts)
-        ta = wrap_Root t Inh_Root {env_Inh_Root = env}
+        ta = wrap_Root t Inh_Root {env_Inh_Root = env
+                                  ,lib_Inh_Root = emptyBindings}
         tl = annotatedTree_Syn_Root ta
    in case tl of
          Root r -> r
@@ -634,7 +636,8 @@ annotateAstsEnv env sts =
 annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 annotateAstEnvEnv env sts =
     let t = sem_Root (Root sts)
-        ta = wrap_Root t Inh_Root {env_Inh_Root = env}
+        ta = wrap_Root t Inh_Root {env_Inh_Root = env
+                                  ,lib_Inh_Root = emptyBindings}
         tl = annotatedTree_Syn_Root ta
         env1 = producedEnv_Syn_Root ta
    in case tl of
@@ -646,7 +649,8 @@ annotateExpression :: Environment -> Expression -> Expression
 annotateExpression env ex =
     let t = sem_ExpressionRoot (ExpressionRoot ex)
         rt = (annotatedTree_Syn_ExpressionRoot
-              (wrap_ExpressionRoot t Inh_ExpressionRoot {env_Inh_ExpressionRoot = env}))
+              (wrap_ExpressionRoot t Inh_ExpressionRoot {env_Inh_ExpressionRoot = env
+                                                        ,lib_Inh_ExpressionRoot = emptyBindings}))
     in case rt of
          ExpressionRoot e -> e
 

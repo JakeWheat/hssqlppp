@@ -38,6 +38,7 @@ of development (no uuagc mode for emacs is the problem).
 > import Database.HsSqlPpp.AstInternals.AstUtils
 > import Database.HsSqlPpp.AstInternals.TypeConversion
 > import Database.HsSqlPpp.AstInternals.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.LocalIdentifierBindings
 > import Database.HsSqlPpp.Utils
 
 ================================================================================
@@ -166,7 +167,7 @@ type of the joined tables.
 >           in resolveResultSetType env [ct1,ct2]
 >       getFieldType t f = snd $ fromJust $ find (\(s,_) -> s == f) t
 
-> doSelectItemListTpe :: Environment
+> doSelectItemListTpe :: LocalIdentifierBindings
 >                     -> String
 >                     -> Type
 >                     -> Type
@@ -177,7 +178,7 @@ type of the joined tables.
 >        else errorToTypeFail (do
 >          let (correlationName,iden) = splitIdentifier colName
 >          newCols <- if iden == "*"
->                          then envExpandStar env correlationName
+>                          then libExpandStar env correlationName
 >                          else return [(iden, colType)]
 >          foldM (flip consComposite) types $ reverse newCols)
 
@@ -239,13 +240,13 @@ returns the type of the relation, and the system columns also
 this function a bit of a mess - artefact of not fully updated code
 after the environment data type was changed.
 
-> convertToNewStyleUpdates :: [(String, ([(String,Type)], [(String,Type)]))] -> [String] -> [EnvironmentUpdate]
+> convertToNewStyleUpdates :: [(String, ([(String,Type)], [(String,Type)]))] -> [String] -> [LocalIdentifierBindingsUpdate]
 > convertToNewStyleUpdates qualIdens joinIdens =
 >   -- we're given a list of qualified types, and a list of names of join columns
 >   -- want to produce a list of qualified types, with an additional one with "" qualification
 >   -- and produce a star expansion
->     [EnvStackIDs newQualifiedList
->     ,EnvSetStarExpansion newStarExpansion]
+>     [LibStackIDs newQualifiedList
+>     ,LibSetStarExpansion newStarExpansion]
 >   where
 >     qualifiedFieldsCombined :: [(String,[(String,Type)])]
 >     qualifiedFieldsCombined = map (\(alias,(att,sysatt)) -> (alias, att++sysatt)) qualIdens

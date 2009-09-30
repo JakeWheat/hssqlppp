@@ -39,7 +39,6 @@ the type checking code.
 >      -- ** Updates
 >     ,EnvironmentUpdate(..)
 >      -- ** bits and pieces
->     ,QualifiedIDs
 >     ,CastContext(..)
 >     ,CompositeFlavour(..)
 >     ,CompositeDef

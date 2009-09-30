@@ -53,7 +53,8 @@ etc. annotations.
 
 -}
 ATTR AllNodes Root ExpressionRoot
-  [ env : Environment || annotatedTree : SELF]
+  [ env : Environment
+    lib : LocalIdentifierBindings || annotatedTree : SELF]
 
 ATTR StatementList Root
   [|| producedEnv : Environment]
@@ -220,7 +221,7 @@ pull id types out of env for identifiers
 SEM Expression
     | Identifier
         loc.tpe = let (correlationName,iden) = splitIdentifier @i
-                  in envLookupID @lhs.env correlationName iden
+                  in libLookupID @lhs.lib correlationName iden
         loc.backTree = Identifier @ann @i
 
 SEM Expression
@@ -528,7 +529,7 @@ SEM MaybeTableRef
 ATTR SelectItemList SelectList [||listType : Type]
 
 SEM SelectItemList
-    | Cons lhs.listType = doSelectItemListTpe @lhs.env @hd.columnName @hd.itemType @tl.listType
+    | Cons lhs.listType = doSelectItemListTpe @lhs.lib @hd.columnName @hd.itemType @tl.listType
     | Nil lhs.listType = UnnamedCompositeType []
 
 ATTR SelectItem [||itemType : Type]
@@ -594,12 +595,12 @@ full order of identifier passing:
 
 SEM SelectExpression
     | Select
-         loc.newEnv = case updateEnvironment @lhs.env
+         loc.newLib = case updateBindings @lhs.lib
                             (convertToNewStyleUpdates @selTref.idens @selTref.joinIdens) of
                         Left x -> error $ show x -- @lhs.env
                         Right e -> e
-         selSelectList.env = @loc.newEnv
-         selWhere.env = @loc.newEnv
+         selSelectList.lib = @loc.newLib
+         selWhere.lib = @loc.newLib
 
 {-
 
@@ -929,13 +930,13 @@ SEM Statement
         loc.statementInfo = []
         loc.envUpdates = [EnvCreateFunction FunName @name (map snd @params.params) @rettype.namedType]
         --add the parameters to the environment for the contained statements
-        body.env = fromRight @lhs.env $
-                   updateEnvironment @lhs.env [EnvStackIDs [("", @params.params)
-                                                           ,(@name, @params.params)]]
+        body.lib = fromRight @lhs.lib $
+                   updateBindings @lhs.lib [LibStackIDs [("", @params.params)
+                                                        ,(@name, @params.params)]]
 
 SEM FnBody
     | PlpgsqlFnBody
-        sts.env = fromRight @lhs.env $ updateEnvironment @lhs.env [EnvStackIDs [("", @vars.defs)]]
+        sts.lib = fromRight @lhs.lib $ updateBindings @lhs.lib [LibStackIDs [("", @vars.defs)]]
 
 ATTR VarDef [||def : {(String,Type)}]
 
