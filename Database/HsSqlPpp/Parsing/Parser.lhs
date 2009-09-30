@@ -1328,4 +1328,3 @@ be an array or subselect, etc)
 >                                  "all" -> LiftAll
 >                                  z -> error $ "internal error in parsing lift transform: " ++ z
 >              x1 -> x1
-

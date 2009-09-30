@@ -121,6 +121,7 @@ later on down the line.
 >                | DomainDefNotFound Type
 >                | BadEnvironmentUpdate String
 >                | TypeAlreadyExists Type
+>                | AnyAllError String
 >                | InternalError String
 >                 --shoved in to humour the Either Monad
 >                | MiscError String

@@ -510,7 +510,9 @@ qualifier before oid and this should still work
 >         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("relname",ScalarType "name")]]
 >      ,p "select * from generate_series(1,7) g\n\
 >         \where g not in (select * from generate_series(3,5));"
->         $ Right [Just $ SelectInfo $ SetOfType (UnnamedCompositeType [("g",ScalarType "int4")])]
+>         $ Right [Just $ SelectInfo $ SetOfType (UnnamedCompositeType [("g",typeInt)])]
+>      ,p "select 3 = any(array[1,2,3]);"
+>         $ Right [Just $ SelectInfo $ SetOfType (UnnamedCompositeType [("?column?",typeBool)])]
 >      ])
 
 identifiers in select parts

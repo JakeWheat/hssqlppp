@@ -79,7 +79,7 @@ annTypesAndErrors item nt errs add =
 
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
-      Exists Case CaseSimple Cast InPredicate ScalarSubQuery
+      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       --PositionalArg WindowFn
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (errorToTypeFail @loc.tpe)
@@ -165,6 +165,31 @@ SEM Expression
                       @funName
                       @args.typeList
         loc.backTree = FunCall @ann @funName @args.annotatedTree
+
+--lifted operator
+
+SEM Expression
+    | LiftOperator
+        loc.tpe = chainTypeCheckFailed @args.typeList $
+                    do
+                      let args = @args.annotatedTree
+                      errorWhen (length args /= 2)
+                                [AnyAllError $ "must have two args, got " ++ show args]
+                      case args of
+                        [a, b@(FunCall _ "!arrayCtor" vals)] ->
+                            let t1 = getTypeAnnotation a
+                            in chainTypeCheckFailed (t1:(map getTypeAnnotation vals)) $ do
+                                 t2 <- unwrapArray $ getTypeAnnotation b
+                                 t3 <- typeCheckFunCall
+                                         @lhs.env
+                                         @oper
+                                         [t1,t2]
+                                 errorWhen (t3 /= typeBool)
+                                    [AnyAllError $ "operator must have bool return, got " ++ show t3]
+                                 return t3
+                        _ -> Left [AnyAllError $ "second arg must be array, got " ++ show args]
+        loc.backTree = LiftOperator @ann @oper @flav.annotatedTree @args.annotatedTree
+
 
 {-
 == case expression
