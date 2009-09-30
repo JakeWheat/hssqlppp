@@ -484,15 +484,21 @@ SEM TableRef
               tbl1t = getTypeAnnotation @tbl1.annotatedTree
               unionJoinList s =
                   combineTableTypesWithUsingList @lhs.env s tblt tbl1t
-        lhs.idens = @tbl.idens ++ @tbl1.idens
-        lhs.joinIdens = commonFieldNames (getTypeAnnotation @tbl.annotatedTree)
+        loc.idens = @tbl.idens ++ @tbl1.idens
+        loc.joinIdens = commonFieldNames (getTypeAnnotation @tbl.annotatedTree)
                                          (getTypeAnnotation @tbl1.annotatedTree)
+        lhs.idens = @loc.idens
+        lhs.joinIdens = @loc.joinIdens
         loc.backTree = JoinedTref @ann
                                   @tbl.annotatedTree
                                   @nat.annotatedTree
                                   @joinType.annotatedTree
                                   @tbl1.annotatedTree
                                   @onExpr.annotatedTree
+        onExpr.lib = case updateBindings @lhs.lib
+                            (convertToNewStyleUpdates @loc.idens @loc.joinIdens) of
+                       Left x -> error $ show x
+                       Right e -> e
 
 {
 

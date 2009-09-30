@@ -22,8 +22,6 @@ modules.
 >     ,updateEnvironment
 >     --,destructEnvironment
 >     -- type checker stuff
->     --,envExpandStar
->     --,envLookupID
 >     ,envCompositeAttrs
 >     ,envTypeCategory
 >     ,envPreferredType
@@ -57,9 +55,6 @@ modules.
 >                    ,envFunctions :: [FunctionPrototype]
 >                    ,envAggregates :: [FunctionPrototype]
 >                    ,envAttrDefs :: [CompositeDef]}
->                    --,envAttrSystemColumns :: [CompositeDef]
->                    --,envIdentifierTypes :: [[QualifiedIDs]]
->                    --,envStarTypes :: [QualifiedIDs]}
 
 
 > -- | Represents an empty environment. This doesn't contain things
