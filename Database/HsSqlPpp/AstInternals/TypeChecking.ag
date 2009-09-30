@@ -805,6 +805,14 @@ SEM Statement
         loc.statementInfo = []
         loc.envUpdates = [EnvCreateTable @name @atts.attrs []]
 
+-- inject the column name and type into the column constraints
+SEM AttributeDef
+    | AttributeDef
+        cons.lib = case updateBindings @lhs.lib [LibStackIDs [("", [(@name, @typ.namedType)])]] of
+                       Left x -> error $ show x
+                       Right e -> e
+
+
 SEM Statement
     | CreateTableAs
         loc.selType = getTypeAnnotation @expr.annotatedTree
