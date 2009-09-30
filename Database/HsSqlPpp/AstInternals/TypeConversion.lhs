@@ -23,7 +23,7 @@ checkAssignmentValid - pass in source type and target type, returns
 >                        findCallMatch
 >                       ,resolveResultSetType
 >                       ,checkAssignmentValid
->                       ) where
+>                      ) where
 
 > import Data.Maybe
 > import Data.List
@@ -488,7 +488,7 @@ there is a cast from src to target
 > checkAssignmentValid :: Environment -> Type -> Type -> Either [TypeError] ()
 > checkAssignmentValid env src tgt =
 >     case () of
->       _ | src == tgt -> Right()
+>       _ | src == tgt -> Right ()
 >         | assignCastableFromTo env src tgt -> Right ()
 >         | otherwise -> Left [IncompatibleTypes tgt src]
 

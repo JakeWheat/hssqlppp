@@ -252,6 +252,11 @@ These may indicate that the haskell type system isn't being used very well.
 > isArrayType (ArrayType _) = True
 > isArrayType _ = False
 
+> isCompositeType :: Type -> Bool
+> isCompositeType (UnnamedCompositeType _) = True
+> isCompositeType _ = False
+
+
 > unwrapArray :: Type -> Either [TypeError] Type
 > unwrapArray (ArrayType t) = Right t
 > unwrapArray x = Left [InternalError $ "can't get types from non array " ++ show x]

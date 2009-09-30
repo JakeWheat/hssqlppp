@@ -678,6 +678,72 @@ check type of initial values
 >         \$$ language plpgsql stable;"
 >         (Right [Nothing])
 >      ])
+
+================================================================================
+
+>    ,testGroup "plpgsqlbits"
+>     (mapStatementInfo [
+>       p "create function t1(stuff text) returns text as $$\n\
+>         \begin\n\
+>         \  return stuff || ' and stuff';\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Right [Nothing])
+>      ,p "create function t1(stuff text) returns text as $$\n\
+>         \begin\n\
+>         \  return badstuff || ' and stuff';\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Left [UnrecognisedIdentifier "badstuff"])
+>      ,p "create function t1() returns text as $$\n\
+>         \declare\n\
+>         \  stuff text;\n\
+>         \begin\n\
+>         \  return stuff || ' and stuff';\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Right [Nothing])
+>      ])
+
+================================================================================
+
+>    ,testGroup "plpgsqlbits"
+>     (mapStatementInfo [
+>       p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  a bool;\n\
+>         \begin\n\
+>         \  a := 3;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Left [IncompatibleTypes (ScalarType "bool") (ScalarType "int4")])
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  a boolean;\n\
+>         \begin\n\
+>         \  a := true;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Right [Nothing])
+>      ])
+
+================================================================================
+
+>    ,testGroup "for loops"
+>     (mapStatementInfo [
+>       p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  r record;\n\
+>         \  t int;\n\
+>         \begin\n\
+>         \  for r in select * from pg_attrdef loop\n\
+>         \    t := r.adnum;\n\
+>         \  end loop;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Right [Nothing])
+>      ])
+
 >
 >    ]
 >         where

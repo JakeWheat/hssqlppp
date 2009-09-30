@@ -333,7 +333,7 @@ SEM ExpressionListList
 
 SEM Statement
     | SelectStatement Insert Update Delete CreateView CreateDomain
-      CreateFunction CreateType CreateTable Return
+      CreateFunction CreateType CreateTable Return Assignment ForSelectStatement
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (errorToTypeFail @loc.tpe)
                               (getErrors @loc.tpe)
@@ -344,8 +344,8 @@ SEM Statement
 ATTR Statement [||envUpdates : {[EnvironmentUpdate]}]
 
 SEM Statement
-    | Assignment CaseStatement ContinueStatement Copy CopyData DropFunction
-      DropSomething Execute ExecuteInto ForIntegerStatement ForSelectStatement
+    | CaseStatement ContinueStatement Copy CopyData DropFunction
+      DropSomething Execute ExecuteInto ForIntegerStatement
       If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement
         lhs.envUpdates = []
@@ -1047,6 +1047,52 @@ SEM Statement
     | Return
         loc.tpe = chainTypeCheckFailed [fromMaybe typeBool @value.exprType] $ Right $ Pseudo Void
         loc.backTree = Return @ann @value.annotatedTree
+        loc.envUpdates = []
+        loc.statementInfo = []
+
+
+SEM Statement
+    | Assignment
+        loc.tpe =
+            do
+            let fromType = getTypeAnnotation @value.annotatedTree
+            toType <- libLookupID @lhs.lib "" @target
+            chainTypeCheckFailed [getTypeAnnotation @value.annotatedTree, toType] $ do
+              checkAssignmentValid @lhs.env fromType toType
+              return $ Pseudo Void
+        loc.backTree = Assignment @ann @target @value.annotatedTree
+        loc.envUpdates = []
+        loc.statementInfo = []
+
+
+SEM Statement
+    | ForSelectStatement
+        loc.selType = getTypeAnnotation @sel.annotatedTree
+        loc.tpe =
+          do
+          chainTypeCheckFailed [@loc.selType] $ do
+            toType <- libLookupID @lhs.lib "" @var
+            chainTypeCheckFailed [toType] $ do
+              if toType /= Pseudo Record
+                then checkAssignmentValid @lhs.env @loc.selType toType
+                else Right ()
+              return $ Pseudo Void
+        sts.lib =
+          case @loc.tpe of
+            Left _ -> @lhs.lib
+            Right _ -> case @loc.selType of
+                         UnnamedCompositeType t ->
+                             case updateBindings @lhs.lib [LibStackIDs [(@var, t)]] of
+                               Left x -> error $ show x
+                               Right e -> e
+                         SetOfType (UnnamedCompositeType t) ->
+                             case updateBindings @lhs.lib [LibStackIDs [(@var, t)]] of
+                               Left x -> error $ show x
+                               Right e -> e
+                         _ -> @lhs.lib
+          
+
+        loc.backTree = ForSelectStatement @ann @var @sel.annotatedTree @sts.annotatedTree
         loc.envUpdates = []
         loc.statementInfo = []
 

@@ -122,6 +122,7 @@ import Database.HsSqlPpp.AstInternals.LocalIdentifierBindings
 import Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
 import Database.HsSqlPpp.Utils
 import Data.Generics.PlateData
+
 }
 
 {-

@@ -19,6 +19,7 @@ Main areas to support are parameters and variables
 
 > import Control.Monad
 > import Data.List
+> import Debug.Trace
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
@@ -155,19 +156,22 @@ moment.
 >       Just l -> Right l
 
 > libLookupID :: LocalIdentifierBindings -> String -> String -> Either [TypeError] Type
-> libLookupID env correlationName iden = {-trace ("lookup " ++ show iden ++ " in " ++ show (envIdentifierTypes env)) $ -}
+> libLookupID env correlationName iden = {-trace ("lookup " ++ show iden ++ " in " ++ show (identifierTypes env)) $-}
 >   envLookupID' $ identifierTypes env
 >   where
 >     envLookupID' (its:itss) =
 >       case lookup correlationName its of
->         Nothing -> errorWhen (correlationName == "")
->                              [UnrecognisedIdentifier iden] >>
->                    Left [UnrecognisedCorrelationName correlationName]
+>         Nothing -> envLookupID' itss
 >         Just s -> case filter (\(n,_) -> n==iden) s of
->                     [] -> envLookupID' itss
+>                     [] -> if correlationName == ""
+>                             then envLookupID' itss
+>                             else Left [UnrecognisedIdentifier $ correlationName ++ "." ++ iden]
 >                     (_,t):[] -> Right t
 >                     _ -> Left [AmbiguousIdentifier iden]
->     envLookupID' [] = Left [UnrecognisedIdentifier $ if correlationName == "" then iden else correlationName ++ "." ++ iden]
+>     envLookupID' [] =
+>       Left [if correlationName == ""
+>               then UnrecognisedIdentifier iden
+>               else UnrecognisedCorrelationName correlationName]
 
 > -- | Applies a list of 'EnvironmentUpdate's to an 'Environment' value
 > -- to produce a new Environment value.
