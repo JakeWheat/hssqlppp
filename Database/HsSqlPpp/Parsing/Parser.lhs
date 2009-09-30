@@ -54,11 +54,17 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Data.Maybe
 > import Data.Char
 
+> import Data.Generics.PlateData
+> import Data.Generics hiding (Prefix,Infix)
+
+> import Debug.Trace
+
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parsing.ParseErrors
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation as A
 > import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.Ast.Environment
 
 The parse state is used to keep track of source positions inside
 function bodies, these bodies are parsed separately to the rest of the
@@ -79,14 +85,14 @@ code which is why we need to do this.
 
 > parseSql :: String -- ^ a string containing the sql to parse
 >          -> Either ExtendedError StatementList
-> parseSql s = statementsOnly $ parseIt (lexSqlText s) sqlStatements "" s startState
+> parseSql s = parseIt (lexSqlText s) sqlStatements "" s startState
 
 > parseSqlFile :: FilePath -- ^ file name of file containing sql
 >              -> IO (Either ExtendedError StatementList)
 > parseSqlFile fn = do
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
->   return $ statementsOnly $ parseIt x sqlStatements fn sc startState
+>   return $ parseIt x sqlStatements fn sc startState
 
 > -- | Parse expression fragment, used for testing purposes
 > parseExpression :: String -- ^ sql string containing a single expression, with no
@@ -104,7 +110,7 @@ code which is why we need to do this.
 
 utility function to do error handling in one place
 
-> parseIt :: forall t s u b.(Stream s Identity t) =>
+> parseIt :: forall t s u b.(Stream s Identity t, Data b) =>
 >            Either ExtendedError s
 >         -> Parsec s u b
 >         -> SourceName
@@ -114,14 +120,10 @@ utility function to do error handling in one place
 > parseIt lexed parser fn src ss =
 >     case lexed of
 >                Left er -> Left er
->                Right toks -> convertToExtendedError
->                                (runParser parser ss fn toks) fn src
-
-> statementsOnly :: Either ExtendedError StatementList
->                -> Either ExtendedError StatementList
-> statementsOnly s = case s of
->                      Left er -> Left er
->                      Right st -> Right st
+>                Right toks -> let r1 = runParser parser ss fn toks
+>                              in case convertToExtendedError r1 fn src of
+>                                   Left er -> Left er
+>                                   Right t -> Right $ fixupTree t
 
 ================================================================================
 
@@ -1293,3 +1295,37 @@ body, to absolute positions within the file being parsed.
 >   showToken (_,tok)   = show tok
 >   posToken  (posi,_)  = posi
 >   testToken (_,tok)   = test tok
+
+================================================================================
+
+= fixup tree
+
+this is where some generics code is used to transform the parse trees
+to alter the nodes used where it's too difficult to do whilst
+parsing. The only item at the moment that needs this treatment is te
+any/some/all construct which looks like this:
+expr operator [any|some|all] (expr)
+
+This gets parsed as
+funcall operator [expr1,funcall [any|some|all] [expr2,...]]
+and we want to transform it to
+liftoperator operator any|some|all [expr1, expr2,...]
+not doing anything if the funcall name isn't any,some,all
+any other checks are left to the type checking stage
+(e.g. there can only be one expression in the expr2 part, and it must
+be an array or subselect, etc)
+
+> fixupTree :: Data a => a -> a
+> fixupTree =
+>     transformBi $ \x ->
+>       case x of
+>              FunCall an op (expr1:FunCall _ nm expr2s:expr3s)
+>                | isOperatorName(op) && nm `elem` ["any", "some", "all"]
+>                -> LiftOperator an op flav (expr1:expr2s ++ expr3s)
+>                   where flav = case nm of
+>                                  "any" -> LiftAny
+>                                  "some" -> LiftAny
+>                                  "all" -> LiftAll
+>                                  z -> error $ "internal error in parsing lift transform: " ++ z
+>              x1 -> x1
+

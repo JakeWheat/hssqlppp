@@ -69,6 +69,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,RestartIdentity (..)
    ,Expression (..)
    ,InList (..)
+   ,LiftFlavour(..)
    ,StatementList
    ,ExpressionListStatementListPairList
    ,ExpressionListStatementListPair
@@ -120,6 +121,7 @@ import Database.HsSqlPpp.AstInternals.EnvironmentInternal
 import Database.HsSqlPpp.AstInternals.LocalIdentifierBindings
 import Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
 import Database.HsSqlPpp.Utils
+import Data.Generics.PlateData
 }
 
 {-
@@ -449,7 +451,14 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                            dir : Direction
                 | ScalarSubQuery ann:Annotation
                                  sel : SelectExpression
+                | LiftOperator ann:Annotation
+                               oper:String
+                               flav:LiftFlavour
+                               args:ExpressionList
 
+DATA LiftFlavour | LiftAny | LiftAll
+
+--todo: use liftoperator to implement inlist?
 DATA InList | InList ann:Annotation exprs : ExpressionList
             | InSelect ann:Annotation sel : SelectExpression
 
@@ -575,7 +584,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               MaybeTableRef TableRef OnExpr
+               MaybeTableRef TableRef OnExpr LiftFlavour
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
 

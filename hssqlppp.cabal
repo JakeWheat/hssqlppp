@@ -74,7 +74,8 @@ Library
                      HDBC,
                      HDBC-postgresql,
                      directory,
-                     syb
+                     syb,
+                     uniplate
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast,
                      Database.HsSqlPpp.Parsing.Parser,
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter,
@@ -130,7 +131,6 @@ Executable HsSqlPppTests
                      HDBC,
                      HDBC-postgresql,
                      directory
-
   Other-Modules:     Database.HsSqlPpp.AstInternals.AstAnnotation,
                      Database.HsSqlPpp.Tests.AstCheckTests,
                      Database.HsSqlPpp.Ast.Ast,

@@ -502,6 +502,12 @@ Conversion routines - convert Sql asts into Docs
 >   <+> parens (case lst of
 >                        InList _ expr -> csvExp expr
 >                        InSelect _ sel -> convSelectExpression True sel)
+> convExp (LiftOperator _ op flav args) =
+>   convExp (head args) <+> text op
+>   <+> text (case flav of
+>               LiftAny -> "any"
+>               LiftAll -> "all")
+>   <+> parens (convExp $ head $ tail args)
 > convExp (ScalarSubQuery _ s) = parens (convSelectExpression True s)
 > convExp (NullLit _) = text "null"
 > convExp (WindowFn _ fn partition order asc) =

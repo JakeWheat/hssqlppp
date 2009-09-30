@@ -25,6 +25,7 @@ This is the public module for the ast nodes.
 >     ,Direction (..)
 >     ,Distinct (..)
 >     ,InList (..)
+>     ,LiftFlavour (..)
 >      -- ** dml
 >     ,SetClause (..)
 >     ,CopySource (..)

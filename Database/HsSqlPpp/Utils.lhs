@@ -37,6 +37,10 @@ This file contains some generic utility stuff
 > fromRight b (Left _) = b
 > fromRight _ (Right r) = r
 
+> mapRight :: (b -> c) -> Either a b -> Either a c
+> mapRight _ (Left a) = Left a
+> mapRight f (Right b) = Right $ f b
+
 > replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
 > replace _ _ [] = []
 > replace old new xs@(y:ys) =

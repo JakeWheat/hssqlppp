@@ -168,6 +168,15 @@ in variants, including using row constructors
 >      ,p "(t,u) in (1,2)"
 >       (InPredicate [] (FunCall [] "!rowCtor" [Identifier [] "t",Identifier [] "u"]) True
 >        (InList [] [IntegerLit [] 1,IntegerLit [] 2]))
+>      ,p "3 = any (array[1,2])"
+>       (LiftOperator [] "=" LiftAny [IntegerLit [] 3
+>                                     ,FunCall [] "!arrayCtor" [IntegerLit [] 1
+>                                                              ,IntegerLit [] 2]])
+>      ,p "3 = all (array[1,2,4])"
+>       (LiftOperator [] "=" LiftAll [IntegerLit [] 3
+>                                     ,FunCall [] "!arrayCtor" [IntegerLit [] 1
+>                                                              ,IntegerLit [] 2
+>                                                              ,IntegerLit [] 4]])
 
 >      ,p "a < b"
 >       (FunCall [] "<" [Identifier [] "a", Identifier [] "b"])
