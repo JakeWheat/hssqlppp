@@ -11,6 +11,11 @@ all we do here is type check enough to produce the prototype
 information which is added to the catalog, this means the function
 name, parameter types, and the return type.
 
+type checking failure is contained so that the function prototype is
+produced iff the parameter and return types check ok. Any type errors
+in the function body (including the top level variable declarations
+don't affect the prototype, and hence callers of the function).
+
 -}
 
 SEM Statement
@@ -18,6 +23,13 @@ SEM Statement
         loc.tpe = dependsOnTpe
                     (@rettype.namedType : @loc.parameterTypes) $
                     Right $ Pseudo Void
+        loc.envUpdates = dependsOn [tpeToT @loc.tpe] []
+                                   [EnvCreateFunction FunName
+                                                      @name
+                                                      @loc.parameterTypes
+                                                      @rettype.namedType]
+        loc.parameterTypes = (map snd @params.params)
+
         loc.backTree = CreateFunction @ann
                                       @lang.annotatedTree
                                       @name
@@ -27,12 +39,6 @@ SEM Statement
                                       @body.annotatedTree
                                       @vol.annotatedTree
         loc.statementInfo = []
-        loc.parameterTypes = (map snd @params.params)
-        loc.envUpdates = dependsOn [tpeToT @loc.tpe] []
-                                   [EnvCreateFunction FunName
-                                                      @name
-                                                      @loc.parameterTypes
-                                                      @rettype.namedType]
 
 {-
 == parameters
@@ -92,6 +98,12 @@ SEM Statement
                    updateBindings @lhs.lib
                                   [LibStackIDs [("", @params.params)
                                                ,(@name, @params.params)]]
+{-
+TODO: using fromRight on it's own for identifier bindings or env
+updates is wrong, if an error is produced then this needs to be added
+to an annotation somewhere. Some of the code uses error instead of fromRight
+which is even worse.
+-}
 
 SEM FnBody
     | PlpgsqlFnBody
