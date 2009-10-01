@@ -73,11 +73,9 @@ SEM Statement
 SEM Statement
     | Update
         whr.lib =
-            case (do
+            fromRight @lhs.lib $ do
                    ct <- envCompositeAttrs @lhs.env [TableComposite,ViewComposite] @table
-                   updateBindings @lhs.lib [LibStackIDs [("", ct)]]) of
-                 Left x -> error $ show x
-                 Right e -> e
+                   updateBindings @lhs.lib [LibStackIDs [("", ct)]]
 
 {-
 == set clauses
@@ -133,9 +131,8 @@ getRowTypes ts = ts
 SEM Statement
     | Delete
         loc.tpe =
-            do
-            checkRelationExists @lhs.env @table
-            Right $ Pseudo Void
+            checkRelationExists @lhs.env @table >>
+            Right (Pseudo Void)
         loc.statementInfo = [DeleteInfo @table]
         loc.backTree = Delete @ann @table @whr.annotatedTree @returning
         loc.envUpdates = []
@@ -150,8 +147,8 @@ SEM Statement
 {
 
 checkRelationExists :: Environment -> String -> Either [TypeError] ()
-checkRelationExists env tbl = do
-    envCompositeDef env [TableComposite, ViewComposite] tbl
+checkRelationExists env tbl =
+    envCompositeDef env [TableComposite, ViewComposite] tbl >>
     return ()
 
 checkColumnConsistency :: Environment ->  String -> [String] -> [(String,Type)]
@@ -173,7 +170,7 @@ checkColumnConsistency env tbl cols' insNameTypePairs = do
       typeTriples = map (\((a,b),c) -> (a,b,c)) $ zip targetNameTypePairs $ map snd insNameTypePairs
       errs :: [TypeError]
       errs = concat $ lefts $ map (\(_,b,c) -> checkAssignmentValid env c b) typeTriples
-  unless (null errs) $ Left errs
+  liftErrors errs
   return targetNameTypePairs
 
 }
