@@ -400,6 +400,39 @@ SEM Statement
         loc.backTree = SelectStatement @ann @ex.annotatedTree
         loc.envUpdates = []
 
+{-
+
+================================================================================
+
+Type checking select expressions
+
+The main issue is the complicated flow of identifier bindings through the
+various parts. This is the rough order in which this happens:
+
+with
+from
+where
+groupby
+having
+select
+combine
+orderby
+limit
+
+if a type error occurs, we want to give up on any following stages,
+rather than create loads of type errors (maybe this could be refined
+more).
+
+The select list produces the final type which the selectexpression has.
+
+inside the from, if we have any join expressions we need to pass the types
+from the joined trefs to the join expressions.
+
+So, the basic plan is to propagate the iden bindings in the env attribute
+as elsewhere, and also pass along a flag to say whether the previous stage
+type checked or not, so we can bail if it has failed.
+
+-}
 
 SEM SelectExpression
     | Values Select CombineSelect
@@ -1090,7 +1123,6 @@ SEM Statement
                                Left x -> error $ show x
                                Right e -> e
                          _ -> @lhs.lib
-          
 
         loc.backTree = ForSelectStatement @ann @var @sel.annotatedTree @sts.annotatedTree
         loc.envUpdates = []
