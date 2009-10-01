@@ -1,0 +1,205 @@
+{-
+Copyright 2009 Jake Wheat
+
+
+-}
+
+
+SEM Expression
+    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
+      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
+      --PositionalArg WindowFn
+        lhs.annotatedTree = annTypesAndErrors @loc.backTree
+                              (errorToTypeFail @loc.tpe)
+                              (getErrors @loc.tpe)
+                              Nothing
+
+{-
+== literals
+-}
+
+SEM Expression
+    | IntegerLit
+        loc.backTree = IntegerLit @ann @i
+    | StringLit
+        loc.backTree = StringLit @ann @quote @value
+    | FloatLit
+        loc.backTree = FloatLit @ann @d
+    | BooleanLit
+        loc.backTree = BooleanLit @ann @b
+    | NullLit
+        loc.backTree = NullLit @ann
+
+SEM Expression
+     | IntegerLit loc.tpe = Right typeInt
+     | StringLit loc.tpe = Right UnknownStringLit
+     | FloatLit loc.tpe = Right typeNumeric
+     | BooleanLit loc.tpe = Right typeBool
+     -- I think a null has the same type resolution as an unknown string lit
+     | NullLit loc.tpe = Right UnknownStringLit
+
+
+{-
+
+== cast expression
+
+-}
+
+SEM Expression
+    | Cast loc.tpe = Right $ @tn.namedType
+           loc.backTree = Cast @ann @expr.annotatedTree @tn.annotatedTree
+
+{-
+== operators and functions
+-}
+SEM Expression
+    | FunCall
+        loc.tpe = chainTypeCheckFailed @args.typeList $
+                    typeCheckFunCall
+                      @lhs.env
+                      @funName
+                      @args.typeList
+        loc.backTree = FunCall @ann @funName @args.annotatedTree
+
+--lifted operator
+
+SEM Expression
+    | LiftOperator
+        loc.tpe = chainTypeCheckFailed @args.typeList $
+                    do
+                      let args = @args.annotatedTree
+                      errorWhen (length args /= 2)
+                                [AnyAllError $ "must have two args, got " ++ show args]
+                      let [a,b] = args
+                          bType = getTypeAnnotation b
+                      let t1 = getTypeAnnotation a
+                      chainTypeCheckFailed [t1,bType] $ do
+                        errorWhen (not $ isArrayType bType)
+                           [AnyAllError $ "second arg must be array, got " ++ show args]
+                        t2 <- unwrapArray $ bType
+                        t3 <- typeCheckFunCall
+                                @lhs.env
+                                @oper
+                                [t1,t2]
+                        errorWhen (t3 /= typeBool)
+                                  [AnyAllError $ "operator must have bool return, got " ++ show t3]
+                        return t3
+        loc.backTree = LiftOperator @ann @oper @flav.annotatedTree @args.annotatedTree
+
+
+{-
+== case expression
+
+for non simple cases, we need all the when expressions to be bool, and
+then to collect the types of the then parts to see if we can resolve a
+common type
+
+for simple cases, we need to check all the when parts have the same type
+as the value to check against, then we collect the then parts as above.
+
+-}
+
+SEM Expression
+    | Case CaseSimple
+        loc.whenTypes = map getTypeAnnotation $ concatMap fst $
+                        @cases.annotatedTree
+        loc.thenTypes = map getTypeAnnotation $
+                            (map snd $ @cases.annotatedTree) ++
+                              maybeToList @els.annotatedTree
+
+SEM Expression
+    | Case
+        loc.tpe =
+            chainTypeCheckFailed @loc.whenTypes $ do
+               when (any (/= typeBool) @loc.whenTypes) $
+                 Left [WrongTypes typeBool @loc.whenTypes]
+               chainTypeCheckFailed @loc.thenTypes $
+                        resolveResultSetType
+                          @lhs.env
+                          @loc.thenTypes
+        loc.backTree = Case @ann @cases.annotatedTree @els.annotatedTree
+
+
+SEM Expression
+    | CaseSimple
+        loc.tpe =
+          chainTypeCheckFailed @loc.whenTypes $ do
+          checkWhenTypes <- resolveResultSetType
+                                 @lhs.env
+                                 (getTypeAnnotation @value.annotatedTree: @loc.whenTypes)
+          chainTypeCheckFailed @loc.thenTypes $
+                     resolveResultSetType
+                              @lhs.env
+                              @loc.thenTypes
+        loc.backTree = CaseSimple @ann @value.annotatedTree @cases.annotatedTree @els.annotatedTree
+
+{-
+== identifiers
+pull id types out of env for identifiers
+
+-}
+
+SEM Expression
+    | Identifier
+        loc.tpe = let (correlationName,iden) = splitIdentifier @i
+                  in libLookupID @lhs.lib correlationName iden
+        loc.backTree = Identifier @ann @i
+
+SEM Expression
+    | Exists
+        loc.tpe = Right typeBool
+        loc.backTree = Exists @ann @sel.annotatedTree
+
+
+{-
+== scalar subquery
+1 col -> type of that col
+2 + cols -> row type
+-}
+
+SEM Expression
+    | ScalarSubQuery
+        loc.tpe = let selType = getTypeAnnotation @sel.annotatedTree
+                  in chainTypeCheckFailed [selType]
+                       $ do
+                         f <- map snd <$> unwrapSetOfComposite selType
+                         case length f of
+                              0 -> Left [InternalError "no columns in scalar subquery?"]
+                              1 -> Right $ head f
+                              _ -> Right $ RowCtor f
+
+        loc.backTree = ScalarSubQuery @ann @sel.annotatedTree
+{-
+== inlist
+-}
+
+SEM Expression
+    | InPredicate
+        loc.tpe = do
+                    lt <- @list.listType
+                    ty <- resolveResultSetType
+                            @lhs.env
+                            [getTypeAnnotation @expr.annotatedTree, lt]
+                    return typeBool
+        loc.backTree = InPredicate @ann @expr.annotatedTree @i @list.annotatedTree
+
+
+ATTR InList [||listType : {Either [TypeError] Type}]
+
+SEM InList
+    | InList
+        lhs.listType = resolveResultSetType
+                         @lhs.env
+                         @exprs.typeList
+    | InSelect
+        lhs.listType =
+            do
+              attrs <-  map snd <$> (unwrapSetOfComposite $
+                          let a = getTypeAnnotation @sel.annotatedTree
+                          in {-trace ("attrs is: " ++ show a) $-} a)
+              typ <- case length attrs of
+                           0 -> Left [InternalError "got subquery with no columns? in inselect"]
+                           1 -> Right $ head attrs
+                           _ -> Right $ RowCtor attrs
+              chainTypeCheckFailed attrs $ Right typ
+

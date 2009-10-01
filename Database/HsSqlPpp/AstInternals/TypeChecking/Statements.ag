@@ -1,0 +1,68 @@
+{-
+================================================================================
+
+= statements
+
+-}
+
+SEM Statement
+    | SelectStatement Insert Update Delete CreateView CreateDomain
+      CreateFunction CreateType CreateTable Return Assignment ForSelectStatement
+        lhs.annotatedTree = annTypesAndErrors @loc.backTree
+                              (errorToTypeFail @loc.tpe)
+                              (getErrors @loc.tpe)
+                              $ Just (map StatementInfoA @loc.statementInfo ++
+                                      [EnvUpdates @loc.envUpdates])
+        lhs.envUpdates = @loc.envUpdates
+
+ATTR Statement [||envUpdates : {[EnvironmentUpdate]}]
+
+SEM Statement
+    | CaseStatement ContinueStatement Copy CopyData DropFunction
+      DropSomething Execute ExecuteInto ForIntegerStatement
+      If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
+      WhileStatement
+        lhs.envUpdates = []
+
+
+ATTR StatementList [ envUpdates : {[EnvironmentUpdate]}||]
+
+SEM Root
+    | Root statements.envUpdates = []
+
+SEM StatementList
+    | Cons
+        loc.newEnv = fromRight @lhs.env $ updateEnvironment @lhs.env @lhs.envUpdates
+        hd.env = @loc.newEnv
+        tl.env = @loc.newEnv
+        lhs.producedEnv = case @tl.annotatedTree of
+                           [] -> @loc.newEnv
+                           _ -> @tl.producedEnv
+        tl.envUpdates = @hd.envUpdates
+    | Nil
+        lhs.producedEnv = emptyEnvironment
+
+
+SEM ExpressionListStatementListPair
+    | Tuple
+        x2.envUpdates = []
+SEM ExpressionStatementListPair
+    | Tuple
+        x2.envUpdates = []
+SEM FnBody
+    | PlpgsqlFnBody SqlFnBody
+        sts.envUpdates = []
+SEM Statement
+    | CaseStatement If
+        els.envUpdates = []
+SEM Statement
+    | ForIntegerStatement ForSelectStatement WhileStatement
+        sts.envUpdates = []
+
+INCLUDE "TypeChecking/SelectStatement.ag"
+INCLUDE "TypeChecking/Dml.ag"
+INCLUDE "TypeChecking/CreateTable.ag"
+INCLUDE "TypeChecking/MiscCreates.ag"
+INCLUDE "TypeChecking/CreateFunction.ag"
+INCLUDE "TypeChecking/Plpgsql.ag"
+

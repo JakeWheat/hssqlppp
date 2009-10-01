@@ -1,0 +1,51 @@
+{-
+================================================================================
+
+= create table
+
+env needs to be modified:
+types, typenames, typecats, attrdefs, systemcolumns
+
+produces a compositedef: (name, tablecomposite, unnamedcomp [(attrname, type)])
+
+-}
+ATTR AttributeDef [||attrName : String
+                     namedType : Type]
+
+SEM AttributeDef
+    | AttributeDef
+      lhs.attrName = @name
+      lhs.namedType = @typ.namedType
+
+ATTR AttributeDefList [||attrs : {[(String, Type)]}]
+
+SEM AttributeDefList
+    | Cons lhs.attrs = (@hd.attrName, @hd.namedType) : @tl.attrs
+    | Nil lhs.attrs = []
+
+SEM Statement
+    | CreateTable
+        loc.attrTypes = map snd @atts.attrs
+        loc.tpe = Right $ Pseudo Void
+        loc.backTree = CreateTable @ann @name @atts.annotatedTree @cons.annotatedTree
+        loc.statementInfo = []
+        loc.envUpdates = [EnvCreateTable @name @atts.attrs []]
+
+-- inject the column name and type into the column constraints
+SEM AttributeDef
+    | AttributeDef
+        cons.lib = case updateBindings @lhs.lib [LibStackIDs [("", [(@name, @typ.namedType)])]] of
+                       Left x -> error $ show x
+                       Right e -> e
+
+
+SEM Statement
+    | CreateTableAs
+        loc.selType = getTypeAnnotation @expr.annotatedTree
+        loc.tpe = Right @loc.selType
+        loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
+        loc.statementInfo = []
+        loc.attrs = case @loc.selType of
+                      UnnamedCompositeType c -> c
+                      _-> []
+        loc.envUpdates = [EnvCreateTable @name @loc.attrs []]

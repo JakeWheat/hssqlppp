@@ -1,0 +1,122 @@
+
+
+
+{-
+================================================================================
+
+= insert
+
+-}
+{
+getCAtts t =
+    case t of
+      SetOfType (UnnamedCompositeType t) -> t
+      _ -> []
+}
+
+SEM Statement
+    | Insert
+        loc.columnStuff =
+            checkColumnConsistency @lhs.env
+                                   @table
+                                   @targetCols.strings
+                                   (getCAtts $ getTypeAnnotation @insData.annotatedTree)
+        loc.tpe =
+            chainTypeCheckFailed [getTypeAnnotation @insData.annotatedTree] $ do
+              @loc.columnStuff
+              Right $ Pseudo Void
+        loc.statementInfo =
+            [InsertInfo @table $ errorToTypeFailF UnnamedCompositeType @loc.columnStuff]
+        loc.backTree = Insert @ann @table @targetCols.annotatedTree
+                              @insData.annotatedTree @returning
+        loc.envUpdates = []
+
+ATTR StringList [||strings : {[String]}]
+
+SEM StringList
+  | Cons lhs.strings = @hd : @tl.strings
+  | Nil lhs.strings = []
+
+{-
+================================================================================
+
+= update
+
+-}
+
+SEM Statement
+    | Update
+        loc.tpe =
+            do
+            let re = checkRelationExists @lhs.env @table
+            when (isJust re) $
+                 Left [fromJust $ re]
+            chainTypeCheckFailed (map snd @assigns.pairs) $ do
+              @loc.columnsConsistent
+              checkErrorList @assigns.rowSetErrors $ Pseudo Void
+        loc.columnsConsistent =
+            checkColumnConsistency @lhs.env @table (map fst @assigns.pairs) @assigns.pairs
+        loc.statementInfo =
+            [UpdateInfo @table $ errorToTypeFailF UnnamedCompositeType @loc.columnsConsistent]
+        loc.backTree = Update @ann @table @assigns.annotatedTree @whr.annotatedTree @returning
+        loc.envUpdates = []
+        loc.columnTypes = case getCompositeColumns @lhs.env @table of
+                            Left er -> []
+                            Right c -> c
+        whr.lib = case updateBindings @lhs.lib [LibStackIDs [("", @loc.columnTypes)]] of
+                         Left x -> error $ show x
+                         Right e -> e
+
+ATTR SetClauseList [||pairs : {[(String,Type)]}
+                      rowSetErrors : {[TypeError]}]
+
+SEM SetClauseList
+  | Cons lhs.pairs = @hd.pairs ++ @tl.pairs
+         lhs.rowSetErrors = maybeToList @hd.rowSetError ++ @tl.rowSetErrors
+  | Nil lhs.pairs = []
+        lhs.rowSetErrors = []
+
+ATTR SetClause [||pairs : {[(String,Type)]}
+                  rowSetError : {Maybe TypeError}]
+
+SEM SetClause
+    | SetClause
+        lhs.pairs = [(@att, getTypeAnnotation @val.annotatedTree)]
+        lhs.rowSetError = Nothing
+    | RowSetClause
+        loc.rowSetError =
+          let atts = @atts.strings
+              types = getRowTypes @vals.typeList
+          in if length atts /= length types
+               then Just WrongNumberOfColumns
+               else Nothing
+        lhs.pairs = zip @atts.strings $ getRowTypes @vals.typeList
+
+{
+getRowTypes :: [Type] -> [Type]
+getRowTypes [RowCtor ts] = ts
+getRowTypes ts = ts
+}
+
+{-
+================================================================================
+
+= delete
+-}
+
+SEM Statement
+    | Delete
+        loc.tpe =
+            case checkRelationExists @lhs.env @table of
+              Just e -> Left [e]
+              Nothing -> Right $ Pseudo Void
+        loc.statementInfo = [DeleteInfo @table]
+        loc.backTree = Delete @ann @table @whr.annotatedTree @returning
+        loc.envUpdates = []
+        loc.columnTypes = case getCompositeColumns @lhs.env @table of
+                            Left er -> []
+                            Right c -> c
+        whr.lib = case updateBindings @lhs.lib [LibStackIDs [("", @loc.columnTypes)]] of
+                         Left x -> error $ show x
+                         Right e -> e
+

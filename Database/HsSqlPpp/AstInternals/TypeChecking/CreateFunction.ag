@@ -1,0 +1,69 @@
+{-
+================================================================================
+
+= create function
+
+get the signature, does some checking of the body, still a bit limited
+
+ISSUE:
+
+when writing an sql file, you can put a create function which refers
+to a table definition that is given later. As long as the function
+isn't called before the table definition is given, this is ok. To
+handle this, need to gather the function prototype, but delay checking
+the contents until either a) all the other type checking has been
+done, or b) the function is needed (list ways this can happen: used in
+a view (even then, not needed until view is used), function can be
+called directly, or indirectly in another function call, ...)
+
+No thoughts on how to do this - but at some point want to support
+'declarative' sql source code, where the order doesn't matter, and
+this code figures out an order to load it into the database which will
+get past pgs checks, so hopefully the solution will move towards this
+goal also. One additional consideration is that the error message in a
+situation like this would be really helpful if it could tell that a
+problem like this could be fixed with a reordering, and suggest that
+reordering.
+
+-}
+
+ATTR ParamDef [||paramName : String]
+
+ATTR ParamDefList [||params : {[(String, Type)]}]
+
+ATTR ParamDef [||namedType : Type]
+
+SEM ParamDef
+    | ParamDef ParamDefTp
+        lhs.namedType = @typ.namedType
+    | ParamDef
+        lhs.paramName = @name
+    | ParamDefTp
+        lhs.paramName = ""
+
+SEM ParamDefList
+     | Nil lhs.params = []
+     | Cons lhs.params = ((@hd.paramName, @hd.namedType) : @tl.params)
+
+SEM Statement
+    | CreateFunction
+        loc.tpe = Right $ Pseudo Void
+        loc.backTree = CreateFunction @ann
+                                      @lang.annotatedTree
+                                      @name
+                                      @params.annotatedTree
+                                      @rettype.annotatedTree
+                                      @bodyQuote
+                                      @body.annotatedTree
+                                      @vol.annotatedTree
+        loc.statementInfo = []
+        loc.envUpdates = [EnvCreateFunction FunName @name (map snd @params.params) @rettype.namedType]
+        --add the parameters to the environment for the contained statements
+        body.lib = fromRight @lhs.lib $
+                   updateBindings @lhs.lib [LibStackIDs [("", @params.params)
+                                                        ,(@name, @params.params)]]
+
+SEM FnBody
+    | PlpgsqlFnBody
+        sts.lib = fromRight @lhs.lib $ updateBindings @lhs.lib [LibStackIDs [("", @vars.defs)]]
+
