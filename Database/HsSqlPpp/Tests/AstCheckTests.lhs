@@ -536,17 +536,17 @@ insert
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
 >         $ Right [Just $ InsertInfo "pg_attrdef"
->          (UnnamedCompositeType [("adrelid",ScalarType "oid")
->                                 ,("adnum",ScalarType "int2")
->                                 ,("adbin",ScalarType "text")
->                                 ,("adsrc",ScalarType "text")])]
+>                           [("adrelid",ScalarType "oid")
+>                           ,("adnum",ScalarType "int2")
+>                           ,("adbin",ScalarType "text")
+>                           ,("adsrc",ScalarType "text")]]
 >      ,p "insert into pg_attrdef\n\
 >         \values (1,2, 'a', 'b');"
 >         $ Right [Just $ InsertInfo "pg_attrdef"
->          (UnnamedCompositeType [("adrelid",ScalarType "oid")
->                                 ,("adnum",ScalarType "int2")
->                                 ,("adbin",ScalarType "text")
->                                 ,("adsrc",ScalarType "text")])]
+>                           [("adrelid",ScalarType "oid")
+>                           ,("adnum",ScalarType "int2")
+>                           ,("adbin",ScalarType "text")
+>                           ,("adsrc",ScalarType "text")]]
 >      ,p "insert into pg_attrdef (hello,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
 >         $ Left [UnrecognisedIdentifier "hello"]
@@ -572,15 +572,15 @@ insert
 >      ,p "update pg_attrdef set (shmadrelid,adsrc) = ('a','b');"
 >         $ Left [UnrecognisedIdentifier "shmadrelid"]
 >      ,p "update pg_attrdef set adsrc='';"
->         $ Right [Just $ UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]]
 >      ,p "update pg_attrdef set adsrc='' where 1=2;"
->         $ Right [Just $ UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]]
 >       -- TODO: actually, pg doesn't support this so need to generate error instead
 >      ,p "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
->         $ Right [Just $ UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adbin",ScalarType "text"),("adsrc",ScalarType "text")])]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")]]
 >      --check where ids
 >      ,p "update pg_attrdef set adsrc='' where adsrc='';"
->         $ Right [Just $ UpdateInfo "pg_attrdef" (UnnamedCompositeType [("adsrc",ScalarType "text")])]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]]
 
 
 >      ])

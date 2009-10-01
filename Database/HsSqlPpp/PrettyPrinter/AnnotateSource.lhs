@@ -26,7 +26,7 @@ text on these points, then zip it and output it.
 
 > import Data.List
 > import Data.Maybe
-> import Debug.Trace
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation

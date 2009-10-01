@@ -40,12 +40,13 @@ SEM Statement
               @loc.attrs
               Right @loc.selType
         loc.envUpdates =
-            either (const []) (\as -> [EnvCreateTable @name as []]) $ do
+           leftToEmpty (\as -> [EnvCreateTable @name as []]) $ do
               ats <- @loc.attrs
               return $ dependsOn (tpeToT @loc.tpe :
                                   (map snd ats)) [] ats
 
         loc.selType = getTypeAnnotation @expr.annotatedTree
+        -- type of the columns in the select expression
         loc.attrs = unwrapComposite @loc.selType
 
         loc.backTree = CreateTableAs @ann @name @expr.annotatedTree

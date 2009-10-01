@@ -22,7 +22,10 @@ modules.
 >     ,updateEnvironment
 >     --,destructEnvironment
 >     -- type checker stuff
+>     ,envCompositeDef
+>     ,envCompositeAttrsPair
 >     ,envCompositeAttrs
+>     ,envCompositePublicAttrs
 >     ,envTypeCategory
 >     ,envPreferredType
 >     ,envCast
@@ -38,7 +41,7 @@ modules.
 > import Control.Monad
 > import Data.List
 > import Data.Generics
-> import Debug.Trace
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
@@ -226,15 +229,33 @@ check to see if it works
 
 = type checking stuff
 
-> envCompositeAttrs :: Environment -> [CompositeFlavour] -> Type -> Either [TypeError] (CompositeDef)
-> envCompositeAttrs env flvs ty = do
->   let CompositeType nm = ty
+> envCompositeDef :: Environment -> [CompositeFlavour] -> String -> Either [TypeError] (CompositeDef)
+> envCompositeDef env flvs nm = do
 >   let c = filter (\(n,t,_,_) -> n == nm && (null flvs || t `elem` flvs)) $ envAttrDefs env
 >   errorWhen (null c)
 >             [UnrecognisedRelation nm]
 >   case c of
 >     (_,fl1,r,s):[] -> return (nm,fl1,r,s)
->     _ -> error $ "problem getting attributes for: " ++ show ty ++ ", " ++ show c
+>     _ -> error $ "problem getting attributes for: " ++ show nm ++ ", " ++ show c
+
+> envCompositeAttrsPair :: Environment -> [CompositeFlavour] -> String
+>                       -> Either [TypeError] ([(String,Type)],[(String,Type)])
+> envCompositeAttrsPair env flvs ty = do
+>    (_,_,UnnamedCompositeType a,UnnamedCompositeType b) <- envCompositeDef env flvs ty
+>    return (a,b)
+
+> envCompositeAttrs :: Environment -> [CompositeFlavour] -> String
+>                   -> Either [TypeError] [(String,Type)]
+> envCompositeAttrs env flvs ty = do
+>   (a,b) <- envCompositeAttrsPair env flvs ty
+>   return $ a ++ b
+
+> envCompositePublicAttrs :: Environment -> [CompositeFlavour] -> String
+>                   -> Either [TypeError] [(String,Type)]
+> envCompositePublicAttrs env flvs ty = do
+>   (a,_) <- envCompositeAttrsPair env flvs ty
+>   return a
+
 
 > envTypeCategory :: Environment -> Type -> String
 > envTypeCategory env ty =

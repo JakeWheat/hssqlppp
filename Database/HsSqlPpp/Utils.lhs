@@ -41,6 +41,9 @@ This file contains some generic utility stuff
 > mapRight _ (Left a) = Left a
 > mapRight f (Right b) = Right $ f b
 
+> leftToEmpty :: (r -> [a]) -> Either l r -> [a]
+> leftToEmpty f e = either (const []) f e
+
 > replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
 > replace _ _ [] = []
 > replace old new xs@(y:ys) =

@@ -149,15 +149,11 @@ SEM TableRef
               lhs.idens = [(@alias, (fromRight [] $ getTbCols @sel.annotatedTree, []))]
               lhs.joinIdens = []
     | TrefAlias Tref
-        loc.tpe = either Left (Right . fst) @loc.relType
+        loc.tpe = either Left (Right . UnnamedCompositeType . fst) @loc.relType
         lhs.joinIdens = []
-        loc.relType = getRelationType @lhs.env @tbl
+        loc.relType = envCompositeAttrsPair @lhs.env [] @tbl
         loc.unwrappedRelType =
-            fromRight ([],[]) $
-            do
-              lrt <- @loc.relType
-              let (UnnamedCompositeType a,UnnamedCompositeType b) = lrt
-              return (a,b)
+            fromRight ([],[]) @loc.relType
     | Tref
         lhs.idens = [(@tbl, @loc.unwrappedRelType)]
         loc.backTree = Tref @ann @tbl
@@ -290,12 +286,7 @@ getFunIdens env alias fnVal =
                 y -> UnnamedCompositeType [(correlationName,y)])
        x -> Left [ContextError "FunCall"]
    where
-     getCompositeType t =
-                    case getAttrs env [Composite
-                                      ,TableComposite
-                                      ,ViewComposite] t of
-                      Just (_,_,a@(UnnamedCompositeType _), _) -> a
-                      _ -> UnnamedCompositeType []
+     getCompositeType t = UnnamedCompositeType $ fromRight [] $ envCompositePublicAttrs env [] t
 }
 
 SEM MaybeTableRef

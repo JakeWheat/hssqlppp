@@ -13,6 +13,7 @@ type checking.
 >     ,dependsOnTpe
 >     ,dependsOnT
 >     ,tpeToT
+>     ,liftErrors
 >     ,errorToTypeFail
 >     ,errorToTypeFailF
 >     ,checkErrorList
@@ -78,6 +79,12 @@ used to pass a regular type on iff the list of errors is null
 > checkErrorList es t = if null es
 >                         then Right t
 >                         else Left es
+
+> liftErrors :: [TypeError] -> Either [TypeError] ()
+> liftErrors es = if null es
+>                   then Right ()
+>                   else Left es
+
 
 extract errors from an either, gives empty list if right
 

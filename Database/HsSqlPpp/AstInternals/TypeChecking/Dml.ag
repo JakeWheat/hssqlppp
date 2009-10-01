@@ -1,41 +1,39 @@
-
-
-
 {-
+Copyright 2009 Jake Wheat
+
+This file contains the type checking code for dml, currently insert,
+update and delete.
+
 ================================================================================
 
 = insert
 
+check the insert data is the correct type. Doesn't cope with columns
+with default values at the moment.
+
 -}
-{
-getCAtts t =
-    case t of
-      SetOfType (UnnamedCompositeType t) -> t
-      _ -> []
-}
 
 SEM Statement
     | Insert
-        loc.columnStuff =
+        loc.tpe =
+            ctcf [getTypeAnnotation @insData.annotatedTree] $ do
+              @loc.columnTypes
+              Right $ Pseudo Void
+        loc.statementInfo =
+            leftToEmpty (\ct -> [InsertInfo @table ct]) @loc.columnTypes
+
+        loc.columnTypes =
+            do
+            tys <- unwrapSetOfComposite $
+                   getTypeAnnotation @insData.annotatedTree
             checkColumnConsistency @lhs.env
                                    @table
                                    @targetCols.strings
-                                   (getCAtts $ getTypeAnnotation @insData.annotatedTree)
-        loc.tpe =
-            chainTypeCheckFailed [getTypeAnnotation @insData.annotatedTree] $ do
-              @loc.columnStuff
-              Right $ Pseudo Void
-        loc.statementInfo =
-            [InsertInfo @table $ errorToTypeFailF UnnamedCompositeType @loc.columnStuff]
+                                   tys
+
         loc.backTree = Insert @ann @table @targetCols.annotatedTree
                               @insData.annotatedTree @returning
         loc.envUpdates = []
-
-ATTR StringList [||strings : {[String]}]
-
-SEM StringList
-  | Cons lhs.strings = @hd : @tl.strings
-  | Nil lhs.strings = []
 
 {-
 ================================================================================
@@ -48,24 +46,52 @@ SEM Statement
     | Update
         loc.tpe =
             do
-            let re = checkRelationExists @lhs.env @table
-            when (isJust re) $
-                 Left [fromJust $ re]
-            chainTypeCheckFailed (map snd @assigns.pairs) $ do
+            checkRelationExists @lhs.env @table
+            ctcf (map snd @assigns.pairs) $ do
               @loc.columnsConsistent
-              checkErrorList @assigns.rowSetErrors $ Pseudo Void
-        loc.columnsConsistent =
-            checkColumnConsistency @lhs.env @table (map fst @assigns.pairs) @assigns.pairs
+              liftErrors @assigns.rowSetErrors
+              return $ Pseudo Void
         loc.statementInfo =
-            [UpdateInfo @table $ errorToTypeFailF UnnamedCompositeType @loc.columnsConsistent]
-        loc.backTree = Update @ann @table @assigns.annotatedTree @whr.annotatedTree @returning
+            leftToEmpty (\ct -> [UpdateInfo @table ct]) @loc.columnsConsistent
+
+        loc.columnsConsistent =
+            checkColumnConsistency @lhs.env
+                                   @table
+                                   (map fst @assigns.pairs)
+                                   @assigns.pairs
+
+        loc.backTree = Update @ann
+                              @table
+                              @assigns.annotatedTree
+                              @whr.annotatedTree
+                              @returning
         loc.envUpdates = []
-        loc.columnTypes = case getCompositeColumns @lhs.env @table of
-                            Left er -> []
-                            Right c -> c
-        whr.lib = case updateBindings @lhs.lib [LibStackIDs [("", @loc.columnTypes)]] of
-                         Left x -> error $ show x
-                         Right e -> e
+
+-- local identifier bindings: pass the table attribute names and types
+-- into the where expression
+
+SEM Statement
+    | Update
+        whr.lib =
+            case (do
+                   ct <- envCompositeAttrs @lhs.env [TableComposite,ViewComposite] @table
+                   updateBindings @lhs.lib [LibStackIDs [("", ct)]]) of
+                 Left x -> error $ show x
+                 Right e -> e
+
+{-
+== set clauses
+
+small complication is slightly hacky code to deal with row set
+assignments, where we assign from a multiple attribute subselect into
+mulitple columns - todo: check if we need so much special casing for
+this: should be able to reuse the funcall typing of row set equality
+(trade one hack for another, squinting so that assignment looks like
+an equality check - since it type checks the same we might be ok). If
+we do this, we only need to expand the row sets out to produce a
+single string,type list at the end.
+
+-}
 
 ATTR SetClauseList [||pairs : {[(String,Type)]}
                       rowSetErrors : {[TypeError]}]
@@ -107,32 +133,31 @@ getRowTypes ts = ts
 SEM Statement
     | Delete
         loc.tpe =
-            case checkRelationExists @lhs.env @table of
-              Just e -> Left [e]
-              Nothing -> Right $ Pseudo Void
+            do
+            checkRelationExists @lhs.env @table
+            Right $ Pseudo Void
         loc.statementInfo = [DeleteInfo @table]
         loc.backTree = Delete @ann @table @whr.annotatedTree @returning
         loc.envUpdates = []
-        loc.columnTypes = case getCompositeColumns @lhs.env @table of
-                            Left er -> []
-                            Right c -> c
+        loc.columnTypes = fromRight [] $ envCompositeAttrs @lhs.env [TableComposite,ViewComposite] @table
         whr.lib = case updateBindings @lhs.lib [LibStackIDs [("", @loc.columnTypes)]] of
                          Left x -> error $ show x
                          Right e -> e
 
-
+{-
+================================================================================
+-}
 {
-checkRelationExists :: Environment -> String -> Maybe TypeError
-checkRelationExists env tbl =
-          case getAttrs env [TableComposite, ViewComposite] tbl of
-            Just _ -> Nothing
-            _ -> Just $ UnrecognisedRelation tbl
+
+checkRelationExists :: Environment -> String -> Either [TypeError] ()
+checkRelationExists env tbl = do
+    envCompositeDef env [TableComposite, ViewComposite] tbl
+    return ()
 
 checkColumnConsistency :: Environment ->  String -> [String] -> [(String,Type)]
                        -> Either [TypeError] [(String,Type)]
 checkColumnConsistency env tbl cols' insNameTypePairs = do
-  rt <- getRelationType env tbl
-  ttcols <- unwrapComposite $ fst rt
+  ttcols <- envCompositePublicAttrs env [] tbl
   let cols :: [String]
       cols = if null cols'
                then map fst ttcols
@@ -150,13 +175,5 @@ checkColumnConsistency env tbl cols' insNameTypePairs = do
       errs = concat $ lefts $ map (\(_,b,c) -> checkAssignmentValid env c b) typeTriples
   unless (null errs) $ Left errs
   return targetNameTypePairs
-
-getCompositeColumns :: Environment -> String -> Either [TypeError] [(String,Type)]
-getCompositeColumns env tbl = do
-  rt <- getRelationType env tbl
-  cols <- unwrapComposite $ fst rt
-  cols1 <- unwrapComposite $ snd rt
-  return $ cols ++ cols1
-
 
 }
