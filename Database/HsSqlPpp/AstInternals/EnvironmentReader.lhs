@@ -14,6 +14,7 @@ was heavily changed so it's a bit messy.
 > import qualified Data.Map as M
 > import Data.Maybe
 > import Control.Applicative
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.AstInternals.TypeType
@@ -33,7 +34,11 @@ was heavily changed so it's a bit messy.
 >    typeInfo <- selectRelation conn
 >                  "select t.oid as oid,\n\
 >                  \       t.typtype,\n\
->                  \       t.typname,\n\
+>                  \       case nspname\n\
+>                  \         when 'public' then t.typname\n\
+>                  \         when 'pg_catalog' then t.typname\n\
+>                  \         else nspname || '.' || t.typname\n\
+>                  \       end as typname,\n\
 >                  \       t.typarray,\n\
 >                  \       coalesce(e.typtype,'0') as atyptype,\n\
 >                  \       e.oid as aoid,\n\
@@ -41,8 +46,11 @@ was heavily changed so it's a bit messy.
 >                  \  from pg_catalog.pg_type t\n\
 >                  \  left outer join pg_type e\n\
 >                  \    on t.typarray = e.oid\n\
->                  \  where pg_catalog.pg_type_is_visible(t.oid)\n\
->                  \   and not exists(select 1 from pg_catalog.pg_type el\n\
+>                  \   inner join pg_namespace ns\n\
+>                  \      on t.typnamespace = ns.oid\n\
+>                   \         and ns.nspname in ('pg_catalog', 'public', 'information_schema')\n\
+>                  \  where /*pg_catalog.pg_type_is_visible(t.oid)\n\
+>                  \   and */not exists(select 1 from pg_catalog.pg_type el\n\
 >                  \                       where el.typarray = t.oid)\n\
 >                  \  order by t.typname;" []
 >    let typeStuff = concatMap convTypeInfoRow typeInfo
@@ -53,13 +61,20 @@ was heavily changed so it's a bit messy.
 >           selectRelation conn
 >                        "select t.typname,typcategory,typispreferred\n\
 >                        \from pg_type t\n\
+>                        \   inner join pg_namespace ns\n\
+>                        \      on t.typnamespace = ns.oid\n\
+>                        \         and ns.nspname in ('pg_catalog', 'public', 'information_schema')\n\
 >                        \where t.typarray<>0 and\n\
->                        \    typtype='b' and\n\
->                        \    pg_catalog.pg_type_is_visible(t.oid);" []
+>                        \    typtype='b' /*and\n\
+>                        \    pg_catalog.pg_type_is_visible(t.oid)*/;" []
 >    domainDefInfo <- selectRelation conn
->                       "select oid, typbasetype\n\
->                       \from pg_type where typtype = 'd'\n\
->                       \     and  pg_catalog.pg_type_is_visible(oid);" []
+>                       "select pg_type.oid, typbasetype\n\
+>                       \  from pg_type\n\
+>                       \  inner join pg_namespace ns\n\
+>                       \      on pg_type.typnamespace = ns.oid\n\
+>                       \         and ns.nspname in ('pg_catalog', 'public', 'information_schema')\n\
+>                       \ where typtype = 'd'\n\
+>                       \     /*and  pg_catalog.pg_type_is_visible(oid)*/;" []
 >    let jlt k = fromJust $ M.lookup k typeMap
 >    let domainDefs = map (\l -> (jlt (l!!0),  jlt (l!!1))) domainDefInfo
 >    --let domainCasts = map (\(t,b) ->(t,b,ImplicitCastContext)) domainDefs
@@ -114,12 +129,16 @@ was heavily changed so it's a bit messy.
 >                       \order by proname,proargtypes;" []
 >    let aggProts = map (convFnRow jlt) aggregateInfo
 
->    comps <- map (\(kind:nm:atts:sysatts:[]) ->
->              case kind of
->                "c" -> EnvCreateComposite nm (convertAttString jlt atts)
->                "r" -> EnvCreateTable nm (convertAttString jlt atts) (convertAttString jlt sysatts)
->                "v" -> EnvCreateView nm (convertAttString jlt atts)
->                _ -> error $ "unrecognised relkind: " ++ kind) <$>
+>    comps <- map (\(kind:nm:atts:sysatts:nsp:[]) ->
+>              let nm1 = case nsp of
+>                                 "pg_catalog" -> nm
+>                                 "public" -> nm
+>                                 n -> n ++ "." ++ nm
+>              in case kind of
+>                     "c" -> EnvCreateComposite nm1 (convertAttString jlt atts)
+>                     "r" -> EnvCreateTable nm1 (convertAttString jlt atts) (convertAttString jlt sysatts)
+>                     "v" -> EnvCreateView nm1 (convertAttString jlt atts)
+>                     _ -> error $ "unrecognised relkind: " ++ kind) <$>
 >                 selectRelation conn
 >                   "with att1 as (\n\
 >                   \ select\n\
@@ -130,8 +149,11 @@ was heavily changed so it's a bit messy.
 >                   \   from pg_attribute\n\
 >                   \   inner join pg_class cls\n\
 >                   \      on cls.oid = attrelid\n\
->                   \   where pg_catalog.pg_table_is_visible(cls.oid)\n\
->                   \      and cls.relkind in ('r','v','c')\n\
+>                   \   inner join pg_namespace ns\n\
+>                   \      on cls.relnamespace = ns.oid\n\
+>                   \         and ns.nspname in ('pg_catalog', 'public', 'information_schema')\n\
+>                   \   where /*pg_catalog.pg_table_is_visible(cls.oid)\n\
+>                   \      and*/ cls.relkind in ('r','v','c')\n\
 >                   \      and not attisdropped),\n\
 >                   \ sysAtt as (\n\
 >                   \ select attrelid,\n\
@@ -157,10 +179,13 @@ was heavily changed so it's a bit messy.
 >                   \     cls.relkind,\n\
 >                   \     cls.relname,\n\
 >                   \     atts,\n\
->                   \     coalesce(sysAtts,'')\n\
+>                   \     coalesce(sysAtts,''),\n\
+>                   \     nspname\n\
 >                   \   from att left outer join sysAtt using (attrelid)\n\
 >                   \   inner join pg_class cls\n\
 >                   \     on cls.oid = attrelid\n\
+>                   \   inner join pg_namespace ns\n\
+>                   \      on cls.relnamespace = ns.oid\n\
 >                   \   order by relkind,relname;" []
 
 

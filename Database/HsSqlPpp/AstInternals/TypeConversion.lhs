@@ -27,12 +27,15 @@ checkAssignmentValid - pass in source type and target type, returns
 
 > import Data.Maybe
 > import Data.List
+> import Debug.Trace
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.AstInternals.AstUtils
 > import Database.HsSqlPpp.AstInternals.EnvironmentInternal
 > import Database.HsSqlPpp.Utils
 
+> traceIt :: Show a => String -> a -> a
+> traceIt s t = trace (s ++ ": " ++ show t) t
 
 = findCallMatch
 
@@ -110,6 +113,17 @@ into cand cast pairs, after exact match has been run.
 
 findCallMatch is a bit of a mess
 
+todos:
+
+rewrite this to try to make it a bit clearer
+
+find some way to draw a data flow diagram of the code easily
+
+add a logging facility so the function can explain what has happened
+at each state, so you can provide a detailed explainion e.g. if the
+code can't find an operator match to see what it has tried to match
+against.
+
 > type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
 
 > findCallMatch :: Environment -> String -> [Type] ->  Either [TypeError] FunctionPrototype
@@ -127,7 +141,8 @@ findCallMatch is a bit of a mess
 >       -- basic lists which roughly mirror algo
 >       -- get the possibly matching candidates
 >       initialCandList :: [FunctionPrototype]
->       initialCandList = filter (\(_,candArgs,_) ->
+>       initialCandList = {-traceIt "initialCandList" $-}
+>                         filter (\(_,candArgs,_) ->
 >                                   length candArgs == length inArgs) $
 >                                envLookupFns env f
 >
@@ -136,7 +151,7 @@ findCallMatch is a bit of a mess
 >       castPairs = map (listCastPairs . getFnArgs) initialCandList
 >
 >       candCastPairs :: [ProtArgCast]
->       candCastPairs = zip initialCandList castPairs
+>       candCastPairs = {-traceIt "candCastPairs" $-} zip initialCandList castPairs
 >
 >       -- see if we have an exact match
 >       exactMatch :: [ProtArgCast]

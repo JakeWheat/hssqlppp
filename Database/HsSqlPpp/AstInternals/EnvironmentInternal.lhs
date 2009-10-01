@@ -38,6 +38,7 @@ modules.
 > import Control.Monad
 > import Data.List
 > import Data.Generics
+> import Debug.Trace
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
@@ -246,7 +247,14 @@ check to see if it works
 >   in p
 
 > envCast :: Environment -> CastContext -> Type -> Type -> Bool
-> envCast env ctx from to = any (==(from,to,ctx)) (envCasts env)
+> envCast env ctx from to = {-trace ("check cast " ++ show from ++ show to) $-}
+>     case from of
+>       t@(DomainType _) -> let baseType = envDomainBaseType env t
+>                           in if baseType == to
+>                                then True
+>                                else envCast env ctx baseType to ||
+>                                     any (==(from,to,ctx)) (envCasts env)
+>       _ -> any (==(from,to,ctx)) (envCasts env)
 
 
 > envDomainBaseType :: Environment -> Type -> Type
