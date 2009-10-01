@@ -1,10 +1,62 @@
 {-
-================================================================================
+Copyright 2009 Jake Wheat
 
-= create function
+This file contains the ag code for create function statements. This
+includes producing the function prototype, and passing the parameter
+and variable declaration bindings into the statement body.
 
-get the signature, does some checking of the body, still a bit limited
+== function prototype
 
+all we do here is type check enough to produce the prototype
+information which is added to the catalog, this means the function
+name, parameter types, and the return type.
+
+-}
+
+SEM Statement
+    | CreateFunction
+        loc.tpe = dependsOnTpe
+                    (@rettype.namedType : @loc.parameterTypes) $
+                    Right $ Pseudo Void
+        loc.backTree = CreateFunction @ann
+                                      @lang.annotatedTree
+                                      @name
+                                      @params.annotatedTree
+                                      @rettype.annotatedTree
+                                      @bodyQuote
+                                      @body.annotatedTree
+                                      @vol.annotatedTree
+        loc.statementInfo = []
+        loc.parameterTypes = (map snd @params.params)
+        loc.envUpdates = dependsOn [tpeToT @loc.tpe] []
+                                   [EnvCreateFunction FunName
+                                                      @name
+                                                      @loc.parameterTypes
+                                                      @rettype.namedType]
+
+{-
+== parameters
+-}
+
+ATTR ParamDef [||paramName : String
+                 namedType : Type]
+
+ATTR ParamDefList [||params : {[(String, Type)]}]
+
+SEM ParamDef
+    | ParamDef ParamDefTp
+        lhs.namedType = @typ.namedType
+    | ParamDef
+        lhs.paramName = @name
+    | ParamDefTp
+        lhs.paramName = ""
+
+SEM ParamDefList
+     | Nil lhs.params = []
+     | Cons lhs.params = ((@hd.paramName, @hd.namedType) : @tl.params)
+
+
+{-
 ISSUE:
 
 when writing an sql file, you can put a create function which refers
@@ -25,45 +77,29 @@ situation like this would be really helpful if it could tell that a
 problem like this could be fixed with a reordering, and suggest that
 reordering.
 
+New plan: do two passes, type check everything but the bodies of
+functions in first pass, then type check bodies of functions in second
+pass. Not perfect, but better than current situation. This will be
+achieved by using a separate env attribute which is the same as the env
+value which gets returned from the annotation functions in AstInternal.ag
+
 -}
-
-ATTR ParamDef [||paramName : String]
-
-ATTR ParamDefList [||params : {[(String, Type)]}]
-
-ATTR ParamDef [||namedType : Type]
-
-SEM ParamDef
-    | ParamDef ParamDefTp
-        lhs.namedType = @typ.namedType
-    | ParamDef
-        lhs.paramName = @name
-    | ParamDefTp
-        lhs.paramName = ""
-
-SEM ParamDefList
-     | Nil lhs.params = []
-     | Cons lhs.params = ((@hd.paramName, @hd.namedType) : @tl.params)
 
 SEM Statement
     | CreateFunction
-        loc.tpe = Right $ Pseudo Void
-        loc.backTree = CreateFunction @ann
-                                      @lang.annotatedTree
-                                      @name
-                                      @params.annotatedTree
-                                      @rettype.annotatedTree
-                                      @bodyQuote
-                                      @body.annotatedTree
-                                      @vol.annotatedTree
-        loc.statementInfo = []
-        loc.envUpdates = [EnvCreateFunction FunName @name (map snd @params.params) @rettype.namedType]
         --add the parameters to the environment for the contained statements
         body.lib = fromRight @lhs.lib $
-                   updateBindings @lhs.lib [LibStackIDs [("", @params.params)
-                                                        ,(@name, @params.params)]]
+                   updateBindings @lhs.lib
+                                  [LibStackIDs [("", @params.params)
+                                               ,(@name, @params.params)]]
 
 SEM FnBody
     | PlpgsqlFnBody
-        sts.lib = fromRight @lhs.lib $ updateBindings @lhs.lib [LibStackIDs [("", @vars.defs)]]
+        --make the variable names available in the body of the
+        --function this needs to be generalised to begin/end blocks
+        --which can nest inside plpgsql functions (they aren't even
+        --supported by the parser at the moment)
+        sts.lib = fromRight @lhs.lib $
+                  updateBindings @lhs.lib
+                                 [LibStackIDs [("", @vars.defs)]]
 

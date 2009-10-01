@@ -7,8 +7,12 @@ type checking.
 
 > module Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 >     (
->      --checkTypes
 >      chainTypeCheckFailed
+>     ,ctcf
+>     ,dependsOn
+>     ,dependsOnTpe
+>     ,dependsOnT
+>     ,tpeToT
 >     ,errorToTypeFail
 >     ,errorToTypeFailF
 >     ,checkErrorList
@@ -34,12 +38,32 @@ use the final argument.
 >     then Right TypeCheckFailed
 >     else b
 
+> ctcf :: [Type] -> Either a Type -> Either a Type
+> ctcf = chainTypeCheckFailed
+
+> dependsOn :: [Type] -> t -> t -> t
+> dependsOn ts bad ok =
+>   if any (==TypeCheckFailed) ts
+>     then bad
+>     else ok
+
+> dependsOnTpe :: [Type] -> Either a Type -> Either a Type
+> dependsOnTpe ts = dependsOn ts (Right TypeCheckFailed)
+
+> dependsOnT :: [Type] -> Type -> Type
+> dependsOnT ts = dependsOn ts TypeCheckFailed
+
+
+
 convert an 'either [typeerror] type' to a type
 
 > errorToTypeFail :: Either [TypeError] Type -> Type
 > errorToTypeFail tpe = case tpe of
 >                         Left _ -> TypeCheckFailed
 >                         Right t -> t
+
+> tpeToT :: Either [TypeError] Type -> Type
+> tpeToT = errorToTypeFail
 
 convert an 'either [typeerror] x' to a type, using an x->type function
 
