@@ -37,7 +37,7 @@ grammar code and aren't exposed.
 > import Control.Arrow
 
 > import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
 
 > -- | Annotation type - one of these is attached to most of the
 > -- data types used in the ast.

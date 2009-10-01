@@ -6,7 +6,7 @@ of development (no uuagc mode for emacs is the problem).
 
 > {-# OPTIONS_HADDOCK hide #-}
 
-> module Database.HsSqlPpp.AstInternals.TypeCheckingH
+> module Database.HsSqlPpp.AstInternals.TypeChecking.TypeCheckingH
 >     (
 >      typeCheckFunCall
 >     ,typeCheckValuesExpr
@@ -36,10 +36,10 @@ of development (no uuagc mode for emacs is the problem).
 > import Control.Monad.Error
 
 > import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.AstInternals.AstUtils
-> import Database.HsSqlPpp.AstInternals.TypeConversion
-> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
-> import Database.HsSqlPpp.AstInternals.LocalIdentifierBindings
+> import Database.HsSqlPpp.AstInternals.TypeChecking.AstUtils
+> import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
+> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
 > import Database.HsSqlPpp.Utils
 
 ================================================================================

@@ -7,7 +7,7 @@ modules.
 > {-# LANGUAGE DeriveDataTypeable #-}
 > {-# OPTIONS_HADDOCK hide  #-}
 
-> module Database.HsSqlPpp.AstInternals.EnvironmentInternal
+> module Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
 >     (
 >      Environment
 >     ,CastContext(..)

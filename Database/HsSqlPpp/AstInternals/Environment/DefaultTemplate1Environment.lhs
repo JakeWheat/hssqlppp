@@ -5,11 +5,11 @@ This file contains
 
 > {-# OPTIONS_HADDOCK hide  #-}
 
-> module Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
+> module Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment
 >     (defaultTemplate1Environment
 >      ) where
 
-> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
 > import Database.HsSqlPpp.AstInternals.TypeType
 
 > defaultTemplate1Environment :: Environment

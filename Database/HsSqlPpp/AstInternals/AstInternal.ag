@@ -114,12 +114,12 @@ import Control.Applicative
 import Data.Generics
 
 import Database.HsSqlPpp.AstInternals.TypeType
-import Database.HsSqlPpp.AstInternals.TypeConversion
-import Database.HsSqlPpp.AstInternals.TypeCheckingH
+import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
+import Database.HsSqlPpp.AstInternals.TypeChecking.TypeCheckingH
 import Database.HsSqlPpp.AstInternals.AstAnnotation
-import Database.HsSqlPpp.AstInternals.EnvironmentInternal
-import Database.HsSqlPpp.AstInternals.LocalIdentifierBindings
-import Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
+import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
+import Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
+import Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment
 import Database.HsSqlPpp.Utils
 import Data.Generics.PlateData
 
@@ -590,7 +590,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
 DERIVING AllNodes: Show,Eq,Typeable,Data
 
 
-INCLUDE "TypeChecking.ag"
+INCLUDE "TypeChecking/TypeChecking.ag"
 
 {-
 

@@ -8,7 +8,7 @@ was heavily changed so it's a bit messy.
 
 > {-# OPTIONS_HADDOCK hide  #-}
 
-> module Database.HsSqlPpp.AstInternals.EnvironmentReader
+> module Database.HsSqlPpp.AstInternals.Environment.EnvironmentReader
 >     (readEnvironmentFromDatabase) where
 
 > import qualified Data.Map as M
@@ -19,7 +19,7 @@ was heavily changed so it's a bit messy.
 > import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
 
 > -- | Creates an 'EnvironmentUpdate' list by reading the database given.
 > -- To create an Environment value from this, use

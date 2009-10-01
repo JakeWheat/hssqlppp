@@ -1,8 +1,8 @@
-Summary: A parser, pretty printer, and type checker for PostGreSQL SQL
+Summary: A parser, pretty printer, and type checker for PostgreSQL SQL
 and PL/pgSQL. BSD licensed.
 
 The current aims of the project is to provide a parser and type
-checker for a substantial portion of PostGreSQL SQL and PL/pgSQL.
+checker for a substantial portion of PostgreSQL SQL and PL/pgSQL.
 
 Status: it successfully parses and accurately pretty prints the three
 moderate sized SQL files from another project of mine, but there are
@@ -34,7 +34,7 @@ See the file 'development' for some notes on how to work with the
 source.
 
 The main dependencies of this project are: Parsec 3, HUnit, HDBC,
-UUAGC and Data.Generics. The tests run without accessing PostGreSQL,
+UUAGC and Data.Generics. The tests run without accessing PostgreSQL,
 but some of the utility functions do need it.
 
 ================================================================================
@@ -145,7 +145,7 @@ improving, and at some point will become a major focus - I hope this
 code will provide substantial benefits when developing in PL/pgSQL in
 the future.
 
-Only supports PostGreSQL SQL and PL/pgSQL.
+Only supports PostgreSQL SQL and PL/pgSQL.
 
 Future plans (provisional):
 

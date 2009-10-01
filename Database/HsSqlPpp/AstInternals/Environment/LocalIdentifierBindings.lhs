@@ -6,7 +6,7 @@ during the type checking process.
 Main areas to support are parameters and variables
 
 
-> module Database.HsSqlPpp.AstInternals.LocalIdentifierBindings
+> module Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
 >     (
 >      QualifiedIDs
 >     ,LocalIdentifierBindings

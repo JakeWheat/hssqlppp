@@ -57,7 +57,7 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Data.Generics.PlateData
 > import Data.Generics hiding (Prefix,Infix)
 
-> import Debug.Trace
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parsing.ParseErrors

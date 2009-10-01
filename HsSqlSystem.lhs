@@ -289,11 +289,11 @@ This reads an environment from a database and writes it out using show.
 >          \\n\
 >          \> {-# OPTIONS_HADDOCK hide  #-}\n\
 >          \\n\
->          \> module Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment\n\
+>          \> module Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment\n\
 >          \>     (defaultTemplate1Environment\n\
 >          \>      ) where\n\
 >          \\n\
->          \> import Database.HsSqlPpp.AstInternals.EnvironmentInternal\n\
+>          \> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal\n\
 >          \> import Database.HsSqlPpp.AstInternals.TypeType\n\
 >          \\n\
 >          \> defaultTemplate1Environment :: Environment\n\

@@ -59,6 +59,6 @@ the type checking code.
 >     ,isOperatorName
 >     ) where
 
-> import Database.HsSqlPpp.AstInternals.EnvironmentInternal
-> import Database.HsSqlPpp.AstInternals.EnvironmentReader
-> import Database.HsSqlPpp.AstInternals.DefaultTemplate1Environment
+> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentReader
+> import Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment
