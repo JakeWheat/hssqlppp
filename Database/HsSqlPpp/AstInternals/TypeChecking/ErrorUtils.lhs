@@ -5,7 +5,7 @@ type checking.
 
 > {-# OPTIONS_HADDOCK hide #-}
 
-> module Database.HsSqlPpp.AstInternals.TypeChecking.AstUtils
+> module Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 >     (
 >      --checkTypes
 >      chainTypeCheckFailed

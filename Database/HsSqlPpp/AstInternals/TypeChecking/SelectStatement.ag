@@ -96,6 +96,38 @@ SEM SelectExpression
                                      @sel2.annotatedTree
 
 {
+
+typeCheckValuesExpr :: Environment -> [[Type]] -> Either [TypeError] Type
+typeCheckValuesExpr env rowsTs =
+        let colNames = zipWith (++)
+                           (repeat "column")
+                           (map show [1..length $ head rowsTs])
+        in unionRelTypes env rowsTs colNames
+
+
+typeCheckCombineSelect :: Environment -> Type -> Type -> Either [TypeError] Type
+typeCheckCombineSelect env v1 v2 = do
+    u1 <- unwrapSetOfComposite v1
+    let colNames = map fst u1
+    u2 <- unwrapSetOfComposite v2
+    let colTypes1 = map snd u1
+    let colTypes2 = map snd u2
+    unionRelTypes env [colTypes1,colTypes2] colNames
+
+unionRelTypes :: Environment -> [[Type]] -> [String] -> Either [TypeError] Type
+unionRelTypes env rowsTs colNames =
+  let lengths = map length rowsTs
+  in case () of
+             _ | null rowsTs ->
+                   Left [NoRowsGivenForValues]
+               | not (all (==head lengths) lengths) ->
+                   Left [ValuesListsMustBeSameLength]
+               | otherwise ->
+                   --i don't think this propagates all the errors, just the first set
+                   mapM (resolveResultSetType env) (transpose rowsTs) >>=
+                     (return . SetOfType . UnnamedCompositeType . zip colNames)
+
+
 getTbCols c = unwrapSetOfComposite (getTypeAnnotation c)
 }
 
@@ -177,6 +209,69 @@ SEM TableRef
                        Right e -> e
 
 {
+{-
+this function a bit of a mess - artefact of not fully updated code
+after the environment data type was changed.
+-}
+convertToNewStyleUpdates :: [(String, ([(String,Type)], [(String,Type)]))] -> [String] -> [LocalIdentifierBindingsUpdate]
+convertToNewStyleUpdates qualIdens joinIdens =
+  -- we're given a list of qualified types, and a list of names of join columns
+  -- want to produce a list of qualified types, with an additional one with "" qualification
+  -- and produce a star expansion
+    [LibStackIDs newQualifiedList
+    ,LibSetStarExpansion newStarExpansion]
+  where
+    qualifiedFieldsCombined :: [(String,[(String,Type)])]
+    qualifiedFieldsCombined = map (\(alias,(att,sysatt)) -> (alias, att++sysatt)) qualIdens
+    isJoinField (n,_) = n `elem` joinIdens
+    (joinFields,nonJoinFields) = partition isJoinField $ concatMap snd qualifiedFieldsCombined
+    --need to resolve types instead of using nub
+    newQualifiedList = ("", nub joinFields ++ nonJoinFields):qualifiedFieldsCombined
+    qualifiedFieldsStarExp = map (\(alias,(att,_)) -> (alias, att)) qualIdens
+    (joinFieldsStarExp,nonJoinFieldsStarExp) =
+        partition isJoinField $ concatMap snd qualifiedFieldsStarExp
+    --need to resolve types instead of using nub
+    newStarExpansion = ("", nub joinFieldsStarExp ++ nonJoinFieldsStarExp):qualifiedFieldsStarExp
+
+{-
+combine two relvar types when being joined, pass in a using list and
+it checks the types in the using list are compatible, and eliminates
+duplicate columns of the attrs in the using list, returns the relvar
+type of the joined tables.
+-}
+combineTableTypesWithUsingList :: Environment -> [String] -> Type -> Type -> Either [TypeError] Type
+combineTableTypesWithUsingList env l t1c t2c = do
+    --check t1 and t2 have l
+    t1 <-unwrapComposite t1c
+    t2 <- unwrapComposite t2c
+    let names1 = getNames t1
+    let names2 = getNames t2
+    when (not (contained l names1) ||
+              not (contained l names2)) $
+         Left [MissingJoinAttribute]
+    --check the types
+    joinColumnTypes <- mapM (getColumnType t1 t2) l
+    let nonJoinColumns =
+            let notJoin = (\(s,_) -> s `notElem` l)
+            in filter notJoin t1 ++ filter notJoin t2
+    return $ UnnamedCompositeType $ zip l joinColumnTypes ++ nonJoinColumns
+    where
+      getNames :: [(String,Type)] -> [String]
+      getNames = map fst
+      contained l1 l2 = all (`elem` l2) l1
+      getColumnType :: [(String,Type)] -> [(String,Type)] -> String -> Either [TypeError] Type
+      getColumnType t1 t2 f =
+          let ct1 = getFieldType t1 f
+              ct2 = getFieldType t2 f
+          in resolveResultSetType env [ct1,ct2]
+      getFieldType t f = snd $ fromJust $ find (\(s,_) -> s == f) t
+
+commonFieldNames :: Type -> Type -> [String]
+commonFieldNames t1 t2 =
+    intersect (fn t1) (fn t2)
+    where
+      fn (UnnamedCompositeType s) = map fst s
+      fn _ = []
 
 getFnType :: Environment -> String -> Expression -> Either [TypeError] Type
 getFnType env alias =
@@ -213,6 +308,24 @@ ATTR SelectItemList SelectList [||listType : Type]
 SEM SelectItemList
     | Cons lhs.listType = doSelectItemListTpe @lhs.lib @hd.columnName @hd.itemType @tl.listType
     | Nil lhs.listType = UnnamedCompositeType []
+
+{
+doSelectItemListTpe :: LocalIdentifierBindings
+                    -> String
+                    -> Type
+                    -> Type
+                    -> Type
+doSelectItemListTpe env colName colType types =
+    if types == TypeCheckFailed
+       then types
+       else errorToTypeFail (do
+         let (correlationName,iden) = splitIdentifier colName
+         newCols <- if iden == "*"
+                         then libExpandStar env correlationName
+                         else return [(iden, colType)]
+         foldM (flip consComposite) types $ reverse newCols)
+}
+
 
 ATTR SelectItem [||itemType : Type]
 

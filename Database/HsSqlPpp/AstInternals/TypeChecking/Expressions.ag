@@ -61,6 +61,54 @@ SEM Expression
                       @args.typeList
         loc.backTree = FunCall @ann @funName @args.annotatedTree
 
+{
+typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] Type
+typeCheckFunCall env fnName argsType =
+    chainTypeCheckFailed argsType $
+      case fnName of
+              -- do the special cases first, some of these will use
+              -- the variadic support when it is done and no longer
+              -- be special cases.
+              "!arrayCtor" ->
+                    ArrayType <$> resolveResultSetType env argsType
+              "!between" -> do
+                    f1 <- lookupFn ">=" [argsType !! 0, argsType !! 1]
+                    f2 <- lookupFn "<=" [argsType !! 0, argsType !! 2]
+                    lookupFn "!and" [f1,f2]
+              "coalesce" -> resolveResultSetType env argsType
+              "greatest" -> do
+                    t <- resolveResultSetType env argsType
+                    lookupFn ">=" [t,t]
+                    return t
+              "least" -> do
+                    t <- resolveResultSetType env argsType
+                    lookupFn "<=" [t,t]
+                    return t
+              "!rowCtor" -> return $ RowCtor argsType
+                    -- special case the row comparison ops
+              _ | let isRowCtor t = case t of
+                                      RowCtor _ -> True
+                                      _ -> False
+                  in fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
+                         && length argsType == 2
+                         && all isRowCtor argsType ->
+                    checkRowTypesMatch (head argsType) (head $ tail argsType)
+              s -> lookupFn s argsType
+    where
+      lookupFn :: String -> [Type] -> Either [TypeError] Type
+      lookupFn s1 args = do
+        (_,_,r) <- findCallMatch env
+                             (if s1 == "u-" then "-" else s1) args
+        return r
+      checkRowTypesMatch (RowCtor t1s) (RowCtor t2s) = do
+        when (length t1s /= length t2s) $ Left [ValuesListsMustBeSameLength]
+        --this is wrong - we want all the errors, not just the first set
+        mapM_ (resolveResultSetType env . (\(a,b) -> [a,b])) $ zip t1s t2s
+        return typeBool
+      checkRowTypesMatch x y  =
+        error $ "internal error: checkRowTypesMatch called with " ++ show x ++ "," ++ show y
+}
+
 --lifted operator
 
 SEM Expression

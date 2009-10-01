@@ -120,3 +120,43 @@ SEM Statement
                          Left x -> error $ show x
                          Right e -> e
 
+
+{
+checkRelationExists :: Environment -> String -> Maybe TypeError
+checkRelationExists env tbl =
+          case getAttrs env [TableComposite, ViewComposite] tbl of
+            Just _ -> Nothing
+            _ -> Just $ UnrecognisedRelation tbl
+
+checkColumnConsistency :: Environment ->  String -> [String] -> [(String,Type)]
+                       -> Either [TypeError] [(String,Type)]
+checkColumnConsistency env tbl cols' insNameTypePairs = do
+  rt <- getRelationType env tbl
+  ttcols <- unwrapComposite $ fst rt
+  let cols :: [String]
+      cols = if null cols'
+               then map fst ttcols
+               else cols'
+  errorWhen (length insNameTypePairs /= length cols) [WrongNumberOfColumns]
+  let nonMatchingColumns = cols \\ map fst ttcols
+  errorWhen (not $ null nonMatchingColumns) $
+       map UnrecognisedIdentifier nonMatchingColumns
+  let targetNameTypePairs =
+        map (\l -> (l,fromJust $ lookup l ttcols)) cols
+        --check the types of the insdata match the column targets
+        --name datatype columntype
+      typeTriples = map (\((a,b),c) -> (a,b,c)) $ zip targetNameTypePairs $ map snd insNameTypePairs
+      errs :: [TypeError]
+      errs = concat $ lefts $ map (\(_,b,c) -> checkAssignmentValid env c b) typeTriples
+  unless (null errs) $ Left errs
+  return targetNameTypePairs
+
+getCompositeColumns :: Environment -> String -> Either [TypeError] [(String,Type)]
+getCompositeColumns env tbl = do
+  rt <- getRelationType env tbl
+  cols <- unwrapComposite $ fst rt
+  cols1 <- unwrapComposite $ snd rt
+  return $ cols ++ cols1
+
+
+}

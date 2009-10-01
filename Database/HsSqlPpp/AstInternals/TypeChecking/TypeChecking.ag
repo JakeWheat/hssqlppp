@@ -56,9 +56,6 @@ ATTR AllNodes Root ExpressionRoot
   [ env : Environment
     lib : LocalIdentifierBindings || annotatedTree : SELF]
 
-ATTR StatementList Root
-  [|| producedEnv : Environment]
-
 
 INCLUDE "TypeChecking/Misc.ag"
 INCLUDE "TypeChecking/Expressions.ag"

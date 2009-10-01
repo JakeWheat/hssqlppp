@@ -30,6 +30,9 @@ ATTR StatementList [ envUpdates : {[EnvironmentUpdate]}||]
 SEM Root
     | Root statements.envUpdates = []
 
+ATTR StatementList Root
+  [|| producedEnv : Environment]
+
 SEM StatementList
     | Cons
         loc.newEnv = fromRight @lhs.env $ updateEnvironment @lhs.env @lhs.envUpdates

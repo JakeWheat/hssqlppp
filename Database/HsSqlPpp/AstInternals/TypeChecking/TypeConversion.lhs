@@ -30,7 +30,7 @@ checkAssignmentValid - pass in source type and target type, returns
 > import Debug.Trace
 
 > import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.AstInternals.TypeChecking.AstUtils
+> import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 > import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
 > import Database.HsSqlPpp.Utils
 

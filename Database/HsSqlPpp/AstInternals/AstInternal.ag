@@ -115,7 +115,7 @@ import Data.Generics
 
 import Database.HsSqlPpp.AstInternals.TypeType
 import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
-import Database.HsSqlPpp.AstInternals.TypeChecking.TypeCheckingH
+import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 import Database.HsSqlPpp.AstInternals.AstAnnotation
 import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
 import Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings

@@ -74,10 +74,19 @@ extra-source-files:  README
                      Database/HsSqlPpp/AstInternals/Environment/LocalIdentifierBindings.lhs
                      Database/HsSqlPpp/AstInternals/AstInternal.ag
                      Database/HsSqlPpp/AstInternals/TypeType.lhs
-                     Database/HsSqlPpp/AstInternals/TypeChecking/TypeCheckingH.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Dml.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/SelectStatement.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/TypeConversion.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/TypeChecking.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/AstUtils.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/ErrorUtils
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/ErrorUtils.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/CreateTable.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/CreateFunction.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Expressions.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/MiscCreates.ag
                      Database/HsSqlPpp/Tests/AstCheckTests.lhs
                      Database/HsSqlPpp/Tests/ParserTests.lhs
                      Database/HsSqlPpp/Tests/DatabaseLoaderTests.lhs
