@@ -54,7 +54,14 @@ etc. annotations.
 -}
 ATTR AllNodes Root ExpressionRoot
   [ env : Environment
-    lib : LocalIdentifierBindings || annotatedTree : SELF]
+    lib : LocalIdentifierBindings || annotatedTree : SELF
+                                     -- workaround: avoid bogus cycle
+                                     -- detections search for this,
+                                     -- replace with annotated tree
+                                     -- and uuagc can't tell that
+                                     -- there aren't any real cycles
+                                     originalTree : SELF]
+
 
 
 INCLUDE "TypeChecking/Misc.ag"

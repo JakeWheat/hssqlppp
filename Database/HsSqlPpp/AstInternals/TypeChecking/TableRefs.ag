@@ -41,8 +41,7 @@ SEM TableRef
     | SubTref
         loc.errs = case @loc.selectAttrs of
                            Left e -> e
-                           Right _ -> [] --tpe = dependsOnRTpe [getTypeAnnotation @sel.annotatedTree] <$>
-                                         --unwrapSetOfWhenComposite $ getTypeAnnotation @sel.annotatedTree
+                           Right _ -> []
         loc.backTree = SubTref @ann @sel.annotatedTree @alias
         loc.selectAttrs = unwrapSetOfComposite (getTypeAnnotation @sel.annotatedTree)
         loc.idLookups = fromRight [] @loc.selectAttrs
@@ -52,7 +51,7 @@ SEM TableRef
     | TrefAlias Tref
         loc.errs = case @loc.relType of
                      Left e -> e
-                     Right _ -> []--either Left (Right . UnnamedCompositeType . fst) @loc.relType
+                     Right _ -> []
         loc.relType = envCompositeAttrsPair @lhs.env [] @tbl
         loc.relType1 = fromRight ([],[]) @loc.relType
         loc.pAttrs = fst @loc.relType1
@@ -70,7 +69,7 @@ SEM TableRef
     | TrefFun TrefFunAlias
         loc.errs = case @eqfunIdens of
                      Left e -> e
-                     Right _ -> [] --tpe = getFnType @lhs.env @loc.alias1 @fn.annotatedTree
+                     Right _ -> []
         loc.eqfunIdens = funIdens @lhs.env @loc.alias1 @fn.annotatedTree
         loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
         loc.alias2 = fst @loc.qfunIdens
@@ -86,32 +85,37 @@ SEM TableRef
         loc.alias1 = @alias
         loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
     | JoinedTref
-        loc.errs = []
-        loc.idLookups = []
-        loc.qidLookups = []
-        loc.starExpansion = []
-        loc.qstarExpansion = []
-        {-    {-dependsOnRTpe [tblt
-                      ,tbl1t] $
-               case (@nat.annotatedTree, @onExpr.annotatedTree) of
-                      (Natural, _) -> unionJoinList $
-                                      commonFieldNames tblt tbl1t
-                      (_,Just (JoinUsing _ s)) -> unionJoinList s
-                      _ -> unionJoinList []
+        loc.errs = fromLeft [] @loc.ejoinAttrs
+        loc.idLookups = @loc.joinAttrs ++
+                          @loc.removeJoinAttrs @tbl.idLookups ++
+                          @loc.removeJoinAttrs @tbl1.idLookups
+        loc.qidLookups = @tbl.qidLookups ++ @tbl1.qidLookups
+        loc.starExpansion = @loc.joinAttrs ++
+                              @loc.removeJoinAttrs @tbl.starExpansion ++
+                              @loc.removeJoinAttrs @tbl1.starExpansion
+        loc.qstarExpansion = @tbl.qstarExpansion ++ @tbl1.qstarExpansion
+        loc.removeJoinAttrs = filter (\(n,_) -> n `notElem` @loc.joinNames)
+        loc.joinNames = map fst @loc.joinAttrs
+        loc.joinAttrs = fromRight [] @loc.ejoinAttrs
+        loc.ejoinAttrs =
+            do
+            let jns = case (@nat.annotatedTree, @onExpr.originalTree) of
+                          (Natural, _) -> commonFieldNames
+                          (_,Just (JoinUsing _ s)) -> s
+                          _ -> []
+                tjtsm = map (flip lookup @tbl.idLookups) jns
+                t1jtsm = map (flip lookup @tbl1.idLookups) jns
+            errorWhen (not $ null $ filter (==Nothing) $ tjtsm ++ t1jtsm)
+                      [MissingJoinAttribute]
+            let tjts = catMaybes tjtsm
+                t1jts = catMaybes t1jtsm
+                resolvedTypes :: [Either [TypeError] Type]
+                resolvedTypes = map (\(a,b) -> resolveResultSetType @lhs.env [a,b]) $ zip tjts t1jts
+            liftErrors $ concat $ lefts resolvedTypes
+            return $ zip jns $ rights resolvedTypes
             where
-              tblt = getTypeAnnotation @tbl.annotatedTree
-              tbl1t = getTypeAnnotation @tbl1.annotatedTree
-              unionJoinList s =
-                  combineTableTypesWithUsingList @lhs.env s tblt tbl1t-}
-        --loc.idens = @tbl.idens ++ @tbl1.idens
-        --loc.joinIdens = commonFieldNames (getTypeAnnotation @tbl.annotatedTree)
-        --                                 (getTypeAnnotation @tbl1.annotatedTree)
-        loc.libUpdates = combineJoinUpdates @tbl.annotatedTree
-                                            @tbl1.annotatedTree
-                                            @tbl.libUpdates
-                                            @tbl1.libUpdates
--- [] --convertToNewStyleUpdates @loc.idens @loc.joinIdens
-        lhs.libUpdates = @loc.libUpdates -}
+              commonFieldNames = intersect (f @tbl.starExpansion) (f @tbl1.starExpansion)
+                                 where f = map fst
 
         loc.backTree = JoinedTref @ann
                                   @tbl.annotatedTree
@@ -124,90 +128,6 @@ SEM TableRef
                        Right e -> e
 
 {
-{-
-combineJoinUpdates :: TableRef
-                   -> TableRef
-                   -> [LocalIdentifierBindingsUpdate]
-                   -> [LocalIdentifierBindingsUpdate]
-                   -> [LocalIdentifierBindingsUpdate]
-combineJoinUpdates tbl tbl1 libup libup1 =
-  let (un,co) = splitUncorrelated $ getStackIds libup
-      (un1,co1) = splitUncorrelated $ getStackIds libup1
-      (uns,cos) = splitUncorrelated $ getStarExpansion libup
-      (un1s,co1s) = splitUncorrelated $ getStarExpansion libup1
-  in [LibStackIDs $ (combineUn un un1) ++ co ++ co1
-     ,LibSetStarExpansion $ (combineUn uns un1s) ++ cos ++ co1s]
-  where
-    joinNames :: [String]
-    joinNames = commonFieldNames tblt tbl1t
-    combineUn :: [QualifiedIDs] -> [QualifiedIDs] -> [QualifiedIDs]
-    combineUn ((_,a):_) ((_,b):_) = do
-        let a1 = stripJoinAttrs a
-            b1 = stripJoinAttrs b
-            ajts = mapMaybe (\n -> lookup n a) joinNames
-        [("", zip joinNames ajts ++ a1 ++ b1)]
-        where
-          stripJoinAttrs = filter (\x -> fst x `notElem` joinNames)
-    tblt = getTypeAnnotation tbl
-    tbl1t = getTypeAnnotation tbl1
-    splitUncorrelated = partition (\(q,_) -> q == "")
-
-    getStackIds l = let LibStackIDs x =
-                                  fromJust $ find (\x -> case x of
-                                                           LibStackIDs x -> True
-                                                           _ -> False) l
-                          in x
-    getStarExpansion l = let LibSetStarExpansion x =
-                                  fromJust $ find (\x -> case x of
-                                                           LibSetStarExpansion x -> True
-                                                           _ -> False) l
-                          in x
--}
-{-
-{-
-combine two relvar types when being joined, pass in a using list and
-it checks the types in the using list are compatible, and eliminates
-duplicate columns of the attrs in the using list, returns the relvar
-type of the joined tables.
--}
-combineTableTypesWithUsingList :: Environment -> [String] -> Type -> Type -> Either [TypeError] Type
-combineTableTypesWithUsingList env l t1c t2c = do
-    --check t1 and t2 have l
-    t1 <-unwrapComposite t1c
-    t2 <- unwrapComposite t2c
-    let names1 = getNames t1
-    let names2 = getNames t2
-    when (not (contained l names1) ||
-              not (contained l names2)) $
-         Left [MissingJoinAttribute]
-    --check the types
-    joinColumnTypes <- mapM (getColumnType t1 t2) l
-    let nonJoinColumns =
-            let notJoin = (\(s,_) -> s `notElem` l)
-            in filter notJoin t1 ++ filter notJoin t2
-    return $ UnnamedCompositeType $ zip l joinColumnTypes ++ nonJoinColumns
-    where
-      getNames :: [(String,Type)] -> [String]
-      getNames = map fst
-      contained l1 l2 = all (`elem` l2) l1
-      getColumnType :: [(String,Type)] -> [(String,Type)] -> String -> Either [TypeError] Type
-      getColumnType t1 t2 f =
-          let ct1 = getFieldType t1 f
-              ct2 = getFieldType t2 f
-          in resolveResultSetType env [ct1,ct2]
-      getFieldType t f = snd $ fromJust $ find (\(s,_) -> s == f) t
-
-commonFieldNames :: Type -> Type -> [String]
-commonFieldNames t1 t2 =
-    intersect (fn t1) (fn t2)
-    where
-      fn (UnnamedCompositeType s) = map fst s
-      fn _ = []
-
-getFnType :: Environment -> String -> Expression -> Either [TypeError] Type
-getFnType env alias =
-    either Left (Right . snd) . getFunIdens env alias
--}
 funIdens :: Environment -> String -> Expression -> Either [TypeError] (String,[(String,Type)])
 funIdens env alias fnVal = do
    errorWhen (case fnVal of

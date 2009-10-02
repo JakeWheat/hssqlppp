@@ -37,6 +37,11 @@ This file contains some generic utility stuff
 > fromRight b (Left _) = b
 > fromRight _ (Right r) = r
 
+> fromLeft :: a -> Either a b -> a
+> fromLeft _ (Left l) = l
+> fromLeft a (Right _) = a
+
+
 > mapRight :: (b -> c) -> Either a b -> Either a c
 > mapRight _ (Left a) = Left a
 > mapRight f (Right b) = Right $ f b
