@@ -13,13 +13,11 @@ use types a lot better, make typecheckfailed into an either so we can
    better. all this stuff is causing all sorts of difficulties cos
    it's too dynamicly typed.
 
-hssqlssystem: support mulitple files in annotatesource and checksource
+hssqlssystem: support multitple files in annotatesource and checksource
    DO AT END
-astannotations: tidy syb stuff, use uniplate?
+astannotations: tidy syb stuff, use uniplate? LOCAL
 astinternal: tidy the annotation functions, implement in terms of
-   eachother
-astutils: fix up other type checking code then decide what to do with
-   these - rename file, or they disappear
+   eachother LOCAL
 environment: rename to catalog. Figure out a proper way to handle
    schemas
    sort out error return values on the various functions
@@ -27,8 +25,6 @@ environment: rename to catalog. Figure out a proper way to handle
 localidentifierbindings: think of a better name, which abbreviates
    better also. list all the stuff which is done with this and decide
    whether to move more logic into this module (e.g. the tref stuff)
-typechecking.ag: massive mess, pretty much every aspect needs
-   rethinking from ground up
 lowlights:
 see if can find a better solution that the explicit backtrees
    everywhere
@@ -36,16 +32,6 @@ what about doing mulitple passes?
 what about quickcheck tests?
 type checking code which is too much of a mess and needs to be more
    declarative and clear
-LiftOperator
-case, case simple
-scalar subquery - is this a special case of something else?
-inpredicate: no typecheckfailed chaining?
-etc.
-selectexpression needs heavy rewriting
-  main guiding issues are: get the local ids set up clearly
-                           chain type check failed on these - can't use
-                           standard approach
-basic dmls are a mess too
 create table needs a lot of work to get all the bits typechecking ok
 
 do hack for create function bodies, to get working a bit better:
@@ -54,16 +40,17 @@ is checking and collected in the first pass, and then function
 bodies are checked in the second pass. This will miss some errors
 but is good progress.
 do * with unrecognised identifier handling in a less hacky way
-typecheckingH:
-review these functions, many are a mess and they have just been
-   plonked down without any thought. uuagc with line pragmas
-  makes it much easier to put more code back into the ag file
 
 type conversion:
 notes in this file about fixing it up
 
 typetype: mainly needs to be adapted once the schema approach is
    worked out
+
+implicitcast resolution:
+want to add an account of the algorithms progress and success or
+   failure in annotations in the resultant tree, e.g. so we can give a
+   better error message when the function can't be resolved.
 
 parsing:
 fix parser error reporting. Investigate alternative parser libs.

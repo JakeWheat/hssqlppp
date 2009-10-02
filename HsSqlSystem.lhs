@@ -229,22 +229,17 @@ TODO: do something more correct
 >                    (Multiple checkSource)
 
 > checkSource :: [FilePath] -> IO ()
-> checkSource fns = mapM_ cs fns
+> checkSource fns = do
+>   astEithers <- mapM parseSqlFile fns
+>   let asts = rights astEithers
+>   let aasts = annotateAstsEnv defaultTemplate1Environment asts
+>   mapM_ print $ lefts astEithers
+>   mapM_ showTes $ aasts
 >   where
->     cs f = do
->            aste <- parseSqlFile f
->            case aste of
->                      Left er -> error $ show er
->                      Right ast ->
->                        do
->                        let aast = annotateAst ast
->                            tes = getTypeErrors aast
->                        mapM_ (putStrLn.showSpTe) tes
+>     showTes = mapM_ (putStrLn.showSpTe) . getTypeErrors
 >     showSpTe (Just (SourcePos fn l c), e) =
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
-
-
 
 ================================================================================
 

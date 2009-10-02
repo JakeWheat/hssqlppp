@@ -620,7 +620,12 @@ insert
 
 >      ,t "create domain t1 as text;"
 >         (Right [Nothing])
->         [[EnvCreateDomain (ScalarType "t1") (ScalarType "text")]]
+>         [[EnvCreateDomain (DomainType "t1") (ScalarType "text")]]
+
+>      ,t "create domain t1 as text check (value in ('a', 'b'));\n\
+>         \select 'text'::t1;"
+>         (Right [Nothing])
+>         [[EnvCreateDomain (DomainType "t1") (ScalarType "text")]]
 
 
 >      ,t "create view v1 as select * from pg_attrdef;"

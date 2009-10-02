@@ -64,4 +64,8 @@ SEM Statement
         loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateDomain @ann @name @typ.annotatedTree @check.annotatedTree
         loc.statementInfo = []
-        loc.envUpdates = [EnvCreateDomain (ScalarType @name) @typ.namedType]
+        loc.envUpdates = [EnvCreateDomain (DomainType @name) @typ.namedType]
+        --allow refering to value as 'value' in check expression
+        check.lib = fromRight @lhs.lib $
+                    updateBindings @lhs.lib
+                      [LibStackIDs [("", [("value", @typ.namedType)])]]

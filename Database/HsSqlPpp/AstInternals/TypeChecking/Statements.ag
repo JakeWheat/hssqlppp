@@ -32,7 +32,7 @@ SEM StatementList
         loc.newEnv = fromRight @lhs.env $ updateEnvironment @lhs.env @lhs.envUpdates
     | Cons
         hd.env = @loc.newEnv
-
+        tl.env = @loc.newEnv
         --produced env is used to chain the final updated environment from the last
         --element of the list and pass it back up the list so in can be pushed up
         -- to the root element and sent out from there

@@ -158,18 +158,19 @@ modules.
 >                                           ++ show baseTy]
 >                 let DomainType nm = ty
 >                 let cat = envTypeCategory env baseTy
->                 return $ (addTypeWithArray env nm ty cat False) {
+>                 return (addTypeWithArray env nm ty cat False) {
 >                                        envDomainDefs =
 >                                          (ty,baseTy):envDomainDefs env
 >                                        ,envCasts =
 >                                          (ty,baseTy,ImplicitCastContext):envCasts env}
 >                 where
 >                   allowed = case ty of
->                                     DomainType _ -> True
->                                     _ -> False
+>                                             DomainType _ -> True
+>                                             _ -> False
 >                   baseAllowed = case baseTy of
->                                   ScalarType _ -> True
->                                   _ -> False
+>                                                     ScalarType _ -> True
+>                                                     _ -> False
+
 >         EnvCreateComposite nm flds ->
 >                 return $ (addTypeWithArray env nm (CompositeType nm) "C" False) {
 >                             envAttrDefs =
