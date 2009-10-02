@@ -1,23 +1,46 @@
 {-
 Copyright 2009 Jake Wheat
 
+This file contains the code that handles the select list part of a
+select expression.
+
+TODO: stop wrapping string,type lists in unnamedcompositetypes, pointless
+
 -}
 
+SEM SelectItem
+    | SelExp
+        loc.annotatedTree = SelExp @ann $ fixStar @ex.annotatedTree
+    | SelectItem
+        loc.annotatedTree = SelectItem @ann (fixStar @ex.annotatedTree) @name
 
 
 ATTR SelectItemList SelectList [||listType : Type]
+ATTR SelectItem [||itemType : Type]
 
 SEM SelectItemList
-    | Cons lhs.listType = doSelectItemListTpe @lhs.lib @hd.columnName @hd.itemType @tl.listType
+    | Cons lhs.listType = expandStar @lhs.lib @hd.columnName @hd.itemType @tl.listType
     | Nil lhs.listType = UnnamedCompositeType []
 
+
+SEM SelectItem
+    | SelExp SelectItem
+        lhs.itemType = getTypeAnnotation @ex.annotatedTree
+
+SEM SelectList
+    | SelectList
+        lhs.listType = @items.listType
+
+-- utils to handle a star, bit hacky, maybe should use a separate pass
+-- or something?
+
 {
-doSelectItemListTpe :: LocalIdentifierBindings
+expandStar :: LocalIdentifierBindings
                     -> String
                     -> Type
                     -> Type
                     -> Type
-doSelectItemListTpe env colName colType types =
+expandStar env colName colType types =
     if types == TypeCheckFailed
        then types
        else tpeToT (do
@@ -26,23 +49,6 @@ doSelectItemListTpe env colName colType types =
                          then libExpandStar env correlationName
                          else return [(iden, colType)]
          foldM (flip consComposite) types $ reverse newCols)
-}
-
-
-ATTR SelectItem [||itemType : Type]
-
-SEM SelectItem
-    | SelExp SelectItem
-        lhs.itemType = getTypeAnnotation @ex.annotatedTree
-
--- hack to fix up for errors for ok *
-SEM SelectItem
-    | SelExp
-        loc.annotatedTree = SelExp @ann $ fixStar @ex.annotatedTree
-    | SelectItem
-        loc.backTree = SelectItem @ann (fixStar @ex.annotatedTree) @name
-
-{
 
 fixStar :: Expression -> Expression
 fixStar =
@@ -64,14 +70,12 @@ fixStar =
              else a
 }
 
-SEM SelectList
-    | SelectList
-        lhs.listType = @items.listType
-
 
 {-
 
-== attributes
+================================================================================
+
+= attribute names
 
 columnName is used to collect the column names that the select list
 produces, it is combined into an unnamedcompositetype in
@@ -96,17 +100,12 @@ iff it is a simple type name
 
 --default value for non identifier nodes
 
-ATTR Expression [||liftedColumnName USE {`(fixedValue "")`} {""}: String]
-
-{
-fixedValue :: a -> a -> a -> a
-fixedValue a _ _ = a
-}
-
 {-
 override for identifier nodes, this only makes it out to the selectitem
 node if the identifier is not wrapped in parens, function calls, etc.
 -}
+
+ATTR Expression [||liftedColumnName : String]
 
 SEM Expression
   | Identifier lhs.liftedColumnName = @i
@@ -118,10 +117,15 @@ SEM Expression
                                   SimpleTypeName _ tn -> tn
                                   _ -> ""
 
+
+SEM Expression
+  | BooleanLit Case Exists FloatLit IntegerLit LiftOperator
+    NullLit PositionalArg ScalarSubQuery StringLit
+      lhs.liftedColumnName = ""
+
 -- collect the aliases and column names for use by the selectitemlist nodes
 SEM SelectItem
     | SelExp lhs.columnName = case @ex.liftedColumnName of
                                 "" -> "?column?"
                                 s -> s
     | SelectItem lhs.columnName = @name
-

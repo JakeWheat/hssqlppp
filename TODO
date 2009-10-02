@@ -3,6 +3,16 @@ pretty printer for annotations for annotatesource and checksource
 put a bunch of effort into these, want to start providing much better
    error messages in particular
 
+use types a lot better, make typecheckfailed into an either so we can
+   chain it more easily and get the haskell types to prevent
+   forgetting to chain it. review where string,type lists are wrapped
+   in composite or setof composite and get rid almost everywhere.
+   look at the contexts where types are used and split so we don't
+   just lump scalar types in with setofs and rowtypes, etc. heavy
+   review of the annotation type - change from list to something
+   better. all this stuff is causing all sorts of difficulties cos
+   it's too dynamicly typed.
+
 hssqlssystem: support mulitple files in annotatesource and checksource
    DO AT END
 astannotations: tidy syb stuff, use uniplate?
