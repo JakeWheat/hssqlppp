@@ -1,46 +1,84 @@
 {-
 Copyright 2009 Jake Wheat
 
+This file contains the checking for tablerefs (the from part of a
+select expression).
 
 -}
 
-ATTR TableRef MaybeTableRef [||idens : {[(String,([(String,Type)],[(String,Type)]))]}
-                                  joinIdens : {[String]} ]
+ATTR TableRef MaybeTableRef [|| libUpdates: {[LocalIdentifierBindingsUpdate]}]
+
+ATTR TableRef [|| idLookups : {[(String,Type)]}
+                  starExpansion : {[(String,Type)]}
+                  qidLookups : {[(String,[(String,Type)])]}
+                  qstarExpansion : {[(String,[(String,Type)])]}]
 
 SEM TableRef
     | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
-        lhs.annotatedTree = annTypesAndErrors @loc.backTree
-                              (tpeToT @loc.tpe)
-                              (getErrors @loc.tpe)
-                              Nothing
+        lhs.annotatedTree =
+            updateAnnotation (map TypeErrorA @loc.errs ++) @loc.backTree
+
+SEM MaybeTableRef
+    | Nothing
+        lhs.libUpdates = []
+
+
+SEM TableRef
+    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
+        loc.libUpdates = if null @errs
+                           then [LibStackIDs $ ("", @loc.idLookups): @loc.qidLookups
+                                ,LibSetStarExpansion $ ("", @loc.starExpansion): @loc.qstarExpansion]
+                           else []
+        lhs.libUpdates = @loc.libUpdates
 
 -- one of the main hairy bits of code which needs a serious refactor:
 SEM TableRef
-    | SubTref loc.tpe = dependsOnRTpe [getTypeAnnotation @sel.annotatedTree] <$>
-                        unwrapSetOfWhenComposite $ getTypeAnnotation @sel.annotatedTree
-              loc.backTree = SubTref @ann @sel.annotatedTree @alias
-              lhs.idens = [(@alias, (fromRight [] $ getTbCols @sel.annotatedTree, []))]
-              lhs.joinIdens = []
+    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
+        lhs.idLookups = @loc.idLookups
+        lhs.qidLookups = @loc.qidLookups
+        lhs.starExpansion = @loc.starExpansion
+        lhs.qstarExpansion = @loc.qstarExpansion
+    | SubTref
+        loc.errs = case @loc.selectAttrs of
+                           Left e -> e
+                           Right _ -> [] --tpe = dependsOnRTpe [getTypeAnnotation @sel.annotatedTree] <$>
+                                         --unwrapSetOfWhenComposite $ getTypeAnnotation @sel.annotatedTree
+        loc.backTree = SubTref @ann @sel.annotatedTree @alias
+        loc.selectAttrs = unwrapSetOfComposite (getTypeAnnotation @sel.annotatedTree)
+        loc.idLookups = fromRight [] @loc.selectAttrs
+        loc.qidLookups = [(@alias, @loc.idLookups)]
+        loc.starExpansion = @loc.idLookups
+        loc.qstarExpansion = @loc.qidLookups
     | TrefAlias Tref
-        loc.tpe = either Left (Right . UnnamedCompositeType . fst) @loc.relType
-        lhs.joinIdens = []
+        loc.errs = case @loc.relType of
+                     Left e -> e
+                     Right _ -> []--either Left (Right . UnnamedCompositeType . fst) @loc.relType
         loc.relType = envCompositeAttrsPair @lhs.env [] @tbl
-        loc.unwrappedRelType =
-            fromRight ([],[]) @loc.relType
+        loc.relType1 = fromRight ([],[]) @loc.relType
+        loc.pAttrs = fst @loc.relType1
+        loc.sAttrs = snd @loc.relType1
+        loc.idLookups = @loc.pAttrs ++ @loc.sAttrs
+        loc.qidLookups = [(@loc.alias1, @loc.idLookups)]
+        loc.starExpansion = @loc.pAttrs
+        loc.qstarExpansion = [(@loc.alias1, @loc.pAttrs)]
     | Tref
-        lhs.idens = [(@tbl, @loc.unwrappedRelType)]
+        loc.alias1 = @tbl
         loc.backTree = Tref @ann @tbl
     | TrefAlias
-        lhs.idens = [(@alias, @loc.unwrappedRelType)]
+        loc.alias1 = @alias
         loc.backTree = TrefAlias @ann @tbl @alias
     | TrefFun TrefFunAlias
-        loc.tpe = getFnType @lhs.env @loc.alias1 @fn.annotatedTree
-        lhs.joinIdens = []
-        lhs.idens = case getFunIdens
-                              @lhs.env @loc.alias1
-                              @fn.annotatedTree of
-                      Right (s, UnnamedCompositeType c) -> [(s,(c,[]))]
-                      _ -> []
+        loc.errs = case @eqfunIdens of
+                     Left e -> e
+                     Right _ -> [] --tpe = getFnType @lhs.env @loc.alias1 @fn.annotatedTree
+        loc.eqfunIdens = funIdens @lhs.env @loc.alias1 @fn.annotatedTree
+        loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
+        loc.alias2 = fst @loc.qfunIdens
+        loc.funIdens = snd @loc.qfunIdens
+        loc.idLookups = @loc.funIdens
+        loc.qidLookups = [(@alias2, @loc.idLookups)]
+        loc.starExpansion = @loc.idLookups
+        loc.qstarExpansion = @loc.qidLookups
     | TrefFun
         loc.alias1 = ""
         loc.backTree = TrefFun @ann @fn.annotatedTree
@@ -48,8 +86,12 @@ SEM TableRef
         loc.alias1 = @alias
         loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
     | JoinedTref
-        loc.tpe =
-            dependsOnRTpe [tblt
+        loc.errs = []
+        loc.idLookups = []
+        loc.qidLookups = []
+        loc.starExpansion = []
+        loc.qstarExpansion = []
+        {-    {-dependsOnRTpe [tblt
                       ,tbl1t] $
                case (@nat.annotatedTree, @onExpr.annotatedTree) of
                       (Natural, _) -> unionJoinList $
@@ -60,50 +102,68 @@ SEM TableRef
               tblt = getTypeAnnotation @tbl.annotatedTree
               tbl1t = getTypeAnnotation @tbl1.annotatedTree
               unionJoinList s =
-                  combineTableTypesWithUsingList @lhs.env s tblt tbl1t
-        loc.idens = @tbl.idens ++ @tbl1.idens
-        loc.joinIdens = commonFieldNames (getTypeAnnotation @tbl.annotatedTree)
-                                         (getTypeAnnotation @tbl1.annotatedTree)
-        lhs.idens = @loc.idens
-        lhs.joinIdens = @loc.joinIdens
+                  combineTableTypesWithUsingList @lhs.env s tblt tbl1t-}
+        --loc.idens = @tbl.idens ++ @tbl1.idens
+        --loc.joinIdens = commonFieldNames (getTypeAnnotation @tbl.annotatedTree)
+        --                                 (getTypeAnnotation @tbl1.annotatedTree)
+        loc.libUpdates = combineJoinUpdates @tbl.annotatedTree
+                                            @tbl1.annotatedTree
+                                            @tbl.libUpdates
+                                            @tbl1.libUpdates
+-- [] --convertToNewStyleUpdates @loc.idens @loc.joinIdens
+        lhs.libUpdates = @loc.libUpdates -}
+
         loc.backTree = JoinedTref @ann
                                   @tbl.annotatedTree
                                   @nat.annotatedTree
                                   @joinType.annotatedTree
                                   @tbl1.annotatedTree
                                   @onExpr.annotatedTree
-        onExpr.lib = case updateBindings @lhs.lib
-                            (convertToNewStyleUpdates @loc.idens @loc.joinIdens) of
+        onExpr.lib = case updateBindings @lhs.lib @loc.libUpdates of
                        Left x -> error $ show x
                        Right e -> e
 
 {
-getTbCols c = unwrapSetOfComposite (getTypeAnnotation c)
-
 {-
-this function a bit of a mess - artefact of not fully updated code
-after the environment data type was changed.
--}
-convertToNewStyleUpdates :: [(String, ([(String,Type)], [(String,Type)]))] -> [String] -> [LocalIdentifierBindingsUpdate]
-convertToNewStyleUpdates qualIdens joinIdens =
-  -- we're given a list of qualified types, and a list of names of join columns
-  -- want to produce a list of qualified types, with an additional one with "" qualification
-  -- and produce a star expansion
-    [LibStackIDs newQualifiedList
-    ,LibSetStarExpansion newStarExpansion]
+combineJoinUpdates :: TableRef
+                   -> TableRef
+                   -> [LocalIdentifierBindingsUpdate]
+                   -> [LocalIdentifierBindingsUpdate]
+                   -> [LocalIdentifierBindingsUpdate]
+combineJoinUpdates tbl tbl1 libup libup1 =
+  let (un,co) = splitUncorrelated $ getStackIds libup
+      (un1,co1) = splitUncorrelated $ getStackIds libup1
+      (uns,cos) = splitUncorrelated $ getStarExpansion libup
+      (un1s,co1s) = splitUncorrelated $ getStarExpansion libup1
+  in [LibStackIDs $ (combineUn un un1) ++ co ++ co1
+     ,LibSetStarExpansion $ (combineUn uns un1s) ++ cos ++ co1s]
   where
-    qualifiedFieldsCombined :: [(String,[(String,Type)])]
-    qualifiedFieldsCombined = map (\(alias,(att,sysatt)) -> (alias, att++sysatt)) qualIdens
-    isJoinField (n,_) = n `elem` joinIdens
-    (joinFields,nonJoinFields) = partition isJoinField $ concatMap snd qualifiedFieldsCombined
-    --need to resolve types instead of using nub
-    newQualifiedList = ("", nub joinFields ++ nonJoinFields):qualifiedFieldsCombined
-    qualifiedFieldsStarExp = map (\(alias,(att,_)) -> (alias, att)) qualIdens
-    (joinFieldsStarExp,nonJoinFieldsStarExp) =
-        partition isJoinField $ concatMap snd qualifiedFieldsStarExp
-    --need to resolve types instead of using nub
-    newStarExpansion = ("", nub joinFieldsStarExp ++ nonJoinFieldsStarExp):qualifiedFieldsStarExp
+    joinNames :: [String]
+    joinNames = commonFieldNames tblt tbl1t
+    combineUn :: [QualifiedIDs] -> [QualifiedIDs] -> [QualifiedIDs]
+    combineUn ((_,a):_) ((_,b):_) = do
+        let a1 = stripJoinAttrs a
+            b1 = stripJoinAttrs b
+            ajts = mapMaybe (\n -> lookup n a) joinNames
+        [("", zip joinNames ajts ++ a1 ++ b1)]
+        where
+          stripJoinAttrs = filter (\x -> fst x `notElem` joinNames)
+    tblt = getTypeAnnotation tbl
+    tbl1t = getTypeAnnotation tbl1
+    splitUncorrelated = partition (\(q,_) -> q == "")
 
+    getStackIds l = let LibStackIDs x =
+                                  fromJust $ find (\x -> case x of
+                                                           LibStackIDs x -> True
+                                                           _ -> False) l
+                          in x
+    getStarExpansion l = let LibSetStarExpansion x =
+                                  fromJust $ find (\x -> case x of
+                                                           LibSetStarExpansion x -> True
+                                                           _ -> False) l
+                          in x
+-}
+{-
 {-
 combine two relvar types when being joined, pass in a using list and
 it checks the types in the using list are compatible, and eliminates
@@ -147,24 +207,24 @@ commonFieldNames t1 t2 =
 getFnType :: Environment -> String -> Expression -> Either [TypeError] Type
 getFnType env alias =
     either Left (Right . snd) . getFunIdens env alias
-
-getFunIdens :: Environment -> String -> Expression -> Either [TypeError] (String,Type)
-getFunIdens env alias fnVal =
-   case fnVal of
-       FunCall _ f _ ->
-           let correlationName = if alias /= ""
-                                   then alias
-                                   else f
-           in Right (correlationName, case getTypeAnnotation fnVal of
-                SetOfType (CompositeType t) -> getCompositeType t
-                SetOfType x -> UnnamedCompositeType [(correlationName,x)]
-                y -> UnnamedCompositeType [(correlationName,y)])
-       x -> Left [ContextError "FunCall"]
+-}
+funIdens :: Environment -> String -> Expression -> Either [TypeError] (String,[(String,Type)])
+funIdens env alias fnVal = do
+   errorWhen (case fnVal of
+                FunCall _ _ _ -> False
+                _ -> True)
+             [ContextError "FunCall"]
+   let (FunCall _ fnName _) = fnVal
+       correlationName = if alias /= ""
+                           then alias
+                           else fnName
+   attrs <- do
+     case getTypeAnnotation fnVal of
+       SetOfType (CompositeType t) -> envCompositePublicAttrs env [] t
+       SetOfType x -> return [(correlationName,x)]
+       y -> return [(correlationName,y)]
+   return (correlationName, attrs)
    where
      getCompositeType t = UnnamedCompositeType $ fromRight [] $ envCompositePublicAttrs env [] t
 }
 
-SEM MaybeTableRef
-    | Nothing
-        lhs.idens = []
-        lhs.joinIdens = []
