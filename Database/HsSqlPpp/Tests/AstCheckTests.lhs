@@ -581,6 +581,8 @@ insert
 >      --check where ids
 >      ,p "update pg_attrdef set adsrc='' where adsrc='';"
 >         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]]
+>      ,p "update pg_attrdef set adnum = adnum + 1;"
+>         $ Right [Just (UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")])]
 
 
 >      ])

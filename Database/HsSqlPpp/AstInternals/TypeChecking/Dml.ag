@@ -70,16 +70,18 @@ SEM Statement
         loc.envUpdates = []
 
 -- local identifier bindings: pass the table attribute names and types
--- into the where expression
+-- into the where expression, and the set clause expressions
 
 SEM Statement
     | Update
-        whr.lib =
-            fromRight @lhs.lib $ do
-              ct <- envCompositeAttrs @lhs.env
-                                      relationComposites
-                                      @table
-              updateBindings @lhs.lib [LibStackIDs [("", ct)]]
+        loc.lib =
+             fromRight @lhs.lib $ do
+             ct <- envCompositeAttrs @lhs.env
+                                     relationComposites
+                                     @table
+             updateBindings @lhs.lib [LibStackIDs [("", ct)]]
+        whr.lib = @loc.lib
+        assigns.lib = @loc.lib
 
 {-
 == set clauses

@@ -34,6 +34,8 @@ TODO 2: think of a name for this command
 > import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
 
+> import Extensions
+
 ================================================================================
 
 = main
@@ -57,7 +59,8 @@ TODO 2: think of a name for this command
 >            ,roundTripCommand
 >            ,readEnvCommand
 >            ,annotateSourceCommand
->            ,checkSourceCommand]
+>            ,checkSourceCommand
+>            ,checkSourceExtCommand]
 
 > lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
 > lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
@@ -240,6 +243,28 @@ TODO: do something more correct
 >     showSpTe (Just (SourcePos fn l c), e) =
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
+
+================================================================================
+
+> checkSourceExtCommand :: CallEntry
+> checkSourceExtCommand = CallEntry
+>                    "checksourceext"
+>                    "reads each file, parses, runs extensions, type checks, then outputs any type errors"
+>                    (Multiple checkSourceExt)
+
+> checkSourceExt :: [FilePath] -> IO ()
+> checkSourceExt fns = do
+>   astEithers <- mapM parseSqlFile fns
+>   let asts = map rewriteCreateVars $ rights astEithers
+>   let aasts = annotateAstsEnv defaultTemplate1Environment asts
+>   mapM_ print $ lefts astEithers
+>   mapM_ showTes $ aasts
+>   where
+>     showTes = mapM_ (putStrLn.showSpTe) . getTypeErrors
+>     showSpTe (Just (SourcePos fn l c), e) =
+>         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
+>     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
+
 
 ================================================================================
 
