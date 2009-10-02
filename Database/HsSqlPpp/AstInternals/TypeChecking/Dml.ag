@@ -40,6 +40,8 @@ SEM Statement
 
 = update
 
+check the set clause assignments are ok, and inject ids into the where part
+
 -}
 
 SEM Statement
@@ -128,6 +130,9 @@ getRowTypes ts = ts
 ================================================================================
 
 = delete
+
+pretty simple, mainly just need to inject ids into the where part
+
 -}
 
 SEM Statement
@@ -153,11 +158,13 @@ SEM Statement
 -}
 {
 
+--small shortcut to help produce better errors?
 checkRelationExists :: Environment -> String -> Either [TypeError] ()
 checkRelationExists env tbl =
     envCompositeDef env relationComposites tbl >>
     return ()
 
+--used by both insert and update
 checkColumnConsistency :: Environment ->  String -> [String] -> [(String,Type)]
                        -> Either [TypeError] [(String,Type)]
 checkColumnConsistency env tbl cols' insNameTypePairs = do

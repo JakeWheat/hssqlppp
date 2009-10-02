@@ -6,7 +6,7 @@ type.
 
 -}
 
-
+--gather the backtree, type errors and types together and add annotations
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
@@ -18,7 +18,17 @@ SEM Expression
 
 {-
 == literals
+
+pretty straightfoward
 -}
+
+SEM Expression
+     | IntegerLit loc.tpe = Right typeInt
+     | StringLit loc.tpe = Right UnknownStringLit
+     | FloatLit loc.tpe = Right typeNumeric
+     | BooleanLit loc.tpe = Right typeBool
+     -- I think a null has the same type resolution as an unknown string lit
+     | NullLit loc.tpe = Right UnknownStringLit
 
 SEM Expression
     | IntegerLit
@@ -32,19 +42,12 @@ SEM Expression
     | NullLit
         loc.backTree = NullLit @ann
 
-SEM Expression
-     | IntegerLit loc.tpe = Right typeInt
-     | StringLit loc.tpe = Right UnknownStringLit
-     | FloatLit loc.tpe = Right typeNumeric
-     | BooleanLit loc.tpe = Right typeBool
-     -- I think a null has the same type resolution as an unknown string lit
-     | NullLit loc.tpe = Right UnknownStringLit
-
 
 {-
 
 == cast expression
 
+all the work is done in the typename node
 -}
 
 SEM Expression
@@ -64,13 +67,25 @@ SEM Expression
         loc.backTree = FunCall @ann @funName @args.annotatedTree
 
 {
+{-
+
+small shim in front of findCallMatch in the type conversion code, to
+handle some special cases.
+
+Some of the special cases will no longer be needed when variadic
+support is added.
+
+between, greatest and least are treated as syntactic sugar so we
+delegate the function lookups to the <=/>= operators.
+
+the row comparison should be more general than this, since it supports
+any operator satifying some properties
+
+-}
 typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] Type
 typeCheckFunCall env fnName argsType =
     dependsOnTpe argsType $
       case fnName of
-              -- do the special cases first, some of these will use
-              -- the variadic support when it is done and no longer
-              -- be special cases.
               "!arrayCtor" ->
                     ArrayType <$> resolveResultSetType env argsType
               "!between" -> do
@@ -105,36 +120,45 @@ typeCheckFunCall env fnName argsType =
         return r
       checkRowTypesMatch (RowCtor t1s) (RowCtor t2s) = do
         when (length t1s /= length t2s) $ Left [ValuesListsMustBeSameLength]
-        --this is wrong - we want all the errors, not just the first set
-        mapM_ (resolveResultSetType env . (\(a,b) -> [a,b])) $ zip t1s t2s
+        let errs = map (resolveResultSetType env . (\(a,b) -> [a,b])) $
+                     zip t1s t2s
+        liftErrors $ concat $ lefts errs
         return typeBool
       checkRowTypesMatch x y  =
-        error $ "internal error: checkRowTypesMatch called with " ++ show x ++ "," ++ show y
+        error $ "internal error: checkRowTypesMatch called with " ++
+                show x ++ "," ++ show y
 }
 
---lifted operator
+{-
+lifted operator:
+pretty much the same as haskell 'any (lhs [op]) rhss' (or all instead of any)
+where lhs is the first argument and rhss is the second argument
+which must be an array
+
+pg allows the rhss to also be a subselect, this is a todo
+
+-}
 
 SEM Expression
     | LiftOperator
-        loc.tpe = dependsOnTpe @args.typeList $
-                    do
-                      let args = @args.annotatedTree
-                      errorWhen (length args /= 2)
-                                [AnyAllError $ "must have two args, got " ++ show args]
-                      let [a,b] = args
-                          bType = getTypeAnnotation b
-                      let t1 = getTypeAnnotation a
-                      dependsOnTpe [t1,bType] $ do
-                        errorWhen (not $ isArrayType bType)
-                           [AnyAllError $ "second arg must be array, got " ++ show args]
-                        t2 <- unwrapArray $ bType
-                        t3 <- typeCheckFunCall
-                                @lhs.env
-                                @oper
-                                [t1,t2]
-                        errorWhen (t3 /= typeBool)
-                                  [AnyAllError $ "operator must have bool return, got " ++ show t3]
-                        return t3
+        loc.tpe = dependsOnTpe @args.typeList $ do
+                  let args = @args.annotatedTree
+                  errorWhen (length args /= 2)
+                            [AnyAllError $ "must have two args, got " ++ show args]
+                  let [a,b] = args
+                      aType = getTypeAnnotation a
+                      bType = getTypeAnnotation b
+                  dependsOnTpe [aType,bType] $ do
+                  errorWhen (not $ isArrayType bType)
+                            [AnyAllError $ "second arg must be array, got " ++ show args]
+                  elemType <- unwrapArray $ bType
+                  resType <- typeCheckFunCall
+                                     @lhs.env
+                                     @oper
+                                     [aType,elemType]
+                  errorWhen (resType /= typeBool)
+                            [AnyAllError $ "operator must have bool return, got " ++ show resType]
+                  return resType
         loc.backTree = LiftOperator @ann @oper @flav.annotatedTree @args.annotatedTree
 
 
@@ -162,12 +186,10 @@ SEM Expression
     | Case
         loc.tpe =
             dependsOnTpe @loc.whenTypes $ do
-               when (any (/= typeBool) @loc.whenTypes) $
-                 Left [WrongTypes typeBool @loc.whenTypes]
-               dependsOnTpe @loc.thenTypes $
-                        resolveResultSetType
-                          @lhs.env
-                          @loc.thenTypes
+            errorWhen (any (/= typeBool) @loc.whenTypes) $
+                      [WrongTypes typeBool @loc.whenTypes]
+            dependsOnTpe @loc.thenTypes $
+              resolveResultSetType @lhs.env @loc.thenTypes
         loc.backTree = Case @ann @cases.annotatedTree @els.annotatedTree
 
 
@@ -175,14 +197,15 @@ SEM Expression
     | CaseSimple
         loc.tpe =
           dependsOnTpe @loc.whenTypes $ do
-          checkWhenTypes <- resolveResultSetType
-                                 @lhs.env
-                                 (getTypeAnnotation @value.annotatedTree: @loc.whenTypes)
+          let valueType = getTypeAnnotation @value.annotatedTree
+          checkWhenTypes <-
+              resolveResultSetType @lhs.env (valueType : @loc.whenTypes)
           dependsOnTpe @loc.thenTypes $
-                     resolveResultSetType
-                              @lhs.env
-                              @loc.thenTypes
-        loc.backTree = CaseSimple @ann @value.annotatedTree @cases.annotatedTree @els.annotatedTree
+            resolveResultSetType @lhs.env @loc.thenTypes
+        loc.backTree = CaseSimple @ann
+                                  @value.annotatedTree
+                                  @cases.annotatedTree
+                                  @els.annotatedTree
 
 {-
 == identifiers
@@ -196,6 +219,8 @@ SEM Expression
                   in libLookupID @lhs.lib correlationName iden
         loc.backTree = Identifier @ann @i
 
+
+-- exists: will work on any subselect so we don't need to do any checking
 SEM Expression
     | Exists
         loc.tpe = Right typeBool
@@ -210,47 +235,49 @@ SEM Expression
 
 SEM Expression
     | ScalarSubQuery
-        loc.tpe = let selType = getTypeAnnotation @sel.annotatedTree
-                  in dependsOnTpe [selType]
-                       $ do
-                         f <- map snd <$> unwrapSetOfComposite selType
-                         case length f of
-                              0 -> Left [InternalError "no columns in scalar subquery?"]
-                              1 -> Right $ head f
-                              _ -> Right $ RowCtor f
+        loc.tpe =
+            do
+            let selType = getTypeAnnotation @sel.annotatedTree
+            dependsOnTpe [selType] $ do
+            f <- map snd <$> unwrapSetOfComposite selType
+            case length f of
+              0 -> Left [InternalError "no columns in scalar subquery?"]
+              1 -> Right $ head f
+              _ -> Right $ RowCtor f
 
         loc.backTree = ScalarSubQuery @ann @sel.annotatedTree
 {-
 == inlist
+todo: make the ast and typechecking a special case of lifted operator
 -}
 
 SEM Expression
     | InPredicate
         loc.tpe = do
-                    lt <- @list.listType
-                    ty <- resolveResultSetType
+                  lt <- @list.listType
+                  ty <- resolveResultSetType
                             @lhs.env
                             [getTypeAnnotation @expr.annotatedTree, lt]
-                    return typeBool
-        loc.backTree = InPredicate @ann @expr.annotatedTree @i @list.annotatedTree
+                  return typeBool
+        loc.backTree = InPredicate @ann
+                                   @expr.annotatedTree
+                                   @i
+                                   @list.annotatedTree
 
 
 ATTR InList [||listType : {Either [TypeError] Type}]
 
 SEM InList
     | InList
-        lhs.listType = resolveResultSetType
-                         @lhs.env
-                         @exprs.typeList
+        lhs.listType = resolveResultSetType @lhs.env @exprs.typeList
     | InSelect
         lhs.listType =
             do
-              attrs <-  map snd <$> (unwrapSetOfComposite $
-                          let a = getTypeAnnotation @sel.annotatedTree
-                          in {-trace ("attrs is: " ++ show a) $-} a)
-              typ <- case length attrs of
-                           0 -> Left [InternalError "got subquery with no columns? in inselect"]
-                           1 -> Right $ head attrs
-                           _ -> Right $ RowCtor attrs
-              dependsOnTpe attrs $ Right typ
-
+            attrs <- map snd <$> (unwrapSetOfComposite $
+                                  getTypeAnnotation @sel.annotatedTree)
+            typ <- case length attrs of
+                      0 -> Left [InternalError
+                                 "got subquery with no columns? in inselect"]
+                      1 -> Right $ head attrs
+                      _ -> Right $ RowCtor attrs
+            dependsOnTpe attrs $ Right typ
