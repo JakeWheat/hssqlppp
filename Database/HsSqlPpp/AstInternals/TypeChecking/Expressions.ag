@@ -12,7 +12,7 @@ SEM Expression
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       --PositionalArg WindowFn
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
-                              (errorToTypeFail @loc.tpe)
+                              (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
                               Nothing
 
@@ -56,7 +56,7 @@ SEM Expression
 -}
 SEM Expression
     | FunCall
-        loc.tpe = chainTypeCheckFailed @args.typeList $
+        loc.tpe = dependsOnTpe @args.typeList $
                     typeCheckFunCall
                       @lhs.env
                       @funName
@@ -66,7 +66,7 @@ SEM Expression
 {
 typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] Type
 typeCheckFunCall env fnName argsType =
-    chainTypeCheckFailed argsType $
+    dependsOnTpe argsType $
       case fnName of
               -- do the special cases first, some of these will use
               -- the variadic support when it is done and no longer
@@ -116,7 +116,7 @@ typeCheckFunCall env fnName argsType =
 
 SEM Expression
     | LiftOperator
-        loc.tpe = chainTypeCheckFailed @args.typeList $
+        loc.tpe = dependsOnTpe @args.typeList $
                     do
                       let args = @args.annotatedTree
                       errorWhen (length args /= 2)
@@ -124,7 +124,7 @@ SEM Expression
                       let [a,b] = args
                           bType = getTypeAnnotation b
                       let t1 = getTypeAnnotation a
-                      chainTypeCheckFailed [t1,bType] $ do
+                      dependsOnTpe [t1,bType] $ do
                         errorWhen (not $ isArrayType bType)
                            [AnyAllError $ "second arg must be array, got " ++ show args]
                         t2 <- unwrapArray $ bType
@@ -161,10 +161,10 @@ SEM Expression
 SEM Expression
     | Case
         loc.tpe =
-            chainTypeCheckFailed @loc.whenTypes $ do
+            dependsOnTpe @loc.whenTypes $ do
                when (any (/= typeBool) @loc.whenTypes) $
                  Left [WrongTypes typeBool @loc.whenTypes]
-               chainTypeCheckFailed @loc.thenTypes $
+               dependsOnTpe @loc.thenTypes $
                         resolveResultSetType
                           @lhs.env
                           @loc.thenTypes
@@ -174,11 +174,11 @@ SEM Expression
 SEM Expression
     | CaseSimple
         loc.tpe =
-          chainTypeCheckFailed @loc.whenTypes $ do
+          dependsOnTpe @loc.whenTypes $ do
           checkWhenTypes <- resolveResultSetType
                                  @lhs.env
                                  (getTypeAnnotation @value.annotatedTree: @loc.whenTypes)
-          chainTypeCheckFailed @loc.thenTypes $
+          dependsOnTpe @loc.thenTypes $
                      resolveResultSetType
                               @lhs.env
                               @loc.thenTypes
@@ -211,7 +211,7 @@ SEM Expression
 SEM Expression
     | ScalarSubQuery
         loc.tpe = let selType = getTypeAnnotation @sel.annotatedTree
-                  in chainTypeCheckFailed [selType]
+                  in dependsOnTpe [selType]
                        $ do
                          f <- map snd <$> unwrapSetOfComposite selType
                          case length f of
@@ -252,5 +252,5 @@ SEM InList
                            0 -> Left [InternalError "got subquery with no columns? in inselect"]
                            1 -> Right $ head attrs
                            _ -> Right $ RowCtor attrs
-              chainTypeCheckFailed attrs $ Right typ
+              dependsOnTpe attrs $ Right typ
 

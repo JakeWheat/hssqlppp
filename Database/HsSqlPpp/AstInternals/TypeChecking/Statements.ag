@@ -45,7 +45,7 @@ SEM Statement
     | SelectStatement Insert Update Delete CreateView CreateDomain
       CreateFunction CreateType CreateTable Return Assignment ForSelectStatement
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
-                              (errorToTypeFail @loc.tpe)
+                              (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
                               $ Just (map StatementInfoA @loc.statementInfo ++
                                       [EnvUpdates @loc.envUpdates])

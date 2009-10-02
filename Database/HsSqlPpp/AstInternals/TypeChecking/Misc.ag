@@ -20,7 +20,7 @@ ATTR TypeName [||namedType : Type]
 
 SEM TypeName
      | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName
-         lhs.namedType = errorToTypeFail @loc.tpe
+         lhs.namedType = tpeToT @loc.tpe
          lhs.annotatedTree = updateAnnotation
                                ((map TypeErrorA $ getErrors @loc.tpe) ++)
                                @loc.backTree
@@ -31,10 +31,10 @@ SEM TypeName
         loc.tpe = envLookupType @lhs.env $ canonicalizeTypeName @tn
         loc.backTree = SimpleTypeName @ann @tn
      | ArrayTypeName
-        loc.tpe = chainTypeCheckFailed [@typ.namedType] $ Right $ ArrayType @typ.namedType
+        loc.tpe = dependsOnTpe [@typ.namedType] $ Right $ ArrayType @typ.namedType
         loc.backTree = ArrayTypeName @ann @typ.annotatedTree
      | SetOfTypeName
-        loc.tpe = chainTypeCheckFailed [@typ.namedType] $ Right $ SetOfType @typ.namedType
+        loc.tpe = dependsOnTpe [@typ.namedType] $ Right $ SetOfType @typ.namedType
         loc.backTree = SetOfTypeName @ann @typ.annotatedTree
      | PrecTypeName
         loc.tpe = Right TypeCheckFailed

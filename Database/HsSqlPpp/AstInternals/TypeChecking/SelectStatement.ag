@@ -12,7 +12,7 @@ make it much more readable.
 
 SEM Statement
     | SelectStatement
-        loc.tpe = chainTypeCheckFailed [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
+        loc.tpe = dependsOnTpe [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
         loc.statementInfo = [SelectInfo $ getTypeAnnotation @ex.annotatedTree]
         loc.backTree = SelectStatement @ann @ex.annotatedTree
         loc.envUpdates = []
@@ -54,7 +54,7 @@ type checked or not, so we can bail if it has failed.
 SEM SelectExpression
     | Values Select CombineSelect
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
-                              (errorToTypeFail @loc.tpe)
+                              (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
                               Nothing
 
@@ -70,7 +70,7 @@ SEM SelectExpression
            let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
                                                     @selTref.annotatedTree
                slType = @selSelectList.listType
-           chainTypeCheckFailed [trefType, slType] $
+           dependsOnTpe [trefType, slType] $
              Right $ case slType of
                        UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
                        _ -> SetOfType slType
@@ -89,7 +89,7 @@ SEM SelectExpression
         loc.tpe =
           let sel1t = getTypeAnnotation @sel1.annotatedTree
               sel2t = getTypeAnnotation @sel2.annotatedTree
-          in chainTypeCheckFailed [sel1t, sel2t] $
+          in dependsOnTpe [sel1t, sel2t] $
                 typeCheckCombineSelect @lhs.env sel1t sel2t
         loc.backTree = CombineSelect @ann @ctype.annotatedTree
                                      @sel1.annotatedTree
@@ -137,13 +137,13 @@ ATTR TableRef MaybeTableRef [||idens : {[(String,([(String,Type)],[(String,Type)
 SEM TableRef
     | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
-                              (errorToTypeFail @loc.tpe)
+                              (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
                               Nothing
 
 -- one of the main hairy bits of code which needs a serious refactor:
 SEM TableRef
-    | SubTref loc.tpe = chainTypeCheckFailed [getTypeAnnotation @sel.annotatedTree] <$>
+    | SubTref loc.tpe = dependsOnTpe [getTypeAnnotation @sel.annotatedTree] <$>
                         unwrapSetOfWhenComposite $ getTypeAnnotation @sel.annotatedTree
               loc.backTree = SubTref @ann @sel.annotatedTree @alias
               lhs.idens = [(@alias, (fromRight [] $ getTbCols @sel.annotatedTree, []))]
@@ -176,7 +176,7 @@ SEM TableRef
         loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
     | JoinedTref
         loc.tpe =
-            chainTypeCheckFailed [tblt
+            dependsOnTpe [tblt
                       ,tbl1t] $
                case (@nat.annotatedTree, @onExpr.annotatedTree) of
                       (Natural, _) -> unionJoinList $
@@ -309,7 +309,7 @@ doSelectItemListTpe :: LocalIdentifierBindings
 doSelectItemListTpe env colName colType types =
     if types == TypeCheckFailed
        then types
-       else errorToTypeFail (do
+       else tpeToT (do
          let (correlationName,iden) = splitIdentifier colName
          newCols <- if iden == "*"
                          then libExpandStar env correlationName

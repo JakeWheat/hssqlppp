@@ -177,7 +177,7 @@ splitIdentifier s = let (a,b) = span (/= '.') s
 
 typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] Type
 typeCheckFunCall env fnName argsType =
-    chainTypeCheckFailed argsType $
+    dependsOnTpe argsType $
       case fnName of
               -- do the special cases first, some of these will use
               -- the variadic support when it is done and no longer
@@ -356,7 +356,7 @@ doSelectItemListTpe :: LocalIdentifierBindings
 doSelectItemListTpe env colName colType types =
     if types == TypeCheckFailed
        then types
-       else errorToTypeFail (do
+       else tpeToT (do
          let (correlationName,iden) = splitIdentifier colName
          newCols <- if iden == "*"
                          then libExpandStar env correlationName
@@ -2032,7 +2032,7 @@ sem_Expression_BooleanLit ann_ b_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2039 "AstInternal.hs" #-}
@@ -2103,10 +2103,10 @@ sem_Expression_Case ann_ cases_ els_  =
               -- "./TypeChecking/Expressions.ag"(line 163, column 9)
               _tpe =
                   {-# LINE 163 "./TypeChecking/Expressions.ag" #-}
-                  chainTypeCheckFailed _whenTypes     $ do
+                  dependsOnTpe _whenTypes     $ do
                      when (any (/= typeBool) _whenTypes    ) $
                        Left [WrongTypes typeBool _whenTypes    ]
-                     chainTypeCheckFailed _thenTypes     $
+                     dependsOnTpe _thenTypes     $
                               resolveResultSetType
                                 _lhsIenv
                                 _thenTypes
@@ -2115,7 +2115,7 @@ sem_Expression_Case ann_ cases_ els_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2122 "AstInternal.hs" #-}
@@ -2203,11 +2203,11 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
               -- "./TypeChecking/Expressions.ag"(line 176, column 9)
               _tpe =
                   {-# LINE 176 "./TypeChecking/Expressions.ag" #-}
-                  chainTypeCheckFailed _whenTypes     $ do
+                  dependsOnTpe _whenTypes     $ do
                   checkWhenTypes <- resolveResultSetType
                                          _lhsIenv
                                          (getTypeAnnotation _valueIannotatedTree: _whenTypes    )
-                  chainTypeCheckFailed _thenTypes     $
+                  dependsOnTpe _thenTypes     $
                              resolveResultSetType
                                       _lhsIenv
                                       _thenTypes
@@ -2216,7 +2216,7 @@ sem_Expression_CaseSimple ann_ value_ cases_ els_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2223 "AstInternal.hs" #-}
@@ -2281,7 +2281,7 @@ sem_Expression_Cast ann_ expr_ tn_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2288 "AstInternal.hs" #-}
@@ -2330,7 +2330,7 @@ sem_Expression_Exists ann_ sel_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2337 "AstInternal.hs" #-}
@@ -2362,7 +2362,7 @@ sem_Expression_FloatLit ann_ d_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2369 "AstInternal.hs" #-}
@@ -2405,7 +2405,7 @@ sem_Expression_FunCall ann_ funName_ args_  =
               -- "./TypeChecking/Expressions.ag"(line 59, column 9)
               _tpe =
                   {-# LINE 59 "./TypeChecking/Expressions.ag" #-}
-                  chainTypeCheckFailed _argsItypeList $
+                  dependsOnTpe _argsItypeList $
                     typeCheckFunCall
                       _lhsIenv
                       funName_
@@ -2415,7 +2415,7 @@ sem_Expression_FunCall ann_ funName_ args_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2422 "AstInternal.hs" #-}
@@ -2450,7 +2450,7 @@ sem_Expression_Identifier ann_ i_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2457 "AstInternal.hs" #-}
@@ -2521,7 +2521,7 @@ sem_Expression_InPredicate ann_ expr_ i_ list_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2528 "AstInternal.hs" #-}
@@ -2553,7 +2553,7 @@ sem_Expression_IntegerLit ann_ i_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2560 "AstInternal.hs" #-}
@@ -2612,7 +2612,7 @@ sem_Expression_LiftOperator ann_ oper_ flav_ args_  =
               -- "./TypeChecking/Expressions.ag"(line 119, column 9)
               _tpe =
                   {-# LINE 119 "./TypeChecking/Expressions.ag" #-}
-                  chainTypeCheckFailed _argsItypeList $
+                  dependsOnTpe _argsItypeList $
                     do
                       let args = _argsIannotatedTree
                       errorWhen (length args /= 2)
@@ -2620,7 +2620,7 @@ sem_Expression_LiftOperator ann_ oper_ flav_ args_  =
                       let [a,b] = args
                           bType = getTypeAnnotation b
                       let t1 = getTypeAnnotation a
-                      chainTypeCheckFailed [t1,bType] $ do
+                      dependsOnTpe [t1,bType] $ do
                         errorWhen (not $ isArrayType bType)
                            [AnyAllError $ "second arg must be array, got " ++ show args]
                         t2 <- unwrapArray $ bType
@@ -2636,7 +2636,7 @@ sem_Expression_LiftOperator ann_ oper_ flav_ args_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2643 "AstInternal.hs" #-}
@@ -2667,7 +2667,7 @@ sem_Expression_NullLit ann_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2674 "AstInternal.hs" #-}
@@ -2733,7 +2733,7 @@ sem_Expression_ScalarSubQuery ann_ sel_  =
               _tpe =
                   {-# LINE 213 "./TypeChecking/Expressions.ag" #-}
                   let selType = getTypeAnnotation _selIannotatedTree
-                  in chainTypeCheckFailed [selType]
+                  in dependsOnTpe [selType]
                        $ do
                          f <- map snd <$> unwrapSetOfComposite selType
                          case length f of
@@ -2745,7 +2745,7 @@ sem_Expression_ScalarSubQuery ann_ sel_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2752 "AstInternal.hs" #-}
@@ -2778,7 +2778,7 @@ sem_Expression_StringLit ann_ quote_ value_  =
               _lhsOannotatedTree =
                   {-# LINE 14 "./TypeChecking/Expressions.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 2785 "AstInternal.hs" #-}
@@ -3903,7 +3903,7 @@ sem_InList_InSelect ann_ sel_  =
                                  0 -> Left [InternalError "got subquery with no columns? in inselect"]
                                  1 -> Right $ head attrs
                                  _ -> Right $ RowCtor attrs
-                    chainTypeCheckFailed attrs $ Right typ
+                    dependsOnTpe attrs $ Right typ
                   {-# LINE 3908 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOlistType)))
 -- JoinExpression ----------------------------------------------
@@ -5710,14 +5710,14 @@ sem_SelectExpression_CombineSelect ann_ ctype_ sel1_ sel2_  =
                   {-# LINE 89 "./TypeChecking/SelectStatement.ag" #-}
                   let sel1t = getTypeAnnotation _sel1IannotatedTree
                       sel2t = getTypeAnnotation _sel2IannotatedTree
-                  in chainTypeCheckFailed [sel1t, sel2t] $
+                  in dependsOnTpe [sel1t, sel2t] $
                         typeCheckCombineSelect _lhsIenv sel1t sel2t
                   {-# LINE 5716 "AstInternal.hs" #-}
               -- "./TypeChecking/SelectStatement.ag"(line 56, column 9)
               _lhsOannotatedTree =
                   {-# LINE 56 "./TypeChecking/SelectStatement.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 5724 "AstInternal.hs" #-}
@@ -5925,7 +5925,7 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
                   let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
                                                            _selTrefIannotatedTree
                       slType = _selSelectListIlistType
-                  chainTypeCheckFailed [trefType, slType] $
+                  dependsOnTpe [trefType, slType] $
                     Right $ case slType of
                               UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
                               _ -> SetOfType slType
@@ -5934,7 +5934,7 @@ sem_SelectExpression_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ 
               _lhsOannotatedTree =
                   {-# LINE 56 "./TypeChecking/SelectStatement.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 5941 "AstInternal.hs" #-}
@@ -5978,7 +5978,7 @@ sem_SelectExpression_Values ann_ vll_  =
               _lhsOannotatedTree =
                   {-# LINE 56 "./TypeChecking/SelectStatement.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 5985 "AstInternal.hs" #-}
@@ -7034,7 +7034,7 @@ sem_Statement_Assignment ann_ target_ value_  =
                   do
                   let fromType = getTypeAnnotation _valueIannotatedTree
                   toType <- libLookupID _lhsIlib "" target_
-                  chainTypeCheckFailed [getTypeAnnotation _valueIannotatedTree, toType] $ do
+                  dependsOnTpe [getTypeAnnotation _valueIannotatedTree, toType] $ do
                     checkAssignmentValid _lhsIenv fromType toType
                     return $ Pseudo Void
                   {-# LINE 7041 "AstInternal.hs" #-}
@@ -7042,7 +7042,7 @@ sem_Statement_Assignment ann_ target_ value_  =
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -7301,7 +7301,7 @@ sem_Statement_CreateDomain ann_ name_ typ_ check_  =
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -7448,7 +7448,7 @@ sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ 
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -7533,7 +7533,7 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -7658,7 +7658,7 @@ sem_Statement_CreateType ann_ name_ atts_  =
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -7718,13 +7718,13 @@ sem_Statement_CreateView ann_ name_ expr_  =
               -- "./TypeChecking/MiscCreates.ag"(line 10, column 9)
               _tpe =
                   {-# LINE 10 "./TypeChecking/MiscCreates.ag" #-}
-                  chainTypeCheckFailed [getTypeAnnotation _exprIannotatedTree] $ Right $ Pseudo Void
+                  dependsOnTpe [getTypeAnnotation _exprIannotatedTree] $ Right $ Pseudo Void
                   {-# LINE 7723 "AstInternal.hs" #-}
               -- "./TypeChecking/Statements.ag"(line 47, column 9)
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -7787,7 +7787,7 @@ sem_Statement_Delete ann_ table_ whr_ returning_  =
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -8189,9 +8189,9 @@ sem_Statement_ForSelectStatement ann_ var_ sel_ sts_  =
               _tpe =
                   {-# LINE 27 "./TypeChecking/Plpgsql.ag" #-}
                   do
-                  chainTypeCheckFailed [_selType    ] $ do
+                  dependsOnTpe [_selType    ] $ do
                     toType <- libLookupID _lhsIlib "" var_
-                    chainTypeCheckFailed [toType] $ do
+                    dependsOnTpe [toType] $ do
                       if toType /= Pseudo Record
                         then checkAssignmentValid _lhsIenv _selType     toType
                         else Right ()
@@ -8229,7 +8229,7 @@ sem_Statement_ForSelectStatement ann_ var_ sel_ sts_  =
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -8382,7 +8382,7 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -8555,13 +8555,13 @@ sem_Statement_Return ann_ value_  =
               -- "./TypeChecking/Plpgsql.ag"(line 4, column 9)
               _tpe =
                   {-# LINE 4 "./TypeChecking/Plpgsql.ag" #-}
-                  chainTypeCheckFailed [fromMaybe typeBool _valueIexprType] $ Right $ Pseudo Void
+                  dependsOnTpe [fromMaybe typeBool _valueIexprType] $ Right $ Pseudo Void
                   {-# LINE 8560 "AstInternal.hs" #-}
               -- "./TypeChecking/Statements.ag"(line 47, column 9)
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -8692,13 +8692,13 @@ sem_Statement_SelectStatement ann_ ex_  =
               -- "./TypeChecking/SelectStatement.ag"(line 15, column 9)
               _tpe =
                   {-# LINE 15 "./TypeChecking/SelectStatement.ag" #-}
-                  chainTypeCheckFailed [getTypeAnnotation _exIannotatedTree] $ Right $ Pseudo Void
+                  dependsOnTpe [getTypeAnnotation _exIannotatedTree] $ Right $ Pseudo Void
                   {-# LINE 8697 "AstInternal.hs" #-}
               -- "./TypeChecking/Statements.ag"(line 47, column 9)
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -8869,7 +8869,7 @@ sem_Statement_Update ann_ table_ assigns_ whr_ returning_  =
               _lhsOannotatedTree =
                   {-# LINE 47 "./TypeChecking/Statements.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     $ Just (map StatementInfoA _statementInfo     ++
                             [EnvUpdates _envUpdates    ])
@@ -9563,7 +9563,7 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_  =
               -- "./TypeChecking/SelectStatement.ag"(line 178, column 9)
               _tpe =
                   {-# LINE 178 "./TypeChecking/SelectStatement.ag" #-}
-                  chainTypeCheckFailed [tblt
+                  dependsOnTpe [tblt
                             ,tbl1t] $
                      case (_natIannotatedTree, _onExprIannotatedTree) of
                             (Natural, _) -> unionJoinList $
@@ -9580,7 +9580,7 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_  =
               _lhsOannotatedTree =
                   {-# LINE 139 "./TypeChecking/SelectStatement.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 9587 "AstInternal.hs" #-}
@@ -9628,14 +9628,14 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               -- "./TypeChecking/SelectStatement.ag"(line 146, column 15)
               _tpe =
                   {-# LINE 146 "./TypeChecking/SelectStatement.ag" #-}
-                  chainTypeCheckFailed [getTypeAnnotation _selIannotatedTree] <$>
+                  dependsOnTpe [getTypeAnnotation _selIannotatedTree] <$>
                   unwrapSetOfWhenComposite $ getTypeAnnotation _selIannotatedTree
                   {-# LINE 9634 "AstInternal.hs" #-}
               -- "./TypeChecking/SelectStatement.ag"(line 139, column 9)
               _lhsOannotatedTree =
                   {-# LINE 139 "./TypeChecking/SelectStatement.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 9642 "AstInternal.hs" #-}
@@ -9678,7 +9678,7 @@ sem_TableRef_Tref ann_ tbl_  =
               _lhsOannotatedTree =
                   {-# LINE 139 "./TypeChecking/SelectStatement.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 9685 "AstInternal.hs" #-}
@@ -9727,7 +9727,7 @@ sem_TableRef_TrefAlias ann_ tbl_ alias_  =
               _lhsOannotatedTree =
                   {-# LINE 139 "./TypeChecking/SelectStatement.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 9734 "AstInternal.hs" #-}
@@ -9791,7 +9791,7 @@ sem_TableRef_TrefFun ann_ fn_  =
               _lhsOannotatedTree =
                   {-# LINE 139 "./TypeChecking/SelectStatement.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 9798 "AstInternal.hs" #-}
@@ -9855,7 +9855,7 @@ sem_TableRef_TrefFunAlias ann_ fn_ alias_  =
               _lhsOannotatedTree =
                   {-# LINE 139 "./TypeChecking/SelectStatement.ag" #-}
                   annTypesAndErrors _backTree
-                    (errorToTypeFail _tpe    )
+                    (tpeToT _tpe    )
                     (getErrors _tpe    )
                     Nothing
                   {-# LINE 9862 "AstInternal.hs" #-}
@@ -10173,7 +10173,7 @@ sem_TypeName_ArrayTypeName ann_ typ_  =
               -- "./TypeChecking/Misc.ag"(line 34, column 9)
               _tpe =
                   {-# LINE 34 "./TypeChecking/Misc.ag" #-}
-                  chainTypeCheckFailed [_typInamedType] $ Right $ ArrayType _typInamedType
+                  dependsOnTpe [_typInamedType] $ Right $ ArrayType _typInamedType
                   {-# LINE 10178 "AstInternal.hs" #-}
               -- "./TypeChecking/Misc.ag"(line 24, column 10)
               _lhsOannotatedTree =
@@ -10185,7 +10185,7 @@ sem_TypeName_ArrayTypeName ann_ typ_  =
               -- "./TypeChecking/Misc.ag"(line 23, column 10)
               _lhsOnamedType =
                   {-# LINE 23 "./TypeChecking/Misc.ag" #-}
-                  errorToTypeFail _tpe
+                  tpeToT _tpe
                   {-# LINE 10190 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOnamedType)))
 sem_TypeName_PrecTypeName :: Annotation ->
@@ -10217,7 +10217,7 @@ sem_TypeName_PrecTypeName ann_ tn_ prec_  =
               -- "./TypeChecking/Misc.ag"(line 23, column 10)
               _lhsOnamedType =
                   {-# LINE 23 "./TypeChecking/Misc.ag" #-}
-                  errorToTypeFail _tpe
+                  tpeToT _tpe
                   {-# LINE 10222 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOnamedType)))
 sem_TypeName_SetOfTypeName :: Annotation ->
@@ -10252,7 +10252,7 @@ sem_TypeName_SetOfTypeName ann_ typ_  =
               -- "./TypeChecking/Misc.ag"(line 37, column 9)
               _tpe =
                   {-# LINE 37 "./TypeChecking/Misc.ag" #-}
-                  chainTypeCheckFailed [_typInamedType] $ Right $ SetOfType _typInamedType
+                  dependsOnTpe [_typInamedType] $ Right $ SetOfType _typInamedType
                   {-# LINE 10257 "AstInternal.hs" #-}
               -- "./TypeChecking/Misc.ag"(line 24, column 10)
               _lhsOannotatedTree =
@@ -10264,7 +10264,7 @@ sem_TypeName_SetOfTypeName ann_ typ_  =
               -- "./TypeChecking/Misc.ag"(line 23, column 10)
               _lhsOnamedType =
                   {-# LINE 23 "./TypeChecking/Misc.ag" #-}
-                  errorToTypeFail _tpe
+                  tpeToT _tpe
                   {-# LINE 10269 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOnamedType)))
 sem_TypeName_SimpleTypeName :: Annotation ->
@@ -10295,7 +10295,7 @@ sem_TypeName_SimpleTypeName ann_ tn_  =
               -- "./TypeChecking/Misc.ag"(line 23, column 10)
               _lhsOnamedType =
                   {-# LINE 23 "./TypeChecking/Misc.ag" #-}
-                  errorToTypeFail _tpe
+                  tpeToT _tpe
                   {-# LINE 10300 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOnamedType)))
 -- VarDef ------------------------------------------------------

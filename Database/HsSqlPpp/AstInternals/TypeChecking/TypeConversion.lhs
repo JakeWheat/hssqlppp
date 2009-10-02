@@ -447,7 +447,7 @@ code is not as much of a mess as findCallMatch
 
 > resolveResultSetType :: Environment -> [Type] -> Either [TypeError] Type
 > resolveResultSetType env inArgs =
->   chainTypeCheckFailed inArgs $
+>   dependsOnTpe inArgs $
 >       case () of
 >               _ | null inArgs -> Left [TypelessEmptyArray]
 >                 | allSameType -> Right $ head inArgs

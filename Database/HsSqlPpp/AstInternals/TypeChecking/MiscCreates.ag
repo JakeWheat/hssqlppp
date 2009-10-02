@@ -7,7 +7,7 @@
 
 SEM Statement
     | CreateView
-        loc.tpe = chainTypeCheckFailed [getTypeAnnotation @expr.annotatedTree] $ Right $ Pseudo Void
+        loc.tpe = dependsOnTpe [getTypeAnnotation @expr.annotatedTree] $ Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
         loc.statementInfo = []
         loc.attrs = case getTypeAnnotation @expr.annotatedTree of
