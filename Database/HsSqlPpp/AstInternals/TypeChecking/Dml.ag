@@ -16,7 +16,7 @@ with default values at the moment.
 SEM Statement
     | Insert
         loc.tpe =
-            ctcf [getTypeAnnotation @insData.annotatedTree] $ do
+            dependsOnTpe [getTypeAnnotation @insData.annotatedTree] $ do
               @loc.columnTypes
               Right $ Pseudo Void
         loc.statementInfo =
@@ -47,14 +47,14 @@ SEM Statement
         loc.tpe =
             do
             checkRelationExists @lhs.env @table
-            ctcf (map snd @assigns.pairs) $ do
-              @loc.columnsConsistent
+            dependsOnTpe (map snd @assigns.pairs) $ do
+              @loc.columnTypes
               liftErrors @assigns.rowSetErrors
               return $ Pseudo Void
         loc.statementInfo =
-            leftToEmpty (\ct -> [UpdateInfo @table ct]) @loc.columnsConsistent
+            leftToEmpty (\ct -> [UpdateInfo @table ct]) @loc.columnTypes
 
-        loc.columnsConsistent =
+        loc.columnTypes =
             checkColumnConsistency @lhs.env
                                    @table
                                    (map fst @assigns.pairs)
@@ -74,8 +74,10 @@ SEM Statement
     | Update
         whr.lib =
             fromRight @lhs.lib $ do
-                   ct <- envCompositeAttrs @lhs.env [TableComposite,ViewComposite] @table
-                   updateBindings @lhs.lib [LibStackIDs [("", ct)]]
+              ct <- envCompositeAttrs @lhs.env
+                                      relationComposites
+                                      @table
+              updateBindings @lhs.lib [LibStackIDs [("", ct)]]
 
 {-
 == set clauses
@@ -134,12 +136,17 @@ SEM Statement
             checkRelationExists @lhs.env @table >>
             Right (Pseudo Void)
         loc.statementInfo = [DeleteInfo @table]
+
         loc.backTree = Delete @ann @table @whr.annotatedTree @returning
         loc.envUpdates = []
-        loc.columnTypes = fromRight [] $ envCompositeAttrs @lhs.env [TableComposite,ViewComposite] @table
-        whr.lib = case updateBindings @lhs.lib [LibStackIDs [("", @loc.columnTypes)]] of
-                         Left x -> error $ show x
-                         Right e -> e
+
+
+SEM Statement
+    | Delete
+        whr.lib =
+            fromRight @lhs.lib $ do
+            columnTypes <- envCompositeAttrs @lhs.env relationComposites @table
+            updateBindings @lhs.lib [LibStackIDs [("", columnTypes)]]
 
 {-
 ================================================================================
@@ -148,28 +155,29 @@ SEM Statement
 
 checkRelationExists :: Environment -> String -> Either [TypeError] ()
 checkRelationExists env tbl =
-    envCompositeDef env [TableComposite, ViewComposite] tbl >>
+    envCompositeDef env relationComposites tbl >>
     return ()
 
 checkColumnConsistency :: Environment ->  String -> [String] -> [(String,Type)]
                        -> Either [TypeError] [(String,Type)]
 checkColumnConsistency env tbl cols' insNameTypePairs = do
   ttcols <- envCompositePublicAttrs env [] tbl
-  let cols :: [String]
-      cols = if null cols'
+  let cols = if null cols'
                then map fst ttcols
                else cols'
   errorWhen (length insNameTypePairs /= length cols) [WrongNumberOfColumns]
   let nonMatchingColumns = cols \\ map fst ttcols
   errorWhen (not $ null nonMatchingColumns) $
        map UnrecognisedIdentifier nonMatchingColumns
-  let targetNameTypePairs =
-        map (\l -> (l,fromJust $ lookup l ttcols)) cols
+  let targetNameTypePairs = map (\l -> (l,fromJust $ lookup l ttcols)) cols
         --check the types of the insdata match the column targets
         --name datatype columntype
-      typeTriples = map (\((a,b),c) -> (a,b,c)) $ zip targetNameTypePairs $ map snd insNameTypePairs
+      typeTriples = map (\((a,b),c) -> (a,b,c)) $
+                    zip targetNameTypePairs $
+                    map snd insNameTypePairs
       errs :: [TypeError]
-      errs = concat $ lefts $ map (\(_,b,c) -> checkAssignmentValid env c b) typeTriples
+      errs = concat $ lefts $
+             map (\(_,b,c) -> checkAssignmentValid env c b) typeTriples
   liftErrors errs
   return targetNameTypePairs
 

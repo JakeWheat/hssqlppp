@@ -115,3 +115,13 @@ SEM FnBody
                   updateBindings @lhs.lib
                                  [LibStackIDs [("", @vars.defs)]]
 
+ATTR VarDef [||def : {(String,Type)}]
+
+ATTR VarDefList [||defs : {[(String,Type)]}]
+
+SEM VarDef
+    | VarDef lhs.def = (@name, @typ.namedType)
+
+SEM VarDefList
+    | Cons lhs.defs = @hd.def : @tl.defs
+    | Nil lhs.defs = []

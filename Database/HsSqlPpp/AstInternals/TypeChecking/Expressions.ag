@@ -1,6 +1,8 @@
 {-
 Copyright 2009 Jake Wheat
 
+This file contains the type checking code for the expression ast data
+type.
 
 -}
 
@@ -93,6 +95,7 @@ typeCheckFunCall env fnName argsType =
                          && length argsType == 2
                          && all isRowCtor argsType ->
                     checkRowTypesMatch (head argsType) (head $ tail argsType)
+              --checked for all special cases, so run general case now
               s -> lookupFn s argsType
     where
       lookupFn :: String -> [Type] -> Either [TypeError] Type

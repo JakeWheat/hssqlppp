@@ -12,6 +12,7 @@ modules.
 >      Environment
 >     ,CastContext(..)
 >     ,CompositeFlavour(..)
+>     ,relationComposites
 >     ,CompositeDef
 >     ,FunctionPrototype
 >     ,DomainDefinition
@@ -91,6 +92,10 @@ modules.
 > -- respectively.
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
 >                         deriving (Eq,Show)
+
+> relationComposites :: [CompositeFlavour]
+> relationComposites = [TableComposite,ViewComposite]
+
 
 > -- | Provides the definition of a composite type. The components are
 > -- composite (or table or view) name, the flavour of the composite,

@@ -1,15 +1,3 @@
-ATTR VarDef [||def : {(String,Type)}]
-
-ATTR VarDefList [||defs : {[(String,Type)]}]
-
-SEM VarDef
-    | VarDef lhs.def = (@name, @typ.namedType)
-
-SEM VarDefList
-    | Cons lhs.defs = @hd.def : @tl.defs
-    | Nil lhs.defs = []
-
-
 
 SEM Statement
     | Return
@@ -45,6 +33,7 @@ SEM Statement
                 then checkAssignmentValid @lhs.env @loc.selType toType
                 else Right ()
               return $ Pseudo Void
+
         sts.lib =
           case @loc.tpe of
             Left _ -> @lhs.lib

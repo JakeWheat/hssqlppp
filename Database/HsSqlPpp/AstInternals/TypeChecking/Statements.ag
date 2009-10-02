@@ -1,37 +1,33 @@
 {-
-================================================================================
 
-= statements
+Copyright 2009 Jake Wheat
+
+This file contains the general code for statements and statement
+lists, and includes the ag files for various flavours of statement.
+
+The attributes and sem statements in this file are for chaining the
+env updates as we progress through a statement list, and for producing
+the resultant env after we've checked a whole ast, this can be used
+e.g. to type check multiple files in a row which depend on eachother.
+
+the code uses a weird hack to string the fold in the opposite
+direction to what is natural in uuagc?
 
 -}
 
-SEM Statement
-    | SelectStatement Insert Update Delete CreateView CreateDomain
-      CreateFunction CreateType CreateTable Return Assignment ForSelectStatement
-        lhs.annotatedTree = annTypesAndErrors @loc.backTree
-                              (errorToTypeFail @loc.tpe)
-                              (getErrors @loc.tpe)
-                              $ Just (map StatementInfoA @loc.statementInfo ++
-                                      [EnvUpdates @loc.envUpdates])
-        lhs.envUpdates = @loc.envUpdates
+-- env updates syn attr is used by each statement to report
+-- what changes it makes to the catalog, we use this to update
+-- the env to feed into the next statement
 
 ATTR Statement [||envUpdates : {[EnvironmentUpdate]}]
 
-SEM Statement
-    | CaseStatement ContinueStatement Copy CopyData DropFunction
-      DropSomething Execute ExecuteInto ForIntegerStatement
-      If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
-      WhileStatement
-        lhs.envUpdates = []
 
+ATTR StatementList [envUpdates : {[EnvironmentUpdate]}||]
 
-ATTR StatementList [ envUpdates : {[EnvironmentUpdate]}||]
-
-SEM Root
-    | Root statements.envUpdates = []
 
 ATTR StatementList Root
   [|| producedEnv : Environment]
+
 
 SEM StatementList
     | Cons
@@ -45,6 +41,26 @@ SEM StatementList
     | Nil
         lhs.producedEnv = emptyEnvironment
 
+SEM Statement
+    | SelectStatement Insert Update Delete CreateView CreateDomain
+      CreateFunction CreateType CreateTable Return Assignment ForSelectStatement
+        lhs.annotatedTree = annTypesAndErrors @loc.backTree
+                              (errorToTypeFail @loc.tpe)
+                              (getErrors @loc.tpe)
+                              $ Just (map StatementInfoA @loc.statementInfo ++
+                                      [EnvUpdates @loc.envUpdates])
+        lhs.envUpdates = @loc.envUpdates
+
+
+SEM Root
+    | Root statements.envUpdates = []
+
+SEM Statement
+    | CaseStatement ContinueStatement Copy CopyData DropFunction
+      DropSomething Execute ExecuteInto ForIntegerStatement
+      If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
+      WhileStatement
+        lhs.envUpdates = []
 
 SEM ExpressionListStatementListPair
     | Tuple
@@ -61,6 +77,8 @@ SEM Statement
 SEM Statement
     | ForIntegerStatement ForSelectStatement WhileStatement
         sts.envUpdates = []
+
+
 
 INCLUDE "TypeChecking/SelectStatement.ag"
 INCLUDE "TypeChecking/Dml.ag"
