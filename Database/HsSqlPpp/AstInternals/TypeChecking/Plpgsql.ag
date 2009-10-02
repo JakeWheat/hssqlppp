@@ -1,7 +1,18 @@
+{-
+Copyright 2009 Jake Wheat
 
+This file contains the checking code for a few plpgsql statements.
+
+
+-}
+
+--todo: check return type consistent with function return type
 SEM Statement
     | Return
-        loc.tpe = dependsOnTpe [fromMaybe typeBool @value.exprType] $ Right $ Pseudo Void
+        loc.tpe =
+            dependsOnRTpe [maybe typeBool
+                                getTypeAnnotation
+                                @value.annotatedTree] $ Right $ Pseudo Void
         loc.backTree = Return @ann @value.annotatedTree
         loc.envUpdates = []
         loc.statementInfo = []
@@ -13,9 +24,9 @@ SEM Statement
             do
             let fromType = getTypeAnnotation @value.annotatedTree
             toType <- libLookupID @lhs.lib "" @target
-            dependsOnTpe [getTypeAnnotation @value.annotatedTree, toType] $ do
-              checkAssignmentValid @lhs.env fromType toType
-              return $ Pseudo Void
+            dependsOnRTpe [getTypeAnnotation @value.annotatedTree, toType] $ do
+            checkAssignmentValid @lhs.env fromType toType
+            return $ Pseudo Void
         loc.backTree = Assignment @ann @target @value.annotatedTree
         loc.envUpdates = []
         loc.statementInfo = []
@@ -26,27 +37,29 @@ SEM Statement
         loc.selType = getTypeAnnotation @sel.annotatedTree
         loc.tpe =
           do
-          dependsOnTpe [@loc.selType] $ do
-            toType <- libLookupID @lhs.lib "" @var
-            dependsOnTpe [toType] $ do
-              if toType /= Pseudo Record
-                then checkAssignmentValid @lhs.env @loc.selType toType
-                else Right ()
-              return $ Pseudo Void
-
+          dependsOnRTpe [@loc.selType] $ do
+          toType <- libLookupID @lhs.lib "" @var
+          dependsOnRTpe [toType] $ do
+          if toType /= Pseudo Record --slightly hacky, can do better?
+             then checkAssignmentValid @lhs.env @loc.selType toType
+             else Right ()
+          return $ Pseudo Void
+        --just handles assigning to a record type for now
+        --one thing that isn't quite right is that the record variable
+        --holds the last row in it after the for statement, which isn't
+        --supported here
         sts.lib =
-          case @loc.tpe of
-            Left _ -> @lhs.lib
-            Right _ -> case @loc.selType of
-                         UnnamedCompositeType t ->
-                             case updateBindings @lhs.lib [LibStackIDs [(@var, t)]] of
-                               Left x -> error $ show x
-                               Right e -> e
-                         SetOfType (UnnamedCompositeType t) ->
-                             case updateBindings @lhs.lib [LibStackIDs [(@var, t)]] of
-                               Left x -> error $ show x
-                               Right e -> e
-                         _ -> @lhs.lib
+            if okToUpdate
+              then fromRight @lhs.lib $
+                   updateBindings @lhs.lib [LibStackIDs [(@var, attrs)]]
+                   -- todo:ignoring error
+              else @lhs.lib
+            where
+              okToUpdate = isRight @loc.tpe && @loc.selType /= TypeCheckFailed
+              attrs = case @loc.selType of
+                           UnnamedCompositeType t -> t
+                           SetOfType (UnnamedCompositeType t) -> t
+                           x -> [] --todo: ignoring error
 
         loc.backTree = ForSelectStatement @ann @var @sel.annotatedTree @sts.annotatedTree
         loc.envUpdates = []

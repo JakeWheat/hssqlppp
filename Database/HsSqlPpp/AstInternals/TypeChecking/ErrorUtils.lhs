@@ -8,7 +8,7 @@ type checking.
 > module Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 >     (
 >      dependsOn
->     ,dependsOnTpe
+>     ,dependsOnRTpe
 >     ,dependsOnT
 >     ,tpeToT
 >     ,liftErrors
@@ -34,8 +34,8 @@ use the final argument.
 >     then bad
 >     else ok
 
-> dependsOnTpe :: [Type] -> Either a Type -> Either a Type
-> dependsOnTpe ts = dependsOn ts (Right TypeCheckFailed)
+> dependsOnRTpe :: [Type] -> Either a Type -> Either a Type
+> dependsOnRTpe ts = dependsOn ts (Right TypeCheckFailed)
 
 > dependsOnT :: [Type] -> Type -> Type
 > dependsOnT ts = dependsOn ts TypeCheckFailed
@@ -56,4 +56,3 @@ extract errors from an either, gives empty list if right
 
 > getErrors :: Either [TypeError] Type -> [TypeError]
 > getErrors = either id (const [])
-

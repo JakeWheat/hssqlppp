@@ -41,6 +41,10 @@ This file contains some generic utility stuff
 > mapRight _ (Left a) = Left a
 > mapRight f (Right b) = Right $ f b
 
+> isRight :: Either a b -> Bool
+> isRight (Right _) = True
+> isRight (Left _) = False
+
 > leftToEmpty :: (r -> [a]) -> Either l r -> [a]
 > leftToEmpty f e = either (const []) f e
 

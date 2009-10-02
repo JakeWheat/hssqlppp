@@ -20,7 +20,7 @@ don't affect the prototype, and hence callers of the function).
 
 SEM Statement
     | CreateFunction
-        loc.tpe = dependsOnTpe
+        loc.tpe = dependsOnRTpe
                     (@rettype.namedType : @loc.parameterTypes) $
                     Right $ Pseudo Void
         loc.envUpdates = dependsOn [tpeToT @loc.tpe] []

@@ -16,7 +16,7 @@ with default values at the moment.
 SEM Statement
     | Insert
         loc.tpe =
-            dependsOnTpe [getTypeAnnotation @insData.annotatedTree] $ do
+            dependsOnRTpe [getTypeAnnotation @insData.annotatedTree] $ do
               @loc.columnTypes
               Right $ Pseudo Void
         loc.statementInfo =
@@ -49,7 +49,7 @@ SEM Statement
         loc.tpe =
             do
             checkRelationExists @lhs.env @table
-            dependsOnTpe (map snd @assigns.pairs) $ do
+            dependsOnRTpe (map snd @assigns.pairs) $ do
               @loc.columnTypes
               liftErrors @assigns.rowSetErrors
               return $ Pseudo Void

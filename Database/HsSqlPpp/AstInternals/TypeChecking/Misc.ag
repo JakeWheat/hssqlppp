@@ -3,10 +3,6 @@ Copyright 2009 Jake Wheat
 
 Contains bit and pieces of type checking which don't fit anywhere else
 
--}
-
-{-
-
 ================================================================================
 
 = type names
@@ -31,33 +27,24 @@ SEM TypeName
         loc.tpe = envLookupType @lhs.env $ canonicalizeTypeName @tn
         loc.backTree = SimpleTypeName @ann @tn
      | ArrayTypeName
-        loc.tpe = dependsOnTpe [@typ.namedType] $ Right $ ArrayType @typ.namedType
+        loc.tpe = dependsOnRTpe [@typ.namedType] $ Right $ ArrayType @typ.namedType
         loc.backTree = ArrayTypeName @ann @typ.annotatedTree
      | SetOfTypeName
-        loc.tpe = dependsOnTpe [@typ.namedType] $ Right $ SetOfType @typ.namedType
+        loc.tpe = dependsOnRTpe [@typ.namedType] $ Right $ SetOfType @typ.namedType
         loc.backTree = SetOfTypeName @ann @typ.annotatedTree
      | PrecTypeName
         loc.tpe = Right TypeCheckFailed
         loc.backTree = PrecTypeName @ann @tn @prec
 
 
-{
-annTypesAndErrors :: Data a => a -> Type -> [TypeError]
-                  -> Maybe [AnnotationElement] -> a
-annTypesAndErrors item nt errs add =
-    updateAnnotation modifier item
-    where
-      modifier = (([TypeAnnotation nt] ++ fromMaybe [] add ++
-       map TypeErrorA errs) ++)
-
-}
-
 {-
 ================================================================================
 
-= expression lists and lists of lists
+= generic node types
 
 -}
+
+--expression list and list list - just collect up the types
 
 ATTR ExpressionList [||typeList : {[Type]}]
 
@@ -73,15 +60,14 @@ SEM ExpressionListList
     | Nil lhs.typeListList = []
 
 
-
+-- stringlist: collect the strings
 ATTR StringList [||strings : {[String]}]
 
 SEM StringList
   | Cons lhs.strings = @hd : @tl.strings
   | Nil lhs.strings = []
 
-
--- Maybe expression stuff
+-- maybe bool expression: if present, then check its type is bool
 
 SEM MaybeBoolExpression
     | Just
@@ -91,14 +77,13 @@ SEM MaybeBoolExpression
                           @just.annotatedTree
             else Just $ @just.annotatedTree
 
-ATTR MaybeExpression [||exprType : {Maybe Type}]
-
-SEM MaybeExpression
-    | Just lhs.exprType = Just $ getTypeAnnotation @just.annotatedTree
-    | Nothing lhs.exprType = Nothing
 
 {
 {-
+================================================================================
+
+= couple of small utils
+
 I think this should be alright, an identifier referenced in an
 expression can only have zero or one dot in it.
 -}
@@ -108,5 +93,17 @@ splitIdentifier s = let (a,b) = span (/= '.') s
                     in if b == ""
                          then ("", a)
                          else (a,tail b)
+
+{-
+helper to make adding annotations a bit easier
+-}
+
+annTypesAndErrors :: Data a => a -> Type -> [TypeError]
+                  -> Maybe [AnnotationElement] -> a
+annTypesAndErrors item nt errs add =
+    updateAnnotation modifier item
+    where
+      modifier = (([TypeAnnotation nt] ++ fromMaybe [] add ++
+       map TypeErrorA errs) ++)
 
 }

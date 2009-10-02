@@ -744,6 +744,49 @@ check type of initial values
 >         (Right [Nothing])
 >      ])
 
+================================================================================
+
+create function then select
+select then create function
+then in two separate chained asts
+
+>    ,testGroup "check catalog chaining"
+>     (mapStatementInfo [
+>       p "create function t1() returns void as $$\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;\n\
+>         \select t1();"
+>         (Right [Nothing])
+>      ,p "select t1();\n\
+>         \create function t1() returns void as $$\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Left [NoMatchingOperator "t1" []])
+>      ])
+
+>    ,testGroup "check catalog chaining2"
+>     (mapStatementInfos [
+>       p ["create function t1() returns void as $$\n\
+>          \begin\n\
+>          \  null;\n\
+>          \end;\n\
+>          \$$ language plpgsql stable;"
+>         ,"select t1();"]
+>         (Right [Just (SelectInfo (Pseudo Void))])
+>      ,p ["select t1();"
+>         ,"create function t1() returns void as $$\n\
+>          \begin\n\
+>          \  null;\n\
+>          \end;\n\
+>          \$$ language plpgsql stable;"]
+>         (Left [NoMatchingOperator "t1" []])
+>      ])
+
+
 >
 >    ]
 >         where
@@ -753,6 +796,7 @@ check type of initial values
 >           mapExprType = map (uncurry $ checkExpressionType defaultTemplate1Environment)
 >           --mapStatementType = map $ uncurry checkStatementType
 >           mapStatementInfo = map $ uncurry checkStatementInfo
+>           mapStatementInfos = map $ uncurry checkStatementInfos
 >           mapStatementInfoEu = map (\(a,b,c) ->  checkStatementInfoEu a b c)
 >           {-mapExprEnvType = map (\(a,b,c) -> checkExpressionType b a c)-}
 >           makeEnv eu = case updateEnvironment defaultTemplate1Environment eu of
@@ -786,6 +830,21 @@ check type of initial values
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
+
+
+> checkStatementInfos :: [String] -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
+> checkStatementInfos srcs sis = testCase ("typecheck " ++ show srcs) $
+>   let asts = map (\src -> case parseSql src of
+>                                             Left e -> error $ show e
+>                                             Right l -> l) srcs
+>       aasts = annotateAstsEnv defaultTemplate1Environment asts
+>       is = getTopLevelInfos $ last aasts
+>       er = concatMap snd $ concatMap getTypeErrors aasts
+>   in {-trace (show $ map getAnnotation aast) $-} case (length er, length is) of
+>        (0,0) -> assertFailure "didn't get any infos?"
+>        (0,_) -> assertEqual ("typecheck " ++ show srcs) sis $ Right is
+>        _ -> assertEqual ("typecheck " ++ show srcs) sis $ Left er
+
 
 > checkStatementInfoEnv :: Environment -> String -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
 > checkStatementInfoEnv env src sis = testCase ("typecheck " ++ src) $

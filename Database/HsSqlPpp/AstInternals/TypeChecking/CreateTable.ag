@@ -21,7 +21,7 @@ check ok, any errors in the constraints aren't leaked.
 
 SEM Statement
     | CreateTable
-        loc.tpe = dependsOnTpe @loc.attrTypes $ Right $ Pseudo Void
+        loc.tpe = dependsOnRTpe @loc.attrTypes $ Right $ Pseudo Void
         loc.envUpdates = dependsOn @loc.attrTypes []
                            [EnvCreateTable @name @atts.attrs []]
 
@@ -36,7 +36,7 @@ SEM Statement
 SEM Statement
     | CreateTableAs
         loc.tpe =
-            dependsOnTpe [@loc.selType] $ do
+            dependsOnRTpe [@loc.selType] $ do
               @loc.attrs
               Right @loc.selType
         loc.envUpdates =

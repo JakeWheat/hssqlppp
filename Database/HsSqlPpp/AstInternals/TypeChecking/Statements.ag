@@ -10,9 +10,6 @@ env updates as we progress through a statement list, and for producing
 the resultant env after we've checked a whole ast, this can be used
 e.g. to type check multiple files in a row which depend on eachother.
 
-the code uses a weird hack to string the fold in the opposite
-direction to what is natural in uuagc?
-
 -}
 
 -- env updates syn attr is used by each statement to report
@@ -25,21 +22,27 @@ ATTR Statement [||envUpdates : {[EnvironmentUpdate]}]
 ATTR StatementList [envUpdates : {[EnvironmentUpdate]}||]
 
 
-ATTR StatementList Root
-  [|| producedEnv : Environment]
+--producedenv is used to pass the final updated env out
+ATTR StatementList Root [|| producedEnv : Environment]
 
 
 SEM StatementList
-    | Cons
+    | Cons Nil
+        --newenv is the environment passed into the head statement
+        --updated with any catalog changes that that statement has made
         loc.newEnv = fromRight @lhs.env $ updateEnvironment @lhs.env @lhs.envUpdates
+    | Cons
         hd.env = @loc.newEnv
-        tl.env = @loc.newEnv
-        lhs.producedEnv = case @tl.annotatedTree of
-                           [] -> @loc.newEnv
-                           _ -> @tl.producedEnv
+
+        --produced env is used to chain the final updated environment from the last
+        --element of the list and pass it back up the list so in can be pushed up
+        -- to the root element and sent out from there
+        lhs.producedEnv = @tl.producedEnv
+        --this is probably a bit inefficient: it creates a new environment from scratch
+        --on each statement instead of chaining on the last updated env
         tl.envUpdates = @hd.envUpdates
     | Nil
-        lhs.producedEnv = emptyEnvironment
+        lhs.producedEnv = @loc.newEnv
 
 SEM Statement
     | SelectStatement Insert Update Delete CreateView CreateDomain

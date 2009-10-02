@@ -12,7 +12,7 @@ make it much more readable.
 
 SEM Statement
     | SelectStatement
-        loc.tpe = dependsOnTpe [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
+        loc.tpe = dependsOnRTpe [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
         loc.statementInfo = [SelectInfo $ getTypeAnnotation @ex.annotatedTree]
         loc.backTree = SelectStatement @ann @ex.annotatedTree
         loc.envUpdates = []
@@ -70,7 +70,7 @@ SEM SelectExpression
            let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
                                                     @selTref.annotatedTree
                slType = @selSelectList.listType
-           dependsOnTpe [trefType, slType] $
+           dependsOnRTpe [trefType, slType] $
              Right $ case slType of
                        UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
                        _ -> SetOfType slType
@@ -89,7 +89,7 @@ SEM SelectExpression
         loc.tpe =
           let sel1t = getTypeAnnotation @sel1.annotatedTree
               sel2t = getTypeAnnotation @sel2.annotatedTree
-          in dependsOnTpe [sel1t, sel2t] $
+          in dependsOnRTpe [sel1t, sel2t] $
                 typeCheckCombineSelect @lhs.env sel1t sel2t
         loc.backTree = CombineSelect @ann @ctype.annotatedTree
                                      @sel1.annotatedTree
@@ -143,7 +143,7 @@ SEM TableRef
 
 -- one of the main hairy bits of code which needs a serious refactor:
 SEM TableRef
-    | SubTref loc.tpe = dependsOnTpe [getTypeAnnotation @sel.annotatedTree] <$>
+    | SubTref loc.tpe = dependsOnRTpe [getTypeAnnotation @sel.annotatedTree] <$>
                         unwrapSetOfWhenComposite $ getTypeAnnotation @sel.annotatedTree
               loc.backTree = SubTref @ann @sel.annotatedTree @alias
               lhs.idens = [(@alias, (fromRight [] $ getTbCols @sel.annotatedTree, []))]
@@ -176,7 +176,7 @@ SEM TableRef
         loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
     | JoinedTref
         loc.tpe =
-            dependsOnTpe [tblt
+            dependsOnRTpe [tblt
                       ,tbl1t] $
                case (@nat.annotatedTree, @onExpr.annotatedTree) of
                       (Natural, _) -> unionJoinList $

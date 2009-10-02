@@ -1,30 +1,39 @@
 {-
-================================================================================
+Copyright 2009 Jake Wheat
+
+This file contains the ddl checking, apart from create function and
+create table which have their own files.
 
 = create view
+
+pretty simple, just forwards the select expression type
 
 -}
 
 SEM Statement
     | CreateView
-        loc.tpe = dependsOnTpe [getTypeAnnotation @expr.annotatedTree] $ Right $ Pseudo Void
+        loc.tpe = dependsOnRTpe [getTypeAnnotation @expr.annotatedTree] $
+                    Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
-        loc.statementInfo = []
         loc.attrs = case getTypeAnnotation @expr.annotatedTree of
                       SetOfType (UnnamedCompositeType c) -> c
-                      _ -> []
+                      _ -> [] --TODO: error ignored
         loc.envUpdates = [EnvCreateView @name @loc.attrs]
-
-
+        loc.statementInfo = []
 
 {-
 ================================================================================
 
 = create type
 
+might move this to create table since they have a fair bit in common
+
+main shortcomings are the names and types aren't checked
+
 -}
+
 ATTR TypeAttributeDef [||attrName : String
-                            namedType : Type]
+                         namedType : Type]
 
 SEM TypeAttributeDef
     | TypeAttDef
@@ -45,8 +54,6 @@ SEM Statement
         loc.envUpdates = [EnvCreateComposite @name @atts.attrs]
 
 {-
-
-================================================================================
 
 = create domain
 

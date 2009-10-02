@@ -59,7 +59,7 @@ SEM Expression
 -}
 SEM Expression
     | FunCall
-        loc.tpe = dependsOnTpe @args.typeList $
+        loc.tpe = dependsOnRTpe @args.typeList $
                     typeCheckFunCall
                       @lhs.env
                       @funName
@@ -84,7 +84,7 @@ any operator satifying some properties
 -}
 typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] Type
 typeCheckFunCall env fnName argsType =
-    dependsOnTpe argsType $
+    dependsOnRTpe argsType $
       case fnName of
               "!arrayCtor" ->
                     ArrayType <$> resolveResultSetType env argsType
@@ -141,14 +141,14 @@ pg allows the rhss to also be a subselect, this is a todo
 
 SEM Expression
     | LiftOperator
-        loc.tpe = dependsOnTpe @args.typeList $ do
+        loc.tpe = dependsOnRTpe @args.typeList $ do
                   let args = @args.annotatedTree
                   errorWhen (length args /= 2)
                             [AnyAllError $ "must have two args, got " ++ show args]
                   let [a,b] = args
                       aType = getTypeAnnotation a
                       bType = getTypeAnnotation b
-                  dependsOnTpe [aType,bType] $ do
+                  dependsOnRTpe [aType,bType] $ do
                   errorWhen (not $ isArrayType bType)
                             [AnyAllError $ "second arg must be array, got " ++ show args]
                   elemType <- unwrapArray $ bType
@@ -185,10 +185,10 @@ SEM Expression
 SEM Expression
     | Case
         loc.tpe =
-            dependsOnTpe @loc.whenTypes $ do
+            dependsOnRTpe @loc.whenTypes $ do
             errorWhen (any (/= typeBool) @loc.whenTypes) $
                       [WrongTypes typeBool @loc.whenTypes]
-            dependsOnTpe @loc.thenTypes $
+            dependsOnRTpe @loc.thenTypes $
               resolveResultSetType @lhs.env @loc.thenTypes
         loc.backTree = Case @ann @cases.annotatedTree @els.annotatedTree
 
@@ -196,11 +196,11 @@ SEM Expression
 SEM Expression
     | CaseSimple
         loc.tpe =
-          dependsOnTpe @loc.whenTypes $ do
+          dependsOnRTpe @loc.whenTypes $ do
           let valueType = getTypeAnnotation @value.annotatedTree
           checkWhenTypes <-
               resolveResultSetType @lhs.env (valueType : @loc.whenTypes)
-          dependsOnTpe @loc.thenTypes $
+          dependsOnRTpe @loc.thenTypes $
             resolveResultSetType @lhs.env @loc.thenTypes
         loc.backTree = CaseSimple @ann
                                   @value.annotatedTree
@@ -238,7 +238,7 @@ SEM Expression
         loc.tpe =
             do
             let selType = getTypeAnnotation @sel.annotatedTree
-            dependsOnTpe [selType] $ do
+            dependsOnRTpe [selType] $ do
             f <- map snd <$> unwrapSetOfComposite selType
             case length f of
               0 -> Left [InternalError "no columns in scalar subquery?"]
@@ -280,4 +280,4 @@ SEM InList
                                  "got subquery with no columns? in inselect"]
                       1 -> Right $ head attrs
                       _ -> Right $ RowCtor attrs
-            dependsOnTpe attrs $ Right typ
+            dependsOnRTpe attrs $ Right typ
