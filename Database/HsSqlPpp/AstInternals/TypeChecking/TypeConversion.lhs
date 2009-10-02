@@ -34,8 +34,8 @@ checkAssignmentValid - pass in source type and target type, returns
 > import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
 > import Database.HsSqlPpp.Utils
 
-> traceIt :: Show a => String -> a -> a
-> traceIt s t = trace (s ++ ": " ++ show t) t
+ > traceIt :: Show a => String -> a -> a
+ > traceIt s t = trace (s ++ ": " ++ show t) t
 
 = findCallMatch
 
@@ -446,20 +446,17 @@ check all can convert to selected type else fail
 code is not as much of a mess as findCallMatch
 
 > resolveResultSetType :: Environment -> [Type] -> Either [TypeError] Type
-> resolveResultSetType env inArgs =
->   dependsOnRTpe inArgs $
->       case () of
->               _ | null inArgs -> Left [TypelessEmptyArray]
->                 | allSameType -> Right $ head inArgs
->                 | allSameBaseType -> Right $ head inArgsBase
->                 --todo: do domains
->                 | allUnknown -> Right $ ScalarType "text"
->                 | not allSameCat ->
->                     Left [IncompatibleTypeSet inArgs]
->                 | isJust targetType &&
->                   allConvertibleToFrom (fromJust targetType) inArgs ->
->                       Right $ fromJust targetType
->                 | otherwise -> Left [IncompatibleTypeSet inArgs]
+> resolveResultSetType env inArgs = do
+>   dependsOnRTpe inArgs $ do
+>   errorWhen (null inArgs) [TypelessEmptyArray]
+>   returnWhen allSameType (head inArgs) $ do
+>   returnWhen allSameBaseType (head inArgsBase) $ do
+>   returnWhen allUnknown (ScalarType "text") $ do
+>   errorWhen (not allSameCat) [IncompatibleTypeSet inArgs]
+>   returnWhen (isJust targetType &&
+>               allConvertibleToFrom (fromJust targetType) inArgs)
+>               (fromJust targetType) $ do
+>   Left [IncompatibleTypeSet inArgs]
 >   where
 >      allSameType = all (== head inArgs) inArgs &&
 >                      head inArgs /= UnknownStringLit

@@ -88,21 +88,15 @@ both add messages, and then the messages get combined to provide the
 final message list attribute value for that node. You want this so
 that e.g. that different sorts of checks appear in different
 sections. Workaround is instead of having each check in it's own
-section, to combine them all into one SEM.
+section, to combine them all into one SEM. Can work around this
+without too much difficulty by using local attributes. Not sure if
+something more clever would be an improvement.
 
 Problem 2: no shorthand to combine what the default rule for messages
 would be and then add a bit extra - so if you want all the children
 messages, plus possibly an extra message or two, have to write out the
 default rule in full explicitly. Can get round this by writing out
-loads of code.
-
-Both the workarounds to these seem a bit tedious and error prone, and
-will make the code much less readable. Maybe need a preprocessor to
-produce the ag file? Alternatively, just attach the messages to each
-node (so this appears in the data types and isn't an attribute, then
-have a tree walker collect them all). Since an annotation field in
-each node is going to be added anyway, so each node can be labelled
-with a type, will probably do this at some point.
+loads of code, which is error prone. Don't know if there is a better way
 
 ================================================================================
 

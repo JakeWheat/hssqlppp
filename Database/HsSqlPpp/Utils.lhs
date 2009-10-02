@@ -13,9 +13,11 @@ This file contains some generic utility stuff
 > import Control.Monad.Error
 > import Control.Applicative
 
-> errorWhen :: (Error a) =>
->            Bool -> a -> Either a ()
+> errorWhen :: (Error a) => Bool -> a -> Either a ()
 > errorWhen cond = when cond . Left
+
+> returnWhen :: Bool -> b -> Either a b -> Either a b
+> returnWhen c t t1 = if c then Right t else t1
 
 > liftME :: a -> Maybe b -> Either a b
 > liftME d m = case m of
