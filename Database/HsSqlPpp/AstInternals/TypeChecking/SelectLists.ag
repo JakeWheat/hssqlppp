@@ -1,0 +1,127 @@
+{-
+Copyright 2009 Jake Wheat
+
+-}
+
+
+
+ATTR SelectItemList SelectList [||listType : Type]
+
+SEM SelectItemList
+    | Cons lhs.listType = doSelectItemListTpe @lhs.lib @hd.columnName @hd.itemType @tl.listType
+    | Nil lhs.listType = UnnamedCompositeType []
+
+{
+doSelectItemListTpe :: LocalIdentifierBindings
+                    -> String
+                    -> Type
+                    -> Type
+                    -> Type
+doSelectItemListTpe env colName colType types =
+    if types == TypeCheckFailed
+       then types
+       else tpeToT (do
+         let (correlationName,iden) = splitIdentifier colName
+         newCols <- if iden == "*"
+                         then libExpandStar env correlationName
+                         else return [(iden, colType)]
+         foldM (flip consComposite) types $ reverse newCols)
+}
+
+
+ATTR SelectItem [||itemType : Type]
+
+SEM SelectItem
+    | SelExp SelectItem
+        lhs.itemType = getTypeAnnotation @ex.annotatedTree
+
+-- hack to fix up for errors for ok *
+SEM SelectItem
+    | SelExp
+        loc.annotatedTree = SelExp @ann $ fixStar @ex.annotatedTree
+    | SelectItem
+        loc.backTree = SelectItem @ann (fixStar @ex.annotatedTree) @name
+
+{
+
+fixStar :: Expression -> Expression
+fixStar =
+    everywhere (mkT fixStar')
+    where
+      fixStar' :: Annotation -> Annotation
+      fixStar' a =
+          if TypeAnnotation TypeCheckFailed `elem` a
+              && any (\an ->
+                       case an of
+                         TypeErrorA (UnrecognisedIdentifier x) |
+                           let (_,iden) = splitIdentifier x
+                           in iden == "*" -> True
+                         _ -> False) a
+             then filter (\an -> case an of
+                                   TypeAnnotation TypeCheckFailed -> False
+                                   TypeErrorA (UnrecognisedIdentifier _) -> False
+                                   _ -> True) a
+             else a
+}
+
+SEM SelectList
+    | SelectList
+        lhs.listType = @items.listType
+
+
+{-
+
+== attributes
+
+columnName is used to collect the column names that the select list
+produces, it is combined into an unnamedcompositetype in
+selectitemlist, which is also where star expansion happens.
+
+-}
+
+ATTR SelectItem [||columnName : String]
+
+{-
+if the select item is just an identifier, then that column is named
+after the identifier
+e.g. select a, b as c, b + c from d, gives three columns one named
+a, one named c, and one unnamed, even though only one has an alias
+if the select item is a function or aggregate call at the top level,
+then it is named after that function or aggregate
+
+if it is a cast, the column is named after the target data type name
+iff it is a simple type name
+
+-}
+
+--default value for non identifier nodes
+
+ATTR Expression [||liftedColumnName USE {`(fixedValue "")`} {""}: String]
+
+{
+fixedValue :: a -> a -> a -> a
+fixedValue a _ _ = a
+}
+
+{-
+override for identifier nodes, this only makes it out to the selectitem
+node if the identifier is not wrapped in parens, function calls, etc.
+-}
+
+SEM Expression
+  | Identifier lhs.liftedColumnName = @i
+  | FunCall lhs.liftedColumnName =
+      if isOperatorName @funName
+         then ""
+         else @funName
+  | Cast lhs.liftedColumnName = case @tn.annotatedTree of
+                                  SimpleTypeName _ tn -> tn
+                                  _ -> ""
+
+-- collect the aliases and column names for use by the selectitemlist nodes
+SEM SelectItem
+    | SelExp lhs.columnName = case @ex.liftedColumnName of
+                                "" -> "?column?"
+                                s -> s
+    | SelectItem lhs.columnName = @name
+

@@ -1,6 +1,5 @@
 {-
-
-================================================================================
+Copyright 2009 Jake Wheat
 
 = basic select statements
 
@@ -48,6 +47,11 @@ from the joined trefs to the join expressions.
 So, the basic plan is to propagate the iden bindings in the env attribute
 as elsewhere, and also pass along a flag to say whether the previous stage
 type checked or not, so we can bail if it has failed.
+
+alternative idea: explore transforming the ast for a select expression into
+something using relational algebra-like operations - can then follow the flow
+of ids easily. The problem might be with updating the annotations in the original
+tree though.
 
 -}
 
@@ -127,240 +131,16 @@ unionRelTypes env rowsTs colNames =
                    mapM (resolveResultSetType env) (transpose rowsTs) >>=
                      (return . SetOfType . UnnamedCompositeType . zip colNames)
 
-
-getTbCols c = unwrapSetOfComposite (getTypeAnnotation c)
 }
 
-ATTR TableRef MaybeTableRef [||idens : {[(String,([(String,Type)],[(String,Type)]))]}
-                                  joinIdens : {[String]} ]
+INCLUDE "TypeChecking/TableRefs.ag"
 
-SEM TableRef
-    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
-        lhs.annotatedTree = annTypesAndErrors @loc.backTree
-                              (tpeToT @loc.tpe)
-                              (getErrors @loc.tpe)
-                              Nothing
-
--- one of the main hairy bits of code which needs a serious refactor:
-SEM TableRef
-    | SubTref loc.tpe = dependsOnRTpe [getTypeAnnotation @sel.annotatedTree] <$>
-                        unwrapSetOfWhenComposite $ getTypeAnnotation @sel.annotatedTree
-              loc.backTree = SubTref @ann @sel.annotatedTree @alias
-              lhs.idens = [(@alias, (fromRight [] $ getTbCols @sel.annotatedTree, []))]
-              lhs.joinIdens = []
-    | TrefAlias Tref
-        loc.tpe = either Left (Right . UnnamedCompositeType . fst) @loc.relType
-        lhs.joinIdens = []
-        loc.relType = envCompositeAttrsPair @lhs.env [] @tbl
-        loc.unwrappedRelType =
-            fromRight ([],[]) @loc.relType
-    | Tref
-        lhs.idens = [(@tbl, @loc.unwrappedRelType)]
-        loc.backTree = Tref @ann @tbl
-    | TrefAlias
-        lhs.idens = [(@alias, @loc.unwrappedRelType)]
-        loc.backTree = TrefAlias @ann @tbl @alias
-    | TrefFun TrefFunAlias
-        loc.tpe = getFnType @lhs.env @loc.alias1 @fn.annotatedTree
-        lhs.joinIdens = []
-        lhs.idens = case getFunIdens
-                              @lhs.env @loc.alias1
-                              @fn.annotatedTree of
-                      Right (s, UnnamedCompositeType c) -> [(s,(c,[]))]
-                      _ -> []
-    | TrefFun
-        loc.alias1 = ""
-        loc.backTree = TrefFun @ann @fn.annotatedTree
-    | TrefFunAlias
-        loc.alias1 = @alias
-        loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
-    | JoinedTref
-        loc.tpe =
-            dependsOnRTpe [tblt
-                      ,tbl1t] $
-               case (@nat.annotatedTree, @onExpr.annotatedTree) of
-                      (Natural, _) -> unionJoinList $
-                                      commonFieldNames tblt tbl1t
-                      (_,Just (JoinUsing _ s)) -> unionJoinList s
-                      _ -> unionJoinList []
-            where
-              tblt = getTypeAnnotation @tbl.annotatedTree
-              tbl1t = getTypeAnnotation @tbl1.annotatedTree
-              unionJoinList s =
-                  combineTableTypesWithUsingList @lhs.env s tblt tbl1t
-        loc.idens = @tbl.idens ++ @tbl1.idens
-        loc.joinIdens = commonFieldNames (getTypeAnnotation @tbl.annotatedTree)
-                                         (getTypeAnnotation @tbl1.annotatedTree)
-        lhs.idens = @loc.idens
-        lhs.joinIdens = @loc.joinIdens
-        loc.backTree = JoinedTref @ann
-                                  @tbl.annotatedTree
-                                  @nat.annotatedTree
-                                  @joinType.annotatedTree
-                                  @tbl1.annotatedTree
-                                  @onExpr.annotatedTree
-        onExpr.lib = case updateBindings @lhs.lib
-                            (convertToNewStyleUpdates @loc.idens @loc.joinIdens) of
-                       Left x -> error $ show x
-                       Right e -> e
-
-{
-{-
-this function a bit of a mess - artefact of not fully updated code
-after the environment data type was changed.
--}
-convertToNewStyleUpdates :: [(String, ([(String,Type)], [(String,Type)]))] -> [String] -> [LocalIdentifierBindingsUpdate]
-convertToNewStyleUpdates qualIdens joinIdens =
-  -- we're given a list of qualified types, and a list of names of join columns
-  -- want to produce a list of qualified types, with an additional one with "" qualification
-  -- and produce a star expansion
-    [LibStackIDs newQualifiedList
-    ,LibSetStarExpansion newStarExpansion]
-  where
-    qualifiedFieldsCombined :: [(String,[(String,Type)])]
-    qualifiedFieldsCombined = map (\(alias,(att,sysatt)) -> (alias, att++sysatt)) qualIdens
-    isJoinField (n,_) = n `elem` joinIdens
-    (joinFields,nonJoinFields) = partition isJoinField $ concatMap snd qualifiedFieldsCombined
-    --need to resolve types instead of using nub
-    newQualifiedList = ("", nub joinFields ++ nonJoinFields):qualifiedFieldsCombined
-    qualifiedFieldsStarExp = map (\(alias,(att,_)) -> (alias, att)) qualIdens
-    (joinFieldsStarExp,nonJoinFieldsStarExp) =
-        partition isJoinField $ concatMap snd qualifiedFieldsStarExp
-    --need to resolve types instead of using nub
-    newStarExpansion = ("", nub joinFieldsStarExp ++ nonJoinFieldsStarExp):qualifiedFieldsStarExp
-
-{-
-combine two relvar types when being joined, pass in a using list and
-it checks the types in the using list are compatible, and eliminates
-duplicate columns of the attrs in the using list, returns the relvar
-type of the joined tables.
--}
-combineTableTypesWithUsingList :: Environment -> [String] -> Type -> Type -> Either [TypeError] Type
-combineTableTypesWithUsingList env l t1c t2c = do
-    --check t1 and t2 have l
-    t1 <-unwrapComposite t1c
-    t2 <- unwrapComposite t2c
-    let names1 = getNames t1
-    let names2 = getNames t2
-    when (not (contained l names1) ||
-              not (contained l names2)) $
-         Left [MissingJoinAttribute]
-    --check the types
-    joinColumnTypes <- mapM (getColumnType t1 t2) l
-    let nonJoinColumns =
-            let notJoin = (\(s,_) -> s `notElem` l)
-            in filter notJoin t1 ++ filter notJoin t2
-    return $ UnnamedCompositeType $ zip l joinColumnTypes ++ nonJoinColumns
-    where
-      getNames :: [(String,Type)] -> [String]
-      getNames = map fst
-      contained l1 l2 = all (`elem` l2) l1
-      getColumnType :: [(String,Type)] -> [(String,Type)] -> String -> Either [TypeError] Type
-      getColumnType t1 t2 f =
-          let ct1 = getFieldType t1 f
-              ct2 = getFieldType t2 f
-          in resolveResultSetType env [ct1,ct2]
-      getFieldType t f = snd $ fromJust $ find (\(s,_) -> s == f) t
-
-commonFieldNames :: Type -> Type -> [String]
-commonFieldNames t1 t2 =
-    intersect (fn t1) (fn t2)
-    where
-      fn (UnnamedCompositeType s) = map fst s
-      fn _ = []
-
-getFnType :: Environment -> String -> Expression -> Either [TypeError] Type
-getFnType env alias =
-    either Left (Right . snd) . getFunIdens env alias
-
-getFunIdens :: Environment -> String -> Expression -> Either [TypeError] (String,Type)
-getFunIdens env alias fnVal =
-   case fnVal of
-       FunCall _ f _ ->
-           let correlationName = if alias /= ""
-                                   then alias
-                                   else f
-           in Right (correlationName, case getTypeAnnotation fnVal of
-                SetOfType (CompositeType t) -> getCompositeType t
-                SetOfType x -> UnnamedCompositeType [(correlationName,x)]
-                y -> UnnamedCompositeType [(correlationName,y)])
-       x -> Left [ContextError "FunCall"]
-   where
-     getCompositeType t = UnnamedCompositeType $ fromRight [] $ envCompositePublicAttrs env [] t
-}
-
-SEM MaybeTableRef
-    | Nothing
-        lhs.idens = []
-        lhs.joinIdens = []
-
-ATTR SelectItemList SelectList [||listType : Type]
-
-SEM SelectItemList
-    | Cons lhs.listType = doSelectItemListTpe @lhs.lib @hd.columnName @hd.itemType @tl.listType
-    | Nil lhs.listType = UnnamedCompositeType []
-
-{
-doSelectItemListTpe :: LocalIdentifierBindings
-                    -> String
-                    -> Type
-                    -> Type
-                    -> Type
-doSelectItemListTpe env colName colType types =
-    if types == TypeCheckFailed
-       then types
-       else tpeToT (do
-         let (correlationName,iden) = splitIdentifier colName
-         newCols <- if iden == "*"
-                         then libExpandStar env correlationName
-                         else return [(iden, colType)]
-         foldM (flip consComposite) types $ reverse newCols)
-}
-
-
-ATTR SelectItem [||itemType : Type]
-
-SEM SelectItem
-    | SelExp SelectItem
-        lhs.itemType = getTypeAnnotation @ex.annotatedTree
-
--- hack to fix up for errors for ok *
-SEM SelectItem
-    | SelExp
-        loc.annotatedTree = SelExp @ann $ fixStar @ex.annotatedTree
-    | SelectItem
-        loc.backTree = SelectItem @ann (fixStar @ex.annotatedTree) @name
-
-{
-
-fixStar :: Expression -> Expression
-fixStar =
-    everywhere (mkT fixStar')
-    where
-      fixStar' :: Annotation -> Annotation
-      fixStar' a =
-          if TypeAnnotation TypeCheckFailed `elem` a
-              && any (\an ->
-                       case an of
-                         TypeErrorA (UnrecognisedIdentifier x) |
-                           let (_,iden) = splitIdentifier x
-                           in iden == "*" -> True
-                         _ -> False) a
-             then filter (\an -> case an of
-                                   TypeAnnotation TypeCheckFailed -> False
-                                   TypeErrorA (UnrecognisedIdentifier _) -> False
-                                   _ -> True) a
-             else a
-}
-
-SEM SelectList
-    | SelectList
-        lhs.listType = @items.listType
+INCLUDE "TypeChecking/SelectLists.ag"
 
 
 {-
 
-== env passing
+== env passing current bodge
 
 env flow:
 current simple version:
@@ -398,60 +178,4 @@ SEM SelectExpression
          selSelectList.lib = @loc.newLib
          selWhere.lib = @loc.newLib
          selGroupBy.lib = @loc.newLib
-
-{-
-
-== attributes
-
-columnName is used to collect the column names that the select list
-produces, it is combined into an unnamedcompositetype in
-selectitemlist, which is also where star expansion happens.
-
--}
-
-ATTR SelectItem [||columnName : String]
-
-{-
-if the select item is just an identifier, then that column is named
-after the identifier
-e.g. select a, b as c, b + c from d, gives three columns one named
-a, one named c, and one unnamed, even though only one has an alias
-if the select item is a function or aggregate call at the top level,
-then it is named after that function or aggregate
-
-if it is a cast, the column is named after the target data type name
-iff it is a simple type name
-
--}
-
---default value for non identifier nodes
-
-ATTR Expression [||liftedColumnName USE {`(fixedValue "")`} {""}: String]
-
-{
-fixedValue :: a -> a -> a -> a
-fixedValue a _ _ = a
-}
-
-{-
-override for identifier nodes, this only makes it out to the selectitem
-node if the identifier is not wrapped in parens, function calls, etc.
--}
-
-SEM Expression
-  | Identifier lhs.liftedColumnName = @i
-  | FunCall lhs.liftedColumnName =
-      if isOperatorName @funName
-         then ""
-         else @funName
-  | Cast lhs.liftedColumnName = case @tn.annotatedTree of
-                                  SimpleTypeName _ tn -> tn
-                                  _ -> ""
-
--- collect the aliases and column names for use by the selectitemlist nodes
-SEM SelectItem
-    | SelExp lhs.columnName = case @ex.liftedColumnName of
-                                "" -> "?column?"
-                                s -> s
-    | SelectItem lhs.columnName = @name
 
