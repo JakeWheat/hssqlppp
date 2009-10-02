@@ -6,13 +6,28 @@ select expression).
 
 -}
 
+-- lib update contains the updated id and star expansions coming out
+-- of the tableref part of a select expression. These updates aren't
+-- used for chaining these things for nested table refs (in join
+-- statements) - use attributes for them
+
 ATTR TableRef MaybeTableRef [|| libUpdates: {[LocalIdentifierBindingsUpdate]}]
 
+-- use these attributes which contain a copy of the info in lib
+-- updates in a form more digestable to the join attributes resolution
+-- the main advantages is we don't have to pull the ids out of a list
+-- of update wrappers, and we don't have to split the id bindings into
+-- qualified and unqualified parts. We could do it just using the
+-- libupdates in principle, but this way seems to be a bit more direct
+-- and clear to write and read (i.e. when I tried to to it using
+-- libupdates I failed and gave up several times).
 ATTR TableRef [|| idLookups : {[(String,Type)]}
                   starExpansion : {[(String,Type)]}
                   qidLookups : {[(String,[(String,Type)])]}
                   qstarExpansion : {[(String,[(String,Type)])]}]
 
+-- set the annotations, just need to pick up any type errors whilst
+-- calculating the new bindings
 SEM TableRef
     | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
         lhs.annotatedTree =
@@ -22,6 +37,32 @@ SEM MaybeTableRef
     | Nothing
         lhs.libUpdates = []
 
+{-
+
+in the individual sem parts, we set four values:
+idlookups : [(string,type)] pairs for all the unqualified ids which will be in scope coming out of the tref
+qidlookups: [(string, [(string,type)])] for all the qualified ids
+starexpansion: to expand unqualified *
+qstarexpansion: to expand qualified *
+(we need idlookups and starexpansion because of pg system columns,
+which are a serious pain to deal with).
+
+These are set as local vars, because we need to feed the resultant lib
+update into the on expressions in joins lower down, which we can't do
+directly with a syn attribute, so we collect them in locals, the
+combined the in a local for libupdates. We copy all the parts and the
+lib updates to regular attributes so we can access them from other
+sems (the components (idlookups, etc.) are needed in working out joins
+attributes, and the libupdate is used in the join expression, so all
+this extra copying is only needed to support joins).
+
+in each part, we collect errors in the errs local which we can then
+add to the annotation for the node. when this happens, further type
+checking in the select statement should stop but this isn't properly
+implemented yet (this is to avoid too many type errors all over the
+tree resulting from one mistake - a user friendliness consideration)
+
+-}
 
 SEM TableRef
     | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
@@ -29,25 +70,26 @@ SEM TableRef
                            then [LibStackIDs $ ("", @loc.idLookups): @loc.qidLookups
                                 ,LibSetStarExpansion $ ("", @loc.starExpansion): @loc.qstarExpansion]
                            else []
-        lhs.libUpdates = @loc.libUpdates
+{-
 
--- one of the main hairy bits of code which needs a serious refactor:
+similar sort of pattern for each sem:
+forward the errs
+get the information we need to fill in the lookups and expansions as an either
+fill in the lookups and expansions
+
+-}
 SEM TableRef
-    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
-        lhs.idLookups = @loc.idLookups
-        lhs.qidLookups = @loc.qidLookups
-        lhs.starExpansion = @loc.starExpansion
-        lhs.qstarExpansion = @loc.qstarExpansion
     | SubTref
         loc.errs = case @loc.selectAttrs of
                            Left e -> e
                            Right _ -> []
-        loc.backTree = SubTref @ann @sel.annotatedTree @alias
         loc.selectAttrs = unwrapSetOfComposite (getTypeAnnotation @sel.annotatedTree)
+
         loc.idLookups = fromRight [] @loc.selectAttrs
         loc.qidLookups = [(@alias, @loc.idLookups)]
         loc.starExpansion = @loc.idLookups
         loc.qstarExpansion = @loc.qidLookups
+
     | TrefAlias Tref
         loc.errs = case @loc.relType of
                      Left e -> e
@@ -56,16 +98,16 @@ SEM TableRef
         loc.relType1 = fromRight ([],[]) @loc.relType
         loc.pAttrs = fst @loc.relType1
         loc.sAttrs = snd @loc.relType1
+
         loc.idLookups = @loc.pAttrs ++ @loc.sAttrs
         loc.qidLookups = [(@loc.alias1, @loc.idLookups)]
         loc.starExpansion = @loc.pAttrs
         loc.qstarExpansion = [(@loc.alias1, @loc.pAttrs)]
     | Tref
         loc.alias1 = @tbl
-        loc.backTree = Tref @ann @tbl
     | TrefAlias
         loc.alias1 = @alias
-        loc.backTree = TrefAlias @ann @tbl @alias
+
     | TrefFun TrefFunAlias
         loc.errs = case @eqfunIdens of
                      Left e -> e
@@ -74,18 +116,57 @@ SEM TableRef
         loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
         loc.alias2 = fst @loc.qfunIdens
         loc.funIdens = snd @loc.qfunIdens
+
         loc.idLookups = @loc.funIdens
         loc.qidLookups = [(@alias2, @loc.idLookups)]
         loc.starExpansion = @loc.idLookups
         loc.qstarExpansion = @loc.qidLookups
     | TrefFun
         loc.alias1 = ""
-        loc.backTree = TrefFun @ann @fn.annotatedTree
     | TrefFunAlias
         loc.alias1 = @alias
-        loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
+
     | JoinedTref
         loc.errs = fromLeft [] @loc.ejoinAttrs
+        loc.removeJoinAttrs = filter (\(n,_) -> n `notElem` @loc.joinNames)
+        --the main meat: find out the name and types of all the common
+        -- join attributes that need to be combined in the result
+        -- (this is all the attributes which appear in both tables in
+        -- the case of a natural join, or all the attributes appearing
+        -- in the join list in the case of a using join.  for other
+        -- joins, this list is empty
+        -- all the attributes which don't appear in this list just
+        -- get added together so we don't need to worry about them
+        loc.ejoinAttrs =
+            do
+            -- get the names of the join columns
+            let jns = case (@nat.annotatedTree, @onExpr.originalTree) of
+                          (Natural, _) -> commonFieldNames
+                          (_,Just (JoinUsing _ s)) -> s
+                          _ -> []
+                --make sure these columns appear in both tables
+                tjtsm = map (flip lookup @tbl.idLookups) jns
+                t1jtsm = map (flip lookup @tbl1.idLookups) jns
+            errorWhen (not $ null $ filter (==Nothing) $ tjtsm ++ t1jtsm)
+                      [MissingJoinAttribute]
+            let tjts = catMaybes tjtsm -- should be no nothings at this stage
+                t1jts = catMaybes t1jtsm
+                -- find the types of these columns - this uses the result set
+                -- type resolution (see typeconversion.lhs for more details
+                -- and the relevant link to the pg manual
+                resolvedTypes :: [Either [TypeError] Type]
+                resolvedTypes = map (\(a,b) -> resolveResultSetType @lhs.env [a,b]) $ zip tjts t1jts
+            liftErrors $ concat $ lefts resolvedTypes
+            return $ zip jns $ rights resolvedTypes
+            where
+              commonFieldNames = intersect (f @tbl.starExpansion) (f @tbl1.starExpansion)
+                                 where f = map fst
+        loc.joinNames = map fst @loc.joinAttrs
+        loc.joinAttrs = fromRight [] @loc.ejoinAttrs
+
+        --this is where we use the joinAttrs to filter the lookups and
+        --expansions: stick the joinattrs at the start
+        -- and add the other two lists minus the join attributes
         loc.idLookups = @loc.joinAttrs ++
                           @loc.removeJoinAttrs @tbl.idLookups ++
                           @loc.removeJoinAttrs @tbl1.idLookups
@@ -94,40 +175,30 @@ SEM TableRef
                               @loc.removeJoinAttrs @tbl.starExpansion ++
                               @loc.removeJoinAttrs @tbl1.starExpansion
         loc.qstarExpansion = @tbl.qstarExpansion ++ @tbl1.qstarExpansion
-        loc.removeJoinAttrs = filter (\(n,_) -> n `notElem` @loc.joinNames)
-        loc.joinNames = map fst @loc.joinAttrs
-        loc.joinAttrs = fromRight [] @loc.ejoinAttrs
-        loc.ejoinAttrs =
-            do
-            let jns = case (@nat.annotatedTree, @onExpr.originalTree) of
-                          (Natural, _) -> commonFieldNames
-                          (_,Just (JoinUsing _ s)) -> s
-                          _ -> []
-                tjtsm = map (flip lookup @tbl.idLookups) jns
-                t1jtsm = map (flip lookup @tbl1.idLookups) jns
-            errorWhen (not $ null $ filter (==Nothing) $ tjtsm ++ t1jtsm)
-                      [MissingJoinAttribute]
-            let tjts = catMaybes tjtsm
-                t1jts = catMaybes t1jtsm
-                resolvedTypes :: [Either [TypeError] Type]
-                resolvedTypes = map (\(a,b) -> resolveResultSetType @lhs.env [a,b]) $ zip tjts t1jts
-            liftErrors $ concat $ lefts resolvedTypes
-            return $ zip jns $ rights resolvedTypes
-            where
-              commonFieldNames = intersect (f @tbl.starExpansion) (f @tbl1.starExpansion)
-                                 where f = map fst
 
-        loc.backTree = JoinedTref @ann
-                                  @tbl.annotatedTree
-                                  @nat.annotatedTree
-                                  @joinType.annotatedTree
-                                  @tbl1.annotatedTree
-                                  @onExpr.annotatedTree
+        -- we need the attributes from the joined tables to be available
+        -- in the join expression.
         onExpr.lib = case updateBindings @lhs.lib @loc.libUpdates of
                        Left x -> error $ show x
                        Right e -> e
 
 {
+{-
+convert a function call into a [String,[(string,type)]] list for use
+in a tableref context
+first consideration is the alias: if there is an alias in the select,
+e.g. select * from generate_series(1,2) x;  (alias is x)
+we use that, otherwise we use the name of the function
+second consideration is the attributes coming out, roughly speaking
+we have to convert an arbitrary type to a relation type
+if we have a relation valued function, we don't need to do anything
+if we have a setof non composite, we lift the single type to an
+attribute, using the function name for the attribute name
+if we have a non setof, we lift the single type to an attribute and
+then relation, using the function name for the attribute name
+need to check to see what should happen with arrayof
+
+-}
 funIdens :: Environment -> String -> Expression -> Either [TypeError] (String,[(String,Type)])
 funIdens env alias fnVal = do
    errorWhen (case fnVal of
@@ -144,7 +215,37 @@ funIdens env alias fnVal = do
        SetOfType x -> return [(correlationName,x)]
        y -> return [(correlationName,y)]
    return (correlationName, attrs)
-   where
-     getCompositeType t = UnnamedCompositeType $ fromRight [] $ envCompositePublicAttrs env [] t
 }
 
+-- boilerplate
+-- copying the locals to syn attrs
+
+SEM TableRef
+    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
+        lhs.libUpdates = @loc.libUpdates
+        lhs.idLookups = @loc.idLookups
+        lhs.qidLookups = @loc.qidLookups
+        lhs.starExpansion = @loc.starExpansion
+        lhs.qstarExpansion = @loc.qstarExpansion
+
+-- backtrees
+
+SEM TableRef
+    | SubTref
+        loc.backTree = SubTref @ann @sel.annotatedTree @alias
+    | Tref
+        loc.backTree = Tref @ann @tbl
+    | TrefAlias
+        loc.backTree = TrefAlias @ann @tbl @alias
+    | TrefFun TrefFunAlias
+    | TrefFun
+        loc.backTree = TrefFun @ann @fn.annotatedTree
+    | TrefFunAlias
+        loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
+    | JoinedTref
+        loc.backTree = JoinedTref @ann
+                                  @tbl.annotatedTree
+                                  @nat.annotatedTree
+                                  @joinType.annotatedTree
+                                  @tbl1.annotatedTree
+                                  @onExpr.annotatedTree
