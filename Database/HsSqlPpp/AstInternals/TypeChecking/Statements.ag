@@ -24,6 +24,7 @@ ATTR StatementList [envUpdates : {[EnvironmentUpdate]}||]
 --producedenv is used to pass the final updated env out
 ATTR StatementList Root [|| producedEnv : Environment]
 
+ATTR Statement [inProducedEnv: Environment||]
 
 SEM StatementList
     | Cons Nil
@@ -52,6 +53,9 @@ SEM Statement
                               $ Just (map StatementInfoA @loc.statementInfo ++
                                       [EnvUpdates @loc.envUpdates])
         lhs.envUpdates = @loc.envUpdates
+
+SEM StatementList
+    | Cons hd.inProducedEnv = @tl.producedEnv
 
 
 SEM Root

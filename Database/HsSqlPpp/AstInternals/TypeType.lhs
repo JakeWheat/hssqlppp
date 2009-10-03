@@ -165,7 +165,7 @@ this converts the name of a type to its canonical name
 >                     | otherwise -> s
 >   where
 >       smallIntNames = ["int2", "smallint"]
->       intNames = ["int4", "integer", "int"]
+>       intNames = ["int4", "integer", "int", "serial"]
 >       bigIntNames = ["int8", "bigint"]
 >       numericNames = ["numeric", "decimal"]
 >       float4Names = ["real", "float4"]

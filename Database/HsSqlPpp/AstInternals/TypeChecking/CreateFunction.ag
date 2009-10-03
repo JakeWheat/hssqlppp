@@ -39,6 +39,7 @@ SEM Statement
                                       @body.annotatedTree
                                       @vol.annotatedTree
         loc.statementInfo = []
+        body.env = @lhs.inProducedEnv
 
 {-
 == parameters

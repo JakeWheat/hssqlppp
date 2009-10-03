@@ -2,19 +2,35 @@ Copyright 2009 Jake Wheat
 
 Experimental code to use uniplate to implement extensions
 
+> {-# LANGUAGE ViewPatterns #-}
 > module Extensions where
 
 > import Data.Generics
 > import Data.Generics.PlateData
 > import Database.HsSqlPpp.Ast.Ast
+> import Database.HsSqlPpp.Ast.Annotation
+
+
+
+> data FunCallView = FUnit
+>                  | FunCallView Annotation String [Expression]
+
+> funCallView :: Statement -> FunCallView
+> funCallView (SelectStatement an (Select _ _ (SelectList _ [SelExp _ (FunCall _ fnName
+>               args)] []) Nothing Nothing [] Nothing [] Asc Nothing Nothing)) = (FunCallView an fnName args)
+> funCallView _ = FUnit
+
+
+>{-         (SelectStatement an (Select _ _ (SelectList _ [SelExp _ (FunCall _ "create_var"
+>           [StringLit _ _ tableName,StringLit _ _ typeName])] [])
+>            Nothing Nothing [] Nothing [] Asc Nothing Nothing):tl)-}
 
 
 > rewriteCreateVars :: Data a => a -> a
 > rewriteCreateVars =
 >     transformBi $ \x ->
 >       case x of
->         (SelectStatement an (Select _ _ (SelectList _ [SelExp _ (FunCall _ "create_var"
->           [StringLit _ _ tableName,StringLit _ _ typeName])] []) Nothing Nothing [] Nothing [] Asc Nothing Nothing):tl)
+>         (funCallView -> FunCallView an "create_var" [StringLit _ _ tableName,StringLit _ _ typeName]):tl
 >             -> ((CreateTable an
 >                            (tableName ++ "_table")
 >                            [AttributeDef an

@@ -95,6 +95,7 @@ SEM SelectExpression
          selSelectList.lib = @loc.newLib
          selWhere.lib = @loc.newLib
          selGroupBy.lib = @loc.newLib
+         selOrderBy.lib = @loc.newLib
 
 
 
