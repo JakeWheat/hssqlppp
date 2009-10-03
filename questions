@@ -88,3 +88,13 @@ select
   inner join pg_class cls using(oid);
 
 -- column "oid" specified in USING clause does not exist in left table
+
+
+casting, etc.:
+what operator is being used when comparing two composite types for
+equality: used to have to create this manually but now works without
+this (briefly caused an error but now works either way)
+
+what are the fields names when you create a record from a row ctor
+what are the rules about casting from records to composites and between
+composites: specifically about field orders and type compatibility

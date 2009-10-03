@@ -1,3 +1,20 @@
+cleaning
+
+typechecking support for a few more contexts for expressions (e.g. on
+expressions in joins, check expressions, wheres in updates and
+deletes, etc.)
+type checking support for a few more statement types
+work on implicit casts
+improvements to checksource command
+prototype idea for extension system
+hack to improve typechecking of function bodies - they are now type
+checked after the whole rest of the file
+
+main internal changes:
+lots of refactoring
+heavy rearrangement of ag code, it's not a complete mess anymore
+split local binding code from catalog code
+
 environment
 
 New environment data type with abstracted implementation, can now

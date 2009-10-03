@@ -212,7 +212,7 @@ against.
 >                           listCastPairs' (ia:ias) (ca:cas) =
 >                               (case () of
 >                                  _ | ia == ca -> ExactMatch
->                                    | implicitlyCastableFromTo env ia ca ->
+>                                    | castableFromTo env ImplicitCastContext ia ca ->
 >                                        if envPreferredType env ca
 >                                          then ImplicitToPreferred
 >                                          else ImplicitToNonPreferred
@@ -424,10 +424,6 @@ against.
 >                     | ImplicitToNonPreferred
 >                       deriving (Eq,Show)
 >
-> implicitlyCastableFromTo :: Environment -> Type -> Type -> Bool
-> implicitlyCastableFromTo env from to = from == UnknownStringLit ||
->                                          envCast env ImplicitCastContext from to
->
 
 resolveResultSetType -
 partially implement the typing of results sets where the types aren't
@@ -476,10 +472,8 @@ code is not as much of a mess as findCallMatch
 >                                       then Just x
 >                                       else firstAllConvertibleTo xs
 >      firstAllConvertibleTo [] = Nothing
->      matchOrImplicitToFrom t t1 = t == t1 ||
->                                   implicitlyCastableFromTo env t1 t
 >      knownTypes = filter (/=UnknownStringLit) inArgsBase
->      allConvertibleToFrom = all . matchOrImplicitToFrom
+>      allConvertibleToFrom = all . flip (castableFromTo env ImplicitCastContext)
 
 > replaceWithBase :: Environment -> Type -> Type
 > replaceWithBase env t@(DomainType _) = envDomainBaseType env t
@@ -493,6 +487,14 @@ cast empty array, where else can an empty array work?
 
 = checkAssignmentValue
 
+> checkAssignmentValid :: Environment -> Type -> Type -> Either [TypeError] ()
+> checkAssignmentValid env src tgt =
+>     if castableFromTo env AssignmentCastContext src tgt
+>        then Right ()
+>        else Left [IncompatibleTypes tgt src]
+
+
+
 assignment is ok if:
 types are equal
 there is a cast from src to target
@@ -502,28 +504,101 @@ lhs is composite and rhs is compatible row ctor
 lhs and rhs are compatible composites
 domain and base are compatible
 
-> checkAssignmentValid :: Environment -> Type -> Type -> Either [TypeError] ()
-> checkAssignmentValid env src tgt =
->     if checkAssignmentValidB env src tgt
->        then Right ()
->        else Left [IncompatibleTypes tgt src]
 
-> checkAssignmentValidB :: Environment -> Type -> Type -> Bool
+> castableFromTo :: Environment -> CastContext -> Type -> Type -> Bool
+> castableFromTo env cc from to =
+>   from == to
+>   || from == UnknownStringLit
+>   || ((isDomainType from || isDomainType to)
+>       && castableFromTo env cc (replaceWithBase env from)
+>                                (replaceWithBase env to))
+>   || envCast env cc from to
+>   || (cc == AssignmentCastContext
+>       && envCast env ImplicitCastContext from to)
+>   || (cc == AssignmentCastContext
+>       && isCompOrSetoOfComp from
+>       && to == Pseudo Record)
+>   || recurseTransFrom (unboxedSingleType from)
+>   || recurseTransFrom (unboxedCompositeType from)
+>   || recurseTransFrom (lookupComposite from)
+>   || compositesCompatible from to
+>   || rowToComposite from to
+>   where
+>     compositesCompatible (UnnamedCompositeType a)
+>                          (UnnamedCompositeType b) =
+>        names a == names b
+>        && typeListCompatible (types a) (types b)
+>        where
+>          names = map fst
+>          types = map snd
+>     compositesCompatible _ _ = False
+>     rowToComposite (RowCtor t) (UnnamedCompositeType c) =
+>         typeListCompatible t $ map snd c
+>     rowToComposite _ _ = False
+>     typeListCompatible a b = all (uncurry $ castableFromTo env cc) $ zip a b
+>     isCompOrSetoOfComp (CompositeType _) = True
+>     isCompOrSetoOfComp (UnnamedCompositeType _) = True
+>     isCompOrSetoOfComp (SetOfType (CompositeType _)) = True
+>     isCompOrSetoOfComp (SetOfType (UnnamedCompositeType _)) = True
+>     isCompOrSetoOfComp _ = False
+>     unboxedSingleType (SetOfType (UnnamedCompositeType [(_,t)])) = Just t
+>     unboxedSingleType _ = Nothing
+>     unboxedCompositeType (SetOfType a@(UnnamedCompositeType _)) = Just a
+>     unboxedCompositeType (SetOfType a@(CompositeType _)) = Just a
+>     unboxedCompositeType _ = Nothing
+>     recurseTransFrom = maybe False (flip (castableFromTo env cc) to)
+>     lookupComposite (CompositeType t) = Just $ UnnamedCompositeType $
+>                                         fromRight [] $
+>                                         envCompositePublicAttrs env [] t
+>     lookupComposite _ = Nothing
+
+*types equal
+*src unknown
+*base types of domains recurse
+*cast table entries
+src: unbox set of composite -> composite, check recurse
+     unbox composite/set of composite -> scalar, check recurse
+row -> compatible composite
+composites compatible
+
+> {-checkAssignmentValidB :: Environment -> Type -> Type -> Bool
 > checkAssignmentValidB env src tgt =
 >     case () of
->       _ | src == tgt -> True
->         | (isDomainType src || isDomainType tgt) &&
->             checkAssignmentValidB env
->                                   (replaceWithBase env src)
->                                   (replaceWithBase env tgt) -> True
->         | isCompOrSetoOfComp src && tgt == Pseudo Record -> True
->         | isCompatibleRow src tgt -> True
->         | isCompatibleComposite src tgt -> True
+>         | checkOtherCasts env AssignmentCastContext src tgt
 >         | assignCastableFromTo env src tgt -> True
 >         | maybe False
 >                 (flip (checkAssignmentValidB env) tgt)
 >                 (unboxedSingleType src) -> True
 >         | otherwise -> False
+
+> assignCastableFromTo :: Environment -> Type -> Type -> Bool
+> assignCastableFromTo env from to = from == UnknownStringLit ||
+>                                    envCast env ImplicitCastContext from to ||
+>                                    envCast env AssignmentCastContext from to
+
+> unboxedSingleType :: Type -> Maybe Type
+> unboxedSingleType ((SetOfType (UnnamedCompositeType [(_,t)]))) = Just t
+> unboxedSingleType _ = Nothing
+
+
+> implicitlyCastableFromTo :: Environment -> Type -> Type -> Bool
+> implicitlyCastableFromTo env from to =
+>   from == UnknownStringLit ||
+>   envCast env ImplicitCastContext from to
+
+
+
+> checkOtherCasts :: Environment -> CastContext -> Type -> Type -> Bool
+> checkOtherCasts env cc src tgt =
+>         | isCompOrSetoOfComp src && tgt == Pseudo Record -> True
+>       _ | src == tgt -> True
+>         | (isDomainType src || isDomainType tgt) &&
+>             checkAssignmentValidB env
+>                                   (replaceWithBase env src)
+>                                   (replaceWithBase env tgt) -> True
+>         | isCompatibleRow src tgt -> True
+>         | isCompatibleComposite src tgt -> True
+
 >     where
 >       isCompOrSetoOfComp (CompositeType _) = True
 >       isCompOrSetoOfComp (UnnamedCompositeType _) = True
@@ -546,13 +621,4 @@ domain and base are compatible
 >                else cs1 == cs2
 >       getCompositeAttrs (CompositeType t) = fromRight [] $ envCompositePublicAttrs env [] t
 >       getCompositeAttrs (UnnamedCompositeType ts) = ts
->       getCompositeAttrs _ = []
-
-> assignCastableFromTo :: Environment -> Type -> Type -> Bool
-> assignCastableFromTo env from to = from == UnknownStringLit ||
->                                    envCast env ImplicitCastContext from to ||
->                                    envCast env AssignmentCastContext from to
-
-> unboxedSingleType :: Type -> Maybe Type
-> unboxedSingleType ((SetOfType (UnnamedCompositeType [(_,t)]))) = Just t
-> unboxedSingleType _ = Nothing
+>       getCompositeAttrs _ = []-}
