@@ -20,6 +20,7 @@ TODO 2: think of a name for this command
 > import System.Directory
 > import Data.List
 > import Data.Either
+> import Control.Applicative
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
@@ -253,10 +254,14 @@ TODO: do something more correct
 >                    (Multiple checkSourceExt)
 
 > checkSourceExt :: [FilePath] -> IO ()
-> checkSourceExt fns = do
+> checkSourceExt (dbName:fns) = do
+>   env1 <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
+>   let env = case env1 of
+>               Left e -> error $ show e
+>               Right e1 -> e1
 >   astEithers <- mapM parseSqlFile fns
 >   let asts = map rewriteCreateVars $ rights astEithers
->   let aasts = annotateAstsEnv defaultTemplate1Environment asts
+>   let aasts = annotateAstsEnv env asts
 >   mapM_ print $ lefts astEithers
 >   mapM_ showTes $ aasts
 >   where

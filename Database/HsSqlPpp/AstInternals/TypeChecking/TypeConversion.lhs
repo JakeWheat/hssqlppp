@@ -475,12 +475,7 @@ code is not as much of a mess as findCallMatch
 >      knownTypes = filter (/=UnknownStringLit) inArgsBase
 >      allConvertibleToFrom = all . flip (castableFromTo env ImplicitCastContext)
 
-> replaceWithBase :: Environment -> Type -> Type
-> replaceWithBase env t@(DomainType _) = envDomainBaseType env t
-> replaceWithBase _ t = t
-
 todo:
-row ctor implicitly and explicitly cast to a composite type
 cast empty array, where else can an empty array work?
 
 ================================================================================
@@ -493,39 +488,42 @@ cast empty array, where else can an empty array work?
 >        then Right ()
 >        else Left [IncompatibleTypes tgt src]
 
+================================================================================
 
+= castable function
 
-assignment is ok if:
-types are equal
-there is a cast from src to target
-lhs is scalar and rhs is setof composite with 1 attr than can assign
-  to that scalar
-lhs is composite and rhs is compatible row ctor
-lhs and rhs are compatible composites
-domain and base are compatible
-
+wrapper around the catalog to add a bunch of extra valid casts
 
 > castableFromTo :: Environment -> CastContext -> Type -> Type -> Bool
 > castableFromTo env cc from to =
+>   -- put this here to avoid having to write it everywhere else
 >   from == to
+>   -- unknown can be implicitly cast to anything (is this completely true?)
 >   || from == UnknownStringLit
+>   -- check base types of domains
 >   || ((isDomainType from || isDomainType to)
 >       && castableFromTo env cc (replaceWithBase env from)
 >                                (replaceWithBase env to))
+>   -- check the casts listed in the catalog
 >   || envCast env cc from to
+>   -- implicitcast => assignment cast
 >   || (cc == AssignmentCastContext
 >       && envCast env ImplicitCastContext from to)
+>   -- can assign composite to record
 >   || (cc == AssignmentCastContext
 >       && isCompOrSetoOfComp from
 >       && to == Pseudo Record)
+>   -- check unboxing: wrapped single attribute
 >   || recurseTransFrom (unboxedSingleType from)
+>   -- check unboxing: wrapped composite
 >   || recurseTransFrom (unboxedCompositeType from)
->   || recurseTransFrom (lookupComposite from)
->   || compositesCompatible from to
+>   -- check composites compatible by comparing attributes
+>   || compositesCompatible (lookupOrComposite from) (lookupOrComposite to)
+>   -- check row cast to composite
 >   || rowToComposite from to
 >   where
->     compositesCompatible (UnnamedCompositeType a)
->                          (UnnamedCompositeType b) =
+>     compositesCompatible (Just (UnnamedCompositeType a))
+>                          (Just (UnnamedCompositeType b)) =
 >        names a == names b
 >        && typeListCompatible (types a) (types b)
 >        where
@@ -547,78 +545,13 @@ domain and base are compatible
 >     unboxedCompositeType (SetOfType a@(CompositeType _)) = Just a
 >     unboxedCompositeType _ = Nothing
 >     recurseTransFrom = maybe False (flip (castableFromTo env cc) to)
->     lookupComposite (CompositeType t) = Just $ UnnamedCompositeType $
->                                         fromRight [] $
->                                         envCompositePublicAttrs env [] t
+>     lookupComposite (CompositeType t) =
+>       Just $ UnnamedCompositeType $
+>       fromRight [] $ envCompositePublicAttrs env [] t
 >     lookupComposite _ = Nothing
+>     lookupOrComposite c@(UnnamedCompositeType _) = Just c
+>     lookupOrComposite c = lookupComposite c
 
-*types equal
-*src unknown
-*base types of domains recurse
-*cast table entries
-src: unbox set of composite -> composite, check recurse
-     unbox composite/set of composite -> scalar, check recurse
-row -> compatible composite
-composites compatible
-
-> {-checkAssignmentValidB :: Environment -> Type -> Type -> Bool
-> checkAssignmentValidB env src tgt =
->     case () of
->         | checkOtherCasts env AssignmentCastContext src tgt
->         | assignCastableFromTo env src tgt -> True
->         | maybe False
->                 (flip (checkAssignmentValidB env) tgt)
->                 (unboxedSingleType src) -> True
->         | otherwise -> False
-
-> assignCastableFromTo :: Environment -> Type -> Type -> Bool
-> assignCastableFromTo env from to = from == UnknownStringLit ||
->                                    envCast env ImplicitCastContext from to ||
->                                    envCast env AssignmentCastContext from to
-
-> unboxedSingleType :: Type -> Maybe Type
-> unboxedSingleType ((SetOfType (UnnamedCompositeType [(_,t)]))) = Just t
-> unboxedSingleType _ = Nothing
-
-
-> implicitlyCastableFromTo :: Environment -> Type -> Type -> Bool
-> implicitlyCastableFromTo env from to =
->   from == UnknownStringLit ||
->   envCast env ImplicitCastContext from to
-
-
-
-> checkOtherCasts :: Environment -> CastContext -> Type -> Type -> Bool
-> checkOtherCasts env cc src tgt =
->         | isCompOrSetoOfComp src && tgt == Pseudo Record -> True
->       _ | src == tgt -> True
->         | (isDomainType src || isDomainType tgt) &&
->             checkAssignmentValidB env
->                                   (replaceWithBase env src)
->                                   (replaceWithBase env tgt) -> True
->         | isCompatibleRow src tgt -> True
->         | isCompatibleComposite src tgt -> True
-
->     where
->       isCompOrSetoOfComp (CompositeType _) = True
->       isCompOrSetoOfComp (UnnamedCompositeType _) = True
->       isCompOrSetoOfComp (SetOfType (CompositeType _)) = True
->       isCompOrSetoOfComp (SetOfType (UnnamedCompositeType _)) = True
->       isCompOrSetoOfComp _ = False
->       --check they have the same number of fields and that each
->       --field is assign compatible
->       isCompatibleRow (RowCtor rs) ct | isCompositeType ct =
->          let cs = getCompositeAttrs ct
->          in if length rs /= length cs
->               then False
->               else all (uncurry (checkAssignmentValidB env)) $ zip rs $ map snd cs
->       isCompatibleRow _ _ = False
->       isCompatibleComposite ct1 ct2 =
->           let cs1 = getCompositeAttrs ct1
->               cs2 = getCompositeAttrs ct2
->           in if cs1 == [] || cs2 == []
->                then False
->                else cs1 == cs2
->       getCompositeAttrs (CompositeType t) = fromRight [] $ envCompositePublicAttrs env [] t
->       getCompositeAttrs (UnnamedCompositeType ts) = ts
->       getCompositeAttrs _ = []-}
+> replaceWithBase :: Environment -> Type -> Type
+> replaceWithBase env t@(DomainType _) = envDomainBaseType env t
+> replaceWithBase _ t = t
