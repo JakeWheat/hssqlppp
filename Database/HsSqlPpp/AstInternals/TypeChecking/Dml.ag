@@ -79,7 +79,7 @@ SEM Statement
              ct <- envCompositeAttrs @lhs.env
                                      relationComposites
                                      @table
-             updateBindings @lhs.lib [LibStackIDs [("", ct)]]
+             updateBindings @lhs.lib @lhs.env [LibStackIDs [("", ct)]]
         whr.lib = @loc.lib
         assigns.lib = @loc.lib
 
@@ -153,7 +153,7 @@ SEM Statement
         whr.lib =
             fromRight @lhs.lib $ do
             columnTypes <- envCompositeAttrs @lhs.env relationComposites @table
-            updateBindings @lhs.lib [LibStackIDs [("", columnTypes)]]
+            updateBindings @lhs.lib @lhs.env [LibStackIDs [("", columnTypes)]]
 
 {-
 ================================================================================

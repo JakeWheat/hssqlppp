@@ -67,5 +67,5 @@ SEM Statement
         loc.envUpdates = [EnvCreateDomain (DomainType @name) @typ.namedType]
         --allow refering to value as 'value' in check expression
         check.lib = fromRight @lhs.lib $
-                    updateBindings @lhs.lib
+                    updateBindings @lhs.lib @lhs.env
                       [LibStackIDs [("", [("value", @typ.namedType)])]]

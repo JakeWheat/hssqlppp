@@ -252,8 +252,14 @@ These may indicate that the haskell type system isn't being used very well.
 > isArrayType (ArrayType _) = True
 > isArrayType _ = False
 
+> isDomainType :: Type -> Bool
+> isDomainType (DomainType _) = True
+> isDomainType _ = False
+
+
 > isCompositeType :: Type -> Bool
 > isCompositeType (UnnamedCompositeType _) = True
+> isCompositeType (CompositeType _) = True
 > isCompositeType _ = False
 
 

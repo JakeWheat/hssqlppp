@@ -40,9 +40,7 @@ SEM Statement
           dependsOnRTpe [@loc.selType] $ do
           toType <- libLookupID @lhs.lib "" @var
           dependsOnRTpe [toType] $ do
-          if toType /= Pseudo Record --slightly hacky, can do better?
-             then checkAssignmentValid @lhs.env @loc.selType toType
-             else Right ()
+          checkAssignmentValid @lhs.env @loc.selType toType
           return $ Pseudo Void
         --just handles assigning to a record type for now
         --one thing that isn't quite right is that the record variable
@@ -51,15 +49,15 @@ SEM Statement
         sts.lib =
             if okToUpdate
               then fromRight @lhs.lib $
-                   updateBindings @lhs.lib [LibStackIDs [(@var, attrs)]]
+                   updateBindings @lhs.lib @lhs.env [LibStackIDs [("", [(@var,@loc.selType)])]]
                    -- todo:ignoring error
               else @lhs.lib
             where
               okToUpdate = isRight @loc.tpe && @loc.selType /= TypeCheckFailed
-              attrs = case @loc.selType of
+              {-attrs = case @loc.selType of
                            UnnamedCompositeType t -> t
                            SetOfType (UnnamedCompositeType t) -> t
-                           x -> [] --todo: ignoring error
+                           x -> [] --todo: ignoring error-}
 
         loc.backTree = ForSelectStatement @ann @var @sel.annotatedTree @sts.annotatedTree
         loc.envUpdates = []

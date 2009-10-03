@@ -178,7 +178,7 @@ SEM TableRef
 
         -- we need the attributes from the joined tables to be available
         -- in the join expression.
-        onExpr.lib = case updateBindings @lhs.lib @loc.libUpdates of
+        onExpr.lib = case updateBindings @lhs.lib @lhs.env @loc.libUpdates of
                        Left x -> error $ show x
                        Right e -> e
 

@@ -23,6 +23,7 @@ Main areas to support are parameters and variables
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
 
 > -- | The main datatype, this holds the catalog and context
 > -- information to type check against.
@@ -176,15 +177,30 @@ moment.
 > -- | Applies a list of 'EnvironmentUpdate's to an 'Environment' value
 > -- to produce a new Environment value.
 > updateBindings :: LocalIdentifierBindings
+>                -> Environment
 >                -> [LocalIdentifierBindingsUpdate]
 >                -> Either [TypeError] LocalIdentifierBindings
-> updateBindings env' eus =
->   foldM updateEnv' env' eus
+> updateBindings lbs' env eus =
+>   foldM updateEnv' lbs' eus
 >   where
->     updateEnv' env eu =
+>     updateEnv' lbs eu =
 >       case eu of
->         LibStackIDs qids -> return $ env {identifierTypes = qids:identifierTypes env}
->         LibSetStarExpansion sids -> return $ env {starTypes = sids}
+>         LibStackIDs qids -> return $ lbs {identifierTypes = (expandComposites qids):identifierTypes lbs}
+>         LibSetStarExpansion sids -> return $ lbs {starTypes = sids}
+>     --take all the composite typed ids, and expand them out
+>     expandComposites :: [(String, [(String,Type)])] -> [(String, [(String,Type)])]
+>     expandComposites (qi@(_,attrs):qis) =
+>         ec attrs ++ qi:expandComposites qis
+>         where
+>           ec :: [(String,Type)] -> [(String, [(String,Type)])]
+>           ec [] = []
+>           ec ((nm,CompositeType t):xs) = (nm,compFields t):ec xs
+>           ec ((nm,SetOfType(CompositeType t)):xs) = (nm,compFields t):ec xs
+>           ec ((nm,UnnamedCompositeType t):xs) = (nm, t):ec xs
+>           ec ((nm,SetOfType(UnnamedCompositeType t)):xs) = (nm, t):ec xs
+>           ec (_:xs) = ec xs
+>     expandComposites [] = []
+>     compFields t = fromRight [] $ envCompositePublicAttrs env [] t
 
 > data LocalIdentifierBindingsUpdate =
 >     -- | to allow an unqualified identifier reference to work you need to

@@ -46,7 +46,7 @@ SEM StatementList
 
 SEM Statement
     | SelectStatement Insert Update Delete CreateView CreateDomain
-      CreateFunction CreateType CreateTable Return Assignment ForSelectStatement
+      CreateFunction CreateType CreateTable CreateTableAs Return Assignment ForSelectStatement
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)

@@ -96,7 +96,7 @@ SEM Statement
     | CreateFunction
         --add the parameters to the environment for the contained statements
         body.lib = fromRight @lhs.lib $
-                   updateBindings @lhs.lib
+                   updateBindings @lhs.lib @lhs.env 
                                   [LibStackIDs [("", @params.params)
                                                ,(@name, @params.params)]]
 {-
@@ -113,7 +113,7 @@ SEM FnBody
         --which can nest inside plpgsql functions (they aren't even
         --supported by the parser at the moment)
         sts.lib = fromRight @lhs.lib $
-                  updateBindings @lhs.lib
+                  updateBindings @lhs.lib @lhs.env
                                  [LibStackIDs [("", @vars.defs)]]
 
 ATTR VarDef [||def : {(String,Type)}]

@@ -496,15 +496,63 @@ cast empty array, where else can an empty array work?
 assignment is ok if:
 types are equal
 there is a cast from src to target
+lhs is scalar and rhs is setof composite with 1 attr than can assign
+  to that scalar
+lhs is composite and rhs is compatible row ctor
+lhs and rhs are compatible composites
+domain and base are compatible
 
 > checkAssignmentValid :: Environment -> Type -> Type -> Either [TypeError] ()
 > checkAssignmentValid env src tgt =
+>     if checkAssignmentValidB env src tgt
+>        then Right ()
+>        else Left [IncompatibleTypes tgt src]
+
+> checkAssignmentValidB :: Environment -> Type -> Type -> Bool
+> checkAssignmentValidB env src tgt =
 >     case () of
->       _ | src == tgt -> Right ()
->         | assignCastableFromTo env src tgt -> Right ()
->         | otherwise -> Left [IncompatibleTypes tgt src]
+>       _ | src == tgt -> True
+>         | (isDomainType src || isDomainType tgt) &&
+>             checkAssignmentValidB env
+>                                   (replaceWithBase env src)
+>                                   (replaceWithBase env tgt) -> True
+>         | isCompOrSetoOfComp src && tgt == Pseudo Record -> True
+>         | isCompatibleRow src tgt -> True
+>         | isCompatibleComposite src tgt -> True
+>         | assignCastableFromTo env src tgt -> True
+>         | maybe False
+>                 (flip (checkAssignmentValidB env) tgt)
+>                 (unboxedSingleType src) -> True
+>         | otherwise -> False
+>     where
+>       isCompOrSetoOfComp (CompositeType _) = True
+>       isCompOrSetoOfComp (UnnamedCompositeType _) = True
+>       isCompOrSetoOfComp (SetOfType (CompositeType _)) = True
+>       isCompOrSetoOfComp (SetOfType (UnnamedCompositeType _)) = True
+>       isCompOrSetoOfComp _ = False
+>       --check they have the same number of fields and that each
+>       --field is assign compatible
+>       isCompatibleRow (RowCtor rs) ct | isCompositeType ct =
+>          let cs = getCompositeAttrs ct
+>          in if length rs /= length cs
+>               then False
+>               else all (uncurry (checkAssignmentValidB env)) $ zip rs $ map snd cs
+>       isCompatibleRow _ _ = False
+>       isCompatibleComposite ct1 ct2 =
+>           let cs1 = getCompositeAttrs ct1
+>               cs2 = getCompositeAttrs ct2
+>           in if cs1 == [] || cs2 == []
+>                then False
+>                else cs1 == cs2
+>       getCompositeAttrs (CompositeType t) = fromRight [] $ envCompositePublicAttrs env [] t
+>       getCompositeAttrs (UnnamedCompositeType ts) = ts
+>       getCompositeAttrs _ = []
 
 > assignCastableFromTo :: Environment -> Type -> Type -> Bool
 > assignCastableFromTo env from to = from == UnknownStringLit ||
 >                                    envCast env ImplicitCastContext from to ||
 >                                    envCast env AssignmentCastContext from to
+
+> unboxedSingleType :: Type -> Maybe Type
+> unboxedSingleType ((SetOfType (UnnamedCompositeType [(_,t)]))) = Just t
+> unboxedSingleType _ = Nothing

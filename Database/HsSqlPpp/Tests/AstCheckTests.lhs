@@ -749,6 +749,17 @@ check type of initial values
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Right [Nothing])
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  r int;\n\
+>         \  t int;\n\
+>         \begin\n\
+>         \  for r in select adnum from pg_attrdef loop\n\
+>         \    t := r;\n\
+>         \  end loop;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         (Right [Nothing])
 >      ])
 
 ================================================================================
@@ -793,6 +804,52 @@ then in two separate chained asts
 >         (Left [NoMatchingOperator "t1" []])
 >      ])
 
+================================================================================
+
+test some casts
+assign composite to record
+  then assign record to composite
+assign row to composite
+ : check wrong cols, wrong types
+check read and write fields in composite->record
+check read and write fields in composite
+check domain <-> base assigns
+check call function with compatible composite, compatible row ctor
+assign comp to comp
+
+>    ,testGroup "check catalog chaining2"
+>     (mapStatementInfos [
+>       p ["create function t1() returns void as $$\n\
+>          \begin\n\
+>          \  null;\n\
+>          \end;\n\
+>          \$$ language plpgsql stable;"
+>         ,"select t1();"]
+>         (Right [Just (SelectInfo (Pseudo Void))])
+>      ,p ["select t1();"
+>         ,"create function t1() returns void as $$\n\
+>          \begin\n\
+>          \  null;\n\
+>          \end;\n\
+>          \$$ language plpgsql stable;"]
+>         (Left [NoMatchingOperator "t1" []])
+>      ])
+
+
+todo for chaos sql
+for loop var = scalar, select = setof composite with one scalar
+
+select into
+composite assignment and equality
+autocast from rowctor to composite when calling function
+assignment to composite fields
+read fields of composite
+
+array_contains -> match anyelement
+createtable as env update
+window functions
+assign domain <-> base
+sql function not working
 
 >
 >    ]

@@ -47,7 +47,7 @@ SEM Statement
 
         loc.selType = getTypeAnnotation @expr.annotatedTree
         -- type of the columns in the select expression
-        loc.attrs = unwrapComposite @loc.selType
+        loc.attrs = unwrapSetOfComposite @loc.selType
 
         loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
         loc.statementInfo = []
@@ -78,7 +78,7 @@ inject the column name and type into the column constraints
 SEM AttributeDef
     | AttributeDef
         cons.lib =
-            case updateBindings @lhs.lib
+            case updateBindings @lhs.lib @lhs.env
                      [LibStackIDs [("", [(@name, @typ.namedType)])]] of
               Left x -> error $ show x
               Right e -> e
