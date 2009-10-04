@@ -858,6 +858,84 @@ check errors: select into wrong number of vars, wrong types, and into
 >         $ Right [Just $ DeleteInfo "pg_attrdef"
 >                           (Just [("adnum", ScalarType "int2")
 >                                 ,("adbin", ScalarType "text")])]
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  a int;\n\
+>         \  b text;\n\
+>         \begin\n\
+>         \  select adnum,adbin into a,b from pg_attrdef;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         $ Right [Nothing]
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  a int;\n\
+>         \  b text;\n\
+>         \begin\n\
+>         \  select adnum,adbin into b,a from pg_attrdef;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         $ Left [IncompatibleTypes (ScalarType "text") (ScalarType "int2")
+>                ,IncompatibleTypes (ScalarType "int4") (ScalarType "text")]
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  a int;\n\
+>         \  b text;\n\
+>         \begin\n\
+>         \  select adnum,adbin into a,c from pg_attrdef;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         $ Left [UnrecognisedIdentifier "c"]
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  a int;\n\
+>         \  b text;\n\
+>         \begin\n\
+>         \  select adnum,adbin into a from pg_attrdef;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         $ Left [WrongNumberOfColumns]
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  r record;\n\
+>         \  a int;\n\
+>         \  b text;\n\
+>         \begin\n\
+>         \  select adnum,adbin into r from pg_attrdef;\n\
+>         \  a := r.adnum;\n\
+>         \  b := r.adbin;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         $ Right [Nothing]
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  r record;\n\
+>         \  a int;\n\
+>         \  b text;\n\
+>         \begin\n\
+>         \  select adnum,adbin into r from pg_attrdef;\n\
+>         \  a := r.adnum;\n\
+>         \  b := r.adsrc;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         $ Left [UnrecognisedIdentifier "r.adsrc"]
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  r pg_attrdef;\n\
+>         \begin\n\
+>         \  select * into r from pg_attrdef;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         $ Right [Nothing]
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  r pg_class;\n\
+>         \begin\n\
+>         \  select adnum,adbin into r from pg_attrdef;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         $ Left [IncompatibleTypes (CompositeType "pg_class") (RowCtor [ScalarType "int2",ScalarType "text"])]
+
 >      ])
 
 ================================================================================

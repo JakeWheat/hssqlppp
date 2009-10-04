@@ -19,6 +19,8 @@ ATTR MaybeSelectList [||listType : {Maybe [(String,Type)]}]
 ATTR SelectItemList SelectList [||listType : {[(String,Type)]}]
 ATTR SelectItem [||itemType : Type]
 
+ATTR SelectList [||libUpdates : {[LocalIdentifierBindingsUpdate]}]
+
 SEM MaybeSelectList
     | Just lhs.listType = Just @just.listType
     | Nothing lhs.listType = Nothing
@@ -32,9 +34,55 @@ SEM SelectItem
     | SelExp SelectItem
         lhs.itemType = getTypeAnnotation @ex.annotatedTree
 
+
+
 SEM SelectList
     | SelectList
         lhs.listType = @items.listType
+-- check the into types
+        loc.errs = case @loc.stuff of
+                     (er,_) -> er
+        loc.stuff =
+          case () of
+            _ | null sl -> ([],Nothing)
+              | not (null targetTypeErrs) -> (targetTypeErrs,Nothing)
+              | targetTypes == [Pseudo Record] -> ([],Just (head sl, UnnamedCompositeType @items.listType))
+              | matchingComposite /= Left [] -> (fromLeft [] matchingComposite,Nothing)
+              | length sl /= length @items.listType -> ([WrongNumberOfColumns],Nothing)
+              | not (null assignErrs) -> (assignErrs,Nothing)
+              | otherwise -> ([],Nothing)
+          where
+            targetTypeEithers = map (libLookupID @lhs.lib "") sl
+            targetTypeErrs = concat $ lefts $ targetTypeEithers
+            targetTypes = rights $ targetTypeEithers
+            typePairs = zip (map snd @items.listType) targetTypes
+            assignErrs = concat $ lefts $ map (uncurry $ checkAssignmentValid @lhs.env) typePairs
+            sl = @into.strings
+            matchingComposite =
+                case targetTypes of
+                  [t@(CompositeType _)] -> checkAssignmentValid @lhs.env (RowCtor (map snd @items.listType)) t
+                  _ -> Left []
+
+        lhs.annotatedTree = SelectList (@ann ++ map TypeErrorA @loc.errs)
+                                       @items.annotatedTree
+                                       @into.annotatedTree
+        lhs.libUpdates =
+            case @loc.stuff of
+              (_,Just r) -> [LibStackIDs [("", [r])]]
+              _ -> []
+--[(@var,@loc.selType)]
+
+SEM Statement
+    | SelectStatement
+        loc.libUpdates = @ex.libUpdates
+
+ATTR SelectExpression [||libUpdates : {[LocalIdentifierBindingsUpdate]}]
+
+SEM SelectExpression
+    | Select
+        lhs.libUpdates = @selSelectList.libUpdates
+    | CombineSelect Values
+          lhs.libUpdates = []
 
 -- utils to handle a star, bit hacky, maybe should use a separate pass
 -- or something?

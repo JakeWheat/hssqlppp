@@ -16,8 +16,8 @@ This file contains some generic utility stuff
 > errorWhen :: (Error a) => Bool -> a -> Either a ()
 > errorWhen cond = when cond . Left
 
-> returnWhen :: Bool -> b -> Either a b -> Either a b
-> returnWhen c t t1 = if c then Right t else t1
+> returnWhen :: (Monad m) => Bool -> a -> m a -> m a
+> returnWhen c t t1 = if c then return t else t1
 
 > liftME :: a -> Maybe b -> Either a b
 > liftME d m = case m of

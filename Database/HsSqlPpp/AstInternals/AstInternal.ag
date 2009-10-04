@@ -322,6 +322,7 @@ DATA JoinType | Inner | LeftOuter| RightOuter | FullOuter | Cross
 
 DATA SelectList | SelectList ann:Annotation items:SelectItemList into:StringList
 
+
 TYPE MaybeSelectList = MAYBE SelectList
 
 DATA SelectItem | SelExp ann:Annotation ex:Expression

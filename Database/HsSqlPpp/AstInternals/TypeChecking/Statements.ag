@@ -15,14 +15,17 @@ e.g. to type check multiple files in a row which depend on eachother.
 -- what changes it makes to the catalog, we use this to update
 -- the env to feed into the next statement
 
-ATTR Statement [||envUpdates : {[EnvironmentUpdate]}]
+ATTR Statement [||envUpdates : {[EnvironmentUpdate]}
+                  libUpdates : {[LocalIdentifierBindingsUpdate]}]
 
 
-ATTR StatementList [envUpdates : {[EnvironmentUpdate]}||]
+ATTR StatementList [envUpdates : {[EnvironmentUpdate]}
+                    libUpdates : {[LocalIdentifierBindingsUpdate]}||]
 
 
 --producedenv is used to pass the final updated env out
-ATTR StatementList Root [|| producedEnv : Environment]
+ATTR StatementList Root [|| producedEnv : Environment
+                            producedLib : LocalIdentifierBindings]
 
 ATTR Statement [inProducedEnv: Environment||]
 
@@ -31,18 +34,24 @@ SEM StatementList
         --newenv is the environment passed into the head statement
         --updated with any catalog changes that that statement has made
         loc.newEnv = fromRight @lhs.env $ updateEnvironment @lhs.env @lhs.envUpdates
+        loc.newLib = fromRight @lhs.lib $ updateBindings @lhs.lib @lhs.env @lhs.libUpdates
     | Cons
         hd.env = @loc.newEnv
         tl.env = @loc.newEnv
+        hd.lib = @loc.newLib
+        tl.lib = @loc.newLib
         --produced env is used to chain the final updated environment from the last
         --element of the list and pass it back up the list so in can be pushed up
         -- to the root element and sent out from there
         lhs.producedEnv = @tl.producedEnv
+        lhs.producedLib = @tl.producedLib
         --this is probably a bit inefficient: it creates a new environment from scratch
         --on each statement instead of chaining on the last updated env
         tl.envUpdates = @hd.envUpdates
+        tl.libUpdates = @hd.libUpdates
     | Nil
         lhs.producedEnv = @loc.newEnv
+        lhs.producedLib = @loc.newLib
 
 SEM Statement
     | SelectStatement Insert Update Delete CreateView CreateDomain
@@ -53,6 +62,10 @@ SEM Statement
                               $ Just (map StatementInfoA @loc.statementInfo ++
                                       [EnvUpdates @loc.envUpdates])
         lhs.envUpdates = @loc.envUpdates
+        lhs.libUpdates = @loc.libUpdates
+    | Insert Update Delete CreateView CreateDomain
+      CreateFunction CreateType CreateTable CreateTableAs Return Assignment ForSelectStatement
+        loc.libUpdates = []
 
 SEM StatementList
     | Cons hd.inProducedEnv = @tl.producedEnv
@@ -60,6 +73,7 @@ SEM StatementList
 
 SEM Root
     | Root statements.envUpdates = []
+           statements.libUpdates = []
 
 SEM Statement
     | CaseStatement ContinueStatement Copy CopyData DropFunction
@@ -67,22 +81,28 @@ SEM Statement
       If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement
         lhs.envUpdates = []
+        lhs.libUpdates = []
 
 SEM ExpressionListStatementListPair
     | Tuple
         x2.envUpdates = []
+        x2.libUpdates = []
 SEM ExpressionStatementListPair
     | Tuple
         x2.envUpdates = []
+        x2.libUpdates = []
 SEM FnBody
     | PlpgsqlFnBody SqlFnBody
         sts.envUpdates = []
+        sts.libUpdates = []
 SEM Statement
     | CaseStatement If
         els.envUpdates = []
+        els.libUpdates = []
 SEM Statement
     | ForIntegerStatement ForSelectStatement WhileStatement
         sts.envUpdates = []
+        sts.libUpdates = []
 
 
 

@@ -483,10 +483,10 @@ cast empty array, where else can an empty array work?
 = checkAssignmentValue
 
 > checkAssignmentValid :: Environment -> Type -> Type -> Either [TypeError] ()
-> checkAssignmentValid env src tgt =
->     if castableFromTo env AssignmentCastContext src tgt
+> checkAssignmentValid env from to =
+>     if castableFromTo env AssignmentCastContext from to
 >        then Right ()
->        else Left [IncompatibleTypes tgt src]
+>        else Left [IncompatibleTypes to from]
 
 ================================================================================
 
@@ -496,6 +496,7 @@ wrapper around the catalog to add a bunch of extra valid casts
 
 > castableFromTo :: Environment -> CastContext -> Type -> Type -> Bool
 > castableFromTo env cc from to =
+>   {-trace ("check cast " ++ show from ++ "->" ++ show to) $-}
 >   -- put this here to avoid having to write it everywhere else
 >   from == to
 >   -- unknown can be implicitly cast to anything (is this completely true?)
@@ -521,6 +522,7 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   || compositesCompatible (lookupOrComposite from) (lookupOrComposite to)
 >   -- check row cast to composite
 >   || rowToComposite from to
+>   || recurseTransTo (lookupComposite to)
 >   where
 >     compositesCompatible (Just (UnnamedCompositeType a))
 >                          (Just (UnnamedCompositeType b)) =
@@ -551,6 +553,7 @@ wrapper around the catalog to add a bunch of extra valid casts
 >     unboxedCompositeType _ = Nothing
 
 >     recurseTransFrom = maybe False (flip (castableFromTo env cc) to)
+>     recurseTransTo = maybe False (castableFromTo env cc from)
 
 >     lookupComposite (CompositeType t) =
 >       Just $ UnnamedCompositeType $
