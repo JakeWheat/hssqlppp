@@ -750,9 +750,11 @@ check type of initial values
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Right [Nothing])
+
+
 >      ,p "create function t1() returns void as $$\n\
 >         \declare\n\
->         \  r int;\n\
+>         \  r record;\n\
 >         \  t int;\n\
 >         \begin\n\
 >         \  for r in select adnum from pg_attrdef loop\n\
@@ -761,7 +763,63 @@ check type of initial values
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Right [Nothing])
+
+loop var already declared
+
+>      ,p "create function test() returns void as $$\n\
+>         \declare\n\
+>         \  i int;\n\
+>         \  i1 int;\n\
+>         \begin\n\
+>         \  for i in 0 .. 10 loop\n\
+>         \    i1 := i;\n\
+>         \  end loop;\n\
+>         \end;\n\
+>         \$$ language plpgsql volatile;"
+>        (Right [Nothing])
+
+implicitly created loop var
+
+>      ,p "create function test() returns void as $$\n\
+>         \declare\n\
+>         \  i1 int;\n\
+>         \begin\n\
+>         \  for i in 0 .. 10 loop\n\
+>         \    i1 := i;\n\
+>         \  end loop;\n\
+>         \end;\n\
+>         \$$ language plpgsql volatile;"
+>        (Right [Nothing])
+
+loop var already declared, wrong type
+
+>      ,p "create function test() returns void as $$\n\
+>         \declare\n\
+>         \  i bool;\n\
+>         \begin\n\
+>         \  for i in 0 .. 10 loop\n\
+>         \    null;\n\
+>         \  end loop;\n\
+>         \end;\n\
+>         \$$ language plpgsql volatile;"
+>        (Left [IncompatibleTypes (ScalarType "bool") (ScalarType "int4")])
+
+loop var implicit check it's type
+
+>      ,p "create function test() returns void as $$\n\
+>         \declare\n\
+>         \  t bool;\n\
+>         \begin\n\
+>         \  for i in 0 .. 10 loop\n\
+>         \    t := i;\n\
+>         \  end loop;\n\
+>         \end;\n\
+>         \       $$ language plpgsql volatile;"
+>         (Left [IncompatibleTypes (ScalarType "bool") (ScalarType "int4")])
+
 >      ])
+
+
 
 ================================================================================
 
@@ -935,6 +993,15 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         $ Left [IncompatibleTypes (CompositeType "pg_class") (RowCtor [ScalarType "int2",ScalarType "text"])]
+>      ,p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  r record;\n\
+>         \begin\n\
+>         \  select adnum,adbin into r from pg_attrdef;\n\
+>         \  select relname into r from pg_class;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         $ Right [Nothing]
 >      ])
 
 >    ,testGroup "composite elements"

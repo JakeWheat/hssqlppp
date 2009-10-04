@@ -55,7 +55,8 @@ SEM StatementList
 
 SEM Statement
     | SelectStatement Insert Update Delete CreateView CreateDomain
-      CreateFunction CreateType CreateTable CreateTableAs Return Assignment ForSelectStatement
+      CreateFunction CreateType CreateTable CreateTableAs Return Assignment
+      ForSelectStatement ForIntegerStatement
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
@@ -64,7 +65,8 @@ SEM Statement
         lhs.envUpdates = @loc.envUpdates
         lhs.libUpdates = @loc.libUpdates
     | Insert Update Delete CreateView CreateDomain
-      CreateFunction CreateType CreateTable CreateTableAs Return Assignment ForSelectStatement
+      CreateFunction CreateType CreateTable CreateTableAs Return
+      Assignment ForSelectStatement ForIntegerStatement
         loc.libUpdates = []
 
 SEM StatementList
@@ -77,7 +79,7 @@ SEM Root
 
 SEM Statement
     | CaseStatement ContinueStatement Copy CopyData DropFunction
-      DropSomething Execute ExecuteInto ForIntegerStatement
+      DropSomething Execute ExecuteInto
       If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement
         lhs.envUpdates = []

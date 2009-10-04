@@ -23,12 +23,37 @@ SEM Statement
         loc.tpe =
             do
             let fromType = getTypeAnnotation @value.annotatedTree
-            let (q,n) = splitIdentifier @target
-            toType <- libLookupID @lhs.lib q n
+            toType <- libLookupID @lhs.lib @target
             dependsOnRTpe [getTypeAnnotation @value.annotatedTree, toType] $ do
             checkAssignmentValid @lhs.env fromType toType
             return $ Pseudo Void
         loc.backTree = Assignment @ann @target @value.annotatedTree
+        loc.envUpdates = []
+        loc.statementInfo = []
+
+SEM Statement
+    | ForIntegerStatement
+        loc.varTypeE = libLookupID @lhs.lib @var
+        loc.tpe =
+          do
+          let fromType = getTypeAnnotation @from.annotatedTree
+              toType = getTypeAnnotation @to.annotatedTree
+          dependsOnRTpe [fromType,toType] $ do
+          --probably a bit too strict:
+          errorWhen (fromType /= toType) [FromToTypesNotSame fromType toType]
+          case @loc.varTypeE of
+            Right t -> checkAssignmentValid @lhs.env fromType t
+            Left _ -> return ()
+          return $ Pseudo Void
+        sts.lib =
+            case @loc.varTypeE of
+              Left [UnrecognisedIdentifier @var] ->
+                  fromRight @lhs.lib $
+                  updateBindings @lhs.lib @lhs.env
+                                 [LibStackIDs [("", [(@var,getTypeAnnotation @from.annotatedTree)])]]
+              _ -> @lhs.lib
+
+        loc.backTree = ForIntegerStatement @ann @var @from.annotatedTree @to.annotatedTree @sts.annotatedTree
         loc.envUpdates = []
         loc.statementInfo = []
 
@@ -39,7 +64,7 @@ SEM Statement
         loc.tpe =
           do
           dependsOnRTpe [@loc.selType] $ do
-          toType <- libLookupID @lhs.lib "" @var
+          toType <- libLookupID @lhs.lib @var
           dependsOnRTpe [toType] $ do
           checkAssignmentValid @lhs.env @loc.selType toType
           return $ Pseudo Void

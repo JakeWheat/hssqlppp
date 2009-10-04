@@ -156,10 +156,17 @@ moment.
 >                  Left [UnrecognisedCorrelationName correlationName]
 >       Just l -> Right l
 
-> libLookupID :: LocalIdentifierBindings -> String -> String -> Either [TypeError] Type
-> libLookupID env correlationName iden = {-trace ("lookup " ++ show iden ++ " in " ++ show (identifierTypes env)) $-}
+> splitIdentifier :: String -> (String,String)
+> splitIdentifier s = let (a,b) = span (/= '.') s
+>                     in if b == ""
+>                          then ("", a)
+>                          else (a,tail b)
+
+> libLookupID :: LocalIdentifierBindings -> String -> Either [TypeError] Type
+> libLookupID env iden1 = {-trace ("lookup " ++ show iden ++ " in " ++ show (identifierTypes env)) $-}
 >   envLookupID' $ identifierTypes env
 >   where
+>     (correlationName,iden) = splitIdentifier iden1
 >     envLookupID' (its:itss) =
 >       case lookup correlationName its of
 >         Nothing -> envLookupID' itss

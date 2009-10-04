@@ -123,6 +123,7 @@ later on down the line.
 >                | TypeAlreadyExists Type
 >                | AnyAllError String
 >                | InternalError String
+>                | FromToTypesNotSame Type Type
 >                 --shoved in to humour the Either Monad
 >                | MiscError String
 >                  deriving (Eq,Show,Typeable,Data)
