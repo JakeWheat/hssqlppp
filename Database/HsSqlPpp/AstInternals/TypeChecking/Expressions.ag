@@ -10,7 +10,7 @@ type.
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg --WindowFn
+      PositionalArg WindowFn
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
@@ -66,6 +66,10 @@ SEM Expression
                       @args.typeList
         loc.backTree = FunCall @ann @funName @args.annotatedTree
 
+
+   | WindowFn
+        loc.tpe = Right (getTypeAnnotation @fn.annotatedTree)
+        loc.backTree = WindowFn @ann @fn.annotatedTree @partitionBy.annotatedTree @orderBy.annotatedTree @dir.annotatedTree
 {
 {-
 

@@ -963,9 +963,18 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \  select (point($1, $2) <-> point($3, $5))::float(24) as result;\n\
 >         \$$ language sql immutable;"
 >         $ Left [UnrecognisedIdentifier "$5"]
+>      ])
 
-
-
+>    ,testGroup "window fns"
+>     (mapStatementInfo [
+>       p "select *, row_number() over () from pg_attrdef;"
+>         $ Right [Just $ SelectInfo
+>                  (SetOfType (UnnamedCompositeType
+>                   [("adrelid",ScalarType "oid")
+>                   ,("adnum",ScalarType "int2")
+>                   ,("adbin",ScalarType "text")
+>                   ,("adsrc",ScalarType "text")
+>                   ,("row_number",ScalarType "int8")]))]
 
 >      ])
 

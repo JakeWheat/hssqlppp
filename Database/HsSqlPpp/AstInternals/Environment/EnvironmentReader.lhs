@@ -129,6 +129,19 @@ was heavily changed so it's a bit messy.
 >                       \order by proname,proargtypes;" []
 >    let aggProts = map (convFnRow jlt) aggregateInfo
 
+>    windowInfo <- selectRelation conn
+>                       "select proname,\n\
+>                       \       array_to_string(proargtypes,','),\n\
+>                       \       proretset,\n\
+>                       \       prorettype\n\
+>                       \from pg_proc\n\
+>                       \where pg_catalog.pg_function_is_visible(pg_proc.oid)\n\
+>                       \      and provariadic = 0\n\
+>                       \      and proiswindow\n\
+>                       \order by proname,proargtypes;" []
+>    let winProts = map (convFnRow jlt) windowInfo
+
+
 >    comps <- map (\(kind:nm:atts:sysatts:nsp:[]) ->
 >              let nm1 = case nsp of
 >                                 "pg_catalog" -> nm
@@ -198,6 +211,7 @@ was heavily changed so it's a bit messy.
 >               ,map (\(a,b,c) -> EnvCreateFunction FunBinary a b c) binaryOps
 >               ,map (\(a,b,c) -> EnvCreateFunction FunName a b c) fnProts
 >               ,map (\(a,b,c) -> EnvCreateFunction FunAgg a b c) aggProts
+>               ,map (\(a,b,c) -> EnvCreateFunction FunWindow a b c) winProts
 >               ,comps]
 >    where
 >      convertAttString jlt s =

@@ -4301,7 +4301,7 @@ begin
   else
     raise exception
     'argument must be one of all_pieces, upgraded_wizards, overlapping, got %',
-    flavours;
+    flavour;
   end if;
 end
 $$ language plpgsql volatile;

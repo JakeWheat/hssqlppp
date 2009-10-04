@@ -59,6 +59,7 @@ modules.
 >                    ,envBinaryOperators :: [FunctionPrototype]
 >                    ,envFunctions :: [FunctionPrototype]
 >                    ,envAggregates :: [FunctionPrototype]
+>                    ,envWindowFunctions :: [FunctionPrototype]
 >                    ,envAttrDefs :: [CompositeDef]}
 
 
@@ -66,7 +67,7 @@ modules.
 > -- like the \'and\' operator, and so if you try to use it it will
 > -- almost certainly not work.
 > emptyEnvironment :: Environment
-> emptyEnvironment = Environment [] [] [] [] [] [] [] [] [] []
+> emptyEnvironment = Environment [] [] [] [] [] [] [] [] [] [] []
 
 > -- | Represents what you probably want to use as a starting point if
 > -- you are building an environment from scratch. It contains
@@ -76,7 +77,9 @@ modules.
 > defaultEnvironment :: Environment
 > defaultEnvironment = emptyEnvironment {
 >                       envTypeNames = pseudoTypes
->                      ,envBinaryOperators = keywordOperatorTypes
+>                      ,envBinaryOperators = ("=",[Pseudo AnyElement
+>                                                 ,Pseudo AnyElement],
+>                                             typeBool):keywordOperatorTypes
 >                      ,envFunctions = specialFunctionTypes}
 
 
@@ -125,7 +128,7 @@ modules.
 >     deriving (Eq,Show,Typeable,Data)
 
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
->              | FunName | FunAgg
+>              | FunName | FunAgg | FunWindow
 >                deriving (Eq,Show,Typeable,Data)
 
 > -- | Applies a list of 'EnvironmentUpdate's to an 'Environment' value
@@ -175,7 +178,12 @@ modules.
 >                 return $ (addTypeWithArray env nm (CompositeType nm) "C" False) {
 >                             envAttrDefs =
 >                               (nm,Composite,UnnamedCompositeType flds, UnnamedCompositeType [])
->                               : envAttrDefs env}
+>                               : envAttrDefs env
+>                             --hack - add = operator
+>                            ,envBinaryOperators =
+>                               ("=",[CompositeType nm
+>                                    ,CompositeType nm],
+>                                typeBool):envBinaryOperators env}
 >         EnvCreateCast src tgt ctx -> return $ env {envCasts = (src,tgt,ctx):envCasts env}
 >         EnvCreateTable nm attrs sysAttrs -> do
 >                 checkTypeDoesntExist env nm (CompositeType nm)
@@ -197,6 +205,7 @@ modules.
 >               FunPostfix -> env {envPostfixOperators=(nm,args,ret):envPostfixOperators env}
 >               FunBinary -> env {envBinaryOperators=(nm,args,ret):envBinaryOperators env}
 >               FunAgg -> env {envAggregates=(nm,args,ret):envAggregates env}
+>               FunWindow -> env {envWindowFunctions=(nm,args,ret):envWindowFunctions env}
 >               FunName -> env {envFunctions=(nm,args,ret):envFunctions env}
 >     addTypeWithArray env nm ty cat pref =
 >       env {envTypeNames =
@@ -301,13 +310,16 @@ check to see if it works
 >                ,envPostfixOperators env
 >                ,envBinaryOperators env
 >                ,envFunctions env
->                ,envAggregates env]
+>                ,envAggregates env
+>                ,envWindowFunctions env]
 
 == internal support for type checker fns above
 
 > envGetCategoryInfo :: Environment -> Type -> (String, Bool)
 > envGetCategoryInfo env ty =
 >   case ty of
+>     SetOfType _ -> ("", False)
+>     RowCtor _ -> ("", False)
 >     ArrayType (Pseudo _) -> ("A",False)
 >     Pseudo _ -> ("P",False)
 >     _ -> let l = filter (\(t,_,_) -> ty == t) $ envTypeCategories env
