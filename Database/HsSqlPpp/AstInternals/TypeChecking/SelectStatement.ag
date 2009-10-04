@@ -110,10 +110,9 @@ SEM SelectExpression
            do
            --let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
            --                                         @selTref.annotatedTree
-           dependsOnRTpe [@selSelectList.listType] $
-             Right $ case @selSelectList.listType of
-                       UnnamedCompositeType [(_,Pseudo Void)] -> Pseudo Void
-                       _ -> SetOfType @selSelectList.listType
+           Right $ case @selSelectList.listType of
+                     [(_,Pseudo Void)] -> Pseudo Void
+                     _ -> SetOfType $ UnnamedCompositeType @selSelectList.listType
         loc.backTree = Select @ann
                               @selDistinct.annotatedTree
                               @selSelectList.annotatedTree

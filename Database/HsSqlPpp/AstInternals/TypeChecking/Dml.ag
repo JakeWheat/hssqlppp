@@ -20,7 +20,7 @@ SEM Statement
               @loc.columnTypes
               Right $ Pseudo Void
         loc.statementInfo =
-            leftToEmpty (\ct -> [InsertInfo @table ct]) @loc.columnTypes
+            leftToEmpty (\ct -> [InsertInfo @table ct @returning.listType]) @loc.columnTypes
 
         loc.columnTypes =
             do
@@ -32,8 +32,17 @@ SEM Statement
                                    tys
 
         loc.backTree = Insert @ann @table @targetCols.annotatedTree
-                              @insData.annotatedTree @returning
+                              @insData.annotatedTree @returning.annotatedTree
         loc.envUpdates = []
+
+-- inject the ids into the returning part
+
+SEM Statement
+    | Insert
+        returning.lib =
+            fromRight @lhs.lib $ do
+              atts <- envCompositeAttrs @lhs.env relationComposites @table
+              updateBindings @lhs.lib @lhs.env [LibStackIDs [("", atts)]]
 
 {-
 ================================================================================
@@ -54,7 +63,7 @@ SEM Statement
               liftErrors @assigns.rowSetErrors
               return $ Pseudo Void
         loc.statementInfo =
-            leftToEmpty (\ct -> [UpdateInfo @table ct]) @loc.columnTypes
+            leftToEmpty (\ct -> [UpdateInfo @table ct @returning.listType]) @loc.columnTypes
 
         loc.columnTypes =
             checkColumnConsistency @lhs.env
@@ -66,8 +75,9 @@ SEM Statement
                               @table
                               @assigns.annotatedTree
                               @whr.annotatedTree
-                              @returning
+                              @returning.annotatedTree
         loc.envUpdates = []
+
 
 -- local identifier bindings: pass the table attribute names and types
 -- into the where expression, and the set clause expressions
@@ -82,6 +92,7 @@ SEM Statement
              updateBindings @lhs.lib @lhs.env [LibStackIDs [("", ct)]]
         whr.lib = @loc.lib
         assigns.lib = @loc.lib
+        returning.lib = @loc.lib
 
 {-
 == set clauses
@@ -142,18 +153,20 @@ SEM Statement
         loc.tpe =
             checkRelationExists @lhs.env @table >>
             Right (Pseudo Void)
-        loc.statementInfo = [DeleteInfo @table]
+        loc.statementInfo = [DeleteInfo @table @returning.listType]
 
-        loc.backTree = Delete @ann @table @whr.annotatedTree @returning
+        loc.backTree = Delete @ann @table @whr.annotatedTree @returning.annotatedTree
         loc.envUpdates = []
 
 
 SEM Statement
     | Delete
-        whr.lib =
+        loc.lib =
             fromRight @lhs.lib $ do
             columnTypes <- envCompositeAttrs @lhs.env relationComposites @table
             updateBindings @lhs.lib @lhs.env [LibStackIDs [("", columnTypes)]]
+        whr.lib = @loc.lib
+        returning.lib = @loc.lib
 
 {-
 ================================================================================

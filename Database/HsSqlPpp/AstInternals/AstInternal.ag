@@ -147,18 +147,18 @@ DATA Statement
              table : String
              targetCols : StringList
              insData : SelectExpression
-             returning : (Maybe SelectList)
+             returning : MaybeSelectList
     --tablename setitems where returning
     | Update ann:Annotation
              table : String
              assigns : SetClauseList
              whr : MaybeBoolExpression
-             returning : (Maybe SelectList)
+             returning : MaybeSelectList
     --tablename, where, returning
     | Delete ann:Annotation
              table : String
              whr : MaybeBoolExpression
-             returning : (Maybe SelectList)
+             returning : MaybeSelectList
     --tablename column names, from
     | Copy ann:Annotation
            table : String
@@ -320,7 +320,9 @@ DATA JoinType | Inner | LeftOuter| RightOuter | FullOuter | Cross
 
 -- select columns, into columns
 
-DATA SelectList | SelectList ann:Annotation items:SelectItemList StringList
+DATA SelectList | SelectList ann:Annotation items:SelectItemList into:StringList
+
+TYPE MaybeSelectList = MAYBE SelectList
 
 DATA SelectItem | SelExp ann:Annotation ex:Expression
                 | SelectItem ann:Annotation ex:Expression name:String
@@ -585,7 +587,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               MaybeTableRef TableRef OnExpr LiftFlavour
+               MaybeTableRef TableRef OnExpr LiftFlavour MaybeSelectList
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
 

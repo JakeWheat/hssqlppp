@@ -530,25 +530,33 @@ wrapper around the catalog to add a bunch of extra valid casts
 >          names = map fst
 >          types = map snd
 >     compositesCompatible _ _ = False
+
 >     rowToComposite (RowCtor t) (UnnamedCompositeType c) =
 >         typeListCompatible t $ map snd c
 >     rowToComposite _ _ = False
+
 >     typeListCompatible a b = all (uncurry $ castableFromTo env cc) $ zip a b
+
 >     isCompOrSetoOfComp (CompositeType _) = True
 >     isCompOrSetoOfComp (UnnamedCompositeType _) = True
 >     isCompOrSetoOfComp (SetOfType (CompositeType _)) = True
 >     isCompOrSetoOfComp (SetOfType (UnnamedCompositeType _)) = True
 >     isCompOrSetoOfComp _ = False
+
 >     unboxedSingleType (SetOfType (UnnamedCompositeType [(_,t)])) = Just t
 >     unboxedSingleType _ = Nothing
+
 >     unboxedCompositeType (SetOfType a@(UnnamedCompositeType _)) = Just a
 >     unboxedCompositeType (SetOfType a@(CompositeType _)) = Just a
 >     unboxedCompositeType _ = Nothing
+
 >     recurseTransFrom = maybe False (flip (castableFromTo env cc) to)
+
 >     lookupComposite (CompositeType t) =
 >       Just $ UnnamedCompositeType $
 >       fromRight [] $ envCompositePublicAttrs env [] t
 >     lookupComposite _ = Nothing
+
 >     lookupOrComposite c@(UnnamedCompositeType _) = Just c
 >     lookupOrComposite c = lookupComposite c
 

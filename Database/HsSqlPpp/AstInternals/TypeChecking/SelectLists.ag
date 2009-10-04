@@ -14,13 +14,18 @@ SEM SelectItem
     | SelectItem
         loc.annotatedTree = SelectItem @ann (fixStar @ex.annotatedTree) @name
 
+ATTR MaybeSelectList [||listType : {Maybe [(String,Type)]}]
 
-ATTR SelectItemList SelectList [||listType : Type]
+ATTR SelectItemList SelectList [||listType : {[(String,Type)]}]
 ATTR SelectItem [||itemType : Type]
+
+SEM MaybeSelectList
+    | Just lhs.listType = Just @just.listType
+    | Nothing lhs.listType = Nothing
 
 SEM SelectItemList
     | Cons lhs.listType = expandStar @lhs.lib @hd.columnName @hd.itemType @tl.listType
-    | Nil lhs.listType = UnnamedCompositeType []
+    | Nil lhs.listType = []
 
 
 SEM SelectItem
@@ -38,17 +43,15 @@ SEM SelectList
 expandStar :: LocalIdentifierBindings
                     -> String
                     -> Type
-                    -> Type
-                    -> Type
+                    -> [(String,Type)]
+                    -> [(String,Type)]
 expandStar env colName colType types =
-    if types == TypeCheckFailed
-       then types
-       else tpeToT (do
-         let (correlationName,iden) = splitIdentifier colName
-         newCols <- if iden == "*"
-                         then libExpandStar env correlationName
-                         else return [(iden, colType)]
-         foldM (flip consComposite) types $ reverse newCols)
+    fromRight types $ do
+    let (correlationName,iden) = splitIdentifier colName
+    newCols <- if iden == "*"
+                 then libExpandStar env correlationName
+                 else return [(iden, colType)]
+    return $ newCols ++ types
 
 fixStar :: Expression -> Expression
 fixStar =

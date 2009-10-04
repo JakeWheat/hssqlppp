@@ -28,6 +28,7 @@ TODO 2: think of a name for this command
 > import Database.HsSqlPpp.Ast.Annotator
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Environment
+> import Database.HsSqlPpp.Ast.Ast
 
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
@@ -343,3 +344,16 @@ This reads an environment from a database and writes it out using show.
 >       Single f | length args /= 1 -> error "please call this command with one argument"
 >                | otherwise -> f (head args)
 >       Multiple f -> f args
+
+
+> parseAndTypeCheck :: String
+>                   -> String
+>                   -> IO StatementList
+> parseAndTypeCheck dbName src = do
+>    case parseSql src of
+>      Left e -> error $ show e
+>      Right ast -> do
+>        e <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
+>        case e of
+>          Left er -> error $ show er
+>          Right env -> return $ annotateAstEnv env ast

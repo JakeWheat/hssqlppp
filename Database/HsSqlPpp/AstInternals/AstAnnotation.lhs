@@ -129,9 +129,9 @@ understand, then keep changing it till it compiles and passes the tests.
 
 > data StatementInfo = DefaultStatementInfo Type
 >                    | SelectInfo Type
->                    | InsertInfo String [(String,Type)]
->                    | UpdateInfo String [(String,Type)]
->                    | DeleteInfo String
+>                    | InsertInfo String [(String,Type)] (Maybe [(String,Type)])
+>                    | UpdateInfo String [(String,Type)] (Maybe [(String,Type)])
+>                    | DeleteInfo String (Maybe [(String,Type)])
 >                      deriving (Eq,Show,Typeable,Data)
 
 todo:

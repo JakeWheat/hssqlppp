@@ -56,3 +56,4 @@ extract errors from an either, gives empty list if right
 
 > getErrors :: Either [TypeError] Type -> [TypeError]
 > getErrors = either id (const [])
+

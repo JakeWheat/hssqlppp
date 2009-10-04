@@ -9,6 +9,7 @@ Set of tests to check the type checking code
 > import Test.Framework.Providers.HUnit
 > import Data.Char
 > --import Debug.Trace
+> import Control.Applicative
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.Annotator
@@ -428,8 +429,8 @@ check aliasing
 >         $ Right [Just $ SelectInfo $ SetOfType $ UnnamedCompositeType [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
->      ,p "select * from (select 1 as a, 2 as b) a\n\
->         \ natural inner join (select true as a, 4.5 as d) b;"
+>      ,p "select * from (select 1 as a1, 2 as b) a\n\
+>         \ natural inner join (select true as a1, 4.5 as d) b;"
 >         $ Left [IncompatibleTypeSet [ScalarType "int4"
 >                                      ,ScalarType "bool"]]
 >      ])
@@ -539,14 +540,14 @@ insert
 >                           [("adrelid",ScalarType "oid")
 >                           ,("adnum",ScalarType "int2")
 >                           ,("adbin",ScalarType "text")
->                           ,("adsrc",ScalarType "text")]]
+>                           ,("adsrc",ScalarType "text")] Nothing]
 >      ,p "insert into pg_attrdef\n\
 >         \values (1,2, 'a', 'b');"
 >         $ Right [Just $ InsertInfo "pg_attrdef"
 >                           [("adrelid",ScalarType "oid")
 >                           ,("adnum",ScalarType "int2")
 >                           ,("adbin",ScalarType "text")
->                           ,("adsrc",ScalarType "text")]]
+>                           ,("adsrc",ScalarType "text")] Nothing]
 >      ,p "insert into pg_attrdef (hello,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
 >         $ Left [UnrecognisedIdentifier "hello"]
@@ -572,17 +573,17 @@ insert
 >      ,p "update pg_attrdef set (shmadrelid,adsrc) = ('a','b');"
 >         $ Left [UnrecognisedIdentifier "shmadrelid"]
 >      ,p "update pg_attrdef set adsrc='';"
->         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")] Nothing]
 >      ,p "update pg_attrdef set adsrc='' where 1=2;"
->         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")] Nothing]
 >       -- TODO: actually, pg doesn't support this so need to generate error instead
 >      ,p "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
->         $ Right [Just $ UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")]]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")] Nothing]
 >      --check where ids
 >      ,p "update pg_attrdef set adsrc='' where adsrc='';"
->         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")] Nothing]
 >      ,p "update pg_attrdef set adnum = adnum + 1;"
->         $ Right [Just (UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")])]
+>         $ Right [Just $ UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")] Nothing]
 
 
 >      ])
@@ -592,11 +593,11 @@ insert
 >       p "delete from nope;"
 >         $ Left [UnrecognisedRelation "nope"]
 >      ,p "delete from pg_attrdef where 1=2;"
->         $ Right [Just $ DeleteInfo "pg_attrdef"]
+>         $ Right [Just $ DeleteInfo "pg_attrdef" Nothing]
 >      ,p "delete from pg_attrdef where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ,p "delete from pg_attrdef where adsrc='';"
->         $ Right [Just $ DeleteInfo "pg_attrdef"]
+>         $ Right [Just $ DeleteInfo "pg_attrdef" Nothing]
 >      ])
 
 
@@ -817,25 +818,6 @@ check domain <-> base assigns
 check call function with compatible composite, compatible row ctor
 assign comp to comp
 
->    ,testGroup "check catalog chaining2"
->     (mapStatementInfos [
->       p ["create function t1() returns void as $$\n\
->          \begin\n\
->          \  null;\n\
->          \end;\n\
->          \$$ language plpgsql stable;"
->         ,"select t1();"]
->         (Right [Just (SelectInfo (Pseudo Void))])
->      ,p ["select t1();"
->         ,"create function t1() returns void as $$\n\
->          \begin\n\
->          \  null;\n\
->          \end;\n\
->          \$$ language plpgsql stable;"]
->         (Left [NoMatchingOperator "t1" []])
->      ])
-
-
 todo for chaos sql
 for loop var = scalar, select = setof composite with one scalar
 
@@ -850,6 +832,35 @@ createtable as env update
 window functions
 assign domain <-> base
 sql function not working
+
+================================================================================
+
+check insert returning, update returning, delete returning, one check each
+check select into: multiple vars, record (then access fields to check),
+  composite var
+check errors: select into wrong number of vars, wrong types, and into
+  composite wrong number and wrong type
+
+>    ,testGroup "select into"
+>     (mapStatementInfo [
+>       p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
+>         \values (1,2, 'a', 'b') returning adnum,adbin;"
+>         $ Right [Just $ InsertInfo "pg_attrdef" [("adrelid",ScalarType "oid")
+>                                                ,("adnum",ScalarType "int2")
+>                                                ,("adbin",ScalarType "text")
+>                                                ,("adsrc",ScalarType "text")]
+>                        (Just [("adnum", ScalarType "int2")
+>                             ,("adbin", ScalarType "text")])]
+>      ,p "update pg_attrdef set adnum = adnum + 1 returning adnum;"
+>         $ Right [Just $ UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")]
+>                          (Just [("adnum", ScalarType "int2")])]
+>      ,p "delete from pg_attrdef returning adnum,adbin;"
+>         $ Right [Just $ DeleteInfo "pg_attrdef"
+>                           (Just [("adnum", ScalarType "int2")
+>                                 ,("adbin", ScalarType "text")])]
+>      ])
+
+================================================================================
 
 >
 >    ]
@@ -938,3 +949,4 @@ sql function not working
 >          assertEqual ("typecheck " ++ src) sis $ Right is
 >          assertEqual ("eu " ++ src) eu eu'
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
+
