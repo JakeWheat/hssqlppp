@@ -30,7 +30,7 @@ Main areas to support are parameters and variables
 > data LocalIdentifierBindings = LocalIdentifierBindings
 >                    {identifierTypes :: [[QualifiedIDs]]
 >                    ,starTypes :: [QualifiedIDs]}
-
+>                                deriving (Show)
 
 > -- | Represents an empty environment. This doesn't contain things
 > -- like the \'and\' operator, and so if you try to use it it will

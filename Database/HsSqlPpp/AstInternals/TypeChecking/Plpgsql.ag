@@ -23,7 +23,8 @@ SEM Statement
         loc.tpe =
             do
             let fromType = getTypeAnnotation @value.annotatedTree
-            toType <- libLookupID @lhs.lib "" @target
+            let (q,n) = splitIdentifier @target
+            toType <- libLookupID @lhs.lib q n
             dependsOnRTpe [getTypeAnnotation @value.annotatedTree, toType] $ do
             checkAssignmentValid @lhs.env fromType toType
             return $ Pseudo Void

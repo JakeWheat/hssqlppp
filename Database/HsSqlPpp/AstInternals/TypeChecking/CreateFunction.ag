@@ -95,10 +95,15 @@ value which gets returned from the annotation functions in AstInternal.ag
 SEM Statement
     | CreateFunction
         --add the parameters to the environment for the contained statements
-        body.lib = fromRight @lhs.lib $
-                   updateBindings @lhs.lib @lhs.env 
-                                  [LibStackIDs [("", @params.params)
-                                               ,(@name, @params.params)]]
+        body.lib = let p = @params.params
+                           ++ (zip posNames $ map snd @params.params)
+                   in fromRight @lhs.lib $
+                      updateBindings @lhs.lib @lhs.env
+                                     [LibStackIDs [("", p)
+                                                  ,(@name, @params.params)]]
+                   where
+                     posNames :: [String]
+                     posNames = map (\l -> '$':show l) [1..]
 {-
 TODO: using fromRight on it's own for identifier bindings or env
 updates is wrong, if an error is produced then this needs to be added

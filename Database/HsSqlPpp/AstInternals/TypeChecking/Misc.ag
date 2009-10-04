@@ -33,7 +33,7 @@ SEM TypeName
         loc.tpe = dependsOnRTpe [@typ.namedType] $ Right $ SetOfType @typ.namedType
         loc.backTree = SetOfTypeName @ann @typ.annotatedTree
      | PrecTypeName
-        loc.tpe = Right TypeCheckFailed
+        loc.tpe = envLookupType @lhs.env $ canonicalizeTypeName @tn
         loc.backTree = PrecTypeName @ann @tn @prec
 
 

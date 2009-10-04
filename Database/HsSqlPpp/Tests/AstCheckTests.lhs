@@ -8,7 +8,7 @@ Set of tests to check the type checking code
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
-> --import Debug.Trace
+> import Debug.Trace
 > import Control.Applicative
 
 > import Database.HsSqlPpp.Parsing.Parser
@@ -935,6 +935,37 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         $ Left [IncompatibleTypes (CompositeType "pg_class") (RowCtor [ScalarType "int2",ScalarType "text"])]
+>      ])
+
+>    ,testGroup "composite elements"
+>     (mapStatementInfo [
+>       p "create function t1() returns void as $$\n\
+>         \declare\n\
+>         \  r pg_attrdef;\n\
+>         \  a int;\n\
+>         \  b text;\n\
+>         \begin\n\
+>         \  b = r.adsrc;\n\
+>         \  r.adnum := a;\n\
+>         \  b = r.adsrc;\n\
+>         \end;\n\
+>         \$$ language plpgsql stable;"
+>         $ Right [Nothing]
+>      ])
+
+>    ,testGroup "positional args"
+>     (mapStatementInfo [
+>       p "create function distance(int, int, int, int) returns float(24) as $$\n\
+>         \  select (point($1, $2) <-> point($3, $4))::float(24) as result;\n\
+>         \$$ language sql immutable;"
+>         $ Right [Nothing]
+>      ,p "create function distance(int, int, int, int) returns float(24) as $$\n\
+>         \  select (point($1, $2) <-> point($3, $5))::float(24) as result;\n\
+>         \$$ language sql immutable;"
+>         $ Left [UnrecognisedIdentifier "$5"]
+
+
+
 
 >      ])
 
@@ -979,7 +1010,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >       aast = annotateAst ast
 >       is = getTopLevelInfos aast
 >       er = concatMap snd $ getTypeErrors aast
->   in {-trace (show $ map getAnnotation aast) $-} case (length er, length is) of
+>   in {-trace (show aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
