@@ -1,119 +1,272 @@
-new features:
-pretty printer for annotations for annotatesource and checksource
-put a bunch of effort into these, want to start providing much better
-   error messages in particular
+= immediate todos:
 
-use types a lot better, make typecheckfailed into an either so we can
-   chain it more easily and get the haskell types to prevent
-   forgetting to chain it. review where string,type lists are wrapped
-   in composite or setof composite and get rid almost everywhere.
-   look at the contexts where types are used and split so we don't
-   just lump scalar types in with setofs and rowtypes, etc. heavy
-   review of the annotation type - change from list to something
-   better. all this stuff is causing all sorts of difficulties cos
-   it's too dynamicly typed.
+== for next release
+sort out record handling
+fix join issues
+support multiple files in annotate source and check source
+tidy up code and docs as usual
 
-hssqlssystem: support multitple files in annotatesource and checksource
-   DO AT END
-astannotations: tidy syb stuff, use uniplate? LOCAL
-astinternal: tidy the annotation functions, implement in terms of
-   eachother LOCAL
-environment: rename to catalog. Figure out a proper way to handle
-   schemas
-   sort out error return values on the various functions
-   add lots more precondition checks when altering catalog
-localidentifierbindings: think of a better name, which abbreviates
-   better also. list all the stuff which is done with this and decide
-   whether to move more logic into this module (e.g. the tref stuff)
-lowlights:
-see if can find a better solution that the explicit backtrees
-   everywhere
-what about doing mulitple passes?
-what about quickcheck tests?
-type checking code which is too much of a mess and needs to be more
-   declarative and clear
-create table needs a lot of work to get all the bits typechecking ok
+================================================================================
 
-do hack for create function bodies, to get working a bit better:
-use multiple passes, so function prototypes and everything else
-is checking and collected in the first pass, and then function
-bodies are checked in the second pass. This will miss some errors
-but is good progress.
-do * with unrecognised identifier handling in a less hacky way
+== 2nd next release
+fix catalog type, lots of work to make more robust:
+  rename environment to catalog
+  diff for catalog so we can just see what's been added
+  pretty printer for catalog, and for bindings
+  deconstruct function to turn a catalog back into a series of updaes
+  add annotations to catalog, so can see where bits came from
+  do uniqueness testing e.g. disallow two tables with same name, two
+   attributes with same name, etc.
+fix tests using new catalog approach: don't want to have tests which
+use sql to alter catalog then use sql to test the catalog changes have
+   been made - use separate tests (more unit-y tests)
+to pg roundtrip catalog test: load with one or more sql files, produce
+   a catalog diff, then load the sql into pg and read the catalog from
+   pg, compare that the read catalog changes are the same as what the
+   typechecker has produced.
 
-type conversion:
-notes in this file about fixing it up
+=== types and internal errors handling
 
-typetype: mainly needs to be adapted once the schema approach is
-   worked out
+move type check failed to left of either, make node types an either
+when there is a type error, add that as separate annotation, and add
+type as left typecheckfailed. This way can use the haskell type system
+to check we are chaining type check failed properly.
+look at all the places where type lists are wrapped in
+   unnamedcomposite and get rid of most of them - just use the type
+   list directly.
+Look at all the contexts where pg types can be used, and split into
+   separate haskell types, and use sums to put them back together
+   to use the haskell type system better e.g. different set of types
+   can be used for an attribute in a table, for a function parameter,
+   function return type, variable declaration, etc. - want to use the
+   haskell type system to enforce this and get rid of a load of
+   runtime checks (mainly the unwrap setof, etc. in typetype).
 
-implicitcast resolution:
-want to add an account of the algorithms progress and success or
-   failure in annotations in the resultant tree, e.g. so we can give a
-   better error message when the function can't be resolved.
+make sure errors aren't ignored, lots of places where this currently
+   happens, e.g. updating environment - these errors need to end up in
+   the ast. Get all the env functions to return eithers, and stick
+   errors from these in the ast. Convert error calls to either return
+   type and stick these errors in the ast.
 
-parsing:
-fix parser error reporting. Investigate alternative parser libs.
+=== parse/typecheck errors to user
 
-annotateSource:
-code is a mess and needs refactoring
+pretty printers for type check failed, work on error messages from parsing
+investigate alternative parser libs which can e.g. continue parsing
+   after an error to provide more parse errors at once.
+write a show for parsec errors which formats the lex tokens and
+   expected lists properly (was broken when moved to the separate
+   lexer)
 
-tests:
-need more comprehensive tests, start by listing tests which are
-   missing but should be there
+================================================================================
+
+== other soon todos
+
+not sure which ones should be done before 0.1 release. rough guide is
+   0.1 release should be something that regular sql programmers can
+   try out/use without being overwhelmed with half finished/ missing
+   bits, and actually see something useful.
+
+=== schemas
+
+think of a way to handle schemas, what about changes to schema search
+   path mid code.
+
+=== catalog and bindings annotation
+
+want to add the catalog and current catalog to the annotations, so
+   e.g. we can pretty print what exact updates are made to the catalog
+   from a ddl statement
+Add the current bindings as annotation everywhere, this can be used by
+   the ambiguous identifier checks, etc., and to understand errors
+also: add annotations to the catalog so we can see where an entity in
+   the catalog has come from, what update and what source line
+add similar to bindings, so each binding annotation contains a little
+   explanation for where each binding has come from (e.g. identifier a
+   with type b comes from this tref at source position x,y)
+
+=== casting annotation
+
+for each casting operation, add a log which explains what the relevant
+   algorithm has done to either find the appropriate cast or what it's
+   considered before failing. (e.g. can provide a list of steps taken
+   with the candidate lists in the findcallmatch routine, might be
+   useful for errors when it can't find a match, and if it is calling
+   an unexpected function instead of the one you want).
+add the prototype of the function actually matched at each funcall
+   site
+
+=== definition annotations
+add sourcepos/reference to definition where each item is referenced
+   (table, function, view, identifier binding, etc.)
+
+=== documentation produce
+
+=== null checking
+
+null treatment
+Basic motivation is to keep nulls carefully walled off, controlled,
+   and be able to catch them when they sneak back into expressions,
+   etc.. For each value, etc. we determine statically if it might be
+   null. This can be done for return types of functions, fields in a
+   select expression, etc.. (will do mappings e.g. if a functions
+   inputs are all non null, then the output is non null, etc.). Once
+   this is working ok, the second stage is to implement the anti null
+   warnings/ errors.
+Allow nulls in tables, outer joins, in coalesce, to be produced by
+   selects (maybe add or remove from this allowed list, maybe make it
+   configurable on a per project basis).
+Never allow nulls to be an argument to a function call, (including
+   ops, keyword ops, etc.). So every time you have a field being used
+   in an expression and it cannot be statically verified to be non
+   null, you have to insert a coalesce or fix it in some other way.
+So nulls can still be used to represent optional values, n/a,
+   etc.. and output to clients doing selects, but there is no need to
+   grapple with:
+* 3vl (or whatever it is that sql uses instead),
+* what the result of a function call is if the some or all the
+  arguments are null,
+* what the result of a sum aggregate is if some of the values are null,
+* etc.,
+because none of these things are allowed.
+
+=== support variadic args for functions
+
+also, default args?
+
+=== typechecking completeness
+
+make sure everything that parses is typechecked as much as possible
+(make some notes on this)
+
+=== do sql support todo
+
+fill in the main gaps, some notes below
+want to cover '90% of regularly used sql', no attempt for v0.1 to be
+   comprehensive or nearly comprehensive
+
+=== shadowed identifier test
+
+use the bindings annotation to add warnings
+
+=== modules extension
+
+stage 1: set the current module with a function call
+do creating the module and adding objects to the current module using
+   extension instead of the sql functions used at the moment
+find a way to annotate the source with modules stuff, want to use it
+   for documentation
+stage 2: add import/export stuff and check this
+
+=== other extensions for chaos
+mark generated code with annotation: make annotation types open with type
+   class or something? - can get rid of typeerrora, statementinfoa
+   wrappers this way
+check for all ddl, etc. run in functions/executes and turn into
+   extensions so the type checker can see these things
+out of order definitions: want to write defs in any order and
+   have the extension reorder them into something which can be loaded
+   into postgres
+finish create_var extension: add constraints
+constraint system: make a bunch of stuff automatic, like using 'pg
+   accelerators'
+add notify triggers automatically, including for views
+convert the sql tests (maybe some of the haskell tests) into static
+   checks on the ast
+find a better way to work with the tables with null fields:
+  initial values - the copy statements are completely unreadable and
+   uneditable
+  what else?
+crufty bits to try and simplify: turn sequence progression, action
+   valid tables, ai
+see if can make the multiple update hack more automatic
 
 
-add stuff to annotations: local identifier bindings, prototype of
-   function which was matched, source positions/ references to
-   definitions when something is accessed
+=== development/deployment support:
+build file for development, just lists sql files in order, and lists
+   which extensions are used
+deployment: use system to load all sql via extensions into pg, then
+to a regular pg dump which can then be deployed.
 
 
-review use of annotations/attributes in type checker
+=== crufty bits to tidy
+ag files constantly need fixing up for documentation and code clarity
+syb stuff is a bit messy in astannotations (maybe use uniplate here to
+   reduce dependencies?)
+tidy the annotating functions in astinternals, implement then in terms
+   of eachother
+review local bindings use and decide how much logic to implement
+   inside the local bindings module rather than eg. tablerefs.ag
+want to stop having to write explicit backtrees everywhere. The key to
+   fixing this is some way to read the existing annotation and supply
+   an altered annotation within uuagc code
+think about how doing multiple passes could help (e.g. star
+   expansion).
+think about where can use quickcheck
+review when function bodies are typechecked - see if can do better
+annotatesource function is a mess, also, make it overwrite it's own
+   annotations instead of adding them so you can run it over a file
+   multiple times.
 
-lint stuff: ambiguous identifiers, null usage, duplicate definitions
+=== testing
+work on making the tests more comprehensive, want a test for each
+   branch/option where feasible
 
-error handling fixup
-not just error handling, but most of the code in the type checking
-files.
-1. don't use error, use InternalError as part of a Either, these
-   end up in the ast tree
-2. add eithers to a bunch of env functions - make sure we check
-   all the preconditions, e.g. check a view exists when trying
-   to look up the attributes. Also add a bunch of precondition
-   checks to the updateenvironment function, e.g. checking for
-   duplicate types
-3. make sure errors from updateenvironment aren't ignored, but
-   end up in the ast tree
-4. review the error handling utilities - probably could do with
-   a rethink, also definitely need better names. The kind of things
-   needed are: way to propagate typecheckfailed, dealing with
-   conversions from lists of eithers to single eithers by
-   concatenating the errors, if no errors take the last right,
-   etc.
-5. support variadic args to get rid of the current hacks to work
-   around this not being supported
-6. go through all the actual type checking code and work out some more
-   consistent way of writing the code, and work on making the
-   algorithms clearer, some are really obscure at the moment, mainly
-   due to programmer incompetence and also many changes to the way
-   various things are handled (particularly the error handling and
-   typecheckfailed propagation), and just need pretty much rewriting
-   from scratch.
+=== write some automated tests for various roundtrips
+add script to test chaos sql in various ways: parse roundtrip, load
+   into database via psql and via hssqlppp comparison, and check
+   catalog consistency
+
+=== do way to produce aast from live database
+
+use psql dump, and then can do type checks, lint checks, produce
+   documentation
+
+=== api
+review/work on api and do haddock
+
+=== prepare code for use by non haskell programmers + user docs
+provide installation instructions
+do usage documentation file, want to run code embedded in doc source
+   and have results outputted to html output.
+
+=== prepare code for use by haskell client programmers:
+user docs as above for using the parser, the extension system, the
+   annotator and annotations, examples for generating sql and writing
+   extensions, etc.
+
+=== ? place holder statements
+
+=== precedence and operator parsing
+add missing operators to parser
+see if @ as prefix and infix just works in parsec
+some a_expr and b_expr support properly by looking at pg grammar file
 
 
-= Additional TODO list towards alpha release
+---------
+some new random notes
 
-run through chaos sql and fix all type checking problems, make sure
-roundtripping through annotate source doesn't mangle the code
-start work on type checking inside functions - start with params,
-   return types, non plpgsql statements, stuff with selects (e.g. for).
-work on parsing and type checking pg_dump output, then do a util to
-   dump and type check a live database (this will lead to being able
-   to run the lint process on a live database rather than source)
-work out api + do haddock
-provide installation instructions for non haskell programmers
+literal sql mode, with workspace idea: can write code/sql inline
+in the source, and run it against a database and view the results
+inline like in some text books where code is executed then the results
+printed inline into the result - so this is a partial replacement for
+   ghci, emacs haskell-mode ghci, psql, maybe bash, maybe ide, and
+   also a runtime diagnosis tool which can be embedded into production
+   exes. Pretty ambitious, need to focus on useful and easy features.
 
-parse and/or type check todo list:
+variant:
+hssqlppp workspace: text view can type in commands and get results
+   back, create multiple workspaces and they're persistent, maybe
+   a wrapper round ghci but not conventional repl style, more like
+   entering elisp and evaluating it in emacs? want to use
+   as replacement for the ghci thing in emacs, and as a shell for working with
+   the ast stuff and actual databases
+
+use template haskell to simplify generics in extensions: cases and
+   replacements are a bit verbose and difficult to write and read?
+
+
+= parse and/or type check todo list:
+(rough/imcomplete)
 "identifier"
 6.5e-5
 type 'string' style type cast
@@ -161,47 +314,32 @@ any/some/all subqueries and arrays
 check over rowwise comparisons
 indexes: create/alter/drop
 
-go over what more type checking could be done
+another todo list:
+catalog:
+constraints, pg_constraint
+triggers
+rules
+indexes
+add drops for all creates
+review which alters to add
+default columns values + insert checking
+support pks,fks better
+support serial properly
+type modifiers
+sequences
+enums
+listen, notify, pg_listener
+blocks in plpgsql, assignments in declarations, not null checking
+strict in into
+lables, loops, exit, continue
+raise % counts
+create schema
 
-stage 2:
-instead of interspersing the annotation output with the pretty printed
-   statements, insert or overwrite the annotation comments in the
-   original source so we preserve formatting and other comments.
-want to also output types of parts of statements, e.g. the select in a
-   for statement or insert, etc.. Other things that could be useful
-   include adding the resolved function prototype for each function
-   used which has overloads so you can see which overload is being
-   called, write out the canonicalized ast: so e.g. we have all the
-   casts made explicit, etc. -> use the annotation system for this
-With this in place, the code actually has some use for real code, in
-   that we can use it to easily view the types of views, etc. inline
-   in the real sql source code
-
-stage 3:
-review and choose from this list:
-* do null inference
-* some selective fixups here and there to the typing (e.g. type
-   checking constraints in create tables)
-* selectively add some missing syntax, to cover the most glaring holes
-* schema qualification
-* type check statements inside create function
-* something else from the todo for milestone 0.1 below
-* something else
+once all this is done, work on documenting precisely what is supported
+   and what isn't.
 
 ================================================================================
 
-rough milestones for first alpha
-in addition to all the stage 3 items above,
-
-add support for nearly all syntax for parsing and type checking,
-   instead of doing piecemeal bits, so go through the pg manual part
-   II, support almost everything, add comprehensive simple tests, go
-   through the sql reference section also. This is the time to
-   document more precisely what isn't supported so there is a clear
-   reference for this
-do ? placeholders, and do typesafe haskell wrapper generation using this
-figure out what to do about tricky operator precedence parsing, etc.
-ability to type check all of chaos sql
 example for generating sql code from haskell using the ast
 get database loader and typesafe access generators good enough to use
    in chaos
@@ -292,33 +430,6 @@ in general, parsing operators is wrong, the lexer needs to be able to
 
 some other random ideas:
 
-null treatment
-Basic motivation is to keep nulls carefully walled off, controlled,
-   and be able to catch them when they sneak back into expressions,
-   etc.. For each value, etc. we determine statically if it might be
-   null. This can be done for return types of functions, fields in a
-   select expression, etc.. (will do mappings e.g. if a functions
-   inputs are all non null, then the output is non null, etc.). Once
-   this is working ok, the second stage is to implement the anti null
-   warnings/ errors.
-Allow nulls in tables, outer joins, in coalesce, to be produced by
-   selects (maybe add or remove from this allowed list, maybe make it
-   configurable on a per project basis).
-Never allow nulls to be an argument to a function call, (including
-   ops, keyword ops, etc.). So every time you have a field being used
-   in an expression and it cannot be statically verified to be non
-   null, you have to insert a coalesce or fix it in some other way.
-So nulls can still be used to represent optional values, n/a,
-   etc.. and output to clients doing selects, but there is no need to
-   grapple with:
-* 3vl (or whatever it is that sql uses instead),
-* what the result of a function call is if the some or all the
-  arguments are null,
-* what the result of a sum aggregate is if some of the values are null,
-* etc.,
-because none of these things are allowed.
-
-
 parser, converter and pretty printer for explain output, want to view
    how a query is executed in human readable pseudocode. Add lint type
    checks, etc. to this, which can suggest ways to rewrite the query
@@ -327,38 +438,15 @@ parser, converter and pretty printer for explain output, want to view
    the data can change before another plan is chosen, or you can see a
    bad assumption about the kind of data the query will be run on.
 
-write a replacement psql shell, which can expose parse trees, type
-   checks, lint checks, and doesn't use a one line at a time style
-   interface (i.e. works more like writing and executing lisp in
-   emacs, not like bash).
-
-chain scope lookups instead of unioning them since unioning is too
-   slow - or maybe use maps/sets, but need to quickly scan whole lists
-   e.g. for function lookup, which can't really use any sort of key
-   based lookup, where the key the function lookup uses is the same as the
-   key the map/set uses.
-
 incorporate pg regression test sql into parsing and type checking
-   tests
-
-write a show for parsec errors which formats the lex tokens and
-   expected lists properly (was broken when moved to the separate
-   lexer)
-
-add haddock docs to public api
-
-write some example programs with plenty of comments - will this mainly
-   be used as a library or as a utility though?
+   tests - can run the roundtrip tests on them, check the
+   documentation generator, etc.
 
 redo cabal file to add compile time options: exes, pg support, tests
  or split into separate packages?
 
-sort out modules/folder use
-
-work on error reporting, add tests for malformed sql
-
-add token location info to ast nodes, modify for type checking, etc
-   support.
+work on error reporting, add tests for malformed sql, already some
+   tests and plan for more for sql which fails type checks.
 
 want to report multiple parse errors, perhaps can bodge this because
    of the property that ';' can only appear inside a string or
@@ -367,18 +455,10 @@ want to report multiple parse errors, perhaps can bodge this because
    parse to end of file in an attempt to catch at least some further
    syntax errors
 
-improve tests:
-identify each bit of syntax and make sure there is a test for it
-add some bigger tests: lots of sql statements, big functions
-look for possible corner cases and add tests
-
 get property checker working again - one problem is that the pretty
    printer will reject some asts (which the parser cannot
    produce), and the parser will probably reject some invalid sql that
    the pretty printer will happily produce from some asts.
-
-ability to write new lint checks, and choose which lint checks to use
-   on a per project basis.
 
 plpgsql on 'roids:
 write libraries in haskell, and then write syntax extensions for

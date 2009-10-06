@@ -256,6 +256,8 @@ TODO: do something more correct
 
 > checkSourceExt :: [FilePath] -> IO ()
 > checkSourceExt (dbName:fns) = do
+>   hSetBuffering stdout NoBuffering
+>   hSetBuffering stderr NoBuffering
 >   env1 <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
 >   let env = case env1 of
 >               Left e -> error $ show e

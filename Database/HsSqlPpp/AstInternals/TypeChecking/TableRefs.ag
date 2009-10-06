@@ -70,6 +70,9 @@ SEM TableRef
                            then [LibStackIDs $ ("", @loc.idLookups): @loc.qidLookups
                                 ,LibSetStarExpansion $ ("", @loc.starExpansion): @loc.qstarExpansion]
                            else []
+
+ATTR TableRef [jlibUpdates: {[LocalIdentifierBindingsUpdate]}||]
+
 {-
 
 similar sort of pattern for each sem:
@@ -125,7 +128,6 @@ SEM TableRef
         loc.alias1 = ""
     | TrefFunAlias
         loc.alias1 = @alias
-
     | JoinedTref
         loc.errs = fromLeft [] @loc.ejoinAttrs
         loc.removeJoinAttrs = filter (\(n,_) -> n `notElem` @loc.joinNames)
@@ -178,9 +180,16 @@ SEM TableRef
 
         -- we need the attributes from the joined tables to be available
         -- in the join expression.
-        onExpr.lib = case updateBindings @lhs.lib @lhs.env @loc.libUpdates of
+        loc.newLib = case updateBindings @lhs.lib @lhs.env (@loc.libUpdates ++ @lhs.jlibUpdates) of
                        Left x -> error $ show x
-                       Right e -> e
+                       Right e -> {-trace ("on expr lib:" ++ show e)-} e
+        onExpr.lib = @loc.newLib
+        --need to pass this into nested joins also
+        tbl.jlibUpdates = @loc.libUpdates
+        tbl1.jlibUpdates = @loc.libUpdates
+
+SEM MaybeTableRef
+    | Just just.jlibUpdates = []
 
 {
 {-

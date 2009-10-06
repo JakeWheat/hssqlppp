@@ -5,7 +5,6 @@ during the type checking process.
 
 Main areas to support are parameters and variables
 
-
 > module Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
 >     (
 >      QualifiedIDs
@@ -30,7 +29,8 @@ Main areas to support are parameters and variables
 > data LocalIdentifierBindings = LocalIdentifierBindings
 >                    {identifierTypes :: [[QualifiedIDs]]
 >                    ,starTypes :: [QualifiedIDs]}
->                                deriving (Show)
+
+
 
 > -- | Represents an empty environment. This doesn't contain things
 > -- like the \'and\' operator, and so if you try to use it it will
@@ -46,6 +46,17 @@ Main areas to support are parameters and variables
 > -- and the list of system column identifier names with their types.
 > type QualifiedIDs = (String, [(String,Type)])
 
+> instance Show LocalIdentifierBindings where
+>   show (LocalIdentifierBindings idTypes starEx) =
+>       "ID Types:\n" ++ concatMap (flip showQList 0) idTypes ++
+>         "Star Exp:\n" ++ concatMap showQuals starEx
+>       where
+>         showQList :: [QualifiedIDs] -> Int -> String
+>         showQList (x:xs) n = show n ++ ":\n" ++
+>                               showQuals x ++ "\n" ++ showQList xs (n + 1)
+>         showQList [] _ = ""
+>         showQuals :: QualifiedIDs -> String
+>         showQuals (co, idList) = "qual: " ++ co ++ ":\n" ++ concatMap (\(n,t) -> n ++ "::" ++ show t ++ "\n") idList
 
 
 
@@ -163,7 +174,8 @@ moment.
 >                          else (a,tail b)
 
 > libLookupID :: LocalIdentifierBindings -> String -> Either [TypeError] Type
-> libLookupID env iden1 = {-trace ("lookup " ++ show iden ++ " in " ++ show (identifierTypes env)) $-}
+> libLookupID env iden1 =
+>   {-trace ("----------------------------------\nlookup " ++ iden1) $-}
 >   envLookupID' $ identifierTypes env
 >   where
 >     (correlationName,iden) = splitIdentifier iden1
@@ -188,7 +200,8 @@ moment.
 >                -> [LocalIdentifierBindingsUpdate]
 >                -> Either [TypeError] LocalIdentifierBindings
 > updateBindings lbs' env eus =
->   foldM updateEnv' lbs' eus
+>   let r = foldM updateEnv' lbs' eus
+>   in {-trace ("*********************************************\nupdatebindings from " ++ show lbs' ++ "\nto\n" ++ show r) -} r
 >   where
 >     updateEnv' lbs eu =
 >       case eu of
