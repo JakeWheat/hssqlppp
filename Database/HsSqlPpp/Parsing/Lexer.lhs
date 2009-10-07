@@ -225,7 +225,8 @@ really examined until type checking
 >                      case b of Nothing -> return a
 >                                Just c -> return $ a ++ c]
 >   where
->     nonStarPart = (letter <|> char '_') <:> secondOnwards
+>     nonStarPart = idpart <|> (char '"' *> many (noneOf "\"") <* char '"')
+>                   where idpart = ((letter <|> char '_') <:> secondOnwards)
 >     secondOnwards = many (alphaNum <|> char '_')
 
 parse the block of inline data for a copy from stdin, ends with \. on

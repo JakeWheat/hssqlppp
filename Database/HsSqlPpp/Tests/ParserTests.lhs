@@ -62,7 +62,7 @@ test some more really basic expressions
 >      ,p "hello" (Identifier [] "hello")
 >      ,p "helloTest" (Identifier [] "helloTest")
 >      ,p "hello_test" (Identifier [] "hello_test")
->      --,p "\"this is an identifier\"" (Identifier [] "this is an identifier")
+>      ,p "\"this is an identifier\"" (Identifier [] "this is an identifier")
 >      ,p "hello1234" (Identifier [] "hello1234")
 >      ,p "true" (BooleanLit [] True)
 >      ,p "false" (BooleanLit [] False)

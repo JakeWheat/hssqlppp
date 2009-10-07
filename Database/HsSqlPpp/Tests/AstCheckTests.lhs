@@ -250,8 +250,6 @@ rows don't match types
 
 todo:
 
-
-
 >    ,testGroup "cast expressions"
 >     (mapExprType [
 >       p "cast ('1' as integer)"

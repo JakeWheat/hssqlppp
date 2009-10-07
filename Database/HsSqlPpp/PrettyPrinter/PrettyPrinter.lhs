@@ -24,6 +24,7 @@ Not much other comments, since it all should be pretty self evident.
 
 > import Text.PrettyPrint
 > import Data.Maybe
+> import Data.Char
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
@@ -341,7 +342,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convSelectExpression :: Bool -> SelectExpression -> Doc
 > convSelectExpression writeSelect (Select _ dis l tb wh grp hav
->                                 ord orddir lim off) =
+>                                 ordr orddir lim off) =
 >   text (if writeSelect then "select" else "")
 >   <+> (case dis of
 >          Dupes -> empty
@@ -353,7 +354,7 @@ Conversion routines - convert Sql asts into Docs
 >   <+> ifNotEmpty (\g -> text "group by" <+> hcatCsvMap convExp g) grp
 >   <+> maybeConv (\h -> text "having" <+> convExp h) hav
 >   <+> ifNotEmpty (\o -> text "order by" <+> hcatCsvMap convExp o
->                   <+> convDir orddir) ord
+>                   <+> convDir orddir) ordr
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 >   <+> maybeConv (\offs -> text "offset" <+> convExp offs) off
 >   where
@@ -449,7 +450,19 @@ Conversion routines - convert Sql asts into Docs
 = Expressions
 
 > convExp :: Expression -> Doc
-> convExp (Identifier _ i) = text i
+> convExp (Identifier _ i) =
+>   if quotesNeeded
+>      then text $ "\"" ++ i ++ "\""
+>      else text i
+>   where
+>     --needs some work - quotes needed if contains invalid unquoted
+>     --chars, or maybe if matches keyword or similar
+>     quotesNeeded = case i of
+>                      x:_ | not (isLetter x || x == '_') -> True
+>                      _ | all okChar i -> False
+>                        | otherwise -> True
+>                    where
+>                      okChar = (\x -> isAlphaNum x || x == '_')
 > convExp (IntegerLit _ n) = integer n
 > convExp (FloatLit _ n) = double n
 > convExp (StringLit _ tag s) = text tag <> text replaceQuotes <> text tag
