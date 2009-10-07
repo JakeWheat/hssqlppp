@@ -206,12 +206,12 @@ was heavily changed so it's a bit messy.
 >                cts
 >               ,map (uncurry EnvCreateDomain) domainDefs
 >               ,map (\(a,b,c) -> EnvCreateCast a b c) casts
->               ,map (\(a,b,c) -> EnvCreateFunction FunPrefix a b c) prefixOps
->               ,map (\(a,b,c) -> EnvCreateFunction FunPostfix a b c) postfixOps
->               ,map (\(a,b,c) -> EnvCreateFunction FunBinary a b c) binaryOps
->               ,map (\(a,b,c) -> EnvCreateFunction FunName a b c) fnProts
->               ,map (\(a,b,c) -> EnvCreateFunction FunAgg a b c) aggProts
->               ,map (\(a,b,c) -> EnvCreateFunction FunWindow a b c) winProts
+>               ,map (\(a,b,c) -> EnvCreateFunction FunPrefix a b c False) prefixOps
+>               ,map (\(a,b,c) -> EnvCreateFunction FunPostfix a b c False) postfixOps
+>               ,map (\(a,b,c) -> EnvCreateFunction FunBinary a b c False) binaryOps
+>               ,map (\(a,b,c) -> EnvCreateFunction FunName a b c False) fnProts
+>               ,map (\(a,b,c) -> EnvCreateFunction FunAgg a b c False) aggProts
+>               ,map (\(a,b,c) -> EnvCreateFunction FunWindow a b c False) winProts
 >               ,comps]
 >    where
 >      convertAttString jlt s =

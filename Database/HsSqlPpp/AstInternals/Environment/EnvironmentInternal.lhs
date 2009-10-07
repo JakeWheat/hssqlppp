@@ -79,7 +79,7 @@ modules.
 >                       envTypeNames = pseudoTypes
 >                      ,envBinaryOperators = ("=",[Pseudo AnyElement
 >                                                 ,Pseudo AnyElement],
->                                             typeBool):keywordOperatorTypes
+>                                             typeBool, False):keywordOperatorTypes
 >                      ,envFunctions = specialFunctionTypes}
 
 
@@ -108,8 +108,8 @@ modules.
 > type CompositeDef = (String, CompositeFlavour, Type, Type)
 
 > -- | The components are: function (or operator) name, argument
-> -- types, and return type.
-> type FunctionPrototype = (String, [Type], Type)
+> -- types, return type and is variadic.
+> type FunctionPrototype = (String, [Type], Type, Bool)
 
 > -- | The components are domain type, base type (todo: add check
 > -- constraint).
@@ -124,7 +124,7 @@ modules.
 >   | EnvCreateCast Type Type CastContext
 >   | EnvCreateTable String [(String,Type)] [(String,Type)]
 >   | EnvCreateView String [(String,Type)]
->   | EnvCreateFunction FunFlav String [Type] Type
+>   | EnvCreateFunction FunFlav String [Type] Type Bool
 >     deriving (Eq,Show,Typeable,Data)
 
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
@@ -194,14 +194,14 @@ modules.
 >                             envAttrDefs =
 >                               (nm,ViewComposite,CompositeType attrs, CompositeType [])
 >                               : envAttrDefs env}
->         EnvCreateFunction f nm args ret ->
+>         EnvCreateFunction f nm args ret vdc ->
 >             return $ case f of
->               FunPrefix -> env {envPrefixOperators=(nm,args,ret):envPrefixOperators env}
->               FunPostfix -> env {envPostfixOperators=(nm,args,ret):envPostfixOperators env}
->               FunBinary -> env {envBinaryOperators=(nm,args,ret):envBinaryOperators env}
->               FunAgg -> env {envAggregates=(nm,args,ret):envAggregates env}
->               FunWindow -> env {envWindowFunctions=(nm,args,ret):envWindowFunctions env}
->               FunName -> env {envFunctions=(nm,args,ret):envFunctions env}
+>               FunPrefix -> env {envPrefixOperators=(nm,args,ret,vdc):envPrefixOperators env}
+>               FunPostfix -> env {envPostfixOperators=(nm,args,ret,vdc):envPostfixOperators env}
+>               FunBinary -> env {envBinaryOperators=(nm,args,ret,vdc):envBinaryOperators env}
+>               FunAgg -> env {envAggregates=(nm,args,ret,vdc):envAggregates env}
+>               FunWindow -> env {envWindowFunctions=(nm,args,ret,vdc):envWindowFunctions env}
+>               FunName -> env {envFunctions=(nm,args,ret,vdc):envFunctions env}
 >     addTypeWithArray env nm ty cat pref =
 >       env {envTypeNames =
 >                ('_':nm,ArrayType ty)
@@ -298,7 +298,7 @@ check to see if it works
 
 > envLookupFns :: Environment -> String -> [FunctionPrototype]
 > envLookupFns env name =
->     filter (\(nm,_,_) -> nm == name) envGetAllFns
+>     filter (\(nm,_,_,_) -> nm == name) envGetAllFns
 >     where
 >     envGetAllFns =
 >         concat [envPrefixOperators env
@@ -344,36 +344,30 @@ postgresql catalog
 
 This is wrong, these need to be separated into prefix, postfix, binary
 
-> keywordOperatorTypes :: [(String,[Type],Type)]
+> keywordOperatorTypes :: [FunctionPrototype]
 > keywordOperatorTypes = [
->   ("!and", [typeBool, typeBool], typeBool)
->  ,("!or", [typeBool, typeBool], typeBool)
->  ,("!like", [ScalarType "text", ScalarType "text"], typeBool)
->  ,("!not", [typeBool], typeBool)
->  ,("!isNull", [Pseudo AnyElement], typeBool)
->  ,("!isNotNull", [Pseudo AnyElement], typeBool)
->  ,("!arrayCtor", [Pseudo AnyElement], Pseudo AnyArray) -- not quite right,
->                                         -- needs variadic support
->                                         -- currently works via a special case
->                                         -- in the type checking code
+>   ("!and", [typeBool, typeBool], typeBool, False)
+>  ,("!or", [typeBool, typeBool], typeBool, False)
+>  ,("!like", [ScalarType "text", ScalarType "text"], typeBool, False)
+>  ,("!not", [typeBool], typeBool, False)
+>  ,("!isNull", [Pseudo AnyElement], typeBool, False)
+>  ,("!isNotNull", [Pseudo AnyElement], typeBool, False)
+>  ,("!arrayCtor", [ArrayType $ Pseudo AnyElement], Pseudo AnyArray, True)
 >  ,("!between", [Pseudo AnyElement
->               ,Pseudo AnyElement
->               ,Pseudo AnyElement], Pseudo AnyElement)
->  ,("!substring", [ScalarType "text",typeInt,typeInt], ScalarType "text")
->  ,("!arraySub", [Pseudo AnyArray,typeInt], Pseudo AnyElement)
+>                ,Pseudo AnyElement
+>                ,Pseudo AnyElement], Pseudo AnyElement, False)
+>  ,("!substring", [ScalarType "text",typeInt,typeInt], ScalarType "text", False)
+>  ,("!arraySub", [Pseudo AnyArray,typeInt], Pseudo AnyElement, False)
 >  ]
 
 these look like functions, but don't appear in the postgresql catalog.
 
-> specialFunctionTypes :: [(String,[Type],Type)]
+> specialFunctionTypes :: [FunctionPrototype]
 > specialFunctionTypes = [
->   ("coalesce", [Pseudo AnyElement],
->     Pseudo AnyElement) -- needs variadic support to be correct,
->                        -- uses special case in type checking
->                        -- currently
->  ,("nullif", [Pseudo AnyElement, Pseudo AnyElement], Pseudo AnyElement)
->  ,("greatest", [Pseudo AnyElement], Pseudo AnyElement) --variadic, blah
->  ,("least", [Pseudo AnyElement], Pseudo AnyElement) --also
+>   ("coalesce", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement, True)
+>  ,("nullif", [Pseudo AnyElement, Pseudo AnyElement], Pseudo AnyElement,False)
+>  ,("greatest", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement,True)
+>  ,("least", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement,True)
 >  ]
 
 > pseudoTypes :: [(String, Type)]
@@ -417,13 +411,13 @@ this is why binary @ operator isn't currently supported
 >                       _ | s `elem` ["!and", "!or","!like"] -> BinaryOp
 >                         | s `elem` ["!not"] -> PrefixOp
 >                         | s `elem` ["!isNull", "!isNotNull"] -> PostfixOp
->                         | any (\(x,_,_) -> x == s) (envBinaryOperators env) ->
+>                         | any (\(x,_,_,_) -> x == s) (envBinaryOperators env) ->
 >                             BinaryOp
->                         | any (\(x,_,_) -> x == s ||
+>                         | any (\(x,_,_,_) -> x == s ||
 >                                            (x=="-" && s=="u-"))
 >                               (envPrefixOperators env) ->
 >                             PrefixOp
->                         | any (\(x,_,_) -> x == s) (envPostfixOperators env) ->
+>                         | any (\(x,_,_,_) -> x == s) (envPostfixOperators env) ->
 >                             PostfixOp
 >                         | otherwise ->
 >                             error $ "don't know flavour of operator " ++ s

@@ -27,7 +27,8 @@ SEM Statement
                                    [EnvCreateFunction FunName
                                                       @name
                                                       @loc.parameterTypes
-                                                      @rettype.namedType]
+                                                      @rettype.namedType
+                                                      False]
         loc.parameterTypes = (map snd @params.params)
 
         loc.backTree = CreateFunction @ann

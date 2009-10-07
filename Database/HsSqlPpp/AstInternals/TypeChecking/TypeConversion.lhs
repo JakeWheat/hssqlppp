@@ -141,10 +141,17 @@ against.
 >       -- basic lists which roughly mirror algo
 >       -- get the possibly matching candidates
 >       initialCandList :: [FunctionPrototype]
->       initialCandList = {-traceIt "initialCandList" $-}
->                         filter (\(_,candArgs,_) ->
+>       initialCandList = filter (\(_,candArgs,_,_) ->
 >                                   length candArgs == length inArgs) $
->                                envLookupFns env f
+>                                map expandVariadic $ envLookupFns env f
+>
+>       expandVariadic fp@(fn,a,r,v) =
+>         if v
+>           then case last a of
+>                  ArrayType t -> (fn, na,r,v)
+>                                 where na = init a ++ replicate (length inArgs - length a + 1) t
+>                  _ -> fp --should be error
+>           else fp
 >
 >       -- record what casts are needed for each candidate
 >       castPairs :: [[ArgCastFlavour]]
@@ -181,7 +188,7 @@ against.
 >               map ((length
 >                       . filter (\(a1,a2) -> a1==replaceWithBase env a2)
 >                       . zip inArgsBase)
->                 . (\((_,a,_),_) -> a)) reachable
+>                 . (\((_,a,_,_),_) -> a)) reachable
 >             pairs = zip reachable exactCounts
 >             maxm = maximum exactCounts
 >         in case () of
@@ -232,7 +239,7 @@ against.
 >                          replicate 2 (if head inArgs == UnknownType
 >                                         then inArgs !! 1
 >                                         else head inArgs)
->                  in filter (\((_,a,_),_) -> a == newInArgs) cands
+>                  in filter (\((_,a,_,_),_) -> a == newInArgs) cands
 >
 >       filterPolymorphics :: [ProtArgCast] -> [ProtArgCast]
 >       filterPolymorphics cl =
@@ -256,7 +263,7 @@ against.
 >           in zip (map fst finalRows) cps
 >           where
 >             polys :: [ProtArgCast]
->             polys = filter (\((_,a,_),_) -> any (`elem`
+>             polys = filter (\((_,a,_,_),_) -> any (`elem`
 >                                              [Pseudo Any
 >                                              ,Pseudo AnyArray
 >                                              ,Pseudo AnyElement
@@ -264,7 +271,7 @@ against.
 >                                              ,Pseudo AnyNonArray]) a) cl
 >             canMatch :: ProtArgCast -> Bool
 >             canMatch pac =
->                let ((_,fnArgs,_),_) = pac
+>                let ((_,fnArgs,_,_),_) = pac
 >                in canMatch' inArgs fnArgs
 >                where
 >                  canMatch' [] [] = True
@@ -282,7 +289,7 @@ against.
 >                      nextMatch = canMatch' ias pas
 >                  canMatch' _ _ = error "internal error: mismatched lists in canMatch'"
 >             resolvePolyType :: ProtArgCast -> Maybe Type
->             resolvePolyType ((_,fnArgs,_),_) =
+>             resolvePolyType ((_,fnArgs,_,_),_) =
 >                 {-trace ("\nresolving " ++ show fnArgs ++ " against " ++ show inArgs ++ "\n") $-}
 >                 let argPairs = zip inArgs fnArgs
 >                     typeList :: [Type]
@@ -304,9 +311,9 @@ against.
 >                      Right t -> Just t
 >             instantiatePolyType :: ProtArgCast -> Type -> ProtArgCast
 >             instantiatePolyType pac t =
->               let ((fn,a,r),_) = pac
+>               let ((fn,a,r,v),_) = pac
 >                   instArgs = swapPolys t a
->                   p1 = (fn, instArgs, swapPoly t r)
+>                   p1 = (fn, instArgs, swapPoly t r,v)
 >               in let x = (p1,listCastPairs instArgs)
 >                  in {-trace ("\nfixed:" ++ show x ++ "\n")-} x
 >               where
@@ -330,8 +337,8 @@ against.
 >       -- as a poly, then don't include that poly
 >       mergePolys :: [ProtArgCast] -> [ProtArgCast] -> [ProtArgCast]
 >       mergePolys orig polys =
->           let origArgs = map (\((_,a,_),_) -> a) orig
->               filteredPolys = filter (\((_,a,_),_) -> a `notElem` origArgs) polys
+>           let origArgs = map (\((_,a,_,_),_) -> a) orig
+>               filteredPolys = filter (\((_,a,_,_),_) -> a `notElem` origArgs) polys
 >           in orig ++ filteredPolys
 >
 >       countPreferredTypeCasts :: [ProtArgCast] -> [Int]
@@ -348,7 +355,7 @@ against.
 >           filterArgN 0
 >           where
 >             candArgLists :: [[Type]]
->             candArgLists = map (\((_,a,_), _) -> a) cands
+>             candArgLists = map (\((_,a,_,_), _) -> a) cands
 >             filterArgN :: Int -> [Either () String]
 >             filterArgN n =
 >                 if n == length inArgs
@@ -393,7 +400,7 @@ against.
 >                                            else catMatches
 >                        in getMatches keepMatches (n + 1)
 >            getTypeForArgN :: Int -> ProtArgCast -> Type
->            getTypeForArgN n ((_,a,_),_) = a !! n
+>            getTypeForArgN n ((_,a,_,_),_) = a !! n
 >            getCatForArgN :: Int -> ProtArgCast -> String
 >            getCatForArgN n = envTypeCategory env . getTypeForArgN n
 >
@@ -406,7 +413,7 @@ against.
 >       filterCandCastPairs predi = filter (\(_,cp) -> predi cp)
 >
 >       getFnArgs :: FunctionPrototype -> [Type]
->       getFnArgs (_,a,_) = a
+>       getFnArgs (_,a,_,_) = a
 >       returnIfOnne [] e = Left e
 >       returnIfOnne (l:ls) e = if length l == 1
 >                               then Right $ getHeadFn l
@@ -523,11 +530,9 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   -- check composites compatible by comparing attribute types
 >   || case (getCompositeTypes from
 >           ,getCompositeTypes to) of
+>        -- zip almost does the right thing here, needs a bit of tweaking
 >        (Just ft, Just tt) -> all (uncurry $ castableFromTo env cc) $ zip ft tt
 >        _ -> False
->   -- check row cast to composite
->   -- || rowToComposite from to
->   -- || recurseTransTo (lookupComposite to)
 >   where
 
 >     getCompositeTypes (NamedCompositeType n) =

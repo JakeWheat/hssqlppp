@@ -1028,258 +1028,301 @@ This file contains
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "~"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "~"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "~"
 >            [ ScalarType "bit"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "~"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "||/"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "|/"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "|"
 >            [ ScalarType "tinterval"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@@"
 >            [ ScalarType "circle"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@@"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@@"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@@"
 >            [ ScalarType "polygon"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@@"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@-@"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@-@"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "@"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "?|"
 >            [ ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "?|"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "?-"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "?-"
 >            [ ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "-"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "-"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "-"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "-"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "-"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "-"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "-"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "+"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "+"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "+"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "+"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "+"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "+"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "#"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "#"
 >            [ ScalarType "polygon"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "!!"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunPrefix
 >            "!!"
 >            [ ScalarType "tsquery"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunPostfix
 >            "!"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~~*"
@@ -1287,6 +1330,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~~*"
@@ -1294,6 +1338,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~~*"
@@ -1301,6 +1346,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~~"
@@ -1308,6 +1354,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~~"
@@ -1315,6 +1362,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~~"
@@ -1322,6 +1370,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~~"
@@ -1329,6 +1378,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~>~"
@@ -1336,6 +1386,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~>~"
@@ -1343,6 +1394,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~>=~"
@@ -1350,6 +1402,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~>=~"
@@ -1357,6 +1410,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~="
@@ -1364,6 +1418,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~="
@@ -1371,6 +1426,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~="
@@ -1378,6 +1434,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~="
@@ -1385,6 +1442,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~="
@@ -1392,6 +1450,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~<~"
@@ -1399,6 +1458,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~<~"
@@ -1406,6 +1466,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~<=~"
@@ -1413,6 +1474,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~<=~"
@@ -1420,6 +1482,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~*"
@@ -1427,6 +1490,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~*"
@@ -1434,6 +1498,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~*"
@@ -1441,6 +1506,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~"
@@ -1448,6 +1514,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~"
@@ -1455,6 +1522,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~"
@@ -1462,6 +1530,7 @@ This file contains
 >            , ScalarType "aclitem"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~"
@@ -1469,6 +1538,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~"
@@ -1476,6 +1546,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~"
@@ -1483,6 +1554,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~"
@@ -1490,6 +1562,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~"
@@ -1497,6 +1570,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~"
@@ -1504,6 +1578,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "~"
@@ -1511,6 +1586,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "||"
@@ -1518,6 +1594,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "||"
@@ -1525,6 +1602,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "||"
@@ -1532,6 +1610,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "varbit" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "||"
@@ -1539,6 +1618,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "||"
@@ -1546,6 +1626,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "||"
@@ -1553,6 +1634,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "||"
@@ -1560,6 +1642,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "||"
@@ -1567,6 +1650,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "tsvector" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "||"
@@ -1574,6 +1658,7 @@ This file contains
 >            , Pseudo AnyElement
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "||"
@@ -1581,6 +1666,7 @@ This file contains
 >            , Pseudo AnyNonArray
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|>>"
@@ -1588,6 +1674,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|>>"
@@ -1595,6 +1682,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|>>"
@@ -1602,6 +1690,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|&>"
@@ -1609,6 +1698,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|&>"
@@ -1616,6 +1706,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|&>"
@@ -1623,6 +1714,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|"
@@ -1630,6 +1722,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|"
@@ -1637,6 +1730,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|"
@@ -1644,6 +1738,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|"
@@ -1651,6 +1746,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "|"
@@ -1658,6 +1754,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "^"
@@ -1665,6 +1762,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "^"
@@ -1672,6 +1770,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@@@"
@@ -1679,6 +1778,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@@@"
@@ -1686,6 +1786,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@@"
@@ -1693,6 +1794,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@@"
@@ -1700,6 +1802,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@@"
@@ -1707,6 +1810,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@@"
@@ -1714,6 +1818,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@>"
@@ -1721,6 +1826,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@>"
@@ -1728,6 +1834,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@>"
@@ -1735,6 +1842,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@>"
@@ -1742,6 +1850,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@>"
@@ -1749,6 +1858,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@>"
@@ -1756,6 +1866,7 @@ This file contains
 >            , ScalarType "aclitem"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@>"
@@ -1763,6 +1874,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@>"
@@ -1770,6 +1882,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "@>"
@@ -1777,6 +1890,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?||"
@@ -1784,6 +1898,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?||"
@@ -1791,6 +1906,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?|"
@@ -1798,6 +1914,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?-|"
@@ -1805,6 +1922,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?-|"
@@ -1812,6 +1930,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?-"
@@ -1819,6 +1938,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?#"
@@ -1826,6 +1946,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?#"
@@ -1833,6 +1954,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?#"
@@ -1840,6 +1962,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?#"
@@ -1847,6 +1970,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?#"
@@ -1854,6 +1978,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?#"
@@ -1861,6 +1986,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "?#"
@@ -1868,6 +1994,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">^"
@@ -1875,6 +2002,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">^"
@@ -1882,6 +2010,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">>="
@@ -1889,6 +2018,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">>"
@@ -1896,6 +2026,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">>"
@@ -1903,6 +2034,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">>"
@@ -1910,6 +2042,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">>"
@@ -1917,6 +2050,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">>"
@@ -1924,6 +2058,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">>"
@@ -1931,6 +2066,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">>"
@@ -1938,6 +2074,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">>"
@@ -1945,6 +2082,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">>"
@@ -1952,6 +2090,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -1959,6 +2098,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -1966,6 +2106,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -1973,6 +2114,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -1980,6 +2122,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -1987,6 +2130,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -1994,6 +2138,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2001,6 +2146,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2008,6 +2154,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2015,6 +2162,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2022,6 +2170,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2029,6 +2178,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2036,6 +2186,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2043,6 +2194,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2050,6 +2202,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2057,6 +2210,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2064,6 +2218,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2071,6 +2226,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2078,6 +2234,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2085,6 +2242,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2092,6 +2250,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2099,6 +2258,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2106,6 +2266,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2113,6 +2274,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2120,6 +2282,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2127,6 +2290,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2134,6 +2298,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2141,6 +2306,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2148,6 +2314,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2155,6 +2322,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2162,6 +2330,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2169,6 +2338,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2176,6 +2346,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2183,6 +2354,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2190,6 +2362,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2197,6 +2370,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2204,6 +2378,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2211,6 +2386,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2218,6 +2394,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2225,6 +2402,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2232,6 +2410,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2239,6 +2418,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2246,6 +2426,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2253,6 +2434,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2260,6 +2442,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2267,6 +2450,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2274,6 +2458,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2281,6 +2466,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2288,6 +2474,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2295,6 +2482,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2302,6 +2490,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2309,6 +2498,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2316,6 +2506,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">="
@@ -2323,6 +2514,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2330,6 +2522,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2337,6 +2530,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2344,6 +2538,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2351,6 +2546,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2358,6 +2554,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2365,6 +2562,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2372,6 +2570,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2379,6 +2578,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2386,6 +2586,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2393,6 +2594,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2400,6 +2602,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2407,6 +2610,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2414,6 +2618,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2421,6 +2626,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2428,6 +2634,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2435,6 +2642,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2442,6 +2650,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2449,6 +2658,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2456,6 +2666,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2463,6 +2674,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2470,6 +2682,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2477,6 +2690,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2484,6 +2698,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2491,6 +2706,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2498,6 +2714,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2505,6 +2722,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2512,6 +2730,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2519,6 +2738,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2526,6 +2746,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2533,6 +2754,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2540,6 +2762,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2547,6 +2770,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2554,6 +2778,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2561,6 +2786,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2568,6 +2794,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2575,6 +2802,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2582,6 +2810,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2589,6 +2818,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2596,6 +2826,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2603,6 +2834,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2610,6 +2842,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2617,6 +2850,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2624,6 +2858,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2631,6 +2866,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2638,6 +2874,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2645,6 +2882,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2652,6 +2890,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2659,6 +2898,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2666,6 +2906,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2673,6 +2914,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2680,6 +2922,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2687,6 +2930,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            ">"
@@ -2694,6 +2938,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2701,6 +2946,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2708,6 +2954,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2715,6 +2962,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2722,6 +2970,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2729,6 +2978,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2736,6 +2986,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2743,6 +2994,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2750,6 +3002,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2757,6 +3010,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2764,6 +3018,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2771,6 +3026,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2778,6 +3034,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2785,6 +3042,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2792,6 +3050,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2799,6 +3058,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2806,6 +3066,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2813,6 +3074,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2820,6 +3082,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2827,6 +3090,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2834,6 +3098,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2841,6 +3106,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2848,6 +3114,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2855,6 +3122,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2862,6 +3130,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2869,6 +3138,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2876,6 +3146,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2883,6 +3154,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2890,6 +3162,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2897,6 +3170,7 @@ This file contains
 >            , ScalarType "aclitem"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2904,6 +3178,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2911,6 +3186,7 @@ This file contains
 >            , ScalarType "int2vector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2918,6 +3194,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2925,6 +3202,7 @@ This file contains
 >            , ScalarType "cid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2932,6 +3210,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2939,6 +3218,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2946,6 +3226,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2953,6 +3234,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2960,6 +3242,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2967,6 +3250,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2974,6 +3258,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2981,6 +3266,7 @@ This file contains
 >            , ScalarType "xid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2988,6 +3274,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -2995,6 +3282,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3002,6 +3290,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3009,6 +3298,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3016,6 +3306,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3023,6 +3314,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3030,6 +3322,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3037,6 +3330,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3044,6 +3338,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3051,6 +3346,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3058,6 +3354,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3065,6 +3362,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3072,6 +3370,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3079,6 +3378,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3086,6 +3386,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3093,6 +3394,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3100,6 +3402,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "="
@@ -3107,6 +3410,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<^"
@@ -3114,6 +3418,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<^"
@@ -3121,6 +3426,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3128,6 +3434,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3135,6 +3442,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3142,6 +3450,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3149,6 +3458,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3156,6 +3466,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3163,6 +3474,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3170,6 +3482,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3177,6 +3490,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3184,6 +3498,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3191,6 +3506,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3198,6 +3514,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3205,6 +3522,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<@"
@@ -3212,6 +3530,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<?>"
@@ -3219,6 +3538,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3226,6 +3546,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3233,6 +3554,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3240,6 +3562,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3247,6 +3570,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3254,6 +3578,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3261,6 +3586,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3268,6 +3594,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3275,6 +3602,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3282,6 +3610,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3289,6 +3618,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3296,6 +3626,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3303,6 +3634,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3310,6 +3642,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3317,6 +3650,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3324,6 +3658,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3331,6 +3666,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3338,6 +3674,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3345,6 +3682,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3352,6 +3690,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3359,6 +3698,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3366,6 +3706,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3373,6 +3714,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3380,6 +3722,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3387,6 +3730,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3394,6 +3738,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3401,6 +3746,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3408,6 +3754,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3415,6 +3762,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3422,6 +3770,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3429,6 +3778,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3436,6 +3786,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3443,6 +3794,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3450,6 +3802,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3457,6 +3810,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3464,6 +3818,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3471,6 +3826,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3478,6 +3834,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3485,6 +3842,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3492,6 +3850,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3499,6 +3858,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3506,6 +3866,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3513,6 +3874,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3520,6 +3882,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3527,6 +3890,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3534,6 +3898,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3541,6 +3906,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3548,6 +3914,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3555,6 +3922,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3562,6 +3930,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3569,6 +3938,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3576,6 +3946,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<>"
@@ -3583,6 +3954,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3590,6 +3962,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3597,6 +3970,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3604,6 +3978,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3611,6 +3986,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3618,6 +3994,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3625,6 +4002,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3632,6 +4010,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3639,6 +4018,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3646,6 +4026,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3653,6 +4034,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3660,6 +4042,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3667,6 +4050,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3674,6 +4058,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3681,6 +4066,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3688,6 +4074,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3695,6 +4082,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3702,6 +4090,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3709,6 +4098,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3716,6 +4106,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3723,6 +4114,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3730,6 +4122,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3737,6 +4130,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3744,6 +4138,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3751,6 +4146,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3758,6 +4154,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3765,6 +4162,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3772,6 +4170,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3779,6 +4178,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3786,6 +4186,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3793,6 +4194,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3800,6 +4202,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3807,6 +4210,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3814,6 +4218,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3821,6 +4226,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3828,6 +4234,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3835,6 +4242,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3842,6 +4250,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3849,6 +4258,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3856,6 +4266,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3863,6 +4274,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3870,6 +4282,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3877,6 +4290,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3884,6 +4298,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3891,6 +4306,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3898,6 +4314,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3905,6 +4322,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3912,6 +4330,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3919,6 +4338,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3926,6 +4346,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3933,6 +4354,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3940,6 +4362,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3947,6 +4370,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<="
@@ -3954,6 +4378,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<|"
@@ -3961,6 +4386,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<|"
@@ -3968,6 +4394,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<|"
@@ -3975,6 +4402,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<="
@@ -3982,6 +4410,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<"
@@ -3989,6 +4418,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<"
@@ -3996,6 +4426,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<"
@@ -4003,6 +4434,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<"
@@ -4010,6 +4442,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<"
@@ -4017,6 +4450,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<"
@@ -4024,6 +4458,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<"
@@ -4031,6 +4466,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<"
@@ -4038,6 +4474,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<"
@@ -4045,6 +4482,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<<"
@@ -4052,6 +4490,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4059,6 +4498,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4066,6 +4506,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4073,6 +4514,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4080,6 +4522,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4087,6 +4530,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4094,6 +4538,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4101,6 +4546,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4108,6 +4554,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4115,6 +4562,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4122,6 +4570,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4129,6 +4578,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4136,6 +4586,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4143,6 +4594,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4150,6 +4602,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4157,6 +4610,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<->"
@@ -4164,6 +4618,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<#>"
@@ -4171,6 +4626,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "tinterval" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4178,6 +4634,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4185,6 +4642,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4192,6 +4650,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4199,6 +4658,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4206,6 +4666,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4213,6 +4674,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4220,6 +4682,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4227,6 +4690,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4234,6 +4698,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4241,6 +4706,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4248,6 +4714,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4255,6 +4722,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4262,6 +4730,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4269,6 +4738,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4276,6 +4746,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4283,6 +4754,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4290,6 +4762,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4297,6 +4770,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4304,6 +4778,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4311,6 +4786,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4318,6 +4794,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4325,6 +4802,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4332,6 +4810,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4339,6 +4818,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4346,6 +4826,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4353,6 +4834,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4360,6 +4842,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4367,6 +4850,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4374,6 +4858,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4381,6 +4866,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4388,6 +4874,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4395,6 +4882,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4402,6 +4890,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4409,6 +4898,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4416,6 +4906,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4423,6 +4914,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4430,6 +4922,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4437,6 +4930,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4444,6 +4938,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4451,6 +4946,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4458,6 +4954,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4465,6 +4962,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4472,6 +4970,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4479,6 +4978,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4486,6 +4986,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4493,6 +4994,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4500,6 +5002,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4507,6 +5010,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4514,6 +5018,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4521,6 +5026,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4528,6 +5034,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4535,6 +5042,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "<"
@@ -4542,6 +5050,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4549,6 +5058,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4556,6 +5066,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4563,6 +5074,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4570,6 +5082,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4577,6 +5090,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4584,6 +5098,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4591,6 +5106,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4598,6 +5114,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4605,6 +5122,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4612,6 +5130,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4619,6 +5138,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4626,6 +5146,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4633,6 +5154,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4640,6 +5162,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4647,6 +5170,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4654,6 +5178,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4661,6 +5186,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4668,6 +5194,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4675,6 +5202,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4682,6 +5210,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4689,6 +5218,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4696,6 +5226,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "/"
@@ -4703,6 +5234,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4710,6 +5242,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4717,6 +5250,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4724,6 +5258,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4731,6 +5266,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4738,6 +5274,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4745,6 +5282,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4752,6 +5290,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4759,6 +5298,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4766,6 +5306,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4773,6 +5314,7 @@ This file contains
 >            , ScalarType "aclitem"
 >            ] (
 >            ArrayType ( ScalarType "aclitem" ) )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4780,6 +5322,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4787,6 +5330,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4794,6 +5338,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4801,6 +5346,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4808,6 +5354,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4815,6 +5362,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4822,6 +5370,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4829,6 +5378,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4836,6 +5386,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4843,6 +5394,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4850,6 +5402,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4857,6 +5410,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4864,6 +5418,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4871,6 +5426,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4878,6 +5434,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4885,6 +5442,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4892,6 +5450,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4899,6 +5458,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4906,6 +5466,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4913,6 +5474,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4920,6 +5482,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4927,6 +5490,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4934,6 +5498,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "-"
@@ -4941,6 +5506,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -4948,6 +5514,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -4955,6 +5522,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -4962,6 +5530,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -4969,6 +5538,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -4976,6 +5546,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -4983,6 +5554,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -4990,6 +5562,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -4997,6 +5570,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5004,6 +5578,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5011,6 +5586,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5018,6 +5594,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5025,6 +5602,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5032,6 +5610,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5039,6 +5618,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5046,6 +5626,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5053,6 +5634,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5060,6 +5642,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5067,6 +5650,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5074,6 +5658,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5081,6 +5666,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5088,6 +5674,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5095,6 +5682,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5102,6 +5690,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5109,6 +5698,7 @@ This file contains
 >            , ScalarType "aclitem"
 >            ] (
 >            ArrayType ( ScalarType "aclitem" ) )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5116,6 +5706,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5123,6 +5714,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5130,6 +5722,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5137,6 +5730,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5144,6 +5738,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5151,6 +5746,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5158,6 +5754,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5165,6 +5762,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5172,6 +5770,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5179,6 +5778,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5186,6 +5786,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5193,6 +5794,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5200,6 +5802,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5207,6 +5810,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5214,6 +5818,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5221,6 +5826,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "+"
@@ -5228,6 +5834,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5235,6 +5842,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5242,6 +5850,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5249,6 +5858,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5256,6 +5866,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5263,6 +5874,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5270,6 +5882,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5277,6 +5890,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5284,6 +5898,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5291,6 +5906,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5298,6 +5914,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5305,6 +5922,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5312,6 +5930,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5319,6 +5938,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5326,6 +5946,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5333,6 +5954,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5340,6 +5962,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5347,6 +5970,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5354,6 +5978,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5361,6 +5986,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5368,6 +5994,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5375,6 +6002,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5382,6 +6010,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5389,6 +6018,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5396,6 +6026,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5403,6 +6034,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5410,6 +6042,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5417,6 +6050,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "*"
@@ -5424,6 +6058,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&>"
@@ -5431,6 +6066,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&>"
@@ -5438,6 +6074,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&>"
@@ -5445,6 +6082,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&<|"
@@ -5452,6 +6090,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&<|"
@@ -5459,6 +6098,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&<|"
@@ -5466,6 +6106,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&<"
@@ -5473,6 +6114,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&<"
@@ -5480,6 +6122,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&<"
@@ -5487,6 +6130,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&&"
@@ -5494,6 +6138,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&&"
@@ -5501,6 +6146,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&&"
@@ -5508,6 +6154,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&&"
@@ -5515,6 +6162,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&&"
@@ -5522,6 +6170,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&&"
@@ -5529,6 +6178,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&"
@@ -5536,6 +6186,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&"
@@ -5543,6 +6194,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&"
@@ -5550,6 +6202,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&"
@@ -5557,6 +6210,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "&"
@@ -5564,6 +6218,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "%"
@@ -5571,6 +6226,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "%"
@@ -5578,6 +6234,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "%"
@@ -5585,6 +6242,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "%"
@@ -5592,6 +6250,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#>="
@@ -5599,6 +6258,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#>"
@@ -5606,6 +6266,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#="
@@ -5613,6 +6274,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#<>"
@@ -5620,6 +6282,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#<="
@@ -5627,6 +6290,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#<"
@@ -5634,6 +6298,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "##"
@@ -5641,6 +6306,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "##"
@@ -5648,6 +6314,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "##"
@@ -5655,6 +6322,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "##"
@@ -5662,6 +6330,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "##"
@@ -5669,6 +6338,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "##"
@@ -5676,6 +6346,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "##"
@@ -5683,6 +6354,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "##"
@@ -5690,6 +6362,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#"
@@ -5697,6 +6370,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#"
@@ -5704,6 +6378,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#"
@@ -5711,6 +6386,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#"
@@ -5718,6 +6394,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#"
@@ -5725,6 +6402,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#"
@@ -5732,6 +6410,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "#"
@@ -5739,6 +6418,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~~*"
@@ -5746,6 +6426,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~~*"
@@ -5753,6 +6434,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~~*"
@@ -5760,6 +6442,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~~"
@@ -5767,6 +6450,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~~"
@@ -5774,6 +6458,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~~"
@@ -5781,6 +6466,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~~"
@@ -5788,6 +6474,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~*"
@@ -5795,6 +6482,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~*"
@@ -5802,6 +6490,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~*"
@@ -5809,6 +6498,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~"
@@ -5816,6 +6506,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~"
@@ -5823,6 +6514,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunBinary
 >            "!~"
@@ -5830,126 +6522,149 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_cascade_del"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_cascade_upd"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_check_ins"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_check_upd"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_noaction_del"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_noaction_upd"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_restrict_del"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_restrict_upd"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_setdefault_del"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_setdefault_upd"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_setnull_del"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "RI_FKey_setnull_upd"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abbrev"
 >            [ ScalarType "cidr"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abbrev"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abs"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abs"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abs"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abs"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abs"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abs"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstime"
 >            [ ScalarType "timestamp"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstime"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstimeeq"
@@ -5957,6 +6672,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstimege"
@@ -5964,6 +6680,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstimegt"
@@ -5971,12 +6688,14 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstimein"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstimele"
@@ -5984,6 +6703,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstimelt"
@@ -5991,6 +6711,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstimene"
@@ -5998,24 +6719,28 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstimeout"
 >            [ ScalarType "abstime"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstimerecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "abstimesend"
 >            [ ScalarType "abstime"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "aclcontains"
@@ -6023,6 +6748,7 @@ This file contains
 >            , ScalarType "aclitem"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "aclinsert"
@@ -6030,6 +6756,7 @@ This file contains
 >            , ScalarType "aclitem"
 >            ] (
 >            ArrayType ( ScalarType "aclitem" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "aclitemeq"
@@ -6037,18 +6764,21 @@ This file contains
 >            , ScalarType "aclitem"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "aclitemin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "aclitem" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "aclitemout"
 >            [ ScalarType "aclitem"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "aclremove"
@@ -6056,30 +6786,35 @@ This file contains
 >            , ScalarType "aclitem"
 >            ] (
 >            ArrayType ( ScalarType "aclitem" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "acos"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "age"
 >            [ ScalarType "xid"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "age"
 >            [ ScalarType "timestamp"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "age"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "age"
@@ -6087,6 +6822,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "age"
@@ -6094,78 +6830,91 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "any_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo Any )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "any_out"
 >            [ Pseudo Any
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anyarray_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anyarray_out"
 >            [ Pseudo AnyArray
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anyarray_recv"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anyarray_send"
 >            [ Pseudo AnyArray
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anyelement_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo AnyElement )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anyelement_out"
 >            [ Pseudo AnyElement
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anyenum_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo AnyEnum )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anyenum_out"
 >            [ Pseudo AnyEnum
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anynonarray_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo AnyNonArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anynonarray_out"
 >            [ Pseudo AnyNonArray
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "anytextcat"
@@ -6173,24 +6922,28 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "area"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "area"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "area"
 >            [ ScalarType "circle"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "areajoinsel"
@@ -6201,6 +6954,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "areasel"
@@ -6210,12 +6964,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_agg_finalfn"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_agg_transfn"
@@ -6223,6 +6979,7 @@ This file contains
 >            , Pseudo AnyElement
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_append"
@@ -6230,6 +6987,7 @@ This file contains
 >            , Pseudo AnyElement
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_cat"
@@ -6237,12 +6995,14 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_dims"
 >            [ Pseudo AnyArray
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_eq"
@@ -6250,6 +7010,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_fill"
@@ -6257,6 +7018,7 @@ This file contains
 >            , ArrayType ( ScalarType "int4" )
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_fill"
@@ -6265,6 +7027,7 @@ This file contains
 >            , ArrayType ( ScalarType "int4" )
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_ge"
@@ -6272,6 +7035,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_gt"
@@ -6279,6 +7043,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_in"
@@ -6287,6 +7052,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_larger"
@@ -6294,6 +7060,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_le"
@@ -6301,6 +7068,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_length"
@@ -6308,6 +7076,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_lower"
@@ -6315,6 +7084,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_lt"
@@ -6322,12 +7092,14 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_ndims"
 >            [ Pseudo AnyArray
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_ne"
@@ -6335,12 +7107,14 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_out"
 >            [ Pseudo AnyArray
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_prepend"
@@ -6348,6 +7122,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_recv"
@@ -6356,12 +7131,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_send"
 >            [ Pseudo AnyArray
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_smaller"
@@ -6369,6 +7146,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_to_string"
@@ -6376,6 +7154,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "array_upper"
@@ -6383,6 +7162,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "arraycontained"
@@ -6390,6 +7170,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "arraycontains"
@@ -6397,6 +7178,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "arrayoverlap"
@@ -6404,12 +7186,14 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ascii"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ascii_to_mic"
@@ -6420,6 +7204,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ascii_to_utf8"
@@ -6430,18 +7215,21 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "asin"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "atan"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "atan2"
@@ -6449,6 +7237,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "big5_to_euc_tw"
@@ -6459,6 +7248,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "big5_to_mic"
@@ -6469,6 +7259,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "big5_to_utf8"
@@ -6479,6 +7270,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bit"
@@ -6486,6 +7278,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bit"
@@ -6493,6 +7286,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bit"
@@ -6501,6 +7295,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bit_in"
@@ -6509,30 +7304,35 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bit_length"
 >            [ ScalarType "bytea"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bit_length"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bit_length"
 >            [ ScalarType "bit"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bit_out"
 >            [ ScalarType "bit"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bit_recv"
@@ -6541,12 +7341,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bit_send"
 >            [ ScalarType "bit"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitand"
@@ -6554,6 +7356,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitcat"
@@ -6561,6 +7364,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "varbit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitcmp"
@@ -6568,6 +7372,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "biteq"
@@ -6575,6 +7380,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitge"
@@ -6582,6 +7388,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitgt"
@@ -6589,6 +7396,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitle"
@@ -6596,6 +7404,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitlt"
@@ -6603,6 +7412,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitne"
@@ -6610,12 +7420,14 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitnot"
 >            [ ScalarType "bit"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitor"
@@ -6623,6 +7435,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitshiftleft"
@@ -6630,6 +7443,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitshiftright"
@@ -6637,18 +7451,21 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bittypmodin"
 >            [ ArrayType ( Pseudo Cstring )
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bittypmodout"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bitxor"
@@ -6656,12 +7473,14 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bool"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "booland_statefunc"
@@ -6669,6 +7488,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "booleq"
@@ -6676,6 +7496,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "boolge"
@@ -6683,6 +7504,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "boolgt"
@@ -6690,12 +7512,14 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "boolin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "boolle"
@@ -6703,6 +7527,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "boollt"
@@ -6710,6 +7535,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "boolne"
@@ -6717,6 +7543,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "boolor_statefunc"
@@ -6724,36 +7551,42 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "boolout"
 >            [ ScalarType "bool"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "boolrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "boolsend"
 >            [ ScalarType "bool"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box"
 >            [ ScalarType "polygon"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box"
 >            [ ScalarType "circle"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box"
@@ -6761,6 +7594,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_above"
@@ -6768,6 +7602,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_above_eq"
@@ -6775,6 +7610,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_add"
@@ -6782,6 +7618,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_below"
@@ -6789,6 +7626,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_below_eq"
@@ -6796,12 +7634,14 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_center"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_contain"
@@ -6809,6 +7649,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_contained"
@@ -6816,6 +7657,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_distance"
@@ -6823,6 +7665,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_div"
@@ -6830,6 +7673,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_eq"
@@ -6837,6 +7681,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_ge"
@@ -6844,6 +7689,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_gt"
@@ -6851,12 +7697,14 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_intersect"
@@ -6864,6 +7712,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_le"
@@ -6871,6 +7720,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_left"
@@ -6878,6 +7728,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_lt"
@@ -6885,6 +7736,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_mul"
@@ -6892,12 +7744,14 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_out"
 >            [ ScalarType "box"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_overabove"
@@ -6905,6 +7759,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_overbelow"
@@ -6912,6 +7767,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_overlap"
@@ -6919,6 +7775,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_overleft"
@@ -6926,6 +7783,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_overright"
@@ -6933,12 +7791,14 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_right"
@@ -6946,6 +7806,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_same"
@@ -6953,12 +7814,14 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_send"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "box_sub"
@@ -6966,18 +7829,21 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchar"
 >            [ ScalarType "char"
 >            ] (
 >            ScalarType "bpchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchar"
 >            [ ScalarType "name"
 >            ] (
 >            ScalarType "bpchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchar"
@@ -6986,6 +7852,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bpchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchar_larger"
@@ -6993,6 +7860,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bpchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchar_pattern_ge"
@@ -7000,6 +7868,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchar_pattern_gt"
@@ -7007,6 +7876,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchar_pattern_le"
@@ -7014,6 +7884,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchar_pattern_lt"
@@ -7021,6 +7892,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchar_smaller"
@@ -7028,6 +7900,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bpchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharcmp"
@@ -7035,6 +7908,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchareq"
@@ -7042,6 +7916,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharge"
@@ -7049,6 +7924,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchargt"
@@ -7056,6 +7932,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchariclike"
@@ -7063,6 +7940,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharicnlike"
@@ -7070,6 +7948,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharicregexeq"
@@ -7077,6 +7956,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharicregexne"
@@ -7084,6 +7964,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharin"
@@ -7092,6 +7973,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bpchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharle"
@@ -7099,6 +7981,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharlike"
@@ -7106,6 +7989,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharlt"
@@ -7113,6 +7997,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharne"
@@ -7120,6 +8005,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharnlike"
@@ -7127,12 +8013,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharout"
 >            [ ScalarType "bpchar"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharrecv"
@@ -7141,6 +8029,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bpchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharregexeq"
@@ -7148,6 +8037,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharregexne"
@@ -7155,30 +8045,35 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpcharsend"
 >            [ ScalarType "bpchar"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchartypmodin"
 >            [ ArrayType ( Pseudo Cstring )
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bpchartypmodout"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "broadcast"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btabstimecmp"
@@ -7186,6 +8081,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btarraycmp"
@@ -7193,6 +8089,7 @@ This file contains
 >            , Pseudo AnyArray
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btbeginscan"
@@ -7201,6 +8098,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btboolcmp"
@@ -7208,6 +8106,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btbpchar_pattern_cmp"
@@ -7215,6 +8114,7 @@ This file contains
 >            , ScalarType "bpchar"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btbuild"
@@ -7223,6 +8123,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btbulkdelete"
@@ -7232,6 +8133,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btcharcmp"
@@ -7239,6 +8141,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btcostestimate"
@@ -7252,12 +8155,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btendscan"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btfloat48cmp"
@@ -7265,6 +8170,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btfloat4cmp"
@@ -7272,6 +8178,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btfloat84cmp"
@@ -7279,6 +8186,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btfloat8cmp"
@@ -7286,6 +8194,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btgetbitmap"
@@ -7293,6 +8202,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btgettuple"
@@ -7300,6 +8210,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btinsert"
@@ -7311,6 +8222,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btint24cmp"
@@ -7318,6 +8230,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btint28cmp"
@@ -7325,6 +8238,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btint2cmp"
@@ -7332,6 +8246,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btint42cmp"
@@ -7339,6 +8254,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btint48cmp"
@@ -7346,6 +8262,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btint4cmp"
@@ -7353,6 +8270,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btint82cmp"
@@ -7360,6 +8278,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btint84cmp"
@@ -7367,6 +8286,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btint8cmp"
@@ -7374,12 +8294,14 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btmarkpos"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btnamecmp"
@@ -7387,6 +8309,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btoidcmp"
@@ -7394,6 +8317,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btoidvectorcmp"
@@ -7401,6 +8325,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btoptions"
@@ -7408,6 +8333,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btrecordcmp"
@@ -7415,6 +8341,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btreltimecmp"
@@ -7422,6 +8349,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btrescan"
@@ -7429,18 +8357,21 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btrestrpos"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btrim"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btrim"
@@ -7448,6 +8379,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btrim"
@@ -7455,6 +8387,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bttext_pattern_cmp"
@@ -7462,6 +8395,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bttextcmp"
@@ -7469,6 +8403,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bttidcmp"
@@ -7476,6 +8411,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bttintervalcmp"
@@ -7483,6 +8419,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "btvacuumcleanup"
@@ -7490,6 +8427,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteacat"
@@ -7497,6 +8435,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteacmp"
@@ -7504,6 +8443,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteaeq"
@@ -7511,6 +8451,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteage"
@@ -7518,6 +8459,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteagt"
@@ -7525,12 +8467,14 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteain"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteale"
@@ -7538,6 +8482,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bytealike"
@@ -7545,6 +8490,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bytealt"
@@ -7552,6 +8498,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteane"
@@ -7559,6 +8506,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteanlike"
@@ -7566,24 +8514,28 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteaout"
 >            [ ScalarType "bytea"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "bytearecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "byteasend"
 >            [ ScalarType "bytea"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_cmp"
@@ -7591,6 +8543,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_div_flt4"
@@ -7598,6 +8551,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_div_flt8"
@@ -7605,6 +8559,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_div_int2"
@@ -7612,6 +8567,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_div_int4"
@@ -7619,6 +8575,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_eq"
@@ -7626,6 +8583,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_ge"
@@ -7633,6 +8591,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_gt"
@@ -7640,12 +8599,14 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_le"
@@ -7653,6 +8614,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_lt"
@@ -7660,6 +8622,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_mi"
@@ -7667,6 +8630,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_mul_flt4"
@@ -7674,6 +8638,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_mul_flt8"
@@ -7681,6 +8646,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_mul_int2"
@@ -7688,6 +8654,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_mul_int4"
@@ -7695,6 +8662,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_ne"
@@ -7702,12 +8670,14 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_out"
 >            [ ScalarType "money"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_pl"
@@ -7715,24 +8685,28 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_send"
 >            [ ScalarType "money"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cash_words"
 >            [ ScalarType "money"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cashlarger"
@@ -7740,6 +8714,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cashsmaller"
@@ -7747,84 +8722,98 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cbrt"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ceil"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ceil"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ceiling"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ceiling"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "center"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "center"
 >            [ ScalarType "circle"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "char"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "char" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "char"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "char" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "char_length"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "char_length"
 >            [ ScalarType "bpchar"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "character_length"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "character_length"
 >            [ ScalarType "bpchar"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "chareq"
@@ -7832,6 +8821,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "charge"
@@ -7839,6 +8829,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "chargt"
@@ -7846,12 +8837,14 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "charin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "char" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "charle"
@@ -7859,6 +8852,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "charlt"
@@ -7866,6 +8860,7 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "charne"
@@ -7873,30 +8868,35 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "charout"
 >            [ ScalarType "char"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "charrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "char" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "charsend"
 >            [ ScalarType "char"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "chr"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cideq"
@@ -7904,72 +8904,84 @@ This file contains
 >            , ScalarType "cid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cidin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "cid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cidout"
 >            [ ScalarType "cid"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cidr"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "cidr" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cidr_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "cidr" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cidr_out"
 >            [ ScalarType "cidr"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cidr_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "cidr" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cidr_send"
 >            [ ScalarType "cidr"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cidrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "cid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cidsend"
 >            [ ScalarType "cid"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle"
 >            [ ScalarType "polygon"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle"
@@ -7977,6 +8989,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_above"
@@ -7984,6 +8997,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_add_pt"
@@ -7991,6 +9005,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_below"
@@ -7998,12 +9013,14 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_center"
 >            [ ScalarType "circle"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_contain"
@@ -8011,6 +9028,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_contain_pt"
@@ -8018,6 +9036,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_contained"
@@ -8025,6 +9044,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_distance"
@@ -8032,6 +9052,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_div_pt"
@@ -8039,6 +9060,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_eq"
@@ -8046,6 +9068,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_ge"
@@ -8053,6 +9076,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_gt"
@@ -8060,12 +9084,14 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_le"
@@ -8073,6 +9099,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_left"
@@ -8080,6 +9107,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_lt"
@@ -8087,6 +9115,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_mul_pt"
@@ -8094,6 +9123,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_ne"
@@ -8101,12 +9131,14 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_out"
 >            [ ScalarType "circle"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_overabove"
@@ -8114,6 +9146,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_overbelow"
@@ -8121,6 +9154,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_overlap"
@@ -8128,6 +9162,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_overleft"
@@ -8135,6 +9170,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_overright"
@@ -8142,12 +9178,14 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_right"
@@ -8155,6 +9193,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_same"
@@ -8162,12 +9201,14 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_send"
 >            [ ScalarType "circle"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "circle_sub_pt"
@@ -8175,11 +9216,13 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "circle" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "clock_timestamp"
 >            [] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "close_lb"
@@ -8187,6 +9230,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "close_ls"
@@ -8194,6 +9238,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "close_lseg"
@@ -8201,6 +9246,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "close_pb"
@@ -8208,6 +9254,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "close_pl"
@@ -8215,6 +9262,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "close_ps"
@@ -8222,6 +9270,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "close_sb"
@@ -8229,6 +9278,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "close_sl"
@@ -8236,6 +9286,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "col_description"
@@ -8243,6 +9294,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "contjoinsel"
@@ -8253,6 +9305,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "contsel"
@@ -8262,6 +9315,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "convert"
@@ -8270,6 +9324,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "convert_from"
@@ -8277,6 +9332,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "convert_to"
@@ -8284,74 +9340,87 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cos"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cot"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cstring_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cstring_out"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cstring_recv"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cstring_send"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "current_database"
 >            [] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "current_query"
 >            [] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "current_schema"
 >            [] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "current_schemas"
 >            [ ScalarType "bool"
 >            ] (
 >            ArrayType ( ScalarType "name" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "current_setting"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "current_user"
 >            [] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "currtid"
@@ -8359,6 +9428,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "tid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "currtid2"
@@ -8366,12 +9436,14 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "tid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "currval"
 >            [ ScalarType "regclass"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cursor_to_xml"
@@ -8382,6 +9454,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "cursor_to_xmlschema"
@@ -8391,6 +9464,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "database_to_xml"
@@ -8399,6 +9473,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "database_to_xml_and_xmlschema"
@@ -8407,6 +9482,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "database_to_xmlschema"
@@ -8415,24 +9491,28 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date"
 >            [ ScalarType "abstime"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date"
 >            [ ScalarType "timestamp"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_cmp"
@@ -8440,6 +9520,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_cmp_timestamp"
@@ -8447,6 +9528,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_cmp_timestamptz"
@@ -8454,6 +9536,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_eq"
@@ -8461,6 +9544,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_eq_timestamp"
@@ -8468,6 +9552,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_eq_timestamptz"
@@ -8475,6 +9560,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_ge"
@@ -8482,6 +9568,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_ge_timestamp"
@@ -8489,6 +9576,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_ge_timestamptz"
@@ -8496,6 +9584,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_gt"
@@ -8503,6 +9592,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_gt_timestamp"
@@ -8510,6 +9600,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_gt_timestamptz"
@@ -8517,12 +9608,14 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_larger"
@@ -8530,6 +9623,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_le"
@@ -8537,6 +9631,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_le_timestamp"
@@ -8544,6 +9639,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_le_timestamptz"
@@ -8551,6 +9647,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_lt"
@@ -8558,6 +9655,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_lt_timestamp"
@@ -8565,6 +9663,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_lt_timestamptz"
@@ -8572,6 +9671,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_mi"
@@ -8579,6 +9679,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_mi_interval"
@@ -8586,6 +9687,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_mii"
@@ -8593,6 +9695,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_ne"
@@ -8600,6 +9703,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_ne_timestamp"
@@ -8607,6 +9711,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_ne_timestamptz"
@@ -8614,12 +9719,14 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_out"
 >            [ ScalarType "date"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_part"
@@ -8627,6 +9734,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_part"
@@ -8634,6 +9742,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_part"
@@ -8641,6 +9750,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_part"
@@ -8648,6 +9758,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_part"
@@ -8655,6 +9766,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_part"
@@ -8662,6 +9774,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_part"
@@ -8669,6 +9782,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_part"
@@ -8676,6 +9790,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_pl_interval"
@@ -8683,6 +9798,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_pli"
@@ -8690,18 +9806,21 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_send"
 >            [ ScalarType "date"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_smaller"
@@ -8709,6 +9828,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_trunc"
@@ -8716,6 +9836,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_trunc"
@@ -8723,6 +9844,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "date_trunc"
@@ -8730,6 +9852,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "datetime_pl"
@@ -8737,6 +9860,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "datetimetz_pl"
@@ -8744,12 +9868,14 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dcbrt"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "decode"
@@ -8757,36 +9883,42 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "degrees"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dexp"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "diagonal"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "lseg" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "diameter"
 >            [ ScalarType "circle"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dispell_init"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dispell_lexize"
@@ -8796,6 +9928,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dist_cpoly"
@@ -8803,6 +9936,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dist_lb"
@@ -8810,6 +9944,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dist_pb"
@@ -8817,6 +9952,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dist_pc"
@@ -8824,6 +9960,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dist_pl"
@@ -8831,6 +9968,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dist_ppath"
@@ -8838,6 +9976,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dist_ps"
@@ -8845,6 +9984,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dist_sb"
@@ -8852,6 +9992,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dist_sl"
@@ -8859,6 +10000,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "div"
@@ -8866,18 +10008,21 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dlog1"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dlog10"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "domain_in"
@@ -8886,6 +10031,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Any )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "domain_recv"
@@ -8894,6 +10040,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Any )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dpow"
@@ -8901,18 +10048,21 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dround"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dsimple_init"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dsimple_lexize"
@@ -8922,12 +10072,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dsnowball_init"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dsnowball_lexize"
@@ -8937,18 +10089,21 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dsqrt"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dsynonym_init"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dsynonym_lexize"
@@ -8958,12 +10113,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "dtrunc"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "encode"
@@ -8971,6 +10128,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_cmp"
@@ -8978,6 +10136,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_eq"
@@ -8985,12 +10144,14 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_first"
 >            [ Pseudo AnyEnum
 >            ] (
 >            Pseudo AnyEnum )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_ge"
@@ -8998,6 +10159,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_gt"
@@ -9005,6 +10167,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_in"
@@ -9012,6 +10175,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            Pseudo AnyEnum )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_larger"
@@ -9019,12 +10183,14 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            Pseudo AnyEnum )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_last"
 >            [ Pseudo AnyEnum
 >            ] (
 >            Pseudo AnyEnum )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_le"
@@ -9032,6 +10198,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_lt"
@@ -9039,6 +10206,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_ne"
@@ -9046,18 +10214,21 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_out"
 >            [ Pseudo AnyEnum
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_range"
 >            [ Pseudo AnyEnum
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_range"
@@ -9065,6 +10236,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_recv"
@@ -9072,12 +10244,14 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            Pseudo AnyEnum )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_send"
 >            [ Pseudo AnyEnum
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "enum_smaller"
@@ -9085,6 +10259,7 @@ This file contains
 >            , Pseudo AnyEnum
 >            ] (
 >            Pseudo AnyEnum )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "eqjoinsel"
@@ -9095,6 +10270,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "eqsel"
@@ -9104,6 +10280,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_cn_to_mic"
@@ -9114,6 +10291,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_cn_to_utf8"
@@ -9124,6 +10302,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_jis_2004_to_shift_jis_2004"
@@ -9134,6 +10313,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_jis_2004_to_utf8"
@@ -9144,6 +10324,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_jp_to_mic"
@@ -9154,6 +10335,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_jp_to_sjis"
@@ -9164,6 +10346,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_jp_to_utf8"
@@ -9174,6 +10357,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_kr_to_mic"
@@ -9184,6 +10368,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_kr_to_utf8"
@@ -9194,6 +10379,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_tw_to_big5"
@@ -9204,6 +10390,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_tw_to_mic"
@@ -9214,6 +10401,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "euc_tw_to_utf8"
@@ -9224,65 +10412,76 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "exp"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "exp"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "factorial"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "family"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "flatfile_update_trigger"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float48div"
@@ -9290,6 +10489,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float48eq"
@@ -9297,6 +10497,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float48ge"
@@ -9304,6 +10505,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float48gt"
@@ -9311,6 +10513,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float48le"
@@ -9318,6 +10521,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float48lt"
@@ -9325,6 +10529,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float48mi"
@@ -9332,6 +10537,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float48mul"
@@ -9339,6 +10545,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float48ne"
@@ -9346,6 +10553,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float48pl"
@@ -9353,6 +10561,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4_accum"
@@ -9360,12 +10569,14 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ArrayType ( ScalarType "float8" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4abs"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4div"
@@ -9373,6 +10584,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4eq"
@@ -9380,6 +10592,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4ge"
@@ -9387,6 +10600,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4gt"
@@ -9394,12 +10608,14 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4larger"
@@ -9407,6 +10623,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4le"
@@ -9414,6 +10631,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4lt"
@@ -9421,6 +10639,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4mi"
@@ -9428,6 +10647,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4mul"
@@ -9435,6 +10655,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4ne"
@@ -9442,12 +10663,14 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4out"
 >            [ ScalarType "float4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4pl"
@@ -9455,18 +10678,21 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4send"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4smaller"
@@ -9474,48 +10700,56 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4um"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float4up"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float84div"
@@ -9523,6 +10757,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float84eq"
@@ -9530,6 +10765,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float84ge"
@@ -9537,6 +10773,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float84gt"
@@ -9544,6 +10781,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float84le"
@@ -9551,6 +10789,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float84lt"
@@ -9558,6 +10797,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float84mi"
@@ -9565,6 +10805,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float84mul"
@@ -9572,6 +10813,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float84ne"
@@ -9579,6 +10821,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float84pl"
@@ -9586,6 +10829,7 @@ This file contains
 >            , ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_accum"
@@ -9593,30 +10837,35 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ArrayType ( ScalarType "float8" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_avg"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_corr"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_covar_pop"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_covar_samp"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_regr_accum"
@@ -9625,84 +10874,98 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ArrayType ( ScalarType "float8" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_regr_avgx"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_regr_avgy"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_regr_intercept"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_regr_r2"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_regr_slope"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_regr_sxx"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_regr_sxy"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_regr_syy"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_stddev_pop"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_stddev_samp"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_var_pop"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8_var_samp"
 >            [ ArrayType ( ScalarType "float8" )
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8abs"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8div"
@@ -9710,6 +10973,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8eq"
@@ -9717,6 +10981,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8ge"
@@ -9724,6 +10989,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8gt"
@@ -9731,12 +10997,14 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8larger"
@@ -9744,6 +11012,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8le"
@@ -9751,6 +11020,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8lt"
@@ -9758,6 +11028,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8mi"
@@ -9765,6 +11036,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8mul"
@@ -9772,6 +11044,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8ne"
@@ -9779,12 +11052,14 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8out"
 >            [ ScalarType "float8"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8pl"
@@ -9792,18 +11067,21 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8send"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8smaller"
@@ -9811,30 +11089,35 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8um"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "float8up"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "floor"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "floor"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "flt4_mul_cash"
@@ -9842,6 +11125,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "flt8_mul_cash"
@@ -9849,24 +11133,28 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "fmgr_c_validator"
 >            [ ScalarType "oid"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "fmgr_internal_validator"
 >            [ ScalarType "oid"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "fmgr_sql_validator"
 >            [ ScalarType "oid"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "format_type"
@@ -9874,6 +11162,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gb18030_to_utf8"
@@ -9884,6 +11173,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gbk_to_utf8"
@@ -9894,6 +11184,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "generate_series"
@@ -9901,6 +11192,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            SetOfType ( ScalarType "int8" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "generate_series"
@@ -9908,6 +11200,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            SetOfType ( ScalarType "int4" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "generate_series"
@@ -9916,6 +11209,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            SetOfType ( ScalarType "int8" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "generate_series"
@@ -9924,6 +11218,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            SetOfType ( ScalarType "int4" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "generate_series"
@@ -9932,6 +11227,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            SetOfType ( ScalarType "timestamp" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "generate_series"
@@ -9940,6 +11236,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            SetOfType ( ScalarType "timestamptz" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "generate_subscripts"
@@ -9947,6 +11244,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            SetOfType ( ScalarType "int4" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "generate_subscripts"
@@ -9955,6 +11253,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            SetOfType ( ScalarType "int4" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "get_bit"
@@ -9962,6 +11261,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "get_byte"
@@ -9969,21 +11269,25 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "get_current_ts_config"
 >            [] (
 >            ScalarType "regconfig" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "getdatabaseencoding"
 >            [] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "getpgusername"
 >            [] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gin_cmp_prefix"
@@ -9993,6 +11297,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gin_cmp_tslexeme"
@@ -10000,6 +11305,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gin_extract_tsquery"
@@ -10010,6 +11316,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gin_extract_tsvector"
@@ -10017,6 +11324,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gin_tsquery_consistent"
@@ -10028,6 +11336,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginarrayconsistent"
@@ -10039,6 +11348,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginarrayextract"
@@ -10046,6 +11356,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginbeginscan"
@@ -10054,6 +11365,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginbuild"
@@ -10062,6 +11374,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginbulkdelete"
@@ -10071,6 +11384,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gincostestimate"
@@ -10084,12 +11398,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginendscan"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gingetbitmap"
@@ -10097,6 +11413,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gininsert"
@@ -10108,12 +11425,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginmarkpos"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginoptions"
@@ -10121,6 +11440,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginqueryarrayextract"
@@ -10131,6 +11451,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginrescan"
@@ -10138,12 +11459,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginrestrpos"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ginvacuumcleanup"
@@ -10151,12 +11474,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_box_compress"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_box_consistent"
@@ -10167,12 +11492,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_box_decompress"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_box_penalty"
@@ -10181,6 +11508,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_box_picksplit"
@@ -10188,6 +11516,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_box_same"
@@ -10196,6 +11525,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_box_union"
@@ -10203,12 +11533,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "box" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_circle_compress"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_circle_consistent"
@@ -10219,12 +11551,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_poly_compress"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gist_poly_consistent"
@@ -10235,6 +11569,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistbeginscan"
@@ -10243,6 +11578,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistbuild"
@@ -10251,6 +11587,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistbulkdelete"
@@ -10260,6 +11597,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistcostestimate"
@@ -10273,12 +11611,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistendscan"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistgetbitmap"
@@ -10286,6 +11626,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistgettuple"
@@ -10293,6 +11634,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistinsert"
@@ -10304,12 +11646,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistmarkpos"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistoptions"
@@ -10317,6 +11661,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistrescan"
@@ -10324,12 +11669,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistrestrpos"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gistvacuumcleanup"
@@ -10337,12 +11684,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsquery_compress"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsquery_consistent"
@@ -10353,12 +11702,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsquery_decompress"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsquery_penalty"
@@ -10367,6 +11718,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsquery_picksplit"
@@ -10374,6 +11726,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsquery_same"
@@ -10382,6 +11735,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsquery_union"
@@ -10389,12 +11743,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsvector_compress"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsvector_consistent"
@@ -10405,12 +11761,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsvector_decompress"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsvector_penalty"
@@ -10419,6 +11777,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsvector_picksplit"
@@ -10426,6 +11785,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsvector_same"
@@ -10434,6 +11794,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsvector_union"
@@ -10441,18 +11802,21 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsvectorin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "gtsvector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "gtsvectorout"
 >            [ ScalarType "gtsvector"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_any_column_privilege"
@@ -10460,6 +11824,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_any_column_privilege"
@@ -10467,6 +11832,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_any_column_privilege"
@@ -10475,6 +11841,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_any_column_privilege"
@@ -10483,6 +11850,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_any_column_privilege"
@@ -10491,6 +11859,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_any_column_privilege"
@@ -10499,6 +11868,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10507,6 +11877,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10515,6 +11886,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10523,6 +11895,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10531,6 +11904,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10540,6 +11914,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10549,6 +11924,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10558,6 +11934,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10567,6 +11944,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10576,6 +11954,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10585,6 +11964,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10594,6 +11974,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_column_privilege"
@@ -10603,6 +11984,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_database_privilege"
@@ -10610,6 +11992,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_database_privilege"
@@ -10617,6 +12000,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_database_privilege"
@@ -10625,6 +12009,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_database_privilege"
@@ -10633,6 +12018,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_database_privilege"
@@ -10641,6 +12027,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_database_privilege"
@@ -10649,6 +12036,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_foreign_data_wrapper_privilege"
@@ -10656,6 +12044,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_foreign_data_wrapper_privilege"
@@ -10663,6 +12052,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_foreign_data_wrapper_privilege"
@@ -10671,6 +12061,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_foreign_data_wrapper_privilege"
@@ -10679,6 +12070,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_foreign_data_wrapper_privilege"
@@ -10687,6 +12079,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_foreign_data_wrapper_privilege"
@@ -10695,6 +12088,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_function_privilege"
@@ -10702,6 +12096,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_function_privilege"
@@ -10709,6 +12104,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_function_privilege"
@@ -10717,6 +12113,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_function_privilege"
@@ -10725,6 +12122,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_function_privilege"
@@ -10733,6 +12131,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_function_privilege"
@@ -10741,6 +12140,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_language_privilege"
@@ -10748,6 +12148,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_language_privilege"
@@ -10755,6 +12156,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_language_privilege"
@@ -10763,6 +12165,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_language_privilege"
@@ -10771,6 +12174,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_language_privilege"
@@ -10779,6 +12183,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_language_privilege"
@@ -10787,6 +12192,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_schema_privilege"
@@ -10794,6 +12200,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_schema_privilege"
@@ -10801,6 +12208,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_schema_privilege"
@@ -10809,6 +12217,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_schema_privilege"
@@ -10817,6 +12226,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_schema_privilege"
@@ -10825,6 +12235,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_schema_privilege"
@@ -10833,6 +12244,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_server_privilege"
@@ -10840,6 +12252,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_server_privilege"
@@ -10847,6 +12260,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_server_privilege"
@@ -10855,6 +12269,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_server_privilege"
@@ -10863,6 +12278,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_server_privilege"
@@ -10871,6 +12287,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_server_privilege"
@@ -10879,6 +12296,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_table_privilege"
@@ -10886,6 +12304,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_table_privilege"
@@ -10893,6 +12312,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_table_privilege"
@@ -10901,6 +12321,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_table_privilege"
@@ -10909,6 +12330,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_table_privilege"
@@ -10917,6 +12339,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_table_privilege"
@@ -10925,6 +12348,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_tablespace_privilege"
@@ -10932,6 +12356,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_tablespace_privilege"
@@ -10939,6 +12364,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_tablespace_privilege"
@@ -10947,6 +12373,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_tablespace_privilege"
@@ -10955,6 +12382,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_tablespace_privilege"
@@ -10963,6 +12391,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "has_tablespace_privilege"
@@ -10971,18 +12400,21 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hash_aclitem"
 >            [ ScalarType "aclitem"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hash_numeric"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashbeginscan"
@@ -10991,12 +12423,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashbpchar"
 >            [ ScalarType "bpchar"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashbuild"
@@ -11005,6 +12439,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashbulkdelete"
@@ -11014,12 +12449,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashchar"
 >            [ ScalarType "char"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashcostestimate"
@@ -11033,30 +12470,35 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashendscan"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashenum"
 >            [ Pseudo AnyEnum
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashfloat4"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashfloat8"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashgetbitmap"
@@ -11064,6 +12506,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashgettuple"
@@ -11071,12 +12514,14 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashinet"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashinsert"
@@ -11088,60 +12533,70 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashint2"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashint2vector"
 >            [ ScalarType "int2vector"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashint4"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashint8"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashmacaddr"
 >            [ ScalarType "macaddr"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashmarkpos"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashname"
 >            [ ScalarType "name"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashoid"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashoidvector"
 >            [ ScalarType "oidvector"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashoptions"
@@ -11149,6 +12604,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashrescan"
@@ -11156,18 +12612,21 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashrestrpos"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashtext"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashvacuumcleanup"
@@ -11175,30 +12634,35 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hashvarlena"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "height"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "host"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "hostmask"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "iclikejoinsel"
@@ -11209,6 +12673,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "iclikesel"
@@ -11218,6 +12683,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "icnlikejoinsel"
@@ -11228,6 +12694,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "icnlikesel"
@@ -11237,6 +12704,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "icregexeqjoinsel"
@@ -11247,6 +12715,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "icregexeqsel"
@@ -11256,6 +12725,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "icregexnejoinsel"
@@ -11266,6 +12736,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "icregexnesel"
@@ -11275,50 +12746,59 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inet_client_addr"
 >            [] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inet_client_port"
 >            [] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inet_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inet_out"
 >            [ ScalarType "inet"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inet_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inet_send"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inet_server_addr"
 >            [] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inet_server_port"
 >            [] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inetand"
@@ -11326,6 +12806,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inetmi"
@@ -11333,6 +12814,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inetmi_int8"
@@ -11340,12 +12822,14 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inetnot"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inetor"
@@ -11353,6 +12837,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inetpl"
@@ -11360,42 +12845,49 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "initcap"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int24div"
@@ -11403,6 +12895,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int24eq"
@@ -11410,6 +12903,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int24ge"
@@ -11417,6 +12911,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int24gt"
@@ -11424,6 +12919,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int24le"
@@ -11431,6 +12927,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int24lt"
@@ -11438,6 +12935,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int24mi"
@@ -11445,6 +12943,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int24mul"
@@ -11452,6 +12951,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int24ne"
@@ -11459,6 +12959,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int24pl"
@@ -11466,6 +12967,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int28div"
@@ -11473,6 +12975,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int28eq"
@@ -11480,6 +12983,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int28ge"
@@ -11487,6 +12991,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int28gt"
@@ -11494,6 +12999,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int28le"
@@ -11501,6 +13007,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int28lt"
@@ -11508,6 +13015,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int28mi"
@@ -11515,6 +13023,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int28mul"
@@ -11522,6 +13031,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int28ne"
@@ -11529,6 +13039,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int28pl"
@@ -11536,6 +13047,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2_accum"
@@ -11543,6 +13055,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ArrayType ( ScalarType "numeric" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2_avg_accum"
@@ -11550,6 +13063,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ArrayType ( ScalarType "int8" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2_mul_cash"
@@ -11557,6 +13071,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2_sum"
@@ -11564,12 +13079,14 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2abs"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2and"
@@ -11577,6 +13094,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2div"
@@ -11584,6 +13102,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2eq"
@@ -11591,6 +13110,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2ge"
@@ -11598,6 +13118,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2gt"
@@ -11605,12 +13126,14 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2larger"
@@ -11618,6 +13141,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2le"
@@ -11625,6 +13149,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2lt"
@@ -11632,6 +13157,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2mi"
@@ -11639,6 +13165,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2mod"
@@ -11646,6 +13173,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2mul"
@@ -11653,6 +13181,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2ne"
@@ -11660,12 +13189,14 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2not"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2or"
@@ -11673,12 +13204,14 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2out"
 >            [ ScalarType "int2"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2pl"
@@ -11686,18 +13219,21 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2send"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2shl"
@@ -11705,6 +13241,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2shr"
@@ -11712,6 +13249,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2smaller"
@@ -11719,18 +13257,21 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2um"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2up"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2vectoreq"
@@ -11738,30 +13279,35 @@ This file contains
 >            , ScalarType "int2vector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2vectorin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "int2vector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2vectorout"
 >            [ ScalarType "int2vector"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2vectorrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "int2vector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2vectorsend"
 >            [ ScalarType "int2vector"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int2xor"
@@ -11769,54 +13315,63 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4"
 >            [ ScalarType "bool"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4"
 >            [ ScalarType "char"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4"
 >            [ ScalarType "bit"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int42div"
@@ -11824,6 +13379,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int42eq"
@@ -11831,6 +13387,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int42ge"
@@ -11838,6 +13395,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int42gt"
@@ -11845,6 +13403,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int42le"
@@ -11852,6 +13411,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int42lt"
@@ -11859,6 +13419,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int42mi"
@@ -11866,6 +13427,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int42mul"
@@ -11873,6 +13435,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int42ne"
@@ -11880,6 +13443,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int42pl"
@@ -11887,6 +13451,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int48div"
@@ -11894,6 +13459,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int48eq"
@@ -11901,6 +13467,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int48ge"
@@ -11908,6 +13475,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int48gt"
@@ -11915,6 +13483,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int48le"
@@ -11922,6 +13491,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int48lt"
@@ -11929,6 +13499,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int48mi"
@@ -11936,6 +13507,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int48mul"
@@ -11943,6 +13515,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int48ne"
@@ -11950,6 +13523,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int48pl"
@@ -11957,6 +13531,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4_accum"
@@ -11964,6 +13539,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ArrayType ( ScalarType "numeric" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4_avg_accum"
@@ -11971,6 +13547,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ArrayType ( ScalarType "int8" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4_mul_cash"
@@ -11978,6 +13555,7 @@ This file contains
 >            , ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4_sum"
@@ -11985,12 +13563,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4abs"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4and"
@@ -11998,6 +13578,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4div"
@@ -12005,6 +13586,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4eq"
@@ -12012,6 +13594,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4ge"
@@ -12019,6 +13602,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4gt"
@@ -12026,18 +13610,21 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4inc"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4larger"
@@ -12045,6 +13632,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4le"
@@ -12052,6 +13640,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4lt"
@@ -12059,6 +13648,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4mi"
@@ -12066,6 +13656,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4mod"
@@ -12073,6 +13664,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4mul"
@@ -12080,6 +13672,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4ne"
@@ -12087,12 +13680,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4not"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4or"
@@ -12100,12 +13695,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4out"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4pl"
@@ -12113,18 +13710,21 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4send"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4shl"
@@ -12132,6 +13732,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4shr"
@@ -12139,6 +13740,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4smaller"
@@ -12146,18 +13748,21 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4um"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4up"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int4xor"
@@ -12165,48 +13770,56 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8"
 >            [ ScalarType "bit"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int82div"
@@ -12214,6 +13827,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int82eq"
@@ -12221,6 +13835,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int82ge"
@@ -12228,6 +13843,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int82gt"
@@ -12235,6 +13851,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int82le"
@@ -12242,6 +13859,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int82lt"
@@ -12249,6 +13867,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int82mi"
@@ -12256,6 +13875,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int82mul"
@@ -12263,6 +13883,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int82ne"
@@ -12270,6 +13891,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int82pl"
@@ -12277,6 +13899,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int84div"
@@ -12284,6 +13907,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int84eq"
@@ -12291,6 +13915,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int84ge"
@@ -12298,6 +13923,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int84gt"
@@ -12305,6 +13931,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int84le"
@@ -12312,6 +13939,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int84lt"
@@ -12319,6 +13947,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int84mi"
@@ -12326,6 +13955,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int84mul"
@@ -12333,6 +13963,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int84ne"
@@ -12340,6 +13971,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int84pl"
@@ -12347,6 +13979,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8_accum"
@@ -12354,12 +13987,14 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ArrayType ( ScalarType "numeric" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8_avg"
 >            [ ArrayType ( ScalarType "int8" )
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8_avg_accum"
@@ -12367,6 +14002,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ArrayType ( ScalarType "numeric" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8_sum"
@@ -12374,12 +14010,14 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8abs"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8and"
@@ -12387,6 +14025,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8div"
@@ -12394,6 +14033,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8eq"
@@ -12401,6 +14041,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8ge"
@@ -12408,6 +14049,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8gt"
@@ -12415,18 +14057,21 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8inc"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8inc_any"
@@ -12434,6 +14079,7 @@ This file contains
 >            , Pseudo Any
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8inc_float8_float8"
@@ -12442,6 +14088,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8larger"
@@ -12449,6 +14096,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8le"
@@ -12456,6 +14104,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8lt"
@@ -12463,6 +14112,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8mi"
@@ -12470,6 +14120,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8mod"
@@ -12477,6 +14128,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8mul"
@@ -12484,6 +14136,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8ne"
@@ -12491,12 +14144,14 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8not"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8or"
@@ -12504,12 +14159,14 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8out"
 >            [ ScalarType "int8"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8pl"
@@ -12517,6 +14174,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8pl_inet"
@@ -12524,18 +14182,21 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8send"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8shl"
@@ -12543,6 +14204,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8shr"
@@ -12550,6 +14212,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8smaller"
@@ -12557,18 +14220,21 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8um"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8up"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "int8xor"
@@ -12576,6 +14242,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "integer_pl_date"
@@ -12583,6 +14250,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inter_lb"
@@ -12590,6 +14258,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inter_sb"
@@ -12597,6 +14266,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "inter_sl"
@@ -12604,30 +14274,35 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "internal_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "internal_out"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval"
 >            [ ScalarType "reltime"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval"
 >            [ ScalarType "time"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval"
@@ -12635,6 +14310,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_accum"
@@ -12642,12 +14318,14 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ArrayType ( ScalarType "interval" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_avg"
 >            [ ArrayType ( ScalarType "interval" )
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_cmp"
@@ -12655,6 +14333,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_div"
@@ -12662,6 +14341,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_eq"
@@ -12669,6 +14349,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_ge"
@@ -12676,6 +14357,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_gt"
@@ -12683,12 +14365,14 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_hash"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_in"
@@ -12697,6 +14381,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_larger"
@@ -12704,6 +14389,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_le"
@@ -12711,6 +14397,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_lt"
@@ -12718,6 +14405,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_mi"
@@ -12725,6 +14413,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_mul"
@@ -12732,6 +14421,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_ne"
@@ -12739,12 +14429,14 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_out"
 >            [ ScalarType "interval"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_pl"
@@ -12752,6 +14444,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_pl_date"
@@ -12759,6 +14452,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_pl_time"
@@ -12766,6 +14460,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_pl_timestamp"
@@ -12773,6 +14468,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_pl_timestamptz"
@@ -12780,6 +14476,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_pl_timetz"
@@ -12787,6 +14484,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_recv"
@@ -12795,12 +14493,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_send"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_smaller"
@@ -12808,24 +14508,28 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "interval_um"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "intervaltypmodin"
 >            [ ArrayType ( Pseudo Cstring )
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "intervaltypmodout"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "intinterval"
@@ -12833,54 +14537,63 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isclosed"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isfinite"
 >            [ ScalarType "abstime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isfinite"
 >            [ ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isfinite"
 >            [ ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isfinite"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isfinite"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ishorizontal"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ishorizontal"
 >            [ ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ishorizontal"
@@ -12888,6 +14601,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "iso8859_1_to_utf8"
@@ -12898,6 +14612,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "iso8859_to_utf8"
@@ -12908,6 +14623,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "iso_to_koi8r"
@@ -12918,6 +14634,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "iso_to_mic"
@@ -12928,6 +14645,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "iso_to_win1251"
@@ -12938,6 +14656,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "iso_to_win866"
@@ -12948,12 +14667,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isopen"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isparallel"
@@ -12961,6 +14682,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isparallel"
@@ -12968,6 +14690,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isperp"
@@ -12975,6 +14698,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isperp"
@@ -12982,18 +14706,21 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isvertical"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isvertical"
 >            [ ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "isvertical"
@@ -13001,6 +14728,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "johab_to_utf8"
@@ -13011,24 +14739,28 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "justify_days"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "justify_hours"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "justify_interval"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "koi8r_to_iso"
@@ -13039,6 +14771,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "koi8r_to_mic"
@@ -13049,6 +14782,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "koi8r_to_utf8"
@@ -13059,6 +14793,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "koi8r_to_win1251"
@@ -13069,6 +14804,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "koi8r_to_win866"
@@ -13079,6 +14815,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "koi8u_to_utf8"
@@ -13089,23 +14826,27 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "language_handler_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo LanguageHandler )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "language_handler_out"
 >            [ Pseudo LanguageHandler
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lastval"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "latin1_to_mic"
@@ -13116,6 +14857,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "latin2_to_mic"
@@ -13126,6 +14868,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "latin2_to_win1250"
@@ -13136,6 +14879,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "latin3_to_mic"
@@ -13146,6 +14890,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "latin4_to_mic"
@@ -13156,48 +14901,56 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "length"
 >            [ ScalarType "bytea"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "length"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "length"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "length"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "length"
 >            [ ScalarType "bpchar"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "length"
 >            [ ScalarType "bit"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "length"
 >            [ ScalarType "tsvector"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "length"
@@ -13205,6 +14958,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "like"
@@ -13212,6 +14966,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "like"
@@ -13219,6 +14974,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "like"
@@ -13226,6 +14982,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "like_escape"
@@ -13233,6 +14990,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "like_escape"
@@ -13240,6 +14998,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "likejoinsel"
@@ -13250,6 +15009,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "likesel"
@@ -13259,6 +15019,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line"
@@ -13266,6 +15027,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "line" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_distance"
@@ -13273,6 +15035,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_eq"
@@ -13280,18 +15043,21 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_horizontal"
 >            [ ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "line" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_interpt"
@@ -13299,6 +15065,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_intersect"
@@ -13306,12 +15073,14 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_out"
 >            [ ScalarType "line"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_parallel"
@@ -13319,6 +15088,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_perp"
@@ -13326,54 +15096,63 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "line" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_send"
 >            [ ScalarType "line"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "line_vertical"
 >            [ ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ln"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ln"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_close"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_creat"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_create"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_export"
@@ -13381,12 +15160,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_import"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_import"
@@ -13394,6 +15175,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_lseek"
@@ -13402,6 +15184,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_open"
@@ -13409,12 +15192,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_tell"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_truncate"
@@ -13422,24 +15207,28 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lo_unlink"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "log"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "log"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "log"
@@ -13447,6 +15236,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "loread"
@@ -13454,12 +15244,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lower"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lowrite"
@@ -13467,6 +15259,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lpad"
@@ -13474,6 +15267,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lpad"
@@ -13482,12 +15276,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "lseg" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg"
@@ -13495,12 +15291,14 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "lseg" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_center"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_distance"
@@ -13508,6 +15306,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_eq"
@@ -13515,6 +15314,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_ge"
@@ -13522,6 +15322,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_gt"
@@ -13529,18 +15330,21 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_horizontal"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "lseg" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_interpt"
@@ -13548,6 +15352,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_intersect"
@@ -13555,6 +15360,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_le"
@@ -13562,12 +15368,14 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_length"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_lt"
@@ -13575,6 +15383,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_ne"
@@ -13582,12 +15391,14 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_out"
 >            [ ScalarType "lseg"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_parallel"
@@ -13595,6 +15406,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_perp"
@@ -13602,30 +15414,35 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "lseg" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_send"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "lseg_vertical"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ltrim"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ltrim"
@@ -13633,6 +15450,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_cmp"
@@ -13640,6 +15458,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_eq"
@@ -13647,6 +15466,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_ge"
@@ -13654,6 +15474,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_gt"
@@ -13661,12 +15482,14 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "macaddr" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_le"
@@ -13674,6 +15497,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_lt"
@@ -13681,6 +15505,7 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_ne"
@@ -13688,24 +15513,28 @@ This file contains
 >            , ScalarType "macaddr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_out"
 >            [ ScalarType "macaddr"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "macaddr" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "macaddr_send"
 >            [ ScalarType "macaddr"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "makeaclitem"
@@ -13715,24 +15544,28 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "aclitem" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "masklen"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "md5"
 >            [ ScalarType "bytea"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "md5"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_ascii"
@@ -13743,6 +15576,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_big5"
@@ -13753,6 +15587,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_euc_cn"
@@ -13763,6 +15598,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_euc_jp"
@@ -13773,6 +15609,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_euc_kr"
@@ -13783,6 +15620,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_euc_tw"
@@ -13793,6 +15631,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_iso"
@@ -13803,6 +15642,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_koi8r"
@@ -13813,6 +15653,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_latin1"
@@ -13823,6 +15664,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_latin2"
@@ -13833,6 +15675,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_latin3"
@@ -13843,6 +15686,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_latin4"
@@ -13853,6 +15697,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_sjis"
@@ -13863,6 +15708,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_win1250"
@@ -13873,6 +15719,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_win1251"
@@ -13883,6 +15730,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mic_to_win866"
@@ -13893,6 +15741,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mktinterval"
@@ -13900,6 +15749,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "tinterval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mod"
@@ -13907,6 +15757,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mod"
@@ -13914,6 +15765,7 @@ This file contains
 >            , ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mod"
@@ -13921,6 +15773,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mod"
@@ -13928,6 +15781,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "mul_d_interval"
@@ -13935,24 +15789,28 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "name"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "name"
 >            [ ScalarType "bpchar"
 >            ] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "name"
 >            [ ScalarType "varchar"
 >            ] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nameeq"
@@ -13960,6 +15818,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "namege"
@@ -13967,6 +15826,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "namegt"
@@ -13974,6 +15834,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nameiclike"
@@ -13981,6 +15842,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nameicnlike"
@@ -13988,6 +15850,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nameicregexeq"
@@ -13995,6 +15858,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nameicregexne"
@@ -14002,12 +15866,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "namein"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "namele"
@@ -14015,6 +15881,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "namelike"
@@ -14022,6 +15889,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "namelt"
@@ -14029,6 +15897,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "namene"
@@ -14036,6 +15905,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "namenlike"
@@ -14043,18 +15913,21 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nameout"
 >            [ ScalarType "name"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "namerecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nameregexeq"
@@ -14062,6 +15935,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nameregexne"
@@ -14069,12 +15943,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "namesend"
 >            [ ScalarType "name"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "neqjoinsel"
@@ -14085,6 +15961,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "neqsel"
@@ -14094,18 +15971,21 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "netmask"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "cidr" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_cmp"
@@ -14113,6 +15993,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_eq"
@@ -14120,6 +16001,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_ge"
@@ -14127,6 +16009,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_gt"
@@ -14134,6 +16017,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_le"
@@ -14141,6 +16025,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_lt"
@@ -14148,6 +16033,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_ne"
@@ -14155,6 +16041,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_sub"
@@ -14162,6 +16049,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_subeq"
@@ -14169,6 +16057,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_sup"
@@ -14176,6 +16065,7 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "network_supeq"
@@ -14183,12 +16073,14 @@ This file contains
 >            , ScalarType "inet"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nextval"
 >            [ ScalarType "regclass"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nlikejoinsel"
@@ -14199,6 +16091,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "nlikesel"
@@ -14208,6 +16101,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "notlike"
@@ -14215,6 +16109,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "notlike"
@@ -14222,6 +16117,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "notlike"
@@ -14229,53 +16125,62 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "now"
 >            [] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "npoints"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "npoints"
 >            [ ScalarType "polygon"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric"
@@ -14283,12 +16188,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_abs"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_accum"
@@ -14296,6 +16203,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ArrayType ( ScalarType "numeric" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_add"
@@ -14303,12 +16211,14 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_avg"
 >            [ ArrayType ( ScalarType "numeric" )
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_avg_accum"
@@ -14316,6 +16226,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ArrayType ( ScalarType "numeric" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_cmp"
@@ -14323,6 +16234,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_div"
@@ -14330,6 +16242,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_div_trunc"
@@ -14337,6 +16250,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_eq"
@@ -14344,18 +16258,21 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_exp"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_fac"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_ge"
@@ -14363,6 +16280,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_gt"
@@ -14370,6 +16288,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_in"
@@ -14378,12 +16297,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_inc"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_larger"
@@ -14391,6 +16312,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_le"
@@ -14398,12 +16320,14 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_ln"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_log"
@@ -14411,6 +16335,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_lt"
@@ -14418,6 +16343,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_mod"
@@ -14425,6 +16351,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_mul"
@@ -14432,6 +16359,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_ne"
@@ -14439,12 +16367,14 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_out"
 >            [ ScalarType "numeric"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_power"
@@ -14452,6 +16382,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_recv"
@@ -14460,12 +16391,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_send"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_smaller"
@@ -14473,24 +16406,28 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_sqrt"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_stddev_pop"
 >            [ ArrayType ( ScalarType "numeric" )
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_stddev_samp"
 >            [ ArrayType ( ScalarType "numeric" )
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_sub"
@@ -14498,54 +16435,63 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_uminus"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_uplus"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_var_pop"
 >            [ ArrayType ( ScalarType "numeric" )
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numeric_var_samp"
 >            [ ArrayType ( ScalarType "numeric" )
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numerictypmodin"
 >            [ ArrayType ( Pseudo Cstring )
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numerictypmodout"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "numnode"
 >            [ ScalarType "tsquery"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "obj_description"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "obj_description"
@@ -14553,36 +16499,42 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "octet_length"
 >            [ ScalarType "bytea"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "octet_length"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "octet_length"
 >            [ ScalarType "bpchar"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "octet_length"
 >            [ ScalarType "bit"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oid"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oideq"
@@ -14590,6 +16542,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidge"
@@ -14597,6 +16550,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidgt"
@@ -14604,12 +16558,14 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidlarger"
@@ -14617,6 +16573,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidle"
@@ -14624,6 +16581,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidlt"
@@ -14631,6 +16589,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidne"
@@ -14638,24 +16597,28 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidout"
 >            [ ScalarType "oid"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidsend"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidsmaller"
@@ -14663,6 +16626,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectoreq"
@@ -14670,6 +16634,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectorge"
@@ -14677,6 +16642,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectorgt"
@@ -14684,12 +16650,14 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectorin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "oidvector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectorle"
@@ -14697,6 +16665,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectorlt"
@@ -14704,6 +16673,7 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectorne"
@@ -14711,30 +16681,35 @@ This file contains
 >            , ScalarType "oidvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectorout"
 >            [ ScalarType "oidvector"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectorrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "oidvector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectorsend"
 >            [ ScalarType "oidvector"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "oidvectortypes"
 >            [ ScalarType "oidvector"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "on_pb"
@@ -14742,6 +16717,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "on_pl"
@@ -14749,6 +16725,7 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "on_ppath"
@@ -14756,6 +16733,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "on_ps"
@@ -14763,6 +16741,7 @@ This file contains
 >            , ScalarType "lseg"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "on_sb"
@@ -14770,6 +16749,7 @@ This file contains
 >            , ScalarType "box"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "on_sl"
@@ -14777,18 +16757,21 @@ This file contains
 >            , ScalarType "line"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "opaque_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo Opaque )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "opaque_out"
 >            [ Pseudo Opaque
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14798,6 +16781,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14807,6 +16791,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14816,6 +16801,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14825,6 +16811,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14834,6 +16821,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14843,6 +16831,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14852,6 +16841,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14861,6 +16851,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14870,6 +16861,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14879,6 +16871,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14888,6 +16881,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14897,6 +16891,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlaps"
@@ -14906,6 +16901,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlay"
@@ -14914,6 +16910,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "overlay"
@@ -14923,12 +16920,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path"
 >            [ ScalarType "polygon"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_add"
@@ -14936,6 +16935,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_add_pt"
@@ -14943,12 +16943,14 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_center"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_contain_pt"
@@ -14956,6 +16958,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_distance"
@@ -14963,6 +16966,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_div_pt"
@@ -14970,12 +16974,14 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_inter"
@@ -14983,12 +16989,14 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_length"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_mul_pt"
@@ -14996,6 +17004,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_n_eq"
@@ -15003,6 +17012,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_n_ge"
@@ -15010,6 +17020,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_n_gt"
@@ -15017,6 +17028,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_n_le"
@@ -15024,6 +17036,7 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_n_lt"
@@ -15031,30 +17044,35 @@ This file contains
 >            , ScalarType "path"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_npoints"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_out"
 >            [ ScalarType "path"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_send"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "path_sub_pt"
@@ -15062,18 +17080,21 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pclose"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_advisory_lock"
 >            [ ScalarType "int8"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_advisory_lock"
@@ -15081,12 +17102,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_advisory_lock_shared"
 >            [ ScalarType "int8"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_advisory_lock_shared"
@@ -15094,12 +17117,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_advisory_unlock"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_advisory_unlock"
@@ -15107,17 +17132,20 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_advisory_unlock_all"
 >            [] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_advisory_unlock_shared"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_advisory_unlock_shared"
@@ -15125,90 +17153,106 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_backend_pid"
 >            [] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_cancel_backend"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_char_to_encoding"
 >            [ ScalarType "name"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_client_encoding"
 >            [] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_column_size"
 >            [ Pseudo Any
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_conf_load_time"
 >            [] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_conversion_is_visible"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_current_xlog_insert_location"
 >            [] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_current_xlog_location"
 >            [] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_cursor"
 >            [] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_database_size"
 >            [ ScalarType "name"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_database_size"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_encoding_to_char"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_function_is_visible"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_constraintdef"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_constraintdef"
@@ -15216,6 +17260,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_expr"
@@ -15223,6 +17268,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_expr"
@@ -15231,36 +17277,42 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_function_arguments"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_function_identity_arguments"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_function_result"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_functiondef"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_indexdef"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_indexdef"
@@ -15269,17 +17321,20 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_keywords"
 >            [] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_ruledef"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_ruledef"
@@ -15287,6 +17342,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_serial_sequence"
@@ -15294,30 +17350,35 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_triggerdef"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_userbyid"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_viewdef"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_viewdef"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_viewdef"
@@ -15325,6 +17386,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_get_viewdef"
@@ -15332,6 +17394,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_has_role"
@@ -15339,6 +17402,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_has_role"
@@ -15346,6 +17410,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_has_role"
@@ -15354,6 +17419,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_has_role"
@@ -15362,6 +17428,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_has_role"
@@ -15370,6 +17437,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_has_role"
@@ -15378,61 +17446,72 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_is_other_temp_schema"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_lock_status"
 >            [] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_ls_dir"
 >            [ ScalarType "text"
 >            ] (
 >            SetOfType ( ScalarType "text" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_my_temp_schema"
 >            [] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_opclass_is_visible"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_operator_is_visible"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_options_to_table"
 >            [ ArrayType ( ScalarType "text" )
 >            ] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_postmaster_start_time"
 >            [] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_prepared_statement"
 >            [] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_prepared_xact"
 >            [] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_read_file"
@@ -15441,12 +17520,14 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_relation_size"
 >            [ ScalarType "regclass"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_relation_size"
@@ -15454,33 +17535,39 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_reload_conf"
 >            [] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_rotate_logfile"
 >            [] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_show_all_settings"
 >            [] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_size_pretty"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_sleep"
 >            [ ScalarType "float8"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_start_backup"
@@ -15488,358 +17575,420 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_clear_snapshot"
 >            [] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_file"
 >            [ ScalarType "text"
 >            ] (
 >            Pseudo Record )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_activity"
 >            [ ScalarType "int4"
 >            ] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_activity"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_activity_start"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_client_addr"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_client_port"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_dbid"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_idset"
 >            [] (
 >            SetOfType ( ScalarType "int4" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_pid"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_start"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_userid"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_waiting"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_backend_xact_start"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_bgwriter_buf_written_checkpoints"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_bgwriter_buf_written_clean"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_bgwriter_maxwritten_clean"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_bgwriter_requested_checkpoints"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_bgwriter_timed_checkpoints"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_blocks_fetched"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_blocks_hit"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_buf_alloc"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_buf_written_backend"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_db_blocks_fetched"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_db_blocks_hit"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_db_numbackends"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_db_tuples_deleted"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_db_tuples_fetched"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_db_tuples_inserted"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_db_tuples_returned"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_db_tuples_updated"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_db_xact_commit"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_db_xact_rollback"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_dead_tuples"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_function_calls"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_function_self_time"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_function_time"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_last_analyze_time"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_last_autoanalyze_time"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_last_autovacuum_time"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_last_vacuum_time"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_live_tuples"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_numscans"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_tuples_deleted"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_tuples_fetched"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_tuples_hot_updated"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_tuples_inserted"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_tuples_returned"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_get_tuples_updated"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stat_reset"
 >            [] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_stop_backup"
 >            [] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_switch_xlog"
 >            [] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_table_is_visible"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_tablespace_databases"
 >            [ ScalarType "oid"
 >            ] (
 >            SetOfType ( ScalarType "oid" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_tablespace_size"
 >            [ ScalarType "name"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_tablespace_size"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_terminate_backend"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_timezone_abbrevs"
 >            [] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_timezone_names"
 >            [] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_total_relation_size"
 >            [ ScalarType "regclass"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_try_advisory_lock"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_try_advisory_lock"
@@ -15847,12 +17996,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_try_advisory_lock_shared"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_try_advisory_lock_shared"
@@ -15860,65 +18011,76 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_ts_config_is_visible"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_ts_dict_is_visible"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_ts_parser_is_visible"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_ts_template_is_visible"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_type_is_visible"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_typeof"
 >            [ Pseudo Any
 >            ] (
 >            ScalarType "regtype" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_xlogfile_name"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pg_xlogfile_name_offset"
 >            [ ScalarType "text"
 >            ] (
 >            Pseudo Record )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pi"
 >            [] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "plainto_tsquery"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "plainto_tsquery"
@@ -15926,36 +18088,42 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point"
 >            [ ScalarType "lseg"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point"
 >            [ ScalarType "polygon"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point"
 >            [ ScalarType "circle"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point"
@@ -15963,6 +18131,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_above"
@@ -15970,6 +18139,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_add"
@@ -15977,6 +18147,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_below"
@@ -15984,6 +18155,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_distance"
@@ -15991,6 +18163,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_div"
@@ -15998,6 +18171,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_eq"
@@ -16005,6 +18179,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_horiz"
@@ -16012,12 +18187,14 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_left"
@@ -16025,6 +18202,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_mul"
@@ -16032,6 +18210,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_ne"
@@ -16039,18 +18218,21 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_out"
 >            [ ScalarType "point"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_right"
@@ -16058,12 +18240,14 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_send"
 >            [ ScalarType "point"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_sub"
@@ -16071,6 +18255,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "point_vert"
@@ -16078,6 +18263,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_above"
@@ -16085,6 +18271,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_below"
@@ -16092,12 +18279,14 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_center"
 >            [ ScalarType "polygon"
 >            ] (
 >            ScalarType "point" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_contain"
@@ -16105,6 +18294,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_contain_pt"
@@ -16112,6 +18302,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_contained"
@@ -16119,6 +18310,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_distance"
@@ -16126,12 +18318,14 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "polygon" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_left"
@@ -16139,18 +18333,21 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_npoints"
 >            [ ScalarType "polygon"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_out"
 >            [ ScalarType "polygon"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_overabove"
@@ -16158,6 +18355,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_overbelow"
@@ -16165,6 +18363,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_overlap"
@@ -16172,6 +18371,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_overleft"
@@ -16179,6 +18379,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_overright"
@@ -16186,12 +18387,14 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "polygon" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_right"
@@ -16199,6 +18402,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_same"
@@ -16206,30 +18410,35 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "poly_send"
 >            [ ScalarType "polygon"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "polygon"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "polygon" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "polygon"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "polygon" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "polygon"
 >            [ ScalarType "circle"
 >            ] (
 >            ScalarType "polygon" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "polygon"
@@ -16237,12 +18446,14 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "polygon" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "popen"
 >            [ ScalarType "path"
 >            ] (
 >            ScalarType "path" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "position"
@@ -16250,6 +18461,7 @@ This file contains
 >            , ScalarType "bytea"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "position"
@@ -16257,6 +18469,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "position"
@@ -16264,6 +18477,7 @@ This file contains
 >            , ScalarType "bit"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "positionjoinsel"
@@ -16274,6 +18488,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "positionsel"
@@ -16283,6 +18498,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "postgresql_fdw_validator"
@@ -16290,6 +18506,7 @@ This file contains
 >            , ScalarType "oid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pow"
@@ -16297,6 +18514,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pow"
@@ -16304,6 +18522,7 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "power"
@@ -16311,6 +18530,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "power"
@@ -16318,12 +18538,14 @@ This file contains
 >            , ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "prsd_end"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "prsd_headline"
@@ -16332,12 +18554,14 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "prsd_lextype"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "prsd_nexttoken"
@@ -16346,6 +18570,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "prsd_start"
@@ -16353,6 +18578,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pt_contained_circle"
@@ -16360,6 +18586,7 @@ This file contains
 >            , ScalarType "circle"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "pt_contained_poly"
@@ -16367,6 +18594,7 @@ This file contains
 >            , ScalarType "polygon"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "query_to_xml"
@@ -16376,6 +18604,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "query_to_xml_and_xmlschema"
@@ -16385,6 +18614,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "query_to_xmlschema"
@@ -16394,59 +18624,69 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "querytree"
 >            [ ScalarType "tsquery"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "quote_ident"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "quote_literal"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "quote_literal"
 >            [ Pseudo AnyElement
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "quote_nullable"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "quote_nullable"
 >            [ Pseudo AnyElement
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "radians"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "radius"
 >            [ ScalarType "circle"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "random"
 >            [] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "record_eq"
@@ -16454,6 +18694,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "record_ge"
@@ -16461,6 +18702,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "record_gt"
@@ -16468,6 +18710,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "record_in"
@@ -16476,6 +18719,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Record )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "record_le"
@@ -16483,6 +18727,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "record_lt"
@@ -16490,6 +18735,7 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "record_ne"
@@ -16497,12 +18743,14 @@ This file contains
 >            , Pseudo Record
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "record_out"
 >            [ Pseudo Record
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "record_recv"
@@ -16511,90 +18759,105 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Record )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "record_send"
 >            [ Pseudo Record
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regclass"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "regclass" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regclassin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "regclass" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regclassout"
 >            [ ScalarType "regclass"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regclassrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "regclass" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regclasssend"
 >            [ ScalarType "regclass"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regconfigin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "regconfig" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regconfigout"
 >            [ ScalarType "regconfig"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regconfigrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "regconfig" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regconfigsend"
 >            [ ScalarType "regconfig"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regdictionaryin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "regdictionary" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regdictionaryout"
 >            [ ScalarType "regdictionary"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regdictionaryrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "regdictionary" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regdictionarysend"
 >            [ ScalarType "regdictionary"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexeqjoinsel"
@@ -16605,6 +18868,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexeqsel"
@@ -16614,6 +18878,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexnejoinsel"
@@ -16624,6 +18889,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexnesel"
@@ -16633,6 +18899,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexp_matches"
@@ -16640,6 +18907,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            SetOfType ( ArrayType ( ScalarType "text" ) ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexp_matches"
@@ -16648,6 +18916,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            SetOfType ( ArrayType ( ScalarType "text" ) ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexp_replace"
@@ -16656,6 +18925,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexp_replace"
@@ -16665,6 +18935,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexp_split_to_array"
@@ -16672,6 +18943,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ArrayType ( ScalarType "text" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexp_split_to_array"
@@ -16680,6 +18952,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ArrayType ( ScalarType "text" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexp_split_to_table"
@@ -16687,6 +18960,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            SetOfType ( ScalarType "text" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regexp_split_to_table"
@@ -16695,132 +18969,154 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            SetOfType ( ScalarType "text" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regoperatorin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "regoperator" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regoperatorout"
 >            [ ScalarType "regoperator"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regoperatorrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "regoperator" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regoperatorsend"
 >            [ ScalarType "regoperator"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regoperin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "regoper" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regoperout"
 >            [ ScalarType "regoper"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regoperrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "regoper" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regopersend"
 >            [ ScalarType "regoper"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regprocedurein"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "regprocedure" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regprocedureout"
 >            [ ScalarType "regprocedure"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regprocedurerecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "regprocedure" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regproceduresend"
 >            [ ScalarType "regprocedure"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regprocin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "regproc" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regprocout"
 >            [ ScalarType "regproc"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regprocrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "regproc" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regprocsend"
 >            [ ScalarType "regproc"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regtypein"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "regtype" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regtypeout"
 >            [ ScalarType "regtype"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regtyperecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "regtype" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "regtypesend"
 >            [ ScalarType "regtype"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltime"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "reltime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltimeeq"
@@ -16828,6 +19124,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltimege"
@@ -16835,6 +19132,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltimegt"
@@ -16842,12 +19140,14 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltimein"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "reltime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltimele"
@@ -16855,6 +19155,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltimelt"
@@ -16862,6 +19163,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltimene"
@@ -16869,24 +19171,28 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltimeout"
 >            [ ScalarType "reltime"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltimerecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "reltime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "reltimesend"
 >            [ ScalarType "reltime"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "repeat"
@@ -16894,6 +19200,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "replace"
@@ -16902,18 +19209,21 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "round"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "round"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "round"
@@ -16921,6 +19231,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "rpad"
@@ -16928,6 +19239,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "rpad"
@@ -16936,12 +19248,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "rtrim"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "rtrim"
@@ -16949,6 +19263,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "scalargtjoinsel"
@@ -16959,6 +19274,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "scalargtsel"
@@ -16968,6 +19284,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "scalarltjoinsel"
@@ -16978,6 +19295,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "scalarltsel"
@@ -16987,6 +19305,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "schema_to_xml"
@@ -16996,6 +19315,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "schema_to_xml_and_xmlschema"
@@ -17005,6 +19325,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "schema_to_xmlschema"
@@ -17014,11 +19335,13 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "session_user"
 >            [] (
 >            ScalarType "name" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "set_bit"
@@ -17027,6 +19350,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "set_byte"
@@ -17035,6 +19359,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "set_config"
@@ -17043,6 +19368,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "set_masklen"
@@ -17050,6 +19376,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "cidr" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "set_masklen"
@@ -17057,12 +19384,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "inet" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "setseed"
 >            [ ScalarType "float8"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "setval"
@@ -17070,6 +19399,7 @@ This file contains
 >            , ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "setval"
@@ -17078,6 +19408,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "setweight"
@@ -17085,18 +19416,21 @@ This file contains
 >            , ScalarType "char"
 >            ] (
 >            ScalarType "tsvector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "shell_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo Opaque )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "shell_out"
 >            [ Pseudo Opaque
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "shift_jis_2004_to_euc_jis_2004"
@@ -17107,6 +19441,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "shift_jis_2004_to_utf8"
@@ -17117,6 +19452,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "shobj_description"
@@ -17124,18 +19460,21 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "sign"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "sign"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "similar_escape"
@@ -17143,12 +19482,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "sin"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "sjis_to_euc_jp"
@@ -17159,6 +19500,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "sjis_to_mic"
@@ -17169,6 +19511,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "sjis_to_utf8"
@@ -17179,6 +19522,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "slope"
@@ -17186,6 +19530,7 @@ This file contains
 >            , ScalarType "point"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "smgreq"
@@ -17193,12 +19538,14 @@ This file contains
 >            , ScalarType "smgr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "smgrin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "smgr" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "smgrne"
@@ -17206,12 +19553,14 @@ This file contains
 >            , ScalarType "smgr"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "smgrout"
 >            [ ScalarType "smgr"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "split_part"
@@ -17220,23 +19569,27 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "sqrt"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "sqrt"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "statement_timestamp"
 >            [] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "string_to_array"
@@ -17244,12 +19597,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ArrayType ( ScalarType "text" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "strip"
 >            [ ScalarType "tsvector"
 >            ] (
 >            ScalarType "tsvector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "strpos"
@@ -17257,6 +19612,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substr"
@@ -17264,6 +19620,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substr"
@@ -17271,6 +19628,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substr"
@@ -17279,6 +19637,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substr"
@@ -17287,6 +19646,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substring"
@@ -17294,6 +19654,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substring"
@@ -17301,6 +19662,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substring"
@@ -17308,6 +19670,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substring"
@@ -17315,6 +19678,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substring"
@@ -17323,6 +19687,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substring"
@@ -17331,6 +19696,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substring"
@@ -17339,6 +19705,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "substring"
@@ -17347,11 +19714,13 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "suppress_redundant_updates_trigger"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "table_to_xml"
@@ -17361,6 +19730,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "table_to_xml_and_xmlschema"
@@ -17370,6 +19740,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "table_to_xmlschema"
@@ -17379,48 +19750,56 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tan"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text"
 >            [ ScalarType "bool"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text"
 >            [ ScalarType "char"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text"
 >            [ ScalarType "name"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text"
 >            [ ScalarType "xml"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text"
 >            [ ScalarType "inet"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text"
 >            [ ScalarType "bpchar"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text_ge"
@@ -17428,6 +19807,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text_gt"
@@ -17435,6 +19815,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text_larger"
@@ -17442,6 +19823,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text_le"
@@ -17449,6 +19831,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text_lt"
@@ -17456,6 +19839,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text_pattern_ge"
@@ -17463,6 +19847,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text_pattern_gt"
@@ -17470,6 +19855,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text_pattern_le"
@@ -17477,6 +19863,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text_pattern_lt"
@@ -17484,6 +19871,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "text_smaller"
@@ -17491,6 +19879,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textanycat"
@@ -17498,6 +19887,7 @@ This file contains
 >            , Pseudo AnyNonArray
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textcat"
@@ -17505,6 +19895,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "texteq"
@@ -17512,6 +19903,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "texticlike"
@@ -17519,6 +19911,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "texticnlike"
@@ -17526,6 +19919,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "texticregexeq"
@@ -17533,6 +19927,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "texticregexne"
@@ -17540,18 +19935,21 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textlen"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textlike"
@@ -17559,6 +19957,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textne"
@@ -17566,6 +19965,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textnlike"
@@ -17573,18 +19973,21 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textout"
 >            [ ScalarType "text"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textregexeq"
@@ -17592,6 +19995,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textregexne"
@@ -17599,18 +20003,21 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "textsend"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "thesaurus_init"
 >            [ Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "thesaurus_lexize"
@@ -17620,6 +20027,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            Pseudo Internal )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tideq"
@@ -17627,6 +20035,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidge"
@@ -17634,6 +20043,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidgt"
@@ -17641,12 +20051,14 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "tid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidlarger"
@@ -17654,6 +20066,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "tid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidle"
@@ -17661,6 +20074,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidlt"
@@ -17668,6 +20082,7 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidne"
@@ -17675,24 +20090,28 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidout"
 >            [ ScalarType "tid"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "tid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidsend"
 >            [ ScalarType "tid"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tidsmaller"
@@ -17700,36 +20119,42 @@ This file contains
 >            , ScalarType "tid"
 >            ] (
 >            ScalarType "tid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time"
 >            [ ScalarType "abstime"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time"
 >            [ ScalarType "timestamp"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time"
 >            [ ScalarType "timetz"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time"
@@ -17737,6 +20162,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_cmp"
@@ -17744,6 +20170,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_eq"
@@ -17751,6 +20178,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_ge"
@@ -17758,6 +20186,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_gt"
@@ -17765,12 +20194,14 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_hash"
 >            [ ScalarType "time"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_in"
@@ -17779,6 +20210,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_larger"
@@ -17786,6 +20218,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_le"
@@ -17793,6 +20226,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_lt"
@@ -17800,6 +20234,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_mi_interval"
@@ -17807,6 +20242,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_mi_time"
@@ -17814,6 +20250,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_ne"
@@ -17821,12 +20258,14 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_out"
 >            [ ScalarType "time"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_pl_interval"
@@ -17834,6 +20273,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_recv"
@@ -17842,12 +20282,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_send"
 >            [ ScalarType "time"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "time_smaller"
@@ -17855,6 +20297,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timedate_pl"
@@ -17862,6 +20305,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timemi"
@@ -17869,16 +20313,19 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timenow"
 >            [] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timeofday"
 >            [] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timepl"
@@ -17886,24 +20333,28 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp"
 >            [ ScalarType "abstime"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp"
 >            [ ScalarType "date"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp"
@@ -17911,6 +20362,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp"
@@ -17918,6 +20370,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_cmp"
@@ -17925,6 +20378,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_cmp_date"
@@ -17932,6 +20386,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_cmp_timestamptz"
@@ -17939,6 +20394,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_eq"
@@ -17946,6 +20402,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_eq_date"
@@ -17953,6 +20410,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_eq_timestamptz"
@@ -17960,6 +20418,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_ge"
@@ -17967,6 +20426,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_ge_date"
@@ -17974,6 +20434,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_ge_timestamptz"
@@ -17981,6 +20442,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_gt"
@@ -17988,6 +20450,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_gt_date"
@@ -17995,6 +20458,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_gt_timestamptz"
@@ -18002,12 +20466,14 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_hash"
 >            [ ScalarType "timestamp"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_in"
@@ -18016,6 +20482,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_larger"
@@ -18023,6 +20490,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_le"
@@ -18030,6 +20498,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_le_date"
@@ -18037,6 +20506,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_le_timestamptz"
@@ -18044,6 +20514,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_lt"
@@ -18051,6 +20522,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_lt_date"
@@ -18058,6 +20530,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_lt_timestamptz"
@@ -18065,6 +20538,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_mi"
@@ -18072,6 +20546,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_mi_interval"
@@ -18079,6 +20554,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_ne"
@@ -18086,6 +20562,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_ne_date"
@@ -18093,6 +20570,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_ne_timestamptz"
@@ -18100,12 +20578,14 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_out"
 >            [ ScalarType "timestamp"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_pl_interval"
@@ -18113,6 +20593,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_recv"
@@ -18121,12 +20602,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_send"
 >            [ ScalarType "timestamp"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamp_smaller"
@@ -18134,36 +20617,42 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptypmodin"
 >            [ ArrayType ( Pseudo Cstring )
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptypmodout"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz"
 >            [ ScalarType "abstime"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz"
 >            [ ScalarType "date"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz"
 >            [ ScalarType "timestamp"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz"
@@ -18171,6 +20660,7 @@ This file contains
 >            , ScalarType "time"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz"
@@ -18178,6 +20668,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz"
@@ -18185,6 +20676,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_cmp"
@@ -18192,6 +20684,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_cmp_date"
@@ -18199,6 +20692,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_cmp_timestamp"
@@ -18206,6 +20700,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_eq"
@@ -18213,6 +20708,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_eq_date"
@@ -18220,6 +20716,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_eq_timestamp"
@@ -18227,6 +20724,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_ge"
@@ -18234,6 +20732,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_ge_date"
@@ -18241,6 +20740,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_ge_timestamp"
@@ -18248,6 +20748,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_gt"
@@ -18255,6 +20756,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_gt_date"
@@ -18262,6 +20764,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_gt_timestamp"
@@ -18269,6 +20772,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_in"
@@ -18277,6 +20781,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_larger"
@@ -18284,6 +20789,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_le"
@@ -18291,6 +20797,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_le_date"
@@ -18298,6 +20805,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_le_timestamp"
@@ -18305,6 +20813,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_lt"
@@ -18312,6 +20821,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_lt_date"
@@ -18319,6 +20829,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_lt_timestamp"
@@ -18326,6 +20837,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_mi"
@@ -18333,6 +20845,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_mi_interval"
@@ -18340,6 +20853,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_ne"
@@ -18347,6 +20861,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_ne_date"
@@ -18354,6 +20869,7 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_ne_timestamp"
@@ -18361,12 +20877,14 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_out"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_pl_interval"
@@ -18374,6 +20892,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_recv"
@@ -18382,12 +20901,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_send"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptz_smaller"
@@ -18395,42 +20916,49 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptztypmodin"
 >            [ ArrayType ( Pseudo Cstring )
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timestamptztypmodout"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetypmodin"
 >            [ ArrayType ( Pseudo Cstring )
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetypmodout"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz"
 >            [ ScalarType "time"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz"
@@ -18438,6 +20966,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_cmp"
@@ -18445,6 +20974,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_eq"
@@ -18452,6 +20982,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_ge"
@@ -18459,6 +20990,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_gt"
@@ -18466,12 +20998,14 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_hash"
 >            [ ScalarType "timetz"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_in"
@@ -18480,6 +21014,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_larger"
@@ -18487,6 +21022,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_le"
@@ -18494,6 +21030,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_lt"
@@ -18501,6 +21038,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_mi_interval"
@@ -18508,6 +21046,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_ne"
@@ -18515,12 +21054,14 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_out"
 >            [ ScalarType "timetz"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_pl_interval"
@@ -18528,6 +21069,7 @@ This file contains
 >            , ScalarType "interval"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_recv"
@@ -18536,12 +21078,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_send"
 >            [ ScalarType "timetz"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetz_smaller"
@@ -18549,6 +21093,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetzdate_pl"
@@ -18556,18 +21101,21 @@ This file contains
 >            , ScalarType "date"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetztypmodin"
 >            [ ArrayType ( Pseudo Cstring )
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timetztypmodout"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timezone"
@@ -18575,6 +21123,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timezone"
@@ -18582,6 +21131,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timezone"
@@ -18589,6 +21139,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timezone"
@@ -18596,6 +21147,7 @@ This file contains
 >            , ScalarType "timestamp"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timezone"
@@ -18603,6 +21155,7 @@ This file contains
 >            , ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "timezone"
@@ -18610,6 +21163,7 @@ This file contains
 >            , ScalarType "timetz"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tinterval"
@@ -18617,6 +21171,7 @@ This file contains
 >            , ScalarType "abstime"
 >            ] (
 >            ScalarType "tinterval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalct"
@@ -18624,12 +21179,14 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalend"
 >            [ ScalarType "tinterval"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervaleq"
@@ -18637,6 +21194,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalge"
@@ -18644,6 +21202,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalgt"
@@ -18651,12 +21210,14 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "tinterval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalle"
@@ -18664,6 +21225,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalleneq"
@@ -18671,6 +21233,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervallenge"
@@ -18678,6 +21241,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervallengt"
@@ -18685,6 +21249,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervallenle"
@@ -18692,6 +21257,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervallenlt"
@@ -18699,6 +21265,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervallenne"
@@ -18706,6 +21273,7 @@ This file contains
 >            , ScalarType "reltime"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervallt"
@@ -18713,6 +21281,7 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalne"
@@ -18720,12 +21289,14 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalout"
 >            [ ScalarType "tinterval"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalov"
@@ -18733,18 +21304,21 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "tinterval" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalrel"
 >            [ ScalarType "tinterval"
 >            ] (
 >            ScalarType "reltime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalsame"
@@ -18752,24 +21326,28 @@ This file contains
 >            , ScalarType "tinterval"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalsend"
 >            [ ScalarType "tinterval"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tintervalstart"
 >            [ ScalarType "tinterval"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_ascii"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_ascii"
@@ -18777,6 +21355,7 @@ This file contains
 >            , ScalarType "name"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_ascii"
@@ -18784,6 +21363,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_char"
@@ -18791,6 +21371,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_char"
@@ -18798,6 +21379,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_char"
@@ -18805,6 +21387,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_char"
@@ -18812,6 +21395,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_char"
@@ -18819,6 +21403,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_char"
@@ -18826,6 +21411,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_char"
@@ -18833,6 +21419,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_char"
@@ -18840,6 +21427,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_date"
@@ -18847,18 +21435,21 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_hex"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_hex"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_number"
@@ -18866,12 +21457,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_timestamp"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_timestamp"
@@ -18879,12 +21472,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_tsquery"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_tsquery"
@@ -18892,12 +21487,14 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_tsvector"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "tsvector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "to_tsvector"
@@ -18905,11 +21502,13 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "tsvector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "transaction_timestamp"
 >            [] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "translate"
@@ -18918,36 +21517,42 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "trigger_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "trigger_out"
 >            [ Pseudo Trigger
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "trunc"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "trunc"
 >            [ ScalarType "macaddr"
 >            ] (
 >            ScalarType "macaddr" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "trunc"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "trunc"
@@ -18955,12 +21560,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_debug"
 >            [ ScalarType "text"
 >            ] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_debug"
@@ -18968,6 +21575,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_headline"
@@ -18975,6 +21583,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_headline"
@@ -18983,6 +21592,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_headline"
@@ -18991,6 +21601,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_headline"
@@ -19000,6 +21611,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_lexize"
@@ -19007,6 +21619,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ArrayType ( ScalarType "text" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_match_qv"
@@ -19014,6 +21627,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_match_tq"
@@ -19021,6 +21635,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_match_tt"
@@ -19028,6 +21643,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_match_vq"
@@ -19035,6 +21651,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_parse"
@@ -19042,6 +21659,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_parse"
@@ -19049,6 +21667,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_rank"
@@ -19056,6 +21675,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_rank"
@@ -19064,6 +21684,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_rank"
@@ -19072,6 +21693,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_rank"
@@ -19081,6 +21703,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_rank_cd"
@@ -19088,6 +21711,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_rank_cd"
@@ -19096,6 +21720,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_rank_cd"
@@ -19104,6 +21729,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_rank_cd"
@@ -19113,6 +21739,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_rewrite"
@@ -19120,6 +21747,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_rewrite"
@@ -19128,12 +21756,14 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_stat"
 >            [ ScalarType "text"
 >            ] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_stat"
@@ -19141,24 +21771,28 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_token_type"
 >            [ ScalarType "text"
 >            ] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_token_type"
 >            [ ScalarType "oid"
 >            ] (
 >            SetOfType ( Pseudo Record ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "ts_typanalyze"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsmatchjoinsel"
@@ -19169,6 +21803,7 @@ This file contains
 >            , Pseudo Internal
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsmatchsel"
@@ -19178,6 +21813,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsq_mcontained"
@@ -19185,6 +21821,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsq_mcontains"
@@ -19192,6 +21829,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquery_and"
@@ -19199,6 +21837,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquery_cmp"
@@ -19206,6 +21845,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquery_eq"
@@ -19213,6 +21853,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquery_ge"
@@ -19220,6 +21861,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquery_gt"
@@ -19227,6 +21869,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquery_le"
@@ -19234,6 +21877,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquery_lt"
@@ -19241,6 +21885,7 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquery_ne"
@@ -19248,12 +21893,14 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquery_not"
 >            [ ScalarType "tsquery"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquery_or"
@@ -19261,30 +21908,35 @@ This file contains
 >            , ScalarType "tsquery"
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsqueryin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsqueryout"
 >            [ ScalarType "tsquery"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsqueryrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "tsquery" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsquerysend"
 >            [ ScalarType "tsquery"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvector_cmp"
@@ -19292,6 +21944,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvector_concat"
@@ -19299,6 +21952,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "tsvector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvector_eq"
@@ -19306,6 +21960,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvector_ge"
@@ -19313,6 +21968,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvector_gt"
@@ -19320,6 +21976,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvector_le"
@@ -19327,6 +21984,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvector_lt"
@@ -19334,6 +21992,7 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvector_ne"
@@ -19341,92 +22000,108 @@ This file contains
 >            , ScalarType "tsvector"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvector_update_trigger"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvector_update_trigger_column"
 >            [] (
 >            Pseudo Trigger )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvectorin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "tsvector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvectorout"
 >            [ ScalarType "tsvector"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvectorrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "tsvector" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "tsvectorsend"
 >            [ ScalarType "tsvector"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "txid_current"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "txid_current_snapshot"
 >            [] (
 >            ScalarType "txid_snapshot" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "txid_snapshot_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "txid_snapshot" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "txid_snapshot_out"
 >            [ ScalarType "txid_snapshot"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "txid_snapshot_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "txid_snapshot" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "txid_snapshot_send"
 >            [ ScalarType "txid_snapshot"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "txid_snapshot_xip"
 >            [ ScalarType "txid_snapshot"
 >            ] (
 >            SetOfType ( ScalarType "int8" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "txid_snapshot_xmax"
 >            [ ScalarType "txid_snapshot"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "txid_snapshot_xmin"
 >            [ ScalarType "txid_snapshot"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "txid_visible_in_snapshot"
@@ -19434,6 +22109,7 @@ This file contains
 >            , ScalarType "txid_snapshot"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uhc_to_utf8"
@@ -19444,42 +22120,49 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "unknownin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "unknown" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "unknownout"
 >            [ ScalarType "unknown"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "unknownrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "unknown" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "unknownsend"
 >            [ ScalarType "unknown"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "unnest"
 >            [ Pseudo AnyArray
 >            ] (
 >            SetOfType ( Pseudo AnyElement ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "upper"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_ascii"
@@ -19490,6 +22173,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_big5"
@@ -19500,6 +22184,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_euc_cn"
@@ -19510,6 +22195,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_euc_jis_2004"
@@ -19520,6 +22206,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_euc_jp"
@@ -19530,6 +22217,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_euc_kr"
@@ -19540,6 +22228,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_euc_tw"
@@ -19550,6 +22239,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_gb18030"
@@ -19560,6 +22250,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_gbk"
@@ -19570,6 +22261,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_iso8859"
@@ -19580,6 +22272,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_iso8859_1"
@@ -19590,6 +22283,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_johab"
@@ -19600,6 +22294,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_koi8r"
@@ -19610,6 +22305,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_koi8u"
@@ -19620,6 +22316,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_shift_jis_2004"
@@ -19630,6 +22327,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_sjis"
@@ -19640,6 +22338,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_uhc"
@@ -19650,6 +22349,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "utf8_to_win"
@@ -19660,6 +22360,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_cmp"
@@ -19667,6 +22368,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_eq"
@@ -19674,6 +22376,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_ge"
@@ -19681,6 +22384,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_gt"
@@ -19688,18 +22392,21 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_hash"
 >            [ ScalarType "uuid"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "uuid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_le"
@@ -19707,6 +22414,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_lt"
@@ -19714,6 +22422,7 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_ne"
@@ -19721,24 +22430,28 @@ This file contains
 >            , ScalarType "uuid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_out"
 >            [ ScalarType "uuid"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "uuid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "uuid_send"
 >            [ ScalarType "uuid"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbit"
@@ -19747,6 +22460,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "varbit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbit_in"
@@ -19755,12 +22469,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "varbit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbit_out"
 >            [ ScalarType "varbit"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbit_recv"
@@ -19769,12 +22485,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "varbit" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbit_send"
 >            [ ScalarType "varbit"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbitcmp"
@@ -19782,6 +22500,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbiteq"
@@ -19789,6 +22508,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbitge"
@@ -19796,6 +22516,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbitgt"
@@ -19803,6 +22524,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbitle"
@@ -19810,6 +22532,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbitlt"
@@ -19817,6 +22540,7 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbitne"
@@ -19824,24 +22548,28 @@ This file contains
 >            , ScalarType "varbit"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbittypmodin"
 >            [ ArrayType ( Pseudo Cstring )
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varbittypmodout"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varchar"
 >            [ ScalarType "name"
 >            ] (
 >            ScalarType "varchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varchar"
@@ -19850,6 +22578,7 @@ This file contains
 >            , ScalarType "bool"
 >            ] (
 >            ScalarType "varchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varcharin"
@@ -19858,12 +22587,14 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "varchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varcharout"
 >            [ ScalarType "varchar"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varcharrecv"
@@ -19872,47 +22603,55 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "varchar" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varcharsend"
 >            [ ScalarType "varchar"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varchartypmodin"
 >            [ ArrayType ( Pseudo Cstring )
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "varchartypmodout"
 >            [ ScalarType "int4"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "version"
 >            [] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "void_in"
 >            [ Pseudo Cstring
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "void_out"
 >            [ Pseudo Void
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "width"
 >            [ ScalarType "box"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "width_bucket"
@@ -19922,6 +22661,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "width_bucket"
@@ -19931,6 +22671,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win1250_to_latin2"
@@ -19941,6 +22682,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win1250_to_mic"
@@ -19951,6 +22693,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win1251_to_iso"
@@ -19961,6 +22704,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win1251_to_koi8r"
@@ -19971,6 +22715,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win1251_to_mic"
@@ -19981,6 +22726,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win1251_to_win866"
@@ -19991,6 +22737,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win866_to_iso"
@@ -20001,6 +22748,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win866_to_koi8r"
@@ -20011,6 +22759,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win866_to_mic"
@@ -20021,6 +22770,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win866_to_win1251"
@@ -20031,6 +22781,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "win_to_utf8"
@@ -20041,6 +22792,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo Void )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xideq"
@@ -20048,6 +22800,7 @@ This file contains
 >            , ScalarType "xid"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xideqint4"
@@ -20055,66 +22808,77 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xidin"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "xid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xidout"
 >            [ ScalarType "xid"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xidrecv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "xid" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xidsend"
 >            [ ScalarType "xid"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xml"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xml_in"
 >            [ Pseudo Cstring
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xml_out"
 >            [ ScalarType "xml"
 >            ] (
 >            Pseudo Cstring )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xml_recv"
 >            [ Pseudo Internal
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xml_send"
 >            [ ScalarType "xml"
 >            ] (
 >            ScalarType "bytea" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xmlcomment"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xmlconcat2"
@@ -20122,6 +22886,7 @@ This file contains
 >            , ScalarType "xml"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xmlvalidate"
@@ -20129,6 +22894,7 @@ This file contains
 >            , ScalarType "text"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xpath"
@@ -20136,6 +22902,7 @@ This file contains
 >            , ScalarType "xml"
 >            ] (
 >            ArrayType ( ScalarType "xml" ) )
+>            False
 >        , EnvCreateFunction
 >            FunName
 >            "xpath"
@@ -20144,114 +22911,133 @@ This file contains
 >            , ArrayType ( ScalarType "text" )
 >            ] (
 >            ArrayType ( ScalarType "xml" ) )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "array_agg"
 >            [ Pseudo AnyElement
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "avg"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "avg"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "avg"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "avg"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "avg"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "avg"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "avg"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "bit_and"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "bit_and"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "bit_and"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "bit_and"
 >            [ ScalarType "bit"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "bit_or"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "bit_or"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "bit_or"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "bit_or"
 >            [ ScalarType "bit"
 >            ] (
 >            ScalarType "bit" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "bool_and"
 >            [ ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "bool_or"
 >            [ ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "corr"
@@ -20259,17 +23045,20 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "count"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "count"
 >            [ Pseudo Any
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "covar_pop"
@@ -20277,6 +23066,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "covar_samp"
@@ -20284,252 +23074,294 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "every"
 >            [ ScalarType "bool"
 >            ] (
 >            ScalarType "bool" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "tid"
 >            ] (
 >            ScalarType "tid" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "abstime"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "bpchar"
 >            ] (
 >            ScalarType "bpchar" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "date"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "time"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "timestamp"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "timetz"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ Pseudo AnyArray
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "max"
 >            [ Pseudo AnyEnum
 >            ] (
 >            Pseudo AnyEnum )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int2" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "text"
 >            ] (
 >            ScalarType "text" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "oid"
 >            ] (
 >            ScalarType "oid" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "tid"
 >            ] (
 >            ScalarType "tid" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "abstime"
 >            ] (
 >            ScalarType "abstime" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "bpchar"
 >            ] (
 >            ScalarType "bpchar" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "date"
 >            ] (
 >            ScalarType "date" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "time"
 >            ] (
 >            ScalarType "time" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "timestamp"
 >            ] (
 >            ScalarType "timestamp" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "timestamptz"
 >            ] (
 >            ScalarType "timestamptz" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "timetz"
 >            ] (
 >            ScalarType "timetz" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ Pseudo AnyArray
 >            ] (
 >            Pseudo AnyArray )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "min"
 >            [ Pseudo AnyEnum
 >            ] (
 >            Pseudo AnyEnum )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "regr_avgx"
@@ -20537,6 +23369,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "regr_avgy"
@@ -20544,6 +23377,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "regr_count"
@@ -20551,6 +23385,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "regr_intercept"
@@ -20558,6 +23393,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "regr_r2"
@@ -20565,6 +23401,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "regr_slope"
@@ -20572,6 +23409,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "regr_sxx"
@@ -20579,6 +23417,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "regr_sxy"
@@ -20586,6 +23425,7 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "regr_syy"
@@ -20593,298 +23433,348 @@ This file contains
 >            , ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_pop"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_pop"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_pop"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_pop"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_pop"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_pop"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_samp"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_samp"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_samp"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_samp"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_samp"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "stddev_samp"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "sum"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "sum"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "sum"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "sum"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float4" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "sum"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "sum"
 >            [ ScalarType "money"
 >            ] (
 >            ScalarType "money" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "sum"
 >            [ ScalarType "interval"
 >            ] (
 >            ScalarType "interval" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "sum"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_pop"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_pop"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_pop"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_pop"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_pop"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_pop"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_samp"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_samp"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_samp"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_samp"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_samp"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "var_samp"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "variance"
 >            [ ScalarType "int8"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "variance"
 >            [ ScalarType "int2"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "variance"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "variance"
 >            [ ScalarType "float4"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "variance"
 >            [ ScalarType "float8"
 >            ] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "variance"
 >            [ ScalarType "numeric"
 >            ] (
 >            ScalarType "numeric" )
+>            False
 >        , EnvCreateFunction
 >            FunAgg
 >            "xmlagg"
 >            [ ScalarType "xml"
 >            ] (
 >            ScalarType "xml" )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "cume_dist"
 >            [] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "dense_rank"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "first_value"
 >            [ Pseudo AnyElement
 >            ] (
 >            Pseudo AnyElement )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "lag"
 >            [ Pseudo AnyElement
 >            ] (
 >            Pseudo AnyElement )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "lag"
@@ -20892,6 +23782,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo AnyElement )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "lag"
@@ -20900,18 +23791,21 @@ This file contains
 >            , Pseudo AnyElement
 >            ] (
 >            Pseudo AnyElement )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "last_value"
 >            [ Pseudo AnyElement
 >            ] (
 >            Pseudo AnyElement )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "lead"
 >            [ Pseudo AnyElement
 >            ] (
 >            Pseudo AnyElement )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "lead"
@@ -20919,6 +23813,7 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo AnyElement )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "lead"
@@ -20927,6 +23822,7 @@ This file contains
 >            , Pseudo AnyElement
 >            ] (
 >            Pseudo AnyElement )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "nth_value"
@@ -20934,27 +23830,32 @@ This file contains
 >            , ScalarType "int4"
 >            ] (
 >            Pseudo AnyElement )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "ntile"
 >            [ ScalarType "int4"
 >            ] (
 >            ScalarType "int4" )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "percent_rank"
 >            [] (
 >            ScalarType "float8" )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "rank"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateFunction
 >            FunWindow
 >            "row_number"
 >            [] (
 >            ScalarType "int8" )
+>            False
 >        , EnvCreateTable
 >            "pg_aggregate"
 >            [ ( "aggfnoid"
