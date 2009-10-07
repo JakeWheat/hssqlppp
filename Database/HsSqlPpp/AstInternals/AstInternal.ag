@@ -95,6 +95,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,CaseExpressionListExpressionPair
    ,CaseExpressionList
    ,MaybeBoolExpression
+   ,SetValue(..)
    -- annotations
    ,annotateAst
    ,annotateAstEnv
@@ -199,7 +200,10 @@ DATA Statement
     | CreateDomain ann:Annotation
                    name : String
                    typ : TypeName
+                   checkName: String
                    check : MaybeBoolExpression
+    | CreateLanguage ann:Annotation
+                     name:String
     -- ifexists (name,argtypes)* cascadeorrestrict
     | DropFunction ann:Annotation
                    ifE : IfExists
@@ -256,6 +260,15 @@ DATA Statement
     | If ann:Annotation
          cases : ExpressionStatementListPairList
          els : StatementList
+
+--misc
+
+    | Set ann:Annotation name:String values:{[SetValue]}
+
+DATA SetValue
+    | SetStr ann:Annotation String
+    | SetId ann:Annotation String
+    | SetNum ann:Annotation Double
 
 -- =============================================================================
 
@@ -341,12 +354,12 @@ DATA AttributeDef | AttributeDef ann:Annotation
 
 --Constraints which appear attached to an individual field
 
-DATA RowConstraint | NullConstraint ann:Annotation
-                   | NotNullConstraint ann:Annotation
-                   | RowCheckConstraint ann:Annotation Expression
-                   | RowUniqueConstraint ann:Annotation
-                   | RowPrimaryKeyConstraint ann:Annotation
-                   | RowReferenceConstraint ann:Annotation
+DATA RowConstraint | NullConstraint ann:Annotation name:String
+                   | NotNullConstraint ann:Annotation name:String
+                   | RowCheckConstraint ann:Annotation name:String Expression
+                   | RowUniqueConstraint ann:Annotation name:String
+                   | RowPrimaryKeyConstraint ann:Annotation name:String
+                   | RowReferenceConstraint ann:Annotation name:String
                                             table : String
                                             att : (Maybe String)
                                             onUpdate : Cascade
@@ -354,11 +367,12 @@ DATA RowConstraint | NullConstraint ann:Annotation
 
 --constraints which appear on a separate row in the create table
 
-DATA Constraint | UniqueConstraint ann:Annotation StringList
-                | PrimaryKeyConstraint ann:Annotation StringList
-                | CheckConstraint ann:Annotation Expression
+DATA Constraint | UniqueConstraint ann:Annotation name:String StringList
+                | PrimaryKeyConstraint ann:Annotation name:String StringList
+                | CheckConstraint ann:Annotation name:String Expression
                   -- sourcecols targettable targetcols ondelete onupdate
                 | ReferenceConstraint ann:Annotation
+                                      name:String
                                       atts : StringList
                                       table : String
                                       tableAtts : StringList
@@ -589,6 +603,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
                MaybeTableRef TableRef OnExpr LiftFlavour MaybeSelectList
+               SetValue
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
 

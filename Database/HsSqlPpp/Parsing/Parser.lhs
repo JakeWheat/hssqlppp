@@ -143,13 +143,15 @@ parse a statement
 >     ,delete
 >     ,truncateSt
 >     ,copy
+>     ,set
 >     ,keyword "create" *>
 >              choice [
 >                 createTable
 >                ,createType
 >                ,createFunction
 >                ,createView
->                ,createDomain]
+>                ,createDomain
+>                ,createLanguage]
 >     ,keyword "drop" *>
 >              choice [
 >                 dropSomething
@@ -364,6 +366,17 @@ multiple rows to insert and insert from select statements
 >                                                  CopyPayloadTok n -> Just n
 >                                                  _ -> Nothing)
 
+> set :: ParsecT [Token] ParseState Identity Statement
+> set = Set <$> pos
+>           <*> (keyword "set" *> idString)
+>           <*> ((keyword "to" <|> symbol "=") *>
+>               commaSep1 sv)
+>       where
+>         sv = choice [
+>               SetStr <$> pos <*> stringN
+>              ,SetId <$> pos <*> idString
+>              ,SetNum <$> pos <*> ((fromInteger <$> integer) <|> float)]
+
 = ddl
 
 > createTable :: ParsecT [Token] ParseState Identity Statement
@@ -390,34 +403,37 @@ multiple rows to insert and insert from select statements
 >                <*> typeName
 >                <*> tryOptionMaybe (keyword "default" *> expr)
 >                <*> many rowConstraint
->     tableConstr = choice [
->                    UniqueConstraint
->                    <$> pos <*> try (keyword "unique" *> columnNameList)
->                    ,PrimaryKeyConstraint
->                    <$> pos <*> try (keyword "primary" *> keyword "key"
+>     tableConstr = do
+>                 p <- pos
+>                 cn <- option "" (keyword "constraint" *> idString)
+>                 choice [
+>                    UniqueConstraint p cn
+>                    <$> try (keyword "unique" *> columnNameList)
+>                    ,PrimaryKeyConstraint p cn
+>                    <$> try (keyword "primary" *> keyword "key"
 >                                     *> choice [
 >                                             (:[]) <$> idString
 >                                            ,parens (commaSep1 idString)])
->                    ,CheckConstraint
->                    <$> pos <*> try (keyword "check" *> parens expr)
->                    ,ReferenceConstraint
->                    <$> pos
->                    <*> try (keyword "foreign" *> keyword "key"
+>                    ,CheckConstraint p cn
+>                    <$>try (keyword "check" *> parens expr)
+>                    ,ReferenceConstraint p cn
+>                    <$> try (keyword "foreign" *> keyword "key"
 >                             *> parens (commaSep1 idString))
 >                    <*> (keyword "references" *> idString)
 >                    <*> option [] (parens $ commaSep1 idString)
 >                    <*> onDelete
 >                    <*> onUpdate]
->     rowConstraint =
+>     rowConstraint = do
+>        p <- pos
+>        cn <- option "" (keyword "constraint" *> idString)
 >        choice [
->           RowUniqueConstraint <$> pos <* keyword "unique"
->          ,RowPrimaryKeyConstraint <$> pos <* keyword "primary" <* keyword "key"
->          ,RowCheckConstraint <$> pos <*> (keyword "check" *> parens expr)
->          ,NullConstraint <$> pos <* keyword "null"
->          ,NotNullConstraint <$> pos <* (keyword "not" <* keyword "null")
->          ,RowReferenceConstraint
->          <$> pos
->          <*> (keyword "references" *> idString)
+>           RowUniqueConstraint p cn <$ keyword "unique"
+>          ,RowPrimaryKeyConstraint p cn <$ keyword "primary" <* keyword "key"
+>          ,RowCheckConstraint p cn <$> (keyword "check" *> parens expr)
+>          ,NullConstraint p cn <$ keyword "null"
+>          ,NotNullConstraint p cn <$ (keyword "not" <* keyword "null")
+>          ,RowReferenceConstraint p cn
+>          <$> (keyword "references" *> idString)
 >          <*> option Nothing (try $ parens $ Just <$> idString)
 >          <*> onDelete
 >          <*> onUpdate
@@ -537,6 +553,7 @@ variable declarations in a plpgsql function
 >                <$> pos <* keyword "domain"
 >                <*> idString
 >                <*> (tryOptionMaybe (keyword "as") *> typeName)
+>                <*> option "" (keyword "constraint" *> idString)
 >                <*> tryOptionMaybe (keyword "check" *> parens expr)
 
 > dropSomething :: ParsecT [Token] ParseState Identity Statement
@@ -571,6 +588,13 @@ variable declarations in a plpgsql function
 >       ifExists = option Require
 >                  (try $ IfExists <$ (keyword "if"
 >                                      *> keyword "exists"))
+
+> createLanguage :: ParsecT [Token] ParseState Identity Statement
+> createLanguage =
+>   CreateLanguage <$> pos
+>                  <*> (optional (keyword "procedural") *>
+>                       keyword "language" *>
+>                       idString)
 
 ================================================================================
 
@@ -1096,6 +1120,13 @@ identifier which happens to start with a complete keyword
 >                   case tok of
 >                            StringTok d s -> Just $ StringLit [] d s
 >                            _ -> Nothing)
+
+> stringN :: MyParser String
+> stringN = mytoken (\tok ->
+>                   case tok of
+>                            StringTok _ s -> Just s
+>                            _ -> Nothing)
+
 
 couple of helper functions which extract the actual string
 from a StringLD or StringL, and the delimiters which were used

@@ -62,7 +62,7 @@ SEM Statement
 SEM Statement
     | CreateDomain
         loc.tpe = Right $ Pseudo Void
-        loc.backTree = CreateDomain @ann @name @typ.annotatedTree @check.annotatedTree
+        loc.backTree = CreateDomain @ann @name @typ.annotatedTree @checkName @check.annotatedTree
         loc.statementInfo = []
         loc.envUpdates = [EnvCreateDomain (DomainType @name) @typ.namedType]
         --allow refering to value as 'value' in check expression

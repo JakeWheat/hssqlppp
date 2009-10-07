@@ -116,29 +116,37 @@ Conversion routines - convert Sql asts into Docs
 >         text n <+> convTypeName t
 >         <+> maybeConv (\e -> text "default" <+> convExp e) def
 >         <+> hsep (map (\e -> (case e of
->                                 NullConstraint _ -> text "null"
->                                 NotNullConstraint _ -> text "not null"
->                                 RowCheckConstraint _ ew ->
->                                     text "check" <+> parens (convExp ew)
->                                 RowUniqueConstraint _ -> text "unique"
->                                 RowPrimaryKeyConstraint _ -> text "primary key"
->                                 RowReferenceConstraint _ tb att ondel onupd ->
+>                                 NullConstraint _ cn -> name cn <+> text "null"
+>                                 NotNullConstraint _ cn -> name cn <+> text "not null"
+>                                 RowCheckConstraint _ cn ew ->
+>                                     name cn <+> text "check" <+> parens (convExp ew)
+>                                 RowUniqueConstraint _ cn -> name cn <+> text "unique"
+>                                 RowPrimaryKeyConstraint _ cn -> name cn <+> text "primary key"
+>                                 RowReferenceConstraint _ cn tb att ondel onupd ->
+>                                     name cn <+> 
 >                                     text "references" <+> text tb
 >                                     <+> maybeConv (parens . text) att
 >                                     <+> text "on delete" <+> convCasc ondel
 >                                     <+> text "on update" <+> convCasc onupd
 >                         )) cons)
->       convCon (UniqueConstraint _ c) = text "unique"
->                                      <+> parens (hcatCsvMap text c)
->       convCon (PrimaryKeyConstraint _ p) = text "primary key"
->                                          <+> parens (hcatCsvMap text p)
->       convCon (CheckConstraint _ c) = text "check" <+> parens (convExp c)
->       convCon (ReferenceConstraint _ at tb rat ondel onupd) =
+>       convCon (UniqueConstraint _ n c) =
+>         name n <+> text "unique"
+>         <+> parens (hcatCsvMap text c)
+>       convCon (PrimaryKeyConstraint _ n p) =
+>         name n <+>
+>         text "primary key"
+>         <+> parens (hcatCsvMap text p)
+>       convCon (CheckConstraint _ n c) = name n <+> text "check" <+> parens (convExp c)
+>       convCon (ReferenceConstraint _ n at tb rat ondel onupd) =
+>         name n <+> 
 >         text "foreign key" <+> parens (hcatCsvMap text at)
 >         <+> text "references" <+> text tb
 >         <+> ifNotEmpty (parens . hcatCsvMap text) rat
 >         <+> text "on delete" <+> convCasc ondel
 >         <+> text "on update" <+> convCasc onupd
+>       name n = if n == ""
+>                  then empty
+>                  else text "constraint" <+> text n
 
 
 
@@ -188,12 +196,15 @@ Conversion routines - convert Sql asts into Docs
 >     text "create view" <+> text name <+> text "as"
 >     $+$ nest 2 (convSelectExpression True sel) <> statementEnd
 
-> convStatement ca (CreateDomain ann name tp ex) =
+> convStatement ca (CreateDomain ann name tp n ex) =
 >     convPa ca ann <+>
 >     text "create domain" <+> text name <+> text "as"
->     <+> convTypeName tp <+> checkExp ex <> statementEnd
+>     <+> convTypeName tp <+> cname <+> checkExp ex <> statementEnd
 >     where
 >       checkExp = maybeConv (\e -> text "check" <+> parens (convExp e))
+>       cname = if n == ""
+>                then empty
+>                else text "constraint" <+> text n
 
 > convStatement ca (DropFunction ann ifExists fns casc) =
 >   convPa ca ann <+>
@@ -224,6 +235,10 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ nest 2 (vcat (csv
 >           (map (\(TypeAttDef _ n t) -> text n <+> convTypeName t)  atts)))
 >     $+$ rparen <> statementEnd
+
+> convStatement _ (CreateLanguage _ name) =
+>     text "create language" <+> text name <> statementEnd
+
 
 == plpgsql
 
@@ -330,6 +345,14 @@ Conversion routines - convert Sql asts into Docs
 >                           <+> text "then" $+$ convNestedStatements ca sts
 >       convElseSt = ifNotEmpty (\s -> text "else" $+$ convNestedStatements ca s)
 
+== misc
+
+> convStatement _ (Set _ n vs) =
+>   text "set" <+> text n <+> text "=" <+> hcatCsvMap (text . dv) vs <> statementEnd
+>   where
+>     dv (SetStr _ s) = "'" ++ s ++ "'"
+>     dv (SetId _ i) = i
+>     dv (SetNum _ nm) = show nm
 
 > statementEnd :: Doc
 > statementEnd = semi <> newline

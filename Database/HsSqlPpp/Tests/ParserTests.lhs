@@ -637,7 +637,7 @@ other creates
 >        "v1"
 >        (selectFrom [selI "a", selI "b"] (Tref [] "t"))]
 >      ,p "create domain td as text check (value in ('t1', 't2'));"
->       [CreateDomain [] "td" (SimpleTypeName [] "text")
+>       [CreateDomain [] "td" (SimpleTypeName [] "text") ""
 >        (Just (InPredicate [] (Identifier [] "value") True
 >               (InList [] [stringQ "t1" ,stringQ "t2"])))]
 >      ,p "create type tp1 as (\n\
@@ -676,13 +676,13 @@ nulls
 >         \ a text null\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "a" (SimpleTypeName [] "text")
->                            Nothing [NullConstraint []]]
+>                            Nothing [NullConstraint [] ""]]
 >          []]
 >      ,p "create table t1 (\n\
 >         \ a text not null\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "a" (SimpleTypeName [] "text")
->                            Nothing [NotNullConstraint []]]
+>                            Nothing [NotNullConstraint [] ""]]
 >          []]
 
 unique table
@@ -694,7 +694,7 @@ unique table
 >         \);"
 >         [CreateTable [] "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [UniqueConstraint [] ["x","y"]]]
+>          [UniqueConstraint [] "" ["x","y"]]]
 
 test arbitrary ordering
 
@@ -705,7 +705,7 @@ test arbitrary ordering
 >         \);"
 >         [CreateTable [] "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [UniqueConstraint [] ["x"]]]
+>          [UniqueConstraint [] "" ["x"]]]
 
 unique row
 
@@ -713,14 +713,14 @@ unique row
 >         \ x int unique\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowUniqueConstraint []]][]]
+>                            [RowUniqueConstraint [] ""]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int unique not null\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowUniqueConstraint []
->                            ,NotNullConstraint []]][]]
+>                            [RowUniqueConstraint [] ""
+>                            ,NotNullConstraint [] ""]][]]
 
 quick sanity check
 
@@ -728,8 +728,8 @@ quick sanity check
 >         \ x int not null unique\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [NotNullConstraint []
->                            ,RowUniqueConstraint []]][]]
+>                            [NotNullConstraint [] ""
+>                            ,RowUniqueConstraint [] ""]][]]
 
 primary key row, table
 
@@ -737,7 +737,7 @@ primary key row, table
 >         \ x int primary key\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowPrimaryKeyConstraint []]][]]
+>                            [RowPrimaryKeyConstraint [] ""]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int,\n\
@@ -746,7 +746,7 @@ primary key row, table
 >         \);"
 >         [CreateTable [] "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [PrimaryKeyConstraint [] ["x", "y"]]]
+>          [PrimaryKeyConstraint [] "" ["x", "y"]]]
 
 check row, table
 
@@ -755,7 +755,7 @@ check row, table
 >         \);"
 >         [CreateTable [] "t"
 >          [AttributeDef [] "f" (SimpleTypeName [] "text") Nothing
->           [RowCheckConstraint [] (InPredicate []
+>           [RowCheckConstraint [] "" (InPredicate []
 >                                   (Identifier [] "f") True
 >                                   (InList [] [stringQ "a", stringQ "b"]))]] []]
 
@@ -766,7 +766,7 @@ check row, table
 >         \);"
 >         [CreateTable [] "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [CheckConstraint [] (FunCall [] ">" [Identifier [] "x", Identifier [] "y"])]]
+>          [CheckConstraint [] "" (FunCall [] ">" [Identifier [] "x", Identifier [] "y"])]]
 
 row, whole load of constraints, todo: add reference here
 
@@ -775,9 +775,9 @@ row, whole load of constraints, todo: add reference here
 >         \);"
 >         [CreateTable [] "t"
 >          [AttributeDef [] "f" (SimpleTypeName [] "text") Nothing
->           [NotNullConstraint []
->            ,RowUniqueConstraint []
->            ,RowCheckConstraint [] (InPredicate []
+>           [NotNullConstraint [] ""
+>            ,RowUniqueConstraint [] ""
+>            ,RowCheckConstraint [] "" (InPredicate []
 >                                    (Identifier [] "f") True
 >                                    (InList [] [stringQ "a"
 >                                            ,stringQ "b"]))]] []]
@@ -788,14 +788,14 @@ reference row, table
 >         \ x int references t2\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowReferenceConstraint [] "t2" Nothing
+>                            [RowReferenceConstraint [] "" "t2" Nothing
 >                             Restrict Restrict]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int references t2(y)\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowReferenceConstraint [] "t2" (Just "y")
+>                            [RowReferenceConstraint [] "" "t2" (Just "y")
 >                             Restrict Restrict]][]]
 
 
@@ -806,7 +806,7 @@ reference row, table
 >         \);"
 >         [CreateTable [] "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [ReferenceConstraint [] ["x", "y"] "t2" []
+>          [ReferenceConstraint [] "" ["x", "y"] "t2" []
 >           Restrict Restrict]]
 
 >      ,p "create table t1 (\n\
@@ -816,21 +816,21 @@ reference row, table
 >         \);"
 >         [CreateTable [] "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [ReferenceConstraint [] ["x", "y"] "t2" ["z", "w"]
+>          [ReferenceConstraint [] "" ["x", "y"] "t2" ["z", "w"]
 >           Restrict Restrict]]
 
 >      ,p "create table t1 (\n\
 >         \ x int references t2 on delete cascade\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowReferenceConstraint [] "t2" Nothing
+>                            [RowReferenceConstraint [] "" "t2" Nothing
 >                             Cascade Restrict]][]]
 
 >      ,p "create table t1 (\n\
 >         \ x int references t2 on update cascade\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowReferenceConstraint [] "t2" Nothing
+>                            [RowReferenceConstraint [] "" "t2" Nothing
 >                             Restrict Cascade]][]]
 
 >      ,p "create table t1 (\n\
@@ -840,7 +840,7 @@ reference row, table
 >         \);"
 >         [CreateTable [] "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [ReferenceConstraint [] ["x", "y"] "t2" []
+>          [ReferenceConstraint [] "" ["x", "y"] "t2" []
 >           Cascade Cascade]]
 
 >      ])
@@ -1046,6 +1046,20 @@ complicated statements
 >       ,([Identifier [] "c", Identifier [] "d"], [NullStatement []])]
 >       [NullStatement []]]
 >      ])
+
+>     ,testGroup "misc"
+>     (mapSql [
+>       p "SET search_path TO my_schema, public;"
+>         [Set [] "search_path" [SetId [] "my_schema"
+>                               ,SetId [] "public"]]
+>      ,p "SET t1 = 3;"
+>         [Set [] "t1" [SetNum [] 3]]
+>      ,p "SET t1 = 'stuff';"
+>         [Set [] "t1" [SetStr [] "stuff"]]
+>      ,p "create language plpgsql;"
+>         [CreateLanguage [] "plpgsql"]
+>      ])
+
 >        --,testProperty "random expression" prop_expression_ppp
 >        -- ,testProperty "random statements" prop_statements_ppp
 >     ]

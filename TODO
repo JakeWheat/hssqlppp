@@ -266,19 +266,17 @@ use template haskell to simplify generics in extensions: cases and
 
 
 = parse and/or type check todo list:
-(rough/imcomplete)
+(rough/incomplete)
 "identifier"
 6.5e-5
 type 'string' style type cast
 [:] slice
 missing keyword ops
 default template1 operators should all parse
-composite field selection
 agg(all expr) agg(distinct expr), agg(*)
 window frame clauses, named windows
 parse inside string literals when cast, for common types
 multidimensional arrays
-implicit casting row values to composites
 default values
 serial
 make sure can type check everything that parses
