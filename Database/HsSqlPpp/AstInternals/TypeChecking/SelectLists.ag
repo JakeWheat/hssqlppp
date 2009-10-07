@@ -46,7 +46,9 @@ SEM SelectList
           case () of
             _ | null sl -> ([],Nothing)
               | not (null targetTypeErrs) -> (targetTypeErrs,Nothing)
-              | targetTypes == [Pseudo Record] -> ([],Just (head sl, UnnamedCompositeType @items.listType))
+              | (case targetTypes of
+                   [PgRecord _] -> True
+                   _ -> False) -> ([],Just (head sl, CompositeType @items.listType))
               | matchingComposite /= Left [] -> (fromLeft [] matchingComposite,Nothing)
               | length sl /= length @items.listType -> ([WrongNumberOfColumns],Nothing)
               | not (null assignErrs) -> (assignErrs,Nothing)
@@ -60,7 +62,7 @@ SEM SelectList
             sl = @into.strings
             matchingComposite =
                 case targetTypes of
-                  [t@(CompositeType _)] -> checkAssignmentValid @lhs.env (RowCtor (map snd @items.listType)) t
+                  [t] | isCompositeType t -> checkAssignmentValid @lhs.env (AnonymousRecordType (map snd @items.listType)) t
                   _ -> Left []
 
         lhs.annotatedTree = SelectList (@ann ++ map TypeErrorA @loc.errs)

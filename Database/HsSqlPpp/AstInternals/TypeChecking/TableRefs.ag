@@ -220,7 +220,7 @@ funIdens env alias fnVal = do
                            else fnName
    attrs <- do
      case getTypeAnnotation fnVal of
-       SetOfType (CompositeType t) -> envCompositePublicAttrs env [] t
+       SetOfType (NamedCompositeType t) -> envCompositePublicAttrs env [] t
        SetOfType x -> return [(correlationName,x)]
        y -> return [(correlationName,y)]
    return (correlationName, attrs)

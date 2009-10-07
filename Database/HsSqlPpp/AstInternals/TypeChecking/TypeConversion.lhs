@@ -226,10 +226,10 @@ against.
 >       getBinOp1UnknownMatch cands =
 >           if not (isOperatorName f &&
 >                   length inArgs == 2 &&
->                   count (==UnknownStringLit) inArgs == 1)
+>                   count (==UnknownType) inArgs == 1)
 >             then []
 >             else let newInArgs =
->                          replicate 2 (if head inArgs == UnknownStringLit
+>                          replicate 2 (if head inArgs == UnknownType
 >                                         then inArgs !! 1
 >                                         else head inArgs)
 >                  in filter (\((_,a,_),_) -> a == newInArgs) cands
@@ -354,7 +354,7 @@ against.
 >                 if n == length inArgs
 >                   then []
 >                   else let targType = inArgs !! n
->                        in ((if targType /= UnknownStringLit
+>                        in ((if targType /= UnknownType
 >                               then Left ()
 >                               else getCandsCatAt n) : filterArgN (n+1))
 >                 where
@@ -379,7 +379,7 @@ against.
 >            getMatches cands n =
 >                case () of
 >                  _ | n == length inArgs -> cands
->                    | (inArgs !! n) /= UnknownStringLit -> getMatches cands (n + 1)
+>                    | (inArgs !! n) /= UnknownType -> getMatches cands (n + 1)
 >                    | otherwise ->
 >                        let catMatches :: [ProtArgCast]
 >                            catMatches = filter (\c -> Right (getCatForArgN n c) ==
@@ -455,11 +455,11 @@ code is not as much of a mess as findCallMatch
 >   Left [IncompatibleTypeSet inArgs]
 >   where
 >      allSameType = all (== head inArgs) inArgs &&
->                      head inArgs /= UnknownStringLit
+>                      head inArgs /= UnknownType
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&
->                      head inArgsBase /= UnknownStringLit
+>                      head inArgsBase /= UnknownType
 >      inArgsBase = map (replaceWithBase env) inArgs
->      allUnknown = all (==UnknownStringLit) inArgsBase
+>      allUnknown = all (==UnknownType) inArgsBase
 >      allSameCat = let firstCat = envTypeCategory env (head knownTypes)
 >                   in all (\t -> envTypeCategory env t == firstCat)
 >                          knownTypes
@@ -472,7 +472,7 @@ code is not as much of a mess as findCallMatch
 >                                       then Just x
 >                                       else firstAllConvertibleTo xs
 >      firstAllConvertibleTo [] = Nothing
->      knownTypes = filter (/=UnknownStringLit) inArgsBase
+>      knownTypes = filter (/=UnknownType) inArgsBase
 >      allConvertibleToFrom = all . flip (castableFromTo env ImplicitCastContext)
 
 todo:
@@ -500,7 +500,7 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   -- put this here to avoid having to write it everywhere else
 >   from == to
 >   -- unknown can be implicitly cast to anything (is this completely true?)
->   || from == UnknownStringLit
+>   || from == UnknownType
 >   -- check base types of domains
 >   || ((isDomainType from || isDomainType to)
 >       && castableFromTo env cc (replaceWithBase env from)
@@ -513,55 +513,42 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   -- can assign composite to record
 >   || (cc == AssignmentCastContext
 >       && isCompOrSetoOfComp from
->       && to == Pseudo Record)
+>       && case to of
+>            PgRecord _ -> True
+>            _ -> False)
 >   -- check unboxing: wrapped single attribute
 >   || recurseTransFrom (unboxedSingleType from)
 >   -- check unboxing: wrapped composite
 >   || recurseTransFrom (unboxedCompositeType from)
->   -- check composites compatible by comparing attributes
->   || compositesCompatible (lookupOrComposite from) (lookupOrComposite to)
+>   -- check composites compatible by comparing attribute types
+>   || case (getCompositeTypes from
+>           ,getCompositeTypes to) of
+>        (Just ft, Just tt) -> all (uncurry $ castableFromTo env cc) $ zip ft tt
+>        _ -> False
 >   -- check row cast to composite
->   || rowToComposite from to
->   || recurseTransTo (lookupComposite to)
+>   -- || rowToComposite from to
+>   -- || recurseTransTo (lookupComposite to)
 >   where
->     compositesCompatible (Just (UnnamedCompositeType a))
->                          (Just (UnnamedCompositeType b)) =
->        names a == names b
->        && typeListCompatible (types a) (types b)
->        where
->          names = map fst
->          types = map snd
->     compositesCompatible _ _ = False
 
->     rowToComposite (RowCtor t) (UnnamedCompositeType c) =
->         typeListCompatible t $ map snd c
->     rowToComposite _ _ = False
+>     getCompositeTypes (NamedCompositeType n) =
+>         Just $ map snd $ fromRight [] $ envCompositePublicAttrs env [] n
+>     getCompositeTypes (CompositeType t) = Just $ map snd t
+>     getCompositeTypes (AnonymousRecordType t) = Just t
+>     getCompositeTypes (PgRecord Nothing) = Nothing
+>     getCompositeTypes (PgRecord (Just t)) = getCompositeTypes t
+>     getCompositeTypes _ = Nothing
 
->     typeListCompatible a b = all (uncurry $ castableFromTo env cc) $ zip a b
+>     isCompOrSetoOfComp (SetOfType c) = isCompositeType c
+>     isCompOrSetoOfComp c = isCompositeType c
 
->     isCompOrSetoOfComp (CompositeType _) = True
->     isCompOrSetoOfComp (UnnamedCompositeType _) = True
->     isCompOrSetoOfComp (SetOfType (CompositeType _)) = True
->     isCompOrSetoOfComp (SetOfType (UnnamedCompositeType _)) = True
->     isCompOrSetoOfComp _ = False
-
->     unboxedSingleType (SetOfType (UnnamedCompositeType [(_,t)])) = Just t
+>     unboxedSingleType (SetOfType (CompositeType [(_,t)])) = Just t
 >     unboxedSingleType _ = Nothing
 
->     unboxedCompositeType (SetOfType a@(UnnamedCompositeType _)) = Just a
 >     unboxedCompositeType (SetOfType a@(CompositeType _)) = Just a
+>     unboxedCompositeType (SetOfType a@(NamedCompositeType _)) = Just a
 >     unboxedCompositeType _ = Nothing
 
 >     recurseTransFrom = maybe False (flip (castableFromTo env cc) to)
->     recurseTransTo = maybe False (castableFromTo env cc from)
-
->     lookupComposite (CompositeType t) =
->       Just $ UnnamedCompositeType $
->       fromRight [] $ envCompositePublicAttrs env [] t
->     lookupComposite _ = Nothing
-
->     lookupOrComposite c@(UnnamedCompositeType _) = Just c
->     lookupOrComposite c = lookupComposite c
 
 > replaceWithBase :: Environment -> Type -> Type
 > replaceWithBase env t@(DomainType _) = envDomainBaseType env t

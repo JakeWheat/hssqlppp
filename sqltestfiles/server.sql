@@ -2617,7 +2617,7 @@ begin
     perform action_cast_failed();
     return false;
   end if;
-  select into r ptype, allegiance, tag, imaginary
+  select into r ptype, allegiance, tag
     from pieces_on_top_view where (x,y) = (px,py);
 
   perform add_history_spell_succeeded();

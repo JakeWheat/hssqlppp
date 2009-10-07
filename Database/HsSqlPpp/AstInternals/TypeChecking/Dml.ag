@@ -135,7 +135,7 @@ SEM SetClause
 
 {
 getRowTypes :: [Type] -> [Type]
-getRowTypes [RowCtor ts] = ts
+getRowTypes [AnonymousRecordType ts] = ts
 getRowTypes ts = ts
 }
 

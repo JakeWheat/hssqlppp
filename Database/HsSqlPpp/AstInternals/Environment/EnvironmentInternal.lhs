@@ -61,7 +61,7 @@ modules.
 >                    ,envAggregates :: [FunctionPrototype]
 >                    ,envWindowFunctions :: [FunctionPrototype]
 >                    ,envAttrDefs :: [CompositeDef]}
-
+>                    deriving Show
 
 > -- | Represents an empty environment. This doesn't contain things
 > -- like the \'and\' operator, and so if you try to use it it will
@@ -104,7 +104,7 @@ modules.
 > -- composite (or table or view) name, the flavour of the composite,
 > -- the types of the composite attributes, and the types of the
 > -- system columns iff the composite represents a table type (the
-> -- third and fourth components are always 'UnnamedCompositeType's).
+> -- third and fourth components are always 'CompositeType's).
 > type CompositeDef = (String, CompositeFlavour, Type, Type)
 
 > -- | The components are: function (or operator) name, argument
@@ -175,29 +175,24 @@ modules.
 >                                                     _ -> False
 
 >         EnvCreateComposite nm flds ->
->                 return $ (addTypeWithArray env nm (CompositeType nm) "C" False) {
+>                 return $ (addTypeWithArray env nm (NamedCompositeType nm) "C" False) {
 >                             envAttrDefs =
->                               (nm,Composite,UnnamedCompositeType flds, UnnamedCompositeType [])
->                               : envAttrDefs env
->                             --hack - add = operator
->                            ,envBinaryOperators =
->                               ("=",[CompositeType nm
->                                    ,CompositeType nm],
->                                typeBool):envBinaryOperators env}
+>                               (nm,Composite,CompositeType flds, CompositeType [])
+>                               : envAttrDefs env}
 >         EnvCreateCast src tgt ctx -> return $ env {envCasts = (src,tgt,ctx):envCasts env}
 >         EnvCreateTable nm attrs sysAttrs -> do
->                 checkTypeDoesntExist env nm (CompositeType nm)
+>                 checkTypeDoesntExist env nm (NamedCompositeType nm)
 >                 return $ (addTypeWithArray env nm
->                             (CompositeType nm) "C" False) {
+>                             (NamedCompositeType nm) "C" False) {
 >                             envAttrDefs =
->                               (nm,TableComposite,UnnamedCompositeType attrs, UnnamedCompositeType sysAttrs)
+>                               (nm,TableComposite,CompositeType attrs, CompositeType sysAttrs)
 >                               : envAttrDefs env}
 >         EnvCreateView nm attrs -> {-trace ("create view:" ++ show nm) $-} do
->                 checkTypeDoesntExist env nm (CompositeType nm)
+>                 checkTypeDoesntExist env nm (NamedCompositeType nm)
 >                 return $ (addTypeWithArray env nm
->                             (CompositeType nm) "C" False) {
+>                             (NamedCompositeType nm) "C" False) {
 >                             envAttrDefs =
->                               (nm,ViewComposite,UnnamedCompositeType attrs, UnnamedCompositeType [])
+>                               (nm,ViewComposite,CompositeType attrs, CompositeType [])
 >                               : envAttrDefs env}
 >         EnvCreateFunction f nm args ret ->
 >             return $ case f of
@@ -256,7 +251,7 @@ check to see if it works
 > envCompositeAttrsPair :: Environment -> [CompositeFlavour] -> String
 >                       -> Either [TypeError] ([(String,Type)],[(String,Type)])
 > envCompositeAttrsPair env flvs ty = do
->    (_,_,UnnamedCompositeType a,UnnamedCompositeType b) <- envCompositeDef env flvs ty
+>    (_,_,CompositeType a,CompositeType b) <- envCompositeDef env flvs ty
 >    return (a,b)
 
 > envCompositeAttrs :: Environment -> [CompositeFlavour] -> String
@@ -319,7 +314,7 @@ check to see if it works
 > envGetCategoryInfo env ty =
 >   case ty of
 >     SetOfType _ -> ("", False)
->     RowCtor _ -> ("", False)
+>     AnonymousRecordType _ -> ("", False)
 >     ArrayType (Pseudo _) -> ("A",False)
 >     Pseudo _ -> ("P",False)
 >     _ -> let l = filter (\(t,_,_) -> ty == t) $ envTypeCategories env

@@ -16,7 +16,7 @@ SEM Statement
                     Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
         loc.attrs = case getTypeAnnotation @expr.annotatedTree of
-                      SetOfType (UnnamedCompositeType c) -> c
+                      SetOfType (CompositeType c) -> c
                       _ -> [] --TODO: error ignored
         loc.envUpdates = [EnvCreateView @name @loc.attrs]
         loc.statementInfo = []

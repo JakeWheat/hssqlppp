@@ -80,10 +80,6 @@ SEM Statement
               else @lhs.lib
             where
               okToUpdate = isRight @loc.tpe && @loc.selType /= TypeCheckFailed
-              {-attrs = case @loc.selType of
-                           UnnamedCompositeType t -> t
-                           SetOfType (UnnamedCompositeType t) -> t
-                           x -> [] --todo: ignoring error-}
 
         loc.backTree = ForSelectStatement @ann @var @sel.annotatedTree @sts.annotatedTree
         loc.envUpdates = []

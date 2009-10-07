@@ -112,7 +112,8 @@ Library
                      HDBC-postgresql,
                      directory,
                      syb,
-                     uniplate
+                     uniplate,
+                     pretty-show
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
                      Database.HsSqlPpp.Ast.Annotator

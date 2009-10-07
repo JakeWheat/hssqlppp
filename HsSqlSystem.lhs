@@ -21,6 +21,7 @@ TODO 2: think of a name for this command
 > import Data.List
 > import Data.Either
 > import Control.Applicative
+> import Text.Show.Pretty
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
@@ -325,12 +326,13 @@ This reads an environment from a database and writes it out using show.
 >          \> import Database.HsSqlPpp.AstInternals.TypeType\n\
 >          \\n\
 >          \> defaultTemplate1Environment :: Environment\n\
->          \> defaultTemplate1Environment = (\\l -> case l of\n\
->          \>                                       Left x -> error $ show x\n\
->          \>                                       Right e -> e)\n\
->          \>                                 $ updateEnvironment defaultEnvironment "
+>          \> defaultTemplate1Environment =\n\
+>          \>    (\\l -> case l of\n\
+>          \>             Left x -> error $ show x\n\
+>          \>             Right e -> e) $\n\
+>          \>     updateEnvironment defaultEnvironment\n"
 
->   print s
+>   putStrLn $ unlines $ map (">        " ++) $ lines $ ppShow s
 
 ================================================================================
 

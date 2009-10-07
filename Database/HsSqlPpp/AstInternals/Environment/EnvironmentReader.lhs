@@ -233,7 +233,7 @@ was heavily changed so it's a bit messy.
 >        let name = (l!!2)
 >            ctor = case (l!!1) of
 >                     "b" -> ScalarType
->                     "c" -> CompositeType
+>                     "c" -> NamedCompositeType
 >                     "d" -> DomainType
 >                     "e" -> EnumType
 >                     "p" -> (\t -> Pseudo (case t of

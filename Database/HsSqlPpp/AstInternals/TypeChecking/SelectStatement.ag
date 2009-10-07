@@ -112,7 +112,7 @@ SEM SelectExpression
            --                                         @selTref.annotatedTree
            Right $ case @selSelectList.listType of
                      [(_,Pseudo Void)] -> Pseudo Void
-                     _ -> SetOfType $ UnnamedCompositeType @selSelectList.listType
+                     _ -> SetOfType $ CompositeType @selSelectList.listType
         loc.backTree = Select @ann
                               @selDistinct.annotatedTree
                               @selSelectList.annotatedTree
@@ -164,7 +164,7 @@ unionRelTypes env rowsTs colNames =
                | otherwise ->
                    --i don't think this propagates all the errors, just the first set
                    mapM (resolveResultSetType env) (transpose rowsTs) >>=
-                     (return . SetOfType . UnnamedCompositeType . zip colNames)
+                     (return . SetOfType . CompositeType . zip colNames)
 
 }
 

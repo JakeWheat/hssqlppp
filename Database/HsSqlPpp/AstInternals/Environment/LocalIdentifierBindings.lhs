@@ -209,16 +209,20 @@ moment.
 >         LibSetStarExpansion sids -> return $ lbs {starTypes = sids}
 >     --take all the composite typed ids, and expand them out
 >     expandComposites :: [(String, [(String,Type)])] -> [(String, [(String,Type)])]
->     expandComposites (qi@(_,attrs):qis) =
->         ec attrs ++ qi:expandComposites qis
+>     expandComposites ((q,attrs):qis) =
+>         ec attrs ++ (q, map (\(n,t) -> (n,wrapIfRecord n t)) attrs):expandComposites qis
 >         where
 >           ec :: [(String,Type)] -> [(String, [(String,Type)])]
 >           ec [] = []
->           ec ((nm,CompositeType t):xs) = (nm,compFields t):ec xs
->           ec ((nm,SetOfType(CompositeType t)):xs) = (nm,compFields t):ec xs
->           ec ((nm,UnnamedCompositeType t):xs) = (nm, t):ec xs
->           ec ((nm,SetOfType(UnnamedCompositeType t)):xs) = (nm, t):ec xs
+>           ec ((nm,NamedCompositeType t):xs) = (nm,compFields t):ec xs
+>           ec ((nm,SetOfType(NamedCompositeType t)):xs) = (nm,compFields t):ec xs
+>           ec ((nm,CompositeType t):xs) = (nm, t):ec xs
+>           ec ((nm,SetOfType(CompositeType t)):xs) = (nm, t):ec xs
 >           ec (_:xs) = ec xs
+>           wrapIfRecord n t =
+>             case libLookupID lbs' n of
+>               Right (PgRecord _) -> PgRecord (Just t)
+>               _ -> t
 >     expandComposites [] = []
 >     compFields t = fromRight [] $ envCompositePublicAttrs env [] t
 

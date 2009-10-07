@@ -65,16 +65,23 @@ out. If not, will have to add another type.
 > data Type = ScalarType String
 >           | ArrayType Type
 >           | SetOfType Type
->           | CompositeType String
->           | UnnamedCompositeType [(String,Type)]
+>             --three variations, choose better name for rowctor
+>             --refer to composite type in catalog
+>           | NamedCompositeType String
+>             --refer to composite type either in catalog or one generated on fly
+>           | CompositeType [(String,Type)]
+>             --refer to anonymous composite type: the fields have no names
+>             --these three types are equality and assign compatible if the fields
+>             --are ignoring the names, so the fields have to be in the same order.
+>           | AnonymousRecordType [Type] -- was rowctor
+>           | PgRecord (Maybe Type) -- can only hold namedcomposite, composite or anonymousrecord
 >           | DomainType String
 >           | EnumType String
->           | RowCtor [Type]
 >           | Pseudo PseudoType
 >           | TypeCheckFailed -- represents something which the type checker
 >                             -- doesn't know how to type check
 >                             -- or it cannot work the type out because of errors
->           | UnknownStringLit -- represents a string literal
+>           | UnknownType -- represents a string literal
 >                              -- token whose type isn't yet
 >                              -- determined
 >             deriving (Eq,Show,Typeable,Data)
@@ -259,8 +266,10 @@ These may indicate that the haskell type system isn't being used very well.
 
 
 > isCompositeType :: Type -> Bool
-> isCompositeType (UnnamedCompositeType _) = True
 > isCompositeType (CompositeType _) = True
+> isCompositeType (NamedCompositeType _) = True
+> isCompositeType (AnonymousRecordType _) = True
+> isCompositeType (PgRecord _) = True
 > isCompositeType _ = False
 
 
@@ -269,11 +278,11 @@ These may indicate that the haskell type system isn't being used very well.
 > unwrapArray x = Left [InternalError $ "can't get types from non array " ++ show x]
 
 > unwrapSetOfWhenComposite :: Type -> Either [TypeError] Type
-> unwrapSetOfWhenComposite (SetOfType a@(UnnamedCompositeType _)) = Right a
+> unwrapSetOfWhenComposite (SetOfType a@(CompositeType _)) = Right a
 > unwrapSetOfWhenComposite x = Left [InternalError $ "tried to unwrapSetOfWhenComposite on " ++ show x]
 
 > unwrapSetOfComposite :: Type -> Either [TypeError]  [(String,Type)]
-> unwrapSetOfComposite (SetOfType (UnnamedCompositeType a)) = Right a
+> unwrapSetOfComposite (SetOfType (CompositeType a)) = Right a
 > unwrapSetOfComposite x = Left [InternalError $ "tried to unwrapSetOfComposite on " ++ show x]
 
 
@@ -282,99 +291,87 @@ These may indicate that the haskell type system isn't being used very well.
 > unwrapSetOf x = Left [InternalError $ "tried to unwrapSetOf on " ++ show x]
 
 > unwrapComposite :: Type -> Either [TypeError] [(String,Type)]
-> unwrapComposite (UnnamedCompositeType a) = Right a
+> unwrapComposite (CompositeType a) = Right a
 > unwrapComposite x = Left [InternalError $ "cannot unwrapComposite on " ++ show x]
 
 > consComposite :: (String,Type) -> Type -> Either [TypeError] Type
-> consComposite l (UnnamedCompositeType a) = Right $ UnnamedCompositeType (l:a)
+> consComposite l (CompositeType a) = Right $ CompositeType (l:a)
 > consComposite a b = Left [InternalError $ "called consComposite on " ++ show (a,b)]
 
 > unwrapRowCtor :: Type -> Either [TypeError] [Type]
-> unwrapRowCtor (RowCtor a) = Right a
+> unwrapRowCtor (AnonymousRecordType a) = Right a
 > unwrapRowCtor x = Left [InternalError $ "cannot unwrapRowCtor on " ++ show x]
 
+================================================================================
 
+new plan for types:
 
-> {-
-> instance Binary Database.HsSqlPpp.TypeChecking.TypeType.CompositeFlavour where
->   put Composite = putWord8 0
->   put TableComposite = putWord8 1
->   put ViewComposite = putWord8 2
->   get = do
->     tag_ <- getWord8
->     case tag_ of
->       0 -> return Composite
->       1 -> return TableComposite
->       2 -> return ViewComposite
->       _ -> fail "no parse"
+The type annotations attached to nodes will be either typecheckfailed 'type'
+this will allow chaining type check failed more robustly. Type errors don't change.
 
-> instance Binary Database.HsSqlPpp.TypeChecking.TypeType.CastContext where
->   put ImplicitCastContext = putWord8 0
->   put AssignmentCastContext = putWord8 1
->   put ExplicitCastContext = putWord8 2
->   get = do
->     tag_ <- getWord8
->     case tag_ of
->       0 -> return ImplicitCastContext
->       1 -> return AssignmentCastContext
->       2 -> return ExplicitCastContext
->       _ -> fail "no parse"
+the sql type type will be changed so we can track the different
+contexts where different sql types can be used, split to use different
+sets of types so we can use the haskell type system to enforce these
+contexts.
 
-> instance Binary Database.HsSqlPpp.TypeChecking.TypeType.Type where
->   put (ScalarType a) = putWord8 0 >> put a
->   put (ArrayType a) = putWord8 1 >> put a
->   put (SetOfType a) = putWord8 2 >> put a
->   put (CompositeType a) = putWord8 3 >> put a
->   put (UnnamedCompositeType a) = putWord8 4 >> put a
->   put (DomainType a) = putWord8 5 >> put a
->   put (EnumType a) = putWord8 6 >> put a
->   put (RowCtor a) = putWord8 7 >> put a
->   put (Pseudo a) = putWord8 8 >> put a
->   put TypeCheckFailed = putWord8 9
->   put UnknownStringLit = putWord8 10
->   get = do
->     tag_ <- getWord8
->     case tag_ of
->       0 -> get >>= \a -> return (ScalarType a)
->       1 -> get >>= \a -> return (ArrayType a)
->       2 -> get >>= \a -> return (SetOfType a)
->       3 -> get >>= \a -> return (CompositeType a)
->       4 -> get >>= \a -> return (UnnamedCompositeType a)
->       5 -> get >>= \a -> return (DomainType a)
->       6 -> get >>= \a -> return (EnumType a)
->       7 -> get >>= \a -> return (RowCtor a)
->       8 -> get >>= \a -> return (Pseudo a)
->       9 -> return TypeCheckFailed
->       10 -> return UnknownStringLit
->       _ -> fail "no parse"
+rename type to sqltype, too confusing otherwise
+new set of sqltypes: (these aren't in one haskell type anymore)
+scalar type - corresponds to sqltypes in pg which aren't one of the
+  other types (no easy way to define this)
+array type
+setof type : can be applied to scalar, domain, ... but not all types
+composite types are changed:
+namedcomposite string
+composite [(string,type)] -> what types can appear in the attribute list?
+anonymousrecord [type] -> what types can appear here? -> this
+represents a row expression type, which can be returned in select
+expressions (but not as a column in a view), and is used in other places
+domaintype : what types are allowable as the base type?
+pseudo types: these are used for arguments and return values for function prototypes only
+any*, record - just means pg infers the return type which will be a composite type (namedcomposite, composite or anonymousrecord), trigger: just a tag, void: just a tag, any*: polymorphic functions, ignore cstring, internal, language handler and opaque.
+issue: a variable declaration can be a polymorphic type in a polymorphic function, but we can't use the other pseudo types so need to split these
+a variable declared as type record IS NOT the same thing as the pseudo record type, I've finally worked out.
+so our plpgsqlrecordtype is plpgsqlrecordtype (Nothing|one of the three composite types)
 
-> instance Binary Database.HsSqlPpp.TypeChecking.TypeType.PseudoType where
->   put Any = putWord8 0
->   put AnyArray = putWord8 1
->   put AnyElement = putWord8 2
->   put AnyEnum = putWord8 3
->   put AnyNonArray = putWord8 4
->   put Cstring = putWord8 5
->   put Record = putWord8 6
->   put Trigger = putWord8 7
->   put Void = putWord8 8
->   put Internal = putWord8 9
->   put LanguageHandler = putWord8 10
->   put Opaque = putWord8 11
->   get = do
->     tag_ <- getWord8
->     case tag_ of
->       0 -> return Any
->       1 -> return AnyArray
->       2 -> return AnyElement
->       3 -> return AnyEnum
->       4 -> return AnyNonArray
->       5 -> return Cstring
->       6 -> return Record
->       7 -> return Trigger
->       8 -> return Void
->       9 -> return Internal
->       10 -> return LanguageHandler
->       11 -> return Opaque
->       _ -> fail "no parse"
->-}
+typechecking polymorphic functions: will have to relax the type
+checking to some degree. want to check against each usage of the
+polymorphic function in the source, so substitute in the actual types
+and check the function.
+
+contexts:
+function prototypes: args and return type
+function calls: args and return
+variable declaration in plpgsql
+attribute in a select expression
+attribute in a view (less permissive than a select expression), also create table as?
+attribute in a table, type (is this the same list as for composite and anonymous records? - can nest anonymous records)
+base type for domain
+cast expression
+insert: targetatts are same set of types as attributes in a table
+update: targets can be attr types or anonymous records of attr types for rowset style assign (x,y) = selectexp
+assignment statement: type on left same set as type in a for, types in select into, etc?
+return statement
+return query statement
+expressions in a raise statement
+expressions in execute, anything else?
+types used inside select expression checking:
+  selectlist, trefs, groupby, orderby, limit, offset, where, having
+expressions:
+what can an identifiers type be?
+what can the type of an Expression node be?
+  scalar: integerlit,floatlit
+  stringlit: what can an unknown resolve to (not quite everything)
+  booleanlit: scalar
+  nulllit: same as stringlit?
+  positionalarg: any type that a function arg can have
+  cast: any type you can cast to
+  identifier: ?
+  case, casesimple: any type in the rhs expressions, what are these?
+  exists: scalar
+  funcall: any type a function return type can have
+  inpredicate: scalar
+  windowfn: ?
+  liftoperator: booleans only?
+
+problem: can't get types using gettypeannotation function and support
+different valid combinations of types

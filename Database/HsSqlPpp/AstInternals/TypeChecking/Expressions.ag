@@ -24,11 +24,11 @@ pretty straightfoward
 
 SEM Expression
      | IntegerLit loc.tpe = Right typeInt
-     | StringLit loc.tpe = Right UnknownStringLit
+     | StringLit loc.tpe = Right UnknownType
      | FloatLit loc.tpe = Right typeNumeric
      | BooleanLit loc.tpe = Right typeBool
      -- I think a null has the same type resolution as an unknown string lit
-     | NullLit loc.tpe = Right UnknownStringLit
+     | NullLit loc.tpe = Right UnknownType
 
 SEM Expression
     | IntegerLit
@@ -105,10 +105,10 @@ typeCheckFunCall env fnName argsType =
                     t <- resolveResultSetType env argsType
                     lookupFn "<=" [t,t]
                     return t
-              "!rowCtor" -> return $ RowCtor argsType
+              "!rowCtor" -> return $ AnonymousRecordType argsType
                     -- special case the row comparison ops
               _ | let isRowCtor t = case t of
-                                      RowCtor _ -> True
+                                      AnonymousRecordType _ -> True
                                       _ -> False
                   in fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
                          && length argsType == 2
@@ -122,7 +122,7 @@ typeCheckFunCall env fnName argsType =
         (_,_,r) <- findCallMatch env
                              (if s1 == "u-" then "-" else s1) args
         return r
-      checkRowTypesMatch (RowCtor t1s) (RowCtor t2s) = do
+      checkRowTypesMatch (AnonymousRecordType t1s) (AnonymousRecordType t2s) = do
         when (length t1s /= length t2s) $ Left [ValuesListsMustBeSameLength]
         let errs = map (resolveResultSetType env . (\(a,b) -> [a,b])) $
                      zip t1s t2s
@@ -252,7 +252,7 @@ SEM Expression
             case length f of
               0 -> Left [InternalError "no columns in scalar subquery?"]
               1 -> Right $ head f
-              _ -> Right $ RowCtor f
+              _ -> Right $ AnonymousRecordType f
 
         loc.backTree = ScalarSubQuery @ann @sel.annotatedTree
 {-
@@ -288,5 +288,5 @@ SEM InList
                       0 -> Left [InternalError
                                  "got subquery with no columns? in inselect"]
                       1 -> Right $ head attrs
-                      _ -> Right $ RowCtor attrs
+                      _ -> Right $ AnonymousRecordType attrs
             dependsOnRTpe attrs $ Right typ
