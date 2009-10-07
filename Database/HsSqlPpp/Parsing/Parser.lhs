@@ -47,6 +47,7 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Text.Parsec hiding(many, optional, (<|>), string)
 > import Text.Parsec.Expr
 > import Text.Parsec.String
+> import Text.Parsec.Perm
 
 > import Control.Applicative
 > import Control.Monad.Identity
@@ -464,13 +465,18 @@ rather than just a string.
 >   fnName <- idString
 >   params <- parens $ commaSep param
 >   retType <- keyword "returns" *> typeName
->   keyword "as"
->   bodypos <- getAdjustedPosition
->   body <- stringLit
->   lang <- readLang
+>   ((bodypos,body), lang,vol) <-
+>     permute ((,,) <$$> parseAs
+>                   <||> readLang
+>                   <|?> (Volatile,pVol))
 >   let (q, b) = parseBody lang body fnName bodypos
->   CreateFunction p fnName params retType lang q b <$> pVol
+>   return $ CreateFunction p fnName params retType lang q b vol
 >     where
+>         parseAs = do
+>                    keyword "as"
+>                    bodypos <- getAdjustedPosition
+>                    body <- stringLit
+>                    return (bodypos,body)
 >         pVol = matchAKeyword [("volatile", Volatile)
 >                              ,("stable", Stable)
 >                              ,("immutable", Immutable)]
