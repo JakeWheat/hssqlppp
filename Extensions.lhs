@@ -70,8 +70,8 @@ amount of work in comparison).
 >                                          Nothing
 >                                          []]
 >                            [])
->                 : (CreateFunction an Sql ("get_" ++ tableName) []
->                     (SimpleTypeName an typeName) "$a$"
+>                 : (CreateFunction an ("get_" ++ tableName) []
+>                     (SimpleTypeName an typeName) Sql "$a$"
 >                     (SqlFnBody an
 >                      [SelectStatement an
 >                       (Select an Dupes

@@ -157,7 +157,7 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ convSelectExpression True sel
 >     <> statementEnd
 
-> convStatement ca (CreateFunction ann lang name args retType qt body vol) =
+> convStatement ca (CreateFunction ann name args retType lang qt body vol) =
 >     convPa ca ann <+>
 >     text "create function" <+> text name
 >     <+> parens (hcatCsvMap convParamDef args)

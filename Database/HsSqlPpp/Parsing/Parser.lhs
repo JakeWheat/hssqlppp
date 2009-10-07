@@ -469,7 +469,7 @@ rather than just a string.
 >   body <- stringLit
 >   lang <- readLang
 >   let (q, b) = parseBody lang body fnName bodypos
->   CreateFunction p lang fnName params retType q b <$> pVol
+>   CreateFunction p fnName params retType lang q b <$> pVol
 >     where
 >         pVol = matchAKeyword [("volatile", Volatile)
 >                              ,("stable", Stable)

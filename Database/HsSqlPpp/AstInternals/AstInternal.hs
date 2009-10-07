@@ -8910,10 +8910,10 @@ sem_SetValue_SetStr ann_ string_  =
             intra envUpdates  : _
       alternative CreateFunction:
          child ann            : {Annotation}
-         child lang           : Language 
          child name           : {String}
          child params         : ParamDefList 
          child rettype        : TypeName 
+         child lang           : Language 
          child bodyQuote      : {String}
          child body           : FnBody 
          child vol            : Volatility 
@@ -9193,7 +9193,7 @@ data Statement  = Assignment (Annotation) (String) (Expression)
                 | Copy (Annotation) (String) (StringList) (CopySource) 
                 | CopyData (Annotation) (String) 
                 | CreateDomain (Annotation) (String) (TypeName) (String) (MaybeBoolExpression) 
-                | CreateFunction (Annotation) (Language) (String) (ParamDefList) (TypeName) (String) (FnBody) (Volatility) 
+                | CreateFunction (Annotation) (String) (ParamDefList) (TypeName) (Language) (String) (FnBody) (Volatility) 
                 | CreateLanguage (Annotation) (String) 
                 | CreateTable (Annotation) (String) (AttributeDefList) (ConstraintList) 
                 | CreateTableAs (Annotation) (String) (SelectExpression) 
@@ -9235,8 +9235,8 @@ sem_Statement (CopyData _ann _insData )  =
     (sem_Statement_CopyData _ann _insData )
 sem_Statement (CreateDomain _ann _name _typ _checkName _check )  =
     (sem_Statement_CreateDomain _ann _name (sem_TypeName _typ ) _checkName (sem_MaybeBoolExpression _check ) )
-sem_Statement (CreateFunction _ann _lang _name _params _rettype _bodyQuote _body _vol )  =
-    (sem_Statement_CreateFunction _ann (sem_Language _lang ) _name (sem_ParamDefList _params ) (sem_TypeName _rettype ) _bodyQuote (sem_FnBody _body ) (sem_Volatility _vol ) )
+sem_Statement (CreateFunction _ann _name _params _rettype _lang _bodyQuote _body _vol )  =
+    (sem_Statement_CreateFunction _ann _name (sem_ParamDefList _params ) (sem_TypeName _rettype ) (sem_Language _lang ) _bodyQuote (sem_FnBody _body ) (sem_Volatility _vol ) )
 sem_Statement (CreateLanguage _ann _name )  =
     (sem_Statement_CreateLanguage _ann _name )
 sem_Statement (CreateTable _ann _name _atts _cons )  =
@@ -9778,7 +9778,7 @@ sem_Statement_CreateDomain_1 _lhsIenv _typInamedType _lhsIlib check_ checkName_ 
                   _originalTree
                   {-# LINE 9780 "AstInternal.hs" #-}
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
-sem_Statement_CreateFunction ann_ lang_ name_ params_ rettype_ bodyQuote_ body_ vol_  =
+sem_Statement_CreateFunction ann_ name_ params_ rettype_ lang_ bodyQuote_ body_ vol_  =
     (\ _lhsIenv
        _lhsIlib ->
          (let _rettypeOenv :: Environment
@@ -9929,10 +9929,10 @@ sem_Statement_CreateFunction_1 name_ _paramsIparams _lhsIenv _lhsIlib vol_ body_
               _backTree =
                   {-# LINE 34 "./TypeChecking/CreateFunction.ag" #-}
                   CreateFunction ann_
-                                 _langIannotatedTree
                                  name_
                                  _paramsIannotatedTree
                                  _rettypeIannotatedTree
+                                 _langIannotatedTree
                                  bodyQuote_
                                  _bodyIannotatedTree
                                  _volIannotatedTree
@@ -9949,7 +9949,7 @@ sem_Statement_CreateFunction_1 name_ _paramsIparams _lhsIenv _lhsIlib vol_ body_
               -- self rule
               _originalTree =
                   {-# LINE 63 "./TypeChecking/TypeChecking.ag" #-}
-                  CreateFunction ann_ _langIoriginalTree name_ _paramsIoriginalTree _rettypeIoriginalTree bodyQuote_ _bodyIoriginalTree _volIoriginalTree
+                  CreateFunction ann_ name_ _paramsIoriginalTree _rettypeIoriginalTree _langIoriginalTree bodyQuote_ _bodyIoriginalTree _volIoriginalTree
                   {-# LINE 9954 "AstInternal.hs" #-}
               -- self rule
               _lhsOoriginalTree =

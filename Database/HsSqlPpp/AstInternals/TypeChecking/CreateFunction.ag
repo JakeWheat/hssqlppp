@@ -32,10 +32,10 @@ SEM Statement
         loc.parameterTypes = (map snd @params.params)
 
         loc.backTree = CreateFunction @ann
-                                      @lang.annotatedTree
                                       @name
                                       @params.annotatedTree
                                       @rettype.annotatedTree
+                                      @lang.annotatedTree
                                       @bodyQuote
                                       @body.annotatedTree
                                       @vol.annotatedTree

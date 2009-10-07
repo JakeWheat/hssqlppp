@@ -189,10 +189,10 @@ DATA Statement
                  atts : TypeAttributeDefList
     -- language name args rettype bodyquoteused body vol
     | CreateFunction ann:Annotation
-                     lang : Language
                      name : String
                      params : ParamDefList
                      rettype : TypeName
+                     lang : Language
                      bodyQuote : String
                      body : FnBody
                      vol : Volatility

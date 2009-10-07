@@ -854,8 +854,8 @@ test functions
 >       p "create function t1(text) returns text as $$\n\
 >         \select a from t1 where b = $1;\n\
 >         \$$ language sql stable;"
->       [CreateFunction [] Sql "t1" [ParamDefTp [] $ SimpleTypeName [] "text"]
->        (SimpleTypeName [] "text") "$$"
+>       [CreateFunction [] "t1" [ParamDefTp [] $ SimpleTypeName [] "text"]
+>        (SimpleTypeName [] "text") Sql "$$"
 >        (SqlFnBody []
 >         [SelectStatement [] $ selectFromWhere [SelExp [] (Identifier [] "a")] (Tref [] "t1")
 >          (FunCall [] "="
@@ -869,7 +869,7 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction [] Plpgsql "fn" [] (SimpleTypeName [] "void") "$$"
+>       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql "$$"
 >        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") Nothing
 >                          ,VarDef [] "b" (SimpleTypeName [] "text") Nothing]
 >         [NullStatement []])
@@ -882,7 +882,7 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction [] Plpgsql "fn" [] (SimpleTypeName [] "void") "$$"
+>       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql "$$"
 >        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") Nothing
 >                          ,VarDef [] "b" (SimpleTypeName [] "text") Nothing]
 >         [NullStatement []])
@@ -894,9 +894,9 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql immutable;"
->       [CreateFunction [] Plpgsql "fn"
+>       [CreateFunction [] "fn"
 >        [ParamDef [] "a" $ ArrayTypeName [] $ SimpleTypeName [] "text"]
->        (ArrayTypeName [] $ SimpleTypeName [] "int") "$$"
+>        (ArrayTypeName [] $ SimpleTypeName [] "int") Plpgsql "$$"
 >        (PlpgsqlFnBody []
 >         [VarDef [] "b" (ArrayTypeName [] $ SimpleTypeName [] "xtype") (Just $ stringQ "{}")]
 >         [NullStatement []])
@@ -908,7 +908,7 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction [] Plpgsql "fn" [] (SimpleTypeName [] "void") "'"
+>       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql "'"
 >        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") (Just $ IntegerLit [] 3)]
 >         [NullStatement []])
 >        Stable]
@@ -917,8 +917,8 @@ test functions
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction [] Plpgsql "fn" []
->        (SetOfTypeName [] $ SimpleTypeName [] "int") "$$"
+>       [CreateFunction [] "fn" []
+>        (SetOfTypeName [] $ SimpleTypeName [] "int") Plpgsql "$$"
 >        (PlpgsqlFnBody [] [] [NullStatement []])
 >        Stable]
 >      ,p "create function fn() returns void as $$\n\
@@ -926,8 +926,8 @@ test functions
 >         \  null;\n\
 >         \end\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction [] Plpgsql "fn" []
->        (SimpleTypeName [] "void") "$$"
+>       [CreateFunction [] "fn" []
+>        (SimpleTypeName [] "void") Plpgsql "$$"
 >        (PlpgsqlFnBody [] [] [NullStatement []])
 >        Stable]
 >      ,p "drop function test(text);"
