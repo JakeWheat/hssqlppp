@@ -18,6 +18,7 @@ This is the public module for the ast nodes.
 >     ,SelectList (..)
 >     ,SelectItem (..)
 >     ,TableRef (..)
+>     ,TableAlias(..)
 >     ,JoinExpression (..)
 >     ,JoinType (..)
 >     ,Natural (..)

@@ -29,7 +29,7 @@ ATTR TableRef [|| idLookups : {[(String,Type)]}
 -- set the annotations, just need to pick up any type errors whilst
 -- calculating the new bindings
 SEM TableRef
-    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
+    | SubTref Tref TrefFun JoinedTref
         lhs.annotatedTree =
             updateAnnotation (map TypeErrorA @loc.errs ++) @loc.backTree
 
@@ -65,7 +65,7 @@ tree resulting from one mistake - a user friendliness consideration)
 -}
 
 SEM TableRef
-    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
+    | SubTref Tref TrefFun JoinedTref
         loc.idLookups : {[(String,Type)]}
         loc.qidLookups : {[(String,[(String,Type)])]}
         loc.starExpansion : {[(String,Type)]}
@@ -94,11 +94,11 @@ SEM TableRef
         loc.selectAttrs = unwrapSetOfComposite (getTypeAnnotation @sel.annotatedTree)
 
         loc.idLookups = fromRight [] @loc.selectAttrs
-        loc.qidLookups = [(@alias, @loc.idLookups)]
+        loc.qidLookups = [(getAlias "" @alias.annotatedTree, @loc.idLookups)]
         loc.starExpansion = @loc.idLookups
         loc.qstarExpansion = @loc.qidLookups
 
-    | TrefAlias Tref
+    | Tref
         loc.errs = case @loc.relType of
                      Left e -> e
                      Right _ -> []
@@ -109,32 +109,26 @@ SEM TableRef
         loc.sAttrs = snd @loc.relType1
 
         loc.idLookups = @loc.pAttrs ++ @loc.sAttrs
-        loc.qidLookups = [(@loc.alias1, @loc.idLookups)]
+        loc.alias = getAlias @tbl @alias.annotatedTree
+        loc.qidLookups = [(@loc.alias, @loc.idLookups)]
         loc.starExpansion = @loc.pAttrs
-        loc.qstarExpansion = [(@loc.alias1, @loc.pAttrs)]
-    | Tref
-        loc.alias1 = @tbl
-    | TrefAlias
-        loc.alias1 = @alias
+        loc.qstarExpansion = [(@loc.alias, @loc.pAttrs)]
 
-    | TrefFun TrefFunAlias
+    | TrefFun
         loc.errs = case @eqfunIdens of
                      Left e -> e
                      Right _ -> []
         loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
-        loc.eqfunIdens = funIdens @lhs.env @loc.alias1 @fn.annotatedTree
+        loc.eqfunIdens = funIdens @lhs.env @loc.alias @fn.annotatedTree
         loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
         loc.alias2 = fst @loc.qfunIdens
         loc.funIdens = snd @loc.qfunIdens
+        loc.alias = getAlias "" @alias.annotatedTree
 
         loc.idLookups = @loc.funIdens
         loc.qidLookups = [(@alias2, @loc.idLookups)]
         loc.starExpansion = @loc.idLookups
         loc.qstarExpansion = @loc.qidLookups
-    | TrefFun
-        loc.alias1 = ""
-    | TrefFunAlias
-        loc.alias1 = @alias
     | JoinedTref
         loc.errs = fromLeft [] @loc.ejoinAttrs
         loc.removeJoinAttrs = filter (\(n,_) -> n `notElem` @loc.joinNames)
@@ -232,13 +226,21 @@ funIdens env alias fnVal = do
        SetOfType x -> return [(correlationName,x)]
        y -> return [(correlationName,y)]
    return (correlationName, attrs)
+
+getAlias :: String -> TableAlias -> String
+getAlias def alias =
+  case alias of
+    NoAlias -> def
+    TableAlias t -> t
+    FullAlias t _ -> t
+
 }
 
 -- boilerplate
 -- copying the locals to syn attrs
 
 SEM TableRef
-    | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
+    | SubTref Tref TrefFun JoinedTref
         lhs.libUpdates = @loc.libUpdates
         lhs.idLookups = @loc.idLookups
         lhs.qidLookups = @loc.qidLookups
@@ -249,16 +251,11 @@ SEM TableRef
 
 SEM TableRef
     | SubTref
-        loc.backTree = SubTref @ann @sel.annotatedTree @alias
+        loc.backTree = SubTref @ann @sel.annotatedTree @alias.annotatedTree
     | Tref
-        loc.backTree = Tref @ann @tbl
-    | TrefAlias
-        loc.backTree = TrefAlias @ann @tbl @alias
-    | TrefFun TrefFunAlias
+        loc.backTree = Tref @ann @tbl @alias.annotatedTree
     | TrefFun
-        loc.backTree = TrefFun @ann @fn.annotatedTree
-    | TrefFunAlias
-        loc.backTree = TrefFunAlias @ann @fn.annotatedTree @alias
+        loc.backTree = TrefFun @ann @fn.annotatedTree @alias.annotatedTree
     | JoinedTref
         loc.backTree = JoinedTref @ann
                                   @tbl.annotatedTree
@@ -266,3 +263,4 @@ SEM TableRef
                                   @joinType.annotatedTree
                                   @tbl1.annotatedTree
                                   @onExpr.annotatedTree
+                                  @alias.annotatedTree

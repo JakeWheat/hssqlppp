@@ -397,9 +397,8 @@ Conversion routines - convert Sql asts into Docs
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 >   <+> maybeConv (\offs -> text "offset" <+> convExp offs) off
 >   where
->     convTref (Tref _ f) = text f
->     convTref (TrefAlias _ f a) = text f <+> text a
->     convTref (JoinedTref _ t1 nat jt t2 ex) =
+>     convTref (Tref _ f a) = text f <+> convTrefAlias a
+>     convTref (JoinedTref _ t1 nat jt t2 ex a) =
 >         convTref t1
 >         $+$ (case nat of
 >                       Natural -> text "natural"
@@ -413,6 +412,7 @@ Conversion routines - convert Sql asts into Docs
 >         <+> text "join"
 >         <+> convTref t2
 >         <+> maybeConv (nest 2 . convJoinExpression) ex
+>         <+> convTrefAlias a
 >         where
 >           convJoinExpression (JoinOn _ e) = text "on" <+> convExp e
 >           convJoinExpression (JoinUsing _ ids) =
@@ -420,14 +420,13 @@ Conversion routines - convert Sql asts into Docs
 
 >     convTref (SubTref _ sub alias) =
 >         parens (convSelectExpression True True sub)
->         <+> text "as" <+> text alias
->     convTref (TrefFun _ f@(FunCall _ _ _)) = convExp f
->     convTref (TrefFun _ x) =
+>         <+> text "as" <+> convTrefAlias alias
+>     convTref (TrefFun _ f@(FunCall _ _ _) a) = convExp f <+> convTrefAlias a
+>     convTref (TrefFun _ x _) =
 >         error $ "internal error: node not supported in function tref: " ++ show x
->     convTref (TrefFunAlias _ f@(FunCall _ _ _) a) =
->         convExp f <+> text "as" <+> text a
->     convTref (TrefFunAlias _ x _) =
->         error $ "internal error: node not supported in function tref: " ++ show x
+>     convTrefAlias NoAlias = empty
+>     convTrefAlias (TableAlias t) = text t
+>     convTrefAlias (FullAlias t s) = text t <+> parens (hcatCsvMap text s)
 
 > convSelectExpression writeSelect topLev (CombineSelect _ tp s1 s2) =
 >   let p = convSelectExpression writeSelect False s1

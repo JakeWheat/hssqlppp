@@ -78,7 +78,7 @@ amount of work in comparison).
 >                        (SelectList an
 >                         [SelExp an
 >                          (Identifier an "*")] [])
->                        (Just (Tref an (tableName ++ "_table")))
+>                        (Just (Tref an (tableName ++ "_table") NoAlias))
 >                        Nothing [] Nothing [] Asc Nothing Nothing)]) Stable)
 >                 : tl)
 >         x1 -> x1

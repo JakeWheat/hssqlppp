@@ -44,6 +44,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,FnBody (..)
    ,SetClause (..)
    ,TableRef (..)
+   ,TableAlias(..)
    ,JoinExpression (..)
    ,JoinType (..)
    ,SelectList (..)
@@ -318,23 +319,24 @@ DATA SetClause | SetClause ann:Annotation att:String val:Expression
 
 DATA TableRef | Tref ann:Annotation
                      tbl:String
-              | TrefAlias ann:Annotation
-                          tbl : String
-                          alias : String
+                     alias : TableAlias
               | JoinedTref ann:Annotation
                            tbl : TableRef
                            nat : Natural
                            joinType : JoinType
                            tbl1 : TableRef
                            onExpr : OnExpr
+                           alias : TableAlias
               | SubTref ann:Annotation
                         sel : SelectExpression
-                        alias : String
+                        alias : TableAlias
               | TrefFun ann:Annotation
                         fn:Expression
-              | TrefFunAlias ann:Annotation
-                             fn:Expression
-                             alias:String
+                        alias : TableAlias
+
+DATA TableAlias | NoAlias
+                | TableAlias alias:String
+                | FullAlias alias:String cols:{[String]}
 
 TYPE OnExpr = MAYBE JoinExpression
 
@@ -615,7 +617,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
                MaybeTableRef TableRef OnExpr LiftFlavour MaybeSelectList
-               SetValue
+               SetValue TableAlias
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
 

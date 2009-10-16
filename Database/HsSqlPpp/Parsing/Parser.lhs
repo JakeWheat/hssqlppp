@@ -252,13 +252,14 @@ this recursion needs refactoring cos it's a mess
 >                   choice [
 >                          SubTref p2
 >                          <$> parens selectExpression
->                          <*> (optional (keyword "as") *> nkwid)
->                         ,optionalSuffix
->                           (TrefFun p2) (try $ identifier >>= functionCallSuffix)
->                           (TrefFunAlias p2) () (optional (keyword "as") *> nkwid)
->                         ,optionalSuffix
->                           (Tref p2) nkwid
->                           (TrefAlias p2) () (optional (keyword "as") *> nkwid)]
+>                          <*> palias
+>                         ,TrefFun p2
+>                          <$> (try $ identifier >>= functionCallSuffix)
+>                          <*> palias
+>                         ,Tref p2
+>                          <$> nkwid
+>                          <*> palias]
+>         palias = option NoAlias (TableAlias <$> ((optional (keyword "as")) *> nkwid))
 >         --joinpart: parse a join after the first part of the tableref
 >         --(which is a table name, aliased table name or subselect) -
 >         --takes this tableref as an arg so it can recurse to multiple
@@ -282,6 +283,7 @@ this recursion needs refactoring cos it's a mess
 >                  Just <$> (JoinOn <$> pos <*> (keyword "on" *> expr))
 >                 ,Just <$> (JoinUsing <$> pos <*> (keyword "using" *> columnNameList))
 >                 ,return Nothing]
+>              <*> palias
 >         nkwid = try $ do
 >                  x <- idString
 >                  --avoid all these keywords as aliases since they can
