@@ -50,10 +50,10 @@ check some basic parens use wrt naked values and row constructors
 these tests reflect how pg seems to interpret the variants.
 
 >      ,p "(1)" (IntegerLit [] 1)
->      ,p "row ()" (FunCall [] "!rowCtor" [])
->      ,p "row (1)" (FunCall [] "!rowCtor" [IntegerLit [] 1])
->      ,p "row (1,2)" (FunCall [] "!rowCtor" [IntegerLit [] 1,IntegerLit [] 2])
->      ,p "(1,2)" (FunCall [] "!rowCtor" [IntegerLit [] 1,IntegerLit [] 2])
+>      ,p "row ()" (FunCall [] "!rowctor" [])
+>      ,p "row (1)" (FunCall [] "!rowctor" [IntegerLit [] 1])
+>      ,p "row (1,2)" (FunCall [] "!rowctor" [IntegerLit [] 1,IntegerLit [] 2])
+>      ,p "(1,2)" (FunCall [] "!rowctor" [IntegerLit [] 1,IntegerLit [] 2])
 
 test some more really basic expressions
 
@@ -70,11 +70,11 @@ test some more really basic expressions
 
 array selector
 
->      ,p "array[1,2]" (FunCall [] "!arrayCtor" [IntegerLit [] 1, IntegerLit [] 2])
+>      ,p "array[1,2]" (FunCall [] "!arrayctor" [IntegerLit [] 1, IntegerLit [] 2])
 
 array subscripting
 
->      ,p "a[1]" (FunCall [] "!arraySub" [Identifier [] "a", IntegerLit [] 1])
+>      ,p "a[1]" (FunCall [] "!arraysub" [Identifier [] "a", IntegerLit [] 1])
 
 we just produce a ast, so no type checking or anything like that is
 done
@@ -126,8 +126,8 @@ simple whitespace sanity checks
 null stuff
 
 >      ,p "not null" (FunCall [] "!not" [NullLit []])
->      ,p "a is null" (FunCall [] "!isNull" [Identifier [] "a"])
->      ,p "a is not null" (FunCall [] "!isNotNull" [Identifier [] "a"])
+>      ,p "a is null" (FunCall [] "!isnull" [Identifier [] "a"])
+>      ,p "a is not null" (FunCall [] "!isnotnull" [Identifier [] "a"])
 
 some slightly more complex stuff
 
@@ -166,15 +166,15 @@ in variants, including using row constructors
 >      ,p "t not in (1,2)"
 >       (InPredicate [] (Identifier [] "t") False (InList [] [IntegerLit [] 1,IntegerLit [] 2]))
 >      ,p "(t,u) in (1,2)"
->       (InPredicate [] (FunCall [] "!rowCtor" [Identifier [] "t",Identifier [] "u"]) True
+>       (InPredicate [] (FunCall [] "!rowctor" [Identifier [] "t",Identifier [] "u"]) True
 >        (InList [] [IntegerLit [] 1,IntegerLit [] 2]))
 >      ,p "3 = any (array[1,2])"
 >       (LiftOperator [] "=" LiftAny [IntegerLit [] 3
->                                     ,FunCall [] "!arrayCtor" [IntegerLit [] 1
+>                                     ,FunCall [] "!arrayctor" [IntegerLit [] 1
 >                                                              ,IntegerLit [] 2]])
 >      ,p "3 = all (array[1,2,4])"
 >       (LiftOperator [] "=" LiftAll [IntegerLit [] 3
->                                     ,FunCall [] "!arrayCtor" [IntegerLit [] 1
+>                                     ,FunCall [] "!arrayctor" [IntegerLit [] 1
 >                                                              ,IntegerLit [] 2
 >                                                              ,IntegerLit [] 4]])
 
@@ -273,6 +273,22 @@ test a whole bunch more select statements
 >        (selectFrom (selIL ["a"]) (Tref [] "tbl"))
 >        (selectFrom (selIL ["a"]) (Tref [] "tbl1"))]
 
+>      ,p "(select 1 union select 2) union select 3;"
+>       [SelectStatement []
+>        (CombineSelect [] Union
+>         (CombineSelect [] Union
+>          (selectE (SelectList [] [SelExp [] (IntegerLit [] 1)] []))
+>          (selectE (SelectList [] [SelExp [] (IntegerLit [] 2)] [])))
+>         (selectE (SelectList [] [SelExp [] (IntegerLit [] 3)] [])))]
+
+>      ,p "select 1 union (select 2 union select 3);"
+>       [SelectStatement []
+>        (CombineSelect [] Union
+>         (selectE (SelectList [] [SelExp [] (IntegerLit [] 1)] []))
+>         (CombineSelect [] Union
+>          (selectE (SelectList [] [SelExp [] (IntegerLit [] 2)] []))
+>          (selectE (SelectList [] [SelExp [] (IntegerLit [] 3)] []))))]
+
 >      ,p "select a as b from tbl;"
 >       [SelectStatement [] $ selectFrom [SelectItem [] (Identifier [] "a") "b"] (Tref [] "tbl")]
 >      ,p "select a + b as b from tbl;"
@@ -324,6 +340,12 @@ test a whole bunch more select statements
 >        (selIL ["a"])
 >        (JoinedTref [] (Tref [] "b") Unnatural Cross (Tref [] "c") Nothing)]
 
+>      ,p "select a from (b natural join c);"
+>       [SelectStatement [] $ selectFrom
+>        (selIL ["a"])
+>        (JoinedTref [] (Tref [] "b") Natural Inner (Tref [] "c") Nothing)]
+
+
 >      ,p "select a from b\n\
 >         \    inner join c\n\
 >         \      on true\n\
@@ -368,7 +390,7 @@ test a whole bunch more select statements
 >       [SelectStatement [] $ selectFrom [SelectItem []
 >                    (WindowFn []
 >                     (FunCall [] "row_number" [])
->                     [FunCall [] "!rowCtor" [Identifier [] "a",Identifier [] "b"]]
+>                     [FunCall [] "!rowctor" [Identifier [] "a",Identifier [] "b"]]
 >                     [Identifier [] "c"] Asc)
 >                    "place"]
 >        (Tref [] "tbl")]
@@ -646,6 +668,13 @@ other creates
 >         \);"
 >       [CreateType [] "tp1" [TypeAttDef [] "f1" (SimpleTypeName [] "text")
 >                         ,TypeAttDef [] "f2" (SimpleTypeName [] "text")]]
+
+>      ,p "create sequence s start with 5 increment by 4 no maxvalue no minvalue cache 1;"
+>         [CreateSequence [] "s" 4 1 ((2::Integer) ^ (63::Integer) - 1) 5 1]
+
+>      ,p "alter sequence s owned by a.b;"
+>         [AlterSequence [] "s" "a.b"]
+
 
 drops
 

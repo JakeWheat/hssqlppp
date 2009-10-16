@@ -23,7 +23,7 @@ plus output error location in emacs friendly format.
 >                               ++ [line, highlightLine, "ERROR HERE"]
 >                               ++ postlines
 >     in "\n---------------------\n" ++ show er
->        ++ "\nFILENAMESTUFF:\n" ++ fn ++ ":" ++ show lineNo ++ ":" ++ show colNo
+>        ++ "\nFILENAMESTUFF:\n" ++ fn ++ ":" ++ show lineNo ++ ":" ++ show colNo ++ ":"
 >        ++ "\n------------\nCheck it out:\n"
 >        ++ unlines (trimLines errorHighlightText)
 >        ++ "\n-----------------\n"

@@ -89,7 +89,7 @@ any operator satifying some properties
 TODO: move all of this into find call match. Don't know why it's separate
 -}
 typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] Type
-typeCheckFunCall env fnName argsType =
+typeCheckFunCall env fnName' argsType =
     dependsOnRTpe argsType $
       case fnName of
               --"!arrayCtor" ->
@@ -107,7 +107,7 @@ typeCheckFunCall env fnName argsType =
                     t <- lookupFn fnName argsType -- resolveResultSetType env argsType
                     lookupFn "<=" [t,t]
                     return t
-              "!rowCtor" -> return $ AnonymousRecordType argsType
+              "!rowctor" -> return $ AnonymousRecordType argsType
                     -- special case the row comparison ops
                     -- this needs to be fixed: we want to match
                     -- any implicit casts to functions on composite types
@@ -137,6 +137,7 @@ typeCheckFunCall env fnName argsType =
       checkRowTypesMatch x y  =
         error $ "internal error: checkRowTypesMatch called with " ++
                 show x ++ "," ++ show y
+      fnName = map toLower fnName'
 }
 
 {-

@@ -113,6 +113,7 @@ import Control.Arrow
 import Data.Either
 import Control.Applicative
 import Data.Generics
+import Data.Char
 
 import Database.HsSqlPpp.AstInternals.TypeType
 import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
@@ -178,6 +179,16 @@ DATA Statement
                   name : String
                   atts : AttributeDefList
                   cons : ConstraintList
+    | CreateSequence ann:Annotation
+                     name:String
+                     incr:Integer
+                     min:Integer
+                     max:Integer
+                     start:Integer
+                     cache:Integer
+    | AlterSequence ann:Annotation
+                    name:String
+                    ownedBy: String
     | CreateTableAs ann:Annotation
                     name : String
                     expr : SelectExpression
@@ -264,6 +275,7 @@ DATA Statement
 --misc
 
     | Set ann:Annotation name:String values:{[SetValue]}
+    | Notify ann:Annotation name:String
 
 DATA SetValue
     | SetStr ann:Annotation String

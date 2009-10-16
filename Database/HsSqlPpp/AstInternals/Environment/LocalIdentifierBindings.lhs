@@ -19,6 +19,7 @@ Main areas to support are parameters and variables
 > import Control.Monad
 > import Data.List
 > import Debug.Trace
+> import Data.Char
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
@@ -178,7 +179,7 @@ moment.
 >   {-trace ("----------------------------------\nlookup " ++ iden1) $-}
 >   envLookupID' $ identifierTypes env
 >   where
->     (correlationName,iden) = splitIdentifier iden1
+>     (correlationName,iden) = splitIdentifier $ map toLower iden1
 >     envLookupID' (its:itss) =
 >       case lookup correlationName its of
 >         Nothing -> envLookupID' itss

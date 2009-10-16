@@ -57,16 +57,19 @@ SEM Statement
     | SelectStatement Insert Update Delete CreateView CreateDomain
       CreateFunction CreateType CreateTable CreateTableAs Return Assignment
       ForSelectStatement ForIntegerStatement
+        loc.tpe : {Either [TypeError] Type}
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
                               $ Just (map StatementInfoA @loc.statementInfo ++
                                       [EnvUpdates @loc.envUpdates])
+        loc.envUpdates : {[EnvironmentUpdate]}
         lhs.envUpdates = @loc.envUpdates
         lhs.libUpdates = @loc.libUpdates
     | Insert Update Delete CreateView CreateDomain
       CreateFunction CreateType CreateTable CreateTableAs Return
-      Assignment ForSelectStatement ForIntegerStatement
+      Assignment ForSelectStatement ForIntegerStatement Set CreateLanguage
+      Notify CreateSequence AlterSequence
         loc.libUpdates = []
 
 SEM StatementList
@@ -81,7 +84,7 @@ SEM Statement
     | CaseStatement ContinueStatement Copy CopyData DropFunction
       DropSomething Execute ExecuteInto
       If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
-      WhileStatement
+      WhileStatement Set CreateLanguage Notify CreateSequence AlterSequence
         lhs.envUpdates = []
         lhs.libUpdates = []
 

@@ -1,10 +1,18 @@
 = immediate todos:
 
 == for next release
-sort out record handling
 fix join issues
 support multiple files in annotate source and check source
-tidy up code and docs as usual
+match pgdump output for adding explicit parens e.g. in select unions
+   and table refs, add tests for associativity in the absence of
+   parens
+get chaos pgdump output parsing and partially type checking
+tidy up code and docs as usual - lots of work needed on type checking
+   code
+redo catalog stuff (see below)
+find some way to produce documentation: want motivation, examples,
+   etc. in nice html
+
 
 ================================================================================
 
@@ -427,6 +435,14 @@ in general, parsing operators is wrong, the lexer needs to be able to
 ================================================================================
 
 some other random ideas:
+
+more tests:
+   add parse and type check roundtrips automated tests for chaos sql
+   add parse check which parses a single statement, then loads it into
+   pg, pg_dumps it, then parses the output to see if it is the same:
+   since pg sticks plenty of parens in, this should test the
+   associativity and precedence. pg also rewrites some of the sql so
+   will have to match that
 
 parser, converter and pretty printer for explain output, want to view
    how a query is executed in human readable pseudocode. Add lint type

@@ -66,6 +66,10 @@ tree resulting from one mistake - a user friendliness consideration)
 
 SEM TableRef
     | SubTref TrefAlias Tref TrefFun TrefFunAlias JoinedTref
+        loc.idLookups : {[(String,Type)]}
+        loc.qidLookups : {[(String,[(String,Type)])]}
+        loc.starExpansion : {[(String,Type)]}
+        loc.qstarExpansion : {[(String,[(String,Type)])]}
         loc.libUpdates = if null @errs
                            then [LibStackIDs $ ("", @loc.idLookups): @loc.qidLookups
                                 ,LibSetStarExpansion $ ("", @loc.starExpansion): @loc.qstarExpansion]
@@ -86,6 +90,7 @@ SEM TableRef
         loc.errs = case @loc.selectAttrs of
                            Left e -> e
                            Right _ -> []
+        loc.selectAttrs : {Either [TypeError] [(String,Type)]}
         loc.selectAttrs = unwrapSetOfComposite (getTypeAnnotation @sel.annotatedTree)
 
         loc.idLookups = fromRight [] @loc.selectAttrs
@@ -97,6 +102,7 @@ SEM TableRef
         loc.errs = case @loc.relType of
                      Left e -> e
                      Right _ -> []
+        loc.relType : {Either [TypeError] ([(String, Type)], [(String, Type)])}
         loc.relType = envCompositeAttrsPair @lhs.env [] @tbl
         loc.relType1 = fromRight ([],[]) @loc.relType
         loc.pAttrs = fst @loc.relType1
@@ -115,6 +121,7 @@ SEM TableRef
         loc.errs = case @eqfunIdens of
                      Left e -> e
                      Right _ -> []
+        loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
         loc.eqfunIdens = funIdens @lhs.env @loc.alias1 @fn.annotatedTree
         loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
         loc.alias2 = fst @loc.qfunIdens
@@ -139,6 +146,7 @@ SEM TableRef
         -- joins, this list is empty
         -- all the attributes which don't appear in this list just
         -- get added together so we don't need to worry about them
+        loc.ejoinAttrs : {Either [TypeError] [(String,Type)]}
         loc.ejoinAttrs =
             do
             -- get the names of the join columns

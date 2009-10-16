@@ -350,14 +350,14 @@ This is wrong, these need to be separated into prefix, postfix, binary
 >  ,("!or", [typeBool, typeBool], typeBool, False)
 >  ,("!like", [ScalarType "text", ScalarType "text"], typeBool, False)
 >  ,("!not", [typeBool], typeBool, False)
->  ,("!isNull", [Pseudo AnyElement], typeBool, False)
->  ,("!isNotNull", [Pseudo AnyElement], typeBool, False)
->  ,("!arrayCtor", [ArrayType $ Pseudo AnyElement], Pseudo AnyArray, True)
+>  ,("!isnull", [Pseudo AnyElement], typeBool, False)
+>  ,("!isnotnull", [Pseudo AnyElement], typeBool, False)
+>  ,("!arrayctor", [ArrayType $ Pseudo AnyElement], Pseudo AnyArray, True)
 >  ,("!between", [Pseudo AnyElement
 >                ,Pseudo AnyElement
 >                ,Pseudo AnyElement], Pseudo AnyElement, False)
 >  ,("!substring", [ScalarType "text",typeInt,typeInt], ScalarType "text", False)
->  ,("!arraySub", [Pseudo AnyArray,typeInt], Pseudo AnyElement, False)
+>  ,("!arraysub", [Pseudo AnyArray,typeInt], Pseudo AnyElement, False)
 >  ]
 
 these look like functions, but don't appear in the postgresql catalog.
@@ -410,7 +410,7 @@ this is why binary @ operator isn't currently supported
 > getOperatorType env s = case () of
 >                       _ | s `elem` ["!and", "!or","!like"] -> BinaryOp
 >                         | s `elem` ["!not"] -> PrefixOp
->                         | s `elem` ["!isNull", "!isNotNull"] -> PostfixOp
+>                         | s `elem` ["!isnull", "!isnotnull"] -> PostfixOp
 >                         | any (\(x,_,_,_) -> x == s) (envBinaryOperators env) ->
 >                             BinaryOp
 >                         | any (\(x,_,_,_) -> x == s ||

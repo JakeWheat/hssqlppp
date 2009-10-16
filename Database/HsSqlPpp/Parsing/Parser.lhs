@@ -58,7 +58,7 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Data.Generics.PlateData
 > import Data.Generics hiding (Prefix,Infix)
 
-> --import Debug.Trace
+> import Debug.Trace
 
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parsing.ParseErrors
@@ -145,14 +145,19 @@ parse a statement
 >     ,truncateSt
 >     ,copy
 >     ,set
+>     ,notify
 >     ,keyword "create" *>
 >              choice [
 >                 createTable
+>                ,createSequence
 >                ,createType
 >                ,createFunction
 >                ,createView
 >                ,createDomain
 >                ,createLanguage]
+>     ,keyword "alter" *>
+>              choice [
+>                 alterSequence]
 >     ,keyword "drop" *>
 >              choice [
 >                 dropSomething
@@ -179,29 +184,37 @@ or
 This should be changed so it can only parse an into clause when
 expecting a plpgsql statement.
 
-recurses to support parsing excepts, unions, etc
+recurses to support parsing excepts, unions, etc.
+this recursion needs refactoring cos it's a mess
 
 > selectStatement :: ParsecT [Token] ParseState Identity Statement
 > selectStatement = SelectStatement <$> pos <*> selectExpression
 
 > selectExpression :: ParsecT [Token] ParseState Identity SelectExpression
 > selectExpression =
->   choice [selectE, values]
+>   choice [selectE, selectEP, values]
 >   where
->     selectE = do
->       p <- pos
->       keyword "select"
->       s1 <- selQuerySpec p
->       p1 <- pos
->       choice [
->         --don't know if this does associativity in the correct order for
->         --statements with multiple excepts/ intersects and no parens
->         CombineSelect p1 Except s1 <$> (keyword "except" *> selectExpression)
->        ,CombineSelect p1 Intersect s1 <$> (keyword "intersect" *> selectExpression)
->        ,CombineSelect p1 UnionAll s1 <$> (try (keyword "union"
->                                              *> keyword "all") *> selectExpression)
->        ,CombineSelect p1 Union s1 <$> (keyword "union" *> selectExpression)
->        ,return s1]
+>     combinedSel s1 = do
+>        p1 <- pos
+>        choice $ map (\(c,p) -> CombineSelect p1 c s1 <$> (p *> selectExpression))
+>                     [(Except, keyword "except")
+>                     ,(Intersect, keyword "intersect")
+>                     ,(UnionAll, try (keyword "union" *> keyword "all"))
+>                     ,(Union, keyword "union")]
+>     selectEP = try $ do
+>                s1 <- parens selectExpression
+>                choice [
+>                       combinedSel s1
+>                      ,return s1]
+>     selectE =
+>       let px = do
+>                p <- pos
+>                keyword "select"
+>                s1 <- selQuerySpec p
+>                choice [
+>                  combinedSel s1
+>                 ,return s1]
+>       in px
 >       where
 >         selQuerySpec p = Select p
 >                    <$> option Dupes (Distinct <$ keyword "distinct")
@@ -232,7 +245,8 @@ recurses to support parsing excepts, unions, etc
 >         -- a sub select e.g. select a from (select b from c)
 >         --  - these are handled in tref
 >         -- then cope with joins recursively using joinpart below
->         tref = threadOptionalSuffix getFirstTref joinPart
+>         tref = let p = threadOptionalSuffix getFirstTref joinPart
+>                in (try $ parens p) <|> p
 >         getFirstTref = do
 >                   p2 <- pos
 >                   choice [
@@ -256,11 +270,11 @@ recurses to support parsing excepts, unions, etc
 >              --look for the join flavour first
 >              <$> option Unnatural (Natural <$ keyword "natural")
 >              <*> choice [
->                 Inner <$ keyword "inner"
->                ,LeftOuter <$ try (keyword "left" *> keyword "outer")
+>                 LeftOuter <$ try (keyword "left" *> keyword "outer")
 >                ,RightOuter <$ try (keyword "right" *> keyword "outer")
 >                ,FullOuter <$ try (keyword "full" >> keyword "outer")
->                ,Cross <$ keyword "cross"]
+>                ,Cross <$ keyword "cross"
+>                ,Inner <$ optional (keyword "inner")]
 >              --recurse back to tref to read the table
 >              <*> (keyword "join" *> tref)
 >              --now try and read the join condition
@@ -378,6 +392,10 @@ multiple rows to insert and insert from select statements
 >              ,SetId <$> pos <*> idString
 >              ,SetNum <$> pos <*> ((fromInteger <$> integer) <|> float)]
 
+> notify :: ParsecT [Token] ParseState Identity Statement
+> notify = Notify <$> pos
+>                 <*> (keyword "notify" *> idString)
+
 = ddl
 
 > createTable :: ParsecT [Token] ParseState Identity Statement
@@ -453,6 +471,28 @@ multiple rows to insert and insert from select statements
 >   where
 >     typeAtt = TypeAttDef <$> pos <*> idString <*> typeName
 
+> createSequence :: ParsecT [Token] ParseState Identity Statement
+> createSequence = do
+>   p <- pos
+>   keyword "sequence"
+>   nm <- idString
+>   (stw, incr, mx, mn, c) <- permute ((,,,,) <$?> (1,startWith)
+>                                             <|?> (1,increment)
+>                                             <|?> ((2::Integer) ^ (63::Integer) - 1, maxi)
+>                                             <|?> (1, mini)
+>                                             <|?> (1, cache))
+>   return $ CreateSequence p nm incr mn mx stw c
+>   where
+>     startWith = keyword "start" *> (optional $ keyword "with") *> integer
+>     increment = keyword "increment" *> (optional  $ keyword "by") *> integer
+>     maxi = (2::Integer) ^ (63::Integer) - 1 <$ try (keyword "no" <* keyword "maxvalue")
+>     mini = 1 <$ try (keyword "no" <* keyword "minvalue")
+>     cache = keyword "cache" *> integer
+
+> alterSequence :: ParsecT [Token] ParseState Identity Statement
+> alterSequence = AlterSequence <$> pos
+>                               <*> (keyword "sequence" *> idString)
+>                               <*> (keyword "owned" *> keyword "by" *> idString)
 
 create function, support sql functions and plpgsql functions. Parses
 the body in both cases and provides a statement list for the body
@@ -870,8 +910,8 @@ be used here.
 >         ,[binary "+" AssocLeft
 >          ,binary "-" AssocLeft]
 >          --should be is isnull and notnull
->         ,[postfixks ["is", "not", "null"] "!isNotNull"
->          ,postfixks ["is", "null"] "!isNull"]
+>         ,[postfixks ["is", "not", "null"] "!isnotnull"
+>          ,postfixks ["is", "null"] "!isnull"]
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "<->" AssocNone
 >          ,binary "<=" AssocRight
@@ -946,7 +986,7 @@ and () is a syntax error.
 > rowCtor :: ParsecT [Token] ParseState Identity Expression
 > rowCtor = FunCall
 >           <$> pos
->           <*> return "!rowCtor"
+>           <*> return "!rowctor"
 >           <*> choice [
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
@@ -988,14 +1028,14 @@ expression when value' currently
 
 > arrayLit :: ParsecT [Token] ParseState Identity Expression
 > arrayLit = FunCall <$> pos <* keyword "array"
->                    <*> return "!arrayCtor"
+>                    <*> return "!arrayctor"
 >                    <*> squares (commaSep expr)
 
 > arraySubSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > arraySubSuffix e = case e of
 >                      Identifier _ "array" -> fail "can't use array as identifier name"
 >                      _ -> FunCall <$> pos
->                                   <*> return "!arraySub"
+>                                   <*> return "!arraysub"
 >                                   <*> ((e:) <$> squares (commaSep1 expr))
 
 supports basic window functions of the form
@@ -1078,6 +1118,13 @@ TODO: copy this approach here.
 > identifier :: ParsecT [Token] ParseState Identity Expression
 > identifier = Identifier <$> pos <*> idString
 
+try $ do
+ >   p <- pos
+ >   i <- idString
+ >   if i `elem` ["not"]
+ >     then fail "can't use keyword"
+ >     else return $ Identifier p i
+
 ================================================================================
 
 = Utility parsers
@@ -1098,6 +1145,7 @@ identifier which happens to start with a complete keyword
 
 > idString :: MyParser String
 > idString = mytoken (\tok -> case tok of
+>                                      IdStringTok "not" -> Nothing
 >                                      IdStringTok i -> Just i
 >                                      _ -> Nothing)
 
@@ -1357,9 +1405,9 @@ be an array or subselect, etc)
 >     transformBi $ \x ->
 >       case x of
 >              FunCall an op (expr1:FunCall _ nm expr2s:expr3s)
->                | isOperatorName(op) && nm `elem` ["any", "some", "all"]
+>                | isOperatorName(op) && (map toLower nm) `elem` ["any", "some", "all"]
 >                -> LiftOperator an op flav (expr1:expr2s ++ expr3s)
->                   where flav = case nm of
+>                   where flav = case (map toLower nm) of
 >                                  "any" -> LiftAny
 >                                  "some" -> LiftAny
 >                                  "all" -> LiftAll

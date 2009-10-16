@@ -60,7 +60,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement ca (SelectStatement ann s) =
 >   convPa ca ann <+>
->   convSelectExpression True s <> statementEnd
+>   convSelectExpression True True s <> statementEnd
 
 == dml
 
@@ -68,7 +68,7 @@ Conversion routines - convert Sql asts into Docs
 >   convPa pa ann <+>
 >   text "insert into" <+> text tb
 >   <+> ifNotEmpty (parens . hcatCsvMap text) atts
->   $+$ convSelectExpression True idata
+>   $+$ convSelectExpression True True idata
 >   $+$ convReturning rt
 >   <> statementEnd
 
@@ -123,7 +123,7 @@ Conversion routines - convert Sql asts into Docs
 >                                 RowUniqueConstraint _ cn -> name cn <+> text "unique"
 >                                 RowPrimaryKeyConstraint _ cn -> name cn <+> text "primary key"
 >                                 RowReferenceConstraint _ cn tb att ondel onupd ->
->                                     name cn <+> 
+>                                     name cn <+>
 >                                     text "references" <+> text tb
 >                                     <+> maybeConv (parens . text) att
 >                                     <+> text "on delete" <+> convCasc ondel
@@ -138,7 +138,7 @@ Conversion routines - convert Sql asts into Docs
 >         <+> parens (hcatCsvMap text p)
 >       convCon (CheckConstraint _ n c) = name n <+> text "check" <+> parens (convExp c)
 >       convCon (ReferenceConstraint _ n at tb rat ondel onupd) =
->         name n <+> 
+>         name n <+>
 >         text "foreign key" <+> parens (hcatCsvMap text at)
 >         <+> text "references" <+> text tb
 >         <+> ifNotEmpty (parens . hcatCsvMap text) rat
@@ -148,13 +148,26 @@ Conversion routines - convert Sql asts into Docs
 >                  then empty
 >                  else text "constraint" <+> text n
 
+> convStatement ca (CreateSequence ann nm incr _ _ start cache) =
+>     convPa ca ann <+>
+>     text "create sequence" <+> text nm <+>
+>     text "increment" <+> text (show incr) <+>
+>     text "no minvalue" <+>
+>     text "no maxvalue" <+>
+>     text "start" <+> text (show start) <+>
+>     text "cache" <+> text (show cache) <> statementEnd
+
+> convStatement ca (AlterSequence ann nm o) =
+>     convPa ca ann <+>
+>     text "alter sequence" <+> text nm
+>     <+> text "owned by" <+> text o <> statementEnd
 
 
 > convStatement ca (CreateTableAs ann t sel) =
 >     convPa ca ann <+>
 >     text "create table"
 >     <+> text t <+> text "as"
->     $+$ convSelectExpression True sel
+>     $+$ convSelectExpression True True sel
 >     <> statementEnd
 
 > convStatement ca (CreateFunction ann name args retType lang qt body vol) =
@@ -194,7 +207,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (CreateView ann name sel) =
 >     convPa ca ann <+>
 >     text "create view" <+> text name <+> text "as"
->     $+$ nest 2 (convSelectExpression True sel) <> statementEnd
+>     $+$ nest 2 (convSelectExpression True True sel) <> statementEnd
 
 > convStatement ca (CreateDomain ann name tp n ex) =
 >     convPa ca ann <+>
@@ -259,7 +272,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (ReturnQuery ann sel) =
 >     convPa ca ann <+>
 >     text "return" <+> text "query"
->     <+> convSelectExpression True sel <> statementEnd
+>     <+> convSelectExpression True True sel <> statementEnd
 
 > convStatement ca (Raise ann rt st exps) =
 >     convPa ca ann <+>
@@ -275,7 +288,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (ForSelectStatement ann i sel stmts) =
 >     convPa ca ann <+>
 >     text "for" <+> text i <+> text "in"
->     <+> convSelectExpression True sel <+> text "loop"
+>     <+> convSelectExpression True True sel <+> text "loop"
 >     $+$ convNestedStatements ca stmts
 >     $+$ text "end loop" <> statementEnd
 
@@ -354,6 +367,9 @@ Conversion routines - convert Sql asts into Docs
 >     dv (SetId _ i) = i
 >     dv (SetNum _ nm) = show nm
 
+> convStatement _ (Notify _ n) =
+>   text "notify" <+> text n  <> statementEnd
+
 > statementEnd :: Doc
 > statementEnd = semi <> newline
 
@@ -363,8 +379,8 @@ Conversion routines - convert Sql asts into Docs
 
 == selects
 
-> convSelectExpression :: Bool -> SelectExpression -> Doc
-> convSelectExpression writeSelect (Select _ dis l tb wh grp hav
+> convSelectExpression :: Bool -> Bool -> SelectExpression -> Doc
+> convSelectExpression writeSelect _ (Select _ dis l tb wh grp hav
 >                                 ordr orddir lim off) =
 >   text (if writeSelect then "select" else "")
 >   <+> (case dis of
@@ -403,7 +419,7 @@ Conversion routines - convert Sql asts into Docs
 >               text "using" <+> parens (hcatCsvMap text ids)
 
 >     convTref (SubTref _ sub alias) =
->         parens (convSelectExpression True sub)
+>         parens (convSelectExpression True True sub)
 >         <+> text "as" <+> text alias
 >     convTref (TrefFun _ f@(FunCall _ _ _)) = convExp f
 >     convTref (TrefFun _ x) =
@@ -413,15 +429,16 @@ Conversion routines - convert Sql asts into Docs
 >     convTref (TrefFunAlias _ x _) =
 >         error $ "internal error: node not supported in function tref: " ++ show x
 
-> convSelectExpression writeSelect (CombineSelect _ tp s1 s2) =
->   convSelectExpression writeSelect s1
->   $+$ (case tp of
->          Except -> text "except"
->          Union -> text "union"
->          UnionAll -> text "union" <+> text "all"
->          Intersect -> text "intersect")
->   $+$ convSelectExpression True s2
-> convSelectExpression _ (Values _ expss) =
+> convSelectExpression writeSelect topLev (CombineSelect _ tp s1 s2) =
+>   let p = convSelectExpression writeSelect False s1
+>           $+$ (case tp of
+>                        Except -> text "except"
+>                        Union -> text "union"
+>                        UnionAll -> text "union" <+> text "all"
+>                        Intersect -> text "intersect")
+>           $+$ convSelectExpression True False s2
+>   in if topLev then p else parens p
+> convSelectExpression _ _ (Values _ expss) =
 >   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
 
 > convDir :: Direction -> Doc
@@ -497,7 +514,7 @@ Conversion routines - convert Sql asts into Docs
 > convExp (FunCall _ n es) =
 >     --check for special operators
 >    case n of
->      "!arrayCtor" -> text "array" <> brackets (csvExp es)
+>      "!arrayctor" -> text "array" <> brackets (csvExp es)
 >      "!between" -> convExp (head es) <+> text "between"
 >                    <+> parens (convExp (es !! 1))
 >                   <+> text "and"
@@ -506,10 +523,10 @@ Conversion routines - convert Sql asts into Docs
 >                      <> parens (convExp (head es)
 >                                 <+> text "from" <+> convExp (es !! 1)
 >                                 <+> text "for" <+> convExp (es !! 2))
->      "!arraySub" -> case es of
+>      "!arraysub" -> case es of
 >                        ((Identifier _ i):es1) -> text i <> brackets (csvExp es1)
 >                        _ -> parens (convExp (head es)) <> brackets (csvExp (tail es))
->      "!rowCtor" -> text "row" <> parens (hcatCsvMap convExp es)
+>      "!rowctor" -> text "row" <> parens (hcatCsvMap convExp es)
 >      _ | isOperatorName n ->
 >         case getOperatorType defaultTemplate1Environment n of
 >                           BinaryOp ->
@@ -519,7 +536,7 @@ Conversion routines - convert Sql asts into Docs
 >                           PrefixOp -> parens (text (if n == "u-"
 >                                                        then "-"
 >                                                        else filterKeyword n)
->                                                <+> convExp (head es))
+>                                                <+> parens (convExp (head es)))
 >                           PostfixOp -> parens (convExp (head es) <+> text (filterKeyword n))
 >        | otherwise -> text n <> parens (csvExp es)
 >    where
@@ -527,8 +544,8 @@ Conversion routines - convert Sql asts into Docs
 >                          "!and" -> "and"
 >                          "!or" -> "or"
 >                          "!not" -> "not"
->                          "!isNull" -> "is null"
->                          "!isNotNull" -> "is not null"
+>                          "!isnull" -> "is null"
+>                          "!isnotnull" -> "is not null"
 >                          "!like" -> "like"
 >                          x -> x
 
@@ -537,14 +554,14 @@ Conversion routines - convert Sql asts into Docs
 >   convExp att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
 >                        InList _ expr -> csvExp expr
->                        InSelect _ sel -> convSelectExpression True sel)
+>                        InSelect _ sel -> convSelectExpression True True sel)
 > convExp (LiftOperator _ op flav args) =
 >   convExp (head args) <+> text op
 >   <+> text (case flav of
 >               LiftAny -> "any"
 >               LiftAll -> "all")
 >   <+> parens (convExp $ head $ tail args)
-> convExp (ScalarSubQuery _ s) = parens (convSelectExpression True s)
+> convExp (ScalarSubQuery _ s) = parens (convSelectExpression True True s)
 > convExp (NullLit _) = text "null"
 > convExp (WindowFn _ fn partition order asc) =
 >   convExp fn <+> text "over"
@@ -582,7 +599,7 @@ Conversion routines - convert Sql asts into Docs
 >             <+> text "then" <+> convExp ex2
 
 > convExp (PositionalArg _ a) = text "$" <> integer a
-> convExp (Exists _ s) = text "exists" <+> parens (convSelectExpression True s)
+> convExp (Exists _ s) = text "exists" <+> parens (convSelectExpression True True s)
 > convExp (Cast _ ex t) = text "cast" <> parens (convExp ex
 >                                              <+> text "as"
 >                                              <+> convTypeName t)

@@ -57,7 +57,7 @@ that supports this test passing is commented out also
 >      ,p "array[1,2,3]" $ Right (ArrayType typeInt)
 >      ,p "array['a','b']" $ Right (ArrayType (ScalarType "text"))
 >      ,p "array[1,'b']" $ Right (ArrayType typeInt)
->      ,p "array[1,true]" $ Left [NoMatchingOperator "!arrayCtor" [ScalarType "int4",ScalarType "bool"]]
+>      ,p "array[1,true]" $ Left [NoMatchingOperator "!arrayctor" [ScalarType "int4",ScalarType "bool"]]
 >      ])
 >
 >    ,testGroup "some expressions"

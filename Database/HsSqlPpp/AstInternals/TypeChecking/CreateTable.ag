@@ -24,7 +24,7 @@ SEM Statement
         loc.tpe = dependsOnRTpe @loc.attrTypes $ Right $ Pseudo Void
         loc.envUpdates = dependsOn @loc.attrTypes []
                            [EnvCreateTable @name @atts.attrs []]
-
+        loc.attrTypes : {[Type]}
         loc.attrTypes = map snd @atts.attrs
 
         loc.statementInfo = []
