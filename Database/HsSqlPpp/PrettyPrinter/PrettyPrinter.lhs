@@ -562,7 +562,7 @@ Conversion routines - convert Sql asts into Docs
 >   <+> parens (convExp $ head $ tail args)
 > convExp (ScalarSubQuery _ s) = parens (convSelectExpression True True s)
 > convExp (NullLit _) = text "null"
-> convExp (WindowFn _ fn partition order asc) =
+> convExp (WindowFn _ fn partition order asc frm) =
 >   convExp fn <+> text "over"
 >   <+> (if hp || ho
 >        then
@@ -572,11 +572,17 @@ Conversion routines - convert Sql asts into Docs
 >                   <+> (if ho
 >                          then text "order by" <+> csvExp order
 >                               <+> convDir asc
->                          else empty))
+>                          else empty)
+>                   <+> convFrm)
 >        else empty)
 >   where
 >     hp = not (null partition)
 >     ho = not (null order)
+>     convFrm = case frm of
+>                 FrameUnboundedPreceding -> text "range unbounded preceding"
+>                 FrameUnboundedFull -> text "range between unbounded preceding and unbounded following"
+>                 FrameRowsUnboundedPreceding -> text "rows unbounded preceding"
+
 > convExp (Case _ whens els) =
 >   text "case"
 >   $+$ nest 2 (vcat (map convWhen whens)

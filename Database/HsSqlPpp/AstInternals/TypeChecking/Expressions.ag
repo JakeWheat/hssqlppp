@@ -69,7 +69,12 @@ SEM Expression
 
    | WindowFn
         loc.tpe = Right (getTypeAnnotation @fn.annotatedTree)
-        loc.backTree = WindowFn @ann @fn.annotatedTree @partitionBy.annotatedTree @orderBy.annotatedTree @dir.annotatedTree
+        loc.backTree = WindowFn @ann
+                                @fn.annotatedTree
+                                @partitionBy.annotatedTree
+                                @orderBy.annotatedTree
+                                @dir.annotatedTree
+                                @frm.annotatedTree
 {
 {-
 

@@ -69,6 +69,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,IfExists (..)
    ,RestartIdentity (..)
    ,Expression (..)
+   ,FrameClause(..)
    ,InList (..)
    ,LiftFlavour(..)
    ,StatementList
@@ -481,6 +482,7 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                            partitionBy : ExpressionList
                            orderBy : ExpressionList
                            dir : Direction
+                           frm : FrameClause
                 | ScalarSubQuery ann:Annotation
                                  sel : SelectExpression
                 | LiftOperator ann:Annotation
@@ -495,6 +497,9 @@ DATA InList | InList ann:Annotation exprs : ExpressionList
             | InSelect ann:Annotation sel : SelectExpression
 
 
+DATA FrameClause | FrameUnboundedPreceding
+                 | FrameUnboundedFull
+                 | FrameRowsUnboundedPreceding
 {-
 
 list of expression flavours from postgresql with the equivalents in this ast
@@ -617,7 +622,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
                MaybeTableRef TableRef OnExpr LiftFlavour MaybeSelectList
-               SetValue TableAlias
+               SetValue TableAlias FrameClause
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
 

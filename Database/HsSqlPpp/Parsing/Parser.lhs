@@ -255,9 +255,9 @@ this recursion needs refactoring cos it's a mess
 >              --look for the join flavour first
 >              <$> option Unnatural (Natural <$ keyword "natural")
 >              <*> choice [
->                 LeftOuter <$ try (keyword "left" *> keyword "outer")
->                ,RightOuter <$ try (keyword "right" *> keyword "outer")
->                ,FullOuter <$ try (keyword "full" >> keyword "outer")
+>                 LeftOuter <$ try (keyword "left" *> optional (keyword "outer"))
+>                ,RightOuter <$ try (keyword "right" *> optional (keyword "outer"))
+>                ,FullOuter <$ try (keyword "full" >> optional (keyword "outer"))
 >                ,Cross <$ keyword "cross"
 >                ,Inner <$ optional (keyword "inner")]
 >              --recurse back to tref to read the table
@@ -1055,10 +1055,19 @@ rows between unbounded preceding and unbounded following
 >                    <*> option Asc (try $ choice [
 >                                             Asc <$ keyword "asc"
 >                                            ,Desc <$ keyword "desc"])
->                            <* symbol ")"
+>                    <*> frm
+>                    <* symbol ")"
 >   where
 >     orderBy1 = keyword "order" *> keyword "by" *> commaSep1 expr
 >     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
+>     frm = option FrameUnboundedPreceding $ choice $ map (\(a,b) -> a <$ try (ks b)) [
+>            (FrameUnboundedPreceding, ["range","unbounded","preceding"])
+>           ,(FrameUnboundedPreceding, ["range","between","unbounded","preceding","and","current","row"])
+>           ,(FrameUnboundedFull, ["range","between","unbounded","preceding","and","unbounded","following"])
+>           ,(FrameUnboundedFull, ["rows","between","unbounded","preceding","and","unbounded","following"])
+>           ,(FrameRowsUnboundedPreceding, ["rows","unbounded","preceding"])
+>           ,(FrameRowsUnboundedPreceding, ["rows","between","unbounded","preceding","and","current","row"])]
+>     ks k = mapM keyword k
 
 > betweenSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > betweenSuffix a = do

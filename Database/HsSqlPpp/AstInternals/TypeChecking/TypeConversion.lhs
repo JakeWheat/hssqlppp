@@ -515,6 +515,8 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   from == to
 >   -- unknown can be implicitly cast to anything (is this completely true?)
 >   || from == UnknownType
+>   --hack?
+>   || to == UnknownType
 >   -- check base types of domains
 >   || ((isDomainType from || isDomainType to)
 >       && castableFromTo env cc (replaceWithBase env from)
@@ -540,7 +542,7 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   || case (getCompositeTypes from
 >           ,getCompositeTypes to) of
 >        -- zip almost does the right thing here, needs a bit of tweaking
->        (Just ft, Just tt) -> all (uncurry $ castableFromTo env cc) $ zip ft tt
+>        (Just ft, Just tt) | length ft == length tt -> all (uncurry $ castableFromTo env cc) $ zip ft tt
 >        _ -> False
 >   where
 

@@ -185,9 +185,18 @@ rows don't match types
 >      ,p "row(1) = row(2)" $ Right typeBool
 >      ,p "row(1,2) = row(2,1)" $ Right typeBool
 >      ,p "(1,2) = (2,1)" $ Right typeBool
->      ,p "(1,2,3) = (2,1)" $ Left [ValuesListsMustBeSameLength]
+>      ,p "(1,2,3) = (2,1)" $ Left [NoMatchingOperator "="
+>                                   [AnonymousRecordType [ScalarType "int4"
+>                                                        ,ScalarType "int4"
+>                                                        ,ScalarType "int4"]
+>                                    ,AnonymousRecordType [ScalarType "int4"
+>                                                         ,ScalarType "int4"]]]
 >      ,p "('1',2) = (2,'1')" $ Right typeBool
->      ,p "(1,true) = (2,1)" $ Left [IncompatibleTypeSet [ScalarType "bool",ScalarType "int4"]]
+>      ,p "(1,true) = (2,1)" $ Left [NoMatchingOperator "="
+>                                    [AnonymousRecordType [ScalarType "int4"
+>                                                         ,ScalarType "bool"]
+>                                    ,AnonymousRecordType [ScalarType "int4"
+>                                                         ,ScalarType "int4"]]]
 >      ,p "(1,2) <> (2,1)" $ Right typeBool
 >      ,p "(1,2) >= (2,1)" $ Right typeBool
 >      ,p "(1,2) <= (2,1)" $ Right typeBool

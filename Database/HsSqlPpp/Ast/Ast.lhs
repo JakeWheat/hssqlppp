@@ -27,6 +27,7 @@ This is the public module for the ast nodes.
 >     ,Distinct (..)
 >     ,InList (..)
 >     ,LiftFlavour (..)
+>     ,FrameClause(..)
 >      -- ** dml
 >     ,SetClause (..)
 >     ,CopySource (..)

@@ -440,7 +440,7 @@ test a whole bunch more select statements
 >                    (WindowFn []
 >                     (FunCall [] "row_number" [])
 >                     []
->                     [Identifier [] "a"] Asc)
+>                     [Identifier [] "a"] Asc FrameUnboundedPreceding)
 >                    "place"]
 >        (Tref [] "tbl" NoAlias)]
 >      ,p "select row_number() over(order by a asc) as place from tbl;"
@@ -448,7 +448,7 @@ test a whole bunch more select statements
 >                    (WindowFn []
 >                     (FunCall [] "row_number" [])
 >                     []
->                     [Identifier [] "a"] Asc)
+>                     [Identifier [] "a"] Asc FrameUnboundedPreceding)
 >                    "place"]
 >        (Tref [] "tbl" NoAlias)]
 >      ,p "select row_number() over(order by a desc) as place from tbl;"
@@ -456,7 +456,7 @@ test a whole bunch more select statements
 >                    (WindowFn []
 >                     (FunCall [] "row_number" [])
 >                     []
->                     [Identifier [] "a"] Desc)
+>                     [Identifier [] "a"] Desc FrameUnboundedPreceding)
 >                    "place"]
 >        (Tref [] "tbl" NoAlias)]
 >      ,p "select row_number()\n\
@@ -466,7 +466,7 @@ test a whole bunch more select statements
 >                    (WindowFn []
 >                     (FunCall [] "row_number" [])
 >                     [FunCall [] "!rowctor" [Identifier [] "a",Identifier [] "b"]]
->                     [Identifier [] "c"] Asc)
+>                     [Identifier [] "c"] Asc FrameUnboundedPreceding)
 >                    "place"]
 >        (Tref [] "tbl" NoAlias)]
 
