@@ -43,6 +43,7 @@ modules.
 > import Data.List
 > import Data.Generics
 > import Debug.Trace
+> import Data.Char
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
@@ -298,7 +299,7 @@ check to see if it works
 
 > envLookupFns :: Environment -> String -> [FunctionPrototype]
 > envLookupFns env name =
->     filter (\(nm,_,_,_) -> nm == name) envGetAllFns
+>     filter (\(nm,_,_,_) -> map toLower nm == map toLower name) envGetAllFns
 >     where
 >     envGetAllFns =
 >         concat [envPrefixOperators env
