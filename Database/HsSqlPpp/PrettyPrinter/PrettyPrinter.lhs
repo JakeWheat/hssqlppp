@@ -116,37 +116,29 @@ Conversion routines - convert Sql asts into Docs
 >         text n <+> convTypeName t
 >         <+> maybeConv (\e -> text "default" <+> convExp e) def
 >         <+> hsep (map (\e -> (case e of
->                                 NullConstraint _ cn -> name cn <+> text "null"
->                                 NotNullConstraint _ cn -> name cn <+> text "not null"
+>                                 NullConstraint _ cn -> mname cn <+> text "null"
+>                                 NotNullConstraint _ cn -> mname cn <+> text "not null"
 >                                 RowCheckConstraint _ cn ew ->
->                                     name cn <+> text "check" <+> parens (convExp ew)
->                                 RowUniqueConstraint _ cn -> name cn <+> text "unique"
->                                 RowPrimaryKeyConstraint _ cn -> name cn <+> text "primary key"
+>                                     mname cn <+> text "check" <+> parens (convExp ew)
+>                                 RowUniqueConstraint _ cn -> mname cn <+> text "unique"
+>                                 RowPrimaryKeyConstraint _ cn -> mname cn <+> text "primary key"
 >                                 RowReferenceConstraint _ cn tb att ondel onupd ->
->                                     name cn <+>
+>                                     mname cn <+>
 >                                     text "references" <+> text tb
 >                                     <+> maybeConv (parens . text) att
 >                                     <+> text "on delete" <+> convCasc ondel
 >                                     <+> text "on update" <+> convCasc onupd
 >                         )) cons)
->       convCon (UniqueConstraint _ n c) =
->         name n <+> text "unique"
->         <+> parens (hcatCsvMap text c)
->       convCon (PrimaryKeyConstraint _ n p) =
->         name n <+>
->         text "primary key"
->         <+> parens (hcatCsvMap text p)
->       convCon (CheckConstraint _ n c) = name n <+> text "check" <+> parens (convExp c)
->       convCon (ReferenceConstraint _ n at tb rat ondel onupd) =
->         name n <+>
->         text "foreign key" <+> parens (hcatCsvMap text at)
->         <+> text "references" <+> text tb
->         <+> ifNotEmpty (parens . hcatCsvMap text) rat
->         <+> text "on delete" <+> convCasc ondel
->         <+> text "on update" <+> convCasc onupd
->       name n = if n == ""
->                  then empty
->                  else text "constraint" <+> text n
+
+> convStatement ca (AlterTable ann name act) =
+>     convPa ca ann <+>
+>     text "alter table" <+> text name
+>     <+> hcatCsvMap convAct act <> statementEnd
+>     where
+>       convAct (AlterColumnDefault _ nm def) =
+>           text "alter column" <+> text nm <+> text "set default" <+> convExp def
+>       convAct (AddConstraint _ con) =
+>           text "add constraint" <+> convCon con
 
 > convStatement ca (CreateSequence ann nm incr _ _ start cache) =
 >     convPa ca ann <+>
@@ -464,6 +456,29 @@ Conversion routines - convert Sql asts into Docs
 >                                  Restrict -> "restrict"
 
 == ddl
+
+> convCon :: Constraint -> Doc
+> convCon (UniqueConstraint _ n c) =
+>         mname n <+> text "unique"
+>         <+> parens (hcatCsvMap text c)
+> convCon (PrimaryKeyConstraint _ n p) =
+>         mname n <+>
+>         text "primary key"
+>         <+> parens (hcatCsvMap text p)
+> convCon (CheckConstraint _ n c) = mname n <+> text "check" <+> parens (convExp c)
+> convCon (ReferenceConstraint _ n at tb rat ondel onupd) =
+>         mname n <+>
+>         text "foreign key" <+> parens (hcatCsvMap text at)
+>         <+> text "references" <+> text tb
+>         <+> ifNotEmpty (parens . hcatCsvMap text) rat
+>         <+> text "on delete" <+> convCasc ondel
+>         <+> text "on update" <+> convCasc onupd
+
+> mname :: [Char] -> Doc
+> mname n = if n == ""
+>           then empty
+>           else text "constraint" <+> text n
+
 
 > convReturning :: Maybe SelectList -> Doc
 > convReturning l = case l of

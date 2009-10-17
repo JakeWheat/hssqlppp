@@ -84,7 +84,8 @@ SEM Statement
     | CaseStatement ContinueStatement Copy CopyData DropFunction
       DropSomething Execute ExecuteInto
       If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
-      WhileStatement Set CreateLanguage Notify CreateSequence AlterSequence
+      WhileStatement Set CreateLanguage Notify CreateSequence
+      AlterSequence AlterTable
         lhs.envUpdates = []
         lhs.libUpdates = []
 

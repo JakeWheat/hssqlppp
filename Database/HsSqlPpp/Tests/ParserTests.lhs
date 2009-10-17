@@ -726,6 +726,13 @@ create table tests
 >       [CreateTableAs [] "tbl"
 >        (selectE (SelectList [] [SelExp [] (IntegerLit [] 1)] []))]
 
+
+>      ,p "alter table a alter column b set default 1;"
+>       [AlterTable [] "a" [AlterColumnDefault [] "b" (IntegerLit [] 1)]]
+
+>      ,p "alter table a add constraint unique(b);"
+>       [AlterTable [] "a" [AddConstraint [] (UniqueConstraint [] "" ["b"])]]
+
 other creates
 
 >      ,p "create view v1 as\n\

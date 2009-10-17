@@ -52,6 +52,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,CopySource (..)
    ,AttributeDef (..)
    ,RowConstraint (..)
+   ,AlterTableAction(..)
    ,Constraint (..)
    ,TypeAttributeDef (..)
    ,ParamDef (..)
@@ -181,6 +182,9 @@ DATA Statement
                   name : String
                   atts : AttributeDefList
                   cons : ConstraintList
+    | AlterTable ann:Annotation
+                 name : String
+                 actions : {[AlterTableAction]}
     | CreateSequence ann:Annotation
                      name:String
                      incr:Integer
@@ -278,11 +282,6 @@ DATA Statement
 
     | Set ann:Annotation name:String values:{[SetValue]}
     | Notify ann:Annotation name:String
-
-DATA SetValue
-    | SetStr ann:Annotation String
-    | SetId ann:Annotation String
-    | SetNum ann:Annotation Double
 
 -- =============================================================================
 
@@ -397,6 +396,16 @@ DATA Constraint | UniqueConstraint ann:Annotation name:String StringList
 DATA TypeAttributeDef | TypeAttDef ann:Annotation
                                    name : String
                                    typ : TypeName
+
+DATA AlterTableAction | AlterColumnDefault ann:Annotation
+                                           nm : String
+                                           def : Expression
+                      | AddConstraint ann:Annotation
+                                      con: Constraint
+DATA SetValue
+    | SetStr ann:Annotation String
+    | SetId ann:Annotation String
+    | SetNum ann:Annotation Double
 
 DATA ParamDef | ParamDef ann:Annotation name:String typ:TypeName
               | ParamDefTp ann:Annotation typ:TypeName
@@ -622,7 +631,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
                MaybeTableRef TableRef OnExpr LiftFlavour MaybeSelectList
-               SetValue TableAlias FrameClause
+               SetValue TableAlias FrameClause AlterTableAction
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
 

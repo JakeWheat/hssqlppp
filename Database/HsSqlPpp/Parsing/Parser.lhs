@@ -157,7 +157,8 @@ parse a statement
 >                ,createLanguage]
 >     ,keyword "alter" *>
 >              choice [
->                 alterSequence]
+>                 alterSequence
+>                ,alterTable]
 >     ,keyword "drop" *>
 >              choice [
 >                 dropSomething
@@ -406,7 +407,7 @@ multiple rows to insert and insert from select statements
 >     --attribute parser, so we need the swap to feed them in the
 >     --right order into createtable
 >     readAttsAndCons = parens (swap <$> multiPerm
->                                          (try tableConstr)
+>                                          (try tableConstraint)
 >                                          tableAtt
 >                                          (symbol ","))
 >                       where swap (a,b) = (b,a)
@@ -416,26 +417,6 @@ multiple rows to insert and insert from select statements
 >                <*> typeName
 >                <*> tryOptionMaybe (keyword "default" *> expr)
 >                <*> many rowConstraint
->     tableConstr = do
->                 p <- pos
->                 cn <- option "" (keyword "constraint" *> idString)
->                 choice [
->                    UniqueConstraint p cn
->                    <$> try (keyword "unique" *> columnNameList)
->                    ,PrimaryKeyConstraint p cn
->                    <$> try (keyword "primary" *> keyword "key"
->                                     *> choice [
->                                             (:[]) <$> idString
->                                            ,parens (commaSep1 idString)])
->                    ,CheckConstraint p cn
->                    <$>try (keyword "check" *> parens expr)
->                    ,ReferenceConstraint p cn
->                    <$> try (keyword "foreign" *> keyword "key"
->                             *> parens (commaSep1 idString))
->                    <*> (keyword "references" *> idString)
->                    <*> option [] (parens $ commaSep1 idString)
->                    <*> onDelete
->                    <*> onUpdate]
 >     rowConstraint = do
 >        p <- pos
 >        cn <- option "" (keyword "constraint" *> idString)
@@ -451,11 +432,60 @@ multiple rows to insert and insert from select statements
 >          <*> onDelete
 >          <*> onUpdate
 >          ]
->     onDelete = onSomething "delete"
->     onUpdate = onSomething "update"
->     onSomething k = option Restrict $ try $ keyword "on"
->                    *> keyword k *> cascade
 
+> onDelete,onUpdate :: ParsecT [Token] ParseState Identity Cascade
+> onDelete = onSomething "delete"
+> onUpdate = onSomething "update"
+> onSomething :: String -> ParsecT [Token] ParseState Identity Cascade
+> onSomething k = option Restrict $ try $ keyword "on"
+>                 *> keyword k *> cascade
+
+> tableConstraint :: ParsecT [Token] ParseState Identity Constraint
+> tableConstraint = do
+>                 p <- pos
+>                 cn <- option "" (keyword "constraint" *> option "" conName)
+>                 choice [
+>                    UniqueConstraint p cn
+>                    <$> try (keyword "unique" *> optParens columnNameList)
+>                    ,PrimaryKeyConstraint p cn
+>                    <$> try (keyword "primary" *> keyword "key"
+>                                     *> choice [
+>                                             (:[]) <$> idString
+>                                            ,parens (commaSep1 idString)])
+>                    ,CheckConstraint p cn
+>                    <$>try (keyword "check" *> parens expr)
+>                    ,ReferenceConstraint p cn
+>                    <$> try (keyword "foreign" *> keyword "key"
+>                             *> parens (commaSep1 idString))
+>                    <*> (keyword "references" *> idString)
+>                    <*> option [] (parens $ commaSep1 idString)
+>                    <*> onDelete
+>                    <*> onUpdate]
+>                 where
+>                   conName = try $ do
+>                             x <- idString
+>                             if map toLower x `elem` [
+>                                     "unique"
+>                                    ,"primary"
+>                                    ,"check"
+>                                    ,"foreign"
+>                                    ,"references"]
+>                               then fail "not keyword"
+>                               else return x
+
+
+> alterTable :: ParsecT [Token] ParseState Identity Statement
+> alterTable = AlterTable <$> (pos <* keyword "table" <* optional (keyword "only"))
+>                         <*> idString
+>                         <*> many1 action
+>              where action = choice [
+>                              AlterColumnDefault
+>                              <$> (pos <* keyword "alter" <* keyword "column")
+>                              <*> idString
+>                              <*> (keyword "set" *> keyword "default" *> expr)
+>                             ,AddConstraint
+>                              <$> (pos <* keyword "add")
+>                              <*> tableConstraint]
 
 > createType :: ParsecT [Token] ParseState Identity Statement
 > createType = CreateType

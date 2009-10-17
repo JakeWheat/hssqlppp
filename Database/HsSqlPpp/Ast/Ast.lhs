@@ -36,6 +36,7 @@ This is the public module for the ast nodes.
 >     ,AttributeDef (..)
 >     ,RowConstraint (..)
 >     ,Constraint (..)
+>     ,AlterTableAction(..)
 >     ,TypeAttributeDef (..)
 >     ,TypeName (..)
 >     ,DropType (..)
