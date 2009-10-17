@@ -757,6 +757,13 @@ other creates
 >      ,p "alter sequence s owned by a.b;"
 >         [AlterSequence [] "s" "a.b"]
 
+>      ,p "create trigger tr\n\
+>          \after insert or delete on tb\n\
+>          \for each statement\n\
+>          \execute procedure fb();"
+>         [CreateTrigger [] "tr" TriggerAfter [TInsert,TDelete] "tb" EachStatement "fb" []]
+
+
 
 drops
 
@@ -947,7 +954,7 @@ reference row, table
 >      ,p "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
->         \ foreign key (x,y) references t2 on delete cascade on update cascade\n\
+>         \ foreign key (x,y) references t2 on update cascade on delete cascade\n\
 >         \);"
 >         [CreateTable [] "t1" [att "x" "int"
 >                           ,att "y" "int"]

@@ -73,6 +73,9 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,FrameClause(..)
    ,InList (..)
    ,LiftFlavour(..)
+   ,TriggerWhen(..)
+   ,TriggerEvent(..)
+   ,TriggerFire(..)
    ,StatementList
    ,ExpressionListStatementListPairList
    ,ExpressionListStatementListPair
@@ -221,6 +224,14 @@ DATA Statement
                    check : MaybeBoolExpression
     | CreateLanguage ann:Annotation
                      name:String
+    | CreateTrigger ann:Annotation
+                    name:String
+                    wh : TriggerWhen
+                    events: {[TriggerEvent]}
+                    tbl : String
+                    firing : TriggerFire
+                    fnName : String
+                    fnArgs : {[Expression]}
     -- ifexists (name,argtypes)* cascadeorrestrict
     | DropFunction ann:Annotation
                    ifE : IfExists
@@ -406,6 +417,10 @@ DATA SetValue
     | SetStr ann:Annotation String
     | SetId ann:Annotation String
     | SetNum ann:Annotation Double
+
+DATA TriggerWhen | TriggerBefore | TriggerAfter
+DATA TriggerEvent | TInsert| TUpdate | TDelete
+DATA TriggerFire | EachRow | EachStatement
 
 DATA ParamDef | ParamDef ann:Annotation name:String typ:TypeName
               | ParamDefTp ann:Annotation typ:TypeName
@@ -632,6 +647,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                CaseExpressionListExpressionPairList CaseExpressionList
                MaybeTableRef TableRef OnExpr LiftFlavour MaybeSelectList
                SetValue TableAlias FrameClause AlterTableAction
+               TriggerWhen TriggerEvent TriggerFire
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
 

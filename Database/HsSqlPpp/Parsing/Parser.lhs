@@ -154,7 +154,8 @@ parse a statement
 >                ,createFunction
 >                ,createView
 >                ,createDomain
->                ,createLanguage]
+>                ,createLanguage
+>                ,createTrigger]
 >     ,keyword "alter" *>
 >              choice [
 >                 alterSequence
@@ -459,8 +460,8 @@ multiple rows to insert and insert from select statements
 >                             *> parens (commaSep1 idString))
 >                    <*> (keyword "references" *> idString)
 >                    <*> option [] (parens $ commaSep1 idString)
->                    <*> onDelete
->                    <*> onUpdate]
+>                    <*> onUpdate
+>                    <*> onDelete]
 >                 where
 >                   conName = try $ do
 >                             x <- idString
@@ -665,6 +666,42 @@ variable declarations in a plpgsql function
 >                  <*> (optional (keyword "procedural") *>
 >                       keyword "language" *>
 >                       idString)
+
+> createTrigger :: ParsecT [Token] ParseState Identity Statement
+> createTrigger =
+>   CreateTrigger <$> pos
+>                 <*> (keyword "trigger" *> idString)
+>                 <*> twhen
+>                 <*> tevents
+>                 <*> (keyword "on" *> idString)
+>                 <*> tfiring
+>                 <*> (keyword "execute" *> keyword "procedure"
+>                      *> idString)
+>                 <*> parens (commaSep expr)
+>   where
+>     twhen = choice [TriggerBefore <$ keyword "before"
+>                    ,TriggerAfter <$ keyword "after"]
+>     tevents :: ParsecT [Token] ParseState Identity [TriggerEvent]
+>     tevents = sepBy1 (choice [
+>                TInsert <$ keyword "insert"
+>               ,TUpdate <$ keyword "update"
+>               ,TDelete <$ keyword "delete"]) (keyword "or")
+>     tfiring = option EachStatement
+>                 (keyword "for" *> optional (keyword "each") *>
+>                 choice [
+>                   EachRow <$ keyword "row"
+>                  ,EachStatement <$ keyword "statement"])
+
+[ FOR [ EACH ] { ROW | STATEMENT } ]
+
+    | CreateTrigger ann:Annotation
+                    name:String
+                    wh : TriggerWhen
+                    events: {[TriggerEvent]}
+                    tbl : String
+                    firing : TriggerFire
+                    fnName : String
+                    fnArgs : {[Expression]}
 
 ================================================================================
 

@@ -42,6 +42,9 @@ This is the public module for the ast nodes.
 >     ,DropType (..)
 >     ,IfExists (..)
 >     ,Cascade (..)
+>     ,TriggerWhen(..)
+>     ,TriggerEvent(..)
+>     ,TriggerFire(..)
 >      -- ** functions
 >     ,FnBody (..)
 >     ,ParamDef (..)

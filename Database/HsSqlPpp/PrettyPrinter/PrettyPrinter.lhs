@@ -25,6 +25,7 @@ Not much other comments, since it all should be pretty self evident.
 > import Text.PrettyPrint
 > import Data.Maybe
 > import Data.Char
+> import Data.List
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
@@ -241,9 +242,26 @@ Conversion routines - convert Sql asts into Docs
 >           (map (\(TypeAttDef _ n t) -> text n <+> convTypeName t)  atts)))
 >     $+$ rparen <> statementEnd
 
-> convStatement _ (CreateLanguage _ name) =
+> convStatement ca (CreateLanguage ann name) =
+>     convPa ca ann <+>
 >     text "create language" <+> text name <> statementEnd
 
+> convStatement ca (CreateTrigger ann name wh events tbl firing fnName fnArgs) =
+>     convPa ca ann <+>
+>     text "create trigger" <+> text name
+>     <+> text (case wh of
+>                       TriggerBefore -> "before"
+>                       TriggerAfter -> "after")
+>     <+> hcat (map text $ intersperse " or " $ map (\e -> case e of
+>                                                    TInsert -> "insert"
+>                                                    TUpdate -> "update"
+>                                                    TDelete -> "delete") events)
+>     <+> text "on" <+> text tbl
+>     <+> text "for" <+> text (case firing of
+>                                         EachRow -> "row"
+>                                         EachStatement -> "statement")
+>     <+> text "execute procedure" <+> text fnName
+>     <> parens (hcatCsvMap convExp fnArgs) <> statementEnd
 
 == plpgsql
 
@@ -471,8 +489,8 @@ Conversion routines - convert Sql asts into Docs
 >         text "foreign key" <+> parens (hcatCsvMap text at)
 >         <+> text "references" <+> text tb
 >         <+> ifNotEmpty (parens . hcatCsvMap text) rat
->         <+> text "on delete" <+> convCasc ondel
 >         <+> text "on update" <+> convCasc onupd
+>         <+> text "on delete" <+> convCasc ondel
 
 > mname :: [Char] -> Doc
 > mname n = if n == ""
@@ -577,12 +595,12 @@ Conversion routines - convert Sql asts into Docs
 >   <+> parens (convExp $ head $ tail args)
 > convExp (ScalarSubQuery _ s) = parens (convSelectExpression True True s)
 > convExp (NullLit _) = text "null"
-> convExp (WindowFn _ fn partition order asc frm) =
+> convExp (WindowFn _ fn part order asc frm) =
 >   convExp fn <+> text "over"
 >   <+> (if hp || ho
 >        then
 >           parens ((if hp
->                      then text "partition by" <+> csvExp partition
+>                      then text "partition by" <+> csvExp part
 >                      else empty)
 >                   <+> (if ho
 >                          then text "order by" <+> csvExp order
@@ -591,7 +609,7 @@ Conversion routines - convert Sql asts into Docs
 >                   <+> convFrm)
 >        else empty)
 >   where
->     hp = not (null partition)
+>     hp = not (null part)
 >     ho = not (null order)
 >     convFrm = case frm of
 >                 FrameUnboundedPreceding -> text "range unbounded preceding"

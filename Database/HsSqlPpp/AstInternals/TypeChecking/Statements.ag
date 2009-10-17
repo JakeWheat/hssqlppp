@@ -85,7 +85,7 @@ SEM Statement
       DropSomething Execute ExecuteInto
       If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement Set CreateLanguage Notify CreateSequence
-      AlterSequence AlterTable
+      AlterSequence AlterTable CreateTrigger
         lhs.envUpdates = []
         lhs.libUpdates = []
 
