@@ -42,7 +42,7 @@ modules.
 > import Control.Monad
 > import Data.List
 > import Data.Generics
-> --import Debug.Trace
+> import Debug.Trace
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils

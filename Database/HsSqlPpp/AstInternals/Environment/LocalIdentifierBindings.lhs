@@ -176,14 +176,13 @@ moment.
 
 > libLookupID :: LocalIdentifierBindings -> String -> Either [TypeError] Type
 > libLookupID env iden1 =
->   {-trace ("----------------------------------\nlookup " ++ iden1) $-}
 >   envLookupID' $ identifierTypes env
 >   where
 >     (correlationName,iden) = splitIdentifier $ map toLower iden1
 >     envLookupID' (its:itss) =
 >       case lookup correlationName its of
 >         Nothing -> envLookupID' itss
->         Just s -> case filter (\(n,_) -> n==iden) s of
+>         Just s -> case filter (\(n,_) -> map toLower n==iden) s of
 >                     [] -> if correlationName == ""
 >                             then envLookupID' itss
 >                             else Left [UnrecognisedIdentifier $ correlationName ++ "." ++ iden]

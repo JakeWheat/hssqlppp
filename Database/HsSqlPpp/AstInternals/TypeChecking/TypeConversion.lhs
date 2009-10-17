@@ -23,7 +23,8 @@ checkAssignmentValid - pass in source type and target type, returns
 >                        findCallMatch
 >                       ,resolveResultSetType
 >                       ,checkAssignmentValid
->                      ) where
+>                       ,compositesCompatible
+>                       ) where
 
 > import Data.Maybe
 > import Data.List
@@ -495,6 +496,12 @@ cast empty array, where else can an empty array work?
 >        then Right ()
 >        else Left [IncompatibleTypes to from]
 
+> compositesCompatible :: Environment -> Type -> Type -> Bool
+> compositesCompatible env from to =
+>     if castableFromTo env ImplicitCastContext from to
+>        then True
+>        else False
+
 ================================================================================
 
 = castable function
@@ -525,8 +532,10 @@ wrapper around the catalog to add a bunch of extra valid casts
 >            _ -> False)
 >   -- check unboxing: wrapped single attribute
 >   || recurseTransFrom (unboxedSingleType from)
+>   || recurseTransTo (unboxedSingleType to)
 >   -- check unboxing: wrapped composite
->   || recurseTransFrom (unboxedCompositeType from)
+>   || recurseTransFrom (unboxedSetOfType from)
+>   || recurseTransTo (unboxedSetOfType to)
 >   -- check composites compatible by comparing attribute types
 >   || case (getCompositeTypes from
 >           ,getCompositeTypes to) of
@@ -549,11 +558,11 @@ wrapper around the catalog to add a bunch of extra valid casts
 >     unboxedSingleType (SetOfType (CompositeType [(_,t)])) = Just t
 >     unboxedSingleType _ = Nothing
 
->     unboxedCompositeType (SetOfType a@(CompositeType _)) = Just a
->     unboxedCompositeType (SetOfType a@(NamedCompositeType _)) = Just a
->     unboxedCompositeType _ = Nothing
+>     unboxedSetOfType (SetOfType a) = Just a
+>     unboxedSetOfType _ = Nothing
 
 >     recurseTransFrom = maybe False (flip (castableFromTo env cc) to)
+>     recurseTransTo = maybe False (castableFromTo env cc from)
 
 > replaceWithBase :: Environment -> Type -> Type
 > replaceWithBase env t@(DomainType _) = envDomainBaseType env t

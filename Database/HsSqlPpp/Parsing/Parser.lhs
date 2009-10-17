@@ -203,16 +203,16 @@ this recursion needs refactoring cos it's a mess
 >         selQuerySpec = Select <$> (pos <* keyword "select")
 >                    <*> option Dupes (Distinct <$ keyword "distinct")
 >                    <*> selectList
->                    <*> tryOptionMaybe from
->                    <*> tryOptionMaybe whereClause
+>                    <*> optionMaybe from
+>                    <*> optionMaybe whereClause
 >                    <*> option [] groupBy
->                    <*> tryOptionMaybe having
+>                    <*> optionMaybe having
 >                    <*> option [] orderBy
 >                    <*> option Asc (choice [
 >                                     Asc <$ keyword "asc"
 >                                    ,Desc <$ keyword "desc"])
->                    <*> tryOptionMaybe limit
->                    <*> tryOptionMaybe offset
+>                    <*> optionMaybe limit
+>                    <*> optionMaybe offset
 >         from = keyword "from" *> tref
 >         groupBy = keyword "group" *> keyword "by"
 >                   *> commaSep1 expr
@@ -294,6 +294,7 @@ this recursion needs refactoring cos it's a mess
 >                              ,"right"
 >                              ,"full"
 >                              ,"cross"
+>                              ,"join"
 >                              ,"natural"
 >                              ,"order"
 >                              ,"group"
@@ -671,11 +672,16 @@ or after the whole list
 >             SetOfTypeName <$> pos <*> (keyword "setof" *> typeName)
 >            ,do
 >              p <- pos
->              s <- map toLower <$> idString
+>              s <- map toLower <$> pTypeNameString
 >              choice [
 >                PrecTypeName p s <$> parens integer
 >               ,ArrayTypeName p (SimpleTypeName p s) <$ symbol "[" <* symbol "]"
 >               ,return $ SimpleTypeName p s]]
+>            where
+>              --todo: add special cases for the other type names with spaces in them
+>              pTypeNameString = ("double precision" <$ try (keyword "double"
+>                                                            <* keyword "precision"))
+>                              <|> idString
 
 > cascade :: ParsecT [Token] ParseState Identity Cascade
 > cascade = option Restrict (choice [

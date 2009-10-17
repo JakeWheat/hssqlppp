@@ -90,6 +90,7 @@ TODO: move all of this into find call match. Don't know why it's separate
 -}
 typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] Type
 typeCheckFunCall env fnName' argsType =
+    {-trace ("typecheckfncall " ++ fnName' ++ show argsType) $-}
     dependsOnRTpe argsType $
       case fnName of
               --"!arrayCtor" ->
@@ -113,13 +114,10 @@ typeCheckFunCall env fnName' argsType =
                     -- any implicit casts to functions on composite types
                     -- first, then we can use the anonymous record type on
                     -- any composite
-              _ | let isRowCtor t = case t of
-                                      AnonymousRecordType _ -> True
-                                      _ -> False
-                  in fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
+              _ | fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
                          && length argsType == 2
-                         && all isRowCtor argsType ->
-                    checkRowTypesMatch (head argsType) (head $ tail argsType)
+                         && all isCompositeOrSetOfCompositeType argsType
+                         && compositesCompatible env (head argsType) (head $ tail argsType) -> Right typeBool
               --checked for all special cases, so run general case now
               s -> lookupFn s argsType
     where

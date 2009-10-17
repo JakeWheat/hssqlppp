@@ -92,6 +92,8 @@ some operator tests
 >      ,p "'stuff'::text" (Cast [] (stringQ "stuff") (SimpleTypeName [] "text"))
 >      ,p "245::float(24)" (Cast [] (IntegerLit [] 245) (PrecTypeName [] "float" 24))
 
+>      ,p "245::double precision" (Cast [] (IntegerLit [] 245) (SimpleTypeName [] "double precision"))
+
 >      ,p "a between 1 and 3"
 >         (FunCall [] "!between" [Identifier [] "a", IntegerLit [] 1, IntegerLit [] 3])
 >      ,p "cast(a as text)"

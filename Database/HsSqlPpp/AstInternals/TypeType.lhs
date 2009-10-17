@@ -272,6 +272,9 @@ These may indicate that the haskell type system isn't being used very well.
 > isCompositeType (PgRecord _) = True
 > isCompositeType _ = False
 
+> isCompositeOrSetOfCompositeType :: Type -> Bool
+> isCompositeOrSetOfCompositeType (SetOfType a) = isCompositeType a
+> isCompositeOrSetOfCompositeType a = isCompositeType a
 
 > unwrapArray :: Type -> Either [TypeError] Type
 > unwrapArray (ArrayType t) = Right t
