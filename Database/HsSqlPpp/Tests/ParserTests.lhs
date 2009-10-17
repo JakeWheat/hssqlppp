@@ -300,6 +300,10 @@ test a whole bunch more select statements
 >      ,p "select a.* from tbl a;"
 >       [SelectStatement [] $ selectFrom (selIL ["a.*"]) (Tref [] "tbl" (TableAlias "a"))]
 
+>      ,p "select a.* from tbl a(b,c);"
+>       [SelectStatement [] $ selectFrom (selIL ["a.*"]) (Tref [] "tbl" (FullAlias "a" ["b","c"]))]
+
+
 >      ,p "select a from b inner join c on b.a=c.a;"
 >       [SelectStatement [] $ selectFrom
 >        (selIL ["a"])
@@ -344,6 +348,75 @@ test a whole bunch more select statements
 >       [SelectStatement [] $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref [] (Tref [] "b" NoAlias) Natural Inner (Tref [] "c" NoAlias) Nothing NoAlias)]
+
+>      ,p "select x from ((a cross join b) cross join c);"
+>        [SelectStatement []
+>         (selectFrom (selIL ["x"])
+>          (JoinedTref []
+>          (JoinedTref []
+>           (Tref [] "a" NoAlias)
+>            Unnatural Cross
+>           (Tref [] "b" NoAlias)
+>           Nothing NoAlias)
+>          Unnatural Cross
+>          (Tref [] "c" NoAlias)
+>          Nothing NoAlias))]
+
+>      ,p "select x from (a cross join (b cross join c));"
+>        [SelectStatement []
+>         (selectFrom (selIL ["x"])
+>          (JoinedTref []
+>           (Tref [] "a" NoAlias)
+>           Unnatural Cross
+>           (JoinedTref []
+>            (Tref [] "b" NoAlias)
+>            Unnatural Cross
+>            (Tref [] "c" NoAlias)
+>            Nothing NoAlias)
+>           Nothing NoAlias))]
+
+>      ,p "select x from ((a cross join b) cross join c);"
+>        [SelectStatement []
+>         (selectFrom (selIL ["x"])
+>          (JoinedTref []
+>          (JoinedTref []
+>           (Tref [] "a" NoAlias)
+>            Unnatural Cross
+>           (Tref [] "b" NoAlias)
+>           Nothing NoAlias)
+>          Unnatural Cross
+>          (Tref [] "c" NoAlias)
+>          Nothing NoAlias))]
+
+>      ,p "select x from (a cross join b) cross join c;"
+>        [SelectStatement []
+>         (selectFrom (selIL ["x"])
+>          (JoinedTref []
+>          (JoinedTref []
+>           (Tref [] "a" NoAlias)
+>            Unnatural Cross
+>           (Tref [] "b" NoAlias)
+>           Nothing NoAlias)
+>          Unnatural Cross
+>          (Tref [] "c" NoAlias)
+>          Nothing NoAlias))]
+
+>      ,p "select x from ((a cross join b) cross join c) cross join d;"
+>        [SelectStatement []
+>         (selectFrom (selIL ["x"])
+>          (JoinedTref []
+>           (JoinedTref []
+>            (JoinedTref []
+>             (Tref [] "a" NoAlias)
+>             Unnatural Cross
+>             (Tref [] "b" NoAlias)
+>             Nothing NoAlias)
+>            Unnatural Cross
+>            (Tref [] "c" NoAlias)
+>            Nothing NoAlias)
+>           Unnatural Cross
+>           (Tref [] "d" NoAlias)
+>           Nothing NoAlias))]
 
 
 >      ,p "select a from b\n\

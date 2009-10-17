@@ -399,7 +399,7 @@ Conversion routines - convert Sql asts into Docs
 >   where
 >     convTref (Tref _ f a) = text f <+> convTrefAlias a
 >     convTref (JoinedTref _ t1 nat jt t2 ex a) =
->         convTref t1
+>         parens (convTref t1
 >         $+$ (case nat of
 >                       Natural -> text "natural"
 >                       Unnatural -> empty)
@@ -412,7 +412,7 @@ Conversion routines - convert Sql asts into Docs
 >         <+> text "join"
 >         <+> convTref t2
 >         <+> maybeConv (nest 2 . convJoinExpression) ex
->         <+> convTrefAlias a
+>         <+> convTrefAlias a)
 >         where
 >           convJoinExpression (JoinOn _ e) = text "on" <+> convExp e
 >           convJoinExpression (JoinUsing _ ids) =

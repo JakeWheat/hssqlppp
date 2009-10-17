@@ -192,32 +192,16 @@ this recursion needs refactoring cos it's a mess
 
 > selectExpression :: ParsecT [Token] ParseState Identity SelectExpression
 > selectExpression =
->   choice [selectE, selectEP, values]
+>   buildExpressionParser combTable selFactor
 >   where
->     combinedSel s1 = do
->        p1 <- pos
->        choice $ map (\(c,p) -> CombineSelect p1 c s1 <$> (p *> selectExpression))
->                     [(Except, keyword "except")
->                     ,(Intersect, keyword "intersect")
->                     ,(UnionAll, try (keyword "union" *> keyword "all"))
->                     ,(Union, keyword "union")]
->     selectEP = try $ do
->                s1 <- parens selectExpression
->                choice [
->                       combinedSel s1
->                      ,return s1]
->     selectE =
->       let px = do
->                p <- pos
->                keyword "select"
->                s1 <- selQuerySpec p
->                choice [
->                  combinedSel s1
->                 ,return s1]
->       in px
->       where
->         selQuerySpec p = Select p
->                    <$> option Dupes (Distinct <$ keyword "distinct")
+>         selFactor = (try $ parens selectExpression) <|> selQuerySpec <|> values
+>         combTable = [map (\(c,p) -> Infix (CombineSelect <$> pos <*> (c <$ p)) AssocLeft)
+>                         [(Except, keyword "except")
+>                         ,(Intersect, keyword "intersect")
+>                         ,(UnionAll, try (keyword "union" *> keyword "all"))
+>                         ,(Union, keyword "union")]]
+>         selQuerySpec = Select <$> (pos <* keyword "select")
+>                    <*> option Dupes (Distinct <$ keyword "distinct")
 >                    <*> selectList
 >                    <*> tryOptionMaybe from
 >                    <*> tryOptionMaybe whereClause
@@ -245,9 +229,10 @@ this recursion needs refactoring cos it's a mess
 >         -- a sub select e.g. select a from (select b from c)
 >         --  - these are handled in tref
 >         -- then cope with joins recursively using joinpart below
->         tref = let p = threadOptionalSuffix getFirstTref joinPart
->                in (try $ parens p) <|> p
->         getFirstTref = do
+>         tref = buildExpressionParser [] trefFactor
+>         trefFactor = threadOptionalSuffix (nonJoinTref <|> try (parens tref)) joinPart <|> parens tref
+>         --tref = optParens (threadOptionalSuffix (try (parens tref) <|> nonJoinTref) joinPart)
+>         nonJoinTref = try $ optParens $ do
 >                   p2 <- pos
 >                   choice [
 >                          SubTref p2
@@ -259,7 +244,6 @@ this recursion needs refactoring cos it's a mess
 >                         ,Tref p2
 >                          <$> nkwid
 >                          <*> palias]
->         palias = option NoAlias (TableAlias <$> ((optional (keyword "as")) *> nkwid))
 >         --joinpart: parse a join after the first part of the tableref
 >         --(which is a table name, aliased table name or subselect) -
 >         --takes this tableref as an arg so it can recurse to multiple
@@ -284,6 +268,10 @@ this recursion needs refactoring cos it's a mess
 >                 ,Just <$> (JoinUsing <$> pos <*> (keyword "using" *> columnNameList))
 >                 ,return Nothing]
 >              <*> palias
+>         palias = option NoAlias
+>                    (optionalSuffix
+>                       TableAlias ((optional (keyword "as")) *> nkwid)
+>                       FullAlias () (parens $ commaSep1 idString))
 >         nkwid = try $ do
 >                  x <- idString
 >                  --avoid all these keywords as aliases since they can
@@ -314,8 +302,11 @@ this recursion needs refactoring cos it's a mess
 >                              ,"from"]
 >                    then fail "not keyword"
 >                    else return x
->     values = Values <$> (pos <* keyword "values") <*> commaSep1 (parens $ commaSep1 expr)
+>         values = Values <$> (pos <* keyword "values") <*> commaSep1 (parens $ commaSep1 expr)
 
+> optParens :: ParsecT [Token] ParseState Identity a
+>           -> ParsecT [Token] ParseState Identity a
+> optParens p = try (parens p) <|> p
 
 = insert, update and delete
 
