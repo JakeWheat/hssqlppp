@@ -98,8 +98,11 @@ typeCheckFunCall env fnName' argsType =
     {-trace ("typecheckfncall " ++ fnName' ++ show argsType) $-}
     dependsOnRTpe argsType $
       case fnName of
-              --"!arrayCtor" ->
-              --      ArrayType <$> resolveResultSetType env argsType
+              "count" -> -- not quite sure how this is suppose to work,
+                         -- the counts in the pg catalog accept either
+                         -- no args, or one arg of type any, but you can call
+                         -- count with multiple arguments?
+                         return typeBigInt
               "!between" -> do
                     f1 <- lookupFn ">=" [argsType !! 0, argsType !! 1]
                     f2 <- lookupFn "<=" [argsType !! 0, argsType !! 2]

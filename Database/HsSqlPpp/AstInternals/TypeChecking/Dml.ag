@@ -183,10 +183,10 @@ checkRelationExists env tbl =
 checkColumnConsistency :: Environment ->  String -> [String] -> [(String,Type)]
                        -> Either [TypeError] [(String,Type)]
 checkColumnConsistency env tbl cols' insNameTypePairs = do
-  ttcols <- envCompositePublicAttrs env [] tbl
+  ttcols <- lowerize <$> envCompositePublicAttrs env [] tbl
   let cols = if null cols'
                then map fst ttcols
-               else cols'
+               else map (map toLower) cols'
   errorWhen (length insNameTypePairs /= length cols) [WrongNumberOfColumns]
   let nonMatchingColumns = cols \\ map fst ttcols
   errorWhen (not $ null nonMatchingColumns) $
@@ -202,5 +202,7 @@ checkColumnConsistency env tbl cols' insNameTypePairs = do
              map (\(_,b,c) -> checkAssignmentValid env c b) typeTriples
   liftErrors errs
   return targetNameTypePairs
+  where
+    lowerize = map (\(a,b) -> (map toLower a,b))
 
 }

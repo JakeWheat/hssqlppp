@@ -1,17 +1,53 @@
-= immediate todos:
+rough todo for next release:
+work on catalog type and fns: diffs, deconstruct, to help with testing
+  rename to catalog, other stuff from below?
+add roundtrip tests: read a sql file in and construct catalog, then
+   load sql file into pg and read catalog from pg and check for
+   equality
+add extensions to make this work with chaos sql: need to add
+   extensions for triggers and similar which are created inside
+   function calls, also add pg constraints to catalog and type
+   checking, think about adding the extended constraint system
+check associativity of combine selects and join trefs without parens -
+   write tests using pg_dump output
+some work on sql types: change the types of nodes to either [typeerror]
+   type and follow through the code changes to support this
+some work on error handling: try to add a lot better error reporting:
+   have a few errors being ignored rather than added to the aast, also
+   try to change all the calls to error into eithers to be added to
+   the aast
+ids in joins issue
+not not parsing issue
+count(distinct ...) parsing
+redo order by parsing/ast to add direction to each element
+fix up checksource and annotate source - sort out env and initial
+   database, etc. (and do idem/update stuff for annotate source)
+work on haddock
+do html overview and examples docs
+write some notes on hacking: source overview rewrite, file overview
+   rewrites, and rough howto on adding new constructs: altering
+   parser, altering ast and altering type checking process
+typecheck old and new pseudo records in trigger functions
 
-== for next release
-fix join issues
+
+TODO: sort out stuff below here
+
+--------------------------------------------
+fix join issues - identifiers not working in large chains of joins
 support multiple files in annotate source and check source
 match pgdump output for adding explicit parens e.g. in select unions
    and table refs, add tests for associativity in the absence of
    parens
-get chaos pgdump output parsing and partially type checking
 tidy up code and docs as usual - lots of work needed on type checking
    code
 redo catalog stuff (see below)
 find some way to produce documentation: want motivation, examples,
    etc. in nice html
+get chaos pgdump output parsing and partially type checking, todo:
+  two parsing issues: not not, and count(distinct *)
+  type checking issues exposed:
+    old,new in trigger functions
+
 
 
 ================================================================================
@@ -26,8 +62,8 @@ fix catalog type, lots of work to make more robust:
   do uniqueness testing e.g. disallow two tables with same name, two
    attributes with same name, etc.
 fix tests using new catalog approach: don't want to have tests which
-use sql to alter catalog then use sql to test the catalog changes have
-   been made - use separate tests (more unit-y tests)
+   use sql to alter catalog then use sql to test the catalog changes
+   have been made - use separate tests (more unit-y tests)
 to pg roundtrip catalog test: load with one or more sql files, produce
    a catalog diff, then load the sql into pg and read the catalog from
    pg, compare that the read catalog changes are the same as what the
