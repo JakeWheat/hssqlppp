@@ -28,6 +28,13 @@ write some notes on hacking: source overview rewrite, file overview
    rewrites, and rough howto on adding new constructs: altering
    parser, altering ast and altering type checking process
 typecheck old and new pseudo records in trigger functions
+review missing parsing/ast/typechecking
+explore creating template syntax for simple expansions of function
+   calls to make writing some extensions easier
+makefile stuff?
+plpgsql stuff: blocks, assignments in declarations, strict into,
+   labels,loops,continue
+look into running test suite from cabal
 
 
 TODO: sort out stuff below here

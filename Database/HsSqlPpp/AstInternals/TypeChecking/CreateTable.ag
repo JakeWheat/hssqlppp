@@ -32,6 +32,10 @@ SEM Statement
                                    @name
                                    @atts.annotatedTree
                                    @cons.annotatedTree
+        cons.lib = case updateBindings @lhs.lib @lhs.env
+                     [LibStackIDs [("", @atts.attrs)]] of
+                      Left x -> error $ show x
+                      Right e -> e
 
 SEM Statement
     | CreateTableAs

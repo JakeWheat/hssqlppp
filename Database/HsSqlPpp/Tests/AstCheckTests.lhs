@@ -1,6 +1,7 @@
-sCopyright 2009 Jake Wheat
+Copyright 2009 Jake Wheat
 
-Set of tests to check the type checking code
+Set of tests to check the type checking code.
+
 
 > module Database.HsSqlPpp.Tests.AstCheckTests (astCheckTests) where
 
@@ -8,8 +9,7 @@ Set of tests to check the type checking code
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
-> import Debug.Trace
-> import Control.Applicative
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.Annotator
@@ -47,6 +47,8 @@ that supports this test passing is commented out also
 >         \$$ language plpgsql volatile;\n" [Error ("",3,5) ContinueNotInLoop]
 >      ]-}
 >      )-}
+
+Test the types of a bunch of expressions.
 
 >    testGroup "basic literal types"
 >     (mapExprType [
@@ -105,8 +107,8 @@ that supports this test passing is commented out also
 
 >      ,p "4-3" $ Right typeInt
 
->      --,p "1 is null" typeBool
->      --,p "1 is not null" typeBool
+>      ,p "1 is null" $ Right typeBool
+>      ,p "1 is not null" $ Right typeBool
 
 >      ,p "1+1" $ Right typeInt
 >      ,p "1+1" $ Right typeInt
@@ -161,7 +163,7 @@ check casts from unknown string lits
 >      ])
 >
 
->    ,testGroup "random expressions"
+>    ,testGroup "exists expressions"
 >     (mapExprType [
 >       p "exists (select 1 from pg_type)" $ Right typeBool
 >      ,p "exists (select testit from pg_type)"
@@ -172,7 +174,6 @@ rows different lengths
 rows match types pairwise, same and different types
 rows implicit cast from unknown
 rows don't match types
-
 
 >    ,testGroup "row comparison expressions"
 >     (mapExprType [
@@ -394,7 +395,7 @@ check aliasing
 >              [EnvCreateComposite "testType" [("a", ScalarType "text")
 >                                             ,("b", typeInt)
 >                                             ,("c", typeInt)]
->              ,EnvCreateFunction FunName "testfunc"  [] (SetOfType $ NamedCompositeType "testType") False])
+>              ,EnvCreateFunction FunName "testfunc" [] (SetOfType $ NamedCompositeType "testType") False])
 >         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType
 >                  [("a",ScalarType "text"),("b",ScalarType "int4")]]
 
@@ -609,6 +610,9 @@ insert
 
 ================================================================================
 
+test the catalog updates from creates, etc.
+
+
 >    ,testGroup "creates"
 >     (mapStatementInfoEu [
 >       t "create table t1 (\n\
@@ -758,7 +762,7 @@ check type of initial values
 >         (Right [Nothing])
 
 
-> {-     ,p "create function t1() returns void as $$\n\
+>      ,p "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  r record;\n\
 >         \  t int;\n\
@@ -768,7 +772,7 @@ check type of initial values
 >         \  end loop;\n\
 >         \end;\n\
 >         \$$ language plpgsql stable;"
->         (Right [Nothing])-}
+>         (Right [Nothing])
 
 loop var already declared
 

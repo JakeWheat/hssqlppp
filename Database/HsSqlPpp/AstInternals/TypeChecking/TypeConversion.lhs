@@ -558,9 +558,11 @@ wrapper around the catalog to add a bunch of extra valid casts
 >     isCompOrSetoOfComp c = isCompositeType c
 
 >     unboxedSingleType (SetOfType (CompositeType [(_,t)])) = Just t
+>     unboxedSingleType (PgRecord (Just t)) = unboxedSingleType t
 >     unboxedSingleType _ = Nothing
 
 >     unboxedSetOfType (SetOfType a) = Just a
+>     unboxedSetOfType (PgRecord (Just t)) = unboxedSetOfType t
 >     unboxedSetOfType _ = Nothing
 
 >     recurseTransFrom = maybe False (flip (castableFromTo env cc) to)
