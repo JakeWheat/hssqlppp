@@ -52,7 +52,7 @@ the type checking code.
 >      -- * Functions
 >     ,readEnvironmentFromDatabase
 >     ,updateEnvironment
->     --,destructEnvironment
+>     ,deconstructEnvironment
 >      -- * operator utils
 >     ,OperatorType(..)
 >     ,getOperatorType

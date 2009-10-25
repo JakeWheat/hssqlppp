@@ -84,7 +84,7 @@ out. If not, will have to add another type.
 >           | UnknownType -- represents a string literal
 >                              -- token whose type isn't yet
 >                              -- determined
->             deriving (Eq,Show,Typeable,Data)
+>             deriving (Eq,Show,Ord,Typeable,Data)
 
 > data PseudoType = Any
 >                 | AnyArray
@@ -98,7 +98,7 @@ out. If not, will have to add another type.
 >                 | Internal
 >                 | LanguageHandler
 >                 | Opaque
->                   deriving (Eq,Show,Typeable,Data)
+>                   deriving (Eq,Show,Ord,Typeable,Data)
 
 this list will need reviewing, probably refactor to a completely
 different set of infos, also will want to add more information to
@@ -133,7 +133,7 @@ later on down the line.
 >                | FromToTypesNotSame Type Type
 >                 --shoved in to humour the Either Monad
 >                | MiscError String
->                  deriving (Eq,Show,Typeable,Data)
+>                  deriving (Eq,Show,Ord,Typeable,Data)
 
 > instance Error ([TypeError]) where
 >   noMsg = [MiscError "Unknown error"]

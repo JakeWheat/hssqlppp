@@ -17,7 +17,9 @@ modules.
 
 Probably the only interesting bit is the constraint system.
 
-
+*/
+create language plpgsql;
+/*
 ================================================================================
 
 = Catalog

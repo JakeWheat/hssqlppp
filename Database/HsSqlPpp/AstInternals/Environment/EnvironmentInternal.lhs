@@ -21,7 +21,7 @@ modules.
 >     ,defaultEnvironment
 >     ,EnvironmentUpdate(..)
 >     ,updateEnvironment
->     --,destructEnvironment
+>     ,deconstructEnvironment
 >     -- type checker stuff
 >     ,envCompositeDef
 >     ,envCompositeAttrsPair
@@ -61,14 +61,15 @@ modules.
 >                    ,envFunctions :: [FunctionPrototype]
 >                    ,envAggregates :: [FunctionPrototype]
 >                    ,envWindowFunctions :: [FunctionPrototype]
->                    ,envAttrDefs :: [CompositeDef]}
+>                    ,envAttrDefs :: [CompositeDef]
+>                    ,envUpdates :: [EnvironmentUpdate]}
 >                    deriving Show
 
 > -- | Represents an empty environment. This doesn't contain things
 > -- like the \'and\' operator, and so if you try to use it it will
 > -- almost certainly not work.
 > emptyEnvironment :: Environment
-> emptyEnvironment = Environment [] [] [] [] [] [] [] [] [] [] []
+> emptyEnvironment = Environment [] [] [] [] [] [] [] [] [] [] [] []
 
 > -- | Represents what you probably want to use as a starting point if
 > -- you are building an environment from scratch. It contains
@@ -89,13 +90,13 @@ modules.
 > data CastContext = ImplicitCastContext
 >                  | AssignmentCastContext
 >                  | ExplicitCastContext
->                    deriving (Eq,Show,Typeable,Data)
+>                    deriving (Eq,Show,Ord,Typeable,Data)
 
 > -- | Used to distinguish between standalone composite types, and
 > -- automatically generated ones, generated from a table or view
 > -- respectively.
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
->                         deriving (Eq,Show)
+>                         deriving (Eq,Ord,Show)
 
 > relationComposites :: [CompositeFlavour]
 > relationComposites = [TableComposite,ViewComposite]
@@ -126,11 +127,28 @@ modules.
 >   | EnvCreateTable String [(String,Type)] [(String,Type)]
 >   | EnvCreateView String [(String,Type)]
 >   | EnvCreateFunction FunFlav String [Type] Type Bool
->     deriving (Eq,Show,Typeable,Data)
+>     deriving (Eq,Ord,Typeable,Data)
+
+> instance Show EnvironmentUpdate where
+>     show (EnvCreateScalar t c p) = "EnvCreateScalar " ++ show t ++ "(" ++ c ++ "," ++ show p ++ ")"
+>     show (EnvCreateDomain t b) = "EnvCreateDomain " ++ show t ++ " as " ++ show b
+>     show (EnvCreateComposite nm flds) = "EnvCreateComposite " ++ nm ++ showFlds flds
+>     show (EnvCreateCast s t ctx) = "EnvCreateCast " ++ show s ++ "->" ++ show t ++ " " ++ show ctx
+>     show (EnvCreateTable nm flds1 flds2) = "EnvCreateTable " ++ nm ++ showFlds flds1 ++ showFlds flds2
+>     show (EnvCreateView nm flds) = "EnvCreateView " ++ nm ++ showFlds flds
+>     show (EnvCreateFunction flav nm args ret vdc) =
+>       "EnvCreateFunction " ++ show flav ++ " " ++ nm ++ " returns " ++ show ret ++
+>       "(" ++ (intercalate "," $ map show args) ++ ")" ++ if vdc then " variadic" else ""
+
+> showFlds :: [(String,Type)] -> String
+> showFlds flds = "(\n" ++ sfs flds ++ ")"
+>                 where
+>                   sfs ((nm,t):fs) = "    " ++ show nm ++ " " ++ show t ++ "\n" ++ sfs fs
+>                   sfs [] = ""
 
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
 >              | FunName | FunAgg | FunWindow
->                deriving (Eq,Show,Typeable,Data)
+>                deriving (Eq,Show,Ord,Typeable,Data)
 
 > -- | Applies a list of 'EnvironmentUpdate's to an 'Environment' value
 > -- to produce a new Environment value.
@@ -138,7 +156,7 @@ modules.
 >                   -> [EnvironmentUpdate]
 >                   -> Either [TypeError] Environment
 > updateEnvironment env' eus =
->   foldM updateEnv' env' eus
+>   (foldM updateEnv' (env' {envUpdates = ((envUpdates env') ++ eus)}) eus)
 >   where
 >     updateEnv' env eu =
 >       case eu of
@@ -221,19 +239,14 @@ modules.
 
 
 > {-
-> -- | Takes part an 'Environment' value to produce a list of 'EnvironmentUpdate's.
-> -- You can use this to look inside the Environment data type e.g. if you want to
-> -- examine a catalog. It should be the case that:
-> --
-> -- @
-> -- updateEnvironment emptyEnvironment (destructEnvironment env) = env
-> -- @
-> destructEnvironment :: Environment -> [EnvironmentUpdate]
-> destructEnvironment = undefined
-> -}
-
-TODO -this shouldn't be too difficult, just bluff it and use quick
-check to see if it works
+>  | Takes part an 'Environment' value to produce a list of 'EnvironmentUpdate's.
+>  You can use this to look inside the Environment data type e.g. if you want to
+>  examine a catalog. It should be the case that:
+>  @
+>   updateEnvironment emptyEnvironment (deconstructEnvironment env) = env
+>  @ -}
+> deconstructEnvironment :: Environment -> [EnvironmentUpdate]
+> deconstructEnvironment env = envUpdates env
 
 
 ================================================================================

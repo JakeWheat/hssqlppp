@@ -395,30 +395,69 @@ get catalog and dump and compare for equality with originals
 >            Right _ -> return ()
 >     where
 >       runit = do
->         --produce the ast
->         message "Parsing"
+>         message $ "clearing " ++ dbName
+>         liftIO $ cleardb dbName
+
+>         message "parsing"
 >         (ast::StatementList) <- liftIO parseFiles >>= liftThrows
 >         let east = rewriteCreateVars ast
->         (se::Environment) <- liftIO startingEnv >>= liftThrows
+>         (startingEnv::Environment) <- liftIO readDbEnv >>= liftThrows
 >         -- type check ast and get catalog
+
 >         message "typechecking"
->         let (originalEnv,originalAast) = annotateAstEnvEnv se east
+>         let (originalEnv,originalAast) = annotateAstEnvEnv startingEnv east
 >         -- quit if any type check errors
 >         let te = getTypeErrors originalAast
 >         --when (not $ null te) $ throwError $ intercalate "\n" $ map showSpTe te
 >         message $ intercalate "\n" $ map showSpTe te
+
+>         message "loading into db using psql"
+>         liftIO $ mapM (runSqlScript dbName) fns
+>         properEnv <- liftIO readDbEnv >>= liftThrows
+
+>         let startEnvBits = deconstructEnvironment startingEnv
+>             originalEnvBits = deconstructEnvironment originalEnv \\ startEnvBits
+>             properEnvBits = deconstructEnvironment properEnv \\ startEnvBits
+>             missing = sort $ properEnvBits \\ originalEnvBits
+>             extras = sort $ originalEnvBits \\ properEnvBits
+>         liftIO $ when (not $ null missing)
+>                    $ putStrLn $ "\n\n************************************************\n\n\
+>                                 \missing catalog: " ++ showAList missing
+>         liftIO $ when (not $ null extras)
+>                    $ putStrLn $ "\n\n************************************************\n\n\
+>                                 \extras catalog: " ++ showAList extras
+
+>         --liftIO $ putStrLn $ "\n\n************************************************\n\n\
+>         --                    \common: " ++ showAList (sort $ intersect properEnvBits originalEnvBits)
+
 >         message "complete!"
 >         return $ Right ()
+
+>       showAList l = intercalate "\n" $ map show l
+
 >       parseFiles :: IO (Either String StatementList)
 >       parseFiles = mapEither show concat <$> doEithers <$> mapM parseSqlFile fns
 >       --startingEnv :: IO (Either String Environment)
->       startingEnv = mapLeft show <$> (updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName)
+>       readDbEnv = mapLeft show <$> (updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName)
 
 >       --showTes = mapM_ (putStrLn.showSpTe) . getTypeErrors
 >       showSpTe (Just (SourcePos fn l c), e) =
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >       showSpTe (_,e) = "unknown:0:0:\n" ++ show e
 >       message = liftIO . putStrLn
+
+
+> runSqlScript :: String -> String -> IO ()
+> runSqlScript dbName script = do
+>   ex <- system ("psql " ++ dbName ++
+>                 " --set ON_ERROR_STOP=on" ++
+>                 " --file=" ++ script)
+>   case ex of
+>     ExitFailure e -> error $ "psql failed with " ++ show e
+>     ExitSuccess -> return ()
+>   return ()
+
+
 
 ================================================================================
 
