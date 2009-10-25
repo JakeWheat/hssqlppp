@@ -32,13 +32,13 @@ Experimental code to use uniplate to implement extensions
 
 
 > extensionize :: Data a => a -> a
-> extensionize = addReadonlyTriggers . rewriteCreateVars . createClientActionWrapper
+> extensionize = addReadonlyTriggers .
+>                rewriteCreateVars .
+>                createClientActionWrapper .
+>                addNotifyTriggers
 
 
-
->{-         (SelectStatement an (Select _ _ (SelectList _ [SelExp _ (FunCall _ "create_var"
->           [StringLit _ _ tableName,StringLit _ _ typeName])] [])
->            Nothing Nothing [] Nothing [] Asc Nothing Nothing):tl)-}
+================================================================================
 
 My dodgy SQL code uses a function called create_var to create a table
 with a single attribute, which can hold 0 or 1 tuples (it adds the
@@ -98,6 +98,7 @@ amount of work in comparison).
 >                 : tl)
 >         x1 -> x1
 
+================================================================================
 
 > addReadonlyTriggers :: Data a => a -> a
 > addReadonlyTriggers =
@@ -118,6 +119,8 @@ amount of work in comparison).
 >                                      ,Return an $ Just $ NullLit an])
 >                                     Volatile))) ++ tl)
 >         x1 -> x1
+
+================================================================================
 
 > createClientActionWrapper :: Data a => a -> a
 > createClientActionWrapper =
@@ -158,3 +161,19 @@ amount of work in comparison).
 
 > lexer :: P.GenTokenParser String LexState Identity
 > lexer = P.makeTokenParser emptyDef
+
+================================================================================
+
+> addNotifyTriggers :: Data a => a -> a
+> addNotifyTriggers =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "set_relvar_type" [StringLit _ _ tableName,StringLit _ _ "data"]):tl
+>           -> (CreateFunction an (tableName ++ "_changed") []
+>                                     (SimpleTypeName an "trigger") Plpgsql
+>                                     "$a$"
+>                                     (PlpgsqlFnBody an [] [
+>                                       Notify an tableName
+>                                      ,Return an $ Just $ NullLit an
+>                                      ]) Volatile : tl)
+>         x1 -> x1

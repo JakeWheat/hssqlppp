@@ -32,7 +32,7 @@ Set of tests for the extensions
 >       \$a$ language sql stable;"
 >    ,t addReadonlyTriggers
 >       "select set_relvar_type('stuff','readonly');"
->       "create function check_stuff_d_readonly () returns trigger as $a$\n\
+>       "create function check_stuff_d_readonly() returns trigger as $a$\n\
 >       \begin\n\
 >       \  if (not (false)) then\n\
 >       \    raise exception 'delete on base_relvar_metadata violates transition constraint base_relvar_metadata_d_readonly';\n\
@@ -40,7 +40,7 @@ Set of tests for the extensions
 >       \return null;\n\
 >       \end;\n\
 >       \$a$ language plpgsql volatile;\n\
->       \create function check_stuff_i_readonly () returns trigger as $a$\n\
+>       \create function check_stuff_i_readonly() returns trigger as $a$\n\
 >       \begin\n\
 >       \  if (not (false)) then\n\
 >       \       raise exception 'delete on base_relvar_metadata violates transition constraint base_relvar_metadata_d_readonly';\n\
@@ -48,7 +48,7 @@ Set of tests for the extensions
 >       \  return null;\n\
 >       \end;\n\
 >       \$a$ language plpgsql volatile;\n\
->       \create function check_stuff_u_readonly () returns trigger as $a$\n\
+>       \create function check_stuff_u_readonly() returns trigger as $a$\n\
 >       \begin\n\
 >       \  if (not (false)) then\n\
 >       \       raise exception 'delete on base_relvar_metadata violates transition constraint base_relvar_metadata_d_readonly';\n\
@@ -71,7 +71,16 @@ Set of tests for the extensions
 >       \  perform action_actcall('test');\n\
 >       \end;\n\
 >       \$a$ language plpgsql;"
+>    ,t addNotifyTriggers
+>       "select set_relvar_type('stuff','data');"
+>       "create function stuff_changed() returns trigger as $a$\n\
+>       \begin\n\
+>       \  notify stuff;\n\
+>       \  return null;\n\
+>       \end;\n\
+>       \$a$ language plpgsql;"
 >    ])
+
 >   where
 >     t a b c = (a,b,c)
 >     mapCheckExtension = map (\(a,b,c) ->  checkExtension a b c)
