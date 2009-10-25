@@ -25,7 +25,7 @@ SEM Statement
                     Right $ Pseudo Void
         loc.envUpdates = dependsOn [tpeToT @loc.tpe] []
                                    [EnvCreateFunction FunName
-                                                      @name
+                                                      (map toLower @name)
                                                       @loc.parameterTypes
                                                       @rettype.namedType
                                                       False]

@@ -622,7 +622,12 @@ test the catalog updates from creates, etc.
 >         (Right [Nothing])
 >         [[EnvCreateTable "t1" [("a",ScalarType "int4")
 >                               ,("b",ScalarType "text")]
->           []]]
+>                               [("tableoid", ScalarType "oid")
+>                               ,("cmax", ScalarType "cid")
+>                               ,("xmax", ScalarType "xid")
+>                               ,("cmin", ScalarType "cid")
+>                               ,("xmin", ScalarType "xid")
+>                               ,("ctid", ScalarType "tid")]]]
 >      ,t "create type t1 as (\n\
 >         \   a int,\n\
 >         \   b text\n\

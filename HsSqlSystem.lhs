@@ -450,7 +450,7 @@ get catalog and dump and compare for equality with originals
 > runSqlScript :: String -> String -> IO ()
 > runSqlScript dbName script = do
 >   ex <- system ("psql " ++ dbName ++
->                 " --set ON_ERROR_STOP=on" ++
+>                 " -q --set ON_ERROR_STOP=on" ++
 >                 " --file=" ++ script)
 >   case ex of
 >     ExitFailure e -> error $ "psql failed with " ++ show e

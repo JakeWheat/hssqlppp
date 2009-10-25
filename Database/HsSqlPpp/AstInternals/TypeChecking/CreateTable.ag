@@ -19,11 +19,12 @@ check ok, any errors in the constraints aren't leaked.
 
 -}
 
+
 SEM Statement
     | CreateTable
         loc.tpe = dependsOnRTpe @loc.attrTypes $ Right $ Pseudo Void
         loc.envUpdates = dependsOn @loc.attrTypes []
-                           [EnvCreateTable @name @atts.attrs []]
+                           [EnvCreateTable @name @atts.attrs defaultSystemColumns]
         loc.attrTypes : {[Type]}
         loc.attrTypes = map snd @atts.attrs
 
@@ -36,6 +37,16 @@ SEM Statement
                      [LibStackIDs [("", @atts.attrs)]] of
                       Left x -> error $ show x
                       Right e -> e
+{
+defaultSystemColumns :: [(String,Type)]
+defaultSystemColumns = [("tableoid", ScalarType "oid")
+                       ,("cmax", ScalarType "cid")
+                       ,("xmax", ScalarType "xid")
+                       ,("cmin", ScalarType "cid")
+                       ,("xmin", ScalarType "xid")
+                       ,("ctid", ScalarType "tid")]
+}
+
 
 SEM Statement
     | CreateTableAs
@@ -44,7 +55,7 @@ SEM Statement
               @loc.attrs
               Right @loc.selType
         loc.envUpdates =
-           leftToEmpty (\as -> [EnvCreateTable @name as []]) $ do
+           leftToEmpty (\as -> [EnvCreateTable @name as defaultSystemColumns]) $ do
               ats <- @loc.attrs
               return $ dependsOn (tpeToT @loc.tpe :
                                   (map snd ats)) [] ats
@@ -65,7 +76,7 @@ ATTR AttributeDef [||attrName : String
 
 SEM AttributeDef
     | AttributeDef
-        lhs.attrName = @name
+        lhs.attrName = map toLower @name
         lhs.namedType = @typ.namedType
 
 ATTR AttributeDefList [||attrs : {[(String, Type)]}]
