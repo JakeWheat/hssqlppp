@@ -7,6 +7,8 @@ Experimental code to use uniplate to implement extensions
 
 > import Data.Generics
 > import Data.Generics.PlateData
+> import Debug.Trace
+
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
 
@@ -19,6 +21,11 @@ Experimental code to use uniplate to implement extensions
 > funCallView (SelectStatement an (Select _ _ (SelectList _ [SelExp _ (FunCall _ fnName
 >               args)] []) Nothing Nothing [] Nothing [] Asc Nothing Nothing)) = (FunCallView an fnName args)
 > funCallView _ = FUnit
+
+
+> extensionize :: Data a => a -> a
+> extensionize = addReadonlyTriggers . rewriteCreateVars
+
 
 
 >{-         (SelectStatement an (Select _ _ (SelectList _ [SelExp _ (FunCall _ "create_var"
@@ -81,4 +88,25 @@ amount of work in comparison).
 >                        (Just (Tref an (tableName ++ "_table") NoAlias))
 >                        Nothing [] Nothing [] Asc Nothing Nothing)]) Stable)
 >                 : tl)
+>         x1 -> x1
+
+
+> addReadonlyTriggers :: Data a => a -> a
+> addReadonlyTriggers =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "set_relvar_type" [StringLit _ _ tableName,StringLit _ _ "readonly"]):tl
+>             -> trace "got one" $ (flip map "diu" ( \t ->
+>                     ((CreateFunction an ("check_" ++ tableName ++ "_" ++ (t:[]) ++ "_readonly") []
+>                                     (SimpleTypeName an "trigger") Plpgsql
+>                                     "$a$"
+>                                     (PlpgsqlFnBody an [] [
+>                                       If an
+>                                         [(FunCall an "!not" [BooleanLit an False]
+>                                          ,[Raise an RException
+>                                            "delete on base_relvar_metadata \
+>                                            \violates transition constraint \
+>                                            \base_relvar_metadata_d_readonly" []])] []
+>                                      ,Return an $ Just $ NullLit an])
+>                                     Volatile))) ++ tl)
 >         x1 -> x1

@@ -18,13 +18,13 @@ TODO 2: think of a name for this command
 
 > import System
 > import System.IO
-> import Control.Monad
 > import System.Directory
 > import Data.List
 > import Data.Either
 > import Control.Applicative
 > import Text.Show.Pretty
 > import Control.Monad.Error
+> --import Control.Monad
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
@@ -201,7 +201,7 @@ TODO: do something more correct
 >                --print l
 >                --putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
 >                putStrLn "parse ok"
->                print st
+>                putStrLn $ ppShow st
 >                let pp = printSql st
 >                --putStrLn pp
 >                --check roundtrip
@@ -270,7 +270,7 @@ TODO: do something more correct
 >               Left e -> error $ show e
 >               Right e1 -> e1
 >   astEithers <- mapM parseSqlFile fns
->   let asts = map rewriteCreateVars $ rights astEithers
+>   let asts = map extensionize $ rights astEithers
 >   let aasts = annotateAstsEnv env asts
 >   mapM_ print $ lefts astEithers
 >   mapM_ showTes $ aasts
@@ -279,6 +279,7 @@ TODO: do something more correct
 >     showSpTe (Just (SourcePos fn l c), e) =
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
+> checkSourceExt _ = error "checksourceext not passed at least 2 args"
 
 
 ================================================================================
@@ -381,7 +382,7 @@ get catalog and dump and compare for equality with originals
 >                   then Right $ rights es
 >                   else Left $ head l
 
-
+> liftThrows :: (MonadError t m) => Either t a -> m a
 > liftThrows (Left err) = throwError err
 > liftThrows (Right val) = return val
 
@@ -400,7 +401,7 @@ get catalog and dump and compare for equality with originals
 
 >         message "parsing"
 >         (ast::StatementList) <- liftIO parseFiles >>= liftThrows
->         let east = rewriteCreateVars ast
+>         let east = extensionize ast
 >         (startingEnv::Environment) <- liftIO readDbEnv >>= liftThrows
 >         -- type check ast and get catalog
 
@@ -445,6 +446,7 @@ get catalog and dump and compare for equality with originals
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >       showSpTe (_,e) = "unknown:0:0:\n" ++ show e
 >       message = liftIO . putStrLn
+> checkBig _ = error "checkbig not passed at least 2 args"
 
 
 > runSqlScript :: String -> String -> IO ()

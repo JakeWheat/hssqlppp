@@ -79,7 +79,7 @@ $$ language plpgsql volatile;
 
 After we've loaded the sql, we can protect all the readonly relvars
 from being updated again using transition constraints (see below for
-how they are implemented). This might catch some programming error.
+how they are implemented). This might catch some programming errors.
 
  */
 
