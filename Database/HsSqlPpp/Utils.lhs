@@ -74,3 +74,7 @@ This file contains some generic utility stuff
 >                            in  l : case s' of
 >                                            [] -> []
 >                                            (_:s'') -> split c s''
+
+> liftThrows :: (MonadError t m) => Either t a -> m a
+> liftThrows (Left err) = throwError err
+> liftThrows (Right val) = return val

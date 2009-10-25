@@ -8,6 +8,7 @@ plus output error location in emacs friendly format.
 > module Database.HsSqlPpp.Parsing.ParseErrors (convertToExtendedError, ExtendedError(..)) where
 
 > import Text.Parsec
+> import Control.Monad.Error
 
 > showEr :: ParseError -> String -> String -> String
 > showEr er fn src =
@@ -49,3 +50,7 @@ give access to the nicer error text via Show
 >      case f of
 >             Left er -> Left $ ExtendedError er (showEr er fn src)
 >             Right l -> Right l
+
+> instance Error ExtendedError where
+>   noMsg = ExtendedError undefined "unknown"
+>   strMsg str = ExtendedError undefined str

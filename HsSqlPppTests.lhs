@@ -10,6 +10,7 @@ other files.
 > import Database.HsSqlPpp.Tests.ParserTests
 > --import Database.HsSqlPpp.Tests.DatabaseLoaderTests
 > import Database.HsSqlPpp.Tests.AstCheckTests
+> import Database.HsSqlPpp.Tests.ExtensionTests
 
 > main :: IO ()
 > main =
@@ -17,4 +18,5 @@ other files.
 >     parserTests
 >    ,astCheckTests
 >    --,databaseLoaderTests
+>    ,extensionTests
 >    ]

@@ -3,11 +3,11 @@ Copyright 2009 Jake Wheat
 Experimental code to use uniplate to implement extensions
 
 > {-# LANGUAGE ViewPatterns #-}
-> module Extensions where
+> module Database.HsSqlPpp.Extensions.ChaosExtensions where
 
 > import Data.Generics
 > import Data.Generics.PlateData
-> import Debug.Trace
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
@@ -96,7 +96,7 @@ amount of work in comparison).
 >     transformBi $ \x ->
 >       case x of
 >         (funCallView -> FunCallView an "set_relvar_type" [StringLit _ _ tableName,StringLit _ _ "readonly"]):tl
->             -> trace "got one" $ (flip map "diu" ( \t ->
+>             -> (flip map "diu" ( \t ->
 >                     ((CreateFunction an ("check_" ++ tableName ++ "_" ++ (t:[]) ++ "_readonly") []
 >                                     (SimpleTypeName an "trigger") Plpgsql
 >                                     "$a$"

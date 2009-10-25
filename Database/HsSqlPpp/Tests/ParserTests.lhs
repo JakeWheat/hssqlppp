@@ -16,7 +16,6 @@ There are no tests for invalid sql at the moment.
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 

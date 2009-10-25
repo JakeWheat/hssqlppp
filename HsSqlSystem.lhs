@@ -42,7 +42,7 @@ TODO 2: think of a name for this command
 > import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
 
-> import Extensions
+> import Database.HsSqlPpp.Extensions.ChaosExtensions
 
 ================================================================================
 
@@ -381,10 +381,6 @@ get catalog and dump and compare for equality with originals
 >                in if null l
 >                   then Right $ rights es
 >                   else Left $ head l
-
-> liftThrows :: (MonadError t m) => Either t a -> m a
-> liftThrows (Left err) = throwError err
-> liftThrows (Right val) = return val
 
 > checkBig :: [FilePath] -> IO ()
 > checkBig (dbName:fns) = do
