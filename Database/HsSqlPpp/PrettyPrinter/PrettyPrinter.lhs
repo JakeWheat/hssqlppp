@@ -530,11 +530,11 @@ Conversion routines - convert Sql asts into Docs
 >     --needs some work - quotes needed if contains invalid unquoted
 >     --chars, or maybe if matches keyword or similar
 >     quotesNeeded = case i of
->                      x:_ | not (isLetter x || x == '_') -> True
+>                      x:_ | not (isLetter x || x `elem` "_*") -> True
 >                      _ | all okChar i -> False
 >                        | otherwise -> True
 >                    where
->                      okChar = (\x -> isAlphaNum x || x == '_')
+>                      okChar = (\x -> isAlphaNum x || x `elem` "*_.")
 > convExp (IntegerLit _ n) = integer n
 > convExp (FloatLit _ n) = double n
 > convExp (StringLit _ tag s) = text tag <> text replaceQuotes <> text tag

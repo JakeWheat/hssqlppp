@@ -45,6 +45,7 @@ This code is currently on the backburner, and is a mess.
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.Ast.Ast as Ast
 > import Database.HsSqlPpp.Dbms.DBAccess
+> import Database.HsSqlPpp.Ast.Annotation
 
 > loadIntoDatabase :: String -- ^ database name
 >                  -> FilePath -- ^ filename to include in error messages
@@ -61,9 +62,17 @@ This code is currently on the backburner, and is a mess.
 >     loadStatement conn st = case st of
 >                                          Skipit -> return ()
 >                                          VanillaStatement vs ->
->                                              handleError fn ("",0::Int,0::Int) vs (runSqlCommand conn
+>                                              putStrLn (printSql [vs]) >> 
+>                                              handleError fn (getSourcePos vs) vs (runSqlCommand conn
 >                                                       (printSql [vs]))
->                                          CopyStdin a b -> runCopy conn a b ("",0::Int,0::Int)
+>                                          CopyStdin a b -> runCopy conn a b (getSourcePos a)
+>     getSourcePos st = let a = getAnnotation st
+>                       in sp a
+>                       where
+>                         sp (x:xs) = case x of
+>                                       SourcePos s l c -> (s,l,c)
+>                                       _ -> sp xs
+>                         sp [] = ("",0,0)
 >     --hack cos we don't have support in hdbc for copy from stdin
 >     --(which libpq does support - adding this properly should be a todo)
 >     --we need the copy from stdin and the copydata to be processed in one go,
@@ -100,6 +109,7 @@ This code is currently on the backburner, and is a mess.
 > data Wrapper = CopyStdin Ast.Statement Ast.Statement
 >              | Skipit
 >              | VanillaStatement Ast.Statement
+>                deriving Show
 
 ================================================================================
 

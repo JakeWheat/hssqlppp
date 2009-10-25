@@ -14,6 +14,8 @@ to get a list of commands and purpose and usage info
 TODO 1: add options to specify username and password (keep optional though)
 TODO 2: think of a name for this command
 
+> {-# LANGUAGE ScopedTypeVariables #-}
+
 > import System
 > import System.IO
 > import Control.Monad
@@ -22,6 +24,7 @@ TODO 2: think of a name for this command
 > import Data.Either
 > import Control.Applicative
 > import Text.Show.Pretty
+> import Control.Monad.Error
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
@@ -30,6 +33,8 @@ TODO 2: think of a name for this command
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Ast.Ast
+
+> import Database.HsSqlPpp.Utils
 
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
@@ -63,7 +68,8 @@ TODO 2: think of a name for this command
 >            ,readEnvCommand
 >            ,annotateSourceCommand
 >            ,checkSourceCommand
->            ,checkSourceExtCommand]
+>            ,checkSourceExtCommand
+>            ,checkBigCommand]
 
 > lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
 > lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
@@ -334,6 +340,86 @@ This reads an environment from a database and writes it out using show.
 
 >   putStrLn $ unlines $ map (">        " ++) $ lines $ ppShow s
 
+
+> parseAndTypeCheck :: String
+>                   -> String
+>                   -> IO StatementList
+> parseAndTypeCheck dbName src = do
+>    case parseSql src of
+>      Left e -> error $ show e
+>      Right ast -> do
+>        e <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
+>        case e of
+>          Left er -> error $ show er
+>          Right env -> return $ annotateAstEnv env ast
+
+================================================================================
+
+big set of tests to check parsing, typechecking, the catalog, etc.
+
+parse, run extensions and type check the sql files passed against the database passed (which should be a copy of template1 - maybe enforce this)
+save this aast and final catalog from type checker-> original_ast,original_catalog
+load the original sql files into the database using psql
+use readenv to read the catalog from this database, and compare with the original_catalog for equality
+use pg_dump on this database, reparse and typecheck-> d1_ast, d1_catalog
+check these for equality with the original_ast,catalog (will have to cope with non important differences, hopefully only reordered statements)
+take the original_ast, reset database and load this ast into the database using the database loader
+get catalog and dump and compare for equality with originals
+
+> checkBigCommand :: CallEntry
+> checkBigCommand = CallEntry
+>                    "checkbig"
+>                    "reads each file, and gets catalog updates using type checker,\
+>                     \ then loads the files into the database and reads the catalog\
+>                     \ from the database and checks it for consistency with the\
+>                     \ catalog determined by the type checker"
+>                    (Multiple checkBig)
+
+> doEithers :: [Either a b] -> Either a [b]
+> doEithers es = let l = lefts es
+>                in if null l
+>                   then Right $ rights es
+>                   else Left $ head l
+
+
+> liftThrows (Left err) = throwError err
+> liftThrows (Right val) = return val
+
+> checkBig :: [FilePath] -> IO ()
+> checkBig (dbName:fns) = do
+>     hSetBuffering stdout NoBuffering
+>     hSetBuffering stderr NoBuffering
+>     r <- runErrorT runit
+>     case r of
+>            Left e -> error e
+>            Right _ -> return ()
+>     where
+>       runit = do
+>         --produce the ast
+>         message "Parsing"
+>         (ast::StatementList) <- liftIO parseFiles >>= liftThrows
+>         let east = rewriteCreateVars ast
+>         (se::Environment) <- liftIO startingEnv >>= liftThrows
+>         -- type check ast and get catalog
+>         message "typechecking"
+>         let (originalEnv,originalAast) = annotateAstEnvEnv se east
+>         -- quit if any type check errors
+>         let te = getTypeErrors originalAast
+>         --when (not $ null te) $ throwError $ intercalate "\n" $ map showSpTe te
+>         message $ intercalate "\n" $ map showSpTe te
+>         message "complete!"
+>         return $ Right ()
+>       parseFiles :: IO (Either String StatementList)
+>       parseFiles = mapEither show concat <$> doEithers <$> mapM parseSqlFile fns
+>       --startingEnv :: IO (Either String Environment)
+>       startingEnv = mapLeft show <$> (updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName)
+
+>       --showTes = mapM_ (putStrLn.showSpTe) . getTypeErrors
+>       showSpTe (Just (SourcePos fn l c), e) =
+>         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
+>       showSpTe (_,e) = "unknown:0:0:\n" ++ show e
+>       message = liftIO . putStrLn
+
 ================================================================================
 
 > data CallEntry = CallEntry String String CallType
@@ -349,15 +435,3 @@ This reads an environment from a database and writes it out using show.
 >                | otherwise -> f (head args)
 >       Multiple f -> f args
 
-
-> parseAndTypeCheck :: String
->                   -> String
->                   -> IO StatementList
-> parseAndTypeCheck dbName src = do
->    case parseSql src of
->      Left e -> error $ show e
->      Right ast -> do
->        e <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
->        case e of
->          Left er -> error $ show er
->          Right env -> return $ annotateAstEnv env ast

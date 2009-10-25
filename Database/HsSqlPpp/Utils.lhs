@@ -43,10 +43,15 @@ This file contains some generic utility stuff
 > fromLeft _ (Left l) = l
 > fromLeft a (Right _) = a
 
+> mapEither :: (a->c) -> (b->d) -> Either a b -> Either c d
+> mapEither l _ (Left a) = Left $ l a
+> mapEither _ r (Right b) = Right $ r b
 
 > mapRight :: (b -> c) -> Either a b -> Either a c
-> mapRight _ (Left a) = Left a
-> mapRight f (Right b) = Right $ f b
+> mapRight r e = mapEither id r e
+
+> mapLeft :: (a -> c) -> Either a b -> Either c b
+> mapLeft l e = mapEither l id e
 
 > isRight :: Either a b -> Bool
 > isRight (Right _) = True

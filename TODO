@@ -13,7 +13,7 @@ check associativity of combine selects and join trefs without parens -
 some work on sql types: change the types of nodes to either [typeerror]
    type and follow through the code changes to support this
 some work on error handling: try to add a lot better error reporting:
-   have a few errors being ignored rather than added to the aast, also
+   a few errors are being ignored rather than added to the aast, also
    try to change all the calls to error into eithers to be added to
    the aast
 ids in joins issue
@@ -35,6 +35,16 @@ makefile stuff?
 plpgsql stuff: blocks, assignments in declarations, strict into,
    labels,loops,continue
 look into running test suite from cabal
+
+want to be able to show what the code can do easily and debug
+   annotations - so do a pretty printer which works the following way:
+   output source code on left side of a table (with syntax
+   highlighting, hyperlinks, etc? - use html?) and on the right output
+   the interesting annotations pretty printed, draw lines from the
+   pretty printed annotations to the sourcepositions in the source on
+   the left. Looks like might be able to do this using gtk:
+   http://www.bravegnu.org/gtktext/x498.html
+
 
 
 TODO: sort out stuff below here
