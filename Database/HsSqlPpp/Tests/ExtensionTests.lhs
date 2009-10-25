@@ -18,7 +18,7 @@ Set of tests for the extensions
 > import Database.HsSqlPpp.Extensions.ChaosExtensions
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
+> --import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 
 > extensionTests :: Test.Framework.Test
 > extensionTests =
@@ -56,6 +56,21 @@ Set of tests for the extensions
 >       \  return null;\n\
 >       \end;\n\
 >       \$a$ language plpgsql volatile;"
+
+>    ,t createClientActionWrapper
+>       "select create_client_action_wrapper('actname', $$actcall()$$);"
+>       "create function action_actname() returns void as $a$\n\
+>       \begin\n\
+>       \  perform action_actcall();\n\
+>       \end;\n\
+>       \$a$ language plpgsql;"
+>    ,t createClientActionWrapper
+>       "select create_client_action_wrapper('actname', $$actcall('test')$$);"
+>       "create function action_actname() returns void as $a$\n\
+>       \begin\n\
+>       \  perform action_actcall('test');\n\
+>       \end;\n\
+>       \$a$ language plpgsql;"
 >    ])
 >   where
 >     t a b c = (a,b,c)

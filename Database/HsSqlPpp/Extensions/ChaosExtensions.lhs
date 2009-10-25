@@ -7,10 +7,18 @@ Experimental code to use uniplate to implement extensions
 
 > import Data.Generics
 > import Data.Generics.PlateData
-> --import Debug.Trace
+> import Debug.Trace
+
+> import Text.Parsec hiding(many, optional, (<|>))
+> import qualified Text.Parsec.Token as P
+> import Text.Parsec.Language
+
+> import Control.Applicative
+> import Control.Monad.Identity
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.Parsing.Lexer
 
 
 
@@ -24,7 +32,7 @@ Experimental code to use uniplate to implement extensions
 
 
 > extensionize :: Data a => a -> a
-> extensionize = addReadonlyTriggers . rewriteCreateVars
+> extensionize = addReadonlyTriggers . rewriteCreateVars . createClientActionWrapper
 
 
 
@@ -110,3 +118,43 @@ amount of work in comparison).
 >                                      ,Return an $ Just $ NullLit an])
 >                                     Volatile))) ++ tl)
 >         x1 -> x1
+
+> createClientActionWrapper :: Data a => a -> a
+> createClientActionWrapper =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "create_client_action_wrapper" [StringLit _ _ actname,StringLit _ _ actcall]):tl
+>           -> (CreateFunction an ("action_" ++ actname) []
+>                                     (SimpleTypeName an "void") Plpgsql
+>                                     "$a$"
+>                                     (PlpgsqlFnBody an [] [
+>                                       let (n,as) = parseActionCall actcall
+>                                       in Perform an (FunCall an ("action_" ++ n) (map (StringLit an "'") as))
+>                                      ]) Volatile : tl)
+>         x1 -> x1
+>     where
+>       parseActionCall :: String -> (String,[String])
+>       parseActionCall s = parseCcawac s
+
+> parseCcawac :: String -> (String,[String])
+> parseCcawac s = case runParser ccawac [] "" s of
+>                   Left e -> trace ("failed to parse " ++ s) $ error $ show e
+>                   Right r -> r
+
+> ccawac :: ParsecT String LexState Identity (String, [[Char]])
+> ccawac = (,)
+>          <$> identifierString
+>          <*> parens (sepBy ccawacarg (symbol ","))
+
+> ccawacarg :: ParsecT String LexState Identity [Char]
+> ccawacarg = (symbol "'" *> many (noneOf "'") <* symbol "'")
+>             <|> identifierString
+
+> parens :: ParsecT String LexState Identity a -> ParsecT String LexState Identity a
+> parens = between (symbol "(") (symbol ")")
+
+> symbol :: String -> ParsecT String LexState Identity String
+> symbol = P.symbol lexer
+
+> lexer :: P.GenTokenParser String LexState Identity
+> lexer = P.makeTokenParser emptyDef
