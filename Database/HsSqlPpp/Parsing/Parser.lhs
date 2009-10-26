@@ -993,7 +993,9 @@ be used here.
 >          ,binary ">" AssocNone]
 >         ,[binary "=" AssocRight
 >          ,binary "<>" AssocNone]
->         ,[prefixk "not" "!not"]
+>         ,[notNot
+>          ,prefixk "not" "!not"
+>          ]
 >         ,[binaryk "and" "!and" AssocLeft
 >          ,binaryk "or" "!or" AssocLeft]]
 >     where
@@ -1013,6 +1015,14 @@ be used here.
 >         ctor $ try $ do
 >           f <- FunCall <$> pos <*> (t <$ opParse)
 >           return (\l -> f [l])
+>       --hack - haven't worked out why parsec buildexpression parser won't parse
+>       -- something like "not not EXPR" without parens so hack here
+>       notNot = Prefix (try $ do
+>                          p1 <- pos
+>                          keyword "not"
+>                          p2 <- pos
+>                          keyword "not"
+>                          return (\l -> FunCall p1 "!not" [FunCall p2 "!not" [l]]))
 
 == factor parsers
 
@@ -1163,7 +1173,9 @@ TODO: copy this approach here.
 >                dodgyParseElement = factor
 
 > functionCallSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
-> functionCallSuffix (Identifier _ fnName) = pos >>= \p -> FunCall p fnName <$> parens (commaSep expr)
+> functionCallSuffix (Identifier _ fnName) =
+>   pos >>= \p -> FunCall p fnName
+>                 <$> parens (optional (keyword "all" <|> keyword "distinct") *> commaSep expr)
 > functionCallSuffix s = error $ "internal error: cannot make functioncall from " ++ show s
 
 > castKeyword :: ParsecT [Token] ParseState Identity Expression

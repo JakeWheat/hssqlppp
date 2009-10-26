@@ -25,6 +25,7 @@ TODO 2: think of a name for this command
 > import Text.Show.Pretty
 > import Control.Monad.Error
 > --import Control.Monad
+> import System.Process.Pipe
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
@@ -37,6 +38,7 @@ TODO 2: think of a name for this command
 > import Database.HsSqlPpp.Utils
 
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
+
 > import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 
 > import Database.HsSqlPpp.Dbms.DBAccess
@@ -427,6 +429,18 @@ get catalog and dump and compare for equality with originals
 
 >         --liftIO $ putStrLn $ "\n\n************************************************\n\n\
 >         --                    \common: " ++ showAList (sort $ intersect properEnvBits originalEnvBits)
+
+>         message "get pg_dump of original loaded sql files"
+
+>         dump <- liftIO $ pipeString [("pg_dump", ["chaos"
+>                                                  ,"--schema-only"
+>                                                  ,"--no-owner"
+>                                                  ,"--no-privileges"])] ""
+>         (dumpAst :: StatementList) <- liftThrows (mapLeft show $ parseSql dump)
+>         let (dumpEnv,dumpAast) = annotateAstEnvEnv startingEnv dumpAst
+>         let dte = getTypeErrors dumpAast
+>         --when (not $ null te) $ throwError $ intercalate "\n" $ map showSpTe te
+>         message $ intercalate "\n" $ map showSpTe dte
 
 >         message "complete!"
 >         return $ Right ()

@@ -130,6 +130,10 @@ null stuff
 >      ,p "a is null" (FunCall [] "!isnull" [Identifier [] "a"])
 >      ,p "a is not null" (FunCall [] "!isnotnull" [Identifier [] "a"])
 
+>      ,p "not not true" (FunCall [] "!not"
+>                          [FunCall [] "!not"
+>                           [BooleanLit [] True]])
+
 some slightly more complex stuff
 
 >      ,p "case when a,b then 3\n\

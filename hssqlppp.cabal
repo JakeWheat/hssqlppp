@@ -113,7 +113,8 @@ Library
                      directory,
                      syb,
                      uniplate,
-                     pretty-show
+                     pretty-show,
+                     Pipe
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
                      Database.HsSqlPpp.Ast.Annotator
