@@ -1062,6 +1062,15 @@ check errors: select into wrong number of vars, wrong types, and into
 
 ================================================================================
 
+drop function
+
+first test: add function then check env for function
+
+second test: add function then drop it then check env for no function
+
+
+================================================================================
+
 >
 >    ]
 >         where

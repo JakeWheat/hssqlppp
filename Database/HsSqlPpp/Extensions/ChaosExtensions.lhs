@@ -40,7 +40,10 @@ Experimental code to use uniplate to implement extensions
 >                addNotifyTriggers .
 >                addConstraint .
 >                addKey .
->                addCompositeKey
+>                addForeignKey .
+>                zeroOneTuple .
+>                noDelIns .
+>                transitionConstraints
 
 
 ================================================================================
@@ -100,7 +103,9 @@ amount of work in comparison).
 >                          (Identifier an "*")] [])
 >                        (Just (Tref an (tableName ++ "_table") NoAlias))
 >                        Nothing [] Nothing [] Asc Nothing Nothing)]) Stable)]
->                ++ createKey an (tableName ++ "_table") [tableName] ++ tl
+>                ++ createKey an (tableName ++ "_table") [tableName]
+>                ++ createConstraint an [tableName ++ "_table"] (tableName ++ "_table_01_tuple") "true"
+>                ++ tl
 >         x1 -> x1
 
 ================================================================================
@@ -192,8 +197,8 @@ amount of work in comparison).
 >         (funCallView -> FunCallView an "add_constraint"
 >                           [StringLit _ _ conName
 >                           ,StringLit _ _ expr
->                           ,FunCall _ "!arrayctor" _]):tl
->           -> createConstraint an conName expr ++ tl
+>                           ,FunCall _ "!arrayctor" tbls]):tl
+>           -> createConstraint an (getStrings tbls) conName expr ++ tl
 >         x1 -> x1
 
 > parseExpressionWrap :: String -> Expression
@@ -202,16 +207,22 @@ amount of work in comparison).
 >                           Right ast -> ast
 
 > createConstraint :: Annotation
->                  -> [Char]
+>                  -> [String]
+>                  -> String
 >                  -> String
 >                  -> [Statement]
-> createConstraint an name expr = [CreateFunction an ("check_con_" ++ name) []
->                              (SimpleTypeName an "boolean") Plpgsql
->                              "$a$"
->                              (PlpgsqlFnBody an [] [
->                                 Return an $ Just $
->                                 (stripAnnotations $ parseExpressionWrap expr)
->                                 ]) Stable]
+> createConstraint an tbls name expr =
+>     CreateFunction an ("check_con_" ++ name) []
+>      (SimpleTypeName an "boolean") Plpgsql "$a$"
+>      (PlpgsqlFnBody an [] [
+>         Return an $ Just $
+>         (stripAnnotations $ parseExpressionWrap expr)
+>       ]) Stable :
+>     map (\t -> CreateFunction an (t ++ "_constraint_trigger_operator") []
+>                                    (SimpleTypeName an "trigger") Plpgsql "$a$"
+>                                    (PlpgsqlFnBody an [] [
+>                                                        NullStatement an]) Volatile
+>                                    ) tbls
 
 > addKey :: Data a => a -> a
 > addKey =
@@ -221,24 +232,104 @@ amount of work in comparison).
 >                           [StringLit _ _ tableName
 >                           ,StringLit _ _ columnName]):tl
 >           -> createKey an tableName [columnName] ++ tl
->         x1 -> x1
-
-> addCompositeKey :: Data a => a -> a
-> addCompositeKey =
->     transformBi $ \x ->
->       case x of
 >         (funCallView -> FunCallView an "add_key"
 >                           [StringLit _ _ tableName
 >                           ,FunCall _ "!arrayctor" cols]):tl
->           -> createKey an tableName (getColNames cols) ++ tl
+>           -> createKey an tableName (getStrings cols) ++ tl
 >         x1 -> x1
->     where
->       getColNames :: [Expression] -> [String]
->       getColNames cols = map (\(StringLit _ _ c) -> c) cols
+
+> getStrings :: [Expression] -> [String]
+> getStrings cols = map (\(StringLit _ _ c) -> c) cols
 
 > createKey :: Annotation
 >           -> String
 >           -> [String]
 >           -> [Statement]
 > createKey an tableName colNames =
->    createConstraint an (tableName ++ "_" ++ intercalate "_" colNames ++ "_key") "true"
+>    createConstraint an [tableName] (tableName ++ "_" ++ intercalate "_" colNames ++ "_key") "true"
+
+> zeroOneTuple :: Data a => a -> a
+> zeroOneTuple =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "constrain_to_zero_or_one_tuple"
+>                           [StringLit _ _ tableName]):tl
+>           -> createConstraint an [tableName] (tableName ++ "_01_tuple") "true" ++ tl
+>         x1 -> x1
+
+> addForeignKey :: Data a => a -> a
+> addForeignKey =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "add_foreign_key"
+>                           [StringLit _ _ tableName
+>                           ,StringLit _ _ colName
+>                           ,StringLit _ _ ttableName]):tl
+>           -> createFk an tableName [colName] ttableName [colName] ++ tl
+>         (funCallView -> FunCallView an "add_foreign_key"
+>                           [StringLit _ _ tableName
+>                           ,FunCall _ "!arrayctor" cols
+>                           ,StringLit _ _ ttableName]):tl
+>           -> createFk an tableName (getStrings cols) ttableName (getStrings cols) ++ tl
+>         (funCallView -> FunCallView an "add_foreign_key"
+>                           [StringLit _ _ tableName
+>                           ,StringLit _ _ colName
+>                           ,StringLit _ _ ttableName
+>                           ,StringLit _ _ tcolName]):tl
+>           -> createFk an tableName [colName] ttableName [tcolName] ++ tl
+>         (funCallView -> FunCallView an "add_foreign_key"
+>                           [StringLit _ _ tableName
+>                           ,FunCall _ "!arrayctor" cols
+>                           ,StringLit _ _ ttableName
+>                           ,FunCall _ "!arrayctor" tcols]):tl
+>           -> createFk an tableName (getStrings cols) ttableName (getStrings tcols) ++ tl
+>         x1 -> x1
+>     where
+>       createFk an tbl atts _ _  =
+>           createConstraint an [tbl] (tbl ++ "_" ++ intercalate "_" atts ++ "_fkey") "true"
+
+================================================================================
+
+> noDelIns :: Data a => a -> a
+> noDelIns =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "no_deletes_inserts_except_new_game"
+>                           [StringLit _ _ tbl]):tl
+>           -> (flip map ["_no_delete","_no_insert"] $ \n ->
+>                CreateFunction an ("check_" ++ tbl ++ n) []
+>                (SimpleTypeName an "trigger") Plpgsql "$a$"
+>                (PlpgsqlFnBody an [] [
+>                                  NullStatement an
+>                                 ]) Stable) ++ tl
+>         x1 -> x1
+
+================================================================================
+
+> transitionConstraints :: Data a => a -> a
+> transitionConstraints =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "create_update_transition_tuple_constraint"
+>                           [StringLit _ _ _
+>                           ,StringLit _ _ cn
+>                           ,StringLit _ _ _]):tl
+>           -> addTrigger an cn ++ tl
+>         (funCallView -> FunCallView an "create_insert_transition_tuple_constraint"
+>                           [StringLit _ _ _
+>                           ,StringLit _ _ cn
+>                           ,StringLit _ _ _]):tl
+>           -> addTrigger an cn ++ tl
+>         (funCallView -> FunCallView an "create_delete_transition_tuple_constraint"
+>                           [StringLit _ _ _
+>                           ,StringLit _ _ cn
+>                           ,StringLit _ _ _]):tl
+>           -> addTrigger an cn ++ tl
+>         x1 -> x1
+>     where
+>       addTrigger an n =
+>           [CreateFunction an ("check_" ++ n) []
+>                (SimpleTypeName an "trigger") Plpgsql "$a$"
+>                (PlpgsqlFnBody an [] [
+>                 NullStatement an
+>                 ]) Stable]

@@ -34,6 +34,11 @@ Set of tests for the extensions
 >       \begin\n\
 >       \  return true;\n\
 >       \end;\n\
+>       \$a$ language plpgsql stable;\n\
+>       \create function check_con_varname_table_01_tuple() returns boolean as $a$\n\
+>       \begin\n\
+>       \  return true;\n\
+>       \end;\n\
 >       \$a$ language plpgsql stable;"
 >    ,t addReadonlyTriggers
 >       "select set_relvar_type('stuff','readonly');"
@@ -98,14 +103,20 @@ Set of tests for the extensions
 >       \  return true;\n\
 >       \end;\n\
 >       \$a$ language plpgsql stable;"
->    ,t addCompositeKey
+>    ,t addKey
 >       "select add_key('tbl', array['attr1','attr2']);"
 >       "create function check_con_tbl_attr1_attr2_key() returns boolean as $a$\n\
 >       \begin\n\
 >       \  return true;\n\
 >       \end;\n\
 >       \$a$ language plpgsql stable;"
-
+>    ,t zeroOneTuple
+>       "select constrain_to_zero_or_one_tuple('tbl');"
+>       "create function check_con_tbl_01_tuple() returns boolean as $a$\n\
+>       \begin\n\
+>       \  return true;\n\
+>       \end;\n\
+>       \$a$ language plpgsql stable;"
 
 
 add_foreign_key

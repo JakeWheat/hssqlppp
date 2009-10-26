@@ -1,3 +1,17 @@
+todo for checkbig:
+get initial catalog tests passing:
+  parse copy payloads so can do the spell choice actions
+  support drop and drop if exists for functions mainly for constraint
+  table triggers
+  name/text result set resolution issue
+  uniquify constraint names support
+  trim constraint names support
+  distance function return type issue
+  plpgsql language functions
+
+do pg_dump comparison tests, and get extensions finished
+  need to get database loader working also
+
 rough todo for next release:
 work on catalog type and fns: diffs, deconstruct, to help with testing
   rename to catalog, other stuff from below?

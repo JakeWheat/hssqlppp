@@ -397,6 +397,7 @@ get catalog and dump and compare for equality with originals
 
 >         message "parsing"
 >         (ast::StatementList) <- liftIO parseFiles >>= liftThrows
+>         message "extensionizing"
 >         let east = extensionize ast
 >         (startingEnv::Environment) <- liftIO readDbEnv >>= liftThrows
 >         -- type check ast and get catalog

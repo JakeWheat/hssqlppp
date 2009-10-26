@@ -127,6 +127,7 @@ modules.
 >   | EnvCreateTable String [(String,Type)] [(String,Type)]
 >   | EnvCreateView String [(String,Type)]
 >   | EnvCreateFunction FunFlav String [Type] Type Bool
+>   | EnvDropFunction Bool FunFlav String [Type]
 >     deriving (Eq,Ord,Typeable,Data)
 
 > instance Show EnvironmentUpdate where
@@ -221,6 +222,14 @@ modules.
 >               FunAgg -> env {envAggregates=(nm,args,ret,vdc):envAggregates env}
 >               FunWindow -> env {envWindowFunctions=(nm,args,ret,vdc):envWindowFunctions env}
 >               FunName -> env {envFunctions=(nm,args,ret,vdc):envFunctions env}
+>         EnvDropFunction ifexists f nm args ->
+>             return env
+
+todo:
+look for matching function in list, if not found then error
+remove from list, and remove from update list
+
+
 >     addTypeWithArray env nm ty cat pref =
 >       env {envTypeNames =
 >                ('_':nm,ArrayType ty)
