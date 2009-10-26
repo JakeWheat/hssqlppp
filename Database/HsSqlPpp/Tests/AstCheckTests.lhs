@@ -1081,12 +1081,11 @@ drop function
 >         \$$ language plpgsql;\n\
 >         \drop function test(int);"
 >         []
+>      ,p "drop function test(int);" -- this should fail but doesn't
+>         []
+>      ,p "drop function if exists test(int);"
+>         []
 >     ])
-
-first test: add function then check env for function
-
-second test: add function then drop it then check env for no function
-
 
 ================================================================================
 
@@ -1113,9 +1112,12 @@ second test: add function then drop it then check env for no function
 >   let ast = case parseSql src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       (nenv,_) = annotateAstEnvEnv defaultTemplate1Environment ast
+>       (nenv,aast) = annotateAstEnvEnv defaultTemplate1Environment ast
+>       er = concatMap snd $ getTypeErrors aast
 >       neu = deconstructEnvironment nenv \\ deconstructEnvironment defaultTemplate1Environment
->   in assertEqual ("check eus") eu neu
+>   in if not (null er)
+>        then assertFailure $ show er
+>        else assertEqual "check eus" eu neu
 
 annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 

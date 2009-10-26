@@ -104,7 +104,7 @@ amount of work in comparison).
 >                        (Just (Tref an (tableName ++ "_table") NoAlias))
 >                        Nothing [] Nothing [] Asc Nothing Nothing)]) Stable)]
 >                ++ createKey an (tableName ++ "_table") [tableName]
->                ++ createConstraint an [tableName ++ "_table"] (tableName ++ "_table_01_tuple") "true"
+>                ++ createConstraint True an [tableName ++ "_table"] (tableName ++ "_table_01_tuple") "true"
 >                ++ tl
 >         x1 -> x1
 
@@ -198,7 +198,7 @@ amount of work in comparison).
 >                           [StringLit _ _ conName
 >                           ,StringLit _ _ expr
 >                           ,FunCall _ "!arrayctor" tbls]):tl
->           -> createConstraint an (getStrings tbls) conName expr ++ tl
+>           -> createConstraint True an (getStrings tbls) conName expr ++ tl
 >         x1 -> x1
 
 > parseExpressionWrap :: String -> Expression
@@ -206,23 +206,27 @@ amount of work in comparison).
 >                           Left e -> trace ("parsing expression: " ++ s) $ error $ show e
 >                           Right ast -> ast
 
-> createConstraint :: Annotation
+> createConstraint :: Bool
+>                  -> Annotation
 >                  -> [String]
 >                  -> String
 >                  -> String
 >                  -> [Statement]
-> createConstraint an tbls name expr =
+> createConstraint tr an tbls name expr =
 >     CreateFunction an ("check_con_" ++ name) []
 >      (SimpleTypeName an "boolean") Plpgsql "$a$"
 >      (PlpgsqlFnBody an [] [
 >         Return an $ Just $
 >         (stripAnnotations $ parseExpressionWrap expr)
 >       ]) Stable :
->     map (\t -> CreateFunction an (t ++ "_constraint_trigger_operator") []
+>     if tr
+>       then concatMap (\t -> [DropFunction an IfExists [(t ++ "_constraint_trigger_operator",[])] Restrict
+>                ,CreateFunction an (t ++ "_constraint_trigger_operator") []
 >                                    (SimpleTypeName an "trigger") Plpgsql "$a$"
 >                                    (PlpgsqlFnBody an [] [
->                                                        NullStatement an]) Volatile
+>                                                        NullStatement an]) Volatile]
 >                                    ) tbls
+>       else []
 
 > addKey :: Data a => a -> a
 > addKey =
@@ -246,7 +250,7 @@ amount of work in comparison).
 >           -> [String]
 >           -> [Statement]
 > createKey an tableName colNames =
->    createConstraint an [tableName] (tableName ++ "_" ++ intercalate "_" colNames ++ "_key") "true"
+>    createConstraint False an [tableName] (tableName ++ "_" ++ intercalate "_" colNames ++ "_key") "true"
 
 > zeroOneTuple :: Data a => a -> a
 > zeroOneTuple =
@@ -254,7 +258,7 @@ amount of work in comparison).
 >       case x of
 >         (funCallView -> FunCallView an "constrain_to_zero_or_one_tuple"
 >                           [StringLit _ _ tableName]):tl
->           -> createConstraint an [tableName] (tableName ++ "_01_tuple") "true" ++ tl
+>           -> createConstraint True an [tableName] (tableName ++ "_01_tuple") "true" ++ tl
 >         x1 -> x1
 
 > addForeignKey :: Data a => a -> a
@@ -286,7 +290,7 @@ amount of work in comparison).
 >         x1 -> x1
 >     where
 >       createFk an tbl atts _ _  =
->           createConstraint an [tbl] (tbl ++ "_" ++ intercalate "_" atts ++ "_fkey") "true"
+>           createConstraint False an [tbl] (tbl ++ "_" ++ intercalate "_" atts ++ "_fkey") "true"
 
 ================================================================================
 

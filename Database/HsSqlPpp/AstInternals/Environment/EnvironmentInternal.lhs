@@ -223,8 +223,23 @@ modules.
 >               FunAgg -> env {envAggregates=(nm,args,ret,vdc):envAggregates env}
 >               FunWindow -> env {envWindowFunctions=(nm,args,ret,vdc):envWindowFunctions env}
 >               FunName -> env {envFunctions=(nm,args,ret,vdc):envFunctions env}
->         EnvDropFunction ifexists nm args ->
->             return env
+>         EnvDropFunction ifexists nm args -> do
+>             let matches =  filter matchingFn (envFunctions env)
+>             errorWhen (null matches) $ [BadEnvironmentUpdate $
+>                                         "couldn't find function to drop " ++
+>                                         show nm ++ "(" ++ show args++")"]
+>             errorWhen (length matches > 1) $ [BadEnvironmentUpdate $
+>                                               "multiple matching functions to drop " ++
+>                                               show nm ++ "(" ++ show args++")"]
+>             return env {envFunctions = filter (not . matchingFn) (envFunctions env)
+>                        ,envUpdates = filter (not.matchingUpdate) (envUpdates env)}
+>             where
+>               matchingFn (nm1,a1,_,_) = map toLower nm == map toLower nm1 && args == a1
+>               matchingUpdate (EnvDropFunction _ nm2 a2) | map toLower nm2 == map toLower nm
+>                                                           && a2 == args = True
+>               matchingUpdate (EnvCreateFunction _ nm2 a2 _ _) | map toLower nm2 == map toLower nm
+>                                                           && a2 == args = True
+>               matchingUpdate _ = False
 
 todo:
 look for matching function in list, if not found then error
