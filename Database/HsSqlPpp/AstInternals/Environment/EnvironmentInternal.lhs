@@ -127,7 +127,7 @@ modules.
 >   | EnvCreateTable String [(String,Type)] [(String,Type)]
 >   | EnvCreateView String [(String,Type)]
 >   | EnvCreateFunction FunFlav String [Type] Type Bool
->   | EnvDropFunction Bool FunFlav String [Type]
+>   | EnvDropFunction Bool String [Type]
 >     deriving (Eq,Ord,Typeable,Data)
 
 > instance Show EnvironmentUpdate where
@@ -140,6 +140,7 @@ modules.
 >     show (EnvCreateFunction flav nm args ret vdc) =
 >       "EnvCreateFunction " ++ show flav ++ " " ++ nm ++ " returns " ++ show ret ++
 >       "(" ++ (intercalate "," $ map show args) ++ ")" ++ if vdc then " variadic" else ""
+>     show (EnvDropFunction _ nm args) = "EnvDropFunction " ++ nm ++ "(" ++ show args ++ ")"
 
 > showFlds :: [(String,Type)] -> String
 > showFlds flds = "(\n" ++ sfs flds ++ ")"
@@ -222,7 +223,7 @@ modules.
 >               FunAgg -> env {envAggregates=(nm,args,ret,vdc):envAggregates env}
 >               FunWindow -> env {envWindowFunctions=(nm,args,ret,vdc):envWindowFunctions env}
 >               FunName -> env {envFunctions=(nm,args,ret,vdc):envFunctions env}
->         EnvDropFunction ifexists f nm args ->
+>         EnvDropFunction ifexists nm args ->
 >             return env
 
 todo:
@@ -362,7 +363,8 @@ remove from list, and remove from update list
 
 = built in stuff
 
-keyword operators, all of these are built in and don't appear in any
+keyword operators, all of these are b
+uilt in and don't appear in any
 postgresql catalog
 
 This is wrong, these need to be separated into prefix, postfix, binary

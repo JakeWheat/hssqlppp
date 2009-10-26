@@ -63,8 +63,9 @@ This is the public module for the ast nodes.
 >     ,AttributeDefList
 >     ,ConstraintList
 >     ,TypeAttributeDefList
->     ,StringStringListPairList
->     ,StringStringListPair
+>     ,TypeNameList
+>     ,StringTypeNameListPair
+>     ,StringTypeNameListPairList
 >     ,ExpressionStatementListPairList
 >     ,SetClauseList
 >     ,CaseExpressionListExpressionPairList

@@ -9,8 +9,12 @@ get initial catalog tests passing:
   distance function return type issue
   plpgsql language functions
 
-do pg_dump comparison tests, and get extensions finished
-  need to get database loader working also
+do pg_dump comparison tests
+  get database loader working
+  fill in missing bits on extensions - tidy up and rework also
+  add support for missing catalog bits:
+    triggers, sequences, constraints, indexes, defaults
+  parse not not and count distinct
 
 rough todo for next release:
 work on catalog type and fns: diffs, deconstruct, to help with testing

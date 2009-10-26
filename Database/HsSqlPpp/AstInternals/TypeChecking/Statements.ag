@@ -56,7 +56,7 @@ SEM StatementList
 SEM Statement
     | SelectStatement Insert Update Delete CreateView CreateDomain
       CreateFunction CreateType CreateTable CreateTableAs Return Assignment
-      ForSelectStatement ForIntegerStatement
+      ForSelectStatement ForIntegerStatement DropFunction
         loc.tpe : {Either [TypeError] Type}
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
@@ -69,7 +69,7 @@ SEM Statement
     | Insert Update Delete CreateView CreateDomain
       CreateFunction CreateType CreateTable CreateTableAs Return
       Assignment ForSelectStatement ForIntegerStatement Set CreateLanguage
-      Notify CreateSequence AlterSequence
+      Notify CreateSequence AlterSequence DropFunction
         loc.libUpdates = []
 
 SEM StatementList
@@ -81,7 +81,7 @@ SEM Root
            statements.libUpdates = []
 
 SEM Statement
-    | CaseStatement ContinueStatement Copy CopyData DropFunction
+    | CaseStatement ContinueStatement Copy CopyData
       DropSomething Execute ExecuteInto
       If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement Set CreateLanguage Notify CreateSequence
@@ -117,5 +117,6 @@ INCLUDE "TypeChecking/Dml.ag"
 INCLUDE "TypeChecking/CreateTable.ag"
 INCLUDE "TypeChecking/MiscCreates.ag"
 INCLUDE "TypeChecking/CreateFunction.ag"
+INCLUDE "TypeChecking/Drops.ag"
 INCLUDE "TypeChecking/Plpgsql.ag"
 

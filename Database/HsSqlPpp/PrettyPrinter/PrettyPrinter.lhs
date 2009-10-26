@@ -220,7 +220,7 @@ Conversion routines - convert Sql asts into Docs
 >   <+> convCasc casc
 >   <> statementEnd
 >   where
->     doFunction (name,types) = text name <> parens (hcatCsvMap text types)
+>     doFunction (name,types) = text name <> parens (hcatCsvMap convTypeName types)
 
 > convStatement ca (DropSomething ann dropType ifExists names casc) =
 >     convPa ca ann <+>

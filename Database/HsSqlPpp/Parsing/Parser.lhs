@@ -645,7 +645,7 @@ variable declarations in a plpgsql function
 >                return $ DropFunction p i e r
 >                where
 >                  pFun = (,) <$> idString
->                             <*> parens (many idString)
+>                             <*> parens (many typeName)
 
 > parseDrop :: ParsecT [Token] ParseState Identity a
 >           -> ParsecT [Token] ParseState Identity (IfExists, [a], Cascade)

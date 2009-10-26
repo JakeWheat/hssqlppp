@@ -1048,10 +1048,10 @@ test functions
 >        (PlpgsqlFnBody [] [] [NullStatement []])
 >        Stable]
 >      ,p "drop function test(text);"
->       [DropFunction [] Require [("test",["text"])] Restrict]
+>       [DropFunction [] Require [("test",[SimpleTypeName [] "text"])] Restrict]
 >      ,p "drop function if exists a(),test(text) cascade;"
 >       [DropFunction [] IfExists [("a",[])
->                           ,("test",["text"])] Cascade]
+>                           ,("test",[SimpleTypeName [] "text"])] Cascade]
 >      ])
 
 ================================================================================

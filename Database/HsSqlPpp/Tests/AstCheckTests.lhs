@@ -9,7 +9,9 @@ Set of tests to check the type checking code.
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
+> import Data.List
 > --import Debug.Trace
+> --import Text.Show.Pretty
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.Annotator
@@ -1064,6 +1066,23 @@ check errors: select into wrong number of vars, wrong types, and into
 
 drop function
 
+>    ,testGroup "drop stuff"
+>     (mapStatementEnvChanges [
+>       p "create function test(a int) returns void as $$\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end\n\
+>         \$$ language plpgsql;"
+>         [EnvCreateFunction FunName "test" [typeInt] (Pseudo Void) False]
+>      ,p "create function test(a int) returns void as $$\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end\n\
+>         \$$ language plpgsql;\n\
+>         \drop function test(int);"
+>         []
+>     ])
+
 first test: add function then check env for function
 
 second test: add function then drop it then check env for no function
@@ -1082,11 +1101,24 @@ second test: add function then drop it then check env for no function
 >           mapStatementInfo = map $ uncurry checkStatementInfo
 >           mapStatementInfos = map $ uncurry checkStatementInfos
 >           mapStatementInfoEu = map (\(a,b,c) ->  checkStatementInfoEu a b c)
+>           mapStatementEnvChanges = map $ uncurry checkStatementEnvChanges
 >           {-mapExprEnvType = map (\(a,b,c) -> checkExpressionType b a c)-}
 >           makeEnv eu = case updateEnvironment defaultTemplate1Environment eu of
 >                         Left x -> error $ show x
 >                         Right e -> e
 >           mapStatementInfoEnv = map (\(a,b,c) -> checkStatementInfoEnv b a c)
+
+> checkStatementEnvChanges :: String -> [EnvironmentUpdate] -> Test.Framework.Test
+> checkStatementEnvChanges src eu = testCase ("check catalog: " ++ src) $
+>   let ast = case parseSql src of
+>                               Left e -> error $ show e
+>                               Right l -> l
+>       (nenv,_) = annotateAstEnvEnv defaultTemplate1Environment ast
+>       neu = deconstructEnvironment nenv \\ deconstructEnvironment defaultTemplate1Environment
+>   in assertEqual ("check eus") eu neu
+
+annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
+
 
 > checkExpressionType :: Environment -> String -> Either [TypeError] Type -> Test.Framework.Test
 > checkExpressionType env src typ = testCase ("typecheck " ++ src) $

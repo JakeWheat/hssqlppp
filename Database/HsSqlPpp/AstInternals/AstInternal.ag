@@ -85,8 +85,9 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,AttributeDefList
    ,ConstraintList
    ,TypeAttributeDefList
-   ,StringStringListPairList
-   ,StringStringListPair
+   ,TypeNameList
+   ,StringTypeNameListPair
+   ,StringTypeNameListPairList
    ,ExpressionStatementListPairList
    ,SetClauseList
    ,CaseExpressionListExpressionPairList
@@ -235,7 +236,7 @@ DATA Statement
     -- ifexists (name,argtypes)* cascadeorrestrict
     | DropFunction ann:Annotation
                    ifE : IfExists
-                   sigs : StringStringListPairList
+                   sigs : StringTypeNameListPairList
                    cascade : Cascade
     -- ifexists names cascadeorrestrict
     | DropSomething ann:Annotation
@@ -595,8 +596,9 @@ TYPE AttributeDefList = [AttributeDef]
 TYPE ConstraintList = [Constraint]
 TYPE TypeAttributeDefList = [TypeAttributeDef]
 TYPE ParamDefList = [ParamDef]
-TYPE StringStringListPair = (String,StringList)
-TYPE StringStringListPairList = [StringStringListPair]
+TYPE TypeNameList = [TypeName]
+TYPE StringTypeNameListPair = (String, TypeNameList)
+TYPE StringTypeNameListPairList = [StringTypeNameListPair]
 TYPE ExpressionListStatementListPair = (ExpressionList,StatementList)
 TYPE ExpressionListStatementListPairList = [ExpressionListStatementListPair]
 TYPE ExpressionStatementListPair = (Expression, StatementList)
@@ -639,7 +641,8 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                Expression InList MaybeExpression MaybeBoolExpression
                ExpressionList ExpressionListList StringList SetClauseList
                AttributeDefList ConstraintList TypeAttributeDefList
-               ParamDefList StringStringListPair StringStringListPairList
+               ParamDefList TypeNameList StringTypeNameListPair
+               StringTypeNameListPairList
                StatementList ExpressionListStatementListPair
                ExpressionListStatementListPairList ExpressionStatementListPair
                ExpressionStatementListPairList VarDefList SelectItemList
