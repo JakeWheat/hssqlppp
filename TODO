@@ -1,3 +1,15 @@
+High level TODO:
+get checkbig mostly working:
+  databaseloader
+  finish extensions
+  add stuff to catalog
+catalog type rename
+type -> either for type errors
+work on error handling
+review commands in hssqlppp
+add database username and password support
+code tidy/ documentation
+
 todo for checkbig:
 get initial catalog tests passing:
   parse copy payloads so can do the spell choice actions

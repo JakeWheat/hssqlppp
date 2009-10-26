@@ -43,7 +43,8 @@ Experimental code to use uniplate to implement extensions
 >                addForeignKey .
 >                zeroOneTuple .
 >                noDelIns .
->                transitionConstraints
+>                transitionConstraints .
+>                replaceGenerateSpellChoiceActions
 
 
 ================================================================================
@@ -337,3 +338,116 @@ amount of work in comparison).
 >                (PlpgsqlFnBody an [] [
 >                 NullStatement an
 >                 ]) Stable]
+
+================================================================================
+
+generate_spell_choice_actions
+
+quite dynamic: need to read the data from the spells_mr table to
+generate the names of the functions
+
+approach:
+first: remove the create function generate_spell_choice_actions, the
+select generate_spel..., and the drop function so these arn't used at
+all
+second: at the point where generate_spell_choice_actions was called,
+insert the create functions. To do this need to get the copydata for
+the copy statement which set up the data in spells_mr, then read the
+first cell from each line in the copy data string.
+
+additional hack: just hardcode the spell names here since they are
+unlikely to change for quite a while
+
+> getSpellNames :: Data a => a -> [String]
+> getSpellNames _ = ["chaos"
+>                   ,"dark_citadel"
+>                   ,"dark_power"
+>                   ,"decree"
+>                   ,"disbelieve"
+>                   ,"eagle"
+>                   ,"elf"
+>                   ,"faun"
+>                   ,"ghost"
+>                   ,"giant_rat"
+>                   ,"giant"
+>                   ,"goblin"
+>                   ,"golden_dragon"
+>                   ,"gooey_blob"
+>                   ,"gorilla"
+>                   ,"green_dragon"
+>                   ,"gryphon"
+>                   ,"harpy"
+>                   ,"horse"
+>                   ,"hydra"
+>                   ,"justice"
+>                   ,"king_cobra"
+>                   ,"large_chaos"
+>                   ,"large_law"
+>                   ,"law"
+>                   ,"lightning"
+>                   ,"lion"
+>                   ,"magic_armour"
+>                   ,"magic_bolt"
+>                   ,"magic_bow"
+>                   ,"magic_castle"
+>                   ,"magic_fire"
+>                   ,"magic_knife"
+>                   ,"magic_shield"
+>                   ,"magic_sword"
+>                   ,"magic_wings"
+>                   ,"magic_wood"
+>                   ,"manticore"
+>                   ,"ogre"
+>                   ,"orc"
+>                   ,"pegasus"
+>                   ,"raise_dead"
+>                   ,"red_dragon"
+>                   ,"shadow_form"
+>                   ,"shadow_wood"
+>                   ,"skeleton"
+>                   ,"spectre"
+>                   ,"subversion"
+>                   ,"turmoil"
+>                   ,"unicorn"
+>                   ,"vampire"
+>                   ,"vengeance"
+>                   ,"wall"
+>                   ,"wraith"
+>                   ,"zombie"]
+
+
+> replaceGenerateSpellChoiceActions :: Data a => a -> a
+> replaceGenerateSpellChoiceActions d = let sn = getSpellNames d
+>                                       in replaceGenerateSpellChoiceActionsInt sn d
+
+> replaceGenerateSpellChoiceActionsInt :: Data a => [String] -> a -> a
+> replaceGenerateSpellChoiceActionsInt spellNames =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "generate_spell_choice_actions" []):tl
+>           -> map (createChoiceFn an) spellNames ++ tl
+>         (CreateFunction _ "generate_spell_choice_actions" _ _ _ _ _ _):tl
+>           -> tl
+>         (DropFunction _ _ [("generate_spell_choice_actions",[])] _):tl
+>           -> tl
+>         x1 -> x1
+>     where
+>       createChoiceFn an sn =
+>         CreateFunction an ("action_choose_" ++ sn ++ "_spell")
+>                        []
+>                        (SimpleTypeName [] "void")
+>                        Plpgsql
+>                        "$$"
+>                        (PlpgsqlFnBody an [] [
+>                                            NullStatement an
+>                                           ]) Volatile
+
+CREATE FUNCTION action_choose_horse_spell() RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+begin
+  perform check_can_run_action('choose_horse_spell');
+  perform action_choose_spell('horse');
+end;
+$$;
+

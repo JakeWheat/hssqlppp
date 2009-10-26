@@ -35,16 +35,18 @@ Set of tests for the extensions
 >       \  return true;\n\
 >       \end;\n\
 >       \$a$ language plpgsql stable;\n\
+>       \/*drop function if exists varname_table_constraint_trigger_operator();\n\
 >       \create function varname_table_constraint_trigger_operator() returns trigger as $a$\n\
 >       \begin\n\
 >       \  null;\n\
 >       \end;\n\
->       \$a$ language plpgsql;\n\
+>       \$a$ language plpgsql;*/\n\
 >       \create function check_con_varname_table_01_tuple() returns boolean as $a$\n\
 >       \begin\n\
 >       \  return true;\n\
 >       \end;\n\
 >       \$a$ language plpgsql stable;\n\
+>       \drop function if exists varname_table_constraint_trigger_operator();\n\
 >       \create function varname_table_constraint_trigger_operator() returns trigger as $a$\n\
 >       \begin\n\
 >       \  null;\n\
@@ -107,11 +109,13 @@ Set of tests for the extensions
 >       \  return true;\n\
 >       \end;\n\
 >       \$a$ language plpgsql stable;\n\
+>       \drop function if exists t1_constraint_trigger_operator();\n\
 >       \create function t1_constraint_trigger_operator() returns trigger as $a$\n\
 >       \begin\n\
 >       \  null;\n\
 >       \end;\n\
 >       \$a$ language plpgsql;\n\
+>       \drop function if exists t2_constraint_trigger_operator();\n\
 >       \create function t2_constraint_trigger_operator() returns trigger as $a$\n\
 >       \begin\n\
 >       \  null;\n\
@@ -124,11 +128,12 @@ Set of tests for the extensions
 >       \  return true;\n\
 >       \end;\n\
 >       \$a$ language plpgsql stable;\n\
+>       \/*drop function if exists tbl_constraint_trigger_operator();\n\
 >       \create function tbl_constraint_trigger_operator() returns trigger as $a$\n\
 >       \begin\n\
 >       \  null;\n\
 >       \end;\n\
->       \$a$ language plpgsql;"
+>       \$a$ language plpgsql;*/"
 >    ,t addKey
 >       "select add_key('tbl', array['attr1','attr2']);"
 >       "create function check_con_tbl_attr1_attr2_key() returns boolean as $a$\n\
@@ -136,11 +141,12 @@ Set of tests for the extensions
 >       \  return true;\n\
 >       \end;\n\
 >       \$a$ language plpgsql stable;\n\
+>       \/*drop function if exists tbl_constraint_trigger_operator();\n\
 >       \create function tbl_constraint_trigger_operator() returns trigger as $a$\n\
 >       \begin\n\
 >       \  null;\n\
 >       \end;\n\
->       \$a$ language plpgsql;"
+>       \$a$ language plpgsql;*/"
 >    ,t zeroOneTuple
 >       "select constrain_to_zero_or_one_tuple('tbl');"
 >       "create function check_con_tbl_01_tuple() returns boolean as $a$\n\
@@ -148,6 +154,7 @@ Set of tests for the extensions
 >       \  return true;\n\
 >       \end;\n\
 >       \$a$ language plpgsql stable;\n\
+>       \drop function if exists tbl_constraint_trigger_operator();\n\
 >       \create function tbl_constraint_trigger_operator() returns trigger as $a$\n\
 >       \begin\n\
 >       \  null;\n\
