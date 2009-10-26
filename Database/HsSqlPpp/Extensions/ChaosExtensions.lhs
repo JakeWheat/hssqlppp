@@ -15,10 +15,12 @@ Experimental code to use uniplate to implement extensions
 
 > import Control.Applicative
 > import Control.Monad.Identity
+> import Data.List
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Parsing.Lexer
+> import Database.HsSqlPpp.Parsing.Parser
 
 
 
@@ -35,7 +37,10 @@ Experimental code to use uniplate to implement extensions
 > extensionize = addReadonlyTriggers .
 >                rewriteCreateVars .
 >                createClientActionWrapper .
->                addNotifyTriggers
+>                addNotifyTriggers .
+>                addConstraint .
+>                addKey .
+>                addCompositeKey
 
 
 ================================================================================
@@ -77,7 +82,7 @@ amount of work in comparison).
 >     transformBi $ \x ->
 >       case x of
 >         (funCallView -> FunCallView an "create_var" [StringLit _ _ tableName,StringLit _ _ typeName]):tl
->             -> ((CreateTable an
+>             -> [(CreateTable an
 >                            (tableName ++ "_table")
 >                            [AttributeDef an
 >                                          tableName
@@ -85,7 +90,7 @@ amount of work in comparison).
 >                                          Nothing
 >                                          []]
 >                            [])
->                 : (CreateFunction an ("get_" ++ tableName) []
+>                 ,(CreateFunction an ("get_" ++ tableName) []
 >                     (SimpleTypeName an typeName) Sql "$a$"
 >                     (SqlFnBody an
 >                      [SelectStatement an
@@ -94,8 +99,8 @@ amount of work in comparison).
 >                         [SelExp an
 >                          (Identifier an "*")] [])
 >                        (Just (Tref an (tableName ++ "_table") NoAlias))
->                        Nothing [] Nothing [] Asc Nothing Nothing)]) Stable)
->                 : tl)
+>                        Nothing [] Nothing [] Asc Nothing Nothing)]) Stable)]
+>                ++ createKey an (tableName ++ "_table") [tableName] ++ tl
 >         x1 -> x1
 
 ================================================================================
@@ -177,3 +182,63 @@ amount of work in comparison).
 >                                      ,Return an $ Just $ NullLit an
 >                                      ]) Volatile : tl)
 >         x1 -> x1
+
+================================================================================
+
+> addConstraint :: Data a => a -> a
+> addConstraint =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "add_constraint"
+>                           [StringLit _ _ conName
+>                           ,StringLit _ _ expr
+>                           ,FunCall _ "!arrayctor" _]):tl
+>           -> createConstraint an conName expr ++ tl
+>         x1 -> x1
+
+> parseExpressionWrap :: String -> Expression
+> parseExpressionWrap s = case parseExpression s of
+>                           Left e -> trace ("parsing expression: " ++ s) $ error $ show e
+>                           Right ast -> ast
+
+> createConstraint :: Annotation
+>                  -> [Char]
+>                  -> String
+>                  -> [Statement]
+> createConstraint an name expr = [CreateFunction an ("check_con_" ++ name) []
+>                              (SimpleTypeName an "boolean") Plpgsql
+>                              "$a$"
+>                              (PlpgsqlFnBody an [] [
+>                                 Return an $ Just $
+>                                 (stripAnnotations $ parseExpressionWrap expr)
+>                                 ]) Stable]
+
+> addKey :: Data a => a -> a
+> addKey =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "add_key"
+>                           [StringLit _ _ tableName
+>                           ,StringLit _ _ columnName]):tl
+>           -> createKey an tableName [columnName] ++ tl
+>         x1 -> x1
+
+> addCompositeKey :: Data a => a -> a
+> addCompositeKey =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "add_key"
+>                           [StringLit _ _ tableName
+>                           ,FunCall _ "!arrayctor" cols]):tl
+>           -> createKey an tableName (getColNames cols) ++ tl
+>         x1 -> x1
+>     where
+>       getColNames :: [Expression] -> [String]
+>       getColNames cols = map (\(StringLit _ _ c) -> c) cols
+
+> createKey :: Annotation
+>           -> String
+>           -> [String]
+>           -> [Statement]
+> createKey an tableName colNames =
+>    createConstraint an (tableName ++ "_" ++ intercalate "_" colNames ++ "_key") "true"

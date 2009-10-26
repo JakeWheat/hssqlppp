@@ -29,7 +29,12 @@ Set of tests for the extensions
 >       \  varname vartype);\n\
 >       \create function get_varname() returns vartype as $a$\n\
 >       \  select * from varname_table;\n\
->       \$a$ language sql stable;"
+>       \$a$ language sql stable;\n\
+>       \create function check_con_varname_table_varname_key() returns boolean as $a$\n\
+>       \begin\n\
+>       \  return true;\n\
+>       \end;\n\
+>       \$a$ language plpgsql stable;"
 >    ,t addReadonlyTriggers
 >       "select set_relvar_type('stuff','readonly');"
 >       "create function check_stuff_d_readonly() returns trigger as $a$\n\
@@ -79,6 +84,34 @@ Set of tests for the extensions
 >       \  return null;\n\
 >       \end;\n\
 >       \$a$ language plpgsql;"
+>    ,t addConstraint
+>       "select add_constraint('name', 'true', array['t1', 't2']);"
+>       "create function check_con_name() returns boolean as $a$\n\
+>       \begin\n\
+>       \  return true;\n\
+>       \end;\n\
+>       \$a$ language plpgsql stable;"
+>    ,t addKey
+>       "select add_key('tbl', 'attr');"
+>       "create function check_con_tbl_attr_key() returns boolean as $a$\n\
+>       \begin\n\
+>       \  return true;\n\
+>       \end;\n\
+>       \$a$ language plpgsql stable;"
+>    ,t addCompositeKey
+>       "select add_key('tbl', array['attr1','attr2']);"
+>       "create function check_con_tbl_attr1_attr2_key() returns boolean as $a$\n\
+>       \begin\n\
+>       \  return true;\n\
+>       \end;\n\
+>       \$a$ language plpgsql stable;"
+
+
+
+add_foreign_key
+constrain zero one
+add constraint
+
 >    ])
 
 >   where
