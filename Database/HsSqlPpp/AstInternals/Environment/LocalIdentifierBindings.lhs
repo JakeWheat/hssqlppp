@@ -5,6 +5,8 @@ during the type checking process.
 
 Main areas to support are parameters and variables
 
+> {-# OPTIONS_HADDOCK hide  #-}
+
 > module Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
 >     (
 >      QualifiedIDs

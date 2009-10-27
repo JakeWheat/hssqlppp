@@ -3,7 +3,26 @@ Copyright 2009 Jake Wheat
 Experimental code to use uniplate to implement extensions
 
 > {-# LANGUAGE ViewPatterns #-}
-> module Database.HsSqlPpp.Extensions.ChaosExtensions where
+
+> {- | Experimental code to half implement some simple syntax extensions
+>      for plpgsql.
+> -}
+
+> module Database.HsSqlPpp.Extensions.ChaosExtensions
+>     (
+>      extensionize
+>     ,addReadonlyTriggers
+>     ,rewriteCreateVars
+>     ,createClientActionWrapper
+>     ,addNotifyTriggers
+>     ,addConstraint
+>     ,addKey
+>     ,addForeignKey
+>     ,zeroOneTuple
+>     ,noDelIns
+>     ,transitionConstraints
+>     ,replaceGenerateSpellChoiceActions
+>     ) where
 
 > import Data.Generics
 > import Data.Generics.PlateData

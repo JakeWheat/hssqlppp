@@ -4,7 +4,48 @@ Wrappers used in the command line program
 
 > {-# LANGUAGE FlexibleContexts #-}
 
-> module Database.HsSqlPpp.Commands.Commands where
+
+> {- | This module contains all the functions used in the hssqlsystem
+>      exe. Mainly a set of wrappers to lift other functions into an
+>      ErrorT monad.
+> -}
+> module Database.HsSqlPpp.Commands.Commands
+>     (
+>      -- * errort wrapper
+>      wrapET
+>      -- * parsing
+>     ,lexSql
+>     ,parseSql1
+>      -- * show and pretty print
+>     ,printList
+>     ,ppSh
+>     ,ppSql
+>     ,ppAnnOrig
+>     ,ppTypeErrors
+>      -- * annotations
+>     ,stripAnn
+>     ,annotate
+>     ,getTEs
+>      -- * dbms access
+>     ,readCatalog
+>     ,clearDB
+>     ,loadAst
+>     ,loadSqlUsingPsqlFromFile
+>     ,loadSqlUsingPsql
+>     ,pgDump
+>      -- catalog diffs
+>     ,compareCatalogs
+>     ,ppCatDiff
+>      -- extensions
+>     ,runExtensions
+>      -- * utils
+>     ,message
+>     ,putStrLnList
+>     ,readInput
+>     ,lconcat
+>     ,lfst
+>     ,lsnd
+>     ) where
 
 > import Control.Monad.Error
 > import System
@@ -35,15 +76,13 @@ Wrappers used in the command line program
 ================================================================================
 
 read file as string - issues are:
-not sure the return type should be string,string, put this in to pass
-to loadsql so that it knows the source file
 
 want to support reading from stdin, and reading from a string passed
 as an argument to the exe
 
-> readInput :: (Error e, MonadIO m) => String -> ErrorT e m (String,String)
+> readInput :: (Error e, MonadIO m) => String -> ErrorT e m String
 > readInput f =
->   liftIO $ readFile f >>= \l -> return (f,l)
+>   liftIO $ readFile f
 
 ===============================================================================
 

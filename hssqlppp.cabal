@@ -32,10 +32,19 @@ Description:
     without loading it via psql). The loader just about does the job
     but error handling is a bit crap at the moment.
     .
-    Comes with a HUnit test suite which you can run using the
-    HsSqlPppTests executable, and command line access to some
+    'Commands' for the component functions used in the HsSqlSystem
+    exe.
+    .
+    'ChaosExtensions' for the experimental plpgsql syntax extensions.
+    .
+    Comes with command line access to some
     functions via a exe called HsSqlSystem, run this file with no
-    arguments to get some help. See the project page
+    arguments to get some help. Has a HUnit test suite which you can
+    run using the HsSqlSystem executable. for the time being you can
+    look at the source of this command to see what it can do:
+    <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/HsSqlSystem.lhs>
+    .
+    See the project page
     <https://launchpad.net/hssqlppp> for more information and
     documentation links.
 
@@ -130,6 +139,8 @@ Library
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
                      Database.HsSqlPpp.PrettyPrinter.AnnotateSource
                      Database.HsSqlPpp.Dbms.DatabaseLoader
+                     Database.HsSqlPpp.Commands.Commands
+                     Database.HsSqlPpp.Extensions.ChaosExtensions
 
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
 

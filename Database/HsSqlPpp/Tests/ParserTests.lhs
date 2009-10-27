@@ -7,6 +7,14 @@ written in a tdd style, which the coverage of the tests reflects.
 
 There are no tests for invalid sql at the moment.
 
+TODO
+new idea for testing:
+parsesql -> ast1
+parse, pretty print, parse -> ast2
+load into pg, pg_dump, parse -> ast3
+parse, pretty print, load into pg, pg_dump, parse -> ast4
+check all these asts are the same
+
 > module Database.HsSqlPpp.Tests.ParserTests (parserTests) where
 
 > import Test.HUnit

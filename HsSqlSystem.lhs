@@ -11,57 +11,6 @@ run
 ./HsSqlSystem.lhs help
 to get a list of commands and purpose and usage info
 
-TODOS
-
-think of a better name for this command than hssqlsystem
-
-want better options system:
-first set of options get passed around in reader? monad:
-  database name, username, password for pg
-  useextensions
-  annotation control? - when showing values, which annotations to also output?
-these have defaults, can change defaults in ~/.config/hssqlsystem or something,
-and can be overridden using --dbname=...,etc. command line args (make
-these work like psql? then have environment variables also)
-second set of options is for input and output:
-read from file(s), stdin, or from string literal command line arg, e.g.
-HsSqlSystem expressionType --src="3 + 5"
-output to file(s) or stdout
-
-review command names and arguments:
-find a better naming convention: some commands produce haskell values as text,
-some produce non haskell compatible text e.g. lexfile
-some run tests and produce a success/fail result, maybe a list of issues
-
-run multiple commands in one invocation?
-
-check errors passed to user are understandable
-
-command line commands to add:
-
-showAast
-ppCatalog - read from db and print in human readable rather
-            than as haskell value
-showexpressionast
-showexpressionaast
-typecheckexpression
-pppexpression
-showCatalogUpdates - run over some sql files, outputs the catalog changes
-                     made by this sql
-ppCatalogUpdates
-
-run an extension by name over some sql source to view differences: add
-integration with external diff viewers, so can see before and after,
-maybe option to either view pp'd sql, annotated pp'd sql, ast, aast,
-etc.  - can also use this for pppsql and pppexpression to view how the
-pretty printer mangles things, and for testing, etc.
-
-logging/verbosity:
-
-want a way to log to stderr/stdout/ files with different verbosity
-settings
-
-
 > {-# LANGUAGE ScopedTypeVariables #-}
 
 > import System
@@ -122,7 +71,7 @@ List of all the available commands
 
 > lexFile :: FilePath -> IO ()
 > lexFile f = wrapET $ message ("lexing " ++ f) >>
->             readInput f >>= uncurry lexSql >>= printList
+>             readInput f >>= lexSql f >>= printList
 
 ================================================================================
 
@@ -135,7 +84,7 @@ List of all the available commands
 > showAst :: [String] -> IO ()
 > showAst = wrapET . mapM_ (\f ->
 >                message ("-- ast of " ++ f) >>
->                readInput f >>= uncurry parseSql1 >>= stripAnn >>= ppSh >>= message)
+>                readInput f >>= parseSql1 f >>= stripAnn >>= ppSh >>= message)
 
 ================================================================================
 
@@ -149,7 +98,7 @@ List of all the available commands
 
 > testPppp :: [String] -> IO ()
 > testPppp = wrapET . mapM_ (\f -> do
->             ast1 <- readInput f >>= uncurry parseSql1 >>= stripAnn
+>             ast1 <- readInput f >>= parseSql1 f >>= stripAnn
 >             ast2 <- ppSql ast1 >>= parseSql1 "" >>= stripAnn
 >             if ast1 /= ast2
 >                then do
@@ -170,7 +119,7 @@ List of all the available commands
 
 > ppp :: String -> IO()
 > ppp f = wrapET $ message ("--ppp " ++ f) >>
->         readInput f >>= uncurry parseSql1 >>= ppSql >>= message
+>         readInput f >>= parseSql1 f >>= ppSql >>= message
 
 ================================================================================
 
@@ -185,7 +134,7 @@ List of all the available commands
 > annotateSourceF f =
 >   wrapET $ do
 >     message ("--annotated source of " ++ f)
->     src <- readInput f >>= lsnd
+>     src <- readInput f
 >     parseSql1 f src >>= annotate defaultTemplate1Environment >>= lsnd >>=
 >       ppAnnOrig False src >>= message
 
@@ -200,7 +149,7 @@ List of all the available commands
 > typeCheck :: [FilePath] -> IO ()
 > typeCheck fns = wrapET $
 >   readCatalog (head fns) >>= \cat ->
->   mapM readInput (tail fns) >>= mapM (uncurry parseSql1) >>= lconcat >>=
+>   mapM (\f -> readInput f >>= parseSql1 f) (tail fns) >>= lconcat >>=
 >   annotate cat >>= lsnd >>= getTEs >>= ppTypeErrors >>= putStrLnList
 
 ================================================================================
@@ -234,9 +183,8 @@ TODO: do something more correct
 > loadSql args = wrapET $
 >   let (db:fns) = args
 >   in liftIO (hSetBuffering stdout NoBuffering) >>
->      mapM readInput fns >>=
->      mapM (uncurry parseSql1) >>= lconcat >>=
->      loadAst db ""
+>      mapM (\f -> readInput f >>= parseSql1 f) fns >>= lconcat >>=
+>      runExtensions >>= loadAst db ""
 
 ================================================================================
 
@@ -343,6 +291,20 @@ also: load the sql using the extension system and database loader,
 then compare pg catalog with initial catalog, and dump and compare ast
 with original ast
 
+
+getting the dump ast comparing with the original ast:
+
+step one: convert tests in parser test to also roundtrip through
+database, see parsertests for details
+
+step two: write an ast conversion routine: assume that the pgdump ast
+is like the ast fed into pg but with a few statements split into
+components (e.g. create table with serial is split into create
+sequence and create table), and then the statements are reordered, so
+write a routine to mirror this - will then have
+(anyast -> rarrange and reorder) == (anyast -> pg->pgdump)
+
+
 > runTestBatteryCommand :: CallEntry
 > runTestBatteryCommand = CallEntry
 >                    "runtestbattery"
@@ -354,7 +316,7 @@ with original ast
 >     clearDB dbName
 >     startingCat <- readCatalog dbName
 >     (originalCat :: Environment ,originalAast :: StatementList) <-
->        mapM (\f -> readInput f >>= uncurry parseSql1) fns >>= lconcat >>=
+>        mapM (\f -> readInput f >>= parseSql1 f) fns >>= lconcat >>=
 >        runExtensions >>= annotate startingCat
 
 >     headerMessage "type errors from initial parse:\n"
@@ -483,3 +445,54 @@ from stdin
 >                | otherwise -> f (head args)
 >       Multiple f -> f args
 
+================================================================================
+
+TODOS
+
+think of a better name for this command than hssqlsystem
+
+want better options system:
+first set of options get passed around in reader? monad:
+  database name, username, password for pg
+  useextensions
+  annotation control? - when showing values, which annotations to also output?
+these have defaults, can change defaults in ~/.config/hssqlsystem or something,
+and can be overridden using --dbname=...,etc. command line args (make
+these work like psql? then have environment variables also)
+second set of options is for input and output:
+read from file(s), stdin, or from string literal command line arg, e.g.
+HsSqlSystem expressionType --src="3 + 5"
+output to file(s) or stdout
+
+review command names and arguments:
+find a better naming convention: some commands produce haskell values as text,
+some produce non haskell compatible text e.g. lexfile
+some run tests and produce a success/fail result, maybe a list of issues
+
+run multiple commands in one invocation?
+
+check errors passed to user are understandable
+
+command line commands to add:
+
+showAast
+ppCatalog - read from db and print in human readable rather
+            than as haskell value
+showexpressionast
+showexpressionaast
+typecheckexpression
+pppexpression
+showCatalogUpdates - run over some sql files, outputs the catalog changes
+                     made by this sql
+ppCatalogUpdates
+
+run an extension by name over some sql source to view differences: add
+integration with external diff viewers, so can see before and after,
+maybe option to either view pp'd sql, annotated pp'd sql, ast, aast,
+etc.  - can also use this for pppsql and pppexpression to view how the
+pretty printer mangles things, and for testing, etc.
+
+logging/verbosity:
+
+want a way to log to stderr/stdout/ files with different verbosity
+settings
