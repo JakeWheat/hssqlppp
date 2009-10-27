@@ -133,7 +133,8 @@ parse,prettyprint,parse check equal
 >            ,clearAndLoadSqlCommand
 >            ,lexFileCommand
 >            ,showAstCommand
->            ,checkParseCommand
+>            ,testPpppCommand
+>            ,pppCommand
 >            ,roundTripCommand
 >            ,readEnvCommand
 >            ,annotateSourceCommand
@@ -251,45 +252,44 @@ TODO: do something more correct
 >                    (Multiple showAst)
 
 > showAst :: [String] -> IO ()
-> showAst fs = wrapET $ flip mapM_ fs $ \f ->
->              message ("-- ast of " ++ f) >>
->              readInput f >>= parseSql1 >>= stripAnn >>= ppSh >>= message
+> showAst = wrapET . mapM_ (\f ->
+>                message ("-- ast of " ++ f) >>
+>                readInput f >>= parseSql1 >>= stripAnn >>= ppSh >>= message)
 
 ================================================================================
 
-> checkParseCommand :: CallEntry
-> checkParseCommand = CallEntry
->                    "checkparse"
->                    "Routine to parse sql from a file, check that it appears to parse ok, \
->                    \that pretty printing it and parsing that text gives the same ast, \
->                    \and then displays the pretty printed version so you can see how well it's \
->                    \done"
->                    --(maybe it could interpolate each original statement with its
->                    --parsed, pretty printed version so you can more easily check how
->                    --authentic the sql is and how much has been silently dropped on the floor)
->                    (Multiple checkParse)
+> testPpppCommand :: CallEntry
+> testPpppCommand =
+>   CallEntry "testpppp"
+>     "Routine to parse sql from a file, pretty print it then parse it \
+>     \again and check the post pretty printing ast is the same as the \
+>     \initial ast"
+>     (Multiple testPppp)
 
-> checkParse :: [String] -> IO ()
-> checkParse = mapM_ pf
->   where
->     pf f = do
->       putStrLn $ "parsing " ++ show f
->       x <- parseSqlFile f
->       case x of
->            Left er -> print er
->            Right st -> do
->                --print l
->                --putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
->                putStrLn "parse ok"
->                let pp = printSql st
->                --putStrLn pp
->                --check roundtrip
->                case parseSql pp of
->                  Left er -> error $ "roundtrip failed: " ++ show er
->                  Right st' -> if map stripAnnotations st == map stripAnnotations st'
->                                then putStrLn "roundtrip ok"
->                                else putStrLn "roundtrip failed: different ast"
->       return ()
+> testPppp :: [String] -> IO ()
+> testPppp = wrapET . mapM_ (\f -> do
+>             ast1 <- readInput f >>= parseSql1 >>= stripAnn
+>             ast2 <- ppSql ast1 >>= parseSql1 >>= stripAnn
+>             if ast1 /= ast2
+>                then do
+>                     message "asts are different\n-- original"
+>                     ppSh ast1 >>= message
+>                     message "-- ppp'd"
+>                     ppSh ast2 >>= message
+>                else message "success")
+
+================================================================================
+
+> pppCommand :: CallEntry
+> pppCommand =
+>   CallEntry "ppp"
+>     "Parse then pretty print some sql so you can check the result \
+>     \hasn't mangled the sql."
+>     (Single ppp)
+
+> ppp :: String -> IO()
+> ppp f = wrapET $ message ("--ppp " ++ f) >>
+>         readInput f >>= parseSql1 >>= ppSql >>= message
 
 ================================================================================
 

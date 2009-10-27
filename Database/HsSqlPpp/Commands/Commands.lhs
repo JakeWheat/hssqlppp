@@ -21,7 +21,7 @@ Wrappers used in the command line program
 
 > --import Database.HsSqlPpp.Utils
 
-> --import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
+> import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 
 > --import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 
@@ -51,7 +51,10 @@ clear db
 > stripAnn s = return $ stripAnnotations s
 
 > ppSh :: (Monad m, Error e, Show a) => a -> ErrorT e m String
-> ppSh s = return $ ppShow s
+> ppSh = return . ppShow
+
+> ppSql :: (Monad m, Error e) => StatementList -> ErrorT e m String
+> ppSql = return . printSql
 
 
 show
