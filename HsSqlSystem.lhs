@@ -75,45 +75,22 @@ settings
 
 > import System
 > import System.IO
-> import System.Directory
 > import Data.List
 > import Data.Either
 > import Control.Applicative
-> import Text.Show.Pretty
 > import Control.Monad.Error
-> --import Control.Monad
-> --import Control.Exception
-> import System.Process.Pipe
 > import Data.Char
 
 > import Test.Framework (defaultMainWithArgs)
 
 > import Database.HsSqlPpp.Tests.ParserTests
-> --import Database.HsSqlPpp.Tests.DatabaseLoaderTests
 > import Database.HsSqlPpp.Tests.AstCheckTests
 > import Database.HsSqlPpp.Tests.ExtensionTests
 
-
 > import Database.HsSqlPpp.Parsing.Parser
-> --import Database.HsSqlPpp.Parsing.Lexer
-
 > import Database.HsSqlPpp.Ast.Annotator
-> import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Ast.SqlTypes
-
-> import Database.HsSqlPpp.Utils
-
-> import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
-
-> --import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
-
-> import Database.HsSqlPpp.Dbms.DBAccess
-> import Database.HsSqlPpp.Dbms.DatabaseLoader
-
-> import Database.HsSqlPpp.Extensions.ChaosExtensions
-
 > import Database.HsSqlPpp.Commands.Commands
 
 ================================================================================
@@ -139,7 +116,7 @@ List of all the available commands
 >            ,loadSqlPsqlCommand
 >            ,pgDumpCommand
 >            -- run a battery of tests over some sql
->            ,checkBigCommand
+>            ,runTestBatteryCommand
 >            -- run the automated tests
 >            ,testCommand]
 
@@ -217,8 +194,9 @@ List of all the available commands
 > annotateSourceF f =
 >   wrapET $ do
 >     message ("--annotated source of " ++ f)
->     (_,src) <- readInput f
->     parseSql1 f src >>= annotate >>= ppAnnOrig False src >>= message
+>     src <- readInput f >>= lsnd
+>     parseSql1 f src >>= annotate defaultTemplate1Environment >>= lsnd >>=
+>       ppAnnOrig False src >>= message
 
 ================================================================================
 
@@ -232,7 +210,7 @@ List of all the available commands
 > typeCheck fns = wrapET $
 >   readCatalog (head fns) >>= \cat ->
 >   mapM readInput (tail fns) >>= mapM (uncurry parseSql1) >>= lconcat >>=
->   annotateWithCatalog cat >>= getTEs >>= ppTypeErrors >>= putStrLnList
+>   annotate cat >>= lsnd >>= getTEs >>= ppTypeErrors >>= putStrLnList
 
 ================================================================================
 
@@ -352,121 +330,68 @@ This reads an catalog from a database and writes it out using show.
 
 ================================================================================
 
-big set of tests to check parsing, typechecking, the catalog, etc.
+run test battery: run a bunch of tests including consistency on the
+database and sql files given
 
-parse, run extensions and type check the sql files passed against the database passed (which should be a copy of template1 - maybe enforce this)
-save this aast and final catalog from type checker-> original_ast,original_catalog
-load the original sql files into the database using psql
-use readenv to read the catalog from this database, and compare with the original_catalog for equality
-use pg_dump on this database, reparse and typecheck-> d1_ast, d1_catalog
-check these for equality with the original_ast,catalog (will have to cope with non important differences, hopefully only reordered statements)
-take the original_ast, reset database and load this ast into the database using the database loader
-get catalog and dump and compare for equality with originals
+The idea is to typecheck the sql, load it into pg and dump it via psql
+and via database loader, can then compare asts, catalogs, etc. in a
+lot of different ways
 
-> checkBigCommand :: CallEntry
-> checkBigCommand = CallEntry
->                    "checkbig"
->                    "reads each file, and gets catalog updates using type checker,\
->                     \ then loads the files into the database and reads the catalog\
->                     \ from the database and checks it for consistency with the\
->                     \ catalog determined by the type checker"
->                    (Multiple checkBig)
+currently:
+parse and type check sql, save the catalog
+load the sql into the db using psql, compare the catalog read from pg
+with the catalog from typechecking
+dump the sql and typecheck the dump, compare the catalog from this
+check with the catalog from the original typecheck
 
-> doEithers :: [Either a b] -> Either a [b]
-> doEithers es = let l = lefts es
->                in if null l
->                   then Right $ rights es
->                   else Left $ head l
+todo: compare asts from initial parse with parsed dump - this is going
+to be a lot of work to get passing since the statements are
+re-ordered, and sometimes changed/ split up by pg
 
-> checkBig :: [FilePath] -> IO ()
-> checkBig (dbName:fns) = do
->     hSetBuffering stdout NoBuffering
->     hSetBuffering stderr NoBuffering
->     r <- runErrorT runit
->     case r of
->            Left e -> error e
->            Right _ -> return ()
+also: load the sql using the extension system and database loader,
+then compare pg catalog with initial catalog, and dump and compare ast
+with original ast
+
+> runTestBatteryCommand :: CallEntry
+> runTestBatteryCommand = CallEntry
+>                    "runtestbattery"
+>                    "runs a load of consistency tests on the sql passed"
+>                    (Multiple runTestBattery)
+
+> runTestBattery :: [FilePath] -> IO ()
+> runTestBattery (dbName:fns) = wrapET $ do
+>     clearDB dbName
+>     startingCat <- readCatalog dbName
+>     (originalCat :: Environment ,originalAast :: StatementList) <-
+>        mapM (\f -> readInput f >>= uncurry parseSql1) fns >>= lconcat >>=
+>        runExtensions >>= annotate startingCat
+
+>     headerMessage "type errors from initial parse:\n"
+>     getTEs originalAast >>= ppTypeErrors >>= putStrLnList
+
+>     mapM_ (\s -> loadSqlUsingPsqlFromFile dbName s >>= message) fns
+>     properCat <- readCatalog dbName
+>     headerMessage "catalog differences from initial parse and vanilla load:\n"
+>     compareCatalogs startingCat originalCat properCat >>=
+>       ppCatDiff >>= message
+
+>     (dumpCat,dumpAast) <-
+>       pgDump dbName >>= parseSql1 "dump" >>= annotate startingCat
+
+>     headerMessage "type errors from dump:\n"
+>     getTEs dumpAast >>= ppTypeErrors >>= putStrLnList
+
+>     headerMessage "catalog differences from initial parse and rechecked pg dump:\n"
+>     compareCatalogs startingCat originalCat dumpCat >>=
+>       ppCatDiff >>= message
+
+>     message "complete!"
+>     return ()
 >     where
->       runit = do
->         message $ "clearing " ++ dbName
->         liftIO $ cleardb dbName
-
->         message "parsing"
->         (ast::StatementList) <- liftIO parseFiles >>= liftThrows
->         message "extensionizing"
->         let east = extensionize ast
->         (startingEnv::Environment) <- liftIO readDbEnv >>= liftThrows
->         -- type check ast and get catalog
-
->         message "typechecking"
->         let (originalEnv,originalAast) = annotateAstEnvEnv startingEnv east
->         -- quit if any type check errors
->         let te = getTypeErrors originalAast
->         --when (not $ null te) $ throwError $ intercalate "\n" $ map showSpTe te
->         message $ intercalate "\n" $ map showSpTe te
-
->         message "loading into db using psql"
->         liftIO $ mapM (runSqlScript dbName) fns
->         properEnv <- liftIO readDbEnv >>= liftThrows
-
->         compareCatalogs startingEnv originalEnv properEnv
->         message "get pg_dump of original loaded sql files"
-
->         dump <- liftIO $ pipeString [("pg_dump", ["chaos"
->                                                  ,"--schema-only"
->                                                  ,"--no-owner"
->                                                  ,"--no-privileges"])] ""
->         (dumpAst :: StatementList) <- liftThrows (mapLeft show $ parseSql "" dump)
->         let (dumpEnv,dumpAast) = annotateAstEnvEnv startingEnv dumpAst
->         let dte = getTypeErrors dumpAast
->         --when (not $ null te) $ throwError $ intercalate "\n" $ map showSpTe te
->         message $ intercalate "\n" $ map showSpTe dte
->         compareCatalogs startingEnv originalEnv dumpEnv
-
->         message "complete!"
->         return ()
-
->       showAList l = intercalate "\n" $ map show l
-
->       parseFiles :: IO (Either String StatementList)
->       parseFiles = mapEither show concat <$> doEithers <$> mapM parseSqlFile fns
->       --startingEnv :: IO (Either String Environment)
->       readDbEnv = mapLeft show <$> (updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName)
-
->       --showTes = mapM_ (putStrLn.showSpTe) . getTypeErrors
->       showSpTe (Just (SourcePos fn l c), e) =
->         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
->       showSpTe (_,e) = "unknown:0:0:\n" ++ show e
->       message = liftIO . putStrLn
->       compareCatalogs base start end = do
->         let baseEnvBits = deconstructEnvironment base
->             startEnvBits = deconstructEnvironment start \\ baseEnvBits
->             endEnvBits = deconstructEnvironment end \\ baseEnvBits
->             missing = sort $ endEnvBits \\ startEnvBits
->             extras = sort $ startEnvBits \\ endEnvBits
->         liftIO $ when (not $ null missing)
->                    $ putStrLn $ "\n\n************************************************\n\n\
->                                 \missing catalog: " ++ showAList missing
->         liftIO $ when (not $ null extras)
->                    $ putStrLn $ "\n\n************************************************\n\n\
->                                 \extras catalog: " ++ showAList extras
-
->         --liftIO $ putStrLn $ "\n\n************************************************\n\n\
->         --                    \common: " ++ showAList (sort $ intersect properEnvBits originalEnvBits)
+>       headerMessage m = message "-----------------------------\n" ++ m
 
 
-> checkBig _ = error "checkbig not passed at least 2 args"
-
-
-> runSqlScript :: String -> String -> IO ()
-> runSqlScript dbName script = do
->   ex <- system ("psql " ++ dbName ++
->                 " -q --set ON_ERROR_STOP=on" ++
->                 " --file=" ++ script)
->   case ex of
->     ExitFailure e -> error $ "psql failed with " ++ show e
->     ExitSuccess -> return ()
->   return ()
+> runTestBattery _ = error "checkbig not passed at least 2 args"
 
 ================================================================================
 

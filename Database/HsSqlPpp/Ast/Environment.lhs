@@ -38,6 +38,7 @@ the type checking code.
 >      Environment
 >      -- ** Updates
 >     ,EnvironmentUpdate(..)
+>     ,ppEnvUpdate
 >      -- ** bits and pieces
 >     ,CastContext(..)
 >     ,CompositeFlavour(..)

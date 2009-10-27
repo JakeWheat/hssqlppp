@@ -13,6 +13,7 @@ There are no tests for invalid sql at the moment.
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
+> import Data.Generics
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
@@ -1221,13 +1222,13 @@ parse and then pretty print and parse an expression
 > checkParsePlpgsql :: String -> [Statement] -> Test.Framework.Test
 > checkParsePlpgsql src ast = parseUtil1 src ast (parsePlpgsql "")
 
- > parseUtil :: (Show t, Eq b, Show b, Data b, Annotated b) =>
- >              String
- >           -> b
- >           -> (String -> Either t b)
- >           -> (b -> String)
- >           -> Test.Framework.Test
-
+> parseUtil :: --forall t b.
+>             (Show t, Eq b, Show b, Data b) =>
+>             String
+>             -> b
+>             -> ([Char] -> Either t b)
+>             -> (b -> [Char])
+>             -> Test.Framework.Test
 > parseUtil src ast parser printer = testCase ("parse " ++ src) $ do
 >   let ast' = case parser src of
 >               Left er -> error $ show er

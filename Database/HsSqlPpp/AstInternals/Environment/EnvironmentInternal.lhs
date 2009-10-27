@@ -20,6 +20,7 @@ modules.
 >     ,emptyEnvironment
 >     ,defaultEnvironment
 >     ,EnvironmentUpdate(..)
+>     ,ppEnvUpdate
 >     ,updateEnvironment
 >     ,deconstructEnvironment
 >     -- type checker stuff
@@ -130,25 +131,23 @@ modules.
 >   | EnvDropFunction Bool String [Type]
 >     deriving (Eq,Ord,Typeable,Data,Show)
 
-TODO: give access to this code:
-
-> {-instance Show EnvironmentUpdate where
->     show (EnvCreateScalar t c p) = "EnvCreateScalar " ++ show t ++ "(" ++ c ++ "," ++ show p ++ ")"
->     show (EnvCreateDomain t b) = "EnvCreateDomain " ++ show t ++ " as " ++ show b
->     show (EnvCreateComposite nm flds) = "EnvCreateComposite " ++ nm ++ showFlds flds
->     show (EnvCreateCast s t ctx) = "EnvCreateCast " ++ show s ++ "->" ++ show t ++ " " ++ show ctx
->     show (EnvCreateTable nm flds1 flds2) = "EnvCreateTable " ++ nm ++ showFlds flds1 ++ showFlds flds2
->     show (EnvCreateView nm flds) = "EnvCreateView " ++ nm ++ showFlds flds
->     show (EnvCreateFunction flav nm args ret vdc) =
->       "EnvCreateFunction " ++ show flav ++ " " ++ nm ++ " returns " ++ show ret ++
->       "(" ++ (intercalate "," $ map show args) ++ ")" ++ if vdc then " variadic" else ""
->     show (EnvDropFunction _ nm args) = "EnvDropFunction " ++ nm ++ "(" ++ show args ++ ")"
+> ppEnvUpdate :: EnvironmentUpdate -> String
+> ppEnvUpdate (EnvCreateScalar t c p) = "EnvCreateScalar " ++ show t ++ "(" ++ c ++ "," ++ show p ++ ")"
+> ppEnvUpdate (EnvCreateDomain t b) = "EnvCreateDomain " ++ show t ++ " as " ++ show b
+> ppEnvUpdate (EnvCreateComposite nm flds) = "EnvCreateComposite " ++ nm ++ showFlds flds
+> ppEnvUpdate (EnvCreateCast s t ctx) = "EnvCreateCast " ++ show s ++ "->" ++ show t ++ " " ++ show ctx
+> ppEnvUpdate (EnvCreateTable nm flds1 flds2) = "EnvCreateTable " ++ nm ++ showFlds flds1 ++ showFlds flds2
+> ppEnvUpdate (EnvCreateView nm flds) = "EnvCreateView " ++ nm ++ showFlds flds
+> ppEnvUpdate (EnvCreateFunction flav nm args ret vdc) =
+>     "EnvCreateFunction " ++ show flav ++ " " ++ nm ++ " returns " ++ show ret ++
+>     "(" ++ (intercalate "," $ map show args) ++ ")" ++ if vdc then " variadic" else ""
+> ppEnvUpdate (EnvDropFunction _ nm args) = "EnvDropFunction " ++ nm ++ "(" ++ show args ++ ")"
 
 > showFlds :: [(String,Type)] -> String
 > showFlds flds = "(\n" ++ sfs flds ++ ")"
 >                 where
 >                   sfs ((nm,t):fs) = "    " ++ show nm ++ " " ++ show t ++ "\n" ++ sfs fs
->                   sfs [] = ""-}
+>                   sfs [] = ""
 
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
 >              | FunName | FunAgg | FunWindow

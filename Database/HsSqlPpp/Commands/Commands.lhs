@@ -7,16 +7,11 @@ Wrappers used in the command line program
 > module Database.HsSqlPpp.Commands.Commands where
 
 > import Control.Monad.Error
-> --import Control.Applicative
+> import System
+> import Data.List
 
 > import Text.Show.Pretty
 > import System.Process.Pipe
-> import System
-
-
-
-> import Database.HsSqlPpp.Parsing.Lexer
-> --import Database.HsSqlPpp.Parsing.ParseErrors
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
@@ -27,16 +22,13 @@ Wrappers used in the command line program
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.SqlTypes
 
-> --import Database.HsSqlPpp.Utils
-
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
-
 > import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 
 > import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
 
-> --import Database.HsSqlPpp.Extensions.ChaosExtensions
+> import Database.HsSqlPpp.Extensions.ChaosExtensions
 
 
 > readInput :: (Error e, MonadIO m) => String -> ErrorT e m (String,String)
@@ -67,8 +59,16 @@ clear db
 > ppAnnOrig :: (Monad m, Error e) => Bool -> String -> StatementList -> ErrorT e m String
 > ppAnnOrig doErrs fn ast = return $ annotateSource doErrs fn ast
 
-> annotate :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
-> annotate ast = return $ annotateAst ast
+> annotate :: (Monad m, Error e) => Environment -> StatementList
+>          -> ErrorT e m (Environment, StatementList)
+> annotate cat ast = return $ annotateAstEnvEnv cat ast
+
+> lfst :: (Monad m, Error e) => (a,b) -> ErrorT e m a
+> lfst = return . fst
+
+> lsnd :: (Monad m, Error e) => (a,b) -> ErrorT e m b
+> lsnd = return . snd
+
 
 > data AllErrors = AEExtendedError ExtendedError
 >                | AETypeErrors [TypeError]
@@ -101,9 +101,6 @@ clear db
 > lconcat as = return $ concat as
 
 
-> annotateWithCatalog :: (Monad m, Error e) => Environment -> StatementList -> ErrorT e m StatementList
-> annotateWithCatalog cat ast = return $ annotateAstEnv cat ast
-
 > ppTypeErrors :: Monad m =>
 >                 [(Maybe AnnotationElement, [TypeError])] -> m [String]
 > ppTypeErrors tes =
@@ -112,6 +109,31 @@ clear db
 >     showSpTe (Just (SourcePos fn l c), e) =
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
+
+
+> data CatDiff = CatDiff [EnvironmentUpdate] [EnvironmentUpdate]
+>                deriving Show
+
+> compareCatalogs :: (Monad m, Error e) => Environment -> Environment -> Environment -> ErrorT e m CatDiff
+> compareCatalogs base start end =
+>         let baseEnvBits = deconstructEnvironment base
+>             startEnvBits = deconstructEnvironment start \\ baseEnvBits
+>             endEnvBits = deconstructEnvironment end \\ baseEnvBits
+>             missing = sort $ endEnvBits \\ startEnvBits
+>             extras = sort $ startEnvBits \\ endEnvBits
+>         in return $ CatDiff missing extras
+
+> ppCatDiff :: (Monad m, Error e) => CatDiff -> ErrorT e m String
+> ppCatDiff (CatDiff missing extra) =
+>           return $ "\nmissing:\n"
+>                    ++ intercalate "\n" (map ppEnvUpdate missing)
+>                    ++ "\nextra:\n"
+>                    ++ intercalate "\n" (map ppEnvUpdate extra)
+
+
+
+> runExtensions :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
+> runExtensions = return . extensionize
 
 
 > loadSqlUsingPsql :: MonadIO m  => String -> String -> ErrorT AllErrors m String
