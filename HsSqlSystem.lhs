@@ -251,23 +251,9 @@ TODO: do something more correct
 >                    (Multiple showAst)
 
 > showAst :: [String] -> IO ()
-> showAst fs = wrapET $ do
->              let f1 = head fs
->              message $ "--parsing " ++ f1
->              t <- readInput f1
->              (ast::StatementList) <- parseSql1 t
->              (sast::StatementList) <- stripAnn ast
->              (pp::String) <- ppSh sast
->              message pp
-
-> parseSql1 :: Monad m => String -> ErrorT ExtendedError m StatementList
-> parseSql1 s = return (parseSql s) >>= throwEither
-
-> stripAnn :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
-> stripAnn s = return $ stripAnnotations s
-
-> ppSh :: (Monad m, Error e, Show a) => a -> ErrorT e m String
-> ppSh s = return $ ppShow s
+> showAst fs = wrapET $ flip mapM_ fs $ \f ->
+>              message ("-- ast of " ++ f) >>
+>              readInput f >>= parseSql1 >>= stripAnn >>= ppSh >>= message
 
 ================================================================================
 
