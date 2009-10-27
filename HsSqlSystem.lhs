@@ -13,9 +13,20 @@ to get a list of commands and purpose and usage info
 
 TODOS
 
-add options to specify username and password for pg, database also? - work like psql?
+think of a better name for this command than hssqlsystem
 
-think of a name for this command
+want better options system:
+first set of options get passed around in reader? monad:
+  database name, username, password for pg
+  useextensions
+  annotation control? - when showing values, which annotations to also output?
+these have defaults, can change defaults in ~/.config/hssqlsystem or something,
+and can be overridden using --dbname=...,etc. command line args (make
+these work like psql? then have environment variables also)
+second set of options is for input and output:
+read from file(s), stdin, or from string literal command line arg, e.g.
+HsSqlSystem expressionType --src="3 + 5"
+output to file(s) or stdout
 
 review command names and arguments:
 find a better naming convention: some commands produce haskell values as text,
@@ -24,57 +35,35 @@ some run tests and produce a success/fail result, maybe a list of issues
 
 run multiple commands in one invocation?
 
-make these commands into a library since they are getting quite complicated
+check errors passed to user are understandable
 
-work on error handling internally in this code, and reporting errors to the user
+command line commands to add:
 
-add commands:
-showAst, before/after running extensions
-showAast, also extensions optional
-showCatalog from sql: with/without extensions, as haskell value or pretty printed - as with typecheck sql, pass dbname plus multiple sql files, prints the catalog changes (plus type errors?)
-parsesql - pass string to parse
-parseexpression
- - extensions, with w/o annotations/typechecking
-getExpressionType
-getstatementtype
+showAast
+ppCatalog - read from db and print in human readable rather
+            than as haskell value
+showexpressionast
+showexpressionaast
+typecheckexpression
+pppexpression
+showCatalogUpdates - run over some sql files, outputs the catalog changes
+                     made by this sql
+ppCatalogUpdates
 
-run an extension by name over some sql source to view differences: add integration with external diff viewers?
-stdin support: paste in sql, or paste in ast, then do something with it
+loadsqlwithpsql - convenience command so can load using the
+                  parse/pp/databaseloader and via psql using almost
+                  same commands/arguements
 
-commands:
-lex
-parse
-parseexpression
-typecheck(annotate)
-prettyprint
-annotatesource
-ppshow
-prettyprintast
-stripannotations
-stripsourceposes
-gettopleveltypes
-getcatalogupdates
-gettypeerrors
-help
-cleardb
-loadsql
-readcatalogfromdb
-runextensions
-runextensionbyname
-showemacsformat
-loadusingpsql
-pgdump
-runtests: can get rid of the extra executable?
+pgDump - convenience wrapper, and for testing
 
-options:
-source files/ stdin
-database name
-database connection info
-output target: stdout, filename(s)
+commands here needing updating to new style/ finishing off:
+cleardb, loadsql, checkbig - rename to runTestBattery or something
 
-test routines:
-parse,prettyprint,parse check equal
-
+run an extension by name over some sql source to view differences: add
+integration with external diff viewers, so can see before and after,
+maybe option to either view pp'd sql, annotated pp'd sql, ast, aast,
+etc.  - can also use this for pppsql and pppexpression to view how the
+pretty printer mangles things, and for testing, etc.
 
 
 > {-# LANGUAGE ScopedTypeVariables #-}
