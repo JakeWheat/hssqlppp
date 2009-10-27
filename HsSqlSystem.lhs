@@ -90,6 +90,7 @@ parse,prettyprint,parse check equal
 > --import Control.Monad
 > --import Control.Exception
 > import System.Process.Pipe
+> import Data.Char
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
@@ -121,7 +122,7 @@ parse,prettyprint,parse check equal
 >   args <- getArgs
 >   case () of
 >        _ | null args -> putStrLn "no command given" >> help []
->          | otherwise -> case lookupCaller commands (head args) of
+>          | otherwise -> case lookupCaller commands (map toLower $ head args) of
 >                           Nothing -> putStrLn "unrecognised command" >> help []
 >                           Just c -> call c $ tail args
 
@@ -238,35 +239,35 @@ TODO: do something more correct
 
 
 > lexFile :: FilePath -> IO ()
-> lexFile f = wrapET $ do
->       message $ "lexing " ++ f
->       (src::String) <- readInput f
->       (l::[Token]) <- lexSql src
->       mapM_ (liftIO . print) l
-
+> lexFile f = wrapET $ message ("lexing " ++ f) >>
+>             readInput f >>= lexSql >>= printList
 
 ================================================================================
 
 > showAstCommand :: CallEntry
 > showAstCommand = CallEntry
->                    "showAst"
+>                    "showast"
 >                    "Parse files and output the asts"
->                    --(maybe it could interpolate each original statement with its
->                    --parsed, pretty printed version so you can more easily check how
->                    --authentic the sql is and how much has been silently dropped on the floor)
 >                    (Multiple showAst)
 
 > showAst :: [String] -> IO ()
-> showAst = mapM_ pf
->   where
->     pf f = do
->       putStrLn $ "-- parsing " ++ show f
->       x <- parseSqlFile f
->       case x of
->            Left er -> putStrLn "{-" >> print er >> putStrLn "-}"
->            Right st -> do
->                putStrLn $ ppShow $ stripAnnotations st
->       return ()
+> showAst fs = wrapET $ do
+>              let f1 = head fs
+>              message $ "--parsing " ++ f1
+>              t <- readInput f1
+>              (ast::StatementList) <- parseSql1 t
+>              (sast::StatementList) <- stripAnn ast
+>              (pp::String) <- ppSh sast
+>              message pp
+
+> parseSql1 :: Monad m => String -> ErrorT ExtendedError m StatementList
+> parseSql1 s = return (parseSql s) >>= throwEither
+
+> stripAnn :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
+> stripAnn s = return $ stripAnnotations s
+
+> ppSh :: (Monad m, Error e, Show a) => a -> ErrorT e m String
+> ppSh s = return $ ppShow s
 
 ================================================================================
 

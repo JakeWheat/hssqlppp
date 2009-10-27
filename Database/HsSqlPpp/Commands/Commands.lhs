@@ -64,3 +64,8 @@ should think of something better to do here than just rethrow as io error1
 > throwEither :: (MonadError t m) => Either t a -> m a
 > throwEither (Left err) = throwError err
 > throwEither (Right val) = return val
+
+print a list, using newlines instead of commas, no outer []
+
+> printList :: (MonadIO m, Show a) => [a] -> m ()
+> printList = mapM_ (liftIO . print)
