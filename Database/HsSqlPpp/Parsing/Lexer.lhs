@@ -63,8 +63,8 @@ copy payload (used to lex copy from stdin data)
 >   let x = runParser sqlTokens [] f te --parseFromFile sqlTokens f
 >   return $ convertToExtendedError x f te
 
-> lexSqlText :: String -> Either ExtendedError [Token]
-> lexSqlText s = convertToExtendedError (runParser sqlTokens [] "" s) "" s
+> lexSqlText :: String -> String -> Either ExtendedError [Token]
+> lexSqlText f s = convertToExtendedError (runParser sqlTokens [] f s) f s
 
 ================================================================================
 

@@ -203,7 +203,7 @@ amount of work in comparison).
 >         x1 -> x1
 
 > parseExpressionWrap :: String -> Expression
-> parseExpressionWrap s = case parseExpression s of
+> parseExpressionWrap s = case parseExpression "" s of
 >                           Left e -> trace ("parsing expression: " ++ s) $ error $ show e
 >                           Right ast -> ast
 

@@ -174,10 +174,10 @@ add constraint
 >     checkExtension :: (StatementList -> StatementList) -> String -> String -> Test.Framework.Test
 >     checkExtension f stxt ttxt = testCase ("check " ++ stxt) $
 >       case (do
->             sast <- parseSql stxt
+>             sast <- parseSql "" stxt
 >             let esast = f sast
 >             --trace (printSql esast) $ return ()
->             tast <- parseSql ttxt
+>             tast <- parseSql "" ttxt
 >             return (tast,esast)) of
 >         Left e -> assertFailure $ show e
 >         Right (ts,es) -> assertEqual "" (stripAnnotations ts) (stripAnnotations es)

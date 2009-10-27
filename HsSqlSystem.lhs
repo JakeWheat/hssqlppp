@@ -92,19 +92,28 @@ parse,prettyprint,parse check equal
 > import System.Process.Pipe
 > import Data.Char
 
+> import Test.Framework (defaultMainWithArgs)
+
+> import Database.HsSqlPpp.Tests.ParserTests
+> --import Database.HsSqlPpp.Tests.DatabaseLoaderTests
+> import Database.HsSqlPpp.Tests.AstCheckTests
+> import Database.HsSqlPpp.Tests.ExtensionTests
+
+
 > import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Parsing.Lexer
+> --import Database.HsSqlPpp.Parsing.Lexer
 
 > import Database.HsSqlPpp.Ast.Annotator
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Ast.Ast
+> import Database.HsSqlPpp.Ast.SqlTypes
 
 > import Database.HsSqlPpp.Utils
 
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 
-> import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
+> --import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 
 > import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
@@ -138,9 +147,10 @@ parse,prettyprint,parse check equal
 >            ,roundTripCommand
 >            ,readEnvCommand
 >            ,annotateSourceCommand
->            ,checkSourceCommand
+>            ,typeCheckCommand
 >            ,checkSourceExtCommand
->            ,checkBigCommand]
+>            ,checkBigCommand
+>            ,testCommand]
 
 > lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
 > lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
@@ -175,6 +185,22 @@ parse,prettyprint,parse check equal
 >     case lookupCaller commands c of
 >       Nothing -> putStrLn "unrecognised command" >> help []
 >       Just (CallEntry nm desc _) -> putStrLn $ nm ++ "\n" ++ desc
+
+================================================================================
+
+> testCommand :: CallEntry
+> testCommand = CallEntry "test"
+>                "run automated tests, uses test.framework can pass arguments \
+>                \to this e.g. HsSqlSystem test -t parserTests"
+>                (Multiple runTests)
+> runTests :: [String] -> IO ()
+> runTests args =
+>   flip defaultMainWithArgs args [
+>     parserTests
+>    ,astCheckTests
+>    --,databaseLoaderTests
+>    ,extensionTests
+>    ]
 
 ================================================================================
 
@@ -241,7 +267,7 @@ TODO: do something more correct
 
 > lexFile :: FilePath -> IO ()
 > lexFile f = wrapET $ message ("lexing " ++ f) >>
->             readInput f >>= lexSql >>= printList
+>             readInput f >>= uncurry lexSql >>= printList
 
 ================================================================================
 
@@ -254,7 +280,7 @@ TODO: do something more correct
 > showAst :: [String] -> IO ()
 > showAst = wrapET . mapM_ (\f ->
 >                message ("-- ast of " ++ f) >>
->                readInput f >>= parseSql1 >>= stripAnn >>= ppSh >>= message)
+>                readInput f >>= uncurry parseSql1 >>= stripAnn >>= ppSh >>= message)
 
 ================================================================================
 
@@ -268,8 +294,8 @@ TODO: do something more correct
 
 > testPppp :: [String] -> IO ()
 > testPppp = wrapET . mapM_ (\f -> do
->             ast1 <- readInput f >>= parseSql1 >>= stripAnn
->             ast2 <- ppSql ast1 >>= parseSql1 >>= stripAnn
+>             ast1 <- readInput f >>= uncurry parseSql1 >>= stripAnn
+>             ast2 <- ppSql ast1 >>= parseSql1 "" >>= stripAnn
 >             if ast1 /= ast2
 >                then do
 >                     message "asts are different\n-- original"
@@ -289,48 +315,37 @@ TODO: do something more correct
 
 > ppp :: String -> IO()
 > ppp f = wrapET $ message ("--ppp " ++ f) >>
->         readInput f >>= parseSql1 >>= ppSql >>= message
+>         readInput f >>= uncurry parseSql1 >>= ppSql >>= message
 
 ================================================================================
 
 > annotateSourceCommand :: CallEntry
-> annotateSourceCommand = CallEntry
->                    "annotateSource"
->                    "reads a file, parses, type checks, then outputs info on each statement \
->                    \interspersed with the original source code"
->                    (Single annotateSourceF)
+> annotateSourceCommand =
+>   CallEntry "annotatesource"
+>     "reads a file, parses, type checks, then outputs info on \
+>     \each statement interspersed with the original source code"
+>     (Single annotateSourceF)
 
 > annotateSourceF :: FilePath -> IO ()
-> annotateSourceF f = do
->   aste <- parseSqlFile f
->   case aste of
->     Left er -> error $ show er
->     Right ast -> do
->                  src <- readFile f
->                  let aast = annotateAst ast
->                      srcnew = annotateSource False src aast
->                  putStr srcnew
+> annotateSourceF f =
+>   wrapET $ do
+>     message ("--annotated source of " ++ f)
+>     (_,src) <- readInput f
+>     parseSql1 f src >>= annotate >>= ppAnnOrig False src >>= message
 
 ================================================================================
 
-> checkSourceCommand :: CallEntry
-> checkSourceCommand = CallEntry
->                    "checksource"
->                    "reads each file, parses, type checks, then outputs any type errors"
->                    (Multiple checkSource)
+> typeCheckCommand :: CallEntry
+> typeCheckCommand =
+>   CallEntry "typecheck"
+>     "reads each file, parses, type checks, then outputs any type errors"
+>     (Multiple typeCheck)
 
-> checkSource :: [FilePath] -> IO ()
-> checkSource fns = do
->   astEithers <- mapM parseSqlFile fns
->   let asts = rights astEithers
->   let aasts = annotateAstsEnv defaultTemplate1Environment asts
->   mapM_ print $ lefts astEithers
->   mapM_ showTes $ aasts
->   where
->     showTes = mapM_ (putStrLn.showSpTe) . getTypeErrors
->     showSpTe (Just (SourcePos fn l c), e) =
->         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
->     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
+> typeCheck :: [FilePath] -> IO ()
+> typeCheck fns = wrapET $
+>   readCatalog (head fns) >>= \cat ->
+>   mapM readInput (tail fns) >>= mapM (uncurry parseSql1) >>= lconcat >>=
+>   annotateWithCatalog cat >>= getTEs >>= ppTypeErrors >>= putStrLnList
 
 ================================================================================
 
@@ -425,7 +440,7 @@ This reads an environment from a database and writes it out using show.
 >                   -> String
 >                   -> IO StatementList
 > parseAndTypeCheck dbName src = do
->    case parseSql src of
+>    case parseSql "" src of
 >      Left e -> error $ show e
 >      Right ast -> do
 >        e <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
@@ -499,7 +514,7 @@ get catalog and dump and compare for equality with originals
 >                                                  ,"--schema-only"
 >                                                  ,"--no-owner"
 >                                                  ,"--no-privileges"])] ""
->         (dumpAst :: StatementList) <- liftThrows (mapLeft show $ parseSql dump)
+>         (dumpAst :: StatementList) <- liftThrows (mapLeft show $ parseSql "" dump)
 >         let (dumpEnv,dumpAast) = annotateAstEnvEnv startingEnv dumpAst
 >         let dte = getTypeErrors dumpAast
 >         --when (not $ null te) $ throwError $ intercalate "\n" $ map showSpTe te

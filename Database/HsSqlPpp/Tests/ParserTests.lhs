@@ -1210,16 +1210,16 @@ Unit test helpers
 parse and then pretty print and parse a statement
 
 > checkParse :: String -> [Statement] -> Test.Framework.Test
-> checkParse src ast = parseUtil1 src ast parseSql
+> checkParse src ast = parseUtil1 src ast (parseSql "")
 
 parse and then pretty print and parse an expression
 
 > checkParseExpression :: String -> Expression -> Test.Framework.Test
 > checkParseExpression src ast = parseUtil src ast
->                                  parseExpression printExpression
+>                                  (parseExpression "") printExpression
 
 > checkParsePlpgsql :: String -> [Statement] -> Test.Framework.Test
-> checkParsePlpgsql src ast = parseUtil1 src ast parsePlpgsql
+> checkParsePlpgsql src ast = parseUtil1 src ast (parsePlpgsql "")
 
  > parseUtil :: (Show t, Eq b, Show b, Data b, Annotated b) =>
  >              String

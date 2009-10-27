@@ -1109,7 +1109,7 @@ drop function
 
 > checkStatementEnvChanges :: String -> [EnvironmentUpdate] -> Test.Framework.Test
 > checkStatementEnvChanges src eu = testCase ("check catalog: " ++ src) $
->   let ast = case parseSql src of
+>   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
 >       (nenv,aast) = annotateAstEnvEnv defaultTemplate1Environment ast
@@ -1124,7 +1124,7 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 
 > checkExpressionType :: Environment -> String -> Either [TypeError] Type -> Test.Framework.Test
 > checkExpressionType env src typ = testCase ("typecheck " ++ src) $
->   let ast = case parseExpression src of
+>   let ast = case parseExpression "" src of
 >                                      Left e -> error $ show e
 >                                      Right l -> l
 >       aast = annotateExpression env ast
@@ -1138,7 +1138,7 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 
 > checkStatementInfo :: String -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
 > checkStatementInfo src sis = testCase ("typecheck " ++ src) $
->   let ast = case parseSql src of
+>   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
 >       aast = annotateAst ast
@@ -1152,7 +1152,7 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 
 > checkStatementInfos :: [String] -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
 > checkStatementInfos srcs sis = testCase ("typecheck " ++ show srcs) $
->   let asts = map (\src -> case parseSql src of
+>   let asts = map (\src -> case parseSql "" src of
 >                                             Left e -> error $ show e
 >                                             Right l -> l) srcs
 >       aasts = annotateAstsEnv defaultTemplate1Environment asts
@@ -1166,7 +1166,7 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 
 > checkStatementInfoEnv :: Environment -> String -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
 > checkStatementInfoEnv env src sis = testCase ("typecheck " ++ src) $
->   let ast = case parseSql src of
+>   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
 >       aast = annotateAstEnv env ast
@@ -1179,7 +1179,7 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 
 > checkStatementInfoEu :: String -> Either [TypeError] [Maybe StatementInfo] -> [[EnvironmentUpdate]] -> Test.Framework.Test
 > checkStatementInfoEu src sis eu = testCase ("typecheck " ++ src) $
->   let ast = case parseSql src of
+>   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
 >       aast = annotateAst ast

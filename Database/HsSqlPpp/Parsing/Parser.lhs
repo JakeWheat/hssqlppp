@@ -82,9 +82,10 @@ code which is why we need to do this.
 
 = Top level parsing functions
 
-> parseSql :: String -- ^ a string containing the sql to parse
+> parseSql :: String
+>          -> String -- ^ a string containing the sql to parse
 >          -> Either ExtendedError StatementList
-> parseSql s = parseIt (lexSqlText s) sqlStatements "" s startState
+> parseSql f s = parseIt (lexSqlText f s) sqlStatements f s startState
 
 > parseSqlFile :: FilePath -- ^ file name of file containing sql
 >              -> IO (Either ExtendedError StatementList)
@@ -94,18 +95,20 @@ code which is why we need to do this.
 >   return $ parseIt x sqlStatements fn sc startState
 
 > -- | Parse expression fragment, used for testing purposes
-> parseExpression :: String -- ^ sql string containing a single expression, with no
+> parseExpression :: String
+>                 -> String -- ^ sql string containing a single expression, with no
 >                           -- trailing ';'
 >                 -> Either ExtendedError Expression
-> parseExpression s = parseIt (lexSqlText s) (expr <* eof) "" s startState
+> parseExpression f s = parseIt (lexSqlText f s) (expr <* eof) f s startState
 
 > -- | Parse plpgsql statements, used for testing purposes -
 > -- this can be used to parse a list of plpgsql statements which
 > -- aren't contained in a create function.
 > -- (The produced ast won't pass a type check.)
 > parsePlpgsql :: String
+>              -> String
 >              -> Either ExtendedError StatementList
-> parsePlpgsql s =  parseIt (lexSqlText s) (many plPgsqlStatement <* eof) "" s startState
+> parsePlpgsql f s =  parseIt (lexSqlText f s) (many plPgsqlStatement <* eof) f s startState
 
 utility function to do error handling in one place
 
@@ -547,7 +550,7 @@ rather than just a string.
 >                                                        ,("sql",Sql)]
 >         parseBody lang body fnName bodypos =
 >             case (parseIt
->                   (lexSqlText (extrStr body))
+>                   (lexSqlText fnName (extrStr body))
 >                   (functionBody lang)
 >                   ("function " ++ fnName)
 >                   (extrStr body)
