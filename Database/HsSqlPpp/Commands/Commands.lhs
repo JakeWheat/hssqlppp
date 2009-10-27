@@ -31,15 +31,22 @@ Wrappers used in the command line program
 > import Database.HsSqlPpp.Extensions.ChaosExtensions
 
 
+================================================================================
+
+read file as string - issues are:
+not sure the return type should be string,string, put this in to pass
+to loadsql so that it knows the source file
+
+want to support reading from stdin, and reading from a string passed
+as an argument to the exe
+
 > readInput :: (Error e, MonadIO m) => String -> ErrorT e m (String,String)
 > readInput f =
 >   liftIO $ readFile f >>= \l -> return (f,l)
 
-parse
+===============================================================================
 
-load into database
-
-clear db
+parsing
 
 > lexSql :: Monad m => String -> String -> ErrorT AllErrors m [Token]
 > lexSql f s = return (lexSqlText f s) >>= throwEEEither
@@ -47,59 +54,30 @@ clear db
 > parseSql1 :: Monad m => String -> String -> ErrorT AllErrors m StatementList
 > parseSql1 f s = return (parseSql f s) >>= throwEEEither
 
+================================================================================
+
+> runExtensions :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
+> runExtensions = return . extensionize
+
+================================================================================
+
+annotation ish
+
 > stripAnn :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
 > stripAnn s = return $ stripAnnotations s
 
-> ppSh :: (Monad m, Error e, Show a) => a -> ErrorT e m String
-> ppSh = return . ppShow
-
-> ppSql :: (Monad m, Error e) => StatementList -> ErrorT e m String
-> ppSql = return . printSql
-
-> ppAnnOrig :: (Monad m, Error e) => Bool -> String -> StatementList -> ErrorT e m String
-> ppAnnOrig doErrs fn ast = return $ annotateSource doErrs fn ast
+still not sure what to call this command, maybe it should be type check?
 
 > annotate :: (Monad m, Error e) => Environment -> StatementList
 >          -> ErrorT e m (Environment, StatementList)
 > annotate cat ast = return $ annotateAstEnvEnv cat ast
 
-> lfst :: (Monad m, Error e) => (a,b) -> ErrorT e m a
-> lfst = return . fst
-
-> lsnd :: (Monad m, Error e) => (a,b) -> ErrorT e m b
-> lsnd = return . snd
-
-
-> data AllErrors = AEExtendedError ExtendedError
->                | AETypeErrors [TypeError]
->                | AEMisc String
->                  deriving (Show)
-
-> instance Error AllErrors where
->   noMsg = AEMisc "Unknown error"
->   strMsg str = AEMisc str
-
-
-> throwEEEither :: (MonadError AllErrors m) => Either ExtendedError a -> m a
-> throwEEEither (Left err) = throwError $ AEExtendedError err
-> throwEEEither (Right val) = return val
-
-> throwTESEither :: (MonadError AllErrors m) => Either [TypeError] a -> m a
-> throwTESEither (Left err) = throwError $ AETypeErrors err
-> throwTESEither (Right val) = return val
-
-> readCatalog :: MonadIO m => String -> ErrorT AllErrors m Environment
-> readCatalog dbName =
->   liftIO (readEnvironmentFromDatabase dbName) >>=
->   throwTESEither . updateEnvironment defaultEnvironment
+could probably make this more general, so can run an arbitrary filter
+on annotations and get then back with source positions
 
 > getTEs :: (Monad m, Error e) =>
 >           StatementList -> ErrorT e m [(Maybe AnnotationElement,[TypeError])]
 > getTEs ast = return $ getTypeErrors ast
-
-> lconcat :: (Monad m, Error e) => [[a]] -> ErrorT e m [a]
-> lconcat as = return $ concat as
-
 
 > ppTypeErrors :: Monad m =>
 >                 [(Maybe AnnotationElement, [TypeError])] -> m [String]
@@ -110,31 +88,55 @@ clear db
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
 
+================================================================================
 
-> data CatDiff = CatDiff [EnvironmentUpdate] [EnvironmentUpdate]
->                deriving Show
+pretty printing
 
-> compareCatalogs :: (Monad m, Error e) => Environment -> Environment -> Environment -> ErrorT e m CatDiff
-> compareCatalogs base start end =
->         let baseEnvBits = deconstructEnvironment base
->             startEnvBits = deconstructEnvironment start \\ baseEnvBits
->             endEnvBits = deconstructEnvironment end \\ baseEnvBits
->             missing = sort $ endEnvBits \\ startEnvBits
->             extras = sort $ startEnvBits \\ endEnvBits
->         in return $ CatDiff missing extras
+todo: change the naming convention, so fns which produce haskell
+syntax start with show, human readable stuff starts with pp, not sure
+where printsql comes in system though
 
-> ppCatDiff :: (Monad m, Error e) => CatDiff -> ErrorT e m String
-> ppCatDiff (CatDiff missing extra) =
->           return $ "\nmissing:\n"
->                    ++ intercalate "\n" (map ppEnvUpdate missing)
->                    ++ "\nextra:\n"
->                    ++ intercalate "\n" (map ppEnvUpdate extra)
+> ppSh :: (Monad m, Error e, Show a) => a -> ErrorT e m String
+> ppSh = return . ppShow
 
+> ppSql :: (Monad m, Error e) => StatementList -> ErrorT e m String
+> ppSql = return . printSql
 
+> ppAnnOrig :: (Monad m, Error e) => Bool -> String -> StatementList -> ErrorT e m String
+> ppAnnOrig doErrs fn ast = return $ annotateSource doErrs fn ast
 
-> runExtensions :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
-> runExtensions = return . extensionize
+================================================================================
 
+errort stuff
+
+wrap all our errors in an algebraic data type, not sure if there is a
+more elegant way of doing this but it does the job for now
+
+> data AllErrors = AEExtendedError ExtendedError
+>                | AETypeErrors [TypeError]
+>                | AEMisc String
+>                  deriving (Show)
+
+> instance Error AllErrors where
+>   noMsg = AEMisc "Unknown error"
+>   strMsg str = AEMisc str
+
+> throwEEEither :: (MonadError AllErrors m) => Either ExtendedError a -> m a
+> throwEEEither (Left err) = throwError $ AEExtendedError err
+> throwEEEither (Right val) = return val
+
+> throwTESEither :: (MonadError AllErrors m) => Either [TypeError] a -> m a
+> throwTESEither (Left err) = throwError $ AETypeErrors err
+> throwTESEither (Right val) = return val
+
+================================================================================
+
+dbms utilities
+
+> readCatalog :: MonadIO m => String -> ErrorT AllErrors m Environment
+> readCatalog dbName =
+>   liftIO (readEnvironmentFromDatabase dbName) >>=
+>   throwTESEither . updateEnvironment defaultEnvironment
 
 > loadSqlUsingPsql :: MonadIO m  => String -> String -> ErrorT AllErrors m String
 > loadSqlUsingPsql dbName script = do
@@ -178,33 +180,32 @@ clear db
 >     ExitSuccess -> return ()
 >   return ()-}
 
+================================================================================
 
+catalog stuff - just a diff to compare two catalogs
 
-show
+> data CatDiff = CatDiff [EnvironmentUpdate] [EnvironmentUpdate]
+>                deriving Show
 
-parseexpression
+> compareCatalogs :: (Monad m, Error e) => Environment -> Environment -> Environment -> ErrorT e m CatDiff
+> compareCatalogs base start end =
+>         let baseEnvBits = deconstructEnvironment base
+>             startEnvBits = deconstructEnvironment start \\ baseEnvBits
+>             endEnvBits = deconstructEnvironment end \\ baseEnvBits
+>             missing = sort $ endEnvBits \\ startEnvBits
+>             extras = sort $ startEnvBits \\ endEnvBits
+>         in return $ CatDiff missing extras
 
-prettyprintast
-
-annotate ast,env->ast,env
-
-get type errors:
-get annotations
-filter
-
-showemacsstyle annotations -> string
-
-outputtofile
-
-dbmsreadcatalog
-
-checkbig stuff
+> ppCatDiff :: (Monad m, Error e) => CatDiff -> ErrorT e m String
+> ppCatDiff (CatDiff missing extra) =
+>           return $ "\nmissing:\n"
+>                    ++ intercalate "\n" (map ppEnvUpdate missing)
+>                    ++ "\nextra:\n"
+>                    ++ intercalate "\n" (map ppEnvUpdate extra)
 
 ================================================================================
 
 Utilities
-
-lifted print
 
 > message :: MonadIO m => String -> m ()
 > message x = liftIO (putStrLn x)
@@ -229,3 +230,12 @@ print a list, using newlines instead of commas, no outer []
 
 > putStrLnList :: MonadIO m => [String]-> m ()
 > putStrLnList = mapM_ (liftIO . putStrLn)
+
+> lfst :: (Monad m, Error e) => (a,b) -> ErrorT e m a
+> lfst = return . fst
+
+> lsnd :: (Monad m, Error e) => (a,b) -> ErrorT e m b
+> lsnd = return . snd
+
+> lconcat :: (Monad m, Error e) => [[a]] -> ErrorT e m [a]
+> lconcat as = return $ concat as

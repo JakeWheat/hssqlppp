@@ -388,7 +388,7 @@ with original ast
 >     message "complete!"
 >     return ()
 >     where
->       headerMessage m = message "-----------------------------\n" ++ m
+>       headerMessage m = message $ "-----------------------------\n" ++ m
 
 
 > runTestBattery _ = error "checkbig not passed at least 2 args"
