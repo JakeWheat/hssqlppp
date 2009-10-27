@@ -65,6 +65,11 @@ maybe option to either view pp'd sql, annotated pp'd sql, ast, aast,
 etc.  - can also use this for pppsql and pppexpression to view how the
 pretty printer mangles things, and for testing, etc.
 
+logging/verbosity:
+
+want a way to log to stderr/stdout/ files with different verbosity
+settings
+
 
 > {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -130,6 +135,9 @@ List of all the available commands
 >            ,loadSqlCommand
 >            ,clearAndLoadSqlCommand
 >            ,readCatalogCommand
+>            -- pg exe wrappers
+>            ,loadSqlPsqlCommand
+>            ,pgDumpCommand
 >            -- run a battery of tests over some sql
 >            ,checkBigCommand
 >            -- run the automated tests
@@ -240,10 +248,7 @@ TODO: do something more correct
 >                  (Single cleardb)
 
 > cleardb :: String -> IO ()
-> cleardb db = do
->   withConn ("dbname=" ++ db) $ \conn ->
->     runSqlCommand conn "drop owned by jake cascade;"
->   putStrLn $ "database " ++ db ++ " cleared."
+> cleardb db = wrapET $ clearDB db
 
 ================================================================================
 
@@ -257,17 +262,39 @@ TODO: do something more correct
 >                  (Multiple loadSql)
 
 > loadSql :: [String] -> IO ()
-> loadSql args = do
->   -- do this to avoid having to put flushes everywhere when we
->   -- provide "..." progress thingys, etc..
->   hSetBuffering stdout NoBuffering
+> loadSql args = wrapET $
 >   let (db:fns) = args
->   forM_ fns $ \fn -> do
->   res <- parseSqlFile fn
->   case res of
->     Left er -> error $ show er
->     Right ast -> putStrLn ("loading " ++ fn)
->                  >> loadIntoDatabase db fn ast
+>   in liftIO (hSetBuffering stdout NoBuffering) >>
+>      mapM readInput fns >>=
+>      mapM (uncurry parseSql1) >>= lconcat >>=
+>      loadAst db ""
+
+================================================================================
+
+> loadSqlPsqlCommand :: CallEntry
+> loadSqlPsqlCommand = CallEntry
+>                  "loadsqlusingpsql"
+>                  "loads sql into a database using psql."
+>                  (Multiple loadSqlPsql)
+
+> loadSqlPsql :: [String] -> IO ()
+> loadSqlPsql args = wrapET $
+>   let (db:fns) = args
+>   --srcs <- mapM readInput fns
+>   --mapM_ (\s -> loadSqlUsingPsql db s >>= message) (map snd srcs)
+>   in mapM_ (\s -> loadSqlUsingPsqlFromFile db s >>= message) fns
+
+================================================================================
+
+> pgDumpCommand :: CallEntry
+> pgDumpCommand = CallEntry
+>                  "pgdump"
+>                  "run pg dump, used for testing."
+>                  (Single pgDump1)
+
+> pgDump1 :: String -> IO ()
+> pgDump1 db = wrapET $ pgDump db >>= message
+
 
 ================================================================================
 

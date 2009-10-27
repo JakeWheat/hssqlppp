@@ -10,7 +10,8 @@ Wrappers used in the command line program
 > --import Control.Applicative
 
 > import Text.Show.Pretty
-
+> import System.Process.Pipe
+> import System
 
 
 
@@ -32,8 +33,8 @@ Wrappers used in the command line program
 
 > import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 
-> --import Database.HsSqlPpp.Dbms.DBAccess
-> --import Database.HsSqlPpp.Dbms.DatabaseLoader
+> import Database.HsSqlPpp.Dbms.DBAccess
+> import Database.HsSqlPpp.Dbms.DatabaseLoader
 
 > --import Database.HsSqlPpp.Extensions.ChaosExtensions
 
@@ -111,6 +112,51 @@ clear db
 >     showSpTe (Just (SourcePos fn l c), e) =
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
+
+
+> loadSqlUsingPsql :: MonadIO m  => String -> String -> ErrorT AllErrors m String
+> loadSqlUsingPsql dbName script = do
+>   liftIO $ pipeString [("psql", [dbName
+>                                 ,"-q"
+>                                 ,"--set"
+>                                 ,"ON_ERROR_STOP=on"
+>                                 ,"--file=-"])] script
+
+> loadSqlUsingPsqlFromFile :: MonadIO m  => String -> String -> ErrorT AllErrors m String
+> loadSqlUsingPsqlFromFile dbName fn = do
+>   ex <- liftIO $ system ("psql " ++ dbName ++
+>                 " -q --set ON_ERROR_STOP=on" ++
+>                 " --file=" ++ fn)
+>   case ex of
+>     ExitFailure e -> throwError $ AEMisc $ "psql failed with " ++ show e
+>     ExitSuccess -> return ""
+
+> loadAst :: (MonadIO m, Error e) => String -> String -> StatementList -> ErrorT e m ()
+> loadAst db fn ast = liftIO $ loadIntoDatabase db fn ast
+
+> clearDB :: MonadIO m => String -> ErrorT AllErrors m ()
+> clearDB db =
+>   liftIO $ withConn ("dbname=" ++ db) $ \conn ->
+>     runSqlCommand conn "drop owned by jake cascade;"
+
+> pgDump :: MonadIO m => String -> ErrorT AllErrors m String
+> pgDump db = liftIO $ pipeString [("pg_dump", [db
+>                                              ,"--schema-only"
+>                                              ,"--no-owner"
+>                                              ,"--no-privileges"])] ""
+
+
+> {-runSqlScript :: String -> String -> IO ()
+> runSqlScript dbName script = do
+>   ex <- system ("psql " ++ dbName ++
+>                 " -q --set ON_ERROR_STOP=on" ++
+>                 " --file=" ++ script)
+>   case ex of
+>     ExitFailure e -> error $ "psql failed with " ++ show e
+>     ExitSuccess -> return ()
+>   return ()-}
+
+
 
 show
 

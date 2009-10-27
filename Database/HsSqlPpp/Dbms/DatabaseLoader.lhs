@@ -54,7 +54,7 @@ This code is currently on the backburner, and is a mess.
 >                  -> IO ()
 > loadIntoDatabase dbName fn ast =
 >   withConn ("dbname=" ++ dbName) $ \conn -> do
->          loadPlpgsqlIntoDatabase conn
+>          --loadPlpgsqlIntoDatabase conn
 >          mapM_ (\st ->
 >                 loadStatement conn st
 >                 >> putStr ".") (filterStatements ast)
@@ -98,13 +98,13 @@ This code is currently on the backburner, and is a mess.
 >                                  (VanillaStatement (Copy [] tb cl
 >                                                     (CopyFilename tfn1))))
 >                          _ -> error "internal error: pattern match fail in runCopy in loadIntoDatabase"
->     loadPlpgsqlIntoDatabase conn = do
+>     {-loadPlpgsqlIntoDatabase conn = do
 >          -- first, check plpgsql is in the database
 >          x <- selectValue conn
 >                 "select count(1) from pg_language where lanname='plpgsql';"
 >          when (readInt x == 0) $
 >               runSqlCommand conn "create procedural language plpgsql;"
->     readInt x = read x :: Int
+>     readInt x = read x :: Int-}
 
 > data Wrapper = CopyStdin Ast.Statement Ast.Statement
 >              | Skipit
