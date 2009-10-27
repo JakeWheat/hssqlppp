@@ -270,7 +270,8 @@ amount of work in comparison).
 >           -> [String]
 >           -> [Statement]
 > createKey an tableName colNames =
->    createConstraint False an [tableName] (tableName ++ "_" ++ intercalate "_" colNames ++ "_key") "true"
+>    let cn = take 49 (tableName ++ "_" ++ intercalate "_" colNames) ++ "_key"
+>    in createConstraint False an [tableName] cn "true"
 
 > zeroOneTuple :: Data a => a -> a
 > zeroOneTuple =

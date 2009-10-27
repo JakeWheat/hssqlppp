@@ -291,6 +291,9 @@ also: load the sql using the extension system and database loader,
 then compare pg catalog with initial catalog, and dump and compare ast
 with original ast
 
+want to run a similar set of tests starting with the dump sql:
+get ast,cat from dump sql, load using psql and using databaseloader
+and check cats and subsequent dump asts.
 
 getting the dump ast comparing with the original ast:
 
