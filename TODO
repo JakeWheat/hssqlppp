@@ -1,18 +1,83 @@
-High level TODO:
-get checkbig mostly working:
-  databaseloader
-  finish extensions
-  add stuff to catalog
-catalog type rename
-type -> either for type errors
-work on error handling
-review commands in hssqlppp
-add database username and password support
-code tidy/ documentation
+TODO for next release
 
+= New functionality
+
+get checkbig mostly working: not trying to get no type errors or
+   differences, but to get all the different aspects of the tests
+   written and running so can see from the output what remains to be
+   fixed
+   main issues:
+   databaseloader isn't working on the chaos sql files anymore, I
+   think this is an issue with the pretty printer producing invalid
+   sql
+   finish extensions: for the tests to mostly work, need to flesh out
+   the current extension implementations which are mainly stubs
+   add missing items to catalog: triggers, sequences, constraints,
+   indexes, defaults
+
+= Ammending existing functionality
+
+add dbms database name, username and password support
+review holes:
+   round off parsing support for sql - make a list of what
+     needs to be added
+   should try to get as much typechecking working on what parses as
+     possible
+   work on organising the type checking tests, and make the tests much
+     more comprehensive
+
+= Housecleaning
+
+rename Environment type to Catalog
+change type annotation from Type to either typecheckfailed Type so can
+   use monad style to propagate typecheckfaileds
+work on error handling: try to add a lot better error reporting:
+   a few errors are being ignored rather than added to the aast, also
+   try to change all the calls to error into eithers to be added to
+   the aast
+review commands in hssqlppp: mainly review names and arguments for
+   consistency (i.e. make sure every command accepts first a
+   databasename and then a list of sql files where this makes sense),
+   also redo annotate source so it can be run multiple times on the
+   same source, and run to update the annotation comments when the
+   source is changed. Maybe think about better error reporting?
+tidy up code, refactor and add lots of comments, particularly in the
+   ag files
+
+= Documentation
+
+work on haddock documentation
+find way to do nice html example documentation: short
+   intro/tour/tutorial to give people a flavour of what the
+   hssqlsystem exe can do
+want to be able to show what the code can do easily and debug
+   annotations - so do a pretty printer which works the following way:
+   output source code on left side of a table (with syntax
+   highlighting, hyperlinks, etc? - use html?) and on the right output
+   the interesting annotations pretty printed, draw lines from the
+   pretty printed annotations to the sourcepositions in the source on
+   the left. Looks like might be able to do this using gtk:
+   http://www.bravegnu.org/gtktext/x498.html - maybe convert to png to
+   allow viewing in a web browser
+
+
+= other issues to maybe fix:
+check associativity of combine selects and join trefs without parens -
+   write tests using pg_dump output
+ids in joins issue
+redo order by parsing/ast to add direction to each element
+write some notes on hacking: source overview rewrite, file overview
+   rewrites, and rough howto on adding new constructs: altering
+   parser, altering ast and altering type checking process
+typecheck old and new pseudo records in trigger functions
+explore creating template syntax for simple expansions of function
+   calls to make writing some extensions easier
+makefile stuff?
+plpgsql stuff: blocks, assignments in declarations, strict into,
+   labels,loops,continue
+look into running test suite from cabal
 todo for checkbig:
 get initial catalog tests passing:
-  parse copy payloads so can do the spell choice actions
   still some extra table triggers: think it may that foreign keys that
    pg supports directly and primary keys don't add a table trigger
   name/text result set resolution issue
@@ -21,66 +86,7 @@ get initial catalog tests passing:
   distance function return type issue
   plpgsql language functions
 
-do pg_dump comparison tests
-  get database loader working
-  fill in missing bits on extensions - tidy up and rework also
-  add support for missing catalog bits:
-    triggers, sequences, constraints, indexes, defaults
-  parse not not and count distinct
 
-rough todo for next release:
-work on catalog type and fns: diffs, deconstruct, to help with testing
-  rename to catalog, other stuff from below?
-add roundtrip tests: read a sql file in and construct catalog, then
-   load sql file into pg and read catalog from pg and check for
-   equality
-add extensions to make this work with chaos sql: need to add
-   extensions for triggers and similar which are created inside
-   function calls, also add pg constraints to catalog and type
-   checking, think about adding the extended constraint system
-check associativity of combine selects and join trefs without parens -
-   write tests using pg_dump output
-some work on sql types: change the types of nodes to either [typeerror]
-   type and follow through the code changes to support this
-some work on error handling: try to add a lot better error reporting:
-   a few errors are being ignored rather than added to the aast, also
-   try to change all the calls to error into eithers to be added to
-   the aast
-ids in joins issue
-not not parsing issue
-count(distinct ...) parsing
-redo order by parsing/ast to add direction to each element
-fix up checksource and annotate source - sort out env and initial
-   database, etc. (and do idem/update stuff for annotate source)
-work on haddock
-do html overview and examples docs
-write some notes on hacking: source overview rewrite, file overview
-   rewrites, and rough howto on adding new constructs: altering
-   parser, altering ast and altering type checking process
-typecheck old and new pseudo records in trigger functions
-review missing parsing/ast/typechecking
-explore creating template syntax for simple expansions of function
-   calls to make writing some extensions easier
-makefile stuff?
-plpgsql stuff: blocks, assignments in declarations, strict into,
-   labels,loops,continue
-look into running test suite from cabal
-
-want to be able to show what the code can do easily and debug
-   annotations - so do a pretty printer which works the following way:
-   output source code on left side of a table (with syntax
-   highlighting, hyperlinks, etc? - use html?) and on the right output
-   the interesting annotations pretty printed, draw lines from the
-   pretty printed annotations to the sourcepositions in the source on
-   the left. Looks like might be able to do this using gtk:
-   http://www.bravegnu.org/gtktext/x498.html
-
-
-
-TODO: sort out stuff below here
-
---------------------------------------------
-fix join issues - identifiers not working in large chains of joins
 support multiple files in annotate source and check source
 match pgdump output for adding explicit parens e.g. in select unions
    and table refs, add tests for associativity in the absence of
@@ -95,26 +101,20 @@ get chaos pgdump output parsing and partially type checking, todo:
   type checking issues exposed:
     old,new in trigger functions
 
-
+old todoage:
 
 ================================================================================
 
 == 2nd next release
 fix catalog type, lots of work to make more robust:
   rename environment to catalog
-  diff for catalog so we can just see what's been added
-  pretty printer for catalog, and for bindings
-  deconstruct function to turn a catalog back into a series of updaes
+  better pretty printer for catalog, and for bindings
   add annotations to catalog, so can see where bits came from
   do uniqueness testing e.g. disallow two tables with same name, two
    attributes with same name, etc.
 fix tests using new catalog approach: don't want to have tests which
    use sql to alter catalog then use sql to test the catalog changes
    have been made - use separate tests (more unit-y tests)
-to pg roundtrip catalog test: load with one or more sql files, produce
-   a catalog diff, then load the sql into pg and read the catalog from
-   pg, compare that the read catalog changes are the same as what the
-   typechecker has produced.
 
 === types and internal errors handling
 
@@ -219,15 +219,6 @@ So nulls can still be used to represent optional values, n/a,
 * what the result of a sum aggregate is if some of the values are null,
 * etc.,
 because none of these things are allowed.
-
-=== support variadic args for functions
-
-also, default args?
-
-=== typechecking completeness
-
-make sure everything that parses is typechecked as much as possible
-(make some notes on this)
 
 === do sql support todo
 

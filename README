@@ -1,6 +1,9 @@
 Summary: A parser, pretty printer, and type checker for PostgreSQL SQL
 and PL/pgSQL. BSD licensed.
 
+** Most of the documentation here and in the other files is out of
+   date, will be updated before next relase **
+
 The current aims of the project is to provide a parser and type
 checker for a substantial portion of PostgreSQL SQL and PL/pgSQL.
 

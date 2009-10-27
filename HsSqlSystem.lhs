@@ -11,8 +11,71 @@ run
 ./HsSqlSystem.lhs help
 to get a list of commands and purpose and usage info
 
-TODO 1: add options to specify username and password (keep optional though)
-TODO 2: think of a name for this command
+TODOS
+
+add options to specify username and password for pg, database also? - work like psql?
+
+think of a name for this command
+
+review command names and arguments:
+find a better naming convention: some commands produce haskell values as text,
+some produce non haskell compatible text e.g. lexfile
+some run tests and produce a success/fail result, maybe a list of issues
+
+run multiple commands in one invocation?
+
+make these commands into a library since they are getting quite complicated
+
+work on error handling internally in this code, and reporting errors to the user
+
+add commands:
+showAst, before/after running extensions
+showAast, also extensions optional
+showCatalog from sql: with/without extensions, as haskell value or pretty printed - as with typecheck sql, pass dbname plus multiple sql files, prints the catalog changes (plus type errors?)
+parsesql - pass string to parse
+parseexpression
+ - extensions, with w/o annotations/typechecking
+getExpressionType
+getstatementtype
+
+run an extension by name over some sql source to view differences: add integration with external diff viewers?
+stdin support: paste in sql, or paste in ast, then do something with it
+
+commands:
+lex
+parse
+parseexpression
+typecheck(annotate)
+prettyprint
+annotatesource
+ppshow
+prettyprintast
+stripannotations
+stripsourceposes
+gettopleveltypes
+getcatalogupdates
+gettypeerrors
+help
+cleardb
+loadsql
+readcatalogfromdb
+runextensions
+runextensionbyname
+showemacsformat
+loadusingpsql
+pgdump
+runtests: can get rid of the extra executable?
+
+options:
+source files/ stdin
+database name
+database connection info
+output target: stdout, filename(s)
+
+test routines:
+parse,prettyprint,parse check equal
+
+
 
 > {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -25,6 +88,7 @@ TODO 2: think of a name for this command
 > import Text.Show.Pretty
 > import Control.Monad.Error
 > --import Control.Monad
+> --import Control.Exception
 > import System.Process.Pipe
 
 > import Database.HsSqlPpp.Parsing.Parser
@@ -46,6 +110,8 @@ TODO 2: think of a name for this command
 
 > import Database.HsSqlPpp.Extensions.ChaosExtensions
 
+> import Database.HsSqlPpp.Commands.Commands
+
 ================================================================================
 
 = main
@@ -65,7 +131,8 @@ TODO 2: think of a name for this command
 >            ,loadSqlCommand
 >            ,clearAndLoadSqlCommand
 >            ,lexFileCommand
->            ,parseFileCommand
+>            ,showAstCommand
+>            ,checkParseCommand
 >            ,roundTripCommand
 >            ,readEnvCommand
 >            ,annotateSourceCommand
@@ -168,20 +235,44 @@ TODO: do something more correct
 >                  "lexfile"
 >                  "lex the file given and output the tokens on separate lines"
 >                  (Single lexFile)
+
+
 > lexFile :: FilePath -> IO ()
-> lexFile f = do
->   putStrLn $ "lexing " ++ show f
->   x <- lexSqlFile f
->   return ()
->   case x of
->        Left er -> print er
->        Right l -> mapM_ print l
+> lexFile f = wrapET $ do
+>       message $ "lexing " ++ f
+>       (src::String) <- readInput f
+>       (l::[Token]) <- lexSql src
+>       mapM_ (liftIO . print) l
+
 
 ================================================================================
 
-> parseFileCommand :: CallEntry
-> parseFileCommand = CallEntry
->                    "parsefile"
+> showAstCommand :: CallEntry
+> showAstCommand = CallEntry
+>                    "showAst"
+>                    "Parse files and output the asts"
+>                    --(maybe it could interpolate each original statement with its
+>                    --parsed, pretty printed version so you can more easily check how
+>                    --authentic the sql is and how much has been silently dropped on the floor)
+>                    (Multiple showAst)
+
+> showAst :: [String] -> IO ()
+> showAst = mapM_ pf
+>   where
+>     pf f = do
+>       putStrLn $ "-- parsing " ++ show f
+>       x <- parseSqlFile f
+>       case x of
+>            Left er -> putStrLn "{-" >> print er >> putStrLn "-}"
+>            Right st -> do
+>                putStrLn $ ppShow $ stripAnnotations st
+>       return ()
+
+================================================================================
+
+> checkParseCommand :: CallEntry
+> checkParseCommand = CallEntry
+>                    "checkparse"
 >                    "Routine to parse sql from a file, check that it appears to parse ok, \
 >                    \that pretty printing it and parsing that text gives the same ast, \
 >                    \and then displays the pretty printed version so you can see how well it's \
@@ -189,10 +280,10 @@ TODO: do something more correct
 >                    --(maybe it could interpolate each original statement with its
 >                    --parsed, pretty printed version so you can more easily check how
 >                    --authentic the sql is and how much has been silently dropped on the floor)
->                    (Multiple parseFile)
+>                    (Multiple checkParse)
 
-> parseFile :: [String] -> IO ()
-> parseFile = mapM_ pf
+> checkParse :: [String] -> IO ()
+> checkParse = mapM_ pf
 >   where
 >     pf f = do
 >       putStrLn $ "parsing " ++ show f
@@ -203,7 +294,6 @@ TODO: do something more correct
 >                --print l
 >                --putStrLn "END OF AST END OF AST END OF AST END OF AST END OF AST END OF AST"
 >                putStrLn "parse ok"
->                putStrLn $ ppShow st
 >                let pp = printSql st
 >                --putStrLn pp
 >                --check roundtrip
@@ -415,21 +505,7 @@ get catalog and dump and compare for equality with originals
 >         liftIO $ mapM (runSqlScript dbName) fns
 >         properEnv <- liftIO readDbEnv >>= liftThrows
 
->         let startEnvBits = deconstructEnvironment startingEnv
->             originalEnvBits = deconstructEnvironment originalEnv \\ startEnvBits
->             properEnvBits = deconstructEnvironment properEnv \\ startEnvBits
->             missing = sort $ properEnvBits \\ originalEnvBits
->             extras = sort $ originalEnvBits \\ properEnvBits
->         liftIO $ when (not $ null missing)
->                    $ putStrLn $ "\n\n************************************************\n\n\
->                                 \missing catalog: " ++ showAList missing
->         liftIO $ when (not $ null extras)
->                    $ putStrLn $ "\n\n************************************************\n\n\
->                                 \extras catalog: " ++ showAList extras
-
->         --liftIO $ putStrLn $ "\n\n************************************************\n\n\
->         --                    \common: " ++ showAList (sort $ intersect properEnvBits originalEnvBits)
-
+>         compareCatalogs startingEnv originalEnv properEnv
 >         message "get pg_dump of original loaded sql files"
 
 >         dump <- liftIO $ pipeString [("pg_dump", ["chaos"
@@ -441,9 +517,10 @@ get catalog and dump and compare for equality with originals
 >         let dte = getTypeErrors dumpAast
 >         --when (not $ null te) $ throwError $ intercalate "\n" $ map showSpTe te
 >         message $ intercalate "\n" $ map showSpTe dte
+>         compareCatalogs startingEnv originalEnv dumpEnv
 
 >         message "complete!"
->         return $ Right ()
+>         return ()
 
 >       showAList l = intercalate "\n" $ map show l
 
@@ -457,6 +534,23 @@ get catalog and dump and compare for equality with originals
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >       showSpTe (_,e) = "unknown:0:0:\n" ++ show e
 >       message = liftIO . putStrLn
+>       compareCatalogs base start end = do
+>         let baseEnvBits = deconstructEnvironment base
+>             startEnvBits = deconstructEnvironment start \\ baseEnvBits
+>             endEnvBits = deconstructEnvironment end \\ baseEnvBits
+>             missing = sort $ endEnvBits \\ startEnvBits
+>             extras = sort $ startEnvBits \\ endEnvBits
+>         liftIO $ when (not $ null missing)
+>                    $ putStrLn $ "\n\n************************************************\n\n\
+>                                 \missing catalog: " ++ showAList missing
+>         liftIO $ when (not $ null extras)
+>                    $ putStrLn $ "\n\n************************************************\n\n\
+>                                 \extras catalog: " ++ showAList extras
+
+>         --liftIO $ putStrLn $ "\n\n************************************************\n\n\
+>         --                    \common: " ++ showAList (sort $ intersect properEnvBits originalEnvBits)
+
+
 > checkBig _ = error "checkbig not passed at least 2 args"
 
 
