@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.0.8
+Version:             0.0.9
 Synopsis:            Sql parser and type checker
 Description:
     Sql parser, pretty printer and type checker, targets PostGreSQL SQL
@@ -63,8 +63,10 @@ extra-source-files:  README
                      sqltestfiles/client.sql
                      --find Database/ -type f -a ! -iname '*.o' -a ! -iname '*.hi'
                      Database/HsSqlPpp/Utils.lhs
+                     Database/HsSqlPpp/Commands/Commands.lhs
                      Database/HsSqlPpp/Dbms/DBAccess.lhs
                      Database/HsSqlPpp/Dbms/DatabaseLoader.lhs
+                     Database/HsSqlPpp/Extensions/ChaosExtensions.lhs
                      Database/HsSqlPpp/AstInternals/AnnotationUtils.lhs
                      Database/HsSqlPpp/AstInternals/AstAnnotation.lhs
                      Database/HsSqlPpp/AstInternals/AstInternal.hs
@@ -77,16 +79,19 @@ extra-source-files:  README
                      Database/HsSqlPpp/AstInternals/TypeChecking/Dml.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/SelectStatement.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/TypeConversion.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/TableRefs.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/TypeChecking.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/ErrorUtils
                      Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/ErrorUtils.lhs
                      Database/HsSqlPpp/AstInternals/TypeChecking/CreateTable.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/CreateFunction.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/SelectLists.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/Expressions.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Drops.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/MiscCreates.ag
+                     Database/HsSqlPpp/Tests/ExtensionTests.lhs
                      Database/HsSqlPpp/Tests/AstCheckTests.lhs
                      Database/HsSqlPpp/Tests/ParserTests.lhs
                      Database/HsSqlPpp/Tests/DatabaseLoaderTests.lhs
@@ -136,20 +141,9 @@ Executable HsSqlSystem
                      regex-posix,
                      HDBC,
                      HDBC-postgresql,
-                     directory
-
-  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
-
-Executable HsSqlPppTests
-  Main-is:           HsSqlPppTests.lhs
-
-  Build-Depends:     base,
-                     HUnit,
+                     directory,
                      test-framework,
                      test-framework-hunit,
-                     regex-posix,
-                     HDBC,
-                     HDBC-postgresql,
-                     directory
+                     HUnit
 
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables

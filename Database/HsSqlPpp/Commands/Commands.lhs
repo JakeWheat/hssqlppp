@@ -30,6 +30,7 @@ Wrappers used in the command line program
 
 > import Database.HsSqlPpp.Extensions.ChaosExtensions
 
+> import Database.HsSqlPpp.Utils
 
 ================================================================================
 
@@ -73,7 +74,7 @@ still not sure what to call this command, maybe it should be type check?
 > annotate cat ast = return $ annotateAstEnvEnv cat ast
 
 could probably make this more general, so can run an arbitrary filter
-on annotations and get then back with source positions
+on annotations and then get a list of them with source positions
 
 > getTEs :: (Monad m, Error e) =>
 >           StatementList -> ErrorT e m [(Maybe AnnotationElement,[TypeError])]
@@ -104,30 +105,6 @@ where printsql comes in system though
 
 > ppAnnOrig :: (Monad m, Error e) => Bool -> String -> StatementList -> ErrorT e m String
 > ppAnnOrig doErrs fn ast = return $ annotateSource doErrs fn ast
-
-================================================================================
-
-errort stuff
-
-wrap all our errors in an algebraic data type, not sure if there is a
-more elegant way of doing this but it does the job for now
-
-> data AllErrors = AEExtendedError ExtendedError
->                | AETypeErrors [TypeError]
->                | AEMisc String
->                  deriving (Show)
-
-> instance Error AllErrors where
->   noMsg = AEMisc "Unknown error"
->   strMsg str = AEMisc str
-
-> throwEEEither :: (MonadError AllErrors m) => Either ExtendedError a -> m a
-> throwEEEither (Left err) = throwError $ AEExtendedError err
-> throwEEEither (Right val) = return val
-
-> throwTESEither :: (MonadError AllErrors m) => Either [TypeError] a -> m a
-> throwTESEither (Left err) = throwError $ AETypeErrors err
-> throwTESEither (Right val) = return val
 
 ================================================================================
 
@@ -205,6 +182,32 @@ catalog stuff - just a diff to compare two catalogs
 
 ================================================================================
 
+errort stuff
+
+wrap all our errors in an algebraic data type, not sure if there is a
+more elegant way of doing this but it does the job for now
+
+> data AllErrors = AEExtendedError ExtendedError
+>                | AETypeErrors [TypeError]
+>                | AEMisc String
+>                  deriving (Show)
+
+> instance Error AllErrors where
+>   noMsg = AEMisc "Unknown error"
+>   strMsg str = AEMisc str
+
+> throwEEEither :: (MonadError AllErrors m) => Either ExtendedError a -> m a
+> throwEEEither = throwEither . mapLeft AEExtendedError
+
+> throwTESEither :: (MonadError AllErrors m) => Either [TypeError] a -> m a
+> throwTESEither = throwEither . mapLeft AETypeErrors
+
+> throwEither :: (MonadError t m) => Either t a -> m a
+> throwEither (Left err) = throwError err
+> throwEither (Right val) = return val
+
+================================================================================
+
 Utilities
 
 > message :: MonadIO m => String -> m ()
@@ -218,10 +221,6 @@ should think of something better to do here than just rethrow as io error1
 >          case x of
 >            Left er -> error $ show er
 >            Right l -> return l
-
-> throwEither :: (MonadError t m) => Either t a -> m a
-> throwEither (Left err) = throwError err
-> throwEither (Right val) = return val
 
 print a list, using newlines instead of commas, no outer []
 

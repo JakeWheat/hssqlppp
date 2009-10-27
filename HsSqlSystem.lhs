@@ -50,15 +50,6 @@ showCatalogUpdates - run over some sql files, outputs the catalog changes
                      made by this sql
 ppCatalogUpdates
 
-loadsqlwithpsql - convenience command so can load using the
-                  parse/pp/databaseloader and via psql using almost
-                  same commands/arguements
-
-pgDump - convenience wrapper, and for testing
-
-commands here needing updating to new style/ finishing off:
-cleardb, loadsql, checkbig - rename to runTestBattery or something
-
 run an extension by name over some sql source to view differences: add
 integration with external diff viewers, so can see before and after,
 maybe option to either view pp'd sql, annotated pp'd sql, ast, aast,
@@ -301,29 +292,29 @@ This reads an catalog from a database and writes it out using show.
 > readCat :: String -> IO ()
 > readCat dbName = wrapET $ do
 >   cat <- readCatalog dbName
->   message preamb
+>   message preamble
 >   ppSh cat >>= prefixLines >>= message
 >   where
->     preamb = "\n\
->              \Copyright 2009 Jake Wheat\n\
->              \\n\
->              \This file contains\n\
->              \\n\
->              \> {-# OPTIONS_HADDOCK hide  #-}\n\
->              \\n\
->              \> module Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment\n\
->              \>     (defaultTemplate1Environment\n\
->              \>      ) where\n\
->              \\n\
->              \> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal\n\
->              \> import Database.HsSqlPpp.AstInternals.TypeType\n\
->              \\n\
->              \> defaultTemplate1Environment :: Environment\n\
->              \> defaultTemplate1Environment =\n\
->              \>    (\\l -> case l of\n\
->              \>             Left x -> error $ show x\n\
->              \>             Right e -> e) $\n\
->              \>     updateEnvironment defaultEnvironment\n"
+>     preamble = "\n\
+>                \Copyright 2009 Jake Wheat\n\
+>                \\n\
+>                \This file contains\n\
+>                \\n\
+>                \> {-# OPTIONS_HADDOCK hide  #-}\n\
+>                \\n\
+>                \> module Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment\n\
+>                \>     (defaultTemplate1Environment\n\
+>                \>      ) where\n\
+>                \\n\
+>                \> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal\n\
+>                \> import Database.HsSqlPpp.AstInternals.TypeType\n\
+>                \\n\
+>                \> defaultTemplate1Environment :: Environment\n\
+>                \> defaultTemplate1Environment =\n\
+>                \>    (\\l -> case l of\n\
+>                \>             Left x -> error $ show x\n\
+>                \>             Right e -> e) $\n\
+>                \>     updateEnvironment defaultEnvironment\n"
 >     prefixLines :: (Monad m, Error e) => String -> ErrorT e m String
 >     prefixLines = return . unlines . map (">        " ++) . lines
 
