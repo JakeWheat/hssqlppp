@@ -124,137 +124,27 @@ parse,prettyprint,parse check equal
 
 ================================================================================
 
-= main
-
-> main :: IO ()
-> main = do
->   args <- getArgs
->   case () of
->        _ | null args -> putStrLn "no command given" >> help []
->          | otherwise -> case lookupCaller commands (map toLower $ head args) of
->                           Nothing -> putStrLn "unrecognised command" >> help []
->                           Just c -> call c $ tail args
+List of all the available commands
 
 > commands :: [CallEntry]
 > commands = [helpCommand
->            ,clearDBCommand
->            ,loadSqlCommand
->            ,clearAndLoadSqlCommand
+>            -- parsing
 >            ,lexFileCommand
 >            ,showAstCommand
 >            ,testPpppCommand
 >            ,pppCommand
->            ,roundTripCommand
->            ,readEnvCommand
+>            -- typechecking
 >            ,annotateSourceCommand
 >            ,typeCheckCommand
->            ,checkSourceExtCommand
+>            -- dbms interaction
+>            ,clearDBCommand
+>            ,loadSqlCommand
+>            ,clearAndLoadSqlCommand
+>            ,readCatalogCommand
+>            -- run a battery of tests over some sql
 >            ,checkBigCommand
+>            -- run the automated tests
 >            ,testCommand]
-
-> lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
-> lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
-
-================================================================================
-
-> helpCommand :: CallEntry
-> helpCommand = CallEntry
->                  "help"
->                  "use 'help' to see a list of commands\n\
->                  \use 'help all' to see a list of commands with descriptions\n\
->                  \use 'help [command]' to see the description for that command"
->                   (Multiple help)
-
-
-> help :: [String] -> IO ()
-> help args =
->   case args of
->             ["all"] -> showCommands True
->             [x] -> helpForCommand x
->             _ -> showCommands False
->   where
->     showCommands full = do
->       putStrLn "commands available"
->       mapM_ putStrLn $ flip map commands (\(CallEntry nm desc _)  ->
->                                           if full
->                                             then nm ++ "\n" ++ desc ++ "\n"
->                                             else nm ++ "\n")
-
-> helpForCommand :: String -> IO ()
-> helpForCommand c =
->     case lookupCaller commands c of
->       Nothing -> putStrLn "unrecognised command" >> help []
->       Just (CallEntry nm desc _) -> putStrLn $ nm ++ "\n" ++ desc
-
-================================================================================
-
-> testCommand :: CallEntry
-> testCommand = CallEntry "test"
->                "run automated tests, uses test.framework can pass arguments \
->                \to this e.g. HsSqlSystem test -t parserTests"
->                (Multiple runTests)
-> runTests :: [String] -> IO ()
-> runTests args =
->   flip defaultMainWithArgs args [
->     parserTests
->    ,astCheckTests
->    --,databaseLoaderTests
->    ,extensionTests
->    ]
-
-================================================================================
-
-= load sql file
-
-> loadSqlCommand :: CallEntry
-> loadSqlCommand = CallEntry
->                  "loadsql"
->                  "This takes one or more files with sql source text, \
->                  \parses them then loads them into the database given."
->                  (Multiple loadSql)
-
-> loadSql :: [String] -> IO ()
-> loadSql args = do
->   -- do this to avoid having to put flushes everywhere when we
->   -- provide "..." progress thingys, etc..
->   hSetBuffering stdout NoBuffering
->   let (db:fns) = args
->   forM_ fns $ \fn -> do
->   res <- parseSqlFile fn
->   case res of
->     Left er -> error $ show er
->     Right ast -> putStrLn ("loading " ++ fn)
->                  >> loadIntoDatabase db fn ast
-
-================================================================================
-
-= small hack utility to help with testing
-
-TODO: use the correct username in this command
-TODO: do something more correct
-
-> clearDBCommand :: CallEntry
-> clearDBCommand = CallEntry
->                  "cleardb"
->                  "hacky util to clear a database"
->                  (Single cleardb)
-
-> cleardb :: String -> IO ()
-> cleardb db = do
->   withConn ("dbname=" ++ db) $ \conn ->
->     runSqlCommand conn "drop owned by jake cascade;"
->   putStrLn $ "database " ++ db ++ " cleared."
-
-================================================================================
-
-> clearAndLoadSqlCommand :: CallEntry
-> clearAndLoadSqlCommand = CallEntry
->                          "clearandloadsql"
->                          "cleardb then loadsql"
->                          (Multiple
->                           (\args -> do
->                              cleardb $ head args
->                              loadSql args))
 
 ================================================================================
 
@@ -349,104 +239,100 @@ TODO: do something more correct
 
 ================================================================================
 
-> checkSourceExtCommand :: CallEntry
-> checkSourceExtCommand = CallEntry
->                    "checksourceext"
->                    "reads each file, parses, runs extensions, type checks, then outputs any type errors"
->                    (Multiple checkSourceExt)
+= small hack utility to help with testing
 
-> checkSourceExt :: [FilePath] -> IO ()
-> checkSourceExt (dbName:fns) = do
+TODO: use the correct username in this command
+TODO: do something more correct
+
+> clearDBCommand :: CallEntry
+> clearDBCommand = CallEntry
+>                  "cleardb"
+>                  "hacky util to clear a database"
+>                  (Single cleardb)
+
+> cleardb :: String -> IO ()
+> cleardb db = do
+>   withConn ("dbname=" ++ db) $ \conn ->
+>     runSqlCommand conn "drop owned by jake cascade;"
+>   putStrLn $ "database " ++ db ++ " cleared."
+
+================================================================================
+
+= load sql file
+
+> loadSqlCommand :: CallEntry
+> loadSqlCommand = CallEntry
+>                  "loadsql"
+>                  "This takes one or more files with sql source text, \
+>                  \parses them then loads them into the database given."
+>                  (Multiple loadSql)
+
+> loadSql :: [String] -> IO ()
+> loadSql args = do
+>   -- do this to avoid having to put flushes everywhere when we
+>   -- provide "..." progress thingys, etc..
 >   hSetBuffering stdout NoBuffering
->   hSetBuffering stderr NoBuffering
->   env1 <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
->   let env = case env1 of
->               Left e -> error $ show e
->               Right e1 -> e1
->   astEithers <- mapM parseSqlFile fns
->   let asts = map extensionize $ rights astEithers
->   let aasts = annotateAstsEnv env asts
->   mapM_ print $ lefts astEithers
->   mapM_ showTes $ aasts
+>   let (db:fns) = args
+>   forM_ fns $ \fn -> do
+>   res <- parseSqlFile fn
+>   case res of
+>     Left er -> error $ show er
+>     Right ast -> putStrLn ("loading " ++ fn)
+>                  >> loadIntoDatabase db fn ast
+
+================================================================================
+
+might try to work out a way of running multiple commands in one invoc
+of this exe, then this command will disappear
+
+> clearAndLoadSqlCommand :: CallEntry
+> clearAndLoadSqlCommand = CallEntry
+>                          "clearandloadsql"
+>                          "cleardb then loadsql"
+>                          (Multiple
+>                           (\args -> do
+>                              cleardb $ head args
+>                              loadSql args))
+
+================================================================================
+
+This reads an catalog from a database and writes it out using show.
+
+> readCatalogCommand :: CallEntry
+> readCatalogCommand = CallEntry
+>                   "readcatalog"
+>                   "read the catalog for the given db and dumps it in source \
+>                   \format, used to create the catalog value for template1"
+>                   (Single readCat)
+> readCat :: String -> IO ()
+> readCat dbName = wrapET $ do
+>   cat <- readCatalog dbName
+>   message preamb
+>   ppSh cat >>= prefixLines >>= message
 >   where
->     showTes = mapM_ (putStrLn.showSpTe) . getTypeErrors
->     showSpTe (Just (SourcePos fn l c), e) =
->         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
->     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
-> checkSourceExt _ = error "checksourceext not passed at least 2 args"
+>     preamb = "\n\
+>              \Copyright 2009 Jake Wheat\n\
+>              \\n\
+>              \This file contains\n\
+>              \\n\
+>              \> {-# OPTIONS_HADDOCK hide  #-}\n\
+>              \\n\
+>              \> module Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment\n\
+>              \>     (defaultTemplate1Environment\n\
+>              \>      ) where\n\
+>              \\n\
+>              \> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal\n\
+>              \> import Database.HsSqlPpp.AstInternals.TypeType\n\
+>              \\n\
+>              \> defaultTemplate1Environment :: Environment\n\
+>              \> defaultTemplate1Environment =\n\
+>              \>    (\\l -> case l of\n\
+>              \>             Left x -> error $ show x\n\
+>              \>             Right e -> e) $\n\
+>              \>     updateEnvironment defaultEnvironment\n"
+>     prefixLines :: (Monad m, Error e) => String -> ErrorT e m String
+>     prefixLines = return . unlines . map (">        " ++) . lines
 
-
-================================================================================
-
-> roundTripCommand :: CallEntry
-> roundTripCommand = CallEntry
->                        "roundtripfile"
->                        "Used to test the parsing and pretty printing round trip. Takes two \
->                        \arguments, a source filename and a target filename. If the target file \
->                        \exists, it quits. Parses the source file then pretty prints it to the \
->                        \target filename."
->                        (Multiple roundTrip)
-
-> roundTrip :: [FilePath] -> IO ()
-> roundTrip args = do
->   when (length args /= 2) $
->          error "Please pass exactly two filenames, source and target."
->   let (source:target:[]) = args
->   targetExists <- doesFileExist target
->   when targetExists $
->          error "the target file name exists already, please delete it or choose a new filename"
->   x <- parseSqlFile source
->   case x of
->        Left er -> print er
->        Right l -> writeFile target $ printSql l
-
-================================================================================
-
-This reads an environment from a database and writes it out using show.
-
-> readEnvCommand :: CallEntry
-> readEnvCommand = CallEntry
->                   "readenv"
->                   "read the catalogs for the given db and dump a Environment value source text to stdout"
->                   (Single readEnv)
-> readEnv :: String -> IO ()
-> readEnv dbName = do
->   s <- readEnvironmentFromDatabase dbName
->   putStr "\n\
->          \Copyright 2009 Jake Wheat\n\
->          \\n\
->          \This file contains\n\
->          \\n\
->          \> {-# OPTIONS_HADDOCK hide  #-}\n\
->          \\n\
->          \> module Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment\n\
->          \>     (defaultTemplate1Environment\n\
->          \>      ) where\n\
->          \\n\
->          \> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal\n\
->          \> import Database.HsSqlPpp.AstInternals.TypeType\n\
->          \\n\
->          \> defaultTemplate1Environment :: Environment\n\
->          \> defaultTemplate1Environment =\n\
->          \>    (\\l -> case l of\n\
->          \>             Left x -> error $ show x\n\
->          \>             Right e -> e) $\n\
->          \>     updateEnvironment defaultEnvironment\n"
-
->   putStrLn $ unlines $ map (">        " ++) $ lines $ ppShow s
-
-
-> parseAndTypeCheck :: String
->                   -> String
->                   -> IO StatementList
-> parseAndTypeCheck dbName src = do
->    case parseSql "" src of
->      Left e -> error $ show e
->      Right ast -> do
->        e <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
->        case e of
->          Left er -> error $ show er
->          Right env -> return $ annotateAstEnv env ast
 
 ================================================================================
 
@@ -566,7 +452,89 @@ get catalog and dump and compare for equality with originals
 >     ExitSuccess -> return ()
 >   return ()
 
+================================================================================
 
+> testCommand :: CallEntry
+> testCommand = CallEntry "test"
+>                "run automated tests, uses test.framework can pass arguments \
+>                \to this e.g. HsSqlSystem test -t parserTests"
+>                (Multiple runTests)
+> runTests :: [String] -> IO ()
+> runTests args =
+>   flip defaultMainWithArgs args [
+>     parserTests
+>    ,astCheckTests
+>    --,databaseLoaderTests
+>    ,extensionTests
+>    ]
+
+================================================================================
+
+> helpCommand :: CallEntry
+> helpCommand = CallEntry
+>                  "help"
+>                  "use 'help' to see a list of commands\n\
+>                  \use 'help all' to see a list of commands with descriptions\n\
+>                  \use 'help [command]' to see the description for that command"
+>                   (Multiple help)
+
+
+> help :: [String] -> IO ()
+> help args =
+>   case args of
+>             ["all"] -> showCommands True
+>             [x] -> helpForCommand x
+>             _ -> showCommands False
+>   where
+>     showCommands full = do
+>       putStrLn "commands available"
+>       mapM_ putStrLn $ flip map commands (\(CallEntry nm desc _)  ->
+>                                           if full
+>                                             then nm ++ "\n" ++ desc ++ "\n"
+>                                             else nm ++ "\n")
+
+> helpForCommand :: String -> IO ()
+> helpForCommand c =
+>     case lookupCaller commands c of
+>       Nothing -> putStrLn "unrecognised command" >> help []
+>       Just (CallEntry nm desc _) -> putStrLn $ nm ++ "\n" ++ desc
+
+===============================================================================
+
+= main
+
+> main :: IO ()
+> main = do
+>   args <- getArgs
+>   case () of
+>        _ | null args -> putStrLn "no command given" >> help []
+>          | otherwise -> case lookupCaller commands (map toLower $ head args) of
+>                           Nothing -> putStrLn "unrecognised command" >> help []
+>                           Just c -> call c $ tail args
+
+> lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
+> lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
+
+
+
+
+================================================================================
+
+utility function for testing within emacs, just plonked here randomly,
+will probably remove when this exe has the ability to read the source
+from stdin
+
+> parseAndTypeCheck :: String
+>                   -> String
+>                   -> IO StatementList
+> parseAndTypeCheck dbName src = do
+>    case parseSql "" src of
+>      Left e -> error $ show e
+>      Right ast -> do
+>        e <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
+>        case e of
+>          Left er -> error $ show er
+>          Right env -> return $ annotateAstEnv env ast
 
 ================================================================================
 

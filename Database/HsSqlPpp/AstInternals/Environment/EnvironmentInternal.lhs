@@ -128,9 +128,11 @@ modules.
 >   | EnvCreateView String [(String,Type)]
 >   | EnvCreateFunction FunFlav String [Type] Type Bool
 >   | EnvDropFunction Bool String [Type]
->     deriving (Eq,Ord,Typeable,Data)
+>     deriving (Eq,Ord,Typeable,Data,Show)
 
-> instance Show EnvironmentUpdate where
+TODO: give access to this code:
+
+> {-instance Show EnvironmentUpdate where
 >     show (EnvCreateScalar t c p) = "EnvCreateScalar " ++ show t ++ "(" ++ c ++ "," ++ show p ++ ")"
 >     show (EnvCreateDomain t b) = "EnvCreateDomain " ++ show t ++ " as " ++ show b
 >     show (EnvCreateComposite nm flds) = "EnvCreateComposite " ++ nm ++ showFlds flds
@@ -146,7 +148,7 @@ modules.
 > showFlds flds = "(\n" ++ sfs flds ++ ")"
 >                 where
 >                   sfs ((nm,t):fs) = "    " ++ show nm ++ " " ++ show t ++ "\n" ++ sfs fs
->                   sfs [] = ""
+>                   sfs [] = ""-}
 
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
 >              | FunName | FunAgg | FunWindow
