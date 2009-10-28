@@ -29,10 +29,13 @@ to get a list of commands and purpose and usage info
 
 > data HsSqlSystem = Lex {files :: [String]}
 >                  | Parse {files :: [String]}
+>                  | ParseExpression {files :: [String]}
 >                  | Pppp {files :: [String]}
 >                  | Ppp {files :: [String]}
 >                  | TypeCheck {database :: String
 >                              ,files :: [String]}
+>                  | TypeCheckExpression {database :: String
+>                                        ,files :: [String]}
 >                  | AnnotateSource {database :: String
 >                                   ,file :: String}
 >                  | Clear {database :: String}
@@ -52,7 +55,9 @@ to get a list of commands and purpose and usage info
 > main :: IO ()
 > main = do
 >        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2009"
->                       [lexA, parseA, ppppA, pppA, typeCheckA,
+>                       [lexA, parseA, ppppA, pppA,
+>                        parseExpressionA, typeCheckExpressionA,
+>                        typeCheckA,
 >                        annotateSourceA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
@@ -63,7 +68,9 @@ to get a list of commands and purpose and usage info
 >          Parse fns -> showAst fns
 >          Pppp fns -> testPppp fns
 >          Ppp fns -> showAst fns
+>          ParseExpression fns -> parseExpression fns
 >          TypeCheck db fns -> typeCheck2 db fns
+>          TypeCheckExpression db fns -> typeCheckExpression db fns
 >          AnnotateSource db fn -> annotateSourceF db fn
 >          Clear db -> cleardb db
 >          Load db fns -> loadSql db fns
@@ -79,7 +86,8 @@ how to do this
 
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
->   typeCheckA, testA :: Mode HsSqlSystem
+>   typeCheckA, testA, parseExpressionA, typeCheckExpressionA
+>   :: Mode HsSqlSystem
 
 ===============================================================================
 
@@ -133,6 +141,18 @@ how to do this
 
 ================================================================================
 
+> parseExpressionA = mode $ ParseExpression {files = def &= typ "FILES" & args}
+>                    &= text "Parse files each containing one expression \
+>                            \and output the asts"
+
+> parseExpression :: [String] -> IO ()
+> parseExpression = wrapET . mapM_ (\f ->
+>                message ("-- ast of " ++ f) >>
+>                readInput f >>= parseExpression1 f >>= stripAnn
+>                >>= ppSh >>= message)
+
+================================================================================
+
 > annotateSourceA = mode $ AnnotateSource {database = def
 >                                         ,file = def &= typ "FILES" & args}
 >                   &= text "reads a file, parses, type checks, then outputs info on \
@@ -160,6 +180,20 @@ how to do this
 >   mapM (\f -> readInput f >>= parseSql1 f) fns >>= lconcat >>=
 >   typeCheckC cat >>= lsnd >>= getTEs >>= ppTypeErrors >>= putStrLnList
 
+================================================================================
+
+> typeCheckExpressionA = mode $ TypeCheckExpression {database = def
+>                               ,files = def &= typ "FILES" & args}
+>      &= text "reads each file, parses as expression, \
+>              \ type checks, then outputs the type or any type errors"
+
+
+> typeCheckExpression :: String -> [FilePath] -> IO ()
+> typeCheckExpression db fns = wrapET $
+>   readCatalog db >>= \cat ->
+>   flip mapM fns (\f -> readInput f >>= parseExpression1 f
+>                        >>= typeCheckExpressionC cat >>= ppSh)
+>   >>= lconcat >>= message
 
 ================================================================================
 

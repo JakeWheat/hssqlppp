@@ -16,6 +16,7 @@ Wrappers used in the command line program
 >      -- * parsing
 >     ,lexSql
 >     ,parseSql1
+>     ,parseExpression1
 >      -- * show and pretty print
 >     ,printList
 >     ,ppSh
@@ -25,6 +26,7 @@ Wrappers used in the command line program
 >      -- * annotations
 >     ,stripAnn
 >     ,typeCheckC
+>     ,typeCheckExpressionC
 >     ,getTEs
 >      -- * dbms access
 >     ,readCatalog
@@ -50,6 +52,8 @@ Wrappers used in the command line program
 > import Control.Monad.Error
 > import System
 > import Data.List
+> import System.IO
+> import Data.Generics
 
 > import Text.Show.Pretty
 > import System.Process.Pipe
@@ -82,7 +86,11 @@ as an argument to the exe
 
 > readInput :: (Error e, MonadIO m) => String -> ErrorT e m String
 > readInput f =
->   liftIO $ readFile f
+>   liftIO $ case f of
+>              "-" -> hGetContents stdin
+>              _ | head f == '"' && last f == '"'
+>                  && length f >= 2 -> return $ drop 1 $ take (length f - 1) f
+>                | otherwise -> readFile f
 
 ===============================================================================
 
@@ -94,6 +102,10 @@ parsing
 > parseSql1 :: Monad m => String -> String -> ErrorT AllErrors m StatementList
 > parseSql1 f s = return (parseSql f s) >>= throwEEEither
 
+
+> parseExpression1 :: Monad m => String -> String -> ErrorT AllErrors m Expression
+> parseExpression1 f s = return (parseExpression f s) >>= throwEEEither
+
 ================================================================================
 
 > runExtensions :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
@@ -103,18 +115,22 @@ parsing
 
 annotation ish
 
-> stripAnn :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
+> stripAnn :: (Monad m, Error e, Data a) => a -> ErrorT e m a
 > stripAnn s = return $ stripAnnotations s
 
 > typeCheckC :: (Monad m, Error e) => Environment -> StatementList
 >          -> ErrorT e m (Environment, StatementList)
 > typeCheckC cat ast = return $ typeCheck cat ast
 
+> typeCheckExpressionC :: (Monad m, Error e) => Environment -> Expression
+>                      -> ErrorT e m Expression
+> typeCheckExpressionC cat ast = return $ typeCheckExpression cat ast
+
 could probably make this more general, so can run an arbitrary filter
 on annotations and then get a list of them with source positions
 
-> getTEs :: (Monad m, Error e) =>
->           StatementList -> ErrorT e m [(Maybe AnnotationElement,[TypeError])]
+> getTEs :: (Monad m, Error e, Data d) =>
+>           d -> ErrorT e m [(Maybe AnnotationElement,[TypeError])]
 > getTEs ast = return $ getTypeErrors ast
 
 > ppTypeErrors :: Monad m =>
