@@ -318,7 +318,8 @@ write a routine to mirror this - will then have
 > runTestBattery (dbName:fns) = wrapET $ do
 >     clearDB dbName
 >     startingCat <- readCatalog dbName
->     (originalCat :: Environment ,originalAast :: StatementList) <-
+>     (originalCat :: Environment,
+>      originalAast :: StatementList) <-
 >        mapM (\f -> readInput f >>= parseSql1 f) fns >>= lconcat >>=
 >        runExtensions >>= typeCheckC startingCat
 
@@ -342,7 +343,6 @@ write a routine to mirror this - will then have
 >       ppCatDiff >>= message
 
 >     message "complete!"
->     return ()
 >     where
 >       headerMessage m = message $ "-----------------------------\n" ++ m
 
@@ -507,3 +507,28 @@ logging/verbosity:
 
 want a way to log to stderr/stdout/ files with different verbosity
 settings
+
+
+command line arguments:
+options:
+--database=xxx
+?
+--extensions
+--username
+--password
+?other connection info
+annotation control?
+
+command name
+other command arguments:
+- on its own is read from stdin
+--input='xxx' add literal input rather than from file/stdin
+
+how the commands are called:
+at the moment, all the other command arguments refer to input files
+
+=>
+each command has a call entry
+modify these to say which arguments are valid as well as passing
+the arguments and a list of either String or ErrorT e m String arguments
+to represent the stdin, files or literal input strings passed
