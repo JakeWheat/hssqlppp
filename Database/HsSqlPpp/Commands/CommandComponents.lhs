@@ -9,7 +9,7 @@ Wrappers used in the command line program
 >      exe. Mainly a set of wrappers to lift other functions into an
 >      ErrorT monad.
 > -}
-> module Database.HsSqlPpp.Commands.Commands
+> module Database.HsSqlPpp.Commands.CommandComponents
 >     (
 >      -- * errort wrapper
 >      wrapET

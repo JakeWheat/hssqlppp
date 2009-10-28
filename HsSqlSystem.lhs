@@ -1,23 +1,18 @@
-#! /usr/bin/env runhaskell
+#! /usr/bin/env runghc
 
 Copyright 2009 Jake Wheat
 
 Command line access to a bunch of utility functions.
 
-command line is
-./HsSqlSystem.lhs [commandName] [commandArgs ...]
-
 run
-./HsSqlSystem.lhs help
+./HsSqlSystem.lhs -?
 to get a list of commands and purpose and usage info
 
-> {-# LANGUAGE ScopedTypeVariables #-}
+> {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables #-}
 
-> import System
+> import System.Console.CmdArgs
 > import System.IO
 > import Data.List
-> import Data.Either
-> import Control.Applicative
 > import Control.Monad.Error
 > import Data.Char
 
@@ -27,59 +22,80 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Tests.AstCheckTests
 > import Database.HsSqlPpp.Tests.ExtensionTests
 
-> import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Ast.Annotator
 > import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Commands.Commands
+> import Database.HsSqlPpp.Commands.CommandComponents
+
+
+> data HsSqlSystem = Lex {files :: [String]}
+>                  | Parse {files :: [String]}
+>                  | Pppp {files :: [String]}
+>                  | Ppp {files :: [String]}
+>                  | TypeCheck {database :: String
+>                              ,files :: [String]}
+>                  | AnnotateSource {database :: String
+>                                   ,file :: String}
+>                  | Clear {database :: String}
+>                  | Load {database :: String
+>                         ,files :: [String]}
+>                  | ClearLoad {database :: String
+>                              ,files :: [String]}
+>                  | Catalog {database :: String}
+>                  | LoadPsql {database :: String
+>                             ,files :: [String]}
+>                  | PgDump {database :: String}
+>                  | TestBattery {database :: String
+>                                ,files :: [String]}
+>                  | Test {extra :: [String]}
+>                    deriving (Show, Data, Typeable)
+
+> main :: IO ()
+> main = do
+>        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2009"
+>                       [lexA, parseA, ppppA, pppA, typeCheckA,
+>                        annotateSourceA,
+>                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
+>                        pgDumpA, testBatteryA,
+>                        testA]
+
+>        case cmd of
+>          Lex fns -> lexFiles fns
+>          Parse fns -> showAst fns
+>          Pppp fns -> testPppp fns
+>          Ppp fns -> showAst fns
+>          TypeCheck db fns -> typeCheck2 db fns
+>          AnnotateSource db fn -> annotateSourceF db fn
+>          Clear db -> cleardb db
+>          Load db fns -> loadSql db fns
+>          ClearLoad db fns -> clearAndLoadSql db fns
+>          Catalog db -> readCat db
+>          LoadPsql db fns -> loadSqlPsql db fns
+>          PgDump db -> pgDump1 db
+>          TestBattery db fns -> runTestBattery db fns
+>          Test as -> runTests as
+
+would like to have the database argument be a common arg, don't know
+how to do this
+
+> lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
+>   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
+>   typeCheckA, testA :: Mode HsSqlSystem
+
+===============================================================================
+
+> lexA = mode Lex {files = def &= typ "FILES" & args}
+>        &= text "lex the files given and output the tokens on separate lines"
+
+> lexFiles :: [FilePath] -> IO ()
+> lexFiles fns = wrapET $
+>                flip mapM_ fns (\f ->
+>                     message ("lexing " ++ f) >>
+>                     readInput f >>= lexSql f >>= printList)
 
 ================================================================================
 
-List of all the available commands
-
-> commands :: [CallEntry]
-> commands = [helpCommand
->            -- parsing
->            ,lexFileCommand
->            ,showAstCommand
->            ,testPpppCommand
->            ,pppCommand
->            -- typechecking
->            ,annotateSourceCommand
->            ,typeCheckCommand
->            -- dbms interaction
->            ,clearDBCommand
->            ,loadSqlCommand
->            ,clearAndLoadSqlCommand
->            ,readCatalogCommand
->            -- pg exe wrappers
->            ,loadSqlPsqlCommand
->            ,pgDumpCommand
->            -- run a battery of tests over some sql
->            ,runTestBatteryCommand
->            -- run the automated tests
->            ,testCommand]
-
-================================================================================
-
-> lexFileCommand :: CallEntry
-> lexFileCommand = CallEntry
->                  "lexfile"
->                  "lex the file given and output the tokens on separate lines"
->                  (Single lexFile)
-
-
-> lexFile :: FilePath -> IO ()
-> lexFile f = wrapET $ message ("lexing " ++ f) >>
->             readInput f >>= lexSql f >>= printList
-
-================================================================================
-
-> showAstCommand :: CallEntry
-> showAstCommand = CallEntry
->                    "showast"
->                    "Parse files and output the asts"
->                    (Multiple showAst)
+> parseA = mode $ Parse {files = def &= typ "FILES" & args}
+>          &= text "Parse files and output the asts"
 
 > showAst :: [String] -> IO ()
 > showAst = wrapET . mapM_ (\f ->
@@ -88,13 +104,10 @@ List of all the available commands
 
 ================================================================================
 
-> testPpppCommand :: CallEntry
-> testPpppCommand =
->   CallEntry "testpppp"
->     "Routine to parse sql from a file, pretty print it then parse it \
->     \again and check the post pretty printing ast is the same as the \
->     \initial ast"
->     (Multiple testPppp)
+> ppppA = mode $ Pppp {files = def &= typ "FILES" & args}
+>         &= text "Routine to parse sql from a file, pretty print it then parse it \
+>                 \again and check the post pretty printing ast is the same as the \
+>                 \initial ast"
 
 > testPppp :: [String] -> IO ()
 > testPppp = wrapET . mapM_ (\f -> do
@@ -110,12 +123,9 @@ List of all the available commands
 
 ================================================================================
 
-> pppCommand :: CallEntry
-> pppCommand =
->   CallEntry "ppp"
->     "Parse then pretty print some sql so you can check the result \
->     \hasn't mangled the sql."
->     (Single ppp)
+> pppA = mode $ Ppp {files = def &= typ "FILES" & args}
+>        &= text "Parse then pretty print some sql so you can check the result \
+>               \hasn't mangled the sql."
 
 > ppp :: String -> IO()
 > ppp f = wrapET $ message ("--ppp " ++ f) >>
@@ -123,34 +133,33 @@ List of all the available commands
 
 ================================================================================
 
-> annotateSourceCommand :: CallEntry
-> annotateSourceCommand =
->   CallEntry "annotatesource"
->     "reads a file, parses, type checks, then outputs info on \
->     \each statement interspersed with the original source code"
->     (Single annotateSourceF)
+> annotateSourceA = mode $ AnnotateSource {database = def
+>                                         ,file = def &= typ "FILES" & args}
+>                   &= text "reads a file, parses, type checks, then outputs info on \
+>                           \each statement interspersed with the original source code"
 
-> annotateSourceF :: FilePath -> IO ()
-> annotateSourceF f =
+> annotateSourceF :: String -> FilePath -> IO ()
+> annotateSourceF db f =
 >   wrapET $ do
 >     message ("--annotated source of " ++ f)
 >     src <- readInput f
->     parseSql1 f src >>= typeCheckC defaultTemplate1Environment >>= lsnd >>=
+>     cat <- readCatalog db
+>     parseSql1 f src >>= typeCheckC cat >>= lsnd >>=
 >       ppAnnOrig False src >>= message
 
 ================================================================================
 
-> typeCheckCommand :: CallEntry
-> typeCheckCommand =
->   CallEntry "typecheck"
->     "reads each file, parses, type checks, then outputs any type errors"
->     (Multiple typeCheck1)
+> typeCheckA = mode $ TypeCheck {database = def
+>                               ,files = def &= typ "FILES" & args}
+>              &= text "reads each file, parses, type checks, then outputs any type errors"
 
-> typeCheck1 :: [FilePath] -> IO ()
-> typeCheck1 fns = wrapET $
->   readCatalog (head fns) >>= \cat ->
->   mapM (\f -> readInput f >>= parseSql1 f) (tail fns) >>= lconcat >>=
+
+> typeCheck2 :: String -> [FilePath] -> IO ()
+> typeCheck2 db fns = wrapET $
+>   readCatalog db >>= \cat ->
+>   mapM (\f -> readInput f >>= parseSql1 f) fns >>= lconcat >>=
 >   typeCheckC cat >>= lsnd >>= getTEs >>= ppTypeErrors >>= putStrLnList
+
 
 ================================================================================
 
@@ -159,11 +168,8 @@ List of all the available commands
 TODO: use the correct username in this command
 TODO: do something more correct
 
-> clearDBCommand :: CallEntry
-> clearDBCommand = CallEntry
->                  "cleardb"
->                  "hacky util to clear a database"
->                  (Single cleardb)
+> clearA = mode $ Clear {database = def}
+>          &= text "hacky util to clear a database"
 
 > cleardb :: String -> IO ()
 > cleardb db = wrapET $ clearDB db
@@ -172,42 +178,33 @@ TODO: do something more correct
 
 = load sql file
 
-> loadSqlCommand :: CallEntry
-> loadSqlCommand = CallEntry
->                  "loadsql"
->                  "This takes one or more files with sql source text, \
->                  \parses them then loads them into the database given."
->                  (Multiple loadSql)
+> loadA = mode $ Load {database = def
+>                     ,files = def &= typ "FILES" & args}
+>         &= text "This takes one or more files with sql source text, \
+>            \parses them then loads them into the database given."
 
-> loadSql :: [String] -> IO ()
-> loadSql args = wrapET $
->   let (db:fns) = args
->   in liftIO (hSetBuffering stdout NoBuffering) >>
+> loadSql :: String -> [String] -> IO ()
+> loadSql db fns = wrapET $
+>      liftIO (hSetBuffering stdout NoBuffering) >>
 >      mapM (\f -> readInput f >>= parseSql1 f) fns >>= lconcat >>=
 >      runExtensions >>= loadAst db ""
 
 ================================================================================
 
-> loadSqlPsqlCommand :: CallEntry
-> loadSqlPsqlCommand = CallEntry
->                  "loadsqlusingpsql"
->                  "loads sql into a database using psql."
->                  (Multiple loadSqlPsql)
+> loadPsqlA = mode $ LoadPsql {database = def
+>                             ,files = def &= typ "FILES" & args}
+>             &= text "loads sql into a database using psql."
 
-> loadSqlPsql :: [String] -> IO ()
-> loadSqlPsql args = wrapET $
->   let (db:fns) = args
+> loadSqlPsql :: String -> [String] -> IO ()
+> loadSqlPsql db fns = wrapET $
 >   --srcs <- mapM readInput fns
 >   --mapM_ (\s -> loadSqlUsingPsql db s >>= message) (map snd srcs)
->   in mapM_ (\s -> loadSqlUsingPsqlFromFile db s >>= message) fns
+>   mapM_ (\s -> loadSqlUsingPsqlFromFile db s >>= message) fns
 
 ================================================================================
 
-> pgDumpCommand :: CallEntry
-> pgDumpCommand = CallEntry
->                  "pgdump"
->                  "run pg dump, used for testing."
->                  (Single pgDump1)
+> pgDumpA = mode $ PgDump {database = def}
+>           &= text "run pg dump, used for testing."
 
 > pgDump1 :: String -> IO ()
 > pgDump1 db = wrapET $ pgDump db >>= message
@@ -218,25 +215,21 @@ TODO: do something more correct
 might try to work out a way of running multiple commands in one invoc
 of this exe, then this command will disappear
 
-> clearAndLoadSqlCommand :: CallEntry
-> clearAndLoadSqlCommand = CallEntry
->                          "clearandloadsql"
->                          "cleardb then loadsql"
->                          (Multiple
->                           (\args -> do
->                              cleardb $ head args
->                              loadSql args))
+> clearLoadA = mode $ ClearLoad {database = def
+>                               ,files = def &= typ "FILES" & args}
+>              &= text "cleardb then loadsql"
+
+> clearAndLoadSql :: String -> [String] -> IO ()
+> clearAndLoadSql db fns = cleardb db >> loadSql db fns
 
 ================================================================================
 
 This reads an catalog from a database and writes it out using show.
 
-> readCatalogCommand :: CallEntry
-> readCatalogCommand = CallEntry
->                   "readcatalog"
->                   "read the catalog for the given db and dumps it in source \
->                   \format, used to create the catalog value for template1"
->                   (Single readCat)
+> catalogA = mode $ Catalog {database = def}
+>            &= text "read the catalog for the given db and dumps it in source \
+>                    \format, used to create the catalog value for template1"
+
 > readCat :: String -> IO ()
 > readCat dbName = wrapET $ do
 >   cat <- readCatalog dbName
@@ -307,15 +300,12 @@ sequence and create table), and then the statements are reordered, so
 write a routine to mirror this - will then have
 (anyast -> rarrange and reorder) == (anyast -> pg->pgdump)
 
+> testBatteryA = mode $ TestBattery {database = def
+>                                   ,files = def &= typ "FILES" & args}
+>                &= text "runs a load of consistency tests on the sql passed"
 
-> runTestBatteryCommand :: CallEntry
-> runTestBatteryCommand = CallEntry
->                    "runtestbattery"
->                    "runs a load of consistency tests on the sql passed"
->                    (Multiple runTestBattery)
-
-> runTestBattery :: [FilePath] -> IO ()
-> runTestBattery (dbName:fns) = wrapET $ do
+> runTestBattery :: String -> [FilePath] -> IO ()
+> runTestBattery dbName fns = wrapET $ do
 >     clearDB dbName
 >     startingCat <- readCatalog dbName
 >     (originalCat :: Environment,
@@ -346,107 +336,20 @@ write a routine to mirror this - will then have
 >     where
 >       headerMessage m = message $ "-----------------------------\n" ++ m
 
-
-> runTestBattery _ = error "checkbig not passed at least 2 args"
-
 ================================================================================
 
-> testCommand :: CallEntry
-> testCommand = CallEntry "test"
->                "run automated tests, uses test.framework can pass arguments \
->                \to this e.g. HsSqlSystem test -t parserTests"
->                (Multiple runTests)
+> testA = mode $ Test {extra = def &= typ "ANY" & args & unknownFlags}
+>         &= text "run automated tests, uses test.framework can pass arguments \
+>                 \to this e.g. HsSqlSystem test -t parserTests"
+
 > runTests :: [String] -> IO ()
-> runTests args =
->   flip defaultMainWithArgs args [
+> runTests as =
+>   flip defaultMainWithArgs as [
 >     parserTests
 >    ,astCheckTests
 >    --,databaseLoaderTests
 >    ,extensionTests
 >    ]
-
-================================================================================
-
-> helpCommand :: CallEntry
-> helpCommand = CallEntry
->                  "help"
->                  "use 'help' to see a list of commands\n\
->                  \use 'help all' to see a list of commands with descriptions\n\
->                  \use 'help [command]' to see the description for that command"
->                   (Multiple help)
-
-
-> help :: [String] -> IO ()
-> help args =
->   case args of
->             ["all"] -> showCommands True
->             [x] -> helpForCommand x
->             _ -> showCommands False
->   where
->     showCommands full = do
->       putStrLn "commands available"
->       mapM_ putStrLn $ flip map commands (\(CallEntry nm desc _)  ->
->                                           if full
->                                             then nm ++ "\n" ++ desc ++ "\n"
->                                             else nm ++ "\n")
-
-> helpForCommand :: String -> IO ()
-> helpForCommand c =
->     case lookupCaller commands c of
->       Nothing -> putStrLn "unrecognised command" >> help []
->       Just (CallEntry nm desc _) -> putStrLn $ nm ++ "\n" ++ desc
-
-===============================================================================
-
-= main
-
-> main :: IO ()
-> main = do
->   args <- getArgs
->   case () of
->        _ | null args -> putStrLn "no command given" >> help []
->          | otherwise -> case lookupCaller commands (map toLower $ head args) of
->                           Nothing -> putStrLn "unrecognised command" >> help []
->                           Just c -> call c $ tail args
-
-> lookupCaller :: [CallEntry] -> String -> Maybe CallEntry
-> lookupCaller ce name = find (\(CallEntry nm _ _) -> name == nm) ce
-
-
-
-
-================================================================================
-
-utility function for testing within emacs, just plonked here randomly,
-will probably remove when this exe has the ability to read the source
-from stdin
-
-> parseAndTypeCheck :: String
->                   -> String
->                   -> IO StatementList
-> parseAndTypeCheck dbName src = do
->    case parseSql "" src of
->      Left e -> error $ show e
->      Right ast -> do
->        e <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
->        case e of
->          Left er -> error $ show er
->          Right env -> return $ snd $ typeCheck env ast
-
-================================================================================
-
-> data CallEntry = CallEntry String String CallType
->                --          name   use
-
-> data CallType = Single (String -> IO ())
->               | Multiple ([String] -> IO ())
-
-> call :: CallEntry -> [String] -> IO ()
-> call (CallEntry _ _ ct) args =
->     case ct of
->       Single f | length args /= 1 -> error "please call this command with one argument"
->                | otherwise -> f (head args)
->       Multiple f -> f args
 
 ================================================================================
 
@@ -466,10 +369,6 @@ second set of options is for input and output:
 read from file(s), stdin, or from string literal command line arg, e.g.
 HsSqlSystem expressionType --src="3 + 5"
 output to file(s) or stdout
-
-idea for command line options:
-pass as --option=value, then all these before the first command are
-checked and removed before remaining stuff is passed on to command
 
 review command names and arguments:
 find a better naming convention: some commands produce haskell values as text,
@@ -508,7 +407,6 @@ logging/verbosity:
 want a way to log to stderr/stdout/ files with different verbosity
 settings
 
-
 command line arguments:
 options:
 --database=xxx
@@ -523,12 +421,3 @@ command name
 other command arguments:
 - on its own is read from stdin
 --input='xxx' add literal input rather than from file/stdin
-
-how the commands are called:
-at the moment, all the other command arguments refer to input files
-
-=>
-each command has a call entry
-modify these to say which arguments are valid as well as passing
-the arguments and a list of either String or ErrorT e m String arguments
-to represent the stdin, files or literal input strings passed
