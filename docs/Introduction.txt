@@ -1,19 +1,64 @@
-Plan is to write a pandoc document with embedded commands. The build
-process will run these commands and embed them into the file before
-passing to pandoc. Also want to try to hook into highlighting-kate or
-something to do syntax highlighting on haskell or sql text.
+# Introduction
 
-For now, all the examples will use hssqlsystem to show results.
+This is a short guide to what hssqlsystem can do.
 
-TODO on hssqlsystem to get this working:
+## Expression types
 
-get input text working: want to be able to pass input text in stdin or
-as string argument
+~~~ {.sh}
+$ HsSqlSystem expressionType "\"2 + 2\""
+~~~
 
-get arguments support for database stuff: database name, username,
-password
+2 + '3'
 
-add some commands: expressionType -> returns the expression type
+2 + a
+
+some non existant operator
+
+'dsf' || 'sadfsdf'
+
+~~~ {.SqlPostgresql}
+select attname as attribute_name,
+       typname as type_name,
+       relname as relvar_name
+  from pg_attribute inner join pg_class on (attrelid = pg_class.oid)
+  inner join pg_type on (atttypid = pg_type.oid)
+  inner join base_relvars on (relname = base_relvars.relvar_name)
+  where attnum >= 1;
+~~~
+
+## Expression information
+
+parse tree
+ppp
+annotated source
+errors only
+
+## Full sql parsing
+
+select again
+: annotate source
+aast
+ppp
+
+dig some big examples out of chaos
+
+then with errors
+
+## catalog info
+
+show catalog
+
+compare catalogs
+
+# extensions
+
+demonstrate create_var extension
+
++ haskell source?
+
+# stuff to write which will look good here:
+
+function match resolution annotation
 
 better pretty printer for type errors
 
@@ -21,27 +66,24 @@ better pretty printer for annotations
 
 better pretty printer for catalog updates
 
+typechecking ? strings
+
+
+reference for commands in hssqlppp with examples for each
+
+
+add sql files for suppliers and parts database?
+
 ----
-
-Start with expressionType, show the types of a few simple expressions,
-and some which fail the type check
-
-add some complicated ones, such as big subselects
-
-do a demo of a small set of ddl with basic annotations pretty printed
-and then pretty print the catalog updates for this sql
-and then pretty print the aast as haskell
-
-demo the extension stuff - show the before and after sql, and show the
-haskell source for that extension
-
 
 more referency section with each command, a description, plus example
 usage of each, and examples of all the options, and how to use a
 config file
 
 
-literatize this file some more:
+
+# ??literatize this file some more:
+
 embed these notes into HsSqlSystem.lhs then provide two documentation
 processes, one to htmlize without the source as a command line users
 guide, and to htmlize the entire file as a programmers guide: extend

@@ -1,5 +1,23 @@
 TODO for next release
 
+= documentation todo
+
+write command processor thingy for builddocs
+add extra commands to hssqlsystem for intro
+finish intro
+add haskell intro which uses the commandcomponents instead
+other documentation files:
+  reference for hssqlsystem
+  hssqlsystem reference is generated from hssqlsystem.lhs:
+    inside this file is the reference information for each
+    command, plus example usage, so these appear next to the actual
+    source. then when building docs, filter this file first to leave
+    only the reference docs, then commandize and pandoc it
+  installation guide
+
+do haddock for commandcomponents so it has examples and stuff
+
+
 = New functionality
 
 get checkbig mostly working: not trying to get no type errors or

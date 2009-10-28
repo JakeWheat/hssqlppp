@@ -12,6 +12,7 @@ to get a list of commands and purpose and usage info
 
 > import System.Console.CmdArgs
 > import System.IO
+> import System.Directory
 > import Data.List
 > import Control.Monad.Error
 > import Data.Char
@@ -24,7 +25,7 @@ to get a list of commands and purpose and usage info
 
 > import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Commands.CommandComponents
+> import Database.HsSqlPpp.Commands.CommandComponents as C
 
 
 > data HsSqlSystem = Lex {files :: [String]}
@@ -50,6 +51,7 @@ to get a list of commands and purpose and usage info
 >                  | TestBattery {database :: String
 >                                ,files :: [String]}
 >                  | Test {extra :: [String]}
+>                  | BuildDocs
 >                    deriving (Show, Data, Typeable)
 
 > main :: IO ()
@@ -61,7 +63,7 @@ to get a list of commands and purpose and usage info
 >                        annotateSourceA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
->                        testA]
+>                        testA,buildDocsA]
 
 >        case cmd of
 >          Lex fns -> lexFiles fns
@@ -80,14 +82,15 @@ to get a list of commands and purpose and usage info
 >          PgDump db -> pgDump1 db
 >          TestBattery db fns -> runTestBattery db fns
 >          Test as -> runTests as
+>          BuildDocs -> buildDocs
 
 would like to have the database argument be a common arg, don't know
 how to do this
 
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
->   typeCheckA, testA, parseExpressionA, typeCheckExpressionA
->   :: Mode HsSqlSystem
+>   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
+>   buildDocsA :: Mode HsSqlSystem
 
 ===============================================================================
 
@@ -387,6 +390,29 @@ write a routine to mirror this - will then have
 
 ================================================================================
 
+options: nothing -> create/overwrite folders and files
+         clean -> delete generated files
+
+create target folder if doesn't exist
+
+> buildDocsA = mode $ BuildDocs
+>         &= text "build the documention in the docs/ folder"
+
+> buildDocs :: IO ()
+> buildDocs = wrapET $ do
+>              liftIO $ createDirectoryIfMissing False "docs/build"
+>              inputFiles <- sources
+>              let sts = zip (map ("docs/" ++) inputFiles) $
+>                        flip map inputFiles
+>                             (\f -> "docs/build/" ++ f ++ ".html")
+>              flip mapM_ sts $ \(s,t) ->
+>                      readInput s >>= pandoc >>= C.writeFile t
+>             where
+>               sources = liftIO (getDirectoryContents "docs") >>=
+>                         return . filter (isSuffixOf ".txt")
+
+================================================================================
+
 TODOS
 
 think of a better name for this command than hssqlsystem
@@ -455,3 +481,4 @@ command name
 other command arguments:
 - on its own is read from stdin
 --input='xxx' add literal input rather than from file/stdin
+

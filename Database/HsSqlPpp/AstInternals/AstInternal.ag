@@ -696,10 +696,11 @@ annotateAstEnv env sts =
    in case tl of
          Root r -> r
 -}
--- | Type check multiple asts, allowing type checking references in later
---   files to definitions in earlier files. This is probably easier if you
---   parse the files then concatenate the statementlists together before
---   type checking.
+-- | Type check multiple asts, allowing type checking references in
+--   later files to definitions in earlier files. This is probably
+--   more straightforward if you parse the files then concatenate the
+--   statementlists together before type checking rather than using
+--   this function
 typeCheckMany :: Environment -> [StatementList] -> [StatementList]
 typeCheckMany env sts =
     annInt env sts []

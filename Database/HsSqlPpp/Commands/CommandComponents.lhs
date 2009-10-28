@@ -40,10 +40,13 @@ Wrappers used in the command line program
 >     ,ppCatDiff
 >      -- extensions
 >     ,runExtensions
+>     -- pandoc
+>     ,pandoc
 >      -- * utils
 >     ,message
 >     ,putStrLnList
 >     ,readInput
+>     ,Database.HsSqlPpp.Commands.CommandComponents.writeFile
 >     ,lconcat
 >     ,lfst
 >     ,lsnd
@@ -57,6 +60,7 @@ Wrappers used in the command line program
 
 > import Text.Show.Pretty
 > import System.Process.Pipe
+> import Text.Pandoc
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
@@ -76,21 +80,6 @@ Wrappers used in the command line program
 > import Database.HsSqlPpp.Extensions.ChaosExtensions
 
 > import Database.HsSqlPpp.Utils
-
-================================================================================
-
-read file as string - issues are:
-
-want to support reading from stdin, and reading from a string passed
-as an argument to the exe
-
-> readInput :: (Error e, MonadIO m) => String -> ErrorT e m String
-> readInput f =
->   liftIO $ case f of
->              "-" -> hGetContents stdin
->              _ | head f == '"' && last f == '"'
->                  && length f >= 2 -> return $ drop 1 $ take (length f - 1) f
->                | otherwise -> readFile f
 
 ===============================================================================
 
@@ -199,17 +188,6 @@ dbms utilities
 >                                              ,"--no-owner"
 >                                              ,"--no-privileges"])] ""
 
-
-> {-runSqlScript :: String -> String -> IO ()
-> runSqlScript dbName script = do
->   ex <- system ("psql " ++ dbName ++
->                 " -q --set ON_ERROR_STOP=on" ++
->                 " --file=" ++ script)
->   case ex of
->     ExitFailure e -> error $ "psql failed with " ++ show e
->     ExitSuccess -> return ()
->   return ()-}
-
 ================================================================================
 
 catalog stuff - just a diff to compare two catalogs
@@ -232,6 +210,46 @@ catalog stuff - just a diff to compare two catalogs
 >                    ++ intercalate "\n" (map ppEnvUpdate missing)
 >                    ++ "\nextra:\n"
 >                    ++ intercalate "\n" (map ppEnvUpdate extra)
+
+================================================================================
+
+> pandoc :: MonadIO m => String -> ErrorT AllErrors m String
+> pandoc txt =
+>   return $ writeHtmlString wopt $ readMarkdown defaultParserState txt
+>   where
+>     wopt = defaultWriterOptions {
+>                writerStandalone = True
+>              }
+
+>   {-ex <- liftIO $ system ("pandoc -s -f markdown -t html "
+>                          ++ src ++ " -o " ++ tgt)
+>   case ex of
+>     ExitFailure e -> throwError $ AEMisc $ "psql failed with " ++ show e
+>     ExitSuccess -> return ()-}
+
+
+writerStandalone :: Bool	Include header and footer
+writerHeader :: String	Header for the document
+writerTitlePrefix :: String	Prefix for HTML titles
+writerTabStop :: Int	Tabstop for conversion btw spaces and tabs
+writerTableOfContents :: Bool	Include table of contents
+writerS5 :: Bool	We're writing S5
+writerHTMLMathMethod :: HTMLMathMethod	How to print math in HTML
+writerIgnoreNotes :: Bool	Ignore footnotes (used in making toc)
+writerIncremental :: Bool	Incremental S5 lists
+writerNumberSections :: Bool	Number sections in LaTeX
+writerIncludeBefore :: String	String to include before the body
+writerIncludeAfter :: String	String to include after the body
+writerStrictMarkdown :: Bool	Use strict markdown syntax
+writerReferenceLinks :: Bool	Use reference links in writing markdown, rst
+writerWrapText :: Bool	Wrap text to line length
+writerLiterateHaskell :: Bool	Write as literate haskell
+writerEmailObfuscation :: ObfuscationMethod	How to obfuscate emails
+
+>   --list txt files
+>   --run pandoc on each one
+>   --pandoc -s -f markdown -t html test1.sql  -o test1.sql.html
+
 
 ================================================================================
 
@@ -258,6 +276,27 @@ more elegant way of doing this but it does the job for now
 > throwEither :: (MonadError t m) => Either t a -> m a
 > throwEither (Left err) = throwError err
 > throwEither (Right val) = return val
+
+================================================================================
+
+read file as string - issues are:
+
+want to support reading from stdin, and reading from a string passed
+as an argument to the exe
+
+> readInput :: (Error e, MonadIO m) => String -> ErrorT e m String
+> readInput f =
+>   liftIO $ case f of
+>              "-" -> hGetContents stdin
+>              _ | head f == '"' && last f == '"'
+>                  && length f >= 2 -> return $ drop 1 $ take (length f - 1) f
+>                | otherwise -> readFile f
+
+================================================================================
+
+> writeFile :: (Error e, MonadIO m) => String -> String -> ErrorT e m ()
+> writeFile fn src =
+>     liftIO $ System.IO.writeFile fn src
 
 ================================================================================
 
