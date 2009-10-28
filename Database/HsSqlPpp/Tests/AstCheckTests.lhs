@@ -1112,7 +1112,7 @@ drop function
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       (nenv,aast) = annotateAstEnvEnv defaultTemplate1Environment ast
+>       (nenv,aast) = typeCheck defaultTemplate1Environment ast
 >       er = concatMap snd $ getTypeErrors aast
 >       neu = deconstructEnvironment nenv \\ deconstructEnvironment defaultTemplate1Environment
 >   in if not (null er)
@@ -1127,7 +1127,7 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 >   let ast = case parseExpression "" src of
 >                                      Left e -> error $ show e
 >                                      Right l -> l
->       aast = annotateExpression env ast
+>       aast = typeCheckExpression env ast
 >       ty = getTopLevelTypes [aast]
 >       er = concatMap snd $ getTypeErrors aast
 >   in case (length er, length ty) of
@@ -1141,7 +1141,7 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       aast = annotateAst ast
+>       aast = snd $ typeCheck defaultTemplate1Environment ast
 >       is = getTopLevelInfos aast
 >       er = concatMap snd $ getTypeErrors aast
 >   in {-trace (show aast) $-} case (length er, length is) of
@@ -1155,7 +1155,7 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 >   let asts = map (\src -> case parseSql "" src of
 >                                             Left e -> error $ show e
 >                                             Right l -> l) srcs
->       aasts = annotateAstsEnv defaultTemplate1Environment asts
+>       aasts = typeCheckMany defaultTemplate1Environment asts
 >       is = getTopLevelInfos $ last aasts
 >       er = concatMap snd $ concatMap getTypeErrors aasts
 >   in {-trace (show $ map getAnnotation aast) $-} case (length er, length is) of
@@ -1169,7 +1169,7 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       aast = annotateAstEnv env ast
+>       aast = snd $ typeCheck env ast
 >       is = getTopLevelInfos aast
 >       er = concatMap snd $ getTypeErrors aast
 >   in {-trace (show aast) $-} case (length er, length is) of
@@ -1182,7 +1182,7 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       aast = annotateAst ast
+>       aast = snd $ typeCheck defaultTemplate1Environment ast
 >       is = getTopLevelInfos aast
 >       er = concatMap snd $ getTypeErrors aast
 >       eu' = getTopLevelEnvUpdates aast

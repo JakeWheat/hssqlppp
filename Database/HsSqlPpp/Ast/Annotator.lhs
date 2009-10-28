@@ -24,12 +24,10 @@ This is the public module for the type checking functionality.
 > -}
 > module Database.HsSqlPpp.Ast.Annotator
 >     (
->      -- * Annotation functions
->      annotateAst
->     ,annotateAstEnv
->     ,annotateExpression
->     ,annotateAstsEnv
->     ,annotateAstEnvEnv
+>      -- * typechecking/ annotation functions
+>       typeCheck
+>      ,typeCheckMany
+>      ,typeCheckExpression
 >      -- * Annotated tree utils
 >     ,getTopLevelTypes
 >     ,getTopLevelInfos

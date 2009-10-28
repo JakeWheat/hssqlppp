@@ -24,7 +24,7 @@ Wrappers used in the command line program
 >     ,ppTypeErrors
 >      -- * annotations
 >     ,stripAnn
->     ,annotate
+>     ,typeCheckC
 >     ,getTEs
 >      -- * dbms access
 >     ,readCatalog
@@ -106,11 +106,9 @@ annotation ish
 > stripAnn :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
 > stripAnn s = return $ stripAnnotations s
 
-still not sure what to call this command, maybe it should be type check?
-
-> annotate :: (Monad m, Error e) => Environment -> StatementList
+> typeCheckC :: (Monad m, Error e) => Environment -> StatementList
 >          -> ErrorT e m (Environment, StatementList)
-> annotate cat ast = return $ annotateAstEnvEnv cat ast
+> typeCheckC cat ast = return $ typeCheck cat ast
 
 could probably make this more general, so can run an arbitrary filter
 on annotations and then get a list of them with source positions

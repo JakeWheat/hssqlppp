@@ -135,7 +135,7 @@ List of all the available commands
 >   wrapET $ do
 >     message ("--annotated source of " ++ f)
 >     src <- readInput f
->     parseSql1 f src >>= annotate defaultTemplate1Environment >>= lsnd >>=
+>     parseSql1 f src >>= typeCheckC defaultTemplate1Environment >>= lsnd >>=
 >       ppAnnOrig False src >>= message
 
 ================================================================================
@@ -144,13 +144,13 @@ List of all the available commands
 > typeCheckCommand =
 >   CallEntry "typecheck"
 >     "reads each file, parses, type checks, then outputs any type errors"
->     (Multiple typeCheck)
+>     (Multiple typeCheck1)
 
-> typeCheck :: [FilePath] -> IO ()
-> typeCheck fns = wrapET $
+> typeCheck1 :: [FilePath] -> IO ()
+> typeCheck1 fns = wrapET $
 >   readCatalog (head fns) >>= \cat ->
 >   mapM (\f -> readInput f >>= parseSql1 f) (tail fns) >>= lconcat >>=
->   annotate cat >>= lsnd >>= getTEs >>= ppTypeErrors >>= putStrLnList
+>   typeCheckC cat >>= lsnd >>= getTEs >>= ppTypeErrors >>= putStrLnList
 
 ================================================================================
 
@@ -320,7 +320,7 @@ write a routine to mirror this - will then have
 >     startingCat <- readCatalog dbName
 >     (originalCat :: Environment ,originalAast :: StatementList) <-
 >        mapM (\f -> readInput f >>= parseSql1 f) fns >>= lconcat >>=
->        runExtensions >>= annotate startingCat
+>        runExtensions >>= typeCheckC startingCat
 
 >     headerMessage "type errors from initial parse:\n"
 >     getTEs originalAast >>= ppTypeErrors >>= putStrLnList
@@ -332,7 +332,7 @@ write a routine to mirror this - will then have
 >       ppCatDiff >>= message
 
 >     (dumpCat,dumpAast) <-
->       pgDump dbName >>= parseSql1 "dump" >>= annotate startingCat
+>       pgDump dbName >>= parseSql1 "dump" >>= typeCheckC startingCat
 
 >     headerMessage "type errors from dump:\n"
 >     getTEs dumpAast >>= ppTypeErrors >>= putStrLnList
@@ -431,7 +431,7 @@ from stdin
 >        e <- updateEnvironment defaultEnvironment <$> readEnvironmentFromDatabase dbName
 >        case e of
 >          Left er -> error $ show er
->          Right env -> return $ annotateAstEnv env ast
+>          Right env -> return $ snd $ typeCheck env ast
 
 ================================================================================
 
@@ -467,6 +467,10 @@ read from file(s), stdin, or from string literal command line arg, e.g.
 HsSqlSystem expressionType --src="3 + 5"
 output to file(s) or stdout
 
+idea for command line options:
+pass as --option=value, then all these before the first command are
+checked and removed before remaining stuff is passed on to command
+
 review command names and arguments:
 find a better naming convention: some commands produce haskell values as text,
 some produce non haskell compatible text e.g. lexfile
@@ -488,6 +492,10 @@ pppexpression
 showCatalogUpdates - run over some sql files, outputs the catalog changes
                      made by this sql
 ppCatalogUpdates
+
+graphviz stuff: dependency graph: pass a view name or function and it
+draws a graph of all the views, tables and functions which are used by
+that view or function
 
 run an extension by name over some sql source to view differences: add
 integration with external diff viewers, so can see before and after,

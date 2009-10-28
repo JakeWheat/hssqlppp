@@ -103,12 +103,10 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,CaseExpressionList
    ,MaybeBoolExpression
    ,SetValue(..)
-   -- annotations
-   ,annotateAst
-   ,annotateAstEnv
-   ,annotateExpression
-   ,annotateAstsEnv
-   ,annotateAstEnvEnv
+   -- typechecking
+   ,typeCheck
+   ,typeCheckMany
+   ,typeCheckExpression
 }
 
 {
@@ -677,6 +675,9 @@ makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
 
 -}
 {
+
+{-
+
 -- | Takes an ast, and adds annotations, including types, type errors,
 -- and statement info. Type checks against defaultEnv.
 annotateAst :: StatementList -> StatementList
@@ -694,22 +695,26 @@ annotateAstEnv env sts =
         tl = annotatedTree_Syn_Root ta
    in case tl of
          Root r -> r
-
+-}
 -- | Type check multiple asts, allowing type checking references in later
---   files to definitions in earlier files.
-annotateAstsEnv :: Environment -> [StatementList] -> [StatementList]
-annotateAstsEnv env sts =
+--   files to definitions in earlier files. This is probably easier if you
+--   parse the files then concatenate the statementlists together before
+--   type checking.
+typeCheckMany :: Environment -> [StatementList] -> [StatementList]
+typeCheckMany env sts =
     annInt env sts []
     where
       annInt e (s:ss) ress =
-          let (e1,res) = annotateAstEnvEnv e s
+          let (e1,res) = typeCheck e s
           in annInt e1 ss (res:ress)
       annInt _ [] ress = reverse ress
 
--- | Type check an ast, and return the resultant Environment as well
---   as the annotated ast.
-annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
-annotateAstEnvEnv env sts =
+
+-- | Takes an ast, checks against catalog passed, and adds
+--   annotations, including types, type errors, and statement info.
+--   Returns the updated catalog as well as the annotated ast.
+typeCheck :: Environment -> StatementList -> (Environment,StatementList)
+typeCheck env sts =
     let t = sem_Root (Root sts)
         ta = wrap_Root t Inh_Root {env_Inh_Root = env
                                   ,lib_Inh_Root = emptyBindings}
@@ -720,8 +725,8 @@ annotateAstEnvEnv env sts =
 
 -- | Testing utility, mainly used to check an expression for type errors
 -- or to get its type.
-annotateExpression :: Environment -> Expression -> Expression
-annotateExpression env ex =
+typeCheckExpression :: Environment -> Expression -> Expression
+typeCheckExpression env ex =
     let t = sem_ExpressionRoot (ExpressionRoot ex)
         rt = (annotatedTree_Syn_ExpressionRoot
               (wrap_ExpressionRoot t Inh_ExpressionRoot {env_Inh_ExpressionRoot = env
