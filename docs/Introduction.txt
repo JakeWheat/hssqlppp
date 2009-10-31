@@ -4,38 +4,52 @@ This is a short guide to what hssqlsystem can do.
 
 ## Expression types
 
-~~~ {.sh}
-$ HsSqlSystem expressionType "\"2 + 2\""
-~~~
+<%Command HsSqlSystem typecheckexpression '"2+2"'%>
 
-2 + '3'
+<%Command HsSqlSystem typecheckexpression '"2+'3'"'%>
 
-2 + a
+<%Command HsSqlSystem typecheckexpression '"2||'3'"'%>
 
-some non existant operator
+<%Command HsSqlSystem typecheckexpression '"2+a"'%>
 
-'dsf' || 'sadfsdf'
+<%Command HsSqlSystem typecheckexpression '"noexist(2)"'%>
 
-~~~ {.SqlPostgresql}
+<%Command HsSqlSystem typecheckexpression '"'dsf'||'sadfsdf'"'%>
+
+<%Command File SelectExpression.sql
+(select attname as attribute_name,
+       typname as type_name,
+       relname as relvar_name
+  from pg_attribute inner join pg_class on (attrelid = pg_class.oid)
+  inner join pg_type on (atttypid = pg_type.oid)
+  inner join (select relname as relvar_name from pg_class where relnamespace =
+    (select oid from pg_namespace where nspname = 'public')
+    and relkind = 'r') base_relvars on (relname = base_relvars.relvar_name)
+  where attnum >= 1)
+%>
+
+ ;
+
+<%Command HsSqlSystem typecheckexpression SelectExpression.sql%>
+
+this shouldn't be hint: this needs different command as wrapper
+to say it's wrapped in wrapET
+
+<%Command File Select1.sql
 select attname as attribute_name,
        typname as type_name,
        relname as relvar_name
   from pg_attribute inner join pg_class on (attrelid = pg_class.oid)
   inner join pg_type on (atttypid = pg_type.oid)
-  inner join base_relvars on (relname = base_relvars.relvar_name)
+  inner join (select relname as relvar_name from pg_class where relnamespace =
+    (select oid from pg_namespace where nspname = 'public')
+    and relkind = 'r') base_relvars on (relname = base_relvars.relvar_name)
   where attnum >= 1;
-~~~
+%>
 
-## Expression information
+<%Command HsSqlSystem annotatesource -f=Select1.sql%>
 
-parse tree
-ppp
-annotated source
-errors only
 
-## Full sql parsing
-
-select again
 : annotate source
 aast
 ppp
@@ -45,6 +59,31 @@ dig some big examples out of chaos
 then with errors
 
 ## catalog info
+
+<%Command File suppliers_and_parts_ddl.sql
+create table s (
+       s_no int primary key,
+       sname text not null,
+       status int not null,
+       city text not null
+);
+
+create table p (
+       p_po int primary key,
+       pname text not null,
+       color text not null,
+       weight int not null,
+       city text not null
+);
+
+create table sp (
+       s_no int not null references s,
+       p_no int not null references p,
+       qty int not null,
+       primary key (s_no,p_no)
+);%>
+
+<%Command HsSqlSystem ppcatalog -d=template1 suppliers_and_parts_ddl.sql%>
 
 show catalog
 
@@ -102,3 +141,14 @@ and also to produce an executable.
    need to have some system to preprocess the file to run embedded
    commands and feed the output into the file before it is
    pandoc'd/syntax highlighted.
+
+
+~~~~~~~~{.sql}
+(select attname as attribute_name,
+       typname as type_name,
+       relname as relvar_name
+  from pg_attribute inner join pg_class on (attrelid = pg_class.oid)
+  inner join pg_type on (atttypid = pg_type.oid)
+  inner join base_relvars on (relname = base_relvars.relvar_name)
+  where attnum >= 1)
+~~~~~~~~

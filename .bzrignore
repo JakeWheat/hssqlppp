@@ -4,3 +4,4 @@ notes
 *.hi
 resetchaos.sh
 dist
+docs/build

@@ -28,6 +28,7 @@ Wrappers used in the command line program
 >     ,typeCheckC
 >     ,typeCheckExpressionC
 >     ,getTEs
+>     ,Database.HsSqlPpp.Commands.CommandComponents.getTopLevelTypes
 >      -- * dbms access
 >     ,readCatalog
 >     ,clearDB
@@ -40,8 +41,9 @@ Wrappers used in the command line program
 >     ,ppCatDiff
 >      -- extensions
 >     ,runExtensions
->     -- pandoc
+>     -- docs
 >     ,pandoc
+>     ,hsTextize
 >      -- * utils
 >     ,message
 >     ,putStrLnList
@@ -65,7 +67,7 @@ Wrappers used in the command line program
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
 
-> import Database.HsSqlPpp.Ast.Annotator
+> import Database.HsSqlPpp.Ast.Annotator as A
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Ast.Ast
@@ -80,6 +82,7 @@ Wrappers used in the command line program
 > import Database.HsSqlPpp.Extensions.ChaosExtensions
 
 > import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.HsText.HsText
 
 ===============================================================================
 
@@ -131,6 +134,11 @@ on annotations and then get a list of them with source positions
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
 
+> getTopLevelTypes :: (Monad m, Error e, Data d) =>
+>           d -> ErrorT e m [Type]
+> getTopLevelTypes ast = return $ A.getTopLevelTypes [ast]
+
+
 ================================================================================
 
 pretty printing
@@ -146,7 +154,7 @@ where printsql comes in system though
 > ppSql = return . printSql
 
 > ppAnnOrig :: (Monad m, Error e) => Bool -> String -> StatementList -> ErrorT e m String
-> ppAnnOrig doErrs fn ast = return $ annotateSource doErrs fn ast
+> ppAnnOrig doErrs src ast = return $ annotateSource doErrs src ast
 
 ================================================================================
 
@@ -215,17 +223,22 @@ catalog stuff - just a diff to compare two catalogs
 
 > pandoc :: MonadIO m => String -> ErrorT AllErrors m String
 > pandoc txt =
->   return $ writeHtmlString wopt $ readMarkdown defaultParserState txt
+>   hsTextize txt >>=
+>   return . writeHtmlString wopt . readMarkdown defaultParserState
 >   where
 >     wopt = defaultWriterOptions {
 >                writerStandalone = True
+>               ,writerTitlePrefix = "HsSqlPpp documentation"
+>               ,writerTableOfContents = True
+>               ,writerHeader = "<style>\n\
+>                               \pre {\n\
+>                               \    border: 1px dotted gray;\n\
+>                               \    background-color: #ececec;\n\
+>                               \    color: #1111111;\n\
+>                               \    padding: 0.5em;\n\
+>                               \}\n\
+>                               \</style>"
 >              }
-
->   {-ex <- liftIO $ system ("pandoc -s -f markdown -t html "
->                          ++ src ++ " -o " ++ tgt)
->   case ex of
->     ExitFailure e -> throwError $ AEMisc $ "psql failed with " ++ show e
->     ExitSuccess -> return ()-}
 
 
 writerStandalone :: Bool	Include header and footer
@@ -244,11 +257,31 @@ writerStrictMarkdown :: Bool	Use strict markdown syntax
 writerReferenceLinks :: Bool	Use reference links in writing markdown, rst
 writerWrapText :: Bool	Wrap text to line length
 writerLiterateHaskell :: Bool	Write as literate haskell
-writerEmailObfuscation :: ObfuscationMethod	How to obfuscate emails
+writerEmailObfuscation :: ObfuscationMethod	How to obfu
 
->   --list txt files
->   --run pandoc on each one
->   --pandoc -s -f markdown -t html test1.sql  -o test1.sql.html
+>   {-ex <- liftIO $ system ("pandoc -s -f markdown -t html "
+>                          ++ src ++ " -o " ++ tgt)
+>   case ex of
+>     ExitFailure e -> throwError $ AEMisc $ "psql failed with " ++ show e
+>     ExitSuccess -> return ()-}
+
+================================================================================
+
+process doc commands
+
+> hsTextize :: MonadIO m => String -> ErrorT AllErrors m String
+> hsTextize s =
+>     liftIO (hsTextify
+>              (("hssqlsystem", hsSqlSystemCommand):defaultCommands)
+>              "docs/build"
+>              s) >>= throwEither . mapLeft AEMisc
+
+> hsSqlSystemCommand :: String -> IO String
+> hsSqlSystemCommand s =  shell ("HsSqlSystem " ++ s) >>= \m ->
+>                         return $ "$ HsSqlSystem " ++ s
+>                                  ++ "\n\n~~~~~~~~~~\n"
+>                                  ++ m
+>                                  ++ "\n~~~~~~~~~~\n\n"
 
 
 ================================================================================
@@ -288,8 +321,9 @@ as an argument to the exe
 > readInput f =
 >   liftIO $ case f of
 >              "-" -> hGetContents stdin
->              _ | head f == '"' && last f == '"'
->                  && length f >= 2 -> return $ drop 1 $ take (length f - 1) f
+>              _ | length f >= 2 &&
+>                  head f == '"' && last f == '"'
+>                    -> return $ drop 1 $ take (length f - 1) f
 >                | otherwise -> readFile f
 
 ================================================================================

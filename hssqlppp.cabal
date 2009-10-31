@@ -72,7 +72,8 @@ extra-source-files:  README
                      sqltestfiles/client.sql
                      --find Database/ -type f -a ! -iname '*.o' -a ! -iname '*.hi'
                      Database/HsSqlPpp/Utils.lhs
-                     Database/HsSqlPpp/Commands/Commands.lhs
+                     Database/HsSqlPpp/Commands/CommandComponents.lhs
+                     Database/HsSqlPpp/Commands/DocCommands.lhs
                      Database/HsSqlPpp/Dbms/DBAccess.lhs
                      Database/HsSqlPpp/Dbms/DatabaseLoader.lhs
                      Database/HsSqlPpp/Extensions/ChaosExtensions.lhs
@@ -128,7 +129,10 @@ Library
                      syb,
                      uniplate,
                      pretty-show,
-                     Pipe
+                     Pipe,
+                     process,
+                     pandoc,
+                     filepath
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
                      Database.HsSqlPpp.Ast.Annotator
@@ -139,7 +143,7 @@ Library
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
                      Database.HsSqlPpp.PrettyPrinter.AnnotateSource
                      Database.HsSqlPpp.Dbms.DatabaseLoader
-                     Database.HsSqlPpp.Commands.Commands
+                     Database.HsSqlPpp.Commands.CommandComponents
                      Database.HsSqlPpp.Extensions.ChaosExtensions
 
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
@@ -155,6 +159,7 @@ Executable HsSqlSystem
                      directory,
                      test-framework,
                      test-framework-hunit,
-                     HUnit
+                     HUnit,
+                     cmdargs
 
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables

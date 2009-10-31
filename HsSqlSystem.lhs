@@ -16,6 +16,7 @@ to get a list of commands and purpose and usage info
 > import Data.List
 > import Control.Monad.Error
 > import Data.Char
+> --import Control.Applicative
 
 > import Test.Framework (defaultMainWithArgs)
 
@@ -37,14 +38,18 @@ to get a list of commands and purpose and usage info
 >                              ,files :: [String]}
 >                  | TypeCheckExpression {database :: String
 >                                        ,files :: [String]}
+>                  | AllAnnotations {database :: String
+>                                   ,files :: [String]}
 >                  | AnnotateSource {database :: String
 >                                   ,file :: String}
+>                  | PPCatalog {database :: String
+>                              ,files :: [String]}
 >                  | Clear {database :: String}
 >                  | Load {database :: String
 >                         ,files :: [String]}
 >                  | ClearLoad {database :: String
 >                              ,files :: [String]}
->                  | Catalog {database :: String}
+>                  | DBCatalog {database :: String}
 >                  | LoadPsql {database :: String
 >                             ,files :: [String]}
 >                  | PgDump {database :: String}
@@ -59,8 +64,8 @@ to get a list of commands and purpose and usage info
 >        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2009"
 >                       [lexA, parseA, ppppA, pppA,
 >                        parseExpressionA, typeCheckExpressionA,
->                        typeCheckA,
->                        annotateSourceA,
+>                        typeCheckA,allAnnotationsA,
+>                        annotateSourceA, ppCatalogA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
 >                        testA,buildDocsA]
@@ -73,11 +78,13 @@ to get a list of commands and purpose and usage info
 >          ParseExpression fns -> parseExpression fns
 >          TypeCheck db fns -> typeCheck2 db fns
 >          TypeCheckExpression db fns -> typeCheckExpression db fns
+>          AllAnnotations db fns -> typeCheck2 db fns
 >          AnnotateSource db fn -> annotateSourceF db fn
+>          PPCatalog db fns -> ppCatalog db fns
 >          Clear db -> cleardb db
 >          Load db fns -> loadSql db fns
 >          ClearLoad db fns -> clearAndLoadSql db fns
->          Catalog db -> readCat db
+>          DBCatalog db -> readCat db
 >          LoadPsql db fns -> loadSqlPsql db fns
 >          PgDump db -> pgDump1 db
 >          TestBattery db fns -> runTestBattery db fns
@@ -90,7 +97,7 @@ how to do this
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
 >   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
->   buildDocsA :: Mode HsSqlSystem
+>   buildDocsA, allAnnotationsA, ppCatalogA :: Mode HsSqlSystem
 
 ===============================================================================
 
@@ -157,7 +164,7 @@ how to do this
 ================================================================================
 
 > annotateSourceA = mode $ AnnotateSource {database = def
->                                         ,file = def &= typ "FILES" & args}
+>                                         ,file = def &= typ "FILE"}
 >                   &= text "reads a file, parses, type checks, then outputs info on \
 >                           \each statement interspersed with the original source code"
 
@@ -169,6 +176,22 @@ how to do this
 >     cat <- readCatalog db
 >     parseSql1 f src >>= typeCheckC cat >>= lsnd >>=
 >       ppAnnOrig False src >>= message
+
+================================================================================
+
+> ppCatalogA = mode $ PPCatalog {database = def
+>                               ,files = def &= typ "FILES" & args}
+>              &= text "reads each file, parses, type checks, then outputs the \
+>                      \changes to the catalog that the sql makes"
+
+> ppCatalog :: String -> [FilePath] -> IO ()
+> ppCatalog db fns = wrapET $ do
+>   scat <- readCatalog db
+>   (ncat, _) <- mapM (\f -> readInput f >>=
+>                            parseSql1 f) fns >>=
+>                  lconcat >>= typeCheckC scat
+>   compareCatalogs scat emptyEnvironment ncat >>=
+>       ppCatDiff >>= message
 
 ================================================================================
 
@@ -185,6 +208,20 @@ how to do this
 
 ================================================================================
 
+> allAnnotationsA = mode $ AllAnnotations {database = def
+>                                        ,files = def &= typ "FILES" & args}
+>                   &= text "reads each file, parses, type checks, then pretty prints the \
+>                           \ast with all annotations except the source positions"
+
+> allAnnotations :: String -> [FilePath] -> IO ()
+> allAnnotations db fns = wrapET $
+>   readCatalog db >>= \cat ->
+>   mapM (\f -> readInput f >>= parseSql1 f) fns >>= lconcat >>=
+>   typeCheckC cat >>= lsnd >>= ppSh >>= message
+
+
+================================================================================
+
 > typeCheckExpressionA = mode $ TypeCheckExpression {database = def
 >                               ,files = def &= typ "FILES" & args}
 >      &= text "reads each file, parses as expression, \
@@ -192,11 +229,13 @@ how to do this
 
 
 > typeCheckExpression :: String -> [FilePath] -> IO ()
-> typeCheckExpression db fns = wrapET $
->   readCatalog db >>= \cat ->
->   flip mapM fns (\f -> readInput f >>= parseExpression1 f
->                        >>= typeCheckExpressionC cat >>= ppSh)
->   >>= lconcat >>= message
+> typeCheckExpression db fns = wrapET $ do
+>   aasts <- readCatalog db >>= \cat ->
+>               flip mapM fns (\f -> readInput f >>= parseExpression1 f
+>                                    >>= typeCheckExpressionC cat)
+>   tes <- mapM getTEs aasts
+>   mapM_ (\x -> ppTypeErrors x >>= putStrLnList) $ filter (not . null) tes
+>   mapM_ (\a -> getTopLevelTypes a >>= return . show . head >>= message) aasts
 
 ================================================================================
 
@@ -263,7 +302,7 @@ of this exe, then this command will disappear
 
 This reads an catalog from a database and writes it out using show.
 
-> catalogA = mode $ Catalog {database = def}
+> catalogA = mode $ DBCatalog {database = def}
 >            &= text "read the catalog for the given db and dumps it in source \
 >                    \format, used to create the catalog value for template1"
 

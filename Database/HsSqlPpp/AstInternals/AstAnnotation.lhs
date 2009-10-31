@@ -23,6 +23,7 @@ grammar code and aren't exposed.
 >     ,getTypeAnnotation
 >     ,getTypeErrors
 >     ,stripAnnotations
+>     ,filterAnnotations
 >     ,updateAnnotation
 >     ,getAnnotation
 >     ,getAnnotations
@@ -154,10 +155,20 @@ without having to get the positions correct.
 > -- | strip all the annotations from a tree. E.g. can be used to compare
 > -- two asts are the same, ignoring any source position annotation differences.
 > stripAnnotations :: (Data a) => a -> a
-> stripAnnotations = everywhere (mkT stripAn)
->                    where
->                      stripAn :: [AnnotationElement] -> [AnnotationElement]
->                      stripAn _ = []
+> stripAnnotations = filterAnnotations (const False)
+
+ >>                    everywhere (mkT stripAn)
+ >                    where
+ >                      stripAn :: [AnnotationElement] -> [AnnotationElement]
+ >                      stripAn _ = []
+
+
+> filterAnnotations :: (Data a) => (AnnotationElement -> Bool) -> a -> a
+> filterAnnotations f =
+>     everywhere (mkT filterAnn)
+>     where
+>       filterAnn :: [AnnotationElement] -> [AnnotationElement]
+>       filterAnn a = filter f a
 
 
 > -- | runs through the ast given and returns a list of all the type errors
