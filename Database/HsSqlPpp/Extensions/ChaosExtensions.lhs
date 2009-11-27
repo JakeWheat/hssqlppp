@@ -48,7 +48,7 @@ Experimental code to use uniplate to implement extensions
 
 > funCallView :: Statement -> FunCallView
 > funCallView (SelectStatement an (Select _ _ (SelectList _ [SelExp _ (FunCall _ fnName
->               args)] []) Nothing Nothing [] Nothing [] Asc Nothing Nothing)) = (FunCallView an fnName args)
+>               args)] []) [] Nothing [] Nothing [] Nothing Nothing)) = (FunCallView an fnName args)
 > funCallView _ = FUnit
 
 
@@ -121,8 +121,8 @@ amount of work in comparison).
 >                        (SelectList an
 >                         [SelExp an
 >                          (Identifier an "*")] [])
->                        (Just (Tref an (tableName ++ "_table") NoAlias))
->                        Nothing [] Nothing [] Asc Nothing Nothing)]) Stable)]
+>                        [Tref an (tableName ++ "_table") NoAlias]
+>                        Nothing [] Nothing [] Nothing Nothing)]) Stable)]
 >                ++ createKey an (tableName ++ "_table") [tableName]
 >                ++ createConstraint True an [tableName ++ "_table"] (tableName ++ "_table_01_tuple") "true"
 >                ++ tl

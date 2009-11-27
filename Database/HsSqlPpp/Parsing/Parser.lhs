@@ -206,22 +206,23 @@ this recursion needs refactoring cos it's a mess
 >         selQuerySpec = Select <$> (pos <* keyword "select")
 >                    <*> option Dupes (Distinct <$ keyword "distinct")
 >                    <*> selectList
->                    <*> optionMaybe from
+>                    <*> option [] from
 >                    <*> optionMaybe whereClause
 >                    <*> option [] groupBy
 >                    <*> optionMaybe having
 >                    <*> option [] orderBy
->                    <*> option Asc (choice [
->                                     Asc <$ keyword "asc"
->                                    ,Desc <$ keyword "desc"])
 >                    <*> optionMaybe limit
 >                    <*> optionMaybe offset
->         from = keyword "from" *> tref
+>         from = keyword "from" *> commaSep1 tref
 >         groupBy = keyword "group" *> keyword "by"
 >                   *> commaSep1 expr
 >         having = keyword "having" *> expr
 >         orderBy = keyword "order" *> keyword "by"
->                   *> commaSep1 expr
+>                     *> commaSep1 oneOrder
+>         oneOrder = (,) <$> expr
+>                        <*> option Asc (choice [
+>                                         Asc <$ keyword "asc"
+>                                        ,Desc <$ keyword "desc"])
 >         limit = keyword "limit" *> expr
 >         offset = keyword "offset" *> expr
 

@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.0.9
+Version:             0.0.11
 Synopsis:            Sql parser and type checker
 Description:
     Sql parser, pretty printer and type checker, targets PostGreSQL SQL
@@ -32,7 +32,7 @@ Description:
     without loading it via psql). The loader just about does the job
     but error handling is a bit crap at the moment.
     .
-    'Commands' for the component functions used in the HsSqlSystem
+    'CommandComponents' for the component functions used in the HsSqlSystem
     exe.
     .
     'ChaosExtensions' for the experimental plpgsql syntax extensions.
@@ -73,7 +73,6 @@ extra-source-files:  README
                      --find Database/ -type f -a ! -iname '*.o' -a ! -iname '*.hi'
                      Database/HsSqlPpp/Utils.lhs
                      Database/HsSqlPpp/Commands/CommandComponents.lhs
-                     Database/HsSqlPpp/Commands/DocCommands.lhs
                      Database/HsSqlPpp/Dbms/DBAccess.lhs
                      Database/HsSqlPpp/Dbms/DatabaseLoader.lhs
                      Database/HsSqlPpp/Extensions/ChaosExtensions.lhs
@@ -107,6 +106,8 @@ extra-source-files:  README
                      Database/HsSqlPpp/Tests/DatabaseLoaderTests.lhs
                      Database/HsSqlPpp/PrettyPrinter/AnnotateSource.lhs
                      Database/HsSqlPpp/PrettyPrinter/PrettyPrinter.lhs
+                     Database/HsSqlPpp/HsText/Commands.lhs
+                     Database/HsSqlPpp/HsText/HsText.lhs
                      Database/HsSqlPpp/Parsing/Lexer.lhs
                      Database/HsSqlPpp/Parsing/Parser.lhs
                      Database/HsSqlPpp/Parsing/ParseErrors.lhs
@@ -146,6 +147,27 @@ Library
                      Database.HsSqlPpp.Commands.CommandComponents
                      Database.HsSqlPpp.Extensions.ChaosExtensions
 
+  Other-Modules:     Database.HsSqlPpp.Utils
+                     Database.HsSqlPpp.Dbms.DBAccess
+                     Database.HsSqlPpp.AstInternals.AnnotationUtils
+                     Database.HsSqlPpp.AstInternals.AstAnnotation
+                     Database.HsSqlPpp.AstInternals.AstInternal
+                     Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment
+                     Database.HsSqlPpp.AstInternals.Environment.EnvironmentReader
+                     Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
+                     Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
+                     Database.HsSqlPpp.AstInternals.TypeType
+                     Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
+                     Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
+                     Database.HsSqlPpp.Tests.ExtensionTests
+                     Database.HsSqlPpp.Tests.AstCheckTests
+                     Database.HsSqlPpp.Tests.ParserTests
+                     Database.HsSqlPpp.Tests.DatabaseLoaderTests
+                     Database.HsSqlPpp.HsText.Commands
+                     Database.HsSqlPpp.HsText.HsText
+                     Database.HsSqlPpp.Parsing.Lexer
+                     Database.HsSqlPpp.Parsing.ParseErrors
+
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
 
 Executable HsSqlSystem
@@ -161,5 +183,37 @@ Executable HsSqlSystem
                      test-framework-hunit,
                      HUnit,
                      cmdargs
+
+  Other-Modules:     Database.HsSqlPpp.Utils
+                     Database.HsSqlPpp.Commands.CommandComponents
+                     Database.HsSqlPpp.Dbms.DBAccess
+                     Database.HsSqlPpp.Dbms.DatabaseLoader
+                     Database.HsSqlPpp.Extensions.ChaosExtensions
+                     Database.HsSqlPpp.AstInternals.AnnotationUtils
+                     Database.HsSqlPpp.AstInternals.AstAnnotation
+                     Database.HsSqlPpp.AstInternals.AstInternal
+                     Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment
+                     Database.HsSqlPpp.AstInternals.Environment.EnvironmentReader
+                     Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
+                     Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
+                     Database.HsSqlPpp.AstInternals.TypeType
+                     Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
+                     Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
+                     Database.HsSqlPpp.Tests.ExtensionTests
+                     Database.HsSqlPpp.Tests.AstCheckTests
+                     Database.HsSqlPpp.Tests.ParserTests
+                     Database.HsSqlPpp.Tests.DatabaseLoaderTests
+                     Database.HsSqlPpp.PrettyPrinter.AnnotateSource
+                     Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
+                     Database.HsSqlPpp.HsText.Commands
+                     Database.HsSqlPpp.HsText.HsText
+                     Database.HsSqlPpp.Parsing.Lexer
+                     Database.HsSqlPpp.Parsing.Parser
+                     Database.HsSqlPpp.Parsing.ParseErrors
+                     Database.HsSqlPpp.Ast.Annotator
+                     Database.HsSqlPpp.Ast.Ast
+                     Database.HsSqlPpp.Ast.Environment
+                     Database.HsSqlPpp.Ast.Annotation
+                     Database.HsSqlPpp.Ast.SqlTypes
 
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables

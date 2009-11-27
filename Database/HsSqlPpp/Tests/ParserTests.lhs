@@ -245,8 +245,8 @@ test a whole bunch more select statements
 >       [SelectStatement [] $ selectFrom (selIL ["a", "b"]) (Tref [] "inf.tbl" NoAlias)]
 
 >      ,p "select distinct * from tbl;"
->       [SelectStatement [] $ Select [] Distinct (SelectList [] (selIL ["*"]) []) (Just $ Tref [] "tbl" NoAlias)
->        Nothing [] Nothing [] Asc Nothing Nothing]
+>       [SelectStatement [] $ Select [] Distinct (SelectList [] (selIL ["*"]) []) [Tref [] "tbl" NoAlias]
+>        Nothing [] Nothing [] Nothing Nothing]
 
 >      ,p "select a from tbl where b=2;"
 >       [SelectStatement [] $ selectFromWhere
@@ -317,7 +317,13 @@ test a whole bunch more select statements
 >      ,p "select a.* from tbl a(b,c);"
 >       [SelectStatement [] $ selectFrom (selIL ["a.*"]) (Tref [] "tbl" (FullAlias "a" ["b","c"]))]
 
-
+>      ,p "select * from t1 a, t2 b;"
+>             [SelectStatement []
+>              (Select [] Dupes
+>               (SelectList []
+>                [SelExp [] (Identifier [] "*")] [])
+>               [Tref [] "t1" (TableAlias "a"),Tref [] "t2" (TableAlias "b")]
+>               Nothing [] Nothing [] Nothing Nothing)]
 >      ,p "select a from b inner join c on b.a=c.a;"
 >       [SelectStatement [] $ selectFrom
 >        (selIL ["a"])
@@ -494,32 +500,43 @@ test a whole bunch more select statements
 >      ,p "select * from a order by c;"
 >       [SelectStatement [] $ Select []  Dupes
 >        (sl (selIL ["*"]))
->        (Just $ Tref [] "a" NoAlias)
->        Nothing [] Nothing [Identifier [] "c"] Asc Nothing Nothing]
+>        [Tref [] "a" NoAlias]
+>        Nothing [] Nothing [(Identifier [] "c",Asc)] Nothing Nothing]
+
+>      ,p "select *\n\
+>            \from Adventure\n\
+>            \order by Clicks desc, AdventureID;"
+>       [SelectStatement [] $ Select [] Dupes
+>        (sl (selIL ["*"]))
+>        [Tref [] "Adventure" NoAlias]
+>        Nothing [] Nothing [(Identifier [] "Clicks",Desc)
+>                           ,(Identifier [] "AdventureID",Asc)] Nothing Nothing]
 
 >      ,p "select * from a order by c,d asc;"
 >       [SelectStatement [] $ Select [] Dupes
 >        (sl (selIL ["*"]))
->        (Just $ Tref [] "a" NoAlias)
->        Nothing [] Nothing [Identifier [] "c", Identifier [] "d"] Asc Nothing Nothing]
+>        [Tref [] "a" NoAlias]
+>        Nothing [] Nothing [(Identifier [] "c", Asc)
+>                           ,(Identifier [] "d", Asc)] Nothing Nothing]
 
 >      ,p "select * from a order by c,d desc;"
 >       [SelectStatement [] $ Select [] Dupes
 >        (sl (selIL ["*"]))
->        (Just $ Tref [] "a" NoAlias)
->        Nothing [] Nothing [Identifier [] "c", Identifier [] "d"] Desc Nothing Nothing]
+>        [Tref [] "a" NoAlias]
+>        Nothing [] Nothing [(Identifier [] "c", Asc)
+>                           ,(Identifier [] "d", Desc)] Nothing Nothing]
 
 >      ,p "select * from a order by c limit 1;"
 >       [SelectStatement [] $ Select [] Dupes
 >        (sl (selIL ["*"]))
->        (Just $ Tref [] "a" NoAlias)
->        Nothing [] Nothing [Identifier [] "c"] Asc (Just (IntegerLit [] 1)) Nothing]
+>        [Tref [] "a" NoAlias]
+>        Nothing [] Nothing [(Identifier [] "c",Asc)] (Just (IntegerLit [] 1)) Nothing]
 
 >      ,p "select * from a order by c offset 3;"
 >       [SelectStatement [] $ Select [] Dupes
 >        (sl (selIL ["*"]))
->        (Just $ Tref [] "a" NoAlias)
->        Nothing [] Nothing [Identifier [] "c"] Asc Nothing (Just $ IntegerLit [] 3)]
+>        [Tref [] "a" NoAlias]
+>        Nothing [] Nothing [(Identifier [] "c",Asc)] Nothing (Just $ IntegerLit [] 3)]
 
 >      ,p "select a from (select b from c) as d;"
 >         [SelectStatement [] $ selectFrom
@@ -539,15 +556,15 @@ test a whole bunch more select statements
 >      ,p "select a, count(b) from c group by a;"
 >         [SelectStatement [] $ Select [] Dupes
 >          (sl [selI "a", SelExp [] (FunCall [] "count" [Identifier [] "b"])])
->          (Just $ Tref [] "c" NoAlias) Nothing [Identifier [] "a"]
->          Nothing [] Asc Nothing Nothing]
+>          [Tref [] "c" NoAlias] Nothing [Identifier [] "a"]
+>          Nothing [] Nothing Nothing]
 
 >      ,p "select a, count(b) as cnt from c group by a having cnt > 4;"
 >         [SelectStatement [] $ Select [] Dupes
 >          (sl [selI "a", SelectItem [] (FunCall [] "count" [Identifier [] "b"]) "cnt"])
->          (Just $ Tref [] "c" NoAlias) Nothing [Identifier [] "a"]
+>          [Tref [] "c" NoAlias] Nothing [Identifier [] "a"]
 >          (Just $ FunCall [] ">" [Identifier [] "cnt", IntegerLit [] 4])
->          [] Asc Nothing Nothing]
+>          [] Nothing Nothing]
 
 >      ,p "select a from (select 1 as a, 2 as b) x;"
 >         [SelectStatement [] $ selectFrom
@@ -701,13 +718,13 @@ delete
 copy, bit crap at the moment
 
 >      ,p "copy tbl(a,b) from stdin;\n\
->         \bat	t\n\
->         \bear	f\n\
+>         \bat\tt\n\
+>         \bear\tf\n\
 >         \\\.\n"
 >       [Copy [] "tbl" ["a", "b"] Stdin
 >        ,CopyData [] "\
->         \bat	t\n\
->         \bear	f\n"]
+>         \bat\tt\n\
+>         \bear\tf\n"]
 >      ])
 
 ================================================================================
@@ -1100,10 +1117,10 @@ simple statements
 >                                 ,stringQ "_and_stuff"]]]
 >      ,p "select into a,b c,d from e;"
 >       [SelectStatement [] $ Select [] Dupes (SelectList [] [selI "c", selI "d"] ["a", "b"])
->                   (Just $ Tref [] "e" NoAlias) Nothing [] Nothing [] Asc Nothing Nothing]
+>                   [Tref [] "e" NoAlias] Nothing [] Nothing [] Nothing Nothing]
 >      ,p "select c,d into a,b from e;"
 >       [SelectStatement [] $ Select [] Dupes (SelectList [] [selI "c", selI "d"] ["a", "b"])
->                   (Just $ Tref [] "e" NoAlias) Nothing [] Nothing [] Asc Nothing Nothing]
+>                   [Tref [] "e" NoAlias] Nothing [] Nothing [] Nothing Nothing]
 
 >      ,p "execute s;"
 >       [Execute [] (Identifier [] "s")]
@@ -1202,13 +1219,13 @@ complicated statements
 >           selI = SelExp [] . Identifier []
 >           sl a = SelectList [] a []
 >           selectE selList = Select [] Dupes selList
->                             Nothing Nothing [] Nothing [] Asc Nothing Nothing
+>                             [] Nothing [] Nothing [] Nothing Nothing
 >           selectFrom selList frm =
 >             Select [] Dupes (SelectList [] selList [])
->                    (Just frm) Nothing [] Nothing [] Asc Nothing Nothing
+>                    [frm] Nothing [] Nothing [] Nothing Nothing
 >           selectFromWhere selList frm whr =
 >             Select [] Dupes (SelectList [] selList [])
->                    (Just frm) (Just whr) [] Nothing [] Asc Nothing Nothing
+>                    [frm] (Just whr) [] Nothing [] Nothing Nothing
 >           stringQ = StringLit [] "'"
 >           att n t = AttributeDef [] n (SimpleTypeName [] t) Nothing []
 

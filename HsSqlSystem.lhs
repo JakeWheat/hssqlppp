@@ -454,6 +454,23 @@ create target folder if doesn't exist
 
 TODOS
 
+command to display all annotation inline in sql source
+better catalog diff, e.g. if two tables differ in one column just show
+that difference
+see if can improve ppshow to use slighly less newlines
+command to show which bits of preexisting catalog are used
+command to list which views/functions/etc. aren't used anywhere
+replace a bunch of commands with composable set:
+parse(expression), ppp, typecheck(expression), allannots
+->
+parse (expression option)
+type check
+annotation filter + options
+output: ast, sql, annotations + options
+
+
+
+
 think of a better name for this command than hssqlsystem
 
 want better options system:

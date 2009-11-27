@@ -391,19 +391,21 @@ Conversion routines - convert Sql asts into Docs
 
 > convSelectExpression :: Bool -> Bool -> SelectExpression -> Doc
 > convSelectExpression writeSelect _ (Select _ dis l tb wh grp hav
->                                 ordr orddir lim off) =
+>                                 order lim off) =
 >   text (if writeSelect then "select" else "")
 >   <+> (case dis of
 >          Dupes -> empty
 >          Distinct -> text "distinct")
 >   <+> convSelList l
 >   $+$ nest 2 (
->               maybeConv (\tr -> text "from" <+> convTref tr) tb
+>               (if null tb
+>                  then empty
+>                  else (text "from" <+> hcatCsvMap convTref tb))
 >               $+$ convWhere wh)
 >   <+> ifNotEmpty (\g -> text "group by" <+> hcatCsvMap convExp g) grp
 >   <+> maybeConv (\h -> text "having" <+> convExp h) hav
->   <+> ifNotEmpty (\o -> text "order by" <+> hcatCsvMap convExp o
->                   <+> convDir orddir) ordr
+>   <+> ifNotEmpty (\o -> text "order by" <+> hcatCsvMap (\(oe,od) -> convExp oe
+>                   <+> convDir od) o) order
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 >   <+> maybeConv (\offs -> text "offset" <+> convExp offs) off
 >   where

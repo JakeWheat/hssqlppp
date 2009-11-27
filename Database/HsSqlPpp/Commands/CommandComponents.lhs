@@ -7,7 +7,7 @@ Wrappers used in the command line program
 
 > {- | This module contains all the functions used in the hssqlsystem
 >      exe. Mainly a set of wrappers to lift other functions into an
->      ErrorT monad.
+>      ErrorT monad. See HsSqlSystem.lhs for example use.
 > -}
 > module Database.HsSqlPpp.Commands.CommandComponents
 >     (
@@ -88,18 +88,22 @@ Wrappers used in the command line program
 
 parsing
 
+> -- | Lex a string to a list of tokens.
 > lexSql :: Monad m => String -> String -> ErrorT AllErrors m [Token]
 > lexSql f s = return (lexSqlText f s) >>= throwEEEither
 
+> -- | Parse a string to an ast.
 > parseSql1 :: Monad m => String -> String -> ErrorT AllErrors m StatementList
 > parseSql1 f s = return (parseSql f s) >>= throwEEEither
 
 
+> -- | Parse an expression to an ast.
 > parseExpression1 :: Monad m => String -> String -> ErrorT AllErrors m Expression
 > parseExpression1 f s = return (parseExpression f s) >>= throwEEEither
 
 ================================================================================
 
+> -- | Transform an ast using the chaos syntax extensions.
 > runExtensions :: (Monad m, Error e) => StatementList -> ErrorT e m StatementList
 > runExtensions = return . extensionize
 
@@ -107,13 +111,19 @@ parsing
 
 annotation ish
 
+> -- | Take an ast and remove all the annotations. Can be used to view
+> --   an ast without all the source position annotations cluttering
+> --   it up.
 > stripAnn :: (Monad m, Error e, Data a) => a -> ErrorT e m a
 > stripAnn s = return $ stripAnnotations s
 
+> -- | Type check an ast against a catalog, return the annotated ast
+> --   and the updated catalog.
 > typeCheckC :: (Monad m, Error e) => Environment -> StatementList
->          -> ErrorT e m (Environment, StatementList)
+>            -> ErrorT e m (Environment, StatementList)
 > typeCheckC cat ast = return $ typeCheck cat ast
 
+> -- | Type check an expression ast against a catalog
 > typeCheckExpressionC :: (Monad m, Error e) => Environment -> Expression
 >                      -> ErrorT e m Expression
 > typeCheckExpressionC cat ast = return $ typeCheckExpression cat ast

@@ -1,4 +1,58 @@
-TODO for next release
+for next head release ( 0.1.0?)
+merge 0.0.10 changes
+do parse with position by hooking into lexer
+tidyups, renames - rename everything pending, review public api
+   function names (particularly environment->catalog, and
+   localidentifierbindings to localenvironment)
+   get rid of inconsistent suffixes in hssqlsystem and command components
+review all files and move todos at top to bottom
+
+documentation work: haddock, and usage docs - hssqlsystem commands
+   tutorial + reference, combinators tutorial + reference, parse -
+   transform - pretty print example
+hlint, spell check, doc review
+
+next head + 1 release (0.1.1?)
+do _some_ work on the roundtrip tests
+do literate docs where missing, particularly ag files
+get chaos sql loading via hssqlppp again so can run roundtrip tests on
+sort out error handling at minimum:
+  remove all calls to error
+  try to catch all places where errors are being ignored (mainly in
+   the type checking: add these errors to the aast)
+maybe these:
+builddocs work
+hssqlsystem commands
+  better cat diff
+  show used catalog
+finish intro docs
+haskell intro docs
+other docs
+haddock in command components
+testbattery
+extensions - tidy code
+annotation generics: tidy code
+pretty printer for annotation
+ppshow less newlines
+better syntax for extensions
+modules extension + public/private
+syntax extension with non sql syntax using preprocessor?
+multiline strings with string type e.g. sql
+some sort of report mode to parse, typecheck and roundtrip some sql,
+   and report back what works and what doesn't
+work on parse errors
+
+long term todos
+milestones for next release
+todo for chaos (extensions, etc.)
+divide todo categories
+  investigation, end user docs, internal docs, hygiene/maintenance,
+  testing, new functionality, bug fixes
+docs: motivation/genesis, history?, high level criteria for 0.1
+think about dependencies: make hdbc/pg dependency a flag?, split out
+   exes and tests somehow?
+
+
 
 = documentation todo
 

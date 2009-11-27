@@ -121,7 +121,6 @@ SEM SelectExpression
                               @selGroupBy.annotatedTree
                               @selHaving.annotatedTree
                               @selOrderBy.annotatedTree
-                              @selDir.annotatedTree
                               @selLimit.annotatedTree
                               @selOffset.annotatedTree
     | CombineSelect

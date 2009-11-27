@@ -92,7 +92,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,SetClauseList
    ,CaseExpressionListExpressionPairList
    ,MaybeExpression
-   ,MaybeTableRef
+   ,TableRefList
    ,ExpressionListList
    ,SelectItemList
    ,OnExpr
@@ -101,7 +101,10 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,ExpressionStatementListPair
    ,CaseExpressionListExpressionPair
    ,CaseExpressionList
+   ,ExpressionDirectionPair
+   ,ExpressionDirectionPairList
    ,MaybeBoolExpression
+   ,MaybeSelectList
    ,SetValue(..)
    -- typechecking
    ,typeCheck
@@ -302,12 +305,11 @@ DATA SelectExpression
     | Select ann:Annotation
              selDistinct : Distinct
              selSelectList : SelectList
-             selTref : MaybeTableRef
+             selTref : TableRefList
              selWhere : MaybeBoolExpression
              selGroupBy : ExpressionList
              selHaving : MaybeBoolExpression
-             selOrderBy : ExpressionList
-             selDir : Direction
+             selOrderBy : ExpressionDirectionPairList
              selLimit : MaybeExpression
              selOffset : MaybeExpression
     | CombineSelect ann:Annotation
@@ -317,7 +319,7 @@ DATA SelectExpression
     | Values ann:Annotation
              vll:ExpressionListList
 
-TYPE MaybeTableRef = MAYBE TableRef
+TYPE TableRefList = [TableRef]
 TYPE MaybeExpression = MAYBE Expression
 TYPE MaybeBoolExpression = MAYBE Expression
 
@@ -608,6 +610,8 @@ TYPE CaseExpressionListExpressionPair = (CaseExpressionList,Expression)
 TYPE CaseExpressionList = [Expression]
 TYPE CaseExpressionListExpressionPairList = [CaseExpressionListExpressionPair]
 TYPE StatementList = [Statement]
+TYPE ExpressionDirectionPair = (Expression,Direction)
+TYPE ExpressionDirectionPairList = [ExpressionDirectionPair]
 
 -- Add a root data type so we can put initial values for inherited
 -- attributes in the section which defines and uses those attributes
@@ -646,9 +650,11 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               MaybeTableRef TableRef OnExpr LiftFlavour MaybeSelectList
+               TableRefList TableRef OnExpr LiftFlavour MaybeSelectList
                SetValue TableAlias FrameClause AlterTableAction
-               TriggerWhen TriggerEvent TriggerFire
+               TriggerWhen TriggerEvent TriggerFire ExpressionDirectionPair
+               ExpressionDirectionPairList
+
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
 
