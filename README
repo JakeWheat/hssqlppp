@@ -11,14 +11,14 @@ Status: it successfully parses and accurately pretty prints the three
 moderate sized SQL files from another project of mine, but there are
 lots of missing bits. Coverage of SQL is reasonable - it's possible
 that your SQL files will parse ok, but it's also possible that they
-won't parse at all - see below for more details on what is supported
-and unsupported.
+won't parse at all. Please report any sql which doesn't parse.
 
 It also has the beginnings of a type checker, which currently can type
 check a large subset of expressions and selects that the parser can
 parse, and some aspects of all of the DDL statements that parse, but
 is in an early state. You can run the type checker on your SQL in
-various ways from the command line, see the 'usage' file for details.
+various ways from the command line, see the 'usage' file for
+details. Please report any sql which doesn't type check correctly.
 
 It comes with a small test suite.
 
@@ -37,8 +37,7 @@ See the file 'development' for some notes on how to work with the
 source.
 
 The main dependencies of this project are: Parsec 3, HUnit, HDBC,
-UUAGC and Data.Generics. The tests run without accessing PostgreSQL,
-but some of the utility functions do need it.
+UUAGC. You currently need PostgreSQL installed.
 
 ================================================================================
 
@@ -163,3 +162,5 @@ Future plans (provisional):
 
 * possibly a lightweight code generation/ simple macro support to help
   with developing more robust PL/pgSQL code.
+
+* documentation generation

@@ -110,6 +110,9 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,typeCheck
    ,typeCheckMany
    ,typeCheckExpression
+   ,annotateAstsEnv
+   ,annotateAstEnv
+   ,annotateExpression
 }
 
 {
@@ -716,6 +719,8 @@ typeCheckMany env sts =
           in annInt e1 ss (res:ress)
       annInt _ [] ress = reverse ress
 
+annotateAstsEnv :: Environment -> [StatementList] -> [StatementList]
+annotateAstsEnv = typeCheckMany
 
 -- | Takes an ast, checks against catalog passed, and adds
 --   annotations, including types, type errors, and statement info.
@@ -730,6 +735,9 @@ typeCheck env sts =
    in case tl of
          Root r -> (env1,r)
 
+annotateAstEnv :: Environment -> StatementList -> (Environment,StatementList)
+annotateAstEnv = typeCheck
+
 -- | Testing utility, mainly used to check an expression for type errors
 -- or to get its type.
 typeCheckExpression :: Environment -> Expression -> Expression
@@ -741,6 +749,8 @@ typeCheckExpression env ex =
     in case rt of
          ExpressionRoot e -> e
 
+annotateExpression :: Environment -> Expression -> Expression
+annotateExpression = typeCheckExpression
 }
 
 {-

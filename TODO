@@ -1,18 +1,30 @@
-for next head release ( 0.1.0?)
-merge 0.0.10 changes
-do parse with position by hooking into lexer
+= next release:
+move pandoc stuff to seperate program/package
+reorganise doc files (changelog, development, questions, README, TODO,
+   usage, introduction, etc.)
+think about doing combined test/ example documentation -> split parse
+   and typecheck tests into test data and test runner files, then find
+   way to turn test data files into syntax highlighted html pages
+fix pos in errors when parsing functions to use set pos
+fix error types - extendederror approach is crap, and new position
+   stuff breaks code snippets in errors
+type check for implicit join: need brain to work on
+check todos at top of files: move to bottom
+do haddock todo, and do the todos
+hssqlsystem reference docs
+parse transform pretty print example: basics of approach in chaos - do
+   some notes on how this can be improved
+review all files and move todos at top to bottom
+
+
+= next + 1 release
+documentation work: haddock, and usage docs - hssqlsystem commands
+   tutorial + reference, combinators tutorial + reference, parse -
+hlint, spell check, doc review
 tidyups, renames - rename everything pending, review public api
    function names (particularly environment->catalog, and
    localidentifierbindings to localenvironment)
    get rid of inconsistent suffixes in hssqlsystem and command components
-review all files and move todos at top to bottom
-
-documentation work: haddock, and usage docs - hssqlsystem commands
-   tutorial + reference, combinators tutorial + reference, parse -
-   transform - pretty print example
-hlint, spell check, doc review
-
-next head + 1 release (0.1.1?)
 do _some_ work on the roundtrip tests
 do literate docs where missing, particularly ag files
 get chaos sql loading via hssqlppp again so can run roundtrip tests on

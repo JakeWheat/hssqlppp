@@ -19,6 +19,7 @@ copy payload (used to lex copy from stdin data)
 >              ,Tok(..)
 >              ,lexSqlFile
 >              ,lexSqlText
+>              ,lexSqlTextWithPosition
 >              ,identifierString
 >              ,LexState
 >              ) where
@@ -27,6 +28,7 @@ copy payload (used to lex copy from stdin data)
 > import qualified Text.Parsec.Token as P
 > import Text.Parsec.Language
 > import Text.Parsec.String
+> import Text.Parsec.Pos
 
 > import Control.Applicative
 > import Control.Monad.Identity
@@ -65,6 +67,12 @@ copy payload (used to lex copy from stdin data)
 
 > lexSqlText :: String -> String -> Either ExtendedError [Token]
 > lexSqlText f s = convertToExtendedError (runParser sqlTokens [] f s) f s
+
+> lexSqlTextWithPosition :: String -> Int -> Int -> String -> Either ExtendedError [Token]
+> lexSqlTextWithPosition f l c s =
+>   convertToExtendedError (runParser (do
+>                                       setPosition (newPos f l c)
+>                                       sqlTokens) [] f s) f s
 
 ================================================================================
 

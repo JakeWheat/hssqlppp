@@ -35,6 +35,7 @@ fragments, then the utility parsers and other utilities at the bottom.
 > module Database.HsSqlPpp.Parsing.Parser (
 >              -- * Main
 >               parseSql
+>              ,parseSqlWithPosition
 >              ,parseSqlFile
 >              -- * Testing
 >              ,parseExpression
@@ -48,6 +49,7 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Text.Parsec.Expr
 > import Text.Parsec.String
 > import Text.Parsec.Perm
+> import Text.Parsec.Error
 
 > import Control.Applicative
 > import Control.Monad.Identity
@@ -82,10 +84,18 @@ code which is why we need to do this.
 
 = Top level parsing functions
 
-> parseSql :: String
+> parseSql :: String -- ^ filename to use in errors
 >          -> String -- ^ a string containing the sql to parse
 >          -> Either ExtendedError StatementList
 > parseSql f s = parseIt (lexSqlText f s) sqlStatements f s startState
+
+> parseSqlWithPosition :: FilePath -- ^ filename to use in errors
+>                      -> Int -- ^ adjust line number in errors by adding this
+>                      -> Int -- ^ adjust column in errors by adding this
+>                      -> String -- ^ a string containing the sql to parse
+>                      -> Either ExtendedError StatementList
+> parseSqlWithPosition f l c s = parseIt (lexSqlTextWithPosition f l c s) sqlStatements f s startState
+
 
 > parseSqlFile :: FilePath -- ^ file name of file containing sql
 >              -> IO (Either ExtendedError StatementList)
@@ -536,8 +546,9 @@ rather than just a string.
 >     permute ((,,) <$$> parseAs
 >                   <||> readLang
 >                   <|?> (Volatile,pVol))
->   let (q, b) = parseBody lang body fnName bodypos
->   return $ CreateFunction p fnName params retType lang q b vol
+>   case parseBody lang body fnName bodypos of
+>        Left er -> error $ show er
+>        Right (q,b) -> return $ CreateFunction p fnName params retType lang q b vol
 >     where
 >         parseAs = do
 >                    keyword "as"
@@ -556,7 +567,7 @@ rather than just a string.
 >                   ("function " ++ fnName)
 >                   (extrStr body)
 >                   [bodypos]) of
->                      Left er@(ExtendedError e _) ->
+>                      {-Left er@(ExtendedError e _) ->
 >                               -- don't know how to change the
 >                               --position of the error we've been
 >                               --given, so add some information to
@@ -570,8 +581,14 @@ rather than just a string.
 >                                   (_,lp,lc) = adjustPosition bodypos ep
 >                                   lineBit = "on line\n"
 >                                             ++ fn ++ ":" ++ show lp ++ ":" ++ show lc ++ ":\n"
->                               in error $ show er ++ "\n" ++ fnBit ++ lineBit
->                      Right body' -> (quoteOfString body, body')
+>                               in error $ show er ++ "\n" ++ fnBit ++ lineBit-}
+>                      Left (ExtendedError e _) -> do
+>                        let ep = errorPos e
+>                            sl = sourceLine ep
+>                            sc = sourceColumn ep
+>                            --(fn,_,_) = bodypos
+>                        Left $ setErrorPos (setSourceLine (setSourceColumn ep (sc + 1)) (sl - 1)) e
+>                      Right body' -> Right (quoteOfString body, body')
 
 sql function is just a list of statements, the last one has the
 trailing semicolon optional

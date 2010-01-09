@@ -39,6 +39,7 @@ Wrappers used in the command line program
 >      -- catalog diffs
 >     ,compareCatalogs
 >     ,ppCatDiff
+>     ,CatDiff(..)
 >      -- extensions
 >     ,runExtensions
 >     -- docs
@@ -52,6 +53,7 @@ Wrappers used in the command line program
 >     ,lconcat
 >     ,lfst
 >     ,lsnd
+>     ,AllErrors(..)
 >     ) where
 
 > import Control.Monad.Error
@@ -131,10 +133,14 @@ annotation ish
 could probably make this more general, so can run an arbitrary filter
 on annotations and then get a list of them with source positions
 
+> -- | Take an ast and return a list of type errors with source position
+> --   if available.
 > getTEs :: (Monad m, Error e, Data d) =>
 >           d -> ErrorT e m [(Maybe AnnotationElement,[TypeError])]
 > getTEs ast = return $ getTypeErrors ast
 
+> -- | Pretty print list of type errors with optional source position
+> --   in emacs readable format.
 > ppTypeErrors :: Monad m =>
 >                 [(Maybe AnnotationElement, [TypeError])] -> m [String]
 > ppTypeErrors tes =
@@ -144,6 +150,7 @@ on annotations and then get a list of them with source positions
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
 
+> -- | Get the top level type annotation from the ast passed.
 > getTopLevelTypes :: (Monad m, Error e, Data d) =>
 >           d -> ErrorT e m [Type]
 > getTopLevelTypes ast = return $ A.getTopLevelTypes [ast]
@@ -157,12 +164,16 @@ todo: change the naming convention, so fns which produce haskell
 syntax start with show, human readable stuff starts with pp, not sure
 where printsql comes in system though
 
+> -- | use ppshow to pretty print a value.
 > ppSh :: (Monad m, Error e, Show a) => a -> ErrorT e m String
 > ppSh = return . ppShow
 
+> -- | pretty print an ast.
 > ppSql :: (Monad m, Error e) => StatementList -> ErrorT e m String
 > ppSql = return . printSql
 
+> -- | take a source text and annotated ast and interpolate annotations into the source
+> --   as comments
 > ppAnnOrig :: (Monad m, Error e) => Bool -> String -> StatementList -> ErrorT e m String
 > ppAnnOrig doErrs src ast = return $ annotateSource doErrs src ast
 
@@ -170,11 +181,13 @@ where printsql comes in system though
 
 dbms utilities
 
+> -- | get the catalog from the database
 > readCatalog :: MonadIO m => String -> ErrorT AllErrors m Environment
 > readCatalog dbName =
 >   liftIO (readEnvironmentFromDatabase dbName) >>=
 >   throwTESEither . updateEnvironment defaultEnvironment
 
+> -- | run psql to load the sql text into a database.
 > loadSqlUsingPsql :: MonadIO m  => String -> String -> ErrorT AllErrors m String
 > loadSqlUsingPsql dbName script = do
 >   liftIO $ pipeString [("psql", [dbName
@@ -183,7 +196,8 @@ dbms utilities
 >                                 ,"ON_ERROR_STOP=on"
 >                                 ,"--file=-"])] script
 
-> loadSqlUsingPsqlFromFile :: MonadIO m  => String -> String -> ErrorT AllErrors m String
+> -- | run psql to load sql from the filename given into a database.
+> loadSqlUsingPsqlFromFile :: MonadIO m  => String -> FilePath -> ErrorT AllErrors m String
 > loadSqlUsingPsqlFromFile dbName fn = do
 >   ex <- liftIO $ system ("psql " ++ dbName ++
 >                 " -q --set ON_ERROR_STOP=on" ++
@@ -192,14 +206,18 @@ dbms utilities
 >     ExitFailure e -> throwError $ AEMisc $ "psql failed with " ++ show e
 >     ExitSuccess -> return ""
 
+> -- | use the hssqlppp code to load the sql into a database directly
+> --   (this parses and pretty prints the sql to load it)
 > loadAst :: (MonadIO m, Error e) => String -> String -> StatementList -> ErrorT e m ()
 > loadAst db fn ast = liftIO $ loadIntoDatabase db fn ast
 
+> -- | use a dodgy hack to clear the database given
 > clearDB :: MonadIO m => String -> ErrorT AllErrors m ()
 > clearDB db =
 >   liftIO $ withConn ("dbname=" ++ db) $ \conn ->
 >     runSqlCommand conn "drop owned by jake cascade;"
 
+> -- | dump the given database to sql source using pg_dump
 > pgDump :: MonadIO m => String -> ErrorT AllErrors m String
 > pgDump db = liftIO $ pipeString [("pg_dump", [db
 >                                              ,"--schema-only"
@@ -210,9 +228,11 @@ dbms utilities
 
 catalog stuff - just a diff to compare two catalogs
 
+> -- | items in first catalog and not second, items in second and not first.
 > data CatDiff = CatDiff [EnvironmentUpdate] [EnvironmentUpdate]
 >                deriving Show
 
+> -- | find differences between two catalogs
 > compareCatalogs :: (Monad m, Error e) => Environment -> Environment -> Environment -> ErrorT e m CatDiff
 > compareCatalogs base start end =
 >         let baseEnvBits = deconstructEnvironment base
@@ -222,6 +242,7 @@ catalog stuff - just a diff to compare two catalogs
 >             extras = sort $ startEnvBits \\ endEnvBits
 >         in return $ CatDiff missing extras
 
+> -- | print a catdiff in a more human readable way than show.
 > ppCatDiff :: (Monad m, Error e) => CatDiff -> ErrorT e m String
 > ppCatDiff (CatDiff missing extra) =
 >           return $ "\nmissing:\n"
@@ -231,6 +252,9 @@ catalog stuff - just a diff to compare two catalogs
 
 ================================================================================
 
+> -- | Documentation command to produce some hssqlppp docs, takes a
+> --   pandoc source file and converts to html, can run and insert
+> --   commands embedded in the source
 > pandoc :: MonadIO m => String -> ErrorT AllErrors m String
 > pandoc txt =
 >   hsTextize txt >>=
@@ -279,6 +303,8 @@ writerEmailObfuscation :: ObfuscationMethod	How to obfu
 
 process doc commands
 
+> -- | read a text file, and pull out the commands, run them and insert
+> --   the results into the text
 > hsTextize :: MonadIO m => String -> ErrorT AllErrors m String
 > hsTextize s =
 >     liftIO (hsTextify
@@ -286,6 +312,7 @@ process doc commands
 >              "docs/build"
 >              s) >>= throwEither . mapLeft AEMisc
 
+> -- | run hssqlsystem using shell
 > hsSqlSystemCommand :: String -> IO String
 > hsSqlSystemCommand s =  shell ("HsSqlSystem " ++ s) >>= \m ->
 >                         return $ "$ HsSqlSystem " ++ s
@@ -327,7 +354,8 @@ read file as string - issues are:
 want to support reading from stdin, and reading from a string passed
 as an argument to the exe
 
-> readInput :: (Error e, MonadIO m) => String -> ErrorT e m String
+> -- | read a file as text, will read from stdin if filename is '-'.
+> readInput :: (Error e, MonadIO m) => FilePath -> ErrorT e m String
 > readInput f =
 >   liftIO $ case f of
 >              "-" -> hGetContents stdin
@@ -338,7 +366,8 @@ as an argument to the exe
 
 ================================================================================
 
-> writeFile :: (Error e, MonadIO m) => String -> String -> ErrorT e m ()
+> -- | write text to a file
+> writeFile :: (Error e, MonadIO m) => FilePath -> String -> ErrorT e m ()
 > writeFile fn src =
 >     liftIO $ System.IO.writeFile fn src
 
@@ -346,31 +375,36 @@ as an argument to the exe
 
 Utilities
 
+> -- | wrapper for putstrln
 > message :: MonadIO m => String -> m ()
 > message x = liftIO (putStrLn x)
 
 run in errort monad
 should think of something better to do here than just rethrow as io error1
 
+> -- wrapper to run in errorT monad and return right or error on left
 > wrapET :: (Show e, Monad m) => ErrorT e m a -> m a
 > wrapET c = runErrorT c >>= \x ->
 >          case x of
 >            Left er -> error $ show er
 >            Right l -> return l
 
-print a list, using newlines instead of commas, no outer []
-
+> -- | print a list, using newlines instead of commas, no outer []
 > printList :: (MonadIO m, Show a) => [a] -> m ()
 > printList = mapM_ (liftIO . print)
 
+> -- | run putstrln over each element of a list
 > putStrLnList :: MonadIO m => [String]-> m ()
 > putStrLnList = mapM_ (liftIO . putStrLn)
 
+> -- | lifted fst
 > lfst :: (Monad m, Error e) => (a,b) -> ErrorT e m a
 > lfst = return . fst
 
+> -- | lifted snd
 > lsnd :: (Monad m, Error e) => (a,b) -> ErrorT e m b
 > lsnd = return . snd
 
+> -- | lifted concat
 > lconcat :: (Monad m, Error e) => [[a]] -> ErrorT e m [a]
 > lconcat as = return $ concat as

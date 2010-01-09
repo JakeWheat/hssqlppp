@@ -1,7 +1,5 @@
 Some brief notes on developing with this code.
 
-The project comes with a working cabal file.
-
 UUAGC is used in the type checking, there are some links at the top of
 AstInternal.ag for more information.
 
@@ -33,18 +31,42 @@ HsSqlSystem.lhs file contains a few more examples.
 
 Source file overview:
 
-Executables:
-
 HsSqlSystem.lhs
 
-program to expose some functionality on the command line, mainly
-utilities to help with developing the source. Run './HsSqlSystem.lhs
-help' to list the commands.
+Main executable to provide command line access to library functions,
+mainly utilities to help with developing the source. Run
+'./HsSqlSystem.lhs help' to list the commands. You can run the
+automated tests using './HsSqlSystem.lhs test'.
 
-HsSqlPppTests.lhs
+All the other source code is under Database/HsSqlSystem/
 
-small file to pull together the tests from other test suites, and make
-them into an executable.
+Database/HsSqlPpp/Utils.lhs contains some small utility functions.
+
+The main folders under Database/HsSqlPpp are:
+
+Ast: public modules which forward parts of the internal ast and
+typechecking code
+
+AstInternals: private modules for ast, annotations, typechecking, etc.
+  also contains all the .ag files.
+
+Commands: ErrorT wrappers for many library functions, used heavily in
+HsSqlSystem.lhs
+
+Dbms: Some rudimentary and half baked code to access databases.
+
+Extensions: expermental code for a syntax extension system for plpgsql
+
+HsText: code to help producing documentation: will process a text
+file, extract commands, run them, and interpolate the output into the
+text.
+
+Parsing: the parsing code
+
+PrettyPrinter: pretty printing code
+
+Tests: hunit tests
+
 
 Main code files:
 
@@ -57,9 +79,10 @@ some code to insert types, etc. into the original source in
 Database/HsSqlPpp/PrettyPrinter/AnnotateSource.lhs
 
 The main ast and typechecking code is in the following files:
+
 attribute grammar files:
 Database/HsSqlPpp/AstInternals/AstInternal.ag contains the ast nodes
-Database/HsSqlPpp/AstInternals/TypeChecking.ag contains the ATTR and SEM code
+Database/HsSqlPpp/AstInternals/Typechecking/ contains the ATTR and SEM code
 for type checking
 These are supplemented by a bunch of helper modules:
 
@@ -112,15 +135,15 @@ Database/HsSqlPpp/Dbms/, this code is very sketchy.
 These files all have (hopefully) useful comments, although many of
 these haven't been kept up to date.
 
-The error handling in the type
-checking code is in flux so quite a lot of the code there is a bit of
-a mess unfortunately (I'm still not sure what the best way to do this is.).
+The error handling in the type checking code is in flux so quite a lot
+of the code there is a bit of a mess unfortunately (I'm still not sure
+what the best way to do this is.).
 
- Also, some of the annotation functions use SYB which I'm a bit crap
+Also, some of the annotation functions use SYB which I'm a bit crap
 with so that code is also a bit of a mess.
 
 The test coverage isn't really great, but it's not bad (this will be
 fixed at some point).
 
 The bits which I hope aren't too bad are the ast node data types, the
-parser code, and the environment code.
+parser code, and the catalog code.

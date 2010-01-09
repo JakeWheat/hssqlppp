@@ -25,25 +25,6 @@ getting segmentation fault when trying to run code with profiling on
 - ghc --make -prof -auto-all  HsSqlSystem.lhs +RTS -K64M
 then run ./HsSqlSystem
 
-= cabal
-
-when tried to install profiling, is there a short cut to reinstall all
-the dependent libs with the profiling option on? had to do this one or
-two libs at a time and it took ages.
-
-after cabal stop complaining about libs without profiling on, tried to
-build the code and got errors like HSHunit_p library not found, this
-was fixed by re-cabal installing some libraries with profiling on that
-cabal had missed - it picked up on some libs, and not others?
-
-cabal haddock - top level documentation from cabal file appears to
-have whitespace stripping, destroying paragraphs and lists
-
-= uuagc
-
-compare with aspectag - what are the upsides/downsides?
-update - looks like the syntax still needs a lot of work for aspectag
-
 = postgresql questions
 
 is a null literal treated as a unknown string for the purposes of
@@ -94,7 +75,3 @@ casting, etc.:
 what operator is being used when comparing two composite types for
 equality: used to have to create this manually but now works without
 this (briefly caused an error but now works either way)
-
-what are the fields names when you create a record from a row ctor
-what are the rules about casting from records to composites and between
-composites: specifically about field orders and type compatibility

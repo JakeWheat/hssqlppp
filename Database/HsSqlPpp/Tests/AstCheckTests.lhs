@@ -442,6 +442,23 @@ check aliasing
 >         \ natural inner join (select true as a1, 4.5 as d) b;"
 >         $ Left [IncompatibleTypeSet [ScalarType "int4"
 >                                      ,ScalarType "bool"]]
+>      ,p "select * from (select 1 as a1, 2 as b) a\n\
+>         \ natural inner join (select true as a1, 4.5 as d) b;"
+>         $ Left [IncompatibleTypeSet [ScalarType "int4"
+>                                      ,ScalarType "bool"]]
+
+>      ,p "select * from (select 1 as a1) a, (select 2 as a2) b;"
+>         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a1", typeInt)
+>                                                                ,("a2", typeInt)]]
+
+>      ,p "select * from (select 1 as a1) a, (select 2 as a1) b;"
+>         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a1", typeInt)
+>                                                                ,("a1", typeInt)]]
+
+>      ,p "select a1 from (select 1 as a1) a,  (select 2 as a1) b;"
+>         $ Left [AmbiguousIdentifier "a1"]
+
+
 >      ])
 
 >    ,testGroup "simple scalar identifier qualification"
