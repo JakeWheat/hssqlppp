@@ -59,20 +59,20 @@ copy payload (used to lex copy from stdin data)
 
 > type LexState = [Tok]
 
-> lexSqlFile :: FilePath -> IO (Either ExtendedError [Token])
+> lexSqlFile :: FilePath -> IO (Either ParseErrorExtra [Token])
 > lexSqlFile f = do
 >   te <- readFile f
->   let x = runParser sqlTokens [] f te --parseFromFile sqlTokens f
->   return $ convertToExtendedError x f te
+>   let x = runParser sqlTokens [] f te
+>   return $ toParseErrorExtra x Nothing te
 
-> lexSqlText :: String -> String -> Either ExtendedError [Token]
-> lexSqlText f s = convertToExtendedError (runParser sqlTokens [] f s) f s
+> lexSqlText :: String -> String -> Either ParseErrorExtra [Token]
+> lexSqlText f s = toParseErrorExtra (runParser sqlTokens [] f s) Nothing s
 
-> lexSqlTextWithPosition :: String -> Int -> Int -> String -> Either ExtendedError [Token]
+> lexSqlTextWithPosition :: String -> Int -> Int -> String -> Either ParseErrorExtra [Token]
 > lexSqlTextWithPosition f l c s =
->   convertToExtendedError (runParser (do
->                                       setPosition (newPos f l c)
->                                       sqlTokens) [] f s) f s
+>   toParseErrorExtra (runParser (do
+>                                 setPosition (newPos f l c)
+>                                 sqlTokens) [] f s) (Just (l,c)) s
 
 ================================================================================
 

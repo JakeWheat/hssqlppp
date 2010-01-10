@@ -5,52 +5,63 @@ plus output error location in emacs friendly format.
 
 > {-# OPTIONS_HADDOCK hide #-}
 
-> module Database.HsSqlPpp.Parsing.ParseErrors (convertToExtendedError, ExtendedError(..)) where
+> module Database.HsSqlPpp.Parsing.ParseErrors
+>     (toParseErrorExtra
+>     ,ParseErrorExtra(..)) where
 
 > import Text.Parsec
 > import Control.Monad.Error
+> import Data.Maybe
 
-> showEr :: ParseError -> String -> String -> String
-> showEr er fn src =
->     let  pos  = errorPos er
->          lineNo = sourceLine pos
->          ls = lines src
+> showPE :: ParseError -> Maybe (Int,Int) -> String -> String
+> showPE pe sp src = show pe ++ "\n" ++ pePosToEmacs pe ++ "\n" ++ peToContext pe sp src
+
+> pePosToEmacs :: ParseError -> String
+> pePosToEmacs pe = let p = errorPos pe
+>                       f = sourceName p
+>                       l = sourceLine p
+>                       c = sourceColumn p
+>                   in f ++ ":" ++ show l ++ ":" ++ show c ++ ":"
+
+> peToContext :: ParseError -> Maybe (Int,Int) -> String -> String
+> peToContext pe sp src =
+>      let ls = lines src
 >          line = safeGet ls(lineNo - 1)
 >          prelines = map (safeGet ls) [(lineNo - 5) .. (lineNo - 2)]
 >          postlines = map (safeGet ls) [lineNo .. (lineNo + 5)]
->          colNo = sourceColumn pos
->          highlightLine = replicate (colNo - 1) ' ' ++ "^"
+>          caretLine = replicate (colNo - 1) ' ' ++ "^"
 >          errorHighlightText = prelines
->                               ++ [line, highlightLine, "ERROR HERE"]
+>                               ++ [line, caretLine, "ERROR HERE"]
 >                               ++ postlines
->     in "\n---------------------\n" ++ show er
->        ++ "\nFILENAMESTUFF:\n" ++ fn ++ ":" ++ show lineNo ++ ":" ++ show colNo ++ ":"
->        ++ "\n------------\nCheck it out:\n"
->        ++ unlines (trimLines errorHighlightText)
->        ++ "\n-----------------\n"
+>     in "\nContext:\n"
+>        ++ unlines (trimLines errorHighlightText) ++ "\n"
 >     where
 >       safeGet a i = if i < 0 || i >= length a
 >                       then ""
 >                       else a !! i
 >       trimLines = trimStartLines . reverse . trimStartLines . reverse
 >       trimStartLines = dropWhile (=="")
+>       pos = errorPos pe
+>       lineNo = sourceLine pos - adjLine
+>       colNo = sourceColumn pos
+>       adjLine = case sp of
+>                         Just (l, _) -> l - 1
+>                         Nothing -> 0
 
-give access to the nicer error text via Show
+> data ParseErrorExtra = ParseErrorExtra ParseError -- ^ wrapped error
+>                                        (Maybe (Int, Int)) -- source position adjustment to get the context
+>                                                           -- bit in error messages right
+>                                        String -- source
 
-> data ExtendedError = ExtendedError ParseError String
+> instance Show ParseErrorExtra where
+>     show (ParseErrorExtra pe sp src) = showPE pe sp src
 
-> instance Show ExtendedError where
->    show (ExtendedError _ x) = x
+> instance Error ParseErrorExtra where
+>   noMsg = ParseErrorExtra undefined Nothing "unknown"
+>   strMsg str = ParseErrorExtra undefined Nothing str
 
-> convertToExtendedError :: Either ParseError b
->                        -> String
->                        -> String
->                        -> Either ExtendedError b
-> convertToExtendedError f fn src =
->      case f of
->             Left er -> Left $ ExtendedError er (showEr er fn src)
->             Right l -> Right l
 
-> instance Error ExtendedError where
->   noMsg = ExtendedError undefined "unknown"
->   strMsg str = ExtendedError undefined str
+> toParseErrorExtra :: Either ParseError b -> Maybe (Int,Int) -> String -> Either ParseErrorExtra b
+> toParseErrorExtra a sp src = case a of
+>                                Left pe -> Left $ ParseErrorExtra pe sp src
+>                                Right x -> Right x

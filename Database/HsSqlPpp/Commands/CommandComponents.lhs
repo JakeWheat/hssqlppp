@@ -328,7 +328,7 @@ errort stuff
 wrap all our errors in an algebraic data type, not sure if there is a
 more elegant way of doing this but it does the job for now
 
-> data AllErrors = AEExtendedError ExtendedError
+> data AllErrors = AEExtendedError ParseErrorExtra
 >                | AETypeErrors [TypeError]
 >                | AEMisc String
 >                  deriving (Show)
@@ -337,7 +337,7 @@ more elegant way of doing this but it does the job for now
 >   noMsg = AEMisc "Unknown error"
 >   strMsg str = AEMisc str
 
-> throwEEEither :: (MonadError AllErrors m) => Either ExtendedError a -> m a
+> throwEEEither :: (MonadError AllErrors m) => Either ParseErrorExtra a -> m a
 > throwEEEither = throwEither . mapLeft AEExtendedError
 
 > throwTESEither :: (MonadError AllErrors m) => Either [TypeError] a -> m a

@@ -41,7 +41,7 @@ fragments, then the utility parsers and other utilities at the bottom.
 >              ,parseExpression
 >              ,parsePlpgsql
 >              -- * errors
->              ,ExtendedError
+>              ,ParseErrorExtra(..)
 >              )
 >     where
 
@@ -49,7 +49,7 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Text.Parsec.Expr
 > import Text.Parsec.String
 > import Text.Parsec.Perm
-> import Text.Parsec.Error
+> --import Text.Parsec.Error
 
 > import Control.Applicative
 > import Control.Monad.Identity
@@ -86,30 +86,30 @@ code which is why we need to do this.
 
 > parseSql :: String -- ^ filename to use in errors
 >          -> String -- ^ a string containing the sql to parse
->          -> Either ExtendedError StatementList
-> parseSql f s = parseIt (lexSqlText f s) sqlStatements f s startState
+>          -> Either ParseErrorExtra StatementList
+> parseSql f s = parseIt (lexSqlText f s) sqlStatements f Nothing s startState
 
 > parseSqlWithPosition :: FilePath -- ^ filename to use in errors
 >                      -> Int -- ^ adjust line number in errors by adding this
 >                      -> Int -- ^ adjust column in errors by adding this
 >                      -> String -- ^ a string containing the sql to parse
->                      -> Either ExtendedError StatementList
-> parseSqlWithPosition f l c s = parseIt (lexSqlTextWithPosition f l c s) sqlStatements f s startState
+>                      -> Either ParseErrorExtra StatementList
+> parseSqlWithPosition f l c s = parseIt (lexSqlTextWithPosition f l c s) sqlStatements f (Just (l,c)) s startState
 
 
 > parseSqlFile :: FilePath -- ^ file name of file containing sql
->              -> IO (Either ExtendedError StatementList)
+>              -> IO (Either ParseErrorExtra StatementList)
 > parseSqlFile fn = do
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
->   return $ parseIt x sqlStatements fn sc startState
+>   return $ parseIt x sqlStatements fn Nothing sc startState
 
 > -- | Parse expression fragment, used for testing purposes
 > parseExpression :: String
 >                 -> String -- ^ sql string containing a single expression, with no
 >                           -- trailing ';'
->                 -> Either ExtendedError Expression
-> parseExpression f s = parseIt (lexSqlText f s) (expr <* eof) f s startState
+>                 -> Either ParseErrorExtra Expression
+> parseExpression f s = parseIt (lexSqlText f s) (expr <* eof) f Nothing s startState
 
 > -- | Parse plpgsql statements, used for testing purposes -
 > -- this can be used to parse a list of plpgsql statements which
@@ -117,23 +117,25 @@ code which is why we need to do this.
 > -- (The produced ast won't pass a type check.)
 > parsePlpgsql :: String
 >              -> String
->              -> Either ExtendedError StatementList
-> parsePlpgsql f s =  parseIt (lexSqlText f s) (many plPgsqlStatement <* eof) f s startState
+>              -> Either ParseErrorExtra StatementList
+> parsePlpgsql f s =  parseIt (lexSqlText f s) (many plPgsqlStatement <* eof) f Nothing s startState
 
 utility function to do error handling in one place
+TODO: support parsewithposition
 
 > parseIt :: forall t s u b.(Stream s Identity t, Data b) =>
->            Either ExtendedError s
+>            Either ParseErrorExtra s
 >         -> Parsec s u b
 >         -> SourceName
+>         -> Maybe (Int,Int)
 >         -> String
 >         -> u
->         -> Either ExtendedError b
-> parseIt lexed parser fn src ss =
+>         -> Either ParseErrorExtra b
+> parseIt lexed parser fn sp src ss =
 >     case lexed of
 >                Left er -> Left er
 >                Right toks -> let r1 = runParser parser ss fn toks
->                              in case convertToExtendedError r1 fn src of
+>                              in case toParseErrorExtra r1 sp src of
 >                                   Left er -> Left er
 >                                   Right t -> Right $ fixupTree t
 
@@ -546,8 +548,8 @@ rather than just a string.
 >     permute ((,,) <$$> parseAs
 >                   <||> readLang
 >                   <|?> (Volatile,pVol))
->   case parseBody lang body fnName bodypos of
->        Left er -> error $ show er
+>   case parseBody lang body bodypos of
+>        Left er -> fail er
 >        Right (q,b) -> return $ CreateFunction p fnName params retType lang q b vol
 >     where
 >         parseAs = do
@@ -560,34 +562,16 @@ rather than just a string.
 >                              ,("immutable", Immutable)]
 >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
 >                                                        ,("sql",Sql)]
->         parseBody lang body fnName bodypos =
+>         parseBody :: Language -> Expression -> MySourcePos -> Either String (String, FnBody)
+>         parseBody lang body bodypos@(fileName,line,col) =
 >             case (parseIt
->                   (lexSqlText fnName (extrStr body))
+>                   (lexSqlTextWithPosition fileName line col (extrStr body))
 >                   (functionBody lang)
->                   ("function " ++ fnName)
+>                   fileName
+>                   (Just (line,col))
 >                   (extrStr body)
 >                   [bodypos]) of
->                      {-Left er@(ExtendedError e _) ->
->                               -- don't know how to change the
->                               --position of the error we've been
->                               --given, so add some information to
->                               --show the position of the containing
->                               --function and the adjusted absolute
->                               --position of this error
->                               let ep = toMySp $ errorPos e
->                                   (fn,fp,fc) = bodypos
->                                   fnBit = "in function " ++ fnName ++ "\n"
->                                           ++ fn ++ ":" ++ show fp ++ ":" ++ show fc ++ ":\n"
->                                   (_,lp,lc) = adjustPosition bodypos ep
->                                   lineBit = "on line\n"
->                                             ++ fn ++ ":" ++ show lp ++ ":" ++ show lc ++ ":\n"
->                               in error $ show er ++ "\n" ++ fnBit ++ lineBit-}
->                      Left (ExtendedError e _) -> do
->                        let ep = errorPos e
->                            sl = sourceLine ep
->                            sc = sourceColumn ep
->                            --(fn,_,_) = bodypos
->                        Left $ setErrorPos (setSourceLine (setSourceColumn ep (sc + 1)) (sl - 1)) e
+>                      Left er@(ParseErrorExtra _ _ _) -> Left $ show er
 >                      Right body' -> Right (quoteOfString body, body')
 
 sql function is just a list of statements, the last one has the
