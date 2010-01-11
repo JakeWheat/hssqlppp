@@ -1,5 +1,8 @@
 Here are some notes on what you can currently do with the code:
 
+** This file is a bit out of date, you can run 'HsSqlSystem -?'  to
+   get started **
+
 = HsSqlSystem
 
 Command line access to a number of functions is provided by

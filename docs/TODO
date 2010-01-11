@@ -1,9 +1,14 @@
 = milestones
+not in any particular order
 
-==
+== type check for implicit join: need brain to work on
 
-== seperate out documentation program
+== use better database config
+command line args and config file for db, username and password, and
+   add prompt style so works like psql
+== seperate out documentation program to separate package
 -> how to do plugins for extra commands?
+
 == documentation work
 reorganise doc files (changelog, development, questions, README, TODO,
    usage, introduction, etc.)
@@ -14,7 +19,7 @@ hssqlsystem commands reference
 == tidy files, comment work
 particularly ag files, redo comments, review all code for crufty bits
 check todos at top of files: move to bottom
-== nullablility
+== nullability
 == example code gen for typesafe access
 == api review
 tidyups, renames - rename everything pending, review public api
@@ -25,18 +30,17 @@ tidyups, renames - rename everything pending, review public api
   remove all calls to error
   try to catch all places where errors are being ignored (mainly in
    the type checking: add these errors to the aast)
-== roundtrip tests
+== roundtrip tests -> report
 == get chaos stuff working again
 get chaos sql loading via hssqlppp again so can run roundtrip tests on
 == module system, show used catalog
 == better pretty printers for annotation types
 == extensions code tidy?
 == annotation generics style
-== non sql syntax  extensions work
+== non sql syntax extensions work
 == catalog ish: triggers, seuences, constraints, index, defaults
 == haddock work
-
-type check for implicit join: need brain to work on
+== do makefile type thing for development and deployment of db projects
 
 maybe these:
 builddocs work

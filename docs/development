@@ -4,7 +4,8 @@ UUAGC is used in the type checking, there are some links at the top of
 AstInternal.ag for more information.
 
 The code uses a few GHC extensions, I don't know if they are
-conservative extensions or not.
+conservative extensions or not, see the cabal file and grep to find
+out the current list.
 
 Two of the files are generated:
 

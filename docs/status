@@ -1,0 +1,87 @@
+Rough notes on status, probably a bit out of date. You can also see the test files:
+
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Tests/ParserTests.lhs
+
+and
+
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Tests/AstCheckTests.lhs
+
+to see a load of examples of what type checks.
+
+= Syntax supported/ not supported:
+
+== Parsing
+
+Partially supports:
+select statements (selectlists (*, qualified, aliased/correlation names, expressions)
+       distinct, basic window functions,
+       from (with explicit joins - natural, inner, cross, left, right,
+       full outer, on and using), aliases, from functions
+       where, group by, having, order by, limit, offset
+       except, intersect, union
+
+expressions: subselects, in, row ctors, strings + dollar strings,
+             integers, case, exists, boolean literals, null, arrays
+             and subscripting (slightly limited), function calls,
+             identifiers, cast(x as y), between (quite limited),
+             substring(x from a for b)
+
+also partially supports:
+insert (with multiple values and select support), update, delete (all
+three with returning)
+create and drop table, type, view, domain
+create function for sql and plpgsql functions
+all constraint types
+sort of skips copy statements instead of erroring
+
+plpgsql statements:
+        select into
+        null
+        continue
+        perform
+        execute
+        assignment
+        if
+        return, return next, return query
+        raise
+        for (select and integer variants)
+        while
+        case statement
+
+Many things are missing at the moment, in particular
+  selects: cte, implicit joins
+  joins in updates (delete from, update using)
+  alter statements
+  create and drop apart from table, view, domain, type, function
+  transaction commands
+  triggers and trigger functions
+  loop statement, labels
+  error trapping
+  cursors
+This is a non-exhaustive list.
+
+Expression support is patchy, should work pretty well for a lot of
+simple stuff though. There is a strong possibility that for some
+complex selects and expressions, the implicit precedence (that is,
+bits without enclosing parenthesis) may parse in the wrong
+direction. Please let me know if you encounter such an error.
+
+== Type checking
+
+Type checking supports a good subset of expressions and select
+statements that the parser parses, and has basic support for insert,
+update, delete and the various create statements that the parser
+supports. Development work is currently focused in this area.
+
+= Other current downsides:
+
+The design of the AST node types is pretty basic.
+
+Not much work has been done on correctly rejecting invalid SQL
+(although it does pretty well despite this) and not much thought has
+been put into error messages and error reporting yet, this is slowly
+improving, and at some point will become a major focus - I hope this
+code will provide substantial benefits when developing in PL/pgSQL in
+the future.
+
+Only supports PostgreSQL SQL and PL/pgSQL.
