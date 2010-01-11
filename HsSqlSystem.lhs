@@ -420,9 +420,9 @@ write a routine to mirror this - will then have
 
 > runTests :: [String] -> IO ()
 > runTests as =
->   flip defaultMainWithArgs as [
->     parserTests
->    ,astCheckTests
+>   flip defaultMainWithArgs as $
+>     parserTests ++
+>    [astCheckTests
 >    --,databaseLoaderTests
 >    ,extensionTests
 >    ]

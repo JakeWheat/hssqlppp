@@ -1,37 +1,43 @@
-= next release:
-move pandoc stuff to seperate program/package
+= milestones
+
+==
+
+== seperate out documentation program
+-> how to do plugins for extra commands?
+== documentation work
 reorganise doc files (changelog, development, questions, README, TODO,
    usage, introduction, etc.)
-think about doing combined test/ example documentation -> split parse
-   and typecheck tests into test data and test runner files, then find
-   way to turn test data files into syntax highlighted html pages
-fix pos in errors when parsing functions to use set pos
-fix error types - extendederror approach is crap, and new position
-   stuff breaks code snippets in errors
-type check for implicit join: need brain to work on
-check todos at top of files: move to bottom
-do haddock todo, and do the todos
-hssqlsystem reference docs
+do test/example doc stuff for parsing and typechecking
 parse transform pretty print example: basics of approach in chaos - do
    some notes on how this can be improved
-review all files and move todos at top to bottom
-
-
-= next + 1 release
-documentation work: haddock, and usage docs - hssqlsystem commands
-   tutorial + reference, combinators tutorial + reference, parse -
-hlint, spell check, doc review
+hssqlsystem commands reference
+== tidy files, comment work
+particularly ag files, redo comments, review all code for crufty bits
+check todos at top of files: move to bottom
+== nullablility
+== example code gen for typesafe access
+== api review
 tidyups, renames - rename everything pending, review public api
    function names (particularly environment->catalog, and
    localidentifierbindings to localenvironment)
    get rid of inconsistent suffixes in hssqlsystem and command components
-do _some_ work on the roundtrip tests
-do literate docs where missing, particularly ag files
-get chaos sql loading via hssqlppp again so can run roundtrip tests on
-sort out error handling at minimum:
+== error handling work
   remove all calls to error
   try to catch all places where errors are being ignored (mainly in
    the type checking: add these errors to the aast)
+== roundtrip tests
+== get chaos stuff working again
+get chaos sql loading via hssqlppp again so can run roundtrip tests on
+== module system, show used catalog
+== better pretty printers for annotation types
+== extensions code tidy?
+== annotation generics style
+== non sql syntax  extensions work
+== catalog ish: triggers, seuences, constraints, index, defaults
+== haddock work
+
+type check for implicit join: need brain to work on
+
 maybe these:
 builddocs work
 hssqlsystem commands

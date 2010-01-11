@@ -28,22 +28,25 @@ check all these asts are the same
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 
-> parserTests :: Test.Framework.Test
-> parserTests =
->   testGroup "parserTests" [
+
+> data Item = Expressions [(String, Expression)]
+>           | Statements [(String, [Statement])]
+>           | PlpgsqlStatements [(String, [Statement])]
+>           | Group String [Item]
+
+> parserTests :: [Test.Framework.Test]
+> parserTests = itemToTft parserTestData
+
+> parserTestData :: Item
+> parserTestData =
+>   Group "parserTests" [
 
 ================================================================================
 
-uses a whole bunch of shortcuts (at the bottom of main) to make this
-code more concise. Could probably use a few more.
+expressions
 
->     testGroup "parse expression"
->     (mapExpr [
-
-start with some really basic expressions, we just use the expression
-parser rather than the full sql statement parser. (the expression parser
-requires a single expression followed by eof.)
-
+>    Group "parse expressions" [
+>     Group "basic expressions" [Expressions [
 >       p "1" (IntegerLit [] 1)
 >      ,p "-1" (FunCall [] "u-" [IntegerLit [] 1])
 >      ,p "1.1" (FloatLit [] 1.1)
@@ -53,19 +56,26 @@ requires a single expression followed by eof.)
 >      ,p "1+1+1" (FunCall [] "+" [FunCall [] "+" [IntegerLit [] 1
 >                                         ,IntegerLit [] 1]
 >                             ,IntegerLit [] 1])
+>      ]]
+
+
+>    ,Group "parens" [Expressions [
 
 check some basic parens use wrt naked values and row constructors
 these tests reflect how pg seems to interpret the variants.
 
->      ,p "(1)" (IntegerLit [] 1)
+>       p "(1)" (IntegerLit [] 1)
 >      ,p "row ()" (FunCall [] "!rowctor" [])
 >      ,p "row (1)" (FunCall [] "!rowctor" [IntegerLit [] 1])
 >      ,p "row (1,2)" (FunCall [] "!rowctor" [IntegerLit [] 1,IntegerLit [] 2])
 >      ,p "(1,2)" (FunCall [] "!rowctor" [IntegerLit [] 1,IntegerLit [] 2])
+>      ]]
+
+>    ,Group "more basic expressions" [Expressions [
 
 test some more really basic expressions
 
->      ,p "'test'" (stringQ "test")
+>       p "'test'" (stringQ "test")
 >      ,p "''" (stringQ "")
 >      ,p "hello" (Identifier [] "hello")
 >      ,p "helloTest" (Identifier [] "helloTest")
@@ -75,21 +85,16 @@ test some more really basic expressions
 >      ,p "true" (BooleanLit [] True)
 >      ,p "false" (BooleanLit [] False)
 >      ,p "null" (NullLit [])
+>      ]]
 
-array selector
-
->      ,p "array[1,2]" (FunCall [] "!arrayctor" [IntegerLit [] 1, IntegerLit [] 2])
-
-array subscripting
-
+>    ,Group "array ctor and selector" [Expressions [
+>       p "array[1,2]" (FunCall [] "!arrayctor" [IntegerLit [] 1, IntegerLit [] 2])
 >      ,p "a[1]" (FunCall [] "!arraysub" [Identifier [] "a", IntegerLit [] 1])
 
-we just produce a ast, so no type checking or anything like that is
-done
+>      ]]
 
-some operator tests
-
->      ,p "1 + tst1" (FunCall [] "+" [IntegerLit [] 1
+>    ,Group "simple operators" [Expressions [
+>       p "1 + tst1" (FunCall [] "+" [IntegerLit [] 1
 >                                ,Identifier [] "tst1"])
 >      ,p "tst1 + 1" (FunCall [] "+" [Identifier [] "tst1"
 >                                ,IntegerLit [] 1])
@@ -117,35 +122,36 @@ some operator tests
 >          FunCall [] "-" [IntegerLit [] 5,IntegerLit [] 3]])
 >      ,p "a like b"
 >         (FunCall [] "!like" [Identifier [] "a", Identifier [] "b"])
+>      ]]
 
-some function call tests
-
->      ,p "fn()" (FunCall [] "fn" [])
+>    ,Group "function calls" [Expressions [
+>       p "fn()" (FunCall [] "fn" [])
 >      ,p "fn(1)" (FunCall [] "fn" [IntegerLit [] 1])
 >      ,p "fn('test')" (FunCall [] "fn" [stringQ "test"])
 >      ,p "fn(1,'test')" (FunCall [] "fn" [IntegerLit [] 1, stringQ "test"])
 >      ,p "fn('test')" (FunCall [] "fn" [stringQ "test"])
+>      ]]
 
-simple whitespace sanity checks
-
->      ,p "fn (1)" (FunCall [] "fn" [IntegerLit [] 1])
+>    ,Group "simple whitespace sanity checks" [Expressions [
+>       p "fn (1)" (FunCall [] "fn" [IntegerLit [] 1])
 >      ,p "fn( 1)" (FunCall [] "fn" [IntegerLit [] 1])
 >      ,p "fn(1 )" (FunCall [] "fn" [IntegerLit [] 1])
 >      ,p "fn(1) " (FunCall [] "fn" [IntegerLit [] 1])
 
-null stuff
+>      ]]
 
->      ,p "not null" (FunCall [] "!not" [NullLit []])
+>    ,Group "null stuff" [Expressions [
+>       p "not null" (FunCall [] "!not" [NullLit []])
 >      ,p "a is null" (FunCall [] "!isnull" [Identifier [] "a"])
 >      ,p "a is not null" (FunCall [] "!isnotnull" [Identifier [] "a"])
 
 >      ,p "not not true" (FunCall [] "!not"
 >                          [FunCall [] "!not"
 >                           [BooleanLit [] True]])
+>      ]]
 
-some slightly more complex stuff
-
->      ,p "case when a,b then 3\n\
+>    ,Group "case expressions" [Expressions [
+>       p "case when a,b then 3\n\
 >         \     when c then 4\n\
 >         \     else 5\n\
 >         \end"
@@ -157,25 +163,19 @@ some slightly more complex stuff
 >         (CaseSimple [] (IntegerLit [] 1)
 >            [([IntegerLit [] 2], IntegerLit [] 3)]
 >          (Just $ IntegerLit [] 4))
+>      ]]
 
+>    ,Group "positional args" [Expressions [
+>       p "$1" (PositionalArg [] 1)
+>      ]]
 
-positional args used in sql and sometimes plpgsql functions
-
->      ,p "$1" (PositionalArg [] 1)
-
->      ,p "exists (select 1 from a)"
+>    ,Group "exists" [Expressions [
+>       p "exists (select 1 from a)"
 >       (Exists [] (selectFrom [SelExp [] (IntegerLit [] 1)] (Tref [] "a" NoAlias)))
+>      ]]
 
- >       (Exists (makeSelect {
- >                 selSelectList = sle [(IntegerLit [] 1)]
- >                ,selTref = Just $ Tref "a"}))
-
-
-selectFrom [SelExp [] (IntegerLit [] 1)] (Tref "a")))
-
-in variants, including using row constructors
-
->      ,p "t in (1,2)"
+>    ,Group "in variants" [Expressions [
+>       p "t in (1,2)"
 >       (InPredicate [] (Identifier [] "t") True (InList [] [IntegerLit [] 1,IntegerLit [] 2]))
 >      ,p "t not in (1,2)"
 >       (InPredicate [] (Identifier [] "t") False (InList [] [IntegerLit [] 1,IntegerLit [] 2]))
@@ -191,24 +191,21 @@ in variants, including using row constructors
 >                                     ,FunCall [] "!arrayctor" [IntegerLit [] 1
 >                                                              ,IntegerLit [] 2
 >                                                              ,IntegerLit [] 4]])
+>      ]]
 
->      ,p "a < b"
+>    ,Group "comparison operators" [Expressions [
+>       p "a < b"
 >       (FunCall [] "<" [Identifier [] "a", Identifier [] "b"])
 >      ,p "a <> b"
 >       (FunCall [] "<>" [Identifier [] "a", Identifier [] "b"])
 >      ,p "a != b"
 >       (FunCall [] "<>" [Identifier [] "a", Identifier [] "b"])
-
->      ])
-
-
-================================================================================
+>      ]]
 
 test some string parsing, want to check single quote behaviour,
 and dollar quoting, including nesting.
 
->     ,testGroup "string parsing"
->     (mapExpr [
+>    ,Group "string parsing" [Expressions [
 >       p "''" (stringQ "")
 >      ,p "''''" (stringQ "'")
 >      ,p "'test'''" (stringQ "test'")
@@ -219,23 +216,18 @@ and dollar quoting, including nesting.
 >      ,p "$st$test$st$" (StringLit [] "$st$" "test")
 >      ,p "$outer$te$$yup$$st$outer$" (StringLit [] "$outer$" "te$$yup$$st")
 >      ,p "'spl$$it'" (stringQ "spl$$it")
->      ])
+>      ]]
+>      ]
 
 ================================================================================
 
-first statement, pretty simple
+select statements
 
->     ,testGroup "select expression"
->     (mapSql [
+>   ,Group "simple select statements" [
+>     Group "select no table" [Statements [
 >       p "select 1;" [SelectStatement [] $ selectE (SelectList [] [SelExp [] (IntegerLit [] 1)] [])]
->      ])
-
-================================================================================
-
-test a whole bunch more select statements
-
->     ,testGroup "select from table"
->     (mapSql [
+>      ]]
+>    ,Group "select from table" [Statements [
 >       p "select * from tbl;"
 >       [SelectStatement [] $ selectFrom (selIL ["*"]) (Tref [] "tbl" NoAlias)]
 >      ,p "select a,b from tbl;"
@@ -262,7 +254,10 @@ test a whole bunch more select statements
 >          [FunCall [] "="  [Identifier [] "b", IntegerLit [] 2]
 >          ,FunCall [] "=" [Identifier [] "c", IntegerLit [] 3]])]
 
->      ,p "select a from tbl\n\
+>      ]]
+
+>    ,Group "more select statements" [Statements [
+>       p "select a from tbl\n\
 >         \except\n\
 >         \select a from tbl1;"
 >       [SelectStatement [] $ CombineSelect [] Except
@@ -573,32 +568,18 @@ test a whole bunch more select statements
 >                                [SelectItem [] (IntegerLit [] 1) "a"
 >                                ,SelectItem [] (IntegerLit [] 2) "b"] [])
 >                   (TableAlias "x"))]
->      ])
+>      ]]
 
-================================================================================
-
-one sanity check for parsing multiple statements
-
->     ,testGroup "multiple statements"
->     (mapSql [
+>    ,Group "multiple statements" [Statements [
 >       p "select 1;\nselect 2;" [SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 1)]
 >                                ,SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 2)]]
->      ])
+>      ]]
 
-================================================================================
-
-test comment behaviour
-
->     ,testGroup "comments"
->     (mapSql [
+>    ,Group "comments" [Statements [
 >       p "" []
 >      ,p "-- this is a test" []
 >      ,p "/* this is\n\
 >         \a test*/" []
-
-maybe some people actually put block comments inside parts of
-statements when they program?
-
 >      ,p "select 1;\n\
 >         \-- this is a test\n\
 >         \select -- this is a test\n\
@@ -612,21 +593,19 @@ statements when they program?
 >                     [SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 1)]
 >                     ,SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 2)]
 >                     ]
->      ])
+>      ]]
+>      ]
 
 ================================================================================
 
 dml statements
 
->     ,testGroup "dml"
->     (mapSql [
-
-simple insert
-
+>    ,Group "dml" [
+>      Group "insert" [Statements [
 >       p "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2);\n"
->       [Insert []
+>        [Insert []
 >         "testtable"
 >         ["columna", "columnb"]
 >         (Values [] [[IntegerLit [] 1, IntegerLit [] 2]])
@@ -665,10 +644,10 @@ insert from select
 >         ["columna", "columnb"]
 >         (Values [] [[IntegerLit [] 1, IntegerLit [] 2]])
 >         (Just $ sl [selI "id"])]
+>      ]]
 
-updates
-
->      ,p "update tb\n\
+>     ,Group "update" [Statements [
+>       p "update tb\n\
 >         \  set x = 1, y = 2;"
 >       [Update [] "tb" [SetClause [] "x" (IntegerLit [] 1)
 >                    ,SetClause [] "y" (IntegerLit [] 2)]
@@ -697,10 +676,10 @@ updates
 >                     ["x","y"]
 >                     [IntegerLit [] 1,IntegerLit [] 2]]
 >        Nothing Nothing]
+>      ]]
 
-delete
-
->      ,p "delete from tbl1 where x = true;"
+>     ,Group "delete" [Statements [
+>       p "delete from tbl1 where x = true;"
 >       [Delete [] "tbl1" (Just $ FunCall [] "="
 >                                [Identifier [] "x", BooleanLit [] True])
 >        Nothing]
@@ -708,16 +687,20 @@ delete
 >       [Delete [] "tbl1" (Just $ FunCall [] "="
 >                                [Identifier [] "x", BooleanLit [] True])
 >        (Just $ sl [selI "id"])]
+>      ]]
 
->     ,p "truncate test;"
+>     ,Group "truncate" [Statements [
+>       p "truncate test;"
 >        [Truncate [] ["test"] ContinueIdentity Restrict]
 
->     ,p "truncate table test, test2 restart identity cascade;"
+>      ,p "truncate table test, test2 restart identity cascade;"
 >        [Truncate [] ["test","test2"] RestartIdentity Cascade]
+>      ]]
 
 copy, bit crap at the moment
 
->      ,p "copy tbl(a,b) from stdin;\n\
+>     ,Group "copy" [Statements [
+>       p "copy tbl(a,b) from stdin;\n\
 >         \bat\tt\n\
 >         \bear\tf\n\
 >         \\\.\n"
@@ -725,17 +708,14 @@ copy, bit crap at the moment
 >        ,CopyData [] "\
 >         \bat\tt\n\
 >         \bear\tf\n"]
->      ])
+>      ]]
 
 ================================================================================
 
-some ddl
+ddl statements
 
->     ,testGroup "create"
->     (mapSql [
-
-create table tests
-
+>    ,Group "ddl" [
+>      Group "simple tables" [Statements [
 >       p "create table test (\n\
 >         \  fielda text,\n\
 >         \  fieldb int\n\
@@ -761,10 +741,10 @@ create table tests
 
 >      ,p "alter table a add constraint unique(b);"
 >       [AlterTable [] "a" [AddConstraint [] (UniqueConstraint [] "" ["b"])]]
+>      ]]
 
-other creates
-
->      ,p "create view v1 as\n\
+>     ,Group "others" [Statements [
+>       p "create view v1 as\n\
 >         \select a,b from t;"
 >       [CreateView []
 >        "v1"
@@ -791,12 +771,10 @@ other creates
 >          \for each statement\n\
 >          \execute procedure fb();"
 >         [CreateTrigger [] "tr" TriggerAfter [TInsert,TDelete] "tb" EachStatement "fb" []]
+>      ]]
 
-
-
-drops
-
->      ,p "drop domain t;"
+>     ,Group "drops" [Statements [
+>       p "drop domain t;"
 >       [DropSomething [] Domain Require ["t"] Restrict]
 >      ,p "drop domain if exists t,u cascade;"
 >       [DropSomething [] Domain IfExists ["t", "u"] Cascade]
@@ -810,15 +788,10 @@ drops
 >      ,p "drop view t;"
 >       [DropSomething [] View Require ["t"] Restrict]
 
->      ])
+>      ]]
 
-constraints
-
->     ,testGroup "constraints"
->     (mapSql [
-
-nulls
-
+>     ,Group "constraints" [
+>       Group "nulls" [Statements [
 >       p "create table t1 (\n\
 >         \ a text null\n\
 >         \);"
@@ -831,10 +804,10 @@ nulls
 >         [CreateTable [] "t1" [AttributeDef [] "a" (SimpleTypeName [] "text")
 >                            Nothing [NotNullConstraint [] ""]]
 >          []]
+>      ]]
 
-unique table
-
->      ,p "create table t1 (\n\
+>      ,Group "unique" [Statements [
+>       p "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
 >         \ unique (x,y)\n\
@@ -877,10 +850,10 @@ quick sanity check
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
 >                            [NotNullConstraint [] ""
 >                            ,RowUniqueConstraint [] ""]][]]
+>      ]]
 
-primary key row, table
-
->      ,p "create table t1 (\n\
+>      ,Group "primary key" [Statements [
+>       p "create table t1 (\n\
 >         \ x int primary key\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
@@ -895,9 +868,10 @@ primary key row, table
 >                           ,att "y" "int"]
 >          [PrimaryKeyConstraint [] "" ["x", "y"]]]
 
-check row, table
+>      ]]
 
->      ,p "create table t (\n\
+>      ,Group "check" [Statements [
+>       p "create table t (\n\
 >         \f text check (f in('a', 'b'))\n\
 >         \);"
 >         [CreateTable [] "t"
@@ -914,10 +888,10 @@ check row, table
 >         [CreateTable [] "t1" [att "x" "int"
 >                           ,att "y" "int"]
 >          [CheckConstraint [] "" (FunCall [] ">" [Identifier [] "x", Identifier [] "y"])]]
+>      ]]
 
-row, whole load of constraints, todo: add reference here
-
->      ,p "create table t (\n\
+>      ,Group "misc" [Statements [
+>       p "create table t (\n\
 >         \f text not null unique check (f in('a', 'b'))\n\
 >         \);"
 >         [CreateTable [] "t"
@@ -929,9 +903,10 @@ row, whole load of constraints, todo: add reference here
 >                                    (InList [] [stringQ "a"
 >                                            ,stringQ "b"]))]] []]
 
-reference row, table
+>      ]]
 
->      ,p "create table t1 (\n\
+>      ,Group "references" [Statements [
+>       p "create table t1 (\n\
 >         \ x int references t2\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
@@ -990,14 +965,10 @@ reference row, table
 >          [ReferenceConstraint [] "" ["x", "y"] "t2" []
 >           Cascade Cascade]]
 
->      ])
-
-================================================================================
-
-test functions
-
->     ,testGroup "functions"
->     (mapSql [
+>      ]]
+>      ]]
+>    ,Group "functions" [
+>      Group "basics" [Statements [
 >       p "create function t1(text) returns text as $$\n\
 >         \select a from t1 where b = $1;\n\
 >         \$$ language sql stable;"
@@ -1082,17 +1053,9 @@ test functions
 >      ,p "drop function if exists a(),test(text) cascade;"
 >       [DropFunction [] IfExists [("a",[])
 >                           ,("test",[SimpleTypeName [] "text"])] Cascade]
->      ])
+>     ]]
 
-================================================================================
-
-test non sql plpgsql statements
-
->     ,testGroup "plpgsqlStatements"
->     (mapPlpgsql [
-
-simple statements
-
+>     ,Group "simple plpgsql statements" [PlpgsqlStatements [
 >       p "success := true;"
 >       [Assignment [] "success" (BooleanLit [] True)]
 >      ,p "success = true;"
@@ -1128,10 +1091,10 @@ simple statements
 >       [ExecuteInto [] (Identifier [] "s") ["r"]]
 
 >      ,p "continue;" [ContinueStatement []]
+>     ]]
 
-complicated statements
-
->      ,p "for r in select a from tbl loop\n\
+>     ,Group "other plpgsql statements" [PlpgsqlStatements [
+>       p "for r in select a from tbl loop\n\
 >         \null;\n\
 >         \end loop;"
 >       [ForSelectStatement [] "r" (selectFrom  [selI "a"] (Tref [] "tbl" NoAlias))
@@ -1192,10 +1155,10 @@ complicated statements
 >       [([Identifier [] "b"], [NullStatement []])
 >       ,([Identifier [] "c", Identifier [] "d"], [NullStatement []])]
 >       [NullStatement []]]
->      ])
 
->     ,testGroup "misc"
->     (mapSql [
+>     ]]
+
+>    ,Group "misc" [Statements [
 >       p "SET search_path TO my_schema, public;"
 >         [Set [] "search_path" [SetId [] "my_schema"
 >                               ,SetId [] "public"]]
@@ -1205,80 +1168,84 @@ complicated statements
 >         [Set [] "t1" [SetStr [] "stuff"]]
 >      ,p "create language plpgsql;"
 >         [CreateLanguage [] "plpgsql"]
->      ])
 
->        --,testProperty "random expression" prop_expression_ppp
->        -- ,testProperty "random statements" prop_statements_ppp
->     ]
->         where
->           mapExpr = map $ uncurry checkParseExpression
->           mapSql = map $ uncurry checkParse
->           mapPlpgsql = map $ uncurry checkParsePlpgsql
->           p a b = (a,b)
->           selIL = map selI
->           selI = SelExp [] . Identifier []
->           sl a = SelectList [] a []
->           selectE selList = Select [] Dupes selList
->                             [] Nothing [] Nothing [] Nothing Nothing
->           selectFrom selList frm =
->             Select [] Dupes (SelectList [] selList [])
->                    [frm] Nothing [] Nothing [] Nothing Nothing
->           selectFromWhere selList frm whr =
->             Select [] Dupes (SelectList [] selList [])
->                    [frm] (Just whr) [] Nothing [] Nothing Nothing
->           stringQ = StringLit [] "'"
->           att n t = AttributeDef [] n (SimpleTypeName [] t) Nothing []
+>     ]]
+
+>     ]]]
+
+================================================================================
+
+shortcuts for constructing test data and asts
+
+> p :: t -> t1 -> (t, t1)
+> p a b = (a,b)
+
+> stringQ :: String -> Expression
+> stringQ = StringLit [] "'"
+
+> selectFrom :: SelectItemList
+>            -> TableRef
+>            -> SelectExpression
+> selectFrom selList frm = Select [] Dupes (SelectList [] selList [])
+>                            [frm] Nothing [] Nothing [] Nothing Nothing
+
+> selectE :: SelectList -> SelectExpression
+> selectE selList = Select [] Dupes selList
+>                     [] Nothing [] Nothing [] Nothing Nothing
+
+> selIL :: [String] -> [SelectItem]
+> selIL = map selI
+
+> selI :: String -> SelectItem
+> selI = SelExp [] . Identifier []
+
+> sl :: SelectItemList -> SelectList
+> sl a = SelectList [] a []
+
+> selectFromWhere :: SelectItemList
+>                 -> TableRef
+>                 -> Expression
+>                 -> SelectExpression
+> selectFromWhere selList frm whr =
+>     Select [] Dupes (SelectList [] selList [])
+>                [frm] (Just whr) [] Nothing [] Nothing Nothing
+
+> att :: String -> String -> AttributeDef
+> att n t = AttributeDef [] n (SimpleTypeName [] t) Nothing []
+
 
 ================================================================================
 
 Unit test helpers
 
-parse and then pretty print and parse a statement
+> itemToTft :: Item -> [Test.Framework.Test]
+> itemToTft (Expressions es) = map (uncurry testParseExpression) es
+> itemToTft (PlpgsqlStatements es) = map (uncurry testParsePlpgsqlStatements) es
+> itemToTft (Statements es) = map (uncurry testParseStatements) es
+> itemToTft (Group s is) = [testGroup s $ concatMap itemToTft is]
 
-> checkParse :: String -> [Statement] -> Test.Framework.Test
-> checkParse src ast = parseUtil1 src ast (parseSql "")
 
-parse and then pretty print and parse an expression
-
-> checkParseExpression :: String -> Expression -> Test.Framework.Test
-> checkParseExpression src ast = parseUtil src ast
+> testParseExpression :: String -> Expression -> Test.Framework.Test
+> testParseExpression src ast = parseUtil src ast
 >                                  (parseExpression "") printExpression
 
-> checkParsePlpgsql :: String -> [Statement] -> Test.Framework.Test
-> checkParsePlpgsql src ast = parseUtil1 src ast (parsePlpgsql "")
+> testParseStatements :: String -> [Statement] -> Test.Framework.Test
+> testParseStatements src ast = parseUtil src ast (parseSql "") printSql
 
-> parseUtil :: --forall t b.
->             (Show t, Eq b, Show b, Data b) =>
->             String
->             -> b
->             -> ([Char] -> Either t b)
->             -> (b -> [Char])
->             -> Test.Framework.Test
+> testParsePlpgsqlStatements :: String -> [Statement] -> Test.Framework.Test
+> testParsePlpgsqlStatements src ast = parseUtil src ast (parsePlpgsql "") printSql
+
+> parseUtil :: (Show t, Eq b, Show b, Data b) =>
+>              String
+>           -> b
+>           -> ([Char] -> Either t b)
+>           -> (b -> [Char])
+>           -> Test.Framework.Test
 > parseUtil src ast parser printer = testCase ("parse " ++ src) $ do
->   let ast' = case parser src of
->               Left er -> error $ show er
->               Right l -> l
->   assertEqual ("parse " ++ src) ast $ stripAnnotations ast'
->   -- pretty print then parse to check
->   let pp = printer ast
->   let ast'' = case parser pp of
->               Left er -> error $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
->               Right l -> l
->   assertEqual ("reparse " ++ pp) ast $ stripAnnotations ast''
-
-> parseUtil1 :: (Show a) => String
->            -> [Statement]
->            -> (String -> Either a StatementList)
->            -> Test.Framework.Test
-> parseUtil1 src ast parser = testCase ("parse " ++ src) $ do
->   let ast' = case parser src of
->               Left er -> error $ show er
->               Right l -> l
->   assertEqual ("parse " ++ src) ast $ map stripAnnotations ast'
->   -- pretty print then parse to check
->   let pp = printSql ast'
->   let ast'' = case parser pp of
->               Left er -> error $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
->               Right l -> l
->   assertEqual ("reparse " ++ pp) ast $ map stripAnnotations ast''
-
+>   case parser src of
+>     Left er -> assertFailure $ show er
+>     Right ast' -> do
+>       assertEqual ("parse " ++ src) ast $ stripAnnotations ast'
+>       case parser (printer ast) of
+>         Left er -> assertFailure $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
+>         Right ast'' -> assertEqual ("reparse " ++ (printer ast)) ast $ stripAnnotations ast''
