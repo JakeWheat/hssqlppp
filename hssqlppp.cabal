@@ -143,7 +143,7 @@ Library
                      pretty-show,
                      Pipe,
                      process,
-                     pandoc,
+                     --pandoc == 1.2.1,
                      filepath,
                      template-haskell
 

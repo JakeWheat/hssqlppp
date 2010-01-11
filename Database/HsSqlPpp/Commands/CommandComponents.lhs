@@ -64,7 +64,7 @@ Wrappers used in the command line program
 
 > import Text.Show.Pretty
 > import System.Process.Pipe
-> import Text.Pandoc
+> --import Text.Pandoc
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
@@ -255,7 +255,7 @@ catalog stuff - just a diff to compare two catalogs
 > --   pandoc source file and converts to html, can run and insert
 > --   commands embedded in the source
 > pandoc :: MonadIO m => String -> ErrorT AllErrors m String
-> pandoc txt =
+> pandoc txt = return txt {-
 >   liftM (writeHtmlString wopt . readMarkdown defaultParserState)
 >     (hsTextize txt)
 >   where
@@ -271,7 +271,7 @@ catalog stuff - just a diff to compare two catalogs
 >                               \    padding: 0.5em;\n\
 >                               \}\n\
 >                               \</style>"
->              }
+>              }-}
 
 
 writerStandalone :: Bool	Include header and footer

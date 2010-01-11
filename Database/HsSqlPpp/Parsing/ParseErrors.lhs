@@ -48,10 +48,20 @@ plus output error location in emacs friendly format.
 >                         Just (l, _) -> l - 1
 >                         Nothing -> 0
 
-> data ParseErrorExtra = ParseErrorExtra ParseError -- wrapped error
->                                        (Maybe (Int, Int)) -- source position adjustment to get the context
->                                                           -- bit in error messages right
->                                        String -- source
+> -- | Simple wrapper to allow showing the source context of a ParseError
+> data ParseErrorExtra = ParseErrorExtra {
+>                                        -- | wrapped error
+>                                        parseErrorError :: ParseError
+>                                        -- | source position
+>                                        -- adjustment to get the
+>                                        -- context bit in error
+>                                        -- messages right - this is
+>                                        -- the same as what is passed
+>                                        -- into parseSqlWithPosition
+>                                       ,parseErrorPosition :: (Maybe (Int, Int))
+>                                        -- | sql source
+>                                       ,parseErrorSqlSource :: String
+>     }
 
 > instance Show ParseErrorExtra where
 >     show (ParseErrorExtra pe sp src) = showPE pe sp src
