@@ -7,14 +7,7 @@ written in a tdd style, which the coverage of the tests reflects.
 
 There are no tests for invalid sql at the moment.
 
-TODO
-new idea for testing:
-parsesql -> ast1
-parse, pretty print, parse -> ast2
-load into pg, pg_dump, parse -> ast3
-parse, pretty print, load into pg, pg_dump, parse -> ast4
-check all these asts are the same
-
+temporarily disabled because of haddock issue:
 {-# LANGUAGE QuasiQuotes #-}
 
 > module Database.HsSqlPpp.Tests.ParserTests (parserTests) where
@@ -263,10 +256,9 @@ select statements
 >      ]]
 
 >    ,Group "more select statements" [Statements [
->       p -- [$here|
->          "select a from tbl\n\
->          \except\n\
->          \select a from tbl1;" --   |]
+>       p "select a from tbl\n\
+>         \except\n\
+>         \select a from tbl1;"
 >       [SelectStatement [] $ CombineSelect [] Except
 >        (selectFrom (selIL ["a"]) (Tref [] "tbl" NoAlias))
 >        (selectFrom (selIL ["a"]) (Tref [] "tbl1" NoAlias))]
@@ -1256,3 +1248,11 @@ Unit test helpers
 >       case parser (printer ast) of
 >         Left er -> assertFailure $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >         Right ast'' -> assertEqual ("reparse " ++ printer ast) ast $ stripAnnotations ast''
+
+TODO
+new idea for testing:
+parsesql -> ast1
+parse, pretty print, parse -> ast2
+load into pg, pg_dump, parse -> ast3
+parse, pretty print, load into pg, pg_dump, parse -> ast4
+check all these asts are the same

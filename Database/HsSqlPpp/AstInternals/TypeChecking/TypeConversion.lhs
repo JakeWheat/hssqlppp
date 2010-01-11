@@ -121,7 +121,7 @@ rewrite this to try to make it a bit clearer
 find some way to draw a data flow diagram of the code easily
 
 add a logging facility so the function can explain what has happened
-at each state, so you can provide a detailed explainion e.g. if the
+at each state, so you can provide a detailed explanation e.g. if the
 code can't find an operator match to see what it has tried to match
 against.
 

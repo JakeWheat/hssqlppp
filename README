@@ -8,7 +8,7 @@ and PL/pgSQL. BSD licensed.
 The current aims of the project is to provide a parser and type
 checker for a substantial portion of PostgreSQL SQL and PL/pgSQL, and
 then hopefully to build on this to make tools and libraries to help
-developing plpgsql code.
+developing PL/pgSQL code.
 
 Status: it successfully parses and accurately pretty prints the three
 moderate sized SQL files from another project of mine, but there are

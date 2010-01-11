@@ -141,5 +141,5 @@ pass to the typeCheck function.
 
 = run the automated tests
 
-To run the test suite run ./HsSqlPppTests.lhs. This will run the tests
+To run the test suite run ./HsSqlSystem.lhs test. This will run the tests
 for parsing and pretty printing, and for type checking.

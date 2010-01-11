@@ -6,7 +6,7 @@ not in any particular order
 == use better database config
 command line args and config file for db, username and password, and
    add prompt style so works like psql
-== seperate out documentation program to separate package
+== separate out documentation program to separate package
 -> how to do plugins for extra commands?
 
 == documentation work
@@ -38,7 +38,7 @@ get chaos sql loading via hssqlppp again so can run roundtrip tests on
 == extensions code tidy?
 == annotation generics style
 == non sql syntax extensions work
-== catalog ish: triggers, seuences, constraints, index, defaults
+== catalog ish: triggers, sequences, constraints, index, defaults
 == haddock work
 == do makefile type thing for development and deployment of db projects
 
@@ -109,7 +109,7 @@ get checkbig mostly working: not trying to get no type errors or
    add missing items to catalog: triggers, sequences, constraints,
    indexes, defaults
 
-= Ammending existing functionality
+= Amending existing functionality
 
 add dbms database name, username and password support
 review holes:

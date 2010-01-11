@@ -1,6 +1,7 @@
 Copyright 2009 Jake Wheat
 
-Set of tests to check the type checking code.
+Set of tests to check the type checking code. Includes some tests for
+sql which doesn't type check.
 
 
 > module Database.HsSqlPpp.Tests.AstCheckTests (astCheckTests) where
@@ -10,8 +11,6 @@ Set of tests to check the type checking code.
 > import Test.Framework.Providers.HUnit
 > import Data.Char
 > import Data.List
-> --import Debug.Trace
-> --import Text.Show.Pretty
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.TypeChecker
@@ -21,34 +20,6 @@ Set of tests to check the type checking code.
 
 > astCheckTests :: Test.Framework.Test
 > astCheckTests = testGroup "astCheckTests" [
->     --testGroup "test test"
->     --(mapAttr [
->     --  p "select 1;" []
->     -- ])
-
-this is disabled because the messages are getting a rethink, the code
-that supports this test passing is commented out also
-
-> {-
->    ,testGroup "loop tests"
->     (mapAttr [] {-
->       p "create function cont_test1() returns void as $$\n\
->         \declare\n\
->         \  r record;\n\
->         \begin\n\
->         \  for r in select a from b loop\n\
->         \    null;\n\
->         \    continue;\n\
->         \  end loop;\n\
->         \end;\n\
->         \$$ language plpgsql volatile;\n" []
->      ,p "create function cont_test2() returns void as $$\n\
->         \begin\n\
->         \    continue;\n\
->         \end;\n\
->         \$$ language plpgsql volatile;\n" [Error ("",3,5) ContinueNotInLoop]
->      ]-}
->      )-}
 
 Test the types of a bunch of expressions.
 
@@ -1210,3 +1181,5 @@ annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 >          assertEqual ("eu " ++ src) eu eu'
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
 
+TODO:
+redo to match style of parsertests

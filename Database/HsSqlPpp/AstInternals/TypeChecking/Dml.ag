@@ -99,7 +99,7 @@ SEM Statement
 
 small complication is slightly hacky code to deal with row set
 assignments, where we assign from a multiple attribute subselect into
-mulitple columns - todo: check if we need so much special casing for
+multiple columns - todo: check if we need so much special casing for
 this: should be able to reuse the funcall typing of row set equality
 (trade one hack for another, squinting so that assignment looks like
 an equality check - since it type checks the same we might be ok). If

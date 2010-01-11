@@ -19,7 +19,7 @@ SEM Expression
 {-
 == literals
 
-pretty straightfoward
+pretty straightforward
 -}
 
 SEM Expression
@@ -88,7 +88,7 @@ between, greatest and least are treated as syntactic sugar so we
 delegate the function lookups to the <=/>= operators.
 
 the row comparison should be more general than this, since it supports
-any operator satifying some properties
+any operator satisfying some properties
 
 
 TODO: move all of this into find call match. Don't know why it's separate

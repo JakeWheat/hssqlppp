@@ -14,7 +14,7 @@ select expression).
 ATTR TableRef TableRefList [|| libUpdates: {[LocalIdentifierBindingsUpdate]}]
 
 -- use these attributes which contain a copy of the info in lib
--- updates in a form more digestable to the join attributes resolution
+-- updates in a form more digestible to the join attributes resolution
 -- the main advantages is we don't have to pull the ids out of a list
 -- of update wrappers, and we don't have to split the id bindings into
 -- qualified and unqualified parts. We could do it just using the

@@ -384,7 +384,7 @@ generate the names of the functions
 
 approach:
 first: remove the create function generate_spell_choice_actions, the
-select generate_spel..., and the drop function so these arn't used at
+select generate_spel..., and the drop function so these aren't used at
 all
 second: at the point where generate_spell_choice_actions was called,
 insert the create functions. To do this need to get the copydata for

@@ -41,11 +41,20 @@ Description:
     arguments to get some help. Has a HUnit test suite which you can
     run using the HsSqlSystem executable. for the time being you can
     look at the source of this command to see what it can do:
+    .
     <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/HsSqlSystem.lhs>
     .
     See the project page
     <https://launchpad.net/hssqlppp> for more information and
     documentation links.
+    .
+    The test files for parsing and for type checking contain examples
+    of what parses/ typechecks and what the asts and annotations look
+    like:
+    .
+    <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/Database/HsSqlPpp/Tests/ParserTests.lhs>
+    .
+    <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/Database/HsSqlPpp/Tests/AstCheckTests.lhs>
 
 License:             BSD3
 License-file:        LICENSE

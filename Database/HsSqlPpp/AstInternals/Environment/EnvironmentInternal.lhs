@@ -378,8 +378,7 @@ remove from list, and remove from update list
 
 = built in stuff
 
-keyword operators, all of these are b
-uilt in and don't appear in any
+keyword operators, all of these are built in and don't appear in any
 postgresql catalog
 
 This is wrong, these need to be separated into prefix, postfix, binary

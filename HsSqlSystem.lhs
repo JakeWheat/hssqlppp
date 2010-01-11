@@ -374,7 +374,7 @@ is like the ast fed into pg but with a few statements split into
 components (e.g. create table with serial is split into create
 sequence and create table), and then the statements are reordered, so
 write a routine to mirror this - will then have
-(anyast -> rarrange and reorder) == (anyast -> pg->pgdump)
+(anyast -> rearrange and reorder) == (anyast -> pg->pgdump)
 
 > testBatteryA = mode $ TestBattery {database = def
 >                                   ,files = def &= typ "FILES" & args}
@@ -457,10 +457,10 @@ TODOS
 command to display all annotation inline in sql source
 better catalog diff, e.g. if two tables differ in one column just show
 that difference
-see if can improve ppshow to use slighly less newlines
+see if can improve ppshow to use slightly less newlines
 command to show which bits of preexisting catalog are used
 command to list which views/functions/etc. aren't used anywhere
-replace a bunch of commands with composable set:
+replace a bunch of commands with composible set:
 parse(expression), ppp, typecheck(expression), allannots
 ->
 parse (expression option)

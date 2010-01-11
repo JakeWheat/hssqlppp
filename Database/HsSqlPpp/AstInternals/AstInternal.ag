@@ -722,7 +722,7 @@ typeCheckExpression env ex =
 
 {-
 bit of a hack, to avoid rewriting the tableref type checking to be
-able to do implict joins, we just convert them in to the equivalent
+able to do implicit joins, we just convert them in to the equivalent
 explicit join
 -}
 
