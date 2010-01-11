@@ -35,7 +35,7 @@
 > shell :: String -> IO String
 > shell s = {-let (c:as) = words s
 >           in -} do
->              (ex,o,e) <- readProcessWithExitCode "bash" ("-c":("PATH=$PATH:~/wd/hssqlppp/trunk " ++ s):[]) ""
+>              (ex,o,e) <- readProcessWithExitCode "bash" ["-c", ("PATH=$PATH:~/wd/hssqlppp/trunk " ++ s)] ""
 >              return $ o ++ e ++ case ex of
 >                                         ExitSuccess -> ""
 >                                         ExitFailure i -> "\nErrorCode: " ++ show i ++ "\n"

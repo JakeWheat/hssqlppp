@@ -8,7 +8,7 @@ This is the public module for the type checking functionality.
 >
 > Annotations:
 >
-> * are attached to some of the ast node data types, but not quite all of them;
+> * are attached to most of the ast node data types, but not quite all of them;
 >
 > * types annotations are attached to most nodes during type checking;
 >
@@ -22,7 +22,7 @@ This is the public module for the type checking functionality.
 > * the parser fills in the source position annotation in every annotatable ast node.
 >
 > -}
-> module Database.HsSqlPpp.Ast.Annotator
+> module Database.HsSqlPpp.Ast.TypeChecker
 >     (
 >      -- * typechecking/ annotation functions
 >       typeCheck

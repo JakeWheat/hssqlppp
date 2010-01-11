@@ -4,9 +4,12 @@ Experimental code to use uniplate to implement extensions
 
 > {-# LANGUAGE ViewPatterns #-}
 
-> {- | Experimental code to half implement some simple syntax extensions
->      for plpgsql.
-> -}
+> {- | Experimental code to half implement some simple syntax
+>      extensions for plpgsql. Eventually, want to use this to write
+>      macro type things for plpgsql, have implementation of all these
+>      in pure plpgsql code but it's a mess, and the plpgsql
+>      implementation is opaque to the hssqlppp type checker.
+>  -}
 
 > module Database.HsSqlPpp.Extensions.ChaosExtensions
 >     (
@@ -48,10 +51,10 @@ Experimental code to use uniplate to implement extensions
 
 > funCallView :: Statement -> FunCallView
 > funCallView (SelectStatement an (Select _ _ (SelectList _ [SelExp _ (FunCall _ fnName
->               args)] []) [] Nothing [] Nothing [] Nothing Nothing)) = (FunCallView an fnName args)
+>               args)] []) [] Nothing [] Nothing [] Nothing Nothing)) = FunCallView an fnName args
 > funCallView _ = FUnit
 
-
+> -- | run all the extensions in this module on the given ast
 > extensionize :: Data a => a -> a
 > extensionize = addReadonlyTriggers .
 >                rewriteCreateVars .
@@ -100,6 +103,8 @@ type checking the code easier (the other obvious alternative is to
 write a partial interpreter for pl/pgsql which sounds like an immense
 amount of work in comparison).
 
+> -- | short cut for creating a table with exactly one attribute whose
+> -- cardinality is restricted to 0 or 1. Also provides a get_var function shortcut.
 > rewriteCreateVars :: Data a => a -> a
 > rewriteCreateVars =
 >     transformBi $ \x ->
@@ -130,13 +135,15 @@ amount of work in comparison).
 
 ================================================================================
 
+> -- | looks for calls to function set_relvar_type and adds triggers to prevent the
+> -- referenced table from being updated
 > addReadonlyTriggers :: Data a => a -> a
 > addReadonlyTriggers =
 >     transformBi $ \x ->
 >       case x of
 >         (funCallView -> FunCallView an "set_relvar_type" [StringLit _ _ tableName,StringLit _ _ "readonly"]):tl
 >             -> (flip map "diu" ( \t ->
->                     ((CreateFunction an ("check_" ++ tableName ++ "_" ++ (t:[]) ++ "_readonly") []
+>                     (CreateFunction an ("check_" ++ tableName ++ "_" ++ [t] ++ "_readonly") []
 >                                     (SimpleTypeName an "trigger") Plpgsql
 >                                     "$a$"
 >                                     (PlpgsqlFnBody an [] [
@@ -147,11 +154,12 @@ amount of work in comparison).
 >                                            \violates transition constraint \
 >                                            \base_relvar_metadata_d_readonly" []])] []
 >                                      ,Return an $ Just $ NullLit an])
->                                     Volatile))) ++ tl)
+>                                     Volatile)) ++ tl)
 >         x1 -> x1
 
 ================================================================================
 
+> -- | a numpty currying type thing for plpgsql functions
 > createClientActionWrapper :: Data a => a -> a
 > createClientActionWrapper =
 >     transformBi $ \x ->
@@ -167,19 +175,19 @@ amount of work in comparison).
 >         x1 -> x1
 >     where
 >       parseActionCall :: String -> (String,[String])
->       parseActionCall s = parseCcawac s
+>       parseActionCall = parseCcawac
 
 > parseCcawac :: String -> (String,[String])
 > parseCcawac s = case runParser ccawac [] "" s of
 >                   Left e -> trace ("failed to parse " ++ s) $ error $ show e
 >                   Right r -> r
 
-> ccawac :: ParsecT String LexState Identity (String, [[Char]])
+> ccawac :: ParsecT String LexState Identity (String, [String])
 > ccawac = (,)
 >          <$> identifierString
 >          <*> parens (sepBy ccawacarg (symbol ","))
 
-> ccawacarg :: ParsecT String LexState Identity [Char]
+> ccawacarg :: ParsecT String LexState Identity String
 > ccawacarg = (symbol "'" *> many (noneOf "'") <* symbol "'")
 >             <|> identifierString
 
@@ -194,6 +202,7 @@ amount of work in comparison).
 
 ================================================================================
 
+> -- | add a trigger to each data table to raise a notify signal when changed
 > addNotifyTriggers :: Data a => a -> a
 > addNotifyTriggers =
 >     transformBi $ \x ->
@@ -210,6 +219,8 @@ amount of work in comparison).
 
 ================================================================================
 
+> -- | wrapped for the extended constraint system - allows adding constraints
+> -- which refer to multiple rows/ multiple tables.
 > addConstraint :: Data a => a -> a
 > addConstraint =
 >     transformBi $ \x ->
@@ -237,7 +248,7 @@ amount of work in comparison).
 >      (SimpleTypeName an "boolean") Plpgsql "$a$"
 >      (PlpgsqlFnBody an [] [
 >         Return an $ Just $
->         (stripAnnotations $ parseExpressionWrap expr)
+>         stripAnnotations (parseExpressionWrap expr)
 >       ]) Stable :
 >     if tr
 >       then concatMap (\t -> [DropFunction an IfExists [(t ++ "_constraint_trigger_operator",[])] Restrict
@@ -248,6 +259,8 @@ amount of work in comparison).
 >                                    ) tbls
 >       else []
 
+> -- | implement key constraints so that they are integrated with the extended constraint
+> -- system, uses pg keys internally.
 > addKey :: Data a => a -> a
 > addKey =
 >     transformBi $ \x ->
@@ -263,7 +276,7 @@ amount of work in comparison).
 >         x1 -> x1
 
 > getStrings :: [Expression] -> [String]
-> getStrings cols = map (\(StringLit _ _ c) -> c) cols
+> getStrings = map (\(StringLit _ _ c) -> c)
 
 > createKey :: Annotation
 >           -> String
@@ -273,15 +286,8 @@ amount of work in comparison).
 >    let cn = take 49 (tableName ++ "_" ++ intercalate "_" colNames) ++ "_key"
 >    in createConstraint False an [tableName] cn "true"
 
-> zeroOneTuple :: Data a => a -> a
-> zeroOneTuple =
->     transformBi $ \x ->
->       case x of
->         (funCallView -> FunCallView an "constrain_to_zero_or_one_tuple"
->                           [StringLit _ _ tableName]):tl
->           -> createConstraint True an [tableName] (tableName ++ "_01_tuple") "true" ++ tl
->         x1 -> x1
-
+> -- | extended inclusion dependency (I think that is the fashionable term these days).
+> -- to allow 'foreign keys' to non key attributes, as well as regular foreign keys
 > addForeignKey :: Data a => a -> a
 > addForeignKey =
 >     transformBi $ \x ->
@@ -313,6 +319,16 @@ amount of work in comparison).
 >       createFk an tbl atts _ _  =
 >           createConstraint False an [tbl] (tbl ++ "_" ++ intercalate "_" atts ++ "_fkey") "true"
 
+> -- | convert calls to zero or one tuple to constraint
+> zeroOneTuple :: Data a => a -> a
+> zeroOneTuple =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "constrain_to_zero_or_one_tuple"
+>                           [StringLit _ _ tableName]):tl
+>           -> createConstraint True an [tableName] (tableName ++ "_01_tuple") "true" ++ tl
+>         x1 -> x1
+
 ================================================================================
 
 > noDelIns :: Data a => a -> a
@@ -321,7 +337,7 @@ amount of work in comparison).
 >       case x of
 >         (funCallView -> FunCallView an "no_deletes_inserts_except_new_game"
 >                           [StringLit _ _ tbl]):tl
->           -> (flip map ["_no_delete","_no_insert"] $ \n ->
+>           -> flip map ["_no_delete","_no_insert"] (\n ->
 >                CreateFunction an ("check_" ++ tbl ++ n) []
 >                (SimpleTypeName an "trigger") Plpgsql "$a$"
 >                (PlpgsqlFnBody an [] [

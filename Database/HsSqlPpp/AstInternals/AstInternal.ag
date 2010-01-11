@@ -110,9 +110,6 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,typeCheck
    ,typeCheckMany
    ,typeCheckExpression
-   ,annotateAstsEnv
-   ,annotateAstEnv
-   ,annotateExpression
 }
 
 {
@@ -685,26 +682,6 @@ makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
 -}
 {
 
-{-
-
--- | Takes an ast, and adds annotations, including types, type errors,
--- and statement info. Type checks against defaultEnv.
-annotateAst :: StatementList -> StatementList
-annotateAst = annotateAstEnv defaultTemplate1Environment
-
-
--- | As annotateAst but you supply an environment to check
--- against. See Environment module for how to read an Environment from
--- an existing database so you can type check against it.
-annotateAstEnv :: Environment -> StatementList -> StatementList
-annotateAstEnv env sts =
-    let t = sem_Root (Root sts)
-        ta = wrap_Root t Inh_Root {env_Inh_Root = env
-                                  ,lib_Inh_Root = emptyBindings}
-        tl = annotatedTree_Syn_Root ta
-   in case tl of
-         Root r -> r
--}
 -- | Type check multiple asts, allowing type checking references in
 --   later files to definitions in earlier files. This is probably
 --   more straightforward if you parse the files then concatenate the
@@ -719,9 +696,6 @@ typeCheckMany env sts =
           in annInt e1 ss (res:ress)
       annInt _ [] ress = reverse ress
 
-annotateAstsEnv :: Environment -> [StatementList] -> [StatementList]
-annotateAstsEnv = typeCheckMany
-
 -- | Takes an ast, checks against catalog passed, and adds
 --   annotations, including types, type errors, and statement info.
 --   Returns the updated catalog as well as the annotated ast.
@@ -735,9 +709,6 @@ typeCheck env sts =
    in case tl of
          Root r -> (env1,r)
 
-annotateAstEnv :: Environment -> StatementList -> (Environment,StatementList)
-annotateAstEnv = typeCheck
-
 -- | Testing utility, mainly used to check an expression for type errors
 -- or to get its type.
 typeCheckExpression :: Environment -> Expression -> Expression
@@ -748,9 +719,6 @@ typeCheckExpression env ex =
                                                         ,lib_Inh_ExpressionRoot = emptyBindings}))
     in case rt of
          ExpressionRoot e -> e
-
-annotateExpression :: Environment -> Expression -> Expression
-annotateExpression = typeCheckExpression
 
 {-
 bit of a hack, to avoid rewriting the tableref type checking to be

@@ -17,7 +17,6 @@ Set of tests for the extensions
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Extensions.ChaosExtensions
 > import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Ast.Annotation
 > --import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 
 > extensionTests :: Test.Framework.Test

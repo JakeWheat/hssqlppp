@@ -14,7 +14,7 @@ Set of tests to check the type checking code.
 > --import Text.Show.Pretty
 
 > import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Ast.Annotator
+> import Database.HsSqlPpp.Ast.TypeChecker
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Ast.SqlTypes

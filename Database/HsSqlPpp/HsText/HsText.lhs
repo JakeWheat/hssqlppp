@@ -33,7 +33,7 @@
 >   setCurrentDirectory folder
 >   bracket (return ())
 >           (\_ -> setCurrentDirectory cd)
->    $ return $ runErrorT $ do
+>    $ return $ runErrorT $
 >        liftM concat
 >          (either (throwError . show) return (parseText txt) >>=
 >            mapM (liftIO . processCommand cmds))

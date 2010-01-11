@@ -30,7 +30,7 @@ text on these points, then zip it and output it.
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Ast.Annotator
+> import Database.HsSqlPpp.Ast.TypeChecker
 
 > annotateSource :: Bool -> String -> StatementList -> String
 > annotateSource doErrs src aast =

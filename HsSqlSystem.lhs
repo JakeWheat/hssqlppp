@@ -235,7 +235,7 @@ how to do this
 >                                    >>= typeCheckExpressionC cat)
 >   tes <- mapM getTEs aasts
 >   mapM_ (\x -> ppTypeErrors x >>= putStrLnList) $ filter (not . null) tes
->   mapM_ (\a -> getTopLevelTypes a >>= return . show . head >>= message) aasts
+>   mapM_ (\a -> liftM (show . head) (getTopLevelTypes a) >>= message) aasts
 
 ================================================================================
 
@@ -447,8 +447,8 @@ create target folder if doesn't exist
 >              forM_ sts $ \(s,t) ->
 >                      readInput s >>= pandoc >>= C.writeFile t
 >             where
->               sources = liftIO (getDirectoryContents "docs") >>=
->                         return . filter (isSuffixOf ".txt")
+>               sources = liftM (filter (isSuffixOf ".txt"))
+>                           (liftIO (getDirectoryContents "docs"))
 
 ================================================================================
 

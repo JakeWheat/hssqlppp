@@ -69,7 +69,7 @@ Wrappers used in the command line program
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Parsing.Lexer
 
-> import Database.HsSqlPpp.Ast.Annotator as A
+> import Database.HsSqlPpp.Ast.TypeChecker as A
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Ast.Ast
@@ -92,16 +92,15 @@ parsing
 
 > -- | Lex a string to a list of tokens.
 > lexSql :: Monad m => String -> String -> ErrorT AllErrors m [Token]
-> lexSql f s = return (lexSqlText f s) >>= throwEEEither
+> lexSql f = throwEEEither . lexSqlText f
 
 > -- | Parse a string to an ast.
 > parseSql1 :: Monad m => String -> String -> ErrorT AllErrors m StatementList
-> parseSql1 f s = return (parseSql f s) >>= throwEEEither
-
+> parseSql1 f = throwEEEither . parseSql f
 
 > -- | Parse an expression to an ast.
 > parseExpression1 :: Monad m => String -> String -> ErrorT AllErrors m Expression
-> parseExpression1 f s = return (parseExpression f s) >>= throwEEEither
+> parseExpression1 f = throwEEEither . parseExpression f
 
 ================================================================================
 
@@ -117,18 +116,18 @@ annotation ish
 > --   an ast without all the source position annotations cluttering
 > --   it up.
 > stripAnn :: (Monad m, Error e, Data a) => a -> ErrorT e m a
-> stripAnn s = return $ stripAnnotations s
+> stripAnn = return . stripAnnotations
 
 > -- | Type check an ast against a catalog, return the annotated ast
 > --   and the updated catalog.
 > typeCheckC :: (Monad m, Error e) => Environment -> StatementList
 >            -> ErrorT e m (Environment, StatementList)
-> typeCheckC cat ast = return $ typeCheck cat ast
+> typeCheckC cat = return . typeCheck cat
 
 > -- | Type check an expression ast against a catalog
 > typeCheckExpressionC :: (Monad m, Error e) => Environment -> Expression
 >                      -> ErrorT e m Expression
-> typeCheckExpressionC cat ast = return $ typeCheckExpression cat ast
+> typeCheckExpressionC cat = return . typeCheckExpression cat
 
 could probably make this more general, so can run an arbitrary filter
 on annotations and then get a list of them with source positions
@@ -137,7 +136,7 @@ on annotations and then get a list of them with source positions
 > --   if available.
 > getTEs :: (Monad m, Error e, Data d) =>
 >           d -> ErrorT e m [(Maybe AnnotationElement,[TypeError])]
-> getTEs ast = return $ getTypeErrors ast
+> getTEs = return . getTypeErrors
 
 > -- | Pretty print list of type errors with optional source position
 > --   in emacs readable format.
@@ -175,7 +174,7 @@ where printsql comes in system though
 > -- | take a source text and annotated ast and interpolate annotations into the source
 > --   as comments
 > ppAnnOrig :: (Monad m, Error e) => Bool -> String -> StatementList -> ErrorT e m String
-> ppAnnOrig doErrs src ast = return $ annotateSource doErrs src ast
+> ppAnnOrig doErrs src = return . annotateSource doErrs src
 
 ================================================================================
 
@@ -189,12 +188,12 @@ dbms utilities
 
 > -- | run psql to load the sql text into a database.
 > loadSqlUsingPsql :: MonadIO m  => String -> String -> ErrorT AllErrors m String
-> loadSqlUsingPsql dbName script = do
->   liftIO $ pipeString [("psql", [dbName
+> loadSqlUsingPsql dbName =
+>   liftIO . pipeString [("psql", [dbName
 >                                 ,"-q"
 >                                 ,"--set"
 >                                 ,"ON_ERROR_STOP=on"
->                                 ,"--file=-"])] script
+>                                 ,"--file=-"])]
 
 > -- | run psql to load sql from the filename given into a database.
 > loadSqlUsingPsqlFromFile :: MonadIO m  => String -> FilePath -> ErrorT AllErrors m String
@@ -209,7 +208,7 @@ dbms utilities
 > -- | use the hssqlppp code to load the sql into a database directly
 > --   (this parses and pretty prints the sql to load it)
 > loadAst :: (MonadIO m, Error e) => String -> String -> StatementList -> ErrorT e m ()
-> loadAst db fn ast = liftIO $ loadIntoDatabase db fn ast
+> loadAst db fn = liftIO . loadIntoDatabase db fn
 
 > -- | use a dodgy hack to clear the database given
 > clearDB :: MonadIO m => String -> ErrorT AllErrors m ()
@@ -257,8 +256,8 @@ catalog stuff - just a diff to compare two catalogs
 > --   commands embedded in the source
 > pandoc :: MonadIO m => String -> ErrorT AllErrors m String
 > pandoc txt =
->   hsTextize txt >>=
->   return . writeHtmlString wopt . readMarkdown defaultParserState
+>   liftM (writeHtmlString wopt . readMarkdown defaultParserState)
+>     (hsTextize txt)
 >   where
 >     wopt = defaultWriterOptions {
 >                writerStandalone = True
@@ -335,7 +334,7 @@ more elegant way of doing this but it does the job for now
 
 > instance Error AllErrors where
 >   noMsg = AEMisc "Unknown error"
->   strMsg str = AEMisc str
+>   strMsg = AEMisc
 
 > throwEEEither :: (MonadError AllErrors m) => Either ParseErrorExtra a -> m a
 > throwEEEither = throwEither . mapLeft AEExtendedError
@@ -358,7 +357,7 @@ as an argument to the exe
 > readInput :: (Error e, MonadIO m) => FilePath -> ErrorT e m String
 > readInput f =
 >   liftIO $ case f of
->              "-" -> hGetContents stdin
+>              "-" -> getContents
 >              _ | length f >= 2 &&
 >                  head f == '"' && last f == '"'
 >                    -> return $ drop 1 $ take (length f - 1) f
@@ -368,8 +367,8 @@ as an argument to the exe
 
 > -- | write text to a file
 > writeFile :: (Error e, MonadIO m) => FilePath -> String -> ErrorT e m ()
-> writeFile fn src =
->     liftIO $ System.IO.writeFile fn src
+> writeFile fn =
+>     liftIO . System.IO.writeFile fn
 
 ================================================================================
 
@@ -377,7 +376,7 @@ Utilities
 
 > -- | wrapper for putstrln
 > message :: MonadIO m => String -> m ()
-> message x = liftIO (putStrLn x)
+> message = liftIO . putStrLn
 
 run in errort monad
 should think of something better to do here than just rethrow as io error1
@@ -407,4 +406,4 @@ should think of something better to do here than just rethrow as io error1
 
 > -- | lifted concat
 > lconcat :: (Monad m, Error e) => [[a]] -> ErrorT e m [a]
-> lconcat as = return $ concat as
+> lconcat = return . concat

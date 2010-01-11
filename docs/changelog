@@ -9,6 +9,7 @@ improvements to checksource command
 prototype idea for extension system
 hack to improve typechecking of function bodies - they are now type
 checked after the whole rest of the file
+lots of work on catalog typechecking
 
 main internal changes:
 lots of refactoring

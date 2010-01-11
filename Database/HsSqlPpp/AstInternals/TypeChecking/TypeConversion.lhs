@@ -450,7 +450,7 @@ check all can convert to selected type else fail
 code is not as much of a mess as findCallMatch
 
 > resolveResultSetType :: Environment -> [Type] -> Either [TypeError] Type
-> resolveResultSetType env inArgs = do
+> resolveResultSetType env inArgs =
 >   dependsOnRTpe inArgs $ do
 >   errorWhen (null inArgs) [TypelessEmptyArray]
 >   returnWhen allSameType (head inArgs) $ do
@@ -497,10 +497,8 @@ cast empty array, where else can an empty array work?
 >        else Left [IncompatibleTypes to from]
 
 > compositesCompatible :: Environment -> Type -> Type -> Bool
-> compositesCompatible env from to =
->     if castableFromTo env ImplicitCastContext from to
->        then True
->        else False
+> compositesCompatible env =
+>     castableFromTo env ImplicitCastContext
 
 ================================================================================
 

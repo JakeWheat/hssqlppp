@@ -13,9 +13,7 @@ the type checking code.
 >     an existing database.
 >
 >  * A copy of the catalog information from a default template1
->    database is included - 'defaultTemplate1Environment', at some
->    point this might be used to allow typechecking sql code against
->    this catalog without having an available PostGreSQL install.
+>    database is included - 'defaultTemplate1Environment'.
 >
 >  * It is used internally to keep track of updates to the catalog
 >     whilst running an annotation process (e.g. so that a select can

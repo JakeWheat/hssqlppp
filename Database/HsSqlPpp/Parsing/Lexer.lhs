@@ -236,7 +236,7 @@ really examined until type checking
 >                                Just c -> return $ a ++ c]
 >   where
 >     nonStarPart = idpart <|> (char '"' *> many (noneOf "\"") <* char '"')
->                   where idpart = ((letter <|> char '_') <:> secondOnwards)
+>                   where idpart = (letter <|> char '_') <:> secondOnwards
 >     secondOnwards = many (alphaNum <|> char '_')
 
 parse the block of inline data for a copy from stdin, ends with \. on

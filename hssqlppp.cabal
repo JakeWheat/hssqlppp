@@ -15,14 +15,13 @@ Description:
     .
     'AnnotateSource' for pretty printing annotations inline with original source;
     .
-    'Annotator' for annotating asts (this does the type checking);
-    and working with annotated trees;
+    'TypeChecker' for type checking and annotating asts and working
+    with annotated trees;
     .
     'SqlTypes' for the data types which represent SQL types, the data
     type for type errors, and some support functions;
     .
-    'Annotation' for the annotation data types and utilities, this
-    also contains the data types for SQL types;
+    'Annotation' for the annotation data types and utilities;
     .
     'Environment' to read a catalog from a database to type check against,
     or to generate catalog information;
@@ -61,12 +60,14 @@ bug-reports:         mailto:jakewheatmail@gmail.com
 category:            Database
 
 extra-source-files:  README
-                     TODO
-                     development
-                     questions
-                     usage
                      LICENSE
-                     changelog
+                     docs/changelog
+                     docs/development
+                     docs/Introduction.txt
+                     docs/recordtests.sql
+                     docs/status
+                     docs/TODO
+                     docs/usage
                      sqltestfiles/system.sql
                      sqltestfiles/server.sql
                      sqltestfiles/client.sql
@@ -104,6 +105,7 @@ extra-source-files:  README
                      Database/HsSqlPpp/Tests/AstCheckTests.lhs
                      Database/HsSqlPpp/Tests/ParserTests.lhs
                      Database/HsSqlPpp/Tests/DatabaseLoaderTests.lhs
+                     Database/HsSqlPpp/Here.lhs
                      Database/HsSqlPpp/PrettyPrinter/AnnotateSource.lhs
                      Database/HsSqlPpp/PrettyPrinter/PrettyPrinter.lhs
                      Database/HsSqlPpp/HsText/Commands.lhs
@@ -111,7 +113,7 @@ extra-source-files:  README
                      Database/HsSqlPpp/Parsing/Lexer.lhs
                      Database/HsSqlPpp/Parsing/Parser.lhs
                      Database/HsSqlPpp/Parsing/ParseErrors.lhs
-                     Database/HsSqlPpp/Ast/Annotator.lhs
+                     Database/HsSqlPpp/Ast/TypeChecker.lhs
                      Database/HsSqlPpp/Ast/Ast.lhs
                      Database/HsSqlPpp/Ast/Environment.lhs
                      Database/HsSqlPpp/Ast/Annotation.lhs
@@ -137,7 +139,7 @@ Library
                      template-haskell
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
-                     Database.HsSqlPpp.Ast.Annotator
+                     Database.HsSqlPpp.Ast.TypeChecker
                      Database.HsSqlPpp.Ast.Environment
                      Database.HsSqlPpp.Ast.Annotation
                      Database.HsSqlPpp.Ast.SqlTypes
@@ -149,6 +151,7 @@ Library
                      Database.HsSqlPpp.Extensions.ChaosExtensions
 
   Other-Modules:     Database.HsSqlPpp.Utils
+                     --Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Dbms.DBAccess
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstAnnotation
@@ -169,7 +172,7 @@ Library
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParseErrors
 
-  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables,QuasiQuotes
+  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
 
 Executable HsSqlSystem
   Main-is:           HsSqlSystem.lhs
@@ -186,6 +189,7 @@ Executable HsSqlSystem
                      cmdargs
 
   Other-Modules:     Database.HsSqlPpp.Utils
+                     --Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Commands.CommandComponents
                      Database.HsSqlPpp.Dbms.DBAccess
                      Database.HsSqlPpp.Dbms.DatabaseLoader
@@ -211,10 +215,10 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.Parser
                      Database.HsSqlPpp.Parsing.ParseErrors
-                     Database.HsSqlPpp.Ast.Annotator
+                     Database.HsSqlPpp.Ast.TypeChecker
                      Database.HsSqlPpp.Ast.Ast
                      Database.HsSqlPpp.Ast.Environment
                      Database.HsSqlPpp.Ast.Annotation
                      Database.HsSqlPpp.Ast.SqlTypes
 
-  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables,QuasiQuotes
+  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables

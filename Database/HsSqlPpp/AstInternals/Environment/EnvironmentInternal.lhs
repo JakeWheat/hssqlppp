@@ -43,7 +43,7 @@ modules.
 > import Control.Monad
 > import Data.List
 > import Data.Generics
-> import Debug.Trace
+> -- import Debug.Trace
 > import Data.Char
 
 > import Database.HsSqlPpp.AstInternals.TypeType
@@ -75,7 +75,7 @@ modules.
 > -- | Represents what you probably want to use as a starting point if
 > -- you are building an environment from scratch. It contains
 > -- information on built in function like things that aren't in the
-> -- PostGreSQL catalog, such as greatest, coalesce, keyword operators
+> -- PostgreSQL catalog, such as greatest, coalesce, keyword operators
 > -- like \'and\', etc..
 > defaultEnvironment :: Environment
 > defaultEnvironment = emptyEnvironment {
@@ -140,7 +140,7 @@ modules.
 > ppEnvUpdate (EnvCreateView nm flds) = "EnvCreateView " ++ nm ++ showFlds flds
 > ppEnvUpdate (EnvCreateFunction flav nm args ret vdc) =
 >     "EnvCreateFunction " ++ show flav ++ " " ++ nm ++ " returns " ++ show ret ++
->     "(" ++ (intercalate "," $ map show args) ++ ")" ++ if vdc then " variadic" else ""
+>     "(" ++ intercalate "," (map show args) ++ ")" ++ if vdc then " variadic" else ""
 > ppEnvUpdate (EnvDropFunction _ nm args) = "EnvDropFunction " ++ nm ++ "(" ++ show args ++ ")"
 
 > showFlds :: [(String,Type)] -> String
@@ -159,7 +159,7 @@ modules.
 >                   -> [EnvironmentUpdate]
 >                   -> Either [TypeError] Environment
 > updateEnvironment env' eus =
->   (foldM updateEnv' (env' {envUpdates = ((envUpdates env') ++ eus)}) eus)
+>   foldM updateEnv' (env' {envUpdates = envUpdates env' ++ eus}) eus
 >   where
 >     updateEnv' env eu =
 >       case eu of
@@ -226,10 +226,10 @@ modules.
 >               FunName -> env {envFunctions=(nm,args,ret,vdc):envFunctions env}
 >         EnvDropFunction ifexists nm args -> do
 >             let matches =  filter matchingFn (envFunctions env)
->             errorWhen (null matches) $ [BadEnvironmentUpdate $
+>             errorWhen (null matches) [BadEnvironmentUpdate $
 >                                         "couldn't find function to drop " ++
 >                                         show nm ++ "(" ++ show args++")"]
->             errorWhen (length matches > 1) $ [BadEnvironmentUpdate $
+>             errorWhen (length matches > 1) [BadEnvironmentUpdate $
 >                                               "multiple matching functions to drop " ++
 >                                               show nm ++ "(" ++ show args++")"]
 >             return env {envFunctions = filter (not . matchingFn) (envFunctions env)
@@ -272,7 +272,7 @@ remove from list, and remove from update list
 >   updateEnvironment emptyEnvironment (deconstructEnvironment env) = env
 >  @ -}
 > deconstructEnvironment :: Environment -> [EnvironmentUpdate]
-> deconstructEnvironment env = envUpdates env
+> deconstructEnvironment = envUpdates
 
 
 ================================================================================
@@ -321,10 +321,9 @@ remove from list, and remove from update list
 > envCast env ctx from to = {-trace ("check cast " ++ show from ++ show to) $-}
 >     case from of
 >       t@(DomainType _) -> let baseType = envDomainBaseType env t
->                           in if baseType == to
->                                then True
->                                else envCast env ctx baseType to ||
->                                     any (==(from,to,ctx)) (envCasts env)
+>                           in (baseType == to) ||
+>                                (envCast env ctx baseType to ||
+>                                   any (== (from, to, ctx)) (envCasts env))
 >       _ -> any (==(from,to,ctx)) (envCasts env)
 
 

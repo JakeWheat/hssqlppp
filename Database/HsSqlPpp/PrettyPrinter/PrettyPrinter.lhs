@@ -400,7 +400,7 @@ Conversion routines - convert Sql asts into Docs
 >   $+$ nest 2 (
 >               (if null tb
 >                  then empty
->                  else (text "from" <+> hcatCsvMap convTref tb))
+>                  else text "from" <+> hcatCsvMap convTref tb)
 >               $+$ convWhere wh)
 >   <+> ifNotEmpty (\g -> text "group by" <+> hcatCsvMap convExp g) grp
 >   <+> maybeConv (\h -> text "having" <+> convExp h) hav
@@ -494,7 +494,7 @@ Conversion routines - convert Sql asts into Docs
 >         <+> text "on update" <+> convCasc onupd
 >         <+> text "on delete" <+> convCasc ondel
 
-> mname :: [Char] -> Doc
+> mname :: String -> Doc
 > mname n = if n == ""
 >           then empty
 >           else text "constraint" <+> text n
@@ -536,7 +536,7 @@ Conversion routines - convert Sql asts into Docs
 >                      _ | all okChar i -> False
 >                        | otherwise -> True
 >                    where
->                      okChar = (\x -> isAlphaNum x || x `elem` "*_.")
+>                      okChar x =isAlphaNum x || x `elem` "*_."
 > convExp (IntegerLit _ n) = integer n
 > convExp (FloatLit _ n) = double n
 > convExp (StringLit _ tag s) = text tag <> text replaceQuotes <> text tag

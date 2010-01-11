@@ -48,7 +48,7 @@ plus output error location in emacs friendly format.
 >                         Just (l, _) -> l - 1
 >                         Nothing -> 0
 
-> data ParseErrorExtra = ParseErrorExtra ParseError -- ^ wrapped error
+> data ParseErrorExtra = ParseErrorExtra ParseError -- wrapped error
 >                                        (Maybe (Int, Int)) -- source position adjustment to get the context
 >                                                           -- bit in error messages right
 >                                        String -- source
@@ -58,7 +58,7 @@ plus output error location in emacs friendly format.
 
 > instance Error ParseErrorExtra where
 >   noMsg = ParseErrorExtra undefined Nothing "unknown"
->   strMsg str = ParseErrorExtra undefined Nothing str
+>   strMsg = ParseErrorExtra undefined Nothing
 
 
 > toParseErrorExtra :: Either ParseError b -> Maybe (Int,Int) -> String -> Either ParseErrorExtra b

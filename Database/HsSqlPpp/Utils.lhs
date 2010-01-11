@@ -48,17 +48,17 @@ This file contains some generic utility stuff
 > mapEither _ r (Right b) = Right $ r b
 
 > mapRight :: (b -> c) -> Either a b -> Either a c
-> mapRight r e = mapEither id r e
+> mapRight = mapEither id
 
 > mapLeft :: (a -> c) -> Either a b -> Either c b
-> mapLeft l e = mapEither l id e
+> mapLeft l = mapEither l id
 
 > isRight :: Either a b -> Bool
 > isRight (Right _) = True
 > isRight (Left _) = False
 
 > leftToEmpty :: (r -> [a]) -> Either l r -> [a]
-> leftToEmpty f e = either (const []) f e
+> leftToEmpty = either (const [])
 
 > replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
 > replace _ _ [] = []

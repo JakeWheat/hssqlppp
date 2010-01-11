@@ -207,12 +207,12 @@ moment.
 >   where
 >     updateEnv' lbs eu =
 >       case eu of
->         LibStackIDs qids -> return $ lbs {identifierTypes = (expandComposites qids):identifierTypes lbs}
+>         LibStackIDs qids -> return $ lbs {identifierTypes = expandComposites qids : identifierTypes lbs}
 >         LibSetStarExpansion sids -> return $ lbs {starTypes = sids}
 >     --take all the composite typed ids, and expand them out
 >     expandComposites :: [(String, [(String,Type)])] -> [(String, [(String,Type)])]
 >     expandComposites ((q,attrs):qis) =
->         ec attrs ++ (q, map (\(n,t) -> (n,wrapIfRecord n t)) attrs):expandComposites qis
+>         ec attrs ++ (q, map (\(n,t) -> (n,wrapIfRecord n t)) attrs) : expandComposites qis
 >         where
 >           ec :: [(String,Type)] -> [(String, [(String,Type)])]
 >           ec [] = []
@@ -226,7 +226,7 @@ moment.
 >               Right (PgRecord _) -> PgRecord (Just t)
 >               _ -> t
 >     expandComposites [] = []
->     compFields t = fromRight [] $ envCompositePublicAttrs env [] t
+>     compFields = fromRight [] . envCompositePublicAttrs env []
 
 > data LocalIdentifierBindingsUpdate =
 >     -- | to allow an unqualified identifier reference to work you need to

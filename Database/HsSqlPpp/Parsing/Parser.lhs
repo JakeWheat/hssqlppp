@@ -209,7 +209,7 @@ this recursion needs refactoring cos it's a mess
 > selectExpression =
 >   buildExpressionParser combTable selFactor
 >   where
->         selFactor = (try $ parens selectExpression) <|> selQuerySpec <|> values
+>         selFactor = try (parens selectExpression) <|> selQuerySpec <|> values
 >         combTable = [map (\(c,p) -> Infix (CombineSelect <$> pos <*> (c <$ p)) AssocLeft)
 >                         [(Except, keyword "except")
 >                         ,(Intersect, keyword "intersect")
@@ -255,7 +255,7 @@ this recursion needs refactoring cos it's a mess
 >                          <$> parens selectExpression
 >                          <*> palias
 >                         ,TrefFun p2
->                          <$> (try $ identifier >>= functionCallSuffix)
+>                          <$> try (identifier >>= functionCallSuffix)
 >                          <*> palias
 >                         ,Tref p2
 >                          <$> nkwid
@@ -286,7 +286,7 @@ this recursion needs refactoring cos it's a mess
 >              <*> palias
 >         palias = option NoAlias
 >                    (optionalSuffix
->                       TableAlias ((optional (keyword "as")) *> nkwid)
+>                       TableAlias (optional (keyword "as") *> nkwid)
 >                       FullAlias () (parens $ commaSep1 idString))
 >         nkwid = try $ do
 >                  x <- idString
@@ -522,8 +522,8 @@ multiple rows to insert and insert from select statements
 >                                             <|?> (1, cache))
 >   return $ CreateSequence p nm incr mn mx stw c
 >   where
->     startWith = keyword "start" *> (optional $ keyword "with") *> integer
->     increment = keyword "increment" *> (optional  $ keyword "by") *> integer
+>     startWith = keyword "start" *> optional (keyword "with") *> integer
+>     increment = keyword "increment" *> optional (keyword "by") *> integer
 >     maxi = (2::Integer) ^ (63::Integer) - 1 <$ try (keyword "no" <* keyword "maxvalue")
 >     mini = 1 <$ try (keyword "no" <* keyword "minvalue")
 >     cache = keyword "cache" *> integer
@@ -1147,7 +1147,7 @@ rows between unbounded preceding and unbounded following
 >           ,(FrameUnboundedFull, ["rows","between","unbounded","preceding","and","unbounded","following"])
 >           ,(FrameRowsUnboundedPreceding, ["rows","unbounded","preceding"])
 >           ,(FrameRowsUnboundedPreceding, ["rows","between","unbounded","preceding","and","current","row"])]
->     ks k = mapM keyword k
+>     ks = mapM keyword
 
 > betweenSuffix :: Expression -> ParsecT [Token] ParseState Identity Expression
 > betweenSuffix a = do
@@ -1495,7 +1495,7 @@ be an array or subselect, etc)
 >     transformBi $ \x ->
 >       case x of
 >              FunCall an op (expr1:FunCall _ nm expr2s:expr3s)
->                | isOperatorName(op) && (map toLower nm) `elem` ["any", "some", "all"]
+>                | isOperatorName op && map toLower nm `elem` ["any", "some", "all"]
 >                -> LiftOperator an op flav (expr1:expr2s ++ expr3s)
 >                   where flav = case (map toLower nm) of
 >                                  "any" -> LiftAny

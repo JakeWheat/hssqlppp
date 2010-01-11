@@ -168,7 +168,7 @@ without having to get the positions correct.
 >     everywhere (mkT filterAnn)
 >     where
 >       filterAnn :: [AnnotationElement] -> [AnnotationElement]
->       filterAnn a = filter f a
+>       filterAnn = filter f
 
 
 > -- | runs through the ast given and returns a list of all the type errors
@@ -192,6 +192,7 @@ without having to get the positions correct.
 
 
 
+> -- | Update all the annotations in a tree using the function supplied
 > updateAnnotation :: forall a.(Data a) =>
 >                   (Annotation -> Annotation) -> a -> a
 > updateAnnotation f = oneLevel (mkT f)
@@ -200,6 +201,7 @@ without having to get the positions correct.
 >          -> (forall a.Data a => a -> a)
 > oneLevel f = gmapT f
 
+> -- | get the annotation for the root of the tree passed
 > getAnnotation :: forall a.(Data a) => a -> Annotation
 > getAnnotation a =
 >   case oneLevelQ (mkQ [] f) a of
