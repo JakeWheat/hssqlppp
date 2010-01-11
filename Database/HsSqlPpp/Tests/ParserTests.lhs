@@ -15,6 +15,8 @@ load into pg, pg_dump, parse -> ast3
 parse, pretty print, load into pg, pg_dump, parse -> ast4
 check all these asts are the same
 
+> {-# LANGUAGE QuasiQuotes #-}
+
 > module Database.HsSqlPpp.Tests.ParserTests (parserTests) where
 
 > import Test.HUnit
@@ -22,6 +24,8 @@ check all these asts are the same
 > import Test.Framework.Providers.HUnit
 > import Data.Char
 > import Data.Generics
+
+> import Database.HsSqlPpp.Here
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
@@ -151,10 +155,12 @@ test some more really basic expressions
 >      ]]
 
 >    ,Group "case expressions" [Expressions [
->       p "case when a,b then 3\n\
->         \     when c then 4\n\
->         \     else 5\n\
->         \end"
+>       p [$here|
+>          case when a,b then 3
+>               when c then 4
+>               else 5
+>          end
+>          |]
 >         (Case [] [([Identifier [] "a", Identifier [] "b"], IntegerLit [] 3)
 >               ,([Identifier [] "c"], IntegerLit [] 4)]
 >          (Just $ IntegerLit [] 5))
@@ -257,9 +263,10 @@ select statements
 >      ]]
 
 >    ,Group "more select statements" [Statements [
->       p "select a from tbl\n\
->         \except\n\
->         \select a from tbl1;"
+>       p [$here|
+>          select a from tbl
+>          except
+>          select a from tbl1;|]
 >       [SelectStatement [] $ CombineSelect [] Except
 >        (selectFrom (selIL ["a"]) (Tref [] "tbl" NoAlias))
 >        (selectFrom (selIL ["a"]) (Tref [] "tbl1" NoAlias))]

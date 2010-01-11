@@ -168,7 +168,7 @@ Library
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParseErrors
 
-  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
+  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables,QuasiQuotes
 
 Executable HsSqlSystem
   Main-is:           HsSqlSystem.lhs
@@ -216,4 +216,4 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.Ast.Annotation
                      Database.HsSqlPpp.Ast.SqlTypes
 
-  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
+  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables,QuasiQuotes
