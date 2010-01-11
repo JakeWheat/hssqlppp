@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.0.11
+Version:             0.1.0
 Synopsis:            Sql parser and type checker
 Description:
     Sql parser, pretty printer and type checker, targets PostgreSQL SQL
@@ -133,7 +133,8 @@ Library
                      Pipe,
                      process,
                      pandoc,
-                     filepath
+                     filepath,
+                     template-haskell
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
                      Database.HsSqlPpp.Ast.Annotator

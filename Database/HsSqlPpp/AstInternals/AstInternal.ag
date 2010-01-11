@@ -727,7 +727,7 @@ annotateAstsEnv = typeCheckMany
 --   Returns the updated catalog as well as the annotated ast.
 typeCheck :: Environment -> StatementList -> (Environment,StatementList)
 typeCheck env sts =
-    let t = sem_Root (Root sts)
+    let t = sem_Root (Root (fixupImplicitJoins sts))
         ta = wrap_Root t Inh_Root {env_Inh_Root = env
                                   ,lib_Inh_Root = emptyBindings}
         tl = annotatedTree_Syn_Root ta
@@ -742,7 +742,7 @@ annotateAstEnv = typeCheck
 -- or to get its type.
 typeCheckExpression :: Environment -> Expression -> Expression
 typeCheckExpression env ex =
-    let t = sem_ExpressionRoot (ExpressionRoot ex)
+    let t = sem_ExpressionRoot (ExpressionRoot (fixupImplicitJoins ex))
         rt = (annotatedTree_Syn_ExpressionRoot
               (wrap_ExpressionRoot t Inh_ExpressionRoot {env_Inh_ExpressionRoot = env
                                                         ,lib_Inh_ExpressionRoot = emptyBindings}))
@@ -751,6 +751,25 @@ typeCheckExpression env ex =
 
 annotateExpression :: Environment -> Expression -> Expression
 annotateExpression = typeCheckExpression
+
+{-
+bit of a hack, to avoid rewriting the tableref type checking to be
+able to do implict joins, we just convert them in to the equivalent
+explicit join
+-}
+
+fixupImplicitJoins :: Data a => a -> a
+fixupImplicitJoins =
+    transformBi $ \x ->
+            case x of
+              -- alter asts to change implicit joins into explicit joins
+              Select an dis sl trs@(_:_:_) whr grp hav ord lim off
+                  -> Select an dis sl [convTrefs trs] whr grp hav ord lim off
+              x1 -> x1
+    where
+      convTrefs (tr:tr1:trs) = JoinedTref [] tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias
+      convTrefs (tr:[]) = tr
+      convTrefs _ = error "failed doing implicit join fixup hack"
 }
 
 {-

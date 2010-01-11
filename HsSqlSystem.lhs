@@ -106,7 +106,7 @@ how to do this
 
 > lexFiles :: [FilePath] -> IO ()
 > lexFiles fns = wrapET $
->                flip mapM_ fns (\f ->
+>                forM_ fns (\f ->
 >                     message ("lexing " ++ f) >>
 >                     readInput f >>= lexSql f >>= printList)
 
@@ -231,7 +231,7 @@ how to do this
 > typeCheckExpression :: String -> [FilePath] -> IO ()
 > typeCheckExpression db fns = wrapET $ do
 >   aasts <- readCatalog db >>= \cat ->
->               flip mapM fns (\f -> readInput f >>= parseExpression1 f
+>               forM fns (\f -> readInput f >>= parseExpression1 f
 >                                    >>= typeCheckExpressionC cat)
 >   tes <- mapM getTEs aasts
 >   mapM_ (\x -> ppTypeErrors x >>= putStrLnList) $ filter (not . null) tes
@@ -248,7 +248,7 @@ TODO: do something more correct
 >          &= text "hacky util to clear a database"
 
 > cleardb :: String -> IO ()
-> cleardb db = wrapET $ clearDB db
+> cleardb = wrapET . clearDB
 
 ================================================================================
 
@@ -272,10 +272,10 @@ TODO: do something more correct
 >             &= text "loads sql into a database using psql."
 
 > loadSqlPsql :: String -> [String] -> IO ()
-> loadSqlPsql db fns = wrapET $
+> loadSqlPsql db = wrapET .
 >   --srcs <- mapM readInput fns
 >   --mapM_ (\s -> loadSqlUsingPsql db s >>= message) (map snd srcs)
->   mapM_ (\s -> loadSqlUsingPsqlFromFile db s >>= message) fns
+>   mapM_ (\s -> loadSqlUsingPsqlFromFile db s >>= message)
 
 ================================================================================
 
@@ -410,7 +410,7 @@ write a routine to mirror this - will then have
 
 >     message "complete!"
 >     where
->       headerMessage m = message $ "-----------------------------\n" ++ m
+>       headerMessage = message . ("-----------------------------\n" ++)
 
 ================================================================================
 
@@ -444,7 +444,7 @@ create target folder if doesn't exist
 >              let sts = zip (map ("docs/" ++) inputFiles) $
 >                        flip map inputFiles
 >                             (\f -> "docs/build/" ++ f ++ ".html")
->              flip mapM_ sts $ \(s,t) ->
+>              forM_ sts $ \(s,t) ->
 >                      readInput s >>= pandoc >>= C.writeFile t
 >             where
 >               sources = liftIO (getDirectoryContents "docs") >>=
