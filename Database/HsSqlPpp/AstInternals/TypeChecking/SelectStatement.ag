@@ -12,7 +12,9 @@ make it much more readable.
 SEM Statement
     | SelectStatement
         loc.tpe = dependsOnRTpe [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
-        loc.statementInfo = [SelectInfo $ getTypeAnnotation @ex.annotatedTree]
+        loc.statementType = [StatementType [] $ leftToEmpty id  $
+                                                unwrapSetOfComposite $
+                                                getTypeAnnotation @ex.annotatedTree]
         loc.backTree = SelectStatement @ann @ex.annotatedTree
         loc.envUpdates = []
 

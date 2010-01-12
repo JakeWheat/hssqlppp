@@ -29,7 +29,7 @@ grammar code and aren't exposed.
 >     ,getAnnotations
 >     --,getTypeErrors
 >     --,pack
->     ,StatementInfo(..)
+>     ,StatementType(..)
 >     ,getSIAnnotation
 >     ) where
 
@@ -49,7 +49,7 @@ grammar code and aren't exposed.
 > data AnnotationElement = SourcePos String Int Int
 >                        | TypeAnnotation Type
 >                        | TypeErrorA TypeError
->                        | StatementInfoA StatementInfo
+>                        | StatementTypeA StatementType
 >                        | EnvUpdates [EnvironmentUpdate]
 >                          deriving (Eq, Show,Typeable,Data)
 
@@ -107,9 +107,9 @@ understand, then keep changing it till it compiles and passes the tests.
 > everythingOne k f x
 >  = foldl k (f x) (gmapQ (everythingZero k f) x)
 
-> getSIAnnotation :: Annotation -> [Maybe StatementInfo]
+> getSIAnnotation :: Annotation -> [Maybe StatementType]
 > getSIAnnotation (x:xs) = case x of
->                                 StatementInfoA t -> [Just t]
+>                                 StatementTypeA t -> [Just t]
 >                                 _ -> getSIAnnotation xs
 > getSIAnnotation []  = [Nothing]
 
@@ -120,23 +120,19 @@ understand, then keep changing it till it compiles and passes the tests.
 > getEuAnnotation [] = []
 
 
-> -- | Run through the ast given and return a list of statementinfos
+> -- | Run through the ast given and return a list of statementtypes
 > -- from the top level items.
-> getTopLevelInfos :: Data a => [a] -> [Maybe StatementInfo]
+> getTopLevelInfos :: Data a => [a] -> [Maybe StatementType]
 > getTopLevelInfos = getTopLevelXs getSIAnnotation
 
 > getTopLevelEnvUpdates ::  Data a => [a] -> [[EnvironmentUpdate]]
 > getTopLevelEnvUpdates = getTopLevelXs getEuAnnotation
 
-> data StatementInfo = DefaultStatementInfo Type
->                    | SelectInfo Type
->                    | InsertInfo String [(String,Type)] (Maybe [(String,Type)])
->                    | UpdateInfo String [(String,Type)] (Maybe [(String,Type)])
->                    | DeleteInfo String (Maybe [(String,Type)])
+> data StatementType = StatementType [Type] [(String,Type)]
 >                      deriving (Eq,Show,Typeable,Data)
 
 todo:
-add environment deltas to statementinfo
+add environment deltas to statementtype (??)
 
 question:
 if a node has no source position e.g. the all in select all or select

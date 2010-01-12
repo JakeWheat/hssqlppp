@@ -19,8 +19,8 @@ SEM Statement
             dependsOnRTpe [getTypeAnnotation @insData.annotatedTree] $ do
               @loc.columnTypes
               Right $ Pseudo Void
-        loc.statementInfo =
-            leftToEmpty (\ct -> [InsertInfo @table ct @returning.listType]) @loc.columnTypes
+        loc.statementType =
+            leftToEmpty (\ct -> [StatementType [] (fromMaybe [] @returning.listType)]) @loc.columnTypes
 
         loc.columnTypes =
             do
@@ -62,8 +62,8 @@ SEM Statement
               @loc.columnTypes
               liftErrors @assigns.rowSetErrors
               return $ Pseudo Void
-        loc.statementInfo =
-            leftToEmpty (\ct -> [UpdateInfo @table ct @returning.listType]) @loc.columnTypes
+        loc.statementType =
+            leftToEmpty (\ct -> [StatementType [] (fromMaybe [] @returning.listType)]) @loc.columnTypes
 
         loc.columnTypes =
             checkColumnConsistency @lhs.env
@@ -153,7 +153,7 @@ SEM Statement
         loc.tpe =
             checkRelationExists @lhs.env @table >>
             Right (Pseudo Void)
-        loc.statementInfo = [DeleteInfo @table @returning.listType]
+        loc.statementType = [StatementType [] (fromMaybe [] @returning.listType)]
 
         loc.backTree = Delete @ann @table @whr.annotatedTree @returning.annotatedTree
         loc.envUpdates = []

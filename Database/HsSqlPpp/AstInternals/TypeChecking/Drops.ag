@@ -13,7 +13,7 @@ SEM Statement
                                EnvDropFunction ifE nm args
                          where
                            ifE = @ifE.annotatedTree == IfExists
-        loc.statementInfo = []
+        loc.statementType = []
 
 ATTR StringTypeNameListPairList [||fnSigs:{[(String,[Type])]}]
 SEM StringTypeNameListPairList

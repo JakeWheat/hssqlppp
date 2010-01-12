@@ -15,7 +15,7 @@ SEM Statement
                                 @value.annotatedTree] $ Right $ Pseudo Void
         loc.backTree = Return @ann @value.annotatedTree
         loc.envUpdates = []
-        loc.statementInfo = []
+        loc.statementType = []
 
 
 SEM Statement
@@ -29,7 +29,7 @@ SEM Statement
             return $ Pseudo Void
         loc.backTree = Assignment @ann @target @value.annotatedTree
         loc.envUpdates = []
-        loc.statementInfo = []
+        loc.statementType = []
 
 SEM Statement
     | ForIntegerStatement
@@ -55,7 +55,7 @@ SEM Statement
 
         loc.backTree = ForIntegerStatement @ann @var @from.annotatedTree @to.annotatedTree @sts.annotatedTree
         loc.envUpdates = []
-        loc.statementInfo = []
+        loc.statementType = []
 
 
 SEM Statement
@@ -83,5 +83,5 @@ SEM Statement
 
         loc.backTree = ForSelectStatement @ann @var @sel.annotatedTree @sts.annotatedTree
         loc.envUpdates = []
-        loc.statementInfo = []
+        loc.statementType = []
 

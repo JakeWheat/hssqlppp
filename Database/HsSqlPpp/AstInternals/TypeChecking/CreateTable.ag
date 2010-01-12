@@ -28,7 +28,7 @@ SEM Statement
         loc.attrTypes : {[Type]}
         loc.attrTypes = map snd @atts.attrs
 
-        loc.statementInfo = []
+        loc.statementType = []
         loc.backTree = CreateTable @ann
                                    @name
                                    @atts.annotatedTree
@@ -65,7 +65,7 @@ SEM Statement
         loc.attrs = unwrapSetOfComposite @loc.selType
 
         loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
-        loc.statementInfo = []
+        loc.statementType = []
 
 {-
 attribute name and type gathering

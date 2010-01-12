@@ -61,7 +61,7 @@ SEM Statement
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
-                              $ Just (map StatementInfoA @loc.statementInfo ++
+                              $ Just (map StatementTypeA @loc.statementType ++
                                       [EnvUpdates @loc.envUpdates])
         loc.envUpdates : {[EnvironmentUpdate]}
         lhs.envUpdates = @loc.envUpdates

@@ -16,7 +16,7 @@ functions (not including those that depend on the ast data types).
 >      -- but will be expanded to provide any type errors lurking inside a statement, any useful
 >      -- types, e.g. the types of each select and subselect/sub query in a statement,
 >      -- any changes to the catalog the statement makes, and possibly much more information.
->     ,StatementInfo(..)
+>     ,StatementType(..)
 >     ,stripAnnotations
 >     ,updateAnnotation
 >     ,getAnnotation

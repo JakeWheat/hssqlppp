@@ -39,7 +39,7 @@ SEM Statement
                                       @bodyQuote
                                       @body.annotatedTree
                                       @vol.annotatedTree
-        loc.statementInfo = []
+        loc.statementType = []
         body.env = @lhs.inProducedEnv
 
 {-

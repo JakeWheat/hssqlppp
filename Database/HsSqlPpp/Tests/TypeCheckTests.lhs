@@ -19,10 +19,10 @@ sql which doesn't type check.
 > import Database.HsSqlPpp.Ast.SqlTypes
 
 > data Item = Expressions [(String, Either [TypeError] Type)]
->           | StatementInfos [(String, Either [TypeError] [Maybe StatementInfo])]
->           | EnvUpStatementInfos [(String
+>           | StatementTypes [(String, Either [TypeError] [Maybe StatementType])]
+>           | EnvUpStatementTypes [(String
 >                                  ,[EnvironmentUpdate]
->                                  ,Either [TypeError] [Maybe StatementInfo])]
+>                                  ,Either [TypeError] [Maybe StatementType])]
 >           | DdlStatements [(String, [[EnvironmentUpdate]])]
 >           | DdlStatementsEnv [(String, [EnvironmentUpdate])]
 >           | Group String [Item]
@@ -247,97 +247,87 @@ rows don't match types
 >         $ Right (ArrayType (ScalarType "text"))
 >      ]]
 
->   ,Group "simple selects" [ StatementInfos [
->       p "select 1;" $ Right [Just $ SelectInfo $ SetOfType $
->                              CompositeType [("?column?", typeInt)]]
+>   ,Group "simple selects" [ StatementTypes [
+>       p "select 1;" $ Right [Just $ StatementType [] [("?column?", typeInt)]]
 >      ,p "select 1 as a;" $
->         Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)]]
+>         Right [Just $ StatementType [] [("a", typeInt)]]
 >      ,p "select 1,2;" $
->         Right [Just $ SelectInfo $ SetOfType $ CompositeType [("?column?", typeInt)
+>         Right [Just $ StatementType [] [("?column?", typeInt)
 >                                                 ,("?column?", typeInt)]]
 >      ,p "select 1 as a, 2 as b;" $
->         Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)
+>         Right [Just $ StatementType [] [("a", typeInt)
 >                                                 ,("b", typeInt)]]
 >      ,p "select 1+2 as a, 'a' || 'b';" $
->         Right [Just $ SelectInfo $ SetOfType $
->                CompositeType [("a", typeInt)
->                                     ,("?column?", ScalarType "text")]]
->      ,p "values (1,2);" $ Right [Just $ SelectInfo $ SetOfType $
->                          CompositeType
->                          [("column1", typeInt)
->                          ,("column2", typeInt)]]
->      ,p "values (1,2),('3', '4');" $ Right [Just $ SelectInfo $ SetOfType $
->                                      CompositeType
->                                      [("column1", typeInt)
->                                      ,("column2", typeInt)]]
+>         Right [Just $ StatementType [] [("a", typeInt)
+>                                        ,("?column?", ScalarType "text")]]
+>      ,p "values (1,2);" $ Right [Just $ StatementType []
+>                                           [("column1", typeInt)
+>                                           ,("column2", typeInt)]]
+>      ,p "values (1,2),('3', '4');" $ Right [Just $ StatementType []
+>                                                      [("column1", typeInt)
+>                                                      ,("column2", typeInt)]]
 >      ,p "values (1,2),('a', true);" $ Left [IncompatibleTypeSet [typeInt
 >                                                                 ,typeBool]]
->      ,p "values ('3', '4'),(1,2);" $ Right [Just $ SelectInfo $ SetOfType $
->                                      CompositeType
->                                      [("column1", typeInt)
->                                      ,("column2", typeInt)]]
+>      ,p "values ('3', '4'),(1,2);" $ Right [Just $ StatementType []
+>                                                      [("column1", typeInt)
+>                                                      ,("column2", typeInt)]]
 >      ,p "values ('a', true),(1,2);" $ Left [IncompatibleTypeSet [typeBool
 >                                                                 ,typeInt]]
->      ,p "values ('a'::text, '2'::int2),('1','2');" $ Right [Just $ SelectInfo $ SetOfType $
->                                      CompositeType
+>      ,p "values ('a'::text, '2'::int2),('1','2');" $ Right [Just $ StatementType []
 >                                      [("column1", ScalarType "text")
 >                                      ,("column2", typeSmallInt)]]
 >      ,p "values (1,2,3),(1,2);" $ Left [ValuesListsMustBeSameLength]
 
 >      ]]
 
->   ,Group "simple combine selects" [ StatementInfos [
->      p "select 1,2  union select '3', '4';" $ Right [Just $ SelectInfo $ SetOfType $
->                                      CompositeType
+>   ,Group "simple combine selects" [ StatementTypes [
+>      p "select 1,2  union select '3', '4';" $ Right [Just $ StatementType []
 >                                      [("?column?", typeInt)
 >                                      ,("?column?", typeInt)]]
 >      ,p "select 1,2 intersect select 'a', true;" $ Left [IncompatibleTypeSet [typeInt
 >                                                         ,typeBool]]
->      ,p "select '3', '4' except select 1,2;" $ Right [Just $ SelectInfo $ SetOfType $
->                                      CompositeType
+>      ,p "select '3', '4' except select 1,2;" $ Right [Just $ StatementType []
 >                                      [("?column?", typeInt)
 >                                      ,("?column?", typeInt)]]
 >      ,p "select 'a', true union select 1,2;"
 >                                      $ Left [IncompatibleTypeSet [typeBool
 >                                                         ,typeInt]]
->      ,p "select 'a'::text, '2'::int2 intersect select '1','2';" $ Right [Just $ SelectInfo $ SetOfType $
->                                      CompositeType
+>      ,p "select 'a'::text, '2'::int2 intersect select '1','2';" $ Right [Just $ StatementType []
 >                                      [("text", ScalarType "text")
 >                                      ,("int2", typeSmallInt)]]
 >      ,p "select 1,2,3 except select 1,2;" $ Left [ValuesListsMustBeSameLength]
->      ,p "select '3' as a, '4' as b except select 1,2;" $ Right [Just $ SelectInfo $ SetOfType $
->                                      CompositeType
+>      ,p "select '3' as a, '4' as b except select 1,2;" $ Right [Just $ StatementType []
 >                                      [("a", typeInt)
 >                                      ,("b", typeInt)]]
 
 >      ]]
 
->   ,Group "simple selects from" [ StatementInfos [
+>   ,Group "simple selects from" [ StatementTypes [
 >       p "select a from (select 1 as a, 2 as b) x;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)]]
+>         $ Right [Just $ StatementType [] [("a", typeInt)]]
 >      ,p "select b from (select 1 as a, 2 as b) x;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("b", typeInt)]]
+>         $ Right [Just $ StatementType [] [("b", typeInt)]]
 >      ,p "select c from (select 1 as a, 2 as b) x;"
 >         $ Left [UnrecognisedIdentifier "c"]
 >      ,p "select typlen from pg_type;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("typlen", typeSmallInt)]]
+>         $ Right [Just $ StatementType [] [("typlen", typeSmallInt)]]
 >      ,p "select oid from pg_type;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("oid", ScalarType "oid")]]
+>         $ Right [Just $ StatementType [] [("oid", ScalarType "oid")]]
 >      ,p "select p.oid from pg_type p;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("oid", ScalarType "oid")]]
+>         $ Right [Just $ StatementType [] [("oid", ScalarType "oid")]]
 >      ,p "select typlen from nope;"
 >         $ Left [UnrecognisedIdentifier "typlen",UnrecognisedRelation "nope"]
 >      ,p "select generate_series from generate_series(1,7);"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("generate_series", typeInt)]]
+>         $ Right [Just $ StatementType [] [("generate_series", typeInt)]]
 
 check aliasing
 
 >      ,p "select generate_series.generate_series from generate_series(1,7);"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("generate_series", typeInt)]]
+>         $ Right [Just $ StatementType [] [("generate_series", typeInt)]]
 >      ,p "select g from generate_series(1,7) g;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("g", typeInt)]]
+>         $ Right [Just $ StatementType [] [("g", typeInt)]]
 >      ,p "select g.g from generate_series(1,7) g;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("g", typeInt)]]
+>         $ Right [Just $ StatementType [] [("g", typeInt)]]
 >      ,p "select generate_series.g from generate_series(1,7) g;"
 >         $ Left [UnrecognisedCorrelationName "generate_series"]
 >      ,p "select g.generate_series from generate_series(1,7) g;"
@@ -345,13 +335,13 @@ check aliasing
 
 
 >      ,p "select * from pg_attrdef;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType
+>         $ Right [Just $ StatementType []
 >          [("adrelid",ScalarType "oid")
 >          ,("adnum",ScalarType "int2")
 >          ,("adbin",ScalarType "text")
 >          ,("adsrc",ScalarType "text")]]
 >      ,p "select abs from abs(3);"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("abs", typeInt)]]
+>         $ Right [Just $ StatementType [] [("abs", typeInt)]]
 >         --todo: these are both valid,
 >         --the second one means select 3+generate_series from generate_series(1,7)
 >         --  select generate_series(1,7);
@@ -359,49 +349,49 @@ check aliasing
 
 >      ]]
 
->   ,Group "simple selects from 2" [ EnvUpStatementInfos [
+>   ,Group "simple selects from 2" [ EnvUpStatementTypes [
 >       t "select a,b from testfunc();"
 >         [EnvCreateComposite "testType" [("a", ScalarType "text")
 >                                        ,("b", typeInt)
 >                                        ,("c", typeInt)]
 >         ,EnvCreateFunction FunName "testfunc" []
 >          (SetOfType $ NamedCompositeType "testType") False]
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType
+>         $ Right [Just $ StatementType []
 >                  [("a",ScalarType "text"),("b",ScalarType "int4")]]
 
 >      ,t "select testfunc();"
 >         [EnvCreateFunction FunName "testfunc" [] (Pseudo Void) False]
->         $ Right [Just $ SelectInfo $ Pseudo Void]
+>         $ Right [Just $ StatementType [] []]
 
 >      ]]
 
->   ,Group "simple join selects" [ StatementInfos [
+>   ,Group "simple join selects" [ StatementTypes [
 >       p "select * from (select 1 as a, 2 as b) a\n\
 >         \  cross join (select true as c, 4.5 as d) b;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)
+>         $ Right [Just $ StatementType [] [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("c", typeBool)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select true as c, 4.5 as d) b on true;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)
+>         $ Right [Just $ StatementType [] [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("c", typeBool)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select 1 as a, 4.5 as d) b using(a);"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)
+>         $ Right [Just $ StatementType [] [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a, 2 as b) a\n\
 >         \ natural inner join (select 1 as a, 4.5 as d) b;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)
+>         $ Right [Just $ StatementType [] [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
 >         --check the attribute order
 >      ,p "select * from (select 2 as b, 1 as a) a\n\
 >         \ natural inner join (select 4.5 as d, 1 as a) b;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)
+>         $ Right [Just $ StatementType [] [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("d", typeNumeric)]]
 >      ,p "select * from (select 1 as a1, 2 as b) a\n\
@@ -414,22 +404,22 @@ check aliasing
 >                                      ,ScalarType "bool"]]
 
 >      ,p "select * from (select 1 as a1) a, (select 2 as a2) b;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a1", typeInt)
+>         $ Right [Just $ StatementType [] [("a1", typeInt)
 >                                                                ,("a2", typeInt)]]
 
 >      ,p "select * from (select 1 as a1) a, (select 2 as a1) b;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a1", typeInt)
+>         $ Right [Just $ StatementType [] [("a1", typeInt)
 >                                                                ,("a1", typeInt)]]
 
 >      ,p "select a1 from (select 1 as a1) a,  (select 2 as a1) b;"
 >         $ Left [AmbiguousIdentifier "a1"]
 >      ]]
 
->   ,Group "simple scalar identifier qualification" [ StatementInfos [
+>   ,Group "simple scalar identifier qualification" [ StatementTypes [
 >       p "select a.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \cross join (select 3 as c, 4 as d) b;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)
+>         $ Right [Just $ StatementType [] [("a", typeInt)
 >                                           ,("b", typeInt)]]
 >      ,p "select nothere.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
@@ -438,45 +428,45 @@ check aliasing
 >      ,p "select a.b,b.c from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \natural inner join (select 3 as a, 4 as c) b;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("b", typeInt)
+>         $ Right [Just $ StatementType [] [("b", typeInt)
 >                                           ,("c", typeInt)]]
 >      ,p "select a.a,b.a from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \natural inner join (select 3 as a, 4 as c) b;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)
+>         $ Right [Just $ StatementType [] [("a", typeInt)
 >                                           ,("a", typeInt)]]
 
 >      ,p "select pg_attrdef.adsrc from pg_attrdef;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("adsrc", ScalarType "text")]]
+>         $ Right [Just $ StatementType [] [("adsrc", ScalarType "text")]]
 
 >      ,p "select a.adsrc from pg_attrdef a;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("adsrc", ScalarType "text")]]
+>         $ Right [Just $ StatementType [] [("adsrc", ScalarType "text")]]
 
 >      ,p "select pg_attrdef.adsrc from pg_attrdef a;"
 >         $ Left [UnrecognisedCorrelationName "pg_attrdef"]
 
 >      ,p "select a from (select 2 as b, 1 as a) a\n\
 >         \natural inner join (select 4.5 as d, 1 as a) b;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)]]
+>         $ Right [Just $ StatementType [] [("a", typeInt)]]
 
 select g.fn from fn() g
 
 >      ]]
 
->   ,Group "aggregates" [ StatementInfos [
+>   ,Group "aggregates" [ StatementTypes [
 >        p "select max(prorettype::int) from pg_proc;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("max", typeInt)]]
+>         $ Right [Just $ StatementType [] [("max", typeInt)]]
 >      ]]
 
->   ,Group "simple wheres" [ StatementInfos [
+>   ,Group "simple wheres" [ StatementTypes [
 >       p "select 1 from pg_type where true;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("?column?", typeInt)]]
+>         $ Right [Just $ StatementType [] [("?column?", typeInt)]]
 >      ,p "select 1 from pg_type where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ,p "select typname from pg_type where typbyval;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("typname", ScalarType "name")]]
+>         $ Right [Just $ StatementType [] [("typname", ScalarType "name")]]
 >      ,p "select typname from pg_type where typtype = 'b';"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("typname", ScalarType "name")]]
+>         $ Right [Just $ StatementType [] [("typname", ScalarType "name")]]
 >      ,p "select typname from pg_type where what = 'b';"
 >         $ Left [UnrecognisedIdentifier "what"]
 >      ]]
@@ -484,50 +474,50 @@ select g.fn from fn() g
 TODO: check identifier stacking working, then remove the pg_namespace
 qualifier before oid and this should still work
 
->   ,Group "subqueries" [ StatementInfos [
+>   ,Group "subqueries" [ StatementTypes [
 >       p "select relname as relvar_name\n\
 >         \    from pg_class\n\
 >         \    where ((relnamespace =\n\
 >         \           (select oid\n\
 >         \              from pg_namespace\n\
 >         \              where (nspname = 'public'))) and (relkind = 'r'));"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("relvar_name",ScalarType "name")]]
+>         $ Right [Just $ StatementType [] [("relvar_name",ScalarType "name")]]
 >      ,p "select relname from pg_class where relkind in ('r', 'v');"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("relname",ScalarType "name")]]
+>         $ Right [Just $ StatementType [] [("relname",ScalarType "name")]]
 >      ,p "select * from generate_series(1,7) g\n\
 >         \where g not in (select * from generate_series(3,5));"
->         $ Right [Just $ SelectInfo $ SetOfType (CompositeType [("g",typeInt)])]
+>         $ Right [Just $ StatementType [] [("g",typeInt)]]
 >      ,p "select 3 = any(array[1,2,3]);"
->         $ Right [Just $ SelectInfo $ SetOfType (CompositeType [("?column?",typeBool)])]
+>         $ Right [Just $ StatementType [] [("?column?",typeBool)]]
 >      ]]
 
 identifiers in select parts
 
 >{-    ,testGroup "select part identifiers"
->     (mapStatementInfos [
+>     (mapStatementTypes [
 >       p "select relname,attname from pg_class\n\
 >         \inner join pg_attribute\n\
 >         \on pg_attribute.attrelid = pg_class.oid;"
->         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("relvar_name",ScalarType "name")]]
+>         $ Right [Just $ StatementType [] [("relvar_name",ScalarType "name")]]
 >      ])-}
 
->   ,Group "insert" [ StatementInfos [
+>   ,Group "insert" [ StatementTypes [
 >       p "insert into nope (a,b) values (c,d);"
 >         $ Left [UnrecognisedRelation "nope",UnrecognisedIdentifier "c",UnrecognisedIdentifier "d"]
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
->         $ Right [Just $ InsertInfo "pg_attrdef"
+>         $ Right [Just $ StatementType [] [] {-InsertInfo "pg_attrdef"
 >                           [("adrelid",ScalarType "oid")
 >                           ,("adnum",ScalarType "int2")
 >                           ,("adbin",ScalarType "text")
->                           ,("adsrc",ScalarType "text")] Nothing]
+>                           ,("adsrc",ScalarType "text")]-}]
 >      ,p "insert into pg_attrdef\n\
 >         \values (1,2, 'a', 'b');"
->         $ Right [Just $ InsertInfo "pg_attrdef"
+>         $ Right [Just $ StatementType [] [] {-InsertInfo "pg_attrdef"
 >                           [("adrelid",ScalarType "oid")
 >                           ,("adnum",ScalarType "int2")
 >                           ,("adbin",ScalarType "text")
->                           ,("adsrc",ScalarType "text")] Nothing]
+>                           ,("adsrc",ScalarType "text")]-}]
 >      ,p "insert into pg_attrdef (hello,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
 >         $ Left [UnrecognisedIdentifier "hello"]
@@ -539,7 +529,7 @@ identifiers in select parts
 >         $ Left [WrongNumberOfColumns]
 >      ]]
 
->   ,Group "update" [ StatementInfos [
+>   ,Group "update" [ StatementTypes [
 >       p "update nope set a = 1;"
 >         $ Left [UnrecognisedRelation "nope"]
 >      ,p "update pg_attrdef set adsrc = '' where 1;"
@@ -551,28 +541,28 @@ identifiers in select parts
 >      ,p "update pg_attrdef set (shmadrelid,adsrc) = ('a','b');"
 >         $ Left [UnrecognisedIdentifier "shmadrelid"]
 >      ,p "update pg_attrdef set adsrc='';"
->         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")] Nothing]
+>         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-}]
 >      ,p "update pg_attrdef set adsrc='' where 1=2;"
->         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")] Nothing]
+>         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-}]
 >       -- TODO: actually, pg doesn't support this so need to generate error instead
 >      ,p "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
->         $ Right [Just $ UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")] Nothing]
+>         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")]-}]
 >      --check where ids
 >      ,p "update pg_attrdef set adsrc='' where adsrc='';"
->         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")] Nothing]
+>         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-}]
 >      ,p "update pg_attrdef set adnum = adnum + 1;"
->         $ Right [Just $ UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")] Nothing]
+>         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")]-}]
 >      ]]
 
->   ,Group "delete" [ StatementInfos [
+>   ,Group "delete" [ StatementTypes [
 >       p "delete from nope;"
 >         $ Left [UnrecognisedRelation "nope"]
 >      ,p "delete from pg_attrdef where 1=2;"
->         $ Right [Just $ DeleteInfo "pg_attrdef" Nothing]
+>         $ Right [Just $ StatementType [] []]
 >      ,p "delete from pg_attrdef where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ,p "delete from pg_attrdef where adsrc='';"
->         $ Right [Just $ DeleteInfo "pg_attrdef" Nothing]
+>         $ Right [Just $ StatementType [] []]
 >      ]]
 
 ================================================================================
@@ -637,7 +627,7 @@ check var defs:
 check type exists
 check type of initial values
 
->   ,Group "create function identifier resolution" [ StatementInfos [
+>   ,Group "create function identifier resolution" [ StatementTypes [
 >       p "create function t1(stuff text) returns text as $$\n\
 >         \begin\n\
 >         \  return stuff || ' and stuff';\n\
@@ -662,7 +652,7 @@ check type of initial values
 
 ================================================================================
 
->   ,Group "plpgsqlbits" [ StatementInfos [
+>   ,Group "plpgsqlbits" [ StatementTypes [
 >       p "create function t1(stuff text) returns text as $$\n\
 >         \begin\n\
 >         \  return stuff || ' and stuff';\n\
@@ -687,7 +677,7 @@ check type of initial values
 
 ================================================================================
 
->   ,Group "plpgsqlbits" [ StatementInfos [
+>   ,Group "plpgsqlbits" [ StatementTypes [
 >       p "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  a bool;\n\
@@ -708,7 +698,7 @@ check type of initial values
 
 ================================================================================
 
->   ,Group "for loops" [ StatementInfos [
+>   ,Group "for loops" [ StatementTypes [
 >       p "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  r record;\n\
@@ -790,7 +780,7 @@ loop var implicit check it's type
 
 ================================================================================
 
->   ,Group "check catalog chaining" [ StatementInfos [
+>   ,Group "check catalog chaining" [ StatementTypes [
 
 create function then select
 select then create function
@@ -812,7 +802,7 @@ then in two separate chained asts
 >         (Left [NoMatchingOperator "t1" []])
 >      ]]
 
->   {-,Group "check catalog chaining2" [ StatementInfos [
+>   {-,Group "check catalog chaining2" [ StatementTypes [
 >       p ["create function t1() returns void as $$\n\
 >          \begin\n\
 >          \  null;\n\
@@ -865,22 +855,16 @@ check select into: multiple vars, record (then access fields to check),
 check errors: select into wrong number of vars, wrong types, and into
   composite wrong number and wrong type
 
->   ,Group "select into" [ StatementInfos [
+>   ,Group "select into" [ StatementTypes [
 >       p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b') returning adnum,adbin;"
->         $ Right [Just $ InsertInfo "pg_attrdef" [("adrelid",ScalarType "oid")
->                                                ,("adnum",ScalarType "int2")
->                                                ,("adbin",ScalarType "text")
->                                                ,("adsrc",ScalarType "text")]
->                        (Just [("adnum", ScalarType "int2")
->                             ,("adbin", ScalarType "text")])]
+>         $ Right [Just $ StatementType [] [("adnum", ScalarType "int2")
+>                                          ,("adbin", ScalarType "text")]]
 >      ,p "update pg_attrdef set adnum = adnum + 1 returning adnum;"
->         $ Right [Just $ UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")]
->                          (Just [("adnum", ScalarType "int2")])]
+>         $ Right [Just $ StatementType [] [("adnum", ScalarType "int2")]]
 >      ,p "delete from pg_attrdef returning adnum,adbin;"
->         $ Right [Just $ DeleteInfo "pg_attrdef"
->                           (Just [("adnum", ScalarType "int2")
->                                 ,("adbin", ScalarType "text")])]
+>         $ Right [Just $ StatementType [] [("adnum", ScalarType "int2")
+>                                          ,("adbin", ScalarType "text")]]
 >      ,p "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  a int;\n\
@@ -969,7 +953,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >         $ Right [Nothing]
 >      ]]
 
->   ,Group "composite elements" [ StatementInfos [
+>   ,Group "composite elements" [ StatementTypes [
 >       p "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  r pg_attrdef;\n\
@@ -984,7 +968,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >         $ Right [Nothing]
 >      ]]
 
->   ,Group "positional args" [ StatementInfos [
+>   ,Group "positional args" [ StatementTypes [
 >       p "create function distance(int, int, int, int) returns float(24) as $$\n\
 >         \  select (point($1, $2) <-> point($3, $4))::float(24) as result;\n\
 >         \$$ language sql immutable;"
@@ -995,15 +979,14 @@ check errors: select into wrong number of vars, wrong types, and into
 >         $ Left [UnrecognisedIdentifier "$5"]
 >      ]]
 
->   ,Group "window fns" [ StatementInfos [
+>   ,Group "window fns" [ StatementTypes [
 >       p "select *, row_number() over () from pg_attrdef;"
->         $ Right [Just $ SelectInfo
->                  (SetOfType (CompositeType
+>         $ Right [Just $ StatementType []
 >                   [("adrelid",ScalarType "oid")
 >                   ,("adnum",ScalarType "int2")
 >                   ,("adbin",ScalarType "text")
 >                   ,("adsrc",ScalarType "text")
->                   ,("row_number",ScalarType "int8")]))]
+>                   ,("row_number",ScalarType "int8")]]
 >      ]]
 
 >   ,Group "drop stuff" [ DdlStatementsEnv [
@@ -1050,8 +1033,8 @@ check errors: select into wrong number of vars, wrong types, and into
 >        (0,_) -> assertFailure "got too many types"
 >        _ -> assertEqual ("typecheck " ++ src) typ $ Left er
 
-> testStatementInfo :: String -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
-> testStatementInfo src sis = testCase ("typecheck " ++ src) $
+> testStatementType :: String -> Either [TypeError] [Maybe StatementType] -> Test.Framework.Test
+> testStatementType src sis = testCase ("typecheck " ++ src) $
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
@@ -1064,11 +1047,11 @@ check errors: select into wrong number of vars, wrong types, and into
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
 
 
-> testEnvUpStatementInfo :: String
+> testEnvUpStatementType :: String
 >                        -> [EnvironmentUpdate]
->                        -> Either [TypeError] [Maybe StatementInfo]
+>                        -> Either [TypeError] [Maybe StatementType]
 >                        -> Test.Framework.Test
-> testEnvUpStatementInfo src eu sis = testCase ("typecheck " ++ src) $
+> testEnvUpStatementType src eu sis = testCase ("typecheck " ++ src) $
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
@@ -1113,8 +1096,8 @@ check errors: select into wrong number of vars, wrong types, and into
 
 > itemToTft :: Item -> [Test.Framework.Test]
 > itemToTft (Expressions es) = map (uncurry testExpressionType) es
-> itemToTft (StatementInfos es) = map (uncurry testStatementInfo) es
-> itemToTft (EnvUpStatementInfos es) = map (\(s,eu,si) -> testEnvUpStatementInfo s eu si) es
+> itemToTft (StatementTypes es) = map (uncurry testStatementType) es
+> itemToTft (EnvUpStatementTypes es) = map (\(s,eu,si) -> testEnvUpStatementType s eu si) es
 > itemToTft (DdlStatements es) = map (uncurry testEnvUp) es
 > itemToTft (DdlStatementsEnv es) = map (uncurry testEnv) es
 
