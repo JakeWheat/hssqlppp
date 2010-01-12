@@ -21,7 +21,7 @@ to get a list of commands and purpose and usage info
 > import Test.Framework (defaultMainWithArgs)
 
 > import Database.HsSqlPpp.Tests.ParserTests
-> import Database.HsSqlPpp.Tests.AstCheckTests
+> import Database.HsSqlPpp.Tests.TypeCheckTests
 > import Database.HsSqlPpp.Tests.ExtensionTests
 
 > import Database.HsSqlPpp.Ast.Environment
@@ -422,10 +422,8 @@ write a routine to mirror this - will then have
 > runTests as =
 >   flip defaultMainWithArgs as $
 >     parserTests ++
->    [astCheckTests
->    --,databaseLoaderTests
->    ,extensionTests
->    ]
+>     typeCheckTests ++
+>     [extensionTests]
 
 ================================================================================
 

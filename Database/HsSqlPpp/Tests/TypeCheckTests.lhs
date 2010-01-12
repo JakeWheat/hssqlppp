@@ -4,7 +4,7 @@ Set of tests to check the type checking code. Includes some tests for
 sql which doesn't type check.
 
 
-> module Database.HsSqlPpp.Tests.AstCheckTests (astCheckTests) where
+> module Database.HsSqlPpp.Tests.TypeCheckTests (typeCheckTests) where
 
 > import Test.HUnit
 > import Test.Framework
@@ -18,13 +18,23 @@ sql which doesn't type check.
 > import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Ast.SqlTypes
 
-> astCheckTests :: Test.Framework.Test
-> astCheckTests = testGroup "astCheckTests" [
+> data Item = Expressions [(String, Either [TypeError] Type)]
+>           | StatementInfos [(String, Either [TypeError] [Maybe StatementInfo])]
+>           | EnvUpStatementInfos [(String
+>                                  ,[EnvironmentUpdate]
+>                                  ,Either [TypeError] [Maybe StatementInfo])]
+>           | DdlStatements [(String, [[EnvironmentUpdate]])]
+>           | DdlStatementsEnv [(String, [EnvironmentUpdate])]
+>           | Group String [Item]
 
-Test the types of a bunch of expressions.
+> typeCheckTests :: [Test.Framework.Test]
+> typeCheckTests = itemToTft typeCheckTestData
 
->    testGroup "basic literal types"
->     (mapExprType [
+> typeCheckTestData :: Item
+> typeCheckTestData =
+>   Group "astCheckTests" [
+
+>    Group "basic literal types" [ Expressions [
 >       p "1" $ Right typeInt
 >      ,p "1.0" $ Right typeNumeric
 >      ,p "'test'" $ Right UnknownType
@@ -33,10 +43,9 @@ Test the types of a bunch of expressions.
 >      ,p "array['a','b']" $ Right (ArrayType (ScalarType "text"))
 >      ,p "array[1,'b']" $ Right (ArrayType typeInt)
 >      ,p "array[1,true]" $ Left [NoMatchingOperator "!arrayctor" [ScalarType "int4",ScalarType "bool"]]
->      ])
->
->    ,testGroup "some expressions"
->     (mapExprType [
+>      ]]
+
+>   ,Group "some expressions" [ Expressions [
 >       p "1=1" $ Right typeBool
 >      ,p "1=true" $ Left [NoMatchingOperator "=" [typeInt,typeBool]]
 >      ,p "substring('aqbc' from 2 for 2)" $ Right (ScalarType "text")
@@ -98,10 +107,9 @@ Test the types of a bunch of expressions.
 
 >      ,p "lower('TEST')" $ Right (ScalarType "text")
 >      ,p "lower(1)" $ Left [NoMatchingOperator "lower" [typeInt]]
->      ])
+>      ]]
 
->    ,testGroup "special functions"
->     (mapExprType [
+>   ,Group "special functions" [ Expressions [
 >       p "coalesce(null,1,2,null)" $ Right typeInt
 >      ,p "coalesce('3',1,2,null)" $ Right typeInt
 >      ,p "coalesce('3',1,true,null)"
@@ -118,7 +126,9 @@ Test the types of a bunch of expressions.
 >      ,p "least(3,5,6,4,3)" $ Right typeInt
 >      ,p "least(5,true)"
 >             $ Left [NoMatchingOperator "least" [ScalarType "int4",ScalarType "bool"]]
->      ])
+
+
+>      ]]
 
 implicit casting and function/operator choice tests:
 check when multiple implicit and one exact match on num args
@@ -127,29 +137,27 @@ check multiple implicit matches with one preferred
 check multiple implicit matches with one preferred highest count
 check casts from unknown string lits
 
->    ,testGroup "some expressions"
->     (mapExprType [
+>   ,Group "some expressions" [ Expressions [
 >       p "3 + '4'" $ Right typeInt
 >      ,p "3.0 + '4'" $ Right typeNumeric
 >      ,p "'3' + '4'" $ Left [NoMatchingOperator "+" [UnknownType
 >                                               ,UnknownType]]
->      ])
->
 
->    ,testGroup "exists expressions"
->     (mapExprType [
+>      ]]
+
+>   ,Group "exists expressions" [ Expressions [
 >       p "exists (select 1 from pg_type)" $ Right typeBool
 >      ,p "exists (select testit from pg_type)"
 >        $ Left [UnrecognisedIdentifier "testit"]
->     ])
+>      ]]
+
+>   ,Group "row comparison expressions" [ Expressions [
 
 rows different lengths
 rows match types pairwise, same and different types
 rows implicit cast from unknown
 rows don't match types
 
->    ,testGroup "row comparison expressions"
->     (mapExprType [
 >       p "row(1)" $ Right (AnonymousRecordType [typeInt])
 >      ,p "row(1,2)" $ Right (AnonymousRecordType [typeInt,typeInt])
 >      ,p "row('t1','t2')" $ Right (AnonymousRecordType [UnknownType,UnknownType])
@@ -176,12 +184,9 @@ rows don't match types
 >      ,p "(1,2) <= (2,1)" $ Right typeBool
 >      ,p "(1,2) > (2,1)" $ Right typeBool
 >      ,p "(1,2) < (2,1)" $ Right typeBool
->     ])
+>      ]]
 
-
-
->    ,testGroup "case expressions"
->     (mapExprType [
+>   ,Group "case expressions" [ Expressions [
 >       p "case\n\
 >         \ when true then 1\n\
 >         \end" $ Right typeInt
@@ -218,23 +223,18 @@ rows don't match types
 >      ,p "case 1 when 2 then 3 else false end"
 >             $ Left [IncompatibleTypeSet [ScalarType "int4"
 >                                          ,ScalarType "bool"]]
+>      ]]
 
->      ])
-
->    ,testGroup "polymorphic functions"
->     (mapExprType [
+>   ,Group "polymorphic functions" [ Expressions [
 >       p "array_append(ARRAY[1,2], 3)"
 >         $ Right (ArrayType typeInt)
 >      ,p "array_append(ARRAY['a','b'], 'c')"
 >         $ Right (ArrayType $ ScalarType "text")
 >      ,p "array_append(ARRAY['a'::int,'b'], 'c')"
 >         $ Right (ArrayType typeInt)
->      ])
+>      ]]
 
-todo:
-
->    ,testGroup "cast expressions"
->     (mapExprType [
+>   ,Group "cast expressions" [ Expressions [
 >       p "cast ('1' as integer)"
 >         $ Right typeInt
 >      ,p "cast ('1' as baz)"
@@ -245,10 +245,9 @@ todo:
 >         $ Right (Pseudo AnyArray) -- Left [TypelessEmptyArray]
 >      ,p "array[] :: text[]"
 >         $ Right (ArrayType (ScalarType "text"))
->      ])
+>      ]]
 
->    ,testGroup "simple selects"
->     (mapStatementInfo [
+>   ,Group "simple selects" [ StatementInfos [
 >       p "select 1;" $ Right [Just $ SelectInfo $ SetOfType $
 >                              CompositeType [("?column?", typeInt)]]
 >      ,p "select 1 as a;" $
@@ -284,10 +283,10 @@ todo:
 >                                      [("column1", ScalarType "text")
 >                                      ,("column2", typeSmallInt)]]
 >      ,p "values (1,2,3),(1,2);" $ Left [ValuesListsMustBeSameLength]
->      ])
 
->    ,testGroup "simple combine selects"
->     (mapStatementInfo [
+>      ]]
+
+>   ,Group "simple combine selects" [ StatementInfos [
 >      p "select 1,2  union select '3', '4';" $ Right [Just $ SelectInfo $ SetOfType $
 >                                      CompositeType
 >                                      [("?column?", typeInt)
@@ -310,11 +309,10 @@ todo:
 >                                      CompositeType
 >                                      [("a", typeInt)
 >                                      ,("b", typeInt)]]
->      ])
 
+>      ]]
 
->    ,testGroup "simple selects from"
->     (mapStatementInfo [
+>   ,Group "simple selects from" [ StatementInfos [
 >       p "select a from (select 1 as a, 2 as b) x;"
 >         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)]]
 >      ,p "select b from (select 1 as a, 2 as b) x;"
@@ -358,29 +356,26 @@ check aliasing
 >         --the second one means select 3+generate_series from generate_series(1,7)
 >         --  select generate_series(1,7);
 >         -- select 3 + generate_series(1,7);
->      ])
 
+>      ]]
 
->    ,testGroup "simple selects from 2"
->     (mapStatementInfoEnv [
+>   ,Group "simple selects from 2" [ EnvUpStatementInfos [
 >       t "select a,b from testfunc();"
->         (makeEnv
->              [EnvCreateComposite "testType" [("a", ScalarType "text")
->                                             ,("b", typeInt)
->                                             ,("c", typeInt)]
->              ,EnvCreateFunction FunName "testfunc" [] (SetOfType $ NamedCompositeType "testType") False])
+>         [EnvCreateComposite "testType" [("a", ScalarType "text")
+>                                        ,("b", typeInt)
+>                                        ,("c", typeInt)]
+>         ,EnvCreateFunction FunName "testfunc" []
+>          (SetOfType $ NamedCompositeType "testType") False]
 >         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType
 >                  [("a",ScalarType "text"),("b",ScalarType "int4")]]
 
 >      ,t "select testfunc();"
->         (makeEnv
->              [EnvCreateFunction FunName "testfunc" [] (Pseudo Void) False])
+>         [EnvCreateFunction FunName "testfunc" [] (Pseudo Void) False]
 >         $ Right [Just $ SelectInfo $ Pseudo Void]
 
->      ])
+>      ]]
 
->    ,testGroup "simple join selects"
->     (mapStatementInfo [
+>   ,Group "simple join selects" [ StatementInfos [
 >       p "select * from (select 1 as a, 2 as b) a\n\
 >         \  cross join (select true as c, 4.5 as d) b;"
 >         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("a", typeInt)
@@ -428,12 +423,9 @@ check aliasing
 
 >      ,p "select a1 from (select 1 as a1) a,  (select 2 as a1) b;"
 >         $ Left [AmbiguousIdentifier "a1"]
+>      ]]
 
-
->      ])
-
->    ,testGroup "simple scalar identifier qualification"
->     (mapStatementInfo [
+>   ,Group "simple scalar identifier qualification" [ StatementInfos [
 >       p "select a.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \cross join (select 3 as c, 4 as d) b;"
@@ -469,17 +461,14 @@ check aliasing
 
 select g.fn from fn() g
 
+>      ]]
 
->      ])
-
->    ,testGroup "aggregates"
->     (mapStatementInfo [
+>   ,Group "aggregates" [ StatementInfos [
 >        p "select max(prorettype::int) from pg_proc;"
 >         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("max", typeInt)]]
->      ])
+>      ]]
 
->    ,testGroup "simple wheres"
->     (mapStatementInfo [
+>   ,Group "simple wheres" [ StatementInfos [
 >       p "select 1 from pg_type where true;"
 >         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("?column?", typeInt)]]
 >      ,p "select 1 from pg_type where 1;"
@@ -490,13 +479,12 @@ select g.fn from fn() g
 >         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("typname", ScalarType "name")]]
 >      ,p "select typname from pg_type where what = 'b';"
 >         $ Left [UnrecognisedIdentifier "what"]
->      ])
+>      ]]
 
 TODO: check identifier stacking working, then remove the pg_namespace
 qualifier before oid and this should still work
 
->    ,testGroup "subqueries"
->     (mapStatementInfo [
+>   ,Group "subqueries" [ StatementInfos [
 >       p "select relname as relvar_name\n\
 >         \    from pg_class\n\
 >         \    where ((relnamespace =\n\
@@ -511,24 +499,19 @@ qualifier before oid and this should still work
 >         $ Right [Just $ SelectInfo $ SetOfType (CompositeType [("g",typeInt)])]
 >      ,p "select 3 = any(array[1,2,3]);"
 >         $ Right [Just $ SelectInfo $ SetOfType (CompositeType [("?column?",typeBool)])]
->      ])
+>      ]]
 
 identifiers in select parts
 
 >{-    ,testGroup "select part identifiers"
->     (mapStatementInfo [
+>     (mapStatementInfos [
 >       p "select relname,attname from pg_class\n\
 >         \inner join pg_attribute\n\
 >         \on pg_attribute.attrelid = pg_class.oid;"
 >         $ Right [Just $ SelectInfo $ SetOfType $ CompositeType [("relvar_name",ScalarType "name")]]
 >      ])-}
 
-
-
-insert
-
->    ,testGroup "insert"
->     (mapStatementInfo [
+>   ,Group "insert" [ StatementInfos [
 >       p "insert into nope (a,b) values (c,d);"
 >         $ Left [UnrecognisedRelation "nope",UnrecognisedIdentifier "c",UnrecognisedIdentifier "d"]
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
@@ -554,11 +537,9 @@ insert
 >      ,p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,true, 'a', 'b','c');"
 >         $ Left [WrongNumberOfColumns]
+>      ]]
 
->      ])
-
->    ,testGroup "update"
->     (mapStatementInfo [
+>   ,Group "update" [ StatementInfos [
 >       p "update nope set a = 1;"
 >         $ Left [UnrecognisedRelation "nope"]
 >      ,p "update pg_attrdef set adsrc = '' where 1;"
@@ -581,12 +562,9 @@ insert
 >         $ Right [Just $ UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")] Nothing]
 >      ,p "update pg_attrdef set adnum = adnum + 1;"
 >         $ Right [Just $ UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")] Nothing]
+>      ]]
 
-
->      ])
-
->    ,testGroup "delete"
->     (mapStatementInfo [
+>   ,Group "delete" [ StatementInfos [
 >       p "delete from nope;"
 >         $ Left [UnrecognisedRelation "nope"]
 >      ,p "delete from pg_attrdef where 1=2;"
@@ -595,21 +573,17 @@ insert
 >         $ Left [ExpressionMustBeBool]
 >      ,p "delete from pg_attrdef where adsrc='';"
 >         $ Right [Just $ DeleteInfo "pg_attrdef" Nothing]
->      ])
-
+>      ]]
 
 ================================================================================
 
 test the catalog updates from creates, etc.
 
-
->    ,testGroup "creates"
->     (mapStatementInfoEu [
->       t "create table t1 (\n\
+>   ,Group "creates" [DdlStatements [
+>       p "create table t1 (\n\
 >         \   a int,\n\
 >         \   b text\n\
 >         \);"
->         (Right [Nothing])
 >         [[EnvCreateTable "t1" [("a",ScalarType "int4")
 >                               ,("b",ScalarType "text")]
 >                               [("tableoid", ScalarType "oid")
@@ -618,39 +592,34 @@ test the catalog updates from creates, etc.
 >                               ,("cmin", ScalarType "cid")
 >                               ,("xmin", ScalarType "xid")
 >                               ,("ctid", ScalarType "tid")]]]
->      ,t "create type t1 as (\n\
+>      ,p "create type t1 as (\n\
 >         \   a int,\n\
 >         \   b text\n\
 >         \);"
->         (Right [Nothing])
 >         [[EnvCreateComposite "t1" [("a",ScalarType "int4")
 >                                   ,("b",ScalarType "text")]]]
 
->      ,t "create domain t1 as text;"
->         (Right [Nothing])
+>      ,p "create domain t1 as text;"
 >         [[EnvCreateDomain (DomainType "t1") (ScalarType "text")]]
 
->      ,t "create domain t1 as text check (value in ('a', 'b'));\n\
+>      ,p "create domain t1 as text check (value in ('a', 'b'));\n\
 >         \select 'text'::t1;"
->         (Right [Nothing])
 >         [[EnvCreateDomain (DomainType "t1") (ScalarType "text")]]
 
 
->      ,t "create view v1 as select * from pg_attrdef;"
->         (Right [Nothing])
+>      ,p "create view v1 as select * from pg_attrdef;"
 >         [[EnvCreateView "v1" [("adrelid",ScalarType "oid")
 >                              ,("adnum",ScalarType "int2")
 >                              ,("adbin",ScalarType "text")
 >                              ,("adsrc",ScalarType "text")]]]
 
->      ,t "create function t1(text) returns text as $$\n\
+>      ,p "create function t1(text) returns text as $$\n\
 >         \null;\n\
 >         \$$ language sql stable;"
->         (Right [Nothing])
 >         [[EnvCreateFunction FunName "t1" [ScalarType "text"]
 >                             (ScalarType "text") False]]
+>      ]]
 
->      ])
 
 ================================================================================
 
@@ -668,8 +637,7 @@ check var defs:
 check type exists
 check type of initial values
 
->    ,testGroup "create function identifier resolution"
->     (mapStatementInfo [
+>   ,Group "create function identifier resolution" [ StatementInfos [
 >       p "create function t1(stuff text) returns text as $$\n\
 >         \begin\n\
 >         \  return stuff || ' and stuff';\n\
@@ -690,12 +658,11 @@ check type of initial values
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Right [Nothing])
->      ])
+>      ]]
 
 ================================================================================
 
->    ,testGroup "plpgsqlbits"
->     (mapStatementInfo [
+>   ,Group "plpgsqlbits" [ StatementInfos [
 >       p "create function t1(stuff text) returns text as $$\n\
 >         \begin\n\
 >         \  return stuff || ' and stuff';\n\
@@ -716,12 +683,11 @@ check type of initial values
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Right [Nothing])
->      ])
+>      ]]
 
 ================================================================================
 
->    ,testGroup "plpgsqlbits"
->     (mapStatementInfo [
+>   ,Group "plpgsqlbits" [ StatementInfos [
 >       p "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  a bool;\n\
@@ -738,12 +704,11 @@ check type of initial values
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Right [Nothing])
->      ])
+>      ]]
 
 ================================================================================
 
->    ,testGroup "for loops"
->     (mapStatementInfo [
+>   ,Group "for loops" [ StatementInfos [
 >       p "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  r record;\n\
@@ -821,19 +786,16 @@ loop var implicit check it's type
 >         \end;\n\
 >         \       $$ language plpgsql volatile;"
 >         (Left [IncompatibleTypes (ScalarType "bool") (ScalarType "int4")])
-
->      ])
-
-
+>      ]]
 
 ================================================================================
+
+>   ,Group "check catalog chaining" [ StatementInfos [
 
 create function then select
 select then create function
 then in two separate chained asts
 
->    ,testGroup "check catalog chaining"
->     (mapStatementInfo [
 >       p "create function t1() returns void as $$\n\
 >         \begin\n\
 >         \  null;\n\
@@ -848,10 +810,9 @@ then in two separate chained asts
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Left [NoMatchingOperator "t1" []])
->      ])
+>      ]]
 
->    ,testGroup "check catalog chaining2"
->     (mapStatementInfos [
+>   {-,Group "check catalog chaining2" [ StatementInfos [
 >       p ["create function t1() returns void as $$\n\
 >          \begin\n\
 >          \  null;\n\
@@ -866,7 +827,7 @@ then in two separate chained asts
 >          \end;\n\
 >          \$$ language plpgsql stable;"]
 >         (Left [NoMatchingOperator "t1" []])
->      ])
+>      ]]-}
 
 ================================================================================
 
@@ -904,8 +865,7 @@ check select into: multiple vars, record (then access fields to check),
 check errors: select into wrong number of vars, wrong types, and into
   composite wrong number and wrong type
 
->    ,testGroup "select into"
->     (mapStatementInfo [
+>   ,Group "select into" [ StatementInfos [
 >       p "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b') returning adnum,adbin;"
 >         $ Right [Just $ InsertInfo "pg_attrdef" [("adrelid",ScalarType "oid")
@@ -1007,10 +967,9 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         $ Right [Nothing]
->      ])
+>      ]]
 
->    ,testGroup "composite elements"
->     (mapStatementInfo [
+>   ,Group "composite elements" [ StatementInfos [
 >       p "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  r pg_attrdef;\n\
@@ -1023,10 +982,9 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         $ Right [Nothing]
->      ])
+>      ]]
 
->    ,testGroup "positional args"
->     (mapStatementInfo [
+>   ,Group "positional args" [ StatementInfos [
 >       p "create function distance(int, int, int, int) returns float(24) as $$\n\
 >         \  select (point($1, $2) <-> point($3, $4))::float(24) as result;\n\
 >         \$$ language sql immutable;"
@@ -1035,10 +993,9 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \  select (point($1, $2) <-> point($3, $5))::float(24) as result;\n\
 >         \$$ language sql immutable;"
 >         $ Left [UnrecognisedIdentifier "$5"]
->      ])
+>      ]]
 
->    ,testGroup "window fns"
->     (mapStatementInfo [
+>   ,Group "window fns" [ StatementInfos [
 >       p "select *, row_number() over () from pg_attrdef;"
 >         $ Right [Just $ SelectInfo
 >                  (SetOfType (CompositeType
@@ -1047,15 +1004,9 @@ check errors: select into wrong number of vars, wrong types, and into
 >                   ,("adbin",ScalarType "text")
 >                   ,("adsrc",ScalarType "text")
 >                   ,("row_number",ScalarType "int8")]))]
+>      ]]
 
->      ])
-
-================================================================================
-
-drop function
-
->    ,testGroup "drop stuff"
->     (mapStatementEnvChanges [
+>   ,Group "drop stuff" [ DdlStatementsEnv [
 >       p "create function test(a int) returns void as $$\n\
 >         \begin\n\
 >         \  null;\n\
@@ -1073,30 +1024,82 @@ drop function
 >         []
 >      ,p "drop function if exists test(int);"
 >         []
->     ])
+>      ]]
+>   ]
 
 ================================================================================
 
->
->    ]
->         where
->           --mapAttr = map $ uncurry checkAttrs
->           p a b = (a,b)
->           t a b c = (a,b,c)
->           mapExprType = map (uncurry $ checkExpressionType defaultTemplate1Environment)
->           --mapStatementType = map $ uncurry checkStatementType
->           mapStatementInfo = map $ uncurry checkStatementInfo
->           mapStatementInfos = map $ uncurry checkStatementInfos
->           mapStatementInfoEu = map (\(a,b,c) ->  checkStatementInfoEu a b c)
->           mapStatementEnvChanges = map $ uncurry checkStatementEnvChanges
->           {-mapExprEnvType = map (\(a,b,c) -> checkExpressionType b a c)-}
->           makeEnv eu = case updateEnvironment defaultTemplate1Environment eu of
+> p :: t -> t1 -> (t, t1)
+> p a b = (a,b)
+
+> t :: t -> u -> v -> (t,u,v)
+> t a b c = (a,b,c)
+
+
+> testExpressionType :: String -> Either [TypeError] Type -> Test.Framework.Test
+> testExpressionType src typ = testCase ("typecheck " ++ src) $
+>   let ast = case parseExpression "" src of
+>                                      Left e -> error $ show e
+>                                      Right l -> l
+>       aast = typeCheckExpression defaultTemplate1Environment ast
+>       ty = getTopLevelTypes [aast]
+>       er = concatMap snd $ getTypeErrors aast
+>   in case (length er, length ty) of
+>        (0,0) -> assertFailure "didn't get any types?"
+>        (0,1) -> assertEqual ("typecheck " ++ src) typ $ Right $ head ty
+>        (0,_) -> assertFailure "got too many types"
+>        _ -> assertEqual ("typecheck " ++ src) typ $ Left er
+
+> testStatementInfo :: String -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
+> testStatementInfo src sis = testCase ("typecheck " ++ src) $
+>   let ast = case parseSql "" src of
+>                               Left e -> error $ show e
+>                               Right l -> l
+>       aast = snd $ typeCheck defaultTemplate1Environment ast
+>       is = getTopLevelInfos aast
+>       er = concatMap snd $ getTypeErrors aast
+>   in {-trace (show aast) $-} case (length er, length is) of
+>        (0,0) -> assertFailure "didn't get any infos?"
+>        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
+>        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
+
+
+> testEnvUpStatementInfo :: String
+>                        -> [EnvironmentUpdate]
+>                        -> Either [TypeError] [Maybe StatementInfo]
+>                        -> Test.Framework.Test
+> testEnvUpStatementInfo src eu sis = testCase ("typecheck " ++ src) $
+>   let ast = case parseSql "" src of
+>                               Left e -> error $ show e
+>                               Right l -> l
+>       aast = snd $ typeCheck makeEnv ast
+>       is = getTopLevelInfos aast
+>       er = concatMap snd $ getTypeErrors aast
+>   in {-trace (show aast) $-} case (length er, length is) of
+>        (0,0) -> assertFailure "didn't get any infos?"
+>        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
+>        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
+>   where
+>     makeEnv = case updateEnvironment defaultTemplate1Environment eu of
 >                         Left x -> error $ show x
 >                         Right e -> e
->           mapStatementInfoEnv = map (\(a,b,c) -> checkStatementInfoEnv b a c)
 
-> checkStatementEnvChanges :: String -> [EnvironmentUpdate] -> Test.Framework.Test
-> checkStatementEnvChanges src eu = testCase ("check catalog: " ++ src) $
+> testEnvUp :: String -> [[EnvironmentUpdate]] -> Test.Framework.Test
+> testEnvUp src eu = testCase ("typecheck " ++ src) $
+>   let ast = case parseSql "" src of
+>                               Left e -> error $ show e
+>                               Right l -> l
+>       aast = snd $ typeCheck defaultTemplate1Environment ast
+>       er = concatMap snd $ getTypeErrors aast
+>       eu' = getTopLevelEnvUpdates aast
+>   in {-trace (show aast) $-} case (length er, length eu') of
+>        (0,0) -> assertFailure "didn't get any infos or envupdates?"
+>        (0,_) -> assertEqual ("eu " ++ src) eu eu'
+>        (_,_) -> assertFailure $ show er
+
+
+> testEnv :: String -> [EnvironmentUpdate] -> Test.Framework.Test
+> testEnv src eu = testCase ("check catalog: " ++ src) $
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
@@ -1107,79 +1110,12 @@ drop function
 >        then assertFailure $ show er
 >        else assertEqual "check eus" eu neu
 
-annotateAstEnvEnv :: Environment -> StatementList -> (Environment,StatementList)
 
+> itemToTft :: Item -> [Test.Framework.Test]
+> itemToTft (Expressions es) = map (uncurry testExpressionType) es
+> itemToTft (StatementInfos es) = map (uncurry testStatementInfo) es
+> itemToTft (EnvUpStatementInfos es) = map (\(s,eu,si) -> testEnvUpStatementInfo s eu si) es
+> itemToTft (DdlStatements es) = map (uncurry testEnvUp) es
+> itemToTft (DdlStatementsEnv es) = map (uncurry testEnv) es
 
-> checkExpressionType :: Environment -> String -> Either [TypeError] Type -> Test.Framework.Test
-> checkExpressionType env src typ = testCase ("typecheck " ++ src) $
->   let ast = case parseExpression "" src of
->                                      Left e -> error $ show e
->                                      Right l -> l
->       aast = typeCheckExpression env ast
->       ty = getTopLevelTypes [aast]
->       er = concatMap snd $ getTypeErrors aast
->   in case (length er, length ty) of
->        (0,0) -> assertFailure "didn't get any types?"
->        (0,1) -> assertEqual ("typecheck " ++ src) typ $ Right $ head ty
->        (0,_) -> assertFailure "got too many types"
->        _ -> assertEqual ("typecheck " ++ src) typ $ Left er
-
-> checkStatementInfo :: String -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
-> checkStatementInfo src sis = testCase ("typecheck " ++ src) $
->   let ast = case parseSql "" src of
->                               Left e -> error $ show e
->                               Right l -> l
->       aast = snd $ typeCheck defaultTemplate1Environment ast
->       is = getTopLevelInfos aast
->       er = concatMap snd $ getTypeErrors aast
->   in {-trace (show aast) $-} case (length er, length is) of
->        (0,0) -> assertFailure "didn't get any infos?"
->        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
->        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
-
-
-> checkStatementInfos :: [String] -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
-> checkStatementInfos srcs sis = testCase ("typecheck " ++ show srcs) $
->   let asts = map (\src -> case parseSql "" src of
->                                             Left e -> error $ show e
->                                             Right l -> l) srcs
->       aasts = typeCheckMany defaultTemplate1Environment asts
->       is = getTopLevelInfos $ last aasts
->       er = concatMap snd $ concatMap getTypeErrors aasts
->   in {-trace (show $ map getAnnotation aast) $-} case (length er, length is) of
->        (0,0) -> assertFailure "didn't get any infos?"
->        (0,_) -> assertEqual ("typecheck " ++ show srcs) sis $ Right is
->        _ -> assertEqual ("typecheck " ++ show srcs) sis $ Left er
-
-
-> checkStatementInfoEnv :: Environment -> String -> Either [TypeError] [Maybe StatementInfo] -> Test.Framework.Test
-> checkStatementInfoEnv env src sis = testCase ("typecheck " ++ src) $
->   let ast = case parseSql "" src of
->                               Left e -> error $ show e
->                               Right l -> l
->       aast = snd $ typeCheck env ast
->       is = getTopLevelInfos aast
->       er = concatMap snd $ getTypeErrors aast
->   in {-trace (show aast) $-} case (length er, length is) of
->        (0,0) -> assertFailure "didn't get any infos?"
->        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
->        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
-
-> checkStatementInfoEu :: String -> Either [TypeError] [Maybe StatementInfo] -> [[EnvironmentUpdate]] -> Test.Framework.Test
-> checkStatementInfoEu src sis eu = testCase ("typecheck " ++ src) $
->   let ast = case parseSql "" src of
->                               Left e -> error $ show e
->                               Right l -> l
->       aast = snd $ typeCheck defaultTemplate1Environment ast
->       is = getTopLevelInfos aast
->       er = concatMap snd $ getTypeErrors aast
->       eu' = getTopLevelEnvUpdates aast
->   in {-trace (show aast) $-} case (length er, length is, length eu') of
->        (0,0,0) -> assertFailure "didn't get any infos or envupdates?"
->        (0,_,_) -> do
->          assertEqual ("typecheck " ++ src) sis $ Right is
->          assertEqual ("eu " ++ src) eu eu'
->        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
-
-TODO:
-redo to match style of parsertests
+> itemToTft (Group s is) = [testGroup s $ concatMap itemToTft is]

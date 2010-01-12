@@ -143,7 +143,7 @@ typeCheckExpression env ex =
 
 {-
 bit of a hack, to avoid rewriting the tableref type checking to be
-able to do implict joins, we just convert them in to the equivalent
+able to do implicit joins, we just convert them in to the equivalent
 explicit join
 -}
 
@@ -206,7 +206,7 @@ between, greatest and least are treated as syntactic sugar so we
 delegate the function lookups to the <=/>= operators.
 
 the row comparison should be more general than this, since it supports
-any operator satifying some properties
+any operator satisfying some properties
 
 
 TODO: move all of this into find call match. Don't know why it's separate

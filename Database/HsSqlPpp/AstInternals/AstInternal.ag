@@ -108,7 +108,6 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,SetValue(..)
    -- typechecking
    ,typeCheck
-   ,typeCheckMany
    ,typeCheckExpression
 }
 
@@ -681,7 +680,7 @@ makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
 
 -}
 {
-
+{-
 -- | Type check multiple asts, allowing type checking references in
 --   later files to definitions in earlier files. This is probably
 --   more straightforward if you parse the files then concatenate the
@@ -695,6 +694,7 @@ typeCheckMany env sts =
           let (e1,res) = typeCheck e s
           in annInt e1 ss (res:ress)
       annInt _ [] ress = reverse ress
+-}
 
 -- | Takes an ast, checks against catalog passed, and adds
 --   annotations, including types, type errors, and statement info.
