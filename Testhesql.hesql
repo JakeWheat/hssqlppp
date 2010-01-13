@@ -1,4 +1,6 @@
 
+-- demo code for trying out the wrapper generator
+
 module Testhesql1 where
 
 pieces = "select * from pieces;"

@@ -32,7 +32,7 @@ then
 cabal install hssqlppp
 
 I think it should work on all GHC 6.10.x and possibly also GHC 6.8.x,
-YMMV.
+YMMV. GHC 6.12.x untested so far.
 
 There are more doc files in the docs/ folder, and you can view the
 haddock docs on hackage (see below for link). Better documentation is

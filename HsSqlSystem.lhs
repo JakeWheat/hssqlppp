@@ -426,7 +426,7 @@ write a routine to mirror this - will then have
 >   flip defaultMainWithArgs as $
 >     parserTests ++
 >     typeCheckTests ++
->     parameterizedStatementTests ++
+>     --parameterizedStatementTests ++
 >     [extensionTests]
 
 ================================================================================
@@ -456,7 +456,8 @@ create target folder if doesn't exist
 
 > genWrapA = mode $ GenWrap {database = def
 >                           ,file = def &= typ "FILE"}
-
+>            &= text "experimental code to generate typesafe haskell wrapper \
+>                    \for db access"
 > genWrap :: String -> String -> IO ()
 > genWrap db f =
 >   wrapET doit

@@ -1,3 +1,20 @@
+= new immediate todos:
+
+get typing working for wrapper generator demo -> release
+then in some order:
+- docs and examples - some basics
+- roundtrip + report
+  start with users sql: either source files, a database or mixture
+  say if parse ok, -> source files or pg_dumps
+  list type errors from typechecking asts
+  pretty print the catalog from sql source or dumps from typechecking
+  check this catalog against pg catalog
+  also, rename environment type at least
+- nullability plus support in wrapper generator
+then maybe:
+  full api review, renames, error handling work, plus sqltypes review
+
+
 = milestones
 not in any particular order
 

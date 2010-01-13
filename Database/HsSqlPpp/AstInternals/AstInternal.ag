@@ -710,10 +710,12 @@ typeCheck env sts =
    in case tl of
          Root r -> (env1,r)
 
--- | Version of type check which can type check an individual
--- statement with ? or positional arg placeholders in it. Will error
--- if the statement isn't select, update, insert or delete. For use in
--- type checking embedded parameterized statements.
+-- | Unfinished version of type check which can type check an
+-- individual statement with ? or positional arg placeholders in
+-- it. Will error if the statement isn't select, update, insert or
+-- delete. For use in type checking embedded parameterized
+-- statements. Does all typechecking and annotation that the regular
+-- typecheck does.
 typeCheckPS :: Environment -> Statement -> Either String Statement
 typeCheckPS env st =
     case st of

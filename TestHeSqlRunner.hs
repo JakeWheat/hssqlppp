@@ -1,6 +1,7 @@
 
-import Database.HsSqlPpp.Dbms.DBAccess
+-- temp code to load the processed hesql file and run it
 
+import Database.HsSqlPpp.Dbms.DBAccess
 
 import Testhesql1
 

@@ -85,6 +85,8 @@ extra-source-files:  README
                      Database/HsSqlPpp/Commands/CommandComponents.lhs
                      Database/HsSqlPpp/Dbms/DBAccess.lhs
                      Database/HsSqlPpp/Dbms/DatabaseLoader.lhs
+                     Database/HsSqlPpp/Dbms/WrapLib.lhs
+                     Database/HsSqlPpp/Dbms/WrapperGen.lhs
                      Database/HsSqlPpp/Extensions/ChaosExtensions.lhs
                      Database/HsSqlPpp/AstInternals/AnnotationUtils.lhs
                      Database/HsSqlPpp/AstInternals/AstAnnotation.lhs
@@ -110,10 +112,13 @@ extra-source-files:  README
                      Database/HsSqlPpp/AstInternals/TypeChecking/Expressions.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/Drops.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/MiscCreates.ag
+                     Database/HsSqlPpp/Wrapper/WrapperTemplate.lhs
                      Database/HsSqlPpp/Tests/ExtensionTests.lhs
-                     Database/HsSqlPpp/Tests/TypeCheckTests.lhs
                      Database/HsSqlPpp/Tests/ParserTests.lhs
                      Database/HsSqlPpp/Tests/DatabaseLoaderTests.lhs
+                     Database/HsSqlPpp/Tests/RoundtripTests.lhs
+                     Database/HsSqlPpp/Tests/TypeCheckTests.lhs
+                     Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs
                      Database/HsSqlPpp/Here.lhs
                      Database/HsSqlPpp/PrettyPrinter/AnnotateSource.lhs
                      Database/HsSqlPpp/PrettyPrinter/PrettyPrinter.lhs
@@ -122,11 +127,11 @@ extra-source-files:  README
                      Database/HsSqlPpp/Parsing/Lexer.lhs
                      Database/HsSqlPpp/Parsing/Parser.lhs
                      Database/HsSqlPpp/Parsing/ParseErrors.lhs
-                     Database/HsSqlPpp/Ast/TypeChecker.lhs
                      Database/HsSqlPpp/Ast/Ast.lhs
                      Database/HsSqlPpp/Ast/Environment.lhs
                      Database/HsSqlPpp/Ast/Annotation.lhs
                      Database/HsSqlPpp/Ast/SqlTypes.lhs
+                     Database/HsSqlPpp/Ast/TypeChecker.lhs
 
 Library
   Build-Depends:     base >= 4 && < 5,
@@ -163,6 +168,8 @@ Library
   Other-Modules:     Database.HsSqlPpp.Utils
                      --Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Dbms.DBAccess
+                     Database.HsSqlPpp.Dbms.WrapperGen
+                     Database.HsSqlPpp.Dbms.WrapLib
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstAnnotation
                      Database.HsSqlPpp.AstInternals.AstInternal
@@ -177,6 +184,7 @@ Library
                      Database.HsSqlPpp.Tests.TypeCheckTests
                      Database.HsSqlPpp.Tests.ParserTests
                      Database.HsSqlPpp.Tests.DatabaseLoaderTests
+                     Database.HsSqlPpp.Tests.ParameterizedStatementTests
                      Database.HsSqlPpp.HsText.Commands
                      Database.HsSqlPpp.HsText.HsText
                      Database.HsSqlPpp.Parsing.Lexer

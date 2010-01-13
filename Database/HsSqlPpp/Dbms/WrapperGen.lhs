@@ -7,6 +7,8 @@ could probably use some quasi quotation
 
 > {-# LANGUAGE FlexibleContexts #-}
 
+> {-# OPTIONS_HADDOCK hide #-}
+
 > module Database.HsSqlPpp.Dbms.WrapperGen
 >     (wrapperGen) where
 
