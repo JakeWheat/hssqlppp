@@ -12,9 +12,12 @@ make it much more readable.
 SEM Statement
     | SelectStatement
         loc.tpe = dependsOnRTpe [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
-        loc.statementType = [StatementType [] $ leftToEmpty id  $
+        loc.statementType = [StatementType ph $ leftToEmpty id  $
                                                 unwrapSetOfComposite $
                                                 getTypeAnnotation @ex.annotatedTree]
+                            where
+                              ph = flip map (getPlaceholders @ex.annotatedTree)
+                                     $ const $ ScalarType "text"
         loc.backTree = SelectStatement @ann @ex.annotatedTree
         loc.envUpdates = []
 
@@ -174,3 +177,15 @@ INCLUDE "TypeChecking/TableRefs.ag"
 INCLUDE "TypeChecking/SelectLists.ag"
 
 
+{
+getPlaceholders :: Data a => a -> [Expression]
+getPlaceholders st =
+    filter isPlaceholder $ everything (++) (mkQ [] ga) st
+    where
+      ga :: Expression -> [Expression]
+      ga s = [s]
+      isPlaceholder e = case e of
+                          PositionalArg _ _ -> True
+                          Placeholder _ -> True
+                          _ -> False
+}
