@@ -10,7 +10,7 @@ type.
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg WindowFn
+      PositionalArg Placeholder WindowFn
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
@@ -241,6 +241,11 @@ SEM Expression
         loc.tpe = libLookupID @lhs.lib ('$':show @p)
         loc.backTree = PositionalArg @ann @p
 
+
+SEM Expression
+    | Placeholder
+        loc.tpe = Right UnknownType
+        loc.backTree = Placeholder @ann
 
 -- exists: will work on any subselect so we don't need to do any checking
 SEM Expression

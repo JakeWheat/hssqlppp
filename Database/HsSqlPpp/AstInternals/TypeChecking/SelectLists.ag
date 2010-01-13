@@ -173,7 +173,7 @@ SEM Expression
 
 SEM Expression
   | BooleanLit Case Exists FloatLit IntegerLit LiftOperator
-    NullLit PositionalArg ScalarSubQuery StringLit
+    NullLit PositionalArg Placeholder ScalarSubQuery StringLit
       lhs.liftedColumnName = ""
 
 -- collect the aliases and column names for use by the selectitemlist nodes

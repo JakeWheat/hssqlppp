@@ -108,6 +108,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,SetValue(..)
    -- typechecking
    ,typeCheck
+   ,typeCheckPS
    ,typeCheckExpression
 }
 
@@ -479,6 +480,7 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                 | NullLit ann:Annotation
                 | BooleanLit ann:Annotation b:Bool
                 | PositionalArg ann:Annotation p:Integer
+                | Placeholder ann:Annotation -- represents a '?'
                 | Cast ann:Annotation
                        expr:Expression
                        tn:TypeName
@@ -500,7 +502,6 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                               expr:Expression
                               i:Bool
                               list:InList
-                  -- windowfn selectitem partitionby orderby orderbyasc?
                 | WindowFn ann:Annotation
                            fn : Expression
                            partitionBy : ExpressionList
@@ -708,6 +709,29 @@ typeCheck env sts =
         env1 = producedEnv_Syn_Root ta
    in case tl of
          Root r -> (env1,r)
+
+-- | Version of type check which can type check an individual
+-- statement with ? or positional arg placeholders in it. Will error
+-- if the statement isn't select, update, insert or delete. For use in
+-- type checking embedded parameterized statements.
+typeCheckPS :: Environment -> Statement -> Either String Statement
+typeCheckPS env st =
+    case st of
+      SelectStatement _ _ -> tc
+      Insert _ _ _ _ _ -> tc
+      Update _ _ _ _ _ -> tc
+      Delete _ _ _ _ -> tc
+      _ -> Left "requires select, update, insert or delete statement"
+    where
+      tc = let t = sem_Root (Root (fixupImplicitJoins [st]))
+               ta = wrap_Root t Inh_Root {env_Inh_Root = env
+                                         ,lib_Inh_Root = emptyBindings}
+               tl = annotatedTree_Syn_Root ta
+               env1 = producedEnv_Syn_Root ta
+           in case tl of
+                Root [st1] -> Right st1
+                _ -> error "impossible happened in typeCheckPS!"
+
 
 -- | Testing utility, mainly used to check an expression for type errors
 -- or to get its type.

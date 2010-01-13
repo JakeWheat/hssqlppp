@@ -166,6 +166,8 @@ test some more really basic expressions
 
 >    ,Group "positional args" [Expressions [
 >       p "$1" (PositionalArg [] 1)
+>      ,p "?" (Placeholder [])
+>      ,p "a = ?" (FunCall [] "=" [Identifier [] "a",Placeholder []])
 >      ]]
 
 >    ,Group "exists" [Expressions [

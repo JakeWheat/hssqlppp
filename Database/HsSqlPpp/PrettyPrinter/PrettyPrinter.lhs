@@ -639,6 +639,7 @@ Conversion routines - convert Sql asts into Docs
 >             <+> text "then" <+> convExp ex2
 
 > convExp (PositionalArg _ a) = text "$" <> integer a
+> convExp (Placeholder _) = text "?"
 > convExp (Exists _ s) = text "exists" <+> parens (convSelectExpression True True s)
 > convExp (Cast _ ex t) = text "cast" <> parens (convExp ex
 >                                              <+> text "as"

@@ -922,6 +922,7 @@ a row constructor looking thing, then finally vanilla parens
 try a few random things which can't start a different expression
 
 >               ,positionalArg
+>               ,placeholder
 >               ,stringLit
 
 >               ,floatLit
@@ -1253,6 +1254,10 @@ identifier which happens to start with a complete keyword
 > positionalArg = PositionalArg [] <$> mytoken (\tok -> case tok of
 >                                     PositionalArgTok n -> Just n
 >                                     _ -> Nothing)
+
+> placeholder :: ParsecT [Token] ParseState Identity Expression
+> placeholder = Placeholder [] <$ symbol "?"
+
 
 > float :: MyParser Double
 > float = mytoken (\tok -> case tok of

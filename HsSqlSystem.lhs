@@ -23,6 +23,7 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Tests.ParserTests
 > import Database.HsSqlPpp.Tests.TypeCheckTests
 > import Database.HsSqlPpp.Tests.ExtensionTests
+> import Database.HsSqlPpp.Tests.ParameterizedStatementTests
 
 > import Database.HsSqlPpp.Ast.Environment
 > import Database.HsSqlPpp.Ast.Ast
@@ -425,6 +426,7 @@ write a routine to mirror this - will then have
 >   flip defaultMainWithArgs as $
 >     parserTests ++
 >     typeCheckTests ++
+>     parameterizedStatementTests ++
 >     [extensionTests]
 
 ================================================================================

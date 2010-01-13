@@ -26,6 +26,7 @@ This is the public module for the type checking functionality.
 >     (
 >      -- * typechecking/ annotation functions
 >       typeCheck
+>      ,typeCheckPS
 >      ,typeCheckExpression
 >      -- * Annotated tree utils
 >     ,getTopLevelTypes

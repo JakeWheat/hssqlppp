@@ -145,7 +145,8 @@ Library
                      process,
                      --pandoc == 1.2.1,
                      filepath,
-                     template-haskell
+                     template-haskell,
+                     haskell-src-exts
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
                      Database.HsSqlPpp.Ast.TypeChecker
