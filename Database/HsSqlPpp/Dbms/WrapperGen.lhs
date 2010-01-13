@@ -1,11 +1,16 @@
 Copyright 2010 Jake Wheat
 
+demo code for using the hssqlppp typechecker to generate typesafe
+database access code
+
+could probably use some quasi quotation
+
 > {-# LANGUAGE FlexibleContexts #-}
 
 > module Database.HsSqlPpp.Dbms.WrapperGen
 >     (wrapperGen) where
 
-> import Text.Show.Pretty
+> import Text.Show.Pretty (ppShow)
 > import Language.Haskell.Exts hiding (String)
 > import qualified Language.Haskell.Exts as Exts
 > -- import Control.Monad
@@ -31,7 +36,7 @@ Copyright 2010 Jake Wheat
 >                    case updateEnvironment defaultEnvironment envU of
 >                      Left er -> return $ show er
 >                      Right env ->
->                          return $ ppShow ast ++ "\n\n" ++ prettyPrint (processTree env ast)
+>                          return $ {- ppShow ast ++  "\n\n" ++ -} prettyPrint (processTree env (addImports ast))
 >     x -> return $ ppShow x
 
 > processTree :: Data a => Environment -> a -> a
@@ -46,8 +51,34 @@ Copyright 2010 Jake Wheat
 >           -> createWrapper env fnName sqlSrc ++ tl
 >         x1 -> x1
 
+> addImports :: Data a => a -> a
+> addImports =
+>     transformBi $ \x ->
+>       case x of
+>         Module sl mn o wt es im d -> Module sl mn o wt es (imports ++ im) d
+
+
 > noSrcLoc :: SrcLoc
 > noSrcLoc = (SrcLoc "" 0 0)
+
+> imports :: [ImportDecl]
+> imports = [ImportDecl {importLoc = noSrcLoc
+>                       ,importModule = ModuleName "Database.HDBC"
+>                       ,importQualified = False
+>                       ,importSrc = False
+>                       ,importPkg = Nothing
+>                       ,importAs = Nothing
+>                       ,importSpecs = Nothing
+>                       }
+>           ,ImportDecl {importLoc = noSrcLoc
+>                       ,importModule = ModuleName "Database.HsSqlPpp.Dbms.WrapLib"
+>                       ,importQualified = False
+>                       ,importSrc = False
+>                       ,importPkg = Nothing
+>                       ,importAs = Nothing
+>                       ,importSpecs = Nothing
+>                       }]
+
 
 > createWrapper :: Environment
 >               -> String
@@ -58,23 +89,62 @@ Copyright 2010 Jake Wheat
 >     in case rt of
 >       Left e -> error e
 >       Right (StatementType _ ts) ->
->           [makeTypeSig fnName (map (sqlTypeToHaskellTypeName . snd) ts)
->           ,PatBind noSrcLoc
->             (PVar (Ident fnName))
->             Nothing
->             (UnGuardedRhs(Lit ( Exts.String (show $ getStatementType env sql))))
->             (BDecls [])]
+>           let tns = map (sqlTypeToHaskellTypeName . snd) ts
+>           in [makeTypeSig fnName tns
+>              ,makeFn fnName sql tns]
+
+> makeFn :: String -> String -> [String] -> Decl
+> makeFn fnName sql typeNames = FunBind
+>       [ Match noSrcLoc(
+>           Ident fnName )
+>           [ PVar ( Ident "conn" )
+>           ]
+>           Nothing (
+>           UnGuardedRhs (
+>             Do
+>               [ Generator noSrcLoc (
+>                   PVar ( Ident "r" ) ) (
+>                   App (
+>                     App (
+>                       App (
+>                         Var ( UnQual ( Ident "selectRelation" ) ) ) (
+>                         Var ( UnQual ( Ident "conn" ) ) ) ) (
+>                       Lit ( Exts.String sql ) ) ) (
+>                     List [] ) )
+>               , Qualifier (
+>                   InfixApp (
+>                     Var ( UnQual ( Ident "return" ) ) ) (
+>                     QVarOp ( UnQual ( Symbol "$" ) ) ) (
+>                     InfixApp (
+>                       App (
+>                         App (
+>                           Var ( UnQual ( Ident "flip" ) ) ) (
+>                           Var ( UnQual ( Ident "map" ) ) ) ) (
+>                         Var ( UnQual ( Ident "r" ) ) ) ) (
+>                       QVarOp ( UnQual ( Symbol "$" ) ) ) (
+>                       Lambda noSrcLoc
+>                         [ PList (map (PVar . Ident) vns)
+>                         ] (
+>                         Tuple (map (\n -> App (vui "fromSql") (vui n)) vns)
+>                         ) ) ) )
+>               ] ) ) (
+>           BDecls [] )
+>       ]
+>       where
+>         varName n = "a" ++ show n
+>         vns = map varName [0..length typeNames - 1]
+>         vui = Var . UnQual . Ident
+
 
 > makeTypeSig :: String -> [String] -> Decl
 > makeTypeSig fnName typeNames =
->   TypeSig noSrcLoc [Ident fnName]
->     (TyForall Nothing [ClassA (UnQual (Ident "IConnection")) [TyVar(Ident "conn")]]
->        (TyFun (TyVar (Ident "conn"))
->           (TyApp (TyCon (UnQual (Ident "IO")))
->             (TyList (TyTuple Boxed
->                 (flip map typeNames $ \t -> TyApp (
->                     TyCon(UnQual(Ident "Maybe"))) (
->                     TyCon(UnQual(Ident t)))))))))
+>   TypeSig noSrcLoc [Ident fnName] $
+>     TyForall Nothing [ClassA (UnQual (Ident "IConnection")) [TyVar(Ident "conn")]] $
+>       TyFun (TyVar (Ident "conn")) $
+>         TyApp (tc "IO") $ TyList (TyTuple Boxed $ map tntt typeNames)
+>   where
+>     tc = TyCon . UnQual . Ident
+>     tntt = (TyApp (tc "Maybe")) . tc
 
 > sqlTypeToHaskellTypeName :: Sql.Type -> String
 > sqlTypeToHaskellTypeName t =
@@ -160,6 +230,79 @@ PatBind
 >                     TyCon ( UnQual ( Ident "Maybe" ) ) ) (
 >                     TyCon ( UnQual ( Ident "Int" ) ) )
 >                 ] ) ) ) ) )-}
+
+FunBind
+      [ Match
+          SrcLoc
+            { srcFilename = "TestHesql.hs"
+            , srcLine = 24
+            , srcColumn = 1
+            } (
+          Ident "pieces2" )
+          [ PVar ( Ident "conn" )
+          ]
+          Nothing (
+          UnGuardedRhs (
+            Do
+              [ Generator
+                  SrcLoc
+                    { srcFilename = "TestHesql.hs"
+                    , srcLine = 25
+                    , srcColumn = 16
+                    } (
+                  PVar ( Ident "r" ) ) (
+                  App (
+                    App (
+                      App (
+                        Var ( UnQual ( Ident "selectRelation" ) ) ) (
+                        Var ( UnQual ( Ident "conn" ) ) ) ) (
+                      Lit ( String "select * from pieces;" ) ) ) (
+                    List [] ) )
+              , Qualifier (
+                  InfixApp (
+                    Var ( UnQual ( Ident "return" ) ) ) (
+                    QVarOp ( UnQual ( Symbol "$" ) ) ) (
+                    InfixApp (
+                      App (
+                        App (
+                          Var ( UnQual ( Ident "flip" ) ) ) (
+                          Var ( UnQual ( Ident "map" ) ) ) ) (
+                        Var ( UnQual ( Ident "r" ) ) ) ) (
+                      QVarOp ( UnQual ( Symbol "$" ) ) ) (
+                      Lambda
+                        SrcLoc
+                          { srcFilename = "TestHesql.hs"
+                          , srcLine = 26
+                          , srcColumn = 38
+                          }
+                        [ PList
+                            [ PVar ( Ident "a" )
+                            , PVar ( Ident "b" )
+                            , PVar ( Ident "c" )
+                            , PVar ( Ident "d" )
+                            , PVar ( Ident "e" )
+                            ]
+                        ] (
+                        Tuple
+                          [ App (
+                              Var ( UnQual ( Ident "fromSql" ) ) ) (
+                              Var ( UnQual ( Ident "a" ) ) )
+                          , App (
+                              Var ( UnQual ( Ident "fromSql" ) ) ) (
+                              Var ( UnQual ( Ident "b" ) ) )
+                          , App (
+                              Var ( UnQual ( Ident "fromSql" ) ) ) (
+                              Var ( UnQual ( Ident "c" ) ) )
+                          , App (
+                              Var ( UnQual ( Ident "fromSql" ) ) ) (
+                              Var ( UnQual ( Ident "d" ) ) )
+                          , App (
+                              Var ( UnQual ( Ident "fromSql" ) ) ) (
+                              Var ( UnQual ( Ident "e" ) ) )
+                          ] ) ) ) )
+              ] ) ) (
+          BDecls [] )
+      ]
 
 
  , TypeSig

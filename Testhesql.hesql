@@ -1,0 +1,6 @@
+
+module Testhesql1 where
+
+pieces = "select * from pieces;"
+
+turn_number = "select get_turn_number();"
