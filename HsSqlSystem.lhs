@@ -28,7 +28,6 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Commands.CommandComponents as C
 
-
 > data HsSqlSystem = Lex {files :: [String]}
 >                  | Parse {files :: [String]}
 >                  | ParseExpression {files :: [String]}
@@ -56,6 +55,8 @@ to get a list of commands and purpose and usage info
 >                  | TestBattery {database :: String
 >                                ,files :: [String]}
 >                  | Test {extra :: [String]}
+>                  | GenWrap {database :: String
+>                            ,file :: String}
 >                  | BuildDocs
 >                    deriving (Show, Data, Typeable)
 
@@ -68,7 +69,7 @@ to get a list of commands and purpose and usage info
 >                        annotateSourceA, ppCatalogA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
->                        testA,buildDocsA]
+>                        testA,buildDocsA, genWrapA]
 
 >        case cmd of
 >          Lex fns -> lexFiles fns
@@ -90,6 +91,7 @@ to get a list of commands and purpose and usage info
 >          TestBattery db fns -> runTestBattery db fns
 >          Test as -> runTests as
 >          BuildDocs -> buildDocs
+>          GenWrap db f -> genWrap db f
 
 would like to have the database argument be a common arg, don't know
 how to do this
@@ -97,7 +99,7 @@ how to do this
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
 >   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
->   buildDocsA, allAnnotationsA, ppCatalogA :: Mode HsSqlSystem
+>   buildDocsA, allAnnotationsA, ppCatalogA, genWrapA :: Mode HsSqlSystem
 
 ===============================================================================
 
@@ -447,6 +449,18 @@ create target folder if doesn't exist
 >             where
 >               sources = liftM (filter (isSuffixOf ".txt"))
 >                           (liftIO (getDirectoryContents "docs"))
+
+================================================================================
+
+> genWrapA = mode $ GenWrap {database = def
+>                           ,file = def &= typ "FILE"}
+
+> genWrap :: String -> String -> IO ()
+> genWrap db f =
+>   wrapET doit
+>     where
+>       doit :: (MonadIO m) => ErrorT AllErrors m ()
+>       doit = wrapperGen1 db f >>= message
 
 ================================================================================
 

@@ -45,6 +45,8 @@ Wrappers used in the command line program
 >     -- docs
 >     ,pandoc
 >     ,hsTextize
+>     -- testing
+>     ,wrapperGen1
 >      -- * utils
 >     ,message
 >     ,putStrLnList
@@ -85,6 +87,8 @@ Wrappers used in the command line program
 
 > import Database.HsSqlPpp.Utils
 > import Database.HsSqlPpp.HsText.HsText
+
+> import Database.HsSqlPpp.Dbms.WrapperGen
 
 ===============================================================================
 
@@ -319,6 +323,11 @@ process doc commands
 >                                  ++ m
 >                                  ++ "\n~~~~~~~~~~\n\n"
 
+================================================================================
+
+> wrapperGen1 :: (MonadIO m, Error e) => String -> String -> ErrorT e m String
+> wrapperGen1 db fn = liftIO $ wrapperGen db fn
+
 
 ================================================================================
 
@@ -407,3 +416,5 @@ should think of something better to do here than just rethrow as io error1
 > -- | lifted concat
 > lconcat :: (Monad m, Error e) => [[a]] -> ErrorT e m [a]
 > lconcat = return . concat
+
+
