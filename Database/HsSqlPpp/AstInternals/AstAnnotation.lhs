@@ -52,6 +52,7 @@ grammar code and aren't exposed.
 >                        | StatementTypeA StatementType
 >                        | EnvUpdates [EnvironmentUpdate]
 >                        | FunctionPrototypeA FunctionPrototype
+>                        | InferredType Type
 >                          deriving (Eq, Show,Typeable,Data)
 
 Use syb to pull annotation values from an ast.

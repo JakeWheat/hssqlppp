@@ -764,6 +764,7 @@ fixupImplicitJoins =
       convTrefs (tr:tr1:trs) = JoinedTref [] tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias
       convTrefs (tr:[]) = tr
       convTrefs _ = error "failed doing implicit join fixup hack"
+
 }
 
 {-
