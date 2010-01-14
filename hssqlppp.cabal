@@ -62,7 +62,7 @@ Author:              Jake Wheat
 Maintainer:          jakewheatmail@gmail.com
 Build-Type:          Simple
 Cabal-Version:       >=1.2.3
-copyright:           Copyright 2009 Jake Wheat
+copyright:           Copyright 2010 Jake Wheat
 stability:           pre-alpha
 homepage:            https://launchpad.net/hssqlppp
 bug-reports:         mailto:jakewheatmail@gmail.com

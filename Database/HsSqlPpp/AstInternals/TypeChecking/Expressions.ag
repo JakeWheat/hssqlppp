@@ -14,7 +14,19 @@ SEM Expression
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
-                              Nothing
+                              $ fmap ((:[]) . FunctionPrototypeA) @loc.prototype
+
+SEM Expression
+    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
+      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
+      PositionalArg Placeholder WindowFn
+        loc.prototype : {Maybe FunctionPrototype}
+
+SEM Expression
+    | IntegerLit StringLit FloatLit BooleanLit NullLit Identifier
+      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
+      PositionalArg Placeholder WindowFn
+        loc.prototype = Nothing
 
 {-
 == literals
@@ -59,11 +71,15 @@ SEM Expression
 -}
 SEM Expression
     | FunCall
-        loc.tpe = dependsOnRTpe @args.typeList $
-                    typeCheckFunCall
-                      @lhs.env
-                      @funName
-                      @args.typeList
+        (loc.tpe, loc.prototype) = if any (==TypeCheckFailed) @args.typeList
+                                   then (Right TypeCheckFailed, Nothing)
+                                   else
+                                     let fe = typeCheckFunCall
+                                              @lhs.env
+                                              @funName
+                                              @args.typeList
+                                     in (dependsOnRTpe @args.typeList $ fmap (\(_,_,r,_) -> r) fe
+                                        ,eitherToMaybe fe)
         loc.backTree = FunCall @ann @funName @args.annotatedTree
 
 
@@ -93,30 +109,29 @@ any operator satisfying some properties
 
 TODO: move all of this into find call match. Don't know why it's separate
 -}
-typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] Type
+typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] FunctionPrototype
 typeCheckFunCall env fnName' argsType =
     {-trace ("typecheckfncall " ++ fnName' ++ show argsType) $-}
-    dependsOnRTpe argsType $
+    --dependsOnRTpe argsType $
       case fnName of
               "count" -> -- not quite sure how this is suppose to work,
                          -- the counts in the pg catalog accept either
                          -- no args, or one arg of type any, but you can call
                          -- count with multiple arguments?
-                         return typeBigInt
+                         return ("count", argsType, typeBigInt, False)
               "!between" -> do
-                    f1 <- lookupFn ">=" [argsType !! 0, argsType !! 1]
-                    f2 <- lookupFn "<=" [argsType !! 0, argsType !! 2]
+                    f1 <- lookupReturnType ">=" [argsType !! 0, argsType !! 1]
+                    f2 <- lookupReturnType "<=" [argsType !! 0, argsType !! 2]
                     lookupFn "!and" [f1,f2]
-              --"coalesce" -> resolveResultSetType env argsType
               "greatest" -> do
-                    t <- lookupFn fnName argsType -- t <- resolveResultSetType env argsType
+                    fp@(_,_,t,_) <- lookupFn fnName argsType
                     lookupFn ">=" [t,t]
-                    return t
+                    return fp
               "least" -> do
-                    t <- lookupFn fnName argsType -- resolveResultSetType env argsType
+                    fp@(_,_,t,_) <- lookupFn fnName argsType
                     lookupFn "<=" [t,t]
-                    return t
-              "!rowctor" -> return $ AnonymousRecordType argsType
+                    return fp
+              "!rowctor" -> return $ ("!rowCtor", argsType, AnonymousRecordType argsType, False)
                     -- special case the row comparison ops
                     -- this needs to be fixed: we want to match
                     -- any implicit casts to functions on composite types
@@ -125,24 +140,15 @@ typeCheckFunCall env fnName' argsType =
               _ | fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
                          && length argsType == 2
                          && all isCompositeOrSetOfCompositeType argsType
-                         && compositesCompatible env (head argsType) (head $ tail argsType) -> Right typeBool
+                         && compositesCompatible env (head argsType) (head $ tail argsType) -> return (fnName, argsType, typeBool, False)
               --checked for all special cases, so run general case now
               s -> lookupFn s argsType
     where
-      lookupFn :: String -> [Type] -> Either [TypeError] Type
-      lookupFn s1 args = do
-        (_,_,r,_) <- findCallMatch env
+      lookupReturnType :: String -> [Type] -> Either [TypeError] Type
+      lookupReturnType s1 args = fmap (\(_,_,r,_) -> r) $ lookupFn s1 args
+      lookupFn :: String -> [Type] -> Either [TypeError] FunctionPrototype
+      lookupFn s1 args = findCallMatch env
                              (if s1 == "u-" then "-" else s1) args
-        return r
-      checkRowTypesMatch (AnonymousRecordType t1s) (AnonymousRecordType t2s) = do
-        when (length t1s /= length t2s) $ Left [ValuesListsMustBeSameLength]
-        let errs = map (resolveResultSetType env . (\(a,b) -> [a,b])) $
-                     zip t1s t2s
-        liftErrors $ concat $ lefts errs
-        return typeBool
-      checkRowTypesMatch x y  =
-        error $ "internal error: checkRowTypesMatch called with " ++
-                show x ++ "," ++ show y
       fnName = map toLower fnName'
 }
 
@@ -169,7 +175,7 @@ SEM Expression
                   errorWhen (not $ isArrayType bType)
                             [AnyAllError $ "second arg must be array, got " ++ show args]
                   elemType <- unwrapArray $ bType
-                  resType <- typeCheckFunCall
+                  resType <- fmap (\(_,_,r,_) -> r) $ typeCheckFunCall
                                      @lhs.env
                                      @oper
                                      [aType,elemType]
@@ -308,3 +314,29 @@ SEM InList
                       1 -> Right $ head attrs
                       _ -> Right $ AnonymousRecordType attrs
             dependsOnRTpe attrs $ Right typ
+{-
+================================================================================
+
+dodgy type inference for parameterized statements
+
+start with ? in function calls only
+
+the idea is to assume the type is unknown, save the matched function prototype,
+then set an inferred type attribute back down into the ? node,
+then convert this to an annotation
+
+the matched function prototype gets saved in Expression.loc.protoType
+above when resolving the matching function
+
+won't work: the function prototype lookup uses the annotation on the
+argument nodes, and this will make the annotation dependent on already
+having the function prototype.
+
+-}
+
+-- ATTR Expression [inferredType:Type||]
+-- ATTR ExpressionList [inferredTypes:{[Type]}||]
+
+-- SEM Expression
+--    | FunCall
+--        args.inferredTypes = let t = 

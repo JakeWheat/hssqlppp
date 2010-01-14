@@ -51,6 +51,7 @@ grammar code and aren't exposed.
 >                        | TypeErrorA TypeError
 >                        | StatementTypeA StatementType
 >                        | EnvUpdates [EnvironmentUpdate]
+>                        | FunctionPrototypeA FunctionPrototype
 >                          deriving (Eq, Show,Typeable,Data)
 
 Use syb to pull annotation values from an ast.

@@ -426,7 +426,7 @@ write a routine to mirror this - will then have
 >   flip defaultMainWithArgs as $
 >     parserTests ++
 >     typeCheckTests ++
->     --parameterizedStatementTests ++
+>     parameterizedStatementTests ++
 >     [extensionTests]
 
 ================================================================================
