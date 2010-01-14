@@ -114,7 +114,7 @@ proper dodgy:
 expressions in a funcall argument list atm. Then we pull out the
 placeholders after they've had this information added. Only the
 placeholders in funcall argument lists will have their type inferred
-in this way, to be expanded.
+in this way, to be expanded. Insert also does this currently, but in Dml.ag
 
 This should probably be done during the typechecking phase instead,
 but probably needs a proper type inferencing algorithm to be used, is
@@ -143,12 +143,20 @@ getPlaceholderTypes ex =
 
 setInferredTypes :: Data a => a -> a
 setInferredTypes =
-     transformBi $ \x ->
-       case x of
-         FunCall an op exprs
-                -> FunCall an op (addInferredTypes an exprs)
-         x1 -> x1
+      doExprs {-. doSts-}
      where
+       doExprs =
+         transformBi (\x ->
+           case x of
+             FunCall an op exprs
+                 -> FunCall an op (addInferredTypes an exprs)
+             x1 -> x1)
+       {-doSts =
+         transformBi (\x ->
+           case x of
+             Insert ann table targetCols insData returning
+                 -> Insert ann table targetCols insData returning
+             x1 -> x1)-}
        addInferredTypes an exprs =
            let args1 = fmap (\(_,a,_,_) -> a) $ fp an
                args = fromMaybe [] args1
@@ -159,6 +167,5 @@ setInferredTypes =
              fp (FunctionPrototypeA f:_) = Just f
              fp (_:ls) = fp ls
              fp [] = Nothing
-
 
 }

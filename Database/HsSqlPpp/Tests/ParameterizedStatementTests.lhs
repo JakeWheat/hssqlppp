@@ -10,6 +10,9 @@ in the StatementType annotation.
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
+> import Text.Show.Pretty
+> import Debug.Trace
+
 
 > import Database.HsSqlPpp.Ast.SqlTypes
 > import Database.HsSqlPpp.Ast.Annotation
@@ -52,6 +55,10 @@ in the StatementType annotation.
 >        ,[EnvCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [] [])
+>       ,("insert into testt (c1,c2) values (?, ?);"
+>        ,[EnvCreateTable "testt" [("c1", typeInt)
+>                                 ,("c2", ScalarType "text")] []]
+>        ,StatementType [typeInt, ScalarType "text"] [])
 >       ,("insert into testt (c1,c2) values (1, 'test') returning c1;"
 >        ,[EnvCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
@@ -108,7 +115,8 @@ inpredicate
 >                               Right l -> l
 >   in case typeCheckPS makeEnv (head ast) of
 >        Left e -> error $ show e
->        Right aast -> let is = getTopLevelInfos [aast]
+>        Right aast -> --trace (ppShow aast) $
+>                      let is = getTopLevelInfos [aast]
 >                          er = concatMap snd $ getTypeErrors [aast]
 >                      in case is of
 >                                 _ | not (null er) -> assertFailure $ show er

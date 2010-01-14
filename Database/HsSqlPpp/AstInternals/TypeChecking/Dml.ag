@@ -20,7 +20,7 @@ SEM Statement
               @loc.columnTypes
               Right $ Pseudo Void
         loc.statementType =
-            leftToEmpty (\ct -> [StatementType (getPlaceholderTypes @insData.annotatedTree) (fromMaybe [] @returning.listType)]) @loc.columnTypes
+            leftToEmpty (\ct -> [StatementType (getPlaceholderTypes @loc.insDataAddedInferredTypes) (fromMaybe [] @returning.listType)]) @loc.columnTypes
 
         loc.columnTypes =
             do
@@ -30,9 +30,16 @@ SEM Statement
                                    @table
                                    @targetCols.strings
                                    tys
+        loc.insDataAddedInferredTypes =
+            case @insData.annotatedTree of
+              Values ann [exl] ->
+                  let fargs = map snd (fromRight [] @loc.columnTypes) ++ repeat TypeCheckFailed
+                      newExl = map (\(ex,ty) -> updateAnnotation (++ [InferredType ty]) ex) $ zip exl fargs
+                  in Values ann [newExl]
+              x -> x
 
         loc.backTree = Insert @ann @table @targetCols.annotatedTree
-                              @insData.annotatedTree @returning.annotatedTree
+                              @loc.insDataAddedInferredTypes @returning.annotatedTree
         loc.envUpdates = []
 
 -- inject the ids into the returning part
