@@ -12627,7 +12627,7 @@ sem_Statement_SelectStatement ann_ ex_  =
                                       getTypeAnnotation _exIannotatedTree]
                   where
                     ph = let ph' = getPlaceholders _exIannotatedTree
-                         in trace (show ph') $ map (getInferredType . getAnnotation) ph'
+                         in map (getInferredType . getAnnotation) ph'
                     getInferredType (InferredType t:_) = t
                     getInferredType (_:as) = getInferredType as
                     getInferredType [] = TypeCheckFailed
