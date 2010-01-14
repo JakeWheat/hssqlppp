@@ -52,6 +52,9 @@ review unsupported syntax and make list to be done for alpha and what
    will not be done
 typechecking - want all parsable syntax to type check properly as much
    as possible
+fix lexing of symbols, e.g. =? doesn't work
+add parsing and typechecking support at least for all operators in
+   default catalog
 
 future plans:
 much more annotations - account of function match lookup process,

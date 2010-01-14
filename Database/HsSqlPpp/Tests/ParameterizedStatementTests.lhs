@@ -10,8 +10,8 @@ in the StatementType annotation.
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Char
-> import Text.Show.Pretty
-> import Debug.Trace
+> --import Text.Show.Pretty
+> --import Debug.Trace
 
 
 > import Database.HsSqlPpp.Ast.SqlTypes
@@ -50,7 +50,7 @@ in the StatementType annotation.
 >        ,StatementType [ScalarType "int4"] [("test",ScalarType "text")])
 >        ]
 >     ]
->    ,Group "dml relying only on funcall inference" [ Statements [
+>    ,Group "simple dml" [ Statements [
 >        ("insert into testt values (1, 'test');"
 >        ,[EnvCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
@@ -68,11 +68,19 @@ in the StatementType annotation.
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [typeInt, ScalarType "text"] [("d1", typeInt)
 >                                                    ,("c2", ScalarType "text")])
->       ,("insert into testt (c1,c2) values (?, ?) returning *;"
+>       {-,("insert into testt (c1,c2) values (?, ?) returning *;"
 >        ,[EnvCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [typeInt, ScalarType "text"] [("c1", typeInt)
->                                                    ,("c2", ScalarType "text")])
+>                                                    ,("c2", ScalarType "text")])-}
+>       ,("update testt set c1= ?,c2= ? where c1= ? returning c2;"
+>        ,[EnvCreateTable "testt" [("c1", typeInt)
+>                                 ,("c2", ScalarType "text")] []]
+>        ,StatementType [typeInt, ScalarType "text", typeInt] [("c2", ScalarType "text")])
+>       ,("update testt set (c1,c2) = (?,?);"
+>        ,[EnvCreateTable "testt" [("c1", typeInt)
+>                                 ,("c2", ScalarType "text")] []]
+>        ,StatementType [typeInt, ScalarType "text", typeInt] [("c2", ScalarType "text")])
 >       ]
 >     ]
 >    ]

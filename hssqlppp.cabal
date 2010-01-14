@@ -34,7 +34,14 @@ Description:
     'CommandComponents' for the component functions used in the HsSqlSystem
     exe.
     .
-    'ChaosExtensions' for the experimental plpgsql syntax extensions.
+    'ChaosExtensions' for the experimental plpgsql syntax extensions;
+    .
+    'WrapperGen' for a simple demonstration of how this code can be used
+    to generate a typesafe database access wrapper. See the source here:
+    <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/Database/HsSqlPpp/Dbms/WrapperGen.lhs>
+    .
+    'WrapLib' is the runtime support function for code generated using
+    'WrapperGen'.
     .
     Comes with command line access to some
     functions via a exe called HsSqlSystem, run this file with no
@@ -150,7 +157,7 @@ Library
                      process,
                      --pandoc == 1.2.1,
                      filepath,
-                     template-haskell,
+                     --template-haskell,
                      haskell-src-exts
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
@@ -162,14 +169,14 @@ Library
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
                      Database.HsSqlPpp.PrettyPrinter.AnnotateSource
                      Database.HsSqlPpp.Dbms.DatabaseLoader
+                     Database.HsSqlPpp.Dbms.WrapperGen
+                     Database.HsSqlPpp.Dbms.WrapLib
                      Database.HsSqlPpp.Commands.CommandComponents
                      Database.HsSqlPpp.Extensions.ChaosExtensions
 
   Other-Modules:     Database.HsSqlPpp.Utils
                      --Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Dbms.DBAccess
-                     Database.HsSqlPpp.Dbms.WrapperGen
-                     Database.HsSqlPpp.Dbms.WrapLib
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstAnnotation
                      Database.HsSqlPpp.AstInternals.AstInternal
@@ -210,6 +217,8 @@ Executable HsSqlSystem
                      --Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Commands.CommandComponents
                      Database.HsSqlPpp.Dbms.DBAccess
+                     Database.HsSqlPpp.Dbms.WrapperGen
+                     Database.HsSqlPpp.Dbms.WrapLib
                      Database.HsSqlPpp.Dbms.DatabaseLoader
                      Database.HsSqlPpp.Extensions.ChaosExtensions
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
