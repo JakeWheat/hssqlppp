@@ -33,19 +33,42 @@ in the StatementType annotation.
 >       ,("select adnum,adbin from pg_attrdef;"
 >        ,[]
 >        ,StatementType [] [("adnum", ScalarType "int2")
->                          ,("adbin", ScalarType "text")])]
->     ]
->    ,Group "simple fn calls" [ Statements [
->        {-("select test($1);"
+>                          ,("adbin", ScalarType "text")])
+>       ,("select adnum,adbin from pg_attrdef where oid= ?;"
+>        ,[]
+>        ,StatementType [ScalarType "oid"] [("adnum", ScalarType "int2")
+>                                           ,("adbin", ScalarType "text")])
+>        {-,("select test($1);"
 >        ,[EnvCreateFunction FunName "test" [ScalarType "int4"] (ScalarType "text") False]
 >        ,StatementType [ScalarType "int4"] [("test",ScalarType "text")])
 >       ,-}
->        ("select test(?);"
+>       ,("select test(?);"
 >        ,[EnvCreateFunction FunName "test" [ScalarType "int4"] (ScalarType "text") False]
 >        ,StatementType [ScalarType "int4"] [("test",ScalarType "text")])
 >        ]
 >     ]
->   ]
+>    ,Group "dml relying only on funcall inference" [ Statements [
+>        ("insert into testt values (1, 'test');"
+>        ,[EnvCreateTable "testt" [("c1", typeInt)
+>                                 ,("c2", ScalarType "text")] []]
+>        ,StatementType [] [])
+>       ,("insert into testt (c1,c2) values (1, 'test') returning c1;"
+>        ,[EnvCreateTable "testt" [("c1", typeInt)
+>                                 ,("c2", ScalarType "text")] []]
+>        ,StatementType [] [("c1",typeInt)])
+>       ,("insert into testt (c1,c2) values (?, ?) returning c1 as d1, c2;"
+>        ,[EnvCreateTable "testt" [("c1", typeInt)
+>                                 ,("c2", ScalarType "text")] []]
+>        ,StatementType [typeInt, ScalarType "text"] [("d1", typeInt)
+>                                                    ,("c2", ScalarType "text")])
+>       ,("insert into testt (c1,c2) values (?, ?) returning *;"
+>        ,[EnvCreateTable "testt" [("c1", typeInt)
+>                                 ,("c2", ScalarType "text")] []]
+>        ,StatementType [typeInt, ScalarType "text"] [("c1", typeInt)
+>                                                    ,("c2", ScalarType "text")])
+>       ]
+>     ]
+>    ]
 
 select a,b from c where d=e group by f having  g=h orderby i limit j offset k;
 select function(a,b);

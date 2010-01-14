@@ -40,7 +40,9 @@ sql which doesn't type check.
 >      ,p "'test'" $ Right UnknownType
 >      ,p "true" $ Right typeBool
 >      ,p "array[1,2,3]" $ Right (ArrayType typeInt)
->      ,p "array['a','b']" $ Right (ArrayType (ScalarType "text"))
+>      ,p "array['a','b']" $ Right (ArrayType UnknownType)
+>      ,p "array['a'::text,'b']" $ Right (ArrayType (ScalarType "text"))
+>      ,p "array['a','b'::text]" $ Right (ArrayType (ScalarType "text"))
 >      ,p "array[1,'b']" $ Right (ArrayType typeInt)
 >      ,p "array[1,true]" $ Left [NoMatchingOperator "!arrayctor" [ScalarType "int4",ScalarType "bool"]]
 >      ]]
@@ -68,7 +70,8 @@ sql which doesn't type check.
 >                                 ,typeBool]]
 
 >      ,p "array[1,2,3][2]" $ Right typeInt
->      ,p "array['a','b'][1]" $ Right (ScalarType "text")
+>      ,p "array['a','b'][1]" $ Right UnknownType
+>      ,p "array['a'::text,'b'][1]" $ Right (ScalarType "text")
 
  >      ,p "array['a','b'][true]" (TypeError ("",0,0)
  >                                   (WrongType
@@ -117,7 +120,8 @@ sql which doesn't type check.
 >                                                   ,ScalarType "int4"
 >                                                   ,ScalarType "bool"
 >                                                   ,UnknownType]]
->      ,p "nullif('hello','hello')" $ Right (ScalarType "text")
+>      ,p "nullif('hello','hello')" $ Right UnknownType
+>      ,p "nullif('hello'::text,'hello')" $ Right (ScalarType "text")
 >      ,p "nullif(3,4)" $ Right typeInt
 >      ,p "nullif(true,3)"
 >             $ Left [NoMatchingOperator "nullif" [ScalarType "bool"
@@ -194,7 +198,12 @@ rows don't match types
 >         \ when 1=2 then 'stuff'\n\
 >         \ when 2=3 then 'blah'\n\
 >         \ else 'test'\n\
->         \end" $ Right (ScalarType "text")
+>         \end" $ Right UnknownType
+>      ,p "case\n\
+>         \ when 1=2 then 'stuff'\n\
+>         \ when 2=3 then 'blah'\n\
+>         \ else 'test'::text\n\
+>         \end" $ Right $ ScalarType "text"
 >      ,p "case\n\
 >         \ when 1=2 then 'stuff'\n\
 >         \ when true=3 then 'blah'\n\
@@ -229,6 +238,10 @@ rows don't match types
 >       p "array_append(ARRAY[1,2], 3)"
 >         $ Right (ArrayType typeInt)
 >      ,p "array_append(ARRAY['a','b'], 'c')"
+>         $ Right (ArrayType UnknownType)
+>      ,p "array_append(ARRAY['a','b'], 'c'::text)"
+>         $ Right (ArrayType $ ScalarType "text")
+>      ,p "array_append(ARRAY['a','b'::text], 'c')"
 >         $ Right (ArrayType $ ScalarType "text")
 >      ,p "array_append(ARRAY['a'::int,'b'], 'c')"
 >         $ Right (ArrayType typeInt)

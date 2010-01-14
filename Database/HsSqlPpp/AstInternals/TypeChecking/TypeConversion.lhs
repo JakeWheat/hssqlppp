@@ -455,15 +455,15 @@ code is not as much of a mess as findCallMatch
 >   errorWhen (null inArgs) [TypelessEmptyArray]
 >   returnWhen allSameType (head inArgs) $ do
 >   returnWhen allSameBaseType (head inArgsBase) $ do
->   returnWhen allUnknown (ScalarType "text") $ do
+>   --returnWhen allUnknown (UnknownType) $ do
 >   errorWhen (not allSameCat) [IncompatibleTypeSet inArgs]
 >   returnWhen (isJust targetType &&
 >               allConvertibleToFrom (fromJust targetType) inArgs)
 >               (fromJust targetType) $ do
 >   Left [IncompatibleTypeSet inArgs]
 >   where
->      allSameType = all (== head inArgs) inArgs &&
->                      head inArgs /= UnknownType
+>      allSameType = all (== head inArgs) inArgs -- &&
+>                      --head inArgs /= UnknownType
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&
 >                      head inArgsBase /= UnknownType
 >      inArgsBase = map (replaceWithBase env) inArgs

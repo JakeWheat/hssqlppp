@@ -1,3 +1,73 @@
+= TODOs
+
+This file is a complete disorganised mess.
+
+New approach:
+list todos for next release or next few releases
+lists todos for first alpha release
+list future plans/ ideas
+
+Immediate focus is:
+add in enough support code to help creation of typesafe wrappers in
+   haskell for suid statements - not neccessarily comprehensive but
+   likely to cover all the basics
+tidy up the demo code to show how to use this
+work on documentation, two focii are:
+provide some examples and reference so haskell programmers who are
+   interested can quickly see what can be done without having to
+   install anything, and so that they have a range of working example
+   code to start with if they want to use it other f
+provide examples and reference for plpgsql programmers to see what
+   kind of things are currently possible. The main thing here is to
+   write a report generator which will evaluate existing plpgsql code
+   and report back how well hssqlppp understands it.
+todo outlines for new few releases after these are done:
+nullability inference
+error handling is crap in a few places - fix calls to error and
+   ignored errors
+some of the types are crap - mess with sqltypes and type errors,
+   annotations are the main suspect ones which need reviewing
+some of the names used are wrong, particularly environment type should
+   be called catalog
+get the roundtrip tests up and running - this will tighten up the code
+   a lot
+find a way of doing database connections better: full command line
+   options, ability to prompt for password, config file support, and
+   support for full connection options, e.g. host and port as well as
+   db name.
+still too much boilerplate in commandcomponents, simplify and get
+   better at using errort
+
+after this, do stuff to get chaos support completed:
+add missing elements to catalog: triggers, sequences, constraints,
+   indexes, defaults
+fix problem loading chaos sql via databaseloader
+work on extensions
+
+for alpha release
+do lib for command line parsing?
+much better pretty printing for annotations
+finish hssqlppp source documentation tool and make separate package
+review unsupported syntax and make list to be done for alpha and what
+   will not be done
+typechecking - want all parsable syntax to type check properly as much
+   as possible
+
+future plans:
+much more annotations - account of function match lookup process,
+   inferred types, references to definition point e.g. for local
+   identifiers, and all sorts
+better extensions to plpgsql
+better macro system for plpgsql
+support for typeclasses, monads, algebraic datatypes and pattern matching?
+possibly break into multiple packages
+documentation generator for plpgsql and database
+
+
+----------
+junk to be rewritten follows:
+
+
 = new immediate todos:
 
 get typing working for wrapper generator demo -> release
@@ -80,6 +150,7 @@ multiline strings with string type e.g. sql
 some sort of report mode to parse, typecheck and roundtrip some sql,
    and report back what works and what doesn't
 work on parse errors
+convert ag files into lag for consistency
 
 long term todos
 milestones for next release

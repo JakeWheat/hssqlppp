@@ -12,15 +12,9 @@ make it much more readable.
 SEM Statement
     | SelectStatement
         loc.tpe = dependsOnRTpe [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
-        loc.statementType = [StatementType ph $ leftToEmpty id  $
+        loc.statementType = [StatementType (getPlaceholderTypes @ex.annotatedTree) $ leftToEmpty id  $
                                                 unwrapSetOfComposite $
                                                 getTypeAnnotation @ex.annotatedTree]
-                            where
-                              ph = let ph' = getPlaceholders @ex.annotatedTree
-                                   in map (getInferredType . getAnnotation) ph'
-                              getInferredType (InferredType t:_) = t
-                              getInferredType (_:as) = getInferredType as
-                              getInferredType [] = TypeCheckFailed
         loc.backTree = SelectStatement @ann @ex.annotatedTree
         loc.envUpdates = []
 
@@ -178,52 +172,3 @@ unionRelTypes env rowsTs colNames =
 INCLUDE "TypeChecking/TableRefs.ag"
 
 INCLUDE "TypeChecking/SelectLists.ag"
-
-
-{
-{-
-
-proper dodgy:
-1st pass is to add inferred types to the tree. This is done only for
-expressions in a funcall argument list atm. Then we pull out the
-placeholders after they've had this information added. Only the
-placeholders in funcall argument lists will have their type inferred
-in this way, to be expanded.
-
-This should probably be done during the typechecking phase instead,
-but probably needs a proper type inferencing algorithm to be used, is
-done like this for development expediency.
-
--}
-getPlaceholders :: Data a => a -> [Expression]
-getPlaceholders st =
-    filter isPlaceholder $ everything (++) (mkQ [] ga) (setInferredTypes st)
-    where
-      ga :: Expression -> [Expression]
-      ga s = [s]
-      isPlaceholder e = case e of
-                          PositionalArg _ _ -> True
-                          Placeholder _ -> True
-                          _ -> False
-
-setInferredTypes :: Data a => a -> a
-setInferredTypes =
-     transformBi $ \x ->
-       case x of
-         FunCall an op exprs
-                -> FunCall an op (addInferredTypes an exprs)
-         x1 -> x1
-     where
-       addInferredTypes an exprs =
-           let args1 = fmap (\(_,a,_,_) -> a) $ fp an
-               args = fromMaybe [] args1
-               fargs = args ++ repeat TypeCheckFailed
-           in flip map (zip exprs fargs)
-                  (\(ex, ty) -> updateAnnotation (++ [InferredType ty]) ex)
-           where
-             fp (FunctionPrototypeA f:_) = Just f
-             fp (_:ls) = fp ls
-             fp [] = Nothing
-
-
-}

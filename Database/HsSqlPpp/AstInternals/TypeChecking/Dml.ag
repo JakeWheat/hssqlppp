@@ -20,7 +20,7 @@ SEM Statement
               @loc.columnTypes
               Right $ Pseudo Void
         loc.statementType =
-            leftToEmpty (\ct -> [StatementType [] (fromMaybe [] @returning.listType)]) @loc.columnTypes
+            leftToEmpty (\ct -> [StatementType (getPlaceholderTypes @insData.annotatedTree) (fromMaybe [] @returning.listType)]) @loc.columnTypes
 
         loc.columnTypes =
             do
@@ -182,7 +182,7 @@ checkRelationExists env tbl =
 --used by both insert and update
 checkColumnConsistency :: Environment ->  String -> [String] -> [(String,Type)]
                        -> Either [TypeError] [(String,Type)]
-checkColumnConsistency env tbl cols' insNameTypePairs = do
+checkColumnConsistency env tbl cols' insNameTypePairs = trace ("ccc " ++ show insNameTypePairs ++ "\n") $ do
   ttcols <- lowerize <$> envCompositePublicAttrs env [] tbl
   let cols = if null cols'
                then map fst ttcols
