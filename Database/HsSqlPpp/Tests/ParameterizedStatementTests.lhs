@@ -41,6 +41,9 @@ in the StatementType annotation.
 >        ,[]
 >        ,StatementType [ScalarType "oid"] [("adnum", ScalarType "int2")
 >                                           ,("adbin", ScalarType "text")])
+>       ,("select count(1) from pg_attrdef;"
+>        ,[]
+>        ,StatementType [] [("count", ScalarType "int8")])
 >        {-,("select test($1);"
 >        ,[EnvCreateFunction FunName "test" [ScalarType "int4"] (ScalarType "text") False]
 >        ,StatementType [ScalarType "int4"] [("test",ScalarType "text")])

@@ -57,3 +57,4 @@ around hdbc for running commands and queries.
 
 > sqlToS :: SqlValue -> String
 > sqlToS = fromSql
+

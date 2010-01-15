@@ -38,6 +38,9 @@ modules.
 >     ,OperatorType(..)
 >     ,getOperatorType
 >     ,isOperatorName
+>     -- comparing catalogs
+>     ,CatalogDiff(..)
+>     ,compareCatalogs
 >     ) where
 
 > import Control.Monad
@@ -463,3 +466,19 @@ this is why binary @ operator isn't currently supported
 
 > isOperatorName :: String -> Bool
 > isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?")
+
+================================================================================
+
+> -- | items in first catalog and not second, items in second and not first.
+> data CatalogDiff = CatalogDiff [EnvironmentUpdate] [EnvironmentUpdate]
+>                deriving Show
+
+> -- | find differences between two catalogs
+> compareCatalogs :: Environment -> Environment -> Environment -> CatalogDiff
+> compareCatalogs base start end =
+>         let baseEnvBits = deconstructEnvironment base
+>             startEnvBits = deconstructEnvironment start \\ baseEnvBits
+>             endEnvBits = deconstructEnvironment end \\ baseEnvBits
+>             missing = sort $ endEnvBits \\ startEnvBits
+>             extras = sort $ startEnvBits \\ endEnvBits
+>         in CatalogDiff missing extras

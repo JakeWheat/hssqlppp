@@ -45,6 +45,9 @@ the type checking code.
 >     ,emptyEnvironment
 >     ,defaultEnvironment
 >     ,defaultTemplate1Environment
+>      -- * 'Environment' comparison
+>     ,CatalogDiff(..)
+>     ,compareCatalogs
 >      -- * Functions
 >     ,readEnvironmentFromDatabase
 >     ,updateEnvironment

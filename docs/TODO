@@ -7,6 +7,10 @@ list todos for next release or next few releases
 lists todos for first alpha release
 list future plans/ ideas
 
+small issues:
+get 'returning *' type checking
+get 'count(*)' type checking
+
 Immediate focus is:
 add in enough support code to help creation of typesafe wrappers in
    haskell for suid statements - not neccessarily comprehensive but

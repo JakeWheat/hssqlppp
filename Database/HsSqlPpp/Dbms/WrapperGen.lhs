@@ -253,7 +253,10 @@ return the equivalent haskell type for a sql type as a string
 >     case t of
 >        ScalarType "text" -> "String"
 >        ScalarType "int4" -> "Int"
->        _ -> "a"
+>        ScalarType "int8" -> "Int"
+>        ScalarType "bool" -> "Bool"
+>        DomainType _ -> "String"
+>        x -> show x
 
 ================================================================================
 

@@ -31,9 +31,6 @@ Description:
     without loading it via psql). The loader just about does the job
     but error handling is a bit crap at the moment.
     .
-    'CommandComponents' for the component functions used in the HsSqlSystem
-    exe.
-    .
     'ChaosExtensions' for the experimental plpgsql syntax extensions;
     .
     'WrapperGen' for a simple demonstration of how this code can be used
@@ -89,7 +86,6 @@ extra-source-files:  README
                      sqltestfiles/client.sql
                      --find Database/ -type f -a ! -iname '*.o' -a ! -iname '*.hi'
                      Database/HsSqlPpp/Utils.lhs
-                     Database/HsSqlPpp/Commands/CommandComponents.lhs
                      Database/HsSqlPpp/Dbms/DBAccess.lhs
                      Database/HsSqlPpp/Dbms/DatabaseLoader.lhs
                      Database/HsSqlPpp/Dbms/WrapLib.lhs
@@ -171,7 +167,6 @@ Library
                      Database.HsSqlPpp.Dbms.DatabaseLoader
                      Database.HsSqlPpp.Dbms.WrapperGen
                      Database.HsSqlPpp.Dbms.WrapLib
-                     Database.HsSqlPpp.Commands.CommandComponents
                      Database.HsSqlPpp.Extensions.ChaosExtensions
 
   Other-Modules:     Database.HsSqlPpp.Utils
@@ -215,7 +210,6 @@ Executable HsSqlSystem
 
   Other-Modules:     Database.HsSqlPpp.Utils
                      --Database.HsSqlPpp.Here
-                     Database.HsSqlPpp.Commands.CommandComponents
                      Database.HsSqlPpp.Dbms.DBAccess
                      Database.HsSqlPpp.Dbms.WrapperGen
                      Database.HsSqlPpp.Dbms.WrapLib

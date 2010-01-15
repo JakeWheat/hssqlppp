@@ -3,6 +3,8 @@ Copyright 2009 Jake Wheat
 This file contains some generic utility stuff
 
 > {-# OPTIONS_HADDOCK hide #-}
+> {-# LANGUAGE FlexibleContexts #-}
+
 
 > module Database.HsSqlPpp.Utils where
 
@@ -78,3 +80,18 @@ This file contains some generic utility stuff
 > liftThrows :: (MonadError t m) => Either t a -> m a
 > liftThrows (Left err) = throwError err
 > liftThrows (Right val) = return val
+
+run in errort monad, throw error as io error
+
+> wrapET :: (Show e, Monad m) => ErrorT e m a -> m a
+> wrapET c = runErrorT c >>= \x ->
+>          case x of
+>            Left er -> error $ show er
+>            Right l -> return l
+
+error utility - convert either to ErrorT String
+
+> tsl :: (MonadError String m, Show t) => Either t a -> m a
+> tsl x = case x of
+>                Left s -> throwError $ show s
+>                Right b -> return b
