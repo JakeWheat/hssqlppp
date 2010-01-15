@@ -180,7 +180,8 @@ SEM Statement
         loc.tpe =
             checkRelationExists @lhs.env @table >>
             Right (Pseudo Void)
-        loc.statementType = [StatementType [] (fromMaybe [] @returning.listType)]
+        loc.statementType = [StatementType (getPlaceholderTypes @whr.annotatedTree)
+                                           (fromMaybe [] @returning.listType)]
 
         loc.backTree = Delete @ann @table @whr.annotatedTree @returning.annotatedTree
         loc.envUpdates = []

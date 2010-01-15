@@ -81,6 +81,10 @@ in the StatementType annotation.
 >        ,[EnvCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [typeInt, ScalarType "text"] [])
+>       ,("delete from blah where c1= ? returning c2;"
+>        ,[EnvCreateTable "blah" [("c1", typeInt)
+>                                 ,("c2", ScalarType "text")] []]
+>        ,StatementType [typeInt] [("c2", ScalarType "text")])
 >       ]
 >     ]
 >    ]
