@@ -122,6 +122,7 @@ import Data.Either
 import Control.Applicative
 import Data.Generics
 import Data.Char
+import Control.Monad.State
 
 import Database.HsSqlPpp.AstInternals.TypeType
 import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion

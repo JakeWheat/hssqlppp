@@ -80,7 +80,7 @@ in the StatementType annotation.
 >       ,("update testt set (c1,c2) = (?,?);"
 >        ,[EnvCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
->        ,StatementType [typeInt, ScalarType "text", typeInt] [("c2", ScalarType "text")])
+>        ,StatementType [typeInt, ScalarType "text"] [])
 >       ]
 >     ]
 >    ]

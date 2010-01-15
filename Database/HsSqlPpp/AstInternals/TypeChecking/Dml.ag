@@ -70,22 +70,41 @@ SEM Statement
               liftErrors @assigns.rowSetErrors
               return $ Pseudo Void
         loc.statementType =
-            leftToEmpty (\ct -> [StatementType [] (fromMaybe [] @returning.listType)])
-                        $ trace (show @loc.columnTypes) @loc.columnTypes
+            leftToEmpty (\ct -> [StatementType (getPlaceholderTypes @loc.assignWInferredTypes
+                                                ++ getPlaceholderTypes @whr.annotatedTree)
+                                               (fromMaybe [] @returning.listType)])
+               @loc.columnTypes
 
         loc.columnTypes =
             checkColumnConsistency @lhs.env
                                    @table
                                    (map fst @assigns.pairs)
                                    @assigns.pairs
+        loc.assignWInferredTypes : SetClauseList
+        loc.assignWInferredTypes =
+            let colTypes :: [Type]
+                colTypes = (map snd $ fromRight [] @loc.columnTypes)
+            in setInferredTypesG colTypes @assigns.annotatedTree
 
         loc.backTree = Update @ann
                               @table
-                              @assigns.annotatedTree
+                              @loc.assignWInferredTypes
                               @whr.annotatedTree
                               @returning.annotatedTree
         loc.envUpdates = []
 
+{
+
+setInferredTypesG :: Data a => [Type] -> a -> a
+setInferredTypesG tys x =
+  evalState (transformBiM f x) tys
+  where
+    f (p@(Placeholder _)) = do
+         y:ys <- get
+         put ys
+         return $ updateAnnotation (++ [InferredType y]) p
+    f z = return z
+}
 
 -- local identifier bindings: pass the table attribute names and types
 -- into the where expression, and the set clause expressions
