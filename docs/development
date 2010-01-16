@@ -9,10 +9,10 @@ out the current list.
 
 Two of the files are generated:
 
-DefaultTemplate1Environment.hs -> generated using
- ./HsSqlSystem.lhs readenv template1 > something && cp something ...
+DefaultTemplate1Catalog.hs -> generated using
+ ./HsSqlSystem.lhs readcat template1 > something && cp something ...
  You shouldn't need to regenerate this file unless you change the
- Environment data type.
+ Catalog data type.
 
 AstInternal.hs -> this is generated from AstInternal.ag and
  Typechecking.ag using uuagc, see AstInternal.ag for the exact
@@ -106,7 +106,7 @@ Database/HsSqlPpp/AstInternals/AstUtils.lhs - contains some error handling utils
 Database/HsSqlPpp/AstInternals/AnnotationUtils.lhs - contains some
 additional annotation functions which depend on the ast nodes
 
-the code to track environment changes during type checking
+the code to track catalog changes during type checking
 (e.g. catalog changes, variables/bindings) is in the following two files:
 Database/HsSqlPpp/AstInternals/EnvironmentInternal.lhs - the main code
 to create, update and use environments.

@@ -1,15 +1,15 @@
 Copyright 2009 Jake Wheat
 
-This module contains the code to read a set of environment updates
+This module contains the code to read a set of catalog updates
 from a database.
 
-The code here hasn't been tidied up since the Environment data type
+The code here hasn't been tidied up since the Catalog data type
 was heavily changed so it's a bit messy.
 
 > {-# OPTIONS_HADDOCK hide  #-}
 
-> module Database.HsSqlPpp.AstInternals.Environment.EnvironmentReader
->     (readEnvironmentFromDatabase) where
+> module Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
+>     (readCatalogFromDatabase) where
 
 > import qualified Data.Map as M
 > import Data.Maybe
@@ -19,18 +19,18 @@ was heavily changed so it's a bit messy.
 > import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 
-> -- | Creates an 'EnvironmentUpdate' list by reading the database given.
-> -- To create an Environment value from this, use
+> -- | Creates an 'CatalogUpdate' list by reading the database given.
+> -- To create an Catalog value from this, use
 > --
 > -- @
-> -- env <- readEnvironmentFromDatabase 'something'
-> -- let newEnv = updateEnvironment defaultEnvironment env
+> -- cat <- readCatalogFromDatabase 'something'
+> -- let newCat = updateCatalog defaultCatalog cat
 > -- @
-> readEnvironmentFromDatabase :: String -- ^ name of the database to read
->                             -> IO [EnvironmentUpdate]
-> readEnvironmentFromDatabase dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
+> readCatalogFromDatabase :: String -- ^ name of the database to read
+>                             -> IO [CatalogUpdate]
+> readCatalogFromDatabase dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
 >    typeInfo <- selectRelation conn
 >                  "select t.oid as oid,\n\
 >                  \       t.typtype,\n\
@@ -57,7 +57,7 @@ was heavily changed so it's a bit messy.
 >        typeAssoc = map (\(a,b,_) -> (a,b)) typeStuff
 >        typeMap = M.fromList typeAssoc
 >    cts <- map (\(nm:cat:pref:[]) ->
->                EnvCreateScalar (ScalarType nm) cat ( read pref :: Bool)) <$>
+>                CatCreateScalar (ScalarType nm) cat ( read pref :: Bool)) <$>
 >           selectRelation conn
 >                        "select t.typname,typcategory,typispreferred\n\
 >                        \from pg_type t\n\
@@ -148,9 +148,9 @@ was heavily changed so it's a bit messy.
 >                                 "public" -> nm
 >                                 n -> n ++ "." ++ nm
 >              in case kind of
->                     "c" -> EnvCreateComposite nm1 (convertAttString jlt atts)
->                     "r" -> EnvCreateTable nm1 (convertAttString jlt atts) (convertAttString jlt sysatts)
->                     "v" -> EnvCreateView nm1 (convertAttString jlt atts)
+>                     "c" -> CatCreateComposite nm1 (convertAttString jlt atts)
+>                     "r" -> CatCreateTable nm1 (convertAttString jlt atts) (convertAttString jlt sysatts)
+>                     "v" -> CatCreateView nm1 (convertAttString jlt atts)
 >                     _ -> error $ "unrecognised relkind: " ++ kind) <$>
 >                 selectRelation conn
 >                   "with att1 as (\n\
@@ -204,14 +204,14 @@ was heavily changed so it's a bit messy.
 
 >    return $ concat [
 >                cts
->               ,map (uncurry EnvCreateDomain) domainDefs
->               ,map (\(a,b,c) -> EnvCreateCast a b c) casts
->               ,map (\(a,b,c) -> EnvCreateFunction FunPrefix a b c False) prefixOps
->               ,map (\(a,b,c) -> EnvCreateFunction FunPostfix a b c False) postfixOps
->               ,map (\(a,b,c) -> EnvCreateFunction FunBinary a b c False) binaryOps
->               ,map (\(a,b,c) -> EnvCreateFunction FunName a b c False) fnProts
->               ,map (\(a,b,c) -> EnvCreateFunction FunAgg a b c False) aggProts
->               ,map (\(a,b,c) -> EnvCreateFunction FunWindow a b c False) winProts
+>               ,map (uncurry CatCreateDomain) domainDefs
+>               ,map (\(a,b,c) -> CatCreateCast a b c) casts
+>               ,map (\(a,b,c) -> CatCreateFunction FunPrefix a b c False) prefixOps
+>               ,map (\(a,b,c) -> CatCreateFunction FunPostfix a b c False) postfixOps
+>               ,map (\(a,b,c) -> CatCreateFunction FunBinary a b c False) binaryOps
+>               ,map (\(a,b,c) -> CatCreateFunction FunName a b c False) fnProts
+>               ,map (\(a,b,c) -> CatCreateFunction FunAgg a b c False) aggProts
+>               ,map (\(a,b,c) -> CatCreateFunction FunWindow a b c False) winProts
 >               ,comps]
 >    where
 >      convertAttString jlt s =

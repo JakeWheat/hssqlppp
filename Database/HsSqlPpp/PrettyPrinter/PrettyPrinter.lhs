@@ -29,7 +29,7 @@ Not much other comments, since it all should be pretty self evident.
 
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Ast.Environment
+> import Database.HsSqlPpp.Ast.Catalog
 > import Database.HsSqlPpp.Utils
 
 ================================================================================
@@ -562,7 +562,7 @@ Conversion routines - convert Sql asts into Docs
 >                        _ -> parens (convExp (head es)) <> brackets (csvExp (tail es))
 >      "!rowctor" -> text "row" <> parens (hcatCsvMap convExp es)
 >      _ | isOperatorName n ->
->         case getOperatorType defaultTemplate1Environment n of
+>         case getOperatorType defaultTemplate1Catalog n of
 >                           BinaryOp ->
 >                               parens (convExp (head es)
 >                                       <+> text (filterKeyword n)

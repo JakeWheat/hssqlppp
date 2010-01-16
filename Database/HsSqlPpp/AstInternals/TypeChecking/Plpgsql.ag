@@ -14,7 +14,7 @@ SEM Statement
                                 getTypeAnnotation
                                 @value.annotatedTree] $ Right $ Pseudo Void
         loc.backTree = Return @ann @value.annotatedTree
-        loc.envUpdates = []
+        loc.catUpdates = []
         loc.statementType = []
 
 
@@ -25,10 +25,10 @@ SEM Statement
             let fromType = getTypeAnnotation @value.annotatedTree
             toType <- libLookupID @lhs.lib @target
             dependsOnRTpe [getTypeAnnotation @value.annotatedTree, toType] $ do
-            checkAssignmentValid @lhs.env fromType toType
+            checkAssignmentValid @lhs.cat fromType toType
             return $ Pseudo Void
         loc.backTree = Assignment @ann @target @value.annotatedTree
-        loc.envUpdates = []
+        loc.catUpdates = []
         loc.statementType = []
 
 SEM Statement
@@ -42,19 +42,19 @@ SEM Statement
           --probably a bit too strict:
           errorWhen (fromType /= toType) [FromToTypesNotSame fromType toType]
           case @loc.varTypeE of
-            Right t -> checkAssignmentValid @lhs.env fromType t
+            Right t -> checkAssignmentValid @lhs.cat fromType t
             Left _ -> return ()
           return $ Pseudo Void
         sts.lib =
             case @loc.varTypeE of
               Left [UnrecognisedIdentifier @var] ->
                   fromRight @lhs.lib $
-                  updateBindings @lhs.lib @lhs.env
+                  updateBindings @lhs.lib @lhs.cat
                                  [LibStackIDs [("", [(@var,getTypeAnnotation @from.annotatedTree)])]]
               _ -> @lhs.lib
 
         loc.backTree = ForIntegerStatement @ann @var @from.annotatedTree @to.annotatedTree @sts.annotatedTree
-        loc.envUpdates = []
+        loc.catUpdates = []
         loc.statementType = []
 
 
@@ -66,7 +66,7 @@ SEM Statement
           dependsOnRTpe [@loc.selType] $ do
           toType <- libLookupID @lhs.lib @var
           dependsOnRTpe [toType] $ do
-          checkAssignmentValid @lhs.env @loc.selType toType
+          checkAssignmentValid @lhs.cat @loc.selType toType
           return $ Pseudo Void
         --just handles assigning to a record type for now
         --one thing that isn't quite right is that the record variable
@@ -75,13 +75,13 @@ SEM Statement
         sts.lib =
             if okToUpdate
               then fromRight @lhs.lib $
-                   updateBindings @lhs.lib @lhs.env [LibStackIDs [("", [(@var,@loc.selType)])]]
+                   updateBindings @lhs.lib @lhs.cat [LibStackIDs [("", [(@var,@loc.selType)])]]
                    -- todo:ignoring error
               else @lhs.lib
             where
               okToUpdate = isRight @loc.tpe && @loc.selType /= TypeCheckFailed
 
         loc.backTree = ForSelectStatement @ann @var @sel.annotatedTree @sts.annotatedTree
-        loc.envUpdates = []
+        loc.catUpdates = []
         loc.statementType = []
 

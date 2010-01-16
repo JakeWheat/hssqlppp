@@ -14,7 +14,7 @@ and all other constraints are not checked at all.
 doesn't check for duplicate attribute names. doesn't check if the
 types are valid for a table (e.g. disallow setof types)
 
-We produce a valid environment update if the types of the attributes
+We produce a valid catalog update if the types of the attributes
 check ok, any errors in the constraints aren't leaked.
 
 -}
@@ -23,8 +23,8 @@ check ok, any errors in the constraints aren't leaked.
 SEM Statement
     | CreateTable
         loc.tpe = dependsOnRTpe @loc.attrTypes $ Right $ Pseudo Void
-        loc.envUpdates = dependsOn @loc.attrTypes []
-                           [EnvCreateTable @name @atts.attrs defaultSystemColumns]
+        loc.catUpdates = dependsOn @loc.attrTypes []
+                           [CatCreateTable @name @atts.attrs defaultSystemColumns]
         loc.attrTypes : {[Type]}
         loc.attrTypes = map snd @atts.attrs
 
@@ -33,7 +33,7 @@ SEM Statement
                                    @name
                                    @atts.annotatedTree
                                    @cons.annotatedTree
-        cons.lib = case updateBindings @lhs.lib @lhs.env
+        cons.lib = case updateBindings @lhs.lib @lhs.cat
                      [LibStackIDs [("", @atts.attrs)]] of
                       Left x -> error $ show x
                       Right e -> e
@@ -54,8 +54,8 @@ SEM Statement
             dependsOnRTpe [@loc.selType] $ do
               @loc.attrs
               Right @loc.selType
-        loc.envUpdates =
-           leftToEmpty (\as -> [EnvCreateTable @name as defaultSystemColumns]) $ do
+        loc.catUpdates =
+           leftToEmpty (\as -> [CatCreateTable @name as defaultSystemColumns]) $ do
               ats <- @loc.attrs
               return $ dependsOn (tpeToT @loc.tpe :
                                   (map snd ats)) [] ats
@@ -93,7 +93,7 @@ inject the column name and type into the column constraints
 SEM AttributeDef
     | AttributeDef
         cons.lib =
-            case updateBindings @lhs.lib @lhs.env
+            case updateBindings @lhs.lib @lhs.cat
                      [LibStackIDs [("", [(@name, @typ.namedType)])]] of
               Left x -> error $ show x
               Right e -> e

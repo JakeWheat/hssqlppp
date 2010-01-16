@@ -1,15 +1,15 @@
 Copyright 2009 Jake Wheat
 
-This module contains the implementation of the Environment data types
+This module contains the implementation of the Catalog data types
 and functions, and provides the api for the other type checking
 modules.
 
 > {-# LANGUAGE DeriveDataTypeable #-}
 > {-# OPTIONS_HADDOCK hide  #-}
 
-> module Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
+> module Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 >     (
->      Environment
+>      Catalog
 >     ,CastContext(..)
 >     ,CompositeFlavour(..)
 >     ,relationComposites
@@ -17,24 +17,24 @@ modules.
 >     ,FunctionPrototype
 >     ,DomainDefinition
 >     ,FunFlav(..)
->     ,emptyEnvironment
->     ,defaultEnvironment
->     ,EnvironmentUpdate(..)
->     ,ppEnvUpdate
->     ,updateEnvironment
->     ,deconstructEnvironment
+>     ,emptyCatalog
+>     ,defaultCatalog
+>     ,CatalogUpdate(..)
+>     ,ppCatUpdate
+>     ,updateCatalog
+>     ,deconstructCatalog
 >     -- type checker stuff
->     ,envCompositeDef
->     ,envCompositeAttrsPair
->     ,envCompositeAttrs
->     ,envCompositePublicAttrs
->     ,envTypeCategory
->     ,envPreferredType
->     ,envCast
->     ,envDomainBaseType
->     ,envLookupFns
->     ,envTypeExists
->     ,envLookupType
+>     ,catCompositeDef
+>     ,catCompositeAttrsPair
+>     ,catCompositeAttrs
+>     ,catCompositePublicAttrs
+>     ,catTypeCategory
+>     ,catPreferredType
+>     ,catCast
+>     ,catDomainBaseType
+>     ,catLookupFns
+>     ,catTypeExists
+>     ,catLookupType
 >     ,OperatorType(..)
 >     ,getOperatorType
 >     ,isOperatorName
@@ -55,39 +55,38 @@ modules.
 
 > -- | The main datatype, this holds the catalog and context
 > -- information to type check against.
-> data Environment = Environment
->                    {envTypeNames :: [(String, Type)]
->                    ,envDomainDefs :: [DomainDefinition]
->                    ,envCasts :: [(Type,Type,CastContext)]
->                    ,envTypeCategories :: [(Type,String,Bool)]
->                    ,envPrefixOperators :: [FunctionPrototype]
->                    ,envPostfixOperators :: [FunctionPrototype]
->                    ,envBinaryOperators :: [FunctionPrototype]
->                    ,envFunctions :: [FunctionPrototype]
->                    ,envAggregates :: [FunctionPrototype]
->                    ,envWindowFunctions :: [FunctionPrototype]
->                    ,envAttrDefs :: [CompositeDef]
->                    ,envUpdates :: [EnvironmentUpdate]}
+> data Catalog = Catalog
+>                    {catTypeNames :: [(String, Type)]
+>                    ,catDomainDefs :: [DomainDefinition]
+>                    ,catCasts :: [(Type,Type,CastContext)]
+>                    ,catTypeCategories :: [(Type,String,Bool)]
+>                    ,catPrefixOperators :: [FunctionPrototype]
+>                    ,catPostfixOperators :: [FunctionPrototype]
+>                    ,catBinaryOperators :: [FunctionPrototype]
+>                    ,catFunctions :: [FunctionPrototype]
+>                    ,catAggregates :: [FunctionPrototype]
+>                    ,catWindowFunctions :: [FunctionPrototype]
+>                    ,catAttrDefs :: [CompositeDef]
+>                    ,catUpdates :: [CatalogUpdate]}
 >                    deriving Show
 
-> -- | Represents an empty environment. This doesn't contain things
-> -- like the \'and\' operator, and so if you try to use it it will
-> -- almost certainly not work.
-> emptyEnvironment :: Environment
-> emptyEnvironment = Environment [] [] [] [] [] [] [] [] [] [] [] []
+> -- | Represents an empty catalog. This doesn't contain things
+> -- like the \'and\' operator, 'defaultCatalog' contains these.
+> emptyCatalog :: Catalog
+> emptyCatalog = Catalog [] [] [] [] [] [] [] [] [] [] [] []
 
 > -- | Represents what you probably want to use as a starting point if
-> -- you are building an environment from scratch. It contains
+> -- you are building an catalog from scratch. It contains
 > -- information on built in function like things that aren't in the
 > -- PostgreSQL catalog, such as greatest, coalesce, keyword operators
 > -- like \'and\', etc..
-> defaultEnvironment :: Environment
-> defaultEnvironment = emptyEnvironment {
->                       envTypeNames = pseudoTypes
->                      ,envBinaryOperators = ("=",[Pseudo AnyElement
+> defaultCatalog :: Catalog
+> defaultCatalog = emptyCatalog {
+>                       catTypeNames = pseudoTypes
+>                      ,catBinaryOperators = ("=",[Pseudo AnyElement
 >                                                 ,Pseudo AnyElement],
 >                                             typeBool, False):keywordOperatorTypes
->                      ,envFunctions = specialFunctionTypes}
+>                      ,catFunctions = specialFunctionTypes}
 
 
 > -- | Use to note what the flavour of a cast is, i.e. if/when it can
@@ -122,30 +121,30 @@ modules.
 > -- constraint).
 > type DomainDefinition = (Type,Type)
 
-> data EnvironmentUpdate =
+> data CatalogUpdate =
 >     -- | add a new scalar type with the name given, also creates
 >     -- an array type automatically
->     EnvCreateScalar Type String Bool
->   | EnvCreateDomain Type Type
->   | EnvCreateComposite String [(String,Type)]
->   | EnvCreateCast Type Type CastContext
->   | EnvCreateTable String [(String,Type)] [(String,Type)]
->   | EnvCreateView String [(String,Type)]
->   | EnvCreateFunction FunFlav String [Type] Type Bool
->   | EnvDropFunction Bool String [Type]
+>     CatCreateScalar Type String Bool
+>   | CatCreateDomain Type Type
+>   | CatCreateComposite String [(String,Type)]
+>   | CatCreateCast Type Type CastContext
+>   | CatCreateTable String [(String,Type)] [(String,Type)]
+>   | CatCreateView String [(String,Type)]
+>   | CatCreateFunction FunFlav String [Type] Type Bool
+>   | CatDropFunction Bool String [Type]
 >     deriving (Eq,Ord,Typeable,Data,Show)
 
-> ppEnvUpdate :: EnvironmentUpdate -> String
-> ppEnvUpdate (EnvCreateScalar t c p) = "EnvCreateScalar " ++ show t ++ "(" ++ c ++ "," ++ show p ++ ")"
-> ppEnvUpdate (EnvCreateDomain t b) = "EnvCreateDomain " ++ show t ++ " as " ++ show b
-> ppEnvUpdate (EnvCreateComposite nm flds) = "EnvCreateComposite " ++ nm ++ showFlds flds
-> ppEnvUpdate (EnvCreateCast s t ctx) = "EnvCreateCast " ++ show s ++ "->" ++ show t ++ " " ++ show ctx
-> ppEnvUpdate (EnvCreateTable nm flds1 flds2) = "EnvCreateTable " ++ nm ++ showFlds flds1 ++ showFlds flds2
-> ppEnvUpdate (EnvCreateView nm flds) = "EnvCreateView " ++ nm ++ showFlds flds
-> ppEnvUpdate (EnvCreateFunction flav nm args ret vdc) =
->     "EnvCreateFunction " ++ show flav ++ " " ++ nm ++ " returns " ++ show ret ++
+> ppCatUpdate :: CatalogUpdate -> String
+> ppCatUpdate (CatCreateScalar t c p) = "CatCreateScalar " ++ show t ++ "(" ++ c ++ "," ++ show p ++ ")"
+> ppCatUpdate (CatCreateDomain t b) = "CatCreateDomain " ++ show t ++ " as " ++ show b
+> ppCatUpdate (CatCreateComposite nm flds) = "CatCreateComposite " ++ nm ++ showFlds flds
+> ppCatUpdate (CatCreateCast s t ctx) = "CatCreateCast " ++ show s ++ "->" ++ show t ++ " " ++ show ctx
+> ppCatUpdate (CatCreateTable nm flds1 flds2) = "CatCreateTable " ++ nm ++ showFlds flds1 ++ showFlds flds2
+> ppCatUpdate (CatCreateView nm flds) = "CatCreateView " ++ nm ++ showFlds flds
+> ppCatUpdate (CatCreateFunction flav nm args ret vdc) =
+>     "CatCreateFunction " ++ show flav ++ " " ++ nm ++ " returns " ++ show ret ++
 >     "(" ++ intercalate "," (map show args) ++ ")" ++ if vdc then " variadic" else ""
-> ppEnvUpdate (EnvDropFunction _ nm args) = "EnvDropFunction " ++ nm ++ "(" ++ show args ++ ")"
+> ppCatUpdate (CatDropFunction _ nm args) = "CatDropFunction " ++ nm ++ "(" ++ show args ++ ")"
 
 > showFlds :: [(String,Type)] -> String
 > showFlds flds = "(\n" ++ sfs flds ++ ")"
@@ -157,41 +156,41 @@ modules.
 >              | FunName | FunAgg | FunWindow
 >                deriving (Eq,Show,Ord,Typeable,Data)
 
-> -- | Applies a list of 'EnvironmentUpdate's to an 'Environment' value
-> -- to produce a new Environment value.
-> updateEnvironment :: Environment
->                   -> [EnvironmentUpdate]
->                   -> Either [TypeError] Environment
-> updateEnvironment env' eus =
->   foldM updateEnv' (env' {envUpdates = envUpdates env' ++ eus}) eus
+> -- | Applies a list of 'CatalogUpdate's to an 'Catalog' value
+> -- to produce a new Catalog value.
+> updateCatalog :: Catalog
+>                   -> [CatalogUpdate]
+>                   -> Either [TypeError] Catalog
+> updateCatalog cat' eus =
+>   foldM updateCat' (cat' {catUpdates = catUpdates cat' ++ eus}) eus
 >   where
->     updateEnv' env eu =
+>     updateCat' cat eu =
 >       case eu of
->         EnvCreateScalar ty cat pref -> do
+>         CatCreateScalar ty catl pref -> do
 >                 errorWhen (not allowed)
->                   [BadEnvironmentUpdate $ "can only add scalar types\
->                                           \this way, got " ++ show ty]
+>                   [BadCatalogUpdate $ "can only add scalar types\
+>                                       \this way, got " ++ show ty]
 >                 let ScalarType nm = ty
->                 return $ addTypeWithArray env nm ty cat pref
+>                 return $ addTypeWithArray cat nm ty catl pref
 >                 where
 >                   allowed = case ty of
 >                                     ScalarType _ -> True
 >                                     _ -> False
->         EnvCreateDomain ty baseTy -> do
+>         CatCreateDomain ty baseTy -> do
 >                 errorWhen (not allowed)
->                   [BadEnvironmentUpdate $ "can only add domain types\
->                                           \this way, got " ++ show ty]
+>                   [BadCatalogUpdate $ "can only add domain types\
+>                                       \this way, got " ++ show ty]
 >                 errorWhen (not baseAllowed)
->                   [BadEnvironmentUpdate $ "can only add domain types\
+>                   [BadCatalogUpdate $ "can only add domain types\
 >                                           \based on scalars, got "
 >                                           ++ show baseTy]
 >                 let DomainType nm = ty
->                 let cat = envTypeCategory env baseTy
->                 return (addTypeWithArray env nm ty cat False) {
->                                        envDomainDefs =
->                                          (ty,baseTy):envDomainDefs env
->                                        ,envCasts =
->                                          (ty,baseTy,ImplicitCastContext):envCasts env}
+>                 let catl = catTypeCategory cat baseTy
+>                 return (addTypeWithArray cat nm ty catl False) {
+>                                        catDomainDefs =
+>                                          (ty,baseTy):catDomainDefs cat
+>                                        ,catCasts =
+>                                          (ty,baseTy,ImplicitCastContext):catCasts cat}
 >                 where
 >                   allowed = case ty of
 >                                             DomainType _ -> True
@@ -200,49 +199,49 @@ modules.
 >                                                     ScalarType _ -> True
 >                                                     _ -> False
 
->         EnvCreateComposite nm flds ->
->                 return $ (addTypeWithArray env nm (NamedCompositeType nm) "C" False) {
->                             envAttrDefs =
+>         CatCreateComposite nm flds ->
+>                 return $ (addTypeWithArray cat nm (NamedCompositeType nm) "C" False) {
+>                             catAttrDefs =
 >                               (nm,Composite,CompositeType flds, CompositeType [])
->                               : envAttrDefs env}
->         EnvCreateCast src tgt ctx -> return $ env {envCasts = (src,tgt,ctx):envCasts env}
->         EnvCreateTable nm attrs sysAttrs -> do
->                 checkTypeDoesntExist env nm (NamedCompositeType nm)
->                 return $ (addTypeWithArray env nm
+>                               : catAttrDefs cat}
+>         CatCreateCast src tgt ctx -> return $ cat {catCasts = (src,tgt,ctx):catCasts cat}
+>         CatCreateTable nm attrs sysAttrs -> do
+>                 checkTypeDoesntExist cat nm (NamedCompositeType nm)
+>                 return $ (addTypeWithArray cat nm
 >                             (NamedCompositeType nm) "C" False) {
->                             envAttrDefs =
+>                             catAttrDefs =
 >                               (nm,TableComposite,CompositeType attrs, CompositeType sysAttrs)
->                               : envAttrDefs env}
->         EnvCreateView nm attrs -> {-trace ("create view:" ++ show nm) $-} do
->                 checkTypeDoesntExist env nm (NamedCompositeType nm)
->                 return $ (addTypeWithArray env nm
+>                               : catAttrDefs cat}
+>         CatCreateView nm attrs -> {-trace ("create view:" ++ show nm) $-} do
+>                 checkTypeDoesntExist cat nm (NamedCompositeType nm)
+>                 return $ (addTypeWithArray cat nm
 >                             (NamedCompositeType nm) "C" False) {
->                             envAttrDefs =
+>                             catAttrDefs =
 >                               (nm,ViewComposite,CompositeType attrs, CompositeType [])
->                               : envAttrDefs env}
->         EnvCreateFunction f nm args ret vdc ->
+>                               : catAttrDefs cat}
+>         CatCreateFunction f nm args ret vdc ->
 >             return $ case f of
->               FunPrefix -> env {envPrefixOperators=(nm,args,ret,vdc):envPrefixOperators env}
->               FunPostfix -> env {envPostfixOperators=(nm,args,ret,vdc):envPostfixOperators env}
->               FunBinary -> env {envBinaryOperators=(nm,args,ret,vdc):envBinaryOperators env}
->               FunAgg -> env {envAggregates=(nm,args,ret,vdc):envAggregates env}
->               FunWindow -> env {envWindowFunctions=(nm,args,ret,vdc):envWindowFunctions env}
->               FunName -> env {envFunctions=(nm,args,ret,vdc):envFunctions env}
->         EnvDropFunction ifexists nm args -> do
->             let matches =  filter matchingFn (envFunctions env)
->             errorWhen (null matches) [BadEnvironmentUpdate $
+>               FunPrefix -> cat {catPrefixOperators=(nm,args,ret,vdc):catPrefixOperators cat}
+>               FunPostfix -> cat {catPostfixOperators=(nm,args,ret,vdc):catPostfixOperators cat}
+>               FunBinary -> cat {catBinaryOperators=(nm,args,ret,vdc):catBinaryOperators cat}
+>               FunAgg -> cat {catAggregates=(nm,args,ret,vdc):catAggregates cat}
+>               FunWindow -> cat {catWindowFunctions=(nm,args,ret,vdc):catWindowFunctions cat}
+>               FunName -> cat {catFunctions=(nm,args,ret,vdc):catFunctions cat}
+>         CatDropFunction ifexists nm args -> do
+>             let matches =  filter matchingFn (catFunctions cat)
+>             errorWhen (null matches) [BadCatalogUpdate $
 >                                         "couldn't find function to drop " ++
 >                                         show nm ++ "(" ++ show args++")"]
->             errorWhen (length matches > 1) [BadEnvironmentUpdate $
+>             errorWhen (length matches > 1) [BadCatalogUpdate $
 >                                               "multiple matching functions to drop " ++
 >                                               show nm ++ "(" ++ show args++")"]
->             return env {envFunctions = filter (not . matchingFn) (envFunctions env)
->                        ,envUpdates = filter (not.matchingUpdate) (envUpdates env)}
+>             return cat {catFunctions = filter (not . matchingFn) (catFunctions cat)
+>                        ,catUpdates = filter (not.matchingUpdate) (catUpdates cat)}
 >             where
 >               matchingFn (nm1,a1,_,_) = map toLower nm == map toLower nm1 && args == a1
->               matchingUpdate (EnvDropFunction _ nm2 a2) | map toLower nm2 == map toLower nm
+>               matchingUpdate (CatDropFunction _ nm2 a2) | map toLower nm2 == map toLower nm
 >                                                           && a2 == args = True
->               matchingUpdate (EnvCreateFunction _ nm2 a2 _ _) | map toLower nm2 == map toLower nm
+>               matchingUpdate (CatCreateFunction _ nm2 a2 _ _) | map toLower nm2 == map toLower nm
 >                                                           && a2 == args = True
 >               matchingUpdate _ = False
 
@@ -251,131 +250,131 @@ look for matching function in list, if not found then error
 remove from list, and remove from update list
 
 
->     addTypeWithArray env nm ty cat pref =
->       env {envTypeNames =
+>     addTypeWithArray cat nm ty catl pref =
+>       cat {catTypeNames =
 >                ('_':nm,ArrayType ty)
 >                : (nm,ty)
->                : envTypeNames env
->           ,envTypeCategories =
+>                : catTypeNames cat
+>           ,catTypeCategories =
 >                (ArrayType ty,"A",False)
->                : (ty,cat,pref)
->                : envTypeCategories env}
->     checkTypeDoesntExist env nm ty = do
->         errorWhen (any (==nm) $ map fst $ envTypeNames env)
+>                : (ty,catl,pref)
+>                : catTypeCategories cat}
+>     checkTypeDoesntExist cat nm ty = do
+>         errorWhen (any (==nm) $ map fst $ catTypeNames cat)
 >             [TypeAlreadyExists ty]
->         errorWhen (any (==ty) $ map snd $ envTypeNames env)
+>         errorWhen (any (==ty) $ map snd $ catTypeNames cat)
 >             [TypeAlreadyExists ty]
 >         return ()
 
 
 > {-
->  | Takes part an 'Environment' value to produce a list of 'EnvironmentUpdate's.
->  You can use this to look inside the Environment data type e.g. if you want to
+>  | Takes part an 'Catalog' value to produce a list of 'CatalogUpdate's.
+>  You can use this to look inside the Catalog data type e.g. if you want to
 >  examine a catalog. It should be the case that:
 >  @
->   updateEnvironment emptyEnvironment (deconstructEnvironment env) = env
+>   updateCatalog emptyCatalog (deconstructCatalog cat) = cat
 >  @ -}
-> deconstructEnvironment :: Environment -> [EnvironmentUpdate]
-> deconstructEnvironment = envUpdates
+> deconstructCatalog :: Catalog -> [CatalogUpdate]
+> deconstructCatalog = catUpdates
 
 
 ================================================================================
 
 = type checking stuff
 
-> envCompositeDef :: Environment -> [CompositeFlavour] -> String -> Either [TypeError] (CompositeDef)
-> envCompositeDef env flvs nm = do
->   let c = filter (\(n,t,_,_) -> n == nm && (null flvs || t `elem` flvs)) $ envAttrDefs env
+> catCompositeDef :: Catalog -> [CompositeFlavour] -> String -> Either [TypeError] (CompositeDef)
+> catCompositeDef cat flvs nm = do
+>   let c = filter (\(n,t,_,_) -> n == nm && (null flvs || t `elem` flvs)) $ catAttrDefs cat
 >   errorWhen (null c)
 >             [UnrecognisedRelation nm]
 >   case c of
 >     (_,fl1,r,s):[] -> return (nm,fl1,r,s)
 >     _ -> error $ "problem getting attributes for: " ++ show nm ++ ", " ++ show c
 
-> envCompositeAttrsPair :: Environment -> [CompositeFlavour] -> String
+> catCompositeAttrsPair :: Catalog -> [CompositeFlavour] -> String
 >                       -> Either [TypeError] ([(String,Type)],[(String,Type)])
-> envCompositeAttrsPair env flvs ty = do
->    (_,_,CompositeType a,CompositeType b) <- envCompositeDef env flvs ty
+> catCompositeAttrsPair cat flvs ty = do
+>    (_,_,CompositeType a,CompositeType b) <- catCompositeDef cat flvs ty
 >    return (a,b)
 
-> envCompositeAttrs :: Environment -> [CompositeFlavour] -> String
+> catCompositeAttrs :: Catalog -> [CompositeFlavour] -> String
 >                   -> Either [TypeError] [(String,Type)]
-> envCompositeAttrs env flvs ty = do
->   (a,b) <- envCompositeAttrsPair env flvs ty
+> catCompositeAttrs cat flvs ty = do
+>   (a,b) <- catCompositeAttrsPair cat flvs ty
 >   return $ a ++ b
 
-> envCompositePublicAttrs :: Environment -> [CompositeFlavour] -> String
+> catCompositePublicAttrs :: Catalog -> [CompositeFlavour] -> String
 >                   -> Either [TypeError] [(String,Type)]
-> envCompositePublicAttrs env flvs ty = do
->   (a,_) <- envCompositeAttrsPair env flvs ty
+> catCompositePublicAttrs cat flvs ty = do
+>   (a,_) <- catCompositeAttrsPair cat flvs ty
 >   return a
 
 
-> envTypeCategory :: Environment -> Type -> String
-> envTypeCategory env ty =
->   let (c,_) = envGetCategoryInfo env ty
+> catTypeCategory :: Catalog -> Type -> String
+> catTypeCategory cat ty =
+>   let (c,_) = catGetCategoryInfo cat ty
 >   in c
 
-> envPreferredType :: Environment -> Type -> Bool
-> envPreferredType env ty =
->   let (_,p) = envGetCategoryInfo env ty
+> catPreferredType :: Catalog -> Type -> Bool
+> catPreferredType cat ty =
+>   let (_,p) = catGetCategoryInfo cat ty
 >   in p
 
-> envCast :: Environment -> CastContext -> Type -> Type -> Bool
-> envCast env ctx from to = {-trace ("check cast " ++ show from ++ show to) $-}
+> catCast :: Catalog -> CastContext -> Type -> Type -> Bool
+> catCast cat ctx from to = {-trace ("check cast " ++ show from ++ show to) $-}
 >     case from of
->       t@(DomainType _) -> let baseType = envDomainBaseType env t
+>       t@(DomainType _) -> let baseType = catDomainBaseType cat t
 >                           in (baseType == to) ||
->                                (envCast env ctx baseType to ||
->                                   any (== (from, to, ctx)) (envCasts env))
->       _ -> any (==(from,to,ctx)) (envCasts env)
+>                                (catCast cat ctx baseType to ||
+>                                   any (== (from, to, ctx)) (catCasts cat))
+>       _ -> any (==(from,to,ctx)) (catCasts cat)
 
 
-> envDomainBaseType :: Environment -> Type -> Type
-> envDomainBaseType env ty =
+> catDomainBaseType :: Catalog -> Type -> Type
+> catDomainBaseType cat ty =
 >   --check type is domain, check it exists in main list
->   case lookup ty (envDomainDefs env) of
+>   case lookup ty (catDomainDefs cat) of
 >       Nothing -> error "domain not found" -- Left [DomainDefNotFound ty]
 >       Just t -> t
 
 
-> envLookupFns :: Environment -> String -> [FunctionPrototype]
-> envLookupFns env name =
->     filter (\(nm,_,_,_) -> map toLower nm == map toLower name) envGetAllFns
+> catLookupFns :: Catalog -> String -> [FunctionPrototype]
+> catLookupFns cat name =
+>     filter (\(nm,_,_,_) -> map toLower nm == map toLower name) catGetAllFns
 >     where
->     envGetAllFns =
->         concat [envPrefixOperators env
->                ,envPostfixOperators env
->                ,envBinaryOperators env
->                ,envFunctions env
->                ,envAggregates env
->                ,envWindowFunctions env]
+>     catGetAllFns =
+>         concat [catPrefixOperators cat
+>                ,catPostfixOperators cat
+>                ,catBinaryOperators cat
+>                ,catFunctions cat
+>                ,catAggregates cat
+>                ,catWindowFunctions cat]
 
 == internal support for type checker fns above
 
-> envGetCategoryInfo :: Environment -> Type -> (String, Bool)
-> envGetCategoryInfo env ty =
+> catGetCategoryInfo :: Catalog -> Type -> (String, Bool)
+> catGetCategoryInfo cat ty =
 >   case ty of
 >     SetOfType _ -> ("", False)
 >     AnonymousRecordType _ -> ("", False)
 >     ArrayType (Pseudo _) -> ("A",False)
 >     Pseudo _ -> ("P",False)
->     _ -> let l = filter (\(t,_,_) -> ty == t) $ envTypeCategories env
+>     _ -> let l = filter (\(t,_,_) -> ty == t) $ catTypeCategories cat
 >          in if null l
 >               then error $ "no type category for " ++ show ty
 >               else let (_,c,p):_ =l
 >                    in (c,p)
 
-> envTypeExists :: Environment -> Type -> Either [TypeError] Type
-> envTypeExists env t =
->     errorWhen (t `notElem` map snd (envTypeNames env))
+> catTypeExists :: Catalog -> Type -> Either [TypeError] Type
+> catTypeExists cat t =
+>     errorWhen (t `notElem` map snd (catTypeNames cat))
 >               [UnknownTypeError t] >>
 >     Right t
 
-> envLookupType :: Environment -> String -> Either [TypeError] Type
-> envLookupType env name =
+> catLookupType :: Catalog -> String -> Either [TypeError] Type
+> catLookupType cat name =
 >     liftME [UnknownTypeName name] $
->       lookup name (envTypeNames env)
+>       lookup name (catTypeNames cat)
 
 
 ================================================================================
@@ -449,18 +448,18 @@ this is why binary @ operator isn't currently supported
 > data OperatorType = BinaryOp | PrefixOp | PostfixOp
 >                   deriving (Eq,Show)
 
-> getOperatorType :: Environment -> String -> OperatorType
-> getOperatorType env s = case () of
+> getOperatorType :: Catalog -> String -> OperatorType
+> getOperatorType cat s = case () of
 >                       _ | s `elem` ["!and", "!or","!like"] -> BinaryOp
 >                         | s `elem` ["!not"] -> PrefixOp
 >                         | s `elem` ["!isnull", "!isnotnull"] -> PostfixOp
->                         | any (\(x,_,_,_) -> x == s) (envBinaryOperators env) ->
+>                         | any (\(x,_,_,_) -> x == s) (catBinaryOperators cat) ->
 >                             BinaryOp
 >                         | any (\(x,_,_,_) -> x == s ||
 >                                            (x=="-" && s=="u-"))
->                               (envPrefixOperators env) ->
+>                               (catPrefixOperators cat) ->
 >                             PrefixOp
->                         | any (\(x,_,_,_) -> x == s) (envPostfixOperators env) ->
+>                         | any (\(x,_,_,_) -> x == s) (catPostfixOperators cat) ->
 >                             PostfixOp
 >                         | otherwise ->
 >                             error $ "don't know flavour of operator " ++ s
@@ -471,23 +470,23 @@ this is why binary @ operator isn't currently supported
 ================================================================================
 
 > -- | items in first catalog and not second, items in second and not first.
-> data CatalogDiff = CatalogDiff [EnvironmentUpdate] [EnvironmentUpdate]
+> data CatalogDiff = CatalogDiff [CatalogUpdate] [CatalogUpdate]
 >                deriving Show
 
 > -- | find differences between two catalogs
-> compareCatalogs :: Environment -> Environment -> Environment -> CatalogDiff
+> compareCatalogs :: Catalog -> Catalog -> Catalog -> CatalogDiff
 > compareCatalogs base start end =
->         let baseEnvBits = deconstructEnvironment base
->             startEnvBits = deconstructEnvironment start \\ baseEnvBits
->             endEnvBits = deconstructEnvironment end \\ baseEnvBits
->             missing = sort $ endEnvBits \\ startEnvBits
->             extras = sort $ startEnvBits \\ endEnvBits
+>         let baseCatBits = deconstructCatalog base
+>             startCatBits = deconstructCatalog start \\ baseCatBits
+>             endCatBits = deconstructCatalog end \\ baseCatBits
+>             missing = sort $ endCatBits \\ startCatBits
+>             extras = sort $ startCatBits \\ endCatBits
 >         in CatalogDiff missing extras
 
 > -- | print a catdiff in a more human readable way than show.
 > ppCatDiff :: CatalogDiff -> String
 > ppCatDiff (CatalogDiff missing extr) =
 >     "\nmissing:\n"
->     ++ intercalate "\n" (map ppEnvUpdate missing)
+>     ++ intercalate "\n" (map ppCatUpdate missing)
 >     ++ "\nextra:\n"
->     ++ intercalate "\n" (map ppEnvUpdate extr)
+>     ++ intercalate "\n" (map ppCatUpdate extr)

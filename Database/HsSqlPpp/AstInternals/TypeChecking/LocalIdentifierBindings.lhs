@@ -7,7 +7,7 @@ Main areas to support are parameters and variables
 
 > {-# OPTIONS_HADDOCK hide  #-}
 
-> module Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
+> module Database.HsSqlPpp.AstInternals.TypeChecking.LocalIdentifierBindings
 >     (
 >      QualifiedIDs
 >     ,LocalIdentifierBindings
@@ -25,7 +25,7 @@ Main areas to support are parameters and variables
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 
 > -- | The main datatype, this holds the catalog and context
 > -- information to type check against.
@@ -35,7 +35,7 @@ Main areas to support are parameters and variables
 
 
 
-> -- | Represents an empty environment. This doesn't contain things
+> -- | Represents an empty catalog. This doesn't contain things
 > -- like the \'and\' operator, and so if you try to use it it will
 > -- almost certainly not work.
 > emptyBindings :: LocalIdentifierBindings
@@ -74,7 +74,7 @@ not present or not unique then throw an error. Similarly with no
 correlation name, we look at all the lists, if the id is not present
 or not unique then throw an error.
 
-envIdentifierTypes is for expanding *. If we want to access the
+catIdentifierTypes is for expanding *. If we want to access the
 common attributes from one of the tables in a using or natural join,
 this attribute can be qualified with either of the table names/
 aliases. But when we expand the *, we only output these common fields
@@ -111,12 +111,12 @@ it pulls in too many identifiers when expanding star
 
 Solution ideas:
 for the ambiguous errors, create a stack of identifiers, then split
-the EnvUpdateIDs into two, one to replace the current set, and one to
+the CatUpdateIDs into two, one to replace the current set, and one to
 push a new set on the stack. Then fix the lookup to walk the stack level by level.
 
 for the *, we already have special cases for system columns, and for
 join ids. I think the best solution is to provide a separate list of *
-columns and types, with a separate env update ctor, and get the type
+columns and types, with a separate cat update ctor, and get the type
 checker to resolve the list for * expansion rather than doing it here.
 
 This should also handle parameters and variable declarations in plpgsql
@@ -148,8 +148,8 @@ since select expressions can't contain statements, we don't need to
 worry about e.g. if statements, they want to inherit ids from params
 and variable defs, so the default is good.
 
-For environments being updated sequentially: since the environment is
-updated in a statement list (i.e. environment updates stack from one
+For catalogs being updated sequentially: since the catalog is
+updated in a statement list (i.e. catalog updates stack from one
 statement to the next within a single statement list), any var defs
 can't break out of the containing list, so we are covered e.g. for a
 variable def leaking from an inner block to an outer block.
@@ -163,8 +163,8 @@ moment.
 
 
 > libExpandStar :: LocalIdentifierBindings -> String -> Either [TypeError] [(String,Type)]
-> libExpandStar env correlationName =
->     case lookup correlationName $ starTypes env of
+> libExpandStar cat correlationName =
+>     case lookup correlationName $ starTypes cat of
 >       Nothing -> errorWhen (correlationName == "")
 >                            [InternalError "no star expansion found?"] >>
 >                  Left [UnrecognisedCorrelationName correlationName]
@@ -177,35 +177,35 @@ moment.
 >                          else (a,tail b)
 
 > libLookupID :: LocalIdentifierBindings -> String -> Either [TypeError] Type
-> libLookupID env iden1 =
->   envLookupID' $ identifierTypes env
+> libLookupID cat iden1 =
+>   catLookupID' $ identifierTypes cat
 >   where
 >     (correlationName,iden) = splitIdentifier $ map toLower iden1
->     envLookupID' (its:itss) =
+>     catLookupID' (its:itss) =
 >       case lookup correlationName its of
->         Nothing -> envLookupID' itss
+>         Nothing -> catLookupID' itss
 >         Just s -> case filter (\(n,_) -> map toLower n==iden) s of
 >                     [] -> if correlationName == ""
->                             then envLookupID' itss
+>                             then catLookupID' itss
 >                             else Left [UnrecognisedIdentifier $ correlationName ++ "." ++ iden]
 >                     (_,t):[] -> Right t
 >                     _ -> Left [AmbiguousIdentifier iden]
->     envLookupID' [] =
+>     catLookupID' [] =
 >       Left [if correlationName == ""
 >               then UnrecognisedIdentifier iden
 >               else UnrecognisedCorrelationName correlationName]
 
-> -- | Applies a list of 'EnvironmentUpdate's to an 'Environment' value
-> -- to produce a new Environment value.
+> -- | Applies a list of 'CatalogUpdate's to an 'Catalog' value
+> -- to produce a new Catalog value.
 > updateBindings :: LocalIdentifierBindings
->                -> Environment
+>                -> Catalog
 >                -> [LocalIdentifierBindingsUpdate]
 >                -> Either [TypeError] LocalIdentifierBindings
-> updateBindings lbs' env eus =
->   let r = foldM updateEnv' lbs' eus
+> updateBindings lbs' cat eus =
+>   let r = foldM updateCat' lbs' eus
 >   in {-trace ("*********************************************\nupdatebindings from " ++ show lbs' ++ "\nto\n" ++ show r) -} r
 >   where
->     updateEnv' lbs eu =
+>     updateCat' lbs eu =
 >       case eu of
 >         LibStackIDs qids -> return $ lbs {identifierTypes = expandComposites qids : identifierTypes lbs}
 >         LibSetStarExpansion sids -> return $ lbs {starTypes = sids}
@@ -226,7 +226,7 @@ moment.
 >               Right (PgRecord _) -> PgRecord (Just t)
 >               _ -> t
 >     expandComposites [] = []
->     compFields = fromRight [] . envCompositePublicAttrs env []
+>     compFields = fromRight [] . catCompositePublicAttrs cat []
 
 > data LocalIdentifierBindingsUpdate =
 >     -- | to allow an unqualified identifier reference to work you need to

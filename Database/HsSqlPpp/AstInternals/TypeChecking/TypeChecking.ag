@@ -44,8 +44,8 @@ type error annotation also.
 
 Here are the main attributes used in the type checking:
 
-env is used to chain the environments up and down the tree, to allow
-access to the catalog information, and to store the in environment
+cat is used to chain the catalogs up and down the tree, to allow
+access to the catalog information, and to store the in catalog
 identifier names and types e.g. inside a select expression.
 
 annotatedTree is used to create a copy of the ast with the type,
@@ -53,7 +53,7 @@ etc. annotations.
 
 -}
 ATTR AllNodes Root ExpressionRoot
-  [ env : Environment
+  [ cat : Catalog
     lib : LocalIdentifierBindings || annotatedTree : SELF
                                      -- workaround: avoid bogus cycle
                                      -- detections search for this,

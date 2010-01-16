@@ -32,7 +32,7 @@ checkAssignmentValid - pass in source type and target type, returns
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
-> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils
 
  > traceIt :: Show a => String -> a -> a
@@ -127,8 +127,8 @@ against.
 
 > type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
 
-> findCallMatch :: Environment -> String -> [Type] ->  Either [TypeError] FunctionPrototype
-> findCallMatch env f inArgs =
+> findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] FunctionPrototype
+> findCallMatch cat f inArgs =
 >     returnIfOnne [
 >        exactMatch
 >       ,binOp1UnknownMatch
@@ -144,7 +144,7 @@ against.
 >       initialCandList :: [FunctionPrototype]
 >       initialCandList = filter (\(_,candArgs,_,_) ->
 >                                   length candArgs == length inArgs) $
->                                map expandVariadic $ envLookupFns env f
+>                                map expandVariadic $ catLookupFns cat f
 >
 >       expandVariadic fp@(fn,a,r,v) =
 >         if v
@@ -183,11 +183,11 @@ against.
 >
 >       mostExactMatches :: [ProtArgCast]
 >       mostExactMatches =
->         let inArgsBase = map (replaceWithBase env) inArgs
+>         let inArgsBase = map (replaceWithBase cat) inArgs
 >             exactCounts :: [Int]
 >             exactCounts =
 >               map ((length
->                       . filter (\(a1,a2) -> a1==replaceWithBase env a2)
+>                       . filter (\(a1,a2) -> a1==replaceWithBase cat a2)
 >                       . zip inArgsBase)
 >                 . (\((_,a,_,_),_) -> a)) reachable
 >             pairs = zip reachable exactCounts
@@ -220,8 +220,8 @@ against.
 >                           listCastPairs' (ia:ias) (ca:cas) =
 >                               (case () of
 >                                  _ | ia == ca -> ExactMatch
->                                    | castableFromTo env ImplicitCastContext ia ca ->
->                                        if envPreferredType env ca
+>                                    | castableFromTo cat ImplicitCastContext ia ca ->
+>                                        if catPreferredType cat ca
 >                                          then ImplicitToPreferred
 >                                          else ImplicitToNonPreferred
 >                                    | otherwise -> CannotCast
@@ -307,7 +307,7 @@ against.
 >                                                   Pseudo AnyNonArray -> Just ia
 >                                                   _ -> Nothing)
 >                 in {-trace ("\nresolve types: " ++ show typeList ++ "\n") $-}
->                    case resolveResultSetType env typeList of
+>                    case resolveResultSetType cat typeList of
 >                      Left _ -> Nothing
 >                      Right t -> Just t
 >             instantiatePolyType :: ProtArgCast -> Type -> ProtArgCast
@@ -369,7 +369,7 @@ against.
 >                   getCandsCatAt :: Int -> Either () String
 >                   getCandsCatAt n' =
 >                       let typesAtN = map (!!n') candArgLists
->                           catsAtN = map (envTypeCategory env) typesAtN
+>                           catsAtN = map (catTypeCategory cat) typesAtN
 >                       in case () of
 >                            --if any are string choose string
 >                            _ | any (== "S") catsAtN -> Right "S"
@@ -393,7 +393,7 @@ against.
 >                            catMatches = filter (\c -> Right (getCatForArgN n c) ==
 >                                                      (cats !! n)) cands
 >                            prefMatches :: [ProtArgCast]
->                            prefMatches = filter (envPreferredType env .
+>                            prefMatches = filter (catPreferredType cat .
 >                                                    getTypeForArgN n) catMatches
 >                            keepMatches :: [ProtArgCast]
 >                            keepMatches = if length prefMatches > 0
@@ -403,7 +403,7 @@ against.
 >            getTypeForArgN :: Int -> ProtArgCast -> Type
 >            getTypeForArgN n ((_,a,_,_),_) = a !! n
 >            getCatForArgN :: Int -> ProtArgCast -> String
->            getCatForArgN n = envTypeCategory env . getTypeForArgN n
+>            getCatForArgN n = catTypeCategory cat . getTypeForArgN n
 >
 >       -- utils
 >       -- filter a candidate/cast flavours pair by a predicate on each
@@ -449,8 +449,8 @@ check all can convert to selected type else fail
 
 code is not as much of a mess as findCallMatch
 
-> resolveResultSetType :: Environment -> [Type] -> Either [TypeError] Type
-> resolveResultSetType env inArgs =
+> resolveResultSetType :: Catalog -> [Type] -> Either [TypeError] Type
+> resolveResultSetType cat inArgs =
 >   dependsOnRTpe inArgs $ do
 >   errorWhen (null inArgs) [TypelessEmptyArray]
 >   returnWhen allSameType (head inArgs) $ do
@@ -466,22 +466,22 @@ code is not as much of a mess as findCallMatch
 >                      --head inArgs /= UnknownType
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&
 >                      head inArgsBase /= UnknownType
->      inArgsBase = map (replaceWithBase env) inArgs
+>      inArgsBase = map (replaceWithBase cat) inArgs
 >      allUnknown = all (==UnknownType) inArgsBase
->      allSameCat = let firstCat = envTypeCategory env (head knownTypes)
->                   in all (\t -> envTypeCategory env t == firstCat)
+>      allSameCat = let firstCat = catTypeCategory cat (head knownTypes)
+>                   in all (\t -> catTypeCategory cat t == firstCat)
 >                          knownTypes
 >      targetType = case catMaybes [firstPreferred, lastAllConvertibleTo] of
 >                     [] -> Nothing
 >                     (x:_) -> Just x
->      firstPreferred = find (envPreferredType env) knownTypes
+>      firstPreferred = find (catPreferredType cat) knownTypes
 >      lastAllConvertibleTo = firstAllConvertibleTo (reverse knownTypes)
 >      firstAllConvertibleTo (x:xs) = if allConvertibleToFrom x xs
 >                                       then Just x
 >                                       else firstAllConvertibleTo xs
 >      firstAllConvertibleTo [] = Nothing
 >      knownTypes = filter (/=UnknownType) inArgsBase
->      allConvertibleToFrom = all . flip (castableFromTo env ImplicitCastContext)
+>      allConvertibleToFrom = all . flip (castableFromTo cat ImplicitCastContext)
 
 todo:
 cast empty array, where else can an empty array work?
@@ -490,15 +490,15 @@ cast empty array, where else can an empty array work?
 
 = checkAssignmentValue
 
-> checkAssignmentValid :: Environment -> Type -> Type -> Either [TypeError] ()
-> checkAssignmentValid env from to =
->     if castableFromTo env AssignmentCastContext from to
+> checkAssignmentValid :: Catalog -> Type -> Type -> Either [TypeError] ()
+> checkAssignmentValid cat from to =
+>     if castableFromTo cat AssignmentCastContext from to
 >        then Right ()
 >        else Left [IncompatibleTypes to from]
 
-> compositesCompatible :: Environment -> Type -> Type -> Bool
-> compositesCompatible env =
->     castableFromTo env ImplicitCastContext
+> compositesCompatible :: Catalog -> Type -> Type -> Bool
+> compositesCompatible cat =
+>     castableFromTo cat ImplicitCastContext
 
 ================================================================================
 
@@ -506,8 +506,8 @@ cast empty array, where else can an empty array work?
 
 wrapper around the catalog to add a bunch of extra valid casts
 
-> castableFromTo :: Environment -> CastContext -> Type -> Type -> Bool
-> castableFromTo env cc from to =
+> castableFromTo :: Catalog -> CastContext -> Type -> Type -> Bool
+> castableFromTo cat cc from to =
 >   {-trace ("check cast " ++ show from ++ "->" ++ show to) $-}
 >   -- put this here to avoid having to write it everywhere else
 >   from == to
@@ -517,13 +517,13 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   || to == UnknownType
 >   -- check base types of domains
 >   || ((isDomainType from || isDomainType to)
->       && castableFromTo env cc (replaceWithBase env from)
->                                (replaceWithBase env to))
+>       && castableFromTo cat cc (replaceWithBase cat from)
+>                                (replaceWithBase cat to))
 >   -- check the casts listed in the catalog
->   || envCast env cc from to
+>   || catCast cat cc from to
 >   -- implicitcast => assignment cast
 >   || (cc == AssignmentCastContext
->       && envCast env ImplicitCastContext from to)
+>       && catCast cat ImplicitCastContext from to)
 >   -- can assign composite to record
 >   || (cc == AssignmentCastContext
 >       && isCompOrSetoOfComp from
@@ -540,12 +540,12 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   || case (getCompositeTypes from
 >           ,getCompositeTypes to) of
 >        -- zip almost does the right thing here, needs a bit of tweaking
->        (Just ft, Just tt) | length ft == length tt -> all (uncurry $ castableFromTo env cc) $ zip ft tt
+>        (Just ft, Just tt) | length ft == length tt -> all (uncurry $ castableFromTo cat cc) $ zip ft tt
 >        _ -> False
 >   where
 
 >     getCompositeTypes (NamedCompositeType n) =
->         Just $ map snd $ fromRight [] $ envCompositePublicAttrs env [] n
+>         Just $ map snd $ fromRight [] $ catCompositePublicAttrs cat [] n
 >     getCompositeTypes (CompositeType t) = Just $ map snd t
 >     getCompositeTypes (AnonymousRecordType t) = Just t
 >     getCompositeTypes (PgRecord Nothing) = Nothing
@@ -563,9 +563,9 @@ wrapper around the catalog to add a bunch of extra valid casts
 >     unboxedSetOfType (PgRecord (Just t)) = unboxedSetOfType t
 >     unboxedSetOfType _ = Nothing
 
->     recurseTransFrom = maybe False (flip (castableFromTo env cc) to)
->     recurseTransTo = maybe False (castableFromTo env cc from)
+>     recurseTransFrom = maybe False (flip (castableFromTo cat cc) to)
+>     recurseTransTo = maybe False (castableFromTo cat cc from)
 
-> replaceWithBase :: Environment -> Type -> Type
-> replaceWithBase env t@(DomainType _) = envDomainBaseType env t
+> replaceWithBase :: Catalog -> Type -> Type
+> replaceWithBase cat t@(DomainType _) = catDomainBaseType cat t
 > replaceWithBase _ t = t

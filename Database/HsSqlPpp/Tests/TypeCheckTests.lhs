@@ -15,16 +15,16 @@ sql which doesn't type check.
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.TypeChecker
 > import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Ast.Environment
+> import Database.HsSqlPpp.Ast.Catalog
 > import Database.HsSqlPpp.Ast.SqlTypes
 
 > data Item = Expressions [(String, Either [TypeError] Type)]
 >           | StatementTypes [(String, Either [TypeError] [Maybe StatementType])]
->           | EnvUpStatementTypes [(String
->                                  ,[EnvironmentUpdate]
+>           | CatUpStatementTypes [(String
+>                                  ,[CatalogUpdate]
 >                                  ,Either [TypeError] [Maybe StatementType])]
->           | DdlStatements [(String, [[EnvironmentUpdate]])]
->           | DdlStatementsEnv [(String, [EnvironmentUpdate])]
+>           | DdlStatements [(String, [[CatalogUpdate]])]
+>           | DdlStatementsCat [(String, [CatalogUpdate])]
 >           | Group String [Item]
 
 > typeCheckTests :: [Test.Framework.Test]
@@ -362,18 +362,18 @@ check aliasing
 
 >      ]]
 
->   ,Group "simple selects from 2" [ EnvUpStatementTypes [
+>   ,Group "simple selects from 2" [ CatUpStatementTypes [
 >       t "select a,b from testfunc();"
->         [EnvCreateComposite "testType" [("a", ScalarType "text")
+>         [CatCreateComposite "testType" [("a", ScalarType "text")
 >                                        ,("b", typeInt)
 >                                        ,("c", typeInt)]
->         ,EnvCreateFunction FunName "testfunc" []
+>         ,CatCreateFunction FunName "testfunc" []
 >          (SetOfType $ NamedCompositeType "testType") False]
 >         $ Right [Just $ StatementType []
 >                  [("a",ScalarType "text"),("b",ScalarType "int4")]]
 
 >      ,t "select testfunc();"
->         [EnvCreateFunction FunName "testfunc" [] (Pseudo Void) False]
+>         [CatCreateFunction FunName "testfunc" [] (Pseudo Void) False]
 >         $ Right [Just $ StatementType [] []]
 
 >      ]]
@@ -587,7 +587,7 @@ test the catalog updates from creates, etc.
 >         \   a int,\n\
 >         \   b text\n\
 >         \);"
->         [[EnvCreateTable "t1" [("a",ScalarType "int4")
+>         [[CatCreateTable "t1" [("a",ScalarType "int4")
 >                               ,("b",ScalarType "text")]
 >                               [("tableoid", ScalarType "oid")
 >                               ,("cmax", ScalarType "cid")
@@ -599,19 +599,19 @@ test the catalog updates from creates, etc.
 >         \   a int,\n\
 >         \   b text\n\
 >         \);"
->         [[EnvCreateComposite "t1" [("a",ScalarType "int4")
+>         [[CatCreateComposite "t1" [("a",ScalarType "int4")
 >                                   ,("b",ScalarType "text")]]]
 
 >      ,p "create domain t1 as text;"
->         [[EnvCreateDomain (DomainType "t1") (ScalarType "text")]]
+>         [[CatCreateDomain (DomainType "t1") (ScalarType "text")]]
 
 >      ,p "create domain t1 as text check (value in ('a', 'b'));\n\
 >         \select 'text'::t1;"
->         [[EnvCreateDomain (DomainType "t1") (ScalarType "text")]]
+>         [[CatCreateDomain (DomainType "t1") (ScalarType "text")]]
 
 
 >      ,p "create view v1 as select * from pg_attrdef;"
->         [[EnvCreateView "v1" [("adrelid",ScalarType "oid")
+>         [[CatCreateView "v1" [("adrelid",ScalarType "oid")
 >                              ,("adnum",ScalarType "int2")
 >                              ,("adbin",ScalarType "text")
 >                              ,("adsrc",ScalarType "text")]]]
@@ -619,7 +619,7 @@ test the catalog updates from creates, etc.
 >      ,p "create function t1(text) returns text as $$\n\
 >         \null;\n\
 >         \$$ language sql stable;"
->         [[EnvCreateFunction FunName "t1" [ScalarType "text"]
+>         [[CatCreateFunction FunName "t1" [ScalarType "text"]
 >                             (ScalarType "text") False]]
 >      ]]
 
@@ -855,7 +855,7 @@ assignment to composite fields
 read fields of composite
 
 array_contains -> match anyelement
-createtable as env update
+createtable as cat update
 window functions
 assign domain <-> base
 sql function not working
@@ -1002,13 +1002,13 @@ check errors: select into wrong number of vars, wrong types, and into
 >                   ,("row_number",ScalarType "int8")]]
 >      ]]
 
->   ,Group "drop stuff" [ DdlStatementsEnv [
+>   ,Group "drop stuff" [ DdlStatementsCat [
 >       p "create function test(a int) returns void as $$\n\
 >         \begin\n\
 >         \  null;\n\
 >         \end\n\
 >         \$$ language plpgsql;"
->         [EnvCreateFunction FunName "test" [typeInt] (Pseudo Void) False]
+>         [CatCreateFunction FunName "test" [typeInt] (Pseudo Void) False]
 >      ,p "create function test(a int) returns void as $$\n\
 >         \begin\n\
 >         \  null;\n\
@@ -1037,7 +1037,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >   let ast = case parseExpression "" src of
 >                                      Left e -> error $ show e
 >                                      Right l -> l
->       aast = typeCheckExpression defaultTemplate1Environment ast
+>       aast = typeCheckExpression defaultTemplate1Catalog ast
 >       ty = getTopLevelTypes [aast]
 >       er = concatMap snd $ getTypeErrors aast
 >   in case (length er, length ty) of
@@ -1051,7 +1051,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       aast = snd $ typeCheck defaultTemplate1Environment ast
+>       aast = snd $ typeCheck defaultTemplate1Catalog ast
 >       is = getTopLevelInfos aast
 >       er = concatMap snd $ getTypeErrors aast
 >   in {-trace (show aast) $-} case (length er, length is) of
@@ -1060,15 +1060,15 @@ check errors: select into wrong number of vars, wrong types, and into
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
 
 
-> testEnvUpStatementType :: String
->                        -> [EnvironmentUpdate]
+> testCatUpStatementType :: String
+>                        -> [CatalogUpdate]
 >                        -> Either [TypeError] [Maybe StatementType]
 >                        -> Test.Framework.Test
-> testEnvUpStatementType src eu sis = testCase ("typecheck " ++ src) $
+> testCatUpStatementType src eu sis = testCase ("typecheck " ++ src) $
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       aast = snd $ typeCheck makeEnv ast
+>       aast = snd $ typeCheck makeCat ast
 >       is = getTopLevelInfos aast
 >       er = concatMap snd $ getTypeErrors aast
 >   in {-trace (show aast) $-} case (length er, length is) of
@@ -1076,32 +1076,32 @@ check errors: select into wrong number of vars, wrong types, and into
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
 >   where
->     makeEnv = case updateEnvironment defaultTemplate1Environment eu of
+>     makeCat = case updateCatalog defaultTemplate1Catalog eu of
 >                         Left x -> error $ show x
 >                         Right e -> e
 
-> testEnvUp :: String -> [[EnvironmentUpdate]] -> Test.Framework.Test
-> testEnvUp src eu = testCase ("typecheck " ++ src) $
+> testCatUp :: String -> [[CatalogUpdate]] -> Test.Framework.Test
+> testCatUp src eu = testCase ("typecheck " ++ src) $
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       aast = snd $ typeCheck defaultTemplate1Environment ast
+>       aast = snd $ typeCheck defaultTemplate1Catalog ast
 >       er = concatMap snd $ getTypeErrors aast
->       eu' = getTopLevelEnvUpdates aast
+>       eu' = getTopLevelCatUpdates aast
 >   in {-trace (show aast) $-} case (length er, length eu') of
->        (0,0) -> assertFailure "didn't get any infos or envupdates?"
+>        (0,0) -> assertFailure "didn't get any infos or catupdates?"
 >        (0,_) -> assertEqual ("eu " ++ src) eu eu'
 >        (_,_) -> assertFailure $ show er
 
 
-> testEnv :: String -> [EnvironmentUpdate] -> Test.Framework.Test
-> testEnv src eu = testCase ("check catalog: " ++ src) $
+> testCat :: String -> [CatalogUpdate] -> Test.Framework.Test
+> testCat src eu = testCase ("check catalog: " ++ src) $
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       (nenv,aast) = typeCheck defaultTemplate1Environment ast
+>       (ncat,aast) = typeCheck defaultTemplate1Catalog ast
 >       er = concatMap snd $ getTypeErrors aast
->       neu = deconstructEnvironment nenv \\ deconstructEnvironment defaultTemplate1Environment
+>       neu = deconstructCatalog ncat \\ deconstructCatalog defaultTemplate1Catalog
 >   in if not (null er)
 >        then assertFailure $ show er
 >        else assertEqual "check eus" eu neu
@@ -1110,8 +1110,8 @@ check errors: select into wrong number of vars, wrong types, and into
 > itemToTft :: Item -> [Test.Framework.Test]
 > itemToTft (Expressions es) = map (uncurry testExpressionType) es
 > itemToTft (StatementTypes es) = map (uncurry testStatementType) es
-> itemToTft (EnvUpStatementTypes es) = map (\(s,eu,si) -> testEnvUpStatementType s eu si) es
-> itemToTft (DdlStatements es) = map (uncurry testEnvUp) es
-> itemToTft (DdlStatementsEnv es) = map (uncurry testEnv) es
+> itemToTft (CatUpStatementTypes es) = map (\(s,eu,si) -> testCatUpStatementType s eu si) es
+> itemToTft (DdlStatements es) = map (uncurry testCatUp) es
+> itemToTft (DdlStatementsCat es) = map (uncurry testCat) es
 
 > itemToTft (Group s is) = [testGroup s $ concatMap itemToTft is]

@@ -31,8 +31,7 @@ error handling is crap in a few places - fix calls to error and
    ignored errors
 some of the types are crap - mess with sqltypes and type errors,
    annotations are the main suspect ones which need reviewing
-some of the names used are wrong, particularly environment type should
-   be called catalog
+some of the names of types aren't very good
 get the roundtrip tests up and running - this will tighten up the code
    a lot
 find a way of doing database connections better: full command line
@@ -86,7 +85,6 @@ then in some order:
   list type errors from typechecking asts
   pretty print the catalog from sql source or dumps from typechecking
   check this catalog against pg catalog
-  also, rename environment type at least
 - nullability plus support in wrapper generator
 then maybe:
   full api review, renames, error handling work, plus sqltypes review
@@ -117,7 +115,6 @@ check todos at top of files: move to bottom
 == example code gen for typesafe access
 == api review
 tidyups, renames - rename everything pending, review public api
-   function names (particularly environment->catalog, and
    localidentifierbindings to localenvironment)
    get rid of inconsistent suffixes in hssqlsystem and command components
 == error handling work
@@ -217,7 +214,6 @@ review holes:
 
 = Housecleaning
 
-rename Environment type to Catalog
 change type annotation from Type to either typecheckfailed Type so can
    use monad style to propagate typecheckfaileds
 work on error handling: try to add a lot better error reporting:
@@ -296,7 +292,6 @@ old todoage:
 
 == 2nd next release
 fix catalog type, lots of work to make more robust:
-  rename environment to catalog
   better pretty printer for catalog, and for bindings
   add annotations to catalog, so can see where bits came from
   do uniqueness testing e.g. disallow two tables with same name, two

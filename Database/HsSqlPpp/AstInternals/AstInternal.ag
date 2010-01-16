@@ -128,9 +128,9 @@ import Database.HsSqlPpp.AstInternals.TypeType
 import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
 import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 import Database.HsSqlPpp.AstInternals.AstAnnotation
-import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
-import Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
-import Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment
+import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+import Database.HsSqlPpp.AstInternals.TypeChecking.LocalIdentifierBindings
+import Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
 import Database.HsSqlPpp.Utils
 import Data.Generics.PlateData
 
@@ -688,9 +688,9 @@ makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
 --   more straightforward if you parse the files then concatenate the
 --   statementlists together before type checking rather than using
 --   this function
-typeCheckMany :: Environment -> [StatementList] -> [StatementList]
-typeCheckMany env sts =
-    annInt env sts []
+typeCheckMany :: Catalog -> [StatementList] -> [StatementList]
+typeCheckMany cat sts =
+    annInt cat sts []
     where
       annInt e (s:ss) ress =
           let (e1,res) = typeCheck e s
@@ -701,15 +701,15 @@ typeCheckMany env sts =
 -- | Takes an ast, checks against catalog passed, and adds
 --   annotations, including types, type errors, and statement info.
 --   Returns the updated catalog as well as the annotated ast.
-typeCheck :: Environment -> StatementList -> (Environment,StatementList)
-typeCheck env sts =
+typeCheck :: Catalog -> StatementList -> (Catalog,StatementList)
+typeCheck cat sts =
     let t = sem_Root (Root (fixupImplicitJoins sts))
-        ta = wrap_Root t Inh_Root {env_Inh_Root = env
+        ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                   ,lib_Inh_Root = emptyBindings}
         tl = annotatedTree_Syn_Root ta
-        env1 = producedEnv_Syn_Root ta
+        cat1 = producedCat_Syn_Root ta
    in case tl of
-         Root r -> (env1,r)
+         Root r -> (cat1,r)
 
 -- | Unfinished version of type check which can type check an
 -- individual statement with ? or positional arg placeholders in
@@ -717,8 +717,8 @@ typeCheck env sts =
 -- delete. For use in type checking embedded parameterized
 -- statements. Does all typechecking and annotation that the regular
 -- typecheck does.
-typeCheckPS :: Environment -> Statement -> Either String Statement
-typeCheckPS env st =
+typeCheckPS :: Catalog -> Statement -> Either String Statement
+typeCheckPS cat st =
     case st of
       SelectStatement _ _ -> tc
       Insert _ _ _ _ _ -> tc
@@ -727,10 +727,10 @@ typeCheckPS env st =
       _ -> Left "requires select, update, insert or delete statement"
     where
       tc = let t = sem_Root (Root (fixupImplicitJoins [st]))
-               ta = wrap_Root t Inh_Root {env_Inh_Root = env
+               ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                          ,lib_Inh_Root = emptyBindings}
                tl = annotatedTree_Syn_Root ta
-               env1 = producedEnv_Syn_Root ta
+               cat1 = producedCat_Syn_Root ta
            in case tl of
                 Root [st1] -> Right st1
                 _ -> error "impossible happened in typeCheckPS!"
@@ -738,11 +738,11 @@ typeCheckPS env st =
 
 -- | Testing utility, mainly used to check an expression for type errors
 -- or to get its type.
-typeCheckExpression :: Environment -> Expression -> Expression
-typeCheckExpression env ex =
+typeCheckExpression :: Catalog -> Expression -> Expression
+typeCheckExpression cat ex =
     let t = sem_ExpressionRoot (ExpressionRoot (fixupImplicitJoins ex))
         rt = (annotatedTree_Syn_ExpressionRoot
-              (wrap_ExpressionRoot t Inh_ExpressionRoot {env_Inh_ExpressionRoot = env
+              (wrap_ExpressionRoot t Inh_ExpressionRoot {cat_Inh_ExpressionRoot = cat
                                                         ,lib_Inh_ExpressionRoot = emptyBindings}))
     in case rt of
          ExpressionRoot e -> e

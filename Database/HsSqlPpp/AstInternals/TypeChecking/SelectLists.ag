@@ -58,11 +58,11 @@ SEM SelectList
             targetTypeErrs = concat $ lefts $ targetTypeEithers
             targetTypes = rights $ targetTypeEithers
             typePairs = zip (map snd @items.listType) targetTypes
-            assignErrs = concat $ lefts $ map (uncurry $ checkAssignmentValid @lhs.env) typePairs
+            assignErrs = concat $ lefts $ map (uncurry $ checkAssignmentValid @lhs.cat) typePairs
             sl = @into.strings
             matchingComposite =
                 case targetTypes of
-                  [t] | isCompositeType t -> checkAssignmentValid @lhs.env (AnonymousRecordType (map snd @items.listType)) t
+                  [t] | isCompositeType t -> checkAssignmentValid @lhs.cat (AnonymousRecordType (map snd @items.listType)) t
                   _ -> Left []
 
         lhs.annotatedTree = SelectList (@ann ++ map TypeErrorA @loc.errs)
@@ -95,11 +95,11 @@ expandStar :: LocalIdentifierBindings
            -> Type
            -> [(String,Type)]
            -> [(String,Type)]
-expandStar env colName colType types =
+expandStar cat colName colType types =
     fromRight types $ do
     let (correlationName,iden) = splitIdentifier colName
     newCols <- if iden == "*"
-                 then libExpandStar env correlationName
+                 then libExpandStar cat correlationName
                  else return [(iden, colType)]
     return $ newCols ++ types
 

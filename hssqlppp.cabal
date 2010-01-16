@@ -23,7 +23,7 @@ Description:
     .
     'Annotation' for the annotation data types and utilities;
     .
-    'Environment' to read a catalog from a database to type check against,
+    'Catalog' to read a catalog from a database to type check against,
     or to generate catalog information;
     .
     'DatabaseLoader' for the beginnings of a routine to load SQL into
@@ -94,10 +94,10 @@ extra-source-files:  README
                      Database/HsSqlPpp/AstInternals/AnnotationUtils.lhs
                      Database/HsSqlPpp/AstInternals/AstAnnotation.lhs
                      Database/HsSqlPpp/AstInternals/AstInternal.hs
-                     Database/HsSqlPpp/AstInternals/Environment/DefaultTemplate1Environment.lhs
-                     Database/HsSqlPpp/AstInternals/Environment/EnvironmentReader.lhs
-                     Database/HsSqlPpp/AstInternals/Environment/EnvironmentInternal.lhs
-                     Database/HsSqlPpp/AstInternals/Environment/LocalIdentifierBindings.lhs
+                     Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs
+                     Database/HsSqlPpp/AstInternals/Catalog/CatalogReader.lhs
+                     Database/HsSqlPpp/AstInternals/Catalog/CatalogInternal.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/LocalIdentifierBindings.lhs
                      Database/HsSqlPpp/AstInternals/AstInternal.ag
                      Database/HsSqlPpp/AstInternals/TypeType.lhs
                      Database/HsSqlPpp/AstInternals/TypeChecking/Dml.ag
@@ -131,7 +131,7 @@ extra-source-files:  README
                      Database/HsSqlPpp/Parsing/Parser.lhs
                      Database/HsSqlPpp/Parsing/ParseErrors.lhs
                      Database/HsSqlPpp/Ast/Ast.lhs
-                     Database/HsSqlPpp/Ast/Environment.lhs
+                     Database/HsSqlPpp/Ast/Catalog.lhs
                      Database/HsSqlPpp/Ast/Annotation.lhs
                      Database/HsSqlPpp/Ast/SqlTypes.lhs
                      Database/HsSqlPpp/Ast/TypeChecker.lhs
@@ -158,7 +158,7 @@ Library
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
                      Database.HsSqlPpp.Ast.TypeChecker
-                     Database.HsSqlPpp.Ast.Environment
+                     Database.HsSqlPpp.Ast.Catalog
                      Database.HsSqlPpp.Ast.Annotation
                      Database.HsSqlPpp.Ast.SqlTypes
                      Database.HsSqlPpp.Parsing.Parser
@@ -175,10 +175,10 @@ Library
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstAnnotation
                      Database.HsSqlPpp.AstInternals.AstInternal
-                     Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment
-                     Database.HsSqlPpp.AstInternals.Environment.EnvironmentReader
-                     Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
-                     Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
+                     Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
+                     Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
+                     Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+                     Database.HsSqlPpp.AstInternals.TypeChecking.LocalIdentifierBindings
                      Database.HsSqlPpp.AstInternals.TypeType
                      Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
                      Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
@@ -218,10 +218,10 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstAnnotation
                      Database.HsSqlPpp.AstInternals.AstInternal
-                     Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment
-                     Database.HsSqlPpp.AstInternals.Environment.EnvironmentReader
-                     Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
-                     Database.HsSqlPpp.AstInternals.Environment.LocalIdentifierBindings
+                     Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
+                     Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
+                     Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+                     Database.HsSqlPpp.AstInternals.TypeChecking.LocalIdentifierBindings
                      Database.HsSqlPpp.AstInternals.TypeType
                      Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
                      Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
@@ -238,7 +238,7 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.Parsing.ParseErrors
                      Database.HsSqlPpp.Ast.TypeChecker
                      Database.HsSqlPpp.Ast.Ast
-                     Database.HsSqlPpp.Ast.Environment
+                     Database.HsSqlPpp.Ast.Catalog
                      Database.HsSqlPpp.Ast.Annotation
                      Database.HsSqlPpp.Ast.SqlTypes
 

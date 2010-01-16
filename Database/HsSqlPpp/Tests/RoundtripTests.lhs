@@ -24,7 +24,7 @@ attempt to compare original ast to ast of dump
 
 > import Database.HsSqlPpp.Utils
 > import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Ast.Environment
+> import Database.HsSqlPpp.Ast.Catalog
 > import Database.HsSqlPpp.Ast.TypeChecker
 > import Database.HsSqlPpp.Dbms.DBUtils
 
@@ -60,11 +60,11 @@ read catalog from psql and compare with catalog from typechecker
 
 >     checkStage1 = wrapETT $ do
 >       ast <- tsl $ parseSql "" sql
->       let (cat1,_) = typeCheck defaultTemplate1Environment ast
+>       let (cat1,_) = typeCheck defaultTemplate1Catalog ast
 >       liftIO $ clearDB "testing"
 >       liftIO $ loadSqlUsingPsql "testing" sql
 >       dbCat <- liftIO (readCatalog "testing") >>= tsl
->       case compareCatalogs defaultTemplate1Environment cat1 dbCat of
+>       case compareCatalogs defaultTemplate1Catalog cat1 dbCat of
 >               CatalogDiff [] [] -> liftIO $ return ()
 >               c -> liftIO $ assertFailure $ "catalogs difference: " ++ ppCatDiff c
 
@@ -110,10 +110,10 @@ find any that can be shared with hssqlsystem and move to common module or someth
 >                                     ,"--no-privileges"])] ""
 
 > -- | get the catalog from the database
-> readCatalog :: String -> IO (Either [TypeError] Environment)
+> readCatalog :: String -> IO (Either [TypeError] Catalog)
 > readCatalog dbName =
->   (readEnvironmentFromDatabase dbName) >>=
->     return . updateEnvironment defaultEnvironment
+>   (readCatalogFromDatabase dbName) >>=
+>     return . updateCatalog defaultCatalog
 
 > -- | run psql to load the sql text into a database.
 > loadSqlUsingPsql :: String -> String -> IO String

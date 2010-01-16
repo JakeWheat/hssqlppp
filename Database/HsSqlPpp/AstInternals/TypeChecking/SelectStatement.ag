@@ -16,7 +16,7 @@ SEM Statement
                                                 unwrapSetOfComposite $
                                                 getTypeAnnotation @ex.annotatedTree]
         loc.backTree = SelectStatement @ann @ex.annotatedTree
-        loc.envUpdates = []
+        loc.catUpdates = []
 
 SEM SelectExpression
     | Values Select CombineSelect
@@ -52,7 +52,7 @@ The select list produces the final type which the selectexpression has.
 inside the from, if we have any join expressions we need to pass the types
 from the joined trefs to the join expressions.
 
-So, the basic plan is to propagate the iden bindings in the env attribute
+So, the basic plan is to propagate the iden bindings in the cat attribute
 as elsewhere, and also pass along a flag to say whether the previous stage
 type checked or not, so we can bail if it has failed.
 
@@ -61,9 +61,9 @@ something using relational algebra-like operations - can then follow the flow
 of ids easily. The problem might be with updating the annotations in the original
 tree though.
 
-== env passing current bodge
+== cat passing current bodge
 
-env flow:
+cat flow:
 current simple version:
 from tref -> select list
           -> where
@@ -91,8 +91,8 @@ For now, just send the input columns in as identifiers
 
 SEM SelectExpression
     | Select
-         loc.newLib = case updateBindings @lhs.lib @lhs.env @selTref.libUpdates of
-                        Left x -> error $ show x -- @lhs.env
+         loc.newLib = case updateBindings @lhs.lib @lhs.cat @selTref.libUpdates of
+                        Left x -> error $ show x -- @lhs.cat
                         Right e -> e
          selSelectList.lib = @loc.newLib
          selWhere.lib = @loc.newLib
@@ -104,7 +104,7 @@ SEM SelectExpression
 SEM SelectExpression
     | Values
         loc.tpe = typeCheckValuesExpr
-                              @lhs.env
+                              @lhs.cat
                               @vll.typeListList
         loc.backTree = Values @ann @vll.annotatedTree
     | Select
@@ -130,32 +130,32 @@ SEM SelectExpression
           let sel1t = getTypeAnnotation @sel1.annotatedTree
               sel2t = getTypeAnnotation @sel2.annotatedTree
           in dependsOnRTpe [sel1t, sel2t] $
-                typeCheckCombineSelect @lhs.env sel1t sel2t
+                typeCheckCombineSelect @lhs.cat sel1t sel2t
         loc.backTree = CombineSelect @ann @ctype.annotatedTree
                                      @sel1.annotatedTree
                                      @sel2.annotatedTree
 
 {
 
-typeCheckValuesExpr :: Environment -> [[Type]] -> Either [TypeError] Type
-typeCheckValuesExpr env rowsTs =
+typeCheckValuesExpr :: Catalog -> [[Type]] -> Either [TypeError] Type
+typeCheckValuesExpr cat rowsTs =
         let colNames = zipWith (++)
                            (repeat "column")
                            (map show [1..length $ head rowsTs])
-        in unionRelTypes env rowsTs colNames
+        in unionRelTypes cat rowsTs colNames
 
 
-typeCheckCombineSelect :: Environment -> Type -> Type -> Either [TypeError] Type
-typeCheckCombineSelect env v1 v2 = do
+typeCheckCombineSelect :: Catalog -> Type -> Type -> Either [TypeError] Type
+typeCheckCombineSelect cat v1 v2 = do
     u1 <- unwrapSetOfComposite v1
     let colNames = map fst u1
     u2 <- unwrapSetOfComposite v2
     let colTypes1 = map snd u1
     let colTypes2 = map snd u2
-    unionRelTypes env [colTypes1,colTypes2] colNames
+    unionRelTypes cat [colTypes1,colTypes2] colNames
 
-unionRelTypes :: Environment -> [[Type]] -> [String] -> Either [TypeError] Type
-unionRelTypes env rowsTs colNames =
+unionRelTypes :: Catalog -> [[Type]] -> [String] -> Either [TypeError] Type
+unionRelTypes cat rowsTs colNames =
   let lengths = map length rowsTs
   in case () of
              _ | null rowsTs ->
@@ -164,7 +164,7 @@ unionRelTypes env rowsTs colNames =
                    Left [ValuesListsMustBeSameLength]
                | otherwise ->
                    --i don't think this propagates all the errors, just the first set
-                   mapM (resolveResultSetType env) (transpose rowsTs) >>=
+                   mapM (resolveResultSetType cat) (transpose rowsTs) >>=
                      (return . SetOfType . CompositeType . zip colNames)
 
 }

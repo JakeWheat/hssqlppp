@@ -18,7 +18,7 @@ SEM Statement
         loc.attrs = case getTypeAnnotation @expr.annotatedTree of
                       SetOfType (CompositeType c) -> c
                       _ -> [] --TODO: error ignored
-        loc.envUpdates = [EnvCreateView @name @loc.attrs]
+        loc.catUpdates = [CatCreateView @name @loc.attrs]
         loc.statementType = []
 
 {-
@@ -51,7 +51,7 @@ SEM Statement
         loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateType @ann @name @atts.annotatedTree
         loc.statementType = []
-        loc.envUpdates = [EnvCreateComposite @name @atts.attrs]
+        loc.catUpdates = [CatCreateComposite @name @atts.attrs]
 
 {-
 
@@ -64,8 +64,8 @@ SEM Statement
         loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateDomain @ann @name @typ.annotatedTree @checkName @check.annotatedTree
         loc.statementType = []
-        loc.envUpdates = [EnvCreateDomain (DomainType @name) @typ.namedType]
+        loc.catUpdates = [CatCreateDomain (DomainType @name) @typ.namedType]
         --allow refering to value as 'value' in check expression
         check.lib = fromRight @lhs.lib $
-                    updateBindings @lhs.lib @lhs.env
+                    updateBindings @lhs.lib @lhs.cat
                       [LibStackIDs [("", [("value", @typ.namedType)])]]

@@ -31,7 +31,7 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Tests.ParameterizedStatementTests
 > import Database.HsSqlPpp.Tests.RoundtripTests
 
-> import Database.HsSqlPpp.Ast.Environment
+> import Database.HsSqlPpp.Ast.Catalog
 > import Database.HsSqlPpp.Ast.Ast
 
 > import Database.HsSqlPpp.Utils
@@ -224,7 +224,7 @@ how to do this
 >   (ncat, _) <- mapM (\f -> readInput f >>=
 >                            tsl . P.parseSql f) fns >>=
 >                  return . concat >>= return . A.typeCheck scat
->   return (ppCatDiff $ compareCatalogs scat emptyEnvironment ncat) >>= liftIO . putStrLn
+>   return (ppCatDiff $ compareCatalogs scat emptyCatalog ncat) >>= liftIO . putStrLn
 
 ================================================================================
 
@@ -352,19 +352,19 @@ This reads an catalog from a database and writes it out using show.
 >                \\n\
 >                \> {-# OPTIONS_HADDOCK hide  #-}\n\
 >                \\n\
->                \> module Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment\n\
->                \>     (defaultTemplate1Environment\n\
+>                \> module Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog\n\
+>                \>     (defaultTemplate1Catalog\n\
 >                \>      ) where\n\
 >                \\n\
->                \> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal\n\
+>                \> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal\n\
 >                \> import Database.HsSqlPpp.AstInternals.TypeType\n\
 >                \\n\
->                \> defaultTemplate1Environment :: Environment\n\
->                \> defaultTemplate1Environment =\n\
+>                \> defaultTemplate1Catalog :: Catalog\n\
+>                \> defaultTemplate1Catalog =\n\
 >                \>    (\\l -> case l of\n\
 >                \>             Left x -> error $ show x\n\
 >                \>             Right e -> e) $\n\
->                \>     updateEnvironment defaultEnvironment\n"
+>                \>     updateCatalog defaultCatalog\n"
 >     prefixLines :: (Monad m, Error e) => String -> ErrorT e m String
 >     prefixLines = return . unlines . map (">        " ++) . lines
 
@@ -417,7 +417,7 @@ write a routine to mirror this - will then have
 > runTestBattery dbName fns = wrapET $ do
 >     liftIO $ clearDB dbName
 >     startingCat <- liftIO (readCatalog dbName) >>= tsl
->     (originalCat :: Environment,
+>     (originalCat :: Catalog,
 >      originalAast :: StatementList) <-
 >        mapM (\f -> readInput f >>= tsl . P.parseSql f) fns >>= return . concat >>=
 >        return . extensionize >>= return . A.typeCheck startingCat

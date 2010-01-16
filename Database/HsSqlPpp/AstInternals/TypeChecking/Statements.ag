@@ -5,52 +5,52 @@ This file contains the general code for statements and statement
 lists, and includes the ag files for various flavours of statement.
 
 The attributes and sem statements in this file are for chaining the
-env updates as we progress through a statement list, and for producing
-the resultant env after we've checked a whole ast, this can be used
+cat updates as we progress through a statement list, and for producing
+the resultant cat after we've checked a whole ast, this can be used
 e.g. to type check multiple files in a row which depend on eachother.
 
 -}
 
--- env updates syn attr is used by each statement to report
+-- cat updates syn attr is used by each statement to report
 -- what changes it makes to the catalog, we use this to update
--- the env to feed into the next statement
+-- the cat to feed into the next statement
 
-ATTR Statement [||envUpdates : {[EnvironmentUpdate]}
+ATTR Statement [||catUpdates : {[CatalogUpdate]}
                   libUpdates : {[LocalIdentifierBindingsUpdate]}]
 
 
-ATTR StatementList [envUpdates : {[EnvironmentUpdate]}
+ATTR StatementList [catUpdates : {[CatalogUpdate]}
                     libUpdates : {[LocalIdentifierBindingsUpdate]}||]
 
 
---producedenv is used to pass the final updated env out
-ATTR StatementList Root [|| producedEnv : Environment
+--producedcat is used to pass the final updated cat out
+ATTR StatementList Root [|| producedCat : Catalog
                             producedLib : LocalIdentifierBindings]
 
-ATTR Statement [inProducedEnv: Environment||]
+ATTR Statement [inProducedCat: Catalog||]
 
 SEM StatementList
     | Cons Nil
-        --newenv is the environment passed into the head statement
+        --newcat is the catalog passed into the head statement
         --updated with any catalog changes that that statement has made
-        loc.newEnv = fromRight @lhs.env $ updateEnvironment @lhs.env @lhs.envUpdates
-        loc.newLib = fromRight @lhs.lib $ updateBindings @lhs.lib @lhs.env @lhs.libUpdates
+        loc.newCat = fromRight @lhs.cat $ updateCatalog @lhs.cat @lhs.catUpdates
+        loc.newLib = fromRight @lhs.lib $ updateBindings @lhs.lib @lhs.cat @lhs.libUpdates
     | Cons
-        hd.env = @loc.newEnv
-        tl.env = @loc.newEnv
+        hd.cat = @loc.newCat
+        tl.cat = @loc.newCat
         hd.lib = @loc.newLib
         tl.lib = @loc.newLib
-        --produced env is used to chain the final updated environment from the last
+        --produced cat is used to chain the final updated catalog from the last
         --element of the list and pass it back up the list so in can be pushed up
         -- to the root element and sent out from there
-        lhs.producedEnv = @tl.producedEnv
+        lhs.producedCat = @tl.producedCat
         lhs.producedLib = @tl.producedLib
-        --this is probably a bit inefficient: it creates a new environment from scratch
-        --on each statement instead of chaining on the last updated env
-        tl.envUpdates = @hd.envUpdates
+        --this is probably a bit inefficient: it creates a new catalog from scratch
+        --on each statement instead of chaining on the last updated cat
+        tl.catUpdates = @hd.catUpdates
         tl.libUpdates = @hd.libUpdates
     | Nil
-        lhs.producedEnv = @loc.newEnv
+        lhs.producedCat = @loc.newCat
         lhs.producedLib = @loc.newLib
 
 SEM Statement
@@ -62,9 +62,9 @@ SEM Statement
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
                               $ Just (map StatementTypeA @loc.statementType ++
-                                      [EnvUpdates @loc.envUpdates])
-        loc.envUpdates : {[EnvironmentUpdate]}
-        lhs.envUpdates = @loc.envUpdates
+                                      [CatUpdates @loc.catUpdates])
+        loc.catUpdates : {[CatalogUpdate]}
+        lhs.catUpdates = @loc.catUpdates
         lhs.libUpdates = @loc.libUpdates
     | Insert Update Delete CreateView CreateDomain
       CreateFunction CreateType CreateTable CreateTableAs Return
@@ -73,11 +73,11 @@ SEM Statement
         loc.libUpdates = []
 
 SEM StatementList
-    | Cons hd.inProducedEnv = @tl.producedEnv
+    | Cons hd.inProducedCat = @tl.producedCat
 
 
 SEM Root
-    | Root statements.envUpdates = []
+    | Root statements.catUpdates = []
            statements.libUpdates = []
 
 SEM Statement
@@ -86,28 +86,28 @@ SEM Statement
       If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement Set CreateLanguage Notify CreateSequence
       AlterSequence AlterTable CreateTrigger
-        lhs.envUpdates = []
+        lhs.catUpdates = []
         lhs.libUpdates = []
 
 SEM ExpressionListStatementListPair
     | Tuple
-        x2.envUpdates = []
+        x2.catUpdates = []
         x2.libUpdates = []
 SEM ExpressionStatementListPair
     | Tuple
-        x2.envUpdates = []
+        x2.catUpdates = []
         x2.libUpdates = []
 SEM FnBody
     | PlpgsqlFnBody SqlFnBody
-        sts.envUpdates = []
+        sts.catUpdates = []
         sts.libUpdates = []
 SEM Statement
     | CaseStatement If
-        els.envUpdates = []
+        els.catUpdates = []
         els.libUpdates = []
 SEM Statement
     | ForIntegerStatement ForSelectStatement WhileStatement
-        sts.envUpdates = []
+        sts.catUpdates = []
         sts.libUpdates = []
 
 

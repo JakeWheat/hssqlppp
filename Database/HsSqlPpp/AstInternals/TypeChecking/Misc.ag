@@ -24,7 +24,7 @@ SEM TypeName
 
 SEM TypeName
      | SimpleTypeName
-        loc.tpe = envLookupType @lhs.env $ canonicalizeTypeName @tn
+        loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
         loc.backTree = SimpleTypeName @ann @tn
      | ArrayTypeName
         loc.tpe = dependsOnRTpe [@typ.namedType] $ Right $ ArrayType @typ.namedType
@@ -33,7 +33,7 @@ SEM TypeName
         loc.tpe = dependsOnRTpe [@typ.namedType] $ Right $ SetOfType @typ.namedType
         loc.backTree = SetOfTypeName @ann @typ.annotatedTree
      | PrecTypeName
-        loc.tpe = envLookupType @lhs.env $ canonicalizeTypeName @tn
+        loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
         loc.backTree = PrecTypeName @ann @tn @prec
 
 

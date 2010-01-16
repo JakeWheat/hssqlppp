@@ -23,8 +23,8 @@ SEM Statement
         loc.tpe = dependsOnRTpe
                     (@rettype.namedType : @loc.parameterTypes) $
                     Right $ Pseudo Void
-        loc.envUpdates = dependsOn [tpeToT @loc.tpe] []
-                                   [EnvCreateFunction FunName
+        loc.catUpdates = dependsOn [tpeToT @loc.tpe] []
+                                   [CatCreateFunction FunName
                                                       (map toLower @name)
                                                       @loc.parameterTypes
                                                       @rettype.namedType
@@ -40,7 +40,7 @@ SEM Statement
                                       @body.annotatedTree
                                       @vol.annotatedTree
         loc.statementType = []
-        body.env = @lhs.inProducedEnv
+        body.cat = @lhs.inProducedCat
 
 {-
 == parameters
@@ -88,25 +88,25 @@ reordering.
 New plan: do two passes, type check everything but the bodies of
 functions in first pass, then type check bodies of functions in second
 pass. Not perfect, but better than current situation. This will be
-achieved by using a separate env attribute which is the same as the env
+achieved by using a separate cat attribute which is the same as the cat
 value which gets returned from the annotation functions in AstInternal.ag
 
 -}
 
 SEM Statement
     | CreateFunction
-        --add the parameters to the environment for the contained statements
+        --add the parameters to the catalog for the contained statements
         body.lib = let p = @params.params
                            ++ (zip posNames $ map snd @params.params)
                    in fromRight @lhs.lib $
-                      updateBindings @lhs.lib @lhs.env
+                      updateBindings @lhs.lib @lhs.cat
                                      [LibStackIDs [("", p)
                                                   ,(@name, @params.params)]]
                    where
                      posNames :: [String]
                      posNames = map (\l -> '$':show l) [1..]
 {-
-TODO: using fromRight on it's own for identifier bindings or env
+TODO: using fromRight on it's own for identifier bindings or cat
 updates is wrong, if an error is produced then this needs to be added
 to an annotation somewhere. Some of the code uses error instead of fromRight
 which is even worse.
@@ -119,7 +119,7 @@ SEM FnBody
         --which can nest inside plpgsql functions (they aren't even
         --supported by the parser at the moment)
         sts.lib = fromRight @lhs.lib $
-                  updateBindings @lhs.lib @lhs.env
+                  updateBindings @lhs.lib @lhs.cat
                                  [LibStackIDs [("", @vars.defs)]]
 
 ATTR VarDef [||def : {(String,Type)}]

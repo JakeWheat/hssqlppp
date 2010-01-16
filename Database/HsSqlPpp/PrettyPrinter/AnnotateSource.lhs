@@ -108,7 +108,7 @@ To replace existing comments rather than repeatedly add them:
 >              flip filter anns (\a ->
 >                                case a of
 >                                       TypeAnnotation _ -> False
->                                       EnvUpdates [] -> False
+>                                       CatUpdates [] -> False
 >                                       _ -> True)
 
 >      isSp t = case t of

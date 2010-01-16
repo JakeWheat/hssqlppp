@@ -104,7 +104,7 @@ exists, it quits. Parses the source file then pretty prints it to the
 target filename.
 
 readenv
-read the catalogs for the given db and dump a Environment value source
+read the catalogs for the given db and dump a Catalog value source
 text to stdout
 
 annotateSource
@@ -133,7 +133,7 @@ source position annotations. If you want to get rid of these
 annotations, use 'Database.HsSqlPpp.Ast.Annotation.stripAnnotations'.
 To typecheck and add other information to the ast, use
 'Database.HsSqlPpp.Ast.TypeChecker.typeCheck'. You can read the
-environment value from a database to check against that database, or
+catalog value from a database to check against that database, or
 parse the ddl source along with your dml and concatenate them both to
 pass to the typeCheck function.
 

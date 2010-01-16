@@ -126,7 +126,7 @@ later on down the line.
 >                | WrongNumberOfColumns
 >                | ExpectedDomainType Type
 >                | DomainDefNotFound Type
->                | BadEnvironmentUpdate String
+>                | BadCatalogUpdate String
 >                | TypeAlreadyExists Type
 >                | AnyAllError String
 >                | InternalError String

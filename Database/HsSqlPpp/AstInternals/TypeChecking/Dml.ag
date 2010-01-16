@@ -26,7 +26,7 @@ SEM Statement
             do
             tys <- unwrapSetOfComposite $
                    getTypeAnnotation @insData.annotatedTree
-            checkColumnConsistency @lhs.env
+            checkColumnConsistency @lhs.cat
                                    @table
                                    @targetCols.strings
                                    tys
@@ -40,7 +40,7 @@ SEM Statement
 
         loc.backTree = Insert @ann @table @targetCols.annotatedTree
                               @loc.insDataAddedInferredTypes @returning.annotatedTree
-        loc.envUpdates = []
+        loc.catUpdates = []
 
 -- inject the ids into the returning part
 
@@ -48,8 +48,8 @@ SEM Statement
     | Insert
         returning.lib =
             fromRight @lhs.lib $ do
-              atts <- envCompositeAttrs @lhs.env relationComposites @table
-              updateBindings @lhs.lib @lhs.env [LibStackIDs [("", atts)]]
+              atts <- catCompositeAttrs @lhs.cat relationComposites @table
+              updateBindings @lhs.lib @lhs.cat [LibStackIDs [("", atts)]]
 
 {-
 ================================================================================
@@ -64,7 +64,7 @@ SEM Statement
     | Update
         loc.tpe =
             do
-            checkRelationExists @lhs.env @table
+            checkRelationExists @lhs.cat @table
             dependsOnRTpe (map snd @assigns.pairs) $ do
               @loc.columnTypes
               liftErrors @assigns.rowSetErrors
@@ -76,7 +76,7 @@ SEM Statement
                @loc.columnTypes
 
         loc.columnTypes =
-            checkColumnConsistency @lhs.env
+            checkColumnConsistency @lhs.cat
                                    @table
                                    (map fst @assigns.pairs)
                                    @assigns.pairs
@@ -91,7 +91,7 @@ SEM Statement
                               @loc.assignWInferredTypes
                               @whr.annotatedTree
                               @returning.annotatedTree
-        loc.envUpdates = []
+        loc.catUpdates = []
 
 {
 
@@ -113,10 +113,10 @@ SEM Statement
     | Update
         loc.lib =
              fromRight @lhs.lib $ do
-             ct <- envCompositeAttrs @lhs.env
+             ct <- catCompositeAttrs @lhs.cat
                                      relationComposites
                                      @table
-             updateBindings @lhs.lib @lhs.env [LibStackIDs [("", ct)]]
+             updateBindings @lhs.lib @lhs.cat [LibStackIDs [("", ct)]]
         whr.lib = @loc.lib
         assigns.lib = @loc.lib
         returning.lib = @loc.lib
@@ -178,21 +178,21 @@ pretty simple, mainly just need to inject ids into the where part
 SEM Statement
     | Delete
         loc.tpe =
-            checkRelationExists @lhs.env @table >>
+            checkRelationExists @lhs.cat @table >>
             Right (Pseudo Void)
         loc.statementType = [StatementType (getPlaceholderTypes @whr.annotatedTree)
                                            (fromMaybe [] @returning.listType)]
 
         loc.backTree = Delete @ann @table @whr.annotatedTree @returning.annotatedTree
-        loc.envUpdates = []
+        loc.catUpdates = []
 
 
 SEM Statement
     | Delete
         loc.lib =
             fromRight @lhs.lib $ do
-            columnTypes <- envCompositeAttrs @lhs.env relationComposites @table
-            updateBindings @lhs.lib @lhs.env [LibStackIDs [("", columnTypes)]]
+            columnTypes <- catCompositeAttrs @lhs.cat relationComposites @table
+            updateBindings @lhs.lib @lhs.cat [LibStackIDs [("", columnTypes)]]
         whr.lib = @loc.lib
         returning.lib = @loc.lib
 
@@ -202,16 +202,16 @@ SEM Statement
 {
 
 --small shortcut to help produce better errors?
-checkRelationExists :: Environment -> String -> Either [TypeError] ()
-checkRelationExists env tbl =
-    envCompositeDef env relationComposites tbl >>
+checkRelationExists :: Catalog -> String -> Either [TypeError] ()
+checkRelationExists cat tbl =
+    catCompositeDef cat relationComposites tbl >>
     return ()
 
 --used by both insert and update
-checkColumnConsistency :: Environment ->  String -> [String] -> [(String,Type)]
+checkColumnConsistency :: Catalog ->  String -> [String] -> [(String,Type)]
                        -> Either [TypeError] [(String,Type)]
-checkColumnConsistency env tbl cols' insNameTypePairs = do
-  ttcols <- lowerize <$> envCompositePublicAttrs env [] tbl
+checkColumnConsistency cat tbl cols' insNameTypePairs = do
+  ttcols <- lowerize <$> catCompositePublicAttrs cat [] tbl
   let cols = if null cols'
                then map fst ttcols
                else map (map toLower) cols'
@@ -227,7 +227,7 @@ checkColumnConsistency env tbl cols' insNameTypePairs = do
                     map snd insNameTypePairs
       errs :: [TypeError]
       errs = concat $ lefts $
-             map (\(_,b,c) -> checkAssignmentValid env c b) typeTriples
+             map (\(_,b,c) -> checkAssignmentValid cat c b) typeTriples
   liftErrors errs
   return targetNameTypePairs
   where

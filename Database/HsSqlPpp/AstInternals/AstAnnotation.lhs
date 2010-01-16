@@ -3,7 +3,7 @@ Copyright 2009 Jake Wheat
 The annotation data types and utilities for working with them.
 
 Annotations are used to store source positions, types, errors,
-warnings, environment deltas, information, and other stuff a client might
+warnings, catalog deltas, information, and other stuff a client might
 want to use when looking at an ast. Internal annotations which are
 used in the type-checking/ annotation process use the attribute
 grammar code and aren't exposed.
@@ -19,7 +19,7 @@ grammar code and aren't exposed.
 >     --,stripAnnotations
 >     ,getTopLevelTypes
 >     ,getTopLevelInfos
->     ,getTopLevelEnvUpdates
+>     ,getTopLevelCatUpdates
 >     ,getTypeAnnotation
 >     ,getTypeErrors
 >     ,stripAnnotations
@@ -38,7 +38,7 @@ grammar code and aren't exposed.
 > import Control.Arrow
 
 > import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
+> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 
 > -- | Annotation type - one of these is attached to most of the
 > -- data types used in the ast.
@@ -50,7 +50,7 @@ grammar code and aren't exposed.
 >                        | TypeAnnotation Type
 >                        | TypeErrorA TypeError
 >                        | StatementTypeA StatementType
->                        | EnvUpdates [EnvironmentUpdate]
+>                        | CatUpdates [CatalogUpdate]
 >                        | FunctionPrototypeA FunctionPrototype
 >                        | InferredType Type
 >                          deriving (Eq, Show,Typeable,Data)
@@ -115,9 +115,9 @@ understand, then keep changing it till it compiles and passes the tests.
 >                                 _ -> getSIAnnotation xs
 > getSIAnnotation []  = [Nothing]
 
-> getEuAnnotation :: Annotation -> [[EnvironmentUpdate]]
+> getEuAnnotation :: Annotation -> [[CatalogUpdate]]
 > getEuAnnotation (x:xs) = case x of
->                                 EnvUpdates t -> t:getEuAnnotation xs
+>                                 CatUpdates t -> t:getEuAnnotation xs
 >                                 _ -> getEuAnnotation xs
 > getEuAnnotation [] = []
 
@@ -127,14 +127,12 @@ understand, then keep changing it till it compiles and passes the tests.
 > getTopLevelInfos :: Data a => [a] -> [Maybe StatementType]
 > getTopLevelInfos = getTopLevelXs getSIAnnotation
 
-> getTopLevelEnvUpdates ::  Data a => [a] -> [[EnvironmentUpdate]]
-> getTopLevelEnvUpdates = getTopLevelXs getEuAnnotation
+> getTopLevelCatUpdates ::  Data a => [a] -> [[CatalogUpdate]]
+> getTopLevelCatUpdates = getTopLevelXs getEuAnnotation
 
 > data StatementType = StatementType [Type] [(String,Type)]
 >                      deriving (Eq,Show,Typeable,Data)
 
-todo:
-add environment deltas to statementtype (??)
 
 question:
 if a node has no source position e.g. the all in select all or select

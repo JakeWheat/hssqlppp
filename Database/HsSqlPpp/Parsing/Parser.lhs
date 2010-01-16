@@ -65,7 +65,7 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation as A
 > import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.Ast.Environment
+> import Database.HsSqlPpp.Ast.Catalog
 
 The parse state is used to keep track of source positions inside
 function bodies, these bodies are parsed separately to the rest of the

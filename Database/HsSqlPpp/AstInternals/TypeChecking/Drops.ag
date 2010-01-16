@@ -9,8 +9,8 @@ SEM Statement
     | DropFunction
         loc.tpe = Right $ Pseudo Void
         loc.backTree = DropFunction @ann @ifE.annotatedTree @sigs.annotatedTree @cascade.annotatedTree
-        loc.envUpdates = flip map @sigs.fnSigs $ \(nm,args) ->
-                               EnvDropFunction ifE nm args
+        loc.catUpdates = flip map @sigs.fnSigs $ \(nm,args) ->
+                               CatDropFunction ifE nm args
                          where
                            ifE = @ifE.annotatedTree == IfExists
         loc.statementType = []

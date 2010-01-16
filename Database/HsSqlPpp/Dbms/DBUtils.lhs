@@ -21,17 +21,17 @@ with postgres.
 > --import Text.Pandoc
 
 
-> import Database.HsSqlPpp.Ast.Environment
+> import Database.HsSqlPpp.Ast.Catalog
 
 > import Database.HsSqlPpp.Ast.SqlTypes
 
 > import Database.HsSqlPpp.Dbms.DBAccess
 
 > -- | get the catalog from the database, and return an Catalog value
-> readCatalog :: String -> IO (Either [TypeError] Environment)
+> readCatalog :: String -> IO (Either [TypeError] Catalog)
 > readCatalog dbName =
->   (readEnvironmentFromDatabase dbName) >>=
->     return . updateEnvironment defaultEnvironment
+>   (readCatalogFromDatabase dbName) >>=
+>     return . updateCatalog defaultCatalog
 
 > -- | run psql to load the sql text into a database.
 > loadSqlUsingPsql :: String -> String -> IO String

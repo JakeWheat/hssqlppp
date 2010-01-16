@@ -105,7 +105,7 @@ SEM TableRef
                      Left e -> e
                      Right _ -> []
         loc.relType : {Either [TypeError] ([(String, Type)], [(String, Type)])}
-        loc.relType = envCompositeAttrsPair @lhs.env [] @tbl
+        loc.relType = catCompositeAttrsPair @lhs.cat [] @tbl
         loc.relType1 = fromRight ([],[]) @loc.relType
         loc.pAttrs = fst @loc.relType1
         loc.sAttrs = snd @loc.relType1
@@ -121,7 +121,7 @@ SEM TableRef
                      Left e -> e
                      Right _ -> []
         loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
-        loc.eqfunIdens = funIdens @lhs.env @loc.alias @fn.annotatedTree
+        loc.eqfunIdens = funIdens @lhs.cat @loc.alias @fn.annotatedTree
         loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
         loc.alias2 = fst @loc.qfunIdens
         loc.funIdens = snd @loc.qfunIdens
@@ -161,7 +161,7 @@ SEM TableRef
                 -- type resolution (see typeconversion.lhs for more details
                 -- and the relevant link to the pg manual
                 resolvedTypes :: [Either [TypeError] Type]
-                resolvedTypes = map (\(a,b) -> resolveResultSetType @lhs.env [a,b]) $ zip tjts t1jts
+                resolvedTypes = map (\(a,b) -> resolveResultSetType @lhs.cat [a,b]) $ zip tjts t1jts
             liftErrors $ concat $ lefts resolvedTypes
             return $ zip jns $ rights resolvedTypes
             where
@@ -184,7 +184,7 @@ SEM TableRef
 
         -- we need the attributes from the joined tables to be available
         -- in the join expression.
-        loc.newLib = case updateBindings @lhs.lib @lhs.env (@loc.libUpdates ++ @lhs.jlibUpdates) of
+        loc.newLib = case updateBindings @lhs.lib @lhs.cat (@loc.libUpdates ++ @lhs.jlibUpdates) of
                        Left x -> error $ show x
                        Right e -> {-trace ("on expr lib:" ++ show e)-} e
         onExpr.lib = @loc.newLib
@@ -214,8 +214,8 @@ then relation, using the function name for the attribute name
 need to check to see what should happen with arrayof
 
 -}
-funIdens :: Environment -> String -> Expression -> Either [TypeError] (String,[(String,Type)])
-funIdens env alias fnVal = do
+funIdens :: Catalog -> String -> Expression -> Either [TypeError] (String,[(String,Type)])
+funIdens cat alias fnVal = do
    errorWhen (case fnVal of
                 FunCall _ _ _ -> False
                 _ -> True)
@@ -226,7 +226,7 @@ funIdens env alias fnVal = do
                            else fnName
    attrs <- do
      case getTypeAnnotation fnVal of
-       SetOfType (NamedCompositeType t) -> envCompositePublicAttrs env [] t
+       SetOfType (NamedCompositeType t) -> catCompositePublicAttrs cat [] t
        SetOfType x -> return [(correlationName,x)]
        y -> return [(correlationName,y)]
    return (correlationName, attrs)

@@ -19,7 +19,7 @@ could probably use some quasi quotation
 > import Data.Maybe
 
 > import Database.HsSqlPpp.Ast.SqlTypes as Sql
-> import Database.HsSqlPpp.Ast.Environment
+> import Database.HsSqlPpp.Ast.Catalog
 > import Database.HsSqlPpp.Ast.TypeChecker
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.Annotation
@@ -83,19 +83,19 @@ could probably use some quasi quotation
 >   p <- parseFile fn
 >   case p of
 >     ParseOk ast -> do
->                    envU <- readEnvironmentFromDatabase db
->                    case updateEnvironment defaultEnvironment envU of
+>                    catU <- readCatalogFromDatabase db
+>                    case updateCatalog defaultCatalog catU of
 >                      Left er -> return $ show er
->                      Right env ->
->                          return $ {-ppShow ast ++  "\n\n" ++ -} prettyPrint (processTree env (addImports ast))
+>                      Right cat ->
+>                          return $ {-ppShow ast ++  "\n\n" ++ -} prettyPrint (processTree cat (addImports ast))
 >     x -> return $ ppShow x
 
 This is the function which finds the statements which look like
 ident = "string"
 and converts them into hdbc wrappers with the correct types
 
-> processTree :: Data a => Environment -> a -> a
-> processTree env =
+> processTree :: Data a => Catalog -> a -> a
+> processTree cat =
 >     transformBi $ \x ->
 >       case x of
 >         (PatBind _
@@ -103,18 +103,18 @@ and converts them into hdbc wrappers with the correct types
 >              Nothing
 >              (UnGuardedRhs(Lit (Exts.String sqlSrc)))
 >              (BDecls [])) : tl
->           -> createWrapper env fnName sqlSrc ++ tl
+>           -> createWrapper cat fnName sqlSrc ++ tl
 >         x1 -> x1
 
 for each bind to convert, lookup the haskell types needed, then
 create a type sig and a function to use hdbc to run the sql
 
-> createWrapper :: Environment
+> createWrapper :: Catalog
 >               -> String
 >               -> String
 >               -> [Decl]
-> createWrapper env fnName sql =
->     let rt = getStatementType env sql
+> createWrapper cat fnName sql =
+>     let rt = getStatementType cat sql
 >     in case rt of
 >       Left e -> error e
 >       Right (StatementType pt ts) ->
@@ -239,10 +239,10 @@ parsing and typechecking
 
 get the input and output types for a parameterized sql statement:
 
-> getStatementType :: Environment -> String -> Either String StatementType
-> getStatementType env sql = do
+> getStatementType :: Catalog -> String -> Either String StatementType
+> getStatementType cat sql = do
 >     ast <- tsl $ parseSql "" sql
->     let (_,aast) = typeCheck env ast
+>     let (_,aast) = typeCheck cat ast
 >     let a = getTopLevelInfos aast
 >     return $ fromJust $ head a
 

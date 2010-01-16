@@ -75,7 +75,7 @@ SEM Expression
                                    then (Right TypeCheckFailed, Nothing)
                                    else
                                      let fe = typeCheckFunCall
-                                              @lhs.env
+                                              @lhs.cat
                                               @funName
                                               @args.typeList
                                      in (dependsOnRTpe @args.typeList $ fmap (\(_,_,r,_) -> r) fe
@@ -109,8 +109,8 @@ any operator satisfying some properties
 
 TODO: move all of this into find call match. Don't know why it's separate
 -}
-typeCheckFunCall :: Environment -> String -> [Type] -> Either [TypeError] FunctionPrototype
-typeCheckFunCall env fnName' argsType =
+typeCheckFunCall :: Catalog -> String -> [Type] -> Either [TypeError] FunctionPrototype
+typeCheckFunCall cat fnName' argsType =
     {-trace ("typecheckfncall " ++ fnName' ++ show argsType) $-}
     --dependsOnRTpe argsType $
       case fnName of
@@ -140,14 +140,14 @@ typeCheckFunCall env fnName' argsType =
               _ | fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
                          && length argsType == 2
                          && all isCompositeOrSetOfCompositeType argsType
-                         && compositesCompatible env (head argsType) (head $ tail argsType) -> return (fnName, argsType, typeBool, False)
+                         && compositesCompatible cat (head argsType) (head $ tail argsType) -> return (fnName, argsType, typeBool, False)
               --checked for all special cases, so run general case now
               s -> lookupFn s argsType
     where
       lookupReturnType :: String -> [Type] -> Either [TypeError] Type
       lookupReturnType s1 args = fmap (\(_,_,r,_) -> r) $ lookupFn s1 args
       lookupFn :: String -> [Type] -> Either [TypeError] FunctionPrototype
-      lookupFn s1 args = findCallMatch env
+      lookupFn s1 args = findCallMatch cat
                              (if s1 == "u-" then "-" else s1) args
       fnName = map toLower fnName'
 }
@@ -176,7 +176,7 @@ SEM Expression
                             [AnyAllError $ "second arg must be array, got " ++ show args]
                   elemType <- unwrapArray $ bType
                   resType <- fmap (\(_,_,r,_) -> r) $ typeCheckFunCall
-                                     @lhs.env
+                                     @lhs.cat
                                      @oper
                                      [aType,elemType]
                   errorWhen (resType /= typeBool)
@@ -212,7 +212,7 @@ SEM Expression
             errorWhen (any (/= typeBool) @loc.whenTypes) $
                       [WrongTypes typeBool @loc.whenTypes]
             dependsOnRTpe @loc.thenTypes $
-              resolveResultSetType @lhs.env @loc.thenTypes
+              resolveResultSetType @lhs.cat @loc.thenTypes
         loc.backTree = Case @ann @cases.annotatedTree @els.annotatedTree
 
 
@@ -222,9 +222,9 @@ SEM Expression
           dependsOnRTpe @loc.whenTypes $ do
           let valueType = getTypeAnnotation @value.annotatedTree
           checkWhenTypes <-
-              resolveResultSetType @lhs.env (valueType : @loc.whenTypes)
+              resolveResultSetType @lhs.cat (valueType : @loc.whenTypes)
           dependsOnRTpe @loc.thenTypes $
-            resolveResultSetType @lhs.env @loc.thenTypes
+            resolveResultSetType @lhs.cat @loc.thenTypes
         loc.backTree = CaseSimple @ann
                                   @value.annotatedTree
                                   @cases.annotatedTree
@@ -232,7 +232,7 @@ SEM Expression
 
 {-
 == identifiers
-pull id types out of env for identifiers
+pull id types out of cat for identifiers
 
 -}
 
@@ -289,7 +289,7 @@ SEM Expression
         loc.tpe = do
                   lt <- @list.listType
                   ty <- resolveResultSetType
-                            @lhs.env
+                            @lhs.cat
                             [getTypeAnnotation @expr.annotatedTree, lt]
                   return typeBool
         loc.backTree = InPredicate @ann
@@ -302,7 +302,7 @@ ATTR InList [||listType : {Either [TypeError] Type}]
 
 SEM InList
     | InList
-        lhs.listType = resolveResultSetType @lhs.env @exprs.typeList
+        lhs.listType = resolveResultSetType @lhs.cat @exprs.typeList
     | InSelect
         lhs.listType =
             do

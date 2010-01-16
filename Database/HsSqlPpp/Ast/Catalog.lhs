@@ -1,19 +1,18 @@
 Copyright 2009 Jake Wheat
 
-This is the public api to the environment data type, it just forwards
-the public part of EnvironmentInternal, which is the module used by
+This is the public api to the catalog data type, it just forwards
+the public part of CatalogInternal, which is the module used by
 the type checking code.
 
 > {- | This module contains the database catalog data types and helper functions.
 >
->  The environment data type (which should really be called catalog)
->  serves the following purposes:
+>  The catalog data type serves the following purposes:
 >
 >  * Contains all the catalog information needed to type check against
 >     an existing database.
 >
 >  * A copy of the catalog information from a default template1
->    database is included - 'defaultTemplate1Environment'.
+>    database is included - 'defaultTemplate1Catalog'.
 >
 >  * It is used internally to keep track of updates to the catalog
 >     whilst running an annotation process (e.g. so that a select can
@@ -22,18 +21,18 @@ the type checking code.
 >     references in select expressions, and argument and variable
 >     types inside create function statements.
 >
->  You can see what kind of stuff is contained in the Environment type
->  by looking at the 'EnvironmentUpdate' type.
+>  You can see what kind of stuff is contained in the Catalog type
+>  by looking at the 'CatalogUpdate' type.
 >
 > -}
 
-> module Database.HsSqlPpp.Ast.Environment
+> module Database.HsSqlPpp.Ast.Catalog
 >     (
 >      -- * Data types
->      Environment
+>      Catalog
 >      -- ** Updates
->     ,EnvironmentUpdate(..)
->     ,ppEnvUpdate
+>     ,CatalogUpdate(..)
+>     ,ppCatUpdate
 >      -- ** bits and pieces
 >     ,CastContext(..)
 >     ,CompositeFlavour(..)
@@ -41,24 +40,24 @@ the type checking code.
 >     ,FunctionPrototype
 >     ,DomainDefinition
 >     ,FunFlav(..)
->      -- * 'Environment' values
->     ,emptyEnvironment
->     ,defaultEnvironment
->     ,defaultTemplate1Environment
->      -- * 'Environment' comparison
+>      -- * 'Catalog' values
+>     ,emptyCatalog
+>     ,defaultCatalog
+>     ,defaultTemplate1Catalog
+>      -- * 'Catalog' comparison
 >     ,CatalogDiff(..)
 >     ,compareCatalogs
 >     ,ppCatDiff
 >      -- * Functions
->     ,readEnvironmentFromDatabase
->     ,updateEnvironment
->     ,deconstructEnvironment
+>     ,readCatalogFromDatabase
+>     ,updateCatalog
+>     ,deconstructCatalog
 >      -- * operator utils
 >     ,OperatorType(..)
 >     ,getOperatorType
 >     ,isOperatorName
 >     ) where
 
-> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentInternal
-> import Database.HsSqlPpp.AstInternals.Environment.EnvironmentReader
-> import Database.HsSqlPpp.AstInternals.Environment.DefaultTemplate1Environment
+> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
+> import Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog

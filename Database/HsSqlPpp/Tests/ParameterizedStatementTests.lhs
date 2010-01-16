@@ -18,10 +18,10 @@ in the StatementType annotation.
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.TypeChecker
-> import Database.HsSqlPpp.Ast.Environment
+> import Database.HsSqlPpp.Ast.Catalog
 
 > data Item = Group String [Item]
->           | Statements [(String, [EnvironmentUpdate], StatementType)]
+>           | Statements [(String, [CatalogUpdate], StatementType)]
 
 > parameterizedStatementTests :: [Test.Framework.Test]
 > parameterizedStatementTests = itemToTft testData
@@ -31,7 +31,7 @@ in the StatementType annotation.
 >   Group "parameterized statement tests" [
 >     Group "simple selects" [ Statements [
 >        ("select test();"
->        ,[EnvCreateFunction FunName "test" [] (Pseudo Void) False]
+>        ,[CatCreateFunction FunName "test" [] (Pseudo Void) False]
 >        ,StatementType [] [])
 >       ,("select adnum,adbin from pg_attrdef;"
 >        ,[]
@@ -45,47 +45,47 @@ in the StatementType annotation.
 >        ,[]
 >        ,StatementType [] [("count", ScalarType "int8")])
 >        {-,("select test($1);"
->        ,[EnvCreateFunction FunName "test" [ScalarType "int4"] (ScalarType "text") False]
+>        ,[CatCreateFunction FunName "test" [ScalarType "int4"] (ScalarType "text") False]
 >        ,StatementType [ScalarType "int4"] [("test",ScalarType "text")])
 >       ,-}
 >       ,("select test(?);"
->        ,[EnvCreateFunction FunName "test" [ScalarType "int4"] (ScalarType "text") False]
+>        ,[CatCreateFunction FunName "test" [ScalarType "int4"] (ScalarType "text") False]
 >        ,StatementType [ScalarType "int4"] [("test",ScalarType "text")])
 >        ]
 >     ]
 >    ,Group "simple dml" [ Statements [
 >        ("insert into testt values (1, 'test');"
->        ,[EnvCreateTable "testt" [("c1", typeInt)
+>        ,[CatCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [] [])
 >       ,("insert into testt (c1,c2) values (?, ?);"
->        ,[EnvCreateTable "testt" [("c1", typeInt)
+>        ,[CatCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [typeInt, ScalarType "text"] [])
 >       ,("insert into testt (c1,c2) values (1, 'test') returning c1;"
->        ,[EnvCreateTable "testt" [("c1", typeInt)
+>        ,[CatCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [] [("c1",typeInt)])
 >       ,("insert into testt (c1,c2) values (?, ?) returning c1 as d1, c2;"
->        ,[EnvCreateTable "testt" [("c1", typeInt)
+>        ,[CatCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [typeInt, ScalarType "text"] [("d1", typeInt)
 >                                                    ,("c2", ScalarType "text")])
 >       {-,("insert into testt (c1,c2) values (?, ?) returning *;"
->        ,[EnvCreateTable "testt" [("c1", typeInt)
+>        ,[CatCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [typeInt, ScalarType "text"] [("c1", typeInt)
 >                                                    ,("c2", ScalarType "text")])-}
 >       ,("update testt set c1= ?,c2= ? where c1= ? returning c2;"
->        ,[EnvCreateTable "testt" [("c1", typeInt)
+>        ,[CatCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [typeInt, ScalarType "text", typeInt] [("c2", ScalarType "text")])
 >       ,("update testt set (c1,c2) = (?,?);"
->        ,[EnvCreateTable "testt" [("c1", typeInt)
+>        ,[CatCreateTable "testt" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [typeInt, ScalarType "text"] [])
 >       ,("delete from blah where c1= ? returning c2;"
->        ,[EnvCreateTable "blah" [("c1", typeInt)
+>        ,[CatCreateTable "blah" [("c1", typeInt)
 >                                 ,("c2", ScalarType "text")] []]
 >        ,StatementType [typeInt] [("c2", ScalarType "text")])
 >       ]
@@ -123,12 +123,12 @@ inpredicate
 ================================================================================
 
 
-> testStatementType :: String -> [EnvironmentUpdate] -> StatementType -> Test.Framework.Test
+> testStatementType :: String -> [CatalogUpdate] -> StatementType -> Test.Framework.Test
 > testStatementType src eu st = testCase ("typecheck " ++ src) $
 >   let ast = case parseSql "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->   in case typeCheckPS makeEnv (head ast) of
+>   in case typeCheckPS makeCat (head ast) of
 >        Left e -> error $ show e
 >        Right aast -> --trace (ppShow aast) $
 >                      let is = getTopLevelInfos [aast]
@@ -138,7 +138,7 @@ inpredicate
 >                                 [Just is1] -> assertEqual ("typecheck " ++ src) st is1
 >                                 _ -> assertFailure ("expected onne statementinfo, got " ++ show is)
 >   where
->     makeEnv = case updateEnvironment defaultTemplate1Environment eu of
+>     makeCat = case updateCatalog defaultTemplate1Catalog eu of
 >                         Left x -> error $ show x
 >                         Right e -> e
 
