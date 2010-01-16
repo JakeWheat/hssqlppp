@@ -41,6 +41,7 @@ modules.
 >     -- comparing catalogs
 >     ,CatalogDiff(..)
 >     ,compareCatalogs
+>     ,ppCatDiff
 >     ) where
 
 > import Control.Monad
@@ -482,3 +483,11 @@ this is why binary @ operator isn't currently supported
 >             missing = sort $ endEnvBits \\ startEnvBits
 >             extras = sort $ startEnvBits \\ endEnvBits
 >         in CatalogDiff missing extras
+
+> -- | print a catdiff in a more human readable way than show.
+> ppCatDiff :: CatalogDiff -> String
+> ppCatDiff (CatalogDiff missing extr) =
+>     "\nmissing:\n"
+>     ++ intercalate "\n" (map ppEnvUpdate missing)
+>     ++ "\nextra:\n"
+>     ++ intercalate "\n" (map ppEnvUpdate extr)

@@ -48,6 +48,7 @@ the type checking code.
 >      -- * 'Environment' comparison
 >     ,CatalogDiff(..)
 >     ,compareCatalogs
+>     ,ppCatDiff
 >      -- * Functions
 >     ,readEnvironmentFromDatabase
 >     ,updateEnvironment

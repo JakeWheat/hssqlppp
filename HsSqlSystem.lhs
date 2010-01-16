@@ -16,11 +16,11 @@ to get a list of commands and purpose and usage info
 > import Data.List
 > import Control.Monad.Error
 > import Data.Char
-> import System
+> --import System
 > import Data.Generics
 
 > import Text.Show.Pretty
-> import System.Process.Pipe
+> --import System.Process.Pipe
 > --import Text.Pandoc
 
 > import Test.Framework (defaultMainWithArgs)
@@ -46,15 +46,16 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 
-> import Database.HsSqlPpp.Dbms.DBAccess
+> --import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
 
 > import Database.HsSqlPpp.Extensions.ChaosExtensions
 
 > --import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.HsText.HsText
+> --import Database.HsSqlPpp.HsText.HsText
 
 > import Database.HsSqlPpp.Dbms.WrapperGen
+> import Database.HsSqlPpp.Dbms.DBUtils
 
 
 > data HsSqlSystem = Lex {files :: [String]}
@@ -206,9 +207,9 @@ how to do this
 >   wrapET $ do
 >     (liftIO . putStrLn) ("--annotated source of " ++ f)
 >     src <- readInput f
->     cat <- readCatalog db
+>     cat <- liftIO (readCatalog db) >>= tsl
 >     tsl (P.parseSql f src) >>= return . A.typeCheck cat >>= return . snd >>=
->       ppAnnOrig False src >>= liftIO . putStrLn
+>       return . annotateSource False src >>= liftIO . putStrLn
 
 ================================================================================
 
@@ -219,11 +220,11 @@ how to do this
 
 > ppCatalog :: String -> [FilePath] -> IO ()
 > ppCatalog db fns = wrapET $ do
->   scat <- readCatalog db
+>   scat <- liftIO (readCatalog db) >>= tsl
 >   (ncat, _) <- mapM (\f -> readInput f >>=
 >                            tsl . P.parseSql f) fns >>=
 >                  return . concat >>= return . A.typeCheck scat
->   ppCatDiff (compareCatalogs scat emptyEnvironment ncat) >>= liftIO . putStrLn
+>   return (ppCatDiff $ compareCatalogs scat emptyEnvironment ncat) >>= liftIO . putStrLn
 
 ================================================================================
 
@@ -234,9 +235,9 @@ how to do this
 
 > typeCheck2 :: String -> [FilePath] -> IO ()
 > typeCheck2 db fns = wrapET $
->   readCatalog db >>= \cat ->
+>   liftIO (readCatalog db) >>= tsl >>= \cat ->
 >   mapM (\f -> readInput f >>= tsl . P.parseSql f) fns >>= return . concat >>=
->   return . A.typeCheck cat >>= return . snd >>= return . A.getTypeErrors >>= ppTypeErrors >>= mapM_ (liftIO . putStrLn)
+>   return . A.typeCheck cat >>= return . snd >>= return . A.getTypeErrors >>= return . ppTypeErrors >>= mapM_ (liftIO . putStrLn)
 
 ================================================================================
 
@@ -247,7 +248,7 @@ how to do this
 
 > allAnnotations :: String -> [FilePath] -> IO ()
 > allAnnotations db fns = wrapET $
->   readCatalog db >>= \cat ->
+>   liftIO (readCatalog db) >>= tsl >>= \cat ->
 >   mapM (\f -> readInput f >>= tsl . P.parseSql f) fns >>= return . concat >>=
 >   return . A.typeCheck cat >>= return . snd >>= return . ppShow >>= liftIO . putStrLn
 
@@ -262,11 +263,11 @@ how to do this
 
 > typeCheckExpression :: String -> [FilePath] -> IO ()
 > typeCheckExpression db fns = wrapET $ do
->   aasts <- readCatalog db >>= \cat ->
+>   aasts <- liftIO (readCatalog db) >>= tsl >>= \cat ->
 >               forM fns (\f -> readInput f >>= tsl . P.parseExpression f
 >                                    >>= return . A.typeCheckExpression cat)
 >   tes <- mapM (return . A.getTypeErrors) aasts
->   mapM_ (\x -> ppTypeErrors x >>= mapM_ (liftIO . putStrLn)) $ filter (not . null) tes
+>   mapM_ (\x -> return (ppTypeErrors x) >>= mapM_ (liftIO . putStrLn)) $ filter (not . null) tes
 >   mapM_ (\a -> liftM (show . head) (return $ A.getTopLevelTypes [a]) >>= liftIO . putStrLn) aasts
 
 ================================================================================
@@ -280,7 +281,7 @@ TODO: do something more correct
 >          &= text "hacky util to clear a database"
 
 > cleardb :: String -> IO ()
-> cleardb = wrapET . clearDB
+> cleardb = clearDB
 
 ================================================================================
 
@@ -295,7 +296,7 @@ TODO: do something more correct
 > loadSql db fns = wrapET $
 >      liftIO (hSetBuffering stdout NoBuffering) >>
 >      mapM (\f -> readInput f >>= tsl . P.parseSql f) fns >>= return . concat >>=
->      return . extensionize >>= loadAst db ""
+>      return . extensionize >>= liftIO . loadIntoDatabase db ""
 
 ================================================================================
 
@@ -307,7 +308,7 @@ TODO: do something more correct
 > loadSqlPsql db = wrapET .
 >   --srcs <- mapM readInput fns
 >   --mapM_ (\s -> loadSqlUsingPsql db s >>= message) (map snd srcs)
->   mapM_ (\s -> loadSqlUsingPsqlFromFile db s >>= liftIO . putStrLn)
+>   mapM_ (\s -> liftIO (loadSqlUsingPsqlFromFile db s) >>= tsl >>= liftIO . putStrLn)
 
 ================================================================================
 
@@ -315,7 +316,7 @@ TODO: do something more correct
 >           &= text "run pg dump, used for testing."
 
 > pgDump1 :: String -> IO ()
-> pgDump1 db = wrapET $ pgDump db >>= liftIO . putStrLn
+> pgDump1 db = pgDump db >>= putStrLn
 
 
 ================================================================================
@@ -340,7 +341,7 @@ This reads an catalog from a database and writes it out using show.
 
 > readCat :: String -> IO ()
 > readCat dbName = wrapET $ do
->   cat <- readCatalog dbName
+>   cat <- liftIO (readCatalog dbName) >>= tsl
 >   (liftIO . putStrLn) preamble
 >   (return . ppShow) cat >>= prefixLines >>= liftIO . putStrLn
 >   where
@@ -414,29 +415,29 @@ write a routine to mirror this - will then have
 
 > runTestBattery :: String -> [FilePath] -> IO ()
 > runTestBattery dbName fns = wrapET $ do
->     clearDB dbName
->     startingCat <- readCatalog dbName
+>     liftIO $ clearDB dbName
+>     startingCat <- liftIO (readCatalog dbName) >>= tsl
 >     (originalCat :: Environment,
 >      originalAast :: StatementList) <-
 >        mapM (\f -> readInput f >>= tsl . P.parseSql f) fns >>= return . concat >>=
 >        return . extensionize >>= return . A.typeCheck startingCat
 
 >     headerMessage "type errors from initial parse:\n"
->     (return . A.getTypeErrors) originalAast >>= ppTypeErrors >>= mapM_ (liftIO . putStrLn)
+>     (return . A.getTypeErrors) originalAast >>= return . ppTypeErrors >>= mapM_ (liftIO . putStrLn)
 
->     mapM_ (\s -> loadSqlUsingPsqlFromFile dbName s >>= liftIO . putStrLn) fns
->     properCat <- readCatalog dbName
+>     mapM_ (\s -> liftIO (loadSqlUsingPsqlFromFile dbName s) >>= tsl >>= liftIO . putStrLn) fns
+>     properCat <- liftIO (readCatalog dbName) >>= tsl
 >     headerMessage "catalog differences from initial parse and vanilla load:\n"
->     ppCatDiff (compareCatalogs startingCat originalCat properCat) >>= liftIO . putStrLn
+>     return (ppCatDiff (compareCatalogs startingCat originalCat properCat)) >>= liftIO . putStrLn
 
 >     (dumpCat,dumpAast) <-
->       pgDump dbName >>= tsl . P.parseSql "dump" >>= return . A.typeCheck startingCat
+>       liftIO (pgDump dbName) >>= tsl . P.parseSql "dump" >>= return . A.typeCheck startingCat
 
 >     headerMessage "type errors from dump:\n"
->     (return . A.getTypeErrors) dumpAast >>= ppTypeErrors >>= mapM_ (liftIO . putStrLn)
+>     (return . A.getTypeErrors) dumpAast >>= return . ppTypeErrors >>= mapM_ (liftIO . putStrLn)
 
 >     headerMessage "catalog differences from initial parse and rechecked pg dump:\n"
->     ppCatDiff (compareCatalogs startingCat originalCat dumpCat) >>= liftIO . putStrLn
+>     return (ppCatDiff (compareCatalogs startingCat originalCat dumpCat)) >>= liftIO . putStrLn
 
 >     (liftIO . putStrLn) "complete!"
 >     where
@@ -480,6 +481,74 @@ create target folder if doesn't exist
 >               sources = liftM (filter (isSuffixOf ".txt"))
 >                           (liftIO (getDirectoryContents "docs"))
 
+> -- | Documentation command to produce some hssqlppp docs, takes a
+> --   pandoc source file and converts to html, can run and insert
+> --   commands embedded in the source
+> pandoc :: MonadIO m => String -> ErrorT String m String
+> pandoc txt = return txt
+> {-
+>   liftM (writeHtmlString wopt . readMarkdown defaultParserState)
+>     (hsTextize txt)
+>   where
+>     wopt = defaultWriterOptions {
+>                writerStandalone = True
+>               ,writerTitlePrefix = "HsSqlPpp documentation"
+>               ,writerTableOfContents = True
+>               ,writerHeader = "<style>\n\
+>                               \pre {\n\
+>                               \    border: 1px dotted gray;\n\
+>                               \    background-color: #ececec;\n\
+>                               \    color: #1111111;\n\
+>                               \    padding: 0.5em;\n\
+>                               \}\n\
+>                               \</style>"
+>              }-}
+
+
+writerStandalone :: Bool	Include header and footer
+writerHeader :: String	Header for the document
+writerTitlePrefix :: String	Prefix for HTML titles
+writerTabStop :: Int	Tabstop for conversion btw spaces and tabs
+writerTableOfContents :: Bool	Include table of contents
+writerS5 :: Bool	We're writing S5
+writerHTMLMathMethod :: HTMLMathMethod	How to print math in HTML
+writerIgnoreNotes :: Bool	Ignore footnotes (used in making toc)
+writerIncremental :: Bool	Incremental S5 lists
+writerNumberSections :: Bool	Number sections in LaTeX
+writerIncludeBefore :: String	String to include before the body
+writerIncludeAfter :: String	String to include after the body
+writerStrictMarkdown :: Bool	Use strict markdown syntax
+writerReferenceLinks :: Bool	Use reference links in writing markdown, rst
+writerWrapText :: Bool	Wrap text to line length
+writerLiterateHaskell :: Bool	Write as literate haskell
+writerEmailObfuscation :: ObfuscationMethod	How to obfu
+
+>   {-ex <- liftIO $ system ("pandoc -s -f markdown -t html "
+>                          ++ src ++ " -o " ++ tgt)
+>   case ex of
+>     ExitFailure e -> throwError $ AEMisc $ "psql failed with " ++ show e
+>     ExitSuccess -> return ()-}
+
+process doc commands
+
+> -- | read a text file, and pull out the commands, run them and insert
+> --   the results into the text
+> {-hsTextize :: MonadIO m => String -> ErrorT String m String
+> hsTextize s =
+>     liftIO (hsTextify
+>              (("hssqlsystem", hsSqlSystemCommand):defaultCommands)
+>              "docs/build"
+>              s) >>= tsl -- . mapLeft 
+
+> -- | run hssqlsystem using shell
+> hsSqlSystemCommand :: String -> IO String
+> hsSqlSystemCommand s =  shell ("HsSqlSystem " ++ s) >>= \m ->
+>                         return $ "$ HsSqlSystem " ++ s
+>                                  ++ "\n\n~~~~~~~~~~\n"
+>                                  ++ m
+>                                  ++ "\n~~~~~~~~~~\n\n" -}
+
+
 ================================================================================
 
 > genWrapA = mode $ GenWrap {database = def
@@ -491,7 +560,7 @@ create target folder if doesn't exist
 >   wrapET doit
 >     where
 >       doit :: (MonadIO m) => ErrorT String m ()
->       doit = wrapperGen1 db f >>= liftIO . putStrLn
+>       doit = liftIO (wrapperGen db f) >>= liftIO . putStrLn
 
 ================================================================================
 
@@ -584,17 +653,11 @@ other command arguments:
 
 ================================================================================
 
-TODO:
-get rid of most of the wrappers below, they were written out of
-programmer incompetence with errort
-
-
 > -- | Pretty print list of type errors with optional source position
 > --   in emacs readable format.
-> ppTypeErrors :: Monad m =>
->                 [(Maybe AnnotationElement, [TypeError])] -> m [String]
+> ppTypeErrors :: [(Maybe AnnotationElement, [TypeError])] -> [String]
 > ppTypeErrors tes =
->   return $ map showSpTe tes
+>   map showSpTe tes
 >   where
 >     showSpTe (Just (SourcePos fn l c), e) =
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
@@ -604,204 +667,6 @@ programmer incompetence with errort
 > --getTopLevelTypes :: (Monad m, Error e, Data d) =>
 > --          d -> ErrorT e m [Type]
 > --getTopLevelTypes = return . A.getTopLevelTypes . (:[])
-
-
-================================================================================
-
-pretty printing
-
-todo: change the naming convention, so fns which produce haskell
-syntax start with show, human readable stuff starts with pp, not sure
-where printsql comes in system though
-
-> -- | use ppshow to pretty print a value.
-> --ppSh :: (Monad m, Error e, Show a) => a -> ErrorT e m String
-> -- ppSh = return . ppShow
-
-> -- | pretty print an ast.
-> -- ppSql :: (Monad m, Error e) => StatementList -> ErrorT e m String
-> -- ppSql = return . printSql
-
-> -- | take a source text and annotated ast and interpolate annotations into the source
-> --   as comments
-> ppAnnOrig :: (Monad m, Error e) => Bool -> String -> StatementList -> ErrorT e m String
-> ppAnnOrig doErrs src = return . annotateSource doErrs src
-
-================================================================================
-
-dbms utilities
-
-> -- | get the catalog from the database
-> readCatalog :: MonadIO m => String -> ErrorT String m Environment
-> readCatalog dbName =
->   liftIO (readEnvironmentFromDatabase dbName) >>=
->   tsl . updateEnvironment defaultEnvironment
-
-> -- | run psql to load the sql text into a database.
-> loadSqlUsingPsql :: MonadIO m  => String -> String -> ErrorT String m String
-> loadSqlUsingPsql dbName =
->   liftIO . pipeString [("psql", [dbName
->                                 ,"-q"
->                                 ,"--set"
->                                 ,"ON_ERROR_STOP=on"
->                                 ,"--file=-"])]
-
-> -- | run psql to load sql from the filename given into a database.
-> loadSqlUsingPsqlFromFile :: MonadIO m  => String -> FilePath -> ErrorT String m String
-> loadSqlUsingPsqlFromFile dbName fn = do
->   ex <- liftIO $ system ("psql " ++ dbName ++
->                 " -q --set ON_ERROR_STOP=on" ++
->                 " --file=" ++ fn)
->   case ex of
->     ExitFailure e -> throwError $ "psql failed with " ++ show e
->     ExitSuccess -> return ""
-
-> -- | use the hssqlppp code to load the sql into a database directly
-> --   (this parses and pretty prints the sql to load it)
-> loadAst :: (MonadIO m, Error e) => String -> String -> StatementList -> ErrorT e m ()
-> loadAst db fn = liftIO . loadIntoDatabase db fn
-
-> -- | use a dodgy hack to clear the database given
-> clearDB :: MonadIO m => String -> ErrorT String m ()
-> clearDB db =
->   liftIO $ withConn ("dbname=" ++ db) $ \conn ->
->     runSqlCommand conn "drop owned by jake cascade;"
-
-> -- | dump the given database to sql source using pg_dump
-> pgDump :: MonadIO m => String -> ErrorT String m String
-> pgDump db = liftIO $ pipeString [("pg_dump", [db
->                                              ,"--schema-only"
->                                              ,"--no-owner"
->                                              ,"--no-privileges"])] ""
-
-================================================================================
-
--- catalog stuff - just a diff to compare two catalogs
-
--- > -- | items in first catalog and not second, items in second and not first.
--- > data CatDiff = CatDiff [EnvironmentUpdate] [EnvironmentUpdate]
--- >                deriving Show
-
--- > -- | find differences between two catalogs
--- > compareCatalogs :: (Monad m, Error e) => Environment -> Environment -> Environment -> ErrorT e m CatDiff
--- > compareCatalogs base start end =
--- >         let baseEnvBits = deconstructEnvironment base
--- >             startEnvBits = deconstructEnvironment start \\ baseEnvBits
--- >             endEnvBits = deconstructEnvironment end \\ baseEnvBits
--- >             missing = sort $ endEnvBits \\ startEnvBits
--- >             extras = sort $ startEnvBits \\ endEnvBits
--- >         in return $ CatDiff missing extras
-
-> -- | print a catdiff in a more human readable way than show.
-> ppCatDiff :: (Monad m, Error e) => CatalogDiff -> ErrorT e m String
-> ppCatDiff (CatalogDiff missing extr) =
->           return $ "\nmissing:\n"
->                    ++ intercalate "\n" (map ppEnvUpdate missing)
->                    ++ "\nextra:\n"
->                    ++ intercalate "\n" (map ppEnvUpdate extr)
-
-================================================================================
-
-> -- | Documentation command to produce some hssqlppp docs, takes a
-> --   pandoc source file and converts to html, can run and insert
-> --   commands embedded in the source
-> pandoc :: MonadIO m => String -> ErrorT String m String
-> pandoc txt = return txt {-
->   liftM (writeHtmlString wopt . readMarkdown defaultParserState)
->     (hsTextize txt)
->   where
->     wopt = defaultWriterOptions {
->                writerStandalone = True
->               ,writerTitlePrefix = "HsSqlPpp documentation"
->               ,writerTableOfContents = True
->               ,writerHeader = "<style>\n\
->                               \pre {\n\
->                               \    border: 1px dotted gray;\n\
->                               \    background-color: #ececec;\n\
->                               \    color: #1111111;\n\
->                               \    padding: 0.5em;\n\
->                               \}\n\
->                               \</style>"
->              }-}
-
-
-writerStandalone :: Bool	Include header and footer
-writerHeader :: String	Header for the document
-writerTitlePrefix :: String	Prefix for HTML titles
-writerTabStop :: Int	Tabstop for conversion btw spaces and tabs
-writerTableOfContents :: Bool	Include table of contents
-writerS5 :: Bool	We're writing S5
-writerHTMLMathMethod :: HTMLMathMethod	How to print math in HTML
-writerIgnoreNotes :: Bool	Ignore footnotes (used in making toc)
-writerIncremental :: Bool	Incremental S5 lists
-writerNumberSections :: Bool	Number sections in LaTeX
-writerIncludeBefore :: String	String to include before the body
-writerIncludeAfter :: String	String to include after the body
-writerStrictMarkdown :: Bool	Use strict markdown syntax
-writerReferenceLinks :: Bool	Use reference links in writing markdown, rst
-writerWrapText :: Bool	Wrap text to line length
-writerLiterateHaskell :: Bool	Write as literate haskell
-writerEmailObfuscation :: ObfuscationMethod	How to obfu
-
->   {-ex <- liftIO $ system ("pandoc -s -f markdown -t html "
->                          ++ src ++ " -o " ++ tgt)
->   case ex of
->     ExitFailure e -> throwError $ AEMisc $ "psql failed with " ++ show e
->     ExitSuccess -> return ()-}
-
-================================================================================
-
-process doc commands
-
-> -- | read a text file, and pull out the commands, run them and insert
-> --   the results into the text
-> hsTextize :: MonadIO m => String -> ErrorT String m String
-> hsTextize s =
->     liftIO (hsTextify
->              (("hssqlsystem", hsSqlSystemCommand):defaultCommands)
->              "docs/build"
->              s) >>= tsl -- . mapLeft 
-
-> -- | run hssqlsystem using shell
-> hsSqlSystemCommand :: String -> IO String
-> hsSqlSystemCommand s =  shell ("HsSqlSystem " ++ s) >>= \m ->
->                         return $ "$ HsSqlSystem " ++ s
->                                  ++ "\n\n~~~~~~~~~~\n"
->                                  ++ m
->                                  ++ "\n~~~~~~~~~~\n\n"
-
-================================================================================
-
-> wrapperGen1 :: (MonadIO m, Error e) => String -> String -> ErrorT e m String
-> wrapperGen1 db fn = liftIO $ wrapperGen db fn
-
-
-================================================================================
-
-errort stuff
-
-wrap all our errors in an algebraic data type, not sure if there is a
-more elegant way of doing this but it does the job for now
-
-> {-data AllErrors = AEExtendedError ParseErrorExtra
->                | AETypeErrors [TypeError]
->                | AEMisc String
->                  deriving (Show)
-
-> instance Error AllErrors where
->   noMsg = AEMisc "Unknown error"
->   strMsg = AEMisc
-
-> throwEEEither :: (MonadError AllErrors m) => Either ParseErrorExtra a -> m a
-> throwEEEither = throwEither . mapLeft AEExtendedError
-
-> throwTESEither :: (MonadError AllErrors m) => Either [TypeError] a -> m a
-> throwTESEither = throwEither . mapLeft AETypeErrors
-
-> throwEither :: (MonadError t m) => Either t a -> m a
-> throwEither (Left err) = throwError err
-> throwEither (Right val) = return val-}
-
 
 ================================================================================
 
@@ -813,46 +678,12 @@ as an argument to the exe
 > -- | read a file as text, will read from stdin if filename is '-'.
 > readInput :: (Error e, MonadIO m) => FilePath -> ErrorT e m String
 > readInput f =
->   liftIO $ case f of
+>   liftIO r
+>   where
+>     r :: IO String
+>     r = case f of
 >              "-" -> getContents
 >              _ | length f >= 2 &&
 >                  head f == '"' && last f == '"'
 >                    -> return $ drop 1 $ take (length f - 1) f
 >                | otherwise -> readFile f
-
-================================================================================
-
- > -- | write text to a file
- > writeFile :: (Error e, MonadIO m) => FilePath -> String -> ErrorT e m ()
- > writeFile fn =
- >     liftIO . System.IO.writeFile fn
-
-================================================================================
-
-Utilities
-
- > -- | wrapper for putstrln
- > message :: MonadIO m => String -> m ()
- > message = liftIO . putStrLn
-
- > -- | print a list, using newlines instead of commas, no outer []
- > printList :: (MonadIO m, Show a) => [a] -> m ()
- > printList = mapM_ (liftIO . print)
-
- > -- | run putstrln over each element of a list
- > putStrLnList :: MonadIO m => [String]-> m ()
- > putStrLnList = mapM_ (liftIO . putStrLn)
-
- > -- | lifted fst
- > lfst :: (Monad m, Error e) => (a,b) -> ErrorT e m a
- > lfst = return . fst
-
- > -- | lifted snd
- > lsnd :: (Monad m, Error e) => (a,b) -> ErrorT e m b
- > lsnd = return . snd
-
- > -- | lifted concat
- > lconcat :: (Monad m, Error e) => [[a]] -> ErrorT e m [a]
- > lconcat = return . concat
-
-

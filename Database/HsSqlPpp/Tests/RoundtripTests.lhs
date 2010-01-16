@@ -25,10 +25,8 @@ attempt to compare original ast to ast of dump
 > import Database.HsSqlPpp.Utils
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.Environment
-> import Database.HsSqlPpp.Ast.SqlTypes
 > import Database.HsSqlPpp.Ast.TypeChecker
-> import Database.HsSqlPpp.Dbms.DBAccess
-> import System.Process.Pipe
+> import Database.HsSqlPpp.Dbms.DBUtils
 
 > data Item = Group String [Item]
 >           | Src [(String,String)]
@@ -67,8 +65,31 @@ read catalog from psql and compare with catalog from typechecker
 >       liftIO $ loadSqlUsingPsql "testing" sql
 >       dbCat <- liftIO (readCatalog "testing") >>= tsl
 >       case compareCatalogs defaultTemplate1Environment cat1 dbCat of
->               CatalogDiff [] [] -> liftIO $ return () --assertFailure "ok"
+>               CatalogDiff [] [] -> liftIO $ return ()
 >               c -> liftIO $ assertFailure $ "catalogs difference: " ++ ppCatDiff c
+
+================================================================================
+
+ast roundtrip tests:
+want to compare the asts of parsed sql, with the asts of the sql
+loaded into pg, dumped and parsed
+issues:
+some statements are split apart e.g. create table with constraints
+some statements are reordered in the dump
+a create, select and then drop will be a problem
+so need some sort of map function to convert between, and use
+extensions to cover the dynamic ddl
+
+
+one of the things really want to double check is associativity and
+precedence mainly in select expressions, pg_dump puts in the implicit
+brackets which we can use to check these things
+
+
+================================================================================
+
+some random support functions, to be tidied up
+find any that can be shared with hssqlsystem and move to common module or something
 
 > wrapETT :: (Show e) => ErrorT e IO () -> IO ()
 > wrapETT c = runErrorT c >>= \x ->
@@ -76,17 +97,7 @@ read catalog from psql and compare with catalog from typechecker
 >            Left er -> assertFailure $ show er
 >            Right l -> return l
 
-
-> -- | print a catdiff in a more human readable way than show.
-> ppCatDiff :: CatalogDiff -> String
-> ppCatDiff (CatalogDiff missing extr) =
->     "\nmissing:\n"
->     ++ intercalate "\n" (map ppEnvUpdate missing)
->     ++ "\nextra:\n"
->     ++ intercalate "\n" (map ppEnvUpdate extr)
-
-
-> -- | use a dodgy hack to clear the database given
+> {- -- | use a dodgy hack to clear the database given
 > clearDB :: String -> IO ()
 > clearDB db = withConn ("dbname=" ++ db) $ \conn ->
 >              runSqlCommand conn "drop owned by jake cascade;"
@@ -111,5 +122,5 @@ read catalog from psql and compare with catalog from typechecker
 >                        ,"-q"
 >                        ,"--set"
 >                        ,"ON_ERROR_STOP=on"
->                        ,"--file=-"])]
+>                        ,"--file=-"])] -}
 
