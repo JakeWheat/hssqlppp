@@ -10,6 +10,7 @@ list future plans/ ideas
 small issues:
 get 'returning *' type checking
 get 'count(*)' type checking
+check language with create language and create function
 
 Immediate focus is:
 add in enough support code to help creation of typesafe wrappers in

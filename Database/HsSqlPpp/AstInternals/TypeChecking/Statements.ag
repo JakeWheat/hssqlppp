@@ -54,7 +54,7 @@ SEM StatementList
         lhs.producedLib = @loc.newLib
 
 SEM Statement
-    | SelectStatement Insert Update Delete CreateView CreateDomain
+    | SelectStatement Insert Update Delete CreateView CreateDomain CreateLanguage
       CreateFunction CreateType CreateTable CreateTableAs Return Assignment
       ForSelectStatement ForIntegerStatement DropFunction
         loc.tpe : {Either [TypeError] Type}
@@ -84,7 +84,7 @@ SEM Statement
     | CaseStatement ContinueStatement Copy CopyData
       DropSomething Execute ExecuteInto
       If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
-      WhileStatement Set CreateLanguage Notify CreateSequence
+      WhileStatement Set Notify CreateSequence
       AlterSequence AlterTable CreateTrigger
         lhs.catUpdates = []
         lhs.libUpdates = []

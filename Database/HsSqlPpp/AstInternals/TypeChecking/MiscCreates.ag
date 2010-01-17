@@ -69,3 +69,11 @@ SEM Statement
         check.lib = fromRight @lhs.lib $
                     updateBindings @lhs.lib @lhs.cat
                       [LibStackIDs [("", [("value", @typ.namedType)])]]
+
+SEM Statement
+    | CreateLanguage
+        loc.tpe = Right $ Pseudo Void
+        loc.backTree = CreateLanguage @ann @name
+        loc.statementType = []
+        loc.catUpdates = [CatCreateFunction FunName "plpgsql_call_handler" [] (Pseudo LanguageHandler) False
+                         ,CatCreateFunction FunName "plpgsql_validator" [ScalarType "oid"] (Pseudo Void) False]

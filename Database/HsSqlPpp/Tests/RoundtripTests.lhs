@@ -60,7 +60,12 @@ data in a database with this name
 >      ,("create view"
 >       ,"create view v1 as select * from pg_attrdef;")
 >      ,("create function"
->       ,"create function test1() returns void as $$\n\
+>       ,"create function test1() returns integer as $$\n\
+>        \  select 1;\n\
+>        \$$ language sql;")
+>      ,("create plpgsql function"
+>       ,"create language plpgsql;\n\
+>        \create function test1() returns void as $$\n\
 >        \begin\n\
 >        \  null;\n\
 >        \end;\n\
@@ -89,7 +94,7 @@ data in a database with this name
 >       loadIntoDb
 >       -- check the catalog in pg is the same as the one from type checking
 >       catPsql <- liftIO (readCatalog testDatabaseName) >>= tsl
->       compareCats catOrig catPsql
+>       compareCats "load" catOrig catPsql
 >       -- dump the database to get the sql having been normalized by passing
 >       -- it through pg's digestive system
 >       dumpSql <- liftIO $ pgDump testDatabaseName
@@ -98,7 +103,7 @@ data in a database with this name
 >       failIfTypeErrors $ astDumpedTC
 >       -- check the original catalog from the catalog gotten from
 >       -- dumping then typechecking the dump, maybe a little excessive
->       compareCats catOrig catDumped
+>       compareCats "dump" catOrig catDumped
 >       -- compare the original ast to the dump ast, uses a transform
 >       -- to match the changes that happen to the sql when loaded
 >       -- then dumped by pg
@@ -109,10 +114,10 @@ data in a database with this name
 >             liftIO $ putStrLn $ sql ++ "\n" ++ dumpSql
 >       liftIO $ assertEqual "check dump ast" astOrigAdj astDumpedAdj
 
->     compareCats c1 c2 =
+>     compareCats s c1 c2 =
 >       case compareCatalogs defaultTemplate1Catalog c1 c2 of
 >               CatalogDiff [] [] -> liftIO $ return ()
->               c -> liftIO $ assertFailure $ "catalogs different: " ++ ppCatDiff c
+>               c -> liftIO $ assertFailure $ s ++ ", catalogs different: " ++ ppCatDiff c
 >     -- adjust tree is the normalization that we run on the original ast as
 >     -- well as the dumped ast
 >     adjTree :: [Statement] -> [Statement]
@@ -151,7 +156,7 @@ brackets which we can use to check these things
 
 > adjustAstToLookLikeDump :: [Statement] -> [Statement]
 > adjustAstToLookLikeDump ast =
->   ((presets ++) . stripDml . addConstraintNames) ast
+>   (addPresets . stripDml . addConstraintNames) ast
 >   where
 >     -- add the following at the beginning of the ast, since this is what pg_dump does
 >     -- SET statement_timeout = 0;
@@ -163,6 +168,13 @@ brackets which we can use to check these things
 >
 >     -- SET search_path = public, pg_catalog;
 >     noDml = stripDml ast
+>     addPresets = adjustForCreatePlpgsql . (presets ++)
+>     adjustForCreatePlpgsql =
+>       transformBi $ \x ->
+>           case x of
+>             s@(Set _ "search_path" _):s1@(CreateLanguage _ _):s2 -> s1:s:s2
+>             z -> z
+
 >     presets = [Set [] "statement_timeout" [SetNum [] 0.0]
 >               ,Set [] "client_encoding" [SetStr [] "UTF8"]
 >               ,Set [] "standard_conforming_strings" [SetId [] "off"]

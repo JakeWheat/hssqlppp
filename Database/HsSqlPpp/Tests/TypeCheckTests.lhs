@@ -621,6 +621,9 @@ test the catalog updates from creates, etc.
 >         \$$ language sql stable;"
 >         [[CatCreateFunction FunName "t1" [ScalarType "text"]
 >                             (ScalarType "text") False]]
+>      ,p "create language plpgsql;"
+>         [[CatCreateFunction FunName "plpgsql_call_handler" [] (Pseudo LanguageHandler) False
+>          ,CatCreateFunction FunName "plpgsql_validator" [ScalarType "oid"] (Pseudo Void) False]]
 >      ]]
 
 
