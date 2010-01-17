@@ -328,17 +328,12 @@ This reads an catalog from a database and writes it out using show.
 >                    \format, used to create the catalog value for template1"
 
 > readCat :: String -> IO ()
-> readCat dbName = wrapET $ do
->   cat <- liftIO (readCatalog dbName) >>= tsl
->   (liftIO . putStrLn) preamble
->   (return . ppShow) cat >>= prefixLines >>= liftIO . putStrLn
+> readCat dbName = do
+>   cat <- readCatalogFromDatabase dbName
+>   putStrLn preamble
+>   putStrLn $ prefixLines $ ppShow cat
 >   where
->     preamble = "\n\
->                \Copyright 2009 Jake Wheat\n\
->                \\n\
->                \This file contains\n\
->                \\n\
->                \> {-# OPTIONS_HADDOCK hide  #-}\n\
+>     preamble = "> {-# OPTIONS_HADDOCK hide  #-}\n\
 >                \\n\
 >                \> module Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog\n\
 >                \>     (defaultTemplate1Catalog\n\
@@ -353,8 +348,7 @@ This reads an catalog from a database and writes it out using show.
 >                \>             Left x -> error $ show x\n\
 >                \>             Right e -> e) $\n\
 >                \>     updateCatalog defaultCatalog\n"
->     prefixLines :: (Monad m, Error e) => String -> ErrorT e m String
->     prefixLines = return . unlines . map (">        " ++) . lines
+>     prefixLines = unlines . map (">        " ++) . lines
 
 
 ================================================================================

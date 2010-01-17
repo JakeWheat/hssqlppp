@@ -230,7 +230,7 @@ was heavily changed so it's a bit messy.
 >                      else let a = split ',' (l!!1)
 >                           in map jlt a
 >      convTypeInfoRow l =
->        let name = (l!!2)
+>        let name = canonicalizeTypeName (l!!2)
 >            ctor = case (l!!1) of
 >                     "b" -> ScalarType
 >                     "c" -> NamedCompositeType

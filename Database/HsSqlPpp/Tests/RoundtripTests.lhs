@@ -49,7 +49,22 @@ data in a database with this name
 >       ,"create type pos as (\n\
 >        \  x int,\n\
 >        \  y int);")
-
+>      ,("create table"
+>       ,"create table ttable (\n\
+>        \  x int,\n\
+>        \  y int);")
+>      --,("create table with constraints"
+>      -- ,"create table ttable (\n\
+>      --  \  x int primary key,\n\
+>      --  \  y int not null);")
+>      ,("create view"
+>       ,"create view v1 as select * from pg_attrdef;")
+>      ,("create function"
+>       ,"create function test1() returns void as $$\n\
+>        \begin\n\
+>        \  null;\n\
+>        \end;\n\
+>        \$$ language plpgsql;")
 >     ]]
 
 > itemToTft :: Item -> [Test.Framework.Test]
@@ -57,68 +72,54 @@ data in a database with this name
 > itemToTft (Src ss) = map (uncurry testRoundtrip) ss
 
 > testRoundtrip :: String -> String -> Test.Framework.Test
-> testRoundtrip name sql = testCase ("test " ++ name) $
->   checkStage1 >>
->   checkStage2 >>
->   checkStage3
+> testRoundtrip name sql = testCase ("test " ++ name) $ wrapETT $ do
+>   astOrig <- tsl $ parseSql "" sql
+>   let (catOrig, astOrigTC) = typeCheck defaultTemplate1Catalog astOrig
+>   failIfTypeErrors astOrigTC
+>   -- run the tests first using psql to load the sql into the database
+>   -- and then using hssqlppp's database loader to load the sql into
+>   -- the database
+>   doPgTests astOrig catOrig (liftIO $ loadSqlUsingPsql testDatabaseName sql)
+>   doPgTests astOrig catOrig (liftIO $ loadIntoDatabase testDatabaseName "" astOrig)
 >   where
-
-Stage 1:
-read sql files: produce catalog using type checker
-load sql files into postgres using psql
-read catalog from psql and compare with catalog from typechecker
-
->     checkStage1 = wrapETT $ do
->       ast <- tsl $ parseSql "" sql
->       let (cat1,tast) = typeCheck defaultTemplate1Catalog ast
->       failIfTypeErrors tast
+>     doPgTests astOrig catOrig loadIntoDb = do
+>       -- parse and type check the test sql
+>       -- load this sql into pg
 >       liftIO $ clearDB testDatabaseName
->       liftIO $ loadSqlUsingPsql testDatabaseName sql
->       dbCat <- liftIO (readCatalog testDatabaseName) >>= tsl
->       case compareCatalogs defaultTemplate1Catalog cat1 dbCat of
+>       loadIntoDb
+>       -- check the catalog in pg is the same as the one from type checking
+>       catPsql <- liftIO (readCatalog testDatabaseName) >>= tsl
+>       compareCats catOrig catPsql
+>       -- dump the database to get the sql having been normalized by passing
+>       -- it through pg's digestive system
+>       dumpSql <- liftIO $ pgDump testDatabaseName
+>       astDumped <- tsl $ parseSql "" dumpSql
+>       let (catDumped, astDumpedTC) = typeCheck defaultTemplate1Catalog astDumped
+>       failIfTypeErrors $ astDumpedTC
+>       -- check the original catalog from the catalog gotten from
+>       -- dumping then typechecking the dump, maybe a little excessive
+>       compareCats catOrig catDumped
+>       -- compare the original ast to the dump ast, uses a transform
+>       -- to match the changes that happen to the sql when loaded
+>       -- then dumped by pg
+>       let astOrigAdj = adjustAstToLookLikeDump $ adjTree astOrig
+>           astDumpedAdj = adjTree astDumped
+>       -- do this when a test fails to help diagnose why
+>       when (astOrigAdj /= astDumpedAdj) $
+>             liftIO $ putStrLn $ sql ++ "\n" ++ dumpSql
+>       liftIO $ assertEqual "check dump ast" astOrigAdj astDumpedAdj
+
+>     compareCats c1 c2 =
+>       case compareCatalogs defaultTemplate1Catalog c1 c2 of
 >               CatalogDiff [] [] -> liftIO $ return ()
->               c -> liftIO $ assertFailure $ "catalogs difference: " ++ ppCatDiff c
-
-stage 2:
-as above, but load via databaseloader
-
->     checkStage2 = wrapETT $ do
->       ast <- tsl $ parseSql "" sql
->       let (cat1,_) = typeCheck defaultTemplate1Catalog ast
->       liftIO $ clearDB testDatabaseName
->       liftIO $ loadIntoDatabase testDatabaseName "" ast
->       dbCat <- liftIO (readCatalog testDatabaseName) >>= tsl
->       case compareCatalogs defaultTemplate1Catalog cat1 dbCat of
->               CatalogDiff [] [] -> liftIO $ return ()
->               c -> liftIO $ assertFailure $ "catalogs difference: " ++ ppCatDiff c
-
-
-stage 3:
-load using database loader
-dump using pg_dump
-attempt to compare original ast to ast of dump
-compare catalogs
-
->     checkStage3 = wrapETT $ do
->       ast <- tsl $ parseSql "" sql
->       let cat = fst $ typeCheck defaultTemplate1Catalog ast
->       dump <- liftIO $ pgDump testDatabaseName
->       nast <- tsl $ parseSql "" dump
->       let (ncat, tnast) = typeCheck defaultTemplate1Catalog nast
->       failIfTypeErrors $ tnast
->       case compareCatalogs defaultTemplate1Catalog cat ncat of
->               CatalogDiff [] [] -> liftIO $ return ()
->               c -> liftIO $ assertFailure $ "catalogs difference: " ++ ppCatDiff c
->       let past = adjustAstToLookLikeDump $ adjTree ast
->           pnast = adjTree nast
->       when (past /= pnast) $
->         liftIO $ putStrLn $ sql ++ "\n" ++ dump
->       liftIO $ assertEqual "check dump ast" past pnast
+>               c -> liftIO $ assertFailure $ "catalogs different: " ++ ppCatDiff c
+>     -- adjust tree is the normalization that we run on the original ast as
+>     -- well as the dumped ast
+>     adjTree :: [Statement] -> [Statement]
 >     adjTree = canonicalizeTypeNames . stripAnnotations
 >     failIfTypeErrors xast = do
 >       let te = getTypeErrors xast
 >       when (not $ null te) $ throwError $ show te
-
 
 take the parse tree and change the type names to the canonical versions
 
@@ -169,8 +170,16 @@ brackets which we can use to check these things
 >               ,Set [] "client_min_messages" [SetId [] "warning"]
 >               ,Set [] "escape_string_warning" [SetId [] "off"]]
 >               -- if there are no statements, pg_dump doesn't spit out the search path
->               ++ if null noDml then []  else
+>               ++ if null noDml then [] else
 >                      [Set [] "search_path" [SetId [] "public", SetId [] "pg_catalog"]]
+>               -- these two sets get added if there are create tables
+>               ++ case flip find ast (\s ->
+>                                   case s of
+>                                     CreateTable _ _ _ _ -> True
+>                                     _ -> False) of
+>                    Nothing -> []
+>                    Just _ -> [Set [] "default_tablespace" [SetStr [] ""]
+>                              ,Set [] "default_with_oids" [SetId [] "false"]]
 >     -- dml statements don't appear in the dump
 >     stripDml = filter (\s -> case s of
 >                                SelectStatement _ _ -> False

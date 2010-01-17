@@ -153,7 +153,8 @@ canonical names are changed:
 > typeChar = ScalarType "char"
 > typeBool = ScalarType "bool"
 
-this converts the name of a type to its canonical name
+this converts the name of a type to its canonical name:
+try to follow the names that pg uses in a dump
 
 > canonicalizeTypeName :: String -> String
 > canonicalizeTypeName s =

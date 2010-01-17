@@ -1,8 +1,3 @@
-
-Copyright 2009 Jake Wheat
-
-This file contains
-
 > {-# OPTIONS_HADDOCK hide  #-}
 
 > module Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
@@ -18,6 +13,7 @@ This file contains
 >             Left x -> error $ show x
 >             Right e -> e) $
 >     updateCatalog defaultCatalog
+
 >        [ CatCreateScalar (
 >            ScalarType "bool" )
 >            "B"
