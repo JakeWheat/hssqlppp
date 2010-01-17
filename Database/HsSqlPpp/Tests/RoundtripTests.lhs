@@ -70,7 +70,8 @@ read catalog from psql and compare with catalog from typechecker
 
 >     checkStage1 = wrapETT $ do
 >       ast <- tsl $ parseSql "" sql
->       let (cat1,_) = typeCheck defaultTemplate1Catalog ast
+>       let (cat1,tast) = typeCheck defaultTemplate1Catalog ast
+>       failIfTypeErrors tast
 >       liftIO $ clearDB testDatabaseName
 >       liftIO $ loadSqlUsingPsql testDatabaseName sql
 >       dbCat <- liftIO (readCatalog testDatabaseName) >>= tsl
@@ -96,17 +97,28 @@ stage 3:
 load using database loader
 dump using pg_dump
 attempt to compare original ast to ast of dump
+compare catalogs
 
 >     checkStage3 = wrapETT $ do
 >       ast <- tsl $ parseSql "" sql
+>       let cat = fst $ typeCheck defaultTemplate1Catalog ast
 >       dump <- liftIO $ pgDump testDatabaseName
 >       nast <- tsl $ parseSql "" dump
+>       let (ncat, tnast) = typeCheck defaultTemplate1Catalog nast
+>       failIfTypeErrors $ tnast
+>       case compareCatalogs defaultTemplate1Catalog cat ncat of
+>               CatalogDiff [] [] -> liftIO $ return ()
+>               c -> liftIO $ assertFailure $ "catalogs difference: " ++ ppCatDiff c
 >       let past = adjustAstToLookLikeDump $ adjTree ast
 >           pnast = adjTree nast
 >       when (past /= pnast) $
 >         liftIO $ putStrLn $ sql ++ "\n" ++ dump
 >       liftIO $ assertEqual "check dump ast" past pnast
 >     adjTree = canonicalizeTypeNames . stripAnnotations
+>     failIfTypeErrors xast = do
+>       let te = getTypeErrors xast
+>       when (not $ null te) $ throwError $ show te
+
 
 take the parse tree and change the type names to the canonical versions
 
@@ -194,38 +206,9 @@ generation here, also any 'value' identifiers will be in uppercase
 ================================================================================
 
 some random support functions, to be tidied up
-find any that can be shared with hssqlsystem and move to common module or something
 
 > wrapETT :: (Show e) => ErrorT e IO () -> IO ()
 > wrapETT c = runErrorT c >>= \x ->
 >          case x of
 >            Left er -> assertFailure $ show er
 >            Right l -> return l
-
-> {- -- | use a dodgy hack to clear the database given
-> clearDB :: String -> IO ()
-> clearDB db = withConn ("dbname=" ++ db) $ \conn ->
->              runSqlCommand conn "drop owned by jake cascade;"
-
-> -- | dump the given database to sql source using pg_dump
-> pgDump :: String -> IO String
-> pgDump db = pipeString [("pg_dump", [db
->                                     ,"--schema-only"
->                                     ,"--no-owner"
->                                     ,"--no-privileges"])] ""
-
-> -- | get the catalog from the database
-> readCatalog :: String -> IO (Either [TypeError] Catalog)
-> readCatalog dbName =
->   (readCatalogFromDatabase dbName) >>=
->     return . updateCatalog defaultCatalog
-
-> -- | run psql to load the sql text into a database.
-> loadSqlUsingPsql :: String -> String -> IO String
-> loadSqlUsingPsql dbName =
->   pipeString [("psql", [dbName
->                        ,"-q"
->                        ,"--set"
->                        ,"ON_ERROR_STOP=on"
->                        ,"--file=-"])] -}
-

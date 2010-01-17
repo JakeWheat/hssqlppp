@@ -62,7 +62,7 @@ This code is currently on the backburner, and is a mess.
 >     loadStatement conn st = case st of
 >                                          Skipit -> return ()
 >                                          VanillaStatement vs ->
->                                              putStrLn (printSql [vs]) >>
+>                                              {-putStrLn (printSql [vs]) >> -}
 >                                              handleError fn (getSourcePos vs) vs (runSqlCommand conn
 >                                                       (printSql [vs]))
 >                                          CopyStdin a b -> runCopy conn a b (getSourcePos a)
