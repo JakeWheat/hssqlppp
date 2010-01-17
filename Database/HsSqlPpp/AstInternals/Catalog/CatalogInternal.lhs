@@ -185,7 +185,7 @@ modules.
 >                                           \based on scalars, got "
 >                                           ++ show baseTy]
 >                 let DomainType nm = ty
->                 let catl = catTypeCategory cat baseTy
+>                 catl <- catTypeCategory cat baseTy
 >                 return (addTypeWithArray cat nm ty catl False) {
 >                                        catDomainDefs =
 >                                          (ty,baseTy):catDomainDefs cat
@@ -289,7 +289,7 @@ remove from list, and remove from update list
 >             [UnrecognisedRelation nm]
 >   case c of
 >     (_,fl1,r,s):[] -> return (nm,fl1,r,s)
->     _ -> error $ "problem getting attributes for: " ++ show nm ++ ", " ++ show c
+>     _ -> Left [InternalError $ "problem getting attributes for: " ++ show nm ++ ", " ++ show c]
 
 > catCompositeAttrsPair :: Catalog -> [CompositeFlavour] -> String
 >                       -> Either [TypeError] ([(String,Type)],[(String,Type)])
@@ -310,32 +310,32 @@ remove from list, and remove from update list
 >   return a
 
 
-> catTypeCategory :: Catalog -> Type -> String
+> catTypeCategory :: Catalog -> Type -> Either [TypeError] String
 > catTypeCategory cat ty =
->   let (c,_) = catGetCategoryInfo cat ty
->   in c
+>   fmap fst $ catGetCategoryInfo cat ty
 
-> catPreferredType :: Catalog -> Type -> Bool
+> catPreferredType :: Catalog -> Type -> Either [TypeError] Bool
 > catPreferredType cat ty =
->   let (_,p) = catGetCategoryInfo cat ty
->   in p
+>   fmap snd $ catGetCategoryInfo cat ty
 
-> catCast :: Catalog -> CastContext -> Type -> Type -> Bool
+> catCast :: Catalog -> CastContext -> Type -> Type -> Either [TypeError] Bool
 > catCast cat ctx from to = {-trace ("check cast " ++ show from ++ show to) $-}
 >     case from of
->       t@(DomainType _) -> let baseType = catDomainBaseType cat t
->                           in (baseType == to) ||
->                                (catCast cat ctx baseType to ||
+>       t@(DomainType _) -> do
+>                 baseType <- catDomainBaseType cat t
+>                 cc <- catCast cat ctx baseType to
+>                 return $ (baseType == to) ||
+>                                (cc ||
 >                                   any (== (from, to, ctx)) (catCasts cat))
->       _ -> any (==(from,to,ctx)) (catCasts cat)
+>       _ -> Right $ any (==(from,to,ctx)) (catCasts cat)
 
 
-> catDomainBaseType :: Catalog -> Type -> Type
+> catDomainBaseType :: Catalog -> Type -> Either [TypeError] Type
 > catDomainBaseType cat ty =
 >   --check type is domain, check it exists in main list
 >   case lookup ty (catDomainDefs cat) of
->       Nothing -> error "domain not found" -- Left [DomainDefNotFound ty]
->       Just t -> t
+>       Nothing -> Left [DomainDefNotFound ty]
+>       Just t -> Right t
 
 
 > catLookupFns :: Catalog -> String -> [FunctionPrototype]
@@ -352,18 +352,18 @@ remove from list, and remove from update list
 
 == internal support for type checker fns above
 
-> catGetCategoryInfo :: Catalog -> Type -> (String, Bool)
+> catGetCategoryInfo :: Catalog -> Type -> Either [TypeError] (String, Bool)
 > catGetCategoryInfo cat ty =
 >   case ty of
->     SetOfType _ -> ("", False)
->     AnonymousRecordType _ -> ("", False)
->     ArrayType (Pseudo _) -> ("A",False)
->     Pseudo _ -> ("P",False)
+>     SetOfType _ -> Right ("", False)
+>     AnonymousRecordType _ -> Right ("", False)
+>     ArrayType (Pseudo _) -> Right ("A",False)
+>     Pseudo _ -> Right ("P",False)
 >     _ -> let l = filter (\(t,_,_) -> ty == t) $ catTypeCategories cat
 >          in if null l
->               then error $ "no type category for " ++ show ty
+>               then Left [InternalError $ "no type category for " ++ show ty]
 >               else let (_,c,p):_ =l
->                    in (c,p)
+>                    in Right (c,p)
 
 > catTypeExists :: Catalog -> Type -> Either [TypeError] Type
 > catTypeExists cat t =
@@ -448,21 +448,21 @@ this is why binary @ operator isn't currently supported
 > data OperatorType = BinaryOp | PrefixOp | PostfixOp
 >                   deriving (Eq,Show)
 
-> getOperatorType :: Catalog -> String -> OperatorType
+> getOperatorType :: Catalog -> String -> Either [TypeError] OperatorType
 > getOperatorType cat s = case () of
->                       _ | s `elem` ["!and", "!or","!like"] -> BinaryOp
->                         | s `elem` ["!not"] -> PrefixOp
->                         | s `elem` ["!isnull", "!isnotnull"] -> PostfixOp
+>                       _ | s `elem` ["!and", "!or","!like"] -> Right BinaryOp
+>                         | s `elem` ["!not"] -> Right PrefixOp
+>                         | s `elem` ["!isnull", "!isnotnull"] -> Right PostfixOp
 >                         | any (\(x,_,_,_) -> x == s) (catBinaryOperators cat) ->
->                             BinaryOp
+>                             Right BinaryOp
 >                         | any (\(x,_,_,_) -> x == s ||
 >                                            (x=="-" && s=="u-"))
 >                               (catPrefixOperators cat) ->
->                             PrefixOp
+>                             Right PrefixOp
 >                         | any (\(x,_,_,_) -> x == s) (catPostfixOperators cat) ->
->                             PostfixOp
+>                             Right PostfixOp
 >                         | otherwise ->
->                             error $ "don't know flavour of operator " ++ s
+>                             Left [InternalError $ "don't know flavour of operator " ++ s]
 
 > isOperatorName :: String -> Bool
 > isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?")

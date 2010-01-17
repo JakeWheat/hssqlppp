@@ -40,10 +40,6 @@ because of a mistake.
 
 The Type type identifies the type of a node, but doesn't necessarily
 describe the type.
-Arraytype, setoftype and row are treated as type generators, and are
-unnamed so have structural equality. Other types sometimes effectively
-have structural equality depending on the context... (SQL/ PostGreSQL
-wasn't designed by ML programmers!)
 
 Typing relational valued expressions:
 use SetOfType combined with composite type for now, see if it works

@@ -15,6 +15,7 @@ This file contains some generic utility stuff
 > import Control.Monad.Error
 > import Control.Applicative
 
+
 > errorWhen :: (Error a) => Bool -> a -> Either a ()
 > errorWhen cond = when cond . Left
 
@@ -95,3 +96,15 @@ error utility - convert either to ErrorT String
 > tsl x = case x of
 >                Left s -> throwError $ show s
 >                Right b -> return b
+
+
+> listEither :: [Either a b] -> Either [a] [b]
+> listEither es = let (l,r) = partitionEithers es
+>                in if null l
+>                   then Right r
+>                   else Left l
+
+
+> forceRight :: Show e => Either e a -> a
+> forceRight (Left x) = error $ show x
+> forceRight (Right x) = x
