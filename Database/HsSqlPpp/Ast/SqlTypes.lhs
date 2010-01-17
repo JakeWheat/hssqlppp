@@ -17,6 +17,8 @@ This is the public module to the SQL data types, mainly from TypeType.
 >      -- these give you the canonical names
 >     ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
 >     ,typeFloat8,typeVarChar,typeChar,typeBool
+>     ,canonicalizeTypeName
+>     ,canonicalizeTypes
 >      -- * Type errors
 >     ,TypeError (..)
 >     ) where

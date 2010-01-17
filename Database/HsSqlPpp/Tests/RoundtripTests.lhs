@@ -2,18 +2,6 @@ Copyright 2010 Jake Wheat
 
 Test sql by typechecking it, then running it through Postgres and comparing.
 
-Stage 1:
-read sql files: produce catalog using type checker
-load sql files into postgres using psql
-read catalog from psql and compare with catalog from typechecker
-stage 2:
-as above, but load via databaseloader
-stage 3:
-load using database loader
-dump using pg_dump
-attempt to compare original ast to ast of dump
-
-
 > module Database.HsSqlPpp.Tests.RoundtripTests (roundtripTests) where
 
 > import Test.HUnit
@@ -21,12 +9,20 @@ attempt to compare original ast to ast of dump
 > import Test.Framework.Providers.HUnit
 > import Control.Monad.Error
 > import Data.List
+> import Data.Generics
+> import Data.Generics.PlateData
+
 
 > import Database.HsSqlPpp.Utils
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.Catalog
 > import Database.HsSqlPpp.Ast.TypeChecker
 > import Database.HsSqlPpp.Dbms.DBUtils
+> import Database.HsSqlPpp.Dbms.DatabaseLoader
+> import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.Ast.Ast
+> import Database.HsSqlPpp.Ast.SqlTypes
+
 
 > data Item = Group String [Item]
 >           | Src [(String,String)]
@@ -41,6 +37,12 @@ attempt to compare original ast to ast of dump
 >       ,"select 1 from pg_attrdef;")
 >      ,("create domain"
 >       ,"create domain testd as text;")
+>      ,("create domain with check"
+>       ,"create domain testd as text check (length(value) > 2);")
+>      ,("create composite"
+>       ,"create type pos as (\n\
+>        \  x int,\n\
+>        \  y int);")
 
 >     ]]
 
@@ -50,7 +52,9 @@ attempt to compare original ast to ast of dump
 
 > testRoundtrip :: String -> String -> Test.Framework.Test
 > testRoundtrip name sql = testCase ("test " ++ name) $
->   checkStage1
+>   checkStage1 >>
+>   checkStage2 >>
+>   checkStage3
 >   where
 
 Stage 1:
@@ -67,6 +71,46 @@ read catalog from psql and compare with catalog from typechecker
 >       case compareCatalogs defaultTemplate1Catalog cat1 dbCat of
 >               CatalogDiff [] [] -> liftIO $ return ()
 >               c -> liftIO $ assertFailure $ "catalogs difference: " ++ ppCatDiff c
+
+stage 2:
+as above, but load via databaseloader
+
+>     checkStage2 = wrapETT $ do
+>       ast <- tsl $ parseSql "" sql
+>       let (cat1,_) = typeCheck defaultTemplate1Catalog ast
+>       liftIO $ clearDB "testing"
+>       liftIO $ loadIntoDatabase "testing" "" ast
+>       dbCat <- liftIO (readCatalog "testing") >>= tsl
+>       case compareCatalogs defaultTemplate1Catalog cat1 dbCat of
+>               CatalogDiff [] [] -> liftIO $ return ()
+>               c -> liftIO $ assertFailure $ "catalogs difference: " ++ ppCatDiff c
+
+
+stage 3:
+load using database loader
+dump using pg_dump
+attempt to compare original ast to ast of dump
+
+>     checkStage3 = wrapETT $ do
+>       ast <- tsl $ parseSql "" sql
+>       dump <- liftIO $ pgDump "testing"
+>       nast <- tsl $ parseSql "" dump
+>       let past = adjustAstToLookLikeDump $ adjTree ast
+>           pnast = adjTree nast
+>       when (past /= pnast) $
+>         liftIO $ putStrLn $ sql ++ "\n" ++ dump
+>       liftIO $ assertEqual "check dump ast" past pnast
+>     adjTree = canonicalizeTypeNames . stripAnnotations
+
+take the parse tree and change the type names to the canonical versions
+
+> canonicalizeTypeNames :: Data a => a -> a
+> canonicalizeTypeNames =
+>   transformBi $ \x ->
+>       case x of
+>         SimpleTypeName a tn -> SimpleTypeName a $ canonicalizeTypeName tn
+>         x1 -> x1
+
 
 ================================================================================
 
@@ -85,6 +129,40 @@ one of the things really want to double check is associativity and
 precedence mainly in select expressions, pg_dump puts in the implicit
 brackets which we can use to check these things
 
+
+> adjustAstToLookLikeDump :: [Statement] -> [Statement]
+> adjustAstToLookLikeDump ast =
+>   presets ++ stripDml ast
+>   where
+>     -- add the following at the beginning of the ast, since this is what pg_dump does
+>     -- SET statement_timeout = 0;
+>     -- SET client_encoding = 'UTF8';
+>     -- SET standard_conforming_strings = off;
+>     -- SET check_function_bodies = false;
+>     -- SET client_min_messages = warning;
+>     -- SET escape_string_warning = off;
+>
+>     -- SET search_path = public, pg_catalog;
+>     noDml = stripDml ast
+>     presets = [Set [] "statement_timeout" [SetNum [] 0.0]
+>               ,Set [] "client_encoding" [SetStr [] "UTF8"]
+>               ,Set [] "standard_conforming_strings" [SetId [] "off"]
+>               ,Set [] "check_function_bodies" [SetId [] "false"]
+>               ,Set [] "client_min_messages" [SetId [] "warning"]
+>               ,Set [] "escape_string_warning" [SetId [] "off"]]
+>               -- if there are no statements, pg_dump doesn't spit out the search path
+>               ++ if null noDml then []  else
+>                      [Set [] "search_path" [SetId [] "public", SetId [] "pg_catalog"]]
+>     -- dml statements don't appear in the dump
+>     stripDml = filter (\s -> case s of
+>                                SelectStatement _ _ -> False
+>                                Insert _ _ _ _ _ -> False
+>                                Update _ _ _ _ _ -> False
+>                                Delete _ _ _ _ -> False
+>                                Copy _ _ _ _ -> False
+>                                CopyData _ _ -> False
+>                                Truncate _ _ _ _ -> False
+>                                _ -> True)
 
 ================================================================================
 

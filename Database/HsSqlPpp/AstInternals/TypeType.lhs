@@ -55,6 +55,7 @@ out. If not, will have to add another type.
 > import Control.Monad.Error
 
 > import Data.Generics
+> import Data.Generics.PlateData
 
  > import Data.Binary
 
@@ -177,6 +178,13 @@ this converts the name of a type to its canonical name
 >       varcharNames = ["character varying", "varchar"]
 >       charNames = ["character", "char"]
 >       boolNames = ["boolean", "bool"]
+
+> canonicalizeTypes :: Data a => a -> a
+> canonicalizeTypes =
+>   transformBi $ \x ->
+>       case x of
+>         ScalarType s -> ScalarType $ canonicalizeTypeName s
+>         x1 -> x1
 
 random notes on pg types:
 
