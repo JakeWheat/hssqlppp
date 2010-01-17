@@ -11,7 +11,7 @@ Test sql by typechecking it, then running it through Postgres and comparing.
 > import Data.List
 > import Data.Generics
 > import Data.Generics.PlateData
-
+> import Data.Char
 
 > import Database.HsSqlPpp.Utils
 > import Database.HsSqlPpp.Parsing.Parser
@@ -23,6 +23,12 @@ Test sql by typechecking it, then running it through Postgres and comparing.
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.SqlTypes
 
+slightly dodgy, these tests automatically connect to this database and
+clear it. hopefully no-one running these tests is storing important
+data in a database with this name
+
+> testDatabaseName :: String
+> testDatabaseName = "hssqlpppautomatedtests"
 
 > data Item = Group String [Item]
 >           | Src [(String,String)]
@@ -65,9 +71,9 @@ read catalog from psql and compare with catalog from typechecker
 >     checkStage1 = wrapETT $ do
 >       ast <- tsl $ parseSql "" sql
 >       let (cat1,_) = typeCheck defaultTemplate1Catalog ast
->       liftIO $ clearDB "testing"
->       liftIO $ loadSqlUsingPsql "testing" sql
->       dbCat <- liftIO (readCatalog "testing") >>= tsl
+>       liftIO $ clearDB testDatabaseName
+>       liftIO $ loadSqlUsingPsql testDatabaseName sql
+>       dbCat <- liftIO (readCatalog testDatabaseName) >>= tsl
 >       case compareCatalogs defaultTemplate1Catalog cat1 dbCat of
 >               CatalogDiff [] [] -> liftIO $ return ()
 >               c -> liftIO $ assertFailure $ "catalogs difference: " ++ ppCatDiff c
@@ -78,9 +84,9 @@ as above, but load via databaseloader
 >     checkStage2 = wrapETT $ do
 >       ast <- tsl $ parseSql "" sql
 >       let (cat1,_) = typeCheck defaultTemplate1Catalog ast
->       liftIO $ clearDB "testing"
->       liftIO $ loadIntoDatabase "testing" "" ast
->       dbCat <- liftIO (readCatalog "testing") >>= tsl
+>       liftIO $ clearDB testDatabaseName
+>       liftIO $ loadIntoDatabase testDatabaseName "" ast
+>       dbCat <- liftIO (readCatalog testDatabaseName) >>= tsl
 >       case compareCatalogs defaultTemplate1Catalog cat1 dbCat of
 >               CatalogDiff [] [] -> liftIO $ return ()
 >               c -> liftIO $ assertFailure $ "catalogs difference: " ++ ppCatDiff c
@@ -93,7 +99,7 @@ attempt to compare original ast to ast of dump
 
 >     checkStage3 = wrapETT $ do
 >       ast <- tsl $ parseSql "" sql
->       dump <- liftIO $ pgDump "testing"
+>       dump <- liftIO $ pgDump testDatabaseName
 >       nast <- tsl $ parseSql "" dump
 >       let past = adjustAstToLookLikeDump $ adjTree ast
 >           pnast = adjTree nast
@@ -132,7 +138,7 @@ brackets which we can use to check these things
 
 > adjustAstToLookLikeDump :: [Statement] -> [Statement]
 > adjustAstToLookLikeDump ast =
->   presets ++ stripDml ast
+>   ((presets ++) . stripDml . addConstraintNames) ast
 >   where
 >     -- add the following at the beginning of the ast, since this is what pg_dump does
 >     -- SET statement_timeout = 0;
@@ -163,6 +169,27 @@ brackets which we can use to check these things
 >                                CopyData _ _ -> False
 >                                Truncate _ _ _ _ -> False
 >                                _ -> True)
+
+when pg comes across a constraint without a name, it generates one
+automatically and this appears in the dump, so try to follow the
+generation here, also any 'value' identifiers will be in uppercase
+
+> addConstraintNames :: Data a => a -> a
+> addConstraintNames =
+>   transformBi $ \x ->
+>       case x of
+>         CreateDomain a name base "" cons ->
+>             CreateDomain a name base
+>               (case cons of
+>                          Nothing -> ""
+>                          Just _ -> name ++ "_check") (upcaseValue cons)
+>                   where
+>                     upcaseValue = transformBi $ \y ->
+>                                   case y of
+>                                     Identifier a1 i | map toUpper i == "VALUE" ->
+>                                           Identifier a1 "VALUE"
+>                                     y1 -> y1
+>         x1 -> x1
 
 ================================================================================
 

@@ -13,16 +13,12 @@ to get a list of commands and purpose and usage info
 > import System.Console.CmdArgs
 > import System.IO
 > import System.Directory
-> import Data.List
 > import Control.Monad.Error
+> import Data.List
 > import Data.Char
-> --import System
 > import Data.Generics
 
 > import Text.Show.Pretty
-> --import System.Process.Pipe
-> --import Text.Pandoc
-
 > import Test.Framework (defaultMainWithArgs)
 
 > import Database.HsSqlPpp.Tests.ParserTests
@@ -31,32 +27,26 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Tests.ParameterizedStatementTests
 > import Database.HsSqlPpp.Tests.RoundtripTests
 
-> import Database.HsSqlPpp.Ast.Catalog
-> import Database.HsSqlPpp.Ast.Ast
-
 > import Database.HsSqlPpp.Utils
 
-> import qualified Database.HsSqlPpp.Parsing.Parser as P
-> import Database.HsSqlPpp.Parsing.Lexer
-
+> import Database.HsSqlPpp.Ast.Ast
+> import Database.HsSqlPpp.Ast.Catalog
 > import qualified Database.HsSqlPpp.Ast.TypeChecker as A
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.SqlTypes
 
+> import qualified Database.HsSqlPpp.Parsing.Parser as P
+> import Database.HsSqlPpp.Parsing.Lexer
+
+
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 
-> --import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.Dbms.DatabaseLoader
-
-> import Database.HsSqlPpp.Extensions.ChaosExtensions
-
-> --import Database.HsSqlPpp.Utils
-> --import Database.HsSqlPpp.HsText.HsText
-
 > import Database.HsSqlPpp.Dbms.WrapperGen
 > import Database.HsSqlPpp.Dbms.DBUtils
 
+> import Database.HsSqlPpp.Extensions.ChaosExtensions
 
 > data HsSqlSystem = Lex {files :: [String]}
 >                  | Parse {files :: [String]}
@@ -92,7 +82,7 @@ to get a list of commands and purpose and usage info
 
 > main :: IO ()
 > main = do
->        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2009"
+>        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2010"
 >                       [lexA, parseA, ppppA, pppA,
 >                        parseExpressionA, typeCheckExpressionA,
 >                        typeCheckA,allAnnotationsA,
@@ -165,11 +155,11 @@ how to do this
 >             ast1 <- readInput f >>= tsl . P.parseSql f >>= return . stripAnnotations
 >             ast2 <- (return . printSql) ast1 >>= tsl . P.parseSql "" >>= return . stripAnnotations
 >             if ast1 /= ast2
->                then do
->                     (liftIO . putStrLn) "asts are different\n-- original"
->                     (return . ppShow) ast1 >>= liftIO . putStrLn
->                     (liftIO . putStrLn) "-- ppp'd"
->                     (return . ppShow) ast2 >>= liftIO . putStrLn
+>                then liftIO $ do
+>                       putStrLn "asts are different\n-- original"
+>                       putStrLn $ ppShow ast1
+>                       putStrLn "-- ppp'd"
+>                       putStrLn $ ppShow ast2
 >                else (liftIO . putStrLn) "success")
 
 ================================================================================
@@ -306,8 +296,6 @@ TODO: do something more correct
 
 > loadSqlPsql :: String -> [String] -> IO ()
 > loadSqlPsql db = wrapET .
->   --srcs <- mapM readInput fns
->   --mapM_ (\s -> loadSqlUsingPsql db s >>= message) (map snd srcs)
 >   mapM_ (\s -> liftIO (loadSqlUsingPsqlFromFile db s) >>= tsl >>= liftIO . putStrLn)
 
 ================================================================================
@@ -445,6 +433,8 @@ write a routine to mirror this - will then have
 
 ================================================================================
 
+run the test suite
+
 > testA = mode $ Test {extra = def &= typ "ANY" & args & unknownFlags}
 >         &= text "run automated tests, uses test.framework can pass arguments \
 >                 \to this e.g. HsSqlSystem test -t parserTests"
@@ -464,6 +454,8 @@ options: nothing -> create/overwrite folders and files
          clean -> delete generated files
 
 create target folder if doesn't exist
+
+broken at the moment
 
 > buildDocsA = mode $ BuildDocs
 >         &= text "build the documention in the docs/ folder"
@@ -662,11 +654,6 @@ other command arguments:
 >     showSpTe (Just (SourcePos fn l c), e) =
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
-
-> -- | Get the top level type annotation from the ast passed.
-> --getTopLevelTypes :: (Monad m, Error e, Data d) =>
-> --          d -> ErrorT e m [Type]
-> --getTopLevelTypes = return . A.getTopLevelTypes . (:[])
 
 ================================================================================
 
