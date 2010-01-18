@@ -78,7 +78,9 @@ the code here handles expanding record types so that the components can be looke
 >     es (LBQualifiedIds src cor1 ids _ :lbus) = if cor == cor1 || cor == ""
 >                                                then mapEm src cor1 ids
 >                                                else es lbus
->     es (LBUnqualifiedIds src ids _ : lbus) = mapEm src "" ids
+>     es (LBUnqualifiedIds src ids _ : lbus) = if cor == ""
+>                                              then mapEm src "" ids
+>                                              else es lbus
 >     es (LBJoinIds _ _ _ _ _ _ _ _ _ :lbus) = undefined
 >     es [] = Left [UnrecognisedCorrelationName cor]
 >     mapEm :: String -> String -> [(String,Type)] -> Either [TypeError] [(String,String,String,Type)]
