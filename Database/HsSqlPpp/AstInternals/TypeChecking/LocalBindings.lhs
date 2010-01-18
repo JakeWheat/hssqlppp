@@ -1,7 +1,10 @@
 Copyright 2010 Jake Wheat
 
 This module contains the code to manage local identifier bindings
-during the type checking process.
+during the type checking process. This is used for e.g. looking up the
+types of parameter and variable references in plpgsql functions, and
+for looking up the types of identifiers in select expressions.
+
 
 > {-# OPTIONS_HADDOCK hide  #-}
 
@@ -17,51 +20,80 @@ during the type checking process.
 
 > import Control.Monad
 > import Data.List
-> import Debug.Trace
+> --import Debug.Trace
 > import Data.Char
 
 > import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> --import Database.HsSqlPpp.Utils
+> --import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 
-> data LocalBindings = LocalBindings
+> data LocalBindings = LocalBindings [LocalBindingsUpdate]
 
 > emptyBindings :: LocalBindings
-> emptyBindings = undefined
+> emptyBindings = LocalBindings []
 
 > data LocalBindingsUpdate = LBQualifiedIds {
 >                              source :: String
 >                             ,correlationName :: String
->                             ,ids :: [(String,Type)]
+>                             ,lbids :: [(String,Type)]
 >                             ,internalIds :: [(String,Type)]
 >                             }
 >                          | LBUnqualifiedIds {
 >                              source :: String
->                             ,ids :: [(String,Type)]
+>                             ,lbids :: [(String,Type)]
 >                             ,internalIds :: [(String,Type)]
 >                             }
 >                          | LBJoinIds {
 >                              source1 :: String
 >                             ,correlationName1 :: String
->                             ,ids1 :: [(String,Type)]
+>                             ,lbids1 :: [(String,Type)]
 >                             ,internalIds1 :: [(String,Type)]
 >                             ,source2 :: String
 >                             ,correlationName2 :: String
->                             ,ids2 :: [(String,Type)]
+>                             ,lbids2 :: [(String,Type)]
 >                             ,internalIds2 :: [(String,Type)]
 >                             ,joinIds :: [String]
 >                             }
 
-> lbUpdate :: LocalBindings -> LocalBindingsUpdate -> LocalBindings
-> lbUpdate = undefined
+> lbUpdate :: LocalBindingsUpdate -> LocalBindings -> LocalBindings
+> lbUpdate lbu (LocalBindings lb) = LocalBindings (lbu : lb)
 
 > lbExpandStar :: LocalBindings
 >              -> String -- correlation name
->              -> Either [TypeError] [(String,(String,Type))] -- either error or [source,(name,type)]
+>              -> Either [TypeError] [(String,String,String,Type)] -- either error or [source,(corr,name,type)]
 > lbExpandStar = undefined
 
 > lbLookupID :: LocalBindings
 >            -> String -- correlation name
 >            -> String -- identifier name
->            -> Either [TypeError] (String,Type) -- type error or source, type
-> lbLookupID = undefined
+>            -> Either [TypeError] (String,String,String,Type) -- type error or source, corr, type
+> lbLookupID (LocalBindings lb) cor i =
+>   lk lb
+>   where
+>     lk (lbu:lbus) = case findID cor i lbu of
+>                                           Nothing -> lk lbus
+>                                           Just t -> t
+>     lk [] = Left [UnrecognisedIdentifier (if cor == "" then i else cor ++ "." ++ i)]
+
+> findID :: String
+>        -> String
+>        -> LocalBindingsUpdate
+>        -> Maybe (Either [TypeError] (String,String,String,Type))
+> findID cor i (LBQualifiedIds src cor1 ids intIds) =
+>     if cor `elem` ["", cor1]
+>     then case (msum [lookup i ids
+>                     ,lookup i intIds]) of
+>            Just ty -> Just $ Right (src,cor1,i,ty)
+>            Nothing -> if cor == ""
+>                       then Nothing
+>                       else Just $ Left [UnrecognisedIdentifier (if cor == "" then i else cor ++ "." ++ i)]
+>     else Nothing
+
+> findID cor i (LBUnqualifiedIds src ids intIds) =
+>   if cor == ""
+>   then flip fmap (msum [lookup i ids
+>                        ,lookup i intIds])
+>          $ \ty -> Right (src,"",i,ty)
+>   else Nothing
+> findID cor i (LBJoinIds _ _ _ _ _ _ _ _ _)  = undefined
+
