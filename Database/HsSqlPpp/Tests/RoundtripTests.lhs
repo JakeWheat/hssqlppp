@@ -72,6 +72,15 @@ data in a database with this name
 >        \$$ language plpgsql;")
 >     ]]
 
+TODO for test data:
+run through constraints in create table after attribute and as seperate rows
+do multiple constraints on a line
+use create view to run through select variations
+
+
+================================================================================
+
+
 > itemToTft :: Item -> [Test.Framework.Test]
 > itemToTft (Group s is) = [testGroup s $ concatMap itemToTft is]
 > itemToTft (Src ss) = map (uncurry testRoundtrip) ss

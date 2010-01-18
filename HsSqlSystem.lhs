@@ -26,6 +26,7 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Tests.ExtensionTests
 > import Database.HsSqlPpp.Tests.ParameterizedStatementTests
 > import Database.HsSqlPpp.Tests.RoundtripTests
+> import Database.HsSqlPpp.Tests.LocalBindingsTests
 
 > import Database.HsSqlPpp.Utils
 
@@ -440,6 +441,7 @@ run the test suite
 >     typeCheckTests ++
 >     parameterizedStatementTests ++
 >     roundtripTests ++
+>     localBindingsTests ++
 >     [extensionTests]
 
 ================================================================================
