@@ -71,7 +71,18 @@ the code here handles expanding record types so that the components can be looke
 > lbExpandStar :: LocalBindings
 >              -> String -- correlation name
 >              -> Either [TypeError] [(String,String,String,Type)] -- either error or [source,(corr,name,type)]
-> lbExpandStar = undefined
+> lbExpandStar (LocalBindings l) cor =
+>   es l
+>   where
+>     es :: [LocalBindingsUpdate] -> Either [TypeError] [(String,String,String,Type)]
+>     es (LBQualifiedIds src cor1 ids _ :lbus) = if cor == cor1 || cor == ""
+>                                                then mapEm src cor1 ids
+>                                                else es lbus
+>     es (LBUnqualifiedIds src ids _ : lbus) = mapEm src "" ids
+>     es (LBJoinIds _ _ _ _ _ _ _ _ _ :lbus) = undefined
+>     es [] = Left [UnrecognisedCorrelationName cor]
+>     mapEm :: String -> String -> [(String,Type)] -> Either [TypeError] [(String,String,String,Type)]
+>     mapEm src c = Right . map (\(a,b) -> (src,c,a,b))
 
 > lbLookupID :: LocalBindings
 >            -> String -- correlation name

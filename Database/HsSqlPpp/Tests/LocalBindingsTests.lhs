@@ -85,6 +85,15 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >    ,testRecNoCor [quids2] res32
 >    ,testRecNoCor [quids2] res33
 >    ,testRecNoCor [quids2] res34
+>    ]
+>    ,StarExpand [
+>     testStar [unquids1] "" $ Right [res11,res12]
+>    ,testStar [unquids1] "test" $ Left [UnrecognisedCorrelationName "test"]
+>    ,testStar [quids1] "" $ Right [res21,res22]
+>    ,testStar [quids1] "test2" $ Left [UnrecognisedCorrelationName "test2"]
+>    ,testStar [quids2] "" $ Right [res31,res32]
+>    ,testStar [quids2] "qid2" $ Right [res31,res32]
+>    ,testStar [quids2] "qid3" $ Left [UnrecognisedCorrelationName "qid3"]
 
 >   ]]
 >   where
@@ -145,6 +154,15 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >                     ,Either [TypeError] (String,String,String,Type))
 >     testRecNoCor lbus (src,cor,i,ty) = (lbus,"",i,Right (src,cor,i,ty))
 
+
+>     testStar :: [LocalBindingsUpdate]
+>              -> String
+>              -> Either [TypeError] [(String,String,String,Type)]
+>              -> ([LocalBindingsUpdate]
+>                 ,String -- correlation name
+>                 ,Either [TypeError] [(String,String,String,Type)])
+>     testStar lbus cor res = (lbus,cor,res)
+
 LBQualifiedIds {
                               source :: String
                              ,correlationName :: String
@@ -185,7 +203,10 @@ LBQualifiedIds {
 >                -> String
 >                -> Either [TypeError] [(String,String,String,Type)]
 >                -> Test.Framework.Test
-> testStarExpand lbus cn res = undefined
+> testStarExpand lbus cn res = testCase ("expand star " ++ cn) $ do
+>     let lb = foldr lbUpdate emptyBindings lbus
+>         r = lbExpandStar lb cn
+>     assertEqual "lookupid" res r
 
 > itemToTft :: Item -> [Test.Framework.Test]
 > itemToTft (Lookup es) = map (\(a,b,c,d) -> testIdLookup a b c d) es
