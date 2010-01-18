@@ -30,56 +30,120 @@ places, particularly for joins
 > localBindingsTests :: [Test.Framework.Test]
 > localBindingsTests = itemToTft testData
 
+test plan:
+no updates uncor lookup, star
+cor lookup,star
+1 update
+  uncor match, match sys, no match, star (with sys not appearing)
+  cor same "
+  join update: join col type tests + incompatible
+               join on system columns
+               ambiguous ids
+               do cor tests with both cors
+2 updates: just one pair: lookup in head with shadowing
+           lookup in tail
+           no match
+           use difference cor to get to shadowed in tail
+case insensitive tests
+expand composite tests
+n layers of joins with ids from each layer cor and uncor, plus star expands
+
 > testData :: Item
 > testData =
 >   Group "local bindings tests" [ Lookup [
->     ([], "", "test", Left [UnrecognisedIdentifier "test"])
->    ,([], "test", "test", Left [UnrecognisedIdentifier "test.test"])
->    ,([LBQualifiedIds "source1"
+>     --([], "", "test", Left [UnrecognisedIdentifier "test"])
+>     testUnRec [] "" "test"
+>    ,testUnRec [] "test" "test"
+>    ,testRec [LBQualifiedIds "source1"
 >                      ""
 >                      [("test1", typeInt)
 >                      ,("test2", typeBool)]
 >                      []]
->       ,"","test1", Right ("source1", "", "test1", typeInt))
->    ,([LBQualifiedIds "source1"
->                      ""
->                      [("test1", typeInt)
->                      ,("test2", typeBool)]
->                      []]
->       ,"","test2", Right ("source1", "", "test2", typeBool))
->    ,([LBQualifiedIds "source1"
->                      ""
->                      [("test1", typeInt)
->                      ,("test2", typeBool)]
->                      []]
->       ,"","test3", Left [UnrecognisedIdentifier "test3"])
->    ,([LBQualifiedIds "source1"
->                      ""
->                      [("test1", typeInt)
->                      ,("test2", typeBool)]
->                      []]
->       ,"test","test1", Left [UnrecognisedIdentifier "test.test1"])
->    ,([LBUnqualifiedIds "source1"
->                      [("test1", typeInt)
->                      ,("test2", typeBool)]
->                      []]
->       ,"","test1", Right ("source1", "", "test1", typeInt))
->    ,([LBUnqualifiedIds "source1"
->                      [("test1", typeInt)
->                      ,("test2", typeBool)]
->                      []]
->       ,"","test2", Right ("source1", "", "test2", typeBool))
->    ,([LBUnqualifiedIds "source1"
->                      [("test1", typeInt)
->                      ,("test2", typeBool)]
->                      []]
->       ,"","test3", Left [UnrecognisedIdentifier "test3"])
->    ,([LBUnqualifiedIds "source1"
->                      [("test1", typeInt)
->                      ,("test2", typeBool)]
->                      []]
->       ,"test","test1", Left [UnrecognisedIdentifier "test.test1"])
+>              ("source1","","test1",typeInt)
+
+>    ,testRec [unquids1] res11
+>    ,testRec [unquids1] res12
+>    ,testRec [unquids1] res13
+>    ,testRec [unquids1] res14
+>    ,testUnRec [unquids1] "" "asdasd"
+
+>    ,testRec [quids1] res21
+>    ,testRec [quids1] res22
+>    ,testRec [quids1] res23
+>    ,testRec [quids1] res24
+>    ,testUnRec [quids1] "qid1" "asdasd"
+>    ,testUnRec [quids1] "" "asdasd"
+
+>    ,testRec [quids2] res31
+>    ,testRec [quids2] res32
+>    ,testRec [quids2] res33
+>    ,testRec [quids2] res34
+>    ,testUnRec [quids2] "qid2" "asdasd"
+>    ,testUnRec [quids2] "" "asdasd"
+
+>    ,testRecNoCor [quids2] res31
+>    ,testRecNoCor [quids2] res32
+>    ,testRecNoCor [quids2] res33
+>    ,testRecNoCor [quids2] res34
+
 >   ]]
+>   where
+>     unquids1 = LBUnqualifiedIds "unqid1s"
+>                             [("test1", typeInt)
+>                             ,("test2", typeBool)]
+>                             [("inttest1", typeInt)
+>                             ,("inttest2", typeBool)]
+>     res11 = ("unqid1s","","test1",typeInt)
+>     res12 = ("unqid1s","","test2",typeBool)
+>     res13 = ("unqid1s","","inttest1",typeInt)
+>     res14 = ("unqid1s","","inttest2",typeBool)
+
+>     quids1 = LBQualifiedIds "qid1s"
+>                             ""
+>                             [("test1", typeInt)
+>                             ,("test2", typeBool)]
+>                             [("inttest1", typeInt)
+>                             ,("inttest2", typeBool)]
+>     res21 = ("qid1s","","test1",typeInt)
+>     res22 = ("qid1s","","test2",typeBool)
+>     res23 = ("qid1s","","inttest1",typeInt)
+>     res24 = ("qid1s","","inttest2",typeBool)
+
+>     quids2 = LBQualifiedIds "qid2s"
+>                             "qid2"
+>                             [("test3", typeInt)
+>                             ,("test4", typeBool)]
+>                             [("inttest3", typeInt)
+>                             ,("inttest4", typeBool)]
+>     res31 = ("qid2s","qid2","test3",typeInt)
+>     res32 = ("qid2s","qid2","test4",typeBool)
+>     res33 = ("qid2s","qid2","inttest3",typeInt)
+>     res34 = ("qid2s","qid2","inttest4",typeBool)
+
+
+>     testUnRec :: [LocalBindingsUpdate] -> String -> String
+>               -> ([LocalBindingsUpdate]
+>                  ,String -- correlation name
+>                  ,String -- id name
+>                  ,Either [TypeError] (String,String,String,Type))
+>     testUnRec lbus cor i = (lbus,cor,i
+>                            , Left [UnrecognisedIdentifier $
+>                                    if cor == "" then i else cor ++ "." ++ i])
+>     testRec :: [LocalBindingsUpdate]
+>             -> (String,String,String,Type)
+>             -> ([LocalBindingsUpdate]
+>                ,String -- correlation name
+>                ,String -- id name
+>                ,Either [TypeError] (String,String,String,Type))
+>     testRec lbus (src,cor,i,ty) = (lbus,cor,i,Right (src,cor,i,ty))
+
+>     testRecNoCor :: [LocalBindingsUpdate]
+>                  -> (String,String,String,Type)
+>                  -> ([LocalBindingsUpdate]
+>                     ,String -- correlation name
+>                     ,String -- id name
+>                     ,Either [TypeError] (String,String,String,Type))
+>     testRecNoCor lbus (src,cor,i,ty) = (lbus,"",i,Right (src,cor,i,ty))
 
 LBQualifiedIds {
                               source :: String

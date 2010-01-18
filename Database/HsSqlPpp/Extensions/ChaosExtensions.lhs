@@ -28,7 +28,7 @@ Experimental code to use uniplate to implement extensions
 >     ) where
 
 > import Data.Generics
-> import Data.Generics.PlateData
+> import Data.Generics.Uniplate.Data
 > import Debug.Trace
 
 > import Text.Parsec hiding(many, optional, (<|>))
