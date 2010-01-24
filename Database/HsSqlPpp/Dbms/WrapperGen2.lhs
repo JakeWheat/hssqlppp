@@ -75,16 +75,34 @@ input args can never be null for now.
 >     Right cat -> do
 >       let rt = getStatementType cat sqlStr
 >       case rt of
->         Right (StatementType pt ts) ->
->           runQ [| \cn ->
->             selectRelation cn sqlStr [] >>=
->             return . map (\ [a0, a1, a2, a3, a4] ->
->                (fromSql a0::Maybe String
->                ,fromSql a1::Maybe String
->                ,fromSql a2::Maybe Int
->                ,fromSql a3::Maybe Int
->                ,fromSql a4::Maybe Int))
->                |]
+>         Right (StatementType inA outA) ->
+>             do
+>                 argNames <- getNNewNames "a" $ length inA
+>                 cnName <- newName "cn"
+>                 ia <- inArgs argNames
+>                 bd <- [| selectRelation $(return $ VarE cnName) sqlStr $(return ia) >>=
+>                              return . map $mapper|]
+>                 return (LamE (map VarP (cnName : argNames)) bd)
+>            where
+>              getNNewNames :: String -> Int -> Q [Name]
+>              getNNewNames i n = forM [1..n] $ const $ newName i
+>              inArgs argNames = do
+>                tys <- mapM sqlTypeToHaskell inA
+>                let ps :: [(Name, Type)]
+>                    ps = zip argNames tys
+>                a <- forM ps $ \(n,t) ->
+>                    [| toSql $(return (SigE (VarE n) t))|]
+>                return $ ListE a
+>              mapper = do
+>                       retNames <- getNNewNames "r" $ length outA
+>                       let largs = ListP (map VarP retNames)
+>                       ntp <- forM retNames $ \r -> [| fromSql $(return (VarE r)) |]
+>                       tys <- mapM (sqlTypeToHaskell . snd) outA
+>                       let ntpt :: [(Exp,Type)]
+>                           ntpt = zip ntp tys
+>                       ntp1 <- forM ntpt $ \(e,t) -> return $ SigE e t
+>                       let r = LamE [largs] $ TupE ntp1
+>                       return r
 >         e -> error $ show e
 
 StatementType [Type] [(String,Type)]
