@@ -51,7 +51,6 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 > testData :: Item
 > testData =
 >   Group "local bindings tests" [ Lookup [
->     --([], "", "test", Left [UnrecognisedIdentifier "test"])
 >     testUnRec [] "" "test"
 >    ,testUnRec [] "test" "test"
 >    ,testRec [LBQualifiedIds "source1"
@@ -85,6 +84,8 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >    ,testRecNoCor [quids2] res32
 >    ,testRecNoCor [quids2] res33
 >    ,testRecNoCor [quids2] res34
+
+
 >    ]
 >    ,StarExpand [
 >     testStar [unquids1] "" $ Right [res11,res12]
@@ -106,6 +107,17 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >     res12 = ("unqid1s","","test2",typeBool)
 >     res13 = ("unqid1s","","inttest1",typeInt)
 >     res14 = ("unqid1s","","inttest2",typeBool)
+
+>     unquids2 = LBUnqualifiedIds "unqid2s"
+>                             [("test1", ScalarType "text")
+>                             ,("test3", ScalarType "int2")]
+>                             [("inttest1", ScalarType "text")
+>                             ,("inttest3", ScalarType "int2")]
+>     res211 = ("unqid2s","","test1",ScalarType "text")
+>     res212 = ("unqid2s","","test3",ScalarType "int2")
+>     res213 = ("unqid2s","","inttest1",ScalarType "text")
+>     res214 = ("unqid2s","","inttest3",ScalarType "int2")
+
 
 >     quids1 = LBQualifiedIds "qid1s"
 >                             ""

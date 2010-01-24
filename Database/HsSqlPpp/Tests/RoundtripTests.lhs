@@ -1,6 +1,10 @@
 Copyright 2010 Jake Wheat
 
-Test sql by typechecking it, then running it through Postgres and comparing.
+Test sql by typechecking it, then running it through Postgres and comparing:
+* compare the catalog from typechecking to the one read from postgres
+* load then dump the sql and compare post and pre asts
+* (NOT STARTED ON YET) create views and check the type from type
+  checking to the one from pg
 
 > module Database.HsSqlPpp.Tests.RoundtripTests (roundtripTests) where
 

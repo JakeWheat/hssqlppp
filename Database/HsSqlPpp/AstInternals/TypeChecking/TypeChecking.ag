@@ -210,4 +210,26 @@ This canonical form should pretty print and parse back to the same
 form, and type check correctly.
 
 
+================================================================================
+
+type inferencing
+
+some random ideas about using type inferencing
+
+1) need to be able to gather the constraints: introduce a variable
+   name for each node that has a type collect together all the
+   equations that relate these variables
+2) need to be able to unify these to get types or errors
+3) need to rebuild the tree containing the results of this process in
+   the annotations, either types or errors
+
+possible issues, don't know how these will affect the process:
+
+literal strings in pg have the type unknown as well as possibly a real
+type determined by inference
+the implicit type casting e.g. for function resolution is pretty wacky
+combinining these, function call resolution apparently distinguishes
+between arguments which are unknown and then resolve to being text,
+and arguments which are already known to be text, e.g.
+
 -}
