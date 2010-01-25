@@ -13,7 +13,8 @@ editing, the only manual part is adding the proxy definitions.
 > module Database.HsSqlPpp.Dbms.DBAccess3
 >     (withConn
 >     ,sqlStmt
->     ,IConnection) where
+>     ,IConnection
+>     ,ptype,allegiance,tag,x,y) where
 
 > import Language.Haskell.TH
 
@@ -89,43 +90,81 @@ editing, the only manual part is adding the proxy definitions.
 > -- (as well as producing a working function which accesses a database)
 > --
 
+> test :: IO ()
 > test = do
->   runQ [| \conn ->
+>   x1 <- runQ [| \conn ->
 >           selectRelation conn "x" [] >>=
->           return . map (\ [a0, a1, a2, a3, a4] ->
->               ptype .=. fromSql a0 .*.
->               allegiance .=. fromSql a1 .*.
->               tag .=. fromSql a2 .*.
->               x .=. fromSql a3 .*.
->               y .=. fromSql a4 .*.
->               emptyRecord)
->         |] >>= print
->   let list = [("ptype", [t| Int |], mkName "a0")
->              ,("allegiance", [t| String |], mkName "a0")]
->   l2 <- runQ [| $(do
+>           return . map (\ [r_0, r_1] ->
+>               (ptype .=. fromSql r_0 .*.
+>               --allegiance .=. fromSql a1 .*.
+>               --tag .=. fromSql a2 .*.
+>               --x .=. fromSql a3 .*.
+>               (y .=. fromSql r_1 .*.
+>               emptyRecord)))
+>         |]
+>   print x1
+>   putStrLn "------"
+>   putStrLn $ pprint x1
+>   putStrLn "------------------------------------"
+>   list <- runQ $ do
+>           t1 <- [t| Maybe String |]
+>           t2 <- [t| Maybe Int |]
+>           return [("ptype", t1)
+>                  ,("y", t2)]
+>   {-l2 <- runQ [| $(do
 >                   l1 <- mapM (\(a,b,c) -> toHlistField a b c) list
 >                   er1 <- er
->                   let l2 = l1 ++ [er1]
+>                   let l2 = reverse ( er1 : l1)
 >                   mt1 <- mt
 >                   foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 l2)
->               |]
+>               |]-}
+>   l2 <- runQ [| \conn ->
+>           selectRelation conn "x" [] >>=
+>           return . map $(mapHlistFromSql list) |]
 >   print l2
+>   putStrLn "------"
 >   putStrLn $ pprint l2
+>   --x1 <- runQ
 >   --runQ l2 >>= print
 >   --mapM_ (\l -> runQ l >>= print) l1
 >   return ()
 
 >   where
->     mt :: ExpQ
->     mt = [| [] |]
 
->     er :: ExpQ
->     er = [| emptyRecord |]
+>     mapHlistFromSql :: [(String,Type)] -> Q Exp
+>     mapHlistFromSql outA = do
+>       retNames <- getNNewNames "r" $ length outA
+>       let trips :: [(String,Type,Name)]
+>           trips = zipWith (\(a,b) c -> (a,b,c)) outA retNames
+>       --let outT = map snd outA
+>       l1 <- mapM (\(a,b,c) -> toHlistField a b c) trips
+>       --er1 <- [| emptyRecord |]
+>       --mt1 <- [| [] |]
+>       
+>       let hlct = foldHlist l1
 
->     toHlistField :: String -> TypeQ -> Name -> Q Exp
+foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 $ reverse (er1 : l1)
+
+>       lamE [listP (map varP retNames)] hlct
+>         -- (tupE $ zipWith fromSqlIt retNames outT)
+
+>     foldHlist :: [Exp] -> Q Exp
+>     foldHlist (e:e1) = [| $(return e) .*. $(foldHlist e1) |]
+>     foldHlist [] = [| emptyRecord |]
+
+ >     mt :: ExpQ
+ >     mt = [| [] |]
+
+ >     er :: ExpQ
+ >     er = [| emptyRecord |]
+
+>     toHlistField :: String -> Type -> Name -> Q Exp
+>     toHlistField f t v = [| $(varE $ mkName f) .=. $(fromSqlIt v t) |]
+
+>     {-toHlistField :: String -> TypeQ -> Name -> Q Exp
 >     toHlistField f t v = do
 >       t' <- t
->       [| $(varE $ mkName f) .=. $(fromSqlIt v t') |]
+>       [| $(varE $ mkName f) .=. $(fromSqlIt v t') |]-}
 
 >     fromSqlIt :: Name -> Type -> Q Exp
 >     fromSqlIt n t = do
@@ -137,20 +176,12 @@ editing, the only manual part is adding the proxy definitions.
 >
 >     castName :: Name -> Type -> Q Exp
 >     castName = casti . VarE
+>     getNNewNames :: String -> Int -> Q [Name]
+>     getNNewNames i n = forM [1..n] $ const $ newName i
 
 
 > sqlStmt :: String -> String -> Q Exp
 > sqlStmt dbName sqlStr = do
->   runQ [| \conn ->
->           selectRelation conn sqlStr [] >>=
->           return . map (\ [a0, a1, a2, a3, a4] ->
->               ptype .=. fromSql a0 .*.
->               allegiance .=. fromSql a1 .*.
->               tag .=. fromSql a2 .*.
->               x .=. fromSql a3 .*.
->               y .=. fromSql a4 .*.
->               emptyRecord)
->         |]
 >   (StatementHaskellType inA outA) <- liftStType
 >   let cnName = mkName "cn"
 >   argNames <- getNNewNames "a" $ length inA
@@ -160,17 +191,56 @@ editing, the only manual part is adding the proxy definitions.
 >        return . map $(mapHlistFromSql outA)|]
 >
 >   where
-
+>
 >     toHlistField :: String -> Type -> Name -> Q Exp
 >     toHlistField f t v = [| $(varE $ mkName f) .=. $(fromSqlIt v t) |]
+>
+>     {-mapHlistFromSql :: [(String,Type)] -> Q Exp
+>     mapHlistFromSql outA = do
+>       retNames <- getNNewNames "r" $ length outA
+>       let trips :: [(String,Type,Name)]
+>           trips = zipWith (\(a,b) c -> (a,b,c)) outA retNames
+>       let outT = map snd outA
+>       l1 <- mapM (\(a,b,c) -> toHlistField a b c) trips
+>       er1 <- [| emptyRecord |]
+>       mt1 <- [| [] |]
+>       let hlct = foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 $ reverse (er1 : l1)
+>       lamE [listP (map varP retNames)] hlct
+>         -- (tupE $ zipWith fromSqlIt retNames outT) -}
 
 >     mapHlistFromSql :: [(String,Type)] -> Q Exp
 >     mapHlistFromSql outA = do
->       let outT = map snd outA
->       retNames <- getNNewNames "r" $ length outT
->       lamE [listP (map varP retNames)]
->         (tupE $ zipWith fromSqlIt retNames outT)
- 
+>       retNames <- getNNewNames "r" $ length outA
+>       let trips :: [(String,Type,Name)]
+>           trips = zipWith (\(a,b) c -> (a,b,c)) outA retNames
+>       --let outT = map snd outA
+>       l1 <- mapM (\(a,b,c) -> toHlistField a b c) trips
+>       --er1 <- [| emptyRecord |]
+>       --mt1 <- [| [] |]
+>       
+>       let hlct = foldHlist l1
+
+foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 $ reverse (er1 : l1)
+
+>       lamE [listP (map varP retNames)] hlct
+>         -- (tupE $ zipWith fromSqlIt retNames outT)
+
+>     foldHlist :: [Exp] -> Q Exp
+>     foldHlist (e:e1) = [| $(return e) .*. $(foldHlist e1) |]
+>     foldHlist [] = [| emptyRecord |]
+
+
+ >   let list = [("ptype", [t| Int |], mkName "a0")
+ >              ,("allegiance", [t| String |], mkName "a0")]
+ >   l2 <- runQ [| $(do
+ >                   l1 <- mapM (\(a,b,c) -> toHlistField a b c) list
+ >                   er1 <- er
+ >                   let l2 = l1 ++ [er1]
+ >                   mt1 <- mt
+ >                   foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 l2)
+ >               |]
+
+
 >     mapTupleFromSql :: [Type] -> Q Exp
 >     mapTupleFromSql outT = do
 >       retNames <- getNNewNames "r" $ length outT
