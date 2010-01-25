@@ -88,6 +88,7 @@ extra-source-files:  README
                      Database/HsSqlPpp/Utils.lhs
                      Database/HsSqlPpp/Dbms/DBAccess.lhs
                      Database/HsSqlPpp/Dbms/DBAccess2.lhs
+                     Database/HsSqlPpp/Dbms/DBAccess3.lhs
                      Database/HsSqlPpp/Dbms/DatabaseLoader.lhs
                      Database/HsSqlPpp/Dbms/WrapLib.lhs
                      Database/HsSqlPpp/Dbms/WrapperGen.lhs
@@ -157,7 +158,8 @@ Library
                      --pandoc == 1.2.1,
                      filepath,
                      template-haskell,
-                     haskell-src-exts
+                     haskell-src-exts,
+                     HList
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
                      Database.HsSqlPpp.Ast.TypeChecker
@@ -171,6 +173,7 @@ Library
                      Database.HsSqlPpp.Dbms.WrapperGen
                      Database.HsSqlPpp.Dbms.WrapLib
                      Database.HsSqlPpp.Dbms.DBAccess2
+                     Database.HsSqlPpp.Dbms.DBAccess3
                      Database.HsSqlPpp.Extensions.ChaosExtensions
 
   Other-Modules:     Database.HsSqlPpp.Utils
@@ -213,12 +216,14 @@ Executable HsSqlSystem
                      test-framework,
                      test-framework-hunit,
                      HUnit,
-                     cmdargs
+                     cmdargs,
+                     HList
 
   Other-Modules:     Database.HsSqlPpp.Utils
                      Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Dbms.DBAccess
                      Database.HsSqlPpp.Dbms.DBAccess2
+                     Database.HsSqlPpp.Dbms.DBAccess3
                      Database.HsSqlPpp.Dbms.WrapperGen
                      Database.HsSqlPpp.Dbms.WrapLib
                      Database.HsSqlPpp.Dbms.DatabaseLoader

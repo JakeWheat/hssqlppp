@@ -1,20 +1,27 @@
 Copyright 2010 Jake Wheat
 
-Attempt to use hlists in template haskell db access. The idea is that
-you copy this file into your project and add the hlist proxies by hand
-to your copy of this file. This is slightly annoying, but if you miss
-any the compiler will complain nicely, and once you set of queries
-settles down you won't need to keep editing. Crucially, the
-compile-time type safety of sqlstmt themselves aren't affected by this
-editing, the only manual part is adding the proxy definitions.
+Do type safe database access using template haskell and hlists. Limitation
+is that you have to edit this file to add the field definitions and possibly
+exports. Suggested use is to copy this file into your own project
 
-> {-# LANGUAGE TemplateHaskell,EmptyDataDecls #-}
+> {-# LANGUAGE TemplateHaskell,EmptyDataDecls,DeriveDataTypeable #-}
 
 > module Database.HsSqlPpp.Dbms.DBAccess3
 >     (withConn
 >     ,sqlStmt
 >     ,IConnection
->     ,ptype,allegiance,tag,x,y) where
+
+If you are using this then export the proxy types and values here,
+useful if you need to write down type signatures, exporting them isn't
+neccessarily neccessary otherwise.
+
+>     ,ptype,allegiance,tag,x,y
+>     ,Ptype,Allegiance,Tag,X,Y
+>     ,get_turn_number,current_wizard,colour,sprite
+>     ,Get_Turn_Number,Current_Wizard,Colour,Sprite
+
+
+>     ) where
 
 > import Language.Haskell.TH
 
@@ -46,20 +53,45 @@ editing, the only manual part is adding the proxy definitions.
 
 ================================================================================
 
-> data Ptype;   ptype :: Proxy Ptype ; ptype    = proxy::Proxy Ptype
-> data Allegiance; allegiance :: Proxy Allegiance ; allegiance = proxy::Proxy Allegiance
-> data Tag; tag :: Proxy Tag ; tag = proxy::Proxy Tag
-> data X; x :: Proxy X ; x = proxy::Proxy X
-> data Y; y :: Proxy Y ; y = proxy::Proxy Y
+If you are using this file, this is the bit where you add your own
+fields, just follow the pattern. deriving Typeable seems to allow
+showing the returned hlists, don't know if there's a better way.
+TODO: add some template code to remove the boilerplate, apparently
+there is some in the hlist darcs repo.
+
+> data Ptype deriving Typeable
+> ptype :: Proxy Ptype
+> ptype = proxy::Proxy Ptype
+> data Allegiance deriving Typeable
+> allegiance :: Proxy Allegiance
+> allegiance = proxy::Proxy Allegiance
+> data Tag deriving Typeable
+> tag :: Proxy Tag
+> tag = proxy::Proxy Tag
+> data X deriving Typeable
+> x :: Proxy X
+> x = proxy::Proxy X
+> data Y deriving Typeable
+> y :: Proxy Y
+> y = proxy::Proxy Y
+
+> data Get_Turn_Number deriving Typeable
+> get_turn_number :: Proxy Get_Turn_Number
+> get_turn_number = proxy::Proxy Get_Turn_Number
+> data Current_Wizard deriving Typeable
+> current_wizard :: Proxy Current_Wizard
+> current_wizard = proxy::Proxy Current_Wizard
+> data Colour deriving Typeable
+> colour :: Proxy Colour
+> colour = proxy::Proxy Colour
+> data Sprite deriving Typeable
+> sprite :: Proxy Sprite
+> sprite    = proxy::Proxy Sprite
 
 ================================================================================
 
-
-
-
-
-
-> -- | template haskell fn to roughly do typesafe database access, pretty experimental atm
+> -- | template haskell fn to roughly do typesafe database access with
+> -- hlists, pretty experimental atm
 > --
 > -- sketch is:
 > --
@@ -67,118 +99,67 @@ editing, the only manual part is adding the proxy definitions.
 > -- >
 > -- > -- is transformed into
 > -- >
+> -- >
 > -- >  \conn a_0 a_1 ... ->
-> -- >         selectRelation conn sqlStr [toSql (a_0::Ti0)
-> -- >                                    ,toSql (a_1::Ti1), ... ] >>=
-> -- >         return . map (\ [r_0, r_1, ...] ->
-> -- >           (fromSql r_0::To0
-> -- >           ,fromSql r_1::To1
-> -- >           ,...)
+> -- >      selectRelation conn sqlStr [toSql (a_0::Ti0)
+> -- >                                 ,toSql (a_1::Ti1), ... ] >>=
+> -- >      return . map (\ [r_0, r_1, ...] ->
+> -- >        f1 .=. fromSql (r_0::To0) .*.
+> -- >        f2 .=. fromSql (r_1::To1) .*.
+> -- >        ... .*.
+> -- >        emptyRecord)
+> -- >
+> -- where the names f1, f2 are the attribute names from the database,
+> -- the types Ti[n] are the types of the placeholders in the sql
+> -- string, and the types To[n] are the types of the attributes in
+> -- the returned relation. To work around a limitation in the
+> -- implementation, these names must be in scope in this file, so to
+> -- use this in your own projects you need to copy the source and
+> -- then add the field defitions in as needed.
 > --
 > -- example usage:
 > --
 > -- > pieces_at_pos = $(sqlStmt connStr "select * from pieces where x = ? and y = ?;")
 > --
-> -- will come close enough to inferring the type:
+> -- might infer the type:
 > --
+> -- >
+> -- >   pieces_at_pos :: IConnection conn =>
+> -- >                    conn
+> -- >                 -> Maybe Int
+> -- >                 -> Maybe Int
+> -- >                 -> IO [Record (HCons (LVPair (Proxy Ptype)
+> -- >                                              (Maybe String))
+> -- >                               (HCons (LVPair (Proxy Allegiance)
+> -- >                                              (Maybe String))
+> -- >                               (HCons (LVPair (Proxy Tag)
+> -- >                                              (Maybe Int))
+> -- >                               (HCons (LVPair (Proxy X)
+> -- >                                              (Maybe Int))
+> -- >                               (HCons (LVPair (Proxy Y)
+> -- >                                              (Maybe Int))
+> -- >                                HNil)))))]
+> --
+> -- (as well as producing a working function which accesses a database). Currently, I get
+> --
+> -- >
+> -- > Test3.lhs:16:12:
+> -- >     Ambiguous type variable `conn' in the constraint:
+> -- >       `IConnection conn'
+> -- >         arising from a use of `pieces' at Test3.lhs:16:12-22
+> -- >     Probable fix: add a type signature that fixes these type variable(s)
+> -- >
+> -- which can be worked around by adding a type signature like
+> -- >
 > -- > pieces_at_pos :: IConnection conn =>
-> -- >                 conn
-> -- >              -> Maybe Int
-> -- >              -> Maybe Int
-> -- >              -> IO [(Maybe String, Maybe String, Maybe Int, Maybe Int, Maybe Int)]
-> --
-> -- (as well as producing a working function which accesses a database)
-> --
-
-> test :: IO ()
-> test = do
->   x1 <- runQ [| \conn ->
->           selectRelation conn "x" [] >>=
->           return . map (\ [r_0, r_1] ->
->               (ptype .=. fromSql r_0 .*.
->               --allegiance .=. fromSql a1 .*.
->               --tag .=. fromSql a2 .*.
->               --x .=. fromSql a3 .*.
->               (y .=. fromSql r_1 .*.
->               emptyRecord)))
->         |]
->   print x1
->   putStrLn "------"
->   putStrLn $ pprint x1
->   putStrLn "------------------------------------"
->   list <- runQ $ do
->           t1 <- [t| Maybe String |]
->           t2 <- [t| Maybe Int |]
->           return [("ptype", t1)
->                  ,("y", t2)]
->   {-l2 <- runQ [| $(do
->                   l1 <- mapM (\(a,b,c) -> toHlistField a b c) list
->                   er1 <- er
->                   let l2 = reverse ( er1 : l1)
->                   mt1 <- mt
->                   foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 l2)
->               |]-}
->   l2 <- runQ [| \conn ->
->           selectRelation conn "x" [] >>=
->           return . map $(mapHlistFromSql list) |]
->   print l2
->   putStrLn "------"
->   putStrLn $ pprint l2
->   --x1 <- runQ
->   --runQ l2 >>= print
->   --mapM_ (\l -> runQ l >>= print) l1
->   return ()
-
->   where
-
->     mapHlistFromSql :: [(String,Type)] -> Q Exp
->     mapHlistFromSql outA = do
->       retNames <- getNNewNames "r" $ length outA
->       let trips :: [(String,Type,Name)]
->           trips = zipWith (\(a,b) c -> (a,b,c)) outA retNames
->       --let outT = map snd outA
->       l1 <- mapM (\(a,b,c) -> toHlistField a b c) trips
->       --er1 <- [| emptyRecord |]
->       --mt1 <- [| [] |]
->       
->       let hlct = foldHlist l1
-
-foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 $ reverse (er1 : l1)
-
->       lamE [listP (map varP retNames)] hlct
->         -- (tupE $ zipWith fromSqlIt retNames outT)
-
->     foldHlist :: [Exp] -> Q Exp
->     foldHlist (e:e1) = [| $(return e) .*. $(foldHlist e1) |]
->     foldHlist [] = [| emptyRecord |]
-
- >     mt :: ExpQ
- >     mt = [| [] |]
-
- >     er :: ExpQ
- >     er = [| emptyRecord |]
-
->     toHlistField :: String -> Type -> Name -> Q Exp
->     toHlistField f t v = [| $(varE $ mkName f) .=. $(fromSqlIt v t) |]
-
->     {-toHlistField :: String -> TypeQ -> Name -> Q Exp
->     toHlistField f t v = do
->       t' <- t
->       [| $(varE $ mkName f) .=. $(fromSqlIt v t') |]-}
-
->     fromSqlIt :: Name -> Type -> Q Exp
->     fromSqlIt n t = do
->       n1 <- [| fromSql $(varE n) |]
->       casti n1 t
->
->     casti :: Exp -> Type -> Q Exp
->     casti e = return . SigE e
->
->     castName :: Name -> Type -> Q Exp
->     castName = casti . VarE
->     getNNewNames :: String -> Int -> Q [Name]
->     getNNewNames i n = forM [1..n] $ const $ newName i
-
+> -- >                  conn
+> -- >               -> a
+> -- >               -> b
+> -- >               -> IO c
+> -- >
+> -- and then ghc will complain and tell you what a,b,c should be (make
+> -- sure you match the number of arguments after conn to the number
+> -- of ? placeholders in the sql string).
 
 > sqlStmt :: String -> String -> Q Exp
 > sqlStmt dbName sqlStr = do
@@ -191,65 +172,40 @@ foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 $ reverse (er1 : l1)
 >        return . map $(mapHlistFromSql outA)|]
 >
 >   where
+>     -- th code gen utils
+>     mapHlistFromSql :: [(String,Type)] -> Q Exp
+>     mapHlistFromSql outA = do
+>       retNames <- getNNewNames "r" $ length outA
+>       l1 <- mapM (\(a,b,c) -> toHlistField a b c) $ zipWith (\(a,b) c -> (a,b,c)) outA retNames
+>       lamE [listP (map varP retNames)] $ foldHlist l1
 >
 >     toHlistField :: String -> Type -> Name -> Q Exp
 >     toHlistField f t v = [| $(varE $ mkName f) .=. $(fromSqlIt v t) |]
 >
->     {-mapHlistFromSql :: [(String,Type)] -> Q Exp
->     mapHlistFromSql outA = do
->       retNames <- getNNewNames "r" $ length outA
->       let trips :: [(String,Type,Name)]
->           trips = zipWith (\(a,b) c -> (a,b,c)) outA retNames
->       let outT = map snd outA
->       l1 <- mapM (\(a,b,c) -> toHlistField a b c) trips
->       er1 <- [| emptyRecord |]
->       mt1 <- [| [] |]
->       let hlct = foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 $ reverse (er1 : l1)
->       lamE [listP (map varP retNames)] hlct
->         -- (tupE $ zipWith fromSqlIt retNames outT) -}
-
->     mapHlistFromSql :: [(String,Type)] -> Q Exp
->     mapHlistFromSql outA = do
->       retNames <- getNNewNames "r" $ length outA
->       let trips :: [(String,Type,Name)]
->           trips = zipWith (\(a,b) c -> (a,b,c)) outA retNames
->       --let outT = map snd outA
->       l1 <- mapM (\(a,b,c) -> toHlistField a b c) trips
->       --er1 <- [| emptyRecord |]
->       --mt1 <- [| [] |]
->       
->       let hlct = foldHlist l1
-
-foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 $ reverse (er1 : l1)
-
->       lamE [listP (map varP retNames)] hlct
->         -- (tupE $ zipWith fromSqlIt retNames outT)
-
 >     foldHlist :: [Exp] -> Q Exp
 >     foldHlist (e:e1) = [| $(return e) .*. $(foldHlist e1) |]
 >     foldHlist [] = [| emptyRecord |]
-
-
- >   let list = [("ptype", [t| Int |], mkName "a0")
- >              ,("allegiance", [t| String |], mkName "a0")]
- >   l2 <- runQ [| $(do
- >                   l1 <- mapM (\(a,b,c) -> toHlistField a b c) list
- >                   er1 <- er
- >                   let l2 = l1 ++ [er1]
- >                   mt1 <- mt
- >                   foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 l2)
- >               |]
-
-
->     mapTupleFromSql :: [Type] -> Q Exp
->     mapTupleFromSql outT = do
->       retNames <- getNNewNames "r" $ length outT
->       lamE [listP (map varP retNames)]
->         (tupE $ zipWith fromSqlIt retNames outT)
-
-
+>
+>     toSqlIt :: Name -> Type -> Q Exp
+>     toSqlIt n t = [| toSql $(castName n t)|]
+>
+>     fromSqlIt :: Name -> Type -> Q Exp
+>     fromSqlIt n t = do
+>       n1 <- [| fromSql $(varE n) |]
+>       casti n1 t
+>
+>     casti :: Exp -> Type -> Q Exp
+>     casti e = return . SigE e
+>
+>     castName :: Name -> Type -> Q Exp
+>     castName = casti . VarE
+>
+>     getNNewNames :: String -> Int -> Q [Name]
+>     getNNewNames i n = forM [1..n] $ const $ newName i
+>
+>     -- statement type stuff
 >     liftStType :: Q StatementHaskellType
->     liftStType = runIO stType >>= (either (error . show) toH)
+>     liftStType = runIO stType >>= either (error . show) toH
 >
 >     stType :: IO (Either String StatementType)
 >     stType = runErrorT $ do
@@ -268,85 +224,6 @@ foldM (\a b -> [| $(return a) .*. $(return b) |]) mt1 $ reverse (er1 : l1)
 >                    liftIO $ writeIORef globalCachedCatalog (Just c)
 >                    return c
 >
->     -- lambda which does [SqlValue] -> (T1, T2, ...)
->     {-mapTupleFromSql :: [Type] -> Q Exp
->     mapTupleFromSql outT = do
->       retNames <- getNNewNames "r" $ length outT
->       lamE [listP (map varP retNames)]
->         (tupE $ zipWith fromSqlIt retNames outT)-}
->
->     toSqlIt :: Name -> Type -> Q Exp
->     toSqlIt n t = [| toSql $(castName n t)|]
->
->     fromSqlIt :: Name -> Type -> Q Exp
->     fromSqlIt n t = do
->       n1 <- [| fromSql $(varE n) |]
->       casti n1 t
->
->     casti :: Exp -> Type -> Q Exp
->     casti e = return . SigE e
->
->     castName :: Name -> Type -> Q Exp
->     castName = casti . VarE
->
->     getNNewNames :: String -> Int -> Q [Name]
->     getNNewNames i n = forM [1..n] $ const $ newName i
-
-
-> sqlStmt1 :: String -> String -> Q Exp
-> sqlStmt1 dbName sqlStr = do
->   (StatementHaskellType inA outA) <- liftStType
->   let cnName = mkName "cn"
->   argNames <- getNNewNames "a" $ length inA
->   lamE (map varP (cnName : argNames))
->     [| selectRelation $(varE cnName) sqlStr
->                       $(ListE <$> zipWithM toSqlIt argNames inA) >>=
->        return . map $(mapTupleFromSql $ map snd outA)|]
->
->   where
->     liftStType :: Q StatementHaskellType
->     liftStType = runIO stType >>= (either (error . show) toH)
->
->     stType :: IO (Either String StatementType)
->     stType = runErrorT $ do
->       cat <- getCat
->       tsl (getStatementType cat sqlStr)
->
->     getCat :: ErrorT String IO Catalog
->     getCat = do
->       -- bad code to avoid reading the catalog multiple times
->       c1 <- liftIO $ readIORef globalCachedCatalog
->       case c1 of
->         Just c -> return c
->         Nothing -> do
->                    c <- liftIO (readCatalogFromDatabase dbName) >>=
->                           (tsl . updateCatalog defaultCatalog)
->                    liftIO $ writeIORef globalCachedCatalog (Just c)
->                    return c
->
->     -- lambda which does [SqlValue] -> (T1, T2, ...)
->     mapTupleFromSql :: [Type] -> Q Exp
->     mapTupleFromSql outT = do
->       retNames <- getNNewNames "r" $ length outT
->       lamE [listP (map varP retNames)]
->         (tupE $ zipWith fromSqlIt retNames outT)
->
->     toSqlIt :: Name -> Type -> Q Exp
->     toSqlIt n t = [| toSql $(castName n t)|]
->
->     fromSqlIt :: Name -> Type -> Q Exp
->     fromSqlIt n t = do
->       n1 <- [| fromSql $(varE n) |]
->       casti n1 t
->
->     casti :: Exp -> Type -> Q Exp
->     casti e = return . SigE e
->
->     castName :: Name -> Type -> Q Exp
->     castName = casti . VarE
->
->     getNNewNames :: String -> Int -> Q [Name]
->     getNNewNames i n = forM [1..n] $ const $ newName i
 
 ================================================================================
 
