@@ -76,41 +76,42 @@ fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
 > sqlStmt :: String -> String -> Q Exp
 > sqlStmt dbName sqlStr = do
 >   (StatementHaskellType inA outA) <- stType
->   argNames <- getNNewNames "a" $ length inA
 >   let cnName = mkName "cn"
->       bd = [| selectRelation $(varE cnName) sqlStr
->                           $(mapEmToSql (zip argNames inA)) >>=
->               return . map $(mapTupleFromSql outA)|]
->   lamE (map varP (cnName : argNames)) bd
+>   argNames <- getNNewNames "a" $ length inA
+>   lamE (map varP (cnName : argNames))
+>     [| selectRelation $(varE cnName) sqlStr
+>                       $(ListE <$> zipWithM toSqlIt argNames inA) >>=
+>        return . map $(mapTupleFromSql $ map snd outA)|]
+>
 >   where
->     -- take the list of input arg names and types and do map (\(n,t) -> toSql n::t)
->     mapEmToSql :: [(Name,Type)] -> Q Exp
->     mapEmToSql nts = ListE <$> forM nts (\(n,t) ->
->                                          [| toSql $(castName n t)|])
 >     -- mapper is the lambda which takes a list of sqlvalues
 >     -- and produces a tuple using fromSql n :: t
->     mapTupleFromSql :: [(a,Type)] -> Q Exp
->     mapTupleFromSql outA = do
->       retNames <- getNNewNames "r" $ length outA
->       let largs = listP (map varP retNames)
->       ps <- forM retNames $ \r -> [| fromSql $(varE r) |]
->       let ntpt :: [(Exp,Type)]
->           ntpt = zip ps $ map snd outA
->       ntp1 <- mapM (uncurry cast) ntpt
->       lamE [largs] (return $ TupE ntp1)
+>     mapTupleFromSql :: [Type] -> Q Exp
+>     mapTupleFromSql outT = do
+>       retNames <- getNNewNames "r" $ length outT
+>       lamE [listP (map varP retNames)]
+>         (tupE $ zipWith fromSqlIt retNames outT)
 >
->     cast :: Exp -> Type -> Q Exp
->     cast e t = return $ SigE e t
-
->     castName :: Name -> Type -> Q Exp
->     castName n t = cast (VarE n) t
->
->     stType = (wet $ do
+>     stType = wet $ do
 >       -- this is very slow, rereads the catalog from the database for
 >       -- each call to sqlStmt
 >       catU <- lift $ runIO $ readCatalogFromDatabase dbName
 >       cat <- tsl $ updateCatalog defaultCatalog catU
->       tsl (getStatementType cat sqlStr) >>= lift . toH)
+>       tsl (getStatementType cat sqlStr) >>= lift . toH
+>
+>     toSqlIt :: Name -> Type -> Q Exp
+>     toSqlIt n t = [| toSql $(castName n t)|]
+>
+>     fromSqlIt :: Name -> Type -> Q Exp
+>     fromSqlIt n t = do
+>       n1 <- [| fromSql $(varE n) |]
+>       cast n1 t
+>
+>     cast :: Exp -> Type -> Q Exp
+>     cast e = return . SigE e
+>
+>     castName :: Name -> Type -> Q Exp
+>     castName = cast . VarE
 >
 >     getNNewNames :: String -> Int -> Q [Name]
 >     getNNewNames i n = forM [1..n] $ const $ newName i
