@@ -40,6 +40,7 @@ fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
 > import Database.HsSqlPpp.Ast.TypeChecker
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.Utils
 
 > -- | Simple wrapper so that all client code needs to do is import this file
 > -- and use withConn and sqlStmt without importing HDBC, etc.
@@ -75,7 +76,7 @@ fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
 > --
 > sqlStmt :: String -> String -> Q Exp
 > sqlStmt dbName sqlStr = do
->   (StatementHaskellType inA outA) <- stType
+>   (StatementHaskellType inA outA) <- liftStType
 >   let cnName = mkName "cn"
 >   argNames <- getNNewNames "a" $ length inA
 >   lamE (map varP (cnName : argNames))
@@ -84,6 +85,16 @@ fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
 >        return . map $(mapTupleFromSql $ map snd outA)|]
 >
 >   where
+>     liftStType :: Q StatementHaskellType
+>     liftStType = runIO stType >>= (either (error . show) toH)
+>
+>     stType :: IO (Either String StatementType)
+>     stType = runErrorT $ do
+>       -- this is very slow, rereads the catalog from the database for
+>       -- each call to sqlStmt
+>       cat <- liftIO (readCatalogFromDatabase dbName) >>=
+>              (tsl . updateCatalog defaultCatalog)
+>       tsl (getStatementType cat sqlStr)
 >     -- mapper is the lambda which takes a list of sqlvalues
 >     -- and produces a tuple using fromSql n :: t
 >     mapTupleFromSql :: [Type] -> Q Exp
@@ -92,12 +103,6 @@ fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
 >       lamE [listP (map varP retNames)]
 >         (tupE $ zipWith fromSqlIt retNames outT)
 >
->     stType = wet $ do
->       -- this is very slow, rereads the catalog from the database for
->       -- each call to sqlStmt
->       catU <- lift $ runIO $ readCatalogFromDatabase dbName
->       cat <- tsl $ updateCatalog defaultCatalog catU
->       tsl (getStatementType cat sqlStr) >>= lift . toH
 >
 >     toSqlIt :: Name -> Type -> Q Exp
 >     toSqlIt n t = [| toSql $(castName n t)|]
@@ -115,7 +120,6 @@ fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
 >
 >     getNNewNames :: String -> Int -> Q [Name]
 >     getNNewNames i n = forM [1..n] $ const $ newName i
-
 
 ================================================================================
 
@@ -154,22 +158,6 @@ return the equivalent haskell type for a sql type as a string
 >        Sql.ScalarType "bool" -> [t| Maybe Bool |]
 >        Sql.DomainType _ -> [t| Maybe String |]
 >        x -> error $ show x
-
-================================================================================
-
-error utility - convert either to ErrorT String
-
-> tsl :: (MonadError String m, Show t) => Either t a -> m a
-> tsl x = case x of
->                Left s -> throwError $ show s
->                Right b -> return b
-
-
-> wet :: Show e => ErrorT e Q a -> Q a
-> wet c = runErrorT c >>= \x ->
->          case x of
->            Left er -> report True (show er) >> error ""
->            Right l -> return l
 
 ================================================================================
 
