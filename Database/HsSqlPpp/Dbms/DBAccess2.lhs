@@ -1,35 +1,19 @@
 Copyright 2010 Jake Wheat
 
-More refined example wrapper generator. The idea is to start with
-$(runStmt connStr sqlStr)
-and return a fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
-                   -> IO hlist<fieldname, fieldtype>
+More refined example wrapper generator, uses template haskell. See the
+docs attached to sqlStmt function below
 
-at some point the type checker will be able to determine whether the
-output fields are maybes or not, we output them all as maybes at the
-moment. For input args, this may not be possible, but we assume all
-input args can never be null for now.
-
-Can't work out how to get the hlist aspect working, so just outputs
-lists of tuples at the moment, so currenly does
-
-fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
-                   -> IO [(r1,r2,...)]
-
-> {-# LANGUAGE TemplateHaskell,QuasiQuotes,EmptyDataDecls,ScopedTypeVariables,RankNTypes,FlexibleContexts #-}
+> {-# LANGUAGE TemplateHaskell #-}
 
 > module Database.HsSqlPpp.Dbms.DBAccess2 (withConn, sqlStmt,IConnection) where
 
 > import Language.Haskell.TH
 
 > import Data.Maybe
-
 > import Control.Applicative
 > import Control.Monad.Error
 > import Control.Monad
 > import Control.Exception
-
-
 
 > import Database.HDBC
 > import qualified Database.HDBC.PostgreSQL as Pg
@@ -42,18 +26,14 @@ fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Utils
 
-> -- | Simple wrapper so that all client code needs to do is import this file
-> -- and use withConn and sqlStmt without importing HDBC, etc.
-
-> withConn :: String -> (Pg.Connection -> IO c) -> IO c
-> withConn cs = bracket (Pg.connectPostgreSQL cs) disconnect
-
-
 > -- | template haskell fn to roughly do typesafe database access, pretty experimental atm
 > --
 > -- sketch is:
 > --
-> -- > sqlStmt connStr sqlStr ->
+> -- > $(sqlStmt connStr sqlStr)
+> -- >
+> -- > -- is transformed into
+> -- >
 > -- >  \conn a_0 a_0 ... ->
 > -- >         selectRelation conn sqlStr [toSql (a_0::Ti0)
 > -- >                                    ,toSql (a_1::Ti1), ... ] >>=
@@ -73,6 +53,8 @@ fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
 > -- >              -> Maybe Int
 > -- >              -> Maybe Int
 > -- >              -> IO [(Maybe String, Maybe String, Maybe Int, Maybe Int, Maybe Int)]
+> --
+> -- (as well as producing a working function which accesses a database)
 > --
 > sqlStmt :: String -> String -> Q Exp
 > sqlStmt dbName sqlStr = do
@@ -123,7 +105,15 @@ fn :: (IConnection conn) => conn -> Arg1 -> Arg2 -> ...
 
 ================================================================================
 
-parsing and typechecking
+> -- | Simple wrapper so that all client code needs to do is import this file
+> -- and use withConn and sqlStmt without importing HDBC, etc.
+
+> withConn :: String -> (Pg.Connection -> IO c) -> IO c
+> withConn cs = bracket (Pg.connectPostgreSQL cs) disconnect
+
+================================================================================
+
+sql parsing and typechecking
 
 get the input and output types for a parameterized sql statement:
 
@@ -145,19 +135,16 @@ toSql and fromSql as long as we add in the appropriate casts
 >   ih <- mapM sqlTypeToHaskell i
 >   oht <- mapM (sqlTypeToHaskell . snd) o
 >   return $ StatementHaskellType ih $ zip (map fst o) oht
-
-
-return the equivalent haskell type for a sql type as a string
-
-> sqlTypeToHaskell :: Sql.Type -> TypeQ
-> sqlTypeToHaskell t =
->     case t of
->        Sql.ScalarType "text" -> [t| Maybe String |]
->        Sql.ScalarType "int4" -> [t| Maybe Int |]
->        Sql.ScalarType "int8" -> [t| Maybe Int |]
->        Sql.ScalarType "bool" -> [t| Maybe Bool |]
->        Sql.DomainType _ -> [t| Maybe String |]
->        x -> error $ show x
+>   where
+>     sqlTypeToHaskell :: Sql.Type -> TypeQ
+>     sqlTypeToHaskell t =
+>       case t of
+>         Sql.ScalarType "text" -> [t| Maybe String |]
+>         Sql.ScalarType "int4" -> [t| Maybe Int |]
+>         Sql.ScalarType "int8" -> [t| Maybe Int |]
+>         Sql.ScalarType "bool" -> [t| Maybe Bool |]
+>         Sql.DomainType _ -> [t| Maybe String |]
+>         x -> error $ show x
 
 ================================================================================
 
@@ -166,8 +153,10 @@ work out how to use hlist
 cache the database catalog once per compile?
 get error reporting at compile time working nicely:
 can't connect to database
-problem getting catalog
-problem getting statement type: parse and type check issues
+problem getting catalog -> report connection string used and source
+  position
+problem getting statement type: parse and type check issues, report
+  source position
 
 ================================================================================
 
