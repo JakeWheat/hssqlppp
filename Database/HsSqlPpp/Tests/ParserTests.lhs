@@ -8,7 +8,8 @@ written in a tdd style, which the coverage of the tests reflects.
 There are no tests for invalid sql at the moment.
 
 temporarily disabled because of haddock issue:
-{-# LANGUAGE QuasiQuotes #-}
+
+ > {-# LANGUAGE QuasiQuotes #-}
 
 > module Database.HsSqlPpp.Tests.ParserTests (parserTests) where
 
@@ -148,12 +149,16 @@ test some more really basic expressions
 >      ]]
 
 >    ,Group "case expressions" [Expressions [
->       p -- [$here|
->          "case when a,b then 3\n\
->          \     when c then 4\n\
->          \     else 5\n\
->          \end"
->          --    |]
+>       p "case when a,b then 3\n\
+>         \     when c then 4\n\
+>         \     else 5\n\
+>         \end"
+>         {- [$here|
+>          case when a,b then 3
+>               when c then 4
+>               else 5
+>          end
+>              |] -}
 >         (Case [] [([Identifier [] "a", Identifier [] "b"], IntegerLit [] 3)
 >               ,([Identifier [] "c"], IntegerLit [] 4)]
 >          (Just $ IntegerLit [] 5))

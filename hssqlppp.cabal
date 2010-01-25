@@ -87,6 +87,7 @@ extra-source-files:  README
                      --find Database/ -type f -a ! -iname '*.o' -a ! -iname '*.hi'
                      Database/HsSqlPpp/Utils.lhs
                      Database/HsSqlPpp/Dbms/DBAccess.lhs
+                     Database/HsSqlPpp/Dbms/DBAccess2.lhs
                      Database/HsSqlPpp/Dbms/DatabaseLoader.lhs
                      Database/HsSqlPpp/Dbms/WrapLib.lhs
                      Database/HsSqlPpp/Dbms/WrapperGen.lhs
@@ -155,7 +156,7 @@ Library
                      process,
                      --pandoc == 1.2.1,
                      filepath,
-                     --template-haskell,
+                     template-haskell,
                      haskell-src-exts
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
@@ -169,10 +170,11 @@ Library
                      Database.HsSqlPpp.Dbms.DatabaseLoader
                      Database.HsSqlPpp.Dbms.WrapperGen
                      Database.HsSqlPpp.Dbms.WrapLib
+                     Database.HsSqlPpp.Dbms.DBAccess2
                      Database.HsSqlPpp.Extensions.ChaosExtensions
 
   Other-Modules:     Database.HsSqlPpp.Utils
-                     --Database.HsSqlPpp.Here
+                     Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Dbms.DBAccess
                      Database.HsSqlPpp.Dbms.DBUtils
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
@@ -214,8 +216,9 @@ Executable HsSqlSystem
                      cmdargs
 
   Other-Modules:     Database.HsSqlPpp.Utils
-                     --Database.HsSqlPpp.Here
+                     Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Dbms.DBAccess
+                     Database.HsSqlPpp.Dbms.DBAccess2
                      Database.HsSqlPpp.Dbms.WrapperGen
                      Database.HsSqlPpp.Dbms.WrapLib
                      Database.HsSqlPpp.Dbms.DatabaseLoader
