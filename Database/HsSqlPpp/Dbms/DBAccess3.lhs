@@ -1,8 +1,9 @@
 Copyright 2010 Jake Wheat
 
-Do type safe database access using template haskell and hlists. Limitation
-is that you have to edit this file to add the field definitions and possibly
-exports. Suggested use is to copy this file into your own project
+Do type safe database access using template haskell and
+hlists. Limitation is that you have to edit this file to add the field
+definitions and possibly exports. Suggested use is to copy this file
+into your own project and edit it there.
 
 > {-# LANGUAGE TemplateHaskell,EmptyDataDecls,DeriveDataTypeable #-}
 
@@ -11,14 +12,14 @@ exports. Suggested use is to copy this file into your own project
 >     ,sqlStmt
 >     ,IConnection
 
-If you are using this then export the proxy types and values here,
-useful if you need to write down type signatures, exporting them isn't
-neccessarily neccessary otherwise.
+If you want to write down type signatures containing the resultant
+hlists then export the proxy types and values here, exporting them
+isn't neccessarily neccessary otherwise.
 
 >     ,ptype,allegiance,tag,x,y
 >     ,Ptype,Allegiance,Tag,X,Y
 >     ,get_turn_number,current_wizard,colour,sprite
->     ,Get_Turn_Number,Current_Wizard,Colour,Sprite
+>     ,Get_turn_number,Current_wizard,Colour,Sprite
 
 
 >     ) where
@@ -28,7 +29,6 @@ neccessarily neccessary otherwise.
 > import Data.Maybe
 > import Control.Applicative
 > import Control.Monad.Error
-> --import Control.Monad
 > import Control.Exception
 
 > import Database.HDBC
@@ -38,6 +38,7 @@ neccessarily neccessary otherwise.
 > import Data.HList.Label4 ()
 > import Data.HList.TypeEqGeneric1 ()
 > import Data.HList.TypeCastGeneric1 ()
+> import Database.HsSqlPpp.Dbms.MakeLabels
 
 > import System.IO.Unsafe
 > import Data.IORef
@@ -54,39 +55,17 @@ neccessarily neccessary otherwise.
 ================================================================================
 
 If you are using this file, this is the bit where you add your own
-fields, just follow the pattern. deriving Typeable seems to allow
-showing the returned hlists, don't know if there's a better way.
-TODO: add some template code to remove the boilerplate, apparently
-there is some in the hlist darcs repo.
+fields.
 
-> data Ptype deriving Typeable
-> ptype :: Proxy Ptype
-> ptype = proxy::Proxy Ptype
-> data Allegiance deriving Typeable
-> allegiance :: Proxy Allegiance
-> allegiance = proxy::Proxy Allegiance
-> data Tag deriving Typeable
-> tag :: Proxy Tag
-> tag = proxy::Proxy Tag
-> data X deriving Typeable
-> x :: Proxy X
-> x = proxy::Proxy X
-> data Y deriving Typeable
-> y :: Proxy Y
-> y = proxy::Proxy Y
-
-> data Get_Turn_Number deriving Typeable
-> get_turn_number :: Proxy Get_Turn_Number
-> get_turn_number = proxy::Proxy Get_Turn_Number
-> data Current_Wizard deriving Typeable
-> current_wizard :: Proxy Current_Wizard
-> current_wizard = proxy::Proxy Current_Wizard
-> data Colour deriving Typeable
-> colour :: Proxy Colour
-> colour = proxy::Proxy Colour
-> data Sprite deriving Typeable
-> sprite :: Proxy Sprite
-> sprite    = proxy::Proxy Sprite
+> $(makeLabels ["ptype"
+>              ,"allegiance"
+>              ,"tag"
+>              ,"x"
+>              ,"y"
+>              ,"get_turn_number"
+>              ,"current_wizard"
+>              ,"colour"
+>              ,"sprite"])
 
 ================================================================================
 
@@ -95,6 +74,7 @@ there is some in the hlist darcs repo.
 > --
 > -- sketch is:
 > --
+> -- >
 > -- > $(sqlStmt connStr sqlStr)
 > -- >
 > -- > -- is transformed into
@@ -109,6 +89,7 @@ there is some in the hlist darcs repo.
 > -- >        ... .*.
 > -- >        emptyRecord)
 > -- >
+> --
 > -- where the names f1, f2 are the attribute names from the database,
 > -- the types Ti[n] are the types of the placeholders in the sql
 > -- string, and the types To[n] are the types of the attributes in
@@ -119,9 +100,11 @@ there is some in the hlist darcs repo.
 > --
 > -- example usage:
 > --
+> -- >
 > -- > pieces_at_pos = $(sqlStmt connStr "select * from pieces where x = ? and y = ?;")
+> -- >
 > --
-> -- might infer the type:
+> -- might (!) infer the type:
 > --
 > -- >
 > -- >   pieces_at_pos :: IConnection conn =>
@@ -139,6 +122,7 @@ there is some in the hlist darcs repo.
 > -- >                               (HCons (LVPair (Proxy Y)
 > -- >                                              (Maybe Int))
 > -- >                                HNil)))))]
+> -- >
 > --
 > -- (as well as producing a working function which accesses a database). Currently, I get
 > --
@@ -149,7 +133,9 @@ there is some in the hlist darcs repo.
 > -- >         arising from a use of `pieces' at Test3.lhs:16:12-22
 > -- >     Probable fix: add a type signature that fixes these type variable(s)
 > -- >
+> --
 > -- which can be worked around by adding a type signature like
+> --
 > -- >
 > -- > pieces_at_pos :: IConnection conn =>
 > -- >                  conn
@@ -157,6 +143,7 @@ there is some in the hlist darcs repo.
 > -- >               -> b
 > -- >               -> IO c
 > -- >
+> --
 > -- and then ghc will complain and tell you what a,b,c should be (make
 > -- sure you match the number of arguments after conn to the number
 > -- of ? placeholders in the sql string).
@@ -201,7 +188,7 @@ there is some in the hlist darcs repo.
 >     castName = casti . VarE
 >
 >     getNNewNames :: String -> Int -> Q [Name]
->     getNNewNames i n = forM [1..n] $ const $ newName i
+>     getNNewNames i n = replicateM n $ newName i
 >
 >     -- statement type stuff
 >     liftStType :: Q StatementHaskellType
@@ -284,8 +271,6 @@ toSql and fromSql as long as we add in the appropriate casts
 ================================================================================
 
 TODO:
-work out how to use hlist
-cache the database catalog once per compile?
 get error reporting at compile time working nicely:
 can't connect to database
 problem getting catalog -> report connection string used and source
@@ -293,29 +278,5 @@ problem getting catalog -> report connection string used and source
 problem getting statement type: parse and type check issues, report
   source position
 
-================================================================================
-
-This is the kind of stuff that want to produce with hlist. Problem is,
-how to create the proxies for the field names:
-
-> {-
-> data Ptype;   ptype :: Proxy Ptype ; ptype    = proxy::Proxy Ptype
-> data Allegiance; allegiance :: Proxy Allegiance ; allegiance = proxy::Proxy Allegiance
-> data Tag; tag :: Proxy Tag ; tag = proxy::Proxy Tag
-> data X; x :: Proxy X ; x = proxy::Proxy X
-> data Y; y :: Proxy Y ; y = proxy::Proxy Y
-
-
-> sqlStmt :: String -> String -> Q Exp
-> sqlStmt connStr sqlStr = do
->   runQ [| \conn ->
->           selectRelation conn sqlStr [] >>=
->           return . map (\ [a0, a1, a2, a3, a4] ->
->               ptype .=. fromSql a0 .*.
->               allegiance .=. fromSql a1 .*.
->               tag .=. fromSql a2 .*.
->               x .=. fromSql a3 .*.
->               y .=. fromSql a4 .*.
->               emptyRecord)
->         |]
-> -}
+turn this file into a toolkit of bits, which can import so can use
+without having to copy then edit this file
