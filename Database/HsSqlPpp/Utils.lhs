@@ -8,7 +8,6 @@ This file contains some generic utility stuff
 
 > module Database.HsSqlPpp.Utils where
 
-> import Data.Maybe
 > import Data.List
 > import Data.Either
 > import Control.Arrow

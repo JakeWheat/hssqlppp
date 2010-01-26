@@ -14,12 +14,11 @@ to get a list of commands and purpose and usage info
 > import System.IO
 > import System.Directory
 > import Control.Monad.Error
-> import Data.List
-> import Data.Char
-> import Data.Generics
 
 > import Text.Show.Pretty
 > import Test.Framework (defaultMainWithArgs)
+
+> import Data.List
 
 > import Database.HsSqlPpp.Tests.ParserTests
 > import Database.HsSqlPpp.Tests.TypeCheckTests

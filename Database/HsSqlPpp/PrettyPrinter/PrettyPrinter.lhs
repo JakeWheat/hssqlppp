@@ -23,7 +23,6 @@ Not much other comments, since it all should be pretty self evident.
 >     where
 
 > import Text.PrettyPrint
-> import Data.Maybe
 > import Data.Char
 > import Data.List
 

@@ -33,8 +33,6 @@ copy payload (used to lex copy from stdin data)
 > import Control.Applicative
 > import Control.Monad.Identity
 
-> import Data.Char
-
 > import Database.HsSqlPpp.Parsing.ParseErrors
 > import Database.HsSqlPpp.Utils
 

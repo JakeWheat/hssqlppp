@@ -97,9 +97,10 @@ use create view to run through select variations
 >   -- run the tests first using psql to load the sql into the database
 >   -- and then using hssqlppp's database loader to load the sql into
 >   -- the database
->   doPgTests astOrig catOrig (liftIO $ loadSqlUsingPsql testDatabaseName sql)
+>   doPgTests astOrig catOrig (liftIO (loadSqlUsingPsql testDatabaseName sql >> return ()))
 >   doPgTests astOrig catOrig (liftIO $ loadIntoDatabase testDatabaseName "" astOrig)
 >   where
+>     doPgTests :: [Statement] -> Catalog -> ErrorT String IO () -> ErrorT String IO () -- a -> a
 >     doPgTests astOrig catOrig loadIntoDb = do
 >       -- parse and type check the test sql
 >       -- load this sql into pg

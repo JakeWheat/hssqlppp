@@ -34,13 +34,10 @@ This code is currently on the backburner, and is a mess.
 >      loadIntoDatabase
 >     ) where
 
-> import System.IO
 > import System.Directory
-> import Control.Monad
 > import Control.Exception
 > import Text.Regex.Posix
 > import Data.List
-> import Data.Maybe
 
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.Ast.Ast as Ast

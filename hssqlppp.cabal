@@ -89,6 +89,7 @@ extra-source-files:  README
                      Database/HsSqlPpp/Dbms/DBAccess.lhs
                      Database/HsSqlPpp/Dbms/DBAccess2.lhs
                      Database/HsSqlPpp/Dbms/DBAccess3.lhs
+                     Database/HsSqlPpp/Dbms/MakeLabels.hs
                      Database/HsSqlPpp/Dbms/DatabaseLoader.lhs
                      Database/HsSqlPpp/Dbms/WrapLib.lhs
                      Database/HsSqlPpp/Dbms/WrapperGen.lhs
@@ -179,6 +180,7 @@ Library
   Other-Modules:     Database.HsSqlPpp.Utils
                      Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Dbms.DBAccess
+                     Database.HsSqlPpp.Dbms.MakeLabels
                      Database.HsSqlPpp.Dbms.DBUtils
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstAnnotation
@@ -224,6 +226,7 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.Dbms.DBAccess
                      Database.HsSqlPpp.Dbms.DBAccess2
                      Database.HsSqlPpp.Dbms.DBAccess3
+                     Database.HsSqlPpp.Dbms.MakeLabels
                      Database.HsSqlPpp.Dbms.WrapperGen
                      Database.HsSqlPpp.Dbms.WrapLib
                      Database.HsSqlPpp.Dbms.DatabaseLoader

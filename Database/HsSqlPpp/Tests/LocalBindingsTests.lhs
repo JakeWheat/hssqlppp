@@ -8,7 +8,6 @@ places, particularly for joins
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
-> import Data.Char
 > --import Text.Show.Pretty
 > --import Debug.Trace
 

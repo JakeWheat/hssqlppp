@@ -11,7 +11,6 @@ plus output error location in emacs friendly format.
 
 > import Text.Parsec
 > import Control.Monad.Error
-> import Data.Maybe
 
 > showPE :: ParseError -> Maybe (Int,Int) -> String -> String
 > showPE pe sp src = show pe ++ "\n" ++ pePosToEmacs pe ++ "\n" ++ peToContext pe sp src

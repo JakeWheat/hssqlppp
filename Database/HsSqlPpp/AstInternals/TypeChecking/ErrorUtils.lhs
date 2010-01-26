@@ -15,8 +15,6 @@ type checking.
 >     ,getErrors
 >     ) where
 
-> import Data.List
-
 > import Database.HsSqlPpp.AstInternals.TypeType
 
 ================================================================================

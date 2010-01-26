@@ -28,7 +28,7 @@ checkAssignmentValid - pass in source type and target type, returns
 
 > import Data.Maybe
 > import Data.List
-> import Debug.Trace
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
@@ -467,7 +467,7 @@ code is not as much of a mess as findCallMatch
 >      allSameBaseType = all (== head inArgsBase) inArgsBase &&
 >                      head inArgsBase /= UnknownType
 >      inArgsBase = map (replaceWithBase cat) inArgs
->      allUnknown = all (==UnknownType) inArgsBase
+>      --allUnknown = all (==UnknownType) inArgsBase
 >      allSameCat = let firstCat = catTypeCategory cat (head knownTypes)
 >                   in all (\t -> catTypeCategory cat t == firstCat)
 >                          knownTypes

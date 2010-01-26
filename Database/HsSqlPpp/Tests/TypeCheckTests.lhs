@@ -9,7 +9,6 @@ sql which doesn't type check.
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
-> import Data.Char
 > import Data.List
 
 > import Database.HsSqlPpp.Parsing.Parser

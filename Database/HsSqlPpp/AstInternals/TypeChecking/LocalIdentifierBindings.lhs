@@ -19,8 +19,6 @@ Main areas to support are parameters and variables
 >     ) where
 
 > import Control.Monad
-> import Data.List
-> import Debug.Trace
 > import Data.Char
 
 > import Database.HsSqlPpp.AstInternals.TypeType

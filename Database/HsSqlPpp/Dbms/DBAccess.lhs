@@ -20,7 +20,7 @@ around hdbc for running commands and queries.
 > runSqlCommand :: (IConnection conn) =>
 >           conn -> String -> IO ()
 > runSqlCommand conn query = do
->     run conn query []
+>     _ <- run conn query []
 >     commit conn
 
 > withConn :: String -> (Pg.Connection -> IO c) -> IO c
@@ -48,7 +48,7 @@ around hdbc for running commands and queries.
 >                  conn -> String -> [String] -> IO [[String]]
 > selectRelation conn query args = do
 >   sth <- prepare conn query
->   execute sth $ map sToSql args
+>   _ <- execute sth $ map sToSql args
 >   v <- fetchAllRows' sth
 >   return $ map (map sqlToS) v
 

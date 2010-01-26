@@ -9,8 +9,6 @@ Set of tests for the extensions
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
-> import Data.Char
-> import Control.Monad.Error
 > --import Debug.Trace
 
 > import Database.HsSqlPpp.Parsing.Parser

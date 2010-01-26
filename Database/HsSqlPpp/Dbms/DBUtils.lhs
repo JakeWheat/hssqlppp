@@ -11,10 +11,6 @@ with postgres.
 >     ,pgDump) where
 
 
-> import System.IO
-> import Data.List
-> import Control.Monad.Error
-> import Data.Char
 > import System
 
 > import System.Process.Pipe

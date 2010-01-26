@@ -9,7 +9,7 @@ Copyright 2010 Jake Wheat
 >                   conn -> String -> [SqlValue] -> IO [[SqlValue]]
 > selectRelation conn query args = do
 >   sth <- prepare conn query
->   execute sth args
+>   _ <- execute sth args
 >   v <- fetchAllRows' sth
 >   return v
 

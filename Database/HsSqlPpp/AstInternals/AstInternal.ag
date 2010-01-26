@@ -116,8 +116,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
 import Data.Maybe
 import Data.List
 import Debug.Trace
-import Control.Monad.Error
-import Control.Arrow
+--import Control.Monad.Error
 import Data.Either
 import Control.Applicative
 import Data.Generics
@@ -130,7 +129,7 @@ import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 import Database.HsSqlPpp.AstInternals.AstAnnotation
 import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 import Database.HsSqlPpp.AstInternals.TypeChecking.LocalIdentifierBindings
-import Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
+--import Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
 import Database.HsSqlPpp.Utils
 import Data.Generics.PlateData
 

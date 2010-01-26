@@ -29,9 +29,7 @@ the code here handles expanding record types so that the components can be looke
 >     ) where
 
 > import Control.Monad
-> import Data.List
 > --import Debug.Trace
-> import Data.Char
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > --import Database.HsSqlPpp.Utils

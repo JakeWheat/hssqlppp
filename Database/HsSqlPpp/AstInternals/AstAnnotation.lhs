@@ -34,7 +34,6 @@ grammar code and aren't exposed.
 >     ) where
 
 > import Data.Generics
-> import Data.Maybe
 > import Control.Arrow
 
 > import Database.HsSqlPpp.AstInternals.TypeType

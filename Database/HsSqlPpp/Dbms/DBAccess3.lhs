@@ -41,7 +41,7 @@ isn't neccessarily neccessary otherwise.
 > import Database.HsSqlPpp.Dbms.MakeLabels
 
 > import System.IO.Unsafe
-> import Data.IORef
+> --import Data.IORef
 
 > import Database.HsSqlPpp.Dbms.WrapLib
 > import qualified Database.HsSqlPpp.Ast.SqlTypes as Sql

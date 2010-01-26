@@ -1226,10 +1226,10 @@ keyword has to not be immediately followed by letters or numbers
 (symbols and whitespace are ok) so we know that we aren't reading an
 identifier which happens to start with a complete keyword
 
-> keyword :: String -> ParsecT [Token] ParseState Identity String
+> keyword :: String -> ParsecT [Token] ParseState Identity ()
 > keyword k = mytoken (\tok ->
 >                                case tok of
->                                IdStringTok i | lcase k == lcase i -> Just k
+>                                IdStringTok i | lcase k == lcase i -> Just ()
 >                                _ -> Nothing)
 >                       where
 >                         lcase = map toLower
@@ -1240,9 +1240,9 @@ identifier which happens to start with a complete keyword
 >                                      IdStringTok i -> Just i
 >                                      _ -> Nothing)
 
-> symbol :: String -> ParsecT [Token] ParseState Identity String
+> symbol :: String -> ParsecT [Token] ParseState Identity ()
 > symbol c = mytoken (\tok -> case tok of
->                                    SymbolTok s | c==s -> Just c
+>                                    SymbolTok s | c==s -> Just ()
 >                                    _           -> Nothing)
 
 > integer :: MyParser Integer
