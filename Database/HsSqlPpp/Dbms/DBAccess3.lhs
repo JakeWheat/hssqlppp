@@ -12,13 +12,13 @@ into your own project and edit it there.
 >     ,sqlStmt
 >     ,IConnection
 
-If you want to write down type signatures containing the resultant
-hlists then export the proxy types and values here, exporting them
-isn't neccessarily neccessary otherwise.
+Export the field proxies for your project here.  If you want to write
+down type signatures of the result hlists then export the proxy types
+here also, exporting them isn't neccessarily neccessary otherwise.
 
 >     ,ptype,allegiance,tag,x,y
->     ,Ptype,Allegiance,Tag,X,Y
 >     ,get_turn_number,current_wizard,colour,sprite
+>     ,Ptype,Allegiance,Tag,X,Y
 >     ,Get_turn_number,Current_wizard,Colour,Sprite
 
 
@@ -280,3 +280,5 @@ problem getting statement type: parse and type check issues, report
 
 turn this file into a toolkit of bits, which can import so can use
 without having to copy then edit this file
+
+figure out a better way of handling the proxies

@@ -6,9 +6,17 @@ Experimental code to use uniplate to implement extensions
 
 > {- | Experimental code to half implement some simple syntax
 >      extensions for plpgsql. Eventually, want to use this to write
->      macro type things for plpgsql, have implementation of all these
->      in pure plpgsql code but it's a mess, and the plpgsql
->      implementation is opaque to the hssqlppp type checker.
+>      macro type things for plpgsql.
+>
+>      The transforms here were already implemented as dynamic pl/pgsql
+>      generation from pl/pgsql itself, hopefully this approach will
+>      turn out to be a bit more maintainable, and the resultant code
+>      visible to the hssqlppp type checking process.
+>
+>      Only some of the extensions needed are here, and they are only
+>      part implemented, the first milestone is to get the type
+>      checking working, without e.g. worrying about the bodies of
+>      generated functions.
 >  -}
 
 > module Database.HsSqlPpp.Extensions.ChaosExtensions

@@ -1,64 +1,36 @@
 Name:                hssqlppp
-Version:             0.1.0
+Version:             0.2.0
 Synopsis:            Sql parser and type checker
 Description:
     Sql parser, pretty printer and type checker, targets PostgreSQL SQL
-    and PL/pgSQL, uses Parsec and UUAGC.
-    .
-    Overview:
-    .
-    see the module 'Ast' for the ast types;
-    .
-    'Parser' for converting text to asts;
-    .
-    'PrettyPrinter' for converting asts to text;
-    .
-    'AnnotateSource' for pretty printing annotations inline with original source;
-    .
-    'TypeChecker' for type checking and annotating asts and working
-    with annotated trees;
-    .
-    'SqlTypes' for the data types which represent SQL types, the data
-    type for type errors, and some support functions;
-    .
-    'Annotation' for the annotation data types and utilities;
-    .
-    'Catalog' to read a catalog from a database to type check against,
-    or to generate catalog information;
-    .
-    'DatabaseLoader' for the beginnings of a routine to load SQL into
-    a database (e.g. to generate an ast then load it into a database
-    without loading it via psql). The loader just about does the job
-    but error handling is a bit crap at the moment.
-    .
-    'ChaosExtensions' for the experimental plpgsql syntax extensions;
-    .
-    'WrapperGen' for a simple demonstration of how this code can be used
-    to generate a typesafe database access wrapper. See the source here:
-    <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/Database/HsSqlPpp/Dbms/WrapperGen.lhs>
-    .
-    'WrapLib' is the runtime support function for code generated using
-    'WrapperGen'.
-    .
-    Comes with command line access to some
-    functions via a exe called HsSqlSystem, run this file with no
-    arguments to get some help. Has a HUnit test suite which you can
-    run using the HsSqlSystem executable. for the time being you can
-    look at the source of this command to see what it can do:
-    .
-    <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/HsSqlSystem.lhs>
+    and PL/pgSQL.
     .
     See the project page
     <https://launchpad.net/hssqlppp> for more information and
-    documentation links.
+    documentation links, there are also links to some example usage
+    files there.
     .
-    The test files for parsing and for type checking contain examples
-    of what parses/ typechecks and what the asts and annotations look
-    like:
+    Quick module guide:
     .
-    <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/Database/HsSqlPpp/Tests/ParserTests.lhs>
+    'Ast' - ast types;
     .
-    <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/Database/HsSqlPpp/Tests/TypeCheckTests.lhs>
+    'Parser' - converting strings to asts;
+    .
+    'PrettyPrinter' - converting asts to strings containing valid SQL;
+    .
+    'TypeChecker' - type checking and annotating asts and working
+    with annotated trees;
+    .
+    'SqlTypes' - the data types which represent SQL types, the data
+    type for type errors, and some support functions;
+    .
+    'Annotation' - the annotation data types and utilities;
+    .
+    'Catalog' - read a catalog from a database to type check against,
+    or to generate catalog information.
+    .
+    Also comes with command line access to some functions via a exe called
+    HsSqlSystem, run this file with no arguments to get some help.
 
 License:             BSD3
 License-file:        LICENSE
@@ -74,16 +46,6 @@ category:            Database
 
 extra-source-files:  README
                      LICENSE
-                     docs/changelog
-                     docs/development
-                     docs/Introduction.txt
-                     docs/recordtests.sql
-                     docs/status
-                     docs/TODO
-                     docs/usage
-                     testfiles/system.sql
-                     testfiles/server.sql
-                     testfiles/client.sql
                      --find Database/ -type f -a ! -iname '*.o' -a ! -iname '*.hi'
                      Database/HsSqlPpp/Utils.lhs
                      Database/HsSqlPpp/Dbms/DBAccess.lhs
@@ -169,13 +131,6 @@ Library
                      Database.HsSqlPpp.Ast.SqlTypes
                      Database.HsSqlPpp.Parsing.Parser
                      Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
-                     Database.HsSqlPpp.PrettyPrinter.AnnotateSource
-                     Database.HsSqlPpp.Dbms.DatabaseLoader
-                     Database.HsSqlPpp.Dbms.WrapperGen
-                     Database.HsSqlPpp.Dbms.WrapLib
-                     Database.HsSqlPpp.Dbms.DBAccess2
-                     Database.HsSqlPpp.Dbms.DBAccess3
-                     Database.HsSqlPpp.Extensions.ChaosExtensions
 
   Other-Modules:     Database.HsSqlPpp.Utils
                      Database.HsSqlPpp.Here
@@ -203,6 +158,13 @@ Library
                      Database.HsSqlPpp.HsText.HsText
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParseErrors
+                     Database.HsSqlPpp.Dbms.DatabaseLoader
+                     Database.HsSqlPpp.Dbms.WrapperGen
+                     Database.HsSqlPpp.Dbms.WrapLib
+                     Database.HsSqlPpp.Dbms.DBAccess2
+                     Database.HsSqlPpp.Dbms.DBAccess3
+                     Database.HsSqlPpp.Extensions.ChaosExtensions
+                     Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
 

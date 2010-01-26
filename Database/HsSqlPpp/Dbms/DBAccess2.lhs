@@ -176,38 +176,9 @@ toSql and fromSql as long as we add in the appropriate casts
 ================================================================================
 
 TODO:
-work out how to use hlist
-cache the database catalog once per compile?
 get error reporting at compile time working nicely:
 can't connect to database
 problem getting catalog -> report connection string used and source
   position
 problem getting statement type: parse and type check issues, report
   source position
-
-================================================================================
-
-This is the kind of stuff that want to produce with hlist. Problem is,
-how to create the proxies for the field names:
-
-> {-
-> data Ptype;   ptype :: Proxy Ptype ; ptype    = proxy::Proxy Ptype
-> data Allegiance; allegiance :: Proxy Allegiance ; allegiance = proxy::Proxy Allegiance
-> data Tag; tag :: Proxy Tag ; tag = proxy::Proxy Tag
-> data X; x :: Proxy X ; x = proxy::Proxy X
-> data Y; y :: Proxy Y ; y = proxy::Proxy Y
-
-
-> sqlStmt :: String -> String -> Q Exp
-> sqlStmt connStr sqlStr = do
->   runQ [| \conn ->
->           selectRelation conn sqlStr [] >>=
->           return . map (\ [a0, a1, a2, a3, a4] ->
->               ptype .=. fromSql a0 .*.
->               allegiance .=. fromSql a1 .*.
->               tag .=. fromSql a2 .*.
->               x .=. fromSql a3 .*.
->               y .=. fromSql a4 .*.
->               emptyRecord)
->         |]
-> -}
