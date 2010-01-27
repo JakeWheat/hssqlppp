@@ -74,18 +74,22 @@ You can also report problems on the bug tracker on Launchpad.
 
 Example files:
 
+(remove the prefix
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/
+to get the local relative path)
+
 The test files for parsing and for type checking contain examples of
 what parses/ typechecks and what the asts and annotations look like:
 
-Database/HsSqlPpp/Tests/ParserTests.lhs
-Database/HsSqlPpp/Tests/TypeCheckTests.lhs
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Tests/ParserTests.lhs
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Tests/TypeCheckTests.lhs
 
 The HsSqlSystem command source - HsSqlSystem.lhs.
 
 AST transform code to extend plpgsql without any custom syntax, for
-another project (early WIP):
+another project, early days:
 
-Database/HsSqlPpp/Extensions/ChaosExtensions.lhs
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Extensions/ChaosExtensions.lhs
 
 Some type safe database access rough example code, all just half
 finished demo ideas at the moment:
@@ -95,15 +99,23 @@ convert some declarations into calls to a wrapper around HDBC, with
 the correct type signatures, with the return type as a list of haskell
 tuples:
 
-Database/HsSqlPpp/Dbms/WrapperGen.lhs
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Dbms/WrapperGen.lhs
 
 Similar to previous idea, but using template haskell to do the
 substitution at compile time, not as a preprocessor:
 
-Database/HsSqlPpp/Dbms/DBAccess2.lhs
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Dbms/DBAccess2.lhs
 
-Use template haskell, but type the return values as lists of hlists
-instead of tuples, so that field names in haskell code are also
+example usage:
+
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/testfiles/DBAccess2Test.lhs
+
+Use template haskell again, but type the return values as lists of
+hlists instead of tuples, so that field names in haskell code are also
 checked at compile time:
 
-Database/HsSqlPpp/Dbms/DBAccess3.lhs
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Dbms/DBAccess3.lhs
+
+example usage:
+
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/testfiles/DBAccess3Test.lhs

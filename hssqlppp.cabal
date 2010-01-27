@@ -121,8 +121,8 @@ Library
                      --pandoc == 1.2.1,
                      filepath,
                      template-haskell,
-                     haskell-src-exts,
-                     HList
+                     haskell-src-exts
+                     --HList
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
                      Database.HsSqlPpp.Ast.TypeChecker
@@ -135,7 +135,7 @@ Library
   Other-Modules:     Database.HsSqlPpp.Utils
                      Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Dbms.DBAccess
-                     Database.HsSqlPpp.Dbms.MakeLabels
+                     --Database.HsSqlPpp.Dbms.MakeLabels
                      Database.HsSqlPpp.Dbms.DBUtils
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstAnnotation
@@ -162,7 +162,7 @@ Library
                      Database.HsSqlPpp.Dbms.WrapperGen
                      Database.HsSqlPpp.Dbms.WrapLib
                      Database.HsSqlPpp.Dbms.DBAccess2
-                     Database.HsSqlPpp.Dbms.DBAccess3
+                     --Database.HsSqlPpp.Dbms.DBAccess3
                      Database.HsSqlPpp.Extensions.ChaosExtensions
                      Database.HsSqlPpp.PrettyPrinter.AnnotateSource
 
@@ -180,15 +180,15 @@ Executable HsSqlSystem
                      test-framework,
                      test-framework-hunit,
                      HUnit,
-                     cmdargs,
-                     HList
+                     cmdargs
+                     --HList
 
   Other-Modules:     Database.HsSqlPpp.Utils
                      Database.HsSqlPpp.Here
                      Database.HsSqlPpp.Dbms.DBAccess
                      Database.HsSqlPpp.Dbms.DBAccess2
-                     Database.HsSqlPpp.Dbms.DBAccess3
-                     Database.HsSqlPpp.Dbms.MakeLabels
+                     --Database.HsSqlPpp.Dbms.DBAccess3
+                     --Database.HsSqlPpp.Dbms.MakeLabels
                      Database.HsSqlPpp.Dbms.WrapperGen
                      Database.HsSqlPpp.Dbms.WrapLib
                      Database.HsSqlPpp.Dbms.DatabaseLoader

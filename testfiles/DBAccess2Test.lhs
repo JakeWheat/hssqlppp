@@ -3,7 +3,8 @@
 
 > import Database.HsSqlPpp.Dbms.DBAccess2
 
-> import CS
+> import CS -- import the connection string from another file so we
+>           -- can use it in splices
 
 > main :: IO ()
 > main = do

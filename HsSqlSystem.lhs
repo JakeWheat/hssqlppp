@@ -8,6 +8,11 @@ run
 ./HsSqlSystem.lhs -?
 to get a list of commands and purpose and usage info
 
+Uses cmdargs to do command line processing and despatch.
+
+The code is a bit messy at the moment, still working out how to use
+ErrorT.
+
 > {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables,FlexibleContexts #-}
 
 > import System.Console.CmdArgs
@@ -47,79 +52,6 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Dbms.DBUtils
 
 > import Database.HsSqlPpp.Extensions.ChaosExtensions
-
-> data HsSqlSystem = Lex {files :: [String]}
->                  | Parse {files :: [String]}
->                  | ParseExpression {files :: [String]}
->                  | Pppp {files :: [String]}
->                  | Ppp {files :: [String]}
->                  | TypeCheck {database :: String
->                              ,files :: [String]}
->                  | TypeCheckExpression {database :: String
->                                        ,files :: [String]}
->                  | AllAnnotations {database :: String
->                                   ,files :: [String]}
->                  | AnnotateSource {database :: String
->                                   ,file :: String}
->                  | PPCatalog {database :: String
->                              ,files :: [String]}
->                  | Clear {database :: String}
->                  | Load {database :: String
->                         ,files :: [String]}
->                  | ClearLoad {database :: String
->                              ,files :: [String]}
->                  | DBCatalog {database :: String}
->                  | LoadPsql {database :: String
->                             ,files :: [String]}
->                  | PgDump {database :: String}
->                  | TestBattery {database :: String
->                                ,files :: [String]}
->                  | Test {extra :: [String]}
->                  | GenWrap {database :: String
->                            ,file :: String}
->                  | BuildDocs
->                    deriving (Show, Data, Typeable)
-
-> main :: IO ()
-> main = do
->        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2010"
->                       [lexA, parseA, ppppA, pppA,
->                        parseExpressionA, typeCheckExpressionA,
->                        typeCheckA,allAnnotationsA,
->                        annotateSourceA, ppCatalogA,
->                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
->                        pgDumpA, testBatteryA,
->                        testA,buildDocsA, genWrapA]
-
->        case cmd of
->          Lex fns -> lexFiles fns
->          Parse fns -> showAst fns
->          Pppp fns -> testPppp fns
->          Ppp fns -> showAst fns
->          ParseExpression fns -> parseExpression fns
->          TypeCheck db fns -> typeCheck2 db fns
->          TypeCheckExpression db fns -> typeCheckExpression db fns
->          AllAnnotations db fns -> typeCheck2 db fns
->          AnnotateSource db fn -> annotateSourceF db fn
->          PPCatalog db fns -> ppCatalog db fns
->          Clear db -> cleardb db
->          Load db fns -> loadSql db fns
->          ClearLoad db fns -> clearAndLoadSql db fns
->          DBCatalog db -> readCat db
->          LoadPsql db fns -> loadSqlPsql db fns
->          PgDump db -> pgDump1 db
->          TestBattery db fns -> runTestBattery db fns
->          Test as -> runTests as
->          BuildDocs -> buildDocs
->          GenWrap db f -> genWrap db f
-
-would like to have the database argument be a common arg, don't know
-how to do this
-
-> lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
->   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
->   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
->   buildDocsA, allAnnotationsA, ppCatalogA, genWrapA :: Mode HsSqlSystem
 
 ===============================================================================
 
@@ -669,3 +601,81 @@ as an argument to the exe
 >                  head f == '"' && last f == '"'
 >                    -> return $ drop 1 $ take (length f - 1) f
 >                | otherwise -> readFile f
+
+================================================================================
+
+cmdargs stuff and main
+
+> data HsSqlSystem = Lex {files :: [String]}
+>                  | Parse {files :: [String]}
+>                  | ParseExpression {files :: [String]}
+>                  | Pppp {files :: [String]}
+>                  | Ppp {files :: [String]}
+>                  | TypeCheck {database :: String
+>                              ,files :: [String]}
+>                  | TypeCheckExpression {database :: String
+>                                        ,files :: [String]}
+>                  | AllAnnotations {database :: String
+>                                   ,files :: [String]}
+>                  | AnnotateSource {database :: String
+>                                   ,file :: String}
+>                  | PPCatalog {database :: String
+>                              ,files :: [String]}
+>                  | Clear {database :: String}
+>                  | Load {database :: String
+>                         ,files :: [String]}
+>                  | ClearLoad {database :: String
+>                              ,files :: [String]}
+>                  | DBCatalog {database :: String}
+>                  | LoadPsql {database :: String
+>                             ,files :: [String]}
+>                  | PgDump {database :: String}
+>                  | TestBattery {database :: String
+>                                ,files :: [String]}
+>                  | Test {extra :: [String]}
+>                  | GenWrap {database :: String
+>                            ,file :: String}
+>                  | BuildDocs
+>                    deriving (Show, Data, Typeable)
+
+> main :: IO ()
+> main = do
+>        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2010"
+>                       [lexA, parseA, ppppA, pppA,
+>                        parseExpressionA, typeCheckExpressionA,
+>                        typeCheckA,allAnnotationsA,
+>                        annotateSourceA, ppCatalogA,
+>                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
+>                        pgDumpA, testBatteryA,
+>                        testA,buildDocsA, genWrapA]
+
+>        case cmd of
+>          Lex fns -> lexFiles fns
+>          Parse fns -> showAst fns
+>          Pppp fns -> testPppp fns
+>          Ppp fns -> showAst fns
+>          ParseExpression fns -> parseExpression fns
+>          TypeCheck db fns -> typeCheck2 db fns
+>          TypeCheckExpression db fns -> typeCheckExpression db fns
+>          AllAnnotations db fns -> typeCheck2 db fns
+>          AnnotateSource db fn -> annotateSourceF db fn
+>          PPCatalog db fns -> ppCatalog db fns
+>          Clear db -> cleardb db
+>          Load db fns -> loadSql db fns
+>          ClearLoad db fns -> clearAndLoadSql db fns
+>          DBCatalog db -> readCat db
+>          LoadPsql db fns -> loadSqlPsql db fns
+>          PgDump db -> pgDump1 db
+>          TestBattery db fns -> runTestBattery db fns
+>          Test as -> runTests as
+>          BuildDocs -> buildDocs
+>          GenWrap db f -> genWrap db f
+
+would like to have the database argument be a common arg, don't know
+how to do this
+
+> lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
+>   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
+>   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
+>   buildDocsA, allAnnotationsA, ppCatalogA, genWrapA :: Mode HsSqlSystem
+
