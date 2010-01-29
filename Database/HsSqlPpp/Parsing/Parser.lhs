@@ -49,7 +49,6 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Text.Parsec.Expr
 > import Text.Parsec.String
 > import Text.Parsec.Perm
-> --import Text.Parsec.Error
 
 > import Control.Applicative
 > import Control.Monad.Identity
@@ -66,19 +65,6 @@ fragments, then the utility parsers and other utilities at the bottom.
 > import Database.HsSqlPpp.Ast.Annotation as A
 > import Database.HsSqlPpp.Utils
 > import Database.HsSqlPpp.Ast.Catalog
-
-The parse state is used to keep track of source positions inside
-function bodies, these bodies are parsed separately to the rest of the
-code which is why we need to do this.
-
-> type MySourcePos = (String,Int,Int)
-> type ParseState = [MySourcePos]
-
-> startState :: ParseState
-> startState = []
-
-> toMySp :: SourcePos -> MySourcePos
-> toMySp sp = (sourceName sp, sourceLine sp, sourceColumn sp)
 
 ================================================================================
 
@@ -554,7 +540,7 @@ rather than just a string.
 >     where
 >         parseAs = do
 >                    keyword "as"
->                    bodypos <- getAdjustedPosition
+>                    bodypos <- toMySp <$> getPosition
 >                    body <- stringLit
 >                    return (bodypos,body)
 >         pVol = matchAKeyword [("volatile", Volatile)
@@ -563,14 +549,14 @@ rather than just a string.
 >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
 >                                                        ,("sql",Sql)]
 >         parseBody :: Language -> Expression -> MySourcePos -> Either String (String, FnBody)
->         parseBody lang body bodypos@(fileName,line,col) =
+>         parseBody lang body (fileName,line,col) =
 >             case (parseIt
 >                   (lexSqlTextWithPosition fileName line col (extrStr body))
 >                   (functionBody lang)
 >                   fileName
 >                   (Just (line,col))
 >                   (extrStr body)
->                   [bodypos]) of
+>                   ()) of
 >                      Left er@(ParseErrorExtra _ _ _) -> Left $ show er
 >                      Right body' -> Right (quoteOfString body, body')
 
@@ -1074,6 +1060,8 @@ and () is a syntax error.
 > floatLit :: ParsecT [Token] ParseState Identity Expression
 > floatLit = FloatLit <$> pos <*> float
 
+
+
 > integerLit :: ParsecT [Token] ParseState Identity Expression
 > integerLit = IntegerLit <$> pos <*> integer
 
@@ -1438,31 +1426,21 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 
 == position stuff
 
-getAdjustedPosition is used to modify the positions within a function
-body, to absolute positions within the file being parsed.
+simple wrapper for parsec source positions, probably not really useful
 
-> getAdjustedPosition :: ParsecT [Token] ParseState Identity MySourcePos
-> getAdjustedPosition = do
->   p <- toMySp <$> getPosition
->   s <- getState
->   case s of
->     [] -> return p
->     x:_ -> return $ adjustPosition x p
+> type MySourcePos = (String,Int,Int)
 
-> adjustPosition :: MySourcePos -> MySourcePos -> MySourcePos
-> adjustPosition (fn,pl,_) (_,l,c) = (fn,pl+l-1,c)
+> toMySp :: SourcePos -> MySourcePos
+> toMySp sp = ((sourceName sp),(sourceLine sp),(sourceColumn sp))
+
+parser combinator to return the current position as an ast annotation
 
 > pos :: ParsecT [Token] ParseState Identity Annotation
 > pos = do
->   p <- toSp <$> getPosition
->   s <- getState
->   case s of
->     [] -> return [p]
->     x:_ -> return [adjustPos x p]
+>   p <- toSpA <$> getPosition
+>   return [p]
 >   where
->     toSp sp = A.SourcePos (sourceName sp) (sourceLine sp) (sourceColumn sp)
->     adjustPos (fn,pl,_) (A.SourcePos _ l c) = A.SourcePos fn (pl+l-1) c
->     adjustPos _ x = error $ "internal error - tried to adjust as sourcepos: " ++ show x
+>     toSpA sp = (\(a,b,c) -> A.SourcePos a b c) $ toMySp sp
 
 == lexer stuff
 
@@ -1508,3 +1486,12 @@ be an array or subselect, etc)
 >                                  "all" -> LiftAll
 >                                  z -> error $ "internal error in parsing lift transform: " ++ z
 >              x1 -> x1
+
+================================================================================
+
+Parse state not currently used. Use these placeholders to add some.
+
+> type ParseState = ()
+
+> startState :: ()
+> startState = ()
