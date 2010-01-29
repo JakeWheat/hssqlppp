@@ -1,8 +1,8 @@
 Name:                hssqlppp
 Version:             0.2.0
-Synopsis:            Sql parser and type checker
+Synopsis:            SQL parser and type checker
 Description:
-    Sql parser, pretty printer and type checker, targets PostgreSQL SQL
+    SQL parser, and type checker, targets PostgreSQL SQL
     and PL/pgSQL.
     .
     See the project page
@@ -49,10 +49,10 @@ extra-source-files:  README
                      --find Database/ -type f -a ! -iname '*.o' -a ! -iname '*.hi'
                      Database/HsSqlPpp/Utils.lhs
                      Database/HsSqlPpp/Dbms/DBAccess.lhs
-                     Database/HsSqlPpp/Dbms/DBAccess2.lhs
-                     Database/HsSqlPpp/Dbms/DBAccess3.lhs
                      Database/HsSqlPpp/Dbms/MakeLabels.hs
                      Database/HsSqlPpp/Dbms/DatabaseLoader.lhs
+                     Database/HsSqlPpp/Dbms/DBAccess3.lhs
+                     Database/HsSqlPpp/Dbms/DBAccess2.lhs
                      Database/HsSqlPpp/Dbms/WrapLib.lhs
                      Database/HsSqlPpp/Dbms/WrapperGen.lhs
                      Database/HsSqlPpp/Dbms/DBUtils.lhs

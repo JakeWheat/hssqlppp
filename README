@@ -1,5 +1,5 @@
-Summary: A parser, pretty printer, and type checker for PostgreSQL SQL
-and PL/pgSQL. BSD licensed.
+Summary: A parser and type checker for PostgreSQL SQL and
+PL/pgSQL. BSD licensed.
 
 The current aims of the project is to provide a parser and type
 checker for a substantial portion of PostgreSQL SQL and PL/pgSQL, and
@@ -29,16 +29,16 @@ cabal update
 then
 cabal install hssqlppp
 
-It's currently developed on GHC 6.12, but is tested on 6.10 before
-each release so should work there too.
+It's currently developed on GHC 6.12, but is briefly tested on 6.10
+before each release so should work there too.
 
 There isn't much in the way of documentation at the moment. See the
 haddock docs locally or on hackage (link below), which also contain
 links to a few example files. The source has a fair bit of comments,
 which are currently OK in some places and poor in others.
 
-The main dependencies of this project are: Parsec 3, HDBC,
-HDBC-postgresql, and UUAGC is needed only for development). You need
+The main dependencies of this project are: Parsec 3, HDBC and
+HDBC-postgresql; UUAGC is needed only for development. You also need
 PostgreSQL installed.
 
 ================================================================================
@@ -84,29 +84,32 @@ what parses/ typechecks and what the asts and annotations look like:
 http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Tests/ParserTests.lhs
 http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Tests/TypeCheckTests.lhs
 
-The HsSqlSystem command source - HsSqlSystem.lhs.
+The HsSqlSystem command source -
 
-AST transform code to extend plpgsql without any custom syntax, for
-another project, early days:
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/HsSqlSystem.lhs
+
+AST transform code to extend plpgsql without using any custom syntax
+mainly by matching certain function calls and replacing them with
+something else, from another project, currently early days:
 
 http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Extensions/ChaosExtensions.lhs
 
-Some type safe database access rough example code, all just half
-finished demo ideas at the moment:
+Demonstration of parsing CRUD statements with ? placeholders in, and
+using the information from the type check to generate type safe
+database access from haskell, 3 rough ideas:
 
-Simple idea to work as a preprocess to parse a haskell file and
-convert some declarations into calls to a wrapper around HDBC, with
-the correct type signatures, with the return type as a list of haskell
-tuples:
+Work as a preprocesser to parse a haskell file and convert some
+declarations into calls to a wrapper around HDBC, with the correct
+type signatures, with the return type as a list of haskell tuples:
 
 http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Dbms/WrapperGen.lhs
 
 Similar to previous idea, but using template haskell to do the
-substitution at compile time, not as a preprocessor:
+substitution at compile time, should be nicer to use this way:
 
 http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Dbms/DBAccess2.lhs
 
-example usage:
+example use:
 
 http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/testfiles/DBAccess2Test.lhs
 
@@ -116,6 +119,6 @@ checked at compile time:
 
 http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Dbms/DBAccess3.lhs
 
-example usage:
+example use:
 
 http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/testfiles/DBAccess3Test.lhs

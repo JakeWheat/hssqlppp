@@ -84,6 +84,33 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >    ,testRecNoCor [quids2] res33
 >    ,testRecNoCor [quids2] res34
 
+>    ,(overlapids,"", "ovtest1", Right ("overa", "", "ovtest1", ScalarType "text"))
+>    ,(overlapids,"", "ovtest2", Right ("overb", "", "ovtest2", ScalarType "text"))
+>    ,(coverlapids,"ovb", "ovtest1", Right ("overb", "ovb", "ovtest1", typeInt))
+
+>    ,([jids1],"","tf1", Right ("sourcet1", "t1", "tf1", typeInt))
+>    ,([jids1],"","itf1", Right ("sourcet1", "t1", "itf1", typeBool))
+>    ,([jids1],"","tf2", Right ("sourcet2", "t2", "tf2", typeBool))
+>    ,([jids1],"","itf2", Right ("sourcet2", "t2", "itf2", typeInt))
+>    ,([jids1],"t1","tf1", Right ("sourcet1", "t1", "tf1", typeInt))
+>    ,([jids1],"t1","itf1", Right ("sourcet1", "t1", "itf1", typeBool))
+>    ,([jids1],"t2","tf2", Right ("sourcet2", "t2", "tf2", typeBool))
+>    ,([jids1],"t2","itf2", Right ("sourcet2", "t2", "itf2", typeInt))
+>    ,([jids1],"","cf", Right ("sourcet1", "t1", "cf", ScalarType "text"))
+>    ,([jids1],"t1","cf", Right ("sourcet1", "t1", "cf", ScalarType "text"))
+>    ,([jids1],"t2","cf", Right ("sourcet2", "t2", "cf", ScalarType "text"))
+
+>    ,([quids1,jids1],"","tf1", Right ("sourcet1", "t1", "tf1", typeInt))
+>    ,([quids1,jids1],"","itf1", Right ("sourcet1", "t1", "itf1", typeBool))
+>    ,([quids1,jids1],"","tf2", Right ("sourcet2", "t2", "tf2", typeBool))
+>    ,([quids1,jids1],"","itf2", Right ("sourcet2", "t2", "itf2", typeInt))
+>    ,([quids1,jids1],"t1","tf1", Right ("sourcet1", "t1", "tf1", typeInt))
+>    ,([quids1,jids1],"t1","itf1", Right ("sourcet1", "t1", "itf1", typeBool))
+>    ,([quids1,jids1],"t2","tf2", Right ("sourcet2", "t2", "tf2", typeBool))
+>    ,([quids1,jids1],"t2","itf2", Right ("sourcet2", "t2", "itf2", typeInt))
+>    ,([quids1,jids1],"","cf", Right ("sourcet1", "t1", "cf", ScalarType "text"))
+>    ,([quids1,jids1],"t1","cf", Right ("sourcet1", "t1", "cf", ScalarType "text"))
+>    ,([quids1,jids1],"t2","cf", Right ("sourcet2", "t2", "cf", ScalarType "text"))
 
 >    ]
 >    ,StarExpand [
@@ -94,7 +121,22 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >    ,testStar [quids2] "" $ Right [res31,res32]
 >    ,testStar [quids2] "qid2" $ Right [res31,res32]
 >    ,testStar [quids2] "qid3" $ Left [UnrecognisedCorrelationName "qid3"]
+>    ,(coverlapids, "", Right [("overa", "ova", "ovtest1", ScalarType "text")])
+>    ,(coverlapids, "ova", Right [("overa", "ova", "ovtest1", ScalarType "text")])
+>    ,(coverlapids, "ovb", Right [("overb", "ovb", "ovtest1", typeInt)
+>                                 ,("overb", "ovb", "ovtest2", ScalarType "text")])
+>    ,([jids1], "", Right [("sourcet1", "t1", "cf", ScalarType "text")
+>                         ,("sourcet1", "t1", "tf1", typeInt)
+>                         ,("sourcet2", "t2", "tf2", typeBool)])
+>    ,([jids1], "t1", Right [("sourcet1", "t1", "cf", ScalarType "text")
+>                           ,("sourcet1", "t1", "tf1", typeInt)])
+>    ,([jids1], "t2", Right [("sourcet2", "t2", "cf", ScalarType "text")
+>                           ,("sourcet2", "t2", "tf2", typeBool)])
 
+>    ,([quids1,jids1], "t1", Right [("sourcet1", "t1", "cf", ScalarType "text")
+>                                  ,("sourcet1", "t1", "tf1", typeInt)])
+>    ,([quids1,jids1], "t2", Right [("sourcet2", "t2", "cf", ScalarType "text")
+>                                  ,("sourcet2", "t2", "tf2", typeBool)])
 >   ]]
 >   where
 >     unquids1 = LBUnqualifiedIds "unqid1s"
@@ -107,7 +149,7 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >     res13 = ("unqid1s","","inttest1",typeInt)
 >     res14 = ("unqid1s","","inttest2",typeBool)
 
->     unquids2 = LBUnqualifiedIds "unqid2s"
+>     {-unquids2 = LBUnqualifiedIds "unqid2s"
 >                             [("test1", ScalarType "text")
 >                             ,("test3", ScalarType "int2")]
 >                             [("inttest1", ScalarType "text")
@@ -115,7 +157,7 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >     res211 = ("unqid2s","","test1",ScalarType "text")
 >     res212 = ("unqid2s","","test3",ScalarType "int2")
 >     res213 = ("unqid2s","","inttest1",ScalarType "text")
->     res214 = ("unqid2s","","inttest3",ScalarType "int2")
+>     res214 = ("unqid2s","","inttest3",ScalarType "int2")-}
 
 
 >     quids1 = LBQualifiedIds "qid1s"
@@ -139,6 +181,29 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >     res32 = ("qid2s","qid2","test4",typeBool)
 >     res33 = ("qid2s","qid2","inttest3",typeInt)
 >     res34 = ("qid2s","qid2","inttest4",typeBool)
+
+>     overlapids = [LBUnqualifiedIds "overa"
+>                             [("ovtest1", ScalarType "text")] []
+>                  ,LBUnqualifiedIds "overb"
+>                             [("ovtest1", typeInt)
+>                             ,("ovtest2", ScalarType "text")] []]
+
+>     coverlapids = [LBQualifiedIds "overa" "ova"
+>                             [("ovtest1", ScalarType "text")] []
+>                  ,LBQualifiedIds "overb" "ovb"
+>                             [("ovtest1", typeInt)
+>                             ,("ovtest2", ScalarType "text")] []]
+
+>     jids1 = LBJoinIds "sourcet1" "t1"
+>                         [("tf1", typeInt)
+>                         ,("cf", ScalarType "text")]
+>                         [("itf1", typeBool)]
+>                         "sourcet2" "t2"
+>                         [("tf2", typeBool)
+>                         ,("cf", ScalarType "text")]
+>                         [("itf2", typeInt)]
+>                         ["cf"]
+
 
 
 >     testUnRec :: [LocalBindingsUpdate] -> String -> String

@@ -5,11 +5,13 @@ hlists. Limitation is that you have to edit this file to add the field
 definitions and possibly exports. Suggested use is to copy this file
 into your own project and edit it there.
 
-> {-# LANGUAGE TemplateHaskell,EmptyDataDecls,DeriveDataTypeable #-}
+> {-# LANGUAGE TemplateHaskell,EmptyDataDecls,DeriveDataTypeable,
+>   TupleSections #-}
 
 > module Database.HsSqlPpp.Dbms.DBAccess3
 >     (withConn
 >     ,sqlStmt
+>     ,hlt
 >     ,IConnection
 
 Export the field proxies for your project here.  If you want to write
@@ -26,7 +28,6 @@ here also, exporting them isn't neccessarily neccessary otherwise.
 
 > import Language.Haskell.TH
 
-> import Data.Maybe
 > import Control.Applicative
 > import Control.Monad.Error
 > import Control.Exception
@@ -35,7 +36,7 @@ here also, exporting them isn't neccessarily neccessary otherwise.
 > import qualified Database.HDBC.PostgreSQL as Pg
 
 > import Data.HList
-> import Data.HList.Label4 ()
+> import Data.HList.Label1 ()
 > import Data.HList.TypeEqGeneric1 ()
 > import Data.HList.TypeCastGeneric1 ()
 > import Database.HsSqlPpp.Dbms.MakeLabels
@@ -241,10 +242,10 @@ get the input and output types for a parameterized sql statement:
 
 > getStatementType :: Catalog -> String -> Either String StatementType
 > getStatementType cat sql = do
->     ast <- tsl $ parseSql "" sql
->     let (_,aast) = typeCheck cat ast
->     let a = getTopLevelInfos aast
->     return $ fromJust $ head a
+>     [st] <- tsl $ parseSql "" sql
+>     ast <- typeCheckPS cat st
+>     let [Just a] = getTopLevelInfos [ast]
+>     return a
 
 convert sql statement type to equivalent with sql types replaced with
 haskell equivalents - HDBC knows how to convert the actual values using
@@ -253,20 +254,79 @@ toSql and fromSql as long as we add in the appropriate casts
 > data StatementHaskellType = StatementHaskellType [Type] [(String,Type)]
 
 > toH :: StatementType -> Q StatementHaskellType
-> toH (StatementType i o) = do
->   ih <- mapM sqlTypeToHaskell i
->   oht <- mapM (sqlTypeToHaskell . snd) o
->   return $ StatementHaskellType ih $ zip (map fst o) oht
+> toH (StatementType i o) =
+>   StatementHaskellType
+>     <$> mapM sqlTypeToHaskell i
+>     <*> forM o (\(a,b) -> (a,) <$> sqlTypeToHaskell b)
 >   where
 >     sqlTypeToHaskell :: Sql.Type -> TypeQ
->     sqlTypeToHaskell t =
->       case t of
->         Sql.ScalarType "text" -> [t| Maybe String |]
->         Sql.ScalarType "int4" -> [t| Maybe Int |]
->         Sql.ScalarType "int8" -> [t| Maybe Int |]
->         Sql.ScalarType "bool" -> [t| Maybe Bool |]
->         Sql.DomainType _ -> [t| Maybe String |]
->         z -> error $ show z
+>     sqlTypeToHaskell t = do
+>       let t' = case t of
+>                       Sql.ScalarType "text" -> [t| String |]
+>                       Sql.ScalarType "int4" -> [t| Int |]
+>                       Sql.ScalarType "int8" -> [t| Int |]
+>                       Sql.ScalarType "bool" -> [t| Bool |]
+>                       Sql.DomainType _ -> [t| String |]
+>                       z -> error $ show z
+>       [t| Maybe $t' |]
+
+> instance Applicative Q where
+>     pure = return
+>     (<*>) = ap
+
+-- > makeHListType :: [(TypeQ,TypeQ)] -> Q Type
+
+AppT (AppT (AppT (AppT (AppT (TupleT 5) (AppT (AppT (TupleT 2) (ConT Database.HsSqlPpp.Dbms.DBAccess3.Ptype)) (ConT GHC.Base.String))) (AppT (AppT (TupleT 2) (ConT Database.HsSqlPpp.Dbms.DBAccess3.Allegiance)) (ConT GHC.Base.String))) (AppT (AppT (TupleT 2) (ConT Database.HsSqlPpp.Dbms.DBAccess3.Tag)) (ConT GHC.Types.Int))) (AppT (AppT (TupleT 2) (ConT Database.HsSqlPpp.Dbms.DBAccess3.X)) (ConT GHC.Types.Int))) (AppT (AppT (TupleT 2) (ConT Database.HsSqlPpp.Dbms.DBAccess3.Y)) (ConT GHC.Types.Int))
+
+> hlt :: Q Type -> Q Type
+> hlt a = do
+>   z <- a
+>   runIO $ print z
+>   pt <- [t|Ptype|]
+>   al <- [t|Allegiance|]
+>   tg <- [t|Tag|]
+>   xt <- [t|X|]
+>   yt <- [t|Y|]
+>   str <- [t|String|]
+>   int <- [t|Int|]
+>   makeHListType [(pt,str)
+>                 ,(al,str)
+>                 ,(tg,int)
+>                 ,(xt,int)
+>                 ,(yt,int)]
+>   {-[t| Record (HCons (LVPair (Proxy Ptype)
+>                                              (Maybe String))
+>                               (HCons (LVPair (Proxy Allegiance)
+>                                              (Maybe String))
+>                               (HCons (LVPair (Proxy Tag)
+>                                              (Maybe Int))
+>                               (HCons (LVPair (Proxy X)
+>                                              (Maybe Int))
+>                               (HCons (LVPair (Proxy Y)
+>                                              (Maybe Int))
+>                                HNil)))))
+>                  |]-}
+
+> makeHListType :: [(Type,Type)] -> Q Type
+> makeHListType x =
+>   [t| Record $(foldTi x)|]
+>   where
+>     foldTi ((f,t):xs) = [t|HCons (LVPair (Proxy $f) $t) $(foldTi xs)|]
+>     foldTi [] = [t|HNil|]
+
+>                   {-[t| Record (HCons (LVPair (Proxy Ptype)
+>                                              (Maybe String))
+>                               (HCons (LVPair (Proxy Allegiance)
+>                                              (Maybe String))
+>                               (HCons (LVPair (Proxy Tag)
+>                                              (Maybe Int))
+>                               (HCons (LVPair (Proxy X)
+>                                              (Maybe Int))
+>                               (HCons (LVPair (Proxy Y)
+>                                              (Maybe Int))
+>                                HNil)))))
+>                  |]-}
+
 
 ================================================================================
 

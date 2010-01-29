@@ -30,6 +30,8 @@ the code here handles expanding record types so that the components can be looke
 
 > import Control.Monad
 > --import Debug.Trace
+> --import Data.List
+> import Data.Maybe
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > --import Database.HsSqlPpp.Utils
@@ -62,6 +64,7 @@ the code here handles expanding record types so that the components can be looke
 >                             ,internalIds2 :: [(String,Type)]
 >                             ,joinIds :: [String]
 >                             }
+>                            deriving Show
 
 > lbUpdate :: LocalBindingsUpdate -> LocalBindings -> LocalBindings
 > lbUpdate lbu (LocalBindings lb) = LocalBindings (lbu : lb)
@@ -79,7 +82,9 @@ the code here handles expanding record types so that the components can be looke
 >     es (LBUnqualifiedIds src ids _ : lbus) = if cor == ""
 >                                              then mapEm src "" ids
 >                                              else es lbus
->     es (LBJoinIds _ _ _ _ _ _ _ _ _ :lbus) = undefined
+>     es (u@(LBJoinIds _ c1 _ _ _ c2 _ _ _) : lbus) = if cor `elem` ["",c1,c2]
+>                                                  then Right $ fromJust $ lookup cor $ getStarIds u
+>                                                  else es lbus
 >     es [] = Left [UnrecognisedCorrelationName cor]
 >     mapEm :: String -> String -> [(String,Type)] -> Either [TypeError] [(String,String,String,Type)]
 >     mapEm src c = Right . map (\(a,b) -> (src,c,a,b))
@@ -116,5 +121,85 @@ the code here handles expanding record types so that the components can be looke
 >                        ,lookup i intIds])
 >          $ \ty -> Right (src,"",i,ty)
 >   else Nothing
-> findID cor i (LBJoinIds _ _ _ _ _ _ _ _ _)  = undefined
+> findID cor i u@(LBJoinIds _ _ _ _ _ _ _ _ _) =
+>     lookup (cor,i) $ getJoinIdMap u
 
+expand out the ids for a join
+
+so we have a full list to lookup single ids whether qualified or not,
+and return possibly a ambiguous id error
+
+> getJoinIdMap :: LocalBindingsUpdate
+>              -> [((String,String), Either [TypeError] (String,String,String,Type))]
+> getJoinIdMap (LBJoinIds s1 c1 ids1 iids1 s2 c2 ids2 iids2 jids) =
+>     concat [
+>       -- all non join table 1 ids unqualified
+>       map (\(i,t) -> (("", i), Right (s1,c1,i,t))) $ notJids ids1 ++ iids1
+>       -- all non join table 2 ids unqualified
+>      ,map (\(i,t) -> (("", i), Right (s2,c2,i,t))) $ notJids ids2 ++ iids2
+>       -- all join ids unqualified, linked to source 1
+>      ,map (\(i,t) -> (("", i), Right (s1,c1,i,t))) jidts
+>       -- all non join table 1 ids qualified
+>      ,map (\(i,t) -> ((c1, i), Right (s1,c1,i,t))) $ notJids ids1 ++ iids1
+>       -- all non join table 2 ids qualified
+>      ,map (\(i,t) -> ((c2, i), Right (s2,c2,i,t))) $ notJids ids2 ++ iids2
+>       -- all join ids qualified with c1
+>      ,map (\(i,t) -> ((c1, i), Right (s1,c1,i,t))) jidts
+>       -- all join ids qualified with c2
+>      ,map (\(i,t) -> ((c2, i), Right (s2,c2,i,t))) jidts
+>     ]
+>   where
+>     notJids = filter (\(n,_) -> n `notElem` jids)
+>     jidts = map (\n -> (n, fromJust $ lookup n ids1)) jids
+
+> getJoinIdMap x = error $ "internal error: getJoinIdMap called on " ++ show x
+
+> getStarIds :: LocalBindingsUpdate
+>              -> [(String, [(String,String,String,Type)])]
+> getStarIds (LBJoinIds s1 c1 ids1 iids1 s2 c2 ids2 iids2 jids) =
+>     -- uncorrelated
+>     [("", concat [
+>             -- all join ids qualified with c1
+>             map (\(i,t) -> (s1,c1,i,t)) jidts
+>             -- all non join table 1 ids unqualified
+>            ,map (\(i,t) -> (s1,c1,i,t)) $ notJids ids1
+>             -- all non join table 2 ids unqualified
+>            ,map (\(i,t) -> (s2,c2,i,t)) $ notJids ids2
+>             ])
+>      -- c1
+>     ,(c1, concat [
+>             -- all join ids qualified with c1
+>             map (\(i,t) -> (s1,c1,i,t)) jidts
+>             -- all non join table 1 ids unqualified
+>            ,map (\(i,t) -> (s1,c1,i,t)) $ notJids ids1
+>               ])
+>     -- c2
+>     ,(c2, concat [
+>             -- all join ids qualified with c2
+>             map (\(i,t) -> (s2,c2,i,t)) jidts
+>             -- all non join table 2 ids unqualified
+>            ,map (\(i,t) -> (s2,c2,i,t)) $ notJids ids2
+>     ])]
+
+
+>      {- 
+>       -- all non join table 1 ids unqualified
+>       map (\(i,t) -> (("", i), Right (s1,c1,i,t))) $ notJids ids1 ++ iids1
+>       -- all non join table 2 ids unqualified
+>      ,map (\(i,t) -> (("", i), Right (s2,c2,i,t))) $ notJids ids2 ++ iids2
+>       -- all join ids unqualified, linked to source 1
+>      ,map (\(i,t) -> (("", i), Right (s1,c1,i,t))) jidts
+>       -- all non join table 1 ids qualified
+>      ,map (\(i,t) -> ((c1, i), Right (s1,c1,i,t))) $ notJids ids1 ++ iids1
+>       -- all non join table 2 ids qualified
+>      ,map (\(i,t) -> ((c2, i), Right (s2,c2,i,t))) $ notJids ids2 ++ iids2
+>       -- all join ids qualified with c1
+>      ,map (\(i,t) -> ((c1, i), Right (s1,c1,i,t))) jidts
+>       -- all join ids qualified with c2
+>      ,map (\(i,t) -> ((c2, i), Right (s2,c2,i,t))) jidts
+>     ]-}
+>   where
+>     notJids = filter (\(n,_) -> n `notElem` jids)
+>     jidts = map (\n -> (n, fromJust $ lookup n ids1)) jids
+
+> getStarIds x = error $ "internal error: getJoinIdMap called on " ++ show x
