@@ -11,7 +11,6 @@ into your own project and edit it there.
 > module Database.HsSqlPpp.Dbms.DBAccess3
 >     (withConn
 >     ,sqlStmt
->     ,hlt
 >     ,IConnection
 
 Export the field proxies for your project here.  If you want to write
@@ -274,6 +273,10 @@ toSql and fromSql as long as we add in the appropriate casts
 >     pure = return
 >     (<*>) = ap
 
+> {-
+
+attempt to create shorthand for hlist type signatures, hit a bug in ghc
+
 -- > makeHListType :: [(TypeQ,TypeQ)] -> Q Type
 
 AppT (AppT (AppT (AppT (AppT (TupleT 5) (AppT (AppT (TupleT 2) (ConT Database.HsSqlPpp.Dbms.DBAccess3.Ptype)) (ConT GHC.Base.String))) (AppT (AppT (TupleT 2) (ConT Database.HsSqlPpp.Dbms.DBAccess3.Allegiance)) (ConT GHC.Base.String))) (AppT (AppT (TupleT 2) (ConT Database.HsSqlPpp.Dbms.DBAccess3.Tag)) (ConT GHC.Types.Int))) (AppT (AppT (TupleT 2) (ConT Database.HsSqlPpp.Dbms.DBAccess3.X)) (ConT GHC.Types.Int))) (AppT (AppT (TupleT 2) (ConT Database.HsSqlPpp.Dbms.DBAccess3.Y)) (ConT GHC.Types.Int))
@@ -326,7 +329,7 @@ AppT (AppT (AppT (AppT (AppT (TupleT 5) (AppT (AppT (TupleT 2) (ConT Database.Hs
 >                                              (Maybe Int))
 >                                HNil)))))
 >                  |]-}
-
+> -}
 
 ================================================================================
 
