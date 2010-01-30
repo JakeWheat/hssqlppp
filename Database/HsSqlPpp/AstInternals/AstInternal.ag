@@ -128,7 +128,7 @@ import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
 import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 import Database.HsSqlPpp.AstInternals.AstAnnotation
 import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-import Database.HsSqlPpp.AstInternals.TypeChecking.LocalIdentifierBindings
+import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
 --import Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
 import Database.HsSqlPpp.Utils
 import Data.Generics.PlateData

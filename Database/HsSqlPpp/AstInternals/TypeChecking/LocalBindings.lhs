@@ -25,19 +25,23 @@ the code here handles expanding record types so that the components can be looke
 >     ,emptyBindings
 >     ,lbUpdate
 >     ,lbExpandStar
+>     ,lbExpandStar1
 >     ,lbLookupID
+>     ,lbLookupID1
 >     ) where
 
 > import Control.Monad
 > --import Debug.Trace
 > --import Data.List
 > import Data.Maybe
+> import Data.Char
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > --import Database.HsSqlPpp.Utils
-> --import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 
 > data LocalBindings = LocalBindings [LocalBindingsUpdate]
+>                      deriving Show
 
 > emptyBindings :: LocalBindings
 > emptyBindings = LocalBindings []
@@ -66,15 +70,34 @@ the code here handles expanding record types so that the components can be looke
 >                             }
 >                            deriving Show
 
-> lbUpdate :: LocalBindingsUpdate -> LocalBindings -> LocalBindings
-> lbUpdate lbu (LocalBindings lb) = LocalBindings (lbu : lb)
+> lbUpdate :: Catalog -> LocalBindings -> LocalBindingsUpdate -> Either [TypeError] LocalBindings
+> lbUpdate _ (LocalBindings lb) lbu =
+>    Right $ LocalBindings (lowerise lbu : lb)
+>    where
+>      -- make correlation names and id names case insensitive
+>      -- todo: need to think about type names as well
+>      lowerise (LBQualifiedIds src cor ids iids) =
+>        LBQualifiedIds src (mtl cor) (mtll ids) (mtll iids)
+>      lowerise (LBUnqualifiedIds src ids iids) =
+>        LBUnqualifiedIds src (mtll ids) (mtll iids)
+>      lowerise (LBJoinIds s1 c1 ids1 iids1 s2 c2 ids2 iids2 jids2) =
+>        LBJoinIds s1 (mtl c1) (mtll ids1) (mtll iids1) s2 (mtl c2) (mtll ids2) (mtll iids2) (mtll1 jids2)
+>      mtll = map (\(n,t) -> (mtl n, t))
+>      mtll1 = map (\l -> mtl l)
 
-> lbExpandStar :: LocalBindings
+> mtl :: String -> String
+> mtl = map toLower
+
+> lbExpandStar :: LocalBindings -> String -> Either [TypeError] [(String,Type)]
+> lbExpandStar lb c = fmap (\l -> map (\(_,_,n,t) -> (n,t)) l) $ lbExpandStar1 lb $ mtl c
+
+> lbExpandStar1 :: LocalBindings
 >              -> String -- correlation name
 >              -> Either [TypeError] [(String,String,String,Type)] -- either error or [source,(corr,name,type)]
-> lbExpandStar (LocalBindings l) cor =
+> lbExpandStar1 (LocalBindings l) cor' =
 >   es l
 >   where
+>     cor = mtl cor'
 >     es :: [LocalBindingsUpdate] -> Either [TypeError] [(String,String,String,Type)]
 >     es (LBQualifiedIds src cor1 ids _ :lbus) = if cor == cor1 || cor == ""
 >                                                then mapEm src cor1 ids
@@ -90,12 +113,26 @@ the code here handles expanding record types so that the components can be looke
 >     mapEm src c = Right . map (\(a,b) -> (src,c,a,b))
 
 > lbLookupID :: LocalBindings
+>            -> String -- identifier name
+>            -> Either [TypeError] Type
+> lbLookupID lb ci = let (cor,i) = splitIdentifier $ mtl ci
+>                    in fmap (\(_,_,_,t) -> t) $ lbLookupID1 lb cor i
+>                    where
+>                      splitIdentifier s = let (a,b) = span (/= '.') s
+>                                          in if b == ""
+>                                             then ("", a)
+>                                             else (a,tail b)
+
+
+> lbLookupID1 :: LocalBindings
 >            -> String -- correlation name
 >            -> String -- identifier name
 >            -> Either [TypeError] (String,String,String,Type) -- type error or source, corr, type
-> lbLookupID (LocalBindings lb) cor i =
+> lbLookupID1 (LocalBindings lb) cor' i' =
 >   lk lb
 >   where
+>     cor = mtl cor'
+>     i = mtl i'
 >     lk (lbu:lbus) = case findID cor i lbu of
 >                                           Nothing -> lk lbus
 >                                           Just t -> t

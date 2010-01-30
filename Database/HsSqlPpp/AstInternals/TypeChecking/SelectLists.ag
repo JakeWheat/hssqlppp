@@ -19,7 +19,7 @@ ATTR MaybeSelectList [||listType : {Maybe [(String,Type)]}]
 ATTR SelectItemList SelectList [||listType : {[(String,Type)]}]
 ATTR SelectItem [||itemType : Type]
 
-ATTR SelectList [||libUpdates : {[LocalIdentifierBindingsUpdate]}]
+ATTR SelectList [||libUpdates : {[LocalBindingsUpdate]}]
 
 SEM MaybeSelectList
     | Just lhs.listType = Just @just.listType
@@ -54,7 +54,7 @@ SEM SelectList
               | not (null assignErrs) -> (assignErrs,Nothing)
               | otherwise -> ([],Nothing)
           where
-            targetTypeEithers = map (libLookupID @lhs.lib) sl
+            targetTypeEithers = map (lbLookupID @lhs.lib) sl
             targetTypeErrs = concat $ lefts $ targetTypeEithers
             targetTypes = rights $ targetTypeEithers
             typePairs = zip (map snd @items.listType) targetTypes
@@ -70,7 +70,8 @@ SEM SelectList
                                        @into.annotatedTree
         lhs.libUpdates =
             case @loc.stuff of
-              (_,Just r) -> [LibStackIDs [("", [r])]]
+              (_,Just r) -> [LBUnqualifiedIds "set record actual fields from select into"
+                              [r] []]
               _ -> []
 --[(@var,@loc.selType)]
 
@@ -78,7 +79,7 @@ SEM Statement
     | SelectStatement
         loc.libUpdates = @ex.libUpdates
 
-ATTR SelectExpression [||libUpdates : {[LocalIdentifierBindingsUpdate]}]
+ATTR SelectExpression [||libUpdates : {[LocalBindingsUpdate]}]
 
 SEM SelectExpression
     | Select
@@ -90,16 +91,16 @@ SEM SelectExpression
 -- or something?
 
 {
-expandStar :: LocalIdentifierBindings
+expandStar :: LocalBindings
            -> String
            -> Type
            -> [(String,Type)]
            -> [(String,Type)]
-expandStar cat colName colType types =
+expandStar lb colName colType types =
     fromRight types $ do
     let (correlationName,iden) = splitIdentifier colName
     newCols <- if iden == "*"
-                 then libExpandStar cat correlationName
+                 then lbExpandStar lb correlationName
                  else return [(iden, colType)]
     return $ newCols ++ types
 

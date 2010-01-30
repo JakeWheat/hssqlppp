@@ -54,7 +54,7 @@ etc. annotations.
 -}
 ATTR AllNodes Root ExpressionRoot
   [ cat : Catalog
-    lib : LocalIdentifierBindings || annotatedTree : SELF
+    lib : LocalBindings || annotatedTree : SELF
                                      -- workaround: avoid bogus cycle
                                      -- detections search for this,
                                      -- replace with annotated tree

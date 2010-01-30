@@ -23,7 +23,7 @@ SEM Statement
         loc.tpe =
             do
             let fromType = getTypeAnnotation @value.annotatedTree
-            toType <- libLookupID @lhs.lib @target
+            toType <- lbLookupID @lhs.lib @target
             dependsOnRTpe [getTypeAnnotation @value.annotatedTree, toType] $ do
             checkAssignmentValid @lhs.cat fromType toType
             return $ Pseudo Void
@@ -33,7 +33,7 @@ SEM Statement
 
 SEM Statement
     | ForIntegerStatement
-        loc.varTypeE = libLookupID @lhs.lib @var
+        loc.varTypeE = lbLookupID @lhs.lib @var
         loc.tpe =
           do
           let fromType = getTypeAnnotation @from.annotatedTree
@@ -49,8 +49,9 @@ SEM Statement
             case @loc.varTypeE of
               Left [UnrecognisedIdentifier @var] ->
                   fromRight @lhs.lib $
-                  updateBindings @lhs.lib @lhs.cat
-                                 [LibStackIDs [("", [(@var,getTypeAnnotation @from.annotatedTree)])]]
+                  lbUpdate @lhs.cat @lhs.lib $
+                    LBUnqualifiedIds "local for loop variable"
+                       [(@var,getTypeAnnotation @from.annotatedTree)] []
               _ -> @lhs.lib
 
         loc.backTree = ForIntegerStatement @ann @var @from.annotatedTree @to.annotatedTree @sts.annotatedTree
@@ -64,7 +65,7 @@ SEM Statement
         loc.tpe =
           do
           dependsOnRTpe [@loc.selType] $ do
-          toType <- libLookupID @lhs.lib @var
+          toType <- lbLookupID @lhs.lib @var
           dependsOnRTpe [toType] $ do
           checkAssignmentValid @lhs.cat @loc.selType toType
           return $ Pseudo Void
@@ -75,7 +76,9 @@ SEM Statement
         sts.lib =
             if okToUpdate
               then fromRight @lhs.lib $
-                   updateBindings @lhs.lib @lhs.cat [LibStackIDs [("", [(@var,@loc.selType)])]]
+                   lbUpdate @lhs.cat @lhs.lib $
+                     LBUnqualifiedIds "for loop record type"
+                                      [(@var,@loc.selType)] []
                    -- todo:ignoring error
               else @lhs.lib
             where

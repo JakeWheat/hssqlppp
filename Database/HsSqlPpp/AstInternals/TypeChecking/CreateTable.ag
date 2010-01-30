@@ -33,8 +33,8 @@ SEM Statement
                                    @name
                                    @atts.annotatedTree
                                    @cons.annotatedTree
-        cons.lib = case updateBindings @lhs.lib @lhs.cat
-                     [LibStackIDs [("", @atts.attrs)]] of
+        cons.lib = case lbUpdate @lhs.cat @lhs.lib $
+                          LBUnqualifiedIds "attributedefs" @atts.attrs [] of
                       Left x -> error $ show x
                       Right e -> e
 {
@@ -93,8 +93,9 @@ inject the column name and type into the column constraints
 SEM AttributeDef
     | AttributeDef
         cons.lib =
-            case updateBindings @lhs.lib @lhs.cat
-                     [LibStackIDs [("", [(@name, @typ.namedType)])]] of
+            case lbUpdate @lhs.cat @lhs.lib $
+                   LBUnqualifiedIds "attribute def"
+                                    [(@name, @typ.namedType)] [] of
               Left x -> error $ show x
               Right e -> e
 

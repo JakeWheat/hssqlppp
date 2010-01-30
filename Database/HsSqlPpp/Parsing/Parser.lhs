@@ -68,6 +68,26 @@ fragments, then the utility parsers and other utilities at the bottom.
 
 ================================================================================
 
+Parser tests appear inline in this file. Parse errors are not tested
+for currently. Examples focusing on a individual parser combinator are given
+before its implementation, other tests which don't fit neatly in are
+in a list near the bottom of the file.
+
+> {-data ParserTest = PTStatement String [Statement]
+>                 | PTExpression String Expression
+>                 | PTPgsqlStatement String [Statement]
+
+Bit tedious, write down the names of all the inline tests here.
+
+> parserTests = [testGroup "parser tests" $ map tdTft inlineTestData]
+
+> inlineTestData :: [ParserTest]
+> inlineTestData = concat [
+>                   integerLitTests
+>                  ]-}
+
+================================================================================
+
 = Top level parsing functions
 
 > parseSql :: String -- ^ filename to use in errors
@@ -1061,6 +1081,8 @@ and () is a syntax error.
 > floatLit = FloatLit <$> pos <*> float
 
 
+ > integerLitTests :: [ParserTest]
+ > integerLitTests = [PTExpression "1" $ IntegerLit [] 1]
 
 > integerLit :: ParsecT [Token] ParseState Identity Expression
 > integerLit = IntegerLit <$> pos <*> integer
@@ -1495,3 +1517,11 @@ Parse state not currently used. Use these placeholders to add some.
 
 > startState :: ()
 > startState = ()
+
+================================================================================
+
+test boilerplate
+
+> {- tdTft (PTStatement s st)
+> tdTft (PTExpression s st) String Expression
+>                 | PTPgsqlStatement String [Statement]-}

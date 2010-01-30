@@ -91,7 +91,7 @@ For now, just send the input columns in as identifiers
 
 SEM SelectExpression
     | Select
-         loc.newLib = case updateBindings @lhs.lib @lhs.cat @selTref.libUpdates of
+         loc.newLib = case foldM (lbUpdate @lhs.cat) @lhs.lib @selTref.libUpdates of
                         Left x -> error $ show x -- @lhs.cat
                         Right e -> e
          selSelectList.lib = @loc.newLib

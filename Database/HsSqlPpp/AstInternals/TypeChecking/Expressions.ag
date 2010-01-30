@@ -238,13 +238,13 @@ pull id types out of cat for identifiers
 
 SEM Expression
     | Identifier
-        loc.tpe = libLookupID @lhs.lib @i
+        loc.tpe = lbLookupID @lhs.lib @i
         loc.backTree = Identifier @ann @i
 
 
 SEM Expression
     | PositionalArg
-        loc.tpe = libLookupID @lhs.lib ('$':show @p)
+        loc.tpe = lbLookupID @lhs.lib ('$':show @p)
         loc.backTree = PositionalArg @ann @p
 
 

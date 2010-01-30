@@ -98,10 +98,9 @@ SEM Statement
         --add the parameters to the catalog for the contained statements
         body.lib = let p = @params.params
                            ++ (zip posNames $ map snd @params.params)
-                   in fromRight @lhs.lib $
-                      updateBindings @lhs.lib @lhs.cat
-                                     [LibStackIDs [("", p)
-                                                  ,(@name, @params.params)]]
+                   in fromRight @lhs.lib $ do
+                      a <- lbUpdate @lhs.cat @lhs.lib (LBUnqualifiedIds (@name ++ " parameters") p [])
+                      lbUpdate @lhs.cat a (LBQualifiedIds (@name ++ " parameters") @name @params.params [])
                    where
                      posNames :: [String]
                      posNames = map (\l -> '$':show l) [1..]
@@ -119,8 +118,8 @@ SEM FnBody
         --which can nest inside plpgsql functions (they aren't even
         --supported by the parser at the moment)
         sts.lib = fromRight @lhs.lib $
-                  updateBindings @lhs.lib @lhs.cat
-                                 [LibStackIDs [("", @vars.defs)]]
+                  lbUpdate @lhs.cat @lhs.lib $
+                    LBUnqualifiedIds "declarations" @vars.defs []
 
 ATTR VarDef [||def : {(String,Type)}]
 

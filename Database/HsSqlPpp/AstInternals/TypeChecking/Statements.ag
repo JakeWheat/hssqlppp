@@ -16,16 +16,16 @@ e.g. to type check multiple files in a row which depend on eachother.
 -- the cat to feed into the next statement
 
 ATTR Statement [||catUpdates : {[CatalogUpdate]}
-                  libUpdates : {[LocalIdentifierBindingsUpdate]}]
+                  libUpdates : {[LocalBindingsUpdate]}]
 
 
 ATTR StatementList [catUpdates : {[CatalogUpdate]}
-                    libUpdates : {[LocalIdentifierBindingsUpdate]}||]
+                    libUpdates : {[LocalBindingsUpdate]}||]
 
 
 --producedcat is used to pass the final updated cat out
 ATTR StatementList Root [|| producedCat : Catalog
-                            producedLib : LocalIdentifierBindings]
+                            producedLib : LocalBindings]
 
 ATTR Statement [inProducedCat: Catalog||]
 
@@ -34,7 +34,7 @@ SEM StatementList
         --newcat is the catalog passed into the head statement
         --updated with any catalog changes that that statement has made
         loc.newCat = fromRight @lhs.cat $ updateCatalog @lhs.cat @lhs.catUpdates
-        loc.newLib = fromRight @lhs.lib $ updateBindings @lhs.lib @lhs.cat @lhs.libUpdates
+        loc.newLib = fromRight @lhs.lib $ foldM (lbUpdate @lhs.cat) @lhs.lib @lhs.libUpdates
     | Cons
         hd.cat = @loc.newCat
         tl.cat = @loc.newCat

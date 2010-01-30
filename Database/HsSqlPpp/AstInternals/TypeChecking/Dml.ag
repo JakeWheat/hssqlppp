@@ -49,7 +49,7 @@ SEM Statement
         returning.lib =
             fromRight @lhs.lib $ do
               atts <- catCompositeAttrs @lhs.cat relationComposites @table
-              updateBindings @lhs.lib @lhs.cat [LibStackIDs [("", atts)]]
+              lbUpdate @lhs.cat @lhs.lib $ LBUnqualifiedIds "insert target table" atts []
 
 {-
 ================================================================================
@@ -116,7 +116,7 @@ SEM Statement
              ct <- catCompositeAttrs @lhs.cat
                                      relationComposites
                                      @table
-             updateBindings @lhs.lib @lhs.cat [LibStackIDs [("", ct)]]
+             lbUpdate @lhs.cat @lhs.lib $ LBUnqualifiedIds "updated table attrs" ct []
         whr.lib = @loc.lib
         assigns.lib = @loc.lib
         returning.lib = @loc.lib
@@ -192,7 +192,7 @@ SEM Statement
         loc.lib =
             fromRight @lhs.lib $ do
             columnTypes <- catCompositeAttrs @lhs.cat relationComposites @table
-            updateBindings @lhs.lib @lhs.cat [LibStackIDs [("", columnTypes)]]
+            lbUpdate @lhs.cat @lhs.lib $ LBUnqualifiedIds "delete table attrs" columnTypes []
         whr.lib = @loc.lib
         returning.lib = @loc.lib
 

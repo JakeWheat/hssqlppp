@@ -3,6 +3,8 @@ Copyright 2010 Jake Wheat
 Tests for the local bindings lookup code, which is a bit convoluted in
 places, particularly for joins
 
+> {-# LANGUAGE ScopedTypeVariables #-}
+
 > module Database.HsSqlPpp.Tests.LocalBindingsTests (localBindingsTests) where
 
 > import Test.HUnit
@@ -10,14 +12,19 @@ places, particularly for joins
 > import Test.Framework.Providers.HUnit
 > --import Text.Show.Pretty
 > --import Debug.Trace
+> import Control.Monad
+> import Control.Monad.Error
+
 
 > import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
+
+> import Database.HsSqlPpp.Utils
 
 > import Database.HsSqlPpp.Ast.SqlTypes
 > --import Database.HsSqlPpp.Ast.Annotation
 > --import Database.HsSqlPpp.Parsing.Parser
 > --import Database.HsSqlPpp.Ast.TypeChecker
-> --import Database.HsSqlPpp.Ast.Catalog
+> import Database.HsSqlPpp.Ast.Catalog
 
 > data Item = Group String [Item]
 >           | Lookup [([LocalBindingsUpdate]
@@ -100,17 +107,17 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >    ,([jids1],"t1","cf", Right ("sourcet1", "t1", "cf", ScalarType "text"))
 >    ,([jids1],"t2","cf", Right ("sourcet2", "t2", "cf", ScalarType "text"))
 
->    ,([quids1,jids1],"","tf1", Right ("sourcet1", "t1", "tf1", typeInt))
->    ,([quids1,jids1],"","itf1", Right ("sourcet1", "t1", "itf1", typeBool))
->    ,([quids1,jids1],"","tf2", Right ("sourcet2", "t2", "tf2", typeBool))
->    ,([quids1,jids1],"","itf2", Right ("sourcet2", "t2", "itf2", typeInt))
->    ,([quids1,jids1],"t1","tf1", Right ("sourcet1", "t1", "tf1", typeInt))
->    ,([quids1,jids1],"t1","itf1", Right ("sourcet1", "t1", "itf1", typeBool))
->    ,([quids1,jids1],"t2","tf2", Right ("sourcet2", "t2", "tf2", typeBool))
->    ,([quids1,jids1],"t2","itf2", Right ("sourcet2", "t2", "itf2", typeInt))
->    ,([quids1,jids1],"","cf", Right ("sourcet1", "t1", "cf", ScalarType "text"))
->    ,([quids1,jids1],"t1","cf", Right ("sourcet1", "t1", "cf", ScalarType "text"))
->    ,([quids1,jids1],"t2","cf", Right ("sourcet2", "t2", "cf", ScalarType "text"))
+>    ,([jids1,quids1],"","tf1", Right ("sourcet1", "t1", "tf1", typeInt))
+>    ,([jids1,quids1],"","itf1", Right ("sourcet1", "t1", "itf1", typeBool))
+>    ,([jids1,quids1],"","tf2", Right ("sourcet2", "t2", "tf2", typeBool))
+>    ,([jids1,quids1],"","itf2", Right ("sourcet2", "t2", "itf2", typeInt))
+>    ,([jids1,quids1],"t1","tf1", Right ("sourcet1", "t1", "tf1", typeInt))
+>    ,([jids1,quids1],"t1","itf1", Right ("sourcet1", "t1", "itf1", typeBool))
+>    ,([jids1,quids1],"t2","tf2", Right ("sourcet2", "t2", "tf2", typeBool))
+>    ,([jids1,quids1],"t2","itf2", Right ("sourcet2", "t2", "itf2", typeInt))
+>    ,([jids1,quids1],"","cf", Right ("sourcet1", "t1", "cf", ScalarType "text"))
+>    ,([jids1,quids1],"t1","cf", Right ("sourcet1", "t1", "cf", ScalarType "text"))
+>    ,([jids1,quids1],"t2","cf", Right ("sourcet2", "t2", "cf", ScalarType "text"))
 
 >    ]
 >    ,StarExpand [
@@ -133,9 +140,9 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >    ,([jids1], "t2", Right [("sourcet2", "t2", "cf", ScalarType "text")
 >                           ,("sourcet2", "t2", "tf2", typeBool)])
 
->    ,([quids1,jids1], "t1", Right [("sourcet1", "t1", "cf", ScalarType "text")
+>    ,([jids1,quids1], "t1", Right [("sourcet1", "t1", "cf", ScalarType "text")
 >                                  ,("sourcet1", "t1", "tf1", typeInt)])
->    ,([quids1,jids1], "t2", Right [("sourcet2", "t2", "cf", ScalarType "text")
+>    ,([jids1,quids1], "t2", Right [("sourcet2", "t2", "cf", ScalarType "text")
 >                                  ,("sourcet2", "t2", "tf2", typeBool)])
 >   ]]
 >   where
@@ -182,17 +189,19 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >     res33 = ("qid2s","qid2","inttest3",typeInt)
 >     res34 = ("qid2s","qid2","inttest4",typeBool)
 
->     overlapids = [LBUnqualifiedIds "overa"
->                             [("ovtest1", ScalarType "text")] []
->                  ,LBUnqualifiedIds "overb"
->                             [("ovtest1", typeInt)
->                             ,("ovtest2", ScalarType "text")] []]
+potential gotcha: updates are applied in order with foldM - so the lbupdates stack in reverse order to what is listed here, i.e. overa will be at top of stack, not overb.
 
->     coverlapids = [LBQualifiedIds "overa" "ova"
->                             [("ovtest1", ScalarType "text")] []
->                  ,LBQualifiedIds "overb" "ovb"
+>     overlapids = [LBUnqualifiedIds "overb"
 >                             [("ovtest1", typeInt)
->                             ,("ovtest2", ScalarType "text")] []]
+>                             ,("ovtest2", ScalarType "text")] []
+>                  ,LBUnqualifiedIds "overa"
+>                             [("ovtest1", ScalarType "text")] []]
+
+>     coverlapids = [LBQualifiedIds "overb" "ovb"
+>                             [("ovtest1", typeInt)
+>                             ,("ovtest2", ScalarType "text")] []
+>                   ,LBQualifiedIds "overa" "ova"
+>                             [("ovtest1", ScalarType "text")] []]
 
 >     jids1 = LBJoinIds "sourcet1" "t1"
 >                         [("tf1", typeInt)
@@ -270,21 +279,30 @@ LBQualifiedIds {
 >              -> String
 >              -> Either [TypeError] (String,String,String,Type)
 >              -> Test.Framework.Test
-> testIdLookup lbus cn i res = testCase ("lookup " ++ cn ++ "." ++ i) $ do
->     let lb = foldr lbUpdate emptyBindings lbus
->         r = lbLookupID lb cn i
->     assertEqual "lookupid" res r
+> testIdLookup lbus cn i res = testCase ("lookup " ++ cn ++ "." ++ i) $ wrapETT $ do
+>     lb <- tsl $ foldM (lbUpdate defaultTemplate1Catalog) emptyBindings lbus
+>     let r = lbLookupID1 lb cn i
+>     when (res /= r) $ liftIO $ print lb
+>     liftIO $ assertEqual "lookupid" res r
+
 
 > testStarExpand :: [LocalBindingsUpdate]
 >                -> String
 >                -> Either [TypeError] [(String,String,String,Type)]
 >                -> Test.Framework.Test
-> testStarExpand lbus cn res = testCase ("expand star " ++ cn) $ do
->     let lb = foldr lbUpdate emptyBindings lbus
->         r = lbExpandStar lb cn
->     assertEqual "lookupid" res r
+> testStarExpand lbus cn res = testCase ("expand star " ++ cn) $ wrapETT $ do
+>     lb <- tsl $ foldM (lbUpdate defaultTemplate1Catalog) emptyBindings lbus
+>     let r = lbExpandStar1 lb cn
+>     when (res /= r) $ liftIO $ print lb
+>     liftIO $ assertEqual "expandstar" res r
 
 > itemToTft :: Item -> [Test.Framework.Test]
 > itemToTft (Lookup es) = map (\(a,b,c,d) -> testIdLookup a b c d) es
 > itemToTft (StarExpand es) = map (\(a,b,c) -> testStarExpand a b c) es
 > itemToTft (Group s is) = [testGroup s $ concatMap itemToTft is]
+
+> wrapETT :: (Show e) => ErrorT e IO () -> IO ()
+> wrapETT c = runErrorT c >>= \x ->
+>          case x of
+>            Left er -> assertFailure $ show er
+>            Right l -> return l

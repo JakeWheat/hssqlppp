@@ -67,8 +67,8 @@ SEM Statement
         loc.catUpdates = [CatCreateDomain (DomainType @name) @typ.namedType]
         --allow refering to value as 'value' in check expression
         check.lib = fromRight @lhs.lib $
-                    updateBindings @lhs.lib @lhs.cat
-                      [LibStackIDs [("", [("value", @typ.namedType)])]]
+                    lbUpdate @lhs.cat @lhs.lib $
+                    LBUnqualifiedIds "domain check value" [("value", @typ.namedType)] []
 
 SEM Statement
     | CreateLanguage
