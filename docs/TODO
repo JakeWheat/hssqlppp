@@ -75,6 +75,22 @@ documentation generator for plpgsql and database
 junk to be rewritten follows:
 
 
+notes about parse tree:
+would like to support things like making not null the default for
+   table columns rather than null.
+can't do this at the moment since implicit null and explicit null both
+   look the same in the ast after parsing
+so, go whole hog: think about parsing to a modified ast which tries to
+   accurately represent the source code itself, so we can pretty print
+   back and e.g. not add implicit defaults, add parens, etc.
+then have a canonicalize process which adds in all the defaults
+think about how flexible this should be:
+1) force all type checked trees to be canonicalized -> nice and simple
+2) allow typechecking of non canonicalized trees -> will make type
+   checking more complicated, but also remove the need for a separate
+   set of data types for the parse tree and the aast.
+
+
 = new immediate todos:
 
 get typing working for wrapper generator demo -> release

@@ -248,30 +248,6 @@ potential gotcha: updates are applied in order with foldM - so the lbupdates sta
 >                 ,Either [TypeError] [(String,String,String,Type)])
 >     testStar lbus cor res = (lbus,cor,res)
 
-LBQualifiedIds {
-                              source :: String
-                             ,correlationName :: String
-                             ,ids :: [(String,Type)]
-                             ,internalIds :: [(String,Type)]
-                             }
-                          | LBUnqualifiedIds {
-                              source :: String
-                             ,ids :: [(String,Type)]
-                             ,internalIds :: [(String,Type)]
-                             }
-                          | LBJoinIds {
-                              source1 :: String
-                             ,correlationName1 :: String
-                             ,ids1 :: [(String,Type)]
-                             ,internalIds1 :: [(String,Type)]
-                             ,source2 :: String
-                             ,correlationName2 :: String
-                             ,ids2 :: [(String,Type)]
-                             ,internalIds2 :: [(String,Type)]
-                             ,joinIds :: [String]
-                             }
-
-
 ================================================================================
 
 > testIdLookup :: [LocalBindingsUpdate]

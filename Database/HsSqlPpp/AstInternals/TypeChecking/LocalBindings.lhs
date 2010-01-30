@@ -6,8 +6,7 @@ types of parameter and variable references in plpgsql functions, and
 for looking up the types of identifiers in select expressions.
 
 Some notes on lookups
-all lookups are case insensitive - todo: change correlation names and
-ids to lower case in the lbupdate function
+all lookups are case insensitive
 start by searching the head of the lookup update list and working down
 the code here handles resolving the types of join columns when they
 are not the same, and the update routine returns error if the join columns are not compatible
@@ -75,7 +74,7 @@ the code here handles expanding record types so that the components can be looke
 >    Right $ LocalBindings (lowerise lbu : lb)
 >    where
 >      -- make correlation names and id names case insensitive
->      -- todo: need to think about type names as well
+>      -- todo: need to think about type names as well - don't have to compare them here though
 >      lowerise (LBQualifiedIds src cor ids iids) =
 >        LBQualifiedIds src (mtl cor) (mtll ids) (mtll iids)
 >      lowerise (LBUnqualifiedIds src ids iids) =

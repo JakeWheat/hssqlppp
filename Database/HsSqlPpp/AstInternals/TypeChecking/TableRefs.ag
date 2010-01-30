@@ -147,23 +147,38 @@ fill in the lookups and expansions
 -}
 SEM TableRef
     | SubTref
+{-
+subtref - pull the type of the select expression out (which will be a
+          setof composite then the lbupdate is these fields qualified
+          with the tref's alias
+-}
+
         loc.errs = case @loc.selectAttrs of
                            Left e -> e
                            Right _ -> []
         loc.selectAttrs : {Either [TypeError] [(String,Type)]}
         loc.selectAttrs = unwrapSetOfComposite (getTypeAnnotation @sel.annotatedTree)
-        loc.libUpdates = undefined
-
-        {-loc.idLookups = fromRight [] @loc.selectAttrs
-        loc.qidLookups = [(getAlias "" @alias.annotatedTree, @loc.idLookups)]
-        loc.starExpansion = @loc.idLookups
-        loc.qstarExpansion = @loc.qidLookups-}
+        lhs.libUpdates = [LBQualifiedIds "sub query" (getAlias "" @alias.annotatedTree)
+                                         (fromRight [] @loc.selectAttrs) []]
 
     | Tref
-        loc.errs = undefined --case @loc.relType of
-                     --Left e -> e
-                     --Right _ -> []
-        loc.libUpdates = undefined
+{-
+tref - just a name of a table or view, just need to retrieve the fields from the catalog
+
+-}
+        loc.errs = case @loc.relType of
+                     Left e -> e
+                     Right _ -> []
+        --lhs.libUpdates = fromRight [] loc.libUpdates
+        --loc.libUpdates :: Either [TypeError] [LocalBindingUpdate]
+        lhs.libUpdates = [LBQualifiedIds ("tref: " ++ @tbl)
+                                         (getAlias "" @alias.annotatedTree)
+                                         (fst @loc.relType1)
+                                         (snd @loc.relType1)]
+
+        loc.relType : {Either [TypeError] ([(String, Type)], [(String, Type)])}
+        loc.relType = catCompositeAttrsPair @lhs.cat [] @tbl
+        loc.relType1 = fromRight ([],[]) @loc.relType
 
 
         {-loc.relType : {Either [TypeError] ([(String, Type)], [(String, Type)])}
@@ -179,14 +194,26 @@ SEM TableRef
         loc.qstarExpansion = [(@loc.alias, @loc.pAttrs)]-}
 
     | TrefFun
-        loc.errs = undefined {-case @eqfunIdens of
+{-
+
+we rely on the funIdens function below to get the correlation name an
+column names and types - see that function for how this works
+
+
+-}
+        loc.errs = case @eqfunIdens of
                      Left e -> e
-                     Right _ -> []-}
-        loc.libUpdates = undefined
+                     Right _ -> []
 
 
-        {-loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
-        loc.eqfunIdens = funIdens @lhs.cat @loc.alias @fn.annotatedTree
+        loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
+        loc.eqfunIdens = funIdens @lhs.cat (getAlias "" @alias.annotatedTree) @fn.annotatedTree
+        lhs.libUpdates = [LBQualifiedIds ("fn")
+                                         (fst @loc.qfunIdens)
+                                         (snd @loc.qfunIdens)
+                                         []]
+        loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
+{-
         loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
         loc.alias2 = fst @loc.qfunIdens
         loc.funIdens = snd @loc.qfunIdens
