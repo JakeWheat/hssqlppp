@@ -371,7 +371,7 @@ run the test suite
 >     parserTests ++
 >     typeCheckTests ++
 >     parameterizedStatementTests ++
->     roundtripTests ++
+>     --roundtripTests ++
 >     localBindingsTests ++
 >     [extensionTests]
 

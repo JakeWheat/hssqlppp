@@ -50,7 +50,7 @@ SEM Statement
               Left [UnrecognisedIdentifier @var] ->
                   fromRight @lhs.lib $
                   lbUpdate @lhs.cat @lhs.lib $
-                    LBUnqualifiedIds "local for loop variable"
+                    LBIds "local for loop variable" ""
                        [(@var,getTypeAnnotation @from.annotatedTree)] []
               _ -> @lhs.lib
 
@@ -77,7 +77,7 @@ SEM Statement
             if okToUpdate
               then fromRight @lhs.lib $
                    lbUpdate @lhs.cat @lhs.lib $
-                     LBUnqualifiedIds "for loop record type"
+                     LBIds "for loop record type" ""
                                       [(@var,@loc.selType)] []
                    -- todo:ignoring error
               else @lhs.lib

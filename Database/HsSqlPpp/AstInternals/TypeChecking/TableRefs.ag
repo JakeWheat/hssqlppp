@@ -158,7 +158,7 @@ subtref - pull the type of the select expression out (which will be a
                            Right _ -> []
         loc.selectAttrs : {Either [TypeError] [(String,Type)]}
         loc.selectAttrs = unwrapSetOfComposite (getTypeAnnotation @sel.annotatedTree)
-        lhs.libUpdates = [LBQualifiedIds "sub query" (getAlias "" @alias.annotatedTree)
+        lhs.libUpdates = [LBIds "sub query" (getAlias "" @alias.annotatedTree)
                                          (fromRight [] @loc.selectAttrs) []]
 
     | Tref
@@ -171,7 +171,7 @@ tref - just a name of a table or view, just need to retrieve the fields from the
                      Right _ -> []
         --lhs.libUpdates = fromRight [] loc.libUpdates
         --loc.libUpdates :: Either [TypeError] [LocalBindingUpdate]
-        lhs.libUpdates = [LBQualifiedIds ("tref: " ++ @tbl)
+        lhs.libUpdates = [LBIds ("tref: " ++ @tbl)
                                          (getAlias "" @alias.annotatedTree)
                                          (fst @loc.relType1)
                                          (snd @loc.relType1)]
@@ -208,7 +208,7 @@ column names and types - see that function for how this works
 
         loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
         loc.eqfunIdens = funIdens @lhs.cat (getAlias "" @alias.annotatedTree) @fn.annotatedTree
-        lhs.libUpdates = [LBQualifiedIds ("fn")
+        lhs.libUpdates = [LBIds ("fn")
                                          (fst @loc.qfunIdens)
                                          (snd @loc.qfunIdens)
                                          []]
@@ -225,7 +225,28 @@ column names and types - see that function for how this works
         loc.qstarExpansion = @loc.qidLookups-}
     | JoinedTref
         loc.errs = undefined --fromLeft [] @loc.ejoinAttrs
-        loc.libUpdates = undefined
+        lhs.libUpdates =
+            let [u1] = @tbl.libUpdates
+                [u2] = @tbl1.libUpdates
+            in [LBJoinIds u1 u2 jids ""]
+            where
+              jids = case (@nat.annotatedTree, @onExpr.originalTree) of
+                          (Natural, _) -> Left ()
+                          (_,Just (JoinUsing _ s)) -> Right s
+                          _ -> Right []
+
+        loc.newLib = let [u1] = @tbl.libUpdates
+                         [u2] = @tbl1.libUpdates
+                     in case lbUpdate @lhs.cat @lhs.lib (LBParallel u1 u2) of
+                       Left x -> error $ show x
+                       Right e -> {-trace ("on expr lib:" ++ show e)-} e
+        onExpr.lib = @loc.newLib
+        --need to pass this into nested joins also
+        --tbl.jlibUpdates = @loc.libUpdates
+        --tbl1.jlibUpdates = @loc.libUpdates
+
+      --loc.libUpdates = undefined
+
         {-
 
         loc.removeJoinAttrs = filter (\(n,_) -> n `notElem` @loc.joinNames)
@@ -293,6 +314,9 @@ column names and types - see that function for how this works
 
 
 {
+
+
+
 {-
 convert a function call into a [String,[(string,type)]] list for use
 in a tableref context

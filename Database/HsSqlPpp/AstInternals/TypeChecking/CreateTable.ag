@@ -34,7 +34,7 @@ SEM Statement
                                    @atts.annotatedTree
                                    @cons.annotatedTree
         cons.lib = case lbUpdate @lhs.cat @lhs.lib $
-                          LBUnqualifiedIds "attributedefs" @atts.attrs [] of
+                          LBIds "attributedefs" "" @atts.attrs [] of
                       Left x -> error $ show x
                       Right e -> e
 {
@@ -94,7 +94,7 @@ SEM AttributeDef
     | AttributeDef
         cons.lib =
             case lbUpdate @lhs.cat @lhs.lib $
-                   LBUnqualifiedIds "attribute def"
+                   LBIds "attribute def" ""
                                     [(@name, @typ.namedType)] [] of
               Left x -> error $ show x
               Right e -> e

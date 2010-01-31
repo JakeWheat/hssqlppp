@@ -70,7 +70,7 @@ SEM SelectList
                                        @into.annotatedTree
         lhs.libUpdates =
             case @loc.stuff of
-              (_,Just r) -> [LBUnqualifiedIds "set record actual fields from select into"
+              (_,Just r) -> [LBIds "set record actual fields from select into" ""
                               [r] []]
               _ -> []
 --[(@var,@loc.selType)]

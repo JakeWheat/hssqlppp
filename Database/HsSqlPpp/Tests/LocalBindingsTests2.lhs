@@ -17,7 +17,7 @@ places, particularly for joins
 > --import Text.Show.Pretty
 
 
-> import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
+> import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
 
 > import Database.HsSqlPpp.Utils
 
@@ -28,9 +28,11 @@ places, particularly for joins
 > import Database.HsSqlPpp.Ast.Catalog
 
 > data Item = Group String [Item]
->           | Item [(String
->                   ,[LocalBindingsUpdate]
->                   ,Either [TypeError] [LocalBindingsLookup])]
+>           | Lookup [([LocalBindingsUpdate]
+>                     ,String -- correlation name
+>                     ,String -- id name
+>                     ,Either [TypeError] (String,String,String,Type))] -- source, corr, type
+>           | StarExpand [([LocalBindingsUpdate], String, Either [TypeError] [(String,String,String,Type)])]
 
 > localBindingsTests :: [Test.Framework.Test]
 > localBindingsTests = itemToTft testData
@@ -54,12 +56,7 @@ expand composite tests
 n layers of joins with ids from each layer cor and uncor, plus star expands
 
 > testData :: Item
-> testData = Group "local bindings tests" [ Item [
->   ("test empty", [LBIds "source1" "" [] []], Right [LocalBindingsLookup [] [("", Right [])]])
->   ]]
-
-
-> {-testData =
+> testData =
 >   Group "local bindings tests" [ Lookup [
 >     testUnRec [] "" "test"
 >    ,testUnRec [] "test" "test"
@@ -251,11 +248,11 @@ potential gotcha: updates are applied in order with foldM - so the lbupdates sta
 >              -> ([LocalBindingsUpdate]
 >                 ,String -- correlation name
 >                 ,Either [TypeError] [(String,String,String,Type)])
->     testStar lbus cor res = (lbus,cor,res) -}
+>     testStar lbus cor res = (lbus,cor,res)
 
 ================================================================================
 
-> {-testIdLookup :: [LocalBindingsUpdate]
+> testIdLookup :: [LocalBindingsUpdate]
 >              -> String
 >              -> String
 >              -> Either [TypeError] (String,String,String,Type)
@@ -275,29 +272,11 @@ potential gotcha: updates are applied in order with foldM - so the lbupdates sta
 >     lb <- tsl $ foldM (lbUpdate defaultTemplate1Catalog) emptyBindings lbus
 >     let r = lbExpandStar1 lb cn
 >     when (res /= r) $ liftIO $ putStrLn $ ppLocalBindings lb
->     liftIO $ assertEqual ("expand star " ++ cn) res r-}
-
-> testLookups :: String
->             -> [LocalBindingsUpdate]
->             -> Either [TypeError] [LocalBindingsLookup]
->             -> Test.Framework.Test
-> testLookups n lbus lkps = testCase n $ do
->     let lkps1 = do
->                 (LocalBindings _ lkps) <- foldM (lbUpdate defaultTemplate1Catalog) emptyBindings lbus
->                 return lkps
->     when (lkps /= lkps1) $ liftIO $ putStrLn $ "expected " ++ showRes lkps
->                                         ++ "\ngot: " ++ showRes lkps1
->     liftIO $ assertEqual ("check") lkps lkps1
->     where
->       showRes :: Either [TypeError] [LocalBindingsLookup] -> String
->       showRes e = either show showLkps e
->       showLkps :: [LocalBindingsLookup] -> String
->       showLkps ls = concatMap ppLbls ls
+>     liftIO $ assertEqual ("expand star " ++ cn) res r
 
 > itemToTft :: Item -> [Test.Framework.Test]
-> itemToTft (Item es) = map (\(a,b,c) -> testLookups a b c) es
-> --itemToTft (Lookup es) = map (\(a,b,c,d) -> testIdLookup a b c d) es
-> --itemToTft (StarExpand es) = map (\(a,b,c) -> testStarExpand a b c) es
+> itemToTft (Lookup es) = map (\(a,b,c,d) -> testIdLookup a b c d) es
+> itemToTft (StarExpand es) = map (\(a,b,c) -> testStarExpand a b c) es
 > itemToTft (Group s is) = [testGroup s $ concatMap itemToTft is]
 
 > wrapETT :: (Show e) => ErrorT e IO () -> IO ()

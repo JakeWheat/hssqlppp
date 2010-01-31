@@ -72,6 +72,7 @@ extra-source-files:  README
                      Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/TypeChecking.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/LocalBindings.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/LocalBindingsInternal.lhs
                      Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/ErrorUtils.lhs
                      Database/HsSqlPpp/AstInternals/TypeChecking/CreateTable.ag
@@ -81,7 +82,6 @@ extra-source-files:  README
                      Database/HsSqlPpp/AstInternals/TypeChecking/Expressions.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/Drops.ag
                      Database/HsSqlPpp/AstInternals/TypeChecking/MiscCreates.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/LocalIdentifierBindings.lhs
                      Database/HsSqlPpp/Tests/ExtensionTests.lhs
                      Database/HsSqlPpp/Tests/LocalBindingsTests.lhs
                      Database/HsSqlPpp/Tests/ParserTests.lhs
@@ -143,8 +143,8 @@ Library
                      Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-                     Database.HsSqlPpp.AstInternals.TypeChecking.LocalIdentifierBindings
                      Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
+                     Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
                      Database.HsSqlPpp.AstInternals.TypeType
                      Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
                      Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
@@ -201,7 +201,7 @@ Executable HsSqlSystem
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
                      Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
-                     Database.HsSqlPpp.AstInternals.TypeChecking.LocalIdentifierBindings
+                     Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
                      Database.HsSqlPpp.AstInternals.TypeType
                      Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
                      Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
