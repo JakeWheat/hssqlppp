@@ -285,10 +285,22 @@ This is where constructing the local bindings lookup stacks is done
 >       prependJids :: StarLookup -> StarLookup
 >       prependJids (c, lkps) = (c, fmap (jids1++) lkps)
 >       newStarExpansion = map (prependJids . removeJids1) se
->   return $ trace ("join ids: " ++ show jns') $
->       LocalBindingsLookup newIdLookups $ newStarExpansion
+>       -- if we have an alias then we just want unqualified ids, then
+>       -- the same ids with a t3 alias for both ids and star expansion
+>       -- with all the correlation names replaced with the alias
+>   if a == ""
+>     then return $ LocalBindingsLookup newIdLookups $ newStarExpansion
+>     else return $ LocalBindingsLookup (aliasIds newIdLookups) (aliasExps newStarExpansion)
 >   where
->     --third (_,_,n,_) = n
+>     aliasIds :: [IDLookup] -> [IDLookup]
+>     aliasIds lkps = let trimmed = filter (\((c,_),_) -> c == "") lkps
+>                         aliased = map (\(c,i) -> (c, fmap replaceCName i)) trimmed
+>                     in aliased ++ map (\((_,n),i) -> ((a,n),i)) aliased
+>     aliasExps :: [StarLookup] -> [StarLookup]
+>     aliasExps lkps = let is = fromJust $ lookup "" lkps
+>                          aliased = fmap (map replaceCName) is
+>                      in [("",aliased), (a, aliased)]
+>     replaceCName (s,_,n,t) = (s,a,n,t)
 
 > makeStack cat (LBParallel u1 u2) = do
 >   -- get the two stacks,

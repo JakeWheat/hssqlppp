@@ -166,12 +166,71 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >                          ,("s2", "c2", "c", typeBool)])
 >            ]])
 
+>  ,("test natural join", [LBJoinIds
+>                    (LBIds "s1" "c1" [("b", typeBool),("a", typeInt)] [])
+>                    (LBIds "s2" "c2" [("c", typeBool),("a", typeInt)] [])
+>                    (Left ()) ""]
+>   ,Right [LocalBindingsLookup
+>            [(("", "a"), Right ("s1", "c1", "a", typeInt))
+>            ,(("", "b"), Right ("s1", "c1", "b", typeBool))
+>            ,(("c1", "b"), Right ("s1", "c1", "b", typeBool))
+>            ,(("c1", "a"), Right ("s1", "c1", "a", typeInt))
+>            ,(("", "c"), Right ("s2", "c2", "c", typeBool))
+>            ,(("c2", "c"), Right ("s2", "c2", "c", typeBool))
+>            ,(("c2", "a"), Right ("s2", "c2", "a", typeInt))]
+>            [("", Right [("s1", "c1", "a", typeInt)
+>                        ,("s1", "c1", "b", typeBool)
+>                        ,("s2", "c2", "c", typeBool)])
+>            ,("c1", Right [("s1", "c1", "a", typeInt)
+>                          ,("s1", "c1", "b", typeBool)])
+>            ,("c2", Right [("s1", "c1", "a", typeInt)
+>                          ,("s2", "c2", "c", typeBool)])
+>            ]])
+
+
+>  ,("test using join", [LBJoinIds
+>                    (LBIds "s1" "c1" [("b", typeBool),("a", typeInt)] [])
+>                    (LBIds "s2" "c2" [("c", typeBool),("a", typeInt)] [])
+>                    (Right ["a"]) ""]
+>   ,Right [LocalBindingsLookup
+>            [(("", "a"), Right ("s1", "c1", "a", typeInt))
+>            ,(("", "b"), Right ("s1", "c1", "b", typeBool))
+>            ,(("c1", "b"), Right ("s1", "c1", "b", typeBool))
+>            ,(("c1", "a"), Right ("s1", "c1", "a", typeInt))
+>            ,(("", "c"), Right ("s2", "c2", "c", typeBool))
+>            ,(("c2", "c"), Right ("s2", "c2", "c", typeBool))
+>            ,(("c2", "a"), Right ("s2", "c2", "a", typeInt))]
+>            [("", Right [("s1", "c1", "a", typeInt)
+>                        ,("s1", "c1", "b", typeBool)
+>                        ,("s2", "c2", "c", typeBool)])
+>            ,("c1", Right [("s1", "c1", "a", typeInt)
+>                          ,("s1", "c1", "b", typeBool)])
+>            ,("c2", Right [("s1", "c1", "a", typeInt)
+>                          ,("s2", "c2", "c", typeBool)])
+>            ]])
+
+>  ,("test join with alias", [LBJoinIds
+>                    (LBIds "s1" "c1" [("b", typeBool),("a", typeInt)] [])
+>                    (LBIds "s2" "c2" [("c", typeBool),("a", typeInt)] [])
+>                    (Right ["a"]) "t3"]
+>   ,Right [LocalBindingsLookup
+>            [(("", "a"), Right ("s1", "t3", "a", typeInt))
+>            ,(("", "b"), Right ("s1", "t3", "b", typeBool))
+>            ,(("", "c"), Right ("s2", "t3", "c", typeBool))
+>            ,(("t3", "a"), Right ("s1", "t3", "a", typeInt))
+>            ,(("t3", "b"), Right ("s1", "t3", "b", typeBool))
+>            ,(("t3", "c"), Right ("s2", "t3", "c", typeBool))]
+>            [("", Right [("s1", "t3", "a", typeInt)
+>                        ,("s1", "t3", "b", typeBool)
+>                        ,("s2", "t3", "c", typeBool)])
+>            ,("t3", Right [("s1", "t3", "a", typeInt)
+>                          ,("s1", "t3", "b", typeBool)
+>                          ,("s2", "t3", "c", typeBool)])
+>            ]])
+
 
 joinids no common, no alias, no using list
-  natural join, nat change fieldorder
-  explicit join list
-  alias
-  4 layers on aliases
+  4 layers no aliases
   error missing field in join list
     imcompatible types
   non join field ambiguous name
@@ -434,8 +493,8 @@ potential gotcha: updates are applied in order with foldM - so the lbupdates sta
 >             -> Test.Framework.Test
 > testLookups n lbus lkps = testCase n $ do
 >     let lkps1 = do
->                 (LocalBindings _ lkps) <- foldM (lbUpdate defaultTemplate1Catalog) emptyBindings lbus
->                 return lkps
+>                 (LocalBindings _ lkpsx) <- foldM (lbUpdate defaultTemplate1Catalog) emptyBindings lbus
+>                 return lkpsx
 >     when (lkps /= lkps1) $ liftIO $ putStrLn $ "expected " ++ showRes lkps
 >                                         ++ "\ngot: " ++ showRes lkps1
 >     liftIO $ assertEqual ("check") lkps lkps1

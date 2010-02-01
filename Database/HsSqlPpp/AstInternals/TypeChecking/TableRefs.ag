@@ -125,27 +125,6 @@ tree resulting from one mistake - a user friendliness consideration)
 -}
 
 SEM TableRef
-    | SubTref Tref TrefFun JoinedTref
-        {-loc.idLookups : {[(String,Type)]}
-        loc.qidLookups : {[(String,[(String,Type)])]}
-        loc.starExpansion : {[(String,Type)]}
-        loc.qstarExpansion : {[(String,[(String,Type)])]}-}
-        {-loc.libUpdates = undefined {if null @errs
-                           then [LibStackIDs $ ("", @loc.idLookups): @loc.qidLookups
-                                ,LibSetStarExpansion $ ("", @loc.starExpansion): @loc.qstarExpansion]
-                           else []-}
-
---ATTR TableRef [jlibUpdates: {[LocalBindingsUpdate]}||]
-
-{-
-
-similar sort of pattern for each sem:
-forward the errs
-get the information we need to fill in the lookups and expansions as an either
-fill in the lookups and expansions
-
--}
-SEM TableRef
     | SubTref
 {-
 subtref - pull the type of the select expression out (which will be a
@@ -158,7 +137,7 @@ subtref - pull the type of the select expression out (which will be a
                            Right _ -> []
         loc.selectAttrs : {Either [TypeError] [(String,Type)]}
         loc.selectAttrs = unwrapSetOfComposite (getTypeAnnotation @sel.annotatedTree)
-        lhs.libUpdates = [LBIds "sub query" (getAlias "" @alias.annotatedTree)
+        lhs.libUpdates = [LBIds "sub query" (getAlias "" @alias.annotatedTree) --"" should be error
                                          (fromRight [] @loc.selectAttrs) []]
 
     | Tref
@@ -169,10 +148,8 @@ tref - just a name of a table or view, just need to retrieve the fields from the
         loc.errs = case @loc.relType of
                      Left e -> e
                      Right _ -> []
-        --lhs.libUpdates = fromRight [] loc.libUpdates
-        --loc.libUpdates :: Either [TypeError] [LocalBindingUpdate]
         lhs.libUpdates = [LBIds ("tref: " ++ @tbl)
-                                         (getAlias "" @alias.annotatedTree)
+                                         (getAlias @tbl @alias.annotatedTree)
                                          (fst @loc.relType1)
                                          (snd @loc.relType1)]
 
@@ -180,25 +157,11 @@ tref - just a name of a table or view, just need to retrieve the fields from the
         loc.relType = catCompositeAttrsPair @lhs.cat [] @tbl
         loc.relType1 = fromRight ([],[]) @loc.relType
 
-
-        {-loc.relType : {Either [TypeError] ([(String, Type)], [(String, Type)])}
-        loc.relType = catCompositeAttrsPair @lhs.cat [] @tbl
-        loc.relType1 = fromRight ([],[]) @loc.relType
-        loc.pAttrs = fst @loc.relType1
-        loc.sAttrs = snd @loc.relType1
-
-        loc.idLookups = @loc.pAttrs ++ @loc.sAttrs
-        loc.alias = getAlias @tbl @alias.annotatedTree
-        loc.qidLookups = [(@loc.alias, @loc.idLookups)]
-        loc.starExpansion = @loc.pAttrs
-        loc.qstarExpansion = [(@loc.alias, @loc.pAttrs)]-}
-
     | TrefFun
 {-
 
 we rely on the funIdens function below to get the correlation name an
 column names and types - see that function for how this works
-
 
 -}
         loc.errs = case @eqfunIdens of
@@ -213,105 +176,28 @@ column names and types - see that function for how this works
                                          (snd @loc.qfunIdens)
                                          []]
         loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
-{-
-        loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
-        loc.alias2 = fst @loc.qfunIdens
-        loc.funIdens = snd @loc.qfunIdens
-        loc.alias = getAlias "" @alias.annotatedTree
-
-        loc.idLookups = @loc.funIdens
-        loc.qidLookups = [(@alias2, @loc.idLookups)]
-        loc.starExpansion = @loc.idLookups
-        loc.qstarExpansion = @loc.qidLookups-}
     | JoinedTref
-        loc.errs = undefined --fromLeft [] @loc.ejoinAttrs
+{-
+join - most of the hard work is done in local bindings
+-}
+        loc.errs = fromLeft [] @loc.newLib
         lhs.libUpdates =
             let [u1] = @tbl.libUpdates
                 [u2] = @tbl1.libUpdates
-            in [LBJoinIds u1 u2 jids ""]
+            in [LBJoinIds u1 u2 jids (case @alias.annotatedTree of
+                                        NoAlias -> ""
+                                        TableAlias t -> t
+                                        FullAlias t _ -> t)]
             where
               jids = case (@nat.annotatedTree, @onExpr.originalTree) of
                           (Natural, _) -> Left ()
                           (_,Just (JoinUsing _ s)) -> Right s
                           _ -> Right []
-
+        loc.newLib : {Either [TypeError] LocalBindings}
         loc.newLib = let [u1] = @tbl.libUpdates
                          [u2] = @tbl1.libUpdates
-                     in case lbUpdate @lhs.cat @lhs.lib (LBParallel u1 u2) of
-                       Left x -> error $ show x
-                       Right e -> {-trace ("on expr lib:" ++ show e)-} e
-        onExpr.lib = @loc.newLib
-        --need to pass this into nested joins also
-        --tbl.jlibUpdates = @loc.libUpdates
-        --tbl1.jlibUpdates = @loc.libUpdates
-
-      --loc.libUpdates = undefined
-
-        {-
-
-        loc.removeJoinAttrs = filter (\(n,_) -> n `notElem` @loc.joinNames)
-        --the main meat: find out the name and types of all the common
-        -- join attributes that need to be combined in the result
-        -- (this is all the attributes which appear in both tables in
-        -- the case of a natural join, or all the attributes appearing
-        -- in the join list in the case of a using join.  for other
-        -- joins, this list is empty
-        -- all the attributes which don't appear in this list just
-        -- get added together so we don't need to worry about them
-        loc.ejoinAttrs : {Either [TypeError] [(String,Type)]}
-        loc.ejoinAttrs =
-            do
-            -- get the names of the join columns
-            let jns = case (@nat.annotatedTree, @onExpr.originalTree) of
-                          (Natural, _) -> commonFieldNames
-                          (_,Just (JoinUsing _ s)) -> s
-                          _ -> []
-                --make sure these columns appear in both tables
-                tjtsm = map (flip lookup @tbl.idLookups) jns
-                t1jtsm = map (flip lookup @tbl1.idLookups) jns
-            errorWhen (not $ null $ filter (==Nothing) $ tjtsm ++ t1jtsm)
-                      [MissingJoinAttribute]
-            let tjts = catMaybes tjtsm -- should be no nothings at this stage
-                t1jts = catMaybes t1jtsm
-                -- find the types of these columns - this uses the result set
-                -- type resolution (see typeconversion.lhs for more details
-                -- and the relevant link to the pg manual
-                resolvedTypes :: [Either [TypeError] Type]
-                resolvedTypes = map (\(a,b) -> resolveResultSetType @lhs.cat [a,b]) $ zip tjts t1jts
-            liftErrors $ concat $ lefts resolvedTypes
-            return $ zip jns $ rights resolvedTypes
-            where
-              commonFieldNames = intersect (f @tbl.starExpansion) (f @tbl1.starExpansion)
-                                 where f = map fst
-        loc.joinNames = map fst @loc.joinAttrs
-        loc.joinAttrs = fromRight [] @loc.ejoinAttrs
-
-        --this is where we use the joinAttrs to filter the lookups and
-        --expansions: stick the joinattrs at the start
-        -- and add the other two lists minus the join attributes
-        loc.idLookups = @loc.joinAttrs ++
-                          @loc.removeJoinAttrs @tbl.idLookups ++
-                          @loc.removeJoinAttrs @tbl1.idLookups
-        loc.qidLookups = @tbl.qidLookups ++ @tbl1.qidLookups
-        loc.starExpansion = @loc.joinAttrs ++
-                              @loc.removeJoinAttrs @tbl.starExpansion ++
-                              @loc.removeJoinAttrs @tbl1.starExpansion
-        loc.qstarExpansion = @tbl.qstarExpansion ++ @tbl1.qstarExpansion
-
-        -- we need the attributes from the joined tables to be available
-        -- in the join expression.
-        loc.newLib = undefined {-case lbUpdate @lhs.lib @lhs.cat (@loc.libUpdates ++ @lhs.jlibUpdates) of
-                       Left x -> error $ show x
-                       Right e -> {-trace ("on expr lib:" ++ show e)-} e-}
-        onExpr.lib = @loc.newLib
-        --need to pass this into nested joins also
-        tbl.jlibUpdates = @loc.libUpdates
-        tbl1.jlibUpdates = @loc.libUpdates -}
-
-
---SEM TableRefList
---    | Cons hd.jlibUpdates = []
-
+                     in lbUpdate @lhs.cat @lhs.lib (LBParallel u1 u2)
+        onExpr.lib = fromRight @lhs.lib @loc.newLib
 
 {
 
@@ -359,17 +245,6 @@ getAlias def alias =
 
 }
 
--- boilerplate
--- copying the locals to syn attrs
-{-
-SEM TableRef
-    | SubTref Tref TrefFun JoinedTref
-        lhs.libUpdates = @loc.libUpdates
-        lhs.idLookups = @loc.idLookups
-        lhs.qidLookups = @loc.qidLookups
-        lhs.starExpansion = @loc.starExpansion
-        lhs.qstarExpansion = @loc.qstarExpansion
--}
 -- backtrees
 
 SEM TableRef
