@@ -228,6 +228,47 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >                          ,("s2", "t3", "c", typeBool)])
 >            ]])
 
+>  ,("test composite type expansion", [LBIds "s1" "c1" [("r", NamedCompositeType "pg_attrdef")] []]
+>   ,ctExpand (NamedCompositeType "pg_attrdef"))
+>  ,let t = CompositeType ctFields
+>   in ("test composite type expansion ct", [LBIds "s1" "c1" [("r", t)] []]
+>      ,ctExpand t)
+>  ,let t = PgRecord $ Just $ NamedCompositeType "pg_attrdef"
+>   in ("test composite type expansion rec", [LBIds "s1" "c1" [("r", t)] []]
+>      ,ctExpand t)
+>  ,let t = PgRecord $ Just $ CompositeType ctFields
+>   in ("test composite type expansion rec", [LBIds "s1" "c1" [("r", t)] []]
+>      ,ctExpand t)
+
+> {-Right [LocalBindingsLookup
+>            [(("","r"),Right ("s1","c1","r",NamedCompositeType "pg_attrdef"))
+>             ,(("c1","r"),Right ("s1","c1","r",NamedCompositeType "pg_attrdef"))
+>             ,(("r","adrelid"),Right ("s1","r","adrelid",ScalarType "oid"))
+>             ,(("r","adnum"),Right ("s1","r","adnum",ScalarType "int2"))
+>             ,(("r","adbin"),Right ("s1","r","adbin",ScalarType "text"))
+>             ,(("r","adsrc"),Right ("s1","r","adsrc",ScalarType "text"))]
+>            [("",Right [("s1","c1","r",NamedCompositeType "pg_attrdef")])
+>            ,("c1",Right [("s1","c1","r",NamedCompositeType "pg_attrdef")])
+>            ,("r",Right [("s1","r","adrelid",ScalarType "oid")
+>                        ,("s1","r","adnum",ScalarType "int2")
+>                        ,("s1","r","adbin",ScalarType "text")
+>                        ,("s1","r","adsrc",ScalarType "text")])
+
+>            ]])-}
+
+[
+(("","r"),Right ("s1","c1","r",NamedCompositeType "pg_attrdef"))
+,(("c1","r"),Right ("s1","c1","r",NamedCompositeType "pg_attrdef"))
+,(("r","adrelid"),Right ("s1","r","adrelid",ScalarType "oid"))
+,(("r","adnum"),Right ("s1","r","adnum",ScalarType "int2"))
+,(("r","adbin"),Right ("s1","r","adbin",ScalarType "text"))
+,(("r","adsrc"),Right ("s1","r","adsrc",ScalarType "text"))
+]
+[
+("",Right [("s1","c1","r",NamedCompositeType "pg_attrdef")])
+,("c1",Right [("s1","c1","r",NamedCompositeType "pg_attrdef")])
+]
+
 
 joinids no common, no alias, no using list
   4 layers no aliases
@@ -267,6 +308,27 @@ chaos=# select b.* from (select 1 as a, 2 as a) b;
 (1 row)
 
 >   ]]
+>   where
+>     ctFields = [("adrelid",ScalarType "oid")
+>                ,("adnum",ScalarType "int2")
+>                ,("adbin",ScalarType "text")
+>                ,("adsrc",ScalarType "text")]
+>     ctExpand t =
+>        Right [LocalBindingsLookup
+>            [(("","r"),Right ("s1","c1","r",t))
+>             ,(("c1","r"),Right ("s1","c1","r",t))
+>             ,(("r","adrelid"),Right ("s1","r","adrelid",ScalarType "oid"))
+>             ,(("r","adnum"),Right ("s1","r","adnum",ScalarType "int2"))
+>             ,(("r","adbin"),Right ("s1","r","adbin",ScalarType "text"))
+>             ,(("r","adsrc"),Right ("s1","r","adsrc",ScalarType "text"))]
+>            [("",Right [("s1","c1","r",t)])
+>            ,("c1",Right [("s1","c1","r",t)])
+>            ,("r",Right [("s1","r","adrelid",ScalarType "oid")
+>                        ,("s1","r","adnum",ScalarType "int2")
+>                        ,("s1","r","adbin",ScalarType "text")
+>                        ,("s1","r","adsrc",ScalarType "text")])
+
+>            ]]
 
 
 > {-testData =

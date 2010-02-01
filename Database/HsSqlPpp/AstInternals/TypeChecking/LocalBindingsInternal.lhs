@@ -27,7 +27,7 @@ ids. Some of the lookups map to ambiguous identifier errors. Also at
 each level is a list of star expansions, one for each correlation name
 in scope, and one for an unqualified star.
 
-
+> {-# LANGUAGE ScopedTypeVariables #-}
 > {-# OPTIONS_HADDOCK hide  #-}
 
 > module Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
@@ -169,7 +169,9 @@ compatibility with the old lookup code
 >     lkId ((LocalBindingsLookup idmap _):ls) =
 >       case lookup (cor,i) idmap of
 >         Just s -> s
->         Nothing -> lkId ls
+>         Nothing -> if cor /= "" && any ((==cor) . fst . fst) idmap
+>                    then Left [UnrecognisedIdentifier $ showID cor i']
+>                    else lkId ls
 >     lkId [] = if cor' == "" --todo: need to throw unrecognised identifier, if the correlation name isn't "", a id isn't found, and there are other ids with that correlation name
 >               then Left [UnrecognisedIdentifier $ showID cor i']
 >               else Left [UnrecognisedCorrelationName cor']
@@ -202,8 +204,10 @@ old implementation of local bindings
 This is where constructing the local bindings lookup stacks is done
 
 > lbUpdate :: Catalog -> LocalBindings -> LocalBindingsUpdate -> E LocalBindings
-> lbUpdate cat (LocalBindings lbus lkps) lbu' =
->    mapRight (\l -> LocalBindings (lbu':lbus) (l:lkps)) $ makeStack cat lbu
+> lbUpdate cat (LocalBindings lbus lkps) lbu' = do
+>    lbl <- makeStack cat lbu
+>    lbl1 <- expandComposites cat lbl
+>    return $ LocalBindings (lbu':lbus) (lbl1:lkps)
 >    where
 >      lbu = lowerise lbu'
 >      -- make correlation names and id names case insensitive
@@ -346,154 +350,40 @@ lookups [(a,b)]
 
 ================================================================================
 
+expand composites
 
+slightly dodgy - run through all the unqualified ids in the idlookups, and if any
+have a composite type, add each element of that composite under the
+correlation name of the idlookup itself, and add a star expansion for
+that name also. This pretends that using a correlation name, composite
+name and id name as a three part id isn't possible
 
-
-
-
-
-> {-lbExpandStar :: LocalBindings -> String -> Either [TypeError] [SimpleId]
-> lbExpandStar lb c = fmap (\l -> map (\(_,_,n,t) -> (n,t)) l) $ lbExpandStar1 lb $ mtl c
-
-> lbExpandStar1 :: LocalBindings
->              -> String -- correlation name
->              -> Either [TypeError] [FullId] -- either error or [source,(corr,name,type)]
-> lbExpandStar1 (LocalBindings l) cor' =
->   es l
+> expandComposites :: Catalog -> LocalBindingsLookup -> E LocalBindingsLookup
+> expandComposites cat (LocalBindingsLookup idlkp stlkp) = do
+>   let unqids = filter (\((a,_),_) -> a == "") idlkp
+>       strip = map snd unqids
+>       getComposites = filter (\(_,_,_,t) -> isCompositeType t) $ rights strip
+>   comps <- mapM compExp getComposites
+>   let sts = map toStarLookup comps
+>   Right (LocalBindingsLookup (idlkp ++ (concat comps)) (stlkp ++ sts))
 >   where
->     cor = mtl cor'
->     es :: [LocalBindingsUpdate] -> Either [TypeError] [FullId]
->     es (LBQualifiedIds src cor1 ids _ :lbus) = if cor == cor1 || cor == ""
->                                                then mapEm src cor1 ids
->                                                else es lbus
->     es (LBUnqualifiedIds src ids _ : lbus) = if cor == ""
->                                              then mapEm src "" ids
->                                              else es lbus
->     es (u@(LBJoinIds lbu1 lbu2 _) : lbus) =
->        let ids = getStarIds u
->        in case lookup cor ids of
->             Just x -> x
->             Nothing -> es lbus
->        {-if cor `elem` ("": map (\(LBQualifiedIds _ c _ _) -> c) (flattenLibUpdates [lbu1,lbu2]))
->        then Right $ fromJust $ lookup cor $
->        else es lbus-}
->     es [] = Left [UnrecognisedCorrelationName cor]
->     mapEm :: String -> String -> [SimpleId] -> Either [TypeError] [FullId]
->     mapEm src c = Right . map (\(a,b) -> (src,c,a,b))
-
-> lbLookupID :: LocalBindings
->            -> String -- identifier name
->            -> Either [TypeError] Type
-> lbLookupID lb ci = let (cor,i) = splitIdentifier $ mtl ci
->                    in fmap (\(_,_,_,t) -> t) $ lbLookupID1 lb cor i
->                    where
->                      splitIdentifier s = let (a,b) = span (/= '.') s
->                                          in if b == ""
->                                             then ("", a)
->                                             else (a,tail b)
-
-
-> lbLookupID1 :: LocalBindings
->            -> String -- correlation name
->            -> String -- identifier name
->            -> Either [TypeError] FullId -- type error or source, corr, type
-> lbLookupID1 (LocalBindings lb) cor' i' =
->   lk lb
->   where
->     cor = mtl cor'
->     i = mtl i'
->     lk (lbu:lbus) = case findID cor i lbu of
->                                           Nothing -> lk lbus
->                                           Just t -> t
->     lk [] = Left [UnrecognisedIdentifier (if cor == "" then i else cor ++ "." ++ i)]
-
-> findID :: String
->        -> String
->        -> LocalBindingsUpdate
->        -> Maybe (Either [TypeError] FullId)
-> findID cor i (LBQualifiedIds src cor1 ids intIds) =
->     if cor `elem` ["", cor1]
->     then case (msum [lookup i ids
->                     ,lookup i intIds]) of
->            Just ty -> Just $ Right (src,cor1,i,ty)
->            Nothing -> if cor == ""
->                       then Nothing
->                       else Just $ Left [UnrecognisedIdentifier (if cor == "" then i else cor ++ "." ++ i)]
->     else Nothing
-
-> findID cor i (LBUnqualifiedIds src ids intIds) =
->   if cor == ""
->   then flip fmap (msum [lookup i ids
->                        ,lookup i intIds])
->          $ \ty -> Right (src,"",i,ty)
->   else Nothing
-> findID cor i u@(LBJoinIds _ _ _) =
->     lookup (cor,i) $ getJoinIdMap u
-
-expand out the ids for a join
-
-so we have a full list to lookup single ids whether qualified or not,
-and return possibly a ambiguous id error
-
-> getJoinIdMap :: LocalBindingsUpdate
->              -> [((String,String), Either [TypeError] FullId)]
-> getJoinIdMap (LBJoinIds lbu1 lbu2 jids) =
->     concat [
->       -- all non join ids unqualified
->       flip concatMap trefs $ \(LBQualifiedIds s c ids iids) ->
->         map (\(i,t) -> (("", i), Right (s,c,i,t))) $ notJids ids ++ iids
->       -- all join ids unqualified, linked to first jtref
->      ,let (LBQualifiedIds s c _ _) = head trefs
->       in map (\(i,t) -> (("", i), Right (s,c,i,t))) jidts
->       -- all non join ids qualified
->      ,flip concatMap trefs $ \(LBQualifiedIds s c ids iids) ->
->         map (\(i,t) -> ((c, i), Right (s,c,i,t))) $ notJids ids ++ iids
->       -- all join ids qualified by each table qualifier
->      ,let qs = map (\(LBQualifiedIds s c _ _) -> (s,c)) trefs
->       in flip concatMap qs (\(s,c) -> map (\(i,t) -> ((c, i), Right (s,c,i,t))) jidts)
->     ]
->   where
->     --trefs = flattenLibUpdates [lbu1,lbu2]
->     notJids = filter (\(n,_) -> n `notElem` jids)
->     jidts = let (LBQualifiedIds _ _ ids iids) = head trefs
->                 aids = ids ++ iids
->             in map (\n -> (n, fromJust $ lookup n aids)) jids
-
-> getJoinIdMap x = error $ "internal error: getJoinIdMap called on " ++ show x
-
-> getStarIds :: LocalBindingsUpdate
->              -> [(String, [FullId])]
-> getStarIds (LBJoinIds lbu1 lbu2 jids) =
->   -- uncorrelated
->   ("", concat [
->             -- all join ids qualified with c1
->             let (LBQualifiedIds s c _ _) = head trefs
->             in map (\(i,t) -> (s,c,i,t)) jidts
->             -- all non join tref ids unqualified
->            ,flip concatMap trefs (\(LBQualifiedIds s c ids _) ->
->                                   map (\(i,t) -> (s,c,i,t)) $ notJids ids)
->             ]) :
->    -- correlated
->   flip map trefs (\(LBQualifiedIds s c ids _) ->
->         (c, concat [
->             -- all join ids qualified with c
->             map (\(i,t) -> (s,c,i,t)) jidts
->             -- all non join ids
->            ,map (\(i,t) -> (s,c,i,t)) $ notJids ids
->               ]))
->   where
->     --trefs = flattenLibUpdates [lbu1,lbu2]
->     notJids = filter (\(n,_) -> n `notElem` jids)
->     jidts = let (LBQualifiedIds _ _ ids iids) = head trefs
->                 aids = ids ++ iids
->             in map (\n -> (n, fromJust $ lookup n aids)) jids
-
-> getStarIds x = error $ "internal error: getJoinIdMap called on " ++ show x
-
-> {-flattenLibUpdates :: [LocalBindingsUpdate] -> [LocalBindingsUpdate]
-> flattenLibUpdates (x:xs) = f x ++ flattenLibUpdates xs
->                          where
->                            f l@(LBQualifiedIds _ _ _ _) = [l]
->                            f (LBJoinIds lbu1 lbu2 _) = flattenLibUpdates [lbu1,lbu2]
->                            f _ = undefined
-> flattenLibUpdates [] = []-}-}
+>     isCt (SetOfType t) = isCompositeType t
+>     isCt t = isCompositeType t
+>     getCompFields :: Type -> E [(String,Type)]
+>     getCompFields (SetOfType t) = getCompFields t
+>     getCompFields (PgRecord Nothing) = Right []
+>     getCompFields (PgRecord (Just t)) = getCompFields t
+>     getCompFields (CompositeType f) = return f
+>     getCompFields (NamedCompositeType s) = catCompositePublicAttrs cat [] s
+>     getCompFields (AnonymousRecordType t) = Right [] -- ??
+>     getCompFields _ = Right []
+>     compExp :: FullId -> E [IDLookup]
+>     compExp (s,c,n,t) = do
+>       f <- getCompFields t
+>       return $ flip map f $ \(n1,t1) -> ((n,n1),Right (s,n,n1,t1))
+>     toStarLookup :: [IDLookup] -> StarLookup
+>     toStarLookup ids =
+>       let fids::[FullId]
+>           fids = rights $ map snd ids
+>           (_,c,_,_) = head fids
+>       in (c,Right fids)
