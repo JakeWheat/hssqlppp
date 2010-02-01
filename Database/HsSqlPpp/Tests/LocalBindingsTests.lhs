@@ -126,9 +126,49 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 >           ,("c2", Right [("source2", "c2", "a1", typeInt)
 >                         ,("source2", "c2", "b", typeBool)])
 >                   ]])
+>  ,("test join 1", [LBJoinIds
+>                    (LBIds "s1" "c1" [("a", typeInt)] [("b", typeBool)])
+>                    (LBIds "s2" "c2" [("c", typeInt)] [("d", typeBool)])
+>                    (Right []) ""]
+>   ,Right [LocalBindingsLookup
+>            [(("", "a"), Right ("s1", "c1", "a", typeInt))
+>            ,(("", "b"), Right ("s1", "c1", "b", typeBool))
+>            ,(("c1", "a"), Right ("s1", "c1", "a", typeInt))
+>            ,(("c1", "b"), Right ("s1", "c1", "b", typeBool))
+>            ,(("", "c"), Right ("s2", "c2", "c", typeInt))
+>            ,(("", "d"), Right ("s2", "c2", "d", typeBool))
+>            ,(("c2", "c"), Right ("s2", "c2", "c", typeInt))
+>            ,(("c2", "d"), Right ("s2", "c2", "d", typeBool))]
+>            [("", Right [("s1", "c1", "a", typeInt)
+>                        ,("s2", "c2", "c", typeInt)])
+>            ,("c1", Right [("s1", "c1", "a", typeInt)])
+>            ,("c2", Right [("s2", "c2", "c", typeInt)])
+>            ]])
+
+>  ,("test natural join", [LBJoinIds
+>                    (LBIds "s1" "c1" [("a", typeInt), ("b", typeBool)] [])
+>                    (LBIds "s2" "c2" [("a", typeInt), ("c", typeBool)] [])
+>                    (Left ()) ""]
+>   ,Right [LocalBindingsLookup
+>            [(("", "a"), Right ("s1", "c1", "a", typeInt))
+>            ,(("", "b"), Right ("s1", "c1", "b", typeBool))
+>            ,(("c1", "a"), Right ("s1", "c1", "a", typeInt))
+>            ,(("c1", "b"), Right ("s1", "c1", "b", typeBool))
+>            ,(("", "c"), Right ("s2", "c2", "c", typeBool))
+>            ,(("c2", "a"), Right ("s2", "c2", "a", typeInt))
+>            ,(("c2", "c"), Right ("s2", "c2", "c", typeBool))]
+>            [("", Right [("s1", "c1", "a", typeInt)
+>                        ,("s1", "c1", "b", typeBool)
+>                        ,("s2", "c2", "c", typeBool)])
+>            ,("c1", Right [("s1", "c1", "a", typeInt)
+>                          ,("s1", "c1", "b", typeBool)])
+>            ,("c2", Right [("s1", "c1", "a", typeInt)
+>                          ,("s2", "c2", "c", typeBool)])
+>            ]])
+
 
 joinids no common, no alias, no using list
-  natural join
+  natural join, nat change fieldorder
   explicit join list
   alias
   4 layers on aliases

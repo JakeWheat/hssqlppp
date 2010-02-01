@@ -52,10 +52,11 @@ in scope, and one for an unqualified star.
 
 > import Control.Monad as M
 > import Control.Applicative
-> --import Debug.Trace
+> import Debug.Trace
 > import Data.List
 > import Data.Maybe
 > import Data.Char
+> import Data.Either
 > import qualified Data.Map as M
 
 > import Database.HsSqlPpp.AstInternals.TypeType
@@ -92,7 +93,7 @@ correlation name.
 >                                           -- correlation name
 > type SimpleId = (String,Type)
 > type IDLookup = ((String,String), E FullId)
-> type StarLookup = (String, E [FullId])
+> type StarLookup = (String, E [FullId]) --the order of the [FullId] part is important
 
 > data LocalBindingsLookup = LocalBindingsLookup
 >                                [IDLookup]
@@ -244,17 +245,50 @@ This is where constructing the local bindings lookup stacks is done
 >   --
 >   (LocalBindingsLookup i1 s1) <- makeStack cat t1
 >   (LocalBindingsLookup i2 s2) <- makeStack cat t2
->   let isJid ((_,n),_) =  n `elem` jns'
+>   -- get the names and types of the join columns
+>   let jns' = case jns of
+>              Left () -> -- natural join, so we have to work out the names
+>                         -- by looking at the common attributes
+>                         -- we do this by getting the star expansion
+>                         -- with no correlation name, and then finding
+>                         -- the ids which appear in both lists
+>                         -- (so this ignores internal ids)
+>                  let ic1 :: [FullId]
+>                      ic1 = fromRight [] $ maybe (Right []) id $ lookup "" s1
+>                      ic2 = fromRight [] $ maybe (Right []) id $ lookup "" s2
+>                      third (_,_,n,_) = n
+>                      ii1 :: [String]
+>                      ii1 = map third ic1
+>                      ii2 = map third ic2
+>                  in intersect ii1 ii2
+>              Right x -> x
+>       -- first prepare for the id lookups
+>       -- remove the join ids from the id lookups
+>       isJid ((c,n),_) = (c == "") && (n `elem` jns')
 >       removeJids = filter (not . isJid)
 >       i1' = removeJids i1
 >       i2' = removeJids i2
+>       -- get the types of the join ids, this should use resolveresultset type
+>       -- on the type of each id from each sub update, but just using the type
+>       -- from the first update for now
 >       jids :: [IDLookup]
 >       jids = flip map jns' $ \n -> fromJust $ find (\((_,n1),_) -> n == n1) i1
->   return $ LocalBindingsLookup ((combineAddAmbiguousErrors i1' i2') ++ jids) (s1 ++ s2)
+>       jids1 :: [FullId]
+>       jids1 = rights $ map snd jids
+>       newIdLookups = (jids ++ (combineAddAmbiguousErrors i1' i2'))
+>       -- now do the star expansions
+>       -- for each correlation name, remove any ids which match a join id
+>       -- then prepend the join ids to that list
+>       se = combineStarExpansions s1 s2 -- don't know if this is quite right
+>       removeJids1 :: StarLookup -> StarLookup
+>       removeJids1 (k,ids) = (k, fmap (filter (\(_,_,n,_) -> n `notElem` jns')) ids)
+>       prependJids :: StarLookup -> StarLookup
+>       prependJids (c, lkps) = (c, fmap (jids1++) lkps)
+>       newStarExpansion = map (prependJids . removeJids1) se
+>   return $ trace ("join ids: " ++ show jns') $
+>       LocalBindingsLookup newIdLookups $ newStarExpansion
 >   where
->     jns' = case jns of
->              Left () -> []
->              Right x -> x
+>     --third (_,_,n,_) = n
 
 > makeStack cat (LBParallel u1 u2) = do
 >   -- get the two stacks,
@@ -262,11 +296,13 @@ This is where constructing the local bindings lookup stacks is done
 >   -- and concatenate the lot
 >   (LocalBindingsLookup i1 s1) <- makeStack cat u1
 >   (LocalBindingsLookup i2 s2) <- makeStack cat u2
+>   return $ LocalBindingsLookup (combineAddAmbiguousErrors i1 i2) $ combineStarExpansions s1 s2
+
+> combineStarExpansions :: [StarLookup] -> [StarLookup] -> [StarLookup]
+> combineStarExpansions s1 s2 =
 >   let p :: [(String, [(String, E [FullId])])]
 >       p = npartition fst (s2 ++ s1) -- I haven't worked out why it works better in this order
->       ns :: [StarLookup]
->       ns = flip map p $ \(a,b) -> (a,concat <$> M.sequence (map snd b))
->   return $ LocalBindingsLookup (combineAddAmbiguousErrors i1 i2) ns
+>   in flip map p $ \(a,b) -> (a,concat <$> M.sequence (map snd b))
 
 TODO: want npartition to be stable so implement insertWith for regular
 lookups [(a,b)]
