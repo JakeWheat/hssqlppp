@@ -8732,7 +8732,7 @@ sem_SelectList_SelectList ann_ items_ into_  =
                       | not (null targetTypeErrs) -> (targetTypeErrs,Nothing)
                       | (case targetTypes of
                            [PgRecord _] -> True
-                           _ -> False) -> ([],Just (head sl, CompositeType _itemsIlistType))
+                           _ -> False) -> ([],Just (head sl, PgRecord $ Just $ CompositeType _itemsIlistType))
                       | matchingComposite /= Left [] -> (fromLeft [] matchingComposite,Nothing)
                       | length sl /= length _itemsIlistType -> ([WrongNumberOfColumns],Nothing)
                       | not (null assignErrs) -> (assignErrs,Nothing)
@@ -8760,8 +8760,8 @@ sem_SelectList_SelectList ann_ items_ into_  =
               _lhsOlibUpdates =
                   {-# LINE 71 "./TypeChecking/SelectLists.ag" #-}
                   case _stuff     of
-                    (_,Just (n,t)) -> [LBIds "set record actual fields from select into" ""
-                                    [(n,PgRecord (Just t))] []]
+                    (_,Just r) -> [LBIds "set record actual fields from select into" ""
+                                    [r] []]
                     _ -> []
                   {-# LINE 8767 "AstInternal.hs" #-}
               -- self rule
@@ -14022,7 +14022,7 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               -- "./TypeChecking/TableRefs.ag"(line 207, column 9)
               _onExprOlib =
                   {-# LINE 207 "./TypeChecking/TableRefs.ag" #-}
-                  fromRight _lhsIlib _newLib
+                  trace ("set on expression\n" ++ either show ppLocalBindings _newLib    ) $ fromRight _lhsIlib _newLib
                   {-# LINE 14027 "AstInternal.hs" #-}
               -- "./TypeChecking/TableRefs.ag"(line 265, column 9)
               _backTree =

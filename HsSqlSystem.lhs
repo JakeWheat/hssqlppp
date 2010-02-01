@@ -100,9 +100,11 @@ ErrorT.
 >        &= text "Parse then pretty print some sql so you can check the result \
 >               \hasn't mangled the sql."
 
-> ppp :: String -> IO()
-> ppp f = wrapET $ (liftIO . putStrLn) ("--ppp " ++ f) >>
->         readInput f >>= tsl . P.parseSql f >>= return . printSql >>= liftIO . putStrLn
+> ppp :: [String] -> IO()
+> ppp fs = wrapET $ forM_ fs (\f ->
+>             (liftIO . putStrLn) ("--ppp " ++ f) >>
+>               readInput f >>= tsl . P.parseSql f >>=
+>               return . printSql >>= liftIO . putStrLn)
 
 ================================================================================
 
@@ -160,6 +162,20 @@ ErrorT.
 >   liftIO (readCatalog db) >>= tsl >>= \cat ->
 >   mapM (\f -> readInput f >>= tsl . P.parseSql f) fns >>= return . concat >>=
 >   return . A.typeCheck cat >>= return . snd >>= return . A.getTypeErrors >>= return . ppTypeErrors >>= mapM_ (liftIO . putStrLn)
+
+================================================================================
+
+> typeCheckChaosA = mode $ TypeCheckChaos {database = def
+>                                         ,files = def &= typ "FILES" & args}
+>              &= text "reads each file, parses, runs chaos extensions, type checks, then outputs any type errors"
+
+
+> typeCheckChaos :: String -> [FilePath] -> IO ()
+> typeCheckChaos db fns = wrapET $
+>   liftIO (readCatalog db) >>= tsl >>= \cat ->
+>   mapM (\f -> readInput f >>= tsl . P.parseSql f) fns >>= return . concat >>= return . extensionize >>=
+>   return . A.typeCheck cat >>= return . snd >>= return . A.getTypeErrors >>= return . ppTypeErrors >>= mapM_ (liftIO . putStrLn)
+
 
 ================================================================================
 
@@ -613,6 +629,8 @@ cmdargs stuff and main
 >                  | Ppp {files :: [String]}
 >                  | TypeCheck {database :: String
 >                              ,files :: [String]}
+>                  | TypeCheckChaos {database :: String
+>                                   ,files :: [String]}
 >                  | TypeCheckExpression {database :: String
 >                                        ,files :: [String]}
 >                  | AllAnnotations {database :: String
@@ -643,7 +661,7 @@ cmdargs stuff and main
 >        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2010"
 >                       [lexA, parseA, ppppA, pppA,
 >                        parseExpressionA, typeCheckExpressionA,
->                        typeCheckA,allAnnotationsA,
+>                        typeCheckA,typeCheckChaosA,allAnnotationsA,
 >                        annotateSourceA, ppCatalogA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
@@ -653,9 +671,10 @@ cmdargs stuff and main
 >          Lex fns -> lexFiles fns
 >          Parse fns -> showAst fns
 >          Pppp fns -> testPppp fns
->          Ppp fns -> showAst fns
+>          Ppp fns -> ppp fns
 >          ParseExpression fns -> parseExpression fns
 >          TypeCheck db fns -> typeCheck2 db fns
+>          TypeCheckChaos db fns -> typeCheckChaos db fns
 >          TypeCheckExpression db fns -> typeCheckExpression db fns
 >          AllAnnotations db fns -> typeCheck2 db fns
 >          AnnotateSource db fn -> annotateSourceF db fn
@@ -676,6 +695,6 @@ how to do this
 
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
->   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
+>   typeCheckA, typeCheckChaosA, testA, parseExpressionA, typeCheckExpressionA,
 >   buildDocsA, allAnnotationsA, ppCatalogA, genWrapA :: Mode HsSqlSystem
 

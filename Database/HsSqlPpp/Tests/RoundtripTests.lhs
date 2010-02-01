@@ -74,6 +74,8 @@ data in a database with this name
 >        \  null;\n\
 >        \end;\n\
 >        \$$ language plpgsql;")
+>      ,("join associativity"
+>       ,"select * from pg_enum full outer join pg_largeobject on true full outer join pg_listener on true;")
 >     ]]
 
 TODO for test data:

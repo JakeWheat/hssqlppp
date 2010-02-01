@@ -52,7 +52,7 @@ in scope, and one for an unqualified star.
 
 > import Control.Monad as M
 > import Control.Applicative
-> --import Debug.Trace
+> import Debug.Trace
 > import Data.List
 > import Data.Maybe
 > import Data.Char
@@ -163,6 +163,8 @@ compatibility with the old lookup code
 >            -> String -- identifier name
 >            -> E FullId -- type error or source, corr, type
 > lbLookupID1 (LocalBindings _ lkps) cor' i' =
+>   --trace ("lookup: " ++ showID cor' i'
+>   --       ++ "in " ++ concatMap ppLbls lkps) $
 >   lkId lkps
 >   where
 >     cor = mtl cor'

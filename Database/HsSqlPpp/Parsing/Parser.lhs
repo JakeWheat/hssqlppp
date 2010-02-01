@@ -273,23 +273,28 @@ this recursion needs refactoring cos it's a mess
 >         joinPart tr1 = threadOptionalSuffix (readOneJoinPart tr1) joinPart
 >         readOneJoinPart tr1 = do
 >            p2 <- pos
->            JoinedTref p2 tr1
+>            (nat,jt) <- joinKw
+>            JoinedTref p2 tr1 nat jt
+>              <$> tref
+>              <*> onExpr
+>              <*> palias
+>         joinKw :: ParsecT [Token] ParseState Identity (Natural, JoinType)
+>         joinKw = do
 >              --look for the join flavour first
->              <$> option Unnatural (Natural <$ keyword "natural")
->              <*> choice [
+>              n <- option Unnatural (Natural <$ keyword "natural")
+>              jt <- choice [
 >                 LeftOuter <$ try (keyword "left" *> optional (keyword "outer"))
 >                ,RightOuter <$ try (keyword "right" *> optional (keyword "outer"))
 >                ,FullOuter <$ try (keyword "full" >> optional (keyword "outer"))
 >                ,Cross <$ keyword "cross"
 >                ,Inner <$ optional (keyword "inner")]
 >              --recurse back to tref to read the table
->              <*> (keyword "join" *> tref)
->              --now try and read the join condition
->              <*> choice [
+>              keyword "join"
+>              return (n,jt)
+>         onExpr = choice [
 >                  Just <$> (JoinOn <$> pos <*> (keyword "on" *> expr))
 >                 ,Just <$> (JoinUsing <$> pos <*> (keyword "using" *> columnNameList))
 >                 ,return Nothing]
->              <*> palias
 >         palias = option NoAlias
 >                    (optionalSuffix
 >                       TableAlias (optional (keyword "as") *> nkwid)

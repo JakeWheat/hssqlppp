@@ -48,7 +48,7 @@ SEM SelectList
               | not (null targetTypeErrs) -> (targetTypeErrs,Nothing)
               | (case targetTypes of
                    [PgRecord _] -> True
-                   _ -> False) -> ([],Just (head sl, CompositeType @items.listType))
+                   _ -> False) -> ([],Just (head sl, PgRecord $ Just $ CompositeType @items.listType))
               | matchingComposite /= Left [] -> (fromLeft [] matchingComposite,Nothing)
               | length sl /= length @items.listType -> ([WrongNumberOfColumns],Nothing)
               | not (null assignErrs) -> (assignErrs,Nothing)
@@ -70,8 +70,8 @@ SEM SelectList
                                        @into.annotatedTree
         lhs.libUpdates =
             case @loc.stuff of
-              (_,Just (n,t)) -> [LBIds "set record actual fields from select into" ""
-                              [(n,PgRecord (Just t))] []]
+              (_,Just r) -> [LBIds "set record actual fields from select into" ""
+                              [r] []]
               _ -> []
 --[(@var,@loc.selType)]
 

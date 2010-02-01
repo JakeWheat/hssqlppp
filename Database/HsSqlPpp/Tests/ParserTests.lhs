@@ -367,6 +367,22 @@ select statements
 >        (selIL ["a"])
 >        (JoinedTref [] (Tref [] "b" NoAlias) Natural Inner (Tref [] "c" NoAlias) Nothing NoAlias)]
 
+
+>      ,p "select x from a cross join b cross join c;"
+>        [SelectStatement []
+>         (selectFrom (selIL ["x"])
+>          (JoinedTref []
+>          (JoinedTref []
+>           (Tref [] "a" NoAlias)
+>            Unnatural Cross
+>           (Tref [] "b" NoAlias)
+>           Nothing NoAlias)
+>          Unnatural Cross
+>          (Tref [] "c" NoAlias)
+>          Nothing NoAlias))]
+
+Right [SelectStatement [SourcePos "" 1 1] (Select [SourcePos "" 1 1] Dupes (SelectList [SourcePos "" 1 8] [SelExp [SourcePos "" 1 8] (Identifier [SourcePos "" 1 8] "x")] []) [JoinedTref [SourcePos "" 1 32] (JoinedTref [SourcePos "" 1 18] (Tref [SourcePos "" 1 16] "a" NoAlias) Unnatural Cross (Tref [SourcePos "" 1 29] "b" NoAlias) Nothing NoAlias) Unnatural Cross (Tref [SourcePos "" 1 43] "c" NoAlias) Nothing NoAlias] Nothing [] Nothing [] Nothing Nothing)]
+
 >      ,p "select x from ((a cross join b) cross join c);"
 >        [SelectStatement []
 >         (selectFrom (selIL ["x"])
@@ -435,6 +451,10 @@ select statements
 >           Unnatural Cross
 >           (Tref [] "d" NoAlias)
 >           Nothing NoAlias))]
+
+    SELECT *
+FROM ((pg_enum NATURAL JOIN pg_largeobject) NATURAL JOIN pg_listener);
+
 
 
 >      ,p "select a from b\n\
