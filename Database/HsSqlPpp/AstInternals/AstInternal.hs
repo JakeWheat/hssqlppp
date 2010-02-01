@@ -14022,7 +14022,7 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               -- "./TypeChecking/TableRefs.ag"(line 207, column 9)
               _onExprOlib =
                   {-# LINE 207 "./TypeChecking/TableRefs.ag" #-}
-                  trace ("set on expression\n" ++ either show ppLocalBindings _newLib    ) $ fromRight _lhsIlib _newLib
+                  fromRight _lhsIlib _newLib
                   {-# LINE 14027 "AstInternal.hs" #-}
               -- "./TypeChecking/TableRefs.ag"(line 265, column 9)
               _backTree =

@@ -249,11 +249,22 @@ this recursion needs refactoring cos it's a mess
 >         -- a simple tableref i.e just a name
 >         -- an aliased table ref e.g. select a.b from tbl as a
 >         -- a sub select e.g. select a from (select b from c)
->         --  - these are handled in tref
->         -- then cope with joins recursively using joinpart below
->         tref = buildExpressionParser [] trefFactor
->         trefFactor = threadOptionalSuffix (nonJoinTref <|> try (parens tref)) joinPart <|> parens tref
->         --tref = optParens (threadOptionalSuffix (try (parens tref) <|> nonJoinTref) joinPart)
+>         --  - these are handled in nonJoinTref
+>         -- then we combine by seeing if there is a join looking prefix
+>         tref = trefTerm >>= maybeParseAnotherJoin
+>         maybeParseAnotherJoin tr1 =
+>           choice [
+>                 do
+>                   p2 <- pos
+>                   (nat,jt) <- joinKw
+>                   JoinedTref p2 tr1 nat jt
+>                                    <$> trefTerm
+>                                    <*> onExpr
+>                                    <*> palias
+>                     >>= maybeParseAnotherJoin
+>                ,return tr1]
+>         trefTerm = nonJoinTref
+>                    <|> try (parens tref)
 >         nonJoinTref = try $ optParens $ do
 >                   p2 <- pos
 >                   choice [
@@ -266,18 +277,6 @@ this recursion needs refactoring cos it's a mess
 >                         ,Tref p2
 >                          <$> nkwid
 >                          <*> palias]
->         --joinpart: parse a join after the first part of the tableref
->         --(which is a table name, aliased table name or subselect) -
->         --takes this tableref as an arg so it can recurse to multiple
->         --joins
->         joinPart tr1 = threadOptionalSuffix (readOneJoinPart tr1) joinPart
->         readOneJoinPart tr1 = do
->            p2 <- pos
->            (nat,jt) <- joinKw
->            JoinedTref p2 tr1 nat jt
->              <$> tref
->              <*> onExpr
->              <*> palias
 >         joinKw :: ParsecT [Token] ParseState Identity (Natural, JoinType)
 >         joinKw = do
 >              --look for the join flavour first
