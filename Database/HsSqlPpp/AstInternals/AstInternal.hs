@@ -8760,8 +8760,8 @@ sem_SelectList_SelectList ann_ items_ into_  =
               _lhsOlibUpdates =
                   {-# LINE 71 "./TypeChecking/SelectLists.ag" #-}
                   case _stuff     of
-                    (_,Just r) -> [LBIds "set record actual fields from select into" ""
-                                    [r] []]
+                    (_,Just (n,t)) -> [LBIds "set record actual fields from select into" ""
+                                    [(n,PgRecord (Just t))] []]
                     _ -> []
                   {-# LINE 8767 "AstInternal.hs" #-}
               -- self rule

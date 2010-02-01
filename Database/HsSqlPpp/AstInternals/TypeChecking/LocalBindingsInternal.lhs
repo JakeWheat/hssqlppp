@@ -52,7 +52,7 @@ in scope, and one for an unqualified star.
 
 > import Control.Monad as M
 > import Control.Applicative
-> import Debug.Trace
+> --import Debug.Trace
 > import Data.List
 > import Data.Maybe
 > import Data.Char
@@ -208,6 +208,7 @@ This is where constructing the local bindings lookup stacks is done
 > lbUpdate cat (LocalBindings lbus lkps) lbu' = do
 >    lbl <- makeStack cat lbu
 >    lbl1 <- expandComposites cat lbl
+>    --trace ("update: " ++ ppLbls lbl1) $ return ()
 >    return $ LocalBindings (lbu':lbus) (lbl1:lkps)
 >    where
 >      lbu = lowerise lbu'
@@ -281,12 +282,14 @@ This is where constructing the local bindings lookup stacks is done
 >          ++ "\ni2' " ++ show i2'
 >         ) $ return ()-}
 >   let jidsLk :: [IDLookup]
->       jidsLk = let (_,Right (sc1,c1,_,_)) = head i1
->                    (_,Right (sc2,c2,_,_)) = head i2
->                in flip concatMap jids $ \(n,t) -> [(("",n), Right (sc1,c1,n,t))
->                                                   ,((c1,n), Right (sc1,c1,n,t))
->                                                   ,((c2,n), Right (sc2,c2,n,t))
->                                                   ]
+>       jidsLk = if null i1 || null i2
+>                then [] --error?
+>                else let (_,Right (sc1,c1,_,_)) = head i1
+>                         (_,Right (sc2,c2,_,_)) = head i2
+>                     in flip concatMap jids $ \(n,t) -> [(("",n), Right (sc1,c1,n,t))
+>                                                        ,((c1,n), Right (sc1,c1,n,t))
+>                                                        ,((c2,n), Right (sc2,c2,n,t))
+>                                                        ]
 >       --jidsF :: [FullId]
 >       --jidsF = rights $ map snd jidsLk
 >       newIdLookups = (jidsLk ++ (combineAddAmbiguousErrors i1' i2'))
@@ -299,6 +302,7 @@ This is where constructing the local bindings lookup stacks is done
 >       prependJids :: StarLookup -> StarLookup
 >       prependJids (c, lkps) = case lkps of
 >                                 Left _ -> (c,lkps)
+>                                 Right r | null r -> (c,lkps)
 >                                 Right r -> let (s,c1,_,_) = head r
 >                                                ids = map (\(n,t) -> (s,c1,n,t)) jids
 >                                            in (c, fmap (ids++) lkps)
@@ -416,5 +420,5 @@ name and id name as a three part id isn't possible
 >     toStarLookup ids =
 >       let fids::[FullId]
 >           fids = rights $ map snd ids
->           (_,c,_,_) = head fids
+>           (_,c,_,_) = if null fids then (undefined,"ERROR",undefined,undefined) else head fids
 >       in (c,Right fids)
