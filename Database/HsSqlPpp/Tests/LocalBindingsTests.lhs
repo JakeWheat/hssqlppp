@@ -56,6 +56,117 @@ n layers of joins with ids from each layer cor and uncor, plus star expands
 > testData :: Item
 > testData = Group "local bindings tests" [ Item [
 >   ("test empty", [LBIds "source1" "" [] []], Right [LocalBindingsLookup [] [("", Right [])]])
+>  ,("test ids no cor", [LBIds "source1" "" [("a", typeInt)
+>                                           ,("b", typeBool)]
+>                                           [("ia", typeInt)
+>                                           ,("ib", typeBool)]]
+>   ,Right [LocalBindingsLookup [
+>            (("", "a"), Right ("source1", "", "a", typeInt))
+>           ,(("", "b"), Right ("source1", "", "b", typeBool))
+>           ,(("", "ia"), Right ("source1", "", "ia", typeInt))
+>           ,(("", "ib"), Right ("source1", "", "ib", typeBool))
+>           ]
+>           [("", Right [
+>                    ("source1", "", "a", typeInt)
+>                   ,("source1", "", "b", typeBool)
+>                   ])]])
+>  ,("test ids cor", [LBIds "source1" "c" [("a", typeInt)
+>                                           ,("b", typeBool)]
+>                                           [("ia", typeInt)
+>                                           ,("ib", typeBool)]]
+>   ,Right [LocalBindingsLookup [
+>            (("", "a"), Right ("source1", "c", "a", typeInt))
+>           ,(("", "b"), Right ("source1", "c", "b", typeBool))
+>           ,(("", "ia"), Right ("source1", "c", "ia", typeInt))
+>           ,(("", "ib"), Right ("source1", "c", "ib", typeBool))
+>           ,(("c", "a"), Right ("source1", "c", "a", typeInt))
+>           ,(("c", "b"), Right ("source1", "c", "b", typeBool))
+>           ,(("c", "ia"), Right ("source1", "c", "ia", typeInt))
+>           ,(("c", "ib"), Right ("source1", "c", "ib", typeBool))
+>           ]
+>           [("", Right [
+>                    ("source1", "c", "a", typeInt)
+>                   ,("source1", "c", "b", typeBool)])
+>           ,("c", Right [
+>                    ("source1", "c", "a", typeInt)
+>                   ,("source1", "c", "b", typeBool)])
+>            ]])
+
+>  ,("test parallel", [LBParallel
+>     (LBIds "source1" "c1" [("a", typeInt)
+>                         ,("b", typeBool)]
+>                         [("ia", typeInt)
+>                         ,("ib", typeBool)])
+>     (LBIds "source2" "c2" [("a1", typeInt)
+>                         ,("b", typeBool)]
+>                         [("ia1", typeInt)
+>                         ,("ib", typeBool)])]
+>   ,Right [LocalBindingsLookup [
+>            (("", "a"), Right ("source1", "c1", "a", typeInt))
+>           ,(("", "ia"), Right ("source1", "c1", "ia", typeInt))
+>           ,(("c1", "a"), Right ("source1", "c1", "a", typeInt))
+>           ,(("c1", "b"), Right ("source1", "c1", "b", typeBool))
+>           ,(("c1", "ia"), Right ("source1", "c1", "ia", typeInt))
+>           ,(("c1", "ib"), Right ("source1", "c1", "ib", typeBool))
+>           ,(("", "a1"), Right ("source2", "c2", "a1", typeInt))
+>           ,(("", "ia1"), Right ("source2", "c2", "ia1", typeInt))
+>           ,(("c2", "a1"), Right ("source2", "c2", "a1", typeInt))
+>           ,(("c2", "b"), Right ("source2", "c2", "b", typeBool))
+>           ,(("c2", "ia1"), Right ("source2", "c2", "ia1", typeInt))
+>           ,(("c2", "ib"), Right ("source2", "c2", "ib", typeBool))
+>           ,(("", "b"), Left [AmbiguousIdentifier "b"])
+>           ,(("", "ib"), Left [AmbiguousIdentifier "ib"])
+>           ]
+>           [("", Right [("source1", "c1", "a", typeInt)
+>                       ,("source1", "c1", "b", typeBool)
+>                       ,("source2", "c2", "a1", typeInt)
+>                       ,("source2", "c2", "b", typeBool)])
+>           ,("c1", Right [("source1", "c1", "a", typeInt)
+>                         ,("source1", "c1", "b", typeBool)])
+>           ,("c2", Right [("source2", "c2", "a1", typeInt)
+>                         ,("source2", "c2", "b", typeBool)])
+>                   ]])
+
+joinids no common, no alias, no using list
+  natural join
+  explicit join list
+  alias
+  4 layers on aliases
+  error missing field in join list
+    imcompatible types
+  non join field ambiguous name
+  3 way join with alias on inner
+
+>  {-,("test ids amb", [LBIds "source1" "c" [("a", typeInt)
+>                                         ,("a", typeBool)]
+>                                         []]
+>   ,Right [LocalBindingsLookup [
+>            (("", "a"), Left [AmbiguousIdentifier "a"])]
+>           [("", Right [ --not quite sure how to handle this, probably should be an error also
+>                    ("source1", "c", "a", typeInt)
+>                   ,("source1", "c", "a", typeBool)])
+>           ,("c", Right [
+>                    ("source1", "c", "a", typeInt)
+>                   ,("source1", "c", "a", typeBool)])
+>            ]])-}
+
+chaos=# create view t as select * from (select 1 as a, 2 as a) b;
+ERROR:  column "a" specified more than once
+
+but
+
+chaos=# select * from (select 1 as a, 2 as a) b;
+ a | a
+---+---
+ 1 | 2
+(1 row)
+
+chaos=# select b.* from (select 1 as a, 2 as a) b;
+ a | a
+---+---
+ 1 | 2
+(1 row)
+
 >   ]]
 
 

@@ -50,11 +50,13 @@ in scope, and one for an unqualified star.
 >     ,ppLbls
 >     ) where
 
-> import Control.Monad
+> import Control.Monad as M
+> import Control.Applicative
 > --import Debug.Trace
 > import Data.List
 > import Data.Maybe
 > import Data.Char
+> import qualified Data.Map as M
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
@@ -137,11 +139,6 @@ This is the local bindings update that users of this module use.
 > doList :: (a -> String) -> [a] -> String
 > doList m l = "[\n" ++ intercalate "\n," (map m l) ++ "\n]\n"
 
-
-[((String,String)
-                                 ,Either [TypeError] FullId)] --ids
-                                [(String, Either [TypeError] [FullId])] --stars
-
 ================================================================================
 
 wrapper for the proper lookupid function, this is for backwards
@@ -172,7 +169,9 @@ compatibility with the old lookup code
 >       case lookup (cor,i) idmap of
 >         Just s -> s
 >         Nothing -> lkId ls
->     lkId [] = Left [UnrecognisedIdentifier (if cor == "" then i' else cor ++ "." ++ i')]
+>     lkId [] = if cor' == "" --todo: need to throw unrecognised identifier, if the correlation name isn't "", a id isn't found, and there are other ids with that correlation name
+>               then Left [UnrecognisedIdentifier $ showID cor i']
+>               else Left [UnrecognisedCorrelationName cor']
 
 ================================================================================
 
@@ -224,19 +223,19 @@ This is where constructing the local bindings lookup stacks is done
 >   where
 >     doIds :: [((String,String)
 >               ,E FullId)]
->     doIds = map (makeLookup cor) (map addDetails ids ++ map addDetails iids)
->             -- add unqualified if cor isn't empty string
->             ++ map (makeLookup "")
+>     doIds = -- add unqualified if cor isn't empty string
+>             map (makeLookup "")
 >                    (case cor of
 >                             "" -> []
 >                             _ -> map addDetails ids ++ map addDetails iids)
+>             ++ map (makeLookup cor) (map addDetails ids ++ map addDetails iids)
 >             where
 >               makeLookup c1 (s,_,n,t)= ((c1,n), Right (s,cor,n,t))
 >     doStar :: [(String, E [FullId])]
->     doStar = [(cor,Right $ map addDetails ids)] ++
->              case cor of
+>     doStar = case cor of
 >                       "" -> []
 >                       _ -> [("",Right $ map addDetails ids)]
+>              ++ [(cor,Right $ map addDetails ids)]
 >     addDetails (n,t) = (src,cor,n,t)
 
 > makeStack cat (LBJoinIds t1 t2 jns a) = do
@@ -251,7 +250,6 @@ This is where constructing the local bindings lookup stacks is done
 >       i2' = removeJids i2
 >       jids :: [IDLookup]
 >       jids = flip map jns' $ \n -> fromJust $ find (\((_,n1),_) -> n == n1) i1
->       --jids = map ((fmap makeLookup) . (\n -> fromJust $ lookup ("",n) i1)) jns'
 >   return $ LocalBindingsLookup ((combineAddAmbiguousErrors i1' i2') ++ jids) (s1 ++ s2)
 >   where
 >     jns' = case jns of
@@ -264,7 +262,22 @@ This is where constructing the local bindings lookup stacks is done
 >   -- and concatenate the lot
 >   (LocalBindingsLookup i1 s1) <- makeStack cat u1
 >   (LocalBindingsLookup i2 s2) <- makeStack cat u2
->   return $ LocalBindingsLookup (combineAddAmbiguousErrors i1 i2) (s1 ++ s2)
+>   let p :: [(String, [(String, E [FullId])])]
+>       p = npartition fst (s2 ++ s1) -- I haven't worked out why it works better in this order
+>       ns :: [StarLookup]
+>       ns = flip map p $ \(a,b) -> (a,concat <$> M.sequence (map snd b))
+>   return $ LocalBindingsLookup (combineAddAmbiguousErrors i1 i2) ns
+
+TODO: want npartition to be stable so implement insertWith for regular
+lookups [(a,b)]
+
+> npartition :: Ord b => (a -> b) -> [a] -> [(b,[a])]
+> npartition keyf l =
+>   np (M.fromList []) l
+>   where
+>     np acc (p:ps) = let k = keyf p
+>                     in np (M.insertWith (++) k [p] acc) ps
+>     np acc [] = M.toList acc
 
 > combineAddAmbiguousErrors :: [IDLookup] -> [IDLookup] -> [IDLookup]
 > combineAddAmbiguousErrors i1 i2 =
@@ -272,13 +285,16 @@ This is where constructing the local bindings lookup stacks is done
 >       removeCommonIds = filter (\a -> fst a `notElem` commonIds)
 >       fi1 = removeCommonIds i1
 >       fi2 = removeCommonIds i2
->       errors = map (\(c,n) -> ((c,n),Left [AmbiguousIdentifier (c ++ "." ++ n)])) commonIds
+>       errors = map (\(c,n) -> ((c,n),Left [AmbiguousIdentifier $ showID c n])) commonIds
 >   in fi1 ++ fi2 ++ errors
 
 ===============================================================================
 
 > mtl :: String -> String
 > mtl = map toLower
+
+> showID :: String -> String -> String
+> showID cor i = if cor == "" then i else cor ++ "." ++ i
 
 ================================================================================
 
