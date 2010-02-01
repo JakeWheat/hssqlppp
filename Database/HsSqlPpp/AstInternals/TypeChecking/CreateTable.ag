@@ -35,7 +35,7 @@ SEM Statement
                                    @cons.annotatedTree
         cons.lib = case lbUpdate @lhs.cat @lhs.lib $
                           LBIds "attributedefs" "" @atts.attrs [] of
-                      Left x -> error $ show x
+                      Left x -> error $ "statement-createtable-cons.lib " ++ show x
                       Right e -> e
 {
 defaultSystemColumns :: [(String,Type)]
@@ -96,7 +96,7 @@ SEM AttributeDef
             case lbUpdate @lhs.cat @lhs.lib $
                    LBIds "attribute def" ""
                                     [(@name, @typ.namedType)] [] of
-              Left x -> error $ show x
+              Left x -> error $ "attributedef-cons.lib " ++ show x
               Right e -> e
 
 

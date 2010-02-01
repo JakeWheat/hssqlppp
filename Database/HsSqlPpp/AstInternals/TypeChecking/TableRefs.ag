@@ -181,7 +181,14 @@ column names and types - see that function for how this works
 join - most of the hard work is done in local bindings
 -}
         loc.errs = fromLeft [] @loc.newLib
-        lhs.libUpdates =
+                   ++ @loc.joinErrors
+        lhs.libUpdates = if @loc.joinErrors == []
+                         then @loc.libUpdates
+                         else []
+                   --bit hacky, we want any errors from the join
+                   -- to be added here, instead of upstream
+        loc.joinErrors = fromLeft [] (foldM (lbUpdate @lhs.cat) @lhs.lib @loc.libUpdates)
+        loc.libUpdates =
             let [u1] = @tbl.libUpdates
                 [u2] = @tbl1.libUpdates
             in [LBJoinIds u1 u2 jids (case @alias.annotatedTree of

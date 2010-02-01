@@ -10,6 +10,7 @@ sql which doesn't type check.
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.List
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.TypeChecker
@@ -1056,7 +1057,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >       aast = snd $ typeCheck defaultTemplate1Catalog ast
 >       is = getTopLevelInfos aast
 >       er = concatMap snd $ getTypeErrors aast
->   in {-trace (show aast) $-} case (length er, length is) of
+>   in {-trace (show aast) $ -} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er

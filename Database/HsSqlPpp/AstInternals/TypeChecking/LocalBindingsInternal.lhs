@@ -57,11 +57,12 @@ in scope, and one for an unqualified star.
 > import Data.Maybe
 > import Data.Char
 > import Data.Either
-> import qualified Data.Map as M
+> --import qualified Data.Map as M
 
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
 
 > type E a = Either [TypeError] a
 
@@ -268,18 +269,27 @@ This is where constructing the local bindings lookup stacks is done
 >              Right x -> x
 >       -- first prepare for the id lookups
 >       -- remove the join ids from the id lookups
->       isJid ((c,n),_) = (c == "") && (n `elem` jns')
+>       isJid ((_,n),_) = (n `elem` jns')
 >       removeJids = filter (not . isJid)
 >       i1' = removeJids i1
 >       i2' = removeJids i2
->       -- get the types of the join ids, this should use resolveresultset type
->       -- on the type of each id from each sub update, but just using the type
->       -- from the first update for now
->       jids :: [IDLookup]
->       jids = flip map jns' $ \n -> fromJust $ find (\((_,n1),_) -> n == n1) i1
->       jids1 :: [FullId]
->       jids1 = rights $ map snd jids
->       newIdLookups = (jids ++ (combineAddAmbiguousErrors i1' i2'))
+>   jids <- M.sequence $ joinIDTypes i1 i2 jns'
+>   {-trace ("joinids: " ++ show jids
+>          ++ "\ni1 " ++ show i1
+>          ++ "\ni2 " ++ show i2
+>          ++ "\ni1' " ++ show i1'
+>          ++ "\ni2' " ++ show i2'
+>         ) $ return ()-}
+>   let jidsLk :: [IDLookup]
+>       jidsLk = let (_,Right (sc1,c1,_,_)) = head i1
+>                    (_,Right (sc2,c2,_,_)) = head i2
+>                in flip concatMap jids $ \(n,t) -> [(("",n), Right (sc1,c1,n,t))
+>                                                   ,((c1,n), Right (sc1,c1,n,t))
+>                                                   ,((c2,n), Right (sc2,c2,n,t))
+>                                                   ]
+>       --jidsF :: [FullId]
+>       --jidsF = rights $ map snd jidsLk
+>       newIdLookups = (jidsLk ++ (combineAddAmbiguousErrors i1' i2'))
 >       -- now do the star expansions
 >       -- for each correlation name, remove any ids which match a join id
 >       -- then prepend the join ids to that list
@@ -287,13 +297,17 @@ This is where constructing the local bindings lookup stacks is done
 >       removeJids1 :: StarLookup -> StarLookup
 >       removeJids1 (k,ids) = (k, fmap (filter (\(_,_,n,_) -> n `notElem` jns')) ids)
 >       prependJids :: StarLookup -> StarLookup
->       prependJids (c, lkps) = (c, fmap (jids1++) lkps)
+>       prependJids (c, lkps) = case lkps of
+>                                 Left _ -> (c,lkps)
+>                                 Right r -> let (s,c1,_,_) = head r
+>                                                ids = map (\(n,t) -> (s,c1,n,t)) jids
+>                                            in (c, fmap (ids++) lkps)
 >       newStarExpansion = map (prependJids . removeJids1) se
 >       -- if we have an alias then we just want unqualified ids, then
 >       -- the same ids with a t3 alias for both ids and star expansion
 >       -- with all the correlation names replaced with the alias
 >   if a == ""
->     then return $ LocalBindingsLookup newIdLookups $ newStarExpansion
+>     then return $ LocalBindingsLookup newIdLookups newStarExpansion
 >     else return $ LocalBindingsLookup (aliasIds newIdLookups) (aliasExps newStarExpansion)
 >   where
 >     aliasIds :: [IDLookup] -> [IDLookup]
@@ -305,6 +319,14 @@ This is where constructing the local bindings lookup stacks is done
 >                          aliased = fmap (map replaceCName) is
 >                      in [("",aliased), (a, aliased)]
 >     replaceCName (s,_,n,t) = (s,a,n,t)
+>     joinIDTypes :: [IDLookup] -> [IDLookup] -> [String] -> [E (String,Type)]
+>     joinIDTypes i1 i2 = map (joinIDType i1 i2)
+>     joinIDType :: [IDLookup] -> [IDLookup] -> String -> E (String,Type)
+>     joinIDType i1 i2 s = do
+>       (_,_,_,ty1) <- fromJust $ lookup ("",s) i1
+>       (_,_,_,ty2) <- fromJust $ lookup ("",s) i2
+>       ty <- resolveResultSetType cat [ty1,ty2]
+>       return (s,ty)
 
 > makeStack cat (LBParallel u1 u2) = do
 >   -- get the two stacks,
@@ -317,19 +339,28 @@ This is where constructing the local bindings lookup stacks is done
 > combineStarExpansions :: [StarLookup] -> [StarLookup] -> [StarLookup]
 > combineStarExpansions s1 s2 =
 >   let p :: [(String, [(String, E [FullId])])]
->       p = npartition fst (s2 ++ s1) -- I haven't worked out why it works better in this order
+>       p = npartition fst (s1 ++ s2)
 >   in flip map p $ \(a,b) -> (a,concat <$> M.sequence (map snd b))
 
 TODO: want npartition to be stable so implement insertWith for regular
 lookups [(a,b)]
 
-> npartition :: Ord b => (a -> b) -> [a] -> [(b,[a])]
+> npartition :: (Eq a, Eq b) => (a -> b) -> [a] -> [(b,[a])]
 > npartition keyf l =
->   np (M.fromList []) l
+>   np [] l
 >   where
 >     np acc (p:ps) = let k = keyf p
->                     in np (M.insertWith (++) k [p] acc) ps
->     np acc [] = M.toList acc
+>                     in np (insertWith (++) k [p] acc) ps
+>     np acc [] = acc
+
+> insertWith :: (Eq k, Eq a) => (a -> a -> a) -> k -> a -> [(k,a)] -> [(k,a)]
+> insertWith ac k v m =
+>     case lookup k m of
+>       Nothing -> m ++ [(k,v)]
+>       Just v' -> let nv = ac v' v
+>                  in map (\p@(k1,_) -> if k1 == k
+>                                       then (k1,nv)
+>                                       else p) m
 
 > combineAddAmbiguousErrors :: [IDLookup] -> [IDLookup] -> [IDLookup]
 > combineAddAmbiguousErrors i1 i2 =
@@ -362,7 +393,7 @@ name and id name as a three part id isn't possible
 > expandComposites cat (LocalBindingsLookup idlkp stlkp) = do
 >   let unqids = filter (\((a,_),_) -> a == "") idlkp
 >       strip = map snd unqids
->       getComposites = filter (\(_,_,_,t) -> isCompositeType t) $ rights strip
+>       getComposites = filter (\(_,_,_,t) -> isCt t) $ rights strip
 >   comps <- mapM compExp getComposites
 >   let sts = map toStarLookup comps
 >   Right (LocalBindingsLookup (idlkp ++ (concat comps)) (stlkp ++ sts))
@@ -375,10 +406,10 @@ name and id name as a three part id isn't possible
 >     getCompFields (PgRecord (Just t)) = getCompFields t
 >     getCompFields (CompositeType f) = return f
 >     getCompFields (NamedCompositeType s) = catCompositePublicAttrs cat [] s
->     getCompFields (AnonymousRecordType t) = Right [] -- ??
+>     getCompFields (AnonymousRecordType _) = Right [] -- ??
 >     getCompFields _ = Right []
 >     compExp :: FullId -> E [IDLookup]
->     compExp (s,c,n,t) = do
+>     compExp (s,_,n,t) = do
 >       f <- getCompFields t
 >       return $ flip map f $ \(n1,t1) -> ((n,n1),Right (s,n,n1,t1))
 >     toStarLookup :: [IDLookup] -> StarLookup
