@@ -10,16 +10,12 @@ Status
 Pre-alpha. Support for parsing SQL is patchy, but not too bad. Support
 for typechecking is also patchy. See these extracts from the test
 files for examples of the kind of fragments which parse:
-...
+
+* [Parsing examples](ParserTests.html)
+* [Type-checking examples](TypeCheckTests.html)
 
 Is currently able to successfully parse and partially type check three
 moderately sized SQL files from another project.
-
-Parameterised statements: can be used to read a catalog either from a
-database or from the SQL DDL source code, and provide enough type
-information for parameterised crud statements to produce type-safe
-wrappers for many common crud statements (the main thing missing is
-nullability inference, so all the types are Maybes).
 
 Installation
 ============
@@ -35,28 +31,20 @@ then
 to install.
 
 It's currently developed on GHC 6.12, but the latest release still
-worked on 6.10.
-
-Useful links
-============
-
-Hackage: [http://hackage.haskell.org/package/hssqlppp](http://hackage.haskell.org/package/hssqlppp)
-Repository (Bzr, on Launchpad): [http://launchpad.net/hssqlppp](http://launchpad.net/hssqlppp)
+works on 6.10.
 
 Documentation
 =============
 
-You can browse the Haddock documentation online here:
+[Browse the Haddock documentation](haddok/index.html)
 
-examples are here: [examples.html](examples.html)
+[See some usage examples](examples.html)
 
-browse source online here:
-hscolour:
-pandoc/ highlighting-kate:
+The source code has lots of comments, browse online:
 
-or on launchpad here:
-[http://bazaar.launchpad.net/%7Ejakewheat/hssqlppp/trunk/files](http://bazaar.launchpad.net/%7Ejakewheat/hssqlppp/trunk/files)
-
+* [Haddock/HsColour source](haddock/src/)
+* [pandoc/ highlighting-kate](pandoc_source/index.html)
+* [Launchpad](http://bazaar.launchpad.net/%7Ejakewheat/hssqlppp/trunk/files)
 
 Development info
 ================
@@ -70,13 +58,18 @@ Get latest development version:
 Uses Parsec for parsing, HDBC for database access, and UUAGC to assist
 the type checking. Comes with a small test suite.
 
+Useful links
+============
+
+Hackage: [http://hackage.haskell.org/package/hssqlppp](http://hackage.haskell.org/package/hssqlppp)
+
+Repository (Bzr, on Launchpad): [http://launchpad.net/hssqlppp](http://launchpad.net/hssqlppp)
+
 Contact
 =======
 
 Let me know if you're using/ interesting in using the library, if you
-have any problems or suggestions, etc.. All contributions, comments
-and criticism welcome:
+have any problems, bug reports, or suggestions, etc.. All
+contributions, comments and criticism welcome:
 
 jakewheatmail@gmail.com
-
-You can also report problems on the bug tracker on Launchpad.

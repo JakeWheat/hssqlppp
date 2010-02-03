@@ -5,36 +5,16 @@ Copyright 2010 Jake Wheat
 This file creates the documentation for the project, to be uploaded to
 the website.
 
-do
-
-cabal haddock --hyperlink-source
-& copy files across
-
-README -> pandoc -> index.html
-the readme file is written in markdown
-
-hssqlsystem -> filter out documentation sections -> pandoc ->
-hssqlsystem.html
-the idea with hsssqlsystem is to add a markdown chunk
-next to each command with some sort of delimiters (all of this outside
-the birdfeet),
-then to build the docs: filter hsssqlsystem to leave just these
-chunks, which gives us a regular markdown file
-
-parsertests.lhs,typechecktests.lhs -> hs src exts -> some sort of uniplate thing -> simple ast
- -> markdown -> pandoc -> html
-idea is to get a parse tree of the source code, the transform this into a simple
-data structure representing sections, and test data, drop all the
-code. then these are put into a table in markdown syntax, the sql and
-hs marked with the appropriate stuff to get them syntax highlighting,
-then pandoc to html
-
 > {-# LANGUAGE QuasiQuotes #-}
 
 > import Data.Char
 > import System.Directory
 > import Control.Monad
 > import Text.Pandoc
+> import System.Cmd
+> import System.FilePath.Find
+> import System.IO
+> import System.FilePath
 >
 > import Database.HsSqlPpp.Utils
 > import Database.HsSqlPpp.Here
@@ -49,38 +29,88 @@ then pandoc to html
 >   pf "README" "website/index.html"
 >   pf "docs/examples.txt" "website/examples.html"
 >   -- pandocise source code files
->   -- haddock
->   -- generate doc files from test files
->   plhs "website/ParserTests.html" $ rowsToHtml parserTestsTable
->   plhs "website/TypeCheckTests.html" $ rowsToHtml typeCheckTestsTable
->   -- site map
+>   doPandocSource
+>   --doHaddock
+>   --plhs "website/ParserTests.html" $ rowsToHtml parserTestsTable
+>   --plhs "website/TypeCheckTests.html" $ rowsToHtml typeCheckTestsTable
 >   return ()
 >   where
->     pf s t = readFile s >>= return . pandoc >>= writeFile t
->     plhs f s = writeFile f $ pandocLhs s
->   {-f <- parseFile "Database/HsSqlPpp/Tests/ParserTests.lhs"
->   case f of
->     ParseOk ast -> do
->            putStrLn $ ppExpr ast
->     x -> error $ show x-}
->   {-clean website
->   mkdir website
->   cp templatefiles website
->   hack to get hscolour to complete
->   cabal haddock --hyperlink-source
->   create alternative source reference:
->      do file index
->      and then use pandoc command below to highlight the source
->   cp dist/doc/html/hssqlppp website/haddock
->   pandoc "README" "index.html"
->   pandoc "HsSqlSystem.lhs" "HsSqlSystem.html"
->   make test files-}
+>     pf s t = readFile s >>= return . (siteMap ++) >>= return . pandoc >>= writeFile t
+>     plhs f s = writeFile f $ pandocLhs (siteMap ++ s)
+
+-------------------------------------------------------------------------------
+
+> doHaddock :: IO ()
+> doHaddock = do
+>   --cos hscolour can't handle the large defaulttemplate1catalog,
+>   --just move it out the way temporarily
+>   moveDTCOut
+>   _ <- rawSystem "cabal" ["haddock", "--hyperlink-source"]
+>   renameDirectory "dist/doc/html/hssqlppp/" "website/haddock"
+>   moveDTCBack
+
+> moveDTCOut :: IO()
+> moveDTCOut = do
+>   renameFile "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
+>              "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs.moved"
+>   copyFile "docs/ShortDefaultTemplate1Catalog.lhs"
+>            "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
+
+> moveDTCBack :: IO ()
+> moveDTCBack = do
+>   renameFile "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs.moved"
+>              "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
+
+-------------------------------------------------------------------------------
+
+> doPandocSource :: IO ()
+> doPandocSource = do
+>   sf <- sourceFiles
+>   hSetBuffering stdout NoBuffering
+>   moveDTCOut
+>   mapM_ pandocIt sf
+>   moveDTCBack
+>   let index = concatMap (\s -> let s1 = s ++ ".html"
+>                                in "* [" ++ s ++ "](" ++ s1 ++ ")\n") sf
+>   writeFile "website/pandoc_source/index.html" $ pandoc $ pandocIndex index
+>   return ()
+>   where
+>     pandocIt fn = do
+>            putStrLn fn
+>            createDirectoryIfMissing True $ "website/pandoc_source/" ++ dropFileName fn
+>            let target = "website/pandoc_source/" ++ fn ++ ".html"
+>            if takeExtension fn `elem` [".lhs", ".lag"]
+>              then plhs fn target
+>              else phs fn target
+>     sourceFiles = do
+>       l <- find always sourceFileP "Database"
+>       return $ "HsSqlSystem.lhs" : l
+>     sourceFileP = extension ==? ".hs" ||? extension ==? ".lhs"
+>                     ||? extension ==? ".ag"
+>                     ||? extension ==? ".lag"
+>     plhs s t = readFile s >>= return . pandocLhs >>= writeFile t
+>     phs s t = readFile s >>= return . pandocHs >>= writeFile t
+
+> pandocIndex :: String -> String
+> pandocIndex s = s
+
+-------------------------------------------------------------------------------
+
+> siteMap :: String
+> siteMap = [$here|
+>  <div>
+>  * [Index](index.html)
+>  * [Examples](examples.html)
+>  * [Haddock](haddock/index.html)
+>  * [Browse source online](pandoc_source/)
+>  * [HackageDB page](http://hackage.haskell.org/package/hssqlppp)
+>  * [Launchpad/ Repo](http://launchpad.net/hssqlppp)
+>  </div>
+> |]
 
 -------------------------------------------------------------------------------
 
 pandoc wrappers
-
- > pandocLhs =
 
 > pandoc :: String -> String
 > pandoc = (writeHtmlString wopt) . (readMarkdown defaultParserState)
@@ -93,7 +123,7 @@ pandoc wrappers
 >              }
 
 > pandocLhs :: String -> String
-> pandocLhs = (writeHtmlString wopt) . (readMarkdown defaultParserState)
+> pandocLhs = (writeHtmlString wopt) . (readMarkdown ropt)
 >   where
 >     wopt = defaultWriterOptions {
 >                writerStandalone = True
@@ -102,38 +132,45 @@ pandoc wrappers
 >               ,writerHeader = htmlHeader
 >               ,writerLiterateHaskell=True
 >              }
+>     ropt = defaultParserState {
+>             stateLiterateHaskell = True
+>            }
+
+> pandocHs :: String -> String
+> pandocHs = (writeHtmlString wopt) . (readMarkdown ropt)
+>   where
+>     wopt = defaultWriterOptions {
+>                writerStandalone = True
+>               --,writerTitlePrefix = "HsSqlPpp documentation"
+>               ,writerTableOfContents = True
+>               ,writerHeader = htmlHeader
+>               ,writerLiterateHaskell = False
+>              }
+>     ropt = defaultParserState {
+>             stateLiterateHaskell = False
+>            }
 
 
-markdownToRST :: String -> String
- markdownToRST =
-   (writeRST defaultWriterOptions {writerReferenceLinks = True}) .
-   readMarkdown defaultParserState
- 
- main = getContents >>= putStrLn . markdownToRST
-
-pandoc -H docs/header -s --toc -f markdown+lhs HsSqlSystem.lhs  > HsSqlSystem.lhs.html
-
-data WriterOptions = WriterOptions {
-writerStandalone :: Bool
-writerTemplate :: String
-writerVariables :: [(String, String)]
-writerIncludeBefore :: String
-writerIncludeAfter :: String
-writerTabStop :: Int
-writerTableOfContents :: Bool
-writerS5 :: Bool
-writerXeTeX :: Bool
-writerHTMLMathMethod :: HTMLMathMethod
-writerIgnoreNotes :: Bool
-writerIncremental :: Bool
-writerNumberSections :: Bool
-writerStrictMarkdown :: Bool
-writerReferenceLinks :: Bool
-writerWrapText :: Bool
-writerLiterateHaskell :: Bool
-writerEmailObfuscation :: ObfuscationMethod
-writerIdentifierPrefix :: String
+data ParserState = ParserState {
+stateParseRaw :: Bool
+stateParserContext :: ParserContext
+stateQuoteContext :: QuoteContext
+stateSanitizeHTML :: Bool
+stateKeys :: KeyTable
+stateNotes :: NoteTable
+stateTabStop :: Int
+stateStandalone :: Bool
+stateTitle :: [Inline]
+stateAuthors :: [String]
+stateDate :: String
+stateStrict :: Bool
+stateSmart :: Bool
+stateLiterateHaskell :: Bool
+stateColumns :: Int
+stateHeaderTable :: [HeaderType]
+stateIndentedCodeClasses :: [String]
 }
+
 
 > htmlHeader :: String
 > htmlHeader = [$here|
@@ -164,59 +201,6 @@ writerIdentifierPrefix :: String
 > }
 > </style>
 > |]
-
->{- -- | Documentation command to produce some hssqlppp docs, takes a
-> --   pandoc source file and converts to html, can run and insert
-> --   commands embedded in the source
-> pandoc :: MonadIO m => String -> ErrorT String m String
-> pandoc txt = return txt
-> {-
->   liftM (writeHtmlString wopt . readMarkdown defaultParserState)
->     (hsTextize txt)
->   where
->     wopt = defaultWriterOptions {
->                writerStandalone = True
->               ,writerTitlePrefix = "HsSqlPpp documentation"
->               ,writerTableOfContents = True
->               ,writerHeader = "<style>\n\
->                               \pre {\n\
->                               \    border: 1px dotted gray;\n\
->                               \    background-color: #ececec;\n\
->                               \    color: #1111111;\n\
->                               \    padding: 0.5em;\n\
->                               \}\n\
->                               \</style>"
->              }-}
-
-
-writerStandalone :: Bool	Include header and footer
-writerHeader :: String	Header for the document
-writerTitlePrefix :: String	Prefix for HTML titles
-writerTabStop :: Int	Tabstop for conversion btw spaces and tabs
-writerTableOfContents :: Bool	Include table of contents
-writerS5 :: Bool	We're writing S5
-writerHTMLMathMethod :: HTMLMathMethod	How to print math in HTML
-writerIgnoreNotes :: Bool	Ignore footnotes (used in making toc)
-writerIncremental :: Bool	Incremental S5 lists
-writerNumberSections :: Bool	Number sections in LaTeX
-writerIncludeBefore :: String	String to include before the body
-writerIncludeAfter :: String	String to include after the body
-writerStrictMarkdown :: Bool	Use strict markdown syntax
-writerReferenceLinks :: Bool	Use reference links in writing markdown, rst
-writerWrapText :: Bool	Wrap text to line length
-writerLiterateHaskell :: Bool	Write as literate haskell
-writerEmailObfuscation :: ObfuscationMethod	How to obfu
-
->   {-ex <- liftIO $ system ("pandoc -s -f markdown -t html "
->                          ++ src ++ " -o " ++ tgt)
->   case ex of
->     ExitFailure e -> throwError $ AEMisc $ "psql failed with " ++ show e
->     ExitSuccess -> return ()-}
-
-> -}
-
-
-pandoc -H docs/header -s --toc -f markdown+lhs HsSqlSystem.lhs  > HsSqlSystem.lhs.html
 
 ===============================================================================
 
