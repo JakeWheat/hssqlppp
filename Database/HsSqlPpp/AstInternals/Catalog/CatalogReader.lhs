@@ -16,11 +16,11 @@ was heavily changed so it's a bit messy.
 > import Control.Applicative
 > --import Debug.Trace
 
-> import Database.HsSqlPpp.Dbms.DBAccess
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-
+> import Database.HsSqlPpp.DbmsCommon
+>
 > -- | Creates an 'CatalogUpdate' list by reading the database given.
 > -- To create an Catalog value from this, use
 > --
@@ -255,4 +255,3 @@ was heavily changed so it's a bit messy.
 >        in if (l!!4) /= "0"
 >           then [(l!!5,ArrayType $ ctor name, '_':name), scType]
 >           else [scType]
-
