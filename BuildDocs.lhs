@@ -29,18 +29,35 @@ code. then these are put into a table in markdown syntax, the sql and
 hs marked with the appropriate stuff to get them syntax highlighting,
 then pandoc to html
 
-> import Data.Char
+> {-# LANGUAGE QuasiQuotes #-}
 
-> -- import Language.Haskell.Exts
+> import Data.Char
+> import System.Directory
+> import Control.Monad
+> import Text.Pandoc
+>
 > import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.Here
 > import Database.HsSqlPpp.Tests.ParserTests as PT
 > import Database.HsSqlPpp.Tests.TypeCheckTests as TT
 >
 > main :: IO ()
 > main = do
->   --putStrLn $ rowsToHtml parserTestsTable
->   putStrLn $ rowsToHtml typeCheckTestsTable
+>   doesDirectoryExist "website" >>=
+>     \l -> when(l) $ removeDirectoryRecursive "website"
+>   createDirectory "website"
+>   pf "README" "website/index.html"
+>   pf "docs/examples.txt" "website/examples.html"
+>   -- pandocise source code files
+>   -- haddock
+>   -- generate doc files from test files
+>   plhs "website/ParserTests.html" $ rowsToHtml parserTestsTable
+>   plhs "website/TypeCheckTests.html" $ rowsToHtml typeCheckTestsTable
+>   -- site map
 >   return ()
+>   where
+>     pf s t = readFile s >>= return . pandoc >>= writeFile t
+>     plhs f s = writeFile f $ pandocLhs s
 >   {-f <- parseFile "Database/HsSqlPpp/Tests/ParserTests.lhs"
 >   case f of
 >     ParseOk ast -> do
@@ -59,12 +76,177 @@ then pandoc to html
 >   pandoc "HsSqlSystem.lhs" "HsSqlSystem.html"
 >   make test files-}
 
+-------------------------------------------------------------------------------
+
+pandoc wrappers
+
+ > pandocLhs =
+
+> pandoc :: String -> String
+> pandoc = (writeHtmlString wopt) . (readMarkdown defaultParserState)
+>   where
+>     wopt = defaultWriterOptions {
+>                writerStandalone = True
+>               --,writerTitlePrefix = "HsSqlPpp documentation"
+>               ,writerTableOfContents = True
+>               ,writerHeader = htmlHeader
+>              }
+
+> pandocLhs :: String -> String
+> pandocLhs = (writeHtmlString wopt) . (readMarkdown defaultParserState)
+>   where
+>     wopt = defaultWriterOptions {
+>                writerStandalone = True
+>               --,writerTitlePrefix = "HsSqlPpp documentation"
+>               ,writerTableOfContents = True
+>               ,writerHeader = htmlHeader
+>               ,writerLiterateHaskell=True
+>              }
+
+
+markdownToRST :: String -> String
+ markdownToRST =
+   (writeRST defaultWriterOptions {writerReferenceLinks = True}) .
+   readMarkdown defaultParserState
+ 
+ main = getContents >>= putStrLn . markdownToRST
+
+pandoc -H docs/header -s --toc -f markdown+lhs HsSqlSystem.lhs  > HsSqlSystem.lhs.html
+
+data WriterOptions = WriterOptions {
+writerStandalone :: Bool
+writerTemplate :: String
+writerVariables :: [(String, String)]
+writerIncludeBefore :: String
+writerIncludeAfter :: String
+writerTabStop :: Int
+writerTableOfContents :: Bool
+writerS5 :: Bool
+writerXeTeX :: Bool
+writerHTMLMathMethod :: HTMLMathMethod
+writerIgnoreNotes :: Bool
+writerIncremental :: Bool
+writerNumberSections :: Bool
+writerStrictMarkdown :: Bool
+writerReferenceLinks :: Bool
+writerWrapText :: Bool
+writerLiterateHaskell :: Bool
+writerEmailObfuscation :: ObfuscationMethod
+writerIdentifierPrefix :: String
+}
+
+> htmlHeader :: String
+> htmlHeader = [$here|
+> <style>
+> pre {
+>     border: 1px dotted gray;
+>     background-color: #ececec;
+>     color: #1111111;
+>     padding: 0.5em;
+> }
+> table, tr, td {
+>   border-collapse:collapse;
+>   cell-padding:0px;
+>   cell-spacing:0px;
+>   padding:0px
+>   spacing:0px
+>   margin:0px
+> }
+> td pre {
+>    width: 98%;
+>    height: 98%;
+> }
+> table {
+>       width:98%;
+> }
+> td {
+>    width: 49%;
+> }
+> </style>
+> |]
+
+>{- -- | Documentation command to produce some hssqlppp docs, takes a
+> --   pandoc source file and converts to html, can run and insert
+> --   commands embedded in the source
+> pandoc :: MonadIO m => String -> ErrorT String m String
+> pandoc txt = return txt
+> {-
+>   liftM (writeHtmlString wopt . readMarkdown defaultParserState)
+>     (hsTextize txt)
+>   where
+>     wopt = defaultWriterOptions {
+>                writerStandalone = True
+>               ,writerTitlePrefix = "HsSqlPpp documentation"
+>               ,writerTableOfContents = True
+>               ,writerHeader = "<style>\n\
+>                               \pre {\n\
+>                               \    border: 1px dotted gray;\n\
+>                               \    background-color: #ececec;\n\
+>                               \    color: #1111111;\n\
+>                               \    padding: 0.5em;\n\
+>                               \}\n\
+>                               \</style>"
+>              }-}
+
+
+writerStandalone :: Bool	Include header and footer
+writerHeader :: String	Header for the document
+writerTitlePrefix :: String	Prefix for HTML titles
+writerTabStop :: Int	Tabstop for conversion btw spaces and tabs
+writerTableOfContents :: Bool	Include table of contents
+writerS5 :: Bool	We're writing S5
+writerHTMLMathMethod :: HTMLMathMethod	How to print math in HTML
+writerIgnoreNotes :: Bool	Ignore footnotes (used in making toc)
+writerIncremental :: Bool	Incremental S5 lists
+writerNumberSections :: Bool	Number sections in LaTeX
+writerIncludeBefore :: String	String to include before the body
+writerIncludeAfter :: String	String to include after the body
+writerStrictMarkdown :: Bool	Use strict markdown syntax
+writerReferenceLinks :: Bool	Use reference links in writing markdown, rst
+writerWrapText :: Bool	Wrap text to line length
+writerLiterateHaskell :: Bool	Write as literate haskell
+writerEmailObfuscation :: ObfuscationMethod	How to obfu
+
+>   {-ex <- liftIO $ system ("pandoc -s -f markdown -t html "
+>                          ++ src ++ " -o " ++ tgt)
+>   case ex of
+>     ExitFailure e -> throwError $ AEMisc $ "psql failed with " ++ show e
+>     ExitSuccess -> return ()-}
+
+> -}
+
+
+pandoc -H docs/header -s --toc -f markdown+lhs HsSqlSystem.lhs  > HsSqlSystem.lhs.html
+
+===============================================================================
+
+routines to convert the parser and type check test data into html pages
+
+> data Row = Row [Text] [Text]
+>          | HHeader String
+
+> data Text = Text String
+>           | Sql String
+>           | Haskell String
+
 > parserTestsTable :: [Row]
 > parserTestsTable = mapParserTests PT.parserTestData
 
 > typeCheckTestsTable :: [Row]
 > typeCheckTestsTable = mapTypeCheckTests TT.typeCheckTestData
 
+> mapParserTests :: PT.Item -> [Row]
+> mapParserTests (PT.Expr s e) = [Row [Sql s] [Haskell (ppExpr e)]]
+> mapParserTests (PT.Stmt s e) = [Row [Sql s] [Haskell (ppExpr e)]]
+> mapParserTests (PT.PgSqlStmt s e) = [Row [Sql s] [Haskell (ppExpr e)]]
+> mapParserTests (PT.Group n is) = HHeader n : concatMap mapParserTests is
+
+> mapTypeCheckTests :: TT.Item -> [Row]
+> mapTypeCheckTests (TT.Group n is) = HHeader n : concatMap mapTypeCheckTests is
+> mapTypeCheckTests (TT.Expr s r) = [Row [Sql s] [Haskell (ppExpr r)]]
+> mapTypeCheckTests (TT.StmtType s r) = [Row [Sql s] [Haskell (ppExpr r)]]
+> mapTypeCheckTests (TT.CatStmtType s c r) = [Row [Haskell (ppExpr c),Sql s] [Haskell (ppExpr r)]]
+> mapTypeCheckTests (TT.Ddl s c) = [Row [Sql s] [Haskell (ppExpr c)]]
 
 > rowsToHtml :: [Row] -> String
 > rowsToHtml rs =
@@ -76,7 +258,7 @@ then pandoc to html
 >         "<tr><td>" ++ concatMap tToH a ++
 >         "</td><td>"  ++ concatMap tToH b ++
 >         "</td></tr>"
->     rowToHtml (Header s) =
+>     rowToHtml (HHeader s) =
 >         "</table>\n" ++ s ++ "\n" ++ map (const '=') s ++ "\n<table>\n"
 >     tToH (Text s) = s
 >     tToH (Sql s) = code "SqlPostgresql" s
@@ -84,29 +266,6 @@ then pandoc to html
 >     code t s = "\n\n~~~~~~{." ++ t ++ "}\n"
 >                ++ trim s
 >                ++ "\n~~~~~~\n\n"
-
-pandoc -H docs/header -s --toc -f markdown+lhs HsSqlSystem.lhs  > HsSqlSystem.lhs.html
-
-> data Row = Row [Text] [Text]
->          | Header String
-
-> data Text = Text String
->           | Sql String
->           | Haskell String
-
-> mapParserTests :: PT.Item -> [Row]
-> mapParserTests (PT.Expr s e) = [Row [Sql s] [Haskell (ppExpr e)]]
-> mapParserTests (PT.Stmt s e) = [Row [Sql s] [Haskell (ppExpr e)]]
-> mapParserTests (PT.PgSqlStmt s e) = [Row [Sql s] [Haskell (ppExpr e)]]
-> mapParserTests (PT.Group n is) = Header n : concatMap mapParserTests is
-
-> mapTypeCheckTests :: TT.Item -> [Row]
-> mapTypeCheckTests (TT.Group n is) = Header n : concatMap mapTypeCheckTests is
-> mapTypeCheckTests (TT.Expr s r) = [Row [Sql s] [Haskell (ppExpr r)]]
-> mapTypeCheckTests (TT.StmtType s r) = [Row [Sql s] [Haskell (ppExpr r)]]
-> mapTypeCheckTests (TT.CatStmtType s c r) = [Row [Haskell (ppExpr c),Sql s] [Haskell (ppExpr r)]]
-> mapTypeCheckTests (TT.Ddl s c) = [Row [Sql s] [Haskell (ppExpr c)]]
-
 
 > trim :: String -> String
 > trim = f . f

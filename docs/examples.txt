@@ -1,0 +1,22 @@
+Examples
+--------
+
+Code to parse some SQL, run a transform function on the AST, then
+pretty print the result:
+
+Same, but load straight into the DBMS
+
+Parse some SQL, type check, and display type errors in Emacs format.
+
+Parse some SQL, type check, display catalog.
+
+Generate typesafe wrapper example.
+
+Module extension
+
+Contraint extension
+
+### HsSqlSystem
+
+This is an executable that comes with the cabal package. See here for
+the documentation for the commands it supports.

@@ -25,9 +25,13 @@ Installation
 ============
 
 Use
+
     cabal update
+
 then
+
     cabal install hssqlppp
+
 to install.
 
 It's currently developed on GHC 6.12, but the latest release still
@@ -36,49 +40,32 @@ worked on 6.10.
 Useful links
 ============
 
-Hackage: http://hackage.haskell.org/package/hssqlppp
-Repository (Bzr, on Launchpad): http://launchpad.net/hssqlppp
+Hackage: [http://hackage.haskell.org/package/hssqlppp](http://hackage.haskell.org/package/hssqlppp)
+Repository (Bzr, on Launchpad): [http://launchpad.net/hssqlppp](http://launchpad.net/hssqlppp)
 
 Documentation
 =============
 
 You can browse the Haddock documentation online here:
 
-Examples
---------
+examples are here: [examples.html](examples.html)
 
-Code to parse some SQL, run a transform function on the AST, then
-pretty print the result:
+browse source online here:
+hscolour:
+pandoc/ highlighting-kate:
 
-Same, but load straight into the DBMS
+or on launchpad here:
+[http://bazaar.launchpad.net/%7Ejakewheat/hssqlppp/trunk/files](http://bazaar.launchpad.net/%7Ejakewheat/hssqlppp/trunk/files)
 
-Parse some SQL, type check, and display type errors in Emacs format.
-
-Parse some SQL, type check, display catalog.
-
-Generate typesafe wrapper example.
-
-Module extension
-
-Contraint extension
-
-### HsSqlSystem
-
-This is an executable that comes with the cabal package. See here for
-the documentation for the commands it supports.
 
 Development info
 ================
 
-You can browse htmlized source code here:
+Get latest development version:
 
-or on launchpad here:
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/files
+    bzr branch lp:~jakewheat/hssqlppp/trunk
 
-get latest development version:
-bzr branch lp:~jakewheat/hssqlppp/trunk
 (This version is often a mess and sometimes broken).
-
 
 Uses Parsec for parsing, HDBC for database access, and UUAGC to assist
 the type checking. Comes with a small test suite.
