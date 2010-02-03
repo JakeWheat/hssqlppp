@@ -29,7 +29,7 @@ This code is currently on the backburner, and is a mess.
 > {- | Routine load SQL into a database. Should work alright, but if
 >  you get any errors from PostgreSQL it won't be easy to track them
 >   down in the original source.-}
-> module Database.HsSqlPpp.Dbms.DatabaseLoader
+> module Database.HsSqlPpp.Examples.DatabaseLoader
 >     (
 >      loadIntoDatabase
 >     ) where
@@ -41,7 +41,7 @@ This code is currently on the backburner, and is a mess.
 
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.Ast.Ast as Ast
-> import Database.HsSqlPpp.Dbms.DBAccess
+> import Database.HsSqlPpp.Examples.DBAccess
 > import Database.HsSqlPpp.Ast.Annotation
 
 > loadIntoDatabase :: String -- ^ database name

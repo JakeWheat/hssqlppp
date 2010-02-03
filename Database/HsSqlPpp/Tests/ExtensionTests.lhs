@@ -13,7 +13,7 @@ Set of tests for the extensions
 
 > import Database.HsSqlPpp.Parsing.Parser
 > import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Extensions.ChaosExtensions
+> import Database.HsSqlPpp.Examples.ChaosExtensions
 > import Database.HsSqlPpp.Ast.Ast
 > --import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 

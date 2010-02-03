@@ -5,7 +5,7 @@ docs attached to sqlStmt function below
 
 > {-# LANGUAGE TemplateHaskell #-}
 
-> module Database.HsSqlPpp.Dbms.DBAccess2
+> module Database.HsSqlPpp.Examples.DBAccess2
 >     (withConn
 >     ,sqlStmt
 >     ,IConnection) where

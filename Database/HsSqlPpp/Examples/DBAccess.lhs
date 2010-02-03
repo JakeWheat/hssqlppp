@@ -5,7 +5,7 @@ around hdbc for running commands and queries.
 
 > {-# OPTIONS_HADDOCK hide #-}
 
-> module Database.HsSqlPpp.Dbms.DBAccess (runSqlCommand
+> module Database.HsSqlPpp.Examples.DBAccess (runSqlCommand
 >                 ,withConn
 >                 ,selectValue
 >                 ,catchSql

@@ -16,7 +16,7 @@ data Draw;     draw     = proxy::Proxy Draw
 
 -}
 
-module Database.HsSqlPpp.Dbms.MakeLabels (makeLabels,label) where
+module Database.HsSqlPpp.Examples.MakeLabels (makeLabels,label) where
 
 import Data.HList.FakePrelude
 

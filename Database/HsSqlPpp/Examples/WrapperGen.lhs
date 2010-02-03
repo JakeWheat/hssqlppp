@@ -7,7 +7,7 @@ could probably use some quasi quotation
 
 > {-# LANGUAGE FlexibleContexts #-}
 
-> module Database.HsSqlPpp.Dbms.WrapperGen
+> module Database.HsSqlPpp.Examples.WrapperGen
 >     (wrapperGen) where
 
 > import Language.Haskell.Exts hiding (String)

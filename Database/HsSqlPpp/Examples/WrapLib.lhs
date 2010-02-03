@@ -1,7 +1,7 @@
 Copyright 2010 Jake Wheat
 
 > -- | Utility function for use with WrapperGen example code
-> module Database.HsSqlPpp.Dbms.WrapLib where
+> module Database.HsSqlPpp.Examples.WrapLib where
 
 > import Database.HDBC
 

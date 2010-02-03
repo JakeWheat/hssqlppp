@@ -21,7 +21,7 @@ text on these points, then zip it and output it.
 >      with original source file, so e.g. you can view types,
 >      etc. inline in the source whilst preserving the original
 >      formatting and comments.  -}
-> module Database.HsSqlPpp.PrettyPrinter.AnnotateSource
+> module Database.HsSqlPpp.Examples.AnnotateSource
 >     (annotateSource) where
 
 > import Data.List

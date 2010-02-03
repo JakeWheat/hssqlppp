@@ -19,7 +19,7 @@ Experimental code to use uniplate to implement extensions
 >      generated functions.
 >  -}
 
-> module Database.HsSqlPpp.Extensions.ChaosExtensions
+> module Database.HsSqlPpp.Examples.ChaosExtensions
 >     (
 >      extensionize
 >     ,addReadonlyTriggers

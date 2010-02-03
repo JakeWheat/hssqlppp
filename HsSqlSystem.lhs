@@ -29,13 +29,14 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Parsing.Lexer
 >
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
-> import Database.HsSqlPpp.PrettyPrinter.AnnotateSource
+
+> import Database.HsSqlPpp.Examples.AnnotateSource
 >
-> import Database.HsSqlPpp.Dbms.DatabaseLoader
-> import Database.HsSqlPpp.Dbms.WrapperGen
-> import Database.HsSqlPpp.Dbms.DBUtils
+> import Database.HsSqlPpp.Examples.DatabaseLoader
+> import Database.HsSqlPpp.Examples.WrapperGen
+> import Database.HsSqlPpp.Examples.DBUtils
 >
-> import Database.HsSqlPpp.Extensions.ChaosExtensions
+> import Database.HsSqlPpp.Examples.ChaosExtensions
 
 -------------------------------------------------------------------------------
 

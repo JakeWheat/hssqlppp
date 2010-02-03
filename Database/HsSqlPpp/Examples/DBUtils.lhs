@@ -3,7 +3,7 @@ Copyright 2010 Jake Wheat
 This file contains a few hacked together utility functions for working
 with postgres.
 
-> module Database.HsSqlPpp.Dbms.DBUtils
+> module Database.HsSqlPpp.Examples.DBUtils
 >     (readCatalog
 >     ,loadSqlUsingPsql
 >     ,loadSqlUsingPsqlFromFile
@@ -21,7 +21,7 @@ with postgres.
 
 > import Database.HsSqlPpp.Ast.SqlTypes
 
-> import Database.HsSqlPpp.Dbms.DBAccess
+> import Database.HsSqlPpp.Examples.DBAccess
 
 > -- | get the catalog from the database, and return an Catalog value
 > readCatalog :: String -> IO (Either [TypeError] Catalog)
