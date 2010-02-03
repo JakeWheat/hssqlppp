@@ -1,11 +1,12 @@
-#! /usr/bin/env runhaskell
-
 Copyright 2010 Jake Wheat
 
 This file creates the documentation for the project, to be uploaded to
 the website.
 
 > {-# LANGUAGE QuasiQuotes #-}
+
+> module Database.HsSqlPpp.DocumentationTools.BuildDocs
+>     (makeWebsite) where
 
 > import Data.Char
 > import System.Directory
@@ -21,8 +22,8 @@ the website.
 > import Database.HsSqlPpp.Tests.ParserTests as PT
 > import Database.HsSqlPpp.Tests.TypeCheckTests as TT
 >
-> main :: IO ()
-> main = do
+> makeWebsite :: IO ()
+> makeWebsite = do
 >   doesDirectoryExist "website" >>=
 >     \l -> when(l) $ removeDirectoryRecursive "website"
 >   createDirectory "website"
@@ -30,9 +31,9 @@ the website.
 >   pf "docs/examples.txt" "website/examples.html"
 >   -- pandocise source code files
 >   doPandocSource
->   --doHaddock
->   --plhs "website/ParserTests.html" $ rowsToHtml parserTestsTable
->   --plhs "website/TypeCheckTests.html" $ rowsToHtml typeCheckTestsTable
+>   doHaddock
+>   plhs "website/ParserTests.html" $ rowsToHtml parserTestsTable
+>   plhs "website/TypeCheckTests.html" $ rowsToHtml typeCheckTestsTable
 >   return ()
 >   where
 >     pf s t = readFile s >>= return . (siteMap ++) >>= return . pandoc >>= writeFile t

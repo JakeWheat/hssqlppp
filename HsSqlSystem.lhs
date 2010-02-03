@@ -13,7 +13,7 @@ to get a list of commands and purpose and usage info
 > import System.Console.CmdArgs
 > import System.IO
 > import Control.Monad.Error
-> import Debug.Trace
+> --import Debug.Trace
 > import Test.Framework (defaultMainWithArgs)
 >
 > import Database.HsSqlPpp.Tests.Tests
@@ -37,6 +37,7 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Examples.DBUtils
 >
 > import Database.HsSqlPpp.Examples.ChaosExtensions
+> import Database.HsSqlPpp.DocumentationTools.BuildDocs
 
 -------------------------------------------------------------------------------
 
@@ -79,6 +80,8 @@ command list
 >
 >                  | GenWrap {database :: String
 >                            ,file :: String}
+>
+>                  | MakeWebsite
 >
 >                    deriving (Show, Data, Typeable)
 
@@ -1173,6 +1176,16 @@ as an argument to the exe
 
 -------------------------------------------------------------------------------
 
+MakeWebsite
+===========
+
+code to build the website for hssqlppp
+
+> makeWebsiteA = mode $ MakeWebsite
+>                &= text "build the website"
+
+-------------------------------------------------------------------------------
+
 main
 ====
 
@@ -1186,7 +1199,7 @@ main
 >                        annotateSourceA, ppCatalogA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
->                        testA, genWrapA]
+>                        testA, genWrapA, makeWebsiteA]
 >
 >        case cmd of
 >          Lex fns -> lexFiles fns
@@ -1209,11 +1222,12 @@ main
 >          TestBattery db fns -> runTestBattery db fns
 >          Test as -> runTests as
 >          GenWrap db f -> genWrap db f
+>          MakeWebsite -> makeWebsite
 >
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
 >   typeCheckA, typeCheckChaosA, testA, parseExpressionA, typeCheckExpressionA,
->   allAnnotationsA, ppCatalogA, genWrapA :: Mode HsSqlSystem
+>   allAnnotationsA, ppCatalogA, genWrapA, makeWebsiteA :: Mode HsSqlSystem
 
 -------------------------------------------------------------------------------
 

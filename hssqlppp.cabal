@@ -1,14 +1,9 @@
 Name:                hssqlppp
-Version:             0.2.0
+Version:             0.3.0
 Synopsis:            SQL parser and type checker
 Description:
     SQL parser, and type checker, targets PostgreSQL SQL
     and PL/pgSQL.
-    .
-    See the project page
-    <https://launchpad.net/hssqlppp> for more information and
-    documentation links, there are also links to some example usage
-    files there.
     .
     Quick module guide:
     .
@@ -28,9 +23,6 @@ Description:
     .
     'Catalog' - read a catalog from a database to type check against,
     or to generate catalog information.
-    .
-    Also comes with command line access to some functions via a exe called
-    HsSqlSystem, run this file with no arguments to get some help.
 
 License:             BSD3
 License-file:        LICENSE
@@ -50,21 +42,14 @@ extra-source-files:  README
 Library
   Build-Depends:     base >= 4 && < 5,
                      mtl,
+                     containers,
                      parsec >= 3,
                      pretty,
-                     containers,
-                     regex-posix,
-                     HDBC,
-                     HDBC-postgresql,
-                     directory,
                      syb,
                      uniplate,
-                     Pipe,
-                     process,
-                     filepath,
-                     template-haskell,
+                     HDBC,
+                     HDBC-postgresql,
                      haskell-src-exts
-                     --HList
 
   Exposed-modules:   Database.HsSqlPpp.Ast.Ast
                      Database.HsSqlPpp.Ast.Annotation
@@ -86,71 +71,8 @@ Library
                      Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
                      Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
                      Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
-                     Database.HsSqlPpp.Here
                      Database.HsSqlPpp.DbmsCommon
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParseErrors
-
-  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
-
-Executable HsSqlSystem
-  Main-is:           HsSqlSystem.lhs
-  GHC-Options:
-                     --need this so that pipes work properly, particularly pgdump
-                     -threaded
-  Build-Depends:     base,
-                     haskell98,
-                     regex-posix,
-                     HDBC,
-                     HDBC-postgresql,
-                     directory,
-                     test-framework,
-                     test-framework-hunit,
-                     HUnit,
-                     cmdargs
-                     --HList
-
-  Other-Modules:     Database.HsSqlPpp.Utils
-                     Database.HsSqlPpp.AstInternals.AnnotationUtils
-                     Database.HsSqlPpp.AstInternals.AstAnnotation
-                     Database.HsSqlPpp.AstInternals.AstInternal
-                     Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-                     Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
-                     Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
-                     Database.HsSqlPpp.AstInternals.TypeType
-                     Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
-                     Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
-                     Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
-                     Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
-                     Database.HsSqlPpp.Examples.DBAccess
-                     --Database.HsSqlPpp.Examples.MakeLabels
-                     Database.HsSqlPpp.Examples.DatabaseLoader
-                     --Database.HsSqlPpp.Examples.DBAccess3
-                     --Database.HsSqlPpp.Examples.DBAccess2
-                     Database.HsSqlPpp.Examples.WrapLib
-                     Database.HsSqlPpp.Examples.AnnotateSource
-                     Database.HsSqlPpp.Examples.WrapperGen
-                     Database.HsSqlPpp.Examples.DBUtils
-                     Database.HsSqlPpp.Examples.ChaosExtensions
-                     Database.HsSqlPpp.Tests.ExtensionTests
-                     Database.HsSqlPpp.Tests.LocalBindingsTests
-                     Database.HsSqlPpp.Tests.ParserTests
-                     Database.HsSqlPpp.Tests.DatabaseLoaderTests
-                     Database.HsSqlPpp.Tests.ParseQuickcheck
-                     Database.HsSqlPpp.Tests.RoundtripTests
-                     Database.HsSqlPpp.Tests.TypeCheckTests
-                     Database.HsSqlPpp.Tests.ParameterizedStatementTests
-                     Database.HsSqlPpp.Tests.Tests
-                     Database.HsSqlPpp.Here
-                     Database.HsSqlPpp.DbmsCommon
-                     Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
-                     Database.HsSqlPpp.Parsing.Lexer
-                     Database.HsSqlPpp.Parsing.Parser
-                     Database.HsSqlPpp.Parsing.ParseErrors
-                     Database.HsSqlPpp.Ast.Ast
-                     Database.HsSqlPpp.Ast.Annotation
-                     Database.HsSqlPpp.Ast.Catalog
-                     Database.HsSqlPpp.Ast.SqlTypes
-                     Database.HsSqlPpp.Ast.TypeChecker
 
   extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables

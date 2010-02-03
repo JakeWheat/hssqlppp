@@ -1,4 +1,4 @@
-Hssqlppp
+HsSqlPpp
 ========
 
 A parser, pretty printer, and type checker for SQL written in
@@ -36,7 +36,7 @@ works on 6.10.
 Documentation
 =============
 
-[Browse the Haddock documentation](haddok/index.html)
+[Browse the Haddock documentation](haddock/index.html)
 
 [See some usage examples](examples.html)
 
