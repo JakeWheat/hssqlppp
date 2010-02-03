@@ -13,8 +13,8 @@ Copyright 2010 Jake Wheat
 >
 > allTests :: [Test]
 > allTests =
->     parserTests ++
->     typeCheckTests ++
+>     parserTests :
+>     typeCheckTests :
 >     parameterizedStatementTests ++
 >     --roundtripTests ++
 >     localBindingsTests ++
