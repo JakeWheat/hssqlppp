@@ -1,0 +1,8 @@
+<style>
+pre {
+    border: 1px dotted gray;
+    background-color: #ececec;
+    color: #1111111;
+    padding: 0.5em;
+}
+</style>

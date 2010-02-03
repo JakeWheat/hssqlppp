@@ -9,7 +9,6 @@ in the StatementType annotation.
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
-> --import Text.Show.Pretty
 > --import Debug.Trace
 
 

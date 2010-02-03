@@ -47,10 +47,10 @@ expressions
 >      ,p "1.1" (FloatLit [] 1.1)
 >      ,p "-1.1" (FunCall [] "u-" [FloatLit [] 1.1])
 >      ,p " 1 + 1 " (FunCall [] "+" [IntegerLit [] 1
->                               ,IntegerLit [] 1])
+>                                   ,IntegerLit [] 1])
 >      ,p "1+1+1" (FunCall [] "+" [FunCall [] "+" [IntegerLit [] 1
->                                         ,IntegerLit [] 1]
->                             ,IntegerLit [] 1])
+>                                                 ,IntegerLit [] 1]
+>                                 ,IntegerLit [] 1])
 >      ]]
 
 

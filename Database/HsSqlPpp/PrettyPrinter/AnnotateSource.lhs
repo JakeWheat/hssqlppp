@@ -28,6 +28,7 @@ text on these points, then zip it and output it.
 > import Data.Maybe
 > --import Debug.Trace
 
+> import Database.HsSqlPpp.Utils hiding (split)
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Ast.TypeChecker
@@ -102,7 +103,7 @@ To replace existing comments rather than repeatedly add them:
 >              splitsWithSps = mapMaybe (\(a,b) -> case a of
 >                                                         Nothing -> Nothing
 >                                                         Just a1 -> Just (a1,b)) split
->          in map (\(a,b) -> (a, "\n/*" ++ show b ++ "*/\n")) splitsWithSps
+>          in map (\(a,b) -> (a, "\n/*" ++ ppExpr b ++ "*/\n")) splitsWithSps
 >          where
 >            interestingAnn anns =
 >              flip filter anns (\a ->

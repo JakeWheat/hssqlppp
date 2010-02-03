@@ -117,6 +117,7 @@ INCLUDE "TypeChecking/Dml.ag"
 INCLUDE "TypeChecking/CreateTable.ag"
 INCLUDE "TypeChecking/MiscCreates.ag"
 INCLUDE "TypeChecking/CreateFunction.ag"
+INCLUDE "TypeChecking/Triggers.ag"
 INCLUDE "TypeChecking/Drops.ag"
 INCLUDE "TypeChecking/Plpgsql.ag"
 

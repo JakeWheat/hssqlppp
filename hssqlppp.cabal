@@ -115,10 +115,8 @@ Library
                      directory,
                      syb,
                      uniplate,
-                     pretty-show,
                      Pipe,
                      process,
-                     --pandoc == 1.2.1,
                      filepath,
                      template-haskell,
                      haskell-src-exts
@@ -170,7 +168,9 @@ Library
 
 Executable HsSqlSystem
   Main-is:           HsSqlSystem.lhs
-
+  GHC-Options:
+                     --need this so that pipes work properly, particularly pgdump
+                     -threaded
   Build-Depends:     base,
                      haskell98,
                      regex-posix,

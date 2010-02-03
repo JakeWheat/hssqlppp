@@ -1,66 +1,90 @@
-Summary: A parser and type checker for PostgreSQL SQL and
-PL/pgSQL. BSD licensed.
+Hssqlppp
+========
 
-The current aims of the project is to provide a parser and type
-checker for a substantial portion of PostgreSQL SQL and PL/pgSQL, and
-then hopefully to build on this to make tools and libraries to help
-developing PL/pgSQL code, possibly: macros/ code generation/ custom
-syntax, type safe access from Haskell, Lint-like checking,
-documentation generation.
+A parser, pretty printer, and type checker for SQL written in
+Haskell. Supports PostgreSQL SQL and PL/pgSQL syntax. BSD licensed.
 
-Status: it successfully parses and accurately pretty prints the three
-moderate sized SQL files from another project of mine, but there are
-lots of missing bits. Coverage of SQL is sort of reasonable - it's
-possible that your SQL files will parse OK, but it's also possible
-that they won't parse at all. Please report any SQL which doesn't
-parse.
+Status
+======
 
-It also has the beginnings of a type checker, which currently can type
-check a fair bit of the three files mentioned above. You can run the
-type checker on your SQL in various ways from the command line. Please
-report any SQL which doesn't type check correctly. Coming soon: a
-command to produce a report on how well this code can parse and type
-check your SQL.
+Pre-alpha. Support for parsing SQL is patchy, but not too bad. Support
+for typechecking is also patchy. See these extracts from the test
+files for examples of the kind of fragments which parse:
+...
 
-It comes with a small test suite.
+Is currently able to successfully parse and partially type check three
+moderately sized SQL files from another project.
 
-To install, use
-cabal update
+Parameterised statements: can be used to read a catalog either from a
+database or from the SQL DDL source code, and provide enough type
+information for parameterised crud statements to produce type-safe
+wrappers for many common crud statements (the main thing missing is
+nullability inference, so all the types are Maybes).
+
+Installation
+============
+
+Use
+    cabal update
 then
-cabal install hssqlppp
+    cabal install hssqlppp
+to install.
 
-It's currently developed on GHC 6.12, but is briefly tested on 6.10
-before each release so should work there too.
+It's currently developed on GHC 6.12, but the latest release still
+worked on 6.10.
 
-There isn't much in the way of documentation at the moment. See the
-haddock docs locally or on hackage (link below), which also contain
-links to a few example files. The source has a fair bit of comments,
-which are currently OK in some places and poor in others.
+Useful links
+============
 
-The main dependencies of this project are: Parsec 3, HDBC and
-HDBC-postgresql; UUAGC is needed only for development. You also need
-PostgreSQL installed.
+Hackage: http://hackage.haskell.org/package/hssqlppp
+Repository (Bzr, on Launchpad): http://launchpad.net/hssqlppp
 
-================================================================================
+Documentation
+=============
 
-Homepage
+You can browse the Haddock documentation online here:
 
-There isn't really a homepage or website yet, but you can view the
-Launchpad page where the code is hosted, and the HackageDB page.
+Examples
+--------
 
-Launchpad:
-http://launchpad.net/hssqlppp/
+Code to parse some SQL, run a transform function on the AST, then
+pretty print the result:
 
-HackageDB page:
-http://hackage.haskell.org/package/hssqlppp
-You can also browse the limited Haddock documentation online here.
+Same, but load straight into the DBMS
 
-You can get the latest development code from Launchpad using Bazaar:
+Parse some SQL, type check, and display type errors in Emacs format.
+
+Parse some SQL, type check, display catalog.
+
+Generate typesafe wrapper example.
+
+Module extension
+
+Contraint extension
+
+### HsSqlSystem
+
+This is an executable that comes with the cabal package. See here for
+the documentation for the commands it supports.
+
+Development info
+================
+
+You can browse htmlized source code here:
+
+or on launchpad here:
+http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/files
+
+get latest development version:
 bzr branch lp:~jakewheat/hssqlppp/trunk
+(This version is often a mess and sometimes broken).
 
-================================================================================
+
+Uses Parsec for parsing, HDBC for database access, and UUAGC to assist
+the type checking. Comes with a small test suite.
 
 Contact
+=======
 
 Let me know if you're using/ interesting in using the library, if you
 have any problems or suggestions, etc.. All contributions, comments
@@ -69,56 +93,3 @@ and criticism welcome:
 jakewheatmail@gmail.com
 
 You can also report problems on the bug tracker on Launchpad.
-
-================================================================================
-
-Example files:
-
-(remove the prefix
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/
-to get the local relative path)
-
-The test files for parsing and for type checking contain examples of
-what parses/ typechecks and what the asts and annotations look like:
-
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Tests/ParserTests.lhs
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Tests/TypeCheckTests.lhs
-
-The HsSqlSystem command source -
-
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/HsSqlSystem.lhs
-
-AST transform code to extend plpgsql without using any custom syntax
-mainly by matching certain function calls and replacing them with
-something else, from another project, currently early days:
-
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Extensions/ChaosExtensions.lhs
-
-Demonstration of parsing CRUD statements with ? placeholders in, and
-using the information from the type check to generate type safe
-database access from haskell, 3 rough ideas:
-
-Work as a preprocesser to parse a haskell file and convert some
-declarations into calls to a wrapper around HDBC, with the correct
-type signatures, with the return type as a list of haskell tuples:
-
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Dbms/WrapperGen.lhs
-
-Similar to previous idea, but using template haskell to do the
-substitution at compile time, should be nicer to use this way:
-
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Dbms/DBAccess2.lhs
-
-example use:
-
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/testfiles/DBAccess2Test.lhs
-
-Use template haskell again, but type the return values as lists of
-hlists instead of tuples, so that field names in haskell code are also
-checked at compile time:
-
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/Database/HsSqlPpp/Dbms/DBAccess3.lhs
-
-example use:
-
-http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head%3A/testfiles/DBAccess3Test.lhs

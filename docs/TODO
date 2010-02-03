@@ -1,8 +1,49 @@
 = TODOs
 
 This file is a complete disorganised mess.
+----------
 
-New approach:
+rough plan for next release:
+
+get returning * working, count *
+
+report generator/ round tripping
+roundtrip chaos + tests
+  catalog from first load is different
+  dump not working
+  need a fair bit of work to get dump parsing
+catalog: add triggers, sequences, constraints, indexes, defaults
+examples:
+  move chaosextensions, whole dbms folder, annotate source to examples
+   module
+work on chaos extensions
+write render code to take parser tests and type check tests, and
+   display in html table with pandoc highlighting for documentation
+   purposes
+
+
+convert type to Maybe TypeInfo
+error handling
+nullability inference
+database connection info
+tidyup code + add docs
+work through and add missing typechecking
+---------
+homepage plan:
+links to hackage, launchpad
+haddock
+overview from lp
+hssqlsystem documentation/examples
+link to readme
+example pages:
+  chaos extensions
+  module extension
+  constraint extension
+  typesafe wrapper example(s), two axes are: source code gen/ template
+   haskell; and output tuples/ output hlists
+ 
+-----------
+old New approach:
 list todos for next release or next few releases
 lists todos for first alpha release
 list future plans/ ideas

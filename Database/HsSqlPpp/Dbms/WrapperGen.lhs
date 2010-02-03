@@ -10,7 +10,6 @@ could probably use some quasi quotation
 > module Database.HsSqlPpp.Dbms.WrapperGen
 >     (wrapperGen) where
 
-> import Text.Show.Pretty (ppShow)
 > import Language.Haskell.Exts hiding (String)
 > import qualified Language.Haskell.Exts as Exts
 > import Data.Generics.PlateData
@@ -88,7 +87,7 @@ could probably use some quasi quotation
 >                      Left er -> return $ show er
 >                      Right cat ->
 >                          return $ {-ppShow ast ++  "\n\n" ++ -} prettyPrint (processTree cat (addImports ast))
->     x -> return $ ppShow x
+>     x -> return $ show x
 
 This is the function which finds the statements which look like
 ident = "string"

@@ -10,11 +10,9 @@ places, particularly for joins
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
-> --import Text.Show.Pretty
 > --import Debug.Trace
 > import Control.Monad
 > import Control.Monad.Error
-> --import Text.Show.Pretty
 
 
 > import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal

@@ -13,7 +13,15 @@ This file contains some generic utility stuff
 > import Control.Arrow
 > import Control.Monad.Error
 > import Control.Applicative
+> import qualified Language.Haskell.Exts as Exts
 
+used to mix regular function composition and >>= in monads, so the
+order of application stays the same instead of going backwards when
+(.) is used
+
+> infixl 9 |>
+> (|>) :: (a -> b) -> (b -> c) -> a -> c
+> (|>) = flip (.)
 
 > errorWhen :: (Error a) => Bool -> a -> Either a ()
 > errorWhen cond = when cond . Left
@@ -107,3 +115,14 @@ error utility - convert either to ErrorT String
 > forceRight :: Show e => Either e a -> a
 > forceRight (Left x) = error $ show x
 > forceRight (Right x) = x
+
+
+dodgy code to pretty print a value using haskell-src-exts to try and format it nicely
+
+> ppExpr :: Show s => s -> String
+> ppExpr s =
+>   case Exts.parseFileContents ("x = " ++ show s) of
+>     Exts.ParseOk ast -> let (Exts.Module _ _ _ _ _ _ d) = ast
+>                             ((Exts.PatBind _ _ _ (Exts.UnGuardedRhs v) _):_) = d
+>                         in Exts.prettyPrint v
+>     x -> error $ show x
