@@ -17,9 +17,9 @@ was heavily changed so it's a bit messy.
 > --import Debug.Trace
 
 > import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.DbmsCommon
+> import Database.HsSqlPpp.Utils.DbmsCommon
 >
 > -- | Creates an 'CatalogUpdate' list by reading the database given.
 > -- To create an Catalog value from this, use

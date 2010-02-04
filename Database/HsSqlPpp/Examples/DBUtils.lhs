@@ -17,11 +17,11 @@ with postgres.
 > --import Text.Pandoc
 
 
-> import Database.HsSqlPpp.Ast.Catalog
+> import Database.HsSqlPpp.Catalog
 
-> import Database.HsSqlPpp.Ast.SqlTypes
+> import Database.HsSqlPpp.SqlTypes
 
-> import Database.HsSqlPpp.DbmsCommon
+> import Database.HsSqlPpp.Utils.DbmsCommon
 
 > -- | get the catalog from the database, and return an Catalog value
 > readCatalog :: String -> IO (Either [TypeError] Catalog)

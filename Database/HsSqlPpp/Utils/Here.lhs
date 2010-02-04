@@ -5,7 +5,7 @@ robbed from http://old.nabble.com/Multi-line-string-literals-are-both-easy--and-
 
 > {-# OPTIONS_HADDOCK hide #-}
 
-> module Database.HsSqlPpp.Here where
+> module Database.HsSqlPpp.Utils.Here where
 
 > import Language.Haskell.TH.Quote
 > --import Language.Haskell.TH.Syntax

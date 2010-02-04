@@ -12,11 +12,11 @@ in the StatementType annotation.
 > --import Debug.Trace
 
 
-> import Database.HsSqlPpp.Ast.SqlTypes
-> import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Ast.TypeChecker
-> import Database.HsSqlPpp.Ast.Catalog
+> import Database.HsSqlPpp.SqlTypes
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Catalog
 
 > data Item = Group String [Item]
 >           | Statements [(String, [CatalogUpdate], StatementType)]

@@ -17,18 +17,18 @@ to get a list of commands and purpose and usage info
 > import Test.Framework (defaultMainWithArgs)
 >
 > import Database.HsSqlPpp.Tests.Tests
-> import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.Utils.Utils
 >
-> import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Ast.Catalog
-> import qualified Database.HsSqlPpp.Ast.TypeChecker as A
-> import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Ast.SqlTypes
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Catalog
+> import qualified Database.HsSqlPpp.TypeChecker as A
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.SqlTypes
 >
-> import qualified Database.HsSqlPpp.Parsing.Parser as P
+> import qualified Database.HsSqlPpp.Parser as P
 > import Database.HsSqlPpp.Parsing.Lexer
 >
-> import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
+> import Database.HsSqlPpp.PrettyPrinter
 >
 > import Database.HsSqlPpp.Examples.AnnotateSource
 >
@@ -37,7 +37,7 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Examples.DBUtils
 >
 > import Database.HsSqlPpp.Examples.ChaosExtensions
-> import Database.HsSqlPpp.DocumentationTools.BuildDocs
+> import Database.HsSqlPpp.DocumentationTools.MakeWebsite
 
 -------------------------------------------------------------------------------
 

@@ -14,11 +14,11 @@ PostgreSQL.
 > import Control.Applicative
 > import Control.Monad.Error
 >
-> import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
-> import Database.HsSqlPpp.Ast.Ast as Ast
-> import Database.HsSqlPpp.DbmsCommon
-> import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.Parsing.Parser
+> import Database.HsSqlPpp.PrettyPrinter
+> import Database.HsSqlPpp.Ast as Ast
+> import Database.HsSqlPpp.Utils.DbmsCommon
+> import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Parser
 >
 > import Database.HsSqlPpp.Examples.ChaosExtensions
 

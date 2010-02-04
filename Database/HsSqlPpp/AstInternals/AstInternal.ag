@@ -130,7 +130,7 @@ import Database.HsSqlPpp.AstInternals.AstAnnotation
 import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
 --import Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
-import Database.HsSqlPpp.Utils
+import Database.HsSqlPpp.Utils.Utils
 import Data.Generics.PlateData
 
 }

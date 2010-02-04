@@ -5,7 +5,7 @@ the website.
 
 > {-# LANGUAGE QuasiQuotes #-}
 
-> module Database.HsSqlPpp.DocumentationTools.BuildDocs
+> module Database.HsSqlPpp.DocumentationTools.MakeWebsite
 >     (makeWebsite) where
 
 > import Data.Char
@@ -17,8 +17,8 @@ the website.
 > import System.IO
 > import System.FilePath
 >
-> import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.Here
+> import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Tests.ParserTests as PT
 > import Database.HsSqlPpp.Tests.TypeCheckTests as TT
 >

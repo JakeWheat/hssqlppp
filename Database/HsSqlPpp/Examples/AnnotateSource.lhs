@@ -23,11 +23,11 @@ text on these points, then zip 'em together and output.
 > import Data.Char
 > import Control.Monad.Error
 >
-> import Database.HsSqlPpp.Utils hiding (split)
-> import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Ast.TypeChecker
-> import Database.HsSqlPpp.Parsing.Parser
+> import Database.HsSqlPpp.Utils.Utils hiding (split)
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Examples.DBUtils
 >
 > annotateSource :: (Maybe ([Statement] -> [Statement]))

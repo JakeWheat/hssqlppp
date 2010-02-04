@@ -6,7 +6,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > {-# LANGUAGE RankNTypes,FlexibleContexts #-}
 >
 > -- | Functions to parse SQL.
-> module Database.HsSqlPpp.Parsing.Parser (
+> module Database.HsSqlPpp.Parser (
 >              -- * Main
 >               parseSql
 >              ,parseSqlWithPosition
@@ -35,10 +35,10 @@ right choice, but it seems to do the job pretty well at the moment.
 >
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parsing.ParseErrors
-> import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Ast.Annotation as A
-> import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.Ast.Catalog
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Annotation as A
+> import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Catalog
 
 --------------------------------------------------------------------------------
 

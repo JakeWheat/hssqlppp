@@ -2,7 +2,7 @@ Copyright 2010 Jake Wheat
 
 Some simple wrappers around HDBC for the code to use.
 
-> module Database.HsSqlPpp.DbmsCommon
+> module Database.HsSqlPpp.Utils.DbmsCommon
 >     (withConn
 >     ,selectRelation
 >     ,runSqlCommand) where

@@ -47,10 +47,10 @@ Experimental code to use uniplate to implement extensions
 > import Control.Monad.Identity
 > import Data.List
 
-> import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Parsing.Lexer
-> import Database.HsSqlPpp.Parsing.Parser
+> import Database.HsSqlPpp.Parser
 > --import Database.HsSqlPpp.Here
 
 

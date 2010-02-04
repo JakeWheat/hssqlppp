@@ -13,7 +13,7 @@ Not much other comments, since it all should be pretty self evident.
 >    a function - 'printSqlAnn' - to output the annotations from a tree
 >    in comments in the outputted SQL source.
 > -}
-> module Database.HsSqlPpp.PrettyPrinter.PrettyPrinter (
+> module Database.HsSqlPpp.PrettyPrinter (
 >                       --convert a sql ast to text
 >                       printSql
 >                      ,printSqlAnn
@@ -26,10 +26,10 @@ Not much other comments, since it all should be pretty self evident.
 > import Data.Char
 > import Data.List
 
-> import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Ast.Catalog
-> import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Utils.Utils
 
 ================================================================================
 

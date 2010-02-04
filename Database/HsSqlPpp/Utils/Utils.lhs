@@ -6,7 +6,7 @@ This file contains some generic utility stuff
 > {-# LANGUAGE FlexibleContexts #-}
 
 
-> module Database.HsSqlPpp.Utils where
+> module Database.HsSqlPpp.Utils.Utils where
 
 > import Data.List
 > import Data.Either

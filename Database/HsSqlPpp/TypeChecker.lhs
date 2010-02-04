@@ -22,7 +22,7 @@ This is the public module for the type checking functionality.
 > * the parser fills in the source position annotation in every annotatable ast node.
 >
 > -}
-> module Database.HsSqlPpp.Ast.TypeChecker
+> module Database.HsSqlPpp.TypeChecker
 >     (
 >      -- * typechecking/ annotation functions
 >       typeCheck

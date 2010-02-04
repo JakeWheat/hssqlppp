@@ -11,10 +11,10 @@ Set of tests for the extensions
 > import Test.Framework.Providers.HUnit
 > --import Debug.Trace
 
-> import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Examples.ChaosExtensions
-> import Database.HsSqlPpp.Ast.Ast
+> import Database.HsSqlPpp.Ast
 > --import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 
 > extensionTests :: Test.Framework.Test

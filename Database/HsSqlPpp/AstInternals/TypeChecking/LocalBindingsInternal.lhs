@@ -60,7 +60,7 @@ in scope, and one for an unqualified star.
 > --import qualified Data.Map as M
 
 > import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
 

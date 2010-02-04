@@ -26,7 +26,7 @@ the type checking code.
 >
 > -}
 
-> module Database.HsSqlPpp.Ast.Catalog
+> module Database.HsSqlPpp.Catalog
 >     (
 >      -- * Data types
 >      Catalog

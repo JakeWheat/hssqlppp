@@ -18,33 +18,38 @@ Description:
     .
     Quick module guide:
     .
+    'Annotation' - the annotation data types and utilities;
+    .
     'Ast' - ast types;
+    .
+    'Catalog' - read a catalog from a database to type check against,
+    or to generate catalog information.
     .
     'Parser' - converting strings to asts;
     .
     'PrettyPrinter' - converting asts to (valid SQL) strings;
     .
-    'TypeChecker' - type checking and annotating asts and working
-    with annotated trees;
-    .
     'SqlTypes' - the data types which represent SQL types, the data
     type for type errors, and some support functions;
     .
-    'Annotation' - the annotation data types and utilities;
-    .
-    'Catalog' - read a catalog from a database to type check against,
-    or to generate catalog information.
+    'TypeChecker' - type checking and annotating asts and working
+    with annotated trees;
 extra-source-files:  README
                      LICENSE
-                     Database/HsSqlPpp/DocumentationTools/BuildDocs.lhs
-                     Database/HsSqlPpp/Utils.lhs
+                     --find Database/ -iname '*hs' -o -iname '*ag'
+                     Database/HsSqlPpp/DocumentationTools/MakeWebsite.lhs
+                     Database/HsSqlPpp/Ast.lhs
+                     Database/HsSqlPpp/Annotation.lhs
+                     Database/HsSqlPpp/Utils/Utils.lhs
+                     Database/HsSqlPpp/Utils/Here.lhs
+                     Database/HsSqlPpp/Utils/DbmsCommon.lhs
                      Database/HsSqlPpp/AstInternals/AnnotationUtils.lhs
                      Database/HsSqlPpp/AstInternals/AstAnnotation.lhs
                      Database/HsSqlPpp/AstInternals/AstInternal.hs
+                     Database/HsSqlPpp/AstInternals/Catalog/ShortDefaultTemplate1Catalog.lhs
                      Database/HsSqlPpp/AstInternals/Catalog/CatalogInternal.lhs
                      Database/HsSqlPpp/AstInternals/Catalog/CatalogReader.lhs
                      Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs
-                     Database/HsSqlPpp/AstInternals/Catalog/ShortDefaultTemplate1Catalog.lhs
                      Database/HsSqlPpp/AstInternals/AstInternal.ag
                      Database/HsSqlPpp/AstInternals/TypeType.lhs
                      Database/HsSqlPpp/AstInternals/TypeChecking/Triggers.ag
@@ -82,17 +87,13 @@ extra-source-files:  README
                      Database/HsSqlPpp/Tests/TypeCheckTests.lhs
                      Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs
                      Database/HsSqlPpp/Tests/Tests.lhs
-                     Database/HsSqlPpp/Here.lhs
-                     Database/HsSqlPpp/DbmsCommon.lhs
-                     Database/HsSqlPpp/PrettyPrinter/PrettyPrinter.lhs
+                     Database/HsSqlPpp/Parser.lhs
+                     Database/HsSqlPpp/Catalog.lhs
+                     Database/HsSqlPpp/PrettyPrinter.lhs
+                     Database/HsSqlPpp/SqlTypes.lhs
                      Database/HsSqlPpp/Parsing/Lexer.lhs
-                     Database/HsSqlPpp/Parsing/Parser.lhs
                      Database/HsSqlPpp/Parsing/ParseErrors.lhs
-                     Database/HsSqlPpp/Ast/Ast.lhs
-                     Database/HsSqlPpp/Ast/Annotation.lhs
-                     Database/HsSqlPpp/Ast/Catalog.lhs
-                     Database/HsSqlPpp/Ast/SqlTypes.lhs
-                     Database/HsSqlPpp/Ast/TypeChecker.lhs
+                     Database/HsSqlPpp/TypeChecker.lhs
 
 source-repository head
   type:     bzr
@@ -110,15 +111,15 @@ Library
                      HDBC-postgresql,
                      haskell-src-exts
 
-  Exposed-modules:   Database.HsSqlPpp.Ast.Ast
-                     Database.HsSqlPpp.Ast.Annotation
-                     Database.HsSqlPpp.Ast.Catalog
-                     Database.HsSqlPpp.Ast.SqlTypes
-                     Database.HsSqlPpp.Ast.TypeChecker
-                     Database.HsSqlPpp.Parsing.Parser
-                     Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
+  Exposed-modules:   Database.HsSqlPpp.Ast
+                     Database.HsSqlPpp.Annotation
+                     Database.HsSqlPpp.Catalog
+                     Database.HsSqlPpp.Parser
+                     Database.HsSqlPpp.PrettyPrinter
+                     Database.HsSqlPpp.SqlTypes
+                     Database.HsSqlPpp.TypeChecker
 
-  Other-Modules:     Database.HsSqlPpp.Utils
+  Other-Modules:     Database.HsSqlPpp.Utils.Utils
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstAnnotation
                      Database.HsSqlPpp.AstInternals.AstInternal
@@ -130,7 +131,7 @@ Library
                      Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
                      Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
                      Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
-                     Database.HsSqlPpp.DbmsCommon
+                     Database.HsSqlPpp.Utils.DbmsCommon
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParseErrors
 

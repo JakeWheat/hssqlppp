@@ -19,11 +19,11 @@ places, particularly for joins
 
 > --import Database.HsSqlPpp.Utils
 
-> import Database.HsSqlPpp.Ast.SqlTypes
+> import Database.HsSqlPpp.SqlTypes
 > --import Database.HsSqlPpp.Ast.Annotation
 > --import Database.HsSqlPpp.Parsing.Parser
 > --import Database.HsSqlPpp.Ast.TypeChecker
-> import Database.HsSqlPpp.Ast.Catalog
+> import Database.HsSqlPpp.Catalog
 
 > data Item = Group String [Item]
 >           | Item [(String

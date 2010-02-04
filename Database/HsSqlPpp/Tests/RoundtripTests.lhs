@@ -17,15 +17,15 @@ Test sql by typechecking it, then running it through Postgres and comparing:
 > import Data.Generics.PlateData
 > import Data.Char
 
-> import Database.HsSqlPpp.Utils
-> import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Ast.Catalog
-> import Database.HsSqlPpp.Ast.TypeChecker
+> import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Examples.DBUtils
 > import Database.HsSqlPpp.Examples.DatabaseLoader
-> import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Ast.Ast
-> import Database.HsSqlPpp.Ast.SqlTypes
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.SqlTypes
 
 slightly dodgy, these tests automatically connect to this database and
 clear it. hopefully no-one running these tests is storing important

@@ -17,11 +17,11 @@ could probably use some quasi quotation
 > import Control.Monad.Error
 > import Data.Maybe
 
-> import Database.HsSqlPpp.Ast.SqlTypes as Sql
-> import Database.HsSqlPpp.Ast.Catalog
-> import Database.HsSqlPpp.Ast.TypeChecker
-> import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.SqlTypes as Sql
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Annotation
 
 
 > -- | takes a haskell source file and produces a haskell source file

@@ -12,7 +12,7 @@ This is the public module for the ast nodes.
 >      <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/Database/HsSqlPpp/AstInternals/AstInternal.ag>
 >      -}
 
-> module Database.HsSqlPpp.Ast.Ast
+> module Database.HsSqlPpp.Ast
 >     (
 >      -- * Main nodes
 >      StatementList

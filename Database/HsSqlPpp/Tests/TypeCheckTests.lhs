@@ -15,11 +15,11 @@ sql which doesn't type check.
 > import Data.List
 > --import Debug.Trace
 
-> import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Ast.TypeChecker
-> import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Ast.Catalog
-> import Database.HsSqlPpp.Ast.SqlTypes
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.SqlTypes
 
 > data Item = Group String [Item]
 >           | Expr String (Either [TypeError] Type)

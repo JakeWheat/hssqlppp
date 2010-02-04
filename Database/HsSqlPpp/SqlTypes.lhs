@@ -7,7 +7,7 @@ This is the public module to the SQL data types, mainly from TypeType.
 >      functions.
 > -}
 
-> module Database.HsSqlPpp.Ast.SqlTypes
+> module Database.HsSqlPpp.SqlTypes
 >     (
 >      -- * SQL types
 >      Type (..)

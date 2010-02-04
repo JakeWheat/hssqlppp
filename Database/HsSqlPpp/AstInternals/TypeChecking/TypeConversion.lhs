@@ -33,7 +33,7 @@ checkAssignmentValid - pass in source type and target type, returns
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.Utils.Utils
 
  > traceIt :: Show a => String -> a -> a
  > traceIt s t = trace (s ++ ": " ++ show t) t

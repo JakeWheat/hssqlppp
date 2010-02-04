@@ -51,7 +51,7 @@ modules.
 > import Data.Char
 
 > import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.Utils.Utils
 
 > -- | The main datatype, this holds the catalog and context
 > -- information to type check against.
