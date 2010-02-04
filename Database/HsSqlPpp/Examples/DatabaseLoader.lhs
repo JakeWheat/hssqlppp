@@ -8,25 +8,25 @@ PostgreSQL.
 >     (loadAst
 >     ,loadWithChaosExtensions
 >     ) where
-
+>
 > import System.Directory
 > import Control.Exception
 > import Control.Applicative
 > import Control.Monad.Error
-
+>
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.Ast.Ast as Ast
 > import Database.HsSqlPpp.DbmsCommon
 > import Database.HsSqlPpp.Utils
 > import Database.HsSqlPpp.Parsing.Parser
-
+>
 > import Database.HsSqlPpp.Examples.ChaosExtensions
 
 -------------------------------------------------------------------------------
 
-One small complication: haven't worked out how to send copy data
-straight from haskell, so use a dodgy hack to write inline copy data
-to a temporary file to load from there
+One small complication: haven't worked out how to send copy data from
+haskell via HDBC or the pg lib, so use a dodgy hack to write inline
+copy data to a temporary file to load from there.
 
 > data HackStatement = Regular Statement
 >                    | CopyHack Statement Statement
@@ -43,6 +43,8 @@ to a temporary file to load from there
 
 -------------------------------------------------------------------------------
 
+The main routine, which takes an AST and loads it into a database using HDBC.
+
 > loadAst :: String -> [Statement] -> IO ()
 > loadAst dbName ast =
 >   withConn ("dbname=" ++ dbName) $ \conn ->
@@ -58,6 +60,9 @@ to a temporary file to load from there
 >     loadStatement _ x = error $ "got bad copy hack: " ++ show x
 
 -------------------------------------------------------------------------------
+
+Wrapper to take a list of filenames, load, run an AST transform on
+them, then pass to loadAst above.
 
 > loadWithChaosExtensions :: String -> [String] -> IO ()
 > loadWithChaosExtensions dbName fns =
@@ -77,10 +82,10 @@ to a temporary file to load from there
 
 withtemporaryfile, part of the copy from stdin hack
 
-can't use opentempfile since it gets locked and then pg program can't
-open the file for reading
+can't use opentempfile since it gets locked and then the pg server/client lib can't
+open the file for reading.
 
-proper dodgy, needs fixing:
+proper dodgy, needs work:
 
 > withTemporaryFile :: (String -> IO c) -> IO c
 > withTemporaryFile f = bracket (return ())

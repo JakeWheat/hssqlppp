@@ -1,22 +1,30 @@
 Examples
 --------
 
-Code to parse some SQL, run a transform function on the AST, then
-pretty print the result:
+All this code is currently available in the cabal source package, to get use
 
-Same, but load straight into the DBMS
+    cabal update
+    cabal unpack hssqlppp
 
-Parse some SQL, type check, and display type errors in Emacs format.
+HsSqlSystem - an executable that has a bunch of functions. [The
+source](pandoc_source/HsSqlSystem.lhs.html) contains documentation and
+examples for the commands.
 
-Parse some SQL, type check, display catalog.
+Code to parse some SQL, optionally run a transform function on the AST, then
+load the result into the database:
+[DatabaseLoader](pandoc_source/Database/HsSqlPpp/Examples/DatabaseLoader.lhs.html)
 
-Generate typesafe wrapper example.
+Load some SQL, type check, and interpolate some type information in
+comments back into the source code:
+[AnnotateSource](pandoc_source/Database/HsSqlPpp/Examples/AnnotateSource.lhs.html)
 
-Module extension
+Parse some SQL, type check, and display type errors in Emacs format. Coming soon.
 
-Contraint extension
+Parse some SQL, type check, display catalog. Coming soon.
 
-### HsSqlSystem
+Generate typesafe wrapper example. Coming soon.
 
-This is an executable that comes with the cabal package. See here for
-the documentation for the commands it supports.
+Module extension. Coming soon.
+
+Contraint extension.  Coming soon.
+

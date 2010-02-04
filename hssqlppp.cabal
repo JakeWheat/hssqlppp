@@ -1,6 +1,17 @@
 Name:                hssqlppp
 Version:             0.3.0
 Synopsis:            SQL parser and type checker
+License:             BSD3
+License-file:        LICENSE
+Author:              Jake Wheat
+Maintainer:          jakewheatmail@gmail.com
+Build-Type:          Simple
+Cabal-Version:       >=1.2.3
+copyright:           Copyright 2009, 2010 Jake Wheat
+stability:           pre-alpha
+homepage:            https://launchpad.net/hssqlppp
+bug-reports:         mailto:jakewheatmail@gmail.com
+category:            Database
 Description:
     SQL parser, and type checker, targets PostgreSQL SQL
     and PL/pgSQL.
@@ -11,7 +22,7 @@ Description:
     .
     'Parser' - converting strings to asts;
     .
-    'PrettyPrinter' - converting asts to strings containing valid SQL;
+    'PrettyPrinter' - converting asts to (valid SQL) strings;
     .
     'TypeChecker' - type checking and annotating asts and working
     with annotated trees;
@@ -23,21 +34,69 @@ Description:
     .
     'Catalog' - read a catalog from a database to type check against,
     or to generate catalog information.
-
-License:             BSD3
-License-file:        LICENSE
-Author:              Jake Wheat
-Maintainer:          jakewheatmail@gmail.com
-Build-Type:          Simple
-Cabal-Version:       >=1.2.3
-copyright:           Copyright 2010 Jake Wheat
-stability:           pre-alpha
-homepage:            https://launchpad.net/hssqlppp
-bug-reports:         mailto:jakewheatmail@gmail.com
-category:            Database
-
 extra-source-files:  README
                      LICENSE
+                     Database/HsSqlPpp/DocumentationTools/BuildDocs.lhs
+                     Database/HsSqlPpp/Utils.lhs
+                     Database/HsSqlPpp/AstInternals/AnnotationUtils.lhs
+                     Database/HsSqlPpp/AstInternals/AstAnnotation.lhs
+                     Database/HsSqlPpp/AstInternals/AstInternal.hs
+                     Database/HsSqlPpp/AstInternals/Catalog/CatalogInternal.lhs
+                     Database/HsSqlPpp/AstInternals/Catalog/CatalogReader.lhs
+                     Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs
+                     Database/HsSqlPpp/AstInternals/Catalog/ShortDefaultTemplate1Catalog.lhs
+                     Database/HsSqlPpp/AstInternals/AstInternal.ag
+                     Database/HsSqlPpp/AstInternals/TypeType.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Triggers.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Dml.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/SelectStatement.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/TypeConversion.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/TableRefs.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/TypeChecking.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/LocalBindings.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/LocalBindingsInternal.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/ErrorUtils.lhs
+                     Database/HsSqlPpp/AstInternals/TypeChecking/CreateTable.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/CreateFunction.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/SelectLists.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Expressions.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/Drops.ag
+                     Database/HsSqlPpp/AstInternals/TypeChecking/MiscCreates.ag
+                     Database/HsSqlPpp/Examples/MakeLabels.hs
+                     Database/HsSqlPpp/Examples/DatabaseLoader.lhs
+                     Database/HsSqlPpp/Examples/DBAccess3.lhs
+                     Database/HsSqlPpp/Examples/DBAccess2.lhs
+                     Database/HsSqlPpp/Examples/WrapLib.lhs
+                     Database/HsSqlPpp/Examples/AnnotateSource.lhs
+                     Database/HsSqlPpp/Examples/WrapperGen.lhs
+                     Database/HsSqlPpp/Examples/DBUtils.lhs
+                     Database/HsSqlPpp/Examples/ChaosExtensions.lhs
+                     Database/HsSqlPpp/Tests/ExtensionTests.lhs
+                     Database/HsSqlPpp/Tests/LocalBindingsTests.lhs
+                     Database/HsSqlPpp/Tests/ParserTests.lhs
+                     Database/HsSqlPpp/Tests/ParseQuickcheck.lhs
+                     Database/HsSqlPpp/Tests/RoundtripTests.lhs
+                     Database/HsSqlPpp/Tests/TypeCheckTests.lhs
+                     Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs
+                     Database/HsSqlPpp/Tests/Tests.lhs
+                     Database/HsSqlPpp/Here.lhs
+                     Database/HsSqlPpp/DbmsCommon.lhs
+                     Database/HsSqlPpp/PrettyPrinter/PrettyPrinter.lhs
+                     Database/HsSqlPpp/Parsing/Lexer.lhs
+                     Database/HsSqlPpp/Parsing/Parser.lhs
+                     Database/HsSqlPpp/Parsing/ParseErrors.lhs
+                     Database/HsSqlPpp/Ast/Ast.lhs
+                     Database/HsSqlPpp/Ast/Annotation.lhs
+                     Database/HsSqlPpp/Ast/Catalog.lhs
+                     Database/HsSqlPpp/Ast/SqlTypes.lhs
+                     Database/HsSqlPpp/Ast/TypeChecker.lhs
+
+source-repository head
+  type:     bzr
+  location: https://launchpad.net/+branch/~jakewheat/hssqlppp/trunk
 
 Library
   Build-Depends:     base >= 4 && < 5,
@@ -75,4 +134,8 @@ Library
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParseErrors
 
-  extensions:        DeriveDataTypeable,RankNTypes,ScopedTypeVariables
+  extensions:        DeriveDataTypeable,
+                     RankNTypes,
+                     ScopedTypeVariables,
+                     FlexibleContexts,
+                     ExistentialQuantification

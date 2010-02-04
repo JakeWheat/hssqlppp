@@ -46,6 +46,7 @@ the website.
 >   --cos hscolour can't handle the large defaulttemplate1catalog,
 >   --just move it out the way temporarily
 >   moveDTCOut
+>   _ <- rawSystem "cabal" ["configure"]
 >   _ <- rawSystem "cabal" ["haddock", "--hyperlink-source"]
 >   renameDirectory "dist/doc/html/hssqlppp/" "website/haddock"
 >   moveDTCBack
@@ -54,7 +55,7 @@ the website.
 > moveDTCOut = do
 >   renameFile "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
 >              "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs.moved"
->   copyFile "docs/ShortDefaultTemplate1Catalog.lhs"
+>   copyFile "Database/HsSqlPpp/AstInternals/Catalog/ShortDefaultTemplate1Catalog.lhs"
 >            "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
 
 > moveDTCBack :: IO ()

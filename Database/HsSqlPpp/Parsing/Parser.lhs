@@ -3,26 +3,9 @@ Copyright 2009 Jake Wheat
 The main file for parsing sql, uses parsec. Not sure if parsec is the
 right choice, but it seems to do the job pretty well at the moment.
 
-For syntax reference see
-
-* [http://savage.net.au/SQL/sql-2003-2.bnf.html](http://savage.net.au/SQL/sql-2003-2.bnf.html)
-
-and
-
-* [http://savage.net.au/SQL/sql-92.bnf.html](http://savage.net.au/SQL/sql-92.bnf.html)
-
-for some online sql grammar guides; and
-
-* [http://www.postgresql.org/docs/8.4/interactive/sql-syntax.html](http://www.postgresql.org/docs/8.4/interactive/sql-syntax.html)
-
-for some notes on postgresql syntax (the rest of that manual is also helpful).
-
---------------------------------------------------------------------------------
-
 > {-# LANGUAGE RankNTypes,FlexibleContexts #-}
-
-> {- | Functions to parse sql.
-> -}
+>
+> -- | Functions to parse SQL.
 > module Database.HsSqlPpp.Parsing.Parser (
 >              -- * Main
 >               parseSql

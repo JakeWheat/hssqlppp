@@ -29,7 +29,7 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Parsing.Lexer
 >
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
-
+>
 > import Database.HsSqlPpp.Examples.AnnotateSource
 >
 > import Database.HsSqlPpp.Examples.DatabaseLoader
@@ -783,17 +783,6 @@ insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
 >   s <- readInput f
 >   s1 <- annotateSource (Just astTransformer) Nothing db f s
 >   putStrLn s1
-
->   {-wrapET $ do
->     (liftIO . putStrLn) ("--annotated source of " ++ f)
->     src <- (liftIO . readInput) f
->     cat <- liftIO (readCatalog db) >>= tsl
->     tsl (P.parseSql f src) >>=
->       return . (astTransformer |>
->                 A.typeCheck cat |>
->                 snd |>
->                 annotateSource False src) >>=
->       liftIO . putStrLn-}
 
 -------------------------------------------------------------------------------
 

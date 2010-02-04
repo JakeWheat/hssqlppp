@@ -12,17 +12,17 @@ whilst preserving formatting, comments, etc. as a starting point.
 
 Approach:
 
-Get all the annotations ordered by source position. Split the original
+Get all the annotations indexed by source position. Split the original
 text on these points, then zip 'em together and output.
 
 
 > module Database.HsSqlPpp.Examples.AnnotateSource
 >     (annotateSource) where
-
+>
 > import Data.List
 > import Data.Char
 > import Control.Monad.Error
-
+>
 > import Database.HsSqlPpp.Utils hiding (split)
 > import Database.HsSqlPpp.Ast.Ast
 > import Database.HsSqlPpp.Ast.Annotation
