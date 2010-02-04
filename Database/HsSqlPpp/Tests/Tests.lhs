@@ -6,7 +6,7 @@ Copyright 2010 Jake Wheat
 >
 > import Database.HsSqlPpp.Tests.ParserTests
 > import Database.HsSqlPpp.Tests.TypeCheckTests
-> import Database.HsSqlPpp.Tests.ExtensionTests
+> import Database.HsSqlPpp.Examples.Extensions.ExtensionTests --Database.HsSqlPpp.Tests.ExtensionTests
 > import Database.HsSqlPpp.Tests.ParameterizedStatementTests
 > import Database.HsSqlPpp.Tests.RoundtripTests
 > import Database.HsSqlPpp.Tests.LocalBindingsTests
@@ -15,7 +15,7 @@ Copyright 2010 Jake Wheat
 > allTests =
 >     parserTests :
 >     typeCheckTests :
+>     extensionTests :
 >     parameterizedStatementTests ++
 >     --roundtripTests ++
->     localBindingsTests ++
->     [extensionTests]
+>     localBindingsTests

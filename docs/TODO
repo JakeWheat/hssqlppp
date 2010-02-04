@@ -32,7 +32,9 @@ fix parse error messages in hssqlsystem
 then:
 make list of loose ends, syntax and missing type checks - lots of
    missing checks when updating catalog
-convert type to Maybe TypeInfo, add a bunch of newtypes, typedefs, etc.
+convert type to Maybe TypeInfo, add a bunch of newtypes, typedefs,
+   etc., separate out types and add some sum types to make more
+   typesafe, investigate first
 error handling
 nullability inference
 find a way of doing database connections better: full command line
@@ -229,7 +231,7 @@ see if @ as prefix and infix just works in parsec
 some a_expr and b_expr support properly by looking at pg grammar file
 
 ---------
-some new random notes
+some random notes
 
 literal sql mode, with workspace idea: can write code/sql inline
 in the source, and run it against a database and view the results
@@ -394,6 +396,8 @@ in general, parsing operators is wrong, the lexer needs to be able to
    lex sequences of symbols into single/multiple operators correctly,
    what happens at the moment is a kludge, also, general operator
    parsing will change how operators are represented in the ast
+
+----
 
 plpgsql on 'roids:
 write libraries in haskell, and then write syntax extensions for
