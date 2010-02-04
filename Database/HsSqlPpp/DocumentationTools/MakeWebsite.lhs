@@ -16,6 +16,9 @@ the website.
 > import System.FilePath.Find
 > import System.IO
 > import System.FilePath
+> import Text.Highlighting.Kate
+> import Debug.Trace
+> import Text.XHtml.Strict
 >
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
@@ -27,7 +30,7 @@ the website.
 >   doesDirectoryExist "website" >>=
 >     \l -> when(l) $ removeDirectoryRecursive "website"
 >   createDirectory "website"
->   pf "README" "website/index.html"
+>   pf "docs/index.txt" "website/index.html"
 >   pf "docs/examples.txt" "website/examples.html"
 >   -- pandocise source code files
 >   doPandocSource
@@ -91,7 +94,7 @@ the website.
 >                     ||? extension ==? ".ag"
 >                     ||? extension ==? ".lag"
 >     plhs s t = readFile s >>= return . pandocLhs >>= writeFile t
->     phs s t = readFile s >>= return . pandocHs >>= writeFile t
+>     phs s t = readFile s >>= return . highlight >>= writeFile t
 
 > pandocIndex :: String -> String
 > pandocIndex s = s
@@ -112,6 +115,18 @@ the website.
 
 -------------------------------------------------------------------------------
 
+pandoc won't render haskell source which isn't literate nicely at all,
+so run it though highlighting-kate only
+
+> highlight :: String -> String
+> highlight s = do
+>   case highlightAs "Haskell" s of
+>     Right r -> "<style>" ++ defaultHighlightingCss ++ "</style>" ++
+>                renderHtmlFragment (formatAsXHtml [OptTitleAttributes] "Haskell" r)
+>     Left err -> trace ("highlight error: " ++ err) s
+
+-------------------------------------------------------------------------------
+
 pandoc wrappers
 
 > pandoc :: String -> String
@@ -119,7 +134,7 @@ pandoc wrappers
 >   where
 >     wopt = defaultWriterOptions {
 >                writerStandalone = True
->               --,writerTitlePrefix = "HsSqlPpp documentation"
+>               ,writerTitlePrefix = "HsSqlPpp documentation"
 >               ,writerTableOfContents = True
 >               ,writerHeader = htmlHeader
 >              }
@@ -129,7 +144,7 @@ pandoc wrappers
 >   where
 >     wopt = defaultWriterOptions {
 >                writerStandalone = True
->               --,writerTitlePrefix = "HsSqlPpp documentation"
+>               ,writerTitlePrefix = "HsSqlPpp documentation"
 >               ,writerTableOfContents = True
 >               ,writerHeader = htmlHeader
 >               ,writerLiterateHaskell=True
@@ -137,42 +152,6 @@ pandoc wrappers
 >     ropt = defaultParserState {
 >             stateLiterateHaskell = True
 >            }
-
-> pandocHs :: String -> String
-> pandocHs = (writeHtmlString wopt) . (readMarkdown ropt)
->   where
->     wopt = defaultWriterOptions {
->                writerStandalone = True
->               --,writerTitlePrefix = "HsSqlPpp documentation"
->               ,writerTableOfContents = True
->               ,writerHeader = htmlHeader
->               ,writerLiterateHaskell = False
->              }
->     ropt = defaultParserState {
->             stateLiterateHaskell = False
->            }
-
-
-data ParserState = ParserState {
-stateParseRaw :: Bool
-stateParserContext :: ParserContext
-stateQuoteContext :: QuoteContext
-stateSanitizeHTML :: Bool
-stateKeys :: KeyTable
-stateNotes :: NoteTable
-stateTabStop :: Int
-stateStandalone :: Bool
-stateTitle :: [Inline]
-stateAuthors :: [String]
-stateDate :: String
-stateStrict :: Bool
-stateSmart :: Bool
-stateLiterateHaskell :: Bool
-stateColumns :: Int
-stateHeaderTable :: [HeaderType]
-stateIndentedCodeClasses :: [String]
-}
-
 
 > htmlHeader :: String
 > htmlHeader = [$here|

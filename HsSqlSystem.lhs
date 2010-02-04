@@ -41,7 +41,7 @@ to get a list of commands and purpose and usage info
 
 -------------------------------------------------------------------------------
 
-command list
+command defs
 ============
 
 > data HsSqlSystem = Lex {files :: [String]}
@@ -85,7 +85,7 @@ command list
 
 -------------------------------------------------------------------------------
 
-hacky thing: to run an ast transform on all sql asts, put it in here
+hacky thing: to run an ast transform on all sql asts in commands, put it in here
 
 > astTransformer :: Data a => a -> a
 > astTransformer = id
@@ -227,6 +227,7 @@ select * from s natural inner join p natural inners join sp;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 (needs fixing to not escape the error message)
+
 ~~~~~~~~~~~~ {.haskell}
 $ ./HsSqlSystem parse test3a.sql
 -- ast of test3a.sql
@@ -973,7 +974,9 @@ of this exe, then this command will disappear
 dbCatalog
 =========
 
-This reads an catalog from a database and writes it out using show.
+This reads an catalog from a database and writes it out using
+show. Warning: these things are big since they contain all the default
+PostgreSQL catalog contents.
 
 > catalogA = mode $ DBCatalog {database = def}
 >            &= text "read the catalog for the given db and dumps it in source \

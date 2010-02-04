@@ -2,97 +2,53 @@
 
 This file is a complete disorganised mess.
 ----------
+focus: website/documentation, examples
+       missing catalog elements: triggers, sequences, constraints, indexes, defaults
+       do command line wrapper generator thing for hssqlsystem
+       do examples processor for hssqlsystem
+       work on extensions for chaos - get completed, change how tests
+         are done, etc., sort out chaos code itself. One idea, robbed
+         from makelabels in hlist, is to write an example bit of
+         target sql for each extension, parse this, then use generics to swap in
+         the correct identifiers - like a poor mans quasi-quoting.
+         find a way to get listen working from haskell
+       work on roundtrip tests - get working for chaos
+doc work todos:
+fix presentation: css mainly
+check issue with hscolour and anchors
+hack hscolour to do pandoc for literate sections
+check hscolour slowness with proper defaulttemplate1catalog
+check pandoc slowness with this
+check pandoc hang with big ast in hssqlsystem example
+get non lhs files rendering with pandoc
+tidy code, get rendering nicely with pandoc
 
-rough plan for next release:
-
+also:
 get returning * working, count *
+fix how implicit joins type check now that code has been refactored to
+   make this easy
+fix parse error messages in hssqlsystem
 
-report generator/ round tripping
-roundtrip chaos + tests
-  catalog from first load is different
-  dump not working
-  need a fair bit of work to get dump parsing
-catalog: add triggers, sequences, constraints, indexes, defaults
-examples:
-  move chaosextensions, whole dbms folder, annotate source to examples
-   module
-work on chaos extensions
-write render code to take parser tests and type check tests, and
-   display in html table with pandoc highlighting for documentation
-   purposes
-
-
-convert type to Maybe TypeInfo
+then:
+make list of loose ends, syntax and missing type checks - lots of
+   missing checks when updating catalog
+convert type to Maybe TypeInfo, add a bunch of newtypes, typedefs, etc.
 error handling
 nullability inference
-database connection info
-tidyup code + add docs
-work through and add missing typechecking
----------
-homepage plan:
-links to hackage, launchpad
-haddock
-overview from lp
-hssqlsystem documentation/examples
-link to readme
-example pages:
-  chaos extensions
-  module extension
-  constraint extension
-  typesafe wrapper example(s), two axes are: source code gen/ template
-   haskell; and output tuples/ output hlists
- 
+find a way of doing database connections better: full command line
+   options, ability to prompt for password, config file support, and
+   support for full connection options, e.g. host and port as well as
+   db name.
+look into pretty printing: type errors, annotations, cat diffs are big
+   areas which are currently crap
+
 -----------
 old New approach:
 list todos for next release or next few releases
 lists todos for first alpha release
 list future plans/ ideas
 
-small issues:
-get 'returning *' type checking
-get 'count(*)' type checking
-check language with create language and create function
-
-Immediate focus is:
-add in enough support code to help creation of typesafe wrappers in
-   haskell for suid statements - not neccessarily comprehensive but
-   likely to cover all the basics
-tidy up the demo code to show how to use this
-work on documentation, two focii are:
-provide some examples and reference so haskell programmers who are
-   interested can quickly see what can be done without having to
-   install anything, and so that they have a range of working example
-   code to start with if they want to use it other f
-provide examples and reference for plpgsql programmers to see what
-   kind of things are currently possible. The main thing here is to
-   write a report generator which will evaluate existing plpgsql code
-   and report back how well hssqlppp understands it.
-todo outlines for new few releases after these are done:
-nullability inference
-error handling is crap in a few places - fix calls to error and
-   ignored errors
-some of the types are crap - mess with sqltypes and type errors,
-   annotations are the main suspect ones which need reviewing
-some of the names of types aren't very good
-get the roundtrip tests up and running - this will tighten up the code
-   a lot
-find a way of doing database connections better: full command line
-   options, ability to prompt for password, config file support, and
-   support for full connection options, e.g. host and port as well as
-   db name.
-still too much boilerplate in commandcomponents, simplify and get
-   better at using errort
-
-after this, do stuff to get chaos support completed:
-add missing elements to catalog: triggers, sequences, constraints,
-   indexes, defaults
-fix problem loading chaos sql via databaseloader
-work on extensions
-
 for alpha release
-do lib for command line parsing?
-much better pretty printing for annotations
-finish hssqlppp source documentation tool and make separate package
 review unsupported syntax and make list to be done for alpha and what
    will not be done
 typechecking - want all parsable syntax to type check properly as much
@@ -111,11 +67,6 @@ support for typeclasses, monads, algebraic datatypes and pattern matching?
 possibly break into multiple packages
 documentation generator for plpgsql and database
 
-
-----------
-junk to be rewritten follows:
-
-
 notes about parse tree:
 would like to support things like making not null the default for
    table columns rather than null.
@@ -131,239 +82,25 @@ think about how flexible this should be:
    checking more complicated, but also remove the need for a separate
    set of data types for the parse tree and the aast.
 
+some other ideas
 
-= new immediate todos:
+show used catalog, work with module extension as well
+better pretty printers for annotation types
+extensions code tidy?
+annotation generics style
+non sql syntax extensions work - need a set of hooks, a separate
+   module which exposes all the parser combinators, and some extended
+   parse functions //or preprocessor of some sort
 
-get typing working for wrapper generator demo -> release
-then in some order:
-- docs and examples - some basics
-- roundtrip + report
-  start with users sql: either source files, a database or mixture
-  say if parse ok, -> source files or pg_dumps
-  list type errors from typechecking asts
-  pretty print the catalog from sql source or dumps from typechecking
-  check this catalog against pg catalog
-- nullability plus support in wrapper generator
-then maybe:
-  full api review, renames, error handling work, plus sqltypes review
+convert ag files into lag for consistency - no support for birdfeet
+   style in uuagc?
 
-
-= milestones
-not in any particular order
-
-== type check for implicit join: need brain to work on
-
-== use better database config
-command line args and config file for db, username and password, and
-   add prompt style so works like psql
-== separate out documentation program to separate package
--> how to do plugins for extra commands?
-
-== documentation work
-reorganise doc files (changelog, development, questions, README, TODO,
-   usage, introduction, etc.)
-do test/example doc stuff for parsing and typechecking
-parse transform pretty print example: basics of approach in chaos - do
-   some notes on how this can be improved
-hssqlsystem commands reference
-== tidy files, comment work
-particularly ag files, redo comments, review all code for crufty bits
-check todos at top of files: move to bottom
-== nullability
-== example code gen for typesafe access
-== api review
-tidyups, renames - rename everything pending, review public api
-   localidentifierbindings to localenvironment)
-   get rid of inconsistent suffixes in hssqlsystem and command components
-== error handling work
-  remove all calls to error
-  try to catch all places where errors are being ignored (mainly in
-   the type checking: add these errors to the aast)
-== roundtrip tests -> report
-== get chaos stuff working again
-get chaos sql loading via hssqlppp again so can run roundtrip tests on
-== module system, show used catalog
-== better pretty printers for annotation types
-== extensions code tidy?
-== annotation generics style
-== non sql syntax extensions work
-== catalog ish: triggers, sequences, constraints, index, defaults
-== haddock work
-== do makefile type thing for development and deployment of db projects
-
-maybe these:
-builddocs work
-hssqlsystem commands
-  better cat diff
-  show used catalog
-finish intro docs
-haskell intro docs
-other docs
-haddock in command components
-testbattery
-extensions - tidy code
-annotation generics: tidy code
-pretty printer for annotation
-ppshow less newlines
-better syntax for extensions
-modules extension + public/private
-syntax extension with non sql syntax using preprocessor?
-multiline strings with string type e.g. sql
-some sort of report mode to parse, typecheck and roundtrip some sql,
-   and report back what works and what doesn't
-work on parse errors
-convert ag files into lag for consistency
-
-long term todos
-milestones for next release
-todo for chaos (extensions, etc.)
-divide todo categories
-  investigation, end user docs, internal docs, hygiene/maintenance,
-  testing, new functionality, bug fixes
-docs: motivation/genesis, history?, high level criteria for 0.1
-think about dependencies: make hdbc/pg dependency a flag?, split out
-   exes and tests somehow?
-
-
-
-= documentation todo
-
-write command processor thingy for builddocs
-add extra commands to hssqlsystem for intro
-finish intro
-add haskell intro which uses the commandcomponents instead
-other documentation files:
-  reference for hssqlsystem
-  hssqlsystem reference is generated from hssqlsystem.lhs:
-    inside this file is the reference information for each
-    command, plus example usage, so these appear next to the actual
-    source. then when building docs, filter this file first to leave
-    only the reference docs, then commandize and pandoc it
-  installation guide
-
-do haddock for commandcomponents so it has examples and stuff
-
-
-= New functionality
-
-get checkbig mostly working: not trying to get no type errors or
-   differences, but to get all the different aspects of the tests
-   written and running so can see from the output what remains to be
-   fixed
-   main issues:
-   databaseloader isn't working on the chaos sql files anymore, I
-   think this is an issue with the pretty printer producing invalid
-   sql
-   finish extensions: for the tests to mostly work, need to flesh out
-   the current extension implementations which are mainly stubs
-   add missing items to catalog: triggers, sequences, constraints,
-   indexes, defaults
-
-= Amending existing functionality
-
-add dbms database name, username and password support
-review holes:
-   round off parsing support for sql - make a list of what
-     needs to be added
-   should try to get as much typechecking working on what parses as
-     possible
-   work on organising the type checking tests, and make the tests much
-     more comprehensive
-
-= Housecleaning
-
-change type annotation from Type to either typecheckfailed Type so can
-   use monad style to propagate typecheckfaileds
-work on error handling: try to add a lot better error reporting:
-   a few errors are being ignored rather than added to the aast, also
-   try to change all the calls to error into eithers to be added to
-   the aast
-review commands in hssqlppp: mainly review names and arguments for
-   consistency (i.e. make sure every command accepts first a
-   databasename and then a list of sql files where this makes sense),
-   also redo annotate source so it can be run multiple times on the
-   same source, and run to update the annotation comments when the
-   source is changed. Maybe think about better error reporting?
-tidy up code, refactor and add lots of comments, particularly in the
-   ag files
-
-= Documentation
-
-work on haddock documentation
-find way to do nice html example documentation: short
-   intro/tour/tutorial to give people a flavour of what the
-   hssqlsystem exe can do
-want to be able to show what the code can do easily and debug
-   annotations - so do a pretty printer which works the following way:
-   output source code on left side of a table (with syntax
-   highlighting, hyperlinks, etc? - use html?) and on the right output
-   the interesting annotations pretty printed, draw lines from the
-   pretty printed annotations to the sourcepositions in the source on
-   the left. Looks like might be able to do this using gtk:
-   http://www.bravegnu.org/gtktext/x498.html - maybe convert to png to
-   allow viewing in a web browser
-
-
-= other issues to maybe fix:
-check associativity of combine selects and join trefs without parens -
-   write tests using pg_dump output
-ids in joins issue
-redo order by parsing/ast to add direction to each element
-write some notes on hacking: source overview rewrite, file overview
-   rewrites, and rough howto on adding new constructs: altering
-   parser, altering ast and altering type checking process
-typecheck old and new pseudo records in trigger functions
-explore creating template syntax for simple expansions of function
-   calls to make writing some extensions easier
-makefile stuff?
 plpgsql stuff: blocks, assignments in declarations, strict into,
    labels,loops,continue
 look into running test suite from cabal
-todo for checkbig:
-get initial catalog tests passing:
-  still some extra table triggers: think it may that foreign keys that
-   pg supports directly and primary keys don't add a table trigger
-  name/text result set resolution issue
-  uniquify constraint names support
-  trim constraint names support
-  distance function return type issue
-  plpgsql language functions
-
-
-support multiple files in annotate source and check source
-match pgdump output for adding explicit parens e.g. in select unions
-   and table refs, add tests for associativity in the absence of
-   parens
-tidy up code and docs as usual - lots of work needed on type checking
-   code
-redo catalog stuff (see below)
-find some way to produce documentation: want motivation, examples,
-   etc. in nice html
-get chaos pgdump output parsing and partially type checking, todo:
-  two parsing issues: not not, and count(distinct *)
-  type checking issues exposed:
-    old,new in trigger functions
-
-old todoage:
-
-================================================================================
-
-== 2nd next release
-fix catalog type, lots of work to make more robust:
-  better pretty printer for catalog, and for bindings
-  add annotations to catalog, so can see where bits came from
-  do uniqueness testing e.g. disallow two tables with same name, two
-   attributes with same name, etc.
-fix tests using new catalog approach: don't want to have tests which
-   use sql to alter catalog then use sql to test the catalog changes
-   have been made - use separate tests (more unit-y tests)
 
 === types and internal errors handling
 
-move type check failed to left of either, make node types an either
-when there is a type error, add that as separate annotation, and add
-type as left typecheckfailed. This way can use the haskell type system
-to check we are chaining type check failed properly.
 look at all the places where type lists are wrapped in
    unnamedcomposite and get rid of most of them - just use the type
    list directly.
@@ -373,31 +110,16 @@ Look at all the contexts where pg types can be used, and split into
    can be used for an attribute in a table, for a function parameter,
    function return type, variable declaration, etc. - want to use the
    haskell type system to enforce this and get rid of a load of
-   runtime checks (mainly the unwrap setof, etc. in typetype).
-
-make sure errors aren't ignored, lots of places where this currently
-   happens, e.g. updating environment - these errors need to end up in
-   the ast. Get all the env functions to return eithers, and stick
-   errors from these in the ast. Convert error calls to either return
-   type and stick these errors in the ast.
+   runtime checks (mainly the unwrap setof, etc. in typetype). - or is
+   there a better way of doing this?
 
 === parse/typecheck errors to user
 
-pretty printers for type check failed, work on error messages from parsing
 investigate alternative parser libs which can e.g. continue parsing
    after an error to provide more parse errors at once.
 write a show for parsec errors which formats the lex tokens and
    expected lists properly (was broken when moved to the separate
    lexer)
-
-================================================================================
-
-== other soon todos
-
-not sure which ones should be done before 0.1 release. rough guide is
-   0.1 release should be something that regular sql programmers can
-   try out/use without being overwhelmed with half finished/ missing
-   bits, and actually see something useful.
 
 === schemas
 
@@ -406,16 +128,12 @@ think of a way to handle schemas, what about changes to schema search
 
 === catalog and bindings annotation
 
-want to add the catalog and current catalog to the annotations, so
-   e.g. we can pretty print what exact updates are made to the catalog
-   from a ddl statement
 Add the current bindings as annotation everywhere, this can be used by
    the ambiguous identifier checks, etc., and to understand errors
 also: add annotations to the catalog so we can see where an entity in
-   the catalog has come from, what update and what source line
-add similar to bindings, so each binding annotation contains a little
-   explanation for where each binding has come from (e.g. identifier a
-   with type b comes from this tref at source position x,y)
+   the catalog has come from, what update and what source
+   line. similar for localbindings - use
+   this for a command than can make hyperlinked source
 
 === casting annotation
 
@@ -425,16 +143,6 @@ for each casting operation, add a log which explains what the relevant
    with the candidate lists in the findcallmatch routine, might be
    useful for errors when it can't find a match, and if it is calling
    an unexpected function instead of the one you want).
-add the prototype of the function actually matched at each funcall
-   site
-
-=== definition annotations
-add sourcepos/reference to definition where each item is referenced
-   (table, function, view, identifier binding, etc.)
-
-=== documentation produce
-
-=== null checking
 
 null treatment
 Basic motivation is to keep nulls carefully walled off, controlled,
@@ -461,12 +169,6 @@ So nulls can still be used to represent optional values, n/a,
 * what the result of a sum aggregate is if some of the values are null,
 * etc.,
 because none of these things are allowed.
-
-=== do sql support todo
-
-fill in the main gaps, some notes below
-want to cover '90% of regularly used sql', no attempt for v0.1 to be
-   comprehensive or nearly comprehensive
 
 === shadowed identifier test
 
@@ -499,72 +201,32 @@ convert the sql tests (maybe some of the haskell tests) into static
 find a better way to work with the tables with null fields:
   initial values - the copy statements are completely unreadable and
    uneditable
-  what else?
+  what else? - what combinations of fields can be null at the same
+   time?
 crufty bits to try and simplify: turn sequence progression, action
    valid tables, ai
 see if can make the multiple update hack more automatic
 
-
 === development/deployment support:
 build file for development, just lists sql files in order, and lists
-   which extensions are used
+   which extensions are used - this will be a haskell/ config file,
+   which uses a library to make it executable
 deployment: use system to load all sql via extensions into pg, then
-to a regular pg dump which can then be deployed.
+to a regular pg dump which can then be deployed - have automated thing
+   for this
 
-
-=== crufty bits to tidy
-ag files constantly need fixing up for documentation and code clarity
-syb stuff is a bit messy in astannotations (maybe use uniplate here to
-   reduce dependencies?)
-tidy the annotating functions in astinternals, implement then in terms
-   of eachother
-review local bindings use and decide how much logic to implement
-   inside the local bindings module rather than eg. tablerefs.ag
-want to stop having to write explicit backtrees everywhere. The key to
-   fixing this is some way to read the existing annotation and supply
-   an altered annotation within uuagc code
-think about how doing multiple passes could help (e.g. star
-   expansion).
 think about where can use quickcheck
-review when function bodies are typechecked - see if can do better
-annotatesource function is a mess, also, make it overwrite it's own
-   annotations instead of adding them so you can run it over a file
-   multiple times.
 
 === testing
 work on making the tests more comprehensive, want a test for each
-   branch/option where feasible
-
-=== write some automated tests for various roundtrips
-add script to test chaos sql in various ways: parse roundtrip, load
-   into database via psql and via hssqlppp comparison, and check
-   catalog consistency
-
-=== do way to produce aast from live database
-
-use psql dump, and then can do type checks, lint checks, produce
-   documentation
-
-=== api
-review/work on api and do haddock
-
-=== prepare code for use by non haskell programmers + user docs
-provide installation instructions
-do usage documentation file, want to run code embedded in doc source
-   and have results outputted to html output.
-
-=== prepare code for use by haskell client programmers:
-user docs as above for using the parser, the extension system, the
-   annotator and annotations, examples for generating sql and writing
-   extensions, etc.
-
-=== ? place holder statements
+   branch/option where feasible - get some coverage testing on, don't
+   know how well this will work with uuagc generated code - maybe add
+   a cull unused uuagc generated code utility
 
 === precedence and operator parsing
 add missing operators to parser
 see if @ as prefix and infix just works in parsec
 some a_expr and b_expr support properly by looking at pg grammar file
-
 
 ---------
 some new random notes
@@ -662,21 +324,6 @@ once all this is done, work on documenting precisely what is supported
 
 ================================================================================
 
-example for generating sql code from haskell using the ast
-get database loader and typesafe access generators good enough to use
-   in chaos
-example usage of each of these
-look at the error message formatting, particularly try to fix the
-   parser errors so they make more sense
-add annotation field to most ast nodes, store type and source
-   positioning in this field, fix parser to add lots of accurate
-   positioning information when parsing.
-make sure the lint process works on text dumps of databases.
-try checking the sample databases: http://pgfoundry.org/projects/dbsamples/
-
-
-================================================================================
-
 some syntax todo, not organised:
 
 ------------
@@ -747,48 +394,6 @@ in general, parsing operators is wrong, the lexer needs to be able to
    lex sequences of symbols into single/multiple operators correctly,
    what happens at the moment is a kludge, also, general operator
    parsing will change how operators are represented in the ast
-
-================================================================================
-
-some other random ideas:
-
-more tests:
-   add parse and type check roundtrips automated tests for chaos sql
-   add parse check which parses a single statement, then loads it into
-   pg, pg_dumps it, then parses the output to see if it is the same:
-   since pg sticks plenty of parens in, this should test the
-   associativity and precedence. pg also rewrites some of the sql so
-   will have to match that
-
-parser, converter and pretty printer for explain output, want to view
-   how a query is executed in human readable pseudocode. Add lint type
-   checks, etc. to this, which can suggest ways to rewrite the query
-   to get better performance. Another idea is to make the dependencies
-   on the values in the tables more explicit, so you can see how much
-   the data can change before another plan is chosen, or you can see a
-   bad assumption about the kind of data the query will be run on.
-
-incorporate pg regression test sql into parsing and type checking
-   tests - can run the roundtrip tests on them, check the
-   documentation generator, etc.
-
-redo cabal file to add compile time options: exes, pg support, tests
- or split into separate packages?
-
-work on error reporting, add tests for malformed sql, already some
-   tests and plan for more for sql which fails type checks.
-
-want to report multiple parse errors, perhaps can bodge this because
-   of the property that ';' can only appear inside a string or
-   comment, or otherwise at the end of a statement, so add some code
-   to jump to the next end of statement looking ';' and continue to
-   parse to end of file in an attempt to catch at least some further
-   syntax errors
-
-get property checker working again - one problem is that the pretty
-   printer will reject some asts (which the parser cannot
-   produce), and the parser will probably reject some invalid sql that
-   the pretty printer will happily produce from some asts.
 
 plpgsql on 'roids:
 write libraries in haskell, and then write syntax extensions for

@@ -6,25 +6,29 @@ All this code is currently available in the cabal source package, to get use
     cabal update
     cabal unpack hssqlppp
 
-HsSqlSystem - an executable that has a bunch of functions. [The
-source](pandoc_source/HsSqlSystem.lhs.html) contains documentation and
-examples for the commands.
+[HsSqlSystem](pandoc_source/HsSqlSystem.lhs.html) - an executable that
+has a bunch of functions, source contains documentation and examples
+for the commands. E.g.:
 
-Code to parse some SQL, optionally run a transform function on the AST, then
-load the result into the database:
+* [Parse command](pandoc_source/HsSqlSystem.lhs.html#parse) -
+  parse some SQL, display AST.
+* [TypeCheck command](pandoc_source/HsSqlSystem.lhs.html#typecheck) -
+  parse some SQL, type check, and display type errors in Emacs format.
+* [PPCatalog command](pandoc_source/HsSqlSystem.lhs.html#ppcatalog) -
+  parse some SQL, type check, display catalog.
+
 [DatabaseLoader](pandoc_source/Database/HsSqlPpp/Examples/DatabaseLoader.lhs.html)
+- code to parse some SQL, optionally run a transform function on the
+AST, then load the result into the database.
 
-Load some SQL, type check, and interpolate some type information in
-comments back into the source code:
+
 [AnnotateSource](pandoc_source/Database/HsSqlPpp/Examples/AnnotateSource.lhs.html)
+- load some SQL, type check, and interpolate some type information in
+comments back into the source code.
 
-Parse some SQL, type check, and display type errors in Emacs format. Coming soon.
-
-Parse some SQL, type check, display catalog. Coming soon.
 
 Generate typesafe wrapper example. Coming soon.
 
 Module extension. Coming soon.
 
-Contraint extension.  Coming soon.
-
+Constraint extension.  Coming soon.

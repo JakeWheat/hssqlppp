@@ -19,7 +19,8 @@ the type of common fields in a natural or using join?
 
 looking at postgresql-doc-8.4/html/query-path.html, it is unclear
 where type checking occurs - is it mainly in a separate stage, or
-intermingled in with the other stages
+intermingled in with the other stages - want to look at the type
+checking code in postgres
 
 is the way the keyword operators are typed correct (using the function
 call match algo to sort the implicit casts)?
@@ -45,7 +46,7 @@ select
   inner join pg_class cls using(oid);
 
 -- column "oid" specified in USING clause does not exist in left table
-
+-> is it no system columns in natural or using joins?
 
 casting, etc.:
 what operator is being used when comparing two composite types for
