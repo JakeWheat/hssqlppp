@@ -4,7 +4,8 @@ Some simple wrappers around HDBC for the code to use.
 
 > module Database.HsSqlPpp.DbmsCommon
 >     (withConn
->     ,selectRelation) where
+>     ,selectRelation
+>     ,runSqlCommand) where
 
 > import qualified Database.HDBC.PostgreSQL as Pg
 > import Database.HDBC
@@ -20,6 +21,12 @@ Some simple wrappers around HDBC for the code to use.
 >   _ <- execute sth $ map sToSql args
 >   v <- fetchAllRows' sth
 >   return $ map (map sqlToS) v
+
+> runSqlCommand :: (IConnection conn) =>
+>           conn -> String -> IO ()
+> runSqlCommand conn query = do
+>     _ <- run conn query []
+>     commit conn
 
 > sToSql :: String -> SqlValue
 > sToSql s = toSql (s::String)

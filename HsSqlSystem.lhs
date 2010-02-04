@@ -54,8 +54,6 @@ command list
 >                              ,files :: [String]}
 >                  | TypeCheckExpression {database :: String
 >                                        ,files :: [String]}
->                  | TypeCheckChaos {database :: String
->                                   ,files :: [String]}
 >                  | AllAnnotations {database :: String
 >                                   ,files :: [String]}
 >                  | AnnotateSource {database :: String
@@ -84,6 +82,14 @@ command list
 >                  | MakeWebsite
 >
 >                    deriving (Show, Data, Typeable)
+
+-------------------------------------------------------------------------------
+
+hacky thing: to run an ast transform on all sql asts, put it in here
+
+> astTransformer :: Data a => a -> a
+> astTransformer = id
+> --astTransformer = extensionize
 
 -------------------------------------------------------------------------------
 
@@ -144,7 +150,7 @@ lexing test2.sql
 > lexFiles fns = wrapET $
 >                forM_ fns $ \f ->
 >                  (liftIO . putStrLn) ("lexing " ++ f) >>
->                  readInput f >>=
+>                  (liftIO . readInput) f >>=
 >                  tsl . lexSqlText f >>=
 >                  mapM_ (liftIO . print)
 
@@ -227,16 +233,17 @@ $ ./HsSqlSystem parse test3a.sql
 HsSqlSystem: "\"test3a.sql\" (line 1, column 46):\nunexpected IdStringTok \"inners\"\ntest3a.sql:1:46:\n\nContext:\nselect * from s natural inner join p natural inners join sp;\n                                             ^\nERROR HERE\n\n"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 > parseA = mode $ Parse {files = def &= typ "FILES" & args}
 >          &= text "Parse files and output the asts"
 >
 > showAst :: [String] -> IO ()
 > showAst = wrapET . mapM_ (\f ->
 >                (liftIO . putStrLn) ("-- ast of " ++ f) >>
->                readInput f >>=
+>                (liftIO . readInput) f >>=
 >                tsl . P.parseSql f >>=
->                return . (stripAnnotations |> ppExpr) >>=
+>                return . (astTransformer |>
+>                          stripAnnotations |>
+>                          ppExpr) >>=
 >                liftIO . putStrLn)
 
 -------------------------------------------------------------------------------
@@ -286,9 +293,11 @@ LiftOperator [] "=" LiftAny
 > parseExpression :: [String] -> IO ()
 > parseExpression = wrapET . mapM_ (\f ->
 >                (liftIO . putStrLn) ("-- ast of " ++ f) >>
->                readInput f >>=
+>                (liftIO . readInput) f >>=
 >                tsl . P.parseExpression f >>=
->                return . (stripAnnotations |> ppExpr) >>=
+>                return . (astTransformer |>
+>                          stripAnnotations |>
+>                          ppExpr) >>=
 >                liftIO . putStrLn)
 
 -------------------------------------------------------------------------------
@@ -368,14 +377,16 @@ values
 
 > pppA = mode $ Ppp {files = def &= typ "FILES" & args}
 >        &= text "Parse then pretty print some sql so you can check the result \
->               \hasn't mangled the sql."
+>                \hasn't mangled the sql, or see the result of the ast \
+>                \transformer if you've added one."
 >
 > ppp :: [String] -> IO()
 > ppp fs = wrapET $ forM_ fs (\f ->
 >             (liftIO . putStrLn) ("--ppp " ++ f) >>
->             readInput f >>=
+>             (liftIO . readInput) f >>=
 >             tsl . P.parseSql f >>=
->             return . printSql >>=
+>             return . (astTransformer |>
+>                       printSql) >>=
 >             liftIO . putStrLn)
 
 -------------------------------------------------------------------------------
@@ -399,7 +410,7 @@ success
 >
 > testPppp :: [String] -> IO ()
 > testPppp = wrapET . mapM_ (\f -> do
->             ast1 <- readInput f >>=
+>             ast1 <- (liftIO . readInput) f >>=
 >                     tsl . P.parseSql f >>=
 >                     return . stripAnnotations
 >             ast2 <- (return . printSql) ast1 >>=
@@ -505,9 +516,10 @@ test5.sql:25:1:
 > typeCheck2 :: String -> [FilePath] -> IO ()
 > typeCheck2 db fns = wrapET $ do
 >   cat <- liftIO (readCatalog db) >>= tsl
->   mapM (\f -> readInput f >>=
+>   mapM (\f -> (liftIO . readInput) f >>=
 >               tsl . P.parseSql f) fns >>=
 >     return . (concat |>
+>               astTransformer |>
 >               A.typeCheck cat |>
 >               snd |>
 >               A.getTypeErrors |>
@@ -565,38 +577,16 @@ TypeCheckFailed
 > typeCheckExpression :: String -> [FilePath] -> IO ()
 > typeCheckExpression db fns = wrapET $ do
 >   aasts <- liftIO (readCatalog db) >>= tsl >>= \cat ->
->            forM fns (\f -> readInput f >>=
+>            forM fns (\f -> (liftIO . readInput) f >>=
 >                            tsl . P.parseExpression f >>=
->                            return . A.typeCheckExpression cat)
+>                            return . (astTransformer |>
+>                                      A.typeCheckExpression cat))
 >   tes <- mapM (return . A.getTypeErrors) aasts
 >   mapM_ (\x -> (mapM_ (liftIO . putStrLn) (ppTypeErrors x))) $
 >         filter (not . null) tes
 >   mapM_ (\a -> liftM (show . head)
 >                (return $ A.getTopLevelTypes [a]) >>=
 >                liftIO . putStrLn) aasts
-
--------------------------------------------------------------------------------
-
-typeCheckChaos
-==============
-
-> typeCheckChaosA = mode $ TypeCheckChaos {database = def
->                                         ,files = def &= typ "FILES" & args}
->              &= text "reads each file, parses, runs chaos extensions, type \
->                      \checks, then outputs any type errors"
->
-> typeCheckChaos :: String -> [FilePath] -> IO ()
-> typeCheckChaos db fns = wrapET $
->   liftIO (readCatalog db) >>= tsl >>= \cat ->
->   mapM (\f -> readInput f >>=
->               tsl . P.parseSql f) fns >>=
->   return . (concat |>
->             extensionize |>
->             A.typeCheck cat |>
->             snd |>
->             A.getTypeErrors |>
->             ppTypeErrors) >>=
->   mapM_ (liftIO . putStrLn)
 
 -------------------------------------------------------------------------------
 
@@ -718,9 +708,10 @@ $ ./HsSqlSystem allannotations test6.sql
 > allAnnotations :: String -> [FilePath] -> IO ()
 > allAnnotations db fns = wrapET $ do
 >   cat <- liftIO (readCatalog db) >>= tsl
->   mapM (\f -> readInput f >>=
+>   mapM (\f -> (liftIO . readInput) f >>=
 >                             tsl . P.parseSql f) fns >>=
 >     return . (concat |>
+>               astTransformer |>
 >               A.typeCheck cat |>
 >               snd |>
 >               ppExpr) >>=
@@ -787,16 +778,22 @@ insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
 >                           \code"
 >
 > annotateSourceF :: String -> FilePath -> IO ()
-> annotateSourceF db f =
->   wrapET $ do
+> annotateSourceF db f = do
+>   putStrLn $ "--annotated source of " ++ f
+>   s <- readInput f
+>   s1 <- annotateSource (Just astTransformer) Nothing db f s
+>   putStrLn s1
+
+>   {-wrapET $ do
 >     (liftIO . putStrLn) ("--annotated source of " ++ f)
->     src <- readInput f
+>     src <- (liftIO . readInput) f
 >     cat <- liftIO (readCatalog db) >>= tsl
 >     tsl (P.parseSql f src) >>=
->       return . (A.typeCheck cat |>
+>       return . (astTransformer |>
+>                 A.typeCheck cat |>
 >                 snd |>
 >                 annotateSource False src) >>=
->       liftIO . putStrLn
+>       liftIO . putStrLn-}
 
 -------------------------------------------------------------------------------
 
@@ -890,9 +887,11 @@ extra:
 > ppCatalog :: String -> [FilePath] -> IO ()
 > ppCatalog db fns = wrapET $ do
 >   scat <- liftIO (readCatalog db) >>= tsl
->   (ncat, _) <- mapM (\f -> readInput f >>=
+>   (ncat, _) <- mapM (\f -> (liftIO . readInput) f >>=
 >                            tsl . P.parseSql f) fns >>=
->                  return . (concat |> A.typeCheck scat)
+>                  return . (concat |>
+>                            astTransformer |>
+>                            A.typeCheck scat)
 >   liftIO $ putStrLn $ ppCatDiff $ compareCatalogs scat emptyCatalog ncat
 
 -------------------------------------------------------------------------------
@@ -910,11 +909,11 @@ load sql files into a database via parsing and pretty printing them
 > loadSql :: String -> [String] -> IO ()
 > loadSql db fns = wrapET $
 >      liftIO (hSetBuffering stdout NoBuffering) >>
->      mapM (\f -> readInput f >>=
+>      mapM (\f -> (liftIO . readInput) f >>=
 >                  tsl . P.parseSql f) fns >>=
 >      return . (concat |>
->                extensionize) >>=
->      liftIO . loadIntoDatabase db ""
+>                astTransformer) >>=
+>      liftIO . loadAst db
 
 -------------------------------------------------------------------------------
 
@@ -1071,9 +1070,9 @@ write a routine to mirror this - will then have
 >     startingCat <- liftIO (readCatalog dbName) >>= tsl
 >     (originalCat :: Catalog,
 >      originalAast :: StatementList) <-
->        mapM (\f -> readInput f >>= tsl . P.parseSql f) fns >>=
+>        mapM (\f -> (liftIO . readInput) f >>= tsl . P.parseSql f) fns >>=
 >        return . (concat |>
->                  extensionize |>
+>                  astTransformer |>
 >                  A.typeCheck startingCat)
 >
 >     headerMessage "type errors from initial parse:\n"
@@ -1162,12 +1161,9 @@ want to support reading from stdin, and reading from a string passed
 as an argument to the exe
 
 > -- | read a file as text, will read from stdin if filename is '-'.
-> readInput :: (Error e, MonadIO m) => FilePath -> ErrorT e m String
+> readInput :: FilePath -> IO String
 > readInput f =
->   liftIO r
->   where
->     r :: IO String
->     r = case f of
+>   case f of
 >              "-" -> getContents
 >              _ | length f >= 2 &&
 >                  head f == '"' && last f == '"'
@@ -1195,7 +1191,7 @@ main
 >        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2010"
 >                       [lexA, parseA, ppppA, pppA,
 >                        parseExpressionA, typeCheckExpressionA,
->                        typeCheckA,typeCheckChaosA,allAnnotationsA,
+>                        typeCheckA,allAnnotationsA,
 >                        annotateSourceA, ppCatalogA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
@@ -1208,7 +1204,6 @@ main
 >          Ppp fns -> ppp fns
 >          ParseExpression fns -> parseExpression fns
 >          TypeCheck db fns -> typeCheck2 db fns
->          TypeCheckChaos db fns -> typeCheckChaos db fns
 >          TypeCheckExpression db fns -> typeCheckExpression db fns
 >          AllAnnotations db fns -> allAnnotations db fns
 >          AnnotateSource db fn -> annotateSourceF db fn
@@ -1226,7 +1221,7 @@ main
 >
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
->   typeCheckA, typeCheckChaosA, testA, parseExpressionA, typeCheckExpressionA,
+>   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
 >   allAnnotationsA, ppCatalogA, genWrapA, makeWebsiteA :: Mode HsSqlSystem
 
 -------------------------------------------------------------------------------

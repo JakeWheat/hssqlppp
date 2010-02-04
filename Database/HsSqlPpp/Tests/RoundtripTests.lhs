@@ -100,7 +100,7 @@ use create view to run through select variations
 >   -- and then using hssqlppp's database loader to load the sql into
 >   -- the database
 >   doPgTests astOrig catOrig (liftIO (loadSqlUsingPsql testDatabaseName sql >> return ()))
->   doPgTests astOrig catOrig (liftIO $ loadIntoDatabase testDatabaseName "" astOrig)
+>   doPgTests astOrig catOrig (liftIO $ loadAst testDatabaseName astOrig)
 >   where
 >     doPgTests :: [Statement] -> Catalog -> ErrorT String IO () -> ErrorT String IO () -- a -> a
 >     doPgTests astOrig catOrig loadIntoDb = do

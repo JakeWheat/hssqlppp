@@ -21,7 +21,7 @@ with postgres.
 
 > import Database.HsSqlPpp.Ast.SqlTypes
 
-> import Database.HsSqlPpp.Examples.DBAccess
+> import Database.HsSqlPpp.DbmsCommon
 
 > -- | get the catalog from the database, and return an Catalog value
 > readCatalog :: String -> IO (Either [TypeError] Catalog)

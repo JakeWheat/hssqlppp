@@ -2,7 +2,7 @@ Copyright 2009 Jake Wheat
 
 Experimental code to use uniplate to implement extensions
 
-> {-# LANGUAGE ViewPatterns #-}
+> {-# LANGUAGE ViewPatterns, QuasiQuotes #-}
 
 > {- | Experimental code to half implement some simple syntax
 >      extensions for plpgsql. Eventually, want to use this to write
@@ -51,6 +51,7 @@ Experimental code to use uniplate to implement extensions
 > import Database.HsSqlPpp.Ast.Annotation
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parsing.Parser
+> --import Database.HsSqlPpp.Here
 
 
 

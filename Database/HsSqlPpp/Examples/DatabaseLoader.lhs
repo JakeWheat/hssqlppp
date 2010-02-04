@@ -1,208 +1,79 @@
-Copyright 2009 Jake Wheat
+Copyright 2010 Jake Wheat
 
-This module mainly contains the function to take a statement list and
-load it into the database.
+This code is an example to demonstrate loading a sql file, parsing it,
+running a transform on the ast, then loading the result straight into
+PostgreSQL.
 
-The loading system works by parsing a sql file then passing the
-[Statement] to this module which pretty prints each Statement. (There
-is no fundamental reason why it loads each statement one at a time
-instead of pretty printing the whole lot, just that the run command
-from hdbc only supports one command at a time. This might be a
-postgresql limitation.)
-
-The next todo to help this code move along is to use the source
-position information in the ast when error (and notice, etc.)
-messages come back from the database whilst loading the sql, can try to show the source position from the original file, which will be different to what postgresql reports.
-
-This seems like a whole lot of effort for nothing, but will then allow
-using transforming the ast so it no longer directly corresponds to the
-source sql, and loading the transformed sql into the database. For
-generated code, some thought will be needed on how to link any errors
-back to the original source text.
-
-One option for some of the code is to use the original source code
-when it hasn't been changed for a given statement, instead of the
-pretty printed stuff, don't know how much help this will be.
-
-This code is currently on the backburner, and is a mess.
-
-> {- | Routine load SQL into a database. Should work alright, but if
->  you get any errors from PostgreSQL it won't be easy to track them
->   down in the original source.-}
 > module Database.HsSqlPpp.Examples.DatabaseLoader
->     (
->      loadIntoDatabase
+>     (loadAst
+>     ,loadWithChaosExtensions
 >     ) where
 
 > import System.Directory
 > import Control.Exception
-> import Text.Regex.Posix
-> import Data.List
+> import Control.Applicative
+> import Control.Monad.Error
 
 > import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 > import Database.HsSqlPpp.Ast.Ast as Ast
-> import Database.HsSqlPpp.Examples.DBAccess
-> import Database.HsSqlPpp.Ast.Annotation
+> import Database.HsSqlPpp.DbmsCommon
+> import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.Parsing.Parser
 
-> loadIntoDatabase :: String -- ^ database name
->                  -> FilePath -- ^ filename to include in error messages
->                              -- (this file is not accessed)
->                  -> StatementList -- ^ ast to load into database
->                  -> IO ()
-> loadIntoDatabase dbName fn ast =
->   withConn ("dbname=" ++ dbName) $ \conn -> do
->          --loadPlpgsqlIntoDatabase conn
->          mapM_ (\st ->
->                 loadStatement conn st
->                 >> putStr ".") (filterStatements ast)
+> import Database.HsSqlPpp.Examples.ChaosExtensions
+
+-------------------------------------------------------------------------------
+
+One small complication: haven't worked out how to send copy data
+straight from haskell, so use a dodgy hack to write inline copy data
+to a temporary file to load from there
+
+> data HackStatement = Regular Statement
+>                    | CopyHack Statement Statement
+>                      deriving Show
+>
+> hackStatements :: [Statement] -> [HackStatement]
+> hackStatements (st1@(Copy _ _ _ Stdin) :
+>                 st2@(CopyData _ _) :
+>                 sts) =
+>   CopyHack st1 st2 : hackStatements sts
+> hackStatements (st : sts) =
+>   Regular st : hackStatements sts
+> hackStatements [] = []
+
+-------------------------------------------------------------------------------
+
+> loadAst :: String -> [Statement] -> IO ()
+> loadAst dbName ast =
+>   withConn ("dbname=" ++ dbName) $ \conn ->
+>        mapM_ (loadStatement conn) $ hackStatements ast
 >   where
->     loadStatement conn st = case st of
->                                          Skipit -> return ()
->                                          VanillaStatement vs ->
->                                              {-putStrLn (printSql [vs]) >> -}
->                                              handleError fn (getSourcePos vs) vs (runSqlCommand conn
->                                                       (printSql [vs]))
->                                          CopyStdin a b -> runCopy conn a b (getSourcePos a)
->     getSourcePos st = let a = getAnnotation st
->                       in sp a
->                       where
->                         sp (x:xs) = case x of
->                                       SourcePos s l c -> (s,l,c)
->                                       _ -> sp xs
->                         sp [] = ("",0,0)
->     --hack cos we don't have support in hdbc for copy from stdin
->     --(which libpq does support - adding this properly should be a todo)
->     --we need the copy from stdin and the copydata to be processed in one go,
->     --so filter the list to replace instances of these with a replacement
->     --and a dummy statement following. Well dodgy, don't really know
->     --how it manages to work correctly.
->     filterStatements sts =
->        map (\(x,y) ->
->                 case (x,y) of
->                        (a@(Copy _ _ _ Stdin), b@(CopyData _ _)) -> (CopyStdin a b)
->                        (CopyData _ _, _) -> Skipit
->                        (vs,_) -> VanillaStatement vs)
->            statementWithNextStatement
->            where
->              statementWithNextStatement =
->                  zip sts (tail sts ++ [NullStatement []])
->     runCopy conn a b _ = case (a,b) of
->                          (Copy _ tb cl Stdin, CopyData _ s) ->
->                            withTemporaryFile (\tfn -> do
->                                writeFile tfn s
->                                tfn1 <- canonicalizePath tfn
->                                loadStatement conn
->                                  (VanillaStatement (Copy [] tb cl
->                                                     (CopyFilename tfn1))))
->                          _ -> error "internal error: pattern match fail in runCopy in loadIntoDatabase"
->     {-loadPlpgsqlIntoDatabase conn = do
->          -- first, check plpgsql is in the database
->          x <- selectValue conn
->                 "select count(1) from pg_language where lanname='plpgsql';"
->          when (readInt x == 0) $
->               runSqlCommand conn "create procedural language plpgsql;"
->     readInt x = read x :: Int-}
+>     loadStatement conn (Regular st) =
+>       runSqlCommand conn $ printSql [st]
+>     loadStatement conn (CopyHack (Copy a tb cl Stdin) (CopyData _ s)) =
+>       withTemporaryFile $ \tfn -> do
+>         writeFile tfn s
+>         tfn1 <- canonicalizePath tfn
+>         loadStatement conn $ Regular $ Copy a tb cl $ CopyFilename tfn1
+>     loadStatement _ x = error $ "got bad copy hack: " ++ show x
 
-> data Wrapper = CopyStdin Ast.Statement Ast.Statement
->              | Skipit
->              | VanillaStatement Ast.Statement
->                deriving Show
+-------------------------------------------------------------------------------
 
-================================================================================
-
-= Error reporting
-
-The goal is to give a position in the original source when an error
-occurs as best as possible.
-
-For now, all statements in the ast correspond 1:1 with statement text
-in the source code, so each line,col pair coming from pg should
-correspond to onne line,col pair in the original source text.
-
-The lines load in one at a time, so there needs to be a fair bit of
-translation to ultimately output the original line and source number.
-
-(For code with no source information, e.g. stuff which is generated
-programmatically from scratch, plan is to give a index (the statement
-position in the [Statement] arg, and then pretty print this statement
-and provide a line and column just for this statement text.
-
-Later on, when working with generated code may need to make guesses as
-to which line, and possibly supply multiple references (e.g. for a
-template you might want to see the part of the template which is
-causing the error, plus the arguments being passed to that template
-instantiation call (if nested, you want to see all of them back up to the
-top level).
-
-So, for now: want to get the line number and column number from the
-error message text
-
-If there is a line and column number in the error coming from
-postgresql, they should appear something like this:
-
-execute: PGRES_FATAL_ERROR: ERROR:  column "object_name" of relation "system_implementation_objects" does not exist
-LINE 1: insert into system_implementation_objects (object_name,objec...
-                                                   ^
-
-So we are looking at the LINE x: part, and the line with a bunch of
-blanks preceding the ^
-
-Parse the line number out : easy
-Parse the number of spaces before the ^ easy
-
-Problem: the text following the LINE 1: is a arbitrary snippet of the
-source so the column number of the ^ doesn't relate to the column
-number in the source in any straightforward way at all...
-
-Probably a better way of doing this, might need alterations to HDBC
-though
-
-> getLineAndColumnFromErrorText :: String -> (Int, Int)
-> getLineAndColumnFromErrorText errorText =
->   let ls = lines errorText
->       lineLine = find isLineLine ls
->       lineNo = case lineLine of
->                              Nothing -> 0
->                              Just ll -> getLineNo ll
->       column = 0 --(case find isHatLine ls of
->                  --                     Nothing -> 0
->                  --                     Just ll -> getHatPos ll 0)
->       prestuff = 0 --case lineLine of
->       --             Nothing -> 0
->       --             Just l -> getLineStuffLength l
->   in (column - prestuff,lineNo)
->   -- wish I knew how to get haskell regexes working...
->   -- can't find a way to get just the () part out
+> loadWithChaosExtensions :: String -> [String] -> IO ()
+> loadWithChaosExtensions dbName fns =
+>   wrap $ (concat <$> mapM loadSql fns) >>=
+>            liftIO . loadAst dbName . extensionize
 >   where
->     isLineLine l = l =~ "^LINE ([0-9]+):" :: Bool
->     getLineNo l = read (stripCrap (l =~ "^LINE ([0-9]+):" :: String)) :: Int
->     stripCrap = reverse . drop 1 . reverse . drop 5
+>     loadSql :: String -> ErrorT String IO [Statement]
+>     loadSql fn = liftIO (parseSqlFile fn) >>= tsl
+>     wrap :: Monad m => ErrorT String m a -> m a
+>     wrap c = runErrorT c >>= \x ->
+>              case x of
+>                     Left er -> error er
+>                     Right l -> return l
+>
 
- >     isHatLine l = l =~ "^[ ]*\\^" :: Bool
- >     getHatPos l i = case l of
- >                            (x:xs) | x == ' ' -> getHatPos xs (i + 1)
- >                                   | otherwise -> i
- >                            _ -> 0
- >     getLineStuffLength l = length (l =~ "^LINE ([0-9]+):" :: String) + 1
-
-> handleError :: String -> (String,Int,Int) -> Ast.Statement -> IO () -> IO ()
-> handleError fn (_, sl,sc) _ f = catchSql f
->                    (\e -> do
->                      --s <- readFile fn
->                      let (l,c) = getLineAndColumnFromErrorText (seErrorMsg e)
->                      --let (sl,sc) = getStatementPos st
->                      error $ "ERROR!!!!\n"
->                                ++ show l ++ ":" ++ show c ++ ":\n"
->                                ++ "from here:\n"
->                                ++ fn ++ ":" ++ show sl ++ ":" ++ show sc ++ ":\n"
->                                ++ seErrorMsg e)
-
- > getStatementPos (Insert (Just (SourcePos x y)) _ _ _ _) = (x,y)
-
- > getStatementPos :: t -> (Integer, Integer)
- > getStatementPos _ = (0::Integer,0::Integer)
-
-================================================================================
+-------------------------------------------------------------------------------
 
 withtemporaryfile, part of the copy from stdin hack
 
