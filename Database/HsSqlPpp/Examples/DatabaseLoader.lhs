@@ -22,8 +22,6 @@ PostgreSQL.
 >
 > import Database.HsSqlPpp.Examples.ChaosExtensions
 
--------------------------------------------------------------------------------
-
 One small complication: haven't worked out how to send copy data from
 haskell via HDBC or the pg lib, so use a dodgy hack to write inline
 copy data to a temporary file to load from there.
@@ -41,8 +39,6 @@ copy data to a temporary file to load from there.
 >   Regular st : hackStatements sts
 > hackStatements [] = []
 
--------------------------------------------------------------------------------
-
 The main routine, which takes an AST and loads it into a database using HDBC.
 
 > loadAst :: String -> [Statement] -> IO ()
@@ -58,8 +54,6 @@ The main routine, which takes an AST and loads it into a database using HDBC.
 >         tfn1 <- canonicalizePath tfn
 >         loadStatement conn $ Regular $ Copy a tb cl $ CopyFilename tfn1
 >     loadStatement _ x = error $ "got bad copy hack: " ++ show x
-
--------------------------------------------------------------------------------
 
 Wrapper to take a list of filenames, load, run an AST transform on
 them, then pass to loadAst above.
@@ -77,8 +71,6 @@ them, then pass to loadAst above.
 >                     Left er -> error er
 >                     Right l -> return l
 >
-
--------------------------------------------------------------------------------
 
 withtemporaryfile, part of the copy from stdin hack
 

@@ -14,12 +14,29 @@ Gather together the examples from the extension modules and convert to regular t
 > import Database.HsSqlPpp.Annotation
 >
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Examples.Extensions.CreateVarSimple
 > import Database.HsSqlPpp.Examples.Extensions.CreateVar
 
 > testData :: [ExtensionTest]
-> testData = [
->    createVarExample
->    ]
+> testData = [createVarSimpleExample
+>            ,createVarExample
+>            ]
+
+addreadonlytriggers
+addnotifytriggers
+constraints
+zeroonetuple
+transitionconstraints
+modules
+'_mr' table definitions and initialization data / relation constants
+multiple updates
+out of order definitions (after missing catalog elements are done)
+
+chaos: leftovers already written,
+       turn sequence progression
+       action valid tables
+       ai
+       what else?
 
 > extensionTests :: Test.Framework.Test
 > extensionTests = testGroup "extensionTests" $ map testExtension testData

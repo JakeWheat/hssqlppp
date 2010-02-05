@@ -5,18 +5,17 @@ attribute and single row, a bit like a global variable in the
 database.
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
-
-
+>
 > module Database.HsSqlPpp.Examples.Extensions.CreateVar
 >     where
-
+>
 > import Data.Generics
 > import Data.Generics.Uniplate.Data
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Utils.Here
-
+>
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
-
+>
 > createVarExample :: ExtensionTest
 > createVarExample = ExtensionTest
 >   "CreateVar"
@@ -32,12 +31,6 @@ database.
 >     select * from varname_table;
 >   $a$ language sql stable;
 >
->   /*create function check_con_varname_table_varname_key() returns boolean as $a$
->   begin
->     return true;
->   end;
->   $a$ language plpgsql stable;*/
->
 >   -- haven't needed this
 >   /*drop function if exists varname_table_constraint_trigger_operator();
 >   create function varname_table_constraint_trigger_operator() returns trigger as $a$
@@ -46,7 +39,14 @@ database.
 >   end;
 >   $a$ language plpgsql;*/
 >
->   /*create function check_con_varname_table_01_tuple() returns boolean as $a$
+>   -- todo once constraint extension is written
+>   /*create function check_con_varname_table_varname_key() returns boolean as $a$
+>   begin
+>     return true;
+>   end;
+>   $a$ language plpgsql stable;
+>
+>   create function check_con_varname_table_01_tuple() returns boolean as $a$
 >   begin
 >     return true;
 >   end;
@@ -58,9 +58,7 @@ database.
 >   end;
 >   $a$ language plpgsql;*/
 >   |]
-
-================================================================================
-
+>
 > createVar :: Data a => a -> a
 > createVar =
 >     transformBi $ \x ->
@@ -74,9 +72,10 @@ database.
 >                  ++ tl
 >         x1 -> x1
 >
-> createVarTemplate :: String
+> createVarTemplate :: [Statement]
 > createVarTemplate = --let (ExtensionTest _ _ x) = createVarExample
 >                     --in x --don't do this cos it doesn't give us a very good test
+>   readTemplate
 >   [$here|
 >
 >   create table createvarvarname_table (
@@ -88,5 +87,3 @@ database.
 >   $a$ language sql stable;
 >
 >   |]
->
-
