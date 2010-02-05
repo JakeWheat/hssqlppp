@@ -64,7 +64,7 @@ database.
 >     transformBi $ \x ->
 >       case x of
 >         (funCallView -> FunCallView _ "create_var" [StringLit _ _ tableName,StringLit _ _ typeName]):tl
->             -> replaceSqlStrings [("createvarvarname_table", tableName ++ "_table")
+>             -> mapStrings [("createvarvarname_table", tableName ++ "_table")
 >                                  ,("createvarvarname", tableName)
 >                                  ,("createvarvartype", typeName)
 >                                  ,("get_createvarvarname", "get_" ++ typeName)]

@@ -97,6 +97,12 @@ run in errort monad, throw error as io error
 >            Left er -> error $ show er
 >            Right l -> return l
 
+> wrapETs :: (Monad m) => ErrorT String m a -> m a
+> wrapETs c = runErrorT c >>= \x ->
+>          case x of
+>            Left er -> error er
+>            Right l -> return l
+
 error utility - convert either to ErrorT String
 
 > tsl :: (MonadError String m, Show t) => Either t a -> m a

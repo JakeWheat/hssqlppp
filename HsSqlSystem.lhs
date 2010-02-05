@@ -147,7 +147,7 @@ lexing test2.sql
 >        &= text "lex the files given and output the tokens on separate lines"
 >
 > lexFiles :: [FilePath] -> IO ()
-> lexFiles fns = wrapET $
+> lexFiles fns = wrapETs $
 >                forM_ fns $ \f ->
 >                  (liftIO . putStrLn) ("lexing " ++ f) >>
 >                  (liftIO . readInput) f >>=
@@ -238,7 +238,7 @@ HsSqlSystem: "\"test3a.sql\" (line 1, column 46):\nunexpected IdStringTok \"inne
 >          &= text "Parse files and output the asts"
 >
 > showAst :: [String] -> IO ()
-> showAst = wrapET . mapM_ (\f ->
+> showAst = wrapETs . mapM_ (\f ->
 >                (liftIO . putStrLn) ("-- ast of " ++ f) >>
 >                (liftIO . readInput) f >>=
 >                tsl . P.parseSql f >>=
@@ -292,7 +292,7 @@ LiftOperator [] "=" LiftAny
 >                            \and output the asts"
 >
 > parseExpression :: [String] -> IO ()
-> parseExpression = wrapET . mapM_ (\f ->
+> parseExpression = wrapETs . mapM_ (\f ->
 >                (liftIO . putStrLn) ("-- ast of " ++ f) >>
 >                (liftIO . readInput) f >>=
 >                tsl . P.parseExpression f >>=
@@ -382,7 +382,7 @@ values
 >                \transformer if you've added one."
 >
 > ppp :: [String] -> IO()
-> ppp fs = wrapET $ forM_ fs (\f ->
+> ppp fs = wrapETs $ forM_ fs (\f ->
 >             (liftIO . putStrLn) ("--ppp " ++ f) >>
 >             (liftIO . readInput) f >>=
 >             tsl . P.parseSql f >>=
@@ -410,7 +410,7 @@ success
 >                 \printing ast is the same as the initial ast"
 >
 > testPppp :: [String] -> IO ()
-> testPppp = wrapET . mapM_ (\f -> do
+> testPppp = wrapETs . mapM_ (\f -> do
 >             ast1 <- (liftIO . readInput) f >>=
 >                     tsl . P.parseSql f >>=
 >                     return . stripAnnotations
@@ -515,7 +515,7 @@ test5.sql:25:1:
 >                      \any type errors"
 >
 > typeCheck2 :: String -> [FilePath] -> IO ()
-> typeCheck2 db fns = wrapET $ do
+> typeCheck2 db fns = wrapETs $ do
 >   cat <- liftIO (readCatalog db) >>= tsl
 >   mapM (\f -> (liftIO . readInput) f >>=
 >               tsl . P.parseSql f) fns >>=
@@ -576,7 +576,7 @@ TypeCheckFailed
 >              \ type checks, then outputs the type or any type errors"
 >
 > typeCheckExpression :: String -> [FilePath] -> IO ()
-> typeCheckExpression db fns = wrapET $ do
+> typeCheckExpression db fns = wrapETs $ do
 >   aasts <- liftIO (readCatalog db) >>= tsl >>= \cat ->
 >            forM fns (\f -> (liftIO . readInput) f >>=
 >                            tsl . P.parseExpression f >>=
@@ -707,7 +707,7 @@ $ ./HsSqlSystem allannotations test6.sql
 >                           \source positions"
 >
 > allAnnotations :: String -> [FilePath] -> IO ()
-> allAnnotations db fns = wrapET $ do
+> allAnnotations db fns = wrapETs $ do
 >   cat <- liftIO (readCatalog db) >>= tsl
 >   mapM (\f -> (liftIO . readInput) f >>=
 >                             tsl . P.parseSql f) fns >>=
@@ -875,7 +875,7 @@ extra:
 >                      \changes to the catalog that the sql makes"
 >
 > ppCatalog :: String -> [FilePath] -> IO ()
-> ppCatalog db fns = wrapET $ do
+> ppCatalog db fns = wrapETs $ do
 >   scat <- liftIO (readCatalog db) >>= tsl
 >   (ncat, _) <- mapM (\f -> (liftIO . readInput) f >>=
 >                            tsl . P.parseSql f) fns >>=
@@ -897,7 +897,7 @@ load sql files into a database via parsing and pretty printing them
 >            \parses them then loads them into the database given."
 >
 > loadSql :: String -> [String] -> IO ()
-> loadSql db fns = wrapET $
+> loadSql db fns = wrapETs $
 >      liftIO (hSetBuffering stdout NoBuffering) >>
 >      mapM (\f -> (liftIO . readInput) f >>=
 >                  tsl . P.parseSql f) fns >>=
@@ -917,7 +917,7 @@ load sql files into a database via psql
 >             &= text "loads sql into a database using psql."
 >
 > loadSqlPsql :: String -> [String] -> IO ()
-> loadSqlPsql db = wrapET .
+> loadSqlPsql db = wrapETs .
 >   mapM_ (\s -> liftIO (loadSqlUsingPsqlFromFile db s) >>=
 >                tsl >>=
 >                liftIO . putStrLn)
@@ -1055,7 +1055,7 @@ write a routine to mirror this - will then have
 >                &= text "runs a load of consistency tests on the sql passed"
 >
 > runTestBattery :: String -> [FilePath] -> IO ()
-> runTestBattery dbName fns = wrapET $ do
+> runTestBattery dbName fns = wrapETs $ do
 >     liftIO $ hSetBuffering stdout NoBuffering
 >     liftIO $ hSetBuffering stderr NoBuffering
 >     liftIO $ clearDB dbName
@@ -1128,7 +1128,7 @@ genWrap
 >                    \for db access"
 > genWrap :: String -> String -> IO ()
 > genWrap db f =
->   wrapET doit
+>   wrapETs doit
 >     where
 >       doit :: (MonadIO m) => ErrorT String m ()
 >       doit = liftIO (wrapperGen db f >>= putStrLn)

@@ -66,7 +66,7 @@ Top level parsing functions
 >   return $ parseIt x sqlStatements fn Nothing sc startState
 >
 > -- | Parse expression fragment, used for testing purposes
-> parseExpression :: String
+> parseExpression :: String -- ^ filename for error messages
 >                 -> String -- ^ sql string containing a single expression, with no
 >                           -- trailing ';'
 >                 -> Either ParseErrorExtra Expression

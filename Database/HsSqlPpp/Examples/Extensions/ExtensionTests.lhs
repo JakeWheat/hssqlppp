@@ -8,17 +8,21 @@ Gather together the examples from the extension modules and convert to regular t
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
+> import Control.Monad
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Utils.Utils
 >
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.Examples.Extensions.CreateVarSimple
 > import Database.HsSqlPpp.Examples.Extensions.CreateVar
+> import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 
 > testData :: [ExtensionTest]
-> testData = [createVarSimpleExample
+> testData = transitionConstraintExamples ++
+>            [createVarSimpleExample
 >            ,createVarExample
 >            ]
 
@@ -59,4 +63,9 @@ create table readonly_table ...
 >             tast <- parseSql "" trSql
 >             return (tast,esast)) of
 >         Left e -> assertFailure $ show e
->         Right (ts,es) -> assertEqual "" (stripAnnotations ts) (stripAnnotations es)
+>         Right (ts,es) -> do
+>               let ts' = stripAnnotations ts
+>                   es' = stripAnnotations es
+>               when (ts' /= es')
+>                    $ putStrLn $ ppExpr ts' ++ "\n\n" ++ ppExpr es'
+>               assertEqual "" ts' es'
