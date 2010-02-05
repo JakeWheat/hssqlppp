@@ -22,21 +22,30 @@ Gather together the examples from the extension modules and convert to regular t
 >            ,createVarExample
 >            ]
 
+ddl 'triggers' -> reject, transform, or supplement a ddl statement
 addreadonlytriggers
 addnotifytriggers
 constraints
 zeroonetuple
 transitionconstraints
+default not null
 modules
 '_mr' table definitions and initialization data / relation constants
 multiple updates
 out of order definitions (after missing catalog elements are done)
+simplified catalog
 
 chaos: leftovers already written,
        turn sequence progression
        action valid tables
        ai
        what else?
+       revlar types
+       check only updates are in action_ functions
+
+idea for attributes:
+select attribute('type','readonly');
+create table readonly_table ...
 
 > extensionTests :: Test.Framework.Test
 > extensionTests = testGroup "extensionTests" $ map testExtension testData

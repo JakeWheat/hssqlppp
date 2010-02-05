@@ -121,8 +121,6 @@ dodgy code to pretty print a value using haskell-src-exts to try and format it n
 
 > ppExpr :: Show s => s -> String
 > ppExpr s =
->   case Exts.parseFileContents ("x = " ++ show s) of
->     Exts.ParseOk ast -> let (Exts.Module _ _ _ _ _ _ d) = ast
->                             ((Exts.PatBind _ _ _ (Exts.UnGuardedRhs v) _):_) = d
->                         in Exts.prettyPrint v
+>   case Exts.parseExp (show s) of
+>     Exts.ParseOk ast -> Exts.prettyPrint ast
 >     x -> error $ show x

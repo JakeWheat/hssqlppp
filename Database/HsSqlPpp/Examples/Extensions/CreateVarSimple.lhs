@@ -7,8 +7,8 @@ Extension to remove the boilerplate from adding tables with a single
 attribute and single row, a bit like a global variable in the
 database.
 
-See [ExtensionsUtils](ExtensionsUtils.lhs.html) for the support types
-and functions.
+See [ExtensionsUtils](ExtensionsUtils.lhs.html) for the support
+functions.
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
 >
@@ -19,8 +19,10 @@ and functions.
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Examples.Extensions.SQLCode
 
 Example/ Test
 -------------
@@ -62,9 +64,9 @@ transform on this ast, replacing the placeholders with the correct
 values for each specific create_var call. Robbed this idea from the
 HList source code, don't know how widely used it is.
 
-> createVarTemplate :: [Statement]
-> createVarTemplate = readTemplate
->   [$here|
+> createVarSimpleTemplate :: [Statement]
+> createVarSimpleTemplate =
+>   [$sqlQuote|
 >
 >   create table createvarvarname_table (
 >     createvarvarname createvarvartype
@@ -126,16 +128,16 @@ using vanilla pattern matching.
 >                                     [StringLit _ _ tableName
 >                                     ,StringLit _ _ typeName]):tl
 
-Create the replacement Ast. replaceSqlStrings replaces any strings
+Create the replacement Ast. mapStrings replaces any strings
 anywhere in the Ast which match.
 
->             -> replaceSqlStrings [("createvarvarname_table",
+>             -> mapStrings [("createvarvarname_table",
 >                                    tableName ++ "_table")
 >                                  ,("createvarvarname", tableName)
 >                                  ,("createvarvartype", typeName)
 >                                  ,("get_createvarvarname",
 >                                    "get_" ++ typeName)]
->                  createVarTemplate
+>                  createVarSimpleTemplate
 >                ++ tl
 >         x1 -> x1
 >

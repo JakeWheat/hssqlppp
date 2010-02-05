@@ -56,12 +56,12 @@ To build a local copy of the documentation:
 
     cabal unpack hssqlppp
     cd hssqlppp-[VERSION]
-    ghc --make -threaded XDeriveDataTypeable HsSqlSystem.lhs
+    ghc --make -threaded -XDeriveDataTypeable HsSqlSystem.lhs
     ./HsSqlSystem makewebsite
 
-and the docs will be in ./website/ . You may need to install some
+and the docs will be in ./website/ . You might need to install some
 extra packages using cabal for this to work - these might get you
-started (TODO - figure out the list).
+started (TODO - figure out the full list).
 
     cabal install pandoc -fhighlighting-kate
     cabal install haddock Pipe template-haskell hlist

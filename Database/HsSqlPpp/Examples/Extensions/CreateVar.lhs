@@ -4,16 +4,16 @@ Extension to remove the boilerplate from adding tables with a single
 attribute and single row, a bit like a global variable in the
 database.
 
-> {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
+> {-# LANGUAGE ViewPatterns, QuasiQuotes #-}
 >
 > module Database.HsSqlPpp.Examples.Extensions.CreateVar
 >     where
 >
 > import Data.Generics
 > import Data.Generics.Uniplate.Data
+>
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Utils.Here
->
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 >
 > createVarExample :: ExtensionTest

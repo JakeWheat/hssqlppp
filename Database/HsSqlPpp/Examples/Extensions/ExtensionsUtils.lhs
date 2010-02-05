@@ -2,7 +2,6 @@ Copyright 2010 Jake Wheat
 
 Some auxiliary code for use in writing extensions.
 
-> {-# LANGUAGE ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 >     where
 >
@@ -23,6 +22,9 @@ Used for the examples/tests for each extensions.
 
 Helper function for working with the templates.
 
+TODO: make this a quasi quote so that any parse errors are caught at
+compile time
+
 > readTemplate :: String -> [Statement]
 > readTemplate sql =
 >     case parseSql "" sql of
@@ -32,8 +34,8 @@ Helper function for working with the templates.
 Simple ast transforms, just substitutes the strings given in the reps
 (replacements) lookup.
 
-> replaceSqlStrings :: [(String,String)] -> [Statement] -> [Statement]
-> replaceSqlStrings reps =
+> mapStrings :: [(String,String)] -> [Statement] -> [Statement]
+> mapStrings reps =
 >   transformBi $ \x ->
 >       case x of
 >             s | s `elem` fstReps -> fromJust $ lookup s reps
@@ -58,3 +60,4 @@ View pattern support to help match function calls in an ast.
 >               Nothing
 >               Nothing)) = FunCallView an fnName args
 > funCallView _ = FUnit
+
