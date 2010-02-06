@@ -206,6 +206,7 @@ deals with this.
 >                         ,try $ string "::"
 >                         ,try $ string ":="
 >                         ,string ":"
+>                         ,string "$("
 >                         ,many1 (oneOf "+-*/<>=~!@#%^&|`?")
 >                         ])
 

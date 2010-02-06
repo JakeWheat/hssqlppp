@@ -885,6 +885,7 @@ a row constructor looking thing, then finally vanilla parens
 
 try a few random things which can't start a different expression
 
+>               ,antiExpression
 >               ,positionalArg
 >               ,placeholder
 >               ,stringLit
@@ -1190,7 +1191,13 @@ identifier which happens to start with a complete keyword
 >                         lcase = map toLower
 >
 > idString :: MyParser String
-> idString = mytoken (\tok -> case tok of
+> idString =
+>     choice [(\l -> "$(" ++ l ++ ")")
+>             <$> (symbol "$(" *> idString <* symbol ")")
+>            ,ids
+>            ]
+>   where
+>     ids = mytoken (\tok -> case tok of
 >                                      IdStringTok "not" -> Nothing
 >                                      IdStringTok i -> Just i
 >                                      _ -> Nothing)
@@ -1209,6 +1216,9 @@ identifier which happens to start with a complete keyword
 > positionalArg = PositionalArg [] <$> mytoken (\tok -> case tok of
 >                                     PositionalArgTok n -> Just n
 >                                     _ -> Nothing)
+>
+> antiExpression :: ParsecT [Token] ParseState Identity Expression
+> antiExpression = AntiExpression <$> (symbol "$(" *> idString <* symbol ")")
 >
 > placeholder :: ParsecT [Token] ParseState Identity Expression
 > placeholder = Placeholder [] <$ symbol "?"

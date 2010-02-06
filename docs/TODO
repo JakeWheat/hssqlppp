@@ -83,6 +83,10 @@ think about how flexible this should be:
 2) allow typechecking of non canonicalized trees -> will make type
    checking more complicated, but also remove the need for a separate
    set of data types for the parse tree and the aast.
+what about putting explicit parenthesis in this parse tree, this might
+   make it feasible to support the full range of operators that
+   postgresql supports, and support e.g. the creation of an operator
+   followed by it's use
 
 some other ideas
 
