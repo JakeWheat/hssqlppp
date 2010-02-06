@@ -61,8 +61,9 @@ Target SQL template
 
 Create a template ast with placeholders from literal SQL, then run a
 transform on this ast, replacing the placeholders with the correct
-values for each specific create_var call. Robbed this idea from the
-HList source code, don't know how widely used it is.
+values for each specific create_var call. (Still deciding whether and
+how to support antiquoting, for now use generics to replace the
+placeholder elements.)
 
 > createVarSimpleTemplate :: [Statement]
 > createVarSimpleTemplate =
@@ -82,7 +83,8 @@ For createVarSimple, we only need to replace the identifiers -
 createvarvarname, createvarvartype, createvarvarname_table and
 get_createvarvarname.
 
-The ast for this SQL for reference:
+The ast for this SQL, you can see where the elements needing
+substituting are:
 
 ~~~~{.Haskell}
 [CreateTable [] "createvarvarname_table"
@@ -128,15 +130,12 @@ using vanilla pattern matching.
 >                                     [StringLit _ _ tableName
 >                                     ,StringLit _ _ typeName]):tl
 
-Create the replacement Ast. mapStrings replaces any strings
-anywhere in the Ast which match.
+Grab the template, and replace the placeholders to get the desired ast.
 
->             -> mapStrings [("createvarvarname_table",
->                                    tableName ++ "_table")
->                                  ,("createvarvarname", tableName)
->                                  ,("createvarvartype", typeName)
->                                  ,("get_createvarvarname",
->                                    "get_" ++ typeName)]
+>             -> mapStrings [("createvarvarname_table", tableName ++ "_table")
+>                           ,("createvarvarname", tableName)
+>                           ,("createvarvartype", typeName)
+>                           ,("get_createvarvarname", "get_" ++ typeName)]
 >                  createVarSimpleTemplate
 >                ++ tl
 >         x1 -> x1

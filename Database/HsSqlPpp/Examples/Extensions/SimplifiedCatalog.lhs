@@ -1,6 +1,6 @@
 Copyright 2010 Jake Wheat
 
-Prepend view definitions for a simplified catalog.
+Prepend view definitions for a simplified catalog. This is the code from Chaos2010, it uses
 
 > {-# LANGUAGE QuasiQuotes #-}
 >
@@ -20,6 +20,45 @@ Prepend view definitions for a simplified catalog.
 > simplifiedCatalogSt =
 >     [$sqlQuote|
 \begin{code}
+
+= Catalog
+
+Some new catalog views to use, supposed to be a bit more straight
+forward than the sql or pg catalogs.
+
+
+== system implementation objects
+
+Quite a lot of the code in this file generates extra functions,
+triggers and uses extra tables. When you're browsing the catalog,
+e.g. as a designer of a schema, or trying to work out the data
+structures for a program, you don't usually want to see all this extra
+stuff, so tag them.
+
+Also, objects in this table should not be visible to user code, only
+to the code in this file (just have to pretend for now).
+
+Implementation objects include objects which are part of the catalog
+and extensions themselves as well as objects which are generated when
+user code uses the extensions.
+
+Should probably put the catalog in a separate module to the internal
+objects.
+
+*/
+
+create table system_implementation_objects (
+  object_name text,
+  object_type text check (object_type in(
+                   'scalar',
+                   'base_relvar',
+                   'operator',
+                   'view',
+                   'trigger',
+                   'database_constraint'))
+);
+insert into system_implementation_objects (object_name, object_type)
+  values ('system_implementation_objects', 'base_relvar');
 
 create view base_relvars as
   select relname as relvar_name from pg_class where relnamespace =
@@ -41,7 +80,6 @@ to try to only show scalar types which are used and not the vast
 array that pg comes with. This is a bit of a hack job, probably
 a bit inaccurate
 */
-
 create view scalars as
 --   select typname as scalar_name from pg_type
 --     where typtype in ('b', 'd')
@@ -115,16 +153,13 @@ create view view_attributes as
 /*
 == constraints
 */
-
-/*create table database_constraints (
+create table database_constraints (
   constraint_name text,
   expression text
-);*/
-
+);
 /*
 == all database objects
 */
-
 create view all_database_objects as
   select 'scalar' as object_type,
     scalar_name as object_name from scalars
@@ -136,24 +171,24 @@ create view all_database_objects as
     view_name as object_name from views
   union select 'trigger' as object_type,
     trigger_name as object_name from triggers
-  /*union select 'database_constraint' as object_type,
-    constraint_name as object_name from database_constraints*/;
+  union select 'database_constraint' as object_type,
+    constraint_name as object_name from database_constraints;
 insert into system_implementation_objects
   (object_name, object_type) values
   ('all_database_objects', 'view');
 create view public_database_objects as
   select object_name,object_type from all_database_objects
-  /*except
-  select object_name,object_type from system_implementation_objects*/;
+  except
+  select object_name,object_type from system_implementation_objects;
 
-/*create view object_orders as
+create view object_orders as
   select 'scalar'::text as object_type, 0 as object_order
   union select 'database_constraint', 1
   union select 'base_relvar', 2
   union select 'operator', 3
   union select 'view', 4
   union select 'trigger', 5
-;*/
+;
 
 \end{code}
 >     |]

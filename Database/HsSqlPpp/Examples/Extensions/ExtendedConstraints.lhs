@@ -129,7 +129,7 @@ types of constraints: pg key - primary key or unique not null,
 syntax, refer to view or from non key), ?assertion effective fk,
 inline normal check, check refering to multiple rows, multiple columns
 check variants in assertion syntax.
-
+shortcuts for views: key and reference?
 
 
 for each type of constraint:
@@ -179,3 +179,157 @@ unique
 
 all todo: yes, that means there is no direct testing of any of the
 constraint stuff...
+
+
+select add_key('database_constraints', 'constraint_name');
+
+select add_key('dbcon_ops', 'constraint_name');
+select add_key('dbcon_ops', 'operator_name');
+select add_foreign_key('dbcon_ops', 'constraint_name',
+                       'database_constraints');
+--select add_foreign_key('dbcon_ops', 'operator_name', 'operators');
+
+select add_key('dbcon_relvars', array['constraint_name', 'relvar_name']);
+select add_foreign_key('dbcon_relvars', 'constraint_name',
+                       'database_constraints');
+select add_foreign_key('dbcon_relvars', 'relvar_name', 'base_relvars');
+
+select add_key('con_pg', 'constraint_name');
+select add_foreign_key('con_pg', 'constraint_name', 'database_constraints');
+select add_foreign_key('con_pg', 'constraint_name',
+  '(select constraint_name from check_pg union
+   select constraint_name from key_pg union
+   select constraint_name from fk_pg) as x');
+
+select add_key('dbcon_trigger_ops', 'operator_name');
+select add_foreign_key('dbcon_trigger_ops', 'operator_name', 'operators');
+
+select add_key('dbcon_triggers', 'trigger_name');
+select add_foreign_key('dbcon_triggers', array['trigger_name', 'relvar_name'],
+  'triggers');
+
+----------------------------
+
+> {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
+>
+> module Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
+>     where
+>
+> import Data.Generics
+> import Data.Generics.Uniplate.Data
+>
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Utils.Here
+> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Examples.Extensions.SQLCode
+
+
+stage 1: some test cases for general constraints which aren't
+implementable as postgresql constraints, we don't check the
+constraints work, only that the correct ddl is generated
+
+cardinality check
+
+> cardinalityExample :: ExtensionTest
+> cardinalityExample =
+>   ExtensionTest
+>     "ExtendedConstraints cardinality"
+>     extendedExtensions
+>     [$here|
+\begin{code}
+
+create table test_table (
+   field text;
+);
+
+select create_assertion('check_count'
+                       ,'(select count(*) from test_table) < 10');
+
+\end{code}
+>     |]
+>     -- what the example SQL should be transformed into:
+>     [$here|
+\begin{code}
+
+create table test_table (
+   field text
+);
+
+create function check_con_test_table_count() returns bool as $xxx$
+begin
+  return (select count(*) from test_table) < 10;
+end;
+$xxx$ language plpgsql stable;
+
+create function test_table_constraint_trigger_operator() returns trigger as $xxx$
+begin
+  if not check_con_test_table_count() then
+    raise exception 'update violates database constraint check_count';
+  end if;
+  return OLD;
+end;
+$xxx$ language plpgsql stable;
+
+create trigger test_table_constraint_trigger
+  after insert or update or delete on test_table
+  for each statement
+  execute procedure test_table_constraint_trigger_operator();
+
+\end{code}
+>      |]
+
+
+complex expression to check table stuff
+
+2 constraints with 3 tables each accesses 2 of the tables - want to
+check updating the triggers
+
+-----
+do some constraint tests:
+
+check adding false expression constraint errors
+check some successful inserts, updates and deletes
+check some failing inserts, updates and deletes
+
+
+-------------------------------------------------------
+
+> checkFunctionTemplate :: Statement
+> checkFunctionTemplate =
+>   [$sqlQuote|
+\begin{code}
+
+create function check_con_test_table_count() returns bool as $xxx$
+begin
+  return (select count(*) from test_table) < 10;
+end;
+$xxx$ language plpgsql stable;
+
+
+\end{code}
+>    |]
+
+create function check_con_test_table_count() returns bool as $xxx$
+begin
+  return (select count(*) from test_table) < 10;
+end;
+$xxx$ language plpgsql stable;
+
+create function test_table_constraint_trigger_operator() returns trigger as $xxx$
+begin
+  if not check_con_test_table_count() then
+    raise exception 'update violates database constraint check_count';
+  end if;
+  return OLD;
+end;
+$xxx$ language plpgsql stable;
+
+create trigger test_table_constraint_trigger
+  after insert or update or delete on test_table
+  for each statement
+  execute procedure test_table_constraint_trigger_operator();
+
+
+> extendedExtensions :: [Statement] -> [Statement]
+> extendedExtensions = undefined

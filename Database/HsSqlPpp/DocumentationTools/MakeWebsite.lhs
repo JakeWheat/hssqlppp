@@ -34,9 +34,9 @@ the website.
 >   pf "docs/examples.txt" "website/examples.html"
 >   -- pandocise source code files
 >   doPandocSource
->   --doHaddock
->   --plhs "website/ParserTests.html" $ rowsToHtml parserTestsTable
->   --plhs "website/TypeCheckTests.html" $ rowsToHtml typeCheckTestsTable
+>   doHaddock
+>   plhs "website/ParserTests.html" $ rowsToHtml parserTestsTable
+>   plhs "website/TypeCheckTests.html" $ rowsToHtml typeCheckTestsTable
 >   return ()
 >   where
 >     pf s t = readFile s >>= return . (siteMap ++) >>= return . pandoc >>= writeFile t
