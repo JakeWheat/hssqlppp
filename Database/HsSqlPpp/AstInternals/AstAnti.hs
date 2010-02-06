@@ -2,6 +2,7 @@
 module Database.HsSqlPpp.AstInternals.AstAnti where
 import Data.Generics
 import Database.HsSqlPpp.AstInternals.AstAnnotation
+import qualified Database.HsSqlPpp.AstInternals.AstInternal as A
  
 data AlterTableAction = AddConstraint (Annotation) (Constraint)
                       | AlterColumnDefault (Annotation) (String) (Expression)
@@ -316,3 +317,222 @@ type TypeAttributeDefList = [(TypeAttributeDef)]
 type TypeNameList = [(TypeName)]
  
 type VarDefList = [(VarDef)]
+ 
+statement :: Statement -> A.Statement
+statement = undefined
+ 
+selectExpression :: SelectExpression -> A.SelectExpression
+selectExpression = undefined
+ 
+fnBody :: FnBody -> A.FnBody
+fnBody = undefined
+ 
+setClause :: SetClause -> A.SetClause
+setClause = undefined
+ 
+tableRef :: TableRef -> A.TableRef
+tableRef = undefined
+ 
+tableAlias :: TableAlias -> A.TableAlias
+tableAlias = undefined
+ 
+joinExpression :: JoinExpression -> A.JoinExpression
+joinExpression = undefined
+ 
+joinType :: JoinType -> A.JoinType
+joinType = undefined
+ 
+selectList :: SelectList -> A.SelectList
+selectList = undefined
+ 
+selectItem :: SelectItem -> A.SelectItem
+selectItem = undefined
+ 
+copySource :: CopySource -> A.CopySource
+copySource = undefined
+ 
+attributeDef :: AttributeDef -> A.AttributeDef
+attributeDef = undefined
+ 
+rowConstraint :: RowConstraint -> A.RowConstraint
+rowConstraint = undefined
+ 
+alterTableAction :: AlterTableAction -> A.AlterTableAction
+alterTableAction = undefined
+ 
+constraint :: Constraint -> A.Constraint
+constraint = undefined
+ 
+typeAttributeDef :: TypeAttributeDef -> A.TypeAttributeDef
+typeAttributeDef = undefined
+ 
+paramDef :: ParamDef -> A.ParamDef
+paramDef = undefined
+ 
+varDef :: VarDef -> A.VarDef
+varDef = undefined
+ 
+raiseType :: RaiseType -> A.RaiseType
+raiseType = undefined
+ 
+combineType :: CombineType -> A.CombineType
+combineType = undefined
+ 
+volatility :: Volatility -> A.Volatility
+volatility = undefined
+ 
+language :: Language -> A.Language
+language = undefined
+ 
+typeName :: TypeName -> A.TypeName
+typeName = undefined
+ 
+dropType :: DropType -> A.DropType
+dropType = undefined
+ 
+cascade :: Cascade -> A.Cascade
+cascade = undefined
+ 
+direction :: Direction -> A.Direction
+direction = undefined
+ 
+distinct :: Distinct -> A.Distinct
+distinct = undefined
+ 
+natural :: Natural -> A.Natural
+natural = undefined
+ 
+ifExists :: IfExists -> A.IfExists
+ifExists = undefined
+ 
+restartIdentity :: RestartIdentity -> A.RestartIdentity
+restartIdentity = undefined
+ 
+expression :: Expression -> A.Expression
+expression = undefined
+ 
+frameClause :: FrameClause -> A.FrameClause
+frameClause = undefined
+ 
+inList :: InList -> A.InList
+inList = undefined
+ 
+liftFlavour :: LiftFlavour -> A.LiftFlavour
+liftFlavour = undefined
+ 
+triggerWhen :: TriggerWhen -> A.TriggerWhen
+triggerWhen = undefined
+ 
+triggerEvent :: TriggerEvent -> A.TriggerEvent
+triggerEvent = undefined
+ 
+triggerFire :: TriggerFire -> A.TriggerFire
+triggerFire = undefined
+ 
+setValue :: SetValue -> A.SetValue
+setValue = undefined
+ 
+statementList :: StatementList -> A.StatementList
+statementList = map statement
+ 
+expressionListStatementListPairList ::
+                                    ExpressionListStatementListPairList ->
+                                      A.ExpressionListStatementListPairList
+expressionListStatementListPairList
+  = map expressionListStatementListPair
+ 
+expressionListStatementListPair ::
+                                ExpressionListStatementListPair ->
+                                  A.ExpressionListStatementListPair
+expressionListStatementListPair = undefined
+ 
+expressionList :: ExpressionList -> A.ExpressionList
+expressionList = map expression
+ 
+stringList :: StringList -> A.StringList
+stringList = id
+ 
+paramDefList :: ParamDefList -> A.ParamDefList
+paramDefList = map paramDef
+ 
+attributeDefList :: AttributeDefList -> A.AttributeDefList
+attributeDefList = map attributeDef
+ 
+constraintList :: ConstraintList -> A.ConstraintList
+constraintList = map constraint
+ 
+typeAttributeDefList ::
+                     TypeAttributeDefList -> A.TypeAttributeDefList
+typeAttributeDefList = map typeAttributeDef
+ 
+typeNameList :: TypeNameList -> A.TypeNameList
+typeNameList = map typeName
+ 
+stringTypeNameListPair ::
+                       StringTypeNameListPair -> A.StringTypeNameListPair
+stringTypeNameListPair = undefined
+ 
+stringTypeNameListPairList ::
+                           StringTypeNameListPairList -> A.StringTypeNameListPairList
+stringTypeNameListPairList = map stringTypeNameListPair
+ 
+expressionStatementListPairList ::
+                                ExpressionStatementListPairList ->
+                                  A.ExpressionStatementListPairList
+expressionStatementListPairList = map expressionStatementListPair
+ 
+setClauseList :: SetClauseList -> A.SetClauseList
+setClauseList = map setClause
+ 
+caseExpressionListExpressionPairList ::
+                                     CaseExpressionListExpressionPairList ->
+                                       A.CaseExpressionListExpressionPairList
+caseExpressionListExpressionPairList
+  = map caseExpressionListExpressionPair
+ 
+maybeExpression :: MaybeExpression -> A.MaybeExpression
+maybeExpression = undefined
+ 
+tableRefList :: TableRefList -> A.TableRefList
+tableRefList = map tableRef
+ 
+expressionListList :: ExpressionListList -> A.ExpressionListList
+expressionListList = map expressionList
+ 
+selectItemList :: SelectItemList -> A.SelectItemList
+selectItemList = map selectItem
+ 
+onExpr :: OnExpr -> A.OnExpr
+onExpr = undefined
+ 
+rowConstraintList :: RowConstraintList -> A.RowConstraintList
+rowConstraintList = map rowConstraint
+ 
+varDefList :: VarDefList -> A.VarDefList
+varDefList = map varDef
+ 
+expressionStatementListPair ::
+                            ExpressionStatementListPair -> A.ExpressionStatementListPair
+expressionStatementListPair = undefined
+ 
+caseExpressionListExpressionPair ::
+                                 CaseExpressionListExpressionPair ->
+                                   A.CaseExpressionListExpressionPair
+caseExpressionListExpressionPair = undefined
+ 
+caseExpressionList :: CaseExpressionList -> A.CaseExpressionList
+caseExpressionList = map expression
+ 
+expressionDirectionPair ::
+                        ExpressionDirectionPair -> A.ExpressionDirectionPair
+expressionDirectionPair = undefined
+ 
+expressionDirectionPairList ::
+                            ExpressionDirectionPairList -> A.ExpressionDirectionPairList
+expressionDirectionPairList = map expressionDirectionPair
+ 
+maybeBoolExpression :: MaybeBoolExpression -> A.MaybeBoolExpression
+maybeBoolExpression = undefined
+ 
+maybeSelectList :: MaybeSelectList -> A.MaybeSelectList
+maybeSelectList = undefined
