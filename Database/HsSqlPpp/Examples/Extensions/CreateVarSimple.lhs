@@ -56,60 +56,6 @@ supposed to do; it doubles as an automated test.
 >
 >      |]
 
-Target SQL template
--------------------
-
-Create a template ast with placeholders from literal SQL, then run a
-transform on this ast, replacing the placeholders with the correct
-values for each specific create_var call. (Still deciding whether and
-how to support antiquoting, for now use generics to replace the
-placeholder elements.)
-
-> createVarSimpleTemplate :: [Statement]
-> createVarSimpleTemplate =
->   [$sqlQuote|
->
->   create table createvarvarname_table (
->     createvarvarname createvarvartype
->   );
->
->   create function get_createvarvarname() returns createvarvartype as $a$
->     select * from createvarvarname_table;
->   $a$ language sql stable;
->
->   |]
-
-For createVarSimple, we only need to replace the identifiers -
-createvarvarname, createvarvartype, createvarvarname_table and
-get_createvarvarname.
-
-The ast for this SQL, you can see where the elements needing
-substituting are:
-
-~~~~{.Haskell}
-[CreateTable [] "createvarvarname_table"
-   [AttributeDef [] "createvarvarname"
-      (SimpleTypeName [] "createvarvartype")
-      Nothing
-      []]
-   [],
- CreateFunction [] "get_createvarvarname" []
-   (SimpleTypeName [] "createvarvartype")
-   Sql
-   "$a$"
-   (SqlFnBody []
-      [SelectStatement []
-         (Select [] Dupes (SelectList [] [SelExp [] (Identifier [] "*")] [])
-            [Tref [] "createvarvarname_table" NoAlias]
-            Nothing
-            []
-            Nothing
-            []
-            Nothing
-            Nothing)])
-   Stable]
-~~~~
-
 Ast transform function
 ----------------------
 
@@ -127,16 +73,20 @@ using vanilla pattern matching.
 >       case x of
 >         (funCallView -> FunCallView _
 >                                     "create_var"
->                                     [StringLit _ _ tableName
->                                     ,StringLit _ _ typeName]):tl
-
-Grab the template, and replace the placeholders to get the desired ast.
-
->             -> mapStrings [("createvarvarname_table", tableName ++ "_table")
->                           ,("createvarvarname", tableName)
->                           ,("createvarvartype", typeName)
->                           ,("get_createvarvarname", "get_" ++ typeName)]
->                  createVarSimpleTemplate
->                ++ tl
+>                                     [StringLit _ _ varname
+>                                     ,StringLit _ _ typename]):tl
+>             -> let tablename = varname ++ "_table"
+>                    fnname = "get_" ++ varname
+>                in [$sqlQuote|
+>
+>   create table $(tablename) (
+>    $(varname) $(typename)
+>   );
+>
+>   create function $(fnname)() returns $(typename) as $a$
+>     select * from $(tablename);
+>   $a$ language sql stable;
+>
+>                    |] ++ tl
 >         x1 -> x1
 >
