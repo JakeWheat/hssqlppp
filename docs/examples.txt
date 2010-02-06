@@ -53,7 +53,7 @@ transforms. (Being able to do this was the original motivation for
 writing HsSqlPpp.)
 
 [CreateVarSimple](pandoc_source/Database/HsSqlPpp/Examples/Extensions/CreateVarSimple.lhs.html).
-This is a simple demo with lots of comments.
+Demonstration extension - should be easy to follow the code.
 
 [CreateVar](pandoc_source/Database/HsSqlPpp/Examples/Extensions/CreateVar.lhs.html)
 

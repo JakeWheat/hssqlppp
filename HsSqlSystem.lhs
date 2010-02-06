@@ -38,6 +38,7 @@ to get a list of commands and purpose and usage info
 >
 > import Database.HsSqlPpp.Examples.ChaosExtensions
 > import Database.HsSqlPpp.DocumentationTools.MakeWebsite
+> import Database.HsSqlPpp.Utils.MakeAntiNodes
 
 -------------------------------------------------------------------------------
 
@@ -80,6 +81,7 @@ command defs
 >                            ,file :: String}
 >
 >                  | MakeWebsite
+>                  | MakeAntiNodes
 >
 >                    deriving (Show, Data, Typeable)
 
@@ -1174,6 +1176,20 @@ code to build the website for hssqlppp
 
 -------------------------------------------------------------------------------
 
+MakeAntinodes
+===========
+
+code to build the website for hssqlppp
+
+> makeAntiNodesA = mode $ MakeAntiNodes
+>                &= text "development tool"
+> makeAntiNodesF :: IO ()
+> makeAntiNodesF = do
+>   s <- makeAntiNodes
+>   writeFile "Database/HsSqlPpp/AstInternals/AstAnti.hs" s
+
+-------------------------------------------------------------------------------
+
 main
 ====
 
@@ -1187,7 +1203,7 @@ main
 >                        annotateSourceA, ppCatalogA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
->                        testA, genWrapA, makeWebsiteA]
+>                        testA, genWrapA, makeWebsiteA, makeAntiNodesA]
 >
 >        case cmd of
 >          Lex fns -> lexFiles fns
@@ -1210,11 +1226,13 @@ main
 >          Test as -> runTests as
 >          GenWrap db f -> genWrap db f
 >          MakeWebsite -> makeWebsite
+>          MakeAntiNodes -> makeAntiNodesF
 >
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
 >   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
->   allAnnotationsA, ppCatalogA, genWrapA, makeWebsiteA :: Mode HsSqlSystem
+>   allAnnotationsA, ppCatalogA, genWrapA, makeWebsiteA,
+>   makeAntiNodesA :: Mode HsSqlSystem
 
 -------------------------------------------------------------------------------
 
