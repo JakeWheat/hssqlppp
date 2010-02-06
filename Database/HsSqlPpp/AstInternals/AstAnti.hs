@@ -319,118 +319,303 @@ type TypeNameList = [(TypeName)]
 type VarDefList = [(VarDef)]
  
 statement :: Statement -> A.Statement
-statement = undefined
+statement x
+  = case x of
+        AlterSequence a1 a2 a3 -> undefined
+        AlterTable a1 a2 a3 -> undefined
+        Assignment a1 a2 a3 -> undefined
+        CaseStatement a1 a2 a3 a4 -> undefined
+        ContinueStatement a1 -> undefined
+        Copy a1 a2 a3 a4 -> undefined
+        CopyData a1 a2 -> undefined
+        CreateDomain a1 a2 a3 a4 a5 -> undefined
+        CreateFunction a1 a2 a3 a4 a5 a6 a7 a8 -> undefined
+        CreateLanguage a1 a2 -> undefined
+        CreateSequence a1 a2 a3 a4 a5 a6 a7 -> undefined
+        CreateTable a1 a2 a3 a4 -> undefined
+        CreateTableAs a1 a2 a3 -> undefined
+        CreateTrigger a1 a2 a3 a4 a5 a6 a7 a8 -> undefined
+        CreateType a1 a2 a3 -> undefined
+        CreateView a1 a2 a3 -> undefined
+        Delete a1 a2 a3 a4 -> undefined
+        DropFunction a1 a2 a3 a4 -> undefined
+        DropSomething a1 a2 a3 a4 a5 -> undefined
+        Execute a1 a2 -> undefined
+        ExecuteInto a1 a2 a3 -> undefined
+        ForIntegerStatement a1 a2 a3 a4 a5 -> undefined
+        ForSelectStatement a1 a2 a3 a4 -> undefined
+        If a1 a2 a3 -> undefined
+        Insert a1 a2 a3 a4 a5 -> undefined
+        Notify a1 a2 -> undefined
+        NullStatement a1 -> undefined
+        Perform a1 a2 -> undefined
+        Raise a1 a2 a3 a4 -> undefined
+        Return a1 a2 -> undefined
+        ReturnNext a1 a2 -> undefined
+        ReturnQuery a1 a2 -> undefined
+        SelectStatement a1 a2 -> undefined
+        Set a1 a2 a3 -> undefined
+        Truncate a1 a2 a3 a4 -> undefined
+        Update a1 a2 a3 a4 a5 -> undefined
+        WhileStatement a1 a2 a3 -> undefined
  
 selectExpression :: SelectExpression -> A.SelectExpression
-selectExpression = undefined
+selectExpression x
+  = case x of
+        CombineSelect a1 a2 a3 a4 -> undefined
+        Select a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 -> undefined
+        Values a1 a2 -> undefined
  
 fnBody :: FnBody -> A.FnBody
-fnBody = undefined
+fnBody x
+  = case x of
+        PlpgsqlFnBody a1 a2 a3 -> undefined
+        SqlFnBody a1 a2 -> undefined
  
 setClause :: SetClause -> A.SetClause
-setClause = undefined
+setClause x
+  = case x of
+        RowSetClause a1 a2 a3 -> undefined
+        SetClause a1 a2 a3 -> undefined
  
 tableRef :: TableRef -> A.TableRef
-tableRef = undefined
+tableRef x
+  = case x of
+        JoinedTref a1 a2 a3 a4 a5 a6 a7 -> undefined
+        SubTref a1 a2 a3 -> undefined
+        Tref a1 a2 a3 -> undefined
+        TrefFun a1 a2 a3 -> undefined
  
 tableAlias :: TableAlias -> A.TableAlias
-tableAlias = undefined
+tableAlias x
+  = case x of
+        FullAlias a1 a2 -> undefined
+        NoAlias -> undefined
+        TableAlias a1 -> undefined
  
 joinExpression :: JoinExpression -> A.JoinExpression
-joinExpression = undefined
+joinExpression x
+  = case x of
+        JoinOn a1 a2 -> undefined
+        JoinUsing a1 a2 -> undefined
  
 joinType :: JoinType -> A.JoinType
-joinType = undefined
+joinType x
+  = case x of
+        Cross -> undefined
+        FullOuter -> undefined
+        Inner -> undefined
+        LeftOuter -> undefined
+        RightOuter -> undefined
  
 selectList :: SelectList -> A.SelectList
-selectList = undefined
+selectList x
+  = case x of
+        SelectList a1 a2 a3 -> undefined
  
 selectItem :: SelectItem -> A.SelectItem
-selectItem = undefined
+selectItem x
+  = case x of
+        SelExp a1 a2 -> undefined
+        SelectItem a1 a2 a3 -> undefined
  
 copySource :: CopySource -> A.CopySource
-copySource = undefined
+copySource x
+  = case x of
+        CopyFilename a1 -> undefined
+        Stdin -> undefined
  
 attributeDef :: AttributeDef -> A.AttributeDef
-attributeDef = undefined
+attributeDef x
+  = case x of
+        AttributeDef a1 a2 a3 a4 a5 -> undefined
  
 rowConstraint :: RowConstraint -> A.RowConstraint
-rowConstraint = undefined
+rowConstraint x
+  = case x of
+        NotNullConstraint a1 a2 -> undefined
+        NullConstraint a1 a2 -> undefined
+        RowCheckConstraint a1 a2 a3 -> undefined
+        RowPrimaryKeyConstraint a1 a2 -> undefined
+        RowReferenceConstraint a1 a2 a3 a4 a5 a6 -> undefined
+        RowUniqueConstraint a1 a2 -> undefined
  
 alterTableAction :: AlterTableAction -> A.AlterTableAction
-alterTableAction = undefined
+alterTableAction x
+  = case x of
+        AddConstraint a1 a2 -> undefined
+        AlterColumnDefault a1 a2 a3 -> undefined
  
 constraint :: Constraint -> A.Constraint
-constraint = undefined
+constraint x
+  = case x of
+        CheckConstraint a1 a2 a3 -> undefined
+        PrimaryKeyConstraint a1 a2 a3 -> undefined
+        ReferenceConstraint a1 a2 a3 a4 a5 a6 a7 -> undefined
+        UniqueConstraint a1 a2 a3 -> undefined
  
 typeAttributeDef :: TypeAttributeDef -> A.TypeAttributeDef
-typeAttributeDef = undefined
+typeAttributeDef x
+  = case x of
+        TypeAttDef a1 a2 a3 -> undefined
  
 paramDef :: ParamDef -> A.ParamDef
-paramDef = undefined
+paramDef x
+  = case x of
+        ParamDef a1 a2 a3 -> undefined
+        ParamDefTp a1 a2 -> undefined
  
 varDef :: VarDef -> A.VarDef
-varDef = undefined
+varDef x
+  = case x of
+        VarDef a1 a2 a3 a4 -> undefined
  
 raiseType :: RaiseType -> A.RaiseType
-raiseType = undefined
+raiseType x
+  = case x of
+        RError -> undefined
+        RException -> undefined
+        RNotice -> undefined
  
 combineType :: CombineType -> A.CombineType
-combineType = undefined
+combineType x
+  = case x of
+        Except -> undefined
+        Intersect -> undefined
+        Union -> undefined
+        UnionAll -> undefined
  
 volatility :: Volatility -> A.Volatility
-volatility = undefined
+volatility x
+  = case x of
+        Immutable -> undefined
+        Stable -> undefined
+        Volatile -> undefined
  
 language :: Language -> A.Language
-language = undefined
+language x
+  = case x of
+        Plpgsql -> undefined
+        Sql -> undefined
  
 typeName :: TypeName -> A.TypeName
-typeName = undefined
+typeName x
+  = case x of
+        ArrayTypeName a1 a2 -> undefined
+        PrecTypeName a1 a2 a3 -> undefined
+        SetOfTypeName a1 a2 -> undefined
+        SimpleTypeName a1 a2 -> undefined
  
 dropType :: DropType -> A.DropType
-dropType = undefined
+dropType x
+  = case x of
+        Domain -> undefined
+        Table -> undefined
+        Type -> undefined
+        View -> undefined
  
 cascade :: Cascade -> A.Cascade
-cascade = undefined
+cascade x
+  = case x of
+        Cascade -> undefined
+        Restrict -> undefined
  
 direction :: Direction -> A.Direction
-direction = undefined
+direction x
+  = case x of
+        Asc -> undefined
+        Desc -> undefined
  
 distinct :: Distinct -> A.Distinct
-distinct = undefined
+distinct x
+  = case x of
+        Distinct -> undefined
+        Dupes -> undefined
  
 natural :: Natural -> A.Natural
-natural = undefined
+natural x
+  = case x of
+        Natural -> undefined
+        Unnatural -> undefined
  
 ifExists :: IfExists -> A.IfExists
-ifExists = undefined
+ifExists x
+  = case x of
+        IfExists -> undefined
+        Require -> undefined
  
 restartIdentity :: RestartIdentity -> A.RestartIdentity
-restartIdentity = undefined
+restartIdentity x
+  = case x of
+        ContinueIdentity -> undefined
+        RestartIdentity -> undefined
  
 expression :: Expression -> A.Expression
-expression = undefined
+expression x
+  = case x of
+        AntiExpression a1 -> undefined
+        BooleanLit a1 a2 -> undefined
+        Case a1 a2 a3 -> undefined
+        CaseSimple a1 a2 a3 a4 -> undefined
+        Cast a1 a2 a3 -> undefined
+        Exists a1 a2 -> undefined
+        FloatLit a1 a2 -> undefined
+        FunCall a1 a2 a3 -> undefined
+        Identifier a1 a2 -> undefined
+        InPredicate a1 a2 a3 a4 -> undefined
+        IntegerLit a1 a2 -> undefined
+        LiftOperator a1 a2 a3 a4 -> undefined
+        NullLit a1 -> undefined
+        Placeholder a1 -> undefined
+        PositionalArg a1 a2 -> undefined
+        ScalarSubQuery a1 a2 -> undefined
+        StringLit a1 a2 a3 -> undefined
+        WindowFn a1 a2 a3 a4 a5 a6 -> undefined
  
 frameClause :: FrameClause -> A.FrameClause
-frameClause = undefined
+frameClause x
+  = case x of
+        FrameRowsUnboundedPreceding -> undefined
+        FrameUnboundedFull -> undefined
+        FrameUnboundedPreceding -> undefined
  
 inList :: InList -> A.InList
-inList = undefined
+inList x
+  = case x of
+        InList a1 a2 -> undefined
+        InSelect a1 a2 -> undefined
  
 liftFlavour :: LiftFlavour -> A.LiftFlavour
-liftFlavour = undefined
+liftFlavour x
+  = case x of
+        LiftAll -> undefined
+        LiftAny -> undefined
  
 triggerWhen :: TriggerWhen -> A.TriggerWhen
-triggerWhen = undefined
+triggerWhen x
+  = case x of
+        TriggerAfter -> undefined
+        TriggerBefore -> undefined
  
 triggerEvent :: TriggerEvent -> A.TriggerEvent
-triggerEvent = undefined
+triggerEvent x
+  = case x of
+        TDelete -> undefined
+        TInsert -> undefined
+        TUpdate -> undefined
  
 triggerFire :: TriggerFire -> A.TriggerFire
-triggerFire = undefined
+triggerFire x
+  = case x of
+        EachRow -> undefined
+        EachStatement -> undefined
  
 setValue :: SetValue -> A.SetValue
-setValue = undefined
+setValue x
+  = case x of
+        SetId a1 a2 -> undefined
+        SetNum a1 a2 -> undefined
+        SetStr a1 a2 -> undefined
  
 statementList :: StatementList -> A.StatementList
 statementList = map statement
@@ -444,7 +629,8 @@ expressionListStatementListPairList
 expressionListStatementListPair ::
                                 ExpressionListStatementListPair ->
                                   A.ExpressionListStatementListPair
-expressionListStatementListPair = undefined
+expressionListStatementListPair (a, b)
+  = (expressionList a, statementList b)
  
 expressionList :: ExpressionList -> A.ExpressionList
 expressionList = map expression
@@ -470,7 +656,7 @@ typeNameList = map typeName
  
 stringTypeNameListPair ::
                        StringTypeNameListPair -> A.StringTypeNameListPair
-stringTypeNameListPair = undefined
+stringTypeNameListPair (a, b) = (a, typeNameList b)
  
 stringTypeNameListPairList ::
                            StringTypeNameListPairList -> A.StringTypeNameListPairList
@@ -491,7 +677,7 @@ caseExpressionListExpressionPairList
   = map caseExpressionListExpressionPair
  
 maybeExpression :: MaybeExpression -> A.MaybeExpression
-maybeExpression = undefined
+maybeExpression = fmap expression
  
 tableRefList :: TableRefList -> A.TableRefList
 tableRefList = map tableRef
@@ -503,7 +689,7 @@ selectItemList :: SelectItemList -> A.SelectItemList
 selectItemList = map selectItem
  
 onExpr :: OnExpr -> A.OnExpr
-onExpr = undefined
+onExpr = fmap joinExpression
  
 rowConstraintList :: RowConstraintList -> A.RowConstraintList
 rowConstraintList = map rowConstraint
@@ -513,26 +699,28 @@ varDefList = map varDef
  
 expressionStatementListPair ::
                             ExpressionStatementListPair -> A.ExpressionStatementListPair
-expressionStatementListPair = undefined
+expressionStatementListPair (a, b)
+  = (expression a, statementList b)
  
 caseExpressionListExpressionPair ::
                                  CaseExpressionListExpressionPair ->
                                    A.CaseExpressionListExpressionPair
-caseExpressionListExpressionPair = undefined
+caseExpressionListExpressionPair (a, b)
+  = (caseExpressionList a, expression b)
  
 caseExpressionList :: CaseExpressionList -> A.CaseExpressionList
 caseExpressionList = map expression
  
 expressionDirectionPair ::
                         ExpressionDirectionPair -> A.ExpressionDirectionPair
-expressionDirectionPair = undefined
+expressionDirectionPair (a, b) = (expression a, direction b)
  
 expressionDirectionPairList ::
                             ExpressionDirectionPairList -> A.ExpressionDirectionPairList
 expressionDirectionPairList = map expressionDirectionPair
  
 maybeBoolExpression :: MaybeBoolExpression -> A.MaybeBoolExpression
-maybeBoolExpression = undefined
+maybeBoolExpression = fmap expression
  
 maybeSelectList :: MaybeSelectList -> A.MaybeSelectList
-maybeSelectList = undefined
+maybeSelectList = fmap selectList
