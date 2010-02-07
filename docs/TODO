@@ -2,6 +2,11 @@
 
 This file is a complete disorganised mess.
 ----------
+
+add flag to parser to switch between parsing splices or not
+convert error to either in conversion from anti to regular ast
+
+
 focus: website/documentation, examples
        missing catalog elements: triggers, sequences, constraints, indexes, defaults
        do command line wrapper generator thing for hssqlsystem
