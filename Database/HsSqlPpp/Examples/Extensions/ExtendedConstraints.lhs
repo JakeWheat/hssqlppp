@@ -217,6 +217,7 @@ select add_foreign_key('dbcon_triggers', array['trigger_name', 'relvar_name'],
 >
 > --import Data.Generics
 > import Data.Generics.Uniplate.Data
+> import Debug.Trace
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
@@ -224,9 +225,12 @@ select add_foreign_key('dbcon_triggers', array['trigger_name', 'relvar_name'],
 > --import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Examples.Extensions.AstUtils
 
 > extendedConstraintExamples :: [ExtensionTest]
-> extendedConstraintExamples = [cardinalityExample]
+> extendedConstraintExamples = [cardinalityExample
+>                              ,doubleCardinalityExample
+>                              ,simpleViewExample]
 
 stage 1: some test cases for general constraints which aren't
 implementable as postgresql constraints, we don't check the
@@ -282,10 +286,137 @@ create trigger test_table_constraint_trigger
 >      |]
 
 
+> doubleCardinalityExample :: ExtensionTest
+> doubleCardinalityExample  =
+>   ExtensionTest
+>     "ExtendedConstraints double cardinality"
+>     extendedExtensions
+>     [$sqlQuote|
+\begin{code}
+
+create table test_table (
+   field text
+);
+
+create table test_table1 (
+   field text
+);
+
+select create_assertion('test_tables_count'
+                       ,'((select count(*) from test_table) +
+                          (select count(*) from test_table1)) < 10');
+
+\end{code}
+>     |]
+>     [$sqlQuote|
+\begin{code}
+
+create table test_table (
+   field text
+);
+
+create table test_table1 (
+   field text
+);
+
+create function check_con_test_tables_count() returns bool as $xxx$
+begin
+  return ((select count(*) from test_table) +
+          (select count(*) from test_table1)) < 10;
+end;
+$xxx$ language plpgsql stable;
+
+create function test_table_constraint_trigger_operator() returns trigger as $xxx$
+begin
+  if not check_con_test_tables_count() then
+    raise exception 'update violates database constraint test_tables_count';
+  end if;
+  return OLD;
+end;
+$xxx$ language plpgsql stable;
+
+create trigger test_table_constraint_trigger
+  after insert or update or delete on test_table
+  for each statement
+  execute procedure test_table_constraint_trigger_operator();
+
+create function test_table1_constraint_trigger_operator() returns trigger as $xxx$
+begin
+  if not check_con_test_tables_count() then
+    raise exception 'update violates database constraint test_tables_count';
+  end if;
+  return OLD;
+end;
+$xxx$ language plpgsql stable;
+
+create trigger test_table1_constraint_trigger
+  after insert or update or delete on test_table1
+  for each statement
+  execute procedure test_table1_constraint_trigger_operator();
+
+\end{code}
+>      |]
+
+
+> simpleViewExample :: ExtensionTest
+> simpleViewExample  =
+>   ExtensionTest
+>     "ExtendedConstraints simpleview"
+>     extendedExtensions
+>     [$sqlQuote|
+\begin{code}
+
+create table test_table (
+   field text
+);
+
+create view test_view as
+   select * from test_table where field <> "a";
+
+select create_assertion('test_view_count'
+                       ,'(select count(*) from test_view) < 10');
+
+\end{code}
+>     |]
+>     [$sqlQuote|
+\begin{code}
+
+create table test_table (
+   field text
+);
+
+create view test_view as
+   select * from test_table where field <> "a";
+
+create function check_con_test_view_count() returns bool as $xxx$
+begin
+  return (select count(*) from test_view) < 10;
+end;
+$xxx$ language plpgsql stable;
+
+create function test_table_constraint_trigger_operator() returns trigger as $xxx$
+begin
+  if not check_con_test_view_count() then
+    raise exception 'update violates database constraint test_view_count';
+  end if;
+  return OLD;
+end;
+$xxx$ language plpgsql stable;
+
+create trigger test_table_constraint_trigger
+  after insert or update or delete on test_table
+  for each statement
+  execute procedure test_table_constraint_trigger_operator();
+
+\end{code}
+>      |]
+
+
 
 > extendedExtensions :: [Statement] -> [Statement]
-> extendedExtensions =
->  transformBi $ \x ->
+> extendedExtensions ast =
+>  let asti = getAstInfo ast
+>  in flip transformBi ast $ \x ->
 >       case x of
 >         (funCallView -> FunCallView _
 >                                     "create_assertion"
@@ -308,7 +439,8 @@ $xxx$ language plpgsql stable;
 >               expr =  either (error . show) id
 >                             $ parseExpression "" exprText
 >               errMsg = "update violates database constraint " ++ name
->               tablenames = ["test_table"]
+>               tablenames = let y = getReferencedTableList asti expr
+>                            in trace (show y) y
 >               triggers =
 >                  flip concatMap tablenames $ \t ->
 >                            let trigopname = t ++ "_constraint_trigger_operator"
