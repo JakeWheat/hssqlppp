@@ -93,13 +93,21 @@ the website.
 >     sourceFileP = extension ==? ".hs" ||? extension ==? ".lhs"
 >                     ||? extension ==? ".ag"
 >                     ||? extension ==? ".lag"
->     plhs s t = readFile s >>= return . pandocLhs >>= writeFile t
+>     plhs s t = readFile s >>= return . wrapSqlCode >>= return . pandocLhs >>= writeFile t
 >     phs s t = readFile s >>= return . highlight >>= writeFile t
 
 > pandocIndex :: String -> String
 > pandocIndex s = s
 
--------------------------------------------------------------------------------
+> wrapSqlCode :: String -> String
+> wrapSqlCode = replace
+>               "\n\\begin{code}\n"
+>               "\n~~~~~{.SqlPostgresql}\n"
+>               . replace
+>               "\n\\end{code}\n"
+>               "\n~~~~~\n"
+
+------------------------------------------------------------------------------
 
 > siteMap :: String
 > siteMap = [$here|

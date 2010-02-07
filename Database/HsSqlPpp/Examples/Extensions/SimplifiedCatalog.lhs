@@ -1,5 +1,7 @@
 Copyright 2010 Jake Wheat
 
+Currently a mess and not usable.
+
 Prepend view definitions for a simplified catalog. This is the code from Chaos2010, it uses
 
 > {-# LANGUAGE QuasiQuotes #-}
@@ -14,13 +16,15 @@ Prepend view definitions for a simplified catalog. This is the code from Chaos20
 > import Database.HsSqlPpp.Annotation
 > --import Database.HsSqlPpp.Utils.Here
 > --import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.Examples.Extensions.SQLCode
+> import Database.HsSqlPpp.SqlQuote
 
 > simplifiedCatalogSt :: [Statement]
 > simplifiedCatalogSt =
 >     [$sqlQuote|
+
 \begin{code}
 
+/*
 = Catalog
 
 Some new catalog views to use, supposed to be a bit more straight
@@ -191,6 +195,7 @@ create view object_orders as
 ;
 
 \end{code}
+
 >     |]
 
 > simplifiedCatalog :: [Statement] -> [Statement]

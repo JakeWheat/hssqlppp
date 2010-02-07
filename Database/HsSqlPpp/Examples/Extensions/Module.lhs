@@ -1,5 +1,7 @@
 Copyright 2010 Jake Wheat
 
+Currently, just some notes.
+
 Extension to implement a module system:
 
 create table modules (

@@ -2,7 +2,7 @@ Copyright 2010 Jake Wheat
 
 Extension to remove the boilerplate from adding tables with a single
 attribute and single row, a bit like a global variable in the
-database.
+database. Unfinished, needs the extended constraint system to be working
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes #-}
 >

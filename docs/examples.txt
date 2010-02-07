@@ -53,13 +53,16 @@ transforms. (Being able to do this was the original motivation for
 writing HsSqlPpp.)
 
 [CreateVarSimple](pandoc_source/Database/HsSqlPpp/Examples/Extensions/CreateVarSimple.lhs.html).
-Demonstration extension - should be easy to follow the code.
+Demonstration extension.
+
+[ExtendedConstraints](pandoc_source/Database/HsSqlPpp/Examples/Extensions/ExtendedConstraints.lhs.html).
+
+[Modules](pandoc_source/Database/HsSqlPpp/Examples/Extensions/Module.lhs.html).
+
+[ReadOnlyTables](pandoc_source/Database/HsSqlPpp/Examples/Extensions/ReadOnlyTables.lhs.html).
+
+[SimplifiedCatalog](pandoc_source/Database/HsSqlPpp/Examples/Extensions/SimplifiedCatalog.lhs.html).
+
+[TransitionConstraints](pandoc_source/Database/HsSqlPpp/Examples/Extensions/TransitionConstraints.lhs.html).
 
 [CreateVar](pandoc_source/Database/HsSqlPpp/Examples/Extensions/CreateVar.lhs.html)
-
-Coming soon:
-* modules
-* multirow, multitable constraint expressions
-* readonly tables
-* notify triggers
-* transition constraints

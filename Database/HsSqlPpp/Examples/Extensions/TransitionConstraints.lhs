@@ -7,9 +7,8 @@ a single tuple at a time from a single table. Separate functions
 to create a constraint for updates, inserts and deletes.
 
 I'm still not sure transition constraints like this are
-useful. Something better might be non transition constraints on
+useful. Something better might be regular constraints on
 temporal relations.
-
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables, TemplateHaskell #-}
 >
@@ -136,6 +135,7 @@ temporal relations.
 >               expr = either (error . show) id
 >                             $ parseExpression "" expressionText
 >           in [$sqlQuote|
+
 \begin{code}
 
       create function $(spliceFnName)() returns trigger as $a$
@@ -153,4 +153,5 @@ temporal relations.
         execute procedure $(spliceFnName)();
 
 \end{code}
+
 >                            |]

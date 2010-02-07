@@ -1,5 +1,7 @@
 Copyright 2010 Jake Wheat
 
+Partially working.
+
 Extended constraints
 ====================
 
@@ -248,6 +250,7 @@ accesses multiple rows from one table
 >     "ExtendedConstraints cardinality"
 >     extendedExtensions
 >     [$sqlQuote|
+
 \begin{code}
 
 create table test_table (
@@ -258,8 +261,10 @@ select create_assertion('test_table_count'
                        ,'(select count(*) from test_table) < 10');
 
 \end{code}
+
 >     |]
 >     [$sqlQuote|
+
 \begin{code}
 
 create table test_table (
@@ -287,6 +292,7 @@ create trigger test_table_constraint_trigger
   execute procedure test_table_constraint_trigger_operator();
 
 \end{code}
+
 >      |]
 
 double cardinality
@@ -300,6 +306,7 @@ accesses two tables
 >     "ExtendedConstraints double cardinality"
 >     extendedExtensions
 >     [$sqlQuote|
+
 \begin{code}
 
 create table test_table (
@@ -315,8 +322,10 @@ select create_assertion('test_tables_count'
                           (select count(*) from test_table1)) < 10');
 
 \end{code}
+
 >     |]
 >     [$sqlQuote|
+
 \begin{code}
 
 create table test_table (
@@ -363,6 +372,7 @@ create trigger test_table1_constraint_trigger
   execute procedure test_table1_constraint_trigger_operator();
 
 \end{code}
+
 >      |]
 
 simpleview
@@ -376,6 +386,7 @@ constraint on a view rather than a table
 >     "ExtendedConstraints simpleview"
 >     extendedExtensions
 >     [$sqlQuote|
+
 \begin{code}
 
 create table test_table (
@@ -389,8 +400,10 @@ select create_assertion('test_view_count'
                        ,'(select count(*) from test_view) < 10');
 
 \end{code}
+
 >     |]
 >     [$sqlQuote|
+
 \begin{code}
 
 create table test_table (
@@ -421,6 +434,7 @@ create trigger test_table_constraint_trigger
   execute procedure test_table_constraint_trigger_operator();
 
 \end{code}
+
 >      |]
 
 simpleFunction
@@ -434,6 +448,7 @@ constraint on the result of a function call
 >     "ExtendedConstraints simplefunction"
 >     extendedExtensions
 >     [$sqlQuote|
+
 \begin{code}
 
 create table test_table (
@@ -448,8 +463,10 @@ select create_assertion('test_function_count'
                        ,'test_table_count() < 10');
 
 \end{code}
+
 >     |]
 >     [$sqlQuote|
+
 \begin{code}
 
 create table test_table (
@@ -481,6 +498,7 @@ create trigger test_table_constraint_trigger
   execute procedure test_table_constraint_trigger_operator();
 
 \end{code}
+
 >      |]
 
 
@@ -495,6 +513,7 @@ create trigger test_table_constraint_trigger
 >                                     [StringLit _ _ name
 >                                     ,StringLit _ _ exprText]):tl ->
 >             [$sqlQuote|
+
 \begin{code}
 
 create function $(checkfn)() returns bool as $xxx$
@@ -504,6 +523,7 @@ end;
 $xxx$ language plpgsql stable;
 
 \end{code}
+
 >          |] ++ triggers ++ tl
 >             where
 >               checkfn = "check_con_" ++ name
@@ -518,6 +538,7 @@ $xxx$ language plpgsql stable;
 >                            let trigopname = t ++ "_constraint_trigger_operator"
 >                                trigname = t ++ "_constraint_trigger"
 >                            in [$sqlQuote|
+
 \begin{code}
 
 create function $(trigopname)() returns trigger as $xxx$
@@ -535,5 +556,6 @@ create trigger $(trigname)
   execute procedure $(trigopname)();
 
 \end{code}
+
 >                           |]
 >         x1 -> x1
