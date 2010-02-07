@@ -240,6 +240,7 @@ data Statement = AlterSequence (Annotation) (String) (String)
                | Update (Annotation) (String) (SetClauseList)
                         (MaybeBoolExpression) (MaybeSelectList)
                | WhileStatement (Annotation) (Expression) (StatementList)
+               | AntiStatement String
                deriving (Data, Eq, Show, Typeable)
  
 data TableAlias = FullAlias (String) (StringList)
@@ -438,6 +439,7 @@ statement x
                                    (maybeSelectList a5)
         WhileStatement a1 a2 a3 -> A.WhileStatement a1 (expression a2)
                                      (statementList a3)
+        AntiStatement s -> error "can't convert anti statement"
  
 selectExpression :: SelectExpression -> A.SelectExpression
 selectExpression x

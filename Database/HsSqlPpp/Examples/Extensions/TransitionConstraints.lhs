@@ -17,14 +17,10 @@ temporal relations.
 >     where
 >
 > import Data.Generics.Uniplate.Data
-> --import Language.Haskell.TH
-> --import Debug.Trace
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Utils.Here
-> --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 
@@ -32,13 +28,13 @@ temporal relations.
 > transitionConstraintExamples = [
 >    ExtensionTest "TransitionConstraint insert"
 >     transitionConstraint
->     [$here|
+>     [$sqlQuote|
 >
 >      select create_insert_transition_tuple_constraint(
 >         'relvar', 'relvar_insert', 'NEW.x>10');
 >
 >      |]
->     [$here|
+>     [$sqlQuote|
 >
 >      create function check_relvar_insert() returns trigger as $a$
 >      begin
@@ -57,13 +53,13 @@ temporal relations.
 >      |]
 >   ,ExtensionTest "TransitionConstraint update"
 >     transitionConstraint
->     [$here|
+>     [$sqlQuote|
 >
 >      select create_update_transition_tuple_constraint(
 >         'relvar', 'relvar_update', 'NEW.x=OLD.y');
 >
 >      |]
->     [$here|
+>     [$sqlQuote|
 >
 >      create function check_relvar_update() returns trigger as $a$
 >      begin
@@ -82,13 +78,13 @@ temporal relations.
 >      |]
 >   ,ExtensionTest "TransitionConstraint delete"
 >     transitionConstraint
->     [$here|
+>     [$sqlQuote|
 >
 >      select create_delete_transition_tuple_constraint(
 >         'relvar', 'relvar_delete', 'OLD.y > 0');
 >
 >      |]
->     [$here|
+>     [$sqlQuote|
 >
 >      create function check_relvar_delete() returns trigger as $a$
 >      begin

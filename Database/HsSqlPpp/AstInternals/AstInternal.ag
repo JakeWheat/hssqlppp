@@ -517,7 +517,6 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                                oper:String
                                flav:LiftFlavour
                                args:ExpressionList
-                -- | AntiExpression String
 
 DATA LiftFlavour | LiftAny | LiftAll
 

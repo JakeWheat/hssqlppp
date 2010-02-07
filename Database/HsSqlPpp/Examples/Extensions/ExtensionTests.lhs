@@ -11,7 +11,6 @@ Gather together the examples from the extension modules and convert to regular t
 > import Control.Monad
 > --import Debug.Trace
 >
-> import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Utils.Utils
 >
@@ -19,9 +18,11 @@ Gather together the examples from the extension modules and convert to regular t
 > import Database.HsSqlPpp.Examples.Extensions.CreateVarSimple
 > import Database.HsSqlPpp.Examples.Extensions.CreateVar
 > import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
+> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
 
 > testData :: [ExtensionTest]
 > testData = transitionConstraintExamples ++
+>            extendedConstraintExamples ++
 >            [createVarSimpleExample
 >            ,createVarExample
 >            ]
@@ -55,17 +56,9 @@ create table readonly_table ...
 > extensionTests = testGroup "extensionTests" $ map testExtension testData
 
 > testExtension :: ExtensionTest -> Test.Framework.Test
-> testExtension (ExtensionTest nm tr sql trSql) =
->   testCase nm $
->       case (do
->             sast <- parseSql "" sql
->             let esast = tr sast
->             tast <- parseSql "" trSql
->             return (tast,esast)) of
->         Left e -> assertFailure $ show e
->         Right (ts,es) -> do
->               let ts' = stripAnnotations ts
->                   es' = stripAnnotations es
->               when (ts' /= es')
->                    $ putStrLn $ ppExpr ts' ++ "\n\n" ++ ppExpr es'
->               assertEqual "" ts' es'
+> testExtension (ExtensionTest nm tr sast ts) =
+>   testCase nm $ do
+>     let ts' = stripAnnotations ts
+>         es' = stripAnnotations $ tr sast
+>     when (ts' /= es') $ putStrLn $ ppExpr ts' ++ "\n\n" ++ ppExpr es'
+>     assertEqual "" ts' es'

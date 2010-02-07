@@ -22,7 +22,7 @@ tree.
 > --import Database.HsSqlPpp.Utils.Utils
 >
 > nodesToAntificate :: [String]
-> nodesToAntificate = ["Expression", "TriggerEvent"]
+> nodesToAntificate = ["Expression", "TriggerEvent", "Statement"]
 >
 > makeAntiNodes :: IO String
 > makeAntiNodes = do

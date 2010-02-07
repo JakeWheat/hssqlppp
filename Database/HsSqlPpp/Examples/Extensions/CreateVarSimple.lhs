@@ -19,7 +19,6 @@ functions.
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 
@@ -40,10 +39,10 @@ supposed to do; it doubles as an automated test.
 >     createVarSimple
 >
 >     -- example of the SQL we want to replace
->     "select create_var('varname', 'vartype');"
+>     [$sqlQuote| select create_var('varname', 'vartype'); |]
 >
 >     -- what the example SQL should be transformed into:
->     [$here|
+>     [$sqlQuote|
 >
 >  create table varname_table (
 >      varname vartype

@@ -10,26 +10,13 @@ Some auxiliary code for use in writing extensions.
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.Utils.Utils
 
 Used for the examples/tests for each extensions.
 
 > data ExtensionTest = ExtensionTest String
 >                                    ([Statement] -> [Statement])
->                                    String
->                                    String
-
-Helper function for working with the templates.
-
-TODO: make this a quasi quote so that any parse errors are caught at
-compile time
-
-> readTemplate :: String -> [Statement]
-> readTemplate sql =
->     case parseSql "" sql of
->       Right ast -> ast
->       Left e -> error $ ppExpr e
+>                                    [Statement]
+>                                    [Statement]
 
 Simple ast transforms, just substitutes the strings given in the reps
 (replacements) lookup.

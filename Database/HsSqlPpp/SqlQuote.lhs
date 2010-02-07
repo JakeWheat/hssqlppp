@@ -34,8 +34,11 @@ Copyright 2010 Jake Wheat
 > import Language.Haskell.TH
 > import Data.Generics
 > import Data.List
+> import Control.Monad as M
+> import Debug.Trace
 >
 > import Database.HsSqlPpp.Parsing.ParserInternal
+> import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.AstInternals.AstAnti
 
 > sqlQuote :: QuasiQuoter
@@ -47,10 +50,14 @@ of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
 magically converts from one to the other ...
 
 > parseExprExp :: String -> Q Exp
-> parseExprExp s = parseSql' s >>= dataToExpQ (const Nothing
->                                             `extQ` antiExpE
->                                             `extQ` antiStrE
->                                             `extQ` antiTriggerEventE)
+> parseExprExp s = parseSql' s >>= exprise
+
+> exprise :: [Statement] -> Q Exp
+> exprise = dataToExpQ (const Nothing
+>                        `extQ` antiExpE
+>                        `extQ` antiStrE
+>                        `extQ` antiTriggerEventE
+>                        `extQ` antiStatementE)
 >
 > parseExprPat :: String -> Q Pat
 > parseExprPat s =  parseSql' s >>= dataToPatQ (const Nothing `extQ` antiExpP)
@@ -63,6 +70,22 @@ magically converts from one to the other ...
 > antiExpE :: Expression -> Maybe ExpQ
 > antiExpE (AntiExpression v) = Just $ varE $ mkName v
 > antiExpE _ = Nothing
+
+antistatements not working ...
+
+> antiStatementE :: [Statement] -> Maybe ExpQ
+> antiStatementE (AntiStatement v : tl) =
+>    Just (listE (vref : conArgs))
+>    where
+>      conArgs = gmapQ (dataToExpQ (const Nothing
+>                        `extQ` antiExpE
+>                        `extQ` antiStrE
+>                        `extQ` antiTriggerEventE
+>                        `extQ` antiStatementE)) tl
+>      vref :: ExpQ
+>      vref = varE $ mkName v
+> antiStatementE _ = Nothing
+
 
 > antiStrE :: String -> Maybe ExpQ
 > antiStrE v | isSpliceName v = Just $ varE $ mkName $ getSpliceName v

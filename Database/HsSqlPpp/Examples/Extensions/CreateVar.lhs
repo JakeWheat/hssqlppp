@@ -13,7 +13,6 @@ database.
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Annotation
@@ -22,8 +21,8 @@ database.
 > createVarExample = ExtensionTest
 >   "CreateVar"
 >   createVar
->   "select create_var('varname', 'vartype');"
->   [$here|
+>   [$sqlQuote| select create_var('varname', 'vartype'); |]
+>   [$sqlQuote|
 >
 >   create table varname_table (
 >     varname vartype

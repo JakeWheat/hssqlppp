@@ -129,7 +129,8 @@ Parsing top level statements
 > sqlStatement :: Bool -> ParsecT [Token] ParseState Identity Statement
 > sqlStatement reqSemi =
 >    (choice [
->      selectStatement
+>      antiStatement
+>     ,selectStatement
 >     ,insert
 >     ,update
 >     ,delete
@@ -687,6 +688,12 @@ variable declarations in a plpgsql function
 >                 choice [
 >                   EachRow <$ keyword "row"
 >                  ,EachStatement <$ keyword "statement"])
+
+anti statement
+--------------
+
+> antiStatement :: ParsecT [Token] ParseState Identity Statement
+> antiStatement = AntiStatement <$> splice
 
 --------------------------------------------------------------------------------
 
