@@ -501,7 +501,93 @@ create trigger test_table_constraint_trigger
 
 >      |]
 
+multiple constraints one table
+------------------------------
 
+check that adding multiple constraints on one table does the right thing
+
+accesses two tables
+
+> multiConstraint :: ExtensionTest
+> multiConstraint  =
+>   ExtensionTest
+>     "ExtendedConstraints double cardinality"
+>     extendedExtensions
+>     [$sqlQuote|
+
+\begin{code}
+
+create table test_table (
+   field text
+);
+
+create table test_table1 (
+   field text
+);
+
+select create_assertion('test_tables_count'
+                       ,'((select count(*) from test_table) +
+                          (select count(*) from test_table1)) < 10');
+
+\end{code}
+
+>     |]
+>     [$sqlQuote|
+
+\begin{code}
+
+create table test_table (
+   field text
+);
+
+create table test_table1 (
+   field text
+);
+
+create function check_con_test_tables_count() returns bool as $xxx$
+begin
+  return ((select count(*) from test_table) +
+          (select count(*) from test_table1)) < 10;
+end;
+$xxx$ language plpgsql stable;
+
+create function test_table_constraint_trigger_operator() returns trigger as $xxx$
+begin
+  if not check_con_test_tables_count() then
+    raise exception 'update violates database constraint test_tables_count';
+  end if;
+  return OLD;
+end;
+$xxx$ language plpgsql stable;
+
+create trigger test_table_constraint_trigger
+  after insert or update or delete on test_table
+  for each statement
+  execute procedure test_table_constraint_trigger_operator();
+
+create function test_table1_constraint_trigger_operator() returns trigger as $xxx$
+begin
+  if not check_con_test_tables_count() then
+    raise exception 'update violates database constraint test_tables_count';
+  end if;
+  return OLD;
+end;
+$xxx$ language plpgsql stable;
+
+create trigger test_table1_constraint_trigger
+  after insert or update or delete on test_table1
+  for each statement
+  execute procedure test_table1_constraint_trigger_operator();
+
+\end{code}
+
+>      |]
+
+
+-------------------------------------------
+
+implementation
+==============
 
 > extendedExtensions :: [Statement] -> [Statement]
 > extendedExtensions ast =

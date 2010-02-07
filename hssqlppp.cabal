@@ -13,7 +13,7 @@ homepage:            https://launchpad.net/hssqlppp
 bug-reports:         mailto:jakewheatmail@gmail.com
 category:            Database
 Description:
-    SQL parser, and type checker, targets PostgreSQL SQL
+    SQL parser, quasiquoter, and type checker, targets PostgreSQL SQL
     and PL/pgSQL.
     .
     Quick module guide:
@@ -23,7 +23,7 @@ Description:
     'Ast' - ast types;
     .
     'Catalog' - read a catalog from a database to type check against,
-    or to generate catalog information.
+    or to generate catalog information;
     .
     'Parser' - converting strings to asts;
     .
@@ -35,80 +35,62 @@ Description:
     'SqlQuote' - quasiquote support for SQL;
     .
     'TypeChecker' - type checking and annotating asts and working
-    with annotated trees;
+    with annotated trees.
+
 extra-source-files:  README
                      LICENSE
-                     --find Database/ -iname '*hs' -o -iname '*ag'
-                     Database/HsSqlPpp/DocumentationTools/MakeWebsite.lhs
-                     Database/HsSqlPpp/Ast.lhs
-                     Database/HsSqlPpp/Annotation.lhs
-                     Database/HsSqlPpp/Utils/Utils.lhs
-                     Database/HsSqlPpp/Utils/MakeAntiNodes.lhs
-                     Database/HsSqlPpp/Utils/Here.lhs
-                     Database/HsSqlPpp/Utils/DbmsCommon.lhs
-                     Database/HsSqlPpp/AstInternals/AnnotationUtils.lhs
-                     Database/HsSqlPpp/AstInternals/AstAnti.hs
-                     Database/HsSqlPpp/AstInternals/AstAnnotation.lhs
-                     Database/HsSqlPpp/AstInternals/AstInternal.hs
-                     Database/HsSqlPpp/AstInternals/Catalog/ShortDefaultTemplate1Catalog.lhs
-                     Database/HsSqlPpp/AstInternals/Catalog/CatalogInternal.lhs
-                     Database/HsSqlPpp/AstInternals/Catalog/CatalogReader.lhs
-                     Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs
-                     Database/HsSqlPpp/AstInternals/AstInternal.ag
-                     Database/HsSqlPpp/AstInternals/TypeType.lhs
-                     Database/HsSqlPpp/AstInternals/TypeChecking/Triggers.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/Dml.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/SelectStatement.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/TypeConversion.lhs
-                     Database/HsSqlPpp/AstInternals/TypeChecking/TableRefs.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/TypeChecking.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/LocalBindings.lhs
-                     Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/LocalBindingsInternal.lhs
-                     Database/HsSqlPpp/AstInternals/TypeChecking/ErrorUtils.lhs
-                     Database/HsSqlPpp/AstInternals/TypeChecking/CreateTable.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/CreateFunction.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/SelectLists.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/Expressions.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/Drops.ag
-                     Database/HsSqlPpp/AstInternals/TypeChecking/MiscCreates.ag
-                     Database/HsSqlPpp/Examples/MakeLabels.hs
-                     Database/HsSqlPpp/Examples/DatabaseLoader.lhs
-                     Database/HsSqlPpp/Examples/DBAccess3.lhs
-                     Database/HsSqlPpp/Examples/DBAccess2.lhs
-                     Database/HsSqlPpp/Examples/WrapLib.lhs
-                     Database/HsSqlPpp/Examples/AnnotateSource.lhs
-                     Database/HsSqlPpp/Examples/Extensions/ExtendedConstraints.lhs
-                     Database/HsSqlPpp/Examples/Extensions/ExtensionTests.lhs
-                     Database/HsSqlPpp/Examples/Extensions/TransitionConstraints.lhs
-                     Database/HsSqlPpp/Examples/Extensions/ReadOnlyTables.lhs
-                     Database/HsSqlPpp/Examples/Extensions/Module.lhs
-                     Database/HsSqlPpp/Examples/Extensions/CreateVar.lhs
-                     Database/HsSqlPpp/Examples/Extensions/CreateVarSimple.lhs
-                     Database/HsSqlPpp/Examples/Extensions/ExtensionsUtils.lhs
-                     Database/HsSqlPpp/Examples/Extensions/SimplifiedCatalog.lhs
-                     Database/HsSqlPpp/Examples/WrapperGen.lhs
-                     Database/HsSqlPpp/Examples/DBUtils.lhs
-                     Database/HsSqlPpp/Examples/ChaosExtensions.lhs
-                     Database/HsSqlPpp/Tests/ExtensionTests.lhs
-                     Database/HsSqlPpp/Tests/LocalBindingsTests.lhs
-                     Database/HsSqlPpp/Tests/ParserTests.lhs
-                     Database/HsSqlPpp/Tests/RoundtripTests.lhs
-                     Database/HsSqlPpp/Tests/TypeCheckTests.lhs
-                     Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs
-                     Database/HsSqlPpp/Tests/Tests.lhs
-                     Database/HsSqlPpp/Parser.lhs
-                     Database/HsSqlPpp/Catalog.lhs
-                     Database/HsSqlPpp/PrettyPrinter.lhs
-                     Database/HsSqlPpp/SqlTypes.lhs
-                     Database/HsSqlPpp/SqlQuote.lhs
-                     Database/HsSqlPpp/Parsing/Lexer.lhs
-                     Database/HsSqlPpp/Parsing/ParseErrors.lhs
-                     Database/HsSqlPpp/Parsing/ParserInternal.lhs
-                     Database/HsSqlPpp/TypeChecker.lhs
+                     --find src/ -iname '*ag'
+                     src/Database/HsSqlPpp/AstInternals/AstInternal.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Triggers.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/SelectStatement.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/TableRefs.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/TypeChecking.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/CreateTable.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/CreateFunction.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/SelectLists.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Expressions.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Drops.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/MiscCreates.ag
+                     --find examples/ -iname '*hs'
+                     examples/Database/HsSqlPpp/DevelTools/MakeAntiNodes.lhs
+                     examples/Database/HsSqlPpp/DevelTools/MakeWebsite.lhs
+                     examples/Database/HsSqlPpp/Utils/Here.lhs
+                     examples/Database/HsSqlPpp/Examples/MakeLabels.hs
+                     examples/Database/HsSqlPpp/Examples/DatabaseLoader.lhs
+                     examples/Database/HsSqlPpp/Examples/DBAccess3.lhs
+                     examples/Database/HsSqlPpp/Examples/DBAccess2.lhs
+                     examples/Database/HsSqlPpp/Examples/WrapLib.lhs
+                     examples/Database/HsSqlPpp/Examples/AnnotateSource.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/ExtendedConstraints.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/ExtensionTests.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/TransitionConstraints.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/ReadOnlyTables.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/InsertAlternativeSyntax.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/Module.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/CreateVar.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/CreateVarSimple.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/ExtensionsUtils.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/SimplifiedCatalog.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/AstUtils.lhs
+                     examples/Database/HsSqlPpp/Examples/WrapperGen.lhs
+                     examples/Database/HsSqlPpp/Examples/DBUtils.lhs
+                     examples/Database/HsSqlPpp/Examples/ChaosExtensions.lhs
+                     examples/Database/HsSqlPpp/Tests/ExtensionTests.lhs
+                     examples/Database/HsSqlPpp/Tests/LocalBindingsTests.lhs
+                     examples/Database/HsSqlPpp/Tests/ParserTests.lhs
+                     examples/Database/HsSqlPpp/Tests/RoundtripTests.lhs
+                     examples/Database/HsSqlPpp/Tests/TypeCheckTests.lhs
+                     examples/Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs
+                     examples/Database/HsSqlPpp/Tests/Tests.lhs
+                     examples/HsSqlSystem.lhs
 
+Flag executable
+  Description:       Build the HsSqlSystem testing executable.
+  Default:           False
 
 source-repository head
   type:     bzr
@@ -126,6 +108,8 @@ Library
                      HDBC-postgresql,
                      haskell-src-exts,
                      template-haskell
+
+  hs-source-dirs:    src
 
   Exposed-modules:   Database.HsSqlPpp.Ast
                      Database.HsSqlPpp.Annotation
@@ -153,6 +137,45 @@ Library
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParseErrors
                      Database.HsSqlPpp.Parsing.ParserInternal
+
+  extensions:        DeriveDataTypeable,
+                     RankNTypes,
+                     ScopedTypeVariables,
+                     FlexibleContexts,
+                     ExistentialQuantification
+
+Executable HsSqlSystem
+  Main-Is:           HsSqlSystem.lhs
+  hs-source-dirs:    src,examples
+  Build-Depends:     base >= 4 && < 5,
+                     mtl,
+                     containers,
+                     parsec >= 3,
+                     pretty,
+                     syb,
+                     uniplate,
+                     HDBC,
+                     HDBC-postgresql,
+                     haskell-src-exts,
+                     template-haskell,
+                     test-framework-hunit,
+                     test-framework,
+                     HUnit,
+                     xhtml,
+                     highlighting-kate,
+                     filepath,
+                     FileManip,
+                     process,
+                     pandoc,
+                     directory,
+                     Pipe,
+                     haskell98,
+                     cmdargs
+
+  if flag(executable)
+    Buildable:       True
+  else
+    Buildable:       False
 
   extensions:        DeriveDataTypeable,
                      RankNTypes,

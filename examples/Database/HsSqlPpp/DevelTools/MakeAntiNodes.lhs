@@ -8,7 +8,7 @@ Then, generate a transform which takes the new nodes and converts them
 to the original nodes, returning an error if an antinodes are in the
 tree.
 
-> module Database.HsSqlPpp.Utils.MakeAntiNodes
+> module Database.HsSqlPpp.DevelTools.MakeAntiNodes
 >     (makeAntiNodes) where
 >
 > import Language.Haskell.Exts hiding (String)

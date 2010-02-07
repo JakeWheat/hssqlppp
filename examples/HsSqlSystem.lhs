@@ -37,8 +37,8 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Examples.DBUtils
 >
 > import Database.HsSqlPpp.Examples.ChaosExtensions
-> import Database.HsSqlPpp.DocumentationTools.MakeWebsite
-> import Database.HsSqlPpp.Utils.MakeAntiNodes
+> import Database.HsSqlPpp.DevelTools.MakeWebsite
+> import Database.HsSqlPpp.DevelTools.MakeAntiNodes
 
 -------------------------------------------------------------------------------
 

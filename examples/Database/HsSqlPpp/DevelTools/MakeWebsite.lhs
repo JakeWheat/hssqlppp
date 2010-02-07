@@ -5,7 +5,7 @@ the website.
 
 > {-# LANGUAGE QuasiQuotes #-}
 
-> module Database.HsSqlPpp.DocumentationTools.MakeWebsite
+> module Database.HsSqlPpp.DevelTools.MakeWebsite
 >     (makeWebsite) where
 
 > import Data.Char
@@ -56,15 +56,15 @@ the website.
 
 > moveDTCOut :: IO()
 > moveDTCOut = do
->   renameFile "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
->              "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs.moved"
->   copyFile "Database/HsSqlPpp/AstInternals/Catalog/ShortDefaultTemplate1Catalog.lhs"
->            "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
+>   renameFile "src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
+>              "src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs.moved"
+>   copyFile "src/Database/HsSqlPpp/AstInternals/Catalog/ShortDefaultTemplate1Catalog.lhs"
+>            "src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
 
 > moveDTCBack :: IO ()
 > moveDTCBack = do
->   renameFile "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs.moved"
->              "Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
+>   renameFile "src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs.moved"
+>              "src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
 
 -------------------------------------------------------------------------------
 
@@ -88,8 +88,9 @@ the website.
 >              then plhs fn target
 >              else phs fn target
 >     sourceFiles = do
->       l <- find always sourceFileP "Database"
->       return $ "HsSqlSystem.lhs" : l
+>       l <- find always sourceFileP "examples/"
+>       l1 <- find always sourceFileP "src/"
+>       return $ l ++ l1
 >     sourceFileP = extension ==? ".hs" ||? extension ==? ".lhs"
 >                     ||? extension ==? ".ag"
 >                     ||? extension ==? ".lag"

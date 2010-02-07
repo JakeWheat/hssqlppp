@@ -6,3 +6,5 @@ resetchaos.sh
 dist
 docs/build
 website
+junk
+examples/HsSqlSystem
