@@ -1,8 +1,38 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-module Database.HsSqlPpp.AstInternals.AstAnti where
+module Database.HsSqlPpp.AstInternals.AstAnti
+       (convertStatements, convertExpression, Statement(..),
+        SelectExpression(..), FnBody(..), SetClause(..), TableRef(..),
+        TableAlias(..), JoinExpression(..), JoinType(..), SelectList(..),
+        SelectItem(..), CopySource(..), AttributeDef(..),
+        RowConstraint(..), AlterTableAction(..), Constraint(..),
+        TypeAttributeDef(..), ParamDef(..), VarDef(..), RaiseType(..),
+        CombineType(..), Volatility(..), Language(..), TypeName(..),
+        DropType(..), Cascade(..), Direction(..), Distinct(..),
+        Natural(..), IfExists(..), RestartIdentity(..), Expression(..),
+        FrameClause(..), InList(..), LiftFlavour(..), TriggerWhen(..),
+        TriggerEvent(..), TriggerFire(..), SetValue(..), StatementList,
+        ExpressionListStatementListPairList,
+        ExpressionListStatementListPair, ExpressionList, StringList,
+        ParamDefList, AttributeDefList, ConstraintList,
+        TypeAttributeDefList, TypeNameList, StringTypeNameListPair,
+        StringTypeNameListPairList, ExpressionStatementListPairList,
+        SetClauseList, CaseExpressionListExpressionPairList,
+        MaybeExpression, TableRefList, ExpressionListList, SelectItemList,
+        OnExpr, RowConstraintList, VarDefList, ExpressionStatementListPair,
+        CaseExpressionListExpressionPair, CaseExpressionList,
+        ExpressionDirectionPair, ExpressionDirectionPairList,
+        MaybeBoolExpression, MaybeSelectList, AlterTableActionList,
+        TriggerEventList, SetValueList)
+       where
 import Data.Generics
 import Database.HsSqlPpp.AstInternals.AstAnnotation
 import qualified Database.HsSqlPpp.AstInternals.AstInternal as A
+ 
+convertStatements :: [Statement] -> [A.Statement]
+convertStatements = statementList
+ 
+convertExpression :: Expression -> A.Expression
+convertExpression = expression
  
 data AlterTableAction = AddConstraint (Annotation) (Constraint)
                       | AlterColumnDefault (Annotation) (String) (Expression)
@@ -48,8 +78,7 @@ data DropType = Domain
               | View
               deriving (Data, Eq, Show, Typeable)
  
-data Expression = AntiExpression (String)
-                | BooleanLit (Annotation) (Bool)
+data Expression = BooleanLit (Annotation) (Bool)
                 | Case (Annotation) (CaseExpressionListExpressionPairList)
                        (MaybeExpression)
                 | CaseSimple (Annotation) (Expression)
@@ -637,7 +666,6 @@ restartIdentity x
 expression :: Expression -> A.Expression
 expression x
   = case x of
-        AntiExpression a1 -> A.AntiExpression a1
         BooleanLit a1 a2 -> A.BooleanLit a1 a2
         Case a1 a2 a3 -> A.Case a1
                            (caseExpressionListExpressionPairList a2)

@@ -1,26 +1,54 @@
+Copyright 2010 Jake Wheat
+
 > {-# LANGUAGE TemplateHaskell #-}
 >
-> module Database.HsSqlPpp.Examples.Extensions.SQLCode
+> {- | A quasiquoter for SQL.
+>
+>    Example:
+>
+> >
+> > {-# LANGUAGE QuasiQuotes #-}
+> > import Database.HsSqlPpp.Ast
+> > import Database.HsSqlPpp.SqlQuote
+> > import Database.HsSqlPpp.Annotation
+> >
+> > test :: [Statement]
+> > test = [$sqlQuote|
+> >
+> >   create table $(tablename) (
+> >    $(varname) $(typename)
+> >   );
+> >
+> >         |]
+> >   where
+> >     tablename = "my_table"
+> >     varname = "my_field"
+> >     typename = "text"
+> >
+>
+>      -}
+> module Database.HsSqlPpp.SqlQuote
 >     (sqlQuote) where
 >
 > import Language.Haskell.TH.Quote
 > import Language.Haskell.TH
 > import Data.Generics
-> --import Debug.Trace
 > import Data.List
 >
 > import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.Ast
-> --import Database.HsSqlPpp.Utils.Utils
-
-quasiquoter for sql syntax
+> import Database.HsSqlPpp.AstInternals.AstAnti
 
 > sqlQuote :: QuasiQuoter
 > sqlQuote = QuasiQuoter parseExprExp parseExprPat
->
+
+these badboys return asts of from the module
+Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result
+of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
+magically converts from one to the other ...
+
 > parseExprExp :: String -> Q Exp
 > parseExprExp s = parseSql' s >>= dataToExpQ (const Nothing `extQ` antiExpE
->                                                        `extQ` antiStrE)
+>                                                            `extQ` antiStrE)
 >
 > parseExprPat :: String -> Q Pat
 > parseExprPat s =  parseSql' s >>= dataToPatQ (const Nothing `extQ` antiExpP)
@@ -28,9 +56,7 @@ quasiquoter for sql syntax
 > parseSql' :: String -> Q [Statement]
 > parseSql' s = do
 >     Loc fn _ _ (l,c) _ <- location
->     either (fail . show) return (parseSqlWithPosition fn l c s)
-
-attempt to support antiquotes
+>     either (fail . show) return (parseSqlWithPositionAnti fn l c s)
 
 > antiExpE :: Expression -> Maybe ExpQ
 > antiExpE (AntiExpression v) = Just $ varE $ mkName v
@@ -43,7 +69,6 @@ attempt to support antiquotes
 >                                                  && last x == ')'
 >                                 getSpliceName x = drop 2 $ take (length x - 1) x
 > antiStrE _ = Nothing
-
 
 > antiExpP :: Expression -> Maybe PatQ
 > antiExpP (AntiExpression v ) = Just $ varP $ mkName v

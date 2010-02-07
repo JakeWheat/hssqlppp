@@ -1,6 +1,6 @@
 Name:                hssqlppp
 Version:             0.3.0
-Synopsis:            SQL parser and type checker
+Synopsis:            SQL parser, quasiquoter, and type checker
 License:             BSD3
 License-file:        LICENSE
 Author:              Jake Wheat
@@ -32,6 +32,8 @@ Description:
     'SqlTypes' - the data types which represent SQL types, the data
     type for type errors, and some support functions;
     .
+    'SqlQuote' - quasiquote support for SQL;
+    .
     'TypeChecker' - type checking and annotating asts and working
     with annotated trees;
 extra-source-files:  README
@@ -41,9 +43,11 @@ extra-source-files:  README
                      Database/HsSqlPpp/Ast.lhs
                      Database/HsSqlPpp/Annotation.lhs
                      Database/HsSqlPpp/Utils/Utils.lhs
+                     Database/HsSqlPpp/Utils/MakeAntiNodes.lhs
                      Database/HsSqlPpp/Utils/Here.lhs
                      Database/HsSqlPpp/Utils/DbmsCommon.lhs
                      Database/HsSqlPpp/AstInternals/AnnotationUtils.lhs
+                     Database/HsSqlPpp/AstInternals/AstAnti.hs
                      Database/HsSqlPpp/AstInternals/AstAnnotation.lhs
                      Database/HsSqlPpp/AstInternals/AstInternal.hs
                      Database/HsSqlPpp/AstInternals/Catalog/ShortDefaultTemplate1Catalog.lhs
@@ -76,13 +80,21 @@ extra-source-files:  README
                      Database/HsSqlPpp/Examples/DBAccess2.lhs
                      Database/HsSqlPpp/Examples/WrapLib.lhs
                      Database/HsSqlPpp/Examples/AnnotateSource.lhs
+                     Database/HsSqlPpp/Examples/Extensions/ExtendedConstraints.lhs
+                     Database/HsSqlPpp/Examples/Extensions/ExtensionTests.lhs
+                     Database/HsSqlPpp/Examples/Extensions/TransitionConstraints.lhs
+                     Database/HsSqlPpp/Examples/Extensions/ReadOnlyTables.lhs
+                     Database/HsSqlPpp/Examples/Extensions/Module.lhs
+                     Database/HsSqlPpp/Examples/Extensions/CreateVar.lhs
+                     Database/HsSqlPpp/Examples/Extensions/CreateVarSimple.lhs
+                     Database/HsSqlPpp/Examples/Extensions/ExtensionsUtils.lhs
+                     Database/HsSqlPpp/Examples/Extensions/SimplifiedCatalog.lhs
                      Database/HsSqlPpp/Examples/WrapperGen.lhs
                      Database/HsSqlPpp/Examples/DBUtils.lhs
                      Database/HsSqlPpp/Examples/ChaosExtensions.lhs
                      Database/HsSqlPpp/Tests/ExtensionTests.lhs
                      Database/HsSqlPpp/Tests/LocalBindingsTests.lhs
                      Database/HsSqlPpp/Tests/ParserTests.lhs
-                     Database/HsSqlPpp/Tests/ParseQuickcheck.lhs
                      Database/HsSqlPpp/Tests/RoundtripTests.lhs
                      Database/HsSqlPpp/Tests/TypeCheckTests.lhs
                      Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs
@@ -91,9 +103,11 @@ extra-source-files:  README
                      Database/HsSqlPpp/Catalog.lhs
                      Database/HsSqlPpp/PrettyPrinter.lhs
                      Database/HsSqlPpp/SqlTypes.lhs
+                     Database/HsSqlPpp/SqlQuote.lhs
                      Database/HsSqlPpp/Parsing/Lexer.lhs
                      Database/HsSqlPpp/Parsing/ParseErrors.lhs
                      Database/HsSqlPpp/TypeChecker.lhs
+
 
 source-repository head
   type:     bzr
@@ -109,7 +123,8 @@ Library
                      uniplate,
                      HDBC,
                      HDBC-postgresql,
-                     haskell-src-exts
+                     haskell-src-exts,
+                     template-haskell
 
   Exposed-modules:   Database.HsSqlPpp.Ast
                      Database.HsSqlPpp.Annotation
@@ -117,12 +132,14 @@ Library
                      Database.HsSqlPpp.Parser
                      Database.HsSqlPpp.PrettyPrinter
                      Database.HsSqlPpp.SqlTypes
+                     Database.HsSqlPpp.SqlQuote
                      Database.HsSqlPpp.TypeChecker
 
   Other-Modules:     Database.HsSqlPpp.Utils.Utils
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstAnnotation
                      Database.HsSqlPpp.AstInternals.AstInternal
+                     Database.HsSqlPpp.AstInternals.AstAnti
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
                      Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog

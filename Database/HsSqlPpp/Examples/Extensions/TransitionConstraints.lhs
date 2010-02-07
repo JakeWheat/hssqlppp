@@ -26,7 +26,7 @@ temporal relations.
 > import Database.HsSqlPpp.Utils.Here
 > --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.Examples.Extensions.SQLCode
+> import Database.HsSqlPpp.SqlQuote
 
 > transitionConstraintExamples :: [ExtensionTest]
 > transitionConstraintExamples = [

@@ -25,19 +25,184 @@ tree.
 > makeAntiNodes :: IO String
 > makeAntiNodes = do
 >   ast <- pf "Database/HsSqlPpp/AstInternals/AstInternal.hs"
->   --ast1 <- pf "Database/HsSqlPpp/AstInternals/AstAnti.hs"
->   --trace (ppExpr ast1) $ return ()
+>   ast1 <- pf "Database/HsSqlPpp/AstInternals/AstAnti.hs"
+>   trace (ppExpr ast1) $ return ()
 >   let tyNs = getExportedTypeNames ast
 >       ds = getDeclarations ast tyNs
 >       tm = map (\d -> (extractName d, d)) ds
 >       lts = getListTypes ds
 >       convs = concatMap (\n -> [makeTypeSig n, makeConvertor tm lts n]) tyNs
->   return $ prettyPrint $ makeModule (ds ++ convs)  -- ppExpr tyNs
+>   return $ prettyPrint $ makeModule (exports ast) (wrappers ++ ds ++ convs)  -- ppExpr tyNs
 >   --return $ ppExpr ast
 >   where
 >     extractName (DataDecl _ _ _ (Ident n) _ _ _) = n
 >     extractName (TypeDecl _ (Ident n) _ _) = n
 >     extractName a = error $ "extractName" ++ show a
+>     exports ast = [EVar (UnQual (Ident "convertStatements")),
+>                    EVar (UnQual (Ident "convertExpression"))] ++
+>                   [ex| ex@(EThingAll _) <- universeBi ast] ++
+>                   [ex| ex@(EAbs _) <- universeBi ast]
+
+> wrappers :: [Decl]
+> wrappers =
+>   [TypeSig
+>      (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+>              srcLine = 31, srcColumn = 1})
+>      [Ident "convertStatements"]
+>      (TyFun (TyList (TyCon (UnQual (Ident "Statement"))))
+>         (TyList (TyCon (Qual (ModuleName "A") (Ident "Statement"))))),
+>    PatBind
+>      (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+>              srcLine = 32, srcColumn = 1})
+>      (PVar (Ident "convertStatements"))
+>      Nothing
+>      (UnGuardedRhs (Var (UnQual (Ident "statementList"))))
+>      (BDecls []),
+>    TypeSig
+>      (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+>              srcLine = 34, srcColumn = 1})
+>      [Ident "convertExpression"]
+>      (TyFun (TyCon (UnQual (Ident "Expression")))
+>         (TyCon (Qual (ModuleName "A") (Ident "Expression")))),
+>    PatBind
+>      (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+>              srcLine = 35, srcColumn = 1})
+>      (PVar (Ident "convertExpression"))
+>      Nothing
+>      (UnGuardedRhs (Var (UnQual (Ident "expression"))))
+>      (BDecls [])]
+
+
+
+
+
+[DataDecl
+     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+             srcLine = 32, srcColumn = 1})
+     DataType
+     []
+     (Ident "Cascade")
+     []
+     [QualConDecl
+        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                srcLine = 32, srcColumn = 16})
+        []
+        []
+        (ConDecl (Ident "Cascade") []),
+      QualConDecl
+        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                srcLine = 33, srcColumn = 16})
+        []
+        []
+        (ConDecl (Ident "Restrict") []),
+      QualConDecl
+        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                srcLine = 34, srcColumn = 16})
+        []
+        []
+        (ConDecl (Ident "AntiCascade")
+           [UnBangedTy (TyCon (UnQual (Ident "String")))])]
+     [(UnQual (Ident "Data"), []), (UnQual (Ident "Eq"), []),
+      (UnQual (Ident "Show"), []), (UnQual (Ident "Typeable"), [])],
+   TypeSig
+     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+             srcLine = 37, srcColumn = 1})
+     [Ident "cascade"]
+     (TyFun (TyCon (UnQual (Ident "Cascade")))
+        (TyCon (Qual (ModuleName "A") (Ident "Cascade")))),
+   FunBind
+     [Match
+        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                srcLine = 38, srcColumn = 1})
+        (Ident "cascade")
+        [PVar (Ident "x")]
+        Nothing
+        (UnGuardedRhs
+           (Case (Var (UnQual (Ident "x")))
+              [Alt
+                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                         srcLine = 40, srcColumn = 9})
+                 (PApp (UnQual (Ident "Cascade")) [])
+                 (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Cascade"))))
+                 (BDecls []),
+               Alt
+                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                         srcLine = 41, srcColumn = 9})
+                 (PApp (UnQual (Ident "Restrict")) [])
+                 (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Restrict"))))
+                 (BDecls []),
+               Alt
+                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                         srcLine = 42, srcColumn = 9})
+                 (PApp (UnQual (Ident "AntiCascade")) [PVar (Ident "s")])
+                 (UnGuardedAlt
+                    (App (Var (UnQual (Ident "error")))
+                       (Lit (String "can't convert anti cascade"))))
+                 (BDecls [])]))
+        (BDecls [])],
+
+
+ [DataDecl
+     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+             srcLine = 32, srcColumn = 1})
+     DataType
+     []
+     (Ident "Cascade")
+     []
+     [QualConDecl
+        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                srcLine = 32, srcColumn = 16})
+        []
+        []
+        (ConDecl (Ident "Cascade") []),
+      QualConDecl
+        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                srcLine = 33, srcColumn = 16})
+        []
+        []
+        (ConDecl (Ident "Restrict") [])]
+     [(UnQual (Ident "Data"), []), (UnQual (Ident "Eq"), []),
+      (UnQual (Ident "Show"), []), (UnQual (Ident "Typeable"), [])],
+   TypeSig
+     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+             srcLine = 36, srcColumn = 1})
+     [Ident "cascade"]
+     (TyFun (TyCon (UnQual (Ident "Cascade")))
+        (TyCon (Qual (ModuleName "A") (Ident "Cascade")))),
+   FunBind
+     [Match
+        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                srcLine = 37, srcColumn = 1})
+        (Ident "cascade")
+        [PVar (Ident "x")]
+        Nothing
+        (UnGuardedRhs
+           (Case (Var (UnQual (Ident "x")))
+              [Alt
+                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                         srcLine = 39, srcColumn = 9})
+                 (PApp (UnQual (Ident "Cascade")) [])
+                 (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Cascade"))))
+                 (BDecls []),
+               Alt
+                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                         srcLine = 40, srcColumn = 9})
+                 (PApp (UnQual (Ident "Restrict")) [])
+                 (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Restrict"))))
+                 (BDecls [])]))
+        (BDecls [])],
+
+
+
+
+
+
+
+
+
+      EThingAll (UnQual (Ident "TriggerFire")),
+      EAbs (UnQual (Ident "StatementList")),
+
 
      (SrcLoc{srcFilename =
                "Database/HsSqlPpp/AstInternals/AstInternal.hs",
@@ -62,13 +227,13 @@ TypeDecl
 >         ParseOk ast -> return ast
 >         e -> error $ show e
 
-> makeModule :: [Decl] -> Module
-> makeModule ds =
+> makeModule :: [ExportSpec] -> [Decl] -> Module
+> makeModule es ds =
 >     Module nsrc
 >         (ModuleName "Database.HsSqlPpp.AstInternals.AstAnti")
 >         [LanguagePragma nsrc
 >          [Ident "DeriveDataTypeable"]]
->         Nothing Nothing
+>         Nothing (Just es)
 >         [ImportDecl{importLoc = nsrc,
 >                     importModule = ModuleName "Data.Generics",
 >                     importQualified = False,
@@ -280,7 +445,7 @@ FunBind
 >       Nothing -> let d = fromJust $ lookup t tns
 >                  in case (isPair d, isMaybe d) of
 >                       (Just (p1,p2), _) -> makePair ts t p1 p2
->                       (_, Just t1) -> makeMaybe ts t t1 d
+>                       (_, Just t1) -> makeMaybe t t1
 >                       _ -> makeCase ts (t,d)
 >     where
 >       makeLc tb t1 =
@@ -332,8 +497,8 @@ FunBind
 >            (TyParen (TyCon (UnQual (Ident t1))))))) = Just t1
 > isMaybe _ = Nothing
 
-> makeMaybe :: [String] -> String -> String -> Decl -> Decl
-> makeMaybe ts t t1 d =
+> makeMaybe :: String -> String -> Decl
+> makeMaybe t t1 =
 >   PatBind nsrc
 >      (PVar (Ident $ lowerFirst t))
 >      Nothing
@@ -356,13 +521,13 @@ FunBind
            (TyParen (TyCon (UnQual (Ident "Expression")))))),
 
 
-> makeUndefined :: String -> Decl
+> {-makeUndefined :: String -> Decl
 > makeUndefined s =
 >   PatBind nsrc
 >           (PVar (Ident $ lowerFirst s))
 >           Nothing
 >           (UnGuardedRhs (Var (UnQual (Ident "undefined"))))
->           (BDecls [])
+>           (BDecls [])-}
 
 > makeCase :: [String] -> (String,Decl) -> Decl
 > makeCase ts (f, d) =

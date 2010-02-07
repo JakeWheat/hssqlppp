@@ -21,7 +21,7 @@ functions.
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.Examples.Extensions.SQLCode
+> import Database.HsSqlPpp.SqlQuote
 
 Example/ Test
 -------------

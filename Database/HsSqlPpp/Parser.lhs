@@ -16,6 +16,8 @@ right choice, but it seems to do the job pretty well at the moment.
 >              ,parsePlpgsql
 >              -- * errors
 >              ,ParseErrorExtra(..)
+>              -- * quasiquotation support
+>              ,parseSqlWithPositionAnti
 >              )
 >     where
 >
@@ -35,7 +37,9 @@ right choice, but it seems to do the job pretty well at the moment.
 >
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parsing.ParseErrors
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.AstInternals.AstAnti
+> --import Database.HsSqlPpp.Ast
+> import qualified Database.HsSqlPpp.Ast as A
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Catalog
@@ -47,30 +51,36 @@ Top level parsing functions
 
 > parseSql :: String -- ^ filename to use in errors
 >          -> String -- ^ a string containing the sql to parse
->          -> Either ParseErrorExtra StatementList
-> parseSql f s = parseIt (lexSqlText f s) sqlStatements f Nothing s startState
+>          -> Either ParseErrorExtra A.StatementList
+> parseSql f s = deAS $ parseIt (lexSqlText f s) sqlStatements f Nothing s startState
 >
 > parseSqlWithPosition :: FilePath -- ^ filename to use in errors
 >                      -> Int -- ^ adjust line number in errors by adding this
 >                      -> Int -- ^ adjust column in errors by adding this
 >                      -> String -- ^ a string containing the sql to parse
->                      -> Either ParseErrorExtra StatementList
-> parseSqlWithPosition f l c s = parseIt (lexSqlTextWithPosition f l c s) sqlStatements f (Just (l,c)) s startState
+>                      -> Either ParseErrorExtra A.StatementList
+> parseSqlWithPosition f l c s = deAS $ parseIt (lexSqlTextWithPosition f l c s) sqlStatements f (Just (l,c)) s startState
 >
+> parseSqlWithPositionAnti :: FilePath -- ^ filename to use in errors
+>                          -> Int -- ^ adjust line number in errors by adding this
+>                          -> Int -- ^ adjust column in errors by adding this
+>                          -> String -- ^ a string containing the sql to parse
+>                          -> Either ParseErrorExtra StatementList
+> parseSqlWithPositionAnti f l c s = parseIt (lexSqlTextWithPosition f l c s) sqlStatements f (Just (l,c)) s startState
 >
 > parseSqlFile :: FilePath -- ^ file name of file containing sql
->              -> IO (Either ParseErrorExtra StatementList)
+>              -> IO (Either ParseErrorExtra A.StatementList)
 > parseSqlFile fn = do
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
->   return $ parseIt x sqlStatements fn Nothing sc startState
+>   return $ deAS $ parseIt x sqlStatements fn Nothing sc startState
 >
 > -- | Parse expression fragment, used for testing purposes
 > parseExpression :: String -- ^ filename for error messages
 >                 -> String -- ^ sql string containing a single expression, with no
 >                           -- trailing ';'
->                 -> Either ParseErrorExtra Expression
-> parseExpression f s = parseIt (lexSqlText f s) (expr <* eof) f Nothing s startState
+>                 -> Either ParseErrorExtra A.Expression
+> parseExpression f s = deAE $ parseIt (lexSqlText f s) (expr <* eof) f Nothing s startState
 >
 > -- | Parse plpgsql statements, used for testing purposes -
 > -- this can be used to parse a list of plpgsql statements which
@@ -78,8 +88,8 @@ Top level parsing functions
 > -- (The produced ast won't pass a type check.)
 > parsePlpgsql :: String
 >              -> String
->              -> Either ParseErrorExtra StatementList
-> parsePlpgsql f s =  parseIt (lexSqlText f s) (many plPgsqlStatement <* eof) f Nothing s startState
+>              -> Either ParseErrorExtra A.StatementList
+> parsePlpgsql f s = deAS $ parseIt (lexSqlText f s) (many plPgsqlStatement <* eof) f Nothing s startState
 >
 > --utility function to do error handling in one place
 > parseIt :: forall t s u b.(Stream s Identity t, Data b) =>
@@ -97,6 +107,16 @@ Top level parsing functions
 >                              in case toParseErrorExtra r1 sp src of
 >                                   Left er -> Left er
 >                                   Right t -> Right $ fixupTree t
+>
+> deAE :: Either ParseErrorExtra Expression -> Either ParseErrorExtra A.Expression
+> deAE x = case x of
+>                 Left e -> Left e
+>                 Right ex -> Right $ convertExpression ex
+> deAS :: Either ParseErrorExtra [Statement] -> Either ParseErrorExtra [A.Statement]
+> deAS x = case x of
+>                 Left e -> Left e
+>                 Right ex -> Right $ convertStatements ex
+
 
 --------------------------------------------------------------------------------
 
