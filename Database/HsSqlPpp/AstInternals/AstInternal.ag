@@ -106,6 +106,9 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,MaybeBoolExpression
    ,MaybeSelectList
    ,SetValue(..)
+   ,AlterTableActionList
+   ,TriggerEventList
+   ,SetValueList
    -- typechecking
    ,typeCheck
    ,typeCheckPS
@@ -189,7 +192,7 @@ DATA Statement
                   cons : ConstraintList
     | AlterTable ann:Annotation
                  name : String
-                 actions : {[AlterTableAction]}
+                 actions : AlterTableActionList
     | CreateSequence ann:Annotation
                      name:String
                      incr:Integer
@@ -229,11 +232,11 @@ DATA Statement
     | CreateTrigger ann:Annotation
                     name:String
                     wh : TriggerWhen
-                    events: {[TriggerEvent]}
+                    events: TriggerEventList
                     tbl : String
                     firing : TriggerFire
                     fnName : String
-                    fnArgs : {[Expression]}
+                    fnArgs : ExpressionList
     -- ifexists (name,argtypes)* cascadeorrestrict
     | DropFunction ann:Annotation
                    ifE : IfExists
@@ -249,7 +252,7 @@ DATA Statement
                  target : String
                  value : Expression
     | Return ann:Annotation
-             value : (MaybeExpression)
+             value : MaybeExpression
     | ReturnNext ann:Annotation
                  expr : Expression
     | ReturnQuery ann:Annotation
@@ -293,7 +296,7 @@ DATA Statement
 
 --misc
 
-    | Set ann:Annotation name:String values:{[SetValue]}
+    | Set ann:Annotation name:String values:SetValueList
     | Notify ann:Annotation name:String
 
 -- =============================================================================
@@ -348,7 +351,7 @@ DATA TableRef | Tref ann:Annotation
 
 DATA TableAlias | NoAlias
                 | TableAlias alias:String
-                | FullAlias alias:String cols:{[String]}
+                | FullAlias alias:String cols:StringList
 
 TYPE OnExpr = MAYBE JoinExpression
 
@@ -613,7 +616,9 @@ TYPE CaseExpressionListExpressionPairList = [CaseExpressionListExpressionPair]
 TYPE StatementList = [Statement]
 TYPE ExpressionDirectionPair = (Expression,Direction)
 TYPE ExpressionDirectionPairList = [ExpressionDirectionPair]
-
+TYPE AlterTableActionList = [AlterTableAction]
+TYPE TriggerEventList = [TriggerEvent]
+TYPE SetValueList = [SetValue]
 -- Add a root data type so we can put initial values for inherited
 -- attributes in the section which defines and uses those attributes
 -- rather than in the sem_ calls
@@ -654,7 +659,8 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                TableRefList TableRef OnExpr LiftFlavour MaybeSelectList
                SetValue TableAlias FrameClause AlterTableAction
                TriggerWhen TriggerEvent TriggerFire ExpressionDirectionPair
-               ExpressionDirectionPairList
+               ExpressionDirectionPairList AlterTableActionList
+               TriggerEventList SetValueList
 
 
 DERIVING AllNodes: Show,Eq,Typeable,Data

@@ -33,6 +33,7 @@ tree.
 >       lts = getListTypes ds
 >       convs = concatMap (\n -> [makeTypeSig n, makeConvertor tm lts n]) tyNs
 >   return $ prettyPrint $ makeModule (ds ++ convs)  -- ppExpr tyNs
+>   --return $ ppExpr ast
 >   where
 >     extractName (DataDecl _ _ _ (Ident n) _ _ _) = n
 >     extractName (TypeDecl _ (Ident n) _ _) = n
@@ -93,7 +94,11 @@ TypeDecl
 >     ctorInfo (QualConDecl _ _ _ (ConDecl (Ident n) as)) = (n, map aInfo as)
 >     ctorInfo a = error $ "ctorInfo " ++ show a
 >     aInfo (UnBangedTy (TyParen (TyCon (UnQual (Ident m))))) = m
+>     aInfo (UnBangedTy (TyParen (TyList (TyCon (UnQual (Ident m)))))) = m ++ "List"
+>     aInfo (UnBangedTy (TyParen (TyApp (TyCon (UnQual (Ident "Maybe"))) (TyCon (UnQual (Ident m))))))
+>           = "Maybe" ++ m
 >     aInfo a = error $ "aInfo " ++ show a
+>           
 
 [](ConDecl (Ident "ParamDef")
            [UnBangedTy (TyParen (TyCon (UnQual (Ident "Annotation")))),
@@ -276,7 +281,7 @@ FunBind
 >                  in case (isPair d, isMaybe d) of
 >                       (Just (p1,p2), _) -> makePair ts t p1 p2
 >                       (_, Just t1) -> makeMaybe ts t t1 d
->                       _ -> makeCase (t,d)
+>                       _ -> makeCase ts (t,d)
 >     where
 >       makeLc tb t1 =
 >           if t1 `elem` (map fst tns)
@@ -359,8 +364,8 @@ FunBind
 >           (UnGuardedRhs (Var (UnQual (Ident "undefined"))))
 >           (BDecls [])
 
-> makeCase :: (String,Decl) -> Decl
-> makeCase (f, d) =
+> makeCase :: [String] -> (String,Decl) -> Decl
+> makeCase ts (f, d) =
 >   let is = getCtors d -- [("A", ["A1","A2"])]
 >   in FunBind
 >      [Match nsrc
@@ -372,12 +377,73 @@ FunBind
 >               (map (uncurry mkAlt) is)))
 >         (BDecls [])]
 >   where
->     mkAlt c ts = let anames = map (("a"++) . show . snd) $ zip ts [(1::Int)..]
->                  in Alt nsrc
->                  (PApp (UnQual (Ident c))
->                     (map (PVar . Ident) anames))
->                  (UnGuardedAlt (Var (UnQual (Ident "undefined"))))
->                  (BDecls [])
+>     mkAlt c cis = let anames = map (("a"++) . show . snd) $ zip cis [(1::Int)..]
+>                       ant = zip anames cis
+>                   in Alt nsrc
+>                   (PApp (UnQual (Ident c))
+>                      (map (PVar . Ident) anames))
+>                   (mkCtor c ant)
+>                   (BDecls [])
+>     mkCtor c ant =
+>         let elems = flip map ant (\(a,t) ->
+>                                       conv t a)
+
+ (a -> b -> b) -> b -> [a] -> b
+
+>         in UnGuardedAlt $ foldl App (Con (Qual (ModuleName "A") (Ident c))) $ elems
+>                    {-(UnGuardedAlt
+>                     (App
+>                        (App
+>                           (App (Con (Qual (ModuleName "A") (Ident c)))
+>                              (Var (UnQual (Ident "a1"))))
+>                           (Var (UnQual (Ident "a2"))))
+>                        (Paren
+>                           (App (Var (UnQual (Ident "typeName")))
+>                              (Var (UnQual (Ident "a3"))))))) -}
+>     conv tn l = if tn `elem` ts
+>                  then (Paren (App (Var (UnQual (Ident $ lowerFirst tn)))
+>                                       (Var (UnQual (Ident l)))))
+>                  else Var (UnQual (Ident l))
+
+       (TyCon (Qual (ModuleName "A") (Ident "ParamDef")))),
+   FunBind
+     [Match
+        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                srcLine = 9, srcColumn = 1})
+        (Ident "paramDef")
+        [PVar (Ident "x")]
+        Nothing
+        (UnGuardedRhs
+           (Case (Var (UnQual (Ident "x")))
+              [Alt
+                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                         srcLine = 11, srcColumn = 9})
+                 (PApp (UnQual (Ident "ParamDef"))
+                    [PVar (Ident "a1"), PVar (Ident "a2"), PVar (Ident "a3")])
+                 (UnGuardedAlt
+                    (App
+                       (App
+                          (App (Con (Qual (ModuleName "A") (Ident "ParamDef")))
+                             (Var (UnQual (Ident "a1"))))
+                          (Var (UnQual (Ident "a2"))))
+                       (Paren
+                          (App (Var (UnQual (Ident "typeName")))
+                             (Var (UnQual (Ident "a3")))))))
+                 (BDecls []),
+               Alt
+                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
+                         srcLine = 12, srcColumn = 9})
+                 (PApp (UnQual (Ident "ParamDefTp"))
+                    [PVar (Ident "a1"), PVar (Ident "a2")])
+                 (UnGuardedAlt
+                    (App
+                       (App (Con (Qual (ModuleName "A") (Ident "ParamDefTp")))
+                          (Var (UnQual (Ident "a1"))))
+                       (Paren
+                          (App (Var (UnQual (Ident "typeName")))
+                             (Var (UnQual (Ident "a2")))))))
+                 (BDecls [])]))
+        (BDecls [])]
 
 
 > listConvertor :: String -> String -> Decl
@@ -554,6 +620,7 @@ Module
 >     ++
 >     [d | d@(TypeDecl _ (Ident n) _ _) <- universeBi m
 >          ,n `elem` nms]
+
 
 TypeDecl SrcLoc Name [TyVarBind] Type
 import Data.Maybe

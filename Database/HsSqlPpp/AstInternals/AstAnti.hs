@@ -161,7 +161,7 @@ data SetValue = SetId (Annotation) (String)
               deriving (Data, Eq, Show, Typeable)
  
 data Statement = AlterSequence (Annotation) (String) (String)
-               | AlterTable (Annotation) (String) ([AlterTableAction])
+               | AlterTable (Annotation) (String) (AlterTableActionList)
                | Assignment (Annotation) (String) (Expression)
                | CaseStatement (Annotation) (Expression)
                                (ExpressionListStatementListPairList) (StatementList)
@@ -179,7 +179,7 @@ data Statement = AlterSequence (Annotation) (String) (String)
                              (ConstraintList)
                | CreateTableAs (Annotation) (String) (SelectExpression)
                | CreateTrigger (Annotation) (String) (TriggerWhen)
-                               ([TriggerEvent]) (String) (TriggerFire) (String) ([Expression])
+                               (TriggerEventList) (String) (TriggerFire) (String) (ExpressionList)
                | CreateType (Annotation) (String) (TypeAttributeDefList)
                | CreateView (Annotation) (String) (SelectExpression)
                | Delete (Annotation) (String) (MaybeBoolExpression)
@@ -205,14 +205,14 @@ data Statement = AlterSequence (Annotation) (String) (String)
                | ReturnNext (Annotation) (Expression)
                | ReturnQuery (Annotation) (SelectExpression)
                | SelectStatement (Annotation) (SelectExpression)
-               | Set (Annotation) (String) ([SetValue])
+               | Set (Annotation) (String) (SetValueList)
                | Truncate (Annotation) (StringList) (RestartIdentity) (Cascade)
                | Update (Annotation) (String) (SetClauseList)
                         (MaybeBoolExpression) (MaybeSelectList)
                | WhileStatement (Annotation) (Expression) (StatementList)
                deriving (Data, Eq, Show, Typeable)
  
-data TableAlias = FullAlias (String) ([String])
+data TableAlias = FullAlias (String) (StringList)
                 | NoAlias
                 | TableAlias (String)
                 deriving (Data, Eq, Show, Typeable)
@@ -254,6 +254,8 @@ data Volatility = Immutable
                 | Stable
                 | Volatile
                 deriving (Data, Eq, Show, Typeable)
+ 
+type AlterTableActionList = [(AlterTableAction)]
  
 type AttributeDefList = [(AttributeDef)]
  
@@ -302,6 +304,8 @@ type SelectItemList = [(SelectItem)]
  
 type SetClauseList = [(SetClause)]
  
+type SetValueList = [(SetValue)]
+ 
 type StatementList = [(Statement)]
  
 type StringList = [(String)]
@@ -312,6 +316,8 @@ type StringTypeNameListPairList = [(StringTypeNameListPair)]
  
 type TableRefList = [(TableRef)]
  
+type TriggerEventList = [(TriggerEvent)]
+ 
 type TypeAttributeDefList = [(TypeAttributeDef)]
  
 type TypeNameList = [(TypeName)]
@@ -321,301 +327,389 @@ type VarDefList = [(VarDef)]
 statement :: Statement -> A.Statement
 statement x
   = case x of
-        AlterSequence a1 a2 a3 -> undefined
-        AlterTable a1 a2 a3 -> undefined
-        Assignment a1 a2 a3 -> undefined
-        CaseStatement a1 a2 a3 a4 -> undefined
-        ContinueStatement a1 -> undefined
-        Copy a1 a2 a3 a4 -> undefined
-        CopyData a1 a2 -> undefined
-        CreateDomain a1 a2 a3 a4 a5 -> undefined
-        CreateFunction a1 a2 a3 a4 a5 a6 a7 a8 -> undefined
-        CreateLanguage a1 a2 -> undefined
-        CreateSequence a1 a2 a3 a4 a5 a6 a7 -> undefined
-        CreateTable a1 a2 a3 a4 -> undefined
-        CreateTableAs a1 a2 a3 -> undefined
-        CreateTrigger a1 a2 a3 a4 a5 a6 a7 a8 -> undefined
-        CreateType a1 a2 a3 -> undefined
-        CreateView a1 a2 a3 -> undefined
-        Delete a1 a2 a3 a4 -> undefined
-        DropFunction a1 a2 a3 a4 -> undefined
-        DropSomething a1 a2 a3 a4 a5 -> undefined
-        Execute a1 a2 -> undefined
-        ExecuteInto a1 a2 a3 -> undefined
-        ForIntegerStatement a1 a2 a3 a4 a5 -> undefined
-        ForSelectStatement a1 a2 a3 a4 -> undefined
-        If a1 a2 a3 -> undefined
-        Insert a1 a2 a3 a4 a5 -> undefined
-        Notify a1 a2 -> undefined
-        NullStatement a1 -> undefined
-        Perform a1 a2 -> undefined
-        Raise a1 a2 a3 a4 -> undefined
-        Return a1 a2 -> undefined
-        ReturnNext a1 a2 -> undefined
-        ReturnQuery a1 a2 -> undefined
-        SelectStatement a1 a2 -> undefined
-        Set a1 a2 a3 -> undefined
-        Truncate a1 a2 a3 a4 -> undefined
-        Update a1 a2 a3 a4 a5 -> undefined
-        WhileStatement a1 a2 a3 -> undefined
+        AlterSequence a1 a2 a3 -> A.AlterSequence a1 a2 a3
+        AlterTable a1 a2 a3 -> A.AlterTable a1 a2 (alterTableActionList a3)
+        Assignment a1 a2 a3 -> A.Assignment a1 a2 (expression a3)
+        CaseStatement a1 a2 a3 a4 -> A.CaseStatement a1 (expression a2)
+                                       (expressionListStatementListPairList a3)
+                                       (statementList a4)
+        ContinueStatement a1 -> A.ContinueStatement a1
+        Copy a1 a2 a3 a4 -> A.Copy a1 a2 (stringList a3) (copySource a4)
+        CopyData a1 a2 -> A.CopyData a1 a2
+        CreateDomain a1 a2 a3 a4 a5 -> A.CreateDomain a1 a2 (typeName a3)
+                                         a4
+                                         (maybeBoolExpression a5)
+        CreateFunction a1 a2 a3 a4 a5 a6 a7 a8 -> A.CreateFunction a1 a2
+                                                    (paramDefList a3)
+                                                    (typeName a4)
+                                                    (language a5)
+                                                    a6
+                                                    (fnBody a7)
+                                                    (volatility a8)
+        CreateLanguage a1 a2 -> A.CreateLanguage a1 a2
+        CreateSequence a1 a2 a3 a4 a5 a6 a7 -> A.CreateSequence a1 a2 a3 a4
+                                                 a5
+                                                 a6
+                                                 a7
+        CreateTable a1 a2 a3 a4 -> A.CreateTable a1 a2
+                                     (attributeDefList a3)
+                                     (constraintList a4)
+        CreateTableAs a1 a2 a3 -> A.CreateTableAs a1 a2
+                                    (selectExpression a3)
+        CreateTrigger a1 a2 a3 a4 a5 a6 a7 a8 -> A.CreateTrigger a1 a2
+                                                   (triggerWhen a3)
+                                                   (triggerEventList a4)
+                                                   a5
+                                                   (triggerFire a6)
+                                                   a7
+                                                   (expressionList a8)
+        CreateType a1 a2 a3 -> A.CreateType a1 a2 (typeAttributeDefList a3)
+        CreateView a1 a2 a3 -> A.CreateView a1 a2 (selectExpression a3)
+        Delete a1 a2 a3 a4 -> A.Delete a1 a2 (maybeBoolExpression a3)
+                                (maybeSelectList a4)
+        DropFunction a1 a2 a3 a4 -> A.DropFunction a1 (ifExists a2)
+                                      (stringTypeNameListPairList a3)
+                                      (cascade a4)
+        DropSomething a1 a2 a3 a4 a5 -> A.DropSomething a1 (dropType a2)
+                                          (ifExists a3)
+                                          (stringList a4)
+                                          (cascade a5)
+        Execute a1 a2 -> A.Execute a1 (expression a2)
+        ExecuteInto a1 a2 a3 -> A.ExecuteInto a1 (expression a2)
+                                  (stringList a3)
+        ForIntegerStatement a1 a2 a3 a4 a5 -> A.ForIntegerStatement a1 a2
+                                                (expression a3)
+                                                (expression a4)
+                                                (statementList a5)
+        ForSelectStatement a1 a2 a3 a4 -> A.ForSelectStatement a1 a2
+                                            (selectExpression a3)
+                                            (statementList a4)
+        If a1 a2 a3 -> A.If a1 (expressionStatementListPairList a2)
+                         (statementList a3)
+        Insert a1 a2 a3 a4 a5 -> A.Insert a1 a2 (stringList a3)
+                                   (selectExpression a4)
+                                   (maybeSelectList a5)
+        Notify a1 a2 -> A.Notify a1 a2
+        NullStatement a1 -> A.NullStatement a1
+        Perform a1 a2 -> A.Perform a1 (expression a2)
+        Raise a1 a2 a3 a4 -> A.Raise a1 (raiseType a2) a3
+                               (expressionList a4)
+        Return a1 a2 -> A.Return a1 (maybeExpression a2)
+        ReturnNext a1 a2 -> A.ReturnNext a1 (expression a2)
+        ReturnQuery a1 a2 -> A.ReturnQuery a1 (selectExpression a2)
+        SelectStatement a1 a2 -> A.SelectStatement a1 (selectExpression a2)
+        Set a1 a2 a3 -> A.Set a1 a2 (setValueList a3)
+        Truncate a1 a2 a3 a4 -> A.Truncate a1 (stringList a2)
+                                  (restartIdentity a3)
+                                  (cascade a4)
+        Update a1 a2 a3 a4 a5 -> A.Update a1 a2 (setClauseList a3)
+                                   (maybeBoolExpression a4)
+                                   (maybeSelectList a5)
+        WhileStatement a1 a2 a3 -> A.WhileStatement a1 (expression a2)
+                                     (statementList a3)
  
 selectExpression :: SelectExpression -> A.SelectExpression
 selectExpression x
   = case x of
-        CombineSelect a1 a2 a3 a4 -> undefined
-        Select a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 -> undefined
-        Values a1 a2 -> undefined
+        CombineSelect a1 a2 a3 a4 -> A.CombineSelect a1 (combineType a2)
+                                       (selectExpression a3)
+                                       (selectExpression a4)
+        Select a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 -> A.Select a1 (distinct a2)
+                                                   (selectList a3)
+                                                   (tableRefList a4)
+                                                   (maybeBoolExpression a5)
+                                                   (expressionList a6)
+                                                   (maybeBoolExpression a7)
+                                                   (expressionDirectionPairList a8)
+                                                   (maybeExpression a9)
+                                                   (maybeExpression a10)
+        Values a1 a2 -> A.Values a1 (expressionListList a2)
  
 fnBody :: FnBody -> A.FnBody
 fnBody x
   = case x of
-        PlpgsqlFnBody a1 a2 a3 -> undefined
-        SqlFnBody a1 a2 -> undefined
+        PlpgsqlFnBody a1 a2 a3 -> A.PlpgsqlFnBody a1 (varDefList a2)
+                                    (statementList a3)
+        SqlFnBody a1 a2 -> A.SqlFnBody a1 (statementList a2)
  
 setClause :: SetClause -> A.SetClause
 setClause x
   = case x of
-        RowSetClause a1 a2 a3 -> undefined
-        SetClause a1 a2 a3 -> undefined
+        RowSetClause a1 a2 a3 -> A.RowSetClause a1 (stringList a2)
+                                   (expressionList a3)
+        SetClause a1 a2 a3 -> A.SetClause a1 a2 (expression a3)
  
 tableRef :: TableRef -> A.TableRef
 tableRef x
   = case x of
-        JoinedTref a1 a2 a3 a4 a5 a6 a7 -> undefined
-        SubTref a1 a2 a3 -> undefined
-        Tref a1 a2 a3 -> undefined
-        TrefFun a1 a2 a3 -> undefined
+        JoinedTref a1 a2 a3 a4 a5 a6 a7 -> A.JoinedTref a1 (tableRef a2)
+                                             (natural a3)
+                                             (joinType a4)
+                                             (tableRef a5)
+                                             (onExpr a6)
+                                             (tableAlias a7)
+        SubTref a1 a2 a3 -> A.SubTref a1 (selectExpression a2)
+                              (tableAlias a3)
+        Tref a1 a2 a3 -> A.Tref a1 a2 (tableAlias a3)
+        TrefFun a1 a2 a3 -> A.TrefFun a1 (expression a2) (tableAlias a3)
  
 tableAlias :: TableAlias -> A.TableAlias
 tableAlias x
   = case x of
-        FullAlias a1 a2 -> undefined
-        NoAlias -> undefined
-        TableAlias a1 -> undefined
+        FullAlias a1 a2 -> A.FullAlias a1 (stringList a2)
+        NoAlias -> A.NoAlias
+        TableAlias a1 -> A.TableAlias a1
  
 joinExpression :: JoinExpression -> A.JoinExpression
 joinExpression x
   = case x of
-        JoinOn a1 a2 -> undefined
-        JoinUsing a1 a2 -> undefined
+        JoinOn a1 a2 -> A.JoinOn a1 (expression a2)
+        JoinUsing a1 a2 -> A.JoinUsing a1 (stringList a2)
  
 joinType :: JoinType -> A.JoinType
 joinType x
   = case x of
-        Cross -> undefined
-        FullOuter -> undefined
-        Inner -> undefined
-        LeftOuter -> undefined
-        RightOuter -> undefined
+        Cross -> A.Cross
+        FullOuter -> A.FullOuter
+        Inner -> A.Inner
+        LeftOuter -> A.LeftOuter
+        RightOuter -> A.RightOuter
  
 selectList :: SelectList -> A.SelectList
 selectList x
   = case x of
-        SelectList a1 a2 a3 -> undefined
+        SelectList a1 a2 a3 -> A.SelectList a1 (selectItemList a2)
+                                 (stringList a3)
  
 selectItem :: SelectItem -> A.SelectItem
 selectItem x
   = case x of
-        SelExp a1 a2 -> undefined
-        SelectItem a1 a2 a3 -> undefined
+        SelExp a1 a2 -> A.SelExp a1 (expression a2)
+        SelectItem a1 a2 a3 -> A.SelectItem a1 (expression a2) a3
  
 copySource :: CopySource -> A.CopySource
 copySource x
   = case x of
-        CopyFilename a1 -> undefined
-        Stdin -> undefined
+        CopyFilename a1 -> A.CopyFilename a1
+        Stdin -> A.Stdin
  
 attributeDef :: AttributeDef -> A.AttributeDef
 attributeDef x
   = case x of
-        AttributeDef a1 a2 a3 a4 a5 -> undefined
+        AttributeDef a1 a2 a3 a4 a5 -> A.AttributeDef a1 a2 (typeName a3)
+                                         (maybeExpression a4)
+                                         (rowConstraintList a5)
  
 rowConstraint :: RowConstraint -> A.RowConstraint
 rowConstraint x
   = case x of
-        NotNullConstraint a1 a2 -> undefined
-        NullConstraint a1 a2 -> undefined
-        RowCheckConstraint a1 a2 a3 -> undefined
-        RowPrimaryKeyConstraint a1 a2 -> undefined
-        RowReferenceConstraint a1 a2 a3 a4 a5 a6 -> undefined
-        RowUniqueConstraint a1 a2 -> undefined
+        NotNullConstraint a1 a2 -> A.NotNullConstraint a1 a2
+        NullConstraint a1 a2 -> A.NullConstraint a1 a2
+        RowCheckConstraint a1 a2 a3 -> A.RowCheckConstraint a1 a2
+                                         (expression a3)
+        RowPrimaryKeyConstraint a1 a2 -> A.RowPrimaryKeyConstraint a1 a2
+        RowReferenceConstraint a1 a2 a3 a4 a5
+          a6 -> A.RowReferenceConstraint a1 a2 a3 a4 (cascade a5)
+                  (cascade a6)
+        RowUniqueConstraint a1 a2 -> A.RowUniqueConstraint a1 a2
  
 alterTableAction :: AlterTableAction -> A.AlterTableAction
 alterTableAction x
   = case x of
-        AddConstraint a1 a2 -> undefined
-        AlterColumnDefault a1 a2 a3 -> undefined
+        AddConstraint a1 a2 -> A.AddConstraint a1 (constraint a2)
+        AlterColumnDefault a1 a2 a3 -> A.AlterColumnDefault a1 a2
+                                         (expression a3)
  
 constraint :: Constraint -> A.Constraint
 constraint x
   = case x of
-        CheckConstraint a1 a2 a3 -> undefined
-        PrimaryKeyConstraint a1 a2 a3 -> undefined
-        ReferenceConstraint a1 a2 a3 a4 a5 a6 a7 -> undefined
-        UniqueConstraint a1 a2 a3 -> undefined
+        CheckConstraint a1 a2 a3 -> A.CheckConstraint a1 a2 (expression a3)
+        PrimaryKeyConstraint a1 a2 a3 -> A.PrimaryKeyConstraint a1 a2
+                                           (stringList a3)
+        ReferenceConstraint a1 a2 a3 a4 a5 a6 a7 -> A.ReferenceConstraint
+                                                      a1
+                                                      a2
+                                                      (stringList a3)
+                                                      a4
+                                                      (stringList a5)
+                                                      (cascade a6)
+                                                      (cascade a7)
+        UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2
+                                       (stringList a3)
  
 typeAttributeDef :: TypeAttributeDef -> A.TypeAttributeDef
 typeAttributeDef x
   = case x of
-        TypeAttDef a1 a2 a3 -> undefined
+        TypeAttDef a1 a2 a3 -> A.TypeAttDef a1 a2 (typeName a3)
  
 paramDef :: ParamDef -> A.ParamDef
 paramDef x
   = case x of
-        ParamDef a1 a2 a3 -> undefined
-        ParamDefTp a1 a2 -> undefined
+        ParamDef a1 a2 a3 -> A.ParamDef a1 a2 (typeName a3)
+        ParamDefTp a1 a2 -> A.ParamDefTp a1 (typeName a2)
  
 varDef :: VarDef -> A.VarDef
 varDef x
   = case x of
-        VarDef a1 a2 a3 a4 -> undefined
+        VarDef a1 a2 a3 a4 -> A.VarDef a1 a2 (typeName a3)
+                                (maybeExpression a4)
  
 raiseType :: RaiseType -> A.RaiseType
 raiseType x
   = case x of
-        RError -> undefined
-        RException -> undefined
-        RNotice -> undefined
+        RError -> A.RError
+        RException -> A.RException
+        RNotice -> A.RNotice
  
 combineType :: CombineType -> A.CombineType
 combineType x
   = case x of
-        Except -> undefined
-        Intersect -> undefined
-        Union -> undefined
-        UnionAll -> undefined
+        Except -> A.Except
+        Intersect -> A.Intersect
+        Union -> A.Union
+        UnionAll -> A.UnionAll
  
 volatility :: Volatility -> A.Volatility
 volatility x
   = case x of
-        Immutable -> undefined
-        Stable -> undefined
-        Volatile -> undefined
+        Immutable -> A.Immutable
+        Stable -> A.Stable
+        Volatile -> A.Volatile
  
 language :: Language -> A.Language
 language x
   = case x of
-        Plpgsql -> undefined
-        Sql -> undefined
+        Plpgsql -> A.Plpgsql
+        Sql -> A.Sql
  
 typeName :: TypeName -> A.TypeName
 typeName x
   = case x of
-        ArrayTypeName a1 a2 -> undefined
-        PrecTypeName a1 a2 a3 -> undefined
-        SetOfTypeName a1 a2 -> undefined
-        SimpleTypeName a1 a2 -> undefined
+        ArrayTypeName a1 a2 -> A.ArrayTypeName a1 (typeName a2)
+        PrecTypeName a1 a2 a3 -> A.PrecTypeName a1 a2 a3
+        SetOfTypeName a1 a2 -> A.SetOfTypeName a1 (typeName a2)
+        SimpleTypeName a1 a2 -> A.SimpleTypeName a1 a2
  
 dropType :: DropType -> A.DropType
 dropType x
   = case x of
-        Domain -> undefined
-        Table -> undefined
-        Type -> undefined
-        View -> undefined
+        Domain -> A.Domain
+        Table -> A.Table
+        Type -> A.Type
+        View -> A.View
  
 cascade :: Cascade -> A.Cascade
 cascade x
   = case x of
-        Cascade -> undefined
-        Restrict -> undefined
+        Cascade -> A.Cascade
+        Restrict -> A.Restrict
  
 direction :: Direction -> A.Direction
 direction x
   = case x of
-        Asc -> undefined
-        Desc -> undefined
+        Asc -> A.Asc
+        Desc -> A.Desc
  
 distinct :: Distinct -> A.Distinct
 distinct x
   = case x of
-        Distinct -> undefined
-        Dupes -> undefined
+        Distinct -> A.Distinct
+        Dupes -> A.Dupes
  
 natural :: Natural -> A.Natural
 natural x
   = case x of
-        Natural -> undefined
-        Unnatural -> undefined
+        Natural -> A.Natural
+        Unnatural -> A.Unnatural
  
 ifExists :: IfExists -> A.IfExists
 ifExists x
   = case x of
-        IfExists -> undefined
-        Require -> undefined
+        IfExists -> A.IfExists
+        Require -> A.Require
  
 restartIdentity :: RestartIdentity -> A.RestartIdentity
 restartIdentity x
   = case x of
-        ContinueIdentity -> undefined
-        RestartIdentity -> undefined
+        ContinueIdentity -> A.ContinueIdentity
+        RestartIdentity -> A.RestartIdentity
  
 expression :: Expression -> A.Expression
 expression x
   = case x of
-        AntiExpression a1 -> undefined
-        BooleanLit a1 a2 -> undefined
-        Case a1 a2 a3 -> undefined
-        CaseSimple a1 a2 a3 a4 -> undefined
-        Cast a1 a2 a3 -> undefined
-        Exists a1 a2 -> undefined
-        FloatLit a1 a2 -> undefined
-        FunCall a1 a2 a3 -> undefined
-        Identifier a1 a2 -> undefined
-        InPredicate a1 a2 a3 a4 -> undefined
-        IntegerLit a1 a2 -> undefined
-        LiftOperator a1 a2 a3 a4 -> undefined
-        NullLit a1 -> undefined
-        Placeholder a1 -> undefined
-        PositionalArg a1 a2 -> undefined
-        ScalarSubQuery a1 a2 -> undefined
-        StringLit a1 a2 a3 -> undefined
-        WindowFn a1 a2 a3 a4 a5 a6 -> undefined
+        AntiExpression a1 -> A.AntiExpression a1
+        BooleanLit a1 a2 -> A.BooleanLit a1 a2
+        Case a1 a2 a3 -> A.Case a1
+                           (caseExpressionListExpressionPairList a2)
+                           (maybeExpression a3)
+        CaseSimple a1 a2 a3 a4 -> A.CaseSimple a1 (expression a2)
+                                    (caseExpressionListExpressionPairList a3)
+                                    (maybeExpression a4)
+        Cast a1 a2 a3 -> A.Cast a1 (expression a2) (typeName a3)
+        Exists a1 a2 -> A.Exists a1 (selectExpression a2)
+        FloatLit a1 a2 -> A.FloatLit a1 a2
+        FunCall a1 a2 a3 -> A.FunCall a1 a2 (expressionList a3)
+        Identifier a1 a2 -> A.Identifier a1 a2
+        InPredicate a1 a2 a3 a4 -> A.InPredicate a1 (expression a2) a3
+                                     (inList a4)
+        IntegerLit a1 a2 -> A.IntegerLit a1 a2
+        LiftOperator a1 a2 a3 a4 -> A.LiftOperator a1 a2 (liftFlavour a3)
+                                      (expressionList a4)
+        NullLit a1 -> A.NullLit a1
+        Placeholder a1 -> A.Placeholder a1
+        PositionalArg a1 a2 -> A.PositionalArg a1 a2
+        ScalarSubQuery a1 a2 -> A.ScalarSubQuery a1 (selectExpression a2)
+        StringLit a1 a2 a3 -> A.StringLit a1 a2 a3
+        WindowFn a1 a2 a3 a4 a5 a6 -> A.WindowFn a1 (expression a2)
+                                        (expressionList a3)
+                                        (expressionList a4)
+                                        (direction a5)
+                                        (frameClause a6)
  
 frameClause :: FrameClause -> A.FrameClause
 frameClause x
   = case x of
-        FrameRowsUnboundedPreceding -> undefined
-        FrameUnboundedFull -> undefined
-        FrameUnboundedPreceding -> undefined
+        FrameRowsUnboundedPreceding -> A.FrameRowsUnboundedPreceding
+        FrameUnboundedFull -> A.FrameUnboundedFull
+        FrameUnboundedPreceding -> A.FrameUnboundedPreceding
  
 inList :: InList -> A.InList
 inList x
   = case x of
-        InList a1 a2 -> undefined
-        InSelect a1 a2 -> undefined
+        InList a1 a2 -> A.InList a1 (expressionList a2)
+        InSelect a1 a2 -> A.InSelect a1 (selectExpression a2)
  
 liftFlavour :: LiftFlavour -> A.LiftFlavour
 liftFlavour x
   = case x of
-        LiftAll -> undefined
-        LiftAny -> undefined
+        LiftAll -> A.LiftAll
+        LiftAny -> A.LiftAny
  
 triggerWhen :: TriggerWhen -> A.TriggerWhen
 triggerWhen x
   = case x of
-        TriggerAfter -> undefined
-        TriggerBefore -> undefined
+        TriggerAfter -> A.TriggerAfter
+        TriggerBefore -> A.TriggerBefore
  
 triggerEvent :: TriggerEvent -> A.TriggerEvent
 triggerEvent x
   = case x of
-        TDelete -> undefined
-        TInsert -> undefined
-        TUpdate -> undefined
+        TDelete -> A.TDelete
+        TInsert -> A.TInsert
+        TUpdate -> A.TUpdate
  
 triggerFire :: TriggerFire -> A.TriggerFire
 triggerFire x
   = case x of
-        EachRow -> undefined
-        EachStatement -> undefined
+        EachRow -> A.EachRow
+        EachStatement -> A.EachStatement
  
 setValue :: SetValue -> A.SetValue
 setValue x
   = case x of
-        SetId a1 a2 -> undefined
-        SetNum a1 a2 -> undefined
-        SetStr a1 a2 -> undefined
+        SetId a1 a2 -> A.SetId a1 a2
+        SetNum a1 a2 -> A.SetNum a1 a2
+        SetStr a1 a2 -> A.SetStr a1 a2
  
 statementList :: StatementList -> A.StatementList
 statementList = map statement
@@ -724,3 +818,13 @@ maybeBoolExpression = fmap expression
  
 maybeSelectList :: MaybeSelectList -> A.MaybeSelectList
 maybeSelectList = fmap selectList
+ 
+alterTableActionList ::
+                     AlterTableActionList -> A.AlterTableActionList
+alterTableActionList = map alterTableAction
+ 
+triggerEventList :: TriggerEventList -> A.TriggerEventList
+triggerEventList = map triggerEvent
+ 
+setValueList :: SetValueList -> A.SetValueList
+setValueList = map setValue
