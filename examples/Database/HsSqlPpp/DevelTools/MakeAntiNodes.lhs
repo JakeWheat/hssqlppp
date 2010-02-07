@@ -8,6 +8,15 @@ Then, generate a transform which takes the new nodes and converts them
 to the original nodes, returning an error if an antinodes are in the
 tree.
 
+This code is seriously unreadable. Investigate using haskell-src-meta
+or something similar to parse and obtain template haskell ast, which
+can then use th, quasiquotation to make the pattern matching and code
+generation much clearer. If can get this working, use same approach
+for preprocessors examples for typesafe database access.
+
+The code is quite fragile and depends on the exact style (or lack of)
+of coding used in AstInternal.ag.
+
 > module Database.HsSqlPpp.DevelTools.MakeAntiNodes
 >     (makeAntiNodes) where
 >

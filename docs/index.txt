@@ -47,6 +47,8 @@ works on 6.10.
 Documentation
 =============
 
+The documentation you are reading is a work in progress.
+
 [Haddock](haddock/index.html)
 
 [Example code](examples.html)
@@ -55,17 +57,17 @@ The [htmlized source code](pandoc_source/index.html) has lots of comments.
 
 To build a local copy of the documentation:
 
+    cabal install hssqlppp -fexecutable
+    HsSqlSystem makewebsite
+
+and the docs will be in ./website/ .
+
+or to avoid installing the HsSqlSystem exe, you can use:
+
     cabal unpack hssqlppp
-    cd hssqlppp-[VERSION]
-    ghc --make -threaded -XDeriveDataTypeable HsSqlSystem.lhs
-    ./HsSqlSystem makewebsite
-
-and the docs will be in ./website/ . You might need to install some
-extra packages using cabal for this to work - these might get you
-started (TODO - figure out the full list).
-
-    cabal install pandoc -fhighlighting-kate
-    cabal install haddock Pipe template-haskell hlist
+    cd hssqlppp-x.x.x
+    ghc --make -threaded -XDeriveDataTypeable -iexamples:src examples/HsSqlSystem.lhs
+    examples/HsSqlSystem makewebsite
 
 Development info
 ================
@@ -78,7 +80,14 @@ Get latest development version:
 
 Uses Parsec for parsing, HDBC for database access, and UUAGC to assist
 the type checking (UUAGC is not needed to build from source unless you
-edit the .ag files). Comes with a small test suite.
+edit the .ag files).
+
+Comes with a small test suite, which you can run like so:
+
+    cabal unpack hssqlppp
+    cd hssqlppp-x.x.x
+    ghc --make -threaded -XDeriveDataTypeable -iexamples:src examples/HsSqlSystem.lhs
+    examples/HsSqlSystem test
 
 Useful links
 ============

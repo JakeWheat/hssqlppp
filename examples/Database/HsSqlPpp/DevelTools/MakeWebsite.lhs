@@ -116,7 +116,7 @@ the website.
 >  * [Index](index.html)
 >  * [Examples](examples.html)
 >  * [Haddock](haddock/index.html)
->  * [Browse source online](pandoc_source/)
+>  * [Browse source online](pandoc_source/index.html)
 >  * [HackageDB page](http://hackage.haskell.org/package/hssqlppp)
 >  * [Launchpad/ Repo](http://launchpad.net/hssqlppp)
 >  </div>

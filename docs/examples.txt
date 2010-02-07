@@ -9,23 +9,23 @@ All this code is currently available in the cabal source package, to get use
 HsSqlSystem
 -----------
 
-[HsSqlSystem](pandoc_source/HsSqlSystem.lhs.html) - an executable that
+[HsSqlSystem](pandoc_source/examples/HsSqlSystem.lhs.html) - an executable that
 has a bunch of functions, source contains documentation and examples
 for the commands. E.g.:
 
-* [Parse command](pandoc_source/HsSqlSystem.lhs.html#parse) -
+* [Parse command](pandoc_source/examples/HsSqlSystem.lhs.html#parse) -
   parse some SQL, display AST.
-* [TypeCheck command](pandoc_source/HsSqlSystem.lhs.html#typecheck) -
+* [TypeCheck command](pandoc_source/examples/HsSqlSystem.lhs.html#typecheck) -
   parse some SQL, type check, and display type errors in Emacs format.
-* [PPCatalog command](pandoc_source/HsSqlSystem.lhs.html#ppcatalog) -
+* [PPCatalog command](pandoc_source/examples/HsSqlSystem.lhs.html#ppcatalog) -
   parse some SQL, type check, display catalog.
 
 Two of the libraries used by HsSqlSystem:
 
-* [DatabaseLoader](pandoc_source/Database/HsSqlPpp/Examples/DatabaseLoader.lhs.html),
+* [DatabaseLoader](pandoc_source/examples/Database/HsSqlPpp/Examples/DatabaseLoader.lhs.html),
   code to parse some SQL, optionally run a transform function on the
   AST, then load the result into the database.
-* [AnnotateSource](pandoc_source/Database/HsSqlPpp/Examples/AnnotateSource.lhs.html),
+* [AnnotateSource](pandoc_source/examples/Database/HsSqlPpp/Examples/AnnotateSource.lhs.html),
   load some SQL, type check, and interpolate some type information in
   comments back into the source code.
 
@@ -35,13 +35,13 @@ Typesafe database access
 Needs some tidying:
 
 * [Generate SQL source
-  code](pandoc_source/Database/HsSqlPpp/Examples/WrapperGen.lhs.html)
+  code](pandoc_source/examples/Database/HsSqlPpp/Examples/WrapperGen.lhs.html)
 * [Template Haskell
-  tuples](pandoc_source/Database/HsSqlPpp/Examples/DBAccess2.lhs.html),
+  tuples](pandoc_source/examples/Database/HsSqlPpp/Examples/DBAccess2.lhs.html),
   uses Template Haskell to do the same thing as previous code but
   possibly nicer to use.
 * [Template Haskell
-  HList](pandoc_source/Database/HsSqlPpp/Examples/DBAccess3.lhs.html),
+  HList](pandoc_source/examples/Database/HsSqlPpp/Examples/DBAccess3.lhs.html),
   like the previous version, but returns the tables as lists of
   HLists.
 
@@ -52,17 +52,17 @@ Some examples to write extensions to plpgsql using ast
 transforms. (Being able to do this was the original motivation for
 writing HsSqlPpp.)
 
-[CreateVarSimple](pandoc_source/Database/HsSqlPpp/Examples/Extensions/CreateVarSimple.lhs.html).
+[CreateVarSimple](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/CreateVarSimple.lhs.html).
 Demonstration extension.
 
-[ExtendedConstraints](pandoc_source/Database/HsSqlPpp/Examples/Extensions/ExtendedConstraints.lhs.html).
+[ExtendedConstraints](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/ExtendedConstraints.lhs.html).
 
-[Modules](pandoc_source/Database/HsSqlPpp/Examples/Extensions/Module.lhs.html).
+[Modules](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/Module.lhs.html).
 
-[ReadOnlyTables](pandoc_source/Database/HsSqlPpp/Examples/Extensions/ReadOnlyTables.lhs.html).
+[ReadOnlyTables](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/ReadOnlyTables.lhs.html).
 
-[SimplifiedCatalog](pandoc_source/Database/HsSqlPpp/Examples/Extensions/SimplifiedCatalog.lhs.html).
+[SimplifiedCatalog](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/SimplifiedCatalog.lhs.html).
 
-[TransitionConstraints](pandoc_source/Database/HsSqlPpp/Examples/Extensions/TransitionConstraints.lhs.html).
+[TransitionConstraints](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/TransitionConstraints.lhs.html).
 
-[CreateVar](pandoc_source/Database/HsSqlPpp/Examples/Extensions/CreateVar.lhs.html)
+[CreateVar](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/CreateVar.lhs.html)
