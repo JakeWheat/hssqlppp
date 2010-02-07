@@ -230,13 +230,17 @@ select add_foreign_key('dbcon_triggers', array['trigger_name', 'relvar_name'],
 > extendedConstraintExamples :: [ExtensionTest]
 > extendedConstraintExamples = [cardinalityExample
 >                              ,doubleCardinalityExample
->                              ,simpleViewExample]
+>                              ,simpleViewExample
+>                              ,simpleFunctionExample]
 
 stage 1: some test cases for general constraints which aren't
 implementable as postgresql constraints, we don't check the
-constraints work, only that the correct ddl is generated
+constraints work, only that the apparently correct ddl is generated
 
 cardinality check
+-----------------
+
+accesses multiple rows from one table
 
 > cardinalityExample :: ExtensionTest
 > cardinalityExample  =
@@ -285,6 +289,10 @@ create trigger test_table_constraint_trigger
 \end{code}
 >      |]
 
+double cardinality
+------------------
+
+accesses two tables
 
 > doubleCardinalityExample :: ExtensionTest
 > doubleCardinalityExample  =
@@ -357,6 +365,10 @@ create trigger test_table1_constraint_trigger
 \end{code}
 >      |]
 
+simpleview
+----------
+
+constraint on a view rather than a table
 
 > simpleViewExample :: ExtensionTest
 > simpleViewExample  =
@@ -398,6 +410,66 @@ create function test_table_constraint_trigger_operator() returns trigger as $xxx
 begin
   if not check_con_test_view_count() then
     raise exception 'update violates database constraint test_view_count';
+  end if;
+  return OLD;
+end;
+$xxx$ language plpgsql stable;
+
+create trigger test_table_constraint_trigger
+  after insert or update or delete on test_table
+  for each statement
+  execute procedure test_table_constraint_trigger_operator();
+
+\end{code}
+>      |]
+
+simpleFunction
+--------------
+
+constraint on the result of a function call
+
+> simpleFunctionExample :: ExtensionTest
+> simpleFunctionExample  =
+>   ExtensionTest
+>     "ExtendedConstraints simplefunction"
+>     extendedExtensions
+>     [$sqlQuote|
+\begin{code}
+
+create table test_table (
+   field text
+);
+
+create function test_table_count() returns int as $$
+  select count(*) from test_table;
+$$ language sql stable;
+
+select create_assertion('test_function_count'
+                       ,'test_table_count() < 10');
+
+\end{code}
+>     |]
+>     [$sqlQuote|
+\begin{code}
+
+create table test_table (
+   field text
+);
+
+create function test_table_count() returns int as $$
+  select count(*) from test_table;
+$$ language sql stable;
+
+create function check_con_test_function_count() returns bool as $xxx$
+begin
+  return test_table_count() < 10;
+end;
+$xxx$ language plpgsql stable;
+
+create function test_table_constraint_trigger_operator() returns trigger as $xxx$
+begin
+  if not check_con_test_function_count() then
+    raise exception 'update violates database constraint test_function_count';
   end if;
   return OLD;
 end;
