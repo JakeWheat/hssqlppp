@@ -35,7 +35,7 @@ Copyright 2010 Jake Wheat
 > import Data.Generics
 > import Data.List
 >
-> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Parsing.ParserInternal
 > import Database.HsSqlPpp.AstInternals.AstAnti
 
 > sqlQuote :: QuasiQuoter
@@ -80,3 +80,6 @@ magically converts from one to the other ...
 > antiExpP (AntiExpression v ) = Just $ varP $ mkName v
 > antiExpP _ = Nothing
 
+to add support for a new splice location, add the type name to the
+list at the top of MakeAntiNodes, adjust the parser to parse splices
+at that point, and add a new antiQ function in this file

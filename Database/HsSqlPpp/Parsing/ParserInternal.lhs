@@ -6,7 +6,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > {-# LANGUAGE RankNTypes,FlexibleContexts #-}
 >
 > -- | Functions to parse SQL.
-> module Database.HsSqlPpp.Parser (
+> module Database.HsSqlPpp.Parsing.ParserInternal (
 >              -- * Main
 >               parseSql
 >              ,parseSqlWithPosition

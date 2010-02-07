@@ -15,11 +15,14 @@ tree.
 > import qualified Language.Haskell.Exts as Exts
 > --import Data.Generics
 > import Data.Generics.Uniplate.Data
-> import Debug.Trace
-> import Database.HsSqlPpp.Utils.Utils
+> --import Debug.Trace
+> --import Database.HsSqlPpp.Utils.Utils
 > import Data.Char
 > import Data.Maybe
 > --import Database.HsSqlPpp.Utils.Utils
+>
+> nodesToAntificate :: [String]
+> nodesToAntificate = ["Expression", "TriggerEvent"]
 >
 > makeAntiNodes :: IO String
 > makeAntiNodes = do
@@ -31,8 +34,7 @@ tree.
 >       tm = map (\d -> (extractName d, d)) ds
 >       lts = getListTypes ds
 >       convs = concatMap (\n -> [makeTypeSig n, makeConvertor tm lts n]) tyNs
->   return $ prettyPrint $ makeModule (exports ast) (wrappers ++ (addAntis ds) ++ (addAntis convs))  -- ppExpr tyNs
->   --return $ ppExpr ast
+>   return $ prettyPrint $ makeModule (exports ast) (wrappers ++ (addAntis ds) ++ (addAntis convs))
 >   where
 >     extractName (DataDecl _ _ _ (Ident n) _ _ _) = n
 >     extractName (TypeDecl _ (Ident n) _ _) = n
@@ -42,14 +44,13 @@ tree.
 >                   [ex| ex@(EThingAll _) <- universeBi ast] ++
 >                   [ex| ex@(EAbs _) <- universeBi ast]
 >     addAntis = map antiize
->     antiTargTys = ["Expression", "TriggerEvent"]
->     antiTargFns = map lowerFirst antiTargTys
+>     antiTargFns = map lowerFirst nodesToAntificate
 >     antiize d@(FunBind
 >               [Match _ (Ident n) _ _ _ _]) |
 >                 n `elem` antiTargFns =
 >                     addAntiError d
 >     antiize d@(DataDecl _ _ _ (Ident n) _ _ _) |
->                 n `elem` antiTargTys =
+>                 n `elem` nodesToAntificate =
 >                     addAntiCtor d
 >     antiize x = x
 

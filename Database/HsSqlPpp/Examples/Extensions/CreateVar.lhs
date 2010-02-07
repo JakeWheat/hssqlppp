@@ -15,6 +15,8 @@ database.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Annotation
 >
 > createVarExample :: ExtensionTest
 > createVarExample = ExtensionTest
@@ -63,27 +65,20 @@ database.
 > createVar =
 >     transformBi $ \x ->
 >       case x of
->         (funCallView -> FunCallView _ "create_var" [StringLit _ _ tableName,StringLit _ _ typeName]):tl
->             -> mapStrings [("createvarvarname_table", tableName ++ "_table")
->                                  ,("createvarvarname", tableName)
->                                  ,("createvarvartype", typeName)
->                                  ,("get_createvarvarname", "get_" ++ typeName)]
->                  createVarTemplate
->                  ++ tl
->         x1 -> x1
+>         (funCallView -> FunCallView _ "create_var" [StringLit _ _ varname
+>                                                    ,StringLit _ _ typename]):tl
+>             -> let tablename = varname ++ "_table"
+>                    fnname = "get_" ++ varname
+>                in [$sqlQuote|
 >
-> createVarTemplate :: [Statement]
-> createVarTemplate = --let (ExtensionTest _ _ x) = createVarExample
->                     --in x --don't do this cos it doesn't give us a very good test
->   readTemplate
->   [$here|
->
->   create table createvarvarname_table (
->    createvarvarname createvarvartype
+>   create table $(tablename) (
+>    $(varname) $(typename)
 >   );
 >
->   create function get_createvarvarname() returns createvarvartype as $a$
->     select * from createvarvarname_table;
+>   create function $(fnname)() returns $(typename) as $a$
+>     select * from $(tablename);
 >   $a$ language sql stable;
 >
->   |]
+>                    |] ++ tl
+>         x1 -> x1
+>

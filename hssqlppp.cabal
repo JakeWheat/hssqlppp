@@ -106,6 +106,7 @@ extra-source-files:  README
                      Database/HsSqlPpp/SqlQuote.lhs
                      Database/HsSqlPpp/Parsing/Lexer.lhs
                      Database/HsSqlPpp/Parsing/ParseErrors.lhs
+                     Database/HsSqlPpp/Parsing/ParserInternal.lhs
                      Database/HsSqlPpp/TypeChecker.lhs
 
 
@@ -151,6 +152,7 @@ Library
                      Database.HsSqlPpp.Utils.DbmsCommon
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParseErrors
+                     Database.HsSqlPpp.Parsing.ParserInternal
 
   extensions:        DeriveDataTypeable,
                      RankNTypes,
