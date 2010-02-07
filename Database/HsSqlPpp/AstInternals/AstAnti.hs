@@ -98,6 +98,7 @@ data Expression = BooleanLit (Annotation) (Bool)
                 | StringLit (Annotation) (String) (String)
                 | WindowFn (Annotation) (Expression) (ExpressionList)
                            (ExpressionList) (Direction) (FrameClause)
+                | AntiExpression String
                 deriving (Data, Eq, Show, Typeable)
  
 data FnBody = PlpgsqlFnBody (Annotation) (VarDefList)
@@ -256,6 +257,7 @@ data TableRef = JoinedTref (Annotation) (TableRef) (Natural)
 data TriggerEvent = TDelete
                   | TInsert
                   | TUpdate
+                  | AntiTriggerEvent String
                   deriving (Data, Eq, Show, Typeable)
  
 data TriggerFire = EachRow
@@ -693,6 +695,7 @@ expression x
                                         (expressionList a4)
                                         (direction a5)
                                         (frameClause a6)
+        AntiExpression s -> error "can't convert anti expression"
  
 frameClause :: FrameClause -> A.FrameClause
 frameClause x
@@ -725,6 +728,7 @@ triggerEvent x
         TDelete -> A.TDelete
         TInsert -> A.TInsert
         TUpdate -> A.TUpdate
+        AntiTriggerEvent s -> error "can't convert anti triggerEvent"
  
 triggerFire :: TriggerFire -> A.TriggerFire
 triggerFire x

@@ -678,9 +678,10 @@ variable declarations in a plpgsql function
 >                    ,TriggerAfter <$ keyword "after"]
 >     tevents :: ParsecT [Token] ParseState Identity [TriggerEvent]
 >     tevents = sepBy1 (choice [
->                TInsert <$ keyword "insert"
->               ,TUpdate <$ keyword "update"
->               ,TDelete <$ keyword "delete"]) (keyword "or")
+>                          AntiTriggerEvent <$> splice
+>                         ,TInsert <$ keyword "insert"
+>                         ,TUpdate <$ keyword "update"
+>                         ,TDelete <$ keyword "delete"]) (keyword "or")
 >     tfiring = option EachStatement
 >                 (keyword "for" *> optional (keyword "each") *>
 >                 choice [
@@ -1222,6 +1223,9 @@ identifier which happens to start with a complete keyword
 >                                      IdStringTok i -> Just i
 >                                      _ -> Nothing)
 >
+> splice :: ParsecT [Token] ParseState Identity String
+> splice = symbol "$(" *> idString <* symbol ")"
+>
 > symbol :: String -> ParsecT [Token] ParseState Identity ()
 > symbol c = mytoken (\tok -> case tok of
 >                                    SymbolTok s | c==s -> Just ()
@@ -1238,7 +1242,7 @@ identifier which happens to start with a complete keyword
 >                                     _ -> Nothing)
 >
 > antiExpression :: ParsecT [Token] ParseState Identity Expression
-> antiExpression = AntiExpression <$> (symbol "$(" *> idString <* symbol ")")
+> antiExpression = AntiExpression <$> splice
 >
 > placeholder :: ParsecT [Token] ParseState Identity Expression
 > placeholder = Placeholder [] <$ symbol "?"

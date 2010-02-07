@@ -12,27 +12,26 @@ tree.
 >     (makeAntiNodes) where
 >
 > import Language.Haskell.Exts hiding (String)
-> --import qualified Language.Haskell.Exts as Exts
+> import qualified Language.Haskell.Exts as Exts
 > --import Data.Generics
 > import Data.Generics.Uniplate.Data
 > import Debug.Trace
 > import Database.HsSqlPpp.Utils.Utils
 > import Data.Char
 > import Data.Maybe
-
 > --import Database.HsSqlPpp.Utils.Utils
-
+>
 > makeAntiNodes :: IO String
 > makeAntiNodes = do
 >   ast <- pf "Database/HsSqlPpp/AstInternals/AstInternal.hs"
->   ast1 <- pf "Database/HsSqlPpp/AstInternals/AstAnti.hs"
->   trace (ppExpr ast1) $ return ()
+>   --ast1 <- pf "Database/HsSqlPpp/AstInternals/AstAnti.hs"
+>   --trace (ppExpr ast1) $ return ()
 >   let tyNs = getExportedTypeNames ast
 >       ds = getDeclarations ast tyNs
 >       tm = map (\d -> (extractName d, d)) ds
 >       lts = getListTypes ds
 >       convs = concatMap (\n -> [makeTypeSig n, makeConvertor tm lts n]) tyNs
->   return $ prettyPrint $ makeModule (exports ast) (wrappers ++ ds ++ convs)  -- ppExpr tyNs
+>   return $ prettyPrint $ makeModule (exports ast) (wrappers ++ (addAntis ds) ++ (addAntis convs))  -- ppExpr tyNs
 >   --return $ ppExpr ast
 >   where
 >     extractName (DataDecl _ _ _ (Ident n) _ _ _) = n
@@ -42,6 +41,17 @@ tree.
 >                    EVar (UnQual (Ident "convertExpression"))] ++
 >                   [ex| ex@(EThingAll _) <- universeBi ast] ++
 >                   [ex| ex@(EAbs _) <- universeBi ast]
+>     addAntis = map antiize
+>     antiTargTys = ["Expression", "TriggerEvent"]
+>     antiTargFns = map lowerFirst antiTargTys
+>     antiize d@(FunBind
+>               [Match _ (Ident n) _ _ _ _]) |
+>                 n `elem` antiTargFns =
+>                     addAntiError d
+>     antiize d@(DataDecl _ _ _ (Ident n) _ _ _) |
+>                 n `elem` antiTargTys =
+>                     addAntiCtor d
+>     antiize x = x
 
 > wrappers :: [Decl]
 > wrappers =
@@ -72,153 +82,37 @@ tree.
 >      (UnGuardedRhs (Var (UnQual (Ident "expression"))))
 >      (BDecls [])]
 
+> addAntiCtor :: Decl -> Decl
+> addAntiCtor (DataDecl sl dn ct nm@(Ident n) tyv qcd d) =
+>   (DataDecl sl dn ct nm tyv (qcd ++ [antiCtor]) d)
+>   where
+>     antiCtor =
+>       QualConDecl nsrc [] []
+>         (ConDecl (Ident $ "Anti" ++ n)
+>            [UnBangedTy (TyCon (UnQual (Ident "String")))])
 
+> addAntiCtor e = error $ "addAntiCtor " ++ show e
 
-
-
-[DataDecl
-     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-             srcLine = 32, srcColumn = 1})
-     DataType
-     []
-     (Ident "Cascade")
-     []
-     [QualConDecl
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 32, srcColumn = 16})
-        []
-        []
-        (ConDecl (Ident "Cascade") []),
-      QualConDecl
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 33, srcColumn = 16})
-        []
-        []
-        (ConDecl (Ident "Restrict") []),
-      QualConDecl
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 34, srcColumn = 16})
-        []
-        []
-        (ConDecl (Ident "AntiCascade")
-           [UnBangedTy (TyCon (UnQual (Ident "String")))])]
-     [(UnQual (Ident "Data"), []), (UnQual (Ident "Eq"), []),
-      (UnQual (Ident "Show"), []), (UnQual (Ident "Typeable"), [])],
-   TypeSig
-     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-             srcLine = 37, srcColumn = 1})
-     [Ident "cascade"]
-     (TyFun (TyCon (UnQual (Ident "Cascade")))
-        (TyCon (Qual (ModuleName "A") (Ident "Cascade")))),
-   FunBind
-     [Match
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 38, srcColumn = 1})
-        (Ident "cascade")
-        [PVar (Ident "x")]
-        Nothing
-        (UnGuardedRhs
-           (Case (Var (UnQual (Ident "x")))
-              [Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 40, srcColumn = 9})
-                 (PApp (UnQual (Ident "Cascade")) [])
-                 (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Cascade"))))
-                 (BDecls []),
-               Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 41, srcColumn = 9})
-                 (PApp (UnQual (Ident "Restrict")) [])
-                 (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Restrict"))))
-                 (BDecls []),
-               Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 42, srcColumn = 9})
-                 (PApp (UnQual (Ident "AntiCascade")) [PVar (Ident "s")])
-                 (UnGuardedAlt
-                    (App (Var (UnQual (Ident "error")))
-                       (Lit (String "can't convert anti cascade"))))
-                 (BDecls [])]))
-        (BDecls [])],
-
-
- [DataDecl
-     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-             srcLine = 32, srcColumn = 1})
-     DataType
-     []
-     (Ident "Cascade")
-     []
-     [QualConDecl
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 32, srcColumn = 16})
-        []
-        []
-        (ConDecl (Ident "Cascade") []),
-      QualConDecl
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 33, srcColumn = 16})
-        []
-        []
-        (ConDecl (Ident "Restrict") [])]
-     [(UnQual (Ident "Data"), []), (UnQual (Ident "Eq"), []),
-      (UnQual (Ident "Show"), []), (UnQual (Ident "Typeable"), [])],
-   TypeSig
-     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-             srcLine = 36, srcColumn = 1})
-     [Ident "cascade"]
-     (TyFun (TyCon (UnQual (Ident "Cascade")))
-        (TyCon (Qual (ModuleName "A") (Ident "Cascade")))),
-   FunBind
-     [Match
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 37, srcColumn = 1})
-        (Ident "cascade")
-        [PVar (Ident "x")]
-        Nothing
-        (UnGuardedRhs
-           (Case (Var (UnQual (Ident "x")))
-              [Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 39, srcColumn = 9})
-                 (PApp (UnQual (Ident "Cascade")) [])
-                 (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Cascade"))))
-                 (BDecls []),
-               Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 40, srcColumn = 9})
-                 (PApp (UnQual (Ident "Restrict")) [])
-                 (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Restrict"))))
-                 (BDecls [])]))
-        (BDecls [])],
-
-
-
-
-
-
-
-
-
-      EThingAll (UnQual (Ident "TriggerFire")),
-      EAbs (UnQual (Ident "StatementList")),
-
-
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 6854, srcColumn = 1})
-     DataType
-     []
-     (Ident "ParamDef")
-
-TypeDecl
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 7808, srcColumn = 1})
-     (Ident "RowConstraintList")
-     []
-     (TyList (TyParen (TyCon (UnQual (Ident "RowConstraint"))))),
-
+> addAntiError :: Decl -> Decl
+> addAntiError (FunBind
+>               [Match sl nm@(Ident n) pt ty
+>                (UnGuardedRhs
+>                 (Case (Var (UnQual (Ident "x"))) alts))
+>                   bnd]) =
+>   (FunBind
+>    [Match sl nm pt ty
+>     (UnGuardedRhs
+>      (Case (Var (UnQual (Ident "x"))) (alts ++ [antiAlt])))
+>     bnd])
+>   where
+>     antiAlt :: Alt
+>     antiAlt = Alt nsrc
+>                  (PApp (UnQual (Ident $ "Anti" ++ upperFirst n)) [PVar (Ident "s")])
+>                  (UnGuardedAlt
+>                     (App (Var (UnQual (Ident "error")))
+>                        (Lit (Exts.String $ "can't convert anti " ++ n))))
+>                  (BDecls [])
+> addAntiError e = error $ "addAntiError " ++ show e
 
 > pf :: String -> IO Module
 > pf f = do
@@ -263,173 +157,6 @@ TypeDecl
 >     aInfo (UnBangedTy (TyParen (TyApp (TyCon (UnQual (Ident "Maybe"))) (TyCon (UnQual (Ident m))))))
 >           = "Maybe" ++ m
 >     aInfo a = error $ "aInfo " ++ show a
->           
-
-[](ConDecl (Ident "ParamDef")
-           [UnBangedTy (TyParen (TyCon (UnQual (Ident "Annotation")))),
-            UnBangedTy (TyParen (TyCon (UnQual (Ident "String")))),
-            UnBangedTy (TyParen (TyCon (UnQual (Ident "TypeName"))))]),
-     [QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 972, srcColumn = 17})
-        []
-        []
-        (ConDecl (Ident "Cascade") []),
-      QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 973, srcColumn = 17})
-        []
-        []
-        (ConDecl (Ident "Restrict") [])]
-
-
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 6854, srcColumn = 1})
-     DataType
-     []
-     (Ident "ParamDef")
-     []
-     [QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 6854, srcColumn = 18})
-        []
-        []
-        (ConDecl (Ident "ParamDef")
-           [UnBangedTy (TyParen (TyCon (UnQual (Ident "Annotation")))),
-            UnBangedTy (TyParen (TyCon (UnQual (Ident "String")))),
-            UnBangedTy (TyParen (TyCon (UnQual (Ident "TypeName"))))]),
-
-
-FunBind
-     [Match
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 8, srcColumn = 1})
-        (Ident "cascade")
-        [PVar (Ident "a")]
-        Nothing
-        (UnGuardedRhs
-           (Case (Var (UnQual (Ident "a")))
-              [Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 9, srcColumn = 15})
-                 (PApp (UnQual (Ident "Cascade")) [])
-                 (UnGuardedAlt (Var (UnQual (Ident "undefined"))))
-                 (BDecls []),
-               Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 10, srcColumn = 15})
-                 (PApp (UnQual (Ident "Restrict")) [])
-                 (UnGuardedAlt (Var (UnQual (Ident "undefined"))))
-                 (BDecls [])]))
-        (BDecls [])],
-
-   DataDecl
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 972, srcColumn = 1})
-     DataType
-     []
-     (Ident "Cascade")
-     []
-     [QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 972, srcColumn = 17})
-        []
-        []
-        (ConDecl (Ident "Cascade") []),
-      QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 973, srcColumn = 17})
-        []
-        []
-        (ConDecl (Ident "Restrict") [])]
-     [(UnQual (Ident "Data"), []), (UnQual (Ident "Eq"), []),
-      (UnQual (Ident "Show"), []), (UnQual (Ident "Typeable"), [])],
-
-   DataDecl
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 6854, srcColumn = 1})
-     DataType
-     []
-     (Ident "ParamDef")
-     []
-     [QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 6854, srcColumn = 18})
-        []
-        []
-        (ConDecl (Ident "ParamDef")
-           [UnBangedTy (TyParen (TyCon (UnQual (Ident "Annotation")))),
-            UnBangedTy (TyParen (TyCon (UnQual (Ident "String")))),
-            UnBangedTy (TyParen (TyCon (UnQual (Ident "TypeName"))))]),
-      QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 6855, srcColumn = 18})
-        []
-        []
-        (ConDecl (Ident "ParamDefTp")
-           [UnBangedTy (TyParen (TyCon (UnQual (Ident "Annotation")))),
-            UnBangedTy (TyParen (TyCon (UnQual (Ident "TypeName"))))])]
-     [(UnQual (Ident "Data"), []), (UnQual (Ident "Eq"), []),
-      (UnQual (Ident "Show"), []), (UnQual (Ident "Typeable"), [])],
-
-
-FunBind
-     [Match
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 8, srcColumn = 1})
-        (Ident "paramDef")
-        [PVar (Ident "x")]
-        Nothing
-        (UnGuardedRhs
-           (Case (Var (UnQual (Ident "x")))
-              [Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 9, srcColumn = 16})
-                 (PApp (UnQual (Ident "ParamDef"))
-                    [PVar (Ident "a"), PVar (Ident "b"), PVar (Ident "c")])
-                 (UnGuardedAlt (Var (UnQual (Ident "undefined"))))
-                 (BDecls []),
-               Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 10, srcColumn = 16})
-                 (PApp (UnQual (Ident "ParamDefTp"))
-                    [PVar (Ident "a"), PVar (Ident "b")])
-                 (UnGuardedAlt (Var (UnQual (Ident "undefined"))))
-                 (BDecls [])]))
-        (BDecls [])],
-
-
-
-
-
-
-
-
-
-
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 4622, srcColumn = 1})
-     (Ident "ExpressionListStatementListPair")
-     []
-     (TyTuple Boxed
-        [TyParen (TyCon (UnQual (Ident "ExpressionList"))),
-         TyParen (TyCon (UnQual (Ident "StatementList")))]),
-
-
-
-
-
 
 > makeTypeSig :: String -> Decl
 > makeTypeSig s =
@@ -479,17 +206,6 @@ FunBind
 >                           (Var (UnQual (Ident l)))
 >                  else Var (UnQual (Ident l))
 
-
-
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 4622, srcColumn = 1})
-     (Ident "ExpressionListStatementListPair")
-     []
-     (TyTuple Boxed
-        [TyParen (TyCon (UnQual (Ident "ExpressionList"))),
-         TyParen (TyCon (UnQual (Ident "StatementList")))]),
-
 > isMaybe :: Decl -> Maybe String
 > isMaybe (TypeDecl _ _ _
 >          (TyParen
@@ -506,20 +222,6 @@ FunBind
 >         (App (Var (UnQual (Ident "fmap")))
 >            (Var (UnQual (Ident $ lowerFirst t1)))))
 >      (BDecls [])
-
-
-)= undefined
-
-   TypeDecl
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 6400, srcColumn = 1})
-     (Ident "MaybeExpression")
-     []
-     (TyParen
-        (TyApp (TyCon (UnQual (Ident "Maybe")))
-           (TyParen (TyCon (UnQual (Ident "Expression")))))),
-
 
 > {-makeUndefined :: String -> Decl
 > makeUndefined s =
@@ -550,65 +252,12 @@ FunBind
 >                   (mkCtor c ant)
 >                   (BDecls [])
 >     mkCtor c ant =
->         let elems = flip map ant (\(a,t) ->
->                                       conv t a)
-
- (a -> b -> b) -> b -> [a] -> b
-
+>         let elems = flip map ant (\(a,t) -> conv t a)
 >         in UnGuardedAlt $ foldl App (Con (Qual (ModuleName "A") (Ident c))) $ elems
->                    {-(UnGuardedAlt
->                     (App
->                        (App
->                           (App (Con (Qual (ModuleName "A") (Ident c)))
->                              (Var (UnQual (Ident "a1"))))
->                           (Var (UnQual (Ident "a2"))))
->                        (Paren
->                           (App (Var (UnQual (Ident "typeName")))
->                              (Var (UnQual (Ident "a3"))))))) -}
 >     conv tn l = if tn `elem` ts
 >                  then (Paren (App (Var (UnQual (Ident $ lowerFirst tn)))
 >                                       (Var (UnQual (Ident l)))))
 >                  else Var (UnQual (Ident l))
-
-       (TyCon (Qual (ModuleName "A") (Ident "ParamDef")))),
-   FunBind
-     [Match
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 9, srcColumn = 1})
-        (Ident "paramDef")
-        [PVar (Ident "x")]
-        Nothing
-        (UnGuardedRhs
-           (Case (Var (UnQual (Ident "x")))
-              [Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 11, srcColumn = 9})
-                 (PApp (UnQual (Ident "ParamDef"))
-                    [PVar (Ident "a1"), PVar (Ident "a2"), PVar (Ident "a3")])
-                 (UnGuardedAlt
-                    (App
-                       (App
-                          (App (Con (Qual (ModuleName "A") (Ident "ParamDef")))
-                             (Var (UnQual (Ident "a1"))))
-                          (Var (UnQual (Ident "a2"))))
-                       (Paren
-                          (App (Var (UnQual (Ident "typeName")))
-                             (Var (UnQual (Ident "a3")))))))
-                 (BDecls []),
-               Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 12, srcColumn = 9})
-                 (PApp (UnQual (Ident "ParamDefTp"))
-                    [PVar (Ident "a1"), PVar (Ident "a2")])
-                 (UnGuardedAlt
-                    (App
-                       (App (Con (Qual (ModuleName "A") (Ident "ParamDefTp")))
-                          (Var (UnQual (Ident "a1"))))
-                       (Paren
-                          (App (Var (UnQual (Ident "typeName")))
-                             (Var (UnQual (Ident "a2")))))))
-                 (BDecls [])]))
-        (BDecls [])]
 
 
 > listConvertor :: String -> String -> Decl
@@ -634,140 +283,11 @@ FunBind
 >   [(n,n1) | (TypeDecl _ (Ident n) _
 >           (TyList (TyParen (TyCon (UnQual (Ident n1)))))) <- universeBi ds]
 
-   TypeDecl
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 1070, srcColumn = 1})
-     (Ident "CaseExpressionList")
-     []
-     (TyList (TyParen (TyCon (UnQual (Ident "Expression"))))),
-
-
 > lowerFirst :: String -> String
 > lowerFirst s = toLower (head s):tail s
 
-
-
-  [TypeSig
-     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-             srcLine = 8, srcColumn = 1})
-     [Ident "alterTableAction"]
-     (TyFun (TyCon (UnQual (Ident "AlterTableAction")))
-        (TyCon (Qual (ModuleName "A") (Ident "AlterTableAction")))),
-   PatBind
-     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-             srcLine = 9, srcColumn = 1})
-     (PVar (Ident "alterTableAction"))
-     Nothing
-     (UnGuardedRhs (Var (UnQual (Ident "undefined"))))
-     (BDecls []),
-   TypeSig
-     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-             srcLine = 11, srcColumn = 1})
-     [Ident "copySource"]
-     (TyFun (TyCon (UnQual (Ident "CopySource")))
-        (TyCon (Qual (ModuleName "A") (Ident "CopySource")))),
-   FunBind
-     [Match
-        (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                srcLine = 12, srcColumn = 1})
-        (Ident "copySource")
-        [PVar (Ident "c")]
-        Nothing
-        (UnGuardedRhs
-           (Case (Var (UnQual (Ident "c")))
-              [Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 13, srcColumn = 18})
-                 (PApp (UnQual (Ident "CopyFilename")) [PVar (Ident "s")])
-                 (UnGuardedAlt (Var (UnQual (Ident "undefined"))))
-                 (BDecls []),
-               Alt
-                 (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                         srcLine = 14, srcColumn = 18})
-                 (PApp (UnQual (Ident "Stdin")) [])
-                 (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Stdin"))))
-                 (BDecls [])]))
-        (BDecls [])],
-
-
-> {-a =
->    TypeSig
->      nsrc
->      [Ident "cascade"]
->      (TyFun (TyCon (UnQual (Ident "Cascade")))
->         (TyCon (Qual (ModuleName "A") (Ident "Cascade"))))
->
-> b =
->    FunBind
->      [Match
->         nsrc
->         (Ident "cascade")
->         [PVar (Ident "c")]
->         Nothing
->         (UnGuardedRhs
->            (Case (Var (UnQual (Ident "c")))
->               [Alt nsrc
->                  (PApp (UnQual (Ident "Cascade")) [])
->                  (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Cascade"))))
->                  (BDecls []),
->                Alt
->                  nsrc
->                  (PApp (UnQual (Ident "Restrict")) [])
->                  (UnGuardedAlt (Con (Qual (ModuleName "A") (Ident "Restrict"))))
->                  (BDecls [])]))
->         (BDecls [])]-}
-
-
-   DataDecl
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 972, srcColumn = 1})
-     DataType
-     []
-     (Ident "Cascade")
-     []
-     [QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 972, srcColumn = 17})
-        []
-        []
-        (ConDecl (Ident "Cascade") []),
-      QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 973, srcColumn = 17})
-        []
-        []
-        (ConDecl (Ident "Restrict") [])]
-     [(UnQual (Ident "Data"), []), (UnQual (Ident "Eq"), []),
-      (UnQual (Ident "Show"), []), (UnQual (Ident "Typeable"), [])],
-
-
-Module
-  (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-          srcLine = 1, srcColumn = 1})
-  (ModuleName "Database.HsSqlPpp.AstInternals.AstAnti")
-  [LanguagePragma
-     (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-             srcLine = 1, srcColumn = 1})
-     [Ident "DeriveDataTypeable"]]
-  Nothing
-  Nothing
-  [ImportDecl{importLoc =
-                SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                       srcLine = 5, srcColumn = 1},
-              importModule = ModuleName "Data.Generics", importQualified = False,
-              importSrc = False, importPkg = Nothing, importAs = Nothing,
-              importSpecs = Nothing},
-   ImportDecl{importLoc =
-                SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
-                       srcLine = 7, srcColumn = 1},
-              importModule =
-                ModuleName "Database.HsSqlPpp.AstInternals.AstAnnotation",
-              importQualified = False, importSrc = False, importPkg = Nothing,
-              importAs = Nothing, importSpecs = Nothing}]
+> upperFirst :: String -> String
+> upperFirst s = toUpper (head s):tail s
 
 
 > nsrc :: SrcLoc
@@ -785,62 +305,3 @@ Module
 >     ++
 >     [d | d@(TypeDecl _ (Ident n) _ _) <- universeBi m
 >          ,n `elem` nms]
-
-
-TypeDecl SrcLoc Name [TyVarBind] Type
-import Data.Maybe
-import Data.List
-import Debug.Trace
-import Data.Either
-import Control.Applicative
-import Data.Generics
-import Data.Char
-import Control.Monad.State
-
-import Database.HsSqlPpp.AstInternals.TypeType
-import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
-import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
-import Database.HsSqlPpp.AstInternals.AstAnnotation
-import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
-import Database.HsSqlPpp.Utils.Utils
-import Data.Generics.PlateData
-
-
-TypeDecl
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 7808, srcColumn = 1})
-     (Ident "RowConstraintList")
-     []
-     (TyList (TyParen (TyCon (UnQual (Ident "RowConstraint"))))),
-
-   DataDecl
-     (SrcLoc{srcFilename =
-               "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-             srcLine = 6854, srcColumn = 1})
-     DataType
-     []
-     (Ident "ParamDef")
-     []
-     [QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 6854, srcColumn = 18})
-        []
-        []
-        (ConDecl (Ident "ParamDef")
-           [UnBangedTy (TyParen (TyCon (UnQual (Ident "Annotation")))),
-            UnBangedTy (TyParen (TyCon (UnQual (Ident "String")))),
-            UnBangedTy (TyParen (TyCon (UnQual (Ident "TypeName"))))]),
-      QualConDecl
-        (SrcLoc{srcFilename =
-                  "Database/HsSqlPpp/AstInternals/AstInternal.hs",
-                srcLine = 6855, srcColumn = 18})
-        []
-        []
-        (ConDecl (Ident "ParamDefTp")
-           [UnBangedTy (TyParen (TyCon (UnQual (Ident "Annotation")))),
-            UnBangedTy (TyParen (TyCon (UnQual (Ident "TypeName"))))])]
-     [(UnQual (Ident "Data"), []), (UnQual (Ident "Eq"), []),
-      (UnQual (Ident "Show"), []), (UnQual (Ident "Typeable"), [])],

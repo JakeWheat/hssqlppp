@@ -107,58 +107,6 @@ temporal relations.
 >      |]
 >   ]
 
-> {-transitionConstraintTemplate :: [Statement]
-> transitionConstraintTemplate =
->     [$sqlQuote|
->
->      create function transition_constraint_check_function() returns trigger as $a$
->      begin
->        if not (transition_constraint_expression) then
->            --'transition on relvar violates transition constraint constraint_name';
->            raise exception 'transition_constraint_error_message';
->        end if;
->        return 'transition_constraint_return';
->      end;
->      $a$ language plpgsql volatile;
->
->      create trigger transition_constraint_trigger_name
->        after insert on relvar
->        for each row
->        execute procedure transition_constraint_check_function();
->
->      |]-}
-
- > --makeTemplate :: [Statement]
- > makeTemplate :: ExpQ -> [Statement]
-
-> {-makeTemplate :: String -> Expression -> Expression -> [Statement]
-> makeTemplate spliceFnName expr ret =
->     [$sqlQuote|
->
->      create function spliceFnName() returns trigger as $a$
->      begin
->        if not ( $(expr)) then
->            --'transition on relvar violates transition constraint constraint_name';
->            raise exception 'transition_constraint_error_message';
->        end if;
->        return $(ret); -- 'transition_constraint_return';
->      end;
->      $a$ language plpgsql volatile;
->
->      create trigger transition_constraint_trigger_name
->        after insert on relvar
->        for each row
->        execute procedure spliceFnName();
->
->      |]-}
-
-transition_constraint_check_function - identifier
-transition_constraint_expression - expression
-transition_constraint_error_message - string
-transition_constraint_return - expression either OLD or null
-transition_constraint_trigger_name - identifier
-after insert on relvar - replace insert with update or delete if neccessary
-
 > transitionConstraint :: [Statement] -> [Statement]
 > transitionConstraint =
 >     transformBi $ \x ->
@@ -191,59 +139,22 @@ after insert on relvar - replace insert with update or delete if neccessary
 >                     else Identifier [] "OLD"
 >               expr = either (error . show) id
 >                             $ parseExpression "" expressionText
->               template0 = [$sqlQuote|
+>           in [$sqlQuote|
 \begin{code}
 
       create function $(spliceFnName)() returns trigger as $a$
       begin
         if not ( $(expr)) then
-            --'transition on relvar violates transition constraint constraint_name';
             raise exception '$(spliceErrMsg)';
         end if;
-        return $(ret); -- 'transition_constraint_return';
+        return $(ret);
       end;
       $a$ language plpgsql volatile;
 
       create trigger $(spliceTriggerName)
-        after insert on relvar
+        after $(tct) on relvar
         for each row
         execute procedure $(spliceFnName)();
 
 \end{code}
 >                            |]
->               {-template0 = makeTemplate ("check_" ++ constraintName) expression retPart
->               --template0 = transitionConstraintTemplate
->               ttname = case tct of
->                           TInsert -> "insert"
->                           TUpdate -> "update"
->                           TDelete -> "delete"
->               errMsg = ttname ++ " on " ++ tableName ++
->                        " violates transition constraint " ++ constraintName;
->               --replace the strings: function name, error message, trigger name
->               template1 = mapStrings [
->                        --("transition_constraint_check_function"
->                        --,"check_" ++ constraintName)
->                        ("transition_constraint_error_message",errMsg)
->                       ,("transition_constraint_trigger_name"
->                        ,tableName ++ "_" ++ ttname ++ "_transition_trigger")]
->                     template0-}
->               -- replace the expression
->               {-expression = case parseExpression "" expressionText of
->                              Left e -> error $ show e
->                              Right ex -> ex-}
->               -- replace the return type of the trigger function
->               {-ret = if tct == TDelete
->                     then NullLit []
->                     else Identifier [] "OLD"-}
->               -- and replace the trigger event
->               {-template2 = flip transformBi template1 $ \x ->
->                             case x of
->                               (Identifier _ "transition_constraint_expression") -> expression
->                               --(StringLit _ "'" "transition_constraint_return") -> ret
->                               x1 -> x1-}
->               -- replace the trigger event
->               template3 = flip transformBi template0 $ \x ->
->                             case x of
->                               TInsert -> tct
->                               x1 -> x1
->           in template3

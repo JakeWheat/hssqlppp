@@ -47,8 +47,10 @@ of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
 magically converts from one to the other ...
 
 > parseExprExp :: String -> Q Exp
-> parseExprExp s = parseSql' s >>= dataToExpQ (const Nothing `extQ` antiExpE
->                                                            `extQ` antiStrE)
+> parseExprExp s = parseSql' s >>= dataToExpQ (const Nothing
+>                                             `extQ` antiExpE
+>                                             `extQ` antiStrE
+>                                             `extQ` antiTriggerEventE)
 >
 > parseExprPat :: String -> Q Pat
 > parseExprPat s =  parseSql' s >>= dataToPatQ (const Nothing `extQ` antiExpP)
@@ -70,6 +72,11 @@ magically converts from one to the other ...
 >                                 getSpliceName x = drop 2 $ take (length x - 1) x
 > antiStrE _ = Nothing
 
+> antiTriggerEventE :: TriggerEvent -> Maybe ExpQ
+> antiTriggerEventE (AntiTriggerEvent v) = Just $ varE $ mkName v
+> antiTriggerEventE _ = Nothing
+
 > antiExpP :: Expression -> Maybe PatQ
 > antiExpP (AntiExpression v ) = Just $ varP $ mkName v
 > antiExpP _ = Nothing
+
