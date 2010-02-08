@@ -130,3 +130,21 @@ dodgy code to pretty print a value using haskell-src-exts to try and format it n
 >   case Exts.parseExp (show s) of
 >     Exts.ParseOk ast -> Exts.prettyPrint ast
 >     x -> error $ show x
+
+
+> npartition :: (Eq a, Eq b) => (a -> b) -> [a] -> [(b,[a])]
+> npartition keyf l =
+>   np [] l
+>   where
+>     np acc (p:ps) = let k = keyf p
+>                     in np (insertWith (++) k [p] acc) ps
+>     np acc [] = acc
+
+> insertWith :: (Eq k, Eq a) => (a -> a -> a) -> k -> a -> [(k,a)] -> [(k,a)]
+> insertWith ac k v m =
+>     case lookup k m of
+>       Nothing -> m ++ [(k,v)]
+>       Just v' -> let nv = ac v' v
+>                  in map (\p@(k1,_) -> if k1 == k
+>                                       then (k1,nv)
+>                                       else p) m
