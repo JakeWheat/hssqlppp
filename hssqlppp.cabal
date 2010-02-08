@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.3.0
+Version:             0.3.0-pre
 Synopsis:            SQL parser, quasiquoter, and type checker
 License:             BSD3
 License-file:        LICENSE

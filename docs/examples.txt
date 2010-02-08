@@ -3,8 +3,21 @@ Examples
 
 All this code is currently available in the cabal source package, to get use
 
-    cabal update
-    cabal unpack hssqlppp
+~~~~~{.Bash}
+cabal update
+cabal unpack hssqlppp
+~~~~~
+
+Code fragments
+--------------
+
+Here are some extracts from the test files which show what sql can be
+parsed, what can be type checked, and what kind of antiquotation the
+quasiquotation supports.
+
+* [Parsing examples](ParserTests.html)
+* [Type-checking examples](TypeCheckTests.html)
+* [Quasiquotation examples](QuasiQuoteTests.html)
 
 HsSqlSystem
 -----------
@@ -66,3 +79,15 @@ Demonstration extension.
 [TransitionConstraints](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/TransitionConstraints.lhs.html).
 
 [CreateVar](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/CreateVar.lhs.html)
+
+ddl triggers
+
+notify system
+
+default not null
+
+cardinality constraint shorthands
+
+multiple update hack
+
+out of order definitions

@@ -29,7 +29,7 @@ in scope, and one for an unqualified star.
 
 > {-# LANGUAGE ScopedTypeVariables #-}
 > {-# OPTIONS_HADDOCK hide  #-}
-
+>
 > module Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
 >     (
 >      LocalBindingsUpdate(..)
@@ -49,7 +49,7 @@ in scope, and one for an unqualified star.
 >     ,ppLocalBindings
 >     ,ppLbls
 >     ) where
-
+>
 > import Control.Monad as M
 > import Control.Applicative
 > import Debug.Trace
@@ -58,12 +58,12 @@ in scope, and one for an unqualified star.
 > import Data.Char
 > import Data.Either
 > --import qualified Data.Map as M
-
+>
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
-
+>
 > type E a = Either [TypeError] a
 
 The data type to represent a set of local bindings in scope. The list
@@ -85,7 +85,7 @@ Missing correlation names are represented by an empty string for the
 correlation name.
 
 > type Source = String
-
+>
 > type FullId = (Source,String,String,Type) -- source,correlationname,name,type
 >                                           -- correlation name is
 >                                           -- there so we can recover
@@ -95,7 +95,7 @@ correlation name.
 > type SimpleId = (String,Type)
 > type IDLookup = ((String,String), E FullId)
 > type StarLookup = (String, E [FullId]) --the order of the [FullId] part is important
-
+>
 > data LocalBindingsLookup = LocalBindingsLookup
 >                                [IDLookup]
 >                                [StarLookup] --stars
@@ -122,9 +122,7 @@ This is the local bindings update that users of this module use.
 >                             ,plbu2 :: LocalBindingsUpdate
 >                            }
 >                            deriving Show
-
-
-
+>
 > emptyBindings :: LocalBindings
 > emptyBindings = LocalBindings [] []
 
@@ -133,11 +131,11 @@ This is the local bindings update that users of this module use.
 > ppLocalBindings :: LocalBindings -> String
 > ppLocalBindings (LocalBindings lbus lbls) =
 >   "LocalBindings\n" ++ doList show lbus ++ doList ppLbls lbls
-
+>
 > ppLbls :: LocalBindingsLookup -> String
 > ppLbls (LocalBindingsLookup is ss) =
 >       "LocalBindingsLookup\n" ++ doList show is ++ doList show ss
-
+>
 > doList :: (a -> String) -> [a] -> String
 > doList m l = "[\n" ++ intercalate "\n," (map m l) ++ "\n]\n"
 
@@ -157,7 +155,7 @@ compatibility with the old lookup code
 >                                          in if b == ""
 >                                             then ("", a)
 >                                             else (a,tail b)
-
+>
 > lbLookupID1 :: LocalBindings
 >            -> String -- correlation name
 >            -> String -- identifier name
@@ -190,7 +188,7 @@ old implementation of local bindings
 >   where
 >     strip (_,_,n,t) = (n,t)
 >     stripAll = map strip
-
+>
 > lbExpandStar1 :: LocalBindings -> String -> E [FullId]
 > lbExpandStar1 (LocalBindings _ lkps) cor' =
 >   exSt lkps
@@ -224,9 +222,8 @@ This is where constructing the local bindings lookup stacks is done
 >        LBParallel (lowerise lbu1) (lowerise lbu2)
 >      mtll = map (\(n,t) -> (mtl n, t))
 >      mtll1 = map (\l -> mtl l)
-
+>
 > makeStack :: Catalog -> LocalBindingsUpdate -> E LocalBindingsLookup
-
 > makeStack _ (LBIds src cor ids iids) =
 >   Right $ LocalBindingsLookup doIds doStar
 >   where
@@ -246,7 +243,7 @@ This is where constructing the local bindings lookup stacks is done
 >                       _ -> [("",Right $ map addDetails ids)]
 >              ++ [(cor,Right $ map addDetails ids)]
 >     addDetails (n,t) = (src,cor,n,t)
-
+>
 > makeStack cat (LBJoinIds t1 t2 jns a) = do
 >   --first get the stacks from t1 and t2
 >   --combine the elements of these filtering out the join ids
@@ -333,7 +330,7 @@ This is where constructing the local bindings lookup stacks is done
 >       (_,_,_,ty2) <- fromJust $ lookup ("",s) i2
 >       ty <- resolveResultSetType cat [ty1,ty2]
 >       return (s,ty)
-
+>
 > makeStack cat (LBParallel u1 u2) = do
 >   -- get the two stacks,
 >   -- for any keys that appear in both respective lookups, replace with ambigious error
@@ -341,13 +338,13 @@ This is where constructing the local bindings lookup stacks is done
 >   (LocalBindingsLookup i1 s1) <- makeStack cat u1
 >   (LocalBindingsLookup i2 s2) <- makeStack cat u2
 >   return $ LocalBindingsLookup (combineAddAmbiguousErrors i1 i2) $ combineStarExpansions s1 s2
-
+>
 > combineStarExpansions :: [StarLookup] -> [StarLookup] -> [StarLookup]
 > combineStarExpansions s1 s2 =
 >   let p :: [(String, [(String, E [FullId])])]
 >       p = npartition fst (s1 ++ s2)
 >   in flip map p $ \(a,b) -> (a,concat <$> M.sequence (map snd b))
-
+>
 > combineAddAmbiguousErrors :: [IDLookup] -> [IDLookup] -> [IDLookup]
 > combineAddAmbiguousErrors i1 i2 =
 >   let commonIds = intersect (map fst i1) (map fst i2)
@@ -361,7 +358,7 @@ This is where constructing the local bindings lookup stacks is done
 
 > mtl :: String -> String
 > mtl = map toLower
-
+>
 > showID :: String -> String -> String
 > showID cor i = if cor == "" then i else cor ++ "." ++ i
 

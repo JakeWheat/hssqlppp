@@ -1,39 +1,37 @@
 Copyright 2010 Jake Wheat
 
 Tests for the local bindings lookup code, which is a bit convoluted in
-places, particularly for joins
+places, particularly for joins.
+
+The tests are also quite convoluted, but the main simplification to
+try to make them understandable is that we load a bunch of
+localbindingupdates, then we just check the entire lookup values that
+tell us what each identifier or star expansion returns, rather than
+looking individual items up and checking the results.
 
 > {-# LANGUAGE ScopedTypeVariables #-}
-
+>
 > module Database.HsSqlPpp.Tests.LocalBindingsTests (localBindingsTests) where
-
+>
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > --import Debug.Trace
 > import Control.Monad
 > import Control.Monad.Error
-
-
+>
 > import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
-
-> --import Database.HsSqlPpp.Utils
-
 > import Database.HsSqlPpp.SqlTypes
-> --import Database.HsSqlPpp.Ast.Annotation
-> --import Database.HsSqlPpp.Parsing.Parser
-> --import Database.HsSqlPpp.Ast.TypeChecker
 > import Database.HsSqlPpp.Catalog
-
+>
 > data Item = Group String [Item]
 >           | Item [(String
 >                   ,[LocalBindingsUpdate]
 >                   ,Either [TypeError] [LocalBindingsLookup])]
-
+>
 > localBindingsTests :: [Test.Framework.Test]
 > localBindingsTests = itemToTft testData
-
-
+>
 > testData :: Item
 > testData = Group "local bindings tests" [ Item [
 >   ("test empty", [LBIds "source1" "" [] []], Right [LocalBindingsLookup [] [("", Right [])]])
@@ -72,7 +70,7 @@ places, particularly for joins
 >                    ("source1", "c", "a", typeInt)
 >                   ,("source1", "c", "b", typeBool)])
 >            ]])
-
+>
 >  ,("test parallel", [LBParallel
 >     (LBIds "source1" "c1" [("a", typeInt)
 >                         ,("b", typeBool)]
@@ -125,7 +123,7 @@ places, particularly for joins
 >            ,("c1", Right [("s1", "c1", "a", typeInt)])
 >            ,("c2", Right [("s2", "c2", "c", typeInt)])
 >            ]])
-
+>
 >  ,("test natural join", [LBJoinIds
 >                    (LBIds "s1" "c1" [("a", typeInt), ("b", typeBool)] [])
 >                    (LBIds "s2" "c2" [("a", typeInt), ("c", typeBool)] [])
@@ -146,7 +144,7 @@ places, particularly for joins
 >            ,("c2", Right [("s2", "c2", "a", typeInt)
 >                          ,("s2", "c2", "c", typeBool)])
 >            ]])
-
+>
 >  ,("test natural join", [LBJoinIds
 >                    (LBIds "s1" "c1" [("b", typeBool),("a", typeInt)] [])
 >                    (LBIds "s2" "c2" [("c", typeBool),("a", typeInt)] [])
@@ -167,8 +165,7 @@ places, particularly for joins
 >            ,("c2", Right [("s2", "c2", "a", typeInt)
 >                          ,("s2", "c2", "c", typeBool)])
 >            ]])
-
-
+>
 >  ,("test using join", [LBJoinIds
 >                    (LBIds "s1" "c1" [("b", typeBool),("a", typeInt)] [])
 >                    (LBIds "s2" "c2" [("c", typeBool),("a", typeInt)] [])
@@ -189,7 +186,7 @@ places, particularly for joins
 >            ,("c2", Right [("s2", "c2", "a", typeInt)
 >                          ,("s2", "c2", "c", typeBool)])
 >            ]])
-
+>
 >  ,("test join with alias", [LBJoinIds
 >                    (LBIds "s1" "c1" [("b", typeBool),("a", typeInt)] [])
 >                    (LBIds "s2" "c2" [("c", typeBool),("a", typeInt)] [])
@@ -208,7 +205,7 @@ places, particularly for joins
 >                          ,("s1", "t3", "b", typeBool)
 >                          ,("s2", "t3", "c", typeBool)])
 >            ]])
-
+>
 >  ,("test composite type expansion", [LBIds "s1" "c1" [("r", NamedCompositeType "pg_attrdef")] []]
 >   ,ctExpand (NamedCompositeType "pg_attrdef"))
 >  ,let t = CompositeType ctFields
@@ -221,6 +218,7 @@ places, particularly for joins
 >   in ("test composite type expansion rec", [LBIds "s1" "c1" [("r", t)] []]
 >      ,ctExpand t)
 
+~~~~
 
   join update: join col type tests + incompatible, missing ol
 ? 4 layers no aliases
@@ -251,6 +249,8 @@ chaos=# select b.* from (select 1 as a, 2 as a) b;
  1 | 2
 (1 row)
 
+~~~~
+
 >   ]]
 >   where
 >     ctFields = [("adrelid",ScalarType "oid")
@@ -271,10 +271,9 @@ chaos=# select b.* from (select 1 as a, 2 as a) b;
 >                        ,("s1","r","adnum",ScalarType "int2")
 >                        ,("s1","r","adbin",ScalarType "text")
 >                        ,("s1","r","adsrc",ScalarType "text")])
-
 >            ]]
 
-================================================================================
+--------------------------------------------------------------------------------
 
 > testLookups :: String
 >             -> [LocalBindingsUpdate]
@@ -292,13 +291,7 @@ chaos=# select b.* from (select 1 as a, 2 as a) b;
 >       showRes e = either show showLkps e
 >       showLkps :: [LocalBindingsLookup] -> String
 >       showLkps ls = concatMap ppLbls ls
-
+>
 > itemToTft :: Item -> [Test.Framework.Test]
 > itemToTft (Item es) = map (\(a,b,c) -> testLookups a b c) es
 > itemToTft (Group s is) = [testGroup s $ concatMap itemToTft is]
-
- > wrapETT :: (Show e) => ErrorT e IO () -> IO ()
- > wrapETT c = runErrorT c >>= \x ->
- >          case x of
- >            Left er -> assertFailure $ show er
- >            Right l -> return l

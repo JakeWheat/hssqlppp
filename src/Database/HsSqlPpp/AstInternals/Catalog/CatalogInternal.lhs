@@ -6,7 +6,7 @@ modules.
 
 > {-# LANGUAGE DeriveDataTypeable #-}
 > {-# OPTIONS_HADDOCK hide  #-}
-
+>
 > module Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 >     (
 >      Catalog
@@ -43,16 +43,16 @@ modules.
 >     ,compareCatalogs
 >     ,ppCatDiff
 >     ) where
-
+>
 > import Control.Monad
 > import Data.List
 > import Data.Generics
 > -- import Debug.Trace
 > import Data.Char
-
+>
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils.Utils
-
+>
 > -- | The main datatype, this holds the catalog and context
 > -- information to type check against.
 > data Catalog = Catalog
@@ -69,12 +69,12 @@ modules.
 >                    ,catAttrDefs :: [CompositeDef]
 >                    ,catUpdates :: [CatalogUpdate]}
 >                    deriving Show
-
+>
 > -- | Represents an empty catalog. This doesn't contain things
 > -- like the \'and\' operator, 'defaultCatalog' contains these.
 > emptyCatalog :: Catalog
 > emptyCatalog = Catalog [] [] [] [] [] [] [] [] [] [] [] []
-
+>
 > -- | Represents what you probably want to use as a starting point if
 > -- you are building an catalog from scratch. It contains
 > -- information on built in function like things that aren't in the
@@ -87,40 +87,38 @@ modules.
 >                                                 ,Pseudo AnyElement],
 >                                             typeBool, False):keywordOperatorTypes
 >                      ,catFunctions = specialFunctionTypes}
-
-
+>
 > -- | Use to note what the flavour of a cast is, i.e. if/when it can
 > -- be used implicitly.
 > data CastContext = ImplicitCastContext
 >                  | AssignmentCastContext
 >                  | ExplicitCastContext
 >                    deriving (Eq,Show,Ord,Typeable,Data)
-
+>
 > -- | Used to distinguish between standalone composite types, and
 > -- automatically generated ones, generated from a table or view
 > -- respectively.
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
 >                         deriving (Eq,Ord,Show)
-
+>
 > relationComposites :: [CompositeFlavour]
 > relationComposites = [TableComposite,ViewComposite]
-
-
+>
 > -- | Provides the definition of a composite type. The components are
 > -- composite (or table or view) name, the flavour of the composite,
 > -- the types of the composite attributes, and the types of the
 > -- system columns iff the composite represents a table type (the
 > -- third and fourth components are always 'CompositeType's).
 > type CompositeDef = (String, CompositeFlavour, Type, Type)
-
+>
 > -- | The components are: function (or operator) name, argument
 > -- types, return type and is variadic.
 > type FunctionPrototype = (String, [Type], Type, Bool)
-
+>
 > -- | The components are domain type, base type (todo: add check
 > -- constraint).
 > type DomainDefinition = (Type,Type)
-
+>
 > data CatalogUpdate =
 >     -- | add a new scalar type with the name given, also creates
 >     -- an array type automatically
@@ -133,7 +131,7 @@ modules.
 >   | CatCreateFunction FunFlav String [Type] Type Bool
 >   | CatDropFunction Bool String [Type]
 >     deriving (Eq,Ord,Typeable,Data,Show)
-
+>
 > ppCatUpdate :: CatalogUpdate -> String
 > ppCatUpdate (CatCreateScalar t c p) = "CatCreateScalar " ++ show t ++ "(" ++ c ++ "," ++ show p ++ ")"
 > ppCatUpdate (CatCreateDomain t b) = "CatCreateDomain " ++ show t ++ " as " ++ show b
@@ -145,17 +143,17 @@ modules.
 >     "CatCreateFunction " ++ show flav ++ " " ++ nm ++ " returns " ++ show ret ++
 >     "(" ++ intercalate "," (map show args) ++ ")" ++ if vdc then " variadic" else ""
 > ppCatUpdate (CatDropFunction _ nm args) = "CatDropFunction " ++ nm ++ "(" ++ show args ++ ")"
-
+>
 > showFlds :: [(String,Type)] -> String
 > showFlds flds = "(\n" ++ sfs flds ++ ")"
 >                 where
 >                   sfs ((nm,t):fs) = "    " ++ show nm ++ " " ++ show t ++ "\n" ++ sfs fs
 >                   sfs [] = ""
-
+>
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
 >              | FunName | FunAgg | FunWindow
 >                deriving (Eq,Show,Ord,Typeable,Data)
-
+>
 > -- | Applies a list of 'CatalogUpdate's to an 'Catalog' value
 > -- to produce a new Catalog value.
 > updateCatalog :: Catalog
@@ -198,7 +196,6 @@ modules.
 >                   baseAllowed = case baseTy of
 >                                                     ScalarType _ -> True
 >                                                     _ -> False
-
 >         CatCreateComposite nm flds ->
 >                 return $ (addTypeWithArray cat nm (NamedCompositeType nm) "C" False) {
 >                             catAttrDefs =
@@ -249,7 +246,6 @@ todo:
 look for matching function in list, if not found then error
 remove from list, and remove from update list
 
-
 >     addTypeWithArray cat nm ty catl pref =
 >       cat {catTypeNames =
 >                ('_':nm,ArrayType ty)
@@ -265,8 +261,6 @@ remove from list, and remove from update list
 >         errorWhen (any (==ty) $ map snd $ catTypeNames cat)
 >             [TypeAlreadyExists ty]
 >         return ()
-
-
 > {-
 >  | Takes part an 'Catalog' value to produce a list of 'CatalogUpdate's.
 >  You can use this to look inside the Catalog data type e.g. if you want to
@@ -277,8 +271,7 @@ remove from list, and remove from update list
 > deconstructCatalog :: Catalog -> [CatalogUpdate]
 > deconstructCatalog = catUpdates
 
-
-================================================================================
+--------------------------------------------------------------------------------
 
 = type checking stuff
 
@@ -290,34 +283,33 @@ remove from list, and remove from update list
 >   case c of
 >     (_,fl1,r,s):[] -> return (nm,fl1,r,s)
 >     _ -> Left [InternalError $ "problem getting attributes for: " ++ show nm ++ ", " ++ show c]
-
+>
 > catCompositeAttrsPair :: Catalog -> [CompositeFlavour] -> String
 >                       -> Either [TypeError] ([(String,Type)],[(String,Type)])
 > catCompositeAttrsPair cat flvs ty = do
 >    (_,_,CompositeType a,CompositeType b) <- catCompositeDef cat flvs ty
 >    return (a,b)
-
+>
 > catCompositeAttrs :: Catalog -> [CompositeFlavour] -> String
 >                   -> Either [TypeError] [(String,Type)]
 > catCompositeAttrs cat flvs ty = do
 >   (a,b) <- catCompositeAttrsPair cat flvs ty
 >   return $ a ++ b
-
+>
 > catCompositePublicAttrs :: Catalog -> [CompositeFlavour] -> String
 >                   -> Either [TypeError] [(String,Type)]
 > catCompositePublicAttrs cat flvs ty = do
 >   (a,_) <- catCompositeAttrsPair cat flvs ty
 >   return a
-
-
+>
 > catTypeCategory :: Catalog -> Type -> Either [TypeError] String
 > catTypeCategory cat ty =
 >   fmap fst $ catGetCategoryInfo cat ty
-
+>
 > catPreferredType :: Catalog -> Type -> Either [TypeError] Bool
 > catPreferredType cat ty =
 >   fmap snd $ catGetCategoryInfo cat ty
-
+>
 > catCast :: Catalog -> CastContext -> Type -> Type -> Either [TypeError] Bool
 > catCast cat ctx from to = {-trace ("check cast " ++ show from ++ show to) $-}
 >     case from of
@@ -328,16 +320,14 @@ remove from list, and remove from update list
 >                                (cc ||
 >                                   any (== (from, to, ctx)) (catCasts cat))
 >       _ -> Right $ any (==(from,to,ctx)) (catCasts cat)
-
-
+>
 > catDomainBaseType :: Catalog -> Type -> Either [TypeError] Type
 > catDomainBaseType cat ty =
 >   --check type is domain, check it exists in main list
 >   case lookup ty (catDomainDefs cat) of
 >       Nothing -> Left [DomainDefNotFound ty]
 >       Just t -> Right t
-
-
+>
 > catLookupFns :: Catalog -> String -> [FunctionPrototype]
 > catLookupFns cat name =
 >     filter (\(nm,_,_,_) -> map toLower nm == map toLower name) catGetAllFns
@@ -364,18 +354,18 @@ remove from list, and remove from update list
 >               then Left [InternalError $ "no type category for " ++ show ty]
 >               else let (_,c,p):_ =l
 >                    in Right (c,p)
-
+>
 > catTypeExists :: Catalog -> Type -> Either [TypeError] Type
 > catTypeExists cat t =
 >     errorWhen (t `notElem` map snd (catTypeNames cat))
 >               [UnknownTypeError t] >>
 >     Right t
-
+>
 > catLookupType :: Catalog -> String -> Either [TypeError] Type
 > catLookupType cat name =
 >     liftME [UnknownTypeName name] $
 >       lookup name (catTypeNames cat)
-
+>
 
 ================================================================================
 
@@ -401,9 +391,9 @@ This is wrong, these need to be separated into prefix, postfix, binary
 >  ,("!substring", [ScalarType "text",typeInt,typeInt], ScalarType "text", False)
 >  ,("!arraysub", [Pseudo AnyArray,typeInt], Pseudo AnyElement, False)
 >  ]
-
-these look like functions, but don't appear in the postgresql catalog.
-
+>
+> -- these look like functions, but don't appear in the postgresql catalog.
+>
 > specialFunctionTypes :: [FunctionPrototype]
 > specialFunctionTypes = [
 >   ("coalesce", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement, True)
@@ -411,7 +401,7 @@ these look like functions, but don't appear in the postgresql catalog.
 >  ,("greatest", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement,True)
 >  ,("least", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement,True)
 >  ]
-
+>
 > pseudoTypes :: [(String, Type)]
 > pseudoTypes =
 >     [("any",Pseudo Any)
@@ -447,7 +437,7 @@ this is why binary @ operator isn't currently supported
 
 > data OperatorType = BinaryOp | PrefixOp | PostfixOp
 >                   deriving (Eq,Show)
-
+>
 > getOperatorType :: Catalog -> String -> Either [TypeError] OperatorType
 > getOperatorType cat s = case () of
 >                       _ | s `elem` ["!and", "!or","!like"] -> Right BinaryOp
@@ -463,7 +453,7 @@ this is why binary @ operator isn't currently supported
 >                             Right PostfixOp
 >                         | otherwise ->
 >                             Left [InternalError $ "don't know flavour of operator " ++ s]
-
+>
 > isOperatorName :: String -> Bool
 > isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?")
 
@@ -472,7 +462,7 @@ this is why binary @ operator isn't currently supported
 > -- | items in first catalog and not second, items in second and not first.
 > data CatalogDiff = CatalogDiff [CatalogUpdate] [CatalogUpdate]
 >                deriving Show
-
+>
 > -- | find differences between two catalogs
 > compareCatalogs :: Catalog -> Catalog -> Catalog -> CatalogDiff
 > compareCatalogs base start end =
@@ -482,7 +472,7 @@ this is why binary @ operator isn't currently supported
 >             missing = sort $ endCatBits \\ startCatBits
 >             extras = sort $ startCatBits \\ endCatBits
 >         in CatalogDiff missing extras
-
+>
 > -- | print a catdiff in a more human readable way than show.
 > ppCatDiff :: CatalogDiff -> String
 > ppCatDiff (CatalogDiff missing extr) =

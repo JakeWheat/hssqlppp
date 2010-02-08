@@ -21,13 +21,19 @@ Gather together the examples from the extension modules and convert to regular t
 > import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 > --import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
 > import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraintTests
-
+>
 > testData :: [ExtensionTest]
 > testData = transitionConstraintExamples ++
 >            extendedConstraintExamples ++
 >            [createVarSimpleExample
 >            ,createVarExample
 >            ]
+
+~~~~
+rough plan for extensions
+
+immediate goal is to rewrite chaos2010 much more nicely using new
+extensions
 
 ddl 'triggers' -> reject, transform, or supplement a ddl statement
 addreadonlytriggers
@@ -53,10 +59,11 @@ chaos: leftovers already written,
 idea for attributes:
 select attribute('type','readonly');
 create table readonly_table ...
+~~~~
 
 > extensionTests :: Test.Framework.Test
 > extensionTests = testGroup "extensionTests" $ map testExtension testData
-
+>
 > testExtension :: ExtensionTest -> Test.Framework.Test
 > testExtension (ExtensionTest nm tr sast ts) =
 >   testCase nm $ do

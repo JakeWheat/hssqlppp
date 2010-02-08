@@ -47,6 +47,8 @@ make_dname str = mkName $ uncapitalize str
 
 -- The template of our declaration. We will then replace all occurences
 -- of Foo with the desired name
+
+-- this has been changed to add type sig plus deriving
 dcl_template :: Q [Dec]
 dcl_template = [d| data Foo deriving Typeable; foo :: Proxy Foo; foo = proxy::Proxy Foo |]
 

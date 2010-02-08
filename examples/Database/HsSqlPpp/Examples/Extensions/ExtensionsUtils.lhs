@@ -30,7 +30,8 @@ Simple ast transforms, just substitutes the strings given in the reps
 >   where
 >     fstReps = map fst reps
 
-View pattern support to help match function calls in an ast.
+View pattern support to help match function calls in an ast. TODO: try
+quasipattern instead
 
 > data FunCallView = FUnit
 >                  | FunCallView Annotation String [Expression]
@@ -47,4 +48,3 @@ View pattern support to help match function calls in an ast.
 >               Nothing
 >               Nothing)) = FunCallView an fnName args
 > funCallView _ = FUnit
-

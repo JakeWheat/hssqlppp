@@ -7,15 +7,15 @@ The code here hasn't been tidied up since the Catalog data type
 was heavily changed so it's a bit messy.
 
 > {-# OPTIONS_HADDOCK hide  #-}
-
+>
 > module Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
 >     (readCatalogFromDatabase) where
-
+>
 > import qualified Data.Map as M
 > import Data.Maybe
 > import Control.Applicative
 > --import Debug.Trace
-
+>
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
@@ -116,7 +116,6 @@ was heavily changed so it's a bit messy.
 >                       \      and not proiswindow\n\
 >                       \order by proname,proargtypes;" []
 >    let fnProts = map (convFnRow jlt) functionInfo
-
 >    aggregateInfo <- selectRelation conn
 >                       "select proname,\n\
 >                       \       array_to_string(proargtypes,','),\n\
@@ -128,7 +127,6 @@ was heavily changed so it's a bit messy.
 >                       \      and proisagg\n\
 >                       \order by proname,proargtypes;" []
 >    let aggProts = map (convFnRow jlt) aggregateInfo
-
 >    windowInfo <- selectRelation conn
 >                       "select proname,\n\
 >                       \       array_to_string(proargtypes,','),\n\
@@ -140,8 +138,6 @@ was heavily changed so it's a bit messy.
 >                       \      and proiswindow\n\
 >                       \order by proname,proargtypes;" []
 >    let winProts = map (convFnRow jlt) windowInfo
-
-
 >    comps <- map (\(kind:nm:atts:sysatts:nsp:[]) ->
 >              let nm1 = case nsp of
 >                                 "pg_catalog" -> nm
@@ -200,8 +196,6 @@ was heavily changed so it's a bit messy.
 >                   \   inner join pg_namespace ns\n\
 >                   \      on cls.relnamespace = ns.oid\n\
 >                   \   order by relkind,relname;" []
-
-
 >    return $ concat [
 >                cts
 >               ,map (uncurry CatCreateDomain) domainDefs

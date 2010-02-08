@@ -1,6 +1,7 @@
 Copyright 2010 Jake Wheat
 
-=== transition constraints
+transition constraints
+======================
 
 quickly hacked together. at the moment only supports constraints involving
 a single tuple at a time from a single table. Separate functions
@@ -22,6 +23,9 @@ temporal relations.
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
+
+examples
+--------
 
 > transitionConstraintExamples :: [ExtensionTest]
 > transitionConstraintExamples = [
@@ -102,6 +106,10 @@ temporal relations.
 >      |]
 >   ]
 
+implementation
+--------------
+
+>
 > transitionConstraint :: [Statement] -> [Statement]
 > transitionConstraint =
 >     transformBi $ \x ->

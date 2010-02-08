@@ -4,24 +4,24 @@ convert error messages to show source text fragment with little hat,
 plus output error location in emacs friendly format.
 
 > {-# OPTIONS_HADDOCK hide #-}
-
+>
 > module Database.HsSqlPpp.Parsing.ParseErrors
 >     (toParseErrorExtra
 >     ,ParseErrorExtra(..)) where
-
+>
 > import Text.Parsec
 > import Control.Monad.Error
-
+>
 > showPE :: ParseError -> Maybe (Int,Int) -> String -> String
 > showPE pe sp src = show pe ++ "\n" ++ pePosToEmacs pe ++ "\n" ++ peToContext pe sp src
-
+>
 > pePosToEmacs :: ParseError -> String
 > pePosToEmacs pe = let p = errorPos pe
 >                       f = sourceName p
 >                       l = sourceLine p
 >                       c = sourceColumn p
 >                   in f ++ ":" ++ show l ++ ":" ++ show c ++ ":"
-
+>
 > peToContext :: ParseError -> Maybe (Int,Int) -> String -> String
 > peToContext pe sp src =
 >      let ls = lines src
@@ -46,7 +46,7 @@ plus output error location in emacs friendly format.
 >       adjLine = case sp of
 >                         Just (l, _) -> l - 1
 >                         Nothing -> 0
-
+>
 > -- | Simple wrapper to allow showing the source context of a ParseError
 > data ParseErrorExtra = ParseErrorExtra {
 >                                        -- | wrapped error
@@ -61,15 +61,14 @@ plus output error location in emacs friendly format.
 >                                        -- | sql source
 >                                       ,parseErrorSqlSource :: String
 >     }
-
+>
 > instance Show ParseErrorExtra where
 >     show (ParseErrorExtra pe sp src) = showPE pe sp src
-
+>
 > instance Error ParseErrorExtra where
 >   noMsg = ParseErrorExtra undefined Nothing "unknown"
 >   strMsg = ParseErrorExtra undefined Nothing
-
-
+>
 > toParseErrorExtra :: Either ParseError b -> Maybe (Int,Int) -> String -> Either ParseErrorExtra b
 > toParseErrorExtra a sp src = case a of
 >                                Left pe -> Left $ ParseErrorExtra pe sp src

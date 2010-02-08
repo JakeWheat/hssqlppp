@@ -8,36 +8,33 @@ written in a tdd style, which the coverage of the tests reflects.
 There are no tests for invalid sql at the moment.
 
 > {-# LANGUAGE QuasiQuotes #-}
-
+>
 > module Database.HsSqlPpp.Tests.ParserTests (parserTests, parserTestData, Item(..)) where
-
+>
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Generics
-
+>
 > import Database.HsSqlPpp.Utils.Here
-
+>
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.PrettyPrinter
-
-
+>
 > data Item = Expr String Expression
 >           | Stmt String [Statement]
 >           | PgSqlStmt String [Statement]
 >           | Group String [Item]
 > parserTests :: Test.Framework.Test
 > parserTests = itemToTft parserTestData
-
+>
 > parserTestData :: Item
 > parserTestData =
 >   Group "parserTests" [
 
-================================================================================
-
-expressions
+--------------------------------------------------------------------------------
 
 >    Group "parse expressions" [
 >     Group "basic expressions" [
@@ -51,8 +48,6 @@ expressions
 >                                                 ,IntegerLit [] 1]
 >                                 ,IntegerLit [] 1])
 >      ]
-
-
 >    ,Group "parens" [
 
 check some basic parens use wrt naked values and row constructors
@@ -64,7 +59,6 @@ these tests reflect how pg seems to interpret the variants.
 >      ,e "row (1,2)" (FunCall [] "!rowctor" [IntegerLit [] 1,IntegerLit [] 2])
 >      ,e "(1,2)" (FunCall [] "!rowctor" [IntegerLit [] 1,IntegerLit [] 2])
 >      ]
-
 >    ,Group "more basic expressions" [
 
 test some more really basic expressions
@@ -80,13 +74,10 @@ test some more really basic expressions
 >      ,e "false" (BooleanLit [] False)
 >      ,e "null" (NullLit [])
 >      ]
-
 >    ,Group "array ctor and selector" [
 >       e "array[1,2]" (FunCall [] "!arrayctor" [IntegerLit [] 1, IntegerLit [] 2])
 >      ,e "a[1]" (FunCall [] "!arraysub" [Identifier [] "a", IntegerLit [] 1])
-
 >      ]
-
 >    ,Group "simple operators" [
 >       e "1 + tst1" (FunCall [] "+" [IntegerLit [] 1
 >                                ,Identifier [] "tst1"])
@@ -98,26 +89,21 @@ test some more really basic expressions
 >                                   ,stringQ "b"])
 >      ,e "'stuff'::text" (Cast [] (stringQ "stuff") (SimpleTypeName [] "text"))
 >      ,e "245::float(24)" (Cast [] (IntegerLit [] 245) (PrecTypeName [] "float" 24))
-
 >      ,e "245::double precision" (Cast [] (IntegerLit [] 245) (SimpleTypeName [] "double precision"))
-
 >      ,e "a between 1 and 3"
 >         (FunCall [] "!between" [Identifier [] "a", IntegerLit [] 1, IntegerLit [] 3])
 >      ,e "cast(a as text)"
 >         (Cast [] (Identifier [] "a") (SimpleTypeName [] "text"))
 >      ,e "@ a"
 >         (FunCall [] "@" [Identifier [] "a"])
-
 >      ,e "substring(a from 0 for 3)"
 >         (FunCall [] "!substring" [Identifier [] "a", IntegerLit [] 0, IntegerLit [] 3])
-
 >      ,e "substring(a from 0 for (5 - 3))"
 >         (FunCall [] "!substring" [Identifier [] "a",IntegerLit [] 0,
 >          FunCall [] "-" [IntegerLit [] 5,IntegerLit [] 3]])
 >      ,e "a like b"
 >         (FunCall [] "!like" [Identifier [] "a", Identifier [] "b"])
 >      ]
-
 >    ,Group "function calls" [
 >       e "fn()" (FunCall [] "fn" [])
 >      ,e "fn(1)" (FunCall [] "fn" [IntegerLit [] 1])
@@ -125,25 +111,20 @@ test some more really basic expressions
 >      ,e "fn(1,'test')" (FunCall [] "fn" [IntegerLit [] 1, stringQ "test"])
 >      ,e "fn('test')" (FunCall [] "fn" [stringQ "test"])
 >      ]
-
 >    ,Group "simple whitespace sanity checks" [
 >       e "fn (1)" (FunCall [] "fn" [IntegerLit [] 1])
 >      ,e "fn( 1)" (FunCall [] "fn" [IntegerLit [] 1])
 >      ,e "fn(1 )" (FunCall [] "fn" [IntegerLit [] 1])
 >      ,e "fn(1) " (FunCall [] "fn" [IntegerLit [] 1])
-
 >      ]
-
 >    ,Group "null stuff" [
 >       e "not null" (FunCall [] "!not" [NullLit []])
 >      ,e "a is null" (FunCall [] "!isnull" [Identifier [] "a"])
 >      ,e "a is not null" (FunCall [] "!isnotnull" [Identifier [] "a"])
-
 >      ,e "not not true" (FunCall [] "!not"
 >                          [FunCall [] "!not"
 >                           [BooleanLit [] True]])
 >      ]
-
 >    ,Group "case expressions" [
 >       e {-"case when a,b then 3\n\
 >         \     when c then 4\n\
@@ -158,24 +139,20 @@ test some more really basic expressions
 >         (Case [] [([Identifier [] "a", Identifier [] "b"], IntegerLit [] 3)
 >               ,([Identifier [] "c"], IntegerLit [] 4)]
 >          (Just $ IntegerLit [] 5))
-
 >      ,e  "case 1 when 2 then 3 else 4 end"
 >         (CaseSimple [] (IntegerLit [] 1)
 >            [([IntegerLit [] 2], IntegerLit [] 3)]
 >          (Just $ IntegerLit [] 4))
 >      ]
-
 >    ,Group "positional args" [
 >       e "$1" (PositionalArg [] 1)
 >      ,e "?" (Placeholder [])
 >      ,e "a = ?" (FunCall [] "=" [Identifier [] "a",Placeholder []])
 >      ]
-
 >    ,Group "exists" [
 >       e "exists (select 1 from a)"
 >       (Exists [] (selectFrom [SelExp [] (IntegerLit [] 1)] (Tref [] "a" NoAlias)))
 >      ]
-
 >    ,Group "in variants" [
 >       e "t in (1,2)"
 >       (InPredicate [] (Identifier [] "t") True (InList [] [IntegerLit [] 1,IntegerLit [] 2]))
@@ -194,7 +171,6 @@ test some more really basic expressions
 >                                                              ,IntegerLit [] 2
 >                                                              ,IntegerLit [] 4]])
 >      ]
-
 >    ,Group "comparison operators" [
 >       e "a < b"
 >       (FunCall [] "<" [Identifier [] "a", Identifier [] "b"])
@@ -221,7 +197,7 @@ and dollar quoting, including nesting.
 >      ]
 >      ]
 
-================================================================================
+--------------------------------------------------------------------------------
 
 select statements
 
@@ -234,14 +210,11 @@ select statements
 >       [SelectStatement [] $ selectFrom (selIL ["*"]) (Tref [] "tbl" NoAlias)]
 >      ,s "select a,b from tbl;"
 >       [SelectStatement [] $ selectFrom (selIL ["a", "b"]) (Tref [] "tbl" NoAlias)]
-
 >      ,s "select a,b from inf.tbl;"
 >       [SelectStatement [] $ selectFrom (selIL ["a", "b"]) (Tref [] "inf.tbl" NoAlias)]
-
 >      ,s "select distinct * from tbl;"
 >       [SelectStatement [] $ Select [] Distinct (SelectList [] (selIL ["*"]) []) [Tref [] "tbl" NoAlias]
 >        Nothing [] Nothing [] Nothing Nothing]
-
 >      ,s "select a from tbl where b=2;"
 >       [SelectStatement [] $ selectFromWhere
 >         (selIL ["a"])
@@ -255,9 +228,8 @@ select statements
 >         (FunCall [] "!and"
 >          [FunCall [] "="  [Identifier [] "b", IntegerLit [] 2]
 >          ,FunCall [] "=" [Identifier [] "c", IntegerLit [] 3]])]
-
 >      ]
-
+>
 >    ,Group "more select statements" [
 >       s "select a from tbl\n\
 >         \except\n\
@@ -283,7 +255,6 @@ select statements
 >       [SelectStatement [] $ CombineSelect [] UnionAll
 >        (selectFrom (selIL ["a"]) (Tref [] "tbl" NoAlias))
 >        (selectFrom (selIL ["a"]) (Tref [] "tbl1" NoAlias))]
-
 >      ,s "(select 1 union select 2) union select 3;"
 >       [SelectStatement []
 >        (CombineSelect [] Union
@@ -291,7 +262,6 @@ select statements
 >          (selectE (SelectList [] [SelExp [] (IntegerLit [] 1)] []))
 >          (selectE (SelectList [] [SelExp [] (IntegerLit [] 2)] [])))
 >         (selectE (SelectList [] [SelExp [] (IntegerLit [] 3)] [])))]
-
 >      ,s "select 1 union (select 2 union select 3);"
 >       [SelectStatement []
 >        (CombineSelect [] Union
@@ -299,7 +269,6 @@ select statements
 >         (CombineSelect [] Union
 >          (selectE (SelectList [] [SelExp [] (IntegerLit [] 2)] []))
 >          (selectE (SelectList [] [SelExp [] (IntegerLit [] 3)] []))))]
-
 >      ,s "select a as b from tbl;"
 >       [SelectStatement [] $ selectFrom [SelectItem [] (Identifier [] "a") "b"] (Tref [] "tbl" NoAlias)]
 >      ,s "select a + b as b from tbl;"
@@ -310,7 +279,6 @@ select statements
 >        (Tref [] "tbl" NoAlias)]
 >      ,s "select a.* from tbl a;"
 >       [SelectStatement [] $ selectFrom (selIL ["a.*"]) (Tref [] "tbl" (TableAlias "a"))]
-
 >      ,s "select a.* from tbl a(b,c);"
 >       [SelectStatement [] $ selectFrom (selIL ["a.*"]) (Tref [] "tbl" (FullAlias "a" ["b","c"]))]
 
@@ -333,13 +301,11 @@ select statements
 >        (JoinedTref [] (Tref [] "b" NoAlias) Unnatural Inner (Tref [] "c" (TableAlias "d"))
 >           (Just (JoinOn []
 >            (FunCall [] "=" [Identifier [] "b.a", Identifier [] "d.a"]))) NoAlias)]
-
 >      ,s "select a from b inner join c using(d,e);"
 >       [SelectStatement [] $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref [] (Tref [] "b" NoAlias) Unnatural Inner (Tref [] "c" NoAlias)
 >           (Just (JoinUsing [] ["d","e"])) NoAlias)]
-
 >      ,s "select a from b natural inner join c;"
 >       [SelectStatement [] $ selectFrom
 >        (selIL ["a"])
@@ -360,13 +326,10 @@ select statements
 >       [SelectStatement [] $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref [] (Tref [] "b" NoAlias) Unnatural Cross (Tref [] "c" NoAlias) Nothing NoAlias)]
-
 >      ,s "select a from (b natural join c);"
 >       [SelectStatement [] $ selectFrom
 >        (selIL ["a"])
 >        (JoinedTref [] (Tref [] "b" NoAlias) Natural Inner (Tref [] "c" NoAlias) Nothing NoAlias)]
-
-
 >      ,s "select x from a cross join b cross join c;"
 >        [SelectStatement []
 >         (selectFrom (selIL ["x"])
@@ -379,9 +342,6 @@ select statements
 >          Unnatural Cross
 >          (Tref [] "c" NoAlias)
 >          Nothing NoAlias))]
-
-Right [SelectStatement [SourcePos "" 1 1] (Select [SourcePos "" 1 1] Dupes (SelectList [SourcePos "" 1 8] [SelExp [SourcePos "" 1 8] (Identifier [SourcePos "" 1 8] "x")] []) [JoinedTref [SourcePos "" 1 32] (JoinedTref [SourcePos "" 1 18] (Tref [SourcePos "" 1 16] "a" NoAlias) Unnatural Cross (Tref [SourcePos "" 1 29] "b" NoAlias) Nothing NoAlias) Unnatural Cross (Tref [SourcePos "" 1 43] "c" NoAlias) Nothing NoAlias] Nothing [] Nothing [] Nothing Nothing)]
-
 >      ,s "select x from ((a cross join b) cross join c);"
 >        [SelectStatement []
 >         (selectFrom (selIL ["x"])
@@ -394,7 +354,6 @@ Right [SelectStatement [SourcePos "" 1 1] (Select [SourcePos "" 1 1] Dupes (Sele
 >          Unnatural Cross
 >          (Tref [] "c" NoAlias)
 >          Nothing NoAlias))]
-
 >      ,s "select x from (a cross join (b cross join c));"
 >        [SelectStatement []
 >         (selectFrom (selIL ["x"])
@@ -407,7 +366,6 @@ Right [SelectStatement [SourcePos "" 1 1] (Select [SourcePos "" 1 1] Dupes (Sele
 >            (Tref [] "c" NoAlias)
 >            Nothing NoAlias)
 >           Nothing NoAlias))]
-
 >      ,s "select x from ((a cross join b) cross join c);"
 >        [SelectStatement []
 >         (selectFrom (selIL ["x"])
@@ -420,7 +378,6 @@ Right [SelectStatement [SourcePos "" 1 1] (Select [SourcePos "" 1 1] Dupes (Sele
 >          Unnatural Cross
 >          (Tref [] "c" NoAlias)
 >          Nothing NoAlias))]
-
 >      ,s "select x from (a cross join b) cross join c;"
 >        [SelectStatement []
 >         (selectFrom (selIL ["x"])
@@ -433,7 +390,6 @@ Right [SelectStatement [SourcePos "" 1 1] (Select [SourcePos "" 1 1] Dupes (Sele
 >          Unnatural Cross
 >          (Tref [] "c" NoAlias)
 >          Nothing NoAlias))]
-
 >      ,s "select x from ((a cross join b) cross join c) cross join d;"
 >        [SelectStatement []
 >         (selectFrom (selIL ["x"])
@@ -450,12 +406,6 @@ Right [SelectStatement [SourcePos "" 1 1] (Select [SourcePos "" 1 1] Dupes (Sele
 >           Unnatural Cross
 >           (Tref [] "d" NoAlias)
 >           Nothing NoAlias))]
-
-    SELECT *
-FROM ((pg_enum NATURAL JOIN pg_largeobject) NATURAL JOIN pg_listener);
-
-
-
 >      ,s "select a from b\n\
 >         \    inner join c\n\
 >         \      on true\n\
@@ -504,7 +454,6 @@ FROM ((pg_enum NATURAL JOIN pg_largeobject) NATURAL JOIN pg_listener);
 >                     [Identifier [] "c"] Asc FrameUnboundedPreceding)
 >                    "place"]
 >        (Tref [] "tbl" NoAlias)]
-
 >      ,s "select * from a natural inner join (select * from b) as a;"
 >       [SelectStatement [] $ selectFrom
 >        (selIL ["*"])
@@ -513,13 +462,11 @@ FROM ((pg_enum NATURAL JOIN pg_largeobject) NATURAL JOIN pg_listener);
 >                         (selIL ["*"])
 >                         (Tref [] "b" NoAlias)) (TableAlias "a"))
 >         Nothing NoAlias)]
-
 >      ,s "select * from a order by c;"
 >       [SelectStatement [] $ Select []  Dupes
 >        (sl (selIL ["*"]))
 >        [Tref [] "a" NoAlias]
 >        Nothing [] Nothing [(Identifier [] "c",Asc)] Nothing Nothing]
-
 >      ,s "select *\n\
 >            \from Adventure\n\
 >            \order by Clicks desc, AdventureID;"
@@ -528,33 +475,28 @@ FROM ((pg_enum NATURAL JOIN pg_largeobject) NATURAL JOIN pg_listener);
 >        [Tref [] "Adventure" NoAlias]
 >        Nothing [] Nothing [(Identifier [] "Clicks",Desc)
 >                           ,(Identifier [] "AdventureID",Asc)] Nothing Nothing]
-
 >      ,s "select * from a order by c,d asc;"
 >       [SelectStatement [] $ Select [] Dupes
 >        (sl (selIL ["*"]))
 >        [Tref [] "a" NoAlias]
 >        Nothing [] Nothing [(Identifier [] "c", Asc)
 >                           ,(Identifier [] "d", Asc)] Nothing Nothing]
-
 >      ,s "select * from a order by c,d desc;"
 >       [SelectStatement [] $ Select [] Dupes
 >        (sl (selIL ["*"]))
 >        [Tref [] "a" NoAlias]
 >        Nothing [] Nothing [(Identifier [] "c", Asc)
 >                           ,(Identifier [] "d", Desc)] Nothing Nothing]
-
 >      ,s "select * from a order by c limit 1;"
 >       [SelectStatement [] $ Select [] Dupes
 >        (sl (selIL ["*"]))
 >        [Tref [] "a" NoAlias]
 >        Nothing [] Nothing [(Identifier [] "c",Asc)] (Just (IntegerLit [] 1)) Nothing]
-
 >      ,s "select * from a order by c offset 3;"
 >       [SelectStatement [] $ Select [] Dupes
 >        (sl (selIL ["*"]))
 >        [Tref [] "a" NoAlias]
 >        Nothing [] Nothing [(Identifier [] "c",Asc)] Nothing (Just $ IntegerLit [] 3)]
-
 >      ,s "select a from (select b from c) as d;"
 >         [SelectStatement [] $ selectFrom
 >          (selIL ["a"])
@@ -562,27 +504,23 @@ FROM ((pg_enum NATURAL JOIN pg_largeobject) NATURAL JOIN pg_listener);
 >                    (selIL ["b"])
 >                    (Tref [] "c" NoAlias))
 >           (TableAlias "d"))]
-
 >      ,s "select * from gen();"
 >         [SelectStatement [] $ selectFrom (selIL ["*"]) (TrefFun [] (FunCall [] "gen" []) NoAlias)]
 >      ,s "select * from gen() as t;"
 >       [SelectStatement [] $ selectFrom
 >        (selIL ["*"])
 >        (TrefFun [] (FunCall [] "gen" [])(TableAlias  "t"))]
-
 >      ,s "select a, count(b) from c group by a;"
 >         [SelectStatement [] $ Select [] Dupes
 >          (sl [selI "a", SelExp [] (FunCall [] "count" [Identifier [] "b"])])
 >          [Tref [] "c" NoAlias] Nothing [Identifier [] "a"]
 >          Nothing [] Nothing Nothing]
-
 >      ,s "select a, count(b) as cnt from c group by a having cnt > 4;"
 >         [SelectStatement [] $ Select [] Dupes
 >          (sl [selI "a", SelectItem [] (FunCall [] "count" [Identifier [] "b"]) "cnt"])
 >          [Tref [] "c" NoAlias] Nothing [Identifier [] "a"]
 >          (Just $ FunCall [] ">" [Identifier [] "cnt", IntegerLit [] 4])
 >          [] Nothing Nothing]
-
 >      ,s "select a from (select 1 as a, 2 as b) x;"
 >         [SelectStatement [] $ selectFrom
 >          [selI "a"]
@@ -591,12 +529,10 @@ FROM ((pg_enum NATURAL JOIN pg_largeobject) NATURAL JOIN pg_listener);
 >                                ,SelectItem [] (IntegerLit [] 2) "b"] [])
 >                   (TableAlias "x"))]
 >      ]
-
 >    ,Group "multiple statements" [
 >       s "select 1;\nselect 2;" [SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 1)]
 >                                ,SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 2)]]
 >      ]
-
 >    ,Group "comments" [
 >       s "" []
 >      ,s "-- this is a test" []
@@ -618,7 +554,7 @@ FROM ((pg_enum NATURAL JOIN pg_largeobject) NATURAL JOIN pg_listener);
 >      ]
 >      ]
 
-================================================================================
+-------------------------------------------------------------------------------
 
 dml statements
 
@@ -639,7 +575,7 @@ that should be in the select section?
 >      ,s "values (1,2), (3,4);"
 >      [SelectStatement [] $ Values [] [[IntegerLit [] 1, IntegerLit [] 2]
 >              ,[IntegerLit [] 3, IntegerLit [] 4]]]
-
+>
 >      ,s "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2), (3,4);\n"
@@ -657,7 +593,7 @@ insert from select
 >       [Insert [] "a" []
 >        (selectFrom [selI "b"] (Tref [] "c" NoAlias))
 >        Nothing]
-
+>
 >      ,s "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2) returning id;\n"
@@ -667,7 +603,7 @@ insert from select
 >         (Values [] [[IntegerLit [] 1, IntegerLit [] 2]])
 >         (Just $ sl [selI "id"])]
 >      ]
-
+>
 >     ,Group "update" [
 >       s "update tb\n\
 >         \  set x = 1, y = 2;"
@@ -699,7 +635,7 @@ insert from select
 >                     [IntegerLit [] 1,IntegerLit [] 2]]
 >        Nothing Nothing]
 >      ]
-
+>
 >     ,Group "delete" [
 >       s "delete from tbl1 where x = true;"
 >       [Delete [] "tbl1" (Just $ FunCall [] "="
@@ -710,11 +646,11 @@ insert from select
 >                                [Identifier [] "x", BooleanLit [] True])
 >        (Just $ sl [selI "id"])]
 >      ]
-
+>
 >     ,Group "truncate" [
 >       s "truncate test;"
 >        [Truncate [] ["test"] ContinueIdentity Restrict]
-
+>
 >      ,s "truncate table test, test2 restart identity cascade;"
 >        [Truncate [] ["test","test2"] RestartIdentity Cascade]
 >      ]
@@ -732,7 +668,7 @@ copy, bit crap at the moment
 >         \bear\tf\n"]
 >      ]
 
-================================================================================
+--------------------------------------------------------------------------------
 
 ddl statements
 
@@ -752,19 +688,19 @@ ddl statements
 >         \  fld boolean default false);"
 >       [CreateTable [] "tbl" [AttributeDef [] "fld" (SimpleTypeName [] "boolean")
 >                           (Just $ BooleanLit [] False) []][]]
-
+>
 >      ,s "create table tbl as select 1;"
 >       [CreateTableAs [] "tbl"
 >        (selectE (SelectList [] [SelExp [] (IntegerLit [] 1)] []))]
-
-
+>
 >      ,s "alter table a alter column b set default 1;"
 >       [AlterTable [] "a" [AlterColumnDefault [] "b" (IntegerLit [] 1)]]
-
+>
 >      ,s "alter table a add constraint unique(b);"
 >       [AlterTable [] "a" [AddConstraint [] (UniqueConstraint [] "" ["b"])]]
 >      ]]
 
+>
 >     ,Group "others" [
 >       s "create view v1 as\n\
 >         \select a,b from t;"
@@ -781,20 +717,20 @@ ddl statements
 >         \);"
 >       [CreateType [] "tp1" [TypeAttDef [] "f1" (SimpleTypeName [] "text")
 >                         ,TypeAttDef [] "f2" (SimpleTypeName [] "text")]]
-
+>
 >      ,s "create sequence s start with 5 increment by 4 no maxvalue no minvalue cache 1;"
 >         [CreateSequence [] "s" 4 1 ((2::Integer) ^ (63::Integer) - 1) 5 1]
-
+>
 >      ,s "alter sequence s owned by a.b;"
 >         [AlterSequence [] "s" "a.b"]
-
+>
 >      ,s "create trigger tr\n\
 >          \after insert or delete on tb\n\
 >          \for each statement\n\
 >          \execute procedure fb();"
 >         [CreateTrigger [] "tr" TriggerAfter [TInsert,TDelete] "tb" EachStatement "fb" []]
 >      ]
-
+>
 >     ,Group "drops" [
 >       s "drop domain t;"
 >       [DropSomething [] Domain Require ["t"] Restrict]
@@ -802,16 +738,15 @@ ddl statements
 >       [DropSomething [] Domain IfExists ["t", "u"] Cascade]
 >      ,s "drop domain t restrict;"
 >       [DropSomething [] Domain Require ["t"] Restrict]
-
+>
 >      ,s "drop type t;"
 >       [DropSomething [] Type Require ["t"] Restrict]
 >      ,s "drop table t;"
 >       [DropSomething [] Table Require ["t"] Restrict]
 >      ,s "drop view t;"
 >       [DropSomething [] View Require ["t"] Restrict]
-
 >      ]
-
+>
 >     ,Group "constraints" [
 >       Group "nulls" [
 >       s "create table t1 (\n\
@@ -827,7 +762,7 @@ ddl statements
 >                            Nothing [NotNullConstraint [] ""]]
 >          []]
 >      ]
-
+>
 >      ,Group "unique" [
 >       s "create table t1 (\n\
 >         \ x int,\n\
@@ -856,7 +791,7 @@ unique row
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
 >                            [RowUniqueConstraint [] ""]][]]
-
+>
 >      ,s "create table t1 (\n\
 >         \ x int unique not null\n\
 >         \);"
@@ -873,14 +808,14 @@ quick sanity check
 >                            [NotNullConstraint [] ""
 >                            ,RowUniqueConstraint [] ""]][]]
 >      ]
-
+>
 >      ,Group "primary key" [
 >       s "create table t1 (\n\
 >         \ x int primary key\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
 >                            [RowPrimaryKeyConstraint [] ""]][]]
-
+>
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
@@ -889,9 +824,8 @@ quick sanity check
 >         [CreateTable [] "t1" [att "x" "int"
 >                           ,att "y" "int"]
 >          [PrimaryKeyConstraint [] "" ["x", "y"]]]
-
 >      ]
-
+>
 >      ,Group "check" [
 >       s "create table t (\n\
 >         \f text check (f in('a', 'b'))\n\
@@ -901,7 +835,7 @@ quick sanity check
 >           [RowCheckConstraint [] "" (InPredicate []
 >                                   (Identifier [] "f") True
 >                                   (InList [] [stringQ "a", stringQ "b"]))]] []]
-
+>
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
@@ -911,7 +845,7 @@ quick sanity check
 >                           ,att "y" "int"]
 >          [CheckConstraint [] "" (FunCall [] ">" [Identifier [] "x", Identifier [] "y"])]]
 >      ]
-
+>
 >      ,Group "misc" [
 >       s "create table t (\n\
 >         \f text not null unique check (f in('a', 'b'))\n\
@@ -924,7 +858,6 @@ quick sanity check
 >                                    (Identifier [] "f") True
 >                                    (InList [] [stringQ "a"
 >                                            ,stringQ "b"]))]] []]
-
 >      ]
 
 >      ,Group "references" [
@@ -934,15 +867,13 @@ quick sanity check
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
 >                            [RowReferenceConstraint [] "" "t2" Nothing
 >                             Restrict Restrict]][]]
-
+>
 >      ,s "create table t1 (\n\
 >         \ x int references t2(y)\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
 >                            [RowReferenceConstraint [] "" "t2" (Just "y")
 >                             Restrict Restrict]][]]
-
-
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
@@ -952,7 +883,7 @@ quick sanity check
 >                           ,att "y" "int"]
 >          [ReferenceConstraint [] "" ["x", "y"] "t2" []
 >           Restrict Restrict]]
-
+>
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
@@ -962,21 +893,21 @@ quick sanity check
 >                           ,att "y" "int"]
 >          [ReferenceConstraint [] "" ["x", "y"] "t2" ["z", "w"]
 >           Restrict Restrict]]
-
+>
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on delete cascade\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
 >                            [RowReferenceConstraint [] "" "t2" Nothing
 >                             Cascade Restrict]][]]
-
+>
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on update cascade\n\
 >         \);"
 >         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
 >                            [RowReferenceConstraint [] "" "t2" Nothing
 >                             Restrict Cascade]][]]
-
+>
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
@@ -986,9 +917,10 @@ quick sanity check
 >                           ,att "y" "int"]
 >          [ReferenceConstraint [] "" ["x", "y"] "t2" []
 >           Cascade Cascade]]
-
+>
 >      ]
 >      ]]
+
 >    ,Group "functions" [
 >      Group "basics" [
 >       s "create function t1(text) returns text as $$\n\
@@ -1106,15 +1038,15 @@ quick sanity check
 >      ,f "select c,d into a,b from e;"
 >       [SelectStatement [] $ Select [] Dupes (SelectList [] [selI "c", selI "d"] ["a", "b"])
 >                   [Tref [] "e" NoAlias] Nothing [] Nothing [] Nothing Nothing]
-
+>
 >      ,f "execute s;"
 >       [Execute [] (Identifier [] "s")]
 >      ,f "execute s into r;"
 >       [ExecuteInto [] (Identifier [] "s") ["r"]]
-
+>
 >      ,f "continue;" [ContinueStatement []]
 >     ]
-
+>
 >     ,Group "other plpgsql statements" [
 >       f "for r in select a from tbl loop\n\
 >         \null;\n\
@@ -1133,7 +1065,7 @@ quick sanity check
 >       [ForIntegerStatement [] "r"
 >        (IntegerLit [] 1) (IntegerLit [] 10)
 >        [NullStatement []]]
-
+>
 >      ,f "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
@@ -1177,9 +1109,9 @@ quick sanity check
 >       [([Identifier [] "b"], [NullStatement []])
 >       ,([Identifier [] "c", Identifier [] "d"], [NullStatement []])]
 >       [NullStatement []]]
-
+>
 >     ]
-
+>
 >    ,Group "misc" [
 >       s "SET search_path TO my_schema, public;"
 >         [Set [] "search_path" [SetId [] "my_schema"
@@ -1190,41 +1122,41 @@ quick sanity check
 >         [Set [] "t1" [SetStr [] "stuff"]]
 >      ,s "create language plpgsql;"
 >         [CreateLanguage [] "plpgsql"]
-
+>
 >     ]
-
+>
 >     ]]
 >  where
 >    e = Expr
 >    s = Stmt
 >    f = PgSqlStmt
 
-================================================================================
+-------------------------------------------------------------------------------
 
 shortcuts for constructing test data and asts
 
 > stringQ :: String -> Expression
 > stringQ = StringLit [] "'"
-
+>
 > selectFrom :: SelectItemList
 >            -> TableRef
 >            -> SelectExpression
 > selectFrom selList frm = Select [] Dupes (SelectList [] selList [])
 >                            [frm] Nothing [] Nothing [] Nothing Nothing
-
+>
 > selectE :: SelectList -> SelectExpression
 > selectE selList = Select [] Dupes selList
 >                     [] Nothing [] Nothing [] Nothing Nothing
-
+>
 > selIL :: [String] -> [SelectItem]
 > selIL = map selI
-
+>
 > selI :: String -> SelectItem
 > selI = SelExp [] . Identifier []
-
+>
 > sl :: SelectItemList -> SelectList
 > sl a = SelectList [] a []
-
+>
 > selectFromWhere :: SelectItemList
 >                 -> TableRef
 >                 -> Expression
@@ -1232,12 +1164,11 @@ shortcuts for constructing test data and asts
 > selectFromWhere selList frm whr =
 >     Select [] Dupes (SelectList [] selList [])
 >                [frm] (Just whr) [] Nothing [] Nothing Nothing
-
+>
 > att :: String -> String -> AttributeDef
 > att n t = AttributeDef [] n (SimpleTypeName [] t) Nothing []
 
-
-================================================================================
+--------------------------------------------------------------------------------
 
 Unit test helpers
 
@@ -1246,18 +1177,17 @@ Unit test helpers
 > itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements a b
 > itemToTft (Stmt a b) = testParseStatements a b
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
-
-
+>
 > testParseExpression :: String -> Expression -> Test.Framework.Test
 > testParseExpression src ast = parseUtil src ast
 >                                  (parseExpression "") printExpression
-
+>
 > testParseStatements :: String -> [Statement] -> Test.Framework.Test
 > testParseStatements src ast = parseUtil src ast (parseSql "") printSql
-
+>
 > testParsePlpgsqlStatements :: String -> [Statement] -> Test.Framework.Test
 > testParsePlpgsqlStatements src ast = parseUtil src ast (parsePlpgsql "") printSql
-
+>
 > parseUtil :: (Show t, Eq b, Show b, Data b) =>
 >              String
 >           -> b
@@ -1273,6 +1203,7 @@ Unit test helpers
 >         Left er -> assertFailure $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >         Right ast'' -> assertEqual ("reparse " ++ printer ast) ast $ stripAnnotations ast''
 
+~~~~
 TODO
 new idea for testing:
 parsesql -> ast1
@@ -1280,3 +1211,4 @@ parse, pretty print, parse -> ast2
 load into pg, pg_dump, parse -> ast3
 parse, pretty print, load into pg, pg_dump, parse -> ast4
 check all these asts are the same
+~~~~

@@ -4,7 +4,7 @@ This file contains a bunch of small low level utilities to help with
 type checking.
 
 > {-# OPTIONS_HADDOCK hide #-}
-
+>
 > module Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 >     (
 >      dependsOn
@@ -14,7 +14,7 @@ type checking.
 >     ,liftErrors
 >     ,getErrors
 >     ) where
-
+>
 > import Database.HsSqlPpp.AstInternals.TypeType
 
 ================================================================================
@@ -31,10 +31,10 @@ use the final argument.
 >   if any (==TypeCheckFailed) ts
 >     then bad
 >     else ok
-
+>
 > dependsOnRTpe :: [Type] -> Either a Type -> Either a Type
 > dependsOnRTpe ts = dependsOn ts (Right TypeCheckFailed)
-
+>
 > dependsOnT :: [Type] -> Type -> Type
 > dependsOnT ts = dependsOn ts TypeCheckFailed
 
@@ -44,7 +44,7 @@ convert an 'either [typeerror] type' to a type
 > tpeToT tpe = case tpe of
 >                   Left _ -> TypeCheckFailed
 >                   Right t -> t
-
+>
 > liftErrors :: [TypeError] -> Either [TypeError] ()
 > liftErrors es = if null es
 >                   then Right ()

@@ -9,6 +9,7 @@ Types overview:
 Regular types: scalarType, arrayType, composite type, domaintype
 we can use these anywhere.
 
+~~~~
 semi first class types: row, unknownstringlit (called unknown in pg) -
 these can be used in some places, but not others, in particular an
 expression can have this type or select can have a row with these
@@ -44,21 +45,19 @@ describe the type.
 Typing relational valued expressions:
 use SetOfType combined with composite type for now, see if it works
 out. If not, will have to add another type.
+~~~~
 
 > {-# OPTIONS_HADDOCK hide #-}
-
+>
 > {-# LANGUAGE FlexibleInstances,DeriveDataTypeable #-}
-
-
+>
 > module Database.HsSqlPpp.AstInternals.TypeType where
-
+>
 > import Control.Monad.Error
-
+>
 > import Data.Generics
 > import Data.Generics.PlateData
-
- > import Data.Binary
-
+>
 > data Type = ScalarType String
 >           | ArrayType Type
 >           | SetOfType Type
@@ -82,7 +81,7 @@ out. If not, will have to add another type.
 >                              -- token whose type isn't yet
 >                              -- determined
 >             deriving (Eq,Show,Ord,Typeable,Data)
-
+>
 > data PseudoType = Any
 >                 | AnyArray
 >                 | AnyElement
@@ -131,7 +130,7 @@ later on down the line.
 >                 --shoved in to humour the Either Monad
 >                | MiscError String
 >                  deriving (Eq,Show,Ord,Typeable,Data)
-
+>
 > instance Error ([TypeError]) where
 >   noMsg = [MiscError "Unknown error"]
 >   strMsg str = [MiscError str]
@@ -179,7 +178,7 @@ try to follow the names that pg uses in a dump
 >       varcharNames = ["character varying", "varchar"]
 >       charNames = ["character", "char"]
 >       boolNames = ["boolean", "bool"]
-
+>
 > canonicalizeTypes :: Data a => a -> a
 > canonicalizeTypes =
 >   transformBi $ \x ->
@@ -188,6 +187,8 @@ try to follow the names that pg uses in a dump
 >         x1 -> x1
 
 random notes on pg types:
+
+~~~~
 
 == domains:
 the point of domains is you can't put constraints on types, but you
@@ -255,7 +256,9 @@ array types have to match an exact array type in the catalog, so we
 can't create an arbitrary array of any type. Not sure if this is
 handled quite correctly in this code.
 
-================================================================================
+~~~~
+
+--------------------------------------------------------------------------------
 
 utilities for working with Types
 
@@ -264,54 +267,53 @@ These may indicate that the haskell type system isn't being used very well.
 > isArrayType :: Type -> Bool
 > isArrayType (ArrayType _) = True
 > isArrayType _ = False
-
+>
 > isDomainType :: Type -> Bool
 > isDomainType (DomainType _) = True
 > isDomainType _ = False
-
-
+>
 > isCompositeType :: Type -> Bool
 > isCompositeType (CompositeType _) = True
 > isCompositeType (NamedCompositeType _) = True
 > isCompositeType (AnonymousRecordType _) = True
 > isCompositeType (PgRecord _) = True
 > isCompositeType _ = False
-
+>
 > isCompositeOrSetOfCompositeType :: Type -> Bool
 > isCompositeOrSetOfCompositeType (SetOfType a) = isCompositeType a
 > isCompositeOrSetOfCompositeType a = isCompositeType a
-
+>
 > unwrapArray :: Type -> Either [TypeError] Type
 > unwrapArray (ArrayType t) = Right t
 > unwrapArray x = Left [InternalError $ "can't get types from non array " ++ show x]
-
+>
 > unwrapSetOfWhenComposite :: Type -> Either [TypeError] Type
 > unwrapSetOfWhenComposite (SetOfType a@(CompositeType _)) = Right a
 > unwrapSetOfWhenComposite x = Left [InternalError $ "tried to unwrapSetOfWhenComposite on " ++ show x]
-
+>
 > unwrapSetOfComposite :: Type -> Either [TypeError]  [(String,Type)]
 > unwrapSetOfComposite (SetOfType (CompositeType a)) = Right a
 > unwrapSetOfComposite x = Left [InternalError $ "tried to unwrapSetOfComposite on " ++ show x]
-
-
+>
 > unwrapSetOf :: Type -> Either [TypeError] Type
 > unwrapSetOf (SetOfType a) = Right a
 > unwrapSetOf x = Left [InternalError $ "tried to unwrapSetOf on " ++ show x]
-
+>
 > unwrapComposite :: Type -> Either [TypeError] [(String,Type)]
 > unwrapComposite (CompositeType a) = Right a
 > unwrapComposite x = Left [InternalError $ "cannot unwrapComposite on " ++ show x]
-
+>
 > consComposite :: (String,Type) -> Type -> Either [TypeError] Type
 > consComposite l (CompositeType a) = Right $ CompositeType (l:a)
 > consComposite a b = Left [InternalError $ "called consComposite on " ++ show (a,b)]
-
+>
 > unwrapRowCtor :: Type -> Either [TypeError] [Type]
 > unwrapRowCtor (AnonymousRecordType a) = Right a
 > unwrapRowCtor x = Left [InternalError $ "cannot unwrapRowCtor on " ++ show x]
 
-================================================================================
+--------------------------------------------------------------------------------
 
+~~~~
 new plan for types:
 
 The type annotations attached to nodes will be either typecheckfailed 'type'
@@ -383,3 +385,5 @@ what can the type of an Expression node be?
 
 problem: can't get types using gettypeannotation function and support
 different valid combinations of types
+
+~~~~

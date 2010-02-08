@@ -40,53 +40,54 @@ Copyright 2010 Jake Wheat
 > import Database.HsSqlPpp.Parsing.ParserInternal
 > --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.AstInternals.AstAnti
-
+>
 > -- | parses Statements
 > sqlStmts :: QuasiQuoter
 > sqlStmts = QuasiQuoter (parseExprExp parseAntiSql) parseExprPat
-
+>
 > parseOneAntiSql :: Parser String Statement
 > parseOneAntiSql f l c s =
 >     case parseAntiSql f l c s of
 >       Right [st] -> Right st
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e
-
+>
 > -- | parses a single Statement
 > sqlStmt :: QuasiQuoter
 > sqlStmt = QuasiQuoter (parseExprExp parseOneAntiSql) parseExprPat
-
+>
 > -- | parses plpgsql Statements
 > pgsqlStmts :: QuasiQuoter
 > pgsqlStmts = QuasiQuoter (parseExprExp parseAntiPlpgsql) parseExprPat
-
+>
 > -- | parses a plpgsql Statement
 > pgsqlStmt :: QuasiQuoter
 > pgsqlStmt = QuasiQuoter (parseExprExp parseOneAntiPlpgsql) parseExprPat
-
+>
 > parseOneAntiPlpgsql :: Parser String Statement
 > parseOneAntiPlpgsql f l c s =
 >     case parseAntiPlpgsql f l c s of
 >       Right [st] -> Right st
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e
-
-
+>
 > -- | parse an Expression
 > sqlExpr :: QuasiQuoter
 > sqlExpr = QuasiQuoter (parseExprExp parseAntiExpression) parseExprPat
 
+~~~~
 these badboys return asts of from the module
 Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result
 of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
 magically converts from one to the other ...
+~~~~
 
 > type Parser e a = (String
 >                    -> Int
 >                    -> Int
 >                    -> String
 >                    -> Either e a)
-
+>
 > parseExprExp :: (Show e, Data a) =>
 >                 (Parser e a) -> String -> Q Exp
 > parseExprExp p s = (parseSql' p) s >>=  dataToExpQ (const Nothing
@@ -98,12 +99,12 @@ magically converts from one to the other ...
 > parseExprPat :: String -> Q Pat
 > parseExprPat _ =  undefined
 >
-
+>
 > parseSql' :: Show e => Parser e a -> String -> Q a
 > parseSql' p s = do
 >     Loc fn _ _ (l,c) _ <- location
 >     either (fail . show) return (p fn l c s)
-
+>
 > antiExpE :: Expression -> Maybe ExpQ
 > antiExpE (AntiExpression v) = Just $ varE $ mkName v
 > antiExpE _ = Nothing
@@ -124,8 +125,7 @@ nodes and my generics skills aren't up to the task.
 >      vref :: ExpQ
 >      vref = varE $ mkName v
 > antiStatementE _ = Nothing
-
-
+>
 > antiStrE :: String -> Maybe ExpQ
 > antiStrE v | isSpliceName v = Just $ varE $ mkName $ getSpliceName v
 >                               where
@@ -133,10 +133,12 @@ nodes and my generics skills aren't up to the task.
 >                                                  && last x == ')'
 >                                 getSpliceName x = drop 2 $ take (length x - 1) x
 > antiStrE _ = Nothing
-
+>
 > antiTriggerEventE :: TriggerEvent -> Maybe ExpQ
 > antiTriggerEventE (AntiTriggerEvent v) = Just $ varE $ mkName v
 > antiTriggerEventE _ = Nothing
+
+~~~~
 
  > antiExpP :: Expression -> Maybe PatQ
  > antiExpP (AntiExpression v ) = Just $ varP $ mkName v
@@ -175,3 +177,9 @@ ugly and wrong, add another splice for strings?
 work on tests to try to get some sort of design - want to minimise the
 number of splice syntaxes at the same time not make it difficult to
 work out which syntax to use in which spot.
+
+
+
+what needs to be done to support _ in pattern quasiquotes?
+
+~~~~

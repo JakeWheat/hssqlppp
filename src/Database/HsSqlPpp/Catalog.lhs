@@ -1,8 +1,6 @@
 Copyright 2009 Jake Wheat
 
-This is the public api to the catalog data type, it just forwards
-the public part of CatalogInternal, which is the module used by
-the type checking code.
+Forward the public part of CatalogInternal.
 
 > {- | This module contains the database catalog data types and helper functions.
 >
@@ -25,7 +23,7 @@ the type checking code.
 >  by looking at the 'CatalogUpdate' type.
 >
 > -}
-
+>
 > module Database.HsSqlPpp.Catalog
 >     (
 >      -- * Data types
@@ -57,7 +55,7 @@ the type checking code.
 >     ,getOperatorType
 >     ,isOperatorName
 >     ) where
-
+>
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
 > import Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog

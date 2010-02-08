@@ -228,12 +228,19 @@ test3a.sql
 select * from s natural inner join p natural inners join sp;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(needs fixing to not escape the error message)
-
 ~~~~~~~~~~~~ {.haskell}
 $ ./HsSqlSystem parse test3a.sql
 -- ast of test3a.sql
-HsSqlSystem: "\"test3a.sql\" (line 1, column 46):\nunexpected IdStringTok \"inners\"\ntest3a.sql:1:46:\n\nContext:\nselect * from s natural inner join p natural inners join sp;\n                                             ^\nERROR HERE\n\n"
+HsSqlSystem: "test3a.sql" (line 1, column 46):
+unexpected IdStringTok "inners"
+test3a.sql:1:46:
+
+Context:
+select * from s natural inner join p natural inners join sp;
+                                             ^
+ERROR HERE
+
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 > parseA = mode $ Parse {files = def &= typ "FILES" & args}
@@ -992,15 +999,15 @@ PostgreSQL catalog contents.
 >   where
 >     preamble =
 >       "> {-# OPTIONS_HADDOCK hide  #-}\n\
->       \\n\
+>       \>\n\
 >       \> module Database.HsSqlPpp.AstInternals.\
 >       \Catalog.DefaultTemplate1Catalog\n\
 >       \>     (defaultTemplate1Catalog\n\
 >       \>      ) where\n\
->       \\n\
+>       \>\n\
 >       \> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal\n\
 >       \> import Database.HsSqlPpp.AstInternals.TypeType\n\
->       \\n\
+>       \>\n\
 >       \> defaultTemplate1Catalog :: Catalog\n\
 >       \> defaultTemplate1Catalog =\n\
 >       \>    (\\l -> case l of\n\

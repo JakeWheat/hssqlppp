@@ -1,29 +1,30 @@
 Copyright 2010 Jake Wheat
 
 Tests for the infrastructure to create type safe access to databases -
-the information needed is gathered during typechecking and exposed
-in the StatementType annotation.
+the information needed is gathered during typechecking and exposed in
+the StatementType annotation, so these are really jus a subset of the
+type checking tests.
 
 > module Database.HsSqlPpp.Tests.ParameterizedStatementTests (parameterizedStatementTests) where
-
+>
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > --import Debug.Trace
-
-
+>
+>
 > import Database.HsSqlPpp.SqlTypes
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Catalog
-
+>
 > data Item = Group String [Item]
 >           | Statements [(String, [CatalogUpdate], StatementType)]
-
+>
 > parameterizedStatementTests :: [Test.Framework.Test]
 > parameterizedStatementTests = itemToTft testData
-
+>
 > testData :: Item
 > testData =
 >   Group "parameterized statement tests" [
@@ -90,6 +91,8 @@ in the StatementType annotation.
 >     ]
 >    ]
 
+~~~~
+
 select a,b from c where d=e group by f having  g=h orderby i limit j offset k;
 select function(a,b);
 insert into a (b,c) values (d,e) returning f,g
@@ -117,9 +120,9 @@ inpredicate
         doing typecheckPS
         do typecheck error if come across ? when not doing typecheckPS
         make sure ? fails type check if not in a valid place in the ast
+~~~~
 
-================================================================================
-
+-------------------------------------------------------------------------------
 
 > testStatementType :: String -> [CatalogUpdate] -> StatementType -> Test.Framework.Test
 > testStatementType src eu st = testCase ("typecheck " ++ src) $
@@ -139,7 +142,7 @@ inpredicate
 >     makeCat = case updateCatalog defaultTemplate1Catalog eu of
 >                         Left x -> error $ show x
 >                         Right e -> e
-
+>
 > itemToTft :: Item -> [Test.Framework.Test]
 > itemToTft (Statements es) = map (\(a,b,c) -> testStatementType a b c) es
 > itemToTft (Group s is) = [testGroup s $ concatMap itemToTft is]

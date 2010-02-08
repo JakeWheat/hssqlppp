@@ -65,6 +65,9 @@ We want to replace it with a create table statement.
 A view pattern is used which removes a load of clutter compared with
 using vanilla pattern matching.
 
+Going to look into using a splice pattern instead of a view pattern
+here.
+
 >     transformBi $ \x ->
 >       case x of
 >         (funCallView -> FunCallView _

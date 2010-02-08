@@ -15,5 +15,5 @@ of the system.
 >     --,lbLookupID1
 >     ,ppLocalBindings
 >     ) where
-
+>
 > import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal

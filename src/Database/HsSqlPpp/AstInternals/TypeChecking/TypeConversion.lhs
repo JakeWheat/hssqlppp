@@ -18,18 +18,18 @@ checkAssignmentValid - pass in source type and target type, returns
                 Value Storage
 
 > {-# OPTIONS_HADDOCK hide #-}
-
+>
 > module Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
 >                       ,checkAssignmentValid
 >                       ,compositesCompatible
 >                       ) where
-
+>
 > import Data.Maybe
 > import Data.List
 > --import Debug.Trace
-
+>
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
@@ -39,6 +39,8 @@ checkAssignmentValid - pass in source type and target type, returns
  > traceIt s t = trace (s ++ ": " ++ show t) t
 
 = findCallMatch
+
+~~~~
 
 findCallMatch - partially implements the type conversion rules for
 finding an operator or function match given a name and list of
@@ -125,8 +127,10 @@ at each state, so you can provide a detailed explanation e.g. if the
 code can't find an operator match to see what it has tried to match
 against.
 
-> type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
+~~~~
 
+> type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
+>
 > findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] FunctionPrototype
 > findCallMatch cat f inArgs =
 >     returnIfOnne [
@@ -433,6 +437,7 @@ against.
 >                       deriving (Eq,Show)
 >
 
+~~~~
 resolveResultSetType -
 partially implement the typing of results sets where the types aren't
 all the same and not unknown
@@ -448,6 +453,7 @@ choose last non unknown type that has implicit casts from all preceding inputs
 check all can convert to selected type else fail
 
 code is not as much of a mess as findCallMatch
+~~~~
 
 > resolveResultSetType :: Catalog -> [Type] -> Either [TypeError] Type
 > resolveResultSetType cat inArgs =
@@ -495,7 +501,7 @@ cast empty array, where else can an empty array work?
 >     if castableFromTo cat AssignmentCastContext from to
 >        then Right ()
 >        else Left [IncompatibleTypes to from]
-
+>
 > compositesCompatible :: Catalog -> Type -> Type -> Bool
 > compositesCompatible cat =
 >     castableFromTo cat ImplicitCastContext
@@ -543,7 +549,7 @@ wrapper around the catalog to add a bunch of extra valid casts
 >        (Just ft, Just tt) | length ft == length tt -> all (uncurry $ castableFromTo cat cc) $ zip ft tt
 >        _ -> False
 >   where
-
+>
 >     getCompositeTypes (NamedCompositeType n) =
 >         Just $ map snd $ fromRight [] $ catCompositePublicAttrs cat [] n
 >     getCompositeTypes (CompositeType t) = Just $ map snd t
@@ -551,21 +557,21 @@ wrapper around the catalog to add a bunch of extra valid casts
 >     getCompositeTypes (PgRecord Nothing) = Nothing
 >     getCompositeTypes (PgRecord (Just t)) = getCompositeTypes t
 >     getCompositeTypes _ = Nothing
-
+>
 >     isCompOrSetoOfComp (SetOfType c) = isCompositeType c
 >     isCompOrSetoOfComp c = isCompositeType c
-
+>
 >     unboxedSingleType (SetOfType (CompositeType [(_,t)])) = Just t
 >     unboxedSingleType (PgRecord (Just t)) = unboxedSingleType t
 >     unboxedSingleType _ = Nothing
-
+>
 >     unboxedSetOfType (SetOfType a) = Just a
 >     unboxedSetOfType (PgRecord (Just t)) = unboxedSetOfType t
 >     unboxedSetOfType _ = Nothing
-
+>
 >     recurseTransFrom = maybe False (flip (castableFromTo cat cc) to)
 >     recurseTransTo = maybe False (castableFromTo cat cc from)
-
+>
 > replaceWithBase :: Catalog -> Type -> Type
 > replaceWithBase cat t@(DomainType _) = forceRight $ catDomainBaseType cat t
 > replaceWithBase _ t = t

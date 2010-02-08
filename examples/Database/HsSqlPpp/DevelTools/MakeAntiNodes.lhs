@@ -17,6 +17,7 @@ for preprocessors examples for typesafe database access.
 The code is quite fragile and depends on the exact style (or lack of)
 of coding used in AstInternal.ag.
 
+
 > module Database.HsSqlPpp.DevelTools.MakeAntiNodes
 >     (makeAntiNodes) where
 >
@@ -62,7 +63,7 @@ of coding used in AstInternal.ag.
 >                 n `elem` nodesToAntificate =
 >                     addAntiCtor d
 >     antiize x = x
-
+>
 > wrappers :: [Decl]
 > wrappers =
 >   [TypeSig
@@ -87,7 +88,7 @@ of coding used in AstInternal.ag.
 >      Nothing
 >      (UnGuardedRhs (Var (UnQual (Ident "expression"))))
 >      (BDecls [])]
-
+>
 > addAntiCtor :: Decl -> Decl
 > addAntiCtor (DataDecl sl dn ct nm@(Ident n) tyv qcd d) =
 >   (DataDecl sl dn ct nm tyv (qcd ++ [antiCtor]) d)
@@ -96,9 +97,9 @@ of coding used in AstInternal.ag.
 >       QualConDecl nsrc [] []
 >         (ConDecl (Ident $ "Anti" ++ n)
 >            [UnBangedTy (TyCon (UnQual (Ident "String")))])
-
+>
 > addAntiCtor e = error $ "addAntiCtor " ++ show e
-
+>
 > addAntiError :: Decl -> Decl
 > addAntiError (FunBind
 >               [Match sl nm@(Ident n) pt ty
@@ -119,14 +120,14 @@ of coding used in AstInternal.ag.
 >                        (Lit (Exts.String $ "can't convert anti " ++ n))))
 >                  (BDecls [])
 > addAntiError e = error $ "addAntiError " ++ show e
-
+>
 > pf :: String -> IO Module
 > pf f = do
 >   x <- parseFile f
 >   case x of
 >         ParseOk ast -> return ast
 >         e -> error $ show e
-
+>
 > makeModule :: [ExportSpec] -> [Decl] -> Module
 > makeModule es ds =
 >     Module nsrc
@@ -149,7 +150,7 @@ of coding used in AstInternal.ag.
 >                     importQualified = True, importSrc = False, importPkg = Nothing,
 >                     importAs = Just (ModuleName "A"), importSpecs = Nothing}]
 >         ds
-
+>
 > getCtors :: Decl -> [(String,[String])]
 > getCtors t =
 >   case t of
@@ -163,14 +164,14 @@ of coding used in AstInternal.ag.
 >     aInfo (UnBangedTy (TyParen (TyApp (TyCon (UnQual (Ident "Maybe"))) (TyCon (UnQual (Ident m))))))
 >           = "Maybe" ++ m
 >     aInfo a = error $ "aInfo " ++ show a
-
+>
 > makeTypeSig :: String -> Decl
 > makeTypeSig s =
 >   TypeSig nsrc
 >           [Ident $ lowerFirst s]
 >           (TyFun (TyCon (UnQual (Ident s)))
 >            (TyCon (Qual (ModuleName "A") (Ident s))))
-
+>
 > makeConvertor :: [(String,Decl)] -> [(String,String)] -> String -> Decl
 > makeConvertor tns listTypes t =
 >     case lookup t listTypes of
@@ -186,14 +187,14 @@ of coding used in AstInternal.ag.
 >           then listConvertor (lowerFirst tb) (lowerFirst t1)
 >           else listID (lowerFirst tb)
 >       ts = map fst tns
-
+>
 > isPair :: Decl -> Maybe (String,String)
 > isPair (TypeDecl _ _ _
 >         (TyTuple Boxed
 >          [TyParen (TyCon (UnQual (Ident a))),
 >           TyParen (TyCon (UnQual (Ident b)))])) = Just (a,b)
 > isPair _ = Nothing
-
+>
 > makePair :: [String] -> String -> String -> String -> Decl
 > makePair ts t p1 p2 =
 >    FunBind
@@ -211,14 +212,14 @@ of coding used in AstInternal.ag.
 >                  then App (Var (UnQual (Ident $ lowerFirst tn)))
 >                           (Var (UnQual (Ident l)))
 >                  else Var (UnQual (Ident l))
-
+>
 > isMaybe :: Decl -> Maybe String
 > isMaybe (TypeDecl _ _ _
 >          (TyParen
 >           (TyApp (TyCon (UnQual (Ident "Maybe")))
 >            (TyParen (TyCon (UnQual (Ident t1))))))) = Just t1
 > isMaybe _ = Nothing
-
+>
 > makeMaybe :: String -> String -> Decl
 > makeMaybe t t1 =
 >   PatBind nsrc
@@ -228,7 +229,7 @@ of coding used in AstInternal.ag.
 >         (App (Var (UnQual (Ident "fmap")))
 >            (Var (UnQual (Ident $ lowerFirst t1)))))
 >      (BDecls [])
-
+>
 > {-makeUndefined :: String -> Decl
 > makeUndefined s =
 >   PatBind nsrc
@@ -236,7 +237,7 @@ of coding used in AstInternal.ag.
 >           Nothing
 >           (UnGuardedRhs (Var (UnQual (Ident "undefined"))))
 >           (BDecls [])-}
-
+>
 > makeCase :: [String] -> (String,Decl) -> Decl
 > makeCase ts (f, d) =
 >   let is = getCtors d -- [("A", ["A1","A2"])]
@@ -264,8 +265,7 @@ of coding used in AstInternal.ag.
 >                  then (Paren (App (Var (UnQual (Ident $ lowerFirst tn)))
 >                                       (Var (UnQual (Ident l)))))
 >                  else Var (UnQual (Ident l))
-
-
+>
 > listConvertor :: String -> String -> Decl
 > listConvertor fn subfn =
 >  PatBind nsrc
@@ -275,35 +275,33 @@ of coding used in AstInternal.ag.
 >         (App (Var (UnQual (Ident "map")))
 >            (Var (UnQual (Ident subfn)))))
 >      (BDecls [])
-
+>
 > listID :: String -> Decl
 > listID fn = PatBind nsrc
 >      (PVar (Ident fn))
 >      Nothing
 >      (UnGuardedRhs (Var (UnQual (Ident "id"))))
 >      (BDecls [])
-
-
+>
 > getListTypes :: [Decl] -> [(String,String)] --[Decl]
 > getListTypes ds =
 >   [(n,n1) | (TypeDecl _ (Ident n) _
 >           (TyList (TyParen (TyCon (UnQual (Ident n1)))))) <- universeBi ds]
-
+>
 > lowerFirst :: String -> String
 > lowerFirst s = toLower (head s):tail s
-
+>
 > upperFirst :: String -> String
 > upperFirst s = toUpper (head s):tail s
-
-
+>
 > nsrc :: SrcLoc
 > nsrc = SrcLoc "" 0 0
-
+>
 > getExportedTypeNames :: Module -> [String]
 > getExportedTypeNames m =
 >                        [n | EThingAll (UnQual ( Ident n)) <- universeBi m] ++
 >                        [n | EAbs (UnQual (Ident n)) <- universeBi m]
-
+>
 > getDeclarations :: Module -> [String] -> [Decl]
 > getDeclarations m nms =
 >     [d | d@(DataDecl _ _ _ (Ident n) _ _ _) <- universeBi m

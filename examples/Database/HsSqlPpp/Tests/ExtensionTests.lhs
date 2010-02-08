@@ -1,22 +1,23 @@
 Copyright 2009 Jake Wheat
 
-Set of tests for the extensions
+Set of tests for the old chaosextensions, in the process of being
+replaced
 
 > {-# LANGUAGE RankNTypes,FlexibleContexts #-}
-
+>
 > module Database.HsSqlPpp.Tests.ExtensionTests (extensionTests) where
-
+>
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > --import Debug.Trace
-
+>
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Examples.ChaosExtensions
 > import Database.HsSqlPpp.Ast
 > --import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
-
+>
 > extensionTests :: Test.Framework.Test
 > extensionTests =
 >   testGroup "extensionTests" (mapCheckExtension [
@@ -49,7 +50,7 @@ Set of tests for the extensions
 >       \  null;\n\
 >       \end;\n\
 >       \$a$ language plpgsql;"
-
+>
 >    ,t addReadonlyTriggers
 >       "select set_relvar_type('stuff','readonly');"
 >       "create function check_stuff_d_readonly() returns trigger as $a$\n\
@@ -76,7 +77,7 @@ Set of tests for the extensions
 >       \  return null;\n\
 >       \end;\n\
 >       \$a$ language plpgsql volatile;"
-
+>
 >    ,t createClientActionWrapper
 >       "select create_client_action_wrapper('actname', $$actcall()$$);"
 >       "create function action_actname() returns void as $a$\n\
@@ -157,14 +158,13 @@ Set of tests for the extensions
 >       \  null;\n\
 >       \end;\n\
 >       \$a$ language plpgsql;"
-
-
-add_foreign_key
-constrain zero one
-add constraint
-
+>
+> -- add_foreign_key
+> -- constrain zero one
+> -- add constraint
+>
 >    ])
-
+>
 >   where
 >     t a b c = (a,b,c)
 >     mapCheckExtension = map (\(a,b,c) ->  checkExtension a b c)

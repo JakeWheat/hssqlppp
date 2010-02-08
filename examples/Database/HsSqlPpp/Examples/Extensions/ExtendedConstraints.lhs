@@ -88,10 +88,13 @@ other ideas:
 tests:
 
 check running on empty statement list adds the dependencies:
+
+~~~~~
 create table database_constraints (
   constraint_name text,
   expression text
 );
+
 create function check_constraint(constraint_name) ...
 what else is needed: plpgsql implementation used:
 table dbcon_ops - saves the function per constraint to check that constraint
@@ -142,9 +145,8 @@ Use regular extension tests and add a load of tests to exercise a
 variety of non pg accelerated constraints and check successul updates
 and constraint violation attempts.
 
-
 /*
-== constraints
+constraints
 */
 create table database_constraints (
   constraint_name text,
@@ -209,6 +211,7 @@ select add_foreign_key('dbcon_trigger_ops', 'operator_name', 'operators');
 select add_key('dbcon_triggers', 'trigger_name');
 select add_foreign_key('dbcon_triggers', array['trigger_name', 'relvar_name'],
   'triggers');
+~~~~~
 
 ----------------------------
 
@@ -229,7 +232,7 @@ which also have constraints in the second file.
 > import Data.Generics.Uniplate.Data
 > --import Debug.Trace
 > import Control.Monad.State
-
+>
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
@@ -292,11 +295,11 @@ to make it work right.
 >    existingConstraints tn cons = maybe [] id $ lookup tn cons
 >
 > type ConstraintRecord = [(String,[String])] -- tablename, list of constraint names
-
+>
 > dropTriggerFn :: String -> Statement
 > dropTriggerFn tn = let opname = tn ++ "_constraint_trigger_operator"
 >                    in [$sqlStmt| drop function $(opname)();|]
-
+>
 > makeCheckFn :: String -> Expression -> Statement
 > makeCheckFn name expr =
 >     let checkfn = "check_con_" ++ name
@@ -307,7 +310,7 @@ to make it work right.
 >              end;
 >              $xxx$ language plpgsql stable;
 >            |]
-
+>
 > makeTriggerFn :: String -> [String] -> Statement
 > makeTriggerFn tn nms =
 >   let trigopname = tn ++ "_constraint_trigger_operator"
@@ -335,7 +338,7 @@ to make it work right.
 >                       raise exception '$(errMsg)';
 >                    end if;
 >                    |]
-
+>
 > makeTrigger :: String -> Statement
 > makeTrigger tn = let trigname = tn ++ "_constraint_trigger"
 >                      opname = tn ++ "_constraint_trigger_operator"

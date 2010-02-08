@@ -4,6 +4,7 @@ This file contains the lexer for sql source text.
 
 Lexicon:
 
+~~~~
 string
 identifier or keyword
 symbols - operators and ;,()[]
@@ -11,8 +12,7 @@ positional arg
 int
 float
 copy payload (used to lex copy from stdin data)
-
-> {-# OPTIONS_HADDOCK hide #-}
+~~~~
 
 > module Database.HsSqlPpp.Parsing.Lexer (
 >               Token
@@ -23,16 +23,15 @@ copy payload (used to lex copy from stdin data)
 >              ,identifierString
 >              ,LexState
 >              ) where
-
 > import Text.Parsec hiding(many, optional, (<|>))
 > import qualified Text.Parsec.Token as P
 > import Text.Parsec.Language
 > import Text.Parsec.String
 > import Text.Parsec.Pos
-
+>
 > import Control.Applicative
 > import Control.Monad.Identity
-
+>
 > import Database.HsSqlPpp.Parsing.ParseErrors
 > import Database.HsSqlPpp.Utils.Utils
 
@@ -41,7 +40,7 @@ copy payload (used to lex copy from stdin data)
 = data types
 
 > type Token = (SourcePos, Tok)
-
+>
 > data Tok = StringTok String String --delim, value (delim will one of
 >                                    --', $$, $[stuff]$
 >          | IdStringTok String --includes . and x.y.* type stuff
@@ -54,18 +53,18 @@ copy payload (used to lex copy from stdin data)
 >          | IntegerTok Integer
 >          | CopyPayloadTok String -- support copy from stdin; with inline data
 >            deriving (Eq,Show)
-
+>
 > type LexState = [Tok]
-
+>
 > lexSqlFile :: FilePath -> IO (Either ParseErrorExtra [Token])
 > lexSqlFile f = do
 >   te <- readFile f
 >   let x = runParser sqlTokens [] f te
 >   return $ toParseErrorExtra x Nothing te
-
+>
 > lexSqlText :: String -> String -> Either ParseErrorExtra [Token]
 > lexSqlText f s = toParseErrorExtra (runParser sqlTokens [] f s) Nothing s
-
+>
 > lexSqlTextWithPosition :: String -> Int -> Int -> String -> Either ParseErrorExtra [Token]
 > lexSqlTextWithPosition f l c s =
 >   toParseErrorExtra (runParser (do
@@ -112,7 +111,7 @@ otherwise we read a normal token.
 >                        | stt == [ft] && t == st -> [ft,st]
 >                        | stt == [ft,st] && t == mt -> [ft,st,mt]
 >                        | otherwise -> []
-
+>
 >            return (sp,t)
 >            where
 >              ft = IdStringTok "from"
@@ -151,16 +150,17 @@ parse a dollar quoted string
 >                s <- lexeme $ manyTill anyChar
 >                       (try $ char '$' <* string tag <* char '$')
 >                return $ StringTok ("$" ++ tag ++ "$") s
-
+>
 > idString :: ParsecT String LexState Identity Tok
 > idString = IdStringTok <$> identifierString
-
+>
 > positionalArg :: ParsecT String LexState Identity Tok
 > positionalArg = char '$' >> PositionalArgTok <$> integer
 
 
 Lexing symbols:
 
+~~~~
 approach 1:
 try to keep multi symbol operators as single lexical items
 (e.g. "==", "~=="
@@ -198,6 +198,8 @@ fixed in the parser.
 A single * will lex as an identifier rather than a symbol, the parser
 deals with this.
 
+~~~~
+
 > sqlSymbol :: ParsecT String LexState Identity Tok
 > sqlSymbol =
 >   SymbolTok <$> lexeme (choice [
@@ -209,10 +211,10 @@ deals with this.
 >                         ,string "$("
 >                         ,many1 (oneOf "+-*/<>=~!@#%^&|`?")
 >                         ])
-
+>
 > sqlFloat :: ParsecT String LexState Identity Tok
 > sqlFloat = FloatTok <$> float
-
+>
 > sqlInteger :: ParsecT String LexState Identity Tok
 > sqlInteger = IntegerTok <$> integer
 
@@ -250,11 +252,10 @@ its own on a line
 >                               then return ""
 >                               else (x++) <$> getLinesTillMatches s
 >     getALine = (++"\n") <$> manyTill anyChar (try newline)
-
+>
 > tryMaybeP :: GenParser tok st a
 >           -> ParsecT [tok] st Identity (Maybe a)
 > tryMaybeP p = try (optionMaybe p) <|> return Nothing
-
 
 ================================================================================
 
@@ -262,16 +263,16 @@ its own on a line
 
 > symbol :: String -> ParsecT String LexState Identity String
 > symbol = P.symbol lexer
-
+>
 > integer :: ParsecT String LexState Identity Integer
 > integer = lexeme $ P.integer lexer
-
+>
 > float :: ParsecT String LexState Identity Double
 > float = lexeme $ P.float lexer
-
+>
 > whiteSpace :: ParsecT String LexState Identity ()
 > whiteSpace= P.whiteSpace lexer
-
+>
 > lexeme :: ParsecT String LexState Identity a
 >           -> ParsecT String LexState Identity a
 > lexeme = P.lexeme lexer
@@ -293,7 +294,6 @@ the fields are not used at all (like identifier and operator stuff)
 >                            ,P.reservedNames  = []
 >                            ,P.caseSensitive  = False
 >                            })
-
+>
 > opLetters :: String
 > opLetters = ".:^*/%+-<>=|!"
-

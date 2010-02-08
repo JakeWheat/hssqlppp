@@ -2,22 +2,18 @@ Copyright 2010 Jake Wheat
 
 Currently a mess and not usable.
 
-Prepend view definitions for a simplified catalog. This is the code from Chaos2010, it uses
+Prepend view definitions for a simplified catalog. This is the code
+from Chaos2010, it uses
 
 > {-# LANGUAGE QuasiQuotes #-}
 >
 > module Database.HsSqlPpp.Examples.Extensions.SimplifiedCatalog
 >     where
 >
-> --import Data.Generics
-> --import Data.Generics.Uniplate.Data
->
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> --import Database.HsSqlPpp.Utils.Here
-> --import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
-
+>
 > simplifiedCatalogSt :: [Statement]
 > simplifiedCatalogSt =
 >     [$sqlQuote|
@@ -197,6 +193,6 @@ create view object_orders as
 \end{code}
 
 >     |]
-
+>
 > simplifiedCatalog :: [Statement] -> [Statement]
 > simplifiedCatalog xs = simplifiedCatalogSt ++ xs

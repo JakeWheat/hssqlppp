@@ -1,7 +1,5 @@
 Copyright 2009 Jake Wheat
 
-This is the public module for the ast nodes.
-
 > {- | This module contains the ast node data types. They are very
 >      permissive, in that they allow a lot of invalid SQL to be
 >      represented. The type checking process should catch all invalid
@@ -9,9 +7,9 @@ This is the public module for the ast nodes.
 >      the seemingly pointless type synonyms below, they are an
 >      artefact of using UUAGC. You can see labels for the fields by
 >      looking at the ag source here:
->      <http://bazaar.launchpad.net/~jakewheat/hssqlppp/trunk/annotate/head:/Database/HsSqlPpp/AstInternals/AstInternal.ag>
+>      <http://community.haskell.org/~JakeWheat/hssqlppp/pandoc_source/src/Database/HsSqlPpp/AstInternals/AstInternal.ag.html>
 >      -}
-
+>
 > module Database.HsSqlPpp.Ast
 >     (
 >      -- * Main nodes
@@ -90,6 +88,6 @@ This is the public module for the ast nodes.
 >     ,ExpressionDirectionPair
 >     ,ExpressionDirectionPairList
 >     ) where
-
+>
 > import Database.HsSqlPpp.AstInternals.AstInternal
 

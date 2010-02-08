@@ -1,9 +1,10 @@
 Copyright 2009 Jake Wheat
 
-Experimental code to use uniplate to implement extensions
+This code is out of data, and in the process of being replaced. See
+the extensions folder.
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes #-}
-
+>
 > {- | Experimental code to half implement some simple syntax
 >      extensions for plpgsql. Eventually, want to use this to write
 >      macro type things for plpgsql.
@@ -18,7 +19,7 @@ Experimental code to use uniplate to implement extensions
 >      checking working, without e.g. worrying about the bodies of
 >      generated functions.
 >  -}
-
+>
 > module Database.HsSqlPpp.Examples.ChaosExtensions
 >     (
 >      extensionize
@@ -34,35 +35,33 @@ Experimental code to use uniplate to implement extensions
 >     ,transitionConstraints
 >     ,replaceGenerateSpellChoiceActions
 >     ) where
-
+>
 > import Data.Generics
 > import Data.Generics.Uniplate.Data
 > import Debug.Trace
-
+>
 > import Text.Parsec hiding(many, optional, (<|>))
 > import qualified Text.Parsec.Token as P
 > import Text.Parsec.Language
-
+>
 > import Control.Applicative
 > import Control.Monad.Identity
 > import Data.List
-
+>
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parser
 > --import Database.HsSqlPpp.Here
-
-
-
+>
 > data FunCallView = FUnit
 >                  | FunCallView Annotation String [Expression]
-
+>
 > funCallView :: Statement -> FunCallView
 > funCallView (SelectStatement an (Select _ _ (SelectList _ [SelExp _ (FunCall _ fnName
 >               args)] []) [] Nothing [] Nothing [] Nothing Nothing)) = FunCallView an fnName args
 > funCallView _ = FUnit
-
+>
 > -- | run all the extensions in this module on the given ast
 > extensionize :: Data a => a -> a
 > extensionize = addReadonlyTriggers .
@@ -76,9 +75,9 @@ Experimental code to use uniplate to implement extensions
 >                noDelIns .
 >                transitionConstraints .
 >                replaceGenerateSpellChoiceActions
+>
 
-
-================================================================================
+-------------------------------------------------------------------------------
 
 My dodgy SQL code uses a function called create_var to create a table
 with a single attribute, which can hold 0 or 1 tuples (it adds the
@@ -142,7 +141,7 @@ amount of work in comparison).
 >                ++ tl
 >         x1 -> x1
 
-================================================================================
+-------------------------------------------------------------------------------
 
 > -- | looks for calls to function set_relvar_type and adds triggers to prevent the
 > -- referenced table from being updated
@@ -166,7 +165,7 @@ amount of work in comparison).
 >                                     Volatile)) ++ tl)
 >         x1 -> x1
 
-================================================================================
+-------------------------------------------------------------------------------
 
 > -- | a numpty currying type thing for plpgsql functions
 > createClientActionWrapper :: Data a => a -> a
@@ -185,31 +184,31 @@ amount of work in comparison).
 >     where
 >       parseActionCall :: String -> (String,[String])
 >       parseActionCall = parseCcawac
-
+>
 > parseCcawac :: String -> (String,[String])
 > parseCcawac s = case runParser ccawac [] "" s of
 >                   Left e -> trace ("failed to parse " ++ s) $ error $ show e
 >                   Right r -> r
-
+>
 > ccawac :: ParsecT String LexState Identity (String, [String])
 > ccawac = (,)
 >          <$> identifierString
 >          <*> parens (sepBy ccawacarg (symbol ","))
-
+>
 > ccawacarg :: ParsecT String LexState Identity String
 > ccawacarg = (symbol "'" *> many (noneOf "'") <* symbol "'")
 >             <|> identifierString
-
+>
 > parens :: ParsecT String LexState Identity a -> ParsecT String LexState Identity a
 > parens = between (symbol "(") (symbol ")")
-
+>
 > symbol :: String -> ParsecT String LexState Identity String
 > symbol = P.symbol lexer
-
+>
 > lexer :: P.GenTokenParser String LexState Identity
 > lexer = P.makeTokenParser emptyDef
 
-================================================================================
+-------------------------------------------------------------------------------
 
 > -- | add a trigger to each data table to raise a notify signal when changed
 > addNotifyTriggers :: Data a => a -> a
@@ -226,7 +225,7 @@ amount of work in comparison).
 >                                      ]) Volatile : tl)
 >         x1 -> x1
 
-================================================================================
+-------------------------------------------------------------------------------
 
 > -- | wrapped for the extended constraint system - allows adding constraints
 > -- which refer to multiple rows/ multiple tables.
@@ -240,12 +239,12 @@ amount of work in comparison).
 >                           ,FunCall _ "!arrayctor" tbls]):tl
 >           -> createConstraint True an (getStrings tbls) conName expr ++ tl
 >         x1 -> x1
-
+>
 > parseExpressionWrap :: String -> Expression
 > parseExpressionWrap s = case parseExpression "" s of
 >                           Left e -> trace ("parsing expression: " ++ s) $ error $ show e
 >                           Right ast -> ast
-
+>
 > createConstraint :: Bool
 >                  -> Annotation
 >                  -> [String]
@@ -267,7 +266,7 @@ amount of work in comparison).
 >                                                        NullStatement an]) Volatile]
 >                                    ) tbls
 >       else []
-
+>
 > -- | implement key constraints so that they are integrated with the extended constraint
 > -- system, uses pg keys internally.
 > addKey :: Data a => a -> a
@@ -283,10 +282,10 @@ amount of work in comparison).
 >                           ,FunCall _ "!arrayctor" cols]):tl
 >           -> createKey an tableName (getStrings cols) ++ tl
 >         x1 -> x1
-
+>
 > getStrings :: [Expression] -> [String]
 > getStrings = map (\(StringLit _ _ c) -> c)
-
+>
 > createKey :: Annotation
 >           -> String
 >           -> [String]
@@ -294,7 +293,7 @@ amount of work in comparison).
 > createKey an tableName colNames =
 >    let cn = take 49 (tableName ++ "_" ++ intercalate "_" colNames) ++ "_key"
 >    in createConstraint False an [tableName] cn "true"
-
+>
 > -- | extended inclusion dependency (I think that is the fashionable term these days).
 > -- to allow 'foreign keys' to non key attributes, as well as regular foreign keys
 > addForeignKey :: Data a => a -> a
@@ -327,7 +326,7 @@ amount of work in comparison).
 >     where
 >       createFk an tbl atts _ _  =
 >           createConstraint False an [tbl] (tbl ++ "_" ++ intercalate "_" atts ++ "_fkey") "true"
-
+>
 > -- | convert calls to zero or one tuple to constraint
 > zeroOneTuple :: Data a => a -> a
 > zeroOneTuple =
@@ -338,7 +337,7 @@ amount of work in comparison).
 >           -> createConstraint True an [tableName] (tableName ++ "_01_tuple") "true" ++ tl
 >         x1 -> x1
 
-================================================================================
+-------------------------------------------------------------------------------
 
 > noDelIns :: Data a => a -> a
 > noDelIns =
@@ -354,7 +353,7 @@ amount of work in comparison).
 >                                 ]) Stable) ++ tl
 >         x1 -> x1
 
-================================================================================
+-------------------------------------------------------------------------------
 
 > transitionConstraints :: Data a => a -> a
 > transitionConstraints =
@@ -384,7 +383,7 @@ amount of work in comparison).
 >                 NullStatement an
 >                 ]) Stable]
 
-================================================================================
+-------------------------------------------------------------------------------
 
 generate_spell_choice_actions
 
@@ -459,12 +458,12 @@ unlikely to change for quite a while
 >                   ,"wall"
 >                   ,"wraith"
 >                   ,"zombie"]
-
-
+>
+>
 > replaceGenerateSpellChoiceActions :: Data a => a -> a
 > replaceGenerateSpellChoiceActions d = let sn = getSpellNames d
 >                                       in replaceGenerateSpellChoiceActionsInt sn d
-
+>
 > replaceGenerateSpellChoiceActionsInt :: Data a => [String] -> a -> a
 > replaceGenerateSpellChoiceActionsInt spellNames =
 >     transformBi $ \x ->

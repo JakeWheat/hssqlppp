@@ -1,13 +1,14 @@
 Copyright 2010 Jake Wheat
 
 Test sql by typechecking it, then running it through Postgres and comparing:
+
 * compare the catalog from typechecking to the one read from postgres
 * load then dump the sql and compare post and pre asts
 * (NOT STARTED ON YET) create views and check the type from type
   checking to the one from pg
 
 > module Database.HsSqlPpp.Tests.RoundtripTests (roundtripTests) where
-
+>
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
@@ -16,7 +17,7 @@ Test sql by typechecking it, then running it through Postgres and comparing:
 > import Data.Generics
 > import Data.Generics.PlateData
 > import Data.Char
-
+>
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Catalog
@@ -33,13 +34,13 @@ data in a database with this name
 
 > testDatabaseName :: String
 > testDatabaseName = "hssqlpppautomatedtests"
-
+>
 > data Item = Group String [Item]
 >           | Src [(String,String)]
-
+>
 > roundtripTests :: [Test.Framework.Test]
 > roundtripTests = itemToTft roundtripTestData
-
+>
 > roundtripTestData :: Item
 > roundtripTestData =
 >     Group "round trip tests" [ Src [
@@ -78,19 +79,19 @@ data in a database with this name
 >       ,"select * from pg_enum full outer join pg_largeobject on true full outer join pg_listener on true;")
 >     ]]
 
+~~~~
 TODO for test data:
 run through constraints in create table after attribute and as seperate rows
 do multiple constraints on a line
 use create view to run through select variations
+~~~~
 
-
-================================================================================
-
+--------------------------------------------------------------------------------
 
 > itemToTft :: Item -> [Test.Framework.Test]
 > itemToTft (Group s is) = [testGroup s $ concatMap itemToTft is]
 > itemToTft (Src ss) = map (uncurry testRoundtrip) ss
-
+>
 > testRoundtrip :: String -> String -> Test.Framework.Test
 > testRoundtrip name sql = testCase ("test " ++ name) $ wrapETT $ do
 >   astOrig <- tsl $ parseSql "" sql
@@ -129,7 +130,7 @@ use create view to run through select variations
 >       when (astOrigAdj /= astDumpedAdj) $
 >             liftIO $ putStrLn $ sql ++ "\n" ++ dumpSql
 >       liftIO $ assertEqual "check dump ast" astOrigAdj astDumpedAdj
-
+>
 >     compareCats s c1 c2 =
 >       case compareCatalogs defaultTemplate1Catalog c1 c2 of
 >               CatalogDiff [] [] -> liftIO $ return ()
@@ -151,8 +152,9 @@ take the parse tree and change the type names to the canonical versions
 >         SimpleTypeName a tn -> SimpleTypeName a $ canonicalizeTypeName tn
 >         x1 -> x1
 
+--------------------------------------------------------------------------------
 
-================================================================================
+~~~~
 
 ast roundtrip tests:
 want to compare the asts of parsed sql, with the asts of the sql
@@ -169,6 +171,7 @@ one of the things really want to double check is associativity and
 precedence mainly in select expressions, pg_dump puts in the implicit
 brackets which we can use to check these things
 
+~~~~
 
 > adjustAstToLookLikeDump :: [Statement] -> [Statement]
 > adjustAstToLookLikeDump ast =
@@ -190,7 +193,6 @@ brackets which we can use to check these things
 >           case x of
 >             s@(Set _ "search_path" _):s1@(CreateLanguage _ _):s2 -> s1:s:s2
 >             z -> z
-
 >     presets = [Set [] "statement_timeout" [SetNum [] 0.0]
 >               ,Set [] "client_encoding" [SetStr [] "UTF8"]
 >               ,Set [] "standard_conforming_strings" [SetId [] "off"]
@@ -239,10 +241,6 @@ generation here, also any 'value' identifiers will be in uppercase
 >                                           Identifier a1 "VALUE"
 >                                     y1 -> y1
 >         x1 -> x1
-
-================================================================================
-
-some random support functions, to be tidied up
 
 > wrapETT :: (Show e) => ErrorT e IO () -> IO ()
 > wrapETT c = runErrorT c >>= \x ->

@@ -5,7 +5,7 @@ functions (not including those that depend on the ast data types).
 
 > {- | Contains the annotation data types and a few auxiliary functions.
 > -}
-
+>
 > module Database.HsSqlPpp.Annotation
 >     (
 >      -- * Annotation data types
@@ -17,5 +17,5 @@ functions (not including those that depend on the ast data types).
 >     ,getAnnotation
 >     ,getAnnotations
 >     ) where
-
+>
 > import Database.HsSqlPpp.AstInternals.AstAnnotation

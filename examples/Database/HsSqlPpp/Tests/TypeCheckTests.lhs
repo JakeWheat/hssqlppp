@@ -1,39 +1,38 @@
 Copyright 2009 Jake Wheat
 
-Set of tests to check the type checking code. Includes some tests for
-sql which doesn't type check.
-
+Set of tests to check the type checking code. Includes tests for the
+errors for sql which doesn't type check.
 
 > module Database.HsSqlPpp.Tests.TypeCheckTests
 >     (typeCheckTests
 >     ,typeCheckTestData
 >     ,Item(..)) where
-
+>
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.List
 > --import Debug.Trace
-
+>
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
-
+>
 > data Item = Group String [Item]
 >           | Expr String (Either [TypeError] Type)
 >           | StmtType String (Either [TypeError] [Maybe StatementType])
 >           | CatStmtType String [CatalogUpdate] (Either [TypeError] [Maybe StatementType])
 >           | Ddl String [CatalogUpdate]
-
+>
 > typeCheckTests :: Test.Framework.Test
 > typeCheckTests = itemToTft typeCheckTestData
-
+>
 > typeCheckTestData :: Item
 > typeCheckTestData =
 >   Group "astCheckTests" [
-
+>
 >    Group "basic literal types" [
 >       e "1" $ Right typeInt
 >      ,e "1.0" $ Right typeNumeric
@@ -46,12 +45,12 @@ sql which doesn't type check.
 >      ,e "array[1,'b']" $ Right (ArrayType typeInt)
 >      ,e "array[1,true]" $ Left [NoMatchingOperator "!arrayctor" [ScalarType "int4",ScalarType "bool"]]
 >      ]
-
+>
 >   ,Group "some expressions" [
 >       e "1=1" $ Right typeBool
 >      ,e "1=true" $ Left [NoMatchingOperator "=" [typeInt,typeBool]]
 >      ,e "substring('aqbc' from 2 for 2)" $ Right (ScalarType "text")
-
+>
 >      ,e "substring(3 from 2 for 2)" $ Left
 >                                      [NoMatchingOperator "!substring"
 >                                       [ScalarType "int4"
@@ -62,56 +61,50 @@ sql which doesn't type check.
 >                      [UnknownType
 >                      ,ScalarType "int4"
 >                      ,ScalarType "bool"]]
-
+>
 >      ,e "3 between 2 and 4" $ Right typeBool
 >      ,e "3 between true and 4" $ Left
 >                                [NoMatchingOperator ">="
 >                                 [typeInt
 >                                 ,typeBool]]
-
+>
 >      ,e "array[1,2,3][2]" $ Right typeInt
 >      ,e "array['a','b'][1]" $ Right UnknownType
 >      ,e "array['a'::text,'b'][1]" $ Right (ScalarType "text")
-
- >      ,p "array['a','b'][true]" (TypeError ("",0,0)
- >                                   (WrongType
- >                                    typeInt
- >                                    UnknownType))
-
+>      {-,p "array['a','b'][true]" (TypeError ("",0,0)
+>                                   (WrongType
+>                                    typeInt
+>                                    UnknownType))-}
 >      ,e "not true" $ Right typeBool
 >      ,e "not 1" $ Left
 >                  [NoMatchingOperator "!not" [typeInt]]
-
+>
 >      ,e "@ 3" $ Right typeInt
 >      ,e "@ true" $ Left
 >                  [NoMatchingOperator "@" [ScalarType "bool"]]
-
+>
 >      ,e "-3" $ Right typeInt
 >      ,e "-'a'" $ Left
 >                  [NoMatchingOperator "-" [UnknownType]]
-
+>
 >      ,e "4-3" $ Right typeInt
-
+>
 >      ,e "1 is null" $ Right typeBool
 >      ,e "1 is not null" $ Right typeBool
-
+>
 >      ,e "1+1" $ Right typeInt
 >      ,e "1+1" $ Right typeInt
 >      ,e "31*511" $ Right typeInt
 >      ,e "5/2" $ Right typeInt
 >      ,e "2^10" $ Right typeFloat8
 >      ,e "17%5" $ Right typeInt
-
 >      ,e "3 and 4" $ Left
 >                   [NoMatchingOperator "!and" [typeInt,typeInt]]
-
 >      ,e "True and False" $ Right typeBool
 >      ,e "false or true" $ Right typeBool
-
 >      ,e "lower('TEST')" $ Right (ScalarType "text")
 >      ,e "lower(1)" $ Left [NoMatchingOperator "lower" [typeInt]]
 >      ]
-
 >   ,Group "special functions" [
 >       e "coalesce(null,1,2,null)" $ Right typeInt
 >      ,e "coalesce('3',1,2,null)" $ Right typeInt
@@ -132,33 +125,34 @@ sql which doesn't type check.
 >             $ Left [NoMatchingOperator "least" [ScalarType "int4",ScalarType "bool"]]
 >      ]
 
+~~~~
 implicit casting and function/operator choice tests:
 check when multiple implicit and one exact match on num args
 check multiple matches with num args, only one with implicit conversions
 check multiple implicit matches with one preferred
 check multiple implicit matches with one preferred highest count
 check casts from unknown string lits
+~~~~
 
 >   ,Group "some expressions" [
 >       e "3 + '4'" $ Right typeInt
 >      ,e "3.0 + '4'" $ Right typeNumeric
 >      ,e "'3' + '4'" $ Left [NoMatchingOperator "+" [UnknownType
 >                                               ,UnknownType]]
-
 >      ]
-
 >   ,Group "exists expressions" [
 >       e "exists (select 1 from pg_type)" $ Right typeBool
 >      ,e "exists (select testit from pg_type)"
 >        $ Left [UnrecognisedIdentifier "testit"]
 >      ]
-
 >   ,Group "row comparison expressions" [
 
+~~~~
 rows different lengths
 rows match types pairwise, same and different types
 rows implicit cast from unknown
 rows don't match types
+~~~~
 
 >       e "row(1)" $ Right (AnonymousRecordType [typeInt])
 >      ,e "row(1,2)" $ Right (AnonymousRecordType [typeInt,typeInt])
@@ -187,7 +181,6 @@ rows don't match types
 >      ,e "(1,2) > (2,1)" $ Right typeBool
 >      ,e "(1,2) < (2,1)" $ Right typeBool
 >      ]
-
 >   ,Group "case expressions" [
 >       e "case\n\
 >         \ when true then 1\n\
@@ -221,7 +214,6 @@ rows don't match types
 >         \end" $ Left [IncompatibleTypeSet [typeBool
 >                                           ,typeInt
 >                                           ,typeBool]]
-
 >      ,e "case 1 when 2 then 3 else 4 end" $ Right typeInt
 >      ,e "case 1 when true then 3 else 4 end"
 >             $ Left [IncompatibleTypeSet [ScalarType "int4"
@@ -231,7 +223,6 @@ rows don't match types
 >             $ Left [IncompatibleTypeSet [ScalarType "int4"
 >                                          ,ScalarType "bool"]]
 >      ]
-
 >   ,Group "polymorphic functions" [
 >       e "array_append(ARRAY[1,2], 3)"
 >         $ Right (ArrayType typeInt)
@@ -244,7 +235,6 @@ rows don't match types
 >      ,e "array_append(ARRAY['a'::int,'b'], 'c')"
 >         $ Right (ArrayType typeInt)
 >      ]
-
 >   ,Group "cast expressions" [
 >       e "cast ('1' as integer)"
 >         $ Right typeInt
@@ -257,7 +247,6 @@ rows don't match types
 >      ,e "array[] :: text[]"
 >         $ Right (ArrayType (ScalarType "text"))
 >      ]
-
 >   ,Group "simple selects" [
 >       s "select 1;" $ Right [Just $ StatementType [] [("?column?", typeInt)]]
 >      ,s "select 1 as a;" $
@@ -288,9 +277,7 @@ rows don't match types
 >                                      [("column1", ScalarType "text")
 >                                      ,("column2", typeSmallInt)]]
 >      ,s "values (1,2,3),(1,2);" $ Left [ValuesListsMustBeSameLength]
-
 >      ]
-
 >   ,Group "simple combine selects" [
 >      s "select 1,2  union select '3', '4';" $ Right [Just $ StatementType []
 >                                      [("?column?", typeInt)
@@ -310,9 +297,7 @@ rows don't match types
 >      ,s "select '3' as a, '4' as b except select 1,2;" $ Right [Just $ StatementType []
 >                                      [("a", typeInt)
 >                                      ,("b", typeInt)]]
-
 >      ]
-
 >   ,Group "simple selects from" [
 >       s "select a from (select 1 as a, 2 as b) x;"
 >         $ Right [Just $ StatementType [] [("a", typeInt)]]
@@ -330,9 +315,8 @@ rows don't match types
 >         $ Left [UnrecognisedIdentifier "typlen",UnrecognisedRelation "nope"]
 >      ,s "select generate_series from generate_series(1,7);"
 >         $ Right [Just $ StatementType [] [("generate_series", typeInt)]]
-
-check aliasing
-
+>
+>      -- check aliasing
 >      ,s "select generate_series.generate_series from generate_series(1,7);"
 >         $ Right [Just $ StatementType [] [("generate_series", typeInt)]]
 >      ,s "select g from generate_series(1,7) g;"
@@ -343,8 +327,7 @@ check aliasing
 >         $ Left [UnrecognisedCorrelationName "generate_series"]
 >      ,s "select g.generate_series from generate_series(1,7) g;"
 >         $ Left [UnrecognisedIdentifier "g.generate_series"]
-
-
+>
 >      ,s "select * from pg_attrdef;"
 >         $ Right [Just $ StatementType []
 >          [("adrelid",ScalarType "oid")
@@ -357,9 +340,8 @@ check aliasing
 >         --the second one means select 3+generate_series from generate_series(1,7)
 >         --  select generate_series(1,7);
 >         -- select 3 + generate_series(1,7);
-
 >      ]
-
+>
 >   ,Group "simple selects from 2" [
 >       c "select a,b from testfunc();"
 >         [CatCreateComposite "testType" [("a", ScalarType "text")
@@ -369,13 +351,12 @@ check aliasing
 >          (SetOfType $ NamedCompositeType "testType") False]
 >         $ Right [Just $ StatementType []
 >                  [("a",ScalarType "text"),("b",ScalarType "int4")]]
-
+>
 >      ,c "select testfunc();"
 >         [CatCreateFunction FunName "testfunc" [] (Pseudo Void) False]
 >         $ Right [Just $ StatementType [] []]
-
 >      ]
-
+>
 >   ,Group "simple join selects" [
 >       s "select * from (select 1 as a, 2 as b) a\n\
 >         \  cross join (select true as c, 4.5 as d) b;"
@@ -413,19 +394,19 @@ check aliasing
 >         \ natural inner join (select true as a1, 4.5 as d) b;"
 >         $ Left [IncompatibleTypeSet [ScalarType "int4"
 >                                      ,ScalarType "bool"]]
-
+>
 >      ,s "select * from (select 1 as a1) a, (select 2 as a2) b;"
 >         $ Right [Just $ StatementType [] [("a1", typeInt)
 >                                                                ,("a2", typeInt)]]
-
+>
 >      ,s "select * from (select 1 as a1) a, (select 2 as a1) b;"
 >         $ Right [Just $ StatementType [] [("a1", typeInt)
 >                                                                ,("a1", typeInt)]]
-
+>
 >      ,s "select a1 from (select 1 as a1) a,  (select 2 as a1) b;"
 >         $ Left [AmbiguousIdentifier "a1"]
 >      ]
-
+>
 >   ,Group "simple scalar identifier qualification" [
 >       s "select a.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
@@ -446,29 +427,29 @@ check aliasing
 >         \natural inner join (select 3 as a, 4 as c) b;"
 >         $ Right [Just $ StatementType [] [("a", typeInt)
 >                                           ,("a", typeInt)]]
-
+>
 >      ,s "select pg_attrdef.adsrc from pg_attrdef;"
 >         $ Right [Just $ StatementType [] [("adsrc", ScalarType "text")]]
-
+>
 >      ,s "select a.adsrc from pg_attrdef a;"
 >         $ Right [Just $ StatementType [] [("adsrc", ScalarType "text")]]
-
+>
 >      ,s "select pg_attrdef.adsrc from pg_attrdef a;"
 >         $ Left [UnrecognisedCorrelationName "pg_attrdef"]
-
+>
 >      ,s "select a from (select 2 as b, 1 as a) a\n\
 >         \natural inner join (select 4.5 as d, 1 as a) b;"
 >         $ Right [Just $ StatementType [] [("a", typeInt)]]
-
-select g.fn from fn() g
-
+>
+> -- select g.fn from fn() g
+>
 >      ]
-
+>
 >   ,Group "aggregates" [
 >        s "select max(prorettype::int) from pg_proc;"
 >         $ Right [Just $ StatementType [] [("max", typeInt)]]
 >      ]
-
+>
 >   ,Group "simple wheres" [
 >       s "select 1 from pg_type where true;"
 >         $ Right [Just $ StatementType [] [("?column?", typeInt)]]
@@ -501,17 +482,17 @@ qualifier before oid and this should still work
 >      ,s "select 3 = any(array[1,2,3]);"
 >         $ Right [Just $ StatementType [] [("?column?",typeBool)]]
 >      ]
-
-identifiers in select parts
-
->{-    ,testGroup "select part identifiers"
+>
+>  -- identifiers in select parts
+>
+> {-    ,testGroup "select part identifiers"
 >     (mapStatementTypes [
 >       p "select relname,attname from pg_class\n\
 >         \inner join pg_attribute\n\
 >         \on pg_attribute.attrelid = pg_class.oid;"
 >         $ Right [Just $ StatementType [] [("relvar_name",ScalarType "name")]]
 >      ])-}
-
+>
 >   ,Group "insert" [
 >       s "insert into nope (a,b) values (c,d);"
 >         $ Left [UnrecognisedRelation "nope",UnrecognisedIdentifier "c",UnrecognisedIdentifier "d"]
@@ -539,7 +520,7 @@ identifiers in select parts
 >         \values (1,true, 'a', 'b','c');"
 >         $ Left [WrongNumberOfColumns]
 >      ]
-
+>
 >   ,Group "update" [
 >       s "update nope set a = 1;"
 >         $ Left [UnrecognisedRelation "nope"]
@@ -564,7 +545,7 @@ identifiers in select parts
 >      ,s "update pg_attrdef set adnum = adnum + 1;"
 >         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")]-}]
 >      ]
-
+>
 >   ,Group "delete" [
 >       s "delete from nope;"
 >         $ Left [UnrecognisedRelation "nope"]
@@ -576,7 +557,7 @@ identifiers in select parts
 >         $ Right [Just $ StatementType [] []]
 >      ]
 
-================================================================================
+--------------------------------------------------------------------------------
 
 test the catalog updates from creates, etc.
 
@@ -599,21 +580,21 @@ test the catalog updates from creates, etc.
 >         \);"
 >         [CatCreateComposite "t1" [("a",ScalarType "int4")
 >                                   ,("b",ScalarType "text")]]
-
+>
 >      ,d "create domain t1 as text;"
 >         [CatCreateDomain (DomainType "t1") (ScalarType "text")]
-
+>
 >      ,d "create domain t1 as text check (value in ('a', 'b'));\n\
 >         \select 'text'::t1;"
 >         [CatCreateDomain (DomainType "t1") (ScalarType "text")]
-
-
+>
+>
 >      ,d "create view v1 as select * from pg_attrdef;"
 >         [CatCreateView "v1" [("adrelid",ScalarType "oid")
 >                              ,("adnum",ScalarType "int2")
 >                              ,("adbin",ScalarType "text")
 >                              ,("adsrc",ScalarType "text")]]
-
+>
 >      ,d "create function t1(text) returns text as $$\n\
 >         \null;\n\
 >         \$$ language sql stable;"
@@ -623,10 +604,11 @@ test the catalog updates from creates, etc.
 >         [CatCreateFunction FunName "plpgsql_call_handler" [] (Pseudo LanguageHandler) False
 >         ,CatCreateFunction FunName "plpgsql_validator" [ScalarType "oid"] (Pseudo Void) False]
 >      ]
+>
 
+--------------------------------------------------------------------------------
 
-================================================================================
-
+~~~~
 check the identifier resolution for functions:
 parameters
 variable declarations
@@ -640,6 +622,7 @@ todo: override var with param, override select iden with param
 check var defs:
 check type exists
 check type of initial values
+~~~~
 
 >   ,Group "create function identifier resolution" [
 >       s "create function t1(stuff text) returns text as $$\n\
@@ -664,7 +647,7 @@ check type of initial values
 >         (Right [Nothing])
 >      ]
 
-================================================================================
+--------------------------------------------------------------------------------
 
 >   ,Group "plpgsqlbits" [
 >       s "create function t1(stuff text) returns text as $$\n\
@@ -689,7 +672,7 @@ check type of initial values
 >         (Right [Nothing])
 >      ]
 
-================================================================================
+--------------------------------------------------------------------------------
 
 >   ,Group "plpgsqlbits" [
 >       s "create function t1() returns void as $$\n\
@@ -710,7 +693,7 @@ check type of initial values
 >         (Right [Nothing])
 >      ]
 
-================================================================================
+--------------------------------------------------------------------------------
 
 >   ,Group "for loops" [
 >       s "create function t1() returns void as $$\n\
@@ -724,8 +707,8 @@ check type of initial values
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Right [Nothing])
-
-
+>
+>
 >      ,s "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  r record;\n\
@@ -737,9 +720,9 @@ check type of initial values
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Right [Nothing])
-
-loop var already declared
-
+>
+>       -- loop var already declared
+>
 >      ,s "create function test() returns void as $$\n\
 >         \declare\n\
 >         \  i int;\n\
@@ -751,9 +734,9 @@ loop var already declared
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
 >        (Right [Nothing])
-
-implicitly created loop var
-
+>
+>        --implicitly created loop var
+>
 >      ,s "create function test() returns void as $$\n\
 >         \declare\n\
 >         \  i1 int;\n\
@@ -764,9 +747,9 @@ implicitly created loop var
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
 >        (Right [Nothing])
-
-loop var already declared, wrong type
-
+>
+>        --loop var already declared, wrong type
+>
 >      ,s "create function test() returns void as $$\n\
 >         \declare\n\
 >         \  i bool;\n\
@@ -777,9 +760,9 @@ loop var already declared, wrong type
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
 >        (Left [IncompatibleTypes (ScalarType "bool") (ScalarType "int4")])
-
-loop var implicit check it's type
-
+>
+>       --loop var implicit check it's type
+>
 >      ,s "create function test() returns void as $$\n\
 >         \declare\n\
 >         \  t bool;\n\
@@ -792,14 +775,14 @@ loop var implicit check it's type
 >         (Left [IncompatibleTypes (ScalarType "bool") (ScalarType "int4")])
 >      ]
 
-================================================================================
+--------------------------------------------------------------------------------
 
 >   ,Group "check catalog chaining" [
-
-create function then select
-select then create function
-then in two separate chained asts
-
+>
+>     -- create function then select
+>     -- select then create function
+>     -- then in two separate chained asts
+>
 >       s "create function t1() returns void as $$\n\
 >         \begin\n\
 >         \  null;\n\
@@ -815,7 +798,7 @@ then in two separate chained asts
 >         \$$ language plpgsql stable;"
 >         (Left [NoMatchingOperator "t1" []])
 >      ]
-
+>
 >   {-,Group "check catalog chaining2" [ StatementTypes [
 >       p ["create function t1() returns void as $$\n\
 >          \begin\n\
@@ -833,8 +816,9 @@ then in two separate chained asts
 >         (Left [NoMatchingOperator "t1" []])
 >      ]]-}
 
-================================================================================
+--------------------------------------------------------------------------------
 
+~~~~
 test some casts
 assign composite to record
   then assign record to composite
@@ -860,14 +844,17 @@ createtable as cat update
 window functions
 assign domain <-> base
 sql function not working
+~~~~
 
-================================================================================
+--------------------------------------------------------------------------------
 
+~~~~
 check insert returning, update returning, delete returning, one check each
 check select into: multiple vars, record (then access fields to check),
   composite var
 check errors: select into wrong number of vars, wrong types, and into
   composite wrong number and wrong type
+~~~~
 
 >   ,Group "select into" [
 >       s "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
@@ -966,7 +953,6 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \$$ language plpgsql stable;"
 >         $ Right [Nothing]
 >      ]
-
 >   ,Group "composite elements" [
 >       s "create function t1() returns void as $$\n\
 >         \declare\n\
@@ -981,7 +967,6 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \$$ language plpgsql stable;"
 >         $ Right [Nothing]
 >      ]
-
 >   ,Group "positional args" [
 >       s "create function distance(int, int, int, int) returns float(24) as $$\n\
 >         \  select (point($1, $2) <-> point($3, $4))::float(24) as result;\n\
@@ -992,7 +977,6 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \$$ language sql immutable;"
 >         $ Left [UnrecognisedIdentifier "$5"]
 >      ]
-
 >   ,Group "window fns" [
 >       s "select *, row_number() over () from pg_attrdef;"
 >         $ Right [Just $ StatementType []
@@ -1002,7 +986,6 @@ check errors: select into wrong number of vars, wrong types, and into
 >                   ,("adsrc",ScalarType "text")
 >                   ,("row_number",ScalarType "int8")]]
 >      ]
-
 >   ,Group "drop stuff" [
 >       d "create function test(a int) returns void as $$\n\
 >         \begin\n\
@@ -1029,7 +1012,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >    c = CatStmtType
 >    d = Ddl
 
-================================================================================
+--------------------------------------------------------------------------------
 
 > testExpressionType :: String -> Either [TypeError] Type -> Test.Framework.Test
 > testExpressionType src typ = testCase ("typecheck " ++ src) $
@@ -1044,7 +1027,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >        (0,1) -> assertEqual ("typecheck " ++ src) typ $ Right $ head ty
 >        (0,_) -> assertFailure "got too many types"
 >        _ -> assertEqual ("typecheck " ++ src) typ $ Left er
-
+>
 > testStatementType :: String -> Either [TypeError] [Maybe StatementType] -> Test.Framework.Test
 > testStatementType src sis = testCase ("typecheck " ++ src) $
 >   let ast = case parseSql "" src of
@@ -1057,8 +1040,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
-
-
+>
 > testCatUpStatementType :: String
 >                        -> [CatalogUpdate]
 >                        -> Either [TypeError] [Maybe StatementType]
@@ -1078,7 +1060,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >     makeCat = case updateCatalog defaultTemplate1Catalog eu of
 >                         Left x -> error $ show x
 >                         Right e -> e
-
+>
 > testCat :: String -> [CatalogUpdate] -> Test.Framework.Test
 > testCat src eu = testCase ("check catalog: " ++ src) $
 >   let ast = case parseSql "" src of
@@ -1090,14 +1072,10 @@ check errors: select into wrong number of vars, wrong types, and into
 >   in if not (null er)
 >        then assertFailure $ show er
 >        else assertEqual "check eus" eu neu
-
-
+>
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Expr s r) = testExpressionType s r
 > itemToTft (StmtType s r) = testStatementType s r
 > itemToTft (CatStmtType s c r) = testCatUpStatementType s c r
 > itemToTft (Ddl s c) = testCat s c
-
- > itemToTft (DdlStatementsCat es) = map (uncurry testCat) es
-
 > itemToTft (Group s is) = testGroup s $ map itemToTft is

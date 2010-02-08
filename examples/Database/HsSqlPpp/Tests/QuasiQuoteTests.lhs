@@ -3,23 +3,19 @@ Copyright 2010 Jake Wheat
 Tests mainly for antiquotation, plus examples of where antiquotes work.
 
 > {-# LANGUAGE QuasiQuotes,ScopedTypeVariables #-}
-
+>
 > module Database.HsSqlPpp.Tests.QuasiQuoteTests (quasiQuoteTests, quasiQuoteTestData, Item(..)) where
-
+>
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Generics
-
-> import Database.HsSqlPpp.Utils.Here
-
+>
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.SqlQuote
-
-
+>
 > data Item = Expr Expression Expression
 >           | Stmts [Statement] [Statement]
 >           | PgSqlStmts [Statement] [Statement]
@@ -28,12 +24,12 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 >           | Group String [Item]
 > quasiQuoteTests :: Test.Framework.Test
 > quasiQuoteTests = itemToTft quasiQuoteTestData
-
+>
 > quasiQuoteTestData :: Item
 > quasiQuoteTestData =
 >   Group "quasiQuoteTests" [
 
-================================================================================
+--------------------------------------------------------------------------------
 
 expressions
 
@@ -53,7 +49,6 @@ expressions
 >                       my_field text
 >                     );
 >                        |]
-
 >     ]]
 
 let x = "y" in Expr [$sqlExpr| $(x) |]
@@ -69,17 +64,6 @@ Unit test helpers
 > itemToTft (PgSqlStmts a b) = testCase (printSql b) $ stripEqual a b
 > itemToTft (Stmts a b) = testCase (printSql b) $ stripEqual a b
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
-
-
- > testExpression :: Expression -> Expression -> Test.Framework.Test
- > testExpression src ast = stripEqual src ast
-
+> stripEqual :: (Data a, Eq a, Show a) =>
+>               a -> a -> Assertion
 > stripEqual a b = assertEqual "" (stripAnnotations a) (stripAnnotations b)
-
-TODO
-new idea for testing:
-parsesql -> ast1
-parse, pretty print, parse -> ast2
-load into pg, pg_dump, parse -> ast3
-parse, pretty print, load into pg, pg_dump, parse -> ast4
-check all these asts are the same

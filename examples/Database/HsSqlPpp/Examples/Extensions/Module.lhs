@@ -4,6 +4,8 @@ Currently, just some notes.
 
 Extension to implement a module system:
 
+~~~~
+
 create table modules (
   module_name text,
   module_parent_name text,
@@ -15,6 +17,7 @@ create table all_module_objects (
   object_type text,
   module_name text
 );
+~~~~
 
 initial syntax is new_module - which adds the module and then adds
 everything following to that module until a new new_module is

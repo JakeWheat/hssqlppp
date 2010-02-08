@@ -25,6 +25,7 @@ which parses and type checks:
 
 * [Parsing examples](ParserTests.html)
 * [Type-checking examples](TypeCheckTests.html)
+* [Quasiquotation examples](QuasiQuoteTests.html)
 
 Some other limitations are that the design of the AST node types is
 pretty basic, not much work has been done on correctly rejecting
@@ -52,8 +53,10 @@ for PostgreSQL.
 
 Then use
 
-    cabal update
-    cabal install hssqlppp
+~~~~~{.sh}
+cabal update
+cabal install hssqlppp
+~~~~~
 
 to install the library.
 
@@ -65,15 +68,19 @@ commands it supports.)
 
 You can use
 
-    cabal install hssqlppp -fexecutable
-    HsSqlSystem -?
+~~~~~{.sh}
+cabal install hssqlppp -fexecutable
+HsSqlSystem -?
+~~~~~
 
 to install the exe along with the library, or
 
-    cabal unpack hssqlppp
-    cd hssqlppp-x.x.x
-    ghc --make -threaded -XDeriveDataTypeable -iexamples:src examples/HsSqlSystem.lhs
-    examples/HsSqlSystem -?
+~~~~~{.sh}
+cabal unpack hssqlppp
+cd hssqlppp-x.x.x
+ghc --make -threaded -XDeriveDataTypeable -iexamples:src examples/HsSqlSystem.lhs
+examples/HsSqlSystem -?
+~~~~~
 
 to compile and run without installing it.
 
@@ -93,14 +100,18 @@ unpolished.
 You can build a local copy of this documentation using by getting the
 executable mentioned above, and running
 
-    HsSqlSystem makewebsite
+~~~~~{.sh}
+HsSqlSystem makewebsite
+~~~~~
 
 Development info
 ================
 
 Get latest development version:
 
-    bzr branch lp:~jakewheat/hssqlppp/trunk
+~~~~~{.sh}
+bzr branch lp:~jakewheat/hssqlppp/trunk
+~~~~~
 
 (This version is often a mess and sometimes broken).
 
@@ -110,7 +121,9 @@ the type checking (UUAGC is needed if you edit the .ag files).
 Comes with a small test suite, which you can run by installing the
 executable (see above), and then:
 
-    HsSqlSystem test
+~~~~~{.sh}
+HsSqlSystem test
+~~~~~
 
 Useful links
 ============

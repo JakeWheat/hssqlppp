@@ -1241,10 +1241,10 @@ TODO: copy this approach here.
 >             c <- expr
 >             symbol ")"
 >             return $ FunCall p "!substring" [a,b,c]
-
+>
 > identifier :: SParser Expression
 > identifier = Identifier <$> pos <*> (idString <|> splice)
-
+>
 > antiIdentifier :: SParser Expression
 > antiIdentifier = Identifier <$> pos <*> splice
 
@@ -1280,6 +1280,9 @@ identifier which happens to start with a complete keyword
 >                                      IdStringTok "not" -> Nothing
 >                                      IdStringTok i -> Just i
 >                                      _ -> Nothing)
+>
+> spliceD :: SParser String
+> spliceD = (\x -> "$(" ++ x ++ ")") <$> splice
 >
 > splice :: SParser String
 > splice = symbol "$(" *> idString <* symbol ")"
@@ -1472,7 +1475,7 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >             -> ParsecT s u m a
 >             -> ParsecT s u m sep
 >             -> ParsecT s u m ([a1], [a])
-
+>
 > multiPerm p1 p2 sep = do
 >   (r1, r2) <- unzip <$> sepBy1 parseAorB sep
 >   return (catMaybes r1, catMaybes r2)
@@ -1486,7 +1489,7 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 simple wrapper for parsec source positions, probably not really useful
 
 > type MySourcePos = (String,Int,Int)
-
+>
 > toMySp :: SourcePos -> MySourcePos
 > toMySp sp = ((sourceName sp),(sourceLine sp),(sourceColumn sp))
 
