@@ -39,10 +39,10 @@ supposed to do; it doubles as an automated test.
 >     createVarSimple
 >
 >     -- example of the SQL we want to replace
->     [$sqlQuote| select create_var('varname', 'vartype'); |]
+>     [$sqlStmts| select create_var('varname', 'vartype'); |]
 >
 >     -- what the example SQL should be transformed into:
->     [$sqlQuote|
+>     [$sqlStmts|
 >
 >  create table varname_table (
 >      varname vartype
@@ -72,7 +72,7 @@ using vanilla pattern matching.
 >                                     [StringLit _ _ varname
 >                                     ,StringLit _ _ typename]):tl
 >             -> let tablename = varname ++ "_table"
->                in [$sqlQuote|
+>                in [$sqlStmts|
 >
 >   create table $(tablename) (
 >    $(varname) $(typename)

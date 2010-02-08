@@ -1179,7 +1179,8 @@ code to build the website for hssqlppp
 MakeAntinodes
 =============
 
-code to build the website for hssqlppp
+code to generate the anti ast source, for supporting anti quoting in
+sql quasiquotes
 
 > makeAntiNodesA = mode $ MakeAntiNodes
 >                &= text "development tool"
@@ -1187,6 +1188,36 @@ code to build the website for hssqlppp
 > makeAntiNodesF = do
 >   s <- makeAntiNodes
 >   writeFile "Database/HsSqlPpp/AstInternals/AstAnti.hs" s
+
+-------------------------------------------------------------------------------
+
+ > readParseTransform :: (MonadIO m, MonadError String m) =>
+ >                       [FilePath] -> m [Statement]
+
+> readParseTransform fns =
+>      mapM (\f -> (liftIO . readInput) f >>=
+>                  tsl . P.parseSql f) fns >>=
+>      return . (concat |>
+>                astTransformer)
+
+-------------------------------------------------------------------------------
+
+> readParseTransformList :: (MonadIO m, MonadError String m) =>
+>                       [FilePath] -> m [[Statement]]
+> readParseTransformList =
+>      mapM (\f -> (liftIO . readInput) f >>=
+>                  tsl . P.parseSql f >>=
+>                  return . astTransformer)
+
+-------------------------------------------------------------------------------
+
+> readInto act fns =
+>                forM_ fns $ \f ->
+>                  (liftIO . readInput) f >>=
+>                  act
+
+ >                  tsl . lexSqlText f >>=
+ >                  mapM_ (liftIO . print)
 
 -------------------------------------------------------------------------------
 

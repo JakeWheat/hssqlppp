@@ -66,27 +66,23 @@ of coding used in AstInternal.ag.
 > wrappers :: [Decl]
 > wrappers =
 >   [TypeSig
->      (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
->              srcLine = 31, srcColumn = 1})
+>      nsrc
 >      [Ident "convertStatements"]
 >      (TyFun (TyList (TyCon (UnQual (Ident "Statement"))))
 >         (TyList (TyCon (Qual (ModuleName "A") (Ident "Statement"))))),
 >    PatBind
->      (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
->              srcLine = 32, srcColumn = 1})
+>      nsrc
 >      (PVar (Ident "convertStatements"))
 >      Nothing
 >      (UnGuardedRhs (Var (UnQual (Ident "statementList"))))
 >      (BDecls []),
 >    TypeSig
->      (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
->              srcLine = 34, srcColumn = 1})
+>      nsrc
 >      [Ident "convertExpression"]
 >      (TyFun (TyCon (UnQual (Ident "Expression")))
 >         (TyCon (Qual (ModuleName "A") (Ident "Expression")))),
 >    PatBind
->      (SrcLoc{srcFilename = "Database/HsSqlPpp/AstInternals/AstAnti.hs",
->              srcLine = 35, srcColumn = 1})
+>      nsrc
 >      (PVar (Ident "convertExpression"))
 >      Nothing
 >      (UnGuardedRhs (Var (UnQual (Ident "expression"))))

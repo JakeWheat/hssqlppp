@@ -6,20 +6,21 @@ right choice, but it seems to do the job pretty well at the moment.
 > {-# LANGUAGE RankNTypes,FlexibleContexts #-}
 >
 > -- | Functions to parse SQL.
-> module Database.HsSqlPpp.Parsing.ParserInternal (
->              -- * Main
->               parseSql
->              ,parseSqlWithPosition
->              ,parseSqlFile
->              -- * Testing
->              ,parseExpression
->              ,parsePlpgsql
->              -- * errors
->              ,ParseErrorExtra(..)
->              -- * quasiquotation support
->              ,parseSqlWithPositionAnti
->              )
->     where
+> module Database.HsSqlPpp.Parsing.ParserInternal
+>     (-- * Main
+>      parseSql
+>     ,parseSqlWithPosition
+>     ,parseSqlFile
+>      -- * Testing
+>     ,parseExpression
+>     ,parsePlpgsql
+>      -- * errors
+>     ,ParseErrorExtra(..)
+>      -- * quasiquotation support
+>     ,parseAntiSql
+>     ,parseAntiPlpgsql
+>     ,parseAntiExpression
+>     ) where
 >
 > import Text.Parsec hiding(many, optional, (<|>), string)
 > import Text.Parsec.Expr
@@ -49,6 +50,21 @@ right choice, but it seems to do the job pretty well at the moment.
 Top level parsing functions
 ===========================
 
+To support antiquotation, the following approach is used:
+
+* makeantinodes processes the generated astinternal.hs, and extracts
+  the ast node types.
+* it modifies these to add anti ctors to the appropriate types,
+  creates a set of trivial conversion functions to convert between anti
+  nodes and regular nodes, and this is written to astanti.hs.
+* astanti then contains exactly the same set of ast nodes as
+  astinternal, but with a few additions to support antiquotes.
+* this parsing code parses to the antinodes, then converts to regular
+  nodes for the public api, and returns antinodes for the sql
+  quasiquoter to use.
+* todo: add a flag so that if we are not parsing for the quasiquoter,
+  any splice syntax is rejected as a parse error.
+
 > parseSql :: String -- ^ filename to use in errors
 >          -> String -- ^ a string containing the sql to parse
 >          -> Either ParseErrorExtra A.StatementList
@@ -59,14 +75,7 @@ Top level parsing functions
 >                      -> Int -- ^ adjust column in errors by adding this
 >                      -> String -- ^ a string containing the sql to parse
 >                      -> Either ParseErrorExtra A.StatementList
-> parseSqlWithPosition f l c s = deAS $ parseIt (lexSqlTextWithPosition f l c s) sqlStatements f (Just (l,c)) s startState
->
-> parseSqlWithPositionAnti :: FilePath -- ^ filename to use in errors
->                          -> Int -- ^ adjust line number in errors by adding this
->                          -> Int -- ^ adjust column in errors by adding this
->                          -> String -- ^ a string containing the sql to parse
->                          -> Either ParseErrorExtra StatementList
-> parseSqlWithPositionAnti f l c s = parseIt (lexSqlTextWithPosition f l c s) sqlStatements f (Just (l,c)) s startState
+> parseSqlWithPosition f l c s = deAS $ parseAntiSql f l c s
 >
 > parseSqlFile :: FilePath -- ^ file name of file containing sql
 >              -> IO (Either ParseErrorExtra A.StatementList)
@@ -90,6 +99,28 @@ Top level parsing functions
 >              -> String
 >              -> Either ParseErrorExtra A.StatementList
 > parsePlpgsql f s = deAS $ parseIt (lexSqlText f s) (many plPgsqlStatement <* eof) f Nothing s startState
+>
+>
+> parseAntiSql :: FilePath
+>              -> Int
+>              -> Int
+>              -> String
+>              -> Either ParseErrorExtra StatementList
+> parseAntiSql f l c s = parseIt (lexSqlTextWithPosition f l c s) sqlStatements f (Just (l,c)) s startState
+>
+> parseAntiPlpgsql :: String
+>                  -> Int
+>                  -> Int
+>                  -> String
+>                  -> Either ParseErrorExtra [Statement]
+> parseAntiPlpgsql f l c s = parseIt (lexSqlText f s) (many plPgsqlStatement <* eof) f (Just (l,c)) s startState
+>
+> parseAntiExpression :: String
+>                     -> Int
+>                     -> Int
+>                     -> String
+>                     -> Either ParseErrorExtra Expression
+> parseAntiExpression f l c s = parseIt (lexSqlText f s) (expr <* eof) f (Just (l,c)) s startState
 >
 > --utility function to do error handling in one place
 > parseIt :: forall t s u b.(Stream s Identity t, Data b) =>
@@ -116,7 +147,6 @@ Top level parsing functions
 > deAS x = case x of
 >                 Left e -> Left e
 >                 Right ex -> Right $ convertStatements ex
-
 
 --------------------------------------------------------------------------------
 
@@ -880,7 +910,7 @@ work
 > factor :: ParsecT [Token] ParseState Identity Expression
 > factor =
 
-First job is to take care of forms which start as a regular
+First job is to take care of forms which start like a vanilla
 expression, and then add a suffix on
 
 >          threadOptionalSuffixes fct [castSuffix
@@ -1466,7 +1496,7 @@ parser combinator to return the current position as an ast annotation
 
 this is where some generics code is used to transform the parse trees
 to alter the nodes used where it's too difficult to do whilst
-parsing. The only item at the moment that needs this treatment is te
+parsing. The only item at the moment that needs this treatment is the
 any/some/all construct which looks like this:
 expr operator [any|some|all] (expr)
 

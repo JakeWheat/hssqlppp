@@ -28,44 +28,58 @@ Copyright 2010 Jake Wheat
 >
 >      -}
 > module Database.HsSqlPpp.SqlQuote
->     (sqlQuote) where
+>     (sqlStmts,pgsqlStmts,sqlExpr) where
 >
 > import Language.Haskell.TH.Quote
 > import Language.Haskell.TH
 > import Data.Generics
 > import Data.List
-> import Control.Monad as M
-> import Debug.Trace
+> --import Control.Monad as M
+> --import Debug.Trace
 >
 > import Database.HsSqlPpp.Parsing.ParserInternal
-> import Database.HsSqlPpp.Utils.Utils
+> --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.AstInternals.AstAnti
 
-> sqlQuote :: QuasiQuoter
-> sqlQuote = QuasiQuoter parseExprExp parseExprPat
+> -- | parses a 'Statement' list
+> sqlStmts :: QuasiQuoter
+> sqlStmts = QuasiQuoter (parseExprExp parseAntiSql) parseExprPat
+
+> -- | parses plpgsql statements
+> pgsqlStmts :: QuasiQuoter
+> pgsqlStmts = QuasiQuoter (parseExprExp parseAntiPlpgsql) parseExprPat
+
+> -- | parse an 'Expression'
+> sqlExpr :: QuasiQuoter
+> sqlExpr = QuasiQuoter (parseExprExp parseAntiExpression) parseExprPat
 
 these badboys return asts of from the module
 Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result
 of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
 magically converts from one to the other ...
 
-> parseExprExp :: String -> Q Exp
-> parseExprExp s = parseSql' s >>= exprise
+> type Parser a = (String
+>                  -> Int
+>                  -> Int
+>                  -> String
+>                  -> Either ParseErrorExtra a)
 
-> exprise :: [Statement] -> Q Exp
-> exprise = dataToExpQ (const Nothing
+> parseExprExp :: (Data a) =>
+>                 (Parser a) -> String -> Q Exp
+> parseExprExp p s = (parseSql' p) s >>=  dataToExpQ (const Nothing
 >                        `extQ` antiExpE
 >                        `extQ` antiStrE
 >                        `extQ` antiTriggerEventE
 >                        `extQ` antiStatementE)
 >
 > parseExprPat :: String -> Q Pat
-> parseExprPat s =  parseSql' s >>= dataToPatQ (const Nothing `extQ` antiExpP)
+> parseExprPat _ =  undefined
 >
-> parseSql' :: String -> Q [Statement]
-> parseSql' s = do
+
+> parseSql' :: Parser a -> String -> Q a
+> parseSql' p s = do
 >     Loc fn _ _ (l,c) _ <- location
->     either (fail . show) return (parseSqlWithPositionAnti fn l c s)
+>     either (fail . show) return (p fn l c s)
 
 > antiExpE :: Expression -> Maybe ExpQ
 > antiExpE (AntiExpression v) = Just $ varE $ mkName v
@@ -99,9 +113,9 @@ antistatements not working ...
 > antiTriggerEventE (AntiTriggerEvent v) = Just $ varE $ mkName v
 > antiTriggerEventE _ = Nothing
 
-> antiExpP :: Expression -> Maybe PatQ
-> antiExpP (AntiExpression v ) = Just $ varP $ mkName v
-> antiExpP _ = Nothing
+ > antiExpP :: Expression -> Maybe PatQ
+ > antiExpP (AntiExpression v ) = Just $ varP $ mkName v
+ > antiExpP _ = Nothing
 
 to add support for a new splice location, add the type name to the
 list at the top of MakeAntiNodes, adjust the parser to parse splices

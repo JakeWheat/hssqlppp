@@ -6,6 +6,14 @@ This file is a complete disorganised mess.
 add flag to parser to switch between parsing splices or not
 convert error to either in conversion from anti to regular ast
 
+sort out documentation:
+fix data: make hssqlsystem nicer, work on wrapper examples and
+  library source files
+graphics: pick colour scheme, add some sort of header, footer ish
+nav: create a 'sitemap' thing, and nav bar and breadcrumbs to each
+   page
+work on rendering source - issues with markdown, embedded sql, etc.
+
 
 focus: website/documentation, examples
        missing catalog elements: triggers, sequences, constraints, indexes, defaults

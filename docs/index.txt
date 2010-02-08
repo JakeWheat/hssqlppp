@@ -8,23 +8,33 @@ licensed.
 Status
 ======
 
-Pre-alpha. Support for parsing SQL is patchy, but not too bad. Support
-for type-checking is also patchy. See these extracts from the test
-files for examples of the kind of SQL which parses and type checks:
+Pre-alpha. Support for parsing SQL is patchy, but not too bad.
+
+Support for type-checking is also patchy. A rough idea of how far
+along it is: can get catalog information by parsing and type checking
+ddl source, or by reading a database, and can then type check
+parameterized crud statements and generate type-safe haskell
+wrappers. This already works well on a smallish database project with
+maybe 40 tables.
+
+See these extracts from the test files for examples of the kind of SQL
+which parses and type checks:
 
 * [Parsing examples](ParserTests.html)
 * [Type-checking examples](TypeCheckTests.html)
 
-Is currently able to successfully parse and partially type check three
-moderately sized SQL files from another project.
-
 Some other limitations are that the design of the AST node types is
 pretty basic, not much work has been done on correctly rejecting
 invalid SQL (although it does pretty well despite this), and not much
-thought has been put into error messages and error reporting yet.
+thought has been put into error messages and error reporting yet
+(although you can definitely use it to catch lots of type checking
+issues).
 
 Installation
 ============
+
+This project is currently developed on GHC 6.12, but the latest
+release still works on 6.10.
 
 A bit of adventure for non Haskell programmers: if you don't already
 have Haskell installed, you can get it here:
@@ -39,35 +49,44 @@ Then use
     cabal update
     cabal install hssqlppp
 
-to install.
+to install the library.
 
-It's currently developed on GHC 6.12, but the latest release still
-works on 6.10.
+Also comes with a optional executable which can run the automated
+tests, run some commands such as parsing or type checking, and is also
+used to generate some of the source files and the documentation. (See
+[HsSqlSystem](pandoc_source/examples/HsSqlSystem.lhs.html) for what
+commands it supports.)
+
+You can use
+
+    cabal install hssqlppp -fexecutable
+    HsSqlSystem -?
+
+to install the exe along with the library, or
+
+    cabal unpack hssqlppp
+    cd hssqlppp-x.x.x
+    ghc --make -threaded -XDeriveDataTypeable -iexamples:src examples/HsSqlSystem.lhs
+    examples/HsSqlSystem -?
+
+to compile and run without installing it.
 
 Documentation
 =============
 
-The documentation you are reading is a work in progress.
+The documentation you're reading is a work in progress.
 
 [Haddock](haddock/index.html)
 
 [Example code](examples.html)
 
-The [htmlized source code](pandoc_source/index.html) has lots of comments.
+The [htmlized source for the library and
+examples](pandoc_source/index.html) has lots of comments.
 
-To build a local copy of the documentation:
+You can build a local copy of this documentation using by getting the
+executable mentioned above, and running
 
-    cabal install hssqlppp -fexecutable
     HsSqlSystem makewebsite
-
-and the docs will be in ./website/ .
-
-or to avoid installing the HsSqlSystem exe, you can use:
-
-    cabal unpack hssqlppp
-    cd hssqlppp-x.x.x
-    ghc --make -threaded -XDeriveDataTypeable -iexamples:src examples/HsSqlSystem.lhs
-    examples/HsSqlSystem makewebsite
 
 Development info
 ================
@@ -79,15 +98,12 @@ Get latest development version:
 (This version is often a mess and sometimes broken).
 
 Uses Parsec for parsing, HDBC for database access, and UUAGC to assist
-the type checking (UUAGC is not needed to build from source unless you
-edit the .ag files).
+the type checking (UUAGC is needed if you edit the .ag files).
 
-Comes with a small test suite, which you can run like so:
+Comes with a small test suite, which you can run by installing the
+executable (see above), and then:
 
-    cabal unpack hssqlppp
-    cd hssqlppp-x.x.x
-    ghc --make -threaded -XDeriveDataTypeable -iexamples:src examples/HsSqlSystem.lhs
-    examples/HsSqlSystem test
+    HsSqlSystem test
 
 Useful links
 ============

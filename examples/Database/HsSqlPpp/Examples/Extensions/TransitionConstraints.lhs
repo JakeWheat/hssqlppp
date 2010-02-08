@@ -27,13 +27,13 @@ temporal relations.
 > transitionConstraintExamples = [
 >    ExtensionTest "TransitionConstraint insert"
 >     transitionConstraint
->     [$sqlQuote|
+>     [$sqlStmts|
 >
 >      select create_insert_transition_tuple_constraint(
 >         'relvar', 'relvar_insert', 'NEW.x>10');
 >
 >      |]
->     [$sqlQuote|
+>     [$sqlStmts|
 >
 >      create function check_relvar_insert() returns trigger as $a$
 >      begin
@@ -52,13 +52,13 @@ temporal relations.
 >      |]
 >   ,ExtensionTest "TransitionConstraint update"
 >     transitionConstraint
->     [$sqlQuote|
+>     [$sqlStmts|
 >
 >      select create_update_transition_tuple_constraint(
 >         'relvar', 'relvar_update', 'NEW.x=OLD.y');
 >
 >      |]
->     [$sqlQuote|
+>     [$sqlStmts|
 >
 >      create function check_relvar_update() returns trigger as $a$
 >      begin
@@ -77,13 +77,13 @@ temporal relations.
 >      |]
 >   ,ExtensionTest "TransitionConstraint delete"
 >     transitionConstraint
->     [$sqlQuote|
+>     [$sqlStmts|
 >
 >      select create_delete_transition_tuple_constraint(
 >         'relvar', 'relvar_delete', 'OLD.y > 0');
 >
 >      |]
->     [$sqlQuote|
+>     [$sqlStmts|
 >
 >      create function check_relvar_delete() returns trigger as $a$
 >      begin
@@ -134,7 +134,7 @@ temporal relations.
 >                     else Identifier [] "OLD"
 >               expr = either (error . show) id
 >                             $ parseExpression "" expressionText
->           in [$sqlQuote|
+>           in [$sqlStmts|
 
 \begin{code}
 

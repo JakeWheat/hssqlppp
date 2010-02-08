@@ -215,7 +215,8 @@ select add_foreign_key('dbcon_triggers', array['trigger_name', 'relvar_name'],
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
 >
 > module Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
->     where
+>     (extendedConstraintExamples
+>     ,extendedExtensions) where
 >
 > --import Data.Generics
 > import Data.Generics.Uniplate.Data
@@ -233,7 +234,8 @@ select add_foreign_key('dbcon_triggers', array['trigger_name', 'relvar_name'],
 > extendedConstraintExamples = [cardinalityExample
 >                              ,doubleCardinalityExample
 >                              ,simpleViewExample
->                              ,simpleFunctionExample]
+>                              ,simpleFunctionExample
+>                              ,simpleMultiConstraint]
 
 stage 1: some test cases for general constraints which aren't
 implementable as postgresql constraints, we don't check the
@@ -249,7 +251,7 @@ accesses multiple rows from one table
 >   ExtensionTest
 >     "ExtendedConstraints cardinality"
 >     extendedExtensions
->     [$sqlQuote|
+>     [$sqlStmts|
 
 \begin{code}
 
@@ -263,7 +265,7 @@ select create_assertion('test_table_count'
 \end{code}
 
 >     |]
->     [$sqlQuote|
+>     [$sqlStmts|
 
 \begin{code}
 
@@ -305,7 +307,7 @@ accesses two tables
 >   ExtensionTest
 >     "ExtendedConstraints double cardinality"
 >     extendedExtensions
->     [$sqlQuote|
+>     [$sqlStmts|
 
 \begin{code}
 
@@ -324,7 +326,7 @@ select create_assertion('test_tables_count'
 \end{code}
 
 >     |]
->     [$sqlQuote|
+>     [$sqlStmts|
 
 \begin{code}
 
@@ -385,7 +387,7 @@ constraint on a view rather than a table
 >   ExtensionTest
 >     "ExtendedConstraints simpleview"
 >     extendedExtensions
->     [$sqlQuote|
+>     [$sqlStmts|
 
 \begin{code}
 
@@ -402,7 +404,7 @@ select create_assertion('test_view_count'
 \end{code}
 
 >     |]
->     [$sqlQuote|
+>     [$sqlStmts|
 
 \begin{code}
 
@@ -447,7 +449,7 @@ constraint on the result of a function call
 >   ExtensionTest
 >     "ExtendedConstraints simplefunction"
 >     extendedExtensions
->     [$sqlQuote|
+>     [$sqlStmts|
 
 \begin{code}
 
@@ -465,7 +467,7 @@ select create_assertion('test_function_count'
 \end{code}
 
 >     |]
->     [$sqlQuote|
+>     [$sqlStmts|
 
 \begin{code}
 
@@ -508,12 +510,12 @@ check that adding multiple constraints on one table does the right thing
 
 accesses two tables
 
-> multiConstraint :: ExtensionTest
-> multiConstraint  =
+> simpleMultiConstraint :: ExtensionTest
+> simpleMultiConstraint  =
 >   ExtensionTest
->     "ExtendedConstraints double cardinality"
+>     "ExtendedConstraints simple multi"
 >     extendedExtensions
->     [$sqlQuote|
+>     [$sqlStmts|
 
 \begin{code}
 
@@ -521,18 +523,16 @@ create table test_table (
    field text
 );
 
-create table test_table1 (
-   field text
-);
+select create_assertion('test_table_count'
+                       ,'(select count(*) from test_table) < 10');
 
-select create_assertion('test_tables_count'
-                       ,'((select count(*) from test_table) +
-                          (select count(*) from test_table1)) < 10');
+select create_assertion('test_table_stuff_count'
+                       ,$$(select count(*) from test_table where field ='stuff') < 5$$);
 
 \end{code}
 
 >     |]
->     [$sqlQuote|
+>     [$sqlStmts|
 
 \begin{code}
 
@@ -540,21 +540,16 @@ create table test_table (
    field text
 );
 
-create table test_table1 (
-   field text
-);
-
-create function check_con_test_tables_count() returns bool as $xxx$
+create function check_con_test_table_count() returns bool as $xxx$
 begin
-  return ((select count(*) from test_table) +
-          (select count(*) from test_table1)) < 10;
+  return (select count(*) from test_table) < 10;
 end;
 $xxx$ language plpgsql stable;
 
 create function test_table_constraint_trigger_operator() returns trigger as $xxx$
 begin
-  if not check_con_test_tables_count() then
-    raise exception 'update violates database constraint test_tables_count';
+  if not check_con_test_table_count() then
+    raise exception 'update violates database constraint test_table_count';
   end if;
   return OLD;
 end;
@@ -565,19 +560,26 @@ create trigger test_table_constraint_trigger
   for each statement
   execute procedure test_table_constraint_trigger_operator();
 
-create function test_table1_constraint_trigger_operator() returns trigger as $xxx$
+--
+
+create function check_con_test_table_stuff_count() returns bool as $xxx$
 begin
-  if not check_con_test_tables_count() then
-    raise exception 'update violates database constraint test_tables_count';
+  return (select count(*) from test_table where field ='stuff') < 5;
+end;
+$xxx$ language plpgsql stable;
+
+drop function test_table_constraint_trigger_operator();
+create function test_table_constraint_trigger_operator() returns trigger as $xxx$
+begin
+  if not check_con_test_table_stuff_count() then
+    raise exception 'update violates database constraint test_table_stuff_count';
+  end if;
+  if not check_con_test_table_count() then
+    raise exception 'update violates database constraint test_table_count';
   end if;
   return OLD;
 end;
 $xxx$ language plpgsql stable;
-
-create trigger test_table1_constraint_trigger
-  after insert or update or delete on test_table1
-  for each statement
-  execute procedure test_table1_constraint_trigger_operator();
 
 \end{code}
 
@@ -591,41 +593,122 @@ implementation
 
 > extendedExtensions :: [Statement] -> [Statement]
 > extendedExtensions ast =
->  let asti = getAstInfo ast
->  in flip transformBi ast $ \x ->
+>  flip transformBi ast $ \x ->
 >       case x of
 >         (funCallView -> FunCallView _
 >                                     "create_assertion"
 >                                     [StringLit _ _ name
 >                                     ,StringLit _ _ exprText]):tl ->
->             [$sqlQuote|
+>             makeConstraintDdl name exprText ++ tl
+>         x1 -> x1
+>  where
+>    asti = getAstInfo ast
+>    makeConstraintDdl :: String -> String -> [Statement]
+>    makeConstraintDdl name exprText =
+>      let expr = either (error . show) id
+>                   $ parseExpression "" exprText
+>      in makeCheckFn name expr
+>         ++ extras name expr
+>    --expr txt = either (error . show) id
+>    --             $ parseExpression "" txt
+>    {-makeCheckFn name exprText =
+>        let checkfn = "check_con_" ++ name
+>            expr1 = expr exprText
+>        in [$sqlStmts|
+>              create function $(checkfn)() returns bool as $xxx$
+>              begin
+>                return $(expr1);
+>              end;
+>              $xxx$ language plpgsql stable;
+>            |]-}
+>    extras :: String -> Expression -> [Statement]
+>    extras name expr = concat $ flip concatMap (tableNames expr) $ \tn ->
+>                  let ec = existingConstraints name tn
+>                  in if null ec
+>                     then [makeTriggerFn tn [name]
+>                          ,makeTrigger tn]
+>                     else [dropTriggerFn tn
+>                          ,makeTriggerFn tn (name:ec)]
+>    tableNames expr = let y = getReferencedTableList asti expr
+>                      in trace (show y) y
+>    existingConstraints name tn = if name == "test_table_stuff_count"
+>                                  then ["test_table_count"]
+>                                  else []
+>
+> dropTriggerFn :: String -> [Statement]
+> dropTriggerFn tn = let opname = tn ++ "_constraint_trigger_operator"
+>                    in [$sqlStmts| drop function $(opname)();|]
+
+> makeCheckFn :: String -> Expression -> [Statement]
+> makeCheckFn name expr =
+>     let checkfn = "check_con_" ++ name
+>     in [$sqlStmts|
+>              create function $(checkfn)() returns bool as $xxx$
+>              begin
+>                return $(expr);
+>              end;
+>              $xxx$ language plpgsql stable;
+>            |]
+
+> makeTriggerFn :: String -> [String] -> [Statement]
+> makeTriggerFn tn nms =
+>   let trigopname = tn ++ "_constraint_trigger_operator"
+>       ifs :: [Statement]
+>       ifs = concatMap makeIf nms
+>       -- using template approach cos can't get antistatements working
+>       template = [$sqlStmts|
 
 \begin{code}
 
-create function $(checkfn)() returns bool as $xxx$
+create function $(trigopname)() returns trigger as $xxx$
 begin
-  return $(expr);
+  null;
+  return OLD;
 end;
 $xxx$ language plpgsql stable;
 
 \end{code}
 
->          |] ++ triggers ++ tl
->             where
->               checkfn = "check_con_" ++ name
->               callcheckfn = FunCall [] checkfn []
->               expr =  either (error . show) id
->                             $ parseExpression "" exprText
->               errMsg = "update violates database constraint " ++ name
->               tablenames = let y = getReferencedTableList asti expr
->                            in trace (show y) y
->               triggers =
+>      |]
+>   in flip transformBi template $ \x ->
+>        case x of
+>              NullStatement _ : tl -> ifs ++ tl
+>              x1 -> x1
+>   where
+>     makeIf nm = let chk = "check_con_" ++ nm
+>                     callcheckfn = FunCall [] chk []
+>                     errMsg = "update violates database constraint " ++ nm
+>                 in [$pgsqlStmts|
+>                    if not $(callcheckfn) then
+>                       raise exception '$(errMsg)';
+>                    end if;
+>                    |]
+
+
+
+> makeTrigger :: String -> [Statement]
+> makeTrigger tn = let trigname = tn ++ "_constraint_trigger"
+>                      opname = tn ++ "_constraint_trigger_operator"
+>                  in [$sqlStmts|
+>   create trigger $(trigname)
+>     after insert or update or delete on $(tn)
+>     for each statement
+>     execute procedure $(opname)();
+>                        |]
+
+
+
+>  {-         triggers =
 >                  flip concatMap tablenames $ \t ->
 >                            let trigopname = t ++ "_constraint_trigger_operator"
 >                                trigname = t ++ "_constraint_trigger"
->                            in [$sqlQuote|
+>                            in [$sqlStmts| 
 
 \begin{code}
+
+if not $(callcheckfn) then
+    raise exception '$(errMsg)';
+  end if;
 
 create function $(trigopname)() returns trigger as $xxx$
 begin
@@ -643,5 +726,15 @@ create trigger $(trigname)
 
 \end{code}
 
->                           |]
->         x1 -> x1
+>                           |] -}
+
+
+setInferredTypesG :: Data a => [Type] -> a -> a
+setInferredTypesG tys x =
+  evalState (transformBiM f x) tys
+  where
+    f (p@(Placeholder _)) = do
+         y:ys <- get
+         put ys
+         return $ updateAnnotation (++ [InferredType y]) p
+    f z = return z

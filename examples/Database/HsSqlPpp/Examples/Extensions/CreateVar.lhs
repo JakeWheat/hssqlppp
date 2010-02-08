@@ -21,8 +21,8 @@ database. Unfinished, needs the extended constraint system to be working
 > createVarExample = ExtensionTest
 >   "CreateVar"
 >   createVar
->   [$sqlQuote| select create_var('varname', 'vartype'); |]
->   [$sqlQuote|
+>   [$sqlStmts| select create_var('varname', 'vartype'); |]
+>   [$sqlStmts|
 >
 >   create table varname_table (
 >     varname vartype
@@ -68,7 +68,7 @@ database. Unfinished, needs the extended constraint system to be working
 >                                                    ,StringLit _ _ typename]):tl
 >             -> let tablename = varname ++ "_table"
 >                    fnname = "get_" ++ varname
->                in [$sqlQuote|
+>                in [$sqlStmts|
 >
 >   create table $(tablename) (
 >    $(varname) $(typename)
