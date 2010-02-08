@@ -12,6 +12,7 @@ Gather together the examples from the extension modules and convert to regular t
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Utils.Utils
 >
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
@@ -61,5 +62,6 @@ create table readonly_table ...
 >   testCase nm $ do
 >     let ts' = stripAnnotations ts
 >         es' = stripAnnotations $ tr sast
->     when (ts' /= es') $ putStrLn $ ppExpr ts' ++ "\n\n" ++ ppExpr es'
+>     when (ts' /= es') $ putStrLn $ printSql ts' ++ "\n----\n" ++ printSql es' ++ "\n====\n" ++
+>                 ppExpr ts' ++ "\n----\n" ++ ppExpr es'
 >     assertEqual "" ts' es'

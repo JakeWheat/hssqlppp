@@ -28,7 +28,7 @@ Copyright 2010 Jake Wheat
 >
 >      -}
 > module Database.HsSqlPpp.SqlQuote
->     (sqlStmts,pgsqlStmts,sqlExpr) where
+>     (sqlStmts,sqlStmt,pgsqlStmts,pgsqlStmt,sqlExpr) where
 >
 > import Language.Haskell.TH.Quote
 > import Language.Haskell.TH
@@ -45,9 +45,32 @@ Copyright 2010 Jake Wheat
 > sqlStmts :: QuasiQuoter
 > sqlStmts = QuasiQuoter (parseExprExp parseAntiSql) parseExprPat
 
+> parseOneAntiSql :: Parser String Statement
+> parseOneAntiSql f l c s =
+>     case parseAntiSql f l c s of
+>       Right [st] -> Right st
+>       Right _ -> Left "got multiple statements"
+>       Left e -> Left $ show e
+
+> -- | parses a single Statement
+> sqlStmt :: QuasiQuoter
+> sqlStmt = QuasiQuoter (parseExprExp parseOneAntiSql) parseExprPat
+
 > -- | parses plpgsql statements
 > pgsqlStmts :: QuasiQuoter
 > pgsqlStmts = QuasiQuoter (parseExprExp parseAntiPlpgsql) parseExprPat
+
+> -- | parses a plpgsql statement
+> pgsqlStmt :: QuasiQuoter
+> pgsqlStmt = QuasiQuoter (parseExprExp parseOneAntiPlpgsql) parseExprPat
+
+> parseOneAntiPlpgsql :: Parser String Statement
+> parseOneAntiPlpgsql f l c s =
+>     case parseAntiPlpgsql f l c s of
+>       Right [st] -> Right st
+>       Right _ -> Left "got multiple statements"
+>       Left e -> Left $ show e
+
 
 > -- | parse an 'Expression'
 > sqlExpr :: QuasiQuoter
@@ -58,14 +81,14 @@ Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result
 of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
 magically converts from one to the other ...
 
-> type Parser a = (String
->                  -> Int
->                  -> Int
->                  -> String
->                  -> Either ParseErrorExtra a)
+> type Parser e a = (String
+>                    -> Int
+>                    -> Int
+>                    -> String
+>                    -> Either e a)
 
-> parseExprExp :: (Data a) =>
->                 (Parser a) -> String -> Q Exp
+> parseExprExp :: (Show e, Data a) =>
+>                 (Parser e a) -> String -> Q Exp
 > parseExprExp p s = (parseSql' p) s >>=  dataToExpQ (const Nothing
 >                        `extQ` antiExpE
 >                        `extQ` antiStrE
@@ -76,7 +99,7 @@ magically converts from one to the other ...
 > parseExprPat _ =  undefined
 >
 
-> parseSql' :: Parser a -> String -> Q a
+> parseSql' :: Show e => Parser e a -> String -> Q a
 > parseSql' p s = do
 >     Loc fn _ _ (l,c) _ <- location
 >     either (fail . show) return (p fn l c s)

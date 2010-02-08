@@ -8,6 +8,7 @@ The test/examples for extended constraints
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
@@ -17,7 +18,8 @@ The test/examples for extended constraints
 >                              ,doubleCardinalityExample
 >                              ,simpleViewExample
 >                              ,simpleFunctionExample
->                              ,simpleMultiConstraint]
+>                              ,simpleMultiConstraint
+>                              ,threewayMultiConstraint]
 
 stage 1: some test cases for general constraints which aren't
 implementable as postgresql constraints, we don't check the
@@ -367,3 +369,125 @@ $xxx$ language plpgsql stable;
 
 >      |]
 
+three constraints three tables
+------------------------------
+
+table a constraints x y
+table b constraints x z
+table c constraints z x
+
+createtable a
+createtable b
+createtable c
+
+add constraint x a b
+add constraint y b c
+add constraint z c a
+
+if the test is harder to understand than the code it's testing, is
+that bad?
+
+> threewayMultiConstraint :: ExtensionTest
+> threewayMultiConstraint =
+>   ExtensionTest
+>     "ExtendedConstraints three way multi"
+>     extendedConstraints
+>     [createTable "a"
+>     ,createTable "b"
+>     ,createTable "c"
+>     ,constraint "x" "a" "b"
+>     ,constraint "y" "b" "c"
+>     ,constraint "z" "c" "a"]
+>     [createTable "a"
+>     ,createTable "b"
+>     ,createTable "c"
+>     ,check "x" "a" "b"
+>     ,fn "a" "x"
+>     ,trig "a"
+>     ,fn "b" "x"
+>     ,trig "b"
+>     ,check "y" "b" "c"
+>     ,df "b"
+>     ,fn1 "b" "x" "y"
+>     ,fn "c" "y"
+>     ,trig "c"
+>     ,check "z" "c" "a"
+>     ,df "c"
+>     ,fn1 "c" "y" "z"
+>     ,df "a"
+>     ,fn1 "a" "x" "z"]
+>     where
+>       createTable :: String -> Statement
+>       createTable n = let tablename = "table_" ++ n
+>                       in [$sqlStmt|
+>                         create table $(tablename) (
+>                            field text
+>                         ); |]
+>       constraint :: String -> String -> String -> Statement
+>       constraint nm t1 t2 = let cn = conname nm
+>                                 exs = exprs t1 t2
+>                             in [$sqlStmt|
+>                     select create_assertion('$(cn)','$(exs)');
+>                                 |]
+>       conname nm = "valid_" ++ nm
+>       exprs t1 t2 = printExpression $ exprn t1 t2
+>       exprn t1 t2 = let t1n = "table_" ++ t1
+>                         t2n = "table_" ++ t2
+>                     in [$sqlExpr|((select count(*) from $(t1n))
+>                                + (select count(*) from $(t2n))) < 10 |]
+>       check :: String -> String -> String -> Statement
+>       check nm t1 t2 = let cfn = "check_con_valid_" ++ nm
+>                            ex = exprn t1 t2
+>                        in [$sqlStmt|
+>                   create function $(cfn)() returns bool as $xxx$
+>                   begin
+>                     return $(ex);
+>                   end;
+>                   $xxx$ language plpgsql stable;
+>                       |]
+>       fn :: String -> String -> Statement
+>       fn t c = let nm = "table_" ++ t ++ "_constraint_trigger_operator"
+>                    cn = FunCall [] ("check_con_valid_" ++ c) []
+>                    errMsg = "update violates database constraint valid_" ++ c
+>                in [$sqlStmt|
+>   create function $(nm)() returns trigger as $xxx$
+>   begin
+>     if not $(cn) then
+>       raise exception '$(errMsg)';
+>     end if;
+>     return OLD;
+>   end;
+>   $xxx$ language plpgsql stable;
+>       |]
+>       fn1 t c1 c2 = let nm = "table_" ++ t ++ "_constraint_trigger_operator"
+>                         c1n = FunCall [] ("check_con_valid_" ++ c1) []
+>                         c2n = FunCall [] ("check_con_valid_" ++ c2) []
+>                         errMsg1 = "update violates database constraint valid_" ++ c1
+>                         errMsg2 = "update violates database constraint valid_" ++ c2
+>                     in [$sqlStmt|
+>   create function $(nm)() returns trigger as $xxx$
+>   begin
+>     if not $(c2n) then
+>       raise exception '$(errMsg2)';
+>     end if;
+>     if not $(c1n) then
+>       raise exception '$(errMsg1)';
+>     end if;
+>     return OLD;
+>   end;
+>   $xxx$ language plpgsql stable;
+>       |]
+>       trig :: String -> Statement
+>       trig t = let tn = "table_" ++ t
+>                    trn = tn ++ "_constraint_trigger"
+>                    cfn = tn ++ "_constraint_trigger_operator"
+>                in [$sqlStmt|
+>      create trigger $(trn)
+>        after insert or update or delete on $(tn)
+>        for each statement
+>        execute procedure $(cfn)();
+>                    |]
+>       df t = let cfn ="table_" ++ t ++ "_constraint_trigger_operator"
+>              in [$sqlStmt|
+>                  drop function $(cfn)();
+>                  |]

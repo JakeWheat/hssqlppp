@@ -214,6 +214,12 @@ select add_foreign_key('dbcon_triggers', array['trigger_name', 'relvar_name'],
 
 Tests/examples in extendedconstraintstests.lhs
 
+one major thing that is missing is adding stuff to the catalog. This
+means that only constraints that are all processed in one transform
+will work, if you have two files, transform them seperately, then load
+them, any constraints from the first file will be disabled for tables
+which also have constraints in the second file.
+
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables, TupleSections #-}
 >
 > module Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
@@ -221,7 +227,7 @@ Tests/examples in extendedconstraintstests.lhs
 >
 > --import Data.Generics
 > import Data.Generics.Uniplate.Data
-> import Debug.Trace
+> --import Debug.Trace
 > import Control.Monad.State
 
 >
@@ -254,8 +260,8 @@ in there to make it work right.
 >                                     [StringLit _ _ name
 >                                     ,StringLit _ _ exprText]):tl -> do
 >             existing <- get
->             let (new, rast) = trace "here" $ makeConstraintDdl existing name exprText
->             trace ("NEW CONSTRAINTS: " ++ show new) $ put new
+>             let (new, rast) = makeConstraintDdl existing name exprText
+>             put new
 >             return $ rast ++ tl
 >         x1 -> return x1
 >  where
@@ -265,9 +271,9 @@ in there to make it work right.
 >      let expr = either (error . show) id
 >                   $ parseExpression "" exprText
 >      in (newcons cons (tableNames expr) name
->         ,reverse (makeCheckFn name expr ++ extras cons name expr))
+>         ,reverse (makeCheckFn name expr : extras cons name expr))
 >    extras :: ConstraintRecord -> String -> Expression -> [Statement]
->    extras cons name expr = concat $ flip concatMap (tableNames expr) $ \tn ->
+>    extras cons name expr = flip concatMap (tableNames expr) $ \tn ->
 >                  let ec = existingConstraints tn cons
 >                  in if null ec
 >                     then [makeTriggerFn tn [name]
@@ -275,20 +281,20 @@ in there to make it work right.
 >                     else [dropTriggerFn tn
 >                          ,makeTriggerFn tn (name:ec)]
 >    tableNames expr = let y = getReferencedTableList asti expr
->                      in trace (show y) y
+>                      in y
 >    newcons cons tns nm = foldr (uncurry (insertWith (++))) cons (map (,[nm]) tns)
 >    existingConstraints tn cons = maybe [] id $ lookup tn cons
 >
 > type ConstraintRecord = [(String,[String])] -- tablename, list of constraint names
 
-> dropTriggerFn :: String -> [Statement]
+> dropTriggerFn :: String -> Statement
 > dropTriggerFn tn = let opname = tn ++ "_constraint_trigger_operator"
->                    in [$sqlStmts| drop function $(opname)();|]
+>                    in [$sqlStmt| drop function $(opname)();|]
 
-> makeCheckFn :: String -> Expression -> [Statement]
+> makeCheckFn :: String -> Expression -> Statement
 > makeCheckFn name expr =
 >     let checkfn = "check_con_" ++ name
->     in [$sqlStmts|
+>     in [$sqlStmt|
 >              create function $(checkfn)() returns bool as $xxx$
 >              begin
 >                return $(expr);
@@ -296,13 +302,13 @@ in there to make it work right.
 >              $xxx$ language plpgsql stable;
 >            |]
 
-> makeTriggerFn :: String -> [String] -> [Statement]
+> makeTriggerFn :: String -> [String] -> Statement
 > makeTriggerFn tn nms =
 >   let trigopname = tn ++ "_constraint_trigger_operator"
 >       ifs :: [Statement]
->       ifs = concatMap makeIf nms
+>       ifs = map makeIf nms
 >       -- using template approach cos can't get antistatements working
->       template = [$sqlStmts|
+>       template = [$sqlStmt|
 >                   create function $(trigopname)() returns trigger as $xxx$
 >                   begin
 >                     null;
@@ -318,16 +324,16 @@ in there to make it work right.
 >     makeIf nm = let chk = "check_con_" ++ nm
 >                     callcheckfn = FunCall [] chk []
 >                     errMsg = "update violates database constraint " ++ nm
->                 in [$pgsqlStmts|
+>                 in [$pgsqlStmt|
 >                    if not $(callcheckfn) then
 >                       raise exception '$(errMsg)';
 >                    end if;
 >                    |]
 
-> makeTrigger :: String -> [Statement]
+> makeTrigger :: String -> Statement
 > makeTrigger tn = let trigname = tn ++ "_constraint_trigger"
 >                      opname = tn ++ "_constraint_trigger_operator"
->                  in [$sqlStmts|
+>                  in [$sqlStmt|
 >   create trigger $(trigname)
 >     after insert or update or delete on $(tn)
 >     for each statement
