@@ -243,13 +243,19 @@ stage 1: some test cases for general constraints which aren't
 implementable as postgresql constraints, we don't check the
 constraints work, only that the apparently correct ddl is generated
 
+idea: not too sure about how this all works, write a seperate bunch of
+code to read all the constraints either out of the catalog or from the
+source, then use the final version of the sql code, type check it, and
+use the type check information to check all the constraints seem to
+have been added ok.
+
 implementation
 ==============
 
 when we go through, need to record the constraints we've already
-seen. using transformBiM with state monad, gives us the consstraints
-in reverse order of the statement list, so chuck a bunch of reverses
-in there to make it work right.
+seen. using transformBiM with state monad, gives us the constraints in
+reverse order of the statement list, so chuck three reverses in there
+to make it work right.
 
 > extendedConstraints :: [Statement] -> [Statement]
 > extendedConstraints ast = reverse $
@@ -307,7 +313,7 @@ in there to make it work right.
 >   let trigopname = tn ++ "_constraint_trigger_operator"
 >       ifs :: [Statement]
 >       ifs = map makeIf nms
->       -- using template approach cos can't get antistatements working
+>       -- using template approach cos can't get antistatement -> [statement] working
 >       template = [$sqlStmt|
 >                   create function $(trigopname)() returns trigger as $xxx$
 >                   begin

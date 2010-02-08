@@ -12,6 +12,7 @@ The test/examples for extended constraints
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
+> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraintFKTests
 
 > extendedConstraintExamples :: [ExtensionTest]
 > extendedConstraintExamples = [cardinalityExample
@@ -19,7 +20,9 @@ The test/examples for extended constraints
 >                              ,simpleViewExample
 >                              ,simpleFunctionExample
 >                              ,simpleMultiConstraint
->                              ,threewayMultiConstraint]
+>                              ,threewayMultiConstraint] ++
+>                              extendedConstraintFKExamples
+
 
 stage 1: some test cases for general constraints which aren't
 implementable as postgresql constraints, we don't check the
@@ -448,6 +451,7 @@ that bad?
 >       fn :: String -> String -> Statement
 >       fn t c = let nm = "table_" ++ t ++ "_constraint_trigger_operator"
 >                    cn = FunCall [] ("check_con_valid_" ++ c) []
+>                         --"check_con_valid_" ++ c
 >                    errMsg = "update violates database constraint valid_" ++ c
 >                in [$sqlStmt|
 >   create function $(nm)() returns trigger as $xxx$

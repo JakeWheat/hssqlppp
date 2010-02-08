@@ -24,6 +24,7 @@ the website.
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Tests.ParserTests as PT
 > import Database.HsSqlPpp.Tests.TypeCheckTests as TT
+> import Database.HsSqlPpp.Tests.QuasiQuoteTests as QT
 >
 > makeWebsite :: IO ()
 > makeWebsite = do
@@ -34,6 +35,7 @@ the website.
 >   pf "docs/examples.txt" "website/examples.html"
 >   plhs "website/ParserTests.html" $ rowsToHtml parserTestsTable
 >   plhs "website/TypeCheckTests.html" $ rowsToHtml typeCheckTestsTable
+>   plhs "website/QuasiQuoteTests.html" $ rowsToHtml quasiQuoteTestsTable
 >   doPandocSource
 >   doHaddock
 >   return ()
@@ -110,7 +112,7 @@ the website.
 ------------------------------------------------------------------------------
 
 > siteMap :: String
-> siteMap = [$here|
+> siteMap = "" {- [$here|
 >  <div>
 >  * [Index](index.html)
 >  * [Examples](examples.html)
@@ -119,7 +121,7 @@ the website.
 >  * [HackageDB page](http://hackage.haskell.org/package/hssqlppp)
 >  * [Launchpad/ Repo](http://launchpad.net/hssqlppp)
 >  </div>
-> |]
+> |]-}
 
 -------------------------------------------------------------------------------
 
@@ -208,11 +210,25 @@ routines to convert the parser and type check test data into html pages
 > typeCheckTestsTable :: [Row]
 > typeCheckTestsTable = mapTypeCheckTests TT.typeCheckTestData
 
+> quasiQuoteTestsTable :: [Row]
+> quasiQuoteTestsTable = [] -- mapQuasiQuoteTestsTests QT.quasiQuoteTestData
+
 > mapParserTests :: PT.Item -> [Row]
 > mapParserTests (PT.Expr s e) = [Row [Sql s] [Haskell (ppExpr e)]]
 > mapParserTests (PT.Stmt s e) = [Row [Sql s] [Haskell (ppExpr e)]]
 > mapParserTests (PT.PgSqlStmt s e) = [Row [Sql s] [Haskell (ppExpr e)]]
 > mapParserTests (PT.Group n is) = HHeader n : concatMap mapParserTests is
+
+need to use haskell-src-exts for the quasi quote tests since we want
+to get the quasi quote source syntax, not the asts it produces at
+compile time.
+
+ > mapQuasiQuoteTests :: QT.Item -> [Row]
+ > mapQuasiQuoteTests (QT.Expr s e) = [Row [Sql s] [Haskell (ppExpr e)]]
+ > mapQuasiQuoteTests (QT.Stmt s e) = [Row [Sql s] [Haskell (ppExpr e)]]
+ > mapQuasiQuoteTests (QT.PgSqlStmt s e) = [Row [Sql s] [Haskell (ppExpr e)]]
+ > mapQuasiQuoteTests (QT.Group n is) = HHeader n : concatMap mapParserTests is
+
 
 > mapTypeCheckTests :: TT.Item -> [Row]
 > mapTypeCheckTests (TT.Group n is) = HHeader n : concatMap mapTypeCheckTests is

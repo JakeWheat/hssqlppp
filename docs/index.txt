@@ -5,6 +5,9 @@ A parser, quasiquoter, pretty printer, and type checker for SQL
 written in Haskell. Supports PostgreSQL SQL and PL/pgSQL syntax. BSD
 licensed.
 
+This documentation is currently for the unreleased development
+version, to be 0.3.0, which isn't on HackageDB.
+
 Status
 ======
 
@@ -15,7 +18,7 @@ along it is: can get catalog information by parsing and type checking
 ddl source, or by reading a database, and can then type check
 parameterized crud statements and generate type-safe haskell
 wrappers. This already works well on a smallish database project with
-maybe 40 tables.
+maybe 40 tables and a lot of views and functions.
 
 See these extracts from the test files for examples of the kind of SQL
 which parses and type checks:
@@ -29,6 +32,9 @@ invalid SQL (although it does pretty well despite this), and not much
 thought has been put into error messages and error reporting yet
 (although you can definitely use it to catch lots of type checking
 issues).
+
+Only limited parts of the ast have antiquotation support for the
+quasiquoter, if you need some that aren't there, let me know.
 
 Installation
 ============
@@ -81,7 +87,8 @@ The documentation you're reading is a work in progress.
 [Example code](examples.html)
 
 The [htmlized source for the library and
-examples](pandoc_source/index.html) has lots of comments.
+examples](pandoc_source/index.html) has lots of comments, but is very
+unpolished.
 
 You can build a local copy of this documentation using by getting the
 executable mentioned above, and running
@@ -107,6 +114,8 @@ executable (see above), and then:
 
 Useful links
 ============
+
+Homepage: [http://community.haskell.org/%7EJakeWheat/hssqlppp/index.html](http://community.haskell.org/%7EJakeWheat/hssqlppp/index.html)
 
 Hackage: [http://hackage.haskell.org/package/hssqlppp](http://hackage.haskell.org/package/hssqlppp)
 

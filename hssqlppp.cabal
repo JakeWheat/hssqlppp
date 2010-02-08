@@ -9,12 +9,15 @@ Build-Type:          Simple
 Cabal-Version:       >=1.2.3
 copyright:           Copyright 2009, 2010 Jake Wheat
 stability:           pre-alpha
-homepage:            https://launchpad.net/hssqlppp
+homepage:            http://community.haskell.org/~JakeWheat/hssqlppp/index.html
 bug-reports:         mailto:jakewheatmail@gmail.com
 category:            Database
 Description:
     SQL parser, quasiquoter, and type checker, targets PostgreSQL SQL
     and PL/pgSQL.
+    .
+    Documentation, examples on the homepage:
+    <http://community.haskell.org/~JakeWheat/hssqlppp/index.html>.
     .
     Quick module guide:
     .

@@ -2,7 +2,7 @@ Copyright 2010 Jake Wheat
 
 > {-# LANGUAGE TemplateHaskell #-}
 >
-> {- | A quasiquoter for SQL.
+> {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent.
 >
 >    Example:
 >
@@ -12,8 +12,8 @@ Copyright 2010 Jake Wheat
 > > import Database.HsSqlPpp.SqlQuote
 > > import Database.HsSqlPpp.Annotation
 > >
-> > test :: [Statement]
-> > test = [$sqlQuote|
+> > test :: Statement
+> > test = [$sqlStmt|
 > >
 > >   create table $(tablename) (
 > >    $(varname) $(typename)
@@ -41,7 +41,7 @@ Copyright 2010 Jake Wheat
 > --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.AstInternals.AstAnti
 
-> -- | parses a 'Statement' list
+> -- | parses Statements
 > sqlStmts :: QuasiQuoter
 > sqlStmts = QuasiQuoter (parseExprExp parseAntiSql) parseExprPat
 
@@ -56,11 +56,11 @@ Copyright 2010 Jake Wheat
 > sqlStmt :: QuasiQuoter
 > sqlStmt = QuasiQuoter (parseExprExp parseOneAntiSql) parseExprPat
 
-> -- | parses plpgsql statements
+> -- | parses plpgsql Statements
 > pgsqlStmts :: QuasiQuoter
 > pgsqlStmts = QuasiQuoter (parseExprExp parseAntiPlpgsql) parseExprPat
 
-> -- | parses a plpgsql statement
+> -- | parses a plpgsql Statement
 > pgsqlStmt :: QuasiQuoter
 > pgsqlStmt = QuasiQuoter (parseExprExp parseOneAntiPlpgsql) parseExprPat
 
@@ -72,7 +72,7 @@ Copyright 2010 Jake Wheat
 >       Left e -> Left $ show e
 
 
-> -- | parse an 'Expression'
+> -- | parse an Expression
 > sqlExpr :: QuasiQuoter
 > sqlExpr = QuasiQuoter (parseExprExp parseAntiExpression) parseExprPat
 
@@ -109,6 +109,8 @@ magically converts from one to the other ...
 > antiExpE _ = Nothing
 
 antistatements not working ...
+trying to replace a single antistatement node with multiple statement
+nodes and my generics skills aren't up to the task.
 
 > antiStatementE :: [Statement] -> Maybe ExpQ
 > antiStatementE (AntiStatement v : tl) =
@@ -143,3 +145,33 @@ antistatements not working ...
 to add support for a new splice location, add the type name to the
 list at the top of MakeAntiNodes, adjust the parser to parse splices
 at that point, and add a new antiQ function in this file
+
+
+new idea - to support antiquotation as much as possible, have more
+than one splice syntax:
+
+[$sqlExpr| $(x) |] - want to do a splice like this, sometimes it
+should be
+
+where x= "str" gives
+Identifer [] "str" <- need $(x) to parse as an antiidentifier
+
+and sometimes
+
+where x = FunCall [] "fn" []
+gives
+FunCall [] "fn" [] <- need $(x) to parse as an antiexpression
+
+need context which we don't have to make this decision (and would
+probably be really hard even if the context was available)
+
+so - use two different splice syntaxes.
+
+to avoid doing string splices using [$sqlExpr| '$(sp)' |] which is
+ugly and wrong, add another splice for strings?
+
+...
+
+work on tests to try to get some sort of design - want to minimise the
+number of splice syntaxes at the same time not make it difficult to
+work out which syntax to use in which spot.
