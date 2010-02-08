@@ -11,14 +11,14 @@ to the website.
 > import Data.Char
 > import System.Directory
 > import Control.Monad
-> import Text.Pandoc
+> import Text.Pandoc hiding (Str)
 > import System.Cmd
 > import System.FilePath.Find
 > import System.IO
 > import System.FilePath
 > import Text.Highlighting.Kate
 > import Debug.Trace
-> import Text.XHtml.Strict
+> import Text.XHtml.Strict hiding (title,src)
 > import Data.DateTime
 >
 > import Database.HsSqlPpp.Utils.Utils
@@ -29,6 +29,7 @@ to the website.
 >
 > makeWebsite :: IO ()
 > makeWebsite = do
+>   hSetBuffering stdout NoBuffering
 >   doesDirectoryExist "website" >>=
 >     \l -> when(l) $ removeDirectoryRecursive "website"
 >   createDirectory "website"
@@ -39,11 +40,21 @@ to the website.
 >   let pd1 = pandocToFile hd ft
 >       pf = pd1 Txt
 >       plhs = pd1 Lhs
->   pf "HsSqlPpp documentation" "docs/index.txt" "website/index.html"
->   pf "HsSqlPpp examples" "docs/examples.txt" "website/examples.html"
->   plhs "HsSqlPpp parser examples" $ "website/ParserTests.html" $ rowsToHtml parserTestsTable
->   plhs "HsSqlPpp type checking examples" $ "website/TypeCheckTests.html" $ rowsToHtml typeCheckTestsTable
->   plhs "HsSqlPpp quasiquotation examples" $ "website/QuasiQuoteTests.html" $ rowsToHtml quasiQuoteTestsTable
+>   pf "HsSqlPpp documentation"
+>      (Str "docs/index.txt")
+>      "website/index.html"
+>   pf "HsSqlPpp examples"
+>      (Str "docs/examples.txt")
+>      "website/examples.html"
+>   plhs "HsSqlPpp parser examples"
+>        (Str $ rowsToHtml parserTestsTable)
+>        "website/ParserTests.html"
+>   plhs "HsSqlPpp type checking examples"
+>        (Str $ rowsToHtml typeCheckTestsTable)
+>        "website/TypeCheckTests.html"
+>   plhs "HsSqlPpp quasiquotation examples"
+>        (Str $ rowsToHtml quasiQuoteTestsTable)
+>        "website/QuasiQuoteTests.html"
 >   doPandocSource pd1
 >   doHaddock
 >   return ()
@@ -74,23 +85,17 @@ to the website.
 
 -------------------------------------------------------------------------------
 
- > doPandocSource :: String -> String -> IO ()
-
+> doPandocSource :: (PandocType -> String -> Input -> [Char] -> IO ()) -> IO ()
 > doPandocSource pdize = do
 >   sf <- sourceFiles
->   hSetBuffering stdout NoBuffering
+>   let index = concatMap (\s -> let s1 = s ++ ".html"
+>                                in "* [" ++ s ++ "](" ++ s1 ++ ")\n") sf
+>   pdize Txt "HsSqlPpp source files" (Str index) "pandoc_source/index.html"
 >   moveDTCOut
 >   mapM_ pandocIt sf
 >   moveDTCBack
->   let index = concatMap (\s -> let s1 = s ++ ".html"
->                                in "* [" ++ s ++ "](" ++ s1 ++ ")\n") sf
->   --writeFile "website/pandoc_source/index.html" $ pandoc "Source files" $ pandocIndex $ hd ++ index ++ ft
->   pdize Txt "HsSqlPpp source files"
->   return ()
 >   where
 >     pandocIt fn = do
->            putStrLn fn
->            createDirectoryIfMissing True $ "website/pandoc_source/" ++ dropFileName fn
 >            let target = "website/pandoc_source/" ++ fn ++ ".html"
 >                title = snd $ splitFileName fn
 >            pdize (if takeExtension fn `elem` [".lhs", ".lag"]
@@ -145,7 +150,7 @@ so run it though highlighting-kate only
 > highlight :: String -> String -> String
 > highlight hd s = do
 >   case highlightAs "Haskell" s of
->     Right r -> "<html><head><title>" ++ hd ++ "</title>"
+>     Right r -> "<html><head><title>" ++ hd ++ "</title>" ++
 >                "<style>" ++ bc ++ defaultHighlightingCss ++ "</style></head><body>" ++
 >                renderHtmlFragment (formatAsXHtml [OptTitleAttributes] "Haskell" r) ++
 >                "</body></html>"
@@ -163,15 +168,19 @@ pandoc wrappers
 > data Input = Str String
 >            | File String
 
-> pandocToFile :: String -> String -> PandocType -> String -> Input -> IO String
-> pandocToFile hdr ftr pt title src = undefined
-
- >     plhs s t = readFile s >>= return . wrapSqlCode >>= return . pandocLhs >>= writeFile t
- >     phs s t = readFile s >>= return . highlight >>= writeFile t
-
- >     pf hd ft ti s t = readFile s >>= return . (\x -> hd ++ x ++ ft) >>= return . pandoc ti >>= writeFile t
- >     plhs hd ft ti f s = writeFile f $ pandocLhs ti (hd ++ s ++ ft)
-
+> pandocToFile :: String -> String -> PandocType -> String -> Input -> String -> IO ()
+> pandocToFile hdr ftr pt title src tgt = do
+>   putStrLn tgt
+>   createDirectoryIfMissing True $ "website/pandoc_source/" ++ dropFileName tgt
+>   let tgt1 = "website/" ++ tgt
+>   src1 <- case src of
+>             Str s -> return s
+>             File f -> readFile f
+>   let src2 = hdr ++ src1 ++ ftr
+>   writeFile tgt1 $ case pt of
+>                            Lhs -> pandocLhs title $ wrapSqlCode src2
+>                            Highlight -> highlight title src2
+>                            Txt -> pandoc title src2
 
 > pandoc :: String -> String -> String
 > pandoc hd = (writeHtmlString wopt) . (readMarkdown defaultParserState)
