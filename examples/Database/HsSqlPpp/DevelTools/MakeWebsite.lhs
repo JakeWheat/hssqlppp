@@ -30,11 +30,12 @@ to the website.
 >   doesDirectoryExist "website" >>=
 >     \l -> when(l) $ removeDirectoryRecursive "website"
 >   createDirectory "website"
->   let v = "0.3.0-pre"
+>   copyFile "docs/main.css" "website/main.css"
+>   let v = "0.3.0-pre"  --- todo: read from cabal
 >   let hd = wheader v
 >   t <- getCurrentTime
 >   let ft = wfooter v (formatDateTime "%D %T" t)
->   let pd1 = pandocToFile hd ft
+>   let pd1 = htmlize hd ft
 >       pf = pd1 Txt
 >       plhs = pd1 Lhs
 >   pf "HsSqlPpp documentation"
@@ -84,6 +85,9 @@ to the website.
 >                     ||? extension ==? ".lag"
 >
 
+todo: add filenames at top of these pages or// duplicate the title as
+the top header for each page
+
 -------------------------------------------------------------------------------
 
 pandoc/highlight wrappers
@@ -97,16 +101,22 @@ pandoc/highlight wrappers
 >
 >
 > -- main utility funtion
-> pandocToFile :: String -> String -> PandocType -> String -> Input -> String -> IO ()
-> pandocToFile hdr ftr pt title src tgt = do
+> htmlize :: String -> String -> PandocType -> String -> Input -> String -> IO ()
+> htmlize hdr ftr pt title src tgt = do
 >   putStrLn tgt
 >   createDirectoryIfMissing True $ "website/" ++ dropFileName tgt
 >   let tgt1 = "website/" ++ tgt
 >   src1 <- case src of
 >             Str s -> return s
 >             File f -> readFile f
+>   let filterRelativeLinks = filterLinks (concat $
+>                           replicate (length $
+>                                      splitDirectories $
+>                                      dropFileName tgt)
+>                           "../")
 >   let src2 = hdr ++ src1 ++ ftr
->   writeFile tgt1 $ case pt of
+>   writeFile tgt1 $ filterRelativeLinks $
+>                 case pt of
 >                            Lhs -> pandocLhs title $ wrapSqlCode src2
 >                            Highlight -> highlight hdr ftr title src1
 >                            Txt -> pandoc title src2
@@ -119,7 +129,7 @@ pandoc/highlight wrappers
 >                writerStandalone = True
 >               ,writerTitlePrefix = hd
 >               ,writerTableOfContents = False
->               ,writerHeader = htmlHeader
+>               ,writerHeader = cssLink
 >              }
 >
 > pandocFrag :: String -> String
@@ -137,7 +147,7 @@ pandoc/highlight wrappers
 >                writerStandalone = True
 >               ,writerTitlePrefix = hd
 >               ,writerTableOfContents = False
->               ,writerHeader = htmlHeader
+>               ,writerHeader = cssLink
 >               ,writerLiterateHaskell=True
 >              }
 >     ropt = defaultParserState {
@@ -152,7 +162,13 @@ pandoc/highlight wrappers
 >               . replace
 >               "\n\\end{code}\n"
 >               "\n~~~~~\n"
->
+
+> filterLinks :: String -> String -> String
+> filterLinks path = replace
+>                    "\"website/"
+>                    ("\"" ++ path)
+
+
 
 pandoc won't render haskell source which isn't literate nicely at all,
 so run it though highlighting-kate only
@@ -161,15 +177,12 @@ so run it though highlighting-kate only
 > highlight hdr ftr title s = do
 >   case highlightAs "Haskell" s of
 >     Right r -> "<html><head><title>" ++ title ++ "</title>" ++
->                "<style>" ++ bc ++ defaultHighlightingCss ++ "</style>" ++
->                htmlHeader ++ "</head><body>" ++
+>                cssLink ++ "</head><body>" ++
 >                pandocFrag hdr ++
 >                renderHtmlFragment (formatAsXHtml [OptTitleAttributes] "Haskell" r) ++
 >                pandocFrag ftr ++
 >                "</body></html>"
 >     Left err -> trace ("highlight error: " ++ err) s
->   where
->    bc = "pre.Haskell {background-color: #f9f9e0;}\n"
 
 ------------------------------------------------------------------------------
 
@@ -177,98 +190,15 @@ so run it though highlighting-kate only
 > wheader v = [$here|
 >
 > <div class='header'>[HsSqlPpp-|] ++ v ++
->             [$here|](http://community.haskell.org/%7EJakeWheat/hssqlppp/index.html)</div>
->
-> |]
+>             [$here|](website/index.html)</div>|] ++ "\n\n"
 > wfooter :: String -> String -> String
 > wfooter v d = [$here|
 >
 > <div class='footer'>Copyright 2010 Jake Wheat, generated on |]
->               ++ d ++ ", hssqlppp-" ++ v ++ [$here|</div>
+>               ++ d ++ ", hssqlppp-" ++ v ++ [$here|</div>|]
 >
->               |]
-> {- [$here|
->  <div>
->  * [Index](index.html)
->  * [Examples](examples.html)
->  * [Haddock](haddock/index.html)
->  * [Browse source online](pandoc_source/index.html)
->  * [HackageDB page](http://hackage.haskell.org/package/hssqlppp)
->  * [Launchpad/ Repo](http://launchpad.net/hssqlppp)
->  </div>
-> |]-}
-> --going to stick this in css at some point
-> htmlHeader :: String
-> htmlHeader = [$here|
-> <style>
-> h1 {
-> font-size: x-large;
-> display:block;
-> background-color: #f9f9f9;
-> border-top: thin black solid;
-> left: -3ex;
-> }
-> h2 {
-> font-size: large;
-> display:block;
-> background-color: #f9f9f9;
-> border-top: thin black solid;
-> left: -1.5ex;
-> }
-> body {
->    margin-left: 5em;
->    margin-right: 5em;
->    margin-bottom: 5em;
-> }
-> .header {
->     border: thin black solid;
->     display:inline;
->     padding: 1ex;
->     background-color: #efefef;
->     font-weight: bold;
->  }
->  .footer {
->    text-align: center;
->    font-size: small;
->  }
->  pre {
->      padding: 0;
->  }
->  pre.SqlPostgresql {
->      padding: 0.5em;
->      background-color: #f5f9f9;
->  }
->  pre.haskell {
->      padding: 0.5em;
->      background-color: #f9f9e0;
->  }
->  pre.sh {
->      padding: 0.5em;
->      background-color: #f9f9f9;
->  }
-> table, tr, td {
->   border-collapse:collapse;
->   cell-padding:0px;
->   cell-spacing:0px;
->   padding:0px
->   spacing:0px
->   margin:0px
->   vertical-align:top;
-> }
-> td pre {
->    width: 98%;
->    height: 98%;
->   vertical-align:top;
-> }
-> table {
->       width:98%;
-> }
-> td {
->    width: 49%;
->   vertical-align:top;
-> }
-> </style>
-> |]
+> cssLink :: String
+> cssLink = "<link href=\"website/main.css\" rel='stylesheet' type='text/css'>"
 
 -------------------------------------------------------------------------------
 

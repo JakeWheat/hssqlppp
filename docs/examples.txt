@@ -52,8 +52,7 @@ template Haskell.
 The two source code generators can be run from HsSqlSystem.
 
 A example of using each approach is given. You must set up the sample
-database to compile or run the examples. You can then run the samples
-using
+database to compile or run the examples. You can then run them using
 [examples/RunWrappers.lhs](pandoc_source/examples/RunWrappers.lhs). The
 source of the samples contains a copy of the output so you can see
 this without setting up the database.

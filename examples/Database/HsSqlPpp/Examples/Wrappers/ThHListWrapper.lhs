@@ -10,46 +10,49 @@ into your own project and edit it there.
 
 > module Database.HsSqlPpp.Examples.Wrappers.ThHListWrapper
 >     (withConn
->     ,sqlStmt
+>     ,sqlQuery
 >     ,IConnection
 
 Export the field proxies for your project here.  If you want to write
 down type signatures of the result hlists then export the proxy types
 here also, exporting them isn't neccessarily neccessary otherwise.
 
->     ,ptype,allegiance,tag,x,y
->     ,get_turn_number,current_wizard,colour,sprite
->     ,Ptype,Allegiance,Tag,X,Y
->     ,Get_turn_number,Current_wizard,Colour,Sprite
+>     ,s_no,sname,status,city
+>     ,S_no,Sname,Status,City
 
-
+>     ,module Data.HList
+>     ,module Data.HList.Label1
+>     ,module Data.HList.TypeEqGeneric1
+>     ,module Data.HList.TypeCastGeneric1
 >     ) where
 
 > import Language.Haskell.TH
 
 > import Control.Applicative
 > import Control.Monad.Error
-> import Control.Exception
+> --import Control.Exception
 
 > import Database.HDBC
-> import qualified Database.HDBC.PostgreSQL as Pg
+> --import qualified Database.HDBC.PostgreSQL as Pg
 
 > import Data.HList
 > import Data.HList.Label1 ()
 > import Data.HList.TypeEqGeneric1 ()
 > import Data.HList.TypeCastGeneric1 ()
-> import Database.HsSqlPpp.Dbms.MakeLabels
+> import Database.HsSqlPpp.Examples.Wrappers.MakeLabels
+> import Database.HsSqlPpp.Examples.Wrappers.WrapLib
 
 > import System.IO.Unsafe
 > --import Data.IORef
 
-> import Database.HsSqlPpp.Dbms.WrapLib
-> import qualified Database.HsSqlPpp.Ast.SqlTypes as Sql
-> import Database.HsSqlPpp.Ast.Catalog
-> import Database.HsSqlPpp.Ast.TypeChecker
-> import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Utils
+> --import Database.HsSqlPpp.Dbms.WrapLib
+> import Database.HsSqlPpp.Utils.DbmsCommon hiding (selectRelation)
+> import qualified Database.HsSqlPpp.SqlTypes as Sql
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Utils.Utils
 
 
 ================================================================================
@@ -57,17 +60,14 @@ here also, exporting them isn't neccessarily neccessary otherwise.
 If you are using this file, this is the bit where you add your own
 fields.
 
-> $(makeLabels ["ptype"
->              ,"allegiance"
->              ,"tag"
->              ,"x"
->              ,"y"
->              ,"get_turn_number"
->              ,"current_wizard"
->              ,"colour"
->              ,"sprite"])
+> $(makeLabels ["s_no"
+>              ,"status"
+>              ,"sname"
+>              ,"city"])
 
 ================================================================================
+
+these docs need fixing
 
 > -- | template haskell fn to roughly do typesafe database access with
 > -- hlists, pretty experimental atm
@@ -147,9 +147,9 @@ fields.
 > -- and then ghc will complain and tell you what a,b,c should be (make
 > -- sure you match the number of arguments after conn to the number
 > -- of ? placeholders in the sql string).
-
-> sqlStmt :: String -> String -> Q Exp
-> sqlStmt dbName sqlStr = do
+>
+> sqlQuery :: String -> String -> Q Exp
+> sqlQuery dbName sqlStr = do
 >   (StatementHaskellType inA outA) <- liftStType
 >   let cnName = mkName "cn"
 >   argNames <- getNNewNames "a" $ length inA
@@ -211,14 +211,6 @@ fields.
 >                    liftIO $ writeIORef globalCachedCatalog (Just c)
 >                    return c
 >
-
-================================================================================
-
-> -- | Simple wrapper so that all client code needs to do is import this file
-> -- and use withConn and sqlStmt without importing HDBC, etc.
-
-> withConn :: String -> (Pg.Connection -> IO c) -> IO c
-> withConn cs = bracket (Pg.connectPostgreSQL cs) disconnect
 
 ================================================================================
 
