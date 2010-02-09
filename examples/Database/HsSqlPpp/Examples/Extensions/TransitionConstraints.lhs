@@ -128,15 +128,15 @@ implementation
 >         x1 -> x1
 >     where
 >       gen :: TriggerEvent -> String -> String -> String -> [Statement]
->       gen tct tableName constraintName expressionText =
+>       gen tct tablename constraintName expressionText =
 >           let spliceFnName = "check_" ++ constraintName
 >               ttname = case tct of
 >                           TInsert -> "insert"
 >                           TUpdate -> "update"
 >                           TDelete -> "delete"
->               spliceErrMsg = ttname ++ " on " ++ tableName ++
+>               spliceErrMsg = ttname ++ " on " ++ tablename ++
 >                        " violates transition constraint " ++ constraintName
->               spliceTriggerName = tableName ++ "_" ++ ttname ++ "_transition_trigger"
+>               spliceTriggerName = tablename ++ "_" ++ ttname ++ "_transition_trigger"
 >               ret = if tct == TDelete
 >                     then NullLit []
 >                     else Identifier [] "OLD"
@@ -156,7 +156,7 @@ implementation
       $a$ language plpgsql volatile;
 
       create trigger $(spliceTriggerName)
-        after $(tct) on relvar
+        after $(tct) on $(tablename)
         for each row
         execute procedure $(spliceFnName)();
 

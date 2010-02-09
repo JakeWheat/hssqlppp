@@ -4,7 +4,7 @@ Copyright 2010 Jake Wheat
 >
 > {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent.
 >
->    Example:
+> Example:
 >
 > >
 > > {-# LANGUAGE QuasiQuotes #-}
@@ -25,6 +25,9 @@ Copyright 2010 Jake Wheat
 > >     varname = "my_field"
 > >     typename = "text"
 > >
+>
+> See <http://community.haskell.org/~JakeWheat/hssqlppp/QuasiQuoteTests.html>
+> for more examples.
 >
 >      -}
 > module Database.HsSqlPpp.SqlQuote

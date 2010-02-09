@@ -34,24 +34,99 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 expressions
 
 >    Group "stuff" [
->               let tablename = "my_table"
->                   varname = "my_field"
->                   typename = "text"
->               in Stmt [$sqlStmt|
+>      let tablename = "my_table"
+>          varname = "my_field"
+>          typename = "text"
+>      in Stmt [$sqlStmt|
 >
->                     create table $(tablename) (
->                       $(varname) $(typename)
->                     );
+>      create table $(tablename) (
+>        $(varname) $(typename)
+>      );
 >
->                        |]
->                       [$sqlStmt|
->                     create table my_table (
->                       my_field text
->                     );
->                        |]
->     ]]
+>      |]
+>      [$sqlStmt|
+>      create table my_table (
+>        my_field text
+>      );
+>      |]
+>
+>     ,let fnname = "my_function"
+>          tablename = "my_table"
+>          typename = "int"
+>      in Stmt [$sqlStmt|
+>
+>   create function $(fnname)() returns $(typename) as $a$
+>     select * from $(tablename);
+>   $a$ language sql stable;
+>
+>      |]
+>      [$sqlStmt|
+>   create function my_function() returns int as $a$
+>     select * from my_table;
+>   $a$ language sql stable;
+>      |]
+>
+>     ,let fnname = "my_function"
+>      in Stmt [$sqlStmt| drop function $(fnname)();|]
+>              [$sqlStmt| drop function my_function();|]
+>
+>     ,let expr = Identifier [] "testing"
+>      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
+>                   [$pgsqlStmt| return "testing"; |]
+>
+>     ,let expr = (FunCall [] "+" [IntegerLit [] 3,IntegerLit [] 4])
+>      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
+>                   [$pgsqlStmt| return 3 + 4; |]
+>
+>     ,let errMsg = "this splice is slighty dodgy"
+>      in PgSqlStmt [$pgsqlStmt|
+>      if true then
+>        raise exception '$(errMsg)';
+>      end if;|]
+>      [$pgsqlStmt|
+>      if true then
+>        raise exception 'this splice is slighty dodgy';
+>      end if;|]
+>
+>     ,let triggername = "my_trigger"
+>          tablename = "my_table"
+>          opname = "my_function"
+>      in Stmt [$sqlStmt|
+>   create trigger $(triggername)
+>     after insert or update or delete on $(tablename)
+>     for each statement
+>     execute procedure $(opname)();
+>             |]
+>              [$sqlStmt|
+>   create trigger my_trigger
+>     after insert or update or delete on my_table
+>     for each statement
+>     execute procedure my_function();
+>             |]
+>     ,let tablename = "lotsastuff"
+>      in Expr [$sqlExpr|(select count(*) from $(tablename))|]
+>              [$sqlExpr|(select count(*) from lotsastuff)|]
+>
+>     ,let trigname = "tbl_trig1"
+>          tablename = "tbl"
+>          tevent = TUpdate
+>          fn = "checkit"
+>      in Stmt [$sqlStmt|
+>      create trigger $(trigname)
+>         after $(tevent) on $(tablename)
+>         for each row
+>         execute procedure $(fn)();
+>             |] [$sqlStmt|
+>      create trigger tbl_trig1
+>         after update on tbl
+>         for each row
+>         execute procedure checkit();
+>             |]
 
 let x = "y" in Expr [$sqlExpr| $(x) |]
+
+>   ]]
+
 
 ================================================================================
 
