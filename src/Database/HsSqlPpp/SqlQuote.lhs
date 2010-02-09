@@ -2,7 +2,8 @@ Copyright 2010 Jake Wheat
 
 > {-# LANGUAGE TemplateHaskell #-}
 >
-> {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent.
+> {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent. The splice variable
+>    names must be all lower case because of a limitation in the parser.
 >
 > Example:
 >

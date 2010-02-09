@@ -131,6 +131,9 @@ expressions
 >     ,let x = "splicedIdentifier"
 >      in Expr [$sqlExpr| $i(x) |]
 >              (Identifier [] "splicedIdentifier")
+>     ,let errMsg = "this splice isn't too dodgy"
+>      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
+>                   [$pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]
 
 > {-    ,let s1 = [$sqlStmt| select * from tbl; |]
 >      in Stmts [$sqlStmts|
