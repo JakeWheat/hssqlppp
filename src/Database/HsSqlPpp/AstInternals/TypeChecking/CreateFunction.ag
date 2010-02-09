@@ -35,10 +35,10 @@ SEM Statement
                                       @name
                                       @params.annotatedTree
                                       @rettype.annotatedTree
-                                      @lang.annotatedTree
+                                      @lang
                                       @bodyQuote
                                       @body.annotatedTree
-                                      @vol.annotatedTree
+                                      @vol
         loc.statementType = []
         body.cat = @lhs.inProducedCat
 

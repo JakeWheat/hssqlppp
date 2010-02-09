@@ -89,8 +89,8 @@ SEM Expression
                                 @fn.annotatedTree
                                 @partitionBy.annotatedTree
                                 @orderBy.annotatedTree
-                                @dir.annotatedTree
-                                @frm.annotatedTree
+                                @dir
+                                @frm
 {
 {-
 
@@ -182,7 +182,7 @@ SEM Expression
                   errorWhen (resType /= typeBool)
                             [AnyAllError $ "operator must have bool return, got " ++ show resType]
                   return resType
-        loc.backTree = LiftOperator @ann @oper @flav.annotatedTree @args.annotatedTree
+        loc.backTree = LiftOperator @ann @oper @flav @args.annotatedTree
 
 
 {-

@@ -8,11 +8,11 @@ This file contains the code for drop statements, only does drop function at the 
 SEM Statement
     | DropFunction
         loc.tpe = Right $ Pseudo Void
-        loc.backTree = DropFunction @ann @ifE.annotatedTree @sigs.annotatedTree @cascade.annotatedTree
+        loc.backTree = DropFunction @ann @ifE @sigs.annotatedTree @cascade
         loc.catUpdates = flip map @sigs.fnSigs $ \(nm,args) ->
                                CatDropFunction ifE nm args
                          where
-                           ifE = @ifE.annotatedTree == IfExists
+                           ifE = @ifE == IfExists
         loc.statementType = []
 
 ATTR StringTypeNameListPairList [||fnSigs:{[(String,[Type])]}]

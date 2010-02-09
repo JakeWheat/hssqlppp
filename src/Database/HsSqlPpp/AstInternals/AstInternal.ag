@@ -322,10 +322,6 @@ DATA SelectExpression
     | Values ann:Annotation
              vll:ExpressionListList
 
-TYPE TableRefList = [TableRef]
-TYPE MaybeExpression = MAYBE Expression
-TYPE MaybeBoolExpression = MAYBE Expression
-
 DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation vars:VarDefList sts : StatementList
 
@@ -353,26 +349,26 @@ DATA TableAlias | NoAlias
                 | TableAlias alias:String
                 | FullAlias alias:String cols:StringList
 
-TYPE OnExpr = MAYBE JoinExpression
-
 DATA JoinExpression | JoinOn ann:Annotation Expression
                     | JoinUsing ann:Annotation StringList
 
-DATA JoinType | Inner | LeftOuter| RightOuter | FullOuter | Cross
+{
+data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
+                deriving (Show,Eq,Typeable,Data)
+}
 
 -- select columns, into columns
 
 DATA SelectList | SelectList ann:Annotation items:SelectItemList into:StringList
 
-
-TYPE MaybeSelectList = MAYBE SelectList
-
 DATA SelectItem | SelExp ann:Annotation ex:Expression
                 | SelectItem ann:Annotation ex:Expression name:String
 
-DATA CopySource | CopyFilename String
+{
+data CopySource = CopyFilename String
                 | Stdin
-
+                  deriving (Show,Eq,Typeable,Data)
+}
 --name type default null constraint
 
 DATA AttributeDef | AttributeDef ann:Annotation
@@ -415,16 +411,23 @@ DATA TypeAttributeDef | TypeAttDef ann:Annotation
 DATA AlterTableAction | AlterColumnDefault ann:Annotation
                                            nm : String
                                            def : Expression
-                      | AddConstraint ann:Annotation
+                      | AddConstraint ann: Annotation
                                       con: Constraint
-DATA SetValue
-    | SetStr ann:Annotation String
-    | SetId ann:Annotation String
-    | SetNum ann:Annotation Double
+{
+data SetValue
+    = SetStr Annotation String
+    | SetId Annotation String
+    | SetNum Annotation Double
+      deriving (Show,Eq,Typeable,Data)
 
-DATA TriggerWhen | TriggerBefore | TriggerAfter
-DATA TriggerEvent | TInsert| TUpdate | TDelete
-DATA TriggerFire | EachRow | EachStatement
+
+data TriggerWhen = TriggerBefore | TriggerAfter
+                   deriving (Show,Eq,Typeable,Data)
+data TriggerEvent = TInsert| TUpdate | TDelete
+                    deriving (Show,Eq,Typeable,Data)
+data TriggerFire = EachRow | EachStatement
+                   deriving (Show,Eq,Typeable,Data)
+}
 
 DATA ParamDef | ParamDef ann:Annotation name:String typ:TypeName
               | ParamDefTp ann:Annotation typ:TypeName
@@ -433,37 +436,49 @@ DATA VarDef | VarDef ann:Annotation
                      name : String
                      typ : TypeName
                      value : (Maybe Expression)
+{
+data RaiseType = RNotice | RException | RError
+                 deriving (Show,Eq,Typeable,Data)
 
-DATA RaiseType | RNotice | RException | RError
+data CombineType = Except | Union | Intersect | UnionAll
+                   deriving (Show,Eq,Typeable,Data)
 
-DATA CombineType | Except | Union | Intersect | UnionAll
+data Volatility = Volatile | Stable | Immutable
+                  deriving (Show,Eq,Typeable,Data)
 
-DATA Volatility | Volatile | Stable | Immutable
-
-DATA Language | Sql | Plpgsql
+data Language = Sql | Plpgsql
+                deriving (Show,Eq,Typeable,Data)
+}
 
 DATA TypeName | SimpleTypeName ann:Annotation tn:String
               | PrecTypeName ann:Annotation tn:String prec:Integer
               | ArrayTypeName ann:Annotation typ:TypeName
               | SetOfTypeName ann:Annotation typ:TypeName
-
-DATA DropType | Table
+{
+data DropType = Table
               | Domain
               | View
               | Type
+                deriving (Show,Eq,Typeable,Data)
 
-DATA Cascade | Cascade | Restrict
+data Cascade = Cascade | Restrict
+               deriving (Show,Eq,Typeable,Data)
 
-DATA Direction | Asc | Desc
+data Direction = Asc | Desc
+                 deriving (Show,Eq,Typeable,Data)
 
-DATA Distinct | Distinct | Dupes
+data Distinct = Distinct | Dupes
+                deriving (Show,Eq,Typeable,Data)
 
-DATA Natural | Natural | Unnatural
+data Natural = Natural | Unnatural
+               deriving (Show,Eq,Typeable,Data)
 
-DATA IfExists | Require | IfExists
+data IfExists = Require | IfExists
+                deriving (Show,Eq,Typeable,Data)
 
-DATA RestartIdentity | RestartIdentity | ContinueIdentity
-
+data RestartIdentity = RestartIdentity | ContinueIdentity
+                       deriving (Show,Eq,Typeable,Data)
+}
 {-
 ================================================================================
 
@@ -517,17 +532,21 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                                oper:String
                                flav:LiftFlavour
                                args:ExpressionList
-
-DATA LiftFlavour | LiftAny | LiftAll
+{
+data LiftFlavour = LiftAny | LiftAll
+                   deriving (Show,Eq,Typeable,Data)
+}
 
 --todo: use liftoperator to implement inlist?
 DATA InList | InList ann:Annotation exprs : ExpressionList
             | InSelect ann:Annotation sel : SelectExpression
 
-
-DATA FrameClause | FrameUnboundedPreceding
+{
+data FrameClause = FrameUnboundedPreceding
                  | FrameUnboundedFull
                  | FrameRowsUnboundedPreceding
+                   deriving (Show,Eq,Typeable,Data)
+}
 {-
 
 list of expression flavours from postgresql with the equivalents in this ast
@@ -591,6 +610,13 @@ currently supported keyword operators.
 -- some list nodes, not sure if all of these are needed as separately
 -- named node types
 
+TYPE OnExpr = MAYBE JoinExpression
+TYPE MaybeSelectList = MAYBE SelectList
+
+TYPE TableRefList = [TableRef]
+TYPE MaybeExpression = MAYBE Expression
+TYPE MaybeBoolExpression = MAYBE Expression
+
 TYPE ExpressionList = [Expression]
 TYPE ExpressionListList = [ExpressionList]
 TYPE StringList = [String]
@@ -640,11 +666,10 @@ attributes which every node has
 -}
 
 SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
-               JoinExpression JoinType
-               SelectList SelectItem CopySource AttributeDef RowConstraint
-               Constraint TypeAttributeDef ParamDef VarDef RaiseType
-               CombineType Volatility Language TypeName DropType Cascade
-               Direction Distinct Natural IfExists RestartIdentity
+               JoinExpression
+               SelectList SelectItem AttributeDef RowConstraint
+               TypeAttributeDef ParamDef VarDef Constraint
+               TypeName
                Expression InList MaybeExpression MaybeBoolExpression
                ExpressionList ExpressionListList StringList SetClauseList
                AttributeDefList ConstraintList TypeAttributeDefList
@@ -655,9 +680,9 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
-               TableRefList TableRef OnExpr LiftFlavour MaybeSelectList
-               SetValue TableAlias FrameClause AlterTableAction
-               TriggerWhen TriggerEvent TriggerFire ExpressionDirectionPair
+               TableRefList TableRef OnExpr MaybeSelectList
+               TableAlias AlterTableAction
+               ExpressionDirectionPair
                ExpressionDirectionPairList AlterTableActionList
                TriggerEventList SetValueList
 

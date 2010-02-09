@@ -116,7 +116,7 @@ SEM SelectExpression
                      [(_,Pseudo Void)] -> Pseudo Void
                      _ -> SetOfType $ CompositeType @selSelectList.listType
         loc.backTree = Select @ann
-                              @selDistinct.annotatedTree
+                              @selDistinct
                               @selSelectList.annotatedTree
                               @selTref.annotatedTree
                               @selWhere.annotatedTree
@@ -131,7 +131,7 @@ SEM SelectExpression
               sel2t = getTypeAnnotation @sel2.annotatedTree
           in dependsOnRTpe [sel1t, sel2t] $
                 typeCheckCombineSelect @lhs.cat sel1t sel2t
-        loc.backTree = CombineSelect @ann @ctype.annotatedTree
+        loc.backTree = CombineSelect @ann @ctype
                                      @sel1.annotatedTree
                                      @sel2.annotatedTree
 

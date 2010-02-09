@@ -196,7 +196,7 @@ join - most of the hard work is done in local bindings
                                         TableAlias t -> t
                                         FullAlias t _ -> t)]
             where
-              jids = case (@nat.annotatedTree, @onExpr.originalTree) of
+              jids = case (@nat, @onExpr.originalTree) of
                           (Natural, _) -> Left ()
                           (_,Just (JoinUsing _ s)) -> Right s
                           _ -> Right []
@@ -264,8 +264,8 @@ SEM TableRef
     | JoinedTref
         loc.backTree = JoinedTref @ann
                                   @tbl.annotatedTree
-                                  @nat.annotatedTree
-                                  @joinType.annotatedTree
+                                  @nat
+                                  @joinType
                                   @tbl1.annotatedTree
                                   @onExpr.annotatedTree
                                   @alias.annotatedTree
