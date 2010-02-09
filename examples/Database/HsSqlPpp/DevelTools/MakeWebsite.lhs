@@ -41,22 +41,22 @@ to the website.
 >       pf = pd1 Txt
 >       plhs = pd1 Lhs
 >   pf "HsSqlPpp documentation"
->      (Str "docs/index.txt")
->      "website/index.html"
+>      (File "docs/index.txt")
+>      "index.html"
 >   pf "HsSqlPpp examples"
->      (Str "docs/examples.txt")
->      "website/examples.html"
+>      (File "docs/examples.txt")
+>      "examples.html"
 >   plhs "HsSqlPpp parser examples"
 >        (Str $ rowsToHtml parserTestsTable)
->        "website/ParserTests.html"
+>        "ParserTests.html"
 >   plhs "HsSqlPpp type checking examples"
 >        (Str $ rowsToHtml typeCheckTestsTable)
->        "website/TypeCheckTests.html"
+>        "TypeCheckTests.html"
 >   plhs "HsSqlPpp quasiquotation examples"
 >        (Str $ rowsToHtml quasiQuoteTestsTable)
->        "website/QuasiQuoteTests.html"
+>        "QuasiQuoteTests.html"
 >   doPandocSource pd1
->   doHaddock
+>   --doHaddock
 >   return ()
 
 -------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ to the website.
 >   moveDTCBack
 >   where
 >     pandocIt fn = do
->            let target = "website/pandoc_source/" ++ fn ++ ".html"
+>            let target = "pandoc_source/" ++ fn ++ ".html"
 >                title = snd $ splitFileName fn
 >            pdize (if takeExtension fn `elem` [".lhs", ".lag"]
 >                   then Lhs
@@ -110,9 +110,6 @@ to the website.
 >                     ||? extension ==? ".lag"
 >
 
- > pandocIndex :: String -> String
- > pandocIndex s = s
-
 >
 > wrapSqlCode :: String -> String
 > wrapSqlCode = replace
@@ -125,11 +122,23 @@ to the website.
 ------------------------------------------------------------------------------
 
 > wheader :: String -> String
-> wheader v = "<div class='header'>[HsSqlPpp " ++ v ++
->             "](http://community.haskell.org/%7EJakeWheat/hssqlppp/index.html)</div>"
+> wheader v = [$here|
+>
+> <div class='header'>[HsSqlPpp-|] ++ v ++
+>             [$here|](http://community.haskell.org/%7EJakeWheat/hssqlppp/index.html)</div>
+>
+> |]
+
+ > wheader v = "\n\n\n~~~~~~~~{.header}\n\n\n[HsSqlPpp%20" ++ v ++
+ >             "](http://community.haskell.org/%7EJakeWheat/hssqlppp/index.html)\n\n\n~~~~\n\n\n\n"
 
 > wfooter :: String -> String -> String
-> wfooter v d = "<div class='footer'>Copyright 2010 Jake Wheat, generated on " ++ d ++ ", hssqlppp-" ++ v
+> wfooter v d = [$here|
+>
+> <div class='footer'>Copyright 2010 Jake Wheat, generated on |]
+>               ++ d ++ ", hssqlppp-" ++ v ++ [$here|</div>
+>
+>               |]
 
 > {- [$here|
 >  <div>
@@ -147,16 +156,19 @@ to the website.
 pandoc won't render haskell source which isn't literate nicely at all,
 so run it though highlighting-kate only
 
-> highlight :: String -> String -> String
-> highlight hd s = do
+> highlight :: String -> String -> String -> String -> String
+> highlight hdr ftr title s = do
 >   case highlightAs "Haskell" s of
->     Right r -> "<html><head><title>" ++ hd ++ "</title>" ++
->                "<style>" ++ bc ++ defaultHighlightingCss ++ "</style></head><body>" ++
+>     Right r -> "<html><head><title>" ++ title ++ "</title>" ++
+>                "<style>" ++ bc ++ defaultHighlightingCss ++ "</style>" ++
+>                htmlHeader ++ "</head><body>" ++
+>                pandocFrag hdr ++
 >                renderHtmlFragment (formatAsXHtml [OptTitleAttributes] "Haskell" r) ++
+>                pandocFrag ftr ++
 >                "</body></html>"
 >     Left err -> trace ("highlight error: " ++ err) s
 >   where
->    bc = "body {background-color: #f9f9e0;}\n"
+>    bc = "pre.Haskell {background-color: #f9f9e0;}\n"
 
 -------------------------------------------------------------------------------
 
@@ -165,13 +177,14 @@ pandoc wrappers
 > data PandocType = Lhs
 >                 | Highlight
 >                 | Txt
+>                   deriving Show
 > data Input = Str String
 >            | File String
 
 > pandocToFile :: String -> String -> PandocType -> String -> Input -> String -> IO ()
 > pandocToFile hdr ftr pt title src tgt = do
 >   putStrLn tgt
->   createDirectoryIfMissing True $ "website/pandoc_source/" ++ dropFileName tgt
+>   createDirectoryIfMissing True $ "website/" ++ dropFileName tgt
 >   let tgt1 = "website/" ++ tgt
 >   src1 <- case src of
 >             Str s -> return s
@@ -179,9 +192,9 @@ pandoc wrappers
 >   let src2 = hdr ++ src1 ++ ftr
 >   writeFile tgt1 $ case pt of
 >                            Lhs -> pandocLhs title $ wrapSqlCode src2
->                            Highlight -> highlight title src2
+>                            Highlight -> highlight hdr ftr title src1
 >                            Txt -> pandoc title src2
-
+>
 > pandoc :: String -> String -> String
 > pandoc hd = (writeHtmlString wopt) . (readMarkdown defaultParserState)
 >   where
@@ -191,6 +204,14 @@ pandoc wrappers
 >               ,writerTableOfContents = False
 >               ,writerHeader = htmlHeader
 >              }
+>
+> pandocFrag :: String -> String
+> pandocFrag = (writeHtmlString wopt) . (readMarkdown defaultParserState)
+>   where
+>     wopt = defaultWriterOptions {
+>                writerStandalone = False
+>              }
+>
 >
 > pandocLhs :: String -> String -> String
 > pandocLhs hd = (writeHtmlString wopt) . (readMarkdown ropt)
@@ -214,18 +235,28 @@ pandoc wrappers
 > display:block;
 > background-color: #f9f9f9;
 > border-top: thin black solid;
+> left: -3ex;
 > }
 > h2 {
 > font-size: large;
 > display:block;
 > background-color: #f9f9f9;
 > border-top: thin black solid;
+> left: -1.5ex;
 > }
 > body {
 >    margin-left: 5em;
 >    margin-right: 5em;
 >    margin-bottom: 5em;
 > }
+> .header {
+>     border: thin black solid;
+>     display:inline;
+>  }
+>  .footer {
+>    text-align: center;
+>    font-size: small;
+>  }
 >  pre {
 >      padding: 0;
 >  }
