@@ -130,12 +130,17 @@ nodes and my generics skills aren't up to the task.
 > antiStatementE _ = Nothing
 >
 > antiStrE :: String -> Maybe ExpQ
-> antiStrE v | isSpliceName v = Just $ varE $ mkName $ getSpliceName v
->                               where
->                                 isSpliceName x = isPrefixOf "$(" x
->                                                  && last x == ')'
->                                 getSpliceName x = drop 2 $ take (length x - 1) x
-> antiStrE _ = Nothing
+> antiStrE v =
+>   fmap (varE . mkName) $ getSpliceName v
+>   where
+>     getSpliceName s | isPrefixOf "$(" s && last s == ')' =
+>       Just $ drop 2 $ take (length s - 1) s
+>                     | isPrefixOf "$s(" s && last s == ')' =
+>       Just $ drop 3 $ take (length s - 1) s
+>                     | isPrefixOf "$i(" s && last s == ')' =
+>       Just $ drop 3 $ take (length s - 1) s
+>                     | otherwise = Nothing
+
 >
 > antiTriggerEventE :: TriggerEvent -> Maybe ExpQ
 > antiTriggerEventE (AntiTriggerEvent v) = Just $ varE $ mkName v
@@ -173,7 +178,7 @@ probably be really hard even if the context was available)
 so - use two different splice syntaxes.
 
 to avoid doing string splices using [$sqlExpr| '$(sp)' |] which is
-ugly and wrong, add another splice for strings?
+ugly and wrong (?), add another splice for strings?
 
 ...
 

@@ -331,10 +331,9 @@ to make it work right.
 >              x1 -> x1
 >   where
 >     makeIf nm = let chk = "check_con_" ++ nm
->                     callcheckfn = FunCall [] chk []
 >                     errMsg = "update violates database constraint " ++ nm
 >                 in [$pgsqlStmt|
->                    if not $(callcheckfn) then
+>                    if not $(chk)() then
 >                       raise exception '$(errMsg)';
 >                    end if;
 >                    |]

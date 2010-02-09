@@ -979,6 +979,8 @@ want to parse as an antiexpression rather than an antiidentifier
 >                   ,threadOptionalSuffix (functionCallSuffix i) windowFnSuffix]
 
 >               ,antiExpression
+>               ,antiString
+>               ,antiIdentifier1
 
 >               ,threadOptionalSuffixes
 >                 identifier
@@ -1245,8 +1247,15 @@ TODO: copy this approach here.
 > identifier :: SParser Expression
 > identifier = Identifier <$> pos <*> (idString <|> splice)
 >
+
 > antiIdentifier :: SParser Expression
-> antiIdentifier = Identifier <$> pos <*> splice
+> antiIdentifier = Identifier <$> pos <*> spliceD
+
+> antiIdentifier1 :: SParser Expression
+> antiIdentifier1 = Identifier <$> pos <*> ssplice
+>                   where
+>                     ssplice = (\s -> "$i(" ++ s ++ ")") <$>
+>                               (symbol "$i(" *> idString <* symbol ")")
 
 
 --------------------------------------------------------------------------------
@@ -1312,6 +1321,12 @@ identifier which happens to start with a complete keyword
 > float = mytoken (\tok -> case tok of
 >                                     FloatTok n -> Just n
 >                                     _ -> Nothing)
+>
+> antiString :: SParser Expression
+> antiString = StringLit <$> pos <*> return "'" <*> ssplice
+>              where
+>                ssplice = (\s -> "$s(" ++ s ++ ")") <$>
+>                            (symbol "$s(" *> idString <* symbol ")")
 >
 > stringLit :: SParser Expression
 > stringLit = mytoken (\tok ->

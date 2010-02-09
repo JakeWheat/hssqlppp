@@ -138,8 +138,8 @@ implementation
 >                        " violates transition constraint " ++ constraintName
 >               spliceTriggerName = tablename ++ "_" ++ ttname ++ "_transition_trigger"
 >               ret = if tct == TDelete
->                     then NullLit []
->                     else Identifier [] "OLD"
+>                     then [$sqlExpr| null |]
+>                     else [$sqlExpr| OLD |]
 >               expr = either (error . show) id
 >                             $ parseExpression "" expressionText
 >           in [$sqlStmts|

@@ -122,8 +122,38 @@ expressions
 >         for each row
 >         execute procedure checkit();
 >             |]
+>     ,let x = "fnname"
+>      in Expr [$sqlExpr| $(x)('a') |]
+>              [$sqlExpr| fnname('a') |]
+>     ,let x = "splicedstring"
+>      in Expr [$sqlExpr| $s(x) |]
+>              (StringLit [] "'" "splicedstring")
+>     ,let x = "splicedIdentifier"
+>      in Expr [$sqlExpr| $i(x) |]
+>              (Identifier [] "splicedIdentifier")
 
-let x = "y" in Expr [$sqlExpr| $(x) |]
+> {-    ,let s1 = [$sqlStmt| select * from tbl; |]
+>      in Stmts [$sqlStmts|
+>      select 1;
+>      $(s1);
+>      select 2;|]
+>        [$sqlStmts|
+>      select 1;
+>      select * from tbl;
+>      select 2;|]
+
+>     ,let s1 = [$sqlStmt| select * from tbl; |]
+>          s2 = [s1,s2]
+>      in Stmts [$sqlStmts|
+>      select 1;
+>      $(s2);
+>      select 2;|]
+>        [$sqlStmts|
+>      select 1;
+>      select * from tbl;
+>      select * from tbl;
+>      select 2;|] -}
+
 
 >   ]]
 

@@ -208,7 +208,9 @@ deals with this.
 >                         ,try $ string "::"
 >                         ,try $ string ":="
 >                         ,string ":"
->                         ,string "$("
+>                         ,try $ string "$(" -- antiquote standard splice
+>                         ,try $ string "$s(" -- antiquote string splice
+>                         ,string "$i(" -- antiquote identifier splice
 >                         ,many1 (oneOf "+-*/<>=~!@#%^&|`?")
 >                         ])
 >
