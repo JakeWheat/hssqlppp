@@ -20,9 +20,10 @@ to the website.
 > import Text.XHtml.Strict hiding (title,src)
 > import Data.DateTime
 > import Text.RegexPR
-> import Debug.Trace
+> --import Debug.Trace
 > import Control.Applicative
 > import qualified Data.List as L
+> --import Data.Char
 >
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
@@ -31,10 +32,10 @@ to the website.
 > makeWebsite :: IO ()
 > makeWebsite = do
 >   hSetBuffering stdout NoBuffering
->   --doesDirectoryExist "website" >>=
->   --  \l -> when(l) $ removeDirectoryRecursive "website"
->   --createDirectory "website"
->   --copyFile "docs/main.css" "website/main.css"
+>   {-doesDirectoryExist "website" >>=
+>     \l -> when(l) $ removeDirectoryRecursive "website"
+>   createDirectory "website"
+>   copyFile "docs/main.css" "website/main.css"
 >   let v = "0.3.0-pre"  --- todo: read from cabal
 >   let hd = wheader v
 >   t <- getCurrentTime
@@ -42,7 +43,7 @@ to the website.
 >   let pd1 = htmlize hd ft
 >       pf = pd1 Txt
 >       plhs = pd1 Lhs
->   {-pf "HsSqlPpp documentation"
+>   pf "HsSqlPpp documentation"
 >      (File "docs/index.txt")
 >      "index.html"
 >   pf "HsSqlPpp examples"
@@ -57,8 +58,8 @@ to the website.
 >   qq <- quasiQuoteTestsTable
 >   plhs "HsSqlPpp quasiquotation examples"
 >        (Str qq)
->        "QuasiQuoteTests.html"-}
->   --doSourceFiles pd1
+>        "QuasiQuoteTests.html"
+>   doSourceFiles pd1-}
 >   doHaddock
 >   return ()
 
@@ -108,8 +109,8 @@ pandoc/highlight wrappers
 > htmlize :: String -> String -> PandocType -> String -> Input -> String -> IO ()
 > htmlize hdr ftr pt title src tgt = do
 >   putStrLn tgt
->   createDirectoryIfMissing True $ "website/" ++ dropFileName tgt
 >   let tgt1 = "website/" ++ tgt
+>   createDirectoryIfMissing True $ dropFileName tgt1
 >   src1 <- case src of
 >             Str s -> return s
 >             File f -> readFile f
@@ -121,9 +122,13 @@ pandoc/highlight wrappers
 >   let src2 = hdr ++ src1 ++ ftr
 >   writeFile tgt1 $ filterRelativeLinks $
 >                 case pt of
->                            Lhs -> pandocLhs title $ wrapSqlCode src2
->                            Highlight -> highlight hdr ftr title src1
+>                            Lhs -> pandocLhs title $ wrapSqlCode $ addAnchors src2
+>                            Highlight -> highlight hdr ftr title $ addAnchors src1
 >                            Txt -> pandoc title src2
+>
+>
+> addAnchors :: String -> String
+> addAnchors f = f
 >
 > -- pure wrappers to do various rendering
 > pandoc :: String -> String -> String
@@ -219,35 +224,73 @@ todo: add the last modified time for each file individually
 >   _ <- rawSystem "cabal" ["configure"]
 >   _ <- rawSystem "cabal" ["haddock", "--hyperlink-source"]
 >   renameDirectory "dist/doc/html/hssqlppp/" "website/haddock"
->   moveDTCBack-}
+>   moveDTCBack
 >   --want to use the pandoc source files instead of the hscolour ones
 >   --mainly to avoid duplication
 >   --not great that we don't avoid building the hscolour files which takes a while
->   --removeDirectoryRecursive "website/haddock/src"
+>   removeDirectoryRecursive "website/haddock/src" -}
 >   sf <- htmlSourceFiles
 >   hf <- map ("website/haddock/"++) <$> getDirectoryContents "website/haddock/"
 >   hf1 <- filterM doesFileExist hf
->   mapM_ (filterFile sf) hf1
+>   mapM_ (changeHaddockLinks sf) hf1
+>   -- now add the anchor links to the pandoc files
+>   --mapM_ filterSource sf
+>   return ()
 >   where
->     filterFile sf f = do
->       fc <- readFile f
->       let matchIt f = let f0 = (drop 5 |> replaceDash |> dropExtensions) f
->                           f1 = "website/pandoc_source/src/" ++ f0
->                       in case L.find (L.isPrefixOf f1) sf of
->                            Just s -> ".." ++ drop 7 s
->                            _ -> error $ "couldn't find link: " ++ f
->
->                       where
->                         replaceDash = map (\l -> if l == '-' then '/' else l)
->       let fc1 = gsubRegexPRBy "\"src[^\"]*\"" (changeLink matchIt) fc
+>     {-filterSource f = do
+>       let bkp = f ++ ".bak"
+>       renameFile f bkp
+>       fc <- readFile bkp
+>       let fc1 = addAnchors fc
 >       writeFile f fc1
+>       removeFile bkp-}
+
+>     {-addAnchors xs@(y:ys) =
+>         let p = "<span class=\"Function FunctionDefinition"
+>         in case L.stripPrefix p xs of
+>                    Nothing -> y : addAnchors ys
+>                    Just ys' -> let (a,_) = span (/=':') ys'
+>                                    (_,d) = span (/='>') a
+>                                    e = trim $ drop 1 d
+>                                    f ="<a name='" ++ e ++ "' />"
+>                                in f ++ (y : addAnchors ys)
+>     addAnchors [] = []-}
+
+>     changeHaddockLinks sf f = do
+>       let bkp = f ++ ".bak"
+>       --renameFile f bkp
+>       fc <- readFile f --bkp
+>       writeFile "/dev/null" {-f-} $ gsubRegexPRBy "\"src[^\"]*\"" (c1 sf) fc
+>       --removeFile bkp
 >       return ()
->     changeLink m s =
->         let s1 = m s
->         in s1 ++ snd (span (/='#') s)
+
 >     htmlSourceFiles =
 >       find always sourceFileP "website/pandoc_source/src"
 >     sourceFileP = extension ==? ".html"
+
+want to take a string like
+src/Database-HsSqlPpp-Ast-Ast.html#something
+
+and convert it to
+
+../pandoc_sources/Database/HsSqlPpp/Ast/Ast.lhs.html#something
+
+> c1 :: [String] -> String -> String
+> c1 sf s = let s1 = changeSourceLink sf s
+>           in trace (s ++ "->\n    " ++ s1) s1
+
+> changeSourceLink :: [String] -> String -> String
+> changeSourceLink sf =
+>     dropSrc |> replaceDash |> toLhs
+>     where
+>       dropSrc = drop 5
+>       replaceDash = map (\l -> if l == '-' then '/' else l)
+>       toLhs s = let an = snd (span (/='#') s)
+>                 in findMatching (dropExtensions s) ++ an
+>       findMatching f =
+>          case L.find (L.isPrefixOf $ "website/pandoc_source/src/" ++ f) sf of
+>            Just s -> s
+>            Nothing -> error $ "no match for" ++ show f
 
 -------------------------------------------------------------------------------
 
