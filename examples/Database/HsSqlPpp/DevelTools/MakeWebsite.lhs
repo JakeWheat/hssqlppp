@@ -223,6 +223,9 @@ so run it though highlighting-kate only
 > .header {
 >     border: thin black solid;
 >     display:inline;
+>     padding: 1ex;
+>     background-color: #efefef;
+>     font-weight: bold;
 >  }
 >  .footer {
 >    text-align: center;

@@ -8,7 +8,7 @@ into your own project and edit it there.
 > {-# LANGUAGE TemplateHaskell,EmptyDataDecls,DeriveDataTypeable,
 >   TupleSections #-}
 
-> module Database.HsSqlPpp.Examples.DBAccess3
+> module Database.HsSqlPpp.Examples.Wrappers.ThHListWrapper
 >     (withConn
 >     ,sqlStmt
 >     ,IConnection

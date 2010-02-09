@@ -33,7 +33,7 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.Examples.AnnotateSource
 >
 > import Database.HsSqlPpp.Examples.DatabaseLoader
-> import Database.HsSqlPpp.Examples.WrapperGen
+> --import Database.HsSqlPpp.Examples.WrapperGen
 > import Database.HsSqlPpp.Examples.DBUtils
 >
 > import Database.HsSqlPpp.Examples.ChaosExtensions
@@ -1136,11 +1136,11 @@ genWrap
 >            &= text "experimental code to generate typesafe haskell wrapper \
 >                    \for db access"
 > genWrap :: String -> String -> IO ()
-> genWrap db f =
->   wrapETs doit
+> genWrap db f = undefined
+>   {-wrapETs doit
 >     where
 >       doit :: (MonadIO m) => ErrorT String m ()
->       doit = liftIO (wrapperGen db f >>= putStrLn)
+>       doit = liftIO (wrapperGen db f >>= putStrLn)-}
 
 -------------------------------------------------------------------------------
 

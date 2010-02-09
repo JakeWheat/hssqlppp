@@ -1,13 +1,12 @@
 Copyright 2010 Jake Wheat
 
-More refined example wrapper generator, uses template haskell. See the
-docs attached to sqlStmt function below
+Template Haskell code to return database queries as lists of tuples.
 
 > {-# LANGUAGE TemplateHaskell #-}
 
-> module Database.HsSqlPpp.Examples.DBAccess2
+> module Database.HsSqlPpp.Examples.Wrappers.ThTupleWrapper
 >     (withConn
->     ,sqlStmt
+>     ,sqlQuery
 >     ,IConnection) where
 
 > import Language.Haskell.TH
@@ -15,55 +14,27 @@ docs attached to sqlStmt function below
 > import Data.Maybe
 > import Control.Applicative
 > import Control.Monad.Error
-> import Control.Monad
-> import Control.Exception
+> --import Control.Monad
+> --import Control.Exception
 
 > import Database.HDBC
-> import qualified Database.HDBC.PostgreSQL as Pg
+> --import qualified Database.HDBC.PostgreSQL as Pg
 
 > import System.IO.Unsafe
 > import Data.IORef
 
-> import Database.HsSqlPpp.Dbms.WrapLib
-> import qualified Database.HsSqlPpp.Ast.SqlTypes as Sql
-> import Database.HsSqlPpp.Ast.Catalog
-> import Database.HsSqlPpp.Ast.TypeChecker
-> import Database.HsSqlPpp.Parsing.Parser
-> import Database.HsSqlPpp.Ast.Annotation
-> import Database.HsSqlPpp.Utils
+> import Database.HsSqlPpp.Utils.DbmsCommon hiding (selectRelation)
 
-> -- | template haskell fn to roughly do typesafe database access, pretty experimental atm
-> --
-> -- sketch is:
-> --
-> -- > $(sqlStmt connStr sqlStr)
-> -- >
-> -- > -- is transformed into
-> -- >
-> -- >  \conn a_0 a_0 ... ->
-> -- >         selectRelation conn sqlStr [toSql (a_0::Ti0)
-> -- >                                    ,toSql (a_1::Ti1), ... ] >>=
-> -- >         return . map (\ [r_0, r_1, ...] ->
-> -- >           (fromSql r_0::To0
-> -- >           ,fromSql r_1::To1
-> -- >           ,...)
-> --
-> -- example usage:
-> --
-> -- > pieces_at_pos = $(sqlStmt connStr "select * from pieces where x = ? and y = ?;")
-> --
-> -- will come close enough to inferring the type:
-> --
-> -- > pieces_at_pos :: IConnection conn =>
-> -- >                 conn
-> -- >              -> Maybe Int
-> -- >              -> Maybe Int
-> -- >              -> IO [(Maybe String, Maybe String, Maybe Int, Maybe Int, Maybe Int)]
-> --
-> -- (as well as producing a working function which accesses a database)
-> --
-> sqlStmt :: String -> String -> Q Exp
-> sqlStmt dbName sqlStr = do
+> import Database.HsSqlPpp.Examples.Wrappers.SelectRelation
+> import qualified Database.HsSqlPpp.SqlTypes as Sql
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Utils.Utils
+
+> sqlQuery:: String -> String -> Q Exp
+> sqlQuery dbName sqlStr = do
 >   (StatementHaskellType inA outA) <- liftStType
 >   let cnName = mkName "cn"
 >   argNames <- getNNewNames "a" $ length inA
@@ -119,14 +90,6 @@ docs attached to sqlStmt function below
 
 ================================================================================
 
-> -- | Simple wrapper so that all client code needs to do is import this file
-> -- and use withConn and sqlStmt without importing HDBC, etc.
-
-> withConn :: String -> (Pg.Connection -> IO c) -> IO c
-> withConn cs = bracket (Pg.connectPostgreSQL cs) disconnect
-
-================================================================================
-
 evil hack to avoid reading the catalog from the database for each call
 to sqlStmt. Atm this means that you can only read the catalog from one
 database at compile time, but this should be an easy fix if too
@@ -172,13 +135,3 @@ toSql and fromSql as long as we add in the appropriate casts
 >         Sql.ScalarType "bool" -> [t| Maybe Bool |]
 >         Sql.DomainType _ -> [t| Maybe String |]
 >         x -> error $ show x
-
-================================================================================
-
-TODO:
-get error reporting at compile time working nicely:
-can't connect to database
-problem getting catalog -> report connection string used and source
-  position
-problem getting statement type: parse and type check issues, report
-  source position

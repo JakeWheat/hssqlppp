@@ -1,7 +1,6 @@
 Copyright 2010 Jake Wheat
 
-> -- | Utility function for use with WrapperGen example code
-> module Database.HsSqlPpp.Examples.WrapLib where
+> module Database.HsSqlPpp.Examples.Wrappers.SelectRelation where
 >
 > import Database.HDBC
 >

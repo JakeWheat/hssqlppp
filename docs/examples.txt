@@ -45,18 +45,39 @@ Two of the libraries used by HsSqlSystem:
 Typesafe database access
 ------------------------
 
-Needs some tidying:
+Four different approaches to type safe database access, just rough
+sketches. Two generate new Haskell source files, and two work using
+template Haskell.
 
-* [Generate SQL source
-  code](pandoc_source/examples/Database/HsSqlPpp/Examples/WrapperGen.lhs.html)
-* [Template Haskell
-  tuples](pandoc_source/examples/Database/HsSqlPpp/Examples/DBAccess2.lhs.html),
-  uses Template Haskell to do the same thing as previous code but
-  possibly nicer to use.
-* [Template Haskell
-  HList](pandoc_source/examples/Database/HsSqlPpp/Examples/DBAccess3.lhs.html),
-  like the previous version, but returns the tables as lists of
-  HLists.
+The two source code generators can be run from HsSqlSystem.
+
+A example of using each approach is given. You must set up the sample
+database to compile or run the examples. You can then run the samples
+using
+[examples/RunWrappers.lhs](pandoc_source/examples/RunWrappers.lhs). The
+source of the samples contains a copy of the output so you can see
+this without setting up the database.
+
+Sample database setup:
+
+Unpack the cabal source, then load testfiles/suppliers_and_parts.sql
+into a new database. Edit
+[examples/Database/HsSqlPpp/Examples/Wrappers/ConnectionString.hs](examples/Database/HsSqlPpp/Examples/Wrappers/ConnectionString.hs)
+to set the database connection information to this database.
+
+* [generate haskell, use tuples](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/)
+* [example source](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/)
+* [generated example](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/)
+
+* [generate haskell, use hlists](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/)
+* [example source](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/)
+* [generated example](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/)
+
+* [template haskell, use tuples](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/)
+* [example source](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/)
+
+* [template haskell, use hlists](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/)
+* [example source](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/)
 
 SQL Extensions
 --------------

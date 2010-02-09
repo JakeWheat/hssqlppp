@@ -10,13 +10,13 @@
 
 should expand into the following declarations
 
-data GetX;     getX     = proxy::Proxy GetX
-data GetY;     getY     = proxy::Proxy GetY
-data Draw;     draw     = proxy::Proxy Draw
+data GetX deriving Typeable; foo  :: Proxy Foo;  getX = proxy::Proxy GetX
+data GetY deriving Typeable; getY :: Proxy Foo;  getY = proxy::Proxy GetY
+data Draw deriving Typeable; draw :: Proxy Foo;  draw = proxy::Proxy Draw
 
 -}
 
-module Database.HsSqlPpp.Examples.MakeLabels (makeLabels,label) where
+module Database.HsSqlPpp.Examples.Wrappers.MakeLabels (makeLabels,label) where
 
 import Data.HList.FakePrelude
 

@@ -42,6 +42,7 @@ Description:
 
 extra-source-files:  README
                      LICENSE
+                     testfiles/suppliers_and_parts.sql
                      --find src/ -iname '*ag'
                      src/Database/HsSqlPpp/AstInternals/AstInternal.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/Triggers.ag

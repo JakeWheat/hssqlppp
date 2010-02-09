@@ -1,13 +1,8 @@
 Copyright 2010 Jake Wheat
 
-demo code for using the hssqlppp typechecker to generate typesafe
-database access code
-
-could probably use some quasi quotation
-
 > {-# LANGUAGE FlexibleContexts #-}
 
-> module Database.HsSqlPpp.Examples.WrapperGen
+> module Database.HsSqlPpp.Examples.Wrappers.GenerateTupleWrapper
 >     (wrapperGen) where
 
 > import Language.Haskell.Exts hiding (String)
@@ -24,56 +19,6 @@ could probably use some quasi quotation
 > import Database.HsSqlPpp.Annotation
 
 
-> -- | takes a haskell source file and produces a haskell source file
-> -- with typesafe wrappers
-> --
-> -- Example:
-> --
-> -- > module Testhesql1 where
-> -- > pieces = "select * from pieces;"
-> -- > turn_number = "select get_turn_number();"
-> -- > pieces_at_pos = "select * from pieces where x = ? and y = ?;"
-> --
-> -- is transformed to
-> --
-> -- > module Testhesql1 where
-> -- > import Database.HDBC
-> -- > import Database.HsSqlPpp.Dbms.WrapLib
-> -- >
-> -- > pieces ::
-> -- >          (IConnection conn) =>
-> -- >          conn ->
-> -- >            IO [(Maybe String, Maybe String, Maybe Int, Maybe Int, Maybe Int)]
-> -- > pieces conn
-> -- >   = do r <- selectRelation conn "select * from pieces;" []
-> -- >        return $
-> -- >          flip map r $
-> -- >            \ [a0, a1, a2, a3, a4] ->
-> -- >              (fromSql a0, fromSql a1, fromSql a2, fromSql a3, fromSql a4)
-> -- >
-> -- > turn_number :: (IConnection conn) => conn -> IO [(Maybe Int)]
-> -- > turn_number conn
-> -- >   = do r <- selectRelation conn "select get_turn_number();" []
-> -- >        return $ flip map r $ \ [a0] -> (fromSql a0)
-> -- >
-> -- > pieces_at_pos ::
-> -- >                 (IConnection conn) =>
-> -- >                 conn ->
-> -- >                   Maybe Int ->
-> -- >                     Maybe Int ->
-> -- >                       IO [(Maybe String, Maybe String, Maybe Int, Maybe Int, Maybe Int)]
-> -- > pieces_at_pos conn b0 b1
-> -- >   = do r <- selectRelation conn
-> -- >               "select * from pieces where x = ? and y = ?;"
-> -- >               [toSql b0, toSql b1]
-> -- >        return $
-> -- >          flip map r $
-> -- >            \ [a0, a1, a2, a3, a4] ->
-> -- >              (fromSql a0, fromSql a1, fromSql a2, fromSql a3, fromSql a4)
-> --
-> -- This code is just an example of how to get the type information
-> -- out for each sql statement, please see the source code for how it
-> -- works.  It's not nearly good enough for production use.
 
 > wrapperGen :: String -- ^ name of database to typecheck against
 >            -> FilePath -- ^ haskell source filename to process

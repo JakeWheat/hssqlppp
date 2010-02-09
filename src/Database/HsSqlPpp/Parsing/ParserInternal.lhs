@@ -956,7 +956,7 @@ try a few random things which can't start a different expression
 put the factors which start with keywords before the ones which start
 with a function, so we don't try an parse a keyword as a function name
 
->               ,caseParse
+>               ,caseExpression
 >               ,exists
 >               ,booleanLit
 >               ,nullLit
@@ -1119,12 +1119,9 @@ row ctor: one of
 >
 > integerLit :: SParser Expression
 > integerLit = IntegerLit <$> pos <*> integer
-
-case - only supports 'case when condition' flavour and not 'case
-expression when value' currently
-
-> caseParse :: SParser Expression
-> caseParse = do
+>
+> caseExpression :: SParser Expression
+> caseExpression = do
 >   p <- pos
 >   keyword "case"
 >   choice [
