@@ -17,6 +17,9 @@ work on rendering source - issues with markdown, embedded sql, etc.
 fix string parsing - get rid of the quote part in the ast node, and
    use some skills to decide what quotes to use in the pretty printer
 
+getting a catalog from a database involves reading the updates then
+   applying them, which is bizarre, sort it out
+
 focus: website/documentation, examples
        missing catalog elements: triggers, sequences, constraints, indexes, defaults
        do command line wrapper generator thing for hssqlsystem

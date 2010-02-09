@@ -19,20 +19,24 @@ to the website.
 > import Debug.Trace
 > import Text.XHtml.Strict hiding (title,src)
 > import Data.DateTime
-> import Text.RegexPR
+> --import Text.RegexPR
 > --import Debug.Trace
-> import Control.Applicative
-> import qualified Data.List as L
+> --import Control.Applicative
+> --import qualified Data.List as L
 > --import Data.Char
+> --import Text.XML.HaXml hiding (find,x)
+> --import Text.PrettyPrint (render)
+> --import Text.XML.HaXml.Pretty
 >
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.DevelTools.TestFileProcessor
 >
+>
 > makeWebsite :: IO ()
 > makeWebsite = do
 >   hSetBuffering stdout NoBuffering
->   {-doesDirectoryExist "website" >>=
+>   doesDirectoryExist "website" >>=
 >     \l -> when(l) $ removeDirectoryRecursive "website"
 >   createDirectory "website"
 >   copyFile "docs/main.css" "website/main.css"
@@ -59,7 +63,7 @@ to the website.
 >   plhs "HsSqlPpp quasiquotation examples"
 >        (Str qq)
 >        "QuasiQuoteTests.html"
->   doSourceFiles pd1-}
+>   doSourceFiles pd1
 >   doHaddock
 >   return ()
 
@@ -220,23 +224,23 @@ todo: add the last modified time for each file individually
 > doHaddock = do
 >   --cos hscolour can't handle the large defaulttemplate1catalog,
 >   --just move it out the way temporarily
->   {-moveDTCOut
+>   moveDTCOut
 >   _ <- rawSystem "cabal" ["configure"]
->   _ <- rawSystem "cabal" ["haddock", "--hyperlink-source"]
+>   _ <- rawSystem "cabal" ["haddock"] --, "--hyperlink-source"]
 >   renameDirectory "dist/doc/html/hssqlppp/" "website/haddock"
 >   moveDTCBack
 >   --want to use the pandoc source files instead of the hscolour ones
 >   --mainly to avoid duplication
 >   --not great that we don't avoid building the hscolour files which takes a while
->   removeDirectoryRecursive "website/haddock/src" -}
+>   {-removeDirectoryRecursive "website/haddock/src"
 >   sf <- htmlSourceFiles
 >   hf <- map ("website/haddock/"++) <$> getDirectoryContents "website/haddock/"
 >   hf1 <- filterM doesFileExist hf
->   mapM_ (changeHaddockLinks sf) hf1
+>   mapM_ (changeHaddockLinks sf) hf1-}
 >   -- now add the anchor links to the pandoc files
 >   --mapM_ filterSource sf
 >   return ()
->   where
+>   {-where
 >     {-filterSource f = do
 >       let bkp = f ++ ".bak"
 >       renameFile f bkp
@@ -256,17 +260,26 @@ todo: add the last modified time for each file individually
 >                                in f ++ (y : addAnchors ys)
 >     addAnchors [] = []-}
 
->     changeHaddockLinks sf f = do
+>     {-changeHaddockLinks sf f = do
 >       let bkp = f ++ ".bak"
 >       --renameFile f bkp
 >       fc <- readFile f --bkp
 >       writeFile "/dev/null" {-f-} $ gsubRegexPRBy "\"src[^\"]*\"" (c1 sf) fc
 >       --removeFile bkp
->       return ()
+>       return ()-}
 
 >     htmlSourceFiles =
 >       find always sourceFileP "website/pandoc_source/src"
->     sourceFileP = extension ==? ".html"
+>     sourceFileP = extension ==? ".html"-}
+
+> {-changeHaddockLinks sf f = do
+>   let bkp = f ++ ".bak"
+>   --renameFile f bkp
+>   fc <- readFile f --bkp
+>   writeFile "/dev/null" {-f-} $ gsubRegexPRBy "\"src[^\"]*\"" (c1 sf) fc
+>   --removeFile bkp
+>   return ()-}
+
 
 want to take a string like
 src/Database-HsSqlPpp-Ast-Ast.html#something
@@ -275,11 +288,14 @@ and convert it to
 
 ../pandoc_sources/Database/HsSqlPpp/Ast/Ast.lhs.html#something
 
-> c1 :: [String] -> String -> String
-> c1 sf s = let s1 = changeSourceLink sf s
->           in trace (s ++ "->\n    " ++ s1) s1
+since we don't know whether it is an lhs, hs or ag file, take a list
+of the target file names to find a match in
 
-> changeSourceLink :: [String] -> String -> String
+ > c1 :: [String] -> String -> String
+ > c1 sf s = let s1 = changeSourceLink sf s
+ >           in trace (s ++ "->\n    " ++ s1) s1
+
+> {-changeSourceLink :: [String] -> String -> String
 > changeSourceLink sf =
 >     dropSrc |> replaceDash |> toLhs
 >     where
@@ -290,7 +306,7 @@ and convert it to
 >       findMatching f =
 >          case L.find (L.isPrefixOf $ "website/pandoc_source/src/" ++ f) sf of
 >            Just s -> s
->            Nothing -> error $ "no match for" ++ show f
+>            Nothing -> error $ "no match for" ++ show f-}
 
 -------------------------------------------------------------------------------
 

@@ -38,11 +38,11 @@ Forward the public part of CatalogInternal.
 >     ,FunctionPrototype
 >     ,DomainDefinition
 >     ,FunFlav(..)
->      -- * 'Catalog' values
+>      -- * Catalog values
 >     ,emptyCatalog
 >     ,defaultCatalog
 >     ,defaultTemplate1Catalog
->      -- * 'Catalog' comparison
+>      -- * Catalog comparison
 >     ,CatalogDiff(..)
 >     ,compareCatalogs
 >     ,ppCatDiff
