@@ -153,8 +153,8 @@ compile time.
 > qqIntro :: String
 > qqIntro = [$here|
 >
-> Pretty rough presentation, each example is a set of lets, and a pair of sql
-> quasiquotes, one with antiquotes, and one with the resultant sql without antiquotes.
+> Pretty rough presentation, each example is a lets, with a pair of sql
+> quasiquotes: one with antiquotes, and one with the resultant sql without antiquotes.
 >
 > |]
 

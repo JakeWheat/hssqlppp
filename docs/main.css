@@ -1,58 +1,57 @@
+h1, h2 {
+  display:block;
+  background-color: #f0f0f0;
+  border-top: thin black solid;
+  position:relative;
+  padding-left:1ex;
+}
 h1 {
-font-size: x-large;
-display:block;
-background-color: #f0f0f0;
-border-top: thin black solid;
-position:relative;
-left: -3ex;
-margin-top: 3ex;
-padding-left:1ex;
+  font-size: x-large;
+  left: -3ex;
+  margin-top: 3ex;
+  width: 102%;
 }
 h2 {
-font-size: large;
-display:block;
-background-color: #f0f0f0;
-border-top: thin black solid;
-position:relative;
-left: -1.5ex;
-margin-top: 3ex;
-padding-left:1ex;
+  font-size: large;
+  left: -1.5ex;
+  margin-top: 1.5ex;
+  width: 102%;
 }
 body {
-   margin-left: 5em;
-   margin-right: 5em;
-   margin-bottom: 5em;
-   margin-top: 2em;
+  margin-left: 5em;
+  margin-right: 5em;
+  margin-bottom: 5em;
+  margin-top: 2em;
 }
 .header {
   position:relative;
   left: -4ex;
-    border-top: thin black solid;
-    border-bottom: thin black solid;
-    display:inline;
-    padding: 1ex;
-    background-color: #f0f0f0;
-    font-weight: bold;
- }
- .footer {
-   text-align: center;
-   font-size: small;
- }
- pre {
-     padding: 0;
- }
- pre.SqlPostgresql {
-     padding: 0.5em;
-     background-color: #f0f6f6;
- }
- pre.haskell {
-     padding: 0.5em;
-     background-color: #f5f5d9;
- }
- pre.sh {
-     padding: 0.5em;
-     background-color: #f0f0f0;
- }
+  border-top: thin black solid;
+  border-bottom: thin black solid;
+  display:inline;
+  padding: 1ex;
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+.footer {
+  text-align: center;
+  font-size: small;
+}
+pre {
+  padding: 0;
+}
+pre.SqlPostgresql {
+  padding: 0.5em;
+  background-color: #f0f6f6;
+}
+pre.haskell,pre.Haskell {
+  padding: 0.5em;
+  background-color: #f5f5d9;
+}
+pre.sh {
+  padding: 0.5em;
+  background-color: #f0f0f0;
+}
 table, tr, td {
   border-collapse:collapse;
   cell-padding:0px;
@@ -63,19 +62,25 @@ table, tr, td {
   vertical-align:top;
 }
 td pre {
-   width: 98%;
-   height: 98%;
+  width: 98%;
+  height: 98%;
   vertical-align:top;
 }
 table {
-      width:98%;
+  width:98%;
 }
 td {
-   width: 49%;
+  width: 49%;
   vertical-align:top;
 }
+hr {
+  border: 0;
+  color: black;
+  background-color: black;
+  height: 1px;
+  width: 75%;
+}
 
-pre.Haskell {background-color: #f9f9e0;}
 
 /* higlighting kate */
 

@@ -19,6 +19,10 @@ to the website.
 > import Debug.Trace
 > import Text.XHtml.Strict hiding (title,src)
 > import Data.DateTime
+> import Text.RegexPR
+> import Debug.Trace
+> import Control.Applicative
+> import qualified Data.List as L
 >
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
@@ -27,10 +31,10 @@ to the website.
 > makeWebsite :: IO ()
 > makeWebsite = do
 >   hSetBuffering stdout NoBuffering
->   doesDirectoryExist "website" >>=
->     \l -> when(l) $ removeDirectoryRecursive "website"
->   createDirectory "website"
->   copyFile "docs/main.css" "website/main.css"
+>   --doesDirectoryExist "website" >>=
+>   --  \l -> when(l) $ removeDirectoryRecursive "website"
+>   --createDirectory "website"
+>   --copyFile "docs/main.css" "website/main.css"
 >   let v = "0.3.0-pre"  --- todo: read from cabal
 >   let hd = wheader v
 >   t <- getCurrentTime
@@ -38,7 +42,7 @@ to the website.
 >   let pd1 = htmlize hd ft
 >       pf = pd1 Txt
 >       plhs = pd1 Lhs
->   pf "HsSqlPpp documentation"
+>   {-pf "HsSqlPpp documentation"
 >      (File "docs/index.txt")
 >      "index.html"
 >   pf "HsSqlPpp examples"
@@ -53,8 +57,8 @@ to the website.
 >   qq <- quasiQuoteTestsTable
 >   plhs "HsSqlPpp quasiquotation examples"
 >        (Str qq)
->        "QuasiQuoteTests.html"
->   doSourceFiles pd1
+>        "QuasiQuoteTests.html"-}
+>   --doSourceFiles pd1
 >   doHaddock
 >   return ()
 
@@ -191,11 +195,16 @@ so run it though highlighting-kate only
 >
 > <div class='header'>[HsSqlPpp-|] ++ v ++
 >             [$here|](website/index.html)</div>|] ++ "\n\n"
+
+todo: add the last modified time for each file individually
+
 > wfooter :: String -> String -> String
 > wfooter v d = [$here|
->
+> <br/>
+> <br/>
+> <hr/>
 > <div class='footer'>Copyright 2010 Jake Wheat, generated on |]
->               ++ d ++ ", hssqlppp-" ++ v ++ [$here|</div>|]
+>               ++ d ++ ", hssqlppp-" ++ v ++ "</div>"
 >
 > cssLink :: String
 > cssLink = "<link href=\"website/main.css\" rel='stylesheet' type='text/css'>"
@@ -206,11 +215,39 @@ so run it though highlighting-kate only
 > doHaddock = do
 >   --cos hscolour can't handle the large defaulttemplate1catalog,
 >   --just move it out the way temporarily
->   moveDTCOut
+>   {-moveDTCOut
 >   _ <- rawSystem "cabal" ["configure"]
 >   _ <- rawSystem "cabal" ["haddock", "--hyperlink-source"]
 >   renameDirectory "dist/doc/html/hssqlppp/" "website/haddock"
->   moveDTCBack
+>   moveDTCBack-}
+>   --want to use the pandoc source files instead of the hscolour ones
+>   --mainly to avoid duplication
+>   --not great that we don't avoid building the hscolour files which takes a while
+>   --removeDirectoryRecursive "website/haddock/src"
+>   sf <- htmlSourceFiles
+>   hf <- map ("website/haddock/"++) <$> getDirectoryContents "website/haddock/"
+>   hf1 <- filterM doesFileExist hf
+>   mapM_ (filterFile sf) hf1
+>   where
+>     filterFile sf f = do
+>       fc <- readFile f
+>       let matchIt f = let f0 = (drop 5 |> replaceDash |> dropExtensions) f
+>                           f1 = "website/pandoc_source/src/" ++ f0
+>                       in case L.find (L.isPrefixOf f1) sf of
+>                            Just s -> ".." ++ drop 7 s
+>                            _ -> error $ "couldn't find link: " ++ f
+>
+>                       where
+>                         replaceDash = map (\l -> if l == '-' then '/' else l)
+>       let fc1 = gsubRegexPRBy "\"src[^\"]*\"" (changeLink matchIt) fc
+>       writeFile f fc1
+>       return ()
+>     changeLink m s =
+>         let s1 = m s
+>         in s1 ++ snd (span (/='#') s)
+>     htmlSourceFiles =
+>       find always sourceFileP "website/pandoc_source/src"
+>     sourceFileP = extension ==? ".html"
 
 -------------------------------------------------------------------------------
 
