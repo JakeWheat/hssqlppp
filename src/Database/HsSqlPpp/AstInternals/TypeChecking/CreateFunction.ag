@@ -103,7 +103,7 @@ SEM Statement
                       lbUpdate @lhs.cat a (LBIds (@name ++ " parameters") @name @params.params [])
                    where
                      posNames :: [String]
-                     posNames = map (\l -> '$':show l) [1..]
+                     posNames = map (\l -> '$':show l) [(1::Int)..]
 {-
 TODO: using fromRight on it's own for identifier bindings or cat
 updates is wrong, if an error is produced then this needs to be added

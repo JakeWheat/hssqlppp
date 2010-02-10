@@ -106,7 +106,6 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,MaybeSelectList
    ,SetValue(..)
    ,AlterTableActionList
-   --,SetValueList
    -- typechecking
    ,typeCheck
    ,typeCheckPS
@@ -342,10 +341,12 @@ DATA TableRef | Tref ann:Annotation
               | TrefFun ann:Annotation
                         fn:Expression
                         alias : TableAlias
-
-DATA TableAlias | NoAlias
-                | TableAlias alias:String
-                | FullAlias alias:String cols:{[String]}
+{
+data TableAlias = NoAlias
+                | TableAlias String --alias:String
+                | FullAlias String [String] -- alias:String cols:{[String]}
+                  deriving (Show,Eq,Typeable,Data)
+}
 
 DATA JoinExpression | JoinOn ann:Annotation Expression
                     | JoinUsing ann:Annotation x:{[String]}
@@ -617,6 +618,7 @@ TYPE MaybeBoolExpression = MAYBE Expression
 
 TYPE ExpressionList = [Expression]
 TYPE ExpressionListList = [ExpressionList]
+
 TYPE SetClauseList = [SetClause]
 TYPE AttributeDefList = [AttributeDef]
 TYPE ConstraintList = [Constraint]
@@ -639,8 +641,6 @@ TYPE StatementList = [Statement]
 TYPE ExpressionDirectionPair = (Expression,Direction)
 TYPE ExpressionDirectionPairList = [ExpressionDirectionPair]
 TYPE AlterTableActionList = [AlterTableAction]
--- TYPE TriggerEventList = [TriggerEvent]
--- TYPE SetValueList = [SetValue]
 -- Add a root data type so we can put initial values for inherited
 -- attributes in the section which defines and uses those attributes
 -- rather than in the sem_ calls
@@ -678,7 +678,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                RowConstraintList CaseExpressionListExpressionPair
                CaseExpressionListExpressionPairList CaseExpressionList
                TableRefList TableRef OnExpr MaybeSelectList
-               TableAlias AlterTableAction
+               AlterTableAction
                ExpressionDirectionPair
                ExpressionDirectionPairList AlterTableActionList
 

@@ -125,11 +125,11 @@ typeCheckFunCall cat fnName' argsType =
                     lookupFn "!and" [f1,f2]
               "greatest" -> do
                     fp@(_,_,t,_) <- lookupFn fnName argsType
-                    lookupFn ">=" [t,t]
+                    _ <- lookupFn ">=" [t,t]
                     return fp
               "least" -> do
                     fp@(_,_,t,_) <- lookupFn fnName argsType
-                    lookupFn "<=" [t,t]
+                    _ <- lookupFn "<=" [t,t]
                     return fp
               "!rowctor" -> return $ ("!rowCtor", argsType, AnonymousRecordType argsType, False)
                     -- special case the row comparison ops
@@ -221,8 +221,7 @@ SEM Expression
         loc.tpe =
           dependsOnRTpe @loc.whenTypes $ do
           let valueType = getTypeAnnotation @value.annotatedTree
-          checkWhenTypes <-
-              resolveResultSetType @lhs.cat (valueType : @loc.whenTypes)
+          _ <- resolveResultSetType @lhs.cat (valueType : @loc.whenTypes)
           dependsOnRTpe @loc.thenTypes $
             resolveResultSetType @lhs.cat @loc.thenTypes
         loc.backTree = CaseSimple @ann
@@ -288,7 +287,7 @@ SEM Expression
     | InPredicate
         loc.tpe = do
                   lt <- @list.listType
-                  ty <- resolveResultSetType
+                  _ <- resolveResultSetType
                             @lhs.cat
                             [getTypeAnnotation @expr.annotatedTree, lt]
                   return typeBool

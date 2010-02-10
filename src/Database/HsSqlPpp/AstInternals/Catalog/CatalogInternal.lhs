@@ -224,7 +224,7 @@ modules.
 >               FunAgg -> cat {catAggregates=(nm,args,ret,vdc):catAggregates cat}
 >               FunWindow -> cat {catWindowFunctions=(nm,args,ret,vdc):catWindowFunctions cat}
 >               FunName -> cat {catFunctions=(nm,args,ret,vdc):catFunctions cat}
->         CatDropFunction ifexists nm args -> do
+>         CatDropFunction _ {-ifexists-} nm args -> do
 >             let matches =  filter matchingFn (catFunctions cat)
 >             errorWhen (null matches) [BadCatalogUpdate $
 >                                         "couldn't find function to drop " ++

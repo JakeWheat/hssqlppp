@@ -52,7 +52,7 @@ SEM Statement
     | CreateTableAs
         loc.tpe =
             dependsOnRTpe [@loc.selType] $ do
-              @loc.attrs
+              _ <- @loc.attrs
               Right @loc.selType
         loc.catUpdates =
            leftToEmpty (\as -> [CatCreateTable @name as defaultSystemColumns]) $ do

@@ -137,7 +137,7 @@ subtref - pull the type of the select expression out (which will be a
                            Right _ -> []
         loc.selectAttrs : {Either [TypeError] [(String,Type)]}
         loc.selectAttrs = unwrapSetOfComposite (getTypeAnnotation @sel.annotatedTree)
-        lhs.libUpdates = [LBIds "sub query" (getAlias "" @alias.annotatedTree) --"" should be error
+        lhs.libUpdates = [LBIds "sub query" (getAlias "" @alias) --"" should be error
                                          (fromRight [] @loc.selectAttrs) []]
 
     | Tref
@@ -149,7 +149,7 @@ tref - just a name of a table or view, just need to retrieve the fields from the
                      Left e -> e
                      Right _ -> []
         lhs.libUpdates = [LBIds ("tref: " ++ @tbl)
-                                         (getAlias @tbl @alias.annotatedTree)
+                                         (getAlias @tbl @alias)
                                          (fst @loc.relType1)
                                          (snd @loc.relType1)]
 
@@ -170,7 +170,7 @@ column names and types - see that function for how this works
 
 
         loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
-        loc.eqfunIdens = funIdens @lhs.cat (getAlias "" @alias.annotatedTree) @fn.annotatedTree
+        loc.eqfunIdens = funIdens @lhs.cat (getAlias "" @alias) @fn.annotatedTree
         lhs.libUpdates = [LBIds ("fn")
                                          (fst @loc.qfunIdens)
                                          (snd @loc.qfunIdens)
@@ -191,7 +191,7 @@ join - most of the hard work is done in local bindings
         loc.libUpdates =
             let [u1] = @tbl.libUpdates
                 [u2] = @tbl1.libUpdates
-            in [LBJoinIds u1 u2 jids (case @alias.annotatedTree of
+            in [LBJoinIds u1 u2 jids (case @alias of
                                         NoAlias -> ""
                                         TableAlias t -> t
                                         FullAlias t _ -> t)]
@@ -256,11 +256,11 @@ getAlias def alias =
 
 SEM TableRef
     | SubTref
-        loc.backTree = SubTref @ann @sel.annotatedTree @alias.annotatedTree
+        loc.backTree = SubTref @ann @sel.annotatedTree @alias
     | Tref
-        loc.backTree = Tref @ann @tbl @alias.annotatedTree
+        loc.backTree = Tref @ann @tbl @alias
     | TrefFun
-        loc.backTree = TrefFun @ann @fn.annotatedTree @alias.annotatedTree
+        loc.backTree = TrefFun @ann @fn.annotatedTree @alias
     | JoinedTref
         loc.backTree = JoinedTref @ann
                                   @tbl.annotatedTree
@@ -268,4 +268,4 @@ SEM TableRef
                                   @joinType
                                   @tbl1.annotatedTree
                                   @onExpr.annotatedTree
-                                  @alias.annotatedTree
+                                  @alias

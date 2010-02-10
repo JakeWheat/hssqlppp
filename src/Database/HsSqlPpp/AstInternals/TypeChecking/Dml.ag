@@ -17,10 +17,10 @@ SEM Statement
     | Insert
         loc.tpe =
             dependsOnRTpe [getTypeAnnotation @insData.annotatedTree] $ do
-              @loc.columnTypes
+              _ <- @loc.columnTypes
               Right $ Pseudo Void
         loc.statementType =
-            leftToEmpty (\ct -> [StatementType (getPlaceholderTypes @loc.insDataAddedInferredTypes) (fromMaybe [] @returning.listType)]) @loc.columnTypes
+            leftToEmpty (\_ -> [StatementType (getPlaceholderTypes @loc.insDataAddedInferredTypes) (fromMaybe [] @returning.listType)]) @loc.columnTypes
 
         loc.columnTypes =
             do
@@ -66,11 +66,11 @@ SEM Statement
             do
             checkRelationExists @lhs.cat @table
             dependsOnRTpe (map snd @assigns.pairs) $ do
-              @loc.columnTypes
+              _ <- @loc.columnTypes
               liftErrors @assigns.rowSetErrors
               return $ Pseudo Void
         loc.statementType =
-            leftToEmpty (\ct -> [StatementType (getPlaceholderTypes @loc.assignWInferredTypes
+            leftToEmpty (\_ -> [StatementType (getPlaceholderTypes @loc.assignWInferredTypes
                                                 ++ getPlaceholderTypes @whr.annotatedTree)
                                                (fromMaybe [] @returning.listType)])
                @loc.columnTypes
