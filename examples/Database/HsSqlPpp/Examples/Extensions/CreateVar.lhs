@@ -21,11 +21,6 @@ database.
 > createVarExample :: ExtensionTest
 > createVarExample = ExtensionTest
 >   "CreateVar"
->   -- relies on the extended constraints to work really
->   -- so we compose both for the test
->   -- and use extended constraints extension only on the expected results
->   -- so we're only depending on the 'interface' to the
->   -- extended constraints and not the implementation
 >   (extendedConstraints . createVar)
 >   [$sqlStmts| select create_var('varname', 'vartype'); |]
 >   (extendedConstraints [$sqlStmts|

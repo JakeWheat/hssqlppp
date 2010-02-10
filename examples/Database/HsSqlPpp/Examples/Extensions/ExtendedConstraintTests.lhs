@@ -375,6 +375,7 @@ $xxx$ language plpgsql stable;
 three constraints three tables
 ------------------------------
 
+~~~~
 table a constraints x y
 table b constraints x z
 table c constraints z x
@@ -386,6 +387,7 @@ createtable c
 add constraint x a b
 add constraint y b c
 add constraint z c a
+~~~~
 
 if the test is harder to understand than the code it's testing, is
 that bad?

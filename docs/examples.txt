@@ -84,5 +84,6 @@ quasiquotation.
 Demonstration extension.
 
 See the other files in this folder for more:
-
-[Extensions](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/).
+[Extensions](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/). (The
+references to Chaos/Chaos 2010 are for a game written mainly in
+plpgsql.)

@@ -17,15 +17,3 @@ Used for the examples/tests for each extensions.
 >                                    ([Statement] -> [Statement])
 >                                    [Statement]
 >                                    [Statement]
-
-Simple ast transforms, just substitutes the strings given in the reps
-(replacements) lookup.
-
-> mapStrings :: [(String,String)] -> [Statement] -> [Statement]
-> mapStrings reps =
->   transformBi $ \x ->
->       case x of
->             s | s `elem` fstReps -> fromJust $ lookup s reps
->             x1 -> x1
->   where
->     fstReps = map fst reps

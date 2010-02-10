@@ -1359,3 +1359,22 @@ command name
 other command arguments:
 - on its own is read from stdin
 --input='xxx' add literal input rather than from file/stdin
+
+
+plan for changing how this is written
+
+problem 1: cmdargs is non local, want to create a complete description
+of each command, then maybe use template haskell or haskell-src-exts
+to create a main function
+
+problem 2: everything relies on everything else, so if one file in one
+place is broken, then can't run any of the commands since this file
+won't compile - this is a problem when generating things like
+defaulttemplate1catalog and astanti. solution - package each command
+in separate file, then can easily create a exe which only brings one
+command in for instance.
+
+problem 3: want to say e.g. that the database setting is common, and
+share it's definition amongst multiple commands, and provide docs/
+help which don't repeat the database setting help unneccessarily -
+this might be because I don't know how to use cmdargs
