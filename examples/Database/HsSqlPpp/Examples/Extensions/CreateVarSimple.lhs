@@ -40,17 +40,14 @@ Example/ Test
 >     -- what the example SQL should be transformed into:
 >     [$sqlStmts|
 >
->  create table varname_table (
->      varname vartype
->  );
+>       create table varname_table (
+>         varname vartype
+>       );
 >
 >      |]
 
 Ast transform function
 ----------------------
-
-> createVarSimple :: Data a => a -> a
-> createVarSimple =
 
 We look for a function call with the function name "create_var" and
 two string literal arguments (calls to create_var which don't use
@@ -58,6 +55,8 @@ exactly two string literals will be silently ignored by this code).
 
 We want to replace it with a create table statement.
 
+> createVarSimple :: Data a => a -> a
+> createVarSimple =
 >     transformBi $ \x ->
 >       case x of
 >         [$sqlStmt| select create_var($s(varname), $s(typename)); |] : tl
