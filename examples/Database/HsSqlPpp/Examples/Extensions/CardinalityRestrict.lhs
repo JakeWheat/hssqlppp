@@ -52,16 +52,16 @@ select restrict_cardinality('tablename', '>=5 && <= 10');
 >     transformBi $ \x ->
 >       case x of
 >         [$sqlStmt|
->           select restrict_cardinality($s(tablename), $(num)); |] : tl
+>           select restrict_cardinality($s(tablename), $(num)); |]
 >             -> let --i = [$sqlExpr| $(num) |]
 >                    expr = printExpression
 >                             [$sqlExpr| (select count(*) from $(tablename))
 >                                         <= $(num) |]
 >                    conname = tablename ++ "_card"
->                in [$sqlStmts|
+>                in [$sqlStmt|
 >
 >   select create_assertion($s(conname), $s(expr));
 >
->                    |] ++ tl
+>                    |]
 >         x1 -> x1
 >

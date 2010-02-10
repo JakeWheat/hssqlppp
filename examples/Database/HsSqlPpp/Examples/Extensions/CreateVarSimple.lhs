@@ -59,14 +59,14 @@ We want to replace it with a create table statement.
 > createVarSimple =
 >     transformBi $ \x ->
 >       case x of
->         [$sqlStmt| select create_var($s(varname), $s(typename)); |] : tl
+>         [$sqlStmt| select create_var($s(varname), $s(typename)); |]
 >             -> let tablename = varname ++ "_table"
->                in [$sqlStmts|
+>                in [$sqlStmt|
 >
 >   create table $(tablename) (
 >    $(varname) $(typename)
 >   );
 >
->                    |] ++ tl
+>                    |]
 >         x1 -> x1
 >

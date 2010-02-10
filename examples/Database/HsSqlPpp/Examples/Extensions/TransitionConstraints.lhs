@@ -16,6 +16,7 @@ temporal relations.
 > module Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 >     where
 >
+> import Data.Generics
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Ast
@@ -29,7 +30,7 @@ examples
 > transitionConstraintExamples :: [ExtensionTest]
 > transitionConstraintExamples = [
 >    ExtensionTest "TransitionConstraint insert"
->     transitionConstraint
+>     transitionConstraints
 >     [$sqlStmts|
 >
 >      select create_insert_transition_tuple_constraint(
@@ -54,7 +55,7 @@ examples
 >
 >      |]
 >   ,ExtensionTest "TransitionConstraint update"
->     transitionConstraint
+>     transitionConstraints
 >     [$sqlStmts|
 >
 >      select create_update_transition_tuple_constraint(
@@ -79,7 +80,7 @@ examples
 >
 >      |]
 >   ,ExtensionTest "TransitionConstraint delete"
->     transitionConstraint
+>     transitionConstraints
 >     [$sqlStmts|
 >
 >      select create_delete_transition_tuple_constraint(
@@ -109,8 +110,8 @@ implementation
 --------------
 
 >
-> transitionConstraint :: [Statement] -> [Statement]
-> transitionConstraint =
+> transitionConstraints :: Data a => a -> a
+> transitionConstraints =
 >     transformBi $ \x ->
 >       case x of
 >         [$sqlStmt| select $(fn)($s(tablename)

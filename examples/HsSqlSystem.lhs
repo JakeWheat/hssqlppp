@@ -38,6 +38,7 @@ to get a list of commands and purpose and usage info
 >
 > import Database.HsSqlPpp.DevelTools.MakeWebsite
 > import Database.HsSqlPpp.DevelTools.MakeAntiNodes
+> import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 
 -------------------------------------------------------------------------------
 
@@ -89,8 +90,8 @@ command defs
 hacky thing: to run an ast transform on all sql asts in commands, put it in here
 
 > astTransformer :: Data a => a -> a
-> astTransformer = id
-> --astTransformer = extensionize
+> --astTransformer = id
+> astTransformer = transitionConstraints
 
 -------------------------------------------------------------------------------
 

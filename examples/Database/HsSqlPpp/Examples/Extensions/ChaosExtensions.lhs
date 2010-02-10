@@ -26,18 +26,22 @@ chaos working again then will review approach.
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.PrettyPrinter
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 >
 > -- | run all the extensions in this module on the given ast
 > chaosExtensions :: Data a => a -> a
-> chaosExtensions = clientActionWrapper
+> chaosExtensions = clientActionWrapper . noDelIns . generateSpellChoiceActions
 
 > chaosExtensionsExamples :: [ExtensionTest]
-> chaosExtensionsExamples = [clientActionWrapperExample]
+> chaosExtensionsExamples = [clientActionWrapperExample
+>                           ,noDelInsExample
+>                           ,generateSpellChoiceActionsExample]
 
 --------------------------------------------------------------------------------
 
@@ -89,121 +93,48 @@ lookup table. TODO: rewrite this paragraph in english.
 >         x1 -> x1
 >
 
+--------------------------------------------------------------------------------
 
+restrict table to have no deletes or inserts (only updates) except
+when starting a new game
 
-
-
-> {-createVarSimpleExample :: ExtensionTest
-> createVarSimpleExample =
+> noDelInsExample :: ExtensionTest
+> noDelInsExample =
 >   ExtensionTest
->
->     -- name of the extension, used when running the tests
->     "CreateVarSimple"
->
->     -- the transformation function itself, implemented below
->     createVarSimple
->
->     -- example of the SQL we want to replace
->     [$sqlStmts| select create_var('varname', 'vartype'); |]
->
->     -- what the example SQL should be transformed into:
+>     "noDelIns"
+>     (transitionConstraints . noDelIns)
 >     [$sqlStmts|
->
->       create table varname_table (
->         varname vartype
->       );
->
+>         select no_deletes_inserts_except_new_game('table');
 >      |]
-
-Ast transform function
-----------------------
-
-We look for a function call with the function name "create_var" and
-two string literal arguments (calls to create_var which don't use
-exactly two string literals will be silently ignored by this code).
-
-We want to replace it with a create table statement.
-
-> createVarSimple :: Data a => a -> a
-> createVarSimple =
->     transformBi $ \x ->
->       case x of
->         [$sqlStmt| select create_var($s(varname), $s(typename)); |] : tl
->             -> let tablename = varname ++ "_table"
->                in [$sqlStmts|
+>     (transitionConstraints [$sqlStmts|
+>         select create_insert_transition_tuple_constraint
+>                    ('table'
+>                    ,'table_no_insert'
+>                    ,'exists(select 1 from creating_new_game_table
+>                             where creating_new_game = true)');
+>         select create_delete_transition_tuple_constraint
+>                    ('table'
+>                    ,'table_no_delete'
+>                    ,'exists(select 1 from creating_new_game_table
+>                             where creating_new_game = true)');
+>         |])
 >
->   create table $(tablename) (
->    $(varname) $(typename)
->   );
->
->                    |] ++ tl
->         x1 -> x1
-> -}
-
-
-
-
-
-
-
-
--------------------------------------------------------------------------------
-
-> -- | looks for calls to function set_relvar_type and adds triggers to prevent the
-> -- referenced table from being updated
-> {-addReadonlyTriggers :: Data a => a -> a
-> addReadonlyTriggers =
->     transformBi $ \x ->
->       case x of
->         (funCallView -> FunCallView an "set_relvar_type" [StringLit _ _ tableName,StringLit _ _ "readonly"]):tl
->             -> (flip map "diu" ( \t ->
->                     (CreateFunction an ("check_" ++ tableName ++ "_" ++ [t] ++ "_readonly") []
->                                     (SimpleTypeName an "trigger") Plpgsql
->                                     "$a$"
->                                     (PlpgsqlFnBody an [] [
->                                       If an
->                                         [(FunCall an "!not" [BooleanLit an False]
->                                          ,[Raise an RException
->                                            "delete on base_relvar_metadata \
->                                            \violates transition constraint \
->                                            \base_relvar_metadata_d_readonly" []])] []
->                                      ,Return an $ Just $ NullLit an])
->                                     Volatile)) ++ tl)
->         x1 -> x1
-
--------------------------------------------------------------------------------
-
-> -- | add a trigger to each data table to raise a notify signal when changed
-> addNotifyTriggers :: Data a => a -> a
-> addNotifyTriggers =
->     transformBi $ \x ->
->       case x of
->         (funCallView -> FunCallView an "set_relvar_type" [StringLit _ _ tableName,StringLit _ _ "data"]):tl
->           -> (CreateFunction an (tableName ++ "_changed") []
->                                     (SimpleTypeName an "trigger") Plpgsql
->                                     "$a$"
->                                     (PlpgsqlFnBody an [] [
->                                       Notify an tableName
->                                      ,Return an $ Just $ NullLit an
->                                      ]) Volatile : tl)
->         x1 -> x1
-
--------------------------------------------------------------------------------
-
 > noDelIns :: Data a => a -> a
 > noDelIns =
 >     transformBi $ \x ->
 >       case x of
->         (funCallView -> FunCallView an "no_deletes_inserts_except_new_game"
->                           [StringLit _ _ tbl]):tl
->           -> flip map ["_no_delete","_no_insert"] (\n ->
->                CreateFunction an ("check_" ++ tbl ++ n) []
->                (SimpleTypeName an "trigger") Plpgsql "$a$"
->                (PlpgsqlFnBody an [] [
->                                  NullStatement an
->                                 ]) Stable) ++ tl
+>         [$sqlStmt| select no_deletes_inserts_except_new_game($s(table));|] : tl ->
+>           let icn = table ++ "_no_insert"
+>               dcn = table ++ "_no_delete"
+>               exprt = "exists(select 1 from creating_new_game_table\n\
+>                       \       where creating_new_game = true)"
+>           in [$sqlStmts|
+>               select create_insert_transition_tuple_constraint
+>                    ('table',$s(icn),$s(exprt));
+>               select create_delete_transition_tuple_constraint
+>                    ('table',$s(dcn),$s(exprt));
+>               |] ++ tl
 >         x1 -> x1
-
 
 -------------------------------------------------------------------------------
 
@@ -222,10 +153,30 @@ the copy statement which set up the data in spells_mr, then read the
 first cell from each line in the copy data string.
 
 additional hack: just hardcode the spell names here since they are
-unlikely to change for quite a while
+unlikely to change for quite a while - fix this after doing the
+readonly tables/ compile time constant relations stuff
 
-> getSpellNames :: Data a => a -> [String]
-> getSpellNames _ = ["chaos"
+> generateSpellChoiceActionsExample :: ExtensionTest
+> generateSpellChoiceActionsExample =
+>   ExtensionTest
+>     "spellChoiceActions"
+>     (generateSpellChoiceActionsRun ["horse"])
+>     [$sqlStmts| select generate_spell_choice_actions(); |]
+>     [$sqlStmts|
+>
+> CREATE FUNCTION action_choose_horse_spell() RETURNS void
+>     LANGUAGE plpgsql
+>     AS $$
+> begin
+>   perform check_can_run_action('choose_horse_spell');
+>   perform action_choose_spell('horse');
+> end;
+> $$;
+>
+>      |]
+
+> getSpellNames :: [String] --Data a => a -> [String]
+> getSpellNames =   ["chaos"
 >                   ,"dark_citadel"
 >                   ,"dark_power"
 >                   ,"decree"
@@ -281,39 +232,67 @@ unlikely to change for quite a while
 >                   ,"wraith"
 >                   ,"zombie"]
 >
+> generateSpellChoiceActions :: Data a => a -> a
+> generateSpellChoiceActions = generateSpellChoiceActionsRun getSpellNames
 >
-> replaceGenerateSpellChoiceActions :: Data a => a -> a
-> replaceGenerateSpellChoiceActions d = let sn = getSpellNames d
->                                       in replaceGenerateSpellChoiceActionsInt sn d
->
-> replaceGenerateSpellChoiceActionsInt :: Data a => [String] -> a -> a
-> replaceGenerateSpellChoiceActionsInt spellNames =
+> generateSpellChoiceActionsRun :: Data a => [String] -> a -> a
+> generateSpellChoiceActionsRun spells =
 >     transformBi $ \x ->
 >       case x of
->         (funCallView -> FunCallView an "generate_spell_choice_actions" []):tl
->           -> map (createChoiceFn an) spellNames ++ tl
->         (CreateFunction _ "generate_spell_choice_actions" _ _ _ _ _ _):tl
->           -> tl
->         (DropFunction _ _ [("generate_spell_choice_actions",[])] _):tl
->           -> tl
+>         [$sqlStmt| select generate_spell_choice_actions(); |] : tl
+>             -> flip concatMap spells $ \spell ->
+>                let actionname = "choose_" ++ spell ++ "_spell"
+>                    wrappername = "action_" ++ actionname
+>                in [$sqlStmts|
+>
+> create function $(wrappername)() returns void as $$
+> begin
+>   perform check_can_run_action($s(actionname));
+>   perform action_choose_spell($s(spell));
+> end;
+> $$ language plpgsql volatile;
+>
+>                    |] ++ tl
 >         x1 -> x1
->     where
->       createChoiceFn an sn =
->         CreateFunction an ("action_choose_" ++ sn ++ "_spell")
->                        []
->                        (SimpleTypeName [] "void")
->                        Plpgsql
->                        "$$"
->                        (PlpgsqlFnBody an [] [
->                                            NullStatement an
->                                           ]) Volatile -}
 
-CREATE FUNCTION action_choose_horse_spell() RETURNS void
-    LANGUAGE plpgsql
-    AS $$
-begin
-  perform check_can_run_action('choose_horse_spell');
-  perform action_choose_spell('horse');
-end;
-$$;
+-------------------------------------------------------------------------------
+
+> -- | looks for calls to function set_relvar_type and adds triggers to prevent the
+> -- referenced table from being updated
+> {-addReadonlyTriggers :: Data a => a -> a
+> addReadonlyTriggers =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "set_relvar_type" [StringLit _ _ tableName,StringLit _ _ "readonly"]):tl
+>             -> (flip map "diu" ( \t ->
+>                     (CreateFunction an ("check_" ++ tableName ++ "_" ++ [t] ++ "_readonly") []
+>                                     (SimpleTypeName an "trigger") Plpgsql
+>                                     "$a$"
+>                                     (PlpgsqlFnBody an [] [
+>                                       If an
+>                                         [(FunCall an "!not" [BooleanLit an False]
+>                                          ,[Raise an RException
+>                                            "delete on base_relvar_metadata \
+>                                            \violates transition constraint \
+>                                            \base_relvar_metadata_d_readonly" []])] []
+>                                      ,Return an $ Just $ NullLit an])
+>                                     Volatile)) ++ tl)
+>         x1 -> x1
+
+-------------------------------------------------------------------------------
+
+> -- | add a trigger to each data table to raise a notify signal when changed
+> addNotifyTriggers :: Data a => a -> a
+> addNotifyTriggers =
+>     transformBi $ \x ->
+>       case x of
+>         (funCallView -> FunCallView an "set_relvar_type" [StringLit _ _ tableName,StringLit _ _ "data"]):tl
+>           -> (CreateFunction an (tableName ++ "_changed") []
+>                                     (SimpleTypeName an "trigger") Plpgsql
+>                                     "$a$"
+>                                     (PlpgsqlFnBody an [] [
+>                                       Notify an tableName
+>                                      ,Return an $ Just $ NullLit an
+>                                      ]) Volatile : tl)
+>         x1 -> x1 -}
 
