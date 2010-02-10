@@ -28,7 +28,7 @@ SEM Statement
                    getTypeAnnotation @insData.annotatedTree
             checkColumnConsistency @lhs.cat
                                    @table
-                                   @targetCols.strings
+                                   @targetCols
                                    tys
         loc.insDataAddedInferredTypes =
             case @insData.annotatedTree of
@@ -38,7 +38,7 @@ SEM Statement
                   in Values ann [newExl]
               x -> x
 
-        loc.backTree = Insert @ann @table @targetCols.annotatedTree
+        loc.backTree = Insert @ann @table @targetCols
                               @loc.insDataAddedInferredTypes @returning.annotatedTree
         loc.catUpdates = []
 
@@ -153,12 +153,12 @@ SEM SetClause
         lhs.rowSetError = Nothing
     | RowSetClause
         loc.rowSetError =
-          let atts = @atts.strings
+          let atts = @atts
               types = getRowTypes @vals.typeList
           in if length atts /= length types
                then Just WrongNumberOfColumns
                else Nothing
-        lhs.pairs = zip @atts.strings $ getRowTypes @vals.typeList
+        lhs.pairs = zip @atts $ getRowTypes @vals.typeList
 
 {
 getRowTypes :: [Type] -> [Type]

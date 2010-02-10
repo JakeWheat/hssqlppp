@@ -63,7 +63,7 @@ Copyright 2009 Jake Wheat
 >     ,ExpressionListStatementListPair
 >     ,ExpressionList
 >     ,MaybeSelectList
->     ,StringList
+>     --,StringList
 >     ,ParamDefList
 >     ,AttributeDefList
 >     ,ConstraintList
@@ -87,6 +87,7 @@ Copyright 2009 Jake Wheat
 >     ,CaseExpressionList
 >     ,ExpressionDirectionPair
 >     ,ExpressionDirectionPairList
+>     ,AlterTableActionList
 >     ) where
 >
 > import Database.HsSqlPpp.AstInternals.AstInternal

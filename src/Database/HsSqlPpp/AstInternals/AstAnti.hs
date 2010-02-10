@@ -12,17 +12,16 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         FrameClause(..), InList(..), LiftFlavour(..), TriggerWhen(..),
         TriggerEvent(..), TriggerFire(..), SetValue(..), StatementList,
         ExpressionListStatementListPairList,
-        ExpressionListStatementListPair, ExpressionList, StringList,
-        ParamDefList, AttributeDefList, ConstraintList,
-        TypeAttributeDefList, TypeNameList, StringTypeNameListPair,
-        StringTypeNameListPairList, ExpressionStatementListPairList,
-        SetClauseList, CaseExpressionListExpressionPairList,
-        MaybeExpression, TableRefList, ExpressionListList, SelectItemList,
-        OnExpr, RowConstraintList, VarDefList, ExpressionStatementListPair,
+        ExpressionListStatementListPair, ExpressionList, ParamDefList,
+        AttributeDefList, ConstraintList, TypeAttributeDefList,
+        TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
+        ExpressionStatementListPairList, SetClauseList,
+        CaseExpressionListExpressionPairList, MaybeExpression,
+        TableRefList, ExpressionListList, SelectItemList, OnExpr,
+        RowConstraintList, VarDefList, ExpressionStatementListPair,
         CaseExpressionListExpressionPair, CaseExpressionList,
         ExpressionDirectionPair, ExpressionDirectionPairList,
-        MaybeBoolExpression, MaybeSelectList, AlterTableActionList,
-        SetValueList)
+        MaybeBoolExpression, MaybeSelectList, AlterTableActionList)
        where
 import Data.Generics
 import Database.HsSqlPpp.AstInternals.AstAnnotation
@@ -133,10 +132,10 @@ data AttributeDef = AttributeDef (Annotation) (String) (TypeName)
  
 data Constraint = CheckConstraint (Annotation) (String)
                                   (Expression)
-                | PrimaryKeyConstraint (Annotation) (String) (StringList)
-                | ReferenceConstraint (Annotation) (String) (StringList) (String)
-                                      (StringList) (Cascade) (Cascade)
-                | UniqueConstraint (Annotation) (String) (StringList)
+                | PrimaryKeyConstraint (Annotation) (String) ([String])
+                | ReferenceConstraint (Annotation) (String) ([String]) (String)
+                                      ([String]) (Cascade) (Cascade)
+                | UniqueConstraint (Annotation) (String) ([String])
                 deriving (Data, Eq, Show, Typeable)
  
 data Expression = BooleanLit (Annotation) (Bool)
@@ -172,7 +171,7 @@ data InList = InList (Annotation) (ExpressionList)
             deriving (Data, Eq, Show, Typeable)
  
 data JoinExpression = JoinOn (Annotation) (Expression)
-                    | JoinUsing (Annotation) (StringList)
+                    | JoinUsing (Annotation) ([String])
                     deriving (Data, Eq, Show, Typeable)
  
 data ParamDef = ParamDef (Annotation) (String) (TypeName)
@@ -201,10 +200,10 @@ data SelectItem = SelExp (Annotation) (Expression)
                 deriving (Data, Eq, Show, Typeable)
  
 data SelectList = SelectList (Annotation) (SelectItemList)
-                             (StringList)
+                             ([String])
                 deriving (Data, Eq, Show, Typeable)
  
-data SetClause = RowSetClause (Annotation) (StringList)
+data SetClause = RowSetClause (Annotation) ([String])
                               (ExpressionList)
                | SetClause (Annotation) (String) (Expression)
                deriving (Data, Eq, Show, Typeable)
@@ -215,7 +214,7 @@ data Statement = AlterSequence (Annotation) (String) (String)
                | CaseStatement (Annotation) (Expression)
                                (ExpressionListStatementListPairList) (StatementList)
                | ContinueStatement (Annotation)
-               | Copy (Annotation) (String) (StringList) (CopySource)
+               | Copy (Annotation) (String) ([String]) (CopySource)
                | CopyData (Annotation) (String)
                | CreateDomain (Annotation) (String) (TypeName) (String)
                               (MaybeBoolExpression)
@@ -235,16 +234,16 @@ data Statement = AlterSequence (Annotation) (String) (String)
                         (MaybeSelectList)
                | DropFunction (Annotation) (IfExists) (StringTypeNameListPairList)
                               (Cascade)
-               | DropSomething (Annotation) (DropType) (IfExists) (StringList)
+               | DropSomething (Annotation) (DropType) (IfExists) ([String])
                                (Cascade)
                | Execute (Annotation) (Expression)
-               | ExecuteInto (Annotation) (Expression) (StringList)
+               | ExecuteInto (Annotation) (Expression) ([String])
                | ForIntegerStatement (Annotation) (String) (Expression)
                                      (Expression) (StatementList)
                | ForSelectStatement (Annotation) (String) (SelectExpression)
                                     (StatementList)
                | If (Annotation) (ExpressionStatementListPairList) (StatementList)
-               | Insert (Annotation) (String) (StringList) (SelectExpression)
+               | Insert (Annotation) (String) ([String]) (SelectExpression)
                         (MaybeSelectList)
                | Notify (Annotation) (String)
                | NullStatement (Annotation)
@@ -254,15 +253,15 @@ data Statement = AlterSequence (Annotation) (String) (String)
                | ReturnNext (Annotation) (Expression)
                | ReturnQuery (Annotation) (SelectExpression)
                | SelectStatement (Annotation) (SelectExpression)
-               | Set (Annotation) (String) (SetValueList)
-               | Truncate (Annotation) (StringList) (RestartIdentity) (Cascade)
+               | Set (Annotation) (String) ([SetValue])
+               | Truncate (Annotation) ([String]) (RestartIdentity) (Cascade)
                | Update (Annotation) (String) (SetClauseList)
                         (MaybeBoolExpression) (MaybeSelectList)
                | WhileStatement (Annotation) (Expression) (StatementList)
                | AntiStatement String
                deriving (Data, Eq, Show, Typeable)
  
-data TableAlias = FullAlias (String) (StringList)
+data TableAlias = FullAlias (String) ([String])
                 | NoAlias
                 | TableAlias (String)
                 deriving (Data, Eq, Show, Typeable)
@@ -336,11 +335,7 @@ type SelectItemList = [(SelectItem)]
  
 type SetClauseList = [(SetClause)]
  
-type SetValueList = [(SetValue)]
- 
 type StatementList = [(Statement)]
- 
-type StringList = [(String)]
  
 type StringTypeNameListPair = ((String), (TypeNameList))
  
@@ -499,18 +494,16 @@ constraint :: Constraint -> A.Constraint
 constraint x
   = case x of
         CheckConstraint a1 a2 a3 -> A.CheckConstraint a1 a2 (expression a3)
-        PrimaryKeyConstraint a1 a2 a3 -> A.PrimaryKeyConstraint a1 a2
-                                           (stringList a3)
+        PrimaryKeyConstraint a1 a2 a3 -> A.PrimaryKeyConstraint a1 a2 a3
         ReferenceConstraint a1 a2 a3 a4 a5 a6 a7 -> A.ReferenceConstraint
                                                       a1
                                                       a2
-                                                      (stringList a3)
+                                                      a3
                                                       a4
-                                                      (stringList a5)
+                                                      a5
                                                       (cascade a6)
                                                       (cascade a7)
-        UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2
-                                       (stringList a3)
+        UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2 a3
  
 expression :: Expression -> A.Expression
 expression x
@@ -561,7 +554,7 @@ joinExpression :: JoinExpression -> A.JoinExpression
 joinExpression x
   = case x of
         JoinOn a1 a2 -> A.JoinOn a1 (expression a2)
-        JoinUsing a1 a2 -> A.JoinUsing a1 (stringList a2)
+        JoinUsing a1 a2 -> A.JoinUsing a1 a2
  
 paramDef :: ParamDef -> A.ParamDef
 paramDef x
@@ -608,14 +601,12 @@ selectItem x
 selectList :: SelectList -> A.SelectList
 selectList x
   = case x of
-        SelectList a1 a2 a3 -> A.SelectList a1 (selectItemList a2)
-                                 (stringList a3)
+        SelectList a1 a2 a3 -> A.SelectList a1 (selectItemList a2) a3
  
 setClause :: SetClause -> A.SetClause
 setClause x
   = case x of
-        RowSetClause a1 a2 a3 -> A.RowSetClause a1 (stringList a2)
-                                   (expressionList a3)
+        RowSetClause a1 a2 a3 -> A.RowSetClause a1 a2 (expressionList a3)
         SetClause a1 a2 a3 -> A.SetClause a1 a2 (expression a3)
  
 statement :: Statement -> A.Statement
@@ -628,7 +619,7 @@ statement x
                                        (expressionListStatementListPairList a3)
                                        (statementList a4)
         ContinueStatement a1 -> A.ContinueStatement a1
-        Copy a1 a2 a3 a4 -> A.Copy a1 a2 (stringList a3) (copySource a4)
+        Copy a1 a2 a3 a4 -> A.Copy a1 a2 a3 (copySource a4)
         CopyData a1 a2 -> A.CopyData a1 a2
         CreateDomain a1 a2 a3 a4 a5 -> A.CreateDomain a1 a2 (typeName a3)
                                          a4
@@ -666,11 +657,10 @@ statement x
                                       (cascade a4)
         DropSomething a1 a2 a3 a4 a5 -> A.DropSomething a1 (dropType a2)
                                           (ifExists a3)
-                                          (stringList a4)
+                                          a4
                                           (cascade a5)
         Execute a1 a2 -> A.Execute a1 (expression a2)
-        ExecuteInto a1 a2 a3 -> A.ExecuteInto a1 (expression a2)
-                                  (stringList a3)
+        ExecuteInto a1 a2 a3 -> A.ExecuteInto a1 (expression a2) a3
         ForIntegerStatement a1 a2 a3 a4 a5 -> A.ForIntegerStatement a1 a2
                                                 (expression a3)
                                                 (expression a4)
@@ -680,8 +670,7 @@ statement x
                                             (statementList a4)
         If a1 a2 a3 -> A.If a1 (expressionStatementListPairList a2)
                          (statementList a3)
-        Insert a1 a2 a3 a4 a5 -> A.Insert a1 a2 (stringList a3)
-                                   (selectExpression a4)
+        Insert a1 a2 a3 a4 a5 -> A.Insert a1 a2 a3 (selectExpression a4)
                                    (maybeSelectList a5)
         Notify a1 a2 -> A.Notify a1 a2
         NullStatement a1 -> A.NullStatement a1
@@ -692,9 +681,8 @@ statement x
         ReturnNext a1 a2 -> A.ReturnNext a1 (expression a2)
         ReturnQuery a1 a2 -> A.ReturnQuery a1 (selectExpression a2)
         SelectStatement a1 a2 -> A.SelectStatement a1 (selectExpression a2)
-        Set a1 a2 a3 -> A.Set a1 a2 (setValueList a3)
-        Truncate a1 a2 a3 a4 -> A.Truncate a1 (stringList a2)
-                                  (restartIdentity a3)
+        Set a1 a2 a3 -> A.Set a1 a2 (fmap setValue a3)
+        Truncate a1 a2 a3 a4 -> A.Truncate a1 a2 (restartIdentity a3)
                                   (cascade a4)
         Update a1 a2 a3 a4 a5 -> A.Update a1 a2 (setClauseList a3)
                                    (maybeBoolExpression a4)
@@ -706,7 +694,7 @@ statement x
 tableAlias :: TableAlias -> A.TableAlias
 tableAlias x
   = case x of
-        FullAlias a1 a2 -> A.FullAlias a1 (stringList a2)
+        FullAlias a1 a2 -> A.FullAlias a1 a2
         NoAlias -> A.NoAlias
         TableAlias a1 -> A.TableAlias a1
  
@@ -828,14 +816,8 @@ selectItemList = fmap selectItem
 setClauseList :: SetClauseList -> A.SetClauseList
 setClauseList = fmap setClause
  
-setValueList :: SetValueList -> A.SetValueList
-setValueList = fmap setValue
- 
 statementList :: StatementList -> A.StatementList
 statementList = fmap statement
- 
-stringList :: StringList -> A.StringList
-stringList = id
  
 stringTypeNameListPair ::
                        StringTypeNameListPair -> A.StringTypeNameListPair

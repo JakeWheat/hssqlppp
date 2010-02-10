@@ -59,7 +59,7 @@ SEM SelectList
             targetTypes = rights $ targetTypeEithers
             typePairs = zip (map snd @items.listType) targetTypes
             assignErrs = concat $ lefts $ map (uncurry $ checkAssignmentValid @lhs.cat) typePairs
-            sl = @into.strings
+            sl = @into
             matchingComposite =
                 case targetTypes of
                   [t] | isCompositeType t -> checkAssignmentValid @lhs.cat (AnonymousRecordType (map snd @items.listType)) t
@@ -67,7 +67,7 @@ SEM SelectList
 
         lhs.annotatedTree = SelectList (@ann ++ map TypeErrorA @loc.errs)
                                        @items.annotatedTree
-                                       @into.annotatedTree
+                                       @into
         lhs.libUpdates =
             case @loc.stuff of
               (_,Just r) -> [LBIds "set record actual fields from select into" ""

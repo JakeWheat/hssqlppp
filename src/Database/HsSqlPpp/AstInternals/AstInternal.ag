@@ -80,7 +80,6 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,ExpressionListStatementListPairList
    ,ExpressionListStatementListPair
    ,ExpressionList
-   ,StringList
    ,ParamDefList
    ,AttributeDefList
    ,ConstraintList
@@ -107,7 +106,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,MaybeSelectList
    ,SetValue(..)
    ,AlterTableActionList
-   ,SetValueList
+   --,SetValueList
    -- typechecking
    ,typeCheck
    ,typeCheckPS
@@ -157,7 +156,7 @@ DATA Statement
     --table targetcolumns insertdata(values or select statement) returning
     | Insert ann:Annotation
              table : String
-             targetCols : StringList
+             targetCols : {[String]}
              insData : SelectExpression
              returning : MaybeSelectList
     --tablename setitems where returning
@@ -174,12 +173,12 @@ DATA Statement
     --tablename column names, from
     | Copy ann:Annotation
            table : String
-           targetCols : StringList
+           targetCols : {[String]}
            source : CopySource
     --represents inline data for copy statement
     | CopyData ann:Annotation insData : String
     | Truncate ann:Annotation
-               tables: StringList
+               tables: {[String]}
                restartIdentity : RestartIdentity
                cascade : Cascade
 
@@ -245,7 +244,7 @@ DATA Statement
     | DropSomething ann:Annotation
                     dropType : DropType
                     ifE : IfExists
-                    names : StringList
+                    names : {[String]}
                     cascade : Cascade
     | Assignment ann:Annotation
                  target : String
@@ -267,7 +266,7 @@ DATA Statement
               expr : Expression
     | ExecuteInto ann:Annotation
                   expr : Expression
-                  targets : StringList
+                  targets : {[String]}
     | ForSelectStatement ann:Annotation
                          var : String
                          sel : SelectExpression
@@ -295,7 +294,7 @@ DATA Statement
 
 --misc
 
-    | Set ann:Annotation name:String values:SetValueList
+    | Set ann:Annotation name:String values:{[SetValue]}
     | Notify ann:Annotation name:String
 
 -- =============================================================================
@@ -325,7 +324,7 @@ DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation vars:VarDefList sts : StatementList
 
 DATA SetClause | SetClause ann:Annotation att:String val:Expression
-               | RowSetClause ann:Annotation atts:StringList vals:ExpressionList
+               | RowSetClause ann:Annotation atts:{[String]} vals:ExpressionList
 
 DATA TableRef | Tref ann:Annotation
                      tbl:String
@@ -346,10 +345,10 @@ DATA TableRef | Tref ann:Annotation
 
 DATA TableAlias | NoAlias
                 | TableAlias alias:String
-                | FullAlias alias:String cols:StringList
+                | FullAlias alias:String cols:{[String]}
 
 DATA JoinExpression | JoinOn ann:Annotation Expression
-                    | JoinUsing ann:Annotation StringList
+                    | JoinUsing ann:Annotation x:{[String]}
 
 {
 data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
@@ -358,7 +357,7 @@ data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 
 -- select columns, into columns
 
-DATA SelectList | SelectList ann:Annotation items:SelectItemList into:StringList
+DATA SelectList | SelectList ann:Annotation items:SelectItemList into:{[String]}
 
 DATA SelectItem | SelExp ann:Annotation ex:Expression
                 | SelectItem ann:Annotation ex:Expression name:String
@@ -391,15 +390,15 @@ DATA RowConstraint | NullConstraint ann:Annotation name:String
 
 --constraints which appear on a separate row in the create table
 
-DATA Constraint | UniqueConstraint ann:Annotation name:String StringList
-                | PrimaryKeyConstraint ann:Annotation name:String StringList
+DATA Constraint | UniqueConstraint ann:Annotation name:String x:{[String]}
+                | PrimaryKeyConstraint ann:Annotation name:String x:{[String]}
                 | CheckConstraint ann:Annotation name:String Expression
                   -- sourcecols targettable targetcols ondelete onupdate
                 | ReferenceConstraint ann:Annotation
                                       name:String
-                                      atts : StringList
+                                      atts : {[String]}
                                       table : String
-                                      tableAtts : StringList
+                                      tableAtts : {[String]}
                                       onUpdate : Cascade
                                       onDelete : Cascade
 
@@ -618,7 +617,6 @@ TYPE MaybeBoolExpression = MAYBE Expression
 
 TYPE ExpressionList = [Expression]
 TYPE ExpressionListList = [ExpressionList]
-TYPE StringList = [String]
 TYPE SetClauseList = [SetClause]
 TYPE AttributeDefList = [AttributeDef]
 TYPE ConstraintList = [Constraint]
@@ -642,7 +640,7 @@ TYPE ExpressionDirectionPair = (Expression,Direction)
 TYPE ExpressionDirectionPairList = [ExpressionDirectionPair]
 TYPE AlterTableActionList = [AlterTableAction]
 -- TYPE TriggerEventList = [TriggerEvent]
-TYPE SetValueList = [SetValue]
+-- TYPE SetValueList = [SetValue]
 -- Add a root data type so we can put initial values for inherited
 -- attributes in the section which defines and uses those attributes
 -- rather than in the sem_ calls
@@ -670,7 +668,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                TypeAttributeDef ParamDef VarDef Constraint
                TypeName
                Expression InList MaybeExpression MaybeBoolExpression
-               ExpressionList ExpressionListList StringList SetClauseList
+               ExpressionList ExpressionListList SetClauseList
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList TypeNameList StringTypeNameListPair
                StringTypeNameListPairList
@@ -683,7 +681,6 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                TableAlias AlterTableAction
                ExpressionDirectionPair
                ExpressionDirectionPairList AlterTableActionList
-               SetValueList
 
 
 DERIVING AllNodes: Show,Eq,Typeable,Data

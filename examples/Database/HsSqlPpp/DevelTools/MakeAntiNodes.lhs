@@ -210,13 +210,25 @@ apply the conversion function otherwise just use the value unchanged
 >   case () of
 >     _ | tn `elem` ts -> App (Var (UnQual (Ident $ lowerFirst tn)))
 >                         (Var (UnQual (Ident l)))
->       | unlist -> App (App (Var (UnQual (Ident "fmap")))
->                         (Var (UnQual (Ident unlistl))))
->                    (Var (UnQual (Ident l)))
+>       | unlist -> let tx = upperFirst unlistl
+>                   in if tx `elem` ts
+>                      then App (App (Var (UnQual (Ident "fmap")))
+>                                        (Var (UnQual (Ident unlistl))))
+>                               (Var (UnQual (Ident l)))
+>                      else Var (UnQual (Ident l))
+>       | unmaybe -> let tx = upperFirst unmaybel
+>                    in if tx `elem` ts
+>                       then App (App (Var (UnQual (Ident "fmap")))
+>                                         (Var (UnQual (Ident $ lowerFirst tx))))
+>                                (Var (UnQual (Ident l)))
+>                       else Var (UnQual (Ident l))
 >       | otherwise -> Var (UnQual (Ident l))
 >   where
 >     unlistl = lowerFirst $ take (length tn - 4) tn
 >     unlist = isSuffixOf "List" tn
+>     unmaybe = isPrefixOf "Maybe" tn
+>     unmaybel = lowerFirst $ drop 5 tn
+
 
 extract the name of the type being defined from a decl
 

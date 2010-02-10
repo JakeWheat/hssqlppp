@@ -61,11 +61,11 @@ SEM ExpressionListList
 
 
 -- stringlist: collect the strings
-ATTR StringList [||strings : {[String]}]
+--ATTR StringList [||strings : {[String]}]
 
-SEM StringList
-  | Cons lhs.strings = @hd : @tl.strings
-  | Nil lhs.strings = []
+--SEM StringList
+--  | Cons lhs.strings = @hd : @tl.strings
+--  | Nil lhs.strings = []
 
 -- maybe bool expression: if present, then check its type is bool
 
