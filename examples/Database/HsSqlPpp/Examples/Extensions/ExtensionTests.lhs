@@ -21,10 +21,12 @@ Gather together the examples from the extension modules and convert to regular t
 > import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 > import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraintTests
 > import Database.HsSqlPpp.Examples.Extensions.CardinalityRestrict
+> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
 >
 > testData :: [ExtensionTest]
 > testData = transitionConstraintExamples ++
 >            extendedConstraintExamples ++
+>            chaosExtensionsExamples ++
 >            [createVarSimpleExample
 >            ,createVarExample
 >            ,cardinalityRestrictExample

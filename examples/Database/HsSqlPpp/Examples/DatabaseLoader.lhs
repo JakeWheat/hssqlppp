@@ -20,7 +20,7 @@ PostgreSQL.
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Parser
 >
-> import Database.HsSqlPpp.Examples.ChaosExtensions
+> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
 
 One small complication: haven't worked out how to send copy data from
 haskell via HDBC or the pg lib, so use a dodgy hack to write inline
@@ -61,7 +61,7 @@ them, then pass to loadAst above.
 > loadWithChaosExtensions :: String -> [String] -> IO ()
 > loadWithChaosExtensions dbName fns =
 >   wrap $ (concat <$> mapM loadSql fns) >>=
->            liftIO . loadAst dbName . extensionize
+>            liftIO . loadAst dbName . chaosExtensions
 >   where
 >     loadSql :: String -> ErrorT String IO [Statement]
 >     loadSql fn = liftIO (parseSqlFile fn) >>= tsl
