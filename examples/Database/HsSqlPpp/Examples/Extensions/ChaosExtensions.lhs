@@ -36,12 +36,17 @@ chaos working again then will review approach.
 >
 > -- | run all the extensions in this module on the given ast
 > chaosExtensions :: Data a => a -> a
-> chaosExtensions = clientActionWrapper . noDelIns . generateSpellChoiceActions
+> chaosExtensions = clientActionWrapper
+>                   . noDelIns
+>                   . generateSpellChoiceActions
+>                   . notNull
 
 > chaosExtensionsExamples :: [ExtensionTest]
 > chaosExtensionsExamples = [clientActionWrapperExample
 >                           ,noDelInsExample
->                           ,generateSpellChoiceActionsExample]
+>                           ,generateSpellChoiceActionsExample
+>                           ,notNullExample1
+>                           ,notNullExample2]
 
 --------------------------------------------------------------------------------
 
@@ -255,6 +260,65 @@ readonly tables/ compile time constant relations stuff
 >                    |] ++ tl
 >         x1 -> x1
 
+------------------------------
+
+not null
+--------
+
+saves us putting not null all over almost every table definition
+
+The _mr suffix was left over from an attempt to do some sort of poor
+man's multirelation system.  The _mr tables can contain nullable as
+well as non-nullable columns, so we leave them alone when setting non
+nulls and ignore them when checking for nullable attributes.
+
+
+> notNullExample1 :: ExtensionTest
+> notNullExample1 =
+>   ExtensionTest
+>     "notNull1"
+>     notNull
+>     [$sqlStmts|
+>      create table t1 (
+>        a text,
+>        b int
+>      ); |]
+>     [$sqlStmts|
+>      create table t1 (
+>        a text not null,
+>        b int not null
+>      );
+>      |]
+
+> notNullExample2 :: ExtensionTest
+> notNullExample2 =
+>   ExtensionTest
+>     "notNull2"
+>     notNull
+>     [$sqlStmts|
+>      create table t1_mr (
+>        a text,
+>        b int
+>      ); |]
+>     [$sqlStmts|
+>      create table t1_mr (
+>        a text,
+>        b int
+>      );
+>      |]
+> notNull :: Data a => a -> a
+> notNull =
+>     transformBi $ \x ->
+>       case x of
+>         CreateTable a nm atts c | not (isSuffixOf "_mr" nm) ->
+>           CreateTable a nm (map fixAtt atts) c
+>         x1 -> x1
+>     where
+>       -- this works because there are no null or not null
+>       -- constraints in the source sql except in the tables
+>       -- that are skipped (*_mr)
+>       fixAtt (AttributeDef a n t d c) =  (AttributeDef a n t d (NotNullConstraint [] "" : c))
+
 -------------------------------------------------------------------------------
 
 > -- | looks for calls to function set_relvar_type and adds triggers to prevent the
@@ -278,9 +342,6 @@ readonly tables/ compile time constant relations stuff
 >                                      ,Return an $ Just $ NullLit an])
 >                                     Volatile)) ++ tl)
 >         x1 -> x1
-
--------------------------------------------------------------------------------
-
 > -- | add a trigger to each data table to raise a notify signal when changed
 > addNotifyTriggers :: Data a => a -> a
 > addNotifyTriggers =

@@ -3,7 +3,7 @@ Examples
 
 All this code is currently available in the cabal source package, to get use
 
-~~~~~{.Bash}
+~~~~~{.sh}
 cabal update
 cabal unpack hssqlppp
 ~~~~~
@@ -77,31 +77,12 @@ SQL Extensions
 
 Some examples to write extensions to plpgsql using ast
 transforms. (Being able to do this was the original motivation for
-writing HsSqlPpp.)
+writing HsSqlPpp.) These give plenty of examples of using
+quasiquotation.
 
 [CreateVarSimple](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/CreateVarSimple.lhs.html).
 Demonstration extension.
 
-[ExtendedConstraints](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/ExtendedConstraints.lhs.html).
+See the other files in this folder for more:
 
-[Modules](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/Module.lhs.html).
-
-[ReadOnlyTables](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/ReadOnlyTables.lhs.html).
-
-[SimplifiedCatalog](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/SimplifiedCatalog.lhs.html).
-
-[TransitionConstraints](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/TransitionConstraints.lhs.html).
-
-[CreateVar](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/CreateVar.lhs.html)
-
-ddl triggers
-
-notify system
-
-default not null
-
-cardinality constraint shorthands
-
-multiple update hack
-
-out of order definitions
+[Extensions](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/).

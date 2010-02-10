@@ -17,8 +17,8 @@ Template Haskell code to return database queries as lists of tuples.
 > import System.IO.Unsafe
 > import Data.IORef
 > -- the select relation from the library returns strings, but
-> -- we want the completely pointless wrapper which gives use sqlvalues
-> -- we can cast better
+> -- we want the completely pointless wrapper which gives us sqlvalues,
+> -- which we can cast better
 > import Database.HsSqlPpp.Utils.DbmsCommon hiding (selectRelation)
 > import Database.HsSqlPpp.Examples.Wrappers.SelectRelation
 > import qualified Database.HsSqlPpp.SqlTypes as Sql

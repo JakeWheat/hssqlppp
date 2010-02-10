@@ -19,6 +19,8 @@ fix string parsing - get rid of the quote part in the ast node, and
 getting a catalog from a database involves reading the updates then
    applying them, which is bizarre, sort it out
 
+add tests for extensions actually working by using them in a database
+
 focus: website/documentation, examples
        missing catalog elements: triggers, sequences, constraints, indexes, defaults
        do command line wrapper generator thing for hssqlsystem

@@ -29,22 +29,3 @@ Simple ast transforms, just substitutes the strings given in the reps
 >             x1 -> x1
 >   where
 >     fstReps = map fst reps
-
-View pattern support to help match function calls in an ast. TODO: try
-quasipattern instead
-
-> {-data FunCallView = FUnit
->                  | FunCallView Annotation String [Expression]
->
-> funCallView :: Statement -> FunCallView
-> funCallView (SelectStatement an
->              (Select _ _
->               (SelectList _ [SelExp _ (FunCall _ fnName args)] [])
->               []
->               Nothing
->               []
->               Nothing
->               []
->               Nothing
->               Nothing)) = FunCallView an fnName args
-> funCallView _ = FUnit-}
