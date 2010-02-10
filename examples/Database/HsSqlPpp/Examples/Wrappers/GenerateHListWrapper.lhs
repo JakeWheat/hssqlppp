@@ -1,5 +1,7 @@
 Copyright 2010 Jake Wheat
 
+This code is cut and pasted in from the tuple approach and never worked.
+
 > {-# LANGUAGE FlexibleContexts #-}
 >
 > module Database.HsSqlPpp.Examples.Wrappers.GenerateHListWrapper

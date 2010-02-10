@@ -1,6 +1,6 @@
 Copyright 2010 Jake Wheat
 
-Example of using the tuple code generator.
+Example of using the tuple code generator. Code isn't finished
 
 > module Database.HsSqlPpp.Examples.Wrappers.GenerateTupleSourceExample
 >     {-(runTest)-} where

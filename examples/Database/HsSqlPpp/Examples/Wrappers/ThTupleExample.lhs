@@ -24,13 +24,13 @@ Example of using the template haskell tuple wrapper.
 >            "\nsuppliers 4\n" ++ showl y
 >   where
 >     showl = intercalate "\n" . map show
-
-
+>
+>
 > -- the connection string here is used at compile time to get the
 > -- type of the sql statement
 > suppliers :: IConnection conn => conn -> IO [(Maybe Int, Maybe String, Maybe Int, Maybe String)]
 > suppliers = $(sqlQuery connectionString "select * from s;")
-
+>
 > goodSuppliers :: IConnection conn => conn
 >               -> Maybe Int
 >               -> IO [(Maybe Int, Maybe String, Maybe Int, Maybe String)]

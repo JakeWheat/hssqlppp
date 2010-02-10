@@ -5,9 +5,11 @@ hlists. Limitation is that you have to edit this file to add the field
 definitions and possibly exports. Suggested use is to copy this file
 into your own project and edit it there.
 
+Doesn't work at the moment, but used to.
+
 > {-# LANGUAGE TemplateHaskell,EmptyDataDecls,DeriveDataTypeable,
 >   TupleSections #-}
-
+>
 > module Database.HsSqlPpp.Examples.Wrappers.ThHListWrapper
 >     (withConn
 >     ,sqlQuery
@@ -19,7 +21,7 @@ here also, exporting them isn't neccessarily neccessary otherwise.
 
 >     ,s_no,sname,status,city
 >     ,S_no,Sname,Status,City
-
+>
 >     ,module Data.HList
 >     ,module Data.HList.Label1
 >     ,module Data.HList.TypeEqGeneric1

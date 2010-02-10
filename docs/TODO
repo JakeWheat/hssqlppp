@@ -9,7 +9,6 @@ convert error to either in conversion from anti to regular ast
 sort out documentation:
 fix data: make hssqlsystem nicer, work on wrapper examples and
   library source files
-graphics: pick colour scheme, add some sort of header, footer ish
 nav: create a 'sitemap' thing, and nav bar and breadcrumbs to each
    page
 work on rendering source - issues with markdown, embedded sql, etc.
@@ -32,13 +31,8 @@ focus: website/documentation, examples
          find a way to get listen working from haskell
        work on roundtrip tests - get working for chaos
 doc work todos:
-fix presentation: css mainly
-check issue with hscolour and anchors
-hack hscolour to do pandoc for literate sections
-check hscolour slowness with proper defaulttemplate1catalog
-check pandoc slowness with this
-check pandoc hang with big ast in hssqlsystem example
-get non lhs files rendering with pandoc
+check pandoc & haddock slowness with defaulttemplate1catalog
+check pandoc hang with big ast in hssqlsystem example, other places
 tidy code, get rendering nicely with pandoc
 
 also:

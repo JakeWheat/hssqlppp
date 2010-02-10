@@ -3,28 +3,23 @@ Copyright 2010 Jake Wheat
 Template Haskell code to return database queries as lists of tuples.
 
 > {-# LANGUAGE TemplateHaskell #-}
-
+>
 > module Database.HsSqlPpp.Examples.Wrappers.ThTupleWrapper
 >     (withConn
 >     ,sqlQuery
 >     ,IConnection) where
-
+>
 > import Language.Haskell.TH
-
 > import Data.Maybe
 > import Control.Applicative
 > import Control.Monad.Error
-> --import Control.Monad
-> --import Control.Exception
-
 > import Database.HDBC
-> --import qualified Database.HDBC.PostgreSQL as Pg
-
 > import System.IO.Unsafe
 > import Data.IORef
-
+> -- the select relation from the library returns strings, but
+> -- we want the completely pointless wrapper which gives use sqlvalues
+> -- we can cast better
 > import Database.HsSqlPpp.Utils.DbmsCommon hiding (selectRelation)
-
 > import Database.HsSqlPpp.Examples.Wrappers.SelectRelation
 > import qualified Database.HsSqlPpp.SqlTypes as Sql
 > import Database.HsSqlPpp.Catalog
@@ -32,7 +27,7 @@ Template Haskell code to return database queries as lists of tuples.
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Utils.Utils
-
+>
 > sqlQuery:: String -> String -> Q Exp
 > sqlQuery dbName sqlStr = do
 >   (StatementHaskellType inA outA) <- liftStType
@@ -88,7 +83,6 @@ Template Haskell code to return database queries as lists of tuples.
 >     getNNewNames :: String -> Int -> Q [Name]
 >     getNNewNames i n = forM [1..n] $ const $ newName i
 
-================================================================================
 
 evil hack to avoid reading the catalog from the database for each call
 to sqlStmt. Atm this means that you can only read the catalog from one
@@ -101,11 +95,15 @@ emacs it will go wrong
 > {-# NOINLINE globalCachedCatalog #-}
 > globalCachedCatalog = unsafePerformIO (newIORef Nothing)
 
-================================================================================
+-------------------------------------------------------------------------------
 
 sql parsing and typechecking
+----------------------------
 
-get the input and output types for a parameterized sql statement:
+This is the demonstration of using the type checker to get the
+information needed.
+
+Get the input and output types for a parameterized sql statement:
 
 > getStatementType :: Catalog -> String -> Either String StatementType
 > getStatementType cat sql = do
@@ -119,7 +117,7 @@ haskell equivalents - HDBC knows how to convert the actual values using
 toSql and fromSql as long as we add in the appropriate casts
 
 > data StatementHaskellType = StatementHaskellType [Type] [(String,Type)]
-
+>
 > toH :: StatementType -> Q StatementHaskellType
 > toH (StatementType i o) = do
 >   ih <- mapM sqlTypeToHaskell i
