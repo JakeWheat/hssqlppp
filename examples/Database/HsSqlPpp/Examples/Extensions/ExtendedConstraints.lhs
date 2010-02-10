@@ -235,10 +235,8 @@ which also have constraints in the second file.
 >
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.AstUtils
 
@@ -264,12 +262,10 @@ to make it work right.
 > extendedConstraints ast = reverse $
 >  (\f -> evalState (transformBiM f (reverse ast)) ([] :: ConstraintRecord)) $ \x ->
 >       case x of
->         (funCallView -> FunCallView _
->                                     "create_assertion"
->                                     [StringLit _ _ name
->                                     ,StringLit _ _ exprText]):tl -> do
+>         [$sqlStmt| select create_assertion($s(name)
+>                                           ,$s(exprtext));|] : tl -> do
 >             existing <- get
->             let (new, rast) = makeConstraintDdl existing name exprText
+>             let (new, rast) = makeConstraintDdl existing name exprtext
 >             put new
 >             return $ rast ++ tl
 >         x1 -> return x1

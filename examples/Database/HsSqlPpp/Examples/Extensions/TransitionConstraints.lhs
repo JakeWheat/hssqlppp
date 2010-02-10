@@ -20,7 +20,6 @@ temporal relations.
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 
@@ -114,17 +113,15 @@ implementation
 > transitionConstraint =
 >     transformBi $ \x ->
 >       case x of
->         (funCallView -> FunCallView _
->                                     fn
->                                     [StringLit _ _ tableName
->                                     ,StringLit _ _ constraintName
->                                     ,StringLit _ _ expressionText]):tl
+>         [$sqlStmt| select $(fn)($s(tablename)
+>                                ,$s(constraintname)
+>                                ,$s(expressiontext));|] : tl
 >             | fn == "create_insert_transition_tuple_constraint" ->
->                  gen TInsert tableName constraintName expressionText ++ tl
+>                  gen TInsert tablename constraintname expressiontext ++ tl
 >             | fn == "create_update_transition_tuple_constraint" ->
->                  gen TUpdate tableName constraintName expressionText ++ tl
+>                  gen TUpdate tablename constraintname expressiontext ++ tl
 >             | fn == "create_delete_transition_tuple_constraint" ->
->                  gen TDelete tableName constraintName expressionText ++ tl
+>                  gen TDelete tablename constraintname expressiontext ++ tl
 >         x1 -> x1
 >     where
 >       gen :: TriggerEvent -> String -> String -> String -> [Statement]

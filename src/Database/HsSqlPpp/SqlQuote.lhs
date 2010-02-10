@@ -42,12 +42,12 @@ Copyright 2010 Jake Wheat
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.Parsing.ParserInternal
-> --import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.AstInternals.AstAnti
 >
 > -- | parses Statements
 > sqlStmts :: QuasiQuoter
-> sqlStmts = QuasiQuoter (parseExprExp parseAntiSql) parseExprPat
+> sqlStmts = QuasiQuoter (parseExprExp parseAntiSql) (parseExprPat parseAntiSql)
 >
 > parseOneAntiSql :: Parser String Statement
 > parseOneAntiSql f l c s =
@@ -58,15 +58,15 @@ Copyright 2010 Jake Wheat
 >
 > -- | parses a single Statement
 > sqlStmt :: QuasiQuoter
-> sqlStmt = QuasiQuoter (parseExprExp parseOneAntiSql) parseExprPat
+> sqlStmt = QuasiQuoter (parseExprExp parseOneAntiSql) (parseExprPat parseOneAntiSql)
 >
 > -- | parses plpgsql Statements
 > pgsqlStmts :: QuasiQuoter
-> pgsqlStmts = QuasiQuoter (parseExprExp parseAntiPlpgsql) parseExprPat
+> pgsqlStmts = QuasiQuoter (parseExprExp parseAntiPlpgsql) (parseExprPat parseAntiPlpgsql)
 >
 > -- | parses a plpgsql Statement
 > pgsqlStmt :: QuasiQuoter
-> pgsqlStmt = QuasiQuoter (parseExprExp parseOneAntiPlpgsql) parseExprPat
+> pgsqlStmt = QuasiQuoter (parseExprExp parseOneAntiPlpgsql) (parseExprPat parseOneAntiPlpgsql)
 >
 > parseOneAntiPlpgsql :: Parser String Statement
 > parseOneAntiPlpgsql f l c s =
@@ -77,7 +77,7 @@ Copyright 2010 Jake Wheat
 >
 > -- | parse an Expression
 > sqlExpr :: QuasiQuoter
-> sqlExpr = QuasiQuoter (parseExprExp parseAntiExpression) parseExprPat
+> sqlExpr = QuasiQuoter (parseExprExp parseAntiExpression) (parseExprPat parseAntiExpression)
 
 ~~~~
 these badboys return asts of from the module
@@ -100,18 +100,32 @@ magically converts from one to the other ...
 >                        `extQ` antiTriggerEventE
 >                        `extQ` antiStatementE)
 >
-> parseExprPat :: String -> Q Pat
-> parseExprPat _ =  undefined
+> parseExprPat ::(Show e, Data a) =>
+>                (Parser e a) ->  String -> Q Pat
+> parseExprPat p s = (parseSql' p) s >>=  dataToPatQ (const Nothing
+>                        `extQ` antiExprP
+>                        `extQ` antiStrP
+>                        --`extQ` antiTriggerEventE
+>                        --`extQ` antiStatementE
+>                                   )
 >
 >
-> parseSql' :: Show e => Parser e a -> String -> Q a
+> parseSql' :: (Data a, Show e) => Parser e a -> String -> Q a
 > parseSql' p s = do
 >     Loc fn _ _ (l,c) _ <- location
->     either (fail . show) return (p fn l c s)
+>     -- strip the annotations -> strip the source positions
+>     -- which we don't want particularly for pattern matching
+>     either (fail . show) (return . stripAnnotations) (p fn l c s)
 >
 > antiExpE :: Expression -> Maybe ExpQ
-> antiExpE (AntiExpression v) = Just $ varE $ mkName v
-> antiExpE _ = Nothing
+> antiExpE v = fmap varE (antiExp v)
+
+> antiExprP :: Expression -> Maybe PatQ
+> antiExprP v = fmap varP $ antiExp v
+
+> antiExp :: Expression -> Maybe Name
+> antiExp (AntiExpression v) = Just $ mkName v
+> antiExp _ = Nothing
 
 antistatements not working ...
 trying to replace a single antistatement node with multiple statement
@@ -129,10 +143,18 @@ nodes and my generics skills aren't up to the task.
 >      vref :: ExpQ
 >      vref = varE $ mkName v
 > antiStatementE _ = Nothing
->
+
+
+
 > antiStrE :: String -> Maybe ExpQ
-> antiStrE v =
->   fmap (varE . mkName) $ getSpliceName v
+> antiStrE v = fmap varE $ antiStr v
+
+> antiStrP :: String -> Maybe PatQ
+> antiStrP v = fmap varP $ antiStr v
+
+> antiStr :: [Char] -> Maybe Name
+> antiStr v =
+>   fmap mkName $ getSpliceName v
 >   where
 >     getSpliceName s | isPrefixOf "$(" s && last s == ')' =
 >       Just $ drop 2 $ take (length s - 1) s

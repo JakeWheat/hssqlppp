@@ -18,15 +18,11 @@ functions.
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 
 Example/ Test
 -------------
-
-Here is the example code which demonstrates what the extension is
-supposed to do; it doubles as an automated test.
 
 > createVarSimpleExample :: ExtensionTest
 > createVarSimpleExample =
@@ -62,18 +58,9 @@ exactly two string literals will be silently ignored by this code).
 
 We want to replace it with a create table statement.
 
-A view pattern is used which removes a load of clutter compared with
-using vanilla pattern matching.
-
-Going to look into using a splice pattern instead of a view pattern
-here.
-
 >     transformBi $ \x ->
 >       case x of
->         (funCallView -> FunCallView _
->                                     "create_var"
->                                     [StringLit _ _ varname
->                                     ,StringLit _ _ typename]):tl
+>         [$sqlStmt| select create_var($s(varname), $s(typename)); |] : tl
 >             -> let tablename = varname ++ "_table"
 >                in [$sqlStmts|
 >

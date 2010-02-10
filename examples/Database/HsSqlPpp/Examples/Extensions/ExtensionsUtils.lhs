@@ -9,7 +9,7 @@ Some auxiliary code for use in writing extensions.
 > import Data.Maybe
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Annotation
 
 Used for the examples/tests for each extensions.
 
@@ -33,7 +33,7 @@ Simple ast transforms, just substitutes the strings given in the reps
 View pattern support to help match function calls in an ast. TODO: try
 quasipattern instead
 
-> data FunCallView = FUnit
+> {-data FunCallView = FUnit
 >                  | FunCallView Annotation String [Expression]
 >
 > funCallView :: Statement -> FunCallView
@@ -47,4 +47,4 @@ quasipattern instead
 >               []
 >               Nothing
 >               Nothing)) = FunCallView an fnName args
-> funCallView _ = FUnit
+> funCallView _ = FUnit-}

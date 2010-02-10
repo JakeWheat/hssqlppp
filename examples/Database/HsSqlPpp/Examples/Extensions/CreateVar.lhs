@@ -15,14 +15,20 @@ database. Unfinished, needs the extended constraint system to be working
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.PrettyPrinter
+> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
 >
 > createVarExample :: ExtensionTest
 > createVarExample = ExtensionTest
 >   "CreateVar"
->   createVar
+>   -- relies on the extended constraints to work really
+>   -- so we compose both for the test
+>   -- and use extended constraints extension only on the expected results
+>   -- so we're only depending on the 'interface' to the
+>   -- extended constraints and not the implementation
+>   (extendedConstraints . createVar)
 >   [$sqlStmts| select create_var('varname', 'vartype'); |]
->   [$sqlStmts|
+>   (extendedConstraints [$sqlStmts|
 >
 >   create table varname_table (
 >     varname vartype
@@ -31,43 +37,23 @@ database. Unfinished, needs the extended constraint system to be working
 >   create function get_varname() returns vartype as $a$
 >     select * from varname_table;
 >   $a$ language sql stable;
+>   -- we don't need a key
+>   select create_assertion('varname_table_01_tuple',
+>                           '(select count(*) from varname_table) <= 1');
 >
->   -- haven't needed this
->   /*drop function if exists varname_table_constraint_trigger_operator();
->   create function varname_table_constraint_trigger_operator() returns trigger as $a$
->   begin
->     null;
->   end;
->   $a$ language plpgsql;*/
->
->   -- todo once constraint extension is written
->   /*create function check_con_varname_table_varname_key() returns boolean as $a$
->   begin
->     return true;
->   end;
->   $a$ language plpgsql stable;
->
->   create function check_con_varname_table_01_tuple() returns boolean as $a$
->   begin
->     return true;
->   end;
->   $a$ language plpgsql stable;
->   drop function if exists varname_table_constraint_trigger_operator();
->   create function varname_table_constraint_trigger_operator() returns trigger as $a$
->   begin
->     null;
->   end;
->   $a$ language plpgsql;*/
->   |]
+>   |])
 >
 > createVar :: Data a => a -> a
 > createVar =
 >     transformBi $ \x ->
 >       case x of
->         (funCallView -> FunCallView _ "create_var" [StringLit _ _ varname
->                                                    ,StringLit _ _ typename]):tl
+>         [$sqlStmt| select "create_var"($s(varname)
+>                                       ,$s(typename)); |] : tl
 >             -> let tablename = varname ++ "_table"
 >                    fnname = "get_" ++ varname
+>                    conname = varname ++ "_table_01_tuple"
+>                    expr = printExpression
+>                              [$sqlExpr| (select count(*) from $(tablename)) <= 1 |]
 >                in [$sqlStmts|
 >
 >   create table $(tablename) (
@@ -77,6 +63,8 @@ database. Unfinished, needs the extended constraint system to be working
 >   create function $(fnname)() returns $(typename) as $a$
 >     select * from $(tablename);
 >   $a$ language sql stable;
+>
+>   select create_assertion($s(conname), $s(expr));
 >
 >                    |] ++ tl
 >         x1 -> x1
