@@ -23,7 +23,7 @@ the extensions folder.
 > module Database.HsSqlPpp.Examples.ChaosExtensions
 >     (
 >      extensionize
->     ,addReadonlyTriggers
+>     {-,addReadonlyTriggers
 >     ,rewriteCreateVars
 >     ,createClientActionWrapper
 >     ,addNotifyTriggers
@@ -33,7 +33,7 @@ the extensions folder.
 >     ,zeroOneTuple
 >     ,noDelIns
 >     ,transitionConstraints
->     ,replaceGenerateSpellChoiceActions
+>     ,replaceGenerateSpellChoiceActions-}
 >     ) where
 >
 > import Data.Generics
@@ -54,17 +54,17 @@ the extensions folder.
 > import Database.HsSqlPpp.Parser
 > --import Database.HsSqlPpp.Here
 >
-> data FunCallView = FUnit
+> {-data FunCallView = FUnit
 >                  | FunCallView Annotation String [Expression]
 >
 > funCallView :: Statement -> FunCallView
 > funCallView (SelectStatement an (Select _ _ (SelectList _ [SelExp _ (FunCall _ fnName
 >               args)] []) [] Nothing [] Nothing [] Nothing Nothing)) = FunCallView an fnName args
-> funCallView _ = FUnit
+> funCallView _ = FUnit-}
 >
 > -- | run all the extensions in this module on the given ast
 > extensionize :: Data a => a -> a
-> extensionize = addReadonlyTriggers .
+> extensionize = id {-addReadonlyTriggers .
 >                rewriteCreateVars .
 >                createClientActionWrapper .
 >                addNotifyTriggers .
@@ -74,7 +74,7 @@ the extensions folder.
 >                zeroOneTuple .
 >                noDelIns .
 >                transitionConstraints .
->                replaceGenerateSpellChoiceActions
+>                replaceGenerateSpellChoiceActions-}
 >
 
 -------------------------------------------------------------------------------
@@ -111,6 +111,7 @@ type checking the code easier (the other obvious alternative is to
 write a partial interpreter for pl/pgsql which sounds like an immense
 amount of work in comparison).
 
+> {-
 > -- | short cut for creating a table with exactly one attribute whose
 > -- cardinality is restricted to 0 or 1. Also provides a get_var function shortcut.
 > rewriteCreateVars :: Data a => a -> a
@@ -484,7 +485,7 @@ unlikely to change for quite a while
 >                        "$$"
 >                        (PlpgsqlFnBody an [] [
 >                                            NullStatement an
->                                           ]) Volatile
+>                                           ]) Volatile -}
 
 CREATE FUNCTION action_choose_horse_spell() RETURNS void
     LANGUAGE plpgsql

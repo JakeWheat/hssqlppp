@@ -580,7 +580,7 @@ rather than just a string.
 >                   <|?> (Volatile,pVol))
 >   case parseBody lang body bodypos of
 >        Left er -> fail er
->        Right (q,b) -> return $ CreateFunction p fnName params retType lang q b vol
+>        Right b -> return $ CreateFunction p fnName params retType lang b vol
 >     where
 >         parseAs = do
 >                    keyword "as"
@@ -592,7 +592,7 @@ rather than just a string.
 >                              ,("immutable", Immutable)]
 >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
 >                                                        ,("sql",Sql)]
->         parseBody :: Language -> Expression -> MySourcePos -> Either String (String, FnBody)
+>         parseBody :: Language -> Expression -> MySourcePos -> Either String FnBody
 >         parseBody lang body (fileName,line,col) =
 >             case (parseIt
 >                   (lexSqlTextWithPosition fileName line col (extrStr body))
@@ -602,7 +602,7 @@ rather than just a string.
 >                   (extrStr body)
 >                   ()) of
 >                      Left er@(ParseErrorExtra _ _ _) -> Left $ show er
->                      Right body' -> Right (quoteOfString body, body')
+>                      Right body' -> Right body'
 >         -- sql function is just a list of statements, the last one
 >         -- has the trailing semicolon optional
 >         functionBody Sql = do
@@ -1320,10 +1320,10 @@ identifier which happens to start with a complete keyword
 > stringLit :: SParser Expression
 > stringLit = (mytoken (\tok ->
 >                   case tok of
->                            StringTok d s -> Just $ StringLit [] d s
+>                            StringTok _ s -> Just $ StringLit [] s
 >                            _ -> Nothing))
 >             <|>
->             StringLit <$> pos <*> return "'" <*> ssplice
+>             StringLit <$> pos <*> ssplice
 >              where
 >                ssplice = (\s -> "$s(" ++ s ++ ")") <$>
 >                            (symbol "$s(" *> idString <* symbol ")")
@@ -1339,12 +1339,13 @@ from a StringLD or StringL, and the delimiters which were used
 (either ' or a dollar tag)
 
 > extrStr :: Expression -> String
-> extrStr (StringLit _ _ s) = s
+> extrStr (StringLit _ s) = s
 > extrStr x = error $ "internal error: extrStr not supported for this type " ++ show x
 >
-> quoteOfString :: Expression -> String
-> quoteOfString (StringLit _ tag _) = tag
-> quoteOfString x = error $ "internal error: quoteType not supported for this type " ++ show x
+
+ > quoteOfString :: Expression -> String
+ > quoteOfString (StringLit _ tag _) = tag
+ > quoteOfString x = error $ "internal error: quoteType not supported for this type " ++ show x
 
 == combinatory things
 

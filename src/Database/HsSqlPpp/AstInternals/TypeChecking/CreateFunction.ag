@@ -36,7 +36,6 @@ SEM Statement
                                       @params.annotatedTree
                                       @rettype.annotatedTree
                                       @lang
-                                      @bodyQuote
                                       @body.annotatedTree
                                       @vol
         loc.statementType = []

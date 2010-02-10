@@ -33,6 +33,11 @@ convertStatements = statementList
 convertExpression :: Expression -> A.Expression
 convertExpression = expression
  
+data TableAlias = NoAlias
+                | TableAlias String
+                | FullAlias String [String]
+                deriving (Show, Eq, Typeable, Data)
+ 
 data JoinType = Inner
               | LeftOuter
               | RightOuter
@@ -155,7 +160,7 @@ data Expression = BooleanLit (Annotation) (Bool)
                 | Placeholder (Annotation)
                 | PositionalArg (Annotation) (Integer)
                 | ScalarSubQuery (Annotation) (SelectExpression)
-                | StringLit (Annotation) (String) (String)
+                | StringLit (Annotation) (String)
                 | WindowFn (Annotation) (Expression) (ExpressionList)
                            (ExpressionList) (Direction) (FrameClause)
                 | AntiExpression String
@@ -219,7 +224,7 @@ data Statement = AlterSequence (Annotation) (String) (String)
                | CreateDomain (Annotation) (String) (TypeName) (String)
                               (MaybeBoolExpression)
                | CreateFunction (Annotation) (String) (ParamDefList) (TypeName)
-                                (Language) (String) (FnBody) (Volatility)
+                                (Language) (FnBody) (Volatility)
                | CreateLanguage (Annotation) (String)
                | CreateSequence (Annotation) (String) (Integer) (Integer)
                                 (Integer) (Integer) (Integer)
@@ -260,11 +265,6 @@ data Statement = AlterSequence (Annotation) (String) (String)
                | WhileStatement (Annotation) (Expression) (StatementList)
                | AntiStatement String
                deriving (Data, Eq, Show, Typeable)
- 
-data TableAlias = FullAlias (String) ([String])
-                | NoAlias
-                | TableAlias (String)
-                deriving (Data, Eq, Show, Typeable)
  
 data TableRef = JoinedTref (Annotation) (TableRef) (Natural)
                            (JoinType) (TableRef) (OnExpr) (TableAlias)
@@ -348,6 +348,13 @@ type TypeAttributeDefList = [(TypeAttributeDef)]
 type TypeNameList = [(TypeName)]
  
 type VarDefList = [(VarDef)]
+ 
+tableAlias :: TableAlias -> A.TableAlias
+tableAlias x
+  = case x of
+        NoAlias -> A.NoAlias
+        TableAlias a1 -> A.TableAlias a1
+        FullAlias a1 a2 -> A.FullAlias a1 a2
  
 joinType :: JoinType -> A.JoinType
 joinType x
@@ -529,7 +536,7 @@ expression x
         Placeholder a1 -> A.Placeholder a1
         PositionalArg a1 a2 -> A.PositionalArg a1 a2
         ScalarSubQuery a1 a2 -> A.ScalarSubQuery a1 (selectExpression a2)
-        StringLit a1 a2 a3 -> A.StringLit a1 a2 a3
+        StringLit a1 a2 -> A.StringLit a1 a2
         WindowFn a1 a2 a3 a4 a5 a6 -> A.WindowFn a1 (expression a2)
                                         (expressionList a3)
                                         (expressionList a4)
@@ -624,13 +631,12 @@ statement x
         CreateDomain a1 a2 a3 a4 a5 -> A.CreateDomain a1 a2 (typeName a3)
                                          a4
                                          (maybeBoolExpression a5)
-        CreateFunction a1 a2 a3 a4 a5 a6 a7 a8 -> A.CreateFunction a1 a2
-                                                    (paramDefList a3)
-                                                    (typeName a4)
-                                                    (language a5)
-                                                    a6
-                                                    (fnBody a7)
-                                                    (volatility a8)
+        CreateFunction a1 a2 a3 a4 a5 a6 a7 -> A.CreateFunction a1 a2
+                                                 (paramDefList a3)
+                                                 (typeName a4)
+                                                 (language a5)
+                                                 (fnBody a6)
+                                                 (volatility a7)
         CreateLanguage a1 a2 -> A.CreateLanguage a1 a2
         CreateSequence a1 a2 a3 a4 a5 a6 a7 -> A.CreateSequence a1 a2 a3 a4
                                                  a5
@@ -690,13 +696,6 @@ statement x
         WhileStatement a1 a2 a3 -> A.WhileStatement a1 (expression a2)
                                      (statementList a3)
         AntiStatement s -> error "can't convert anti statement"
- 
-tableAlias :: TableAlias -> A.TableAlias
-tableAlias x
-  = case x of
-        FullAlias a1 a2 -> A.FullAlias a1 a2
-        NoAlias -> A.NoAlias
-        TableAlias a1 -> A.TableAlias a1
  
 tableRef :: TableRef -> A.TableRef
 tableRef x

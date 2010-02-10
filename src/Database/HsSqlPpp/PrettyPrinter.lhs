@@ -161,13 +161,13 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ convSelectExpression True True sel
 >     <> statementEnd
 >
-> convStatement ca (CreateFunction ann name args retType lang qt body vol) =
+> convStatement ca (CreateFunction ann name args retType lang body vol) =
 >     convPa ca ann <+>
 >     text "create function" <+> text name
 >     <+> parens (hcatCsvMap convParamDef args)
->     <+> text "returns" <+> convTypeName retType <+> text "as" <+> text qt
+>     <+> text "returns" <+> convTypeName retType <+> text "as" <+> text "$$"
 >     $+$ convFnBody body
->     $+$ text qt <+> text "language"
+>     $+$ text "$$" <+> text "language"
 >     <+> text (case lang of
 >                         Sql -> "sql"
 >                         Plpgsql -> "plpgsql")
@@ -287,7 +287,7 @@ Conversion routines - convert Sql asts into Docs
 >                 RNotice -> text "notice"
 >                 RException -> text "exception"
 >                 RError -> text "error"
->     <+> convExp (StringLit [] "'" st)
+>     <+> convExp (StringLit [] st)
 >     <> ifNotEmpty (\e -> comma <+> csvExp e) exps
 >     <> statementEnd
 >
@@ -533,11 +533,12 @@ Statement components
 >                      okChar x =isAlphaNum x || x `elem` "*_."
 > convExp (IntegerLit _ n) = integer n
 > convExp (FloatLit _ n) = double n
-> convExp (StringLit _ tag s) = text tag <> text replaceQuotes <> text tag
+> convExp (StringLit _ s) = -- needs some thought about using $$?
+>                           text "'" <> text replaceQuotes <> text "'"
 >                           where
->                             replaceQuotes = if tag == "'"
+>                             replaceQuotes = replace "'" "''" s {-if tag == "'"
 >                                               then replace "'" "''" s
->                                               else s
+>                                               else s-}
 >
 > convExp (FunCall _ n es) =
 >     --check for special operators

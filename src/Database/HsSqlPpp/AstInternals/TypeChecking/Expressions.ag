@@ -46,7 +46,7 @@ SEM Expression
     | IntegerLit
         loc.backTree = IntegerLit @ann @i
     | StringLit
-        loc.backTree = StringLit @ann @quote @value
+        loc.backTree = StringLit @ann @value
     | FloatLit
         loc.backTree = FloatLit @ann @d
     | BooleanLit

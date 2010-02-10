@@ -25,7 +25,6 @@ of coding used in AstInternal.ag.
 > import qualified Language.Haskell.Exts as Exts
 > import Data.Generics
 > import Data.Generics.Uniplate.Data
-> import Debug.Trace
 > import Database.HsSqlPpp.Utils.Utils
 > import Data.Char
 > import Data.Maybe
@@ -196,6 +195,7 @@ get the constructor information for a type, in a nice simple format
 >     -- which it does, since the types in astinternal follow this convention
 >     -- and the convname fn helps out as well
 >     aInfo (UnBangedTy (TyParen (TyList (TyCon (UnQual (Ident m)))))) = m ++ "List"
+>     aInfo (UnBangedTy (TyList (TyCon (UnQual (Ident m))))) = m ++ "List"
 >     aInfo (UnBangedTy (TyParen (TyApp (TyCon (UnQual (Ident "Maybe"))) (TyCon (UnQual (Ident m))))))
 >           = "Maybe" ++ m
 >     aInfo (UnBangedTy (TyCon (UnQual (Ident s)))) = s

@@ -215,7 +215,6 @@ DATA Statement
                      params : ParamDefList
                      rettype : TypeName
                      lang : Language
-                     bodyQuote : String
                      body : FnBody
                      vol : Volatility
     -- name type checkexpression
@@ -492,7 +491,6 @@ expression?
 DATA Expression | IntegerLit ann:Annotation i:Integer
                 | FloatLit ann:Annotation d:Double
                 | StringLit ann:Annotation
-                            quote : String
                             value : String
                 | NullLit ann:Annotation
                 | BooleanLit ann:Annotation b:Bool

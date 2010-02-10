@@ -56,7 +56,7 @@ added.
 >
 > listFunctions :: Data a => a -> [(String,Statement)]
 > listFunctions ast =
->   [(fn,f) | f@(CreateFunction _ fn _ _ _ _ _ _) <- universeBi ast]
+>   [(fn,f) | f@(CreateFunction _ fn _ _ _ _ _) <- universeBi ast]
 >
 > listViews :: Data a => a -> [(String,Statement)]
 > listViews ast =

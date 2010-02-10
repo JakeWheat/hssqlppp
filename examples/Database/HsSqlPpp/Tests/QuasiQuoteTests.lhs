@@ -127,7 +127,7 @@ expressions
 >              [$sqlExpr| fnname('a') |]
 >     ,let x = "splicedstring"
 >      in Expr [$sqlExpr| $s(x) |]
->              (StringLit [] "'" "splicedstring")
+>              (StringLit [] "splicedstring")
 >     ,let x = "splicedIdentifier"
 >      in Expr [$sqlExpr| $i(x) |]
 >              (Identifier [] "splicedIdentifier")

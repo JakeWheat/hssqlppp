@@ -189,10 +189,10 @@ and dollar quoting, including nesting.
 >      ,e "'test'''" (stringQ "test'")
 >      ,e "'''test'" (stringQ "'test")
 >      ,e "'te''st'" (stringQ "te'st")
->      ,e "$$test$$" (StringLit [] "$$" "test")
->      ,e "$$te'st$$" (StringLit [] "$$" "te'st")
->      ,e "$st$test$st$" (StringLit [] "$st$" "test")
->      ,e "$outer$te$$yup$$st$outer$" (StringLit [] "$outer$" "te$$yup$$st")
+>      ,e "$$test$$" (StringLit [] "test")
+>      ,e "$$te'st$$" (StringLit [] "te'st")
+>      ,e "$st$test$st$" (StringLit [] "test")
+>      ,e "$outer$te$$yup$$st$outer$" (StringLit [] "te$$yup$$st")
 >      ,e "'spl$$it'" (stringQ "spl$$it")
 >      ]
 >      ]
@@ -927,7 +927,7 @@ quick sanity check
 >         \select a from t1 where b = $1;\n\
 >         \$$ language sql stable;"
 >       [CreateFunction [] "t1" [ParamDefTp [] $ SimpleTypeName [] "text"]
->        (SimpleTypeName [] "text") Sql "$$"
+>        (SimpleTypeName [] "text") Sql
 >        (SqlFnBody []
 >         [SelectStatement [] $ selectFromWhere [SelExp [] (Identifier [] "a")] (Tref [] "t1" NoAlias)
 >          (FunCall [] "="
@@ -941,7 +941,7 @@ quick sanity check
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql "$$"
+>       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql
 >        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") Nothing
 >                          ,VarDef [] "b" (SimpleTypeName [] "text") Nothing]
 >         [NullStatement []])
@@ -954,7 +954,7 @@ quick sanity check
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql "$$"
+>       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql
 >        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") Nothing
 >                          ,VarDef [] "b" (SimpleTypeName [] "text") Nothing]
 >         [NullStatement []])
@@ -968,7 +968,7 @@ quick sanity check
 >         \$$ language plpgsql immutable;"
 >       [CreateFunction [] "fn"
 >        [ParamDef [] "a" $ ArrayTypeName [] $ SimpleTypeName [] "text"]
->        (ArrayTypeName [] $ SimpleTypeName [] "int") Plpgsql "$$"
+>        (ArrayTypeName [] $ SimpleTypeName [] "int") Plpgsql
 >        (PlpgsqlFnBody []
 >         [VarDef [] "b" (ArrayTypeName [] $ SimpleTypeName [] "xtype") (Just $ stringQ "{}")]
 >         [NullStatement []])
@@ -980,7 +980,7 @@ quick sanity check
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql "'"
+>       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql
 >        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") (Just $ IntegerLit [] 3)]
 >         [NullStatement []])
 >        Stable]
@@ -990,7 +990,7 @@ quick sanity check
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >       [CreateFunction [] "fn" []
->        (SetOfTypeName [] $ SimpleTypeName [] "int") Plpgsql "$$"
+>        (SetOfTypeName [] $ SimpleTypeName [] "int") Plpgsql
 >        (PlpgsqlFnBody [] [] [NullStatement []])
 >        Stable]
 >      ,s "create function fn() returns void as $$\n\
@@ -999,7 +999,7 @@ quick sanity check
 >         \end\n\
 >         \$$ language plpgsql stable;"
 >       [CreateFunction [] "fn" []
->        (SimpleTypeName [] "void") Plpgsql "$$"
+>        (SimpleTypeName [] "void") Plpgsql
 >        (PlpgsqlFnBody [] [] [NullStatement []])
 >        Stable]
 >      ,s "drop function test(text);"
@@ -1136,7 +1136,7 @@ quick sanity check
 shortcuts for constructing test data and asts
 
 > stringQ :: String -> Expression
-> stringQ = StringLit [] "'"
+> stringQ = StringLit []
 >
 > selectFrom :: SelectItemList
 >            -> TableRef
