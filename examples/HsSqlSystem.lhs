@@ -1194,7 +1194,7 @@ sql quasiquotes
 > makeAntiNodesF :: IO ()
 > makeAntiNodesF = do
 >   s <- makeAntiNodes
->   writeFile "Database/HsSqlPpp/AstInternals/AstAnti.hs" s
+>   writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs" s
 
 -------------------------------------------------------------------------------
 

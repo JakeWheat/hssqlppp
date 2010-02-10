@@ -22,7 +22,7 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         CaseExpressionListExpressionPair, CaseExpressionList,
         ExpressionDirectionPair, ExpressionDirectionPairList,
         MaybeBoolExpression, MaybeSelectList, AlterTableActionList,
-        TriggerEventList, SetValueList)
+        SetValueList)
        where
 import Data.Generics
 import Database.HsSqlPpp.AstInternals.AstAnnotation
@@ -34,6 +34,95 @@ convertStatements = statementList
 convertExpression :: Expression -> A.Expression
 convertExpression = expression
  
+data JoinType = Inner
+              | LeftOuter
+              | RightOuter
+              | FullOuter
+              | Cross
+              deriving (Show, Eq, Typeable, Data)
+ 
+data CopySource = CopyFilename String
+                | Stdin
+                deriving (Show, Eq, Typeable, Data)
+ 
+data SetValue = SetStr Annotation String
+              | SetId Annotation String
+              | SetNum Annotation Double
+              deriving (Show, Eq, Typeable, Data)
+ 
+data TriggerWhen = TriggerBefore
+                 | TriggerAfter
+                 deriving (Show, Eq, Typeable, Data)
+ 
+data TriggerEvent = TInsert
+                  | TUpdate
+                  | TDelete
+                  | AntiTriggerEvent String
+                  deriving (Show, Eq, Typeable, Data)
+ 
+data TriggerFire = EachRow
+                 | EachStatement
+                 deriving (Show, Eq, Typeable, Data)
+ 
+data RaiseType = RNotice
+               | RException
+               | RError
+               deriving (Show, Eq, Typeable, Data)
+ 
+data CombineType = Except
+                 | Union
+                 | Intersect
+                 | UnionAll
+                 deriving (Show, Eq, Typeable, Data)
+ 
+data Volatility = Volatile
+                | Stable
+                | Immutable
+                deriving (Show, Eq, Typeable, Data)
+ 
+data Language = Sql
+              | Plpgsql
+              deriving (Show, Eq, Typeable, Data)
+ 
+data DropType = Table
+              | Domain
+              | View
+              | Type
+              deriving (Show, Eq, Typeable, Data)
+ 
+data Cascade = Cascade
+             | Restrict
+             deriving (Show, Eq, Typeable, Data)
+ 
+data Direction = Asc
+               | Desc
+               deriving (Show, Eq, Typeable, Data)
+ 
+data Distinct = Distinct
+              | Dupes
+              deriving (Show, Eq, Typeable, Data)
+ 
+data Natural = Natural
+             | Unnatural
+             deriving (Show, Eq, Typeable, Data)
+ 
+data IfExists = Require
+              | IfExists
+              deriving (Show, Eq, Typeable, Data)
+ 
+data RestartIdentity = RestartIdentity
+                     | ContinueIdentity
+                     deriving (Show, Eq, Typeable, Data)
+ 
+data LiftFlavour = LiftAny
+                 | LiftAll
+                 deriving (Show, Eq, Typeable, Data)
+ 
+data FrameClause = FrameUnboundedPreceding
+                 | FrameUnboundedFull
+                 | FrameRowsUnboundedPreceding
+                 deriving (Show, Eq, Typeable, Data)
+ 
 data AlterTableAction = AddConstraint (Annotation) (Constraint)
                       | AlterColumnDefault (Annotation) (String) (Expression)
                       deriving (Data, Eq, Show, Typeable)
@@ -42,16 +131,6 @@ data AttributeDef = AttributeDef (Annotation) (String) (TypeName)
                                  (MaybeExpression) (RowConstraintList)
                   deriving (Data, Eq, Show, Typeable)
  
-data Cascade = Cascade
-             | Restrict
-             deriving (Data, Eq, Show, Typeable)
- 
-data CombineType = Except
-                 | Intersect
-                 | Union
-                 | UnionAll
-                 deriving (Data, Eq, Show, Typeable)
- 
 data Constraint = CheckConstraint (Annotation) (String)
                                   (Expression)
                 | PrimaryKeyConstraint (Annotation) (String) (StringList)
@@ -59,24 +138,6 @@ data Constraint = CheckConstraint (Annotation) (String)
                                       (StringList) (Cascade) (Cascade)
                 | UniqueConstraint (Annotation) (String) (StringList)
                 deriving (Data, Eq, Show, Typeable)
- 
-data CopySource = CopyFilename (String)
-                | Stdin
-                deriving (Data, Eq, Show, Typeable)
- 
-data Direction = Asc
-               | Desc
-               deriving (Data, Eq, Show, Typeable)
- 
-data Distinct = Distinct
-              | Dupes
-              deriving (Data, Eq, Show, Typeable)
- 
-data DropType = Domain
-              | Table
-              | Type
-              | View
-              deriving (Data, Eq, Show, Typeable)
  
 data Expression = BooleanLit (Annotation) (Bool)
                 | Case (Annotation) (CaseExpressionListExpressionPairList)
@@ -106,15 +167,6 @@ data FnBody = PlpgsqlFnBody (Annotation) (VarDefList)
             | SqlFnBody (Annotation) (StatementList)
             deriving (Data, Eq, Show, Typeable)
  
-data FrameClause = FrameRowsUnboundedPreceding
-                 | FrameUnboundedFull
-                 | FrameUnboundedPreceding
-                 deriving (Data, Eq, Show, Typeable)
- 
-data IfExists = IfExists
-              | Require
-              deriving (Data, Eq, Show, Typeable)
- 
 data InList = InList (Annotation) (ExpressionList)
             | InSelect (Annotation) (SelectExpression)
             deriving (Data, Eq, Show, Typeable)
@@ -123,37 +175,9 @@ data JoinExpression = JoinOn (Annotation) (Expression)
                     | JoinUsing (Annotation) (StringList)
                     deriving (Data, Eq, Show, Typeable)
  
-data JoinType = Cross
-              | FullOuter
-              | Inner
-              | LeftOuter
-              | RightOuter
-              deriving (Data, Eq, Show, Typeable)
- 
-data Language = Plpgsql
-              | Sql
-              deriving (Data, Eq, Show, Typeable)
- 
-data LiftFlavour = LiftAll
-                 | LiftAny
-                 deriving (Data, Eq, Show, Typeable)
- 
-data Natural = Natural
-             | Unnatural
-             deriving (Data, Eq, Show, Typeable)
- 
 data ParamDef = ParamDef (Annotation) (String) (TypeName)
               | ParamDefTp (Annotation) (TypeName)
               deriving (Data, Eq, Show, Typeable)
- 
-data RaiseType = RError
-               | RException
-               | RNotice
-               deriving (Data, Eq, Show, Typeable)
- 
-data RestartIdentity = ContinueIdentity
-                     | RestartIdentity
-                     deriving (Data, Eq, Show, Typeable)
  
 data RowConstraint = NotNullConstraint (Annotation) (String)
                    | NullConstraint (Annotation) (String)
@@ -185,11 +209,6 @@ data SetClause = RowSetClause (Annotation) (StringList)
                | SetClause (Annotation) (String) (Expression)
                deriving (Data, Eq, Show, Typeable)
  
-data SetValue = SetId (Annotation) (String)
-              | SetNum (Annotation) (Double)
-              | SetStr (Annotation) (String)
-              deriving (Data, Eq, Show, Typeable)
- 
 data Statement = AlterSequence (Annotation) (String) (String)
                | AlterTable (Annotation) (String) (AlterTableActionList)
                | Assignment (Annotation) (String) (Expression)
@@ -209,7 +228,7 @@ data Statement = AlterSequence (Annotation) (String) (String)
                              (ConstraintList)
                | CreateTableAs (Annotation) (String) (SelectExpression)
                | CreateTrigger (Annotation) (String) (TriggerWhen)
-                               (TriggerEventList) (String) (TriggerFire) (String) (ExpressionList)
+                               ([TriggerEvent]) (String) (TriggerFire) (String) (ExpressionList)
                | CreateType (Annotation) (String) (TypeAttributeDefList)
                | CreateView (Annotation) (String) (SelectExpression)
                | Delete (Annotation) (String) (MaybeBoolExpression)
@@ -255,20 +274,6 @@ data TableRef = JoinedTref (Annotation) (TableRef) (Natural)
               | TrefFun (Annotation) (Expression) (TableAlias)
               deriving (Data, Eq, Show, Typeable)
  
-data TriggerEvent = TDelete
-                  | TInsert
-                  | TUpdate
-                  | AntiTriggerEvent String
-                  deriving (Data, Eq, Show, Typeable)
- 
-data TriggerFire = EachRow
-                 | EachStatement
-                 deriving (Data, Eq, Show, Typeable)
- 
-data TriggerWhen = TriggerAfter
-                 | TriggerBefore
-                 deriving (Data, Eq, Show, Typeable)
- 
 data TypeAttributeDef = TypeAttDef (Annotation) (String) (TypeName)
                       deriving (Data, Eq, Show, Typeable)
  
@@ -281,11 +286,6 @@ data TypeName = ArrayTypeName (Annotation) (TypeName)
 data VarDef = VarDef (Annotation) (String) (TypeName)
                      (Maybe Expression)
             deriving (Data, Eq, Show, Typeable)
- 
-data Volatility = Immutable
-                | Stable
-                | Volatile
-                deriving (Data, Eq, Show, Typeable)
  
 type AlterTableActionList = [(AlterTableAction)]
  
@@ -348,13 +348,275 @@ type StringTypeNameListPairList = [(StringTypeNameListPair)]
  
 type TableRefList = [(TableRef)]
  
-type TriggerEventList = [(TriggerEvent)]
- 
 type TypeAttributeDefList = [(TypeAttributeDef)]
  
 type TypeNameList = [(TypeName)]
  
 type VarDefList = [(VarDef)]
+ 
+joinType :: JoinType -> A.JoinType
+joinType x
+  = case x of
+        Inner -> A.Inner
+        LeftOuter -> A.LeftOuter
+        RightOuter -> A.RightOuter
+        FullOuter -> A.FullOuter
+        Cross -> A.Cross
+ 
+copySource :: CopySource -> A.CopySource
+copySource x
+  = case x of
+        CopyFilename a1 -> A.CopyFilename a1
+        Stdin -> A.Stdin
+ 
+setValue :: SetValue -> A.SetValue
+setValue x
+  = case x of
+        SetStr a1 a2 -> A.SetStr a1 a2
+        SetId a1 a2 -> A.SetId a1 a2
+        SetNum a1 a2 -> A.SetNum a1 a2
+ 
+triggerWhen :: TriggerWhen -> A.TriggerWhen
+triggerWhen x
+  = case x of
+        TriggerBefore -> A.TriggerBefore
+        TriggerAfter -> A.TriggerAfter
+ 
+triggerEvent :: TriggerEvent -> A.TriggerEvent
+triggerEvent x
+  = case x of
+        TInsert -> A.TInsert
+        TUpdate -> A.TUpdate
+        TDelete -> A.TDelete
+        AntiTriggerEvent s -> error "can't convert anti triggerEvent"
+ 
+triggerFire :: TriggerFire -> A.TriggerFire
+triggerFire x
+  = case x of
+        EachRow -> A.EachRow
+        EachStatement -> A.EachStatement
+ 
+raiseType :: RaiseType -> A.RaiseType
+raiseType x
+  = case x of
+        RNotice -> A.RNotice
+        RException -> A.RException
+        RError -> A.RError
+ 
+combineType :: CombineType -> A.CombineType
+combineType x
+  = case x of
+        Except -> A.Except
+        Union -> A.Union
+        Intersect -> A.Intersect
+        UnionAll -> A.UnionAll
+ 
+volatility :: Volatility -> A.Volatility
+volatility x
+  = case x of
+        Volatile -> A.Volatile
+        Stable -> A.Stable
+        Immutable -> A.Immutable
+ 
+language :: Language -> A.Language
+language x
+  = case x of
+        Sql -> A.Sql
+        Plpgsql -> A.Plpgsql
+ 
+dropType :: DropType -> A.DropType
+dropType x
+  = case x of
+        Table -> A.Table
+        Domain -> A.Domain
+        View -> A.View
+        Type -> A.Type
+ 
+cascade :: Cascade -> A.Cascade
+cascade x
+  = case x of
+        Cascade -> A.Cascade
+        Restrict -> A.Restrict
+ 
+direction :: Direction -> A.Direction
+direction x
+  = case x of
+        Asc -> A.Asc
+        Desc -> A.Desc
+ 
+distinct :: Distinct -> A.Distinct
+distinct x
+  = case x of
+        Distinct -> A.Distinct
+        Dupes -> A.Dupes
+ 
+natural :: Natural -> A.Natural
+natural x
+  = case x of
+        Natural -> A.Natural
+        Unnatural -> A.Unnatural
+ 
+ifExists :: IfExists -> A.IfExists
+ifExists x
+  = case x of
+        Require -> A.Require
+        IfExists -> A.IfExists
+ 
+restartIdentity :: RestartIdentity -> A.RestartIdentity
+restartIdentity x
+  = case x of
+        RestartIdentity -> A.RestartIdentity
+        ContinueIdentity -> A.ContinueIdentity
+ 
+liftFlavour :: LiftFlavour -> A.LiftFlavour
+liftFlavour x
+  = case x of
+        LiftAny -> A.LiftAny
+        LiftAll -> A.LiftAll
+ 
+frameClause :: FrameClause -> A.FrameClause
+frameClause x
+  = case x of
+        FrameUnboundedPreceding -> A.FrameUnboundedPreceding
+        FrameUnboundedFull -> A.FrameUnboundedFull
+        FrameRowsUnboundedPreceding -> A.FrameRowsUnboundedPreceding
+ 
+alterTableAction :: AlterTableAction -> A.AlterTableAction
+alterTableAction x
+  = case x of
+        AddConstraint a1 a2 -> A.AddConstraint a1 (constraint a2)
+        AlterColumnDefault a1 a2 a3 -> A.AlterColumnDefault a1 a2
+                                         (expression a3)
+ 
+attributeDef :: AttributeDef -> A.AttributeDef
+attributeDef x
+  = case x of
+        AttributeDef a1 a2 a3 a4 a5 -> A.AttributeDef a1 a2 (typeName a3)
+                                         (maybeExpression a4)
+                                         (rowConstraintList a5)
+ 
+constraint :: Constraint -> A.Constraint
+constraint x
+  = case x of
+        CheckConstraint a1 a2 a3 -> A.CheckConstraint a1 a2 (expression a3)
+        PrimaryKeyConstraint a1 a2 a3 -> A.PrimaryKeyConstraint a1 a2
+                                           (stringList a3)
+        ReferenceConstraint a1 a2 a3 a4 a5 a6 a7 -> A.ReferenceConstraint
+                                                      a1
+                                                      a2
+                                                      (stringList a3)
+                                                      a4
+                                                      (stringList a5)
+                                                      (cascade a6)
+                                                      (cascade a7)
+        UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2
+                                       (stringList a3)
+ 
+expression :: Expression -> A.Expression
+expression x
+  = case x of
+        BooleanLit a1 a2 -> A.BooleanLit a1 a2
+        Case a1 a2 a3 -> A.Case a1
+                           (caseExpressionListExpressionPairList a2)
+                           (maybeExpression a3)
+        CaseSimple a1 a2 a3 a4 -> A.CaseSimple a1 (expression a2)
+                                    (caseExpressionListExpressionPairList a3)
+                                    (maybeExpression a4)
+        Cast a1 a2 a3 -> A.Cast a1 (expression a2) (typeName a3)
+        Exists a1 a2 -> A.Exists a1 (selectExpression a2)
+        FloatLit a1 a2 -> A.FloatLit a1 a2
+        FunCall a1 a2 a3 -> A.FunCall a1 a2 (expressionList a3)
+        Identifier a1 a2 -> A.Identifier a1 a2
+        InPredicate a1 a2 a3 a4 -> A.InPredicate a1 (expression a2) a3
+                                     (inList a4)
+        IntegerLit a1 a2 -> A.IntegerLit a1 a2
+        LiftOperator a1 a2 a3 a4 -> A.LiftOperator a1 a2 (liftFlavour a3)
+                                      (expressionList a4)
+        NullLit a1 -> A.NullLit a1
+        Placeholder a1 -> A.Placeholder a1
+        PositionalArg a1 a2 -> A.PositionalArg a1 a2
+        ScalarSubQuery a1 a2 -> A.ScalarSubQuery a1 (selectExpression a2)
+        StringLit a1 a2 a3 -> A.StringLit a1 a2 a3
+        WindowFn a1 a2 a3 a4 a5 a6 -> A.WindowFn a1 (expression a2)
+                                        (expressionList a3)
+                                        (expressionList a4)
+                                        (direction a5)
+                                        (frameClause a6)
+        AntiExpression s -> error "can't convert anti expression"
+ 
+fnBody :: FnBody -> A.FnBody
+fnBody x
+  = case x of
+        PlpgsqlFnBody a1 a2 a3 -> A.PlpgsqlFnBody a1 (varDefList a2)
+                                    (statementList a3)
+        SqlFnBody a1 a2 -> A.SqlFnBody a1 (statementList a2)
+ 
+inList :: InList -> A.InList
+inList x
+  = case x of
+        InList a1 a2 -> A.InList a1 (expressionList a2)
+        InSelect a1 a2 -> A.InSelect a1 (selectExpression a2)
+ 
+joinExpression :: JoinExpression -> A.JoinExpression
+joinExpression x
+  = case x of
+        JoinOn a1 a2 -> A.JoinOn a1 (expression a2)
+        JoinUsing a1 a2 -> A.JoinUsing a1 (stringList a2)
+ 
+paramDef :: ParamDef -> A.ParamDef
+paramDef x
+  = case x of
+        ParamDef a1 a2 a3 -> A.ParamDef a1 a2 (typeName a3)
+        ParamDefTp a1 a2 -> A.ParamDefTp a1 (typeName a2)
+ 
+rowConstraint :: RowConstraint -> A.RowConstraint
+rowConstraint x
+  = case x of
+        NotNullConstraint a1 a2 -> A.NotNullConstraint a1 a2
+        NullConstraint a1 a2 -> A.NullConstraint a1 a2
+        RowCheckConstraint a1 a2 a3 -> A.RowCheckConstraint a1 a2
+                                         (expression a3)
+        RowPrimaryKeyConstraint a1 a2 -> A.RowPrimaryKeyConstraint a1 a2
+        RowReferenceConstraint a1 a2 a3 a4 a5
+          a6 -> A.RowReferenceConstraint a1 a2 a3 a4 (cascade a5)
+                  (cascade a6)
+        RowUniqueConstraint a1 a2 -> A.RowUniqueConstraint a1 a2
+ 
+selectExpression :: SelectExpression -> A.SelectExpression
+selectExpression x
+  = case x of
+        CombineSelect a1 a2 a3 a4 -> A.CombineSelect a1 (combineType a2)
+                                       (selectExpression a3)
+                                       (selectExpression a4)
+        Select a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 -> A.Select a1 (distinct a2)
+                                                   (selectList a3)
+                                                   (tableRefList a4)
+                                                   (maybeBoolExpression a5)
+                                                   (expressionList a6)
+                                                   (maybeBoolExpression a7)
+                                                   (expressionDirectionPairList a8)
+                                                   (maybeExpression a9)
+                                                   (maybeExpression a10)
+        Values a1 a2 -> A.Values a1 (expressionListList a2)
+ 
+selectItem :: SelectItem -> A.SelectItem
+selectItem x
+  = case x of
+        SelExp a1 a2 -> A.SelExp a1 (expression a2)
+        SelectItem a1 a2 a3 -> A.SelectItem a1 (expression a2) a3
+ 
+selectList :: SelectList -> A.SelectList
+selectList x
+  = case x of
+        SelectList a1 a2 a3 -> A.SelectList a1 (selectItemList a2)
+                                 (stringList a3)
+ 
+setClause :: SetClause -> A.SetClause
+setClause x
+  = case x of
+        RowSetClause a1 a2 a3 -> A.RowSetClause a1 (stringList a2)
+                                   (expressionList a3)
+        SetClause a1 a2 a3 -> A.SetClause a1 a2 (expression a3)
  
 statement :: Statement -> A.Statement
 statement x
@@ -390,7 +652,7 @@ statement x
                                     (selectExpression a3)
         CreateTrigger a1 a2 a3 a4 a5 a6 a7 a8 -> A.CreateTrigger a1 a2
                                                    (triggerWhen a3)
-                                                   (triggerEventList a4)
+                                                   (fmap triggerEvent a4)
                                                    a5
                                                    (triggerFire a6)
                                                    a7
@@ -441,36 +703,12 @@ statement x
                                      (statementList a3)
         AntiStatement s -> error "can't convert anti statement"
  
-selectExpression :: SelectExpression -> A.SelectExpression
-selectExpression x
+tableAlias :: TableAlias -> A.TableAlias
+tableAlias x
   = case x of
-        CombineSelect a1 a2 a3 a4 -> A.CombineSelect a1 (combineType a2)
-                                       (selectExpression a3)
-                                       (selectExpression a4)
-        Select a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 -> A.Select a1 (distinct a2)
-                                                   (selectList a3)
-                                                   (tableRefList a4)
-                                                   (maybeBoolExpression a5)
-                                                   (expressionList a6)
-                                                   (maybeBoolExpression a7)
-                                                   (expressionDirectionPairList a8)
-                                                   (maybeExpression a9)
-                                                   (maybeExpression a10)
-        Values a1 a2 -> A.Values a1 (expressionListList a2)
- 
-fnBody :: FnBody -> A.FnBody
-fnBody x
-  = case x of
-        PlpgsqlFnBody a1 a2 a3 -> A.PlpgsqlFnBody a1 (varDefList a2)
-                                    (statementList a3)
-        SqlFnBody a1 a2 -> A.SqlFnBody a1 (statementList a2)
- 
-setClause :: SetClause -> A.SetClause
-setClause x
-  = case x of
-        RowSetClause a1 a2 a3 -> A.RowSetClause a1 (stringList a2)
-                                   (expressionList a3)
-        SetClause a1 a2 a3 -> A.SetClause a1 a2 (expression a3)
+        FullAlias a1 a2 -> A.FullAlias a1 (stringList a2)
+        NoAlias -> A.NoAlias
+        TableAlias a1 -> A.TableAlias a1
  
 tableRef :: TableRef -> A.TableRef
 tableRef x
@@ -486,134 +724,10 @@ tableRef x
         Tref a1 a2 a3 -> A.Tref a1 a2 (tableAlias a3)
         TrefFun a1 a2 a3 -> A.TrefFun a1 (expression a2) (tableAlias a3)
  
-tableAlias :: TableAlias -> A.TableAlias
-tableAlias x
-  = case x of
-        FullAlias a1 a2 -> A.FullAlias a1 (stringList a2)
-        NoAlias -> A.NoAlias
-        TableAlias a1 -> A.TableAlias a1
- 
-joinExpression :: JoinExpression -> A.JoinExpression
-joinExpression x
-  = case x of
-        JoinOn a1 a2 -> A.JoinOn a1 (expression a2)
-        JoinUsing a1 a2 -> A.JoinUsing a1 (stringList a2)
- 
-joinType :: JoinType -> A.JoinType
-joinType x
-  = case x of
-        Cross -> A.Cross
-        FullOuter -> A.FullOuter
-        Inner -> A.Inner
-        LeftOuter -> A.LeftOuter
-        RightOuter -> A.RightOuter
- 
-selectList :: SelectList -> A.SelectList
-selectList x
-  = case x of
-        SelectList a1 a2 a3 -> A.SelectList a1 (selectItemList a2)
-                                 (stringList a3)
- 
-selectItem :: SelectItem -> A.SelectItem
-selectItem x
-  = case x of
-        SelExp a1 a2 -> A.SelExp a1 (expression a2)
-        SelectItem a1 a2 a3 -> A.SelectItem a1 (expression a2) a3
- 
-copySource :: CopySource -> A.CopySource
-copySource x
-  = case x of
-        CopyFilename a1 -> A.CopyFilename a1
-        Stdin -> A.Stdin
- 
-attributeDef :: AttributeDef -> A.AttributeDef
-attributeDef x
-  = case x of
-        AttributeDef a1 a2 a3 a4 a5 -> A.AttributeDef a1 a2 (typeName a3)
-                                         (maybeExpression a4)
-                                         (rowConstraintList a5)
- 
-rowConstraint :: RowConstraint -> A.RowConstraint
-rowConstraint x
-  = case x of
-        NotNullConstraint a1 a2 -> A.NotNullConstraint a1 a2
-        NullConstraint a1 a2 -> A.NullConstraint a1 a2
-        RowCheckConstraint a1 a2 a3 -> A.RowCheckConstraint a1 a2
-                                         (expression a3)
-        RowPrimaryKeyConstraint a1 a2 -> A.RowPrimaryKeyConstraint a1 a2
-        RowReferenceConstraint a1 a2 a3 a4 a5
-          a6 -> A.RowReferenceConstraint a1 a2 a3 a4 (cascade a5)
-                  (cascade a6)
-        RowUniqueConstraint a1 a2 -> A.RowUniqueConstraint a1 a2
- 
-alterTableAction :: AlterTableAction -> A.AlterTableAction
-alterTableAction x
-  = case x of
-        AddConstraint a1 a2 -> A.AddConstraint a1 (constraint a2)
-        AlterColumnDefault a1 a2 a3 -> A.AlterColumnDefault a1 a2
-                                         (expression a3)
- 
-constraint :: Constraint -> A.Constraint
-constraint x
-  = case x of
-        CheckConstraint a1 a2 a3 -> A.CheckConstraint a1 a2 (expression a3)
-        PrimaryKeyConstraint a1 a2 a3 -> A.PrimaryKeyConstraint a1 a2
-                                           (stringList a3)
-        ReferenceConstraint a1 a2 a3 a4 a5 a6 a7 -> A.ReferenceConstraint
-                                                      a1
-                                                      a2
-                                                      (stringList a3)
-                                                      a4
-                                                      (stringList a5)
-                                                      (cascade a6)
-                                                      (cascade a7)
-        UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2
-                                       (stringList a3)
- 
 typeAttributeDef :: TypeAttributeDef -> A.TypeAttributeDef
 typeAttributeDef x
   = case x of
         TypeAttDef a1 a2 a3 -> A.TypeAttDef a1 a2 (typeName a3)
- 
-paramDef :: ParamDef -> A.ParamDef
-paramDef x
-  = case x of
-        ParamDef a1 a2 a3 -> A.ParamDef a1 a2 (typeName a3)
-        ParamDefTp a1 a2 -> A.ParamDefTp a1 (typeName a2)
- 
-varDef :: VarDef -> A.VarDef
-varDef x
-  = case x of
-        VarDef a1 a2 a3 a4 -> A.VarDef a1 a2 (typeName a3)
-                                (maybeExpression a4)
- 
-raiseType :: RaiseType -> A.RaiseType
-raiseType x
-  = case x of
-        RError -> A.RError
-        RException -> A.RException
-        RNotice -> A.RNotice
- 
-combineType :: CombineType -> A.CombineType
-combineType x
-  = case x of
-        Except -> A.Except
-        Intersect -> A.Intersect
-        Union -> A.Union
-        UnionAll -> A.UnionAll
- 
-volatility :: Volatility -> A.Volatility
-volatility x
-  = case x of
-        Immutable -> A.Immutable
-        Stable -> A.Stable
-        Volatile -> A.Volatile
- 
-language :: Language -> A.Language
-language x
-  = case x of
-        Plpgsql -> A.Plpgsql
-        Sql -> A.Sql
  
 typeName :: TypeName -> A.TypeName
 typeName x
@@ -623,212 +737,21 @@ typeName x
         SetOfTypeName a1 a2 -> A.SetOfTypeName a1 (typeName a2)
         SimpleTypeName a1 a2 -> A.SimpleTypeName a1 a2
  
-dropType :: DropType -> A.DropType
-dropType x
+varDef :: VarDef -> A.VarDef
+varDef x
   = case x of
-        Domain -> A.Domain
-        Table -> A.Table
-        Type -> A.Type
-        View -> A.View
+        VarDef a1 a2 a3 a4 -> A.VarDef a1 a2 (typeName a3)
+                                (maybeExpression a4)
  
-cascade :: Cascade -> A.Cascade
-cascade x
-  = case x of
-        Cascade -> A.Cascade
-        Restrict -> A.Restrict
- 
-direction :: Direction -> A.Direction
-direction x
-  = case x of
-        Asc -> A.Asc
-        Desc -> A.Desc
- 
-distinct :: Distinct -> A.Distinct
-distinct x
-  = case x of
-        Distinct -> A.Distinct
-        Dupes -> A.Dupes
- 
-natural :: Natural -> A.Natural
-natural x
-  = case x of
-        Natural -> A.Natural
-        Unnatural -> A.Unnatural
- 
-ifExists :: IfExists -> A.IfExists
-ifExists x
-  = case x of
-        IfExists -> A.IfExists
-        Require -> A.Require
- 
-restartIdentity :: RestartIdentity -> A.RestartIdentity
-restartIdentity x
-  = case x of
-        ContinueIdentity -> A.ContinueIdentity
-        RestartIdentity -> A.RestartIdentity
- 
-expression :: Expression -> A.Expression
-expression x
-  = case x of
-        BooleanLit a1 a2 -> A.BooleanLit a1 a2
-        Case a1 a2 a3 -> A.Case a1
-                           (caseExpressionListExpressionPairList a2)
-                           (maybeExpression a3)
-        CaseSimple a1 a2 a3 a4 -> A.CaseSimple a1 (expression a2)
-                                    (caseExpressionListExpressionPairList a3)
-                                    (maybeExpression a4)
-        Cast a1 a2 a3 -> A.Cast a1 (expression a2) (typeName a3)
-        Exists a1 a2 -> A.Exists a1 (selectExpression a2)
-        FloatLit a1 a2 -> A.FloatLit a1 a2
-        FunCall a1 a2 a3 -> A.FunCall a1 a2 (expressionList a3)
-        Identifier a1 a2 -> A.Identifier a1 a2
-        InPredicate a1 a2 a3 a4 -> A.InPredicate a1 (expression a2) a3
-                                     (inList a4)
-        IntegerLit a1 a2 -> A.IntegerLit a1 a2
-        LiftOperator a1 a2 a3 a4 -> A.LiftOperator a1 a2 (liftFlavour a3)
-                                      (expressionList a4)
-        NullLit a1 -> A.NullLit a1
-        Placeholder a1 -> A.Placeholder a1
-        PositionalArg a1 a2 -> A.PositionalArg a1 a2
-        ScalarSubQuery a1 a2 -> A.ScalarSubQuery a1 (selectExpression a2)
-        StringLit a1 a2 a3 -> A.StringLit a1 a2 a3
-        WindowFn a1 a2 a3 a4 a5 a6 -> A.WindowFn a1 (expression a2)
-                                        (expressionList a3)
-                                        (expressionList a4)
-                                        (direction a5)
-                                        (frameClause a6)
-        AntiExpression s -> error "can't convert anti expression"
- 
-frameClause :: FrameClause -> A.FrameClause
-frameClause x
-  = case x of
-        FrameRowsUnboundedPreceding -> A.FrameRowsUnboundedPreceding
-        FrameUnboundedFull -> A.FrameUnboundedFull
-        FrameUnboundedPreceding -> A.FrameUnboundedPreceding
- 
-inList :: InList -> A.InList
-inList x
-  = case x of
-        InList a1 a2 -> A.InList a1 (expressionList a2)
-        InSelect a1 a2 -> A.InSelect a1 (selectExpression a2)
- 
-liftFlavour :: LiftFlavour -> A.LiftFlavour
-liftFlavour x
-  = case x of
-        LiftAll -> A.LiftAll
-        LiftAny -> A.LiftAny
- 
-triggerWhen :: TriggerWhen -> A.TriggerWhen
-triggerWhen x
-  = case x of
-        TriggerAfter -> A.TriggerAfter
-        TriggerBefore -> A.TriggerBefore
- 
-triggerEvent :: TriggerEvent -> A.TriggerEvent
-triggerEvent x
-  = case x of
-        TDelete -> A.TDelete
-        TInsert -> A.TInsert
-        TUpdate -> A.TUpdate
-        AntiTriggerEvent s -> error "can't convert anti triggerEvent"
- 
-triggerFire :: TriggerFire -> A.TriggerFire
-triggerFire x
-  = case x of
-        EachRow -> A.EachRow
-        EachStatement -> A.EachStatement
- 
-setValue :: SetValue -> A.SetValue
-setValue x
-  = case x of
-        SetId a1 a2 -> A.SetId a1 a2
-        SetNum a1 a2 -> A.SetNum a1 a2
-        SetStr a1 a2 -> A.SetStr a1 a2
- 
-statementList :: StatementList -> A.StatementList
-statementList = map statement
- 
-expressionListStatementListPairList ::
-                                    ExpressionListStatementListPairList ->
-                                      A.ExpressionListStatementListPairList
-expressionListStatementListPairList
-  = map expressionListStatementListPair
- 
-expressionListStatementListPair ::
-                                ExpressionListStatementListPair ->
-                                  A.ExpressionListStatementListPair
-expressionListStatementListPair (a, b)
-  = (expressionList a, statementList b)
- 
-expressionList :: ExpressionList -> A.ExpressionList
-expressionList = map expression
- 
-stringList :: StringList -> A.StringList
-stringList = id
- 
-paramDefList :: ParamDefList -> A.ParamDefList
-paramDefList = map paramDef
+alterTableActionList ::
+                     AlterTableActionList -> A.AlterTableActionList
+alterTableActionList = fmap alterTableAction
  
 attributeDefList :: AttributeDefList -> A.AttributeDefList
-attributeDefList = map attributeDef
+attributeDefList = fmap attributeDef
  
-constraintList :: ConstraintList -> A.ConstraintList
-constraintList = map constraint
- 
-typeAttributeDefList ::
-                     TypeAttributeDefList -> A.TypeAttributeDefList
-typeAttributeDefList = map typeAttributeDef
- 
-typeNameList :: TypeNameList -> A.TypeNameList
-typeNameList = map typeName
- 
-stringTypeNameListPair ::
-                       StringTypeNameListPair -> A.StringTypeNameListPair
-stringTypeNameListPair (a, b) = (a, typeNameList b)
- 
-stringTypeNameListPairList ::
-                           StringTypeNameListPairList -> A.StringTypeNameListPairList
-stringTypeNameListPairList = map stringTypeNameListPair
- 
-expressionStatementListPairList ::
-                                ExpressionStatementListPairList ->
-                                  A.ExpressionStatementListPairList
-expressionStatementListPairList = map expressionStatementListPair
- 
-setClauseList :: SetClauseList -> A.SetClauseList
-setClauseList = map setClause
- 
-caseExpressionListExpressionPairList ::
-                                     CaseExpressionListExpressionPairList ->
-                                       A.CaseExpressionListExpressionPairList
-caseExpressionListExpressionPairList
-  = map caseExpressionListExpressionPair
- 
-maybeExpression :: MaybeExpression -> A.MaybeExpression
-maybeExpression = fmap expression
- 
-tableRefList :: TableRefList -> A.TableRefList
-tableRefList = map tableRef
- 
-expressionListList :: ExpressionListList -> A.ExpressionListList
-expressionListList = map expressionList
- 
-selectItemList :: SelectItemList -> A.SelectItemList
-selectItemList = map selectItem
- 
-onExpr :: OnExpr -> A.OnExpr
-onExpr = fmap joinExpression
- 
-rowConstraintList :: RowConstraintList -> A.RowConstraintList
-rowConstraintList = map rowConstraint
- 
-varDefList :: VarDefList -> A.VarDefList
-varDefList = map varDef
- 
-expressionStatementListPair ::
-                            ExpressionStatementListPair -> A.ExpressionStatementListPair
-expressionStatementListPair (a, b)
-  = (expression a, statementList b)
+caseExpressionList :: CaseExpressionList -> A.CaseExpressionList
+caseExpressionList = fmap expression
  
 caseExpressionListExpressionPair ::
                                  CaseExpressionListExpressionPair ->
@@ -836,8 +759,14 @@ caseExpressionListExpressionPair ::
 caseExpressionListExpressionPair (a, b)
   = (caseExpressionList a, expression b)
  
-caseExpressionList :: CaseExpressionList -> A.CaseExpressionList
-caseExpressionList = map expression
+caseExpressionListExpressionPairList ::
+                                     CaseExpressionListExpressionPairList ->
+                                       A.CaseExpressionListExpressionPairList
+caseExpressionListExpressionPairList
+  = fmap caseExpressionListExpressionPair
+ 
+constraintList :: ConstraintList -> A.ConstraintList
+constraintList = fmap constraint
  
 expressionDirectionPair ::
                         ExpressionDirectionPair -> A.ExpressionDirectionPair
@@ -845,20 +774,86 @@ expressionDirectionPair (a, b) = (expression a, direction b)
  
 expressionDirectionPairList ::
                             ExpressionDirectionPairList -> A.ExpressionDirectionPairList
-expressionDirectionPairList = map expressionDirectionPair
+expressionDirectionPairList = fmap expressionDirectionPair
+ 
+expressionList :: ExpressionList -> A.ExpressionList
+expressionList = fmap expression
+ 
+expressionListList :: ExpressionListList -> A.ExpressionListList
+expressionListList = fmap expressionList
+ 
+expressionListStatementListPair ::
+                                ExpressionListStatementListPair ->
+                                  A.ExpressionListStatementListPair
+expressionListStatementListPair (a, b)
+  = (expressionList a, statementList b)
+ 
+expressionListStatementListPairList ::
+                                    ExpressionListStatementListPairList ->
+                                      A.ExpressionListStatementListPairList
+expressionListStatementListPairList
+  = fmap expressionListStatementListPair
+ 
+expressionStatementListPair ::
+                            ExpressionStatementListPair -> A.ExpressionStatementListPair
+expressionStatementListPair (a, b)
+  = (expression a, statementList b)
+ 
+expressionStatementListPairList ::
+                                ExpressionStatementListPairList ->
+                                  A.ExpressionStatementListPairList
+expressionStatementListPairList = fmap expressionStatementListPair
  
 maybeBoolExpression :: MaybeBoolExpression -> A.MaybeBoolExpression
 maybeBoolExpression = fmap expression
  
+maybeExpression :: MaybeExpression -> A.MaybeExpression
+maybeExpression = fmap expression
+ 
 maybeSelectList :: MaybeSelectList -> A.MaybeSelectList
 maybeSelectList = fmap selectList
  
-alterTableActionList ::
-                     AlterTableActionList -> A.AlterTableActionList
-alterTableActionList = map alterTableAction
+onExpr :: OnExpr -> A.OnExpr
+onExpr = fmap joinExpression
  
-triggerEventList :: TriggerEventList -> A.TriggerEventList
-triggerEventList = map triggerEvent
+paramDefList :: ParamDefList -> A.ParamDefList
+paramDefList = fmap paramDef
+ 
+rowConstraintList :: RowConstraintList -> A.RowConstraintList
+rowConstraintList = fmap rowConstraint
+ 
+selectItemList :: SelectItemList -> A.SelectItemList
+selectItemList = fmap selectItem
+ 
+setClauseList :: SetClauseList -> A.SetClauseList
+setClauseList = fmap setClause
  
 setValueList :: SetValueList -> A.SetValueList
-setValueList = map setValue
+setValueList = fmap setValue
+ 
+statementList :: StatementList -> A.StatementList
+statementList = fmap statement
+ 
+stringList :: StringList -> A.StringList
+stringList = id
+ 
+stringTypeNameListPair ::
+                       StringTypeNameListPair -> A.StringTypeNameListPair
+stringTypeNameListPair (a, b) = (a, typeNameList b)
+ 
+stringTypeNameListPairList ::
+                           StringTypeNameListPairList -> A.StringTypeNameListPairList
+stringTypeNameListPairList = fmap stringTypeNameListPair
+ 
+tableRefList :: TableRefList -> A.TableRefList
+tableRefList = fmap tableRef
+ 
+typeAttributeDefList ::
+                     TypeAttributeDefList -> A.TypeAttributeDefList
+typeAttributeDefList = fmap typeAttributeDef
+ 
+typeNameList :: TypeNameList -> A.TypeNameList
+typeNameList = fmap typeName
+ 
+varDefList :: VarDefList -> A.VarDefList
+varDefList = fmap varDef

@@ -107,7 +107,6 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,MaybeSelectList
    ,SetValue(..)
    ,AlterTableActionList
-   ,TriggerEventList
    ,SetValueList
    -- typechecking
    ,typeCheck
@@ -232,7 +231,7 @@ DATA Statement
     | CreateTrigger ann:Annotation
                     name:String
                     wh : TriggerWhen
-                    events: TriggerEventList
+                    events: {[TriggerEvent]}
                     tbl : String
                     firing : TriggerFire
                     fnName : String
@@ -642,7 +641,7 @@ TYPE StatementList = [Statement]
 TYPE ExpressionDirectionPair = (Expression,Direction)
 TYPE ExpressionDirectionPairList = [ExpressionDirectionPair]
 TYPE AlterTableActionList = [AlterTableAction]
-TYPE TriggerEventList = [TriggerEvent]
+-- TYPE TriggerEventList = [TriggerEvent]
 TYPE SetValueList = [SetValue]
 -- Add a root data type so we can put initial values for inherited
 -- attributes in the section which defines and uses those attributes
@@ -684,7 +683,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                TableAlias AlterTableAction
                ExpressionDirectionPair
                ExpressionDirectionPairList AlterTableActionList
-               TriggerEventList SetValueList
+               SetValueList
 
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
