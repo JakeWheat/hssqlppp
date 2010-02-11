@@ -281,20 +281,15 @@ to make it work right.
 >    extras cons name expr = flip concatMap (tableNames expr) $ \tn ->
 >                  let ec = existingConstraints tn cons
 >                  in if null ec
->                     then [makeTriggerFn tn [name]
+>                     then [makeTriggerFn False tn [name]
 >                          ,makeTrigger tn]
->                     else [dropTriggerFn tn
->                          ,makeTriggerFn tn (name:ec)]
+>                     else [makeTriggerFn True tn (name:ec)]
 >    tableNames expr = let y = getReferencedTableList asti expr
 >                      in y
 >    newcons cons tns nm = foldr (uncurry (insertWith (++))) cons (map (,[nm]) tns)
 >    existingConstraints tn cons = maybe [] id $ lookup tn cons
 >
 > type ConstraintRecord = [(String,[String])] -- tablename, list of constraint names
->
-> dropTriggerFn :: String -> Statement
-> dropTriggerFn tn = let opname = tn ++ "_constraint_trigger_operator"
->                    in [$sqlStmt| drop function $(opname)();|]
 >
 > makeCheckFn :: String -> Expression -> Statement
 > makeCheckFn name expr =
@@ -307,8 +302,8 @@ to make it work right.
 >              $xxx$ language plpgsql stable;
 >            |]
 >
-> makeTriggerFn :: String -> [String] -> Statement
-> makeTriggerFn tn nms =
+> makeTriggerFn :: Bool -> String -> [String] -> Statement
+> makeTriggerFn r tn nms =
 >   let trigopname = tn ++ "_constraint_trigger_operator"
 >       ifs :: [Statement]
 >       ifs = map makeIf nms
@@ -321,7 +316,13 @@ to make it work right.
 >                   end;
 >                   $xxx$ language plpgsql stable;
 >                   |]
->   in flip transformBi template $ \x ->
+>       rep = if r
+>             then transformBi $ \x ->
+>                    case x of
+>                           NoReplace -> Replace
+>                           x1 -> x1
+>             else id
+>   in flip transformBi (rep template) $ \x ->
 >        case x of
 >              NullStatement _ : tl -> ifs ++ tl
 >              x1 -> x1

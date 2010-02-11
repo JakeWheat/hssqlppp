@@ -352,8 +352,7 @@ begin
 end;
 $xxx$ language plpgsql stable;
 
-drop function test_table_constraint_trigger_operator();
-create function test_table_constraint_trigger_operator() returns trigger as $xxx$
+create or replace function test_table_constraint_trigger_operator() returns trigger as $xxx$
 begin
   if not check_con_test_table_stuff_count() then
     raise exception 'update violates database constraint test_table_stuff_count';
@@ -409,14 +408,11 @@ that bad?
 >     ,fn "b" "x"
 >     ,trig "b"
 >     ,check "y" "b" "c"
->     ,df "b"
 >     ,fn1 "b" "x" "y"
 >     ,fn "c" "y"
 >     ,trig "c"
 >     ,check "z" "c" "a"
->     ,df "c"
 >     ,fn1 "c" "y" "z"
->     ,df "a"
 >     ,fn1 "a" "x" "z"]
 >     where
 >       createTable :: String -> Statement
@@ -468,7 +464,7 @@ that bad?
 >                         errMsg1 = "update violates database constraint valid_" ++ c1
 >                         errMsg2 = "update violates database constraint valid_" ++ c2
 >                     in [$sqlStmt|
->                         create function $(nm)() returns trigger as $xxx$
+>                         create or replace function $(nm)() returns trigger as $xxx$
 >                         begin
 >                           if not $(c2n) then
 >                             raise exception '$(errMsg2)';
@@ -490,7 +486,3 @@ that bad?
 >                      for each statement
 >                      execute procedure $(cfn)();
 >                    |]
->       df t = let cfn ="table_" ++ t ++ "_constraint_trigger_operator"
->              in [$sqlStmt|
->                  drop function $(cfn)();
->                  |]
