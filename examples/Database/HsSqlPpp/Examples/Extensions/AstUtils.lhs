@@ -38,8 +38,14 @@ it and quits.
 >                          (listViews ast)
 >                          (listTables ast)
 >
+> -- won't need this wrapper when the recursion loop detection logic
+> -- is in place
 > getReferencedTableList :: Data a => AstInfo -> a -> [String]
 > getReferencedTableList asti a =
+>     nub $ getReferencedTableListI asti a
+>
+> getReferencedTableListI :: Data a => AstInfo -> a -> [String]
+> getReferencedTableListI asti a =
 >         doTables
 >         ++ doViews
 >         ++ doFunctions
@@ -55,6 +61,8 @@ it and quits.
 > getTrefs :: Data a => a -> [String]
 > getTrefs ast = [tbl| Tref _ tbl _ <- universeBi ast]
 >
+>
+> -- this is wrong because we don't take into account function overloading
 > getFunctionRefs :: Data a => a -> [String]
 > getFunctionRefs ast = [fn| FunCall _ fn _ <- universeBi ast]
 >

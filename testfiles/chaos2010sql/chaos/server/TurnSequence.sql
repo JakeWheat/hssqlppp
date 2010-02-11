@@ -121,9 +121,9 @@ select create_var('current_wizard', 'text');
 --  'wizards', 'wizard_name');
 
 select no_deletes_inserts_except_new_game('current_wizard_table');
-/*select create_assertion('current_wizard_must_be_alive',
+select create_assertion('current_wizard_must_be_alive',
   $$(select not expired from current_wizard_table
-     inner join wizards on current_wizard = wizard_name)$$);*/
+     inner join wizards on current_wizard = wizard_name)$$);
 
 /*
 wizard field in most tables and views is named wizard_name
@@ -200,10 +200,10 @@ create table wizard_spell_choices_mr (
   imaginary boolean null
 );
 --select add_key('wizard_spell_choices_mr', 'wizard_name');
-/*select create_assertion('dead_wizard_no_spell',
+select create_assertion('dead_wizard_no_spell',
   $$ not exists(select 1 from wizard_spell_choices_mr
     natural inner join wizards
-    where expired = true)$$);*/
+    where expired = true)$$);
 
 create view wizard_spell_choices as
   select wizard_name, spell_name
@@ -258,11 +258,11 @@ select create_var('spell_choice_hack', 'boolean');
 insert into spell_choice_hack_table values (false);
 --select set_relvar_type('spell_choice_hack_table', 'stack');
 
-/*select create_assertion('wizard_spell_choices_wizard_name_spell_name_fkey',
+select create_assertion('wizard_spell_choices_wizard_name_spell_name_fkey',
 $$((select spell_choice_hack from spell_choice_hack_table) or
 not exists(select wizard_name, spell_name from wizard_spell_choices
   except
-select wizard_name, spell_name from spell_books))$$);*/
+select wizard_name, spell_name from spell_books))$$);
 
 /*
 if choose phase: only current and previous wizards may have a row
@@ -270,7 +270,7 @@ if cast phase: only current and subsequent wizards may have a row
 this constraint really needs multiple updates.
 */
 
-/*select create_assertion('chosen_spell_phase_valid',
+select create_assertion('chosen_spell_phase_valid',
 $$
 ((select in_next_phase_hack from in_next_phase_hack_table) or
 (((select turn_phase='choose' from turn_phase_table) and
@@ -287,7 +287,7 @@ or
     inner join current_wizard_table
       on wizard_name = current_wizard))
 or not exists(select 1 from wizard_spell_choices)
-))$$);*/
+))$$);
 
 select create_update_transition_tuple_constraint(
   'wizard_spell_choices_mr',
@@ -324,10 +324,10 @@ spell or max number of casts otherwise
 select create_var('spell_parts_to_cast', 'int');
 --select set_relvar_type('spell_parts_to_cast_table', 'data');
 
-/*select create_assertion('parts_to_cast_only', $$
+select create_assertion('parts_to_cast_only', $$
   ((select turn_phase = 'cast' from turn_phase_table)
   or not exists(select 1 from spell_parts_to_cast_table))$$);
-*/
+
 /*
 If casting multipart spell, only check success on first part.
 Store whether current wizard's spell needs a success check here.
@@ -336,10 +336,10 @@ make sure to reset it each next phase during cast phase
 
 select create_var('cast_success_checked', 'boolean');
 --select set_relvar_type('cast_success_checked_table', 'data');
-/*select create_assertion('cast_checked_cast_only', $$
+select create_assertion('cast_checked_cast_only', $$
   ((select turn_phase = 'cast' from turn_phase_table)
   or not exists(select 1 from cast_success_checked_table))$$);
-*/
+
 
 /*
 
@@ -374,9 +374,9 @@ by two in the absence of any other spells.
 select create_var('cast_alignment', 'integer');
 --select set_relvar_type('cast_alignment_table', 'stack');
 
-/*select create_assertion('cast_alignment_empty',
+select create_assertion('cast_alignment_empty',
   $$((get_turn_phase() = 'cast') or
-  not exists(select 1 from cast_alignment_table))$$);*/
+  not exists(select 1 from cast_alignment_table))$$);
 
 create function adjust_world_alignment() returns void as $$
 declare
@@ -425,9 +425,9 @@ create table pieces_to_move (
 select add_foreign_key('pieces_to_move', 'allegiance',
                        'current_wizard_table', 'current_wizard');
 select set_relvar_type('pieces_to_move', 'data');*/
-/*select create_assertion('pieces_to_move_empty',
+select create_assertion('pieces_to_move_empty',
 $$((select turn_phase = 'move' from turn_phase_table) or
-not exists (select 1 from pieces_to_move))$$);*/
+not exists (select 1 from pieces_to_move))$$);
 
 create domain move_phase as text
   check (value in ('motion', 'attack', 'ranged_attack'));
@@ -467,7 +467,7 @@ select create_var('remaining_walk_hack', 'boolean');
 --select set_relvar_type('remaining_walk_hack_table', 'stack');
 insert into remaining_walk_hack_table values (false);
 
-/*select create_assertion('remaining_walk_only_motion',
+select create_assertion('remaining_walk_only_motion',
 $$ ((not exists(select 1 from remaining_walk_table)) or
    exists(select 1 from creating_new_game_table
       where creating_new_game = true) or
@@ -478,7 +478,7 @@ $$ ((not exists(select 1 from remaining_walk_table)) or
       and exists (select 1 from creature_pieces
                   natural inner join selected_piece)
       and (select not flying from creature_pieces
-           natural inner join selected_piece))) $$);*/
+           natural inner join selected_piece))) $$);
 
 --this function is used to initialise the turn phase data.
 create function init_turn_stuff() returns void as $$
@@ -507,9 +507,9 @@ remaining.)
 
 select create_var('game_completed', 'boolean');
 --select set_relvar_type('game_completed_table', 'data');
-/*select create_assertion('game_completed_wizards',
+select create_assertion('game_completed_wizards',
        $$(not exists(select 1 from game_completed_table)
-           or (select count(1) <= 1 from live_wizards))$$);*/
+           or (select count(1) <= 1 from live_wizards))$$);
 
 create function game_completed() returns void as $$
 begin

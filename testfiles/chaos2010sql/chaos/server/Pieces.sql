@@ -77,17 +77,17 @@ create table pieces (
 select add_key('pieces', array['ptype', 'allegiance', 'tag']);
 select add_foreign_key('pieces', 'ptype', 'piece_prototypes');*/
 --piece must be on the board, not outside it
-/*select create_assertion('piece_coordinates_valid',
+select create_assertion('piece_coordinates_valid',
   ' not exists(select 1 from pieces
   cross join board_size
-  where x >= width or y >= height)');*/
+  where x >= width or y >= height)');
 --select add_foreign_key('pieces', 'allegiance', 'allegiances');
 --temporary constraint while 'fks' to non base relvars are buggy
-/*select create_assertion('dead_wizard_army_empty',
+select create_assertion('dead_wizard_army_empty',
   $$ not exists(select 1 from pieces
     inner join wizards
     on (allegiance = wizard_name)
-    where expired = true)$$);*/
+    where expired = true)$$);
 --select set_relvar_type('pieces', 'data');
 
 create type piece_key as (

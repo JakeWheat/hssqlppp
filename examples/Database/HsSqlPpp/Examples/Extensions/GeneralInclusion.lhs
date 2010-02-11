@@ -15,12 +15,12 @@ constraints.
 > module Database.HsSqlPpp.Examples.Extensions.GeneralInclusion
 >     (generalInclusionsExamples) where
 >
-> import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.PrettyPrinter
+> --import Database.HsSqlPpp.Ast
+> --import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
+> --import Database.HsSqlPpp.SqlQuote
+> --import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
 
 > generalInclusionsExamples :: [ExtensionTest]
 > generalInclusionsExamples = []

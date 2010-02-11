@@ -20,10 +20,10 @@ select add_key('action_client_new_game_argument', 'sprite');
 select add_key('action_client_new_game_argument', 'colour');
 select add_foreign_key('action_client_new_game_argument',
                        'sprite', 'sprites');*/
-/*select create_assertion('action_client_new_game_place_valid',
+select create_assertion('action_client_new_game_place_valid',
 '(select count(*) from action_client_new_game_argument
   where place >=
-  (select count(*) from action_client_new_game_argument)) = 0');*/
+  (select count(*) from action_client_new_game_argument)) = 0');
 --select set_relvar_type('action_client_new_game_argument', 'stack');
 
 --this calls server new game
