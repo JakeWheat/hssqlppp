@@ -1,31 +1,50 @@
 Copyright 2010 Jake Wheat
 
-Partially working.
-
-Extended constraints
-====================
-
-Extended constraint system - idea is to use triggers to roughly create
-constraints which can refer to multiple rows in a table or multiple
-tables.
-
-The constraints are implemented with:
-
-* a table to hold the constraint names and expressions
-* for each table which is involved in a constraint: a function which
-  checks all the constraint expressions for that table, excluding ones
-  which are implemented as pg constraints directly; and a trigger to
-  call that function when the table changes
-
-You also get a check_constraint function for each constraint which can
-be run at any time. (including keys and sql fks); these aren't
-actually called.
-
-The constraints which are implemented by pg instead of these
-functions/triggers are called accelerated constraints below.
-
-issues
+sketch
 ------
+
+something like an implementation of the rarely implemented create
+assertion sql syntax
+
+The basic approach is to analyze the constraint expression to get a
+list of ultimately reference tables, then:
+
+create a check function which returns a bool to say whether the
+expression is true,
+
+create a trigger and trigger function for each table which calls all
+the check functions who reference this table and raise if any are
+false
+
+when we add a constraint which references a table with an existing
+constraint, we add the new check function, and create or replace the
+trigger function with the new check function added to the existing
+ones, which avoids having to also drop and create the trigger
+
+could add an optimisation to say that if there are no crud statements
+inbetween two constraints, we can skip creating the first trigger
+function, and change create or replace to create on the second one,
+and move the add trigger down. Also - want to try to limit any crud to
+using the table values extension, which may be relevant to this.
+
+todo/ issues
+------------
+
+add catalog entries. not null and key constrainsts are part of a
+table, but the regular check and foreign key constraints possibly
+could appear in assertion catalog along with the constraints added by
+this extension
+
+the logic which determines which tables are referenced by an
+expression is a bit dodgy: it only copes with all the create
+assertions being set in one ast, so we can load one file, then load
+another file later and it do the right thing.
+
+this logic is also wrong for functions - it doesn't take into account
+function overloading, to fix this need to type check to determine
+which exact functions are called, might be a bit tricky, since we run
+extensions on asts which only neccessarily type check after all the
+extensions have been applied.
 
 Since pg has no multiple updates, some sort of hack may be needed for
 some updates in combination with some constraints.
@@ -39,120 +58,43 @@ I'm pretty sure the constraint system works fine as long as
 If any of these assumptions are broken, you might break your database,
 load bad data in or get weird errors for stuff that should work.
 
-Constraints that can't be implemented by pg are created with the
-following syntax: can create a reference to a view or from a non key
-column using regular pg syntax, this moves the foreign key constraint
-out of the create table during the transform and implements it using a
-trigger.
-
-TBC: foreign keys without having to create a view first i.e. a literal
+foreign keys without having to create a view first i.e. a literal
 view expression in the constraint.
 
-Primary keys, unique not nulls, regular foreign keys, and regular
-check constraints are written in the usual way.
+alternative key syntax to remove the distinction between primary key
+and unique not null?
 
-TBC - alternative key syntax to remove the distinction between primary key and unique not null?
+could add support for check constraints referring to multiple rows in
+same table? don't want to allow check constraints which refer to other
+tables. Maybe go further: following tutorial d, only allow key and not
+null constraints in create table or alter table, and move chek and
+foreign keys out to create assertions or shorthand wrappers? Inline
+constraints can be more readable though?
 
-TBC - will the extension deal with can check constraints
-
-* referring to multiple rows in same table
-* referring to other tables as well as this table
-* produce an error if they only refer to other tables
-
-(meaning check constraints inside a create table statement)
-
-To create other sorts of constraints, currently uses a function call
-based roughly on the rarely implemented sql syntax:
-
-    create_assertion('constraint_name', 'expression as text');
-
-TODO: maybe add a parser extension to parse:
+maybe add a parser extension to parse:
 
     create assertion constraint_name check(expression);
 
-Currently, no attempt is made to recognise a constraint that could be
-implemented without a trigger when it is added using a
-create_assertion call.
+add some syntax to say:
+not too sure about how this all works, write a seperate bunch of
+code to read all the constraints either out of the catalog or from the
+source, then use the final version of the sql code, type check it, and
+use the type check information to check all the constraints seem to
+have been added ok.
 
-other ideas:
+* here are some example sets of relation values which should be
+  accepted by the constraint
+* here are some which should not be accepted by the constraint
 
-* require all constraints to have names
-* add some syntax to say:
-  * here are some example sets of relation values which should be accepted by the constraint
-  * here are some which should not be accepted by the constraint
-* add supplemental expressions for error reporting: so instead of
+and have a way to check these (this stuff goes in the client program
+using the constraints).
+
+add supplemental expressions for error reporting: so instead of
   saying x constraint failed, can run through the expressions one at a
   time and when one passes or fails or something can give a more
   useful error message depending on how it failed.
 
-tests:
-
-check running on empty statement list adds the dependencies:
-
-~~~~~
-create table database_constraints (
-  constraint_name text,
-  expression text
-);
-
-create function check_constraint(constraint_name) ...
-what else is needed: plpgsql implementation used:
-table dbcon_ops - saves the function per constraint to check that constraint
-separate function to check each constraint
-save the manual relvar list that the constraint references - now will
-  generate this list using the parser automatically
--> dbcon_relvars - the relvars that each constraint references
-saves information into a system_implementation_objects table
-sort_out_constraint_name -> truncate the constraint name and make
-  unique if there is an overlap -> this is for auto generated names
-have some views to list details about the accelarated constraints from
-the pg catalog: check_pg, key_pg, fk_pg
-
-functions to implement accelerated constraints: set_pg_unique,
-set_pg_check, set pg_fk
-
-con_pg -> table to list accelerated constraints
-
-db_con_trigger_ops dbcon_triggers: tables to list the triggers and
-trigger functions that actually implement the constraints
-non accelerated constraints view
-
-regenerate constraint triggers function:
-redoes _all_ the triggers and functions
-drop all triggers in dbcon_triggers
-drop the trigger ops
-create a trigger function for each table, include all the constraints mentioning that table
-create a trigger for each table
-
-functions to add constraints:
-add_key variants
-add_foreign_key variants
-constraint to zero or one tuple constraint generator
-
-types of constraints: pg key - primary key or unique not null,
-?assertion effective key pg foreign key, non pg foreign key (same
-syntax, refer to view or from non key), ?assertion effective fk,
-inline normal check, check refering to multiple rows, multiple columns
-check variants in assertion syntax.
-shortcuts for views: key and reference?
-
-
-for each type of constraint:
-check inserts into catalog are generated -> insert into database_constraints
-check that the expression is checked at assertion creation time for non accelerated
-
-Use regular extension tests and add a load of tests to exercise a
-variety of non pg accelerated constraints and check successul updates
-and constraint violation attempts.
-
-/*
-constraints
-*/
-create table database_constraints (
-  constraint_name text,
-  expression text
-);
-
+~~~~
 === ghetto test thing
 want to write some tests for this constraint system just as a sanity
 check for now:
@@ -183,45 +125,17 @@ unique
 
 all todo: yes, that means there is no direct testing of any of the
 constraint stuff...
-
-
-select add_key('database_constraints', 'constraint_name');
-
-select add_key('dbcon_ops', 'constraint_name');
-select add_key('dbcon_ops', 'operator_name');
-select add_foreign_key('dbcon_ops', 'constraint_name',
-                       'database_constraints');
---select add_foreign_key('dbcon_ops', 'operator_name', 'operators');
-
-select add_key('dbcon_relvars', array['constraint_name', 'relvar_name']);
-select add_foreign_key('dbcon_relvars', 'constraint_name',
-                       'database_constraints');
-select add_foreign_key('dbcon_relvars', 'relvar_name', 'base_relvars');
-
-select add_key('con_pg', 'constraint_name');
-select add_foreign_key('con_pg', 'constraint_name', 'database_constraints');
-select add_foreign_key('con_pg', 'constraint_name',
-  '(select constraint_name from check_pg union
-   select constraint_name from key_pg union
-   select constraint_name from fk_pg) as x');
-
-select add_key('dbcon_trigger_ops', 'operator_name');
-select add_foreign_key('dbcon_trigger_ops', 'operator_name', 'operators');
-
-select add_key('dbcon_triggers', 'trigger_name');
-select add_foreign_key('dbcon_triggers', array['trigger_name', 'relvar_name'],
-  'triggers');
 ~~~~~
+
+not too sure about how this all works, write a seperate bunch of
+code to read all the constraints either out of the catalog or from the
+source, then use the final version of the sql code, type check it, and
+use the type check information to check all the constraints seem to
+have been added ok.
 
 ----------------------------
 
-Tests/examples in extendedconstraintstests.lhs
-
-one major thing that is missing is adding stuff to the catalog. This
-means that only constraints that are all processed in one transform
-will work, if you have two files, transform them seperately, then load
-them, any constraints from the first file will be disabled for tables
-which also have constraints in the second file.
+Tests/examples in CreateAssertionTests.lhs
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables, TupleSections #-}
 >
@@ -239,16 +153,6 @@ which also have constraints in the second file.
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.AstUtils
-
-stage 1: some test cases for general constraints which aren't
-implementable as postgresql constraints, we don't check the
-constraints work, only that the apparently correct ddl is generated
-
-idea: not too sure about how this all works, write a seperate bunch of
-code to read all the constraints either out of the catalog or from the
-source, then use the final version of the sql code, type check it, and
-use the type check information to check all the constraints seem to
-have been added ok.
 
 implementation
 ==============

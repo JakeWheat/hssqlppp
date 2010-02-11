@@ -378,6 +378,12 @@ nulls and ignore them when checking for nullable attributes.
 >         Restrict -> Cascade
 >         x1 -> x1
 
+--------------------------
+
+catalog extras
+--------------
+
+add some extras to the catalog
 
 > -- | looks for calls to function set_relvar_type and adds triggers to prevent the
 > -- referenced table from being updated

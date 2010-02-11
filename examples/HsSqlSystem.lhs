@@ -94,7 +94,6 @@ hacky thing: to run an ast transform on all sql asts in commands, put it in here
 
 > astTransformer :: Data a => a -> a
 > astTransformer = id
-> --astTransformer = transitionConstraints
 
 -------------------------------------------------------------------------------
 
@@ -1209,8 +1208,13 @@ of this exe, then this command will disappear
 >   ast <- mapM (\f -> (liftIO . readInput) f >>=
 >                  tsl . P.parseSql f) files >>=
 >      return . (concat |>
->                stripAnnotations |>
->                chaosExtensions) -- >>= -- figure out why some exts only work with this
+>                stripAnnotations |> -- figure out why some exts only work with this - need the sourceposes to stay
+>                chaosExtensions)
+>   {-mapM_ (liftIO . putStrLn) $
+>             (A.typeCheck defaultTemplate1Catalog |>
+>              snd |>
+>              A.getTypeErrors |>
+>              ppTypeErrors) ast-}
 >   liftIO $ putStrLn $ printSql ast
 >   --liftIO $ loadAst db ast
 >   where
@@ -1237,7 +1241,6 @@ of this exe, then this command will disappear
 >         ,"testfiles/chaos2010sql/chaos/client/ClientActions.sql"
 >         ,"testfiles/chaos2010sql/chaos/client/ClientNewGame.sql"
 >         ]
-
 
 -------------------------------------------------------------------------------
 

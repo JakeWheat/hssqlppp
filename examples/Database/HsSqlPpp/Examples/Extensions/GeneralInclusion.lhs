@@ -1,15 +1,13 @@
 Copyright 2010 Jake Wheat
 
-Tests to check extending the 'foreign key' support using regular
-postgresql syntax.
+Two aspects to general inclusions
 
-This system allow fking to a view, and allows the source or target
-attributes to not be a key.
+1) want to pick up normal foreign key syntax, but where it references
+a view, and pull this out to seperate create_foreign_key or whatever
+it's going to be called
 
-If a foreign key cannot be implemented with pg, then the check fn,
-trigger fns, and triggers get added as with the other extended
-constraints.
-
+2) not going to try to do the reverse for now, so just need to convert
+the create_fk call into a create_assertion call
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Examples.Extensions.GeneralInclusion
@@ -24,12 +22,3 @@ constraints.
 
 > generalInclusionsExamples :: [ExtensionTest]
 > generalInclusionsExamples = []
-
-first check a regular fk isn't touched
-check multiple field isn't touched
-
-check non keys in source table
-
-check non keys in target table
-
-check to view

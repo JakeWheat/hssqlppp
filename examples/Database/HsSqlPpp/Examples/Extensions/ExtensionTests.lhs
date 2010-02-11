@@ -24,12 +24,14 @@ Gather together the examples from the extension modules and convert to regular t
 > import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
 > import Database.HsSqlPpp.Examples.Extensions.Modules
 > import Database.HsSqlPpp.Examples.Extensions.GeneralInclusion
+> import Database.HsSqlPpp.Examples.Extensions.Denormalized6nfExamples
 >
 > testData :: [ExtensionTest]
 > testData = transitionConstraintExamples ++
 >            createAssertionExamples ++
 >            chaosExtensionsExamples ++
 >            generalInclusionsExamples ++
+>            denormalized6nfExamples ++
 >            [createVarSimpleExample
 >            ,createVarExample
 >            ,cardinalityRestrictExample
