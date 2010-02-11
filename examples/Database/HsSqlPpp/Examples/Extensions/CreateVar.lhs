@@ -16,14 +16,14 @@ database.
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.PrettyPrinter
-> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
+> import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
 >
 > createVarExample :: ExtensionTest
 > createVarExample = ExtensionTest
 >   "CreateVar"
->   (extendedConstraints . createVar)
+>   (createAssertion . createVar)
 >   [$sqlStmts| select create_var('varname', 'vartype'); |]
->   (extendedConstraints [$sqlStmts|
+>   (createAssertion [$sqlStmts|
 >
 >   create table varname_table (
 >     varname vartype primary key

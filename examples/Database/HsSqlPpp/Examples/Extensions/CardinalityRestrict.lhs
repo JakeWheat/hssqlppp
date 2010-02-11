@@ -14,7 +14,7 @@ constraint shorthand to restrict cardinality of table
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.PrettyPrinter
-> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
+> import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
 
 challenge: make a constraint that works like this:
 
@@ -28,7 +28,7 @@ select restrict_cardinality('tablename', '>=5 && <= 10');
 > cardinalityRestrictExample :: ExtensionTest
 > cardinalityRestrictExample = ExtensionTest
 >   "cardinalityRestrict"
->   (extendedConstraints . cardinalityRestrict)
+>   (createAssertion . cardinalityRestrict)
 >   [$sqlStmts|
 >
 >      create table tablename (
@@ -36,7 +36,7 @@ select restrict_cardinality('tablename', '>=5 && <= 10');
 >      );
 >
 >      select restrict_cardinality('tablename', 1); |]
->   (extendedConstraints [$sqlStmts|
+>   (createAssertion [$sqlStmts|
 >
 >      create table tablename (
 >        varname vartype

@@ -225,8 +225,8 @@ which also have constraints in the second file.
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables, TupleSections #-}
 >
-> module Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
->     (extendedConstraints) where
+> module Database.HsSqlPpp.Examples.Extensions.CreateAssertion
+>     (createAssertion) where
 >
 > --import Data.Generics
 > import Data.Generics.Uniplate.Data
@@ -258,8 +258,8 @@ seen. using transformBiM with state monad, gives us the constraints in
 reverse order of the statement list, so chuck three reverses in there
 to make it work right.
 
-> extendedConstraints :: [Statement] -> [Statement]
-> extendedConstraints ast = reverse $
+> createAssertion :: [Statement] -> [Statement]
+> createAssertion ast = reverse $
 >  (\f -> evalState (transformBiM f (reverse ast)) ([] :: ConstraintRecord)) $ \x ->
 >       case x of
 >         [$sqlStmt| select create_assertion($s(name)

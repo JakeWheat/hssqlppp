@@ -19,15 +19,17 @@ Gather together the examples from the extension modules and convert to regular t
 > import Database.HsSqlPpp.Examples.Extensions.CreateVarSimple
 > import Database.HsSqlPpp.Examples.Extensions.CreateVar
 > import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
-> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraintTests
+> import Database.HsSqlPpp.Examples.Extensions.CreateAssertionTests
 > import Database.HsSqlPpp.Examples.Extensions.CardinalityRestrict
 > import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
 > import Database.HsSqlPpp.Examples.Extensions.Modules
+> import Database.HsSqlPpp.Examples.Extensions.GeneralInclusion
 >
 > testData :: [ExtensionTest]
 > testData = transitionConstraintExamples ++
->            extendedConstraintExamples ++
+>            createAssertionExamples ++
 >            chaosExtensionsExamples ++
+>            generalInclusionsExamples ++
 >            [createVarSimpleExample
 >            ,createVarExample
 >            ,cardinalityRestrictExample

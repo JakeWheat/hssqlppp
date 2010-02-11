@@ -12,18 +12,18 @@ constraints.
 
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
-> module Database.HsSqlPpp.Examples.Extensions.ExtendedConstraintFKTests
->     (extendedConstraintFKExamples) where
+> module Database.HsSqlPpp.Examples.Extensions.GeneralInclusion
+>     (generalInclusionsExamples) where
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
+> import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
 
-> extendedConstraintFKExamples :: [ExtensionTest]
-> extendedConstraintFKExamples = []
+> generalInclusionsExamples :: [ExtensionTest]
+> generalInclusionsExamples = []
 
 first check a regular fk isn't touched
 check multiple field isn't touched

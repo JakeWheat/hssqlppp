@@ -1,27 +1,24 @@
 Copyright 2010 Jake Wheat
 
-The test/examples for extended constraints
+The test/examples for create assertion
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
-> module Database.HsSqlPpp.Examples.Extensions.ExtendedConstraintTests
->     (extendedConstraintExamples) where
+> module Database.HsSqlPpp.Examples.Extensions.CreateAssertionTests
+>     (createAssertionExamples) where
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
-> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraintFKTests
+> import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
 
-> extendedConstraintExamples :: [ExtensionTest]
-> extendedConstraintExamples = [cardinalityExample
+> createAssertionExamples :: [ExtensionTest]
+> createAssertionExamples = [cardinalityExample
 >                              ,doubleCardinalityExample
 >                              ,simpleViewExample
 >                              ,simpleFunctionExample
 >                              ,simpleMultiConstraint
->                              ,threewayMultiConstraint] ++
->                              extendedConstraintFKExamples
+>                              ,threewayMultiConstraint]
 
 
 stage 1: some test cases for general constraints which aren't
@@ -36,8 +33,8 @@ accesses multiple rows from one table
 > cardinalityExample :: ExtensionTest
 > cardinalityExample  =
 >   ExtensionTest
->     "ExtendedConstraints cardinality"
->     extendedConstraints
+>     "CreateAssertion cardinality"
+>     createAssertion
 >     [$sqlStmts|
 
 \begin{code}
@@ -92,8 +89,8 @@ accesses two tables
 > doubleCardinalityExample :: ExtensionTest
 > doubleCardinalityExample  =
 >   ExtensionTest
->     "ExtendedConstraints double cardinality"
->     extendedConstraints
+>     "createAssertion double cardinality"
+>     createAssertion
 >     [$sqlStmts|
 
 \begin{code}
@@ -172,8 +169,8 @@ constraint on a view rather than a table
 > simpleViewExample :: ExtensionTest
 > simpleViewExample  =
 >   ExtensionTest
->     "ExtendedConstraints simpleview"
->     extendedConstraints
+>     "createAssertion simpleview"
+>     createAssertion
 >     [$sqlStmts|
 
 \begin{code}
@@ -234,8 +231,8 @@ constraint on the result of a function call
 > simpleFunctionExample :: ExtensionTest
 > simpleFunctionExample  =
 >   ExtensionTest
->     "ExtendedConstraints simplefunction"
->     extendedConstraints
+>     "createAssertion simplefunction"
+>     createAssertion
 >     [$sqlStmts|
 
 \begin{code}
@@ -300,8 +297,8 @@ accesses two tables
 > simpleMultiConstraint :: ExtensionTest
 > simpleMultiConstraint  =
 >   ExtensionTest
->     "ExtendedConstraints simple multi"
->     extendedConstraints
+>     "createAssertion simple multi"
+>     createAssertion
 >     [$sqlStmts|
 
 \begin{code}
@@ -395,8 +392,8 @@ that bad?
 > threewayMultiConstraint :: ExtensionTest
 > threewayMultiConstraint =
 >   ExtensionTest
->     "ExtendedConstraints three way multi"
->     extendedConstraints
+>     "createAssertion three way multi"
+>     createAssertion
 >     [createTable "a"
 >     ,createTable "b"
 >     ,createTable "c"

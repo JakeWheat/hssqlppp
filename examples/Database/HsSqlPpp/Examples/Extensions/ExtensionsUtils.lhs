@@ -5,9 +5,6 @@ Some auxiliary code for use in writing extensions.
 > module Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 >     where
 >
-> import Data.Generics.Uniplate.Data
-> import Data.Maybe
->
 > import Database.HsSqlPpp.Ast
 > --import Database.HsSqlPpp.Annotation
 

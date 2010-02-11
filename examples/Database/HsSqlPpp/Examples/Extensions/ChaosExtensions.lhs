@@ -23,7 +23,7 @@ chaos working again then will review approach.
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 > import Database.HsSqlPpp.Examples.Extensions.Modules
-> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
+> import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
 > import Database.HsSqlPpp.Examples.Extensions.CreateVar
 > import Database.HsSqlPpp.Examples.Extensions.CardinalityRestrict
 > import Database.HsSqlPpp.Examples.Extensions.SimplifiedCatalog
@@ -31,7 +31,7 @@ chaos working again then will review approach.
 > -- | run all the extensions needed for chaos
 > chaosExtensions :: [Statement] -> [Statement] -- Data a => a -> a
 > chaosExtensions =   modules
->                   . extendedConstraints
+>                   . createAssertion
 >                   . transitionConstraints
 >                   . createVar
 >                   . cardinalityRestrict
