@@ -8,7 +8,7 @@ run
 HsSqlSystem.lhs -?
 to get a list of commands and purpose and usage info
 
-> {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables,FlexibleContexts #-}
+> {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables,FlexibleContexts,QuasiQuotes #-}
 >
 > import System.Console.CmdArgs
 > import System.IO
@@ -18,6 +18,7 @@ to get a list of commands and purpose and usage info
 >
 > import Database.HsSqlPpp.Tests.Tests
 > import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Utils.Here
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Catalog
@@ -999,23 +1000,29 @@ PostgreSQL catalog contents.
 >   putStrLn preamble
 >   putStrLn $ prefixLines $ ppExpr cat
 >   where
->     preamble =
->       "> {-# OPTIONS_HADDOCK hide  #-}\n\
->       \>\n\
->       \> module Database.HsSqlPpp.AstInternals.\
->       \Catalog.DefaultTemplate1Catalog\n\
->       \>     (defaultTemplate1Catalog\n\
->       \>      ) where\n\
->       \>\n\
->       \> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal\n\
->       \> import Database.HsSqlPpp.AstInternals.TypeType\n\
->       \>\n\
->       \> defaultTemplate1Catalog :: Catalog\n\
->       \> defaultTemplate1Catalog =\n\
->       \>    (\\l -> case l of\n\
->       \>             Left x -> error $ show x\n\
->       \>             Right e -> e) $\n\
->       \>     updateCatalog defaultCatalog\n"
+>     preamble = [$here|
+
+\begin{code}
+
+This file is auto generated, to regenerate run
+example/HsSqlSystem dbcatalog --database=template1 > src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs
+
+from the project root (i.e. where the cabal file is located).
+
+> module Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
+>      (defaultTemplate1Catalog) where
+>
+> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.AstInternals.TypeType
+>
+> defaultTemplate1Catalog :: Catalog
+> defaultTemplate1Catalog =
+>     (\l -> case l of
+>              Left x -> error $ show x
+>              Right e -> e) $
+>      updateCatalog defaultCatalog
+\end{code}
+>|]
 >     prefixLines = unlines . map (">        " ++) . lines
 
 -------------------------------------------------------------------------------
