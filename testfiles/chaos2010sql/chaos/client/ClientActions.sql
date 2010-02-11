@@ -3,7 +3,7 @@
 
 = actions
 */
-select new_module('client_actions', 'client');
+select module('Chaos.Client.ClientActions');
 
 /*
 == action valid views
@@ -42,14 +42,14 @@ names of the action functions which are called.
 
 */
 
-select new_module('key_controls', 'client');
+--select new_module('key_controls', 'client');
 
 create table key_control_settings (
   key_code text,
   action_name text
 );
-select add_key('key_control_settings', array['key_code','action_name']);
-select set_relvar_type('key_control_settings', 'readonly');
+--select add_key('key_control_settings', array['key_code','action_name']);
+--select set_relvar_type('key_control_settings', 'readonly');
 
 copy key_control_settings(key_code, action_name) from stdin;
 Up	move_cursor_up

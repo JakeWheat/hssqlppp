@@ -11,16 +11,16 @@ pngs for every sprite listed in this table must exist on the disk to
 be loaded or the game will refuse to run
 
 */
-select new_module('sprites', 'client');
+select module('Chaos.Client.Sprites');
 
 create table sprites (
   sprite text, -- name of sprite, also part of the name of the png frames
   animation_speed int
 --todo: add sprite data here
 );
-select add_key('sprites', 'sprite');
-select set_relvar_type('sprites', 'readonly');
-select set_module_for_preceding_objects('sprites');
+--select add_key('sprites', 'sprite');
+--select set_relvar_type('sprites', 'readonly');
+--select set_module_for_preceding_objects('sprites');
 
 copy sprites (sprite,animation_speed) from stdin;
 bat	8

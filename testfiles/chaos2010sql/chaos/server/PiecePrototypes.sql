@@ -20,14 +20,14 @@ the board, its stats are copied from this table, and then they can
 change if needed.
 
 */
-select new_module('piece_prototypes', 'server');
+select module('Chaos.Server.PiecePrototypes');
 
 --creature ranged weapons can be either projectiles or fireballs
 create domain ranged_weapon_type as text
   check (value in ('projectile', 'fire'));
 
 create table piece_prototypes_mr (
-  ptype text not null,
+  ptype text unique not null,
   flying boolean null,
   speed int null,
   agility int null,
@@ -40,8 +40,8 @@ create table piece_prototypes_mr (
   physical_defense int null,
   magic_defense int null
 );
-select add_key('piece_prototypes_mr', 'ptype');
-select set_relvar_type('piece_prototypes_mr', 'readonly');
+--select add_key('piece_prototypes_mr', 'ptype');
+--select set_relvar_type('piece_prototypes_mr', 'readonly');
 
 create view piece_prototypes as
   select ptype from piece_prototypes_mr;
@@ -125,4 +125,4 @@ wraith	f	2	5	t	f	\N	\N	\N	5	5	4
 zombie	f	1	3	t	f	\N	\N	\N	1	1	2
 \.
 
-select set_module_for_preceding_objects('piece_prototypes');
+--select set_module_for_preceding_objects('piece_prototypes');

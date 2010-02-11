@@ -15,7 +15,7 @@ to add
     AI level for each computer controlled wizard
     change playing area size, square or hexagon tiles
 */
-select new_module('new_game_widget', 'client');
+select module('Chaos.Client.NewGameWidget');
 
 /*
 == data
@@ -31,6 +31,7 @@ create table new_game_widget_state (
   colour text,
   state new_wizard_state
 );
+/*
 select add_key('new_game_widget_state', 'line');
 select add_key('new_game_widget_state', 'wizard_name');
 select add_key('new_game_widget_state', 'sprite');
@@ -41,7 +42,7 @@ select add_constraint('new_game_widget_state_line_valid',
   where line >= 8)',
 array['new_game_widget_state']);
 select set_relvar_type('new_game_widget_state', 'data');
-
+*/
 /*
 == helpers
 */
@@ -97,7 +98,7 @@ begin
 end
 $$ language plpgsql volatile;
 
-select set_module_for_preceding_objects('new_game_widget');
+--select set_module_for_preceding_objects('new_game_widget');
 
 /*
 

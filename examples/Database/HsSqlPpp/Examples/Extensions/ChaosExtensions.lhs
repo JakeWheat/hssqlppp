@@ -12,34 +12,34 @@ chaos working again then will review approach.
 >
 > import Data.Generics
 > import Data.Generics.Uniplate.Data
-> import Debug.Trace
 >
-> import Text.Parsec hiding(many, optional, (<|>))
-> import qualified Text.Parsec.Token as P
-> import Text.Parsec.Language
 >
-> import Control.Applicative
-> import Control.Monad.Identity
 > import Data.List
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.PrettyPrinter
-> import Data.Generics.Uniplate.Data
 >
-> import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
+> import Database.HsSqlPpp.Examples.Extensions.Modules
+> import Database.HsSqlPpp.Examples.Extensions.ExtendedConstraints
+> import Database.HsSqlPpp.Examples.Extensions.CreateVar
+> import Database.HsSqlPpp.Examples.Extensions.CardinalityRestrict
+> import Database.HsSqlPpp.Examples.Extensions.SimplifiedCatalog
 >
-> -- | run all the extensions in this module on the given ast
-> chaosExtensions :: Data a => a -> a
-> chaosExtensions = clientActionWrapper
+> -- | run all the extensions needed for chaos
+> chaosExtensions :: [Statement] -> [Statement] -- Data a => a -> a
+> chaosExtensions =   modules
+>                   . extendedConstraints
+>                   . transitionConstraints
+>                   . createVar
+>                   . cardinalityRestrict
+>                   . clientActionWrapper
 >                   . noDelIns
 >                   . generateSpellChoiceActions
 >                   . notNull
+>                   . simplifiedCatalog
 
 > chaosExtensionsExamples :: [ExtensionTest]
 > chaosExtensionsExamples = [clientActionWrapperExample
@@ -245,10 +245,10 @@ readonly tables/ compile time constant relations stuff
 >     transformBi $ \x ->
 >       case x of
 >         [$sqlStmt| select generate_spell_choice_actions(); |] : tl
->             -> flip concatMap spells $ \spell ->
+>             -> (flip map spells $ \spell ->
 >                let actionname = "choose_" ++ spell ++ "_spell"
 >                    wrappername = "action_" ++ actionname
->                in [$sqlStmts|
+>                in [$sqlStmt|
 >
 > create function $(wrappername)() returns void as $$
 > begin
@@ -257,7 +257,7 @@ readonly tables/ compile time constant relations stuff
 > end;
 > $$ language plpgsql volatile;
 >
->                    |] ++ tl
+>                    |]) ++ tl
 >         x1 -> x1
 
 ------------------------------

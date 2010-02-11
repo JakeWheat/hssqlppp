@@ -9,7 +9,7 @@ then create a view to show the player visible log with some events
 removed and some combined.
 */
 
-select new_module('action_history', 'server');
+select module('Chaos.Server.ActionHistory');
 
 create domain history_name_enum as text
        check (value in (
@@ -38,7 +38,7 @@ create domain history_name_enum as text
 
 
 create table action_history_mr (
-  id serial not null,
+  id serial unique not null,
   history_name history_name_enum not null,
   ptype  text null,
   allegiance text  null,
@@ -52,8 +52,8 @@ create table action_history_mr (
   tx int null,
   ty int null
 );
-select add_key('action_history_mr', 'id');
-select set_relvar_type('action_history_mr', 'data');
+--select add_key('action_history_mr', 'id');
+--select set_relvar_type('action_history_mr', 'data');
 
 --Turns
 
@@ -314,4 +314,4 @@ hide spell received in tree
 
 */
 
-select set_module_for_preceding_objects('action_history');
+--select set_module_for_preceding_objects('action_history');

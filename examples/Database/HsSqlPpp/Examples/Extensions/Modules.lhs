@@ -43,3 +43,33 @@ match haskell style of one module per file in right folder location?
 enforce directed graph of module dependencies
 
 use some idea of interface files for modules?
+
+> {-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
+>
+> module Database.HsSqlPpp.Examples.Extensions.Modules
+>     (modules
+>     ,modulesExample) where
+>
+> import Data.Generics
+> import Data.Generics.Uniplate.Data
+>
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+>
+> modulesExample :: ExtensionTest
+> modulesExample =
+>   ExtensionTest
+>     "modules"
+>     modules
+>     [$sqlStmts| select module('Chaos.Server.Metadata'); |]
+>     []
+>
+> modules :: Data a => a -> a
+> modules =
+>     transformBi $ \x ->
+>       case x of
+>         [$sqlStmt| select module($s(modname)); |] : tl
+>             -> tl
+>         x1 -> x1
+>

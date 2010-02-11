@@ -2,10 +2,10 @@
 == wizards
 
 */
-select new_module('wizards', 'server');
+select module('Chaos.Server.Wizards');
 
 create table wizards (
-  wizard_name text,
+  wizard_name text unique,
   shadow_form boolean default false,
   magic_sword boolean default false,
   magic_knife boolean default false,
@@ -17,8 +17,8 @@ create table wizards (
   original_place int, -- 0 <= n < num wizards
   expired boolean default false
 );
-select add_key('wizards', 'wizard_name');
-select set_relvar_type('wizards', 'data');
+--select add_key('wizards', 'wizard_name');
+--select set_relvar_type('wizards', 'data');
 
 create view live_wizards as
   select *,
@@ -31,17 +31,17 @@ Wizard 'wizard_name' is able to cast spell 'spell_name'.
 */
 
 create table spell_books (
-  id serial,
+  id serial unique,
   wizard_name text,
   spell_name text
 );
-select add_key('spell_books', 'id');
-select add_foreign_key('spell_books', 'wizard_name', 'wizards');
-select add_constraint('no_spells_for_stiffs',
+--select add_key('spell_books', 'id');
+--select add_foreign_key('spell_books', 'wizard_name', 'wizards');
+/*select create_assertion('no_spells_for_stiffs',
   $$ not exists(select 1 from spell_books
   natural inner join wizards where expired = true)$$,
-  array['spell_books', 'wizards']);
-select add_foreign_key('spell_books', 'spell_name', 'spells');
-select set_relvar_type('spell_books', 'data');
+  array['spell_books', 'wizards']);*/
+--select add_foreign_key('spell_books', 'spell_name', 'spells');
+--select set_relvar_type('spell_books', 'data');
 
-select set_module_for_preceding_objects('wizards');
+--select set_module_for_preceding_objects('wizards');

@@ -4,7 +4,7 @@
 = board widget
 
 */
-select new_module('board_widget', 'client');
+select module('Chaos.Client.BoardWidget');
 /*
 == cursor position + ops
 
@@ -17,14 +17,14 @@ create table cursor_position (
   x int,
   y int
 );
-select add_constraint('cursor_position_coordinates_valid',
+/*select add_constraint('cursor_position_coordinates_valid',
 $$ not exists (select 1 from cursor_position
   cross join board_size
   where x >= width or y >= height)$$,
 array['cursor_position', 'board_size']);
 select constrain_to_zero_or_one_tuple('cursor_position');
 select set_relvar_type('cursor_position', 'data');
-
+*/
 /*
 === actions
 cursor movement
@@ -180,12 +180,12 @@ create table piece_starting_ticks (
   tag int,
   start_tick int
 );
-select add_key('piece_starting_ticks',
+/*select add_key('piece_starting_ticks',
                array['ptype', 'allegiance', 'tag']);
 select add_foreign_key('piece_starting_ticks',
                        array['ptype', 'allegiance', 'tag'], 'pieces');
 select set_relvar_type('piece_starting_ticks', 'data');
-
+*/
 
 create function update_missing_startticks()
   returns void as $$
@@ -230,7 +230,7 @@ create view board_sprites1_view as
 
 create table board_sprites1_cache as
   select * from board_sprites1_view;
-select set_relvar_type('board_sprites1_cache', 'data');
+--select set_relvar_type('board_sprites1_cache', 'data');
 
 create function update_board_sprites_cache() returns void as $$
 begin
@@ -267,8 +267,8 @@ create table board_square_effects (
   y1 int,
   queuePos int
 );
-select add_key('board_square_effects', 'id');
-select set_relvar_type('board_square_effects', 'data');
+--select add_key('board_square_effects', 'id');
+--select set_relvar_type('board_square_effects', 'data');
 
 create table board_beam_effects (
   id serial,
@@ -279,8 +279,8 @@ create table board_beam_effects (
   y2 int,
   queuePos int
 );
-select add_key('board_beam_effects', 'id');
-select set_relvar_type('board_beam_effects', 'data');
+--select add_key('board_beam_effects', 'id');
+--select set_relvar_type('board_beam_effects', 'data');
 
 create table board_sound_effects (
   id serial,
@@ -288,8 +288,8 @@ create table board_sound_effects (
   sound_name text,
   queuePos int
 );
-select add_key('board_sound_effects', 'id');
-select set_relvar_type('board_sound_effects', 'data');
+--select add_key('board_sound_effects', 'id');
+--select set_relvar_type('board_sound_effects', 'data');
 
 create function get_running_effects() returns boolean as $$
 begin
@@ -304,8 +304,8 @@ create table history_sounds (
   history_name text,
   sound_name text
 );
-select add_key('history_sounds', array['history_name', 'sound_name']);
-select set_relvar_type('history_sounds', 'readonly');
+--select add_key('history_sounds', array['history_name', 'sound_name']);
+--select set_relvar_type('history_sounds', 'readonly');
 
 copy history_sounds (history_name,sound_name) from stdin;
 walked	walk
@@ -326,8 +326,8 @@ attempt_target_spell	cast
 create table history_no_visuals (
   history_name text
 );
-select add_key('history_no_visuals', 'history_name');
-select set_relvar_type('history_no_visuals', 'readonly');
+--select add_key('history_no_visuals', 'history_name');
+--select set_relvar_type('history_no_visuals', 'readonly');
 
 copy history_no_visuals (history_name) from stdin;
 wizard_up
@@ -341,7 +341,7 @@ set_real
 \.
 
 select create_var('last_history_effect_id', 'int');
-select set_relvar_type('last_history_effect_id_table', 'data');
+--select set_relvar_type('last_history_effect_id_table', 'data');
 
 create function check_for_effects() returns void as $$
 begin
@@ -392,8 +392,8 @@ create table current_effects (
   ticks int,
   queuePos int
 );
-select set_relvar_type('current_effects', 'data');
-select constrain_to_zero_or_one_tuple('current_effects');
+--select set_relvar_type('current_effects', 'data');
+--select constrain_to_zero_or_one_tuple('current_effects');
 
 create view current_board_sound_effects as
   select * from board_sound_effects
@@ -518,4 +518,4 @@ create view selected_piece_details as
       natural inner join selected_piece
       natural full outer join remaining_walk_table;
 
-select set_module_for_preceding_objects('board_widget');
+--select set_module_for_preceding_objects('board_widget');

@@ -5,7 +5,7 @@
 == new game action
 */
 
-select new_module('client_new_game', 'client');
+select module('Chaos.Client.ClientNewGame');
 
 create table action_client_new_game_argument (
   place int,
@@ -14,7 +14,7 @@ create table action_client_new_game_argument (
   colour text,
   computer_controlled boolean
 );
-select add_key('action_client_new_game_argument', 'place');
+/*select add_key('action_client_new_game_argument', 'place');
 select add_key('action_client_new_game_argument', 'wizard_name');
 select add_key('action_client_new_game_argument', 'sprite');
 select add_key('action_client_new_game_argument', 'colour');
@@ -26,7 +26,7 @@ select add_constraint('action_client_new_game_place_valid',
   (select count(*) from action_client_new_game_argument)) = 0',
  array['action_client_new_game_argument']);
 select set_relvar_type('action_client_new_game_argument', 'stack');
-
+*/
 --this calls server new game
 create function action_client_new_game() returns void as $$
 begin
@@ -78,8 +78,9 @@ begin
 end
 $$ language plpgsql volatile;
 
-select set_module_for_preceding_objects('client_new_game');
+/*select set_module_for_preceding_objects('client_new_game');
 
 select protect_readonly_relvars();
 select set_all_attributes_to_not_null();
 select set_notifies_on_all_data_tables();
+*/

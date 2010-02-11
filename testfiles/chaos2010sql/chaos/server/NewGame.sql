@@ -18,7 +18,7 @@ different boards.
 --in a game with wizard_count wizards, wizard at place 'place' starts
 --the game on square x,y.
 
-select new_module('new_game', 'server');
+select module('Chaos.Server.NewGame');
 
 create table wizard_starting_positions (
   wizard_count int,
@@ -26,13 +26,14 @@ create table wizard_starting_positions (
   x int,
   y int
 );
-select add_key('wizard_starting_positions', array['wizard_count', 'place']);
-select add_key('wizard_starting_positions', array['wizard_count', 'x', 'y']);
-select add_constraint('wizard_starting_positions_place_valid',
+--select add_key('wizard_starting_positions', array['wizard_count', 'place']);
+--select add_key('wizard_starting_positions', array['wizard_count', 'x', 'y']);
+/*select add_constraint('wizard_starting_positions_place_valid',
   'not exists(select 1 from wizard_starting_positions
     where place >= wizard_count)',
   array['wizard_starting_positions']);
 select set_relvar_type('wizard_starting_positions', 'readonly');
+*/
 
 copy wizard_starting_positions (wizard_count, place, x, y) from stdin;
 2	0	1	4
@@ -81,7 +82,7 @@ create table action_new_game_argument (
   wizard_name text,
   computer_controlled boolean
 );
-select add_key('action_new_game_argument', 'place');
+/*select add_key('action_new_game_argument', 'place');
 select add_key('action_new_game_argument', 'wizard_name');
 select add_constraint('action_new_game_argument_place_valid',
   '(select count(*) from action_new_game_argument
@@ -89,7 +90,7 @@ select add_constraint('action_new_game_argument_place_valid',
   array['action_new_game_argument']);
 
 select set_relvar_type('action_new_game_argument', 'stack');
-
+*/
 /*
 new game action - fill in action_new_game_argument first
 */
@@ -344,5 +345,4 @@ begin
 end
 $$ language plpgsql volatile;
 
-
-select set_module_for_preceding_objects('new_game');
+--select set_module_for_preceding_objects('new_game');

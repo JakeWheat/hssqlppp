@@ -36,7 +36,7 @@ For simplicity, just use same serial for all pieces for now.
 === relvars
 
 */
-select new_module('pieces', 'server');
+select module('Chaos.Server.Pieces');
 
 --pieces are either a member of a particular wizard's army or
 -- they are dead, in which case they are not a member of
@@ -69,8 +69,11 @@ create table pieces (
     tag int,
 --Piece is on the board at grid position 'x', 'y'.
     x int,
-    y int);
+    y int,
+    unique (ptype,allegiance,tag)
+);
 
+/*
 select add_key('pieces', array['ptype', 'allegiance', 'tag']);
 select add_foreign_key('pieces', 'ptype', 'piece_prototypes');
 --piece must be on the board, not outside it
@@ -88,7 +91,7 @@ select add_constraint('dead_wizard_army_empty',
     where expired = true)$$,
   array['wizards', 'pieces']);
 select set_relvar_type('pieces', 'data');
-
+*/
 create type piece_key as (
     ptype text,
     allegiance text,
@@ -137,26 +140,27 @@ create table imaginary_pieces (
     allegiance text,
     tag int);
 
+/*
 select set_relvar_type('imaginary_pieces', 'data');
 select add_key('imaginary_pieces', array['ptype', 'allegiance', 'tag']);
 select add_foreign_key('imaginary_pieces',
        array['ptype', 'allegiance', 'tag'], 'pieces');
 select add_foreign_key('imaginary_pieces', 'ptype',
        'monster_prototypes');
-
+*/
 create table crimes_against_nature (
     ptype text,
     allegiance text,
     tag int
 );
-
+/*
 select set_relvar_type('crimes_against_nature', 'data');
 select add_key('crimes_against_nature', array['ptype', 'allegiance', 'tag']);
 select add_foreign_key('crimes_against_nature',
        array['ptype', 'allegiance', 'tag'], 'pieces');
 select add_foreign_key('crimes_against_nature', 'ptype',
        'monster_prototypes');
-
+*/
 create view wizard_upgrade_stats as
 select pp.ptype,
        allegiance,
@@ -314,4 +318,4 @@ stiff, monster, blob : blob on top
 
 */
 
-select set_module_for_preceding_objects('pieces');
+--select set_module_for_preceding_objects('pieces');

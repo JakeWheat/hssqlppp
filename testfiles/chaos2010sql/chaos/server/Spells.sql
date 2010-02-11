@@ -30,7 +30,7 @@ turn affects the spell casting chances.
 
 === ddl
 */
-select new_module('spells', 'server');
+select module('Chaos.Server.Spells');
 
 create domain spell_category as text
        check (value in ('object', 'attacking',
@@ -51,7 +51,7 @@ create domain spell_square_category as text
 ));
 
 create table spells_mr (
-  spell_name text not null,
+  spell_name text unique not null,
   base_chance int not null,
   alignment int not null,
   spell_category spell_category not null,
@@ -64,8 +64,8 @@ create table spells_mr (
   valid_square_category spell_square_category null
 );
 
-select add_key('spells_mr', 'spell_name');
-select set_relvar_type('spells_mr', 'readonly');
+--select add_key('spells_mr', 'spell_name');
+--select set_relvar_type('spells_mr', 'readonly');
 
 create view spells as
  select spell_name, base_chance, alignment,
@@ -176,4 +176,4 @@ wraith	50	-1	monster	monster	\N	\N	1	1	wraith	empty_or_corpse_only
 zombie	90	-1	monster	monster	\N	\N	1	1	zombie	empty_or_corpse_only
 \.
 
-select set_module_for_preceding_objects('spells');
+--select set_module_for_preceding_objects('spells');

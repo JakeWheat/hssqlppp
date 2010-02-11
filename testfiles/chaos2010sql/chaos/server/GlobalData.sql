@@ -12,18 +12,20 @@ notes as previous.
 
 == global data
 */
-select new_module('global_data', 'server');
+select module('Chaos.Server.GlobalData');
 /*
 === board size
 The playing area is 'width' by 'height' squares.
 */
 create table board_size (
   width int,
-  height int
+  height int,
+  unique (width, height)
 );
-select add_key('board_size', array['width', 'height']);
-select constrain_to_zero_or_one_tuple('board_size');
-select set_relvar_type('board_size', 'data');
+--select add_key('board_size', array['width', 'height']);
+--select constrain_to_zero_or_one_tuple('board_size');
+select restrict_cardinality('board_size', 1);
+--select set_relvar_type('board_size', 'data');
 
 
 --update operator out param: board_size
@@ -50,11 +52,11 @@ create domain alignment as text check (value in ('law', 'neutral', 'chaos'));
 --if world alignment = 0, world is neutral, if -ve world is chaos by that amount
 --if +ve world is law by that amount
 select create_var('world_alignment', 'int');
-select set_relvar_type('world_alignment_table', 'data');
+--select set_relvar_type('world_alignment_table', 'data');
 
 create function init_world_alignment() returns void as $$
 begin
   insert into world_alignment_table values (0);
 end;
 $$ language plpgsql volatile;
-select set_module_for_preceding_objects('global_data');
+--select set_module_for_preceding_objects('global_data');

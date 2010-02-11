@@ -76,6 +76,8 @@ choose targets: favour wizards and hardest that likely to kill
 
 */
 
+select module('Chaos.Server.AI');
+
 /*
 
 == main ai action
@@ -330,6 +332,6 @@ $$ language plpgsql volatile;
 /*
 --------------------------------------------------------------------------------
 */
-select set_all_attributes_to_not_null();
-select set_notifies_on_all_data_tables();
+--select set_all_attributes_to_not_null();
+--select set_notifies_on_all_data_tables();
 

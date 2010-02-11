@@ -1,4 +1,4 @@
-#! /usr/bin/env runghc
+! /usr/bin/env runghc
 
 Copyright 2009 Jake Wheat
 
@@ -39,6 +39,7 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.DevelTools.MakeWebsite
 > import Database.HsSqlPpp.DevelTools.MakeAntiNodes
 > import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
+> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
 
 -------------------------------------------------------------------------------
 
@@ -91,8 +92,8 @@ command defs
 hacky thing: to run an ast transform on all sql asts in commands, put it in here
 
 > astTransformer :: Data a => a -> a
-> --astTransformer = id
-> astTransformer = transitionConstraints
+> astTransformer = id
+> --astTransformer = transitionConstraints
 
 -------------------------------------------------------------------------------
 
@@ -1193,23 +1194,30 @@ of this exe, then this command will disappear
 >              &= text "reset the chaos database"
 >
 > resetChaos :: IO ()
-> resetChaos = do
+> resetChaos = wrapETs $ do
 >   let db = "chaos"
->   cleardb db
->   loadSql db files
+>   liftIO $ do
+>     hSetBuffering stdout NoBuffering
+>     cleardb db
+>   ast <- mapM (\f -> (liftIO . readInput) f >>=
+>                  tsl . P.parseSql f) files >>=
+>      return . (concat |>
+>                stripAnnotations |>
+>                chaosExtensions) -- >>= -- figure out why some exts only work with this
+>   --liftIO $ putStrLn $ printSql ast
+>   liftIO $ loadAst db ast
 >   where
 >     files =
->         [
->          "testfiles/system.sql"
->         ,"testfiles/chaos2010sql/chaos/server/Metadata.sql"
+>         ["testfiles/chaos2010sql/chaos/server/Metadata.sql"
 >         ,"testfiles/chaos2010sql/chaos/server/PiecePrototypes.sql"
 >         ,"testfiles/chaos2010sql/chaos/server/Spells.sql"
 >         ,"testfiles/chaos2010sql/chaos/server/GlobalData.sql"
 >         ,"testfiles/chaos2010sql/chaos/server/Wizards.sql"
 >         ,"testfiles/chaos2010sql/chaos/server/Pieces.sql"
 >         ,"testfiles/chaos2010sql/chaos/server/TurnSequence.sql"
->         ,"testfiles/chaos2010sql/chaos/server/Actions.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/ActionTestSupport.sql"
 >         ,"testfiles/chaos2010sql/chaos/server/SquaresValid.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/Actions.sql"
 >         ,"testfiles/chaos2010sql/chaos/server/ActionHistory.sql"
 >         ,"testfiles/chaos2010sql/chaos/server/NewGame.sql"
 >         ,"testfiles/chaos2010sql/chaos/server/AI.sql"
@@ -1222,6 +1230,7 @@ of this exe, then this command will disappear
 >         ,"testfiles/chaos2010sql/chaos/client/ClientActions.sql"
 >         ,"testfiles/chaos2010sql/chaos/client/ClientNewGame.sql"
 >         ]
+
 
 -------------------------------------------------------------------------------
 
