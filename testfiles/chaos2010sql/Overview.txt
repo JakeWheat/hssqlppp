@@ -1,0 +1,11 @@
+= Overview
+
+metadata - the readonly,data,stack tags for relvars
+read only data - piece prototypes and spells revlars
+game data - mainly wizards, spellbooks and pieces relvars
+turn sequence - relvars for turn sequence progression
+actions - action valid, actions for turn sequence, casting, moving, etc.
+history - relar to record actions
+new game - functions to reset data relvars and set up new games
+test board support - functions to set up a few board layouts for testing
+ai - ai for computer controlled wizards

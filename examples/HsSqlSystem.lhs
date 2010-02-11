@@ -82,6 +82,7 @@ command defs
 >
 >                  | MakeWebsite
 >                  | MakeAntiNodes
+>                  | ResetChaos
 >
 >                    deriving (Show, Data, Typeable)
 
@@ -1171,6 +1172,57 @@ as an argument to the exe
 >                    -> return $ drop 1 $ take (length f - 1) f
 >                | otherwise -> readFile f
 
+
+-------------------------------------------------------------------------------
+
+reset chaos
+===========
+
+routine to reset the chaos2010 database from the sql files, for
+testing the extensions used for chaos.
+
+clearLoad
+=========
+
+like load above, but runs the clear command first
+
+might try to work out a way of running multiple commands in one invoc
+of this exe, then this command will disappear
+
+> resetChaosA = mode $ ResetChaos
+>              &= text "reset the chaos database"
+>
+> resetChaos :: IO ()
+> resetChaos = do
+>   let db = "chaos"
+>   cleardb db
+>   loadSql db files
+>   where
+>     files =
+>         [
+>          "testfiles/system.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/Metadata.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/PiecePrototypes.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/Spells.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/GlobalData.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/Wizards.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/Pieces.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/TurnSequence.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/Actions.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/SquaresValid.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/ActionHistory.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/NewGame.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/AI.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/WindowManagement.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/Sprites.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/WizardDisplayInfo.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/BoardWidget.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/SpellBookWidget.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/NewGameWidget.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/ClientActions.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/ClientNewGame.sql"
+>         ]
+
 -------------------------------------------------------------------------------
 
 MakeWebsite
@@ -1241,7 +1293,8 @@ main
 >                        annotateSourceA, ppCatalogA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
->                        testA, genWrapA, makeWebsiteA, makeAntiNodesA]
+>                        testA, genWrapA, makeWebsiteA, makeAntiNodesA
+>                       ,resetChaosA]
 >
 >        case cmd of
 >          Lex fns -> lexFiles fns
@@ -1265,12 +1318,13 @@ main
 >          GenWrap db f -> genWrap db f
 >          MakeWebsite -> makeWebsite
 >          MakeAntiNodes -> makeAntiNodesF
+>          ResetChaos -> resetChaos
 >
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
 >   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
 >   allAnnotationsA, ppCatalogA, genWrapA, makeWebsiteA,
->   makeAntiNodesA :: Mode HsSqlSystem
+>   makeAntiNodesA, resetChaosA :: Mode HsSqlSystem
 
 -------------------------------------------------------------------------------
 
