@@ -40,13 +40,16 @@ chaos working again then will review approach.
 >                   . generateSpellChoiceActions
 >                   . notNull
 >                   . simplifiedCatalog
+>                   . makeFKsCascade
 
 > chaosExtensionsExamples :: [ExtensionTest]
 > chaosExtensionsExamples = [clientActionWrapperExample
 >                           ,noDelInsExample
 >                           ,generateSpellChoiceActionsExample
 >                           ,notNullExample1
->                           ,notNullExample2]
+>                           ,notNullExample2
+>                           ,makeFKsCascadeExample1
+>                           ,makeFKsCascadeExample2]
 
 --------------------------------------------------------------------------------
 
@@ -320,6 +323,61 @@ nulls and ignore them when checking for nullable attributes.
 >       fixAtt (AttributeDef a n t d c) =  (AttributeDef a n t d (NotNullConstraint [] "" : c))
 
 -------------------------------------------------------------------------------
+
+
+> makeFKsCascadeExample1 :: ExtensionTest
+> makeFKsCascadeExample1 =
+>   ExtensionTest
+>     "makeFKsCascade1"
+>     makeFKsCascade
+>     [$sqlStmts|
+>      create table t1 (
+>        a text primary key
+>      );
+>      create table t2 (
+>        a text primary key references t1
+>      );
+>     |]
+>     [$sqlStmts|
+>      create table t1 (
+>        a text primary key
+>      );
+>      create table t2 (
+>        a text primary key references t1 on delete cascade on update cascade
+>      );
+>      |]
+>
+> makeFKsCascadeExample2 :: ExtensionTest
+> makeFKsCascadeExample2 =
+>   ExtensionTest
+>     "makeFKsCascade2"
+>     makeFKsCascade
+>     [$sqlStmts|
+>      create table t1 (
+>        a text primary key
+>      );
+>      create table t2 (
+>        a text primary key,
+>        foreign key (a) references t1
+>      );
+>     |]
+>     [$sqlStmts|
+>      create table t1 (
+>        a text primary key
+>      );
+>      create table t2 (
+>        a text primary key,
+>        foreign key (a) references t1 on update cascade on delete cascade
+>      );
+>      |]
+>
+> makeFKsCascade :: Data a => a -> a
+> makeFKsCascade =
+>     transformBi $ \x ->
+>       case x of
+>         Restrict -> Cascade
+>         x1 -> x1
+
 
 > -- | looks for calls to function set_relvar_type and adds triggers to prevent the
 > -- referenced table from being updated

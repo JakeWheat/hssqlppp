@@ -909,6 +909,13 @@ quick sanity check
 >                             Restrict Cascade]][]]
 >
 >      ,s "create table t1 (\n\
+>         \ x int references t2 on delete cascade on update cascade\n\
+>         \);"
+>         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
+>                            [RowReferenceConstraint [] "" "t2" Nothing
+>                             Cascade Cascade]][]]
+>
+>      ,s "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
 >         \ foreign key (x,y) references t2 on update cascade on delete cascade\n\

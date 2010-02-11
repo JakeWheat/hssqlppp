@@ -70,7 +70,7 @@ create table pieces (
 --Piece is on the board at grid position 'x', 'y'.
     x int,
     y int,
-    unique (ptype,allegiance,tag)
+    primary key (ptype,allegiance,tag)
 );
 
 /*
@@ -148,10 +148,12 @@ select add_foreign_key('imaginary_pieces',
 select add_foreign_key('imaginary_pieces', 'ptype',
        'monster_prototypes');
 */
-create table crimes_against_nature (
+create table crimes_against_nature(
     ptype text,
     allegiance text,
-    tag int
+    tag int,
+    unique (ptype,allegiance,tag),
+    foreign key (ptype,allegiance,tag) references pieces
 );
 /*
 select set_relvar_type('crimes_against_nature', 'data');
