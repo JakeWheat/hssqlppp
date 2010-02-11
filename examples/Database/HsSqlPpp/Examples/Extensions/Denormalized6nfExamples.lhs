@@ -31,16 +31,16 @@ simple example with one 'subclass'
 >     "denormalized6nfExample1"
 >     denormalized6nf
 >     [$sqlStmts|
->       select create6table($$
->         piece_prototypes (
+>         create table piece_prototypes (
 >           ptype text primary key,
 >           ptype2 text
 >         );
->         creature_prototypes : piece_prototypes (
+>         create table creature_prototypes (
 >           speed int,
 >           agility int
 >         );
->       $$);
+>         select superclass(creature_prototypes
+>                          ,array[piece_prototypes]);
 >      |]
 >     [$sqlStmts|
 >       create table piece_prototypes (
@@ -68,21 +68,24 @@ two unconnected 'subclasses'
 >     "denormalized6nfExample2"
 >     denormalized6nf
 >     [$sqlStmts|
->       select create6table($$
->         piece_prototypes (
+>         create table piece_prototypes (
 >           ptype text primary key
 >         );
->         creature_prototypes : piece_prototypes (
+>         create table creature_prototypes (
 >           speed int,
 >           agility int
 >         );
->         attacking_prototypes : piece_prototypes (
+>         select superclass(creature_prototypes
+>                          ,array[piece_prototypes]);
+>         create table attacking_prototypes (
 >           attack_strength int,
 >           attack_style text
 >         );
+>         select superclass(attacking_prototypes
+>                          ,array[piece_prototypes]);
 >         -- this provides a name for the view, which we don't generate otherwise
->         attacking_creature_prototypes : piece_prototypes,attacking_prototypes ();
->       $$);
+>         select subclass(attacking_creature_prototypes
+>                         ,array[piece_prototypes,attacking_prototypes]);
 >      |]
 >     [$sqlStmts|
 >       create table piece_prototypes
@@ -128,14 +131,14 @@ one field only check
 >     "denormalized6nfExample3"
 >     denormalized6nf
 >     [$sqlStmts|
->       select create6table($$
->         piece_prototypes (
+>         create table piece_prototypes (
 >           ptype text primary key
 >         );
->         creature_prototypes : piece_prototypes (
->           speed int,
+>         create table creature_prototypes (
+>           speed int
 >         );
->       $$);
+>         select superclass(creature_prototypes
+>                          ,array[piece_prototypes]);
 >      |]
 >     [$sqlStmts|
 >       create table piece_prototypes
@@ -157,19 +160,21 @@ no combo view check
 >     "denormalized6nfExample4"
 >     denormalized6nf
 >     [$sqlStmts|
->       select create6table($$
->         piece_prototypes (
+>         create table piece_prototypes (
 >           ptype text primary key
 >         );
->         creature_prototypes : piece_prototypes (
+>         create table creature_prototypes  (
 >           speed int,
 >           agility int
 >         );
->         attacking_prototypes : piece_prototypes (
+>         select superclass(creature_prototypes
+>                          ,array[piece_prototypes]);
+>         create table attacking_prototypes (
 >           attack_strength int,
 >           attack_style text
 >         );
->       $$);
+>         select superclass(attacking_prototypes
+>                          ,array[piece_prototypes]);
 >      |]
 >     [$sqlStmts|
 >       create table piece_prototypes
@@ -208,19 +213,21 @@ two chained 'subclasses'
 >     "denormalized6nfExample5"
 >     denormalized6nf
 >     [$sqlStmts|
->       select create6table($$
->         piece_prototypes (
+>         create table piece_prototypes (
 >           ptype text primary key
 >         );
->         creature_prototypes : piece_prototypes (
+>         create table creature_prototypes (
 >           speed int,
 >           agility int
 >         );
->         attacking_prototypes : creature_prototypes (
+>         select superclass(creature_prototypes
+>                          ,array[piece_prototypes]);
+>         create table attacking_prototypes (
 >           attack_strength int,
 >           attack_style text
 >         );
->       $$);
+>         select superclass(attacking_prototypes
+>                          ,array[creature_prototypes]);
 >      |]
 >     [$sqlStmts|
 >       create table piece_prototypes
@@ -265,23 +272,27 @@ diamond inheritance
 >     "denormalized6nfExample6"
 >     denormalized6nf
 >     [$sqlStmts|
->       select create6table($$
->         piece_prototypes (
+>         create table piece_prototypes (
 >           ptype text primary key
 >         );
->         creature_prototypes : piece_prototypes (
+>         create table creature_prototypes (
 >           speed int,
 >           agility int
 >         );
->         attacking_prototypes : piece_prototypes (
+>         select superclass(creature_prototypes
+>                          ,array[piece_prototypes]);
+>         create table attacking_prototypes (
 >           attack_strength int,
 >           attack_style text
 >         );
->         monster_prototypes : creature_prototypes,attacking_prototypes (
+>         select superclass(piece_prototypes
+>                          ,array[attacking_prototypes]);
+>         create table monster_prototypes (
 >           resistance int,
->           armour int,
+>           armour int
 >         );
->       $$);
+>         select superclass(monster_prototypes
+>                          ,array[creature_prototypes,attacking_prototypes]);
 >      |]
 >     [$sqlStmts|
 >       create table piece_prototypes
@@ -339,20 +350,22 @@ fdk
 >     "denormalized6nfExample7"
 >     denormalized6nf
 >     [$sqlStmts|
->       select create6table($$
->         piece_prototypes (
+>         create table piece_prototypes (
 >           ptype text primary key
 >         );
->         creature_prototypes : piece_prototypes (
+>         create table creature_prototypes (
 >           speed int,
 >           agility int
 >         );
->         attacking_prototypes : piece_prototypes (
+>         select superclass(piece_prototypes
+>                          ,array[creature_prototypes]);
+>         create table attacking_prototypes (
 >           attack_strength int,
 >           attack_style text
 >         );
->         mutually_exclusive(piece_prototypes,attacking_prototypes);
->       $$);
+>         select superclass(piece_prototypes
+>                          ,array[attacking_prototypes]);
+>         select mutually_exclusive(attacking_prototypes,creature_prototypes);
 >      |]
 >     [$sqlStmts|
 >       create table piece_prototypes
@@ -368,7 +381,8 @@ fdk
 >           check ((attack_strength is null and attack_style is null)
 >                  or (attack_strength is not null and attack_style is not null))
 >        ,constraint me_piece_prototypes_attacking_prototypes
->           check (xor(speed is not null,attack_strength is not null))
+>           -- doesn't scale to three mutual exclusives
+>           check (speed is not null <> attack_strength is not null)
 >        );
 >       create view piece_prototypes_base as
 >         select ptype
@@ -384,4 +398,3 @@ fdk
 >           where attack_strength is not null
 >                 and attack_style is not null;
 >      |]
-
