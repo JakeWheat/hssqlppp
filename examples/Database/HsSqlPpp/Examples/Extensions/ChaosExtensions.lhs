@@ -112,17 +112,17 @@ when starting a new game
 >     "noDelIns"
 >     (transitionConstraints . noDelIns)
 >     [$sqlStmts|
->         select no_deletes_inserts_except_new_game('table');
+>         select no_deletes_inserts_except_new_game('relvar');
 >      |]
 >     (transitionConstraints [$sqlStmts|
 >         select create_insert_transition_tuple_constraint
->                    ('table'
->                    ,'table_no_insert'
+>                    ('relvar'
+>                    ,'relvar_no_insert'
 >                    ,'exists(select 1 from creating_new_game_table
 >                             where creating_new_game = true)');
 >         select create_delete_transition_tuple_constraint
->                    ('table'
->                    ,'table_no_delete'
+>                    ('relvar'
+>                    ,'relvar_no_delete'
 >                    ,'exists(select 1 from creating_new_game_table
 >                             where creating_new_game = true)');
 >         |])
@@ -138,9 +138,9 @@ when starting a new game
 >                       \       where creating_new_game = true)"
 >           in [$sqlStmts|
 >               select create_insert_transition_tuple_constraint
->                    ('table',$s(icn),$s(exprt));
+>                    ($s(table),$s(icn),$s(exprt));
 >               select create_delete_transition_tuple_constraint
->                    ('table',$s(dcn),$s(exprt));
+>                    ($s(table),$s(dcn),$s(exprt));
 >               |] ++ tl
 >         x1 -> x1
 

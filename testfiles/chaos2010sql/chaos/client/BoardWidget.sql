@@ -17,10 +17,10 @@ create table cursor_position (
   x int,
   y int
 );
-select create_assertion('cursor_position_coordinates_valid',
+/*select create_assertion('cursor_position_coordinates_valid',
 $$ not exists (select 1 from cursor_position
   cross join board_size
-  where x >= width or y >= height)$$);
+  where x >= width or y >= height)$$);*/
 select restrict_cardinality('cursor_position', '1');
 --select set_relvar_type('cursor_position', 'data');
 

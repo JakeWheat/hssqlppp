@@ -31,9 +31,9 @@ create table wizard_starting_positions (
 );
 --select add_key('wizard_starting_positions', array['wizard_count', 'place']);
 --select add_key('wizard_starting_positions', array['wizard_count', 'x', 'y']);
-select create_assertion('wizard_starting_positions_place_valid',
+/*select create_assertion('wizard_starting_positions_place_valid',
   'not exists(select 1 from wizard_starting_positions
-    where place >= wizard_count)');
+    where place >= wizard_count)');*/
 --select set_relvar_type('wizard_starting_positions', 'readonly');
 
 
@@ -86,9 +86,9 @@ create table action_new_game_argument (
 );
 /*select add_key('action_new_game_argument', 'place');
 select add_key('action_new_game_argument', 'wizard_name');*/
-select create_assertion('action_new_game_argument_place_valid',
+/*select create_assertion('action_new_game_argument_place_valid',
   '(select count(*) from action_new_game_argument
-    where place >= (select count(*) from action_new_game_argument)) = 0');
+    where place >= (select count(*) from action_new_game_argument)) = 0');*/
 
 --select set_relvar_type('action_new_game_argument', 'stack');
 

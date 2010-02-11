@@ -1204,8 +1204,8 @@ of this exe, then this command will disappear
 >      return . (concat |>
 >                stripAnnotations |>
 >                chaosExtensions) -- >>= -- figure out why some exts only work with this
->   --liftIO $ putStrLn $ printSql ast
->   liftIO $ loadAst db ast
+>   liftIO $ putStrLn $ printSql ast
+>   --liftIO $ loadAst db ast
 >   where
 >     files =
 >         ["testfiles/chaos2010sql/chaos/server/Metadata.sql"

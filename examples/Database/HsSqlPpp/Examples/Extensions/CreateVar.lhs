@@ -26,13 +26,13 @@ database.
 >   (extendedConstraints [$sqlStmts|
 >
 >   create table varname_table (
->     varname vartype
+>     varname vartype primary key
 >   );
 >
 >   create function get_varname() returns vartype as $a$
 >     select * from varname_table;
 >   $a$ language sql stable;
->   -- we don't need a key
+>
 >   select create_assertion('varname_table_01_tuple',
 >                           '(select count(*) from varname_table) <= 1');
 >
@@ -52,7 +52,7 @@ database.
 >                in [$sqlStmts|
 >
 >   create table $(tablename) (
->    $(varname) $(typename)
+>    $(varname) $(typename) primary key
 >   );
 >
 >   create function $(fnname)() returns $(typename) as $a$

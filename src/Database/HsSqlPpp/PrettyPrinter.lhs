@@ -325,9 +325,8 @@ Conversion routines - convert Sql asts into Docs
 >     text "copy" <+> text tb
 >     <+> ifNotEmpty (parens . hcatCsvMap text) cols
 >     <+> text "from" <+> case src of
->                                  CopyFilename s -> quotes $ text s
->                                  Stdin -> text "stdin"
->     <> statementEnd
+>                                  CopyFilename s -> quotes $ text s <> statementEnd
+>                                  Stdin -> text "stdin" <> text ";"
 >
 > convStatement ca (CopyData ann s) =
 >     convPa ca ann <+>

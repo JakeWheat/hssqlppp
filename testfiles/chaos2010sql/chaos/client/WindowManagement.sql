@@ -110,7 +110,7 @@ $$ language plpgsql volatile;
 == colours
 */
 create table colours (
-       name text unique,
+       name text primary key,
        red int,
        green int,
        blue int

@@ -444,54 +444,54 @@ that bad?
 >       check nm t1 t2 = let cfn = "check_con_valid_" ++ nm
 >                            ex = exprn t1 t2
 >                        in [$sqlStmt|
->                   create function $(cfn)() returns bool as $xxx$
->                   begin
->                     return $(ex);
->                   end;
->                   $xxx$ language plpgsql stable;
->                       |]
+>                              create function $(cfn)() returns bool as $xxx$
+>                                begin
+>                                  return $(ex);
+>                                end;
+>                              $xxx$ language plpgsql stable;
+>                            |]
 >       fn :: String -> String -> Statement
 >       fn t c = let nm = "table_" ++ t ++ "_constraint_trigger_operator"
 >                    cn = FunCall [] ("check_con_valid_" ++ c) []
 >                         --"check_con_valid_" ++ c
 >                    errMsg = "update violates database constraint valid_" ++ c
 >                in [$sqlStmt|
->   create function $(nm)() returns trigger as $xxx$
->   begin
->     if not $(cn) then
->       raise exception '$(errMsg)';
->     end if;
->     return OLD;
->   end;
->   $xxx$ language plpgsql stable;
->       |]
+>                         create function $(nm)() returns trigger as $xxx$
+>                         begin
+>                           if not $(cn) then
+>                             raise exception '$(errMsg)';
+>                           end if;
+>                           return OLD;
+>                         end;
+>                         $xxx$ language plpgsql stable;
+>                    |]
 >       fn1 t c1 c2 = let nm = "table_" ++ t ++ "_constraint_trigger_operator"
 >                         c1n = FunCall [] ("check_con_valid_" ++ c1) []
 >                         c2n = FunCall [] ("check_con_valid_" ++ c2) []
 >                         errMsg1 = "update violates database constraint valid_" ++ c1
 >                         errMsg2 = "update violates database constraint valid_" ++ c2
 >                     in [$sqlStmt|
->   create function $(nm)() returns trigger as $xxx$
->   begin
->     if not $(c2n) then
->       raise exception '$(errMsg2)';
->     end if;
->     if not $(c1n) then
->       raise exception '$(errMsg1)';
->     end if;
->     return OLD;
->   end;
->   $xxx$ language plpgsql stable;
->       |]
+>                         create function $(nm)() returns trigger as $xxx$
+>                         begin
+>                           if not $(c2n) then
+>                             raise exception '$(errMsg2)';
+>                           end if;
+>                           if not $(c1n) then
+>                             raise exception '$(errMsg1)';
+>                          end if;
+>                           return OLD;
+>                         end;
+>                         $xxx$ language plpgsql stable;
+>                         |]
 >       trig :: String -> Statement
 >       trig t = let tn = "table_" ++ t
 >                    trn = tn ++ "_constraint_trigger"
 >                    cfn = tn ++ "_constraint_trigger_operator"
 >                in [$sqlStmt|
->      create trigger $(trn)
->        after insert or update or delete on $(tn)
->        for each statement
->        execute procedure $(cfn)();
+>                    create trigger $(trn)
+>                      after insert or update or delete on $(tn)
+>                      for each statement
+>                      execute procedure $(cfn)();
 >                    |]
 >       df t = let cfn ="table_" ++ t ++ "_constraint_trigger_operator"
 >              in [$sqlStmt|

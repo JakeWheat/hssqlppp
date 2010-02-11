@@ -37,9 +37,9 @@ create table spell_books (
 );
 --select add_key('spell_books', 'id');
 --select add_foreign_key('spell_books', 'wizard_name', 'wizards');
-select create_assertion('no_spells_for_stiffs',
+/*select create_assertion('no_spells_for_stiffs',
   $$ not exists(select 1 from spell_books
-  natural inner join wizards where expired = true)$$);
+  natural inner join wizards where expired = true)$$);*/
 --select add_foreign_key('spell_books', 'spell_name', 'spells');
 --select set_relvar_type('spell_books', 'data');
 

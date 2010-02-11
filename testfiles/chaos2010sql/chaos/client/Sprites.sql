@@ -14,7 +14,7 @@ be loaded or the game will refuse to run
 select module('Chaos.Client.Sprites');
 
 create table sprites (
-  sprite text unique, -- name of sprite, also part of the name of the png frames
+  sprite text primary key, -- name of sprite, also part of the name of the png frames
   animation_speed int
 --todo: add sprite data here
 );
