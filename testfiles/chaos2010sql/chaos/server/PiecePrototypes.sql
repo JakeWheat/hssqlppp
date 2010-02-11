@@ -27,7 +27,7 @@ create domain ranged_weapon_type as text
   check (value in ('projectile', 'fire'));
 
 create table piece_prototypes_mr (
-  ptype text unique not null,
+  ptype text primary key,
   flying boolean null,
   speed int null,
   agility int null,

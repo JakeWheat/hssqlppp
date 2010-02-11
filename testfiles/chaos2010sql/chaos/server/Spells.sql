@@ -51,7 +51,7 @@ create domain spell_square_category as text
 ));
 
 create table spells_mr (
-  spell_name text unique not null,
+  spell_name text primary key,
   base_chance int not null,
   alignment int not null,
   spell_category spell_category not null,

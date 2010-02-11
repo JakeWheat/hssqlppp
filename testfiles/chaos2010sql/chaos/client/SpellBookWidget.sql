@@ -16,8 +16,8 @@ this is a proper mess
 select module('Chaos.Client.SpellBookWidget');
 
 create table spell_sprites (
-  spell_name text,
-  sprite text
+  spell_name text unique references spells_mr,
+  sprite text references sprites
 );
 /*select add_key('spell_sprites', 'spell_name');
 select add_foreign_key('spell_sprites', 'sprite', 'sprites');
@@ -212,8 +212,8 @@ $$ language plpgsql immutable;
 == spell choice controls
 */
 create table spell_keys (
-  spell_name text,
-  key text
+  spell_name text unique references spells_mr,
+  key text unique
 );
 /*select add_key('spell_keys', 'spell_name');
 select add_key('spell_keys', 'key');

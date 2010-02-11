@@ -25,10 +25,10 @@ create domain new_wizard_state as text
   check (value in ('human', 'computer', 'none'));
 
 create table new_game_widget_state (
-  line int,
-  wizard_name text,
-  sprite text,
-  colour text,
+  line int unique,
+  wizard_name text unique,
+  sprite text unique references sprites,
+  colour text unique,
   state new_wizard_state
 );
 /*
@@ -36,13 +36,12 @@ select add_key('new_game_widget_state', 'line');
 select add_key('new_game_widget_state', 'wizard_name');
 select add_key('new_game_widget_state', 'sprite');
 select add_key('new_game_widget_state', 'colour');
-select add_foreign_key('new_game_widget_state', 'sprite', 'sprites');
-select add_constraint('new_game_widget_state_line_valid',
+select add_foreign_key('new_game_widget_state', 'sprite', 'sprites');*/
+select create_assertion('new_game_widget_state_line_valid',
 ' not exists(select 1 from new_game_widget_state
-  where line >= 8)',
-array['new_game_widget_state']);
-select set_relvar_type('new_game_widget_state', 'data');
-*/
+  where line >= 8)');
+--select set_relvar_type('new_game_widget_state', 'data');
+
 /*
 == helpers
 */

@@ -15,6 +15,7 @@ cast spell
 you have to set the override each time you want to override something
 
 */
+
 select module('Chaos.Server.ActionTestSupport');
 
 create domain random_test text check (value in
@@ -60,14 +61,6 @@ begin
 end;
 $$ language plpgsql volatile;
 
-create function min(integer, integer) returns integer as $$
-  select min(n) from (select $1 as n union select $2 as n) as a;
-$$ language sql immutable;
-
-create function max(integer, integer) returns integer as $$
-  select max(n) from (select $1 as n union select $2 as n) as a;
-$$ language sql immutable;
-
 create function limit_chance(integer) returns integer as $$
-  select max(10, min($1, 100));
+  select greatest(10, least($1, 100));
 $$ language sql immutable;

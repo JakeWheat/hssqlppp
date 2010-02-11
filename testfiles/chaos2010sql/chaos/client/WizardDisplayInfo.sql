@@ -17,9 +17,9 @@ coloured 'colour'.
 select module('Chaos.Client.WizardDisplayInfo');
 
 create table wizard_display_info (
-  wizard_name text,
-  default_sprite text, -- and matches /wizard.*/
-  colour text
+  wizard_name text unique references wizards,
+  default_sprite text unique references sprites, -- and matches /wizard.*/
+  colour text unique
 );
 /*select add_key('wizard_display_info', 'wizard_name');
 select add_key('wizard_display_info', 'default_sprite');
@@ -30,9 +30,9 @@ select add_foreign_key('wizard_display_info', 'default_sprite',
 select set_relvar_type('wizard_display_info','data');*/
 
 create table init_wizard_display_info_argument (
-  wizard_name text,
-  sprite text, -- starts with wizard
-  colour text --todo: make list of colours
+  wizard_name text unique references wizards,
+  sprite text unique references sprites, -- starts with wizard
+  colour text unique --todo: make list of colours
 );
 /*select add_key('init_wizard_display_info_argument', 'wizard_name');
 select add_key('init_wizard_display_info_argument', 'sprite');

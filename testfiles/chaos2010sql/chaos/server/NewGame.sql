@@ -24,16 +24,18 @@ create table wizard_starting_positions (
   wizard_count int,
   place int,
   x int,
-  y int
+  y int,
+  unique (wizard_count, place),
+  unique (wizard_count,x,y)
+  
 );
 --select add_key('wizard_starting_positions', array['wizard_count', 'place']);
 --select add_key('wizard_starting_positions', array['wizard_count', 'x', 'y']);
-/*select add_constraint('wizard_starting_positions_place_valid',
+select create_assertion('wizard_starting_positions_place_valid',
   'not exists(select 1 from wizard_starting_positions
-    where place >= wizard_count)',
-  array['wizard_starting_positions']);
-select set_relvar_type('wizard_starting_positions', 'readonly');
-*/
+    where place >= wizard_count)');
+--select set_relvar_type('wizard_starting_positions', 'readonly');
+
 
 copy wizard_starting_positions (wizard_count, place, x, y) from stdin;
 2	0	1	4
@@ -78,19 +80,18 @@ copy wizard_starting_positions (wizard_count, place, x, y) from stdin;
 */
 
 create table action_new_game_argument (
-  place int, -- place 0..cardinality
-  wizard_name text,
+  place int unique, -- place 0..cardinality
+  wizard_name text unique,
   computer_controlled boolean
 );
 /*select add_key('action_new_game_argument', 'place');
-select add_key('action_new_game_argument', 'wizard_name');
-select add_constraint('action_new_game_argument_place_valid',
+select add_key('action_new_game_argument', 'wizard_name');*/
+select create_assertion('action_new_game_argument_place_valid',
   '(select count(*) from action_new_game_argument
-    where place >= (select count(*) from action_new_game_argument)) = 0',
-  array['action_new_game_argument']);
+    where place >= (select count(*) from action_new_game_argument)) = 0');
 
-select set_relvar_type('action_new_game_argument', 'stack');
-*/
+--select set_relvar_type('action_new_game_argument', 'stack');
+
 /*
 new game action - fill in action_new_game_argument first
 */

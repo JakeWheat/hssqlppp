@@ -45,7 +45,7 @@ names of the action functions which are called.
 --select new_module('key_controls', 'client');
 
 create table key_control_settings (
-  key_code text,
+  key_code text unique,
   action_name text
 );
 --select add_key('key_control_settings', array['key_code','action_name']);

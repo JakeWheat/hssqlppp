@@ -46,7 +46,7 @@ and the size of the window is sx, sy.  It is in state 'state'.
 
 */
 create table windows (
-  window_name text,
+  window_name text unique,
   px integer, --position
   py integer,
   sx integer, --size
@@ -110,7 +110,7 @@ $$ language plpgsql volatile;
 == colours
 */
 create table colours (
-       name text,
+       name text unique,
        red int,
        green int,
        blue int

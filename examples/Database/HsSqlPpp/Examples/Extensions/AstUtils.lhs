@@ -13,6 +13,9 @@ constraint of an arbitrary expression, we need to know which tables to
 attach the implementation trigger to. Will be expanded and more docs
 added.
 
+TODO: add test for recursive function, to make sure this code catches
+it and quits.
+
 > module Database.HsSqlPpp.Examples.Extensions.AstUtils
 >     (getAstInfo
 >     ,getReferencedTableList) where
@@ -20,6 +23,7 @@ added.
 > import Data.Generics.Uniplate.Data
 > import Data.Generics
 > import Data.List
+> --import Debug.Trace
 >
 > import Database.HsSqlPpp.Ast
 >
@@ -36,9 +40,9 @@ added.
 >
 > getReferencedTableList :: Data a => AstInfo -> a -> [String]
 > getReferencedTableList asti a =
->     doTables
->     ++ doViews
->     ++ doFunctions
+>         doTables
+>         ++ doViews
+>         ++ doFunctions
 >     where
 >       doTables = intersect trefs (map fst $ tables asti)
 >       doViews = let vdefs = filter ((`elem` trefs) . fst) $ views asti

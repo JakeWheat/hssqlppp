@@ -17,14 +17,13 @@ create table cursor_position (
   x int,
   y int
 );
-/*select add_constraint('cursor_position_coordinates_valid',
+select create_assertion('cursor_position_coordinates_valid',
 $$ not exists (select 1 from cursor_position
   cross join board_size
-  where x >= width or y >= height)$$,
-array['cursor_position', 'board_size']);
-select constrain_to_zero_or_one_tuple('cursor_position');
-select set_relvar_type('cursor_position', 'data');
-*/
+  where x >= width or y >= height)$$);
+select restrict_cardinality('cursor_position', '1');
+--select set_relvar_type('cursor_position', 'data');
+
 /*
 === actions
 cursor movement
@@ -33,8 +32,8 @@ cursor movement
 create function safe_move_cursor(px int, py int) returns void as $$
 begin
   update cursor_position
-    set x = min(max(x + px, 0), (select width from board_size) - 1),
-        y = min(max(y + py, 0), (select height from board_size) - 1);
+    set x = least(greatest(x + px, 0), (select width from board_size) - 1),
+        y = least(greatest(y + py, 0), (select height from board_size) - 1);
 end;
 $$ language plpgsql volatile;
 
@@ -178,7 +177,9 @@ create table piece_starting_ticks (
   ptype text,
   allegiance text,
   tag int,
-  start_tick int
+  start_tick int,
+  unique (ptype,allegiance,tag),
+  foreign key (ptype,allegiance,tag) references pieces
 );
 /*select add_key('piece_starting_ticks',
                array['ptype', 'allegiance', 'tag']);
@@ -261,7 +262,7 @@ two sorts of effects: beam and square
 
 */
 create table board_square_effects (
-  id serial,
+  id serial unique,
   subtype text,
   x1 int,
   y1 int,
@@ -271,7 +272,7 @@ create table board_square_effects (
 --select set_relvar_type('board_square_effects', 'data');
 
 create table board_beam_effects (
-  id serial,
+  id serial unique,
   subtype text,
   x1 int,
   y1 int,
@@ -283,7 +284,7 @@ create table board_beam_effects (
 --select set_relvar_type('board_beam_effects', 'data');
 
 create table board_sound_effects (
-  id serial,
+  id serial unique,
   subtype text,
   sound_name text,
   queuePos int
@@ -302,7 +303,8 @@ $$ language plpgsql stable;
 
 create table history_sounds (
   history_name text,
-  sound_name text
+  sound_name text,
+  unique (history_name,sound_name)
 );
 --select add_key('history_sounds', array['history_name', 'sound_name']);
 --select set_relvar_type('history_sounds', 'readonly');
@@ -324,7 +326,7 @@ attempt_target_spell	cast
 \.
 
 create table history_no_visuals (
-  history_name text
+  history_name text unique
 );
 --select add_key('history_no_visuals', 'history_name');
 --select set_relvar_type('history_no_visuals', 'readonly');
@@ -393,7 +395,7 @@ create table current_effects (
   queuePos int
 );
 --select set_relvar_type('current_effects', 'data');
---select constrain_to_zero_or_one_tuple('current_effects');
+select restrict_cardinality('current_effects', 1);
 
 create view current_board_sound_effects as
   select * from board_sound_effects

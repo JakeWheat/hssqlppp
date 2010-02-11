@@ -1456,7 +1456,7 @@ begin
   perform add_history_attack(r);
 
 
-  if not check_random_success('attack', max((att - def) * 10 + 50, 10)) then
+  if not check_random_success('attack', greatest((att - def) * 10 + 50, 10)) then
     --failure
     perform add_history_shrugged_off(r);
     perform do_next_move_subphase(true, 'attack');
@@ -1500,7 +1500,7 @@ begin
 
   perform add_history_ranged_attack(r);
 
-  if not check_random_success('ranged_attack', max((att - def) * 10 + 50, 10)) then
+  if not check_random_success('ranged_attack', greatest((att - def) * 10 + 50, 10)) then
     --failure
     perform add_history_shrugged_off(r);
     perform do_next_move_subphase(false, 'ranged_attack');
@@ -1845,7 +1845,7 @@ random spells quicker than using order by random() limit 1 in a loop
 */
 
 create table spell_indexes_no_dis_turm (
-  row_number serial,
+  row_number serial unique,
   spell_name text
 );
 --select set_relvar_type('spell_indexes_no_dis_turm', 'readonly');
@@ -1912,7 +1912,7 @@ $$ language plpgsql volatile;
 -----------------------------------------------------
 create function get_next_tag(pptype text, pallegiance text) returns int as $$
 
-  select coalesce(max(tag) + 1, 0) from pieces
+  select coalesce(greatest(tag) + 1, 0) from pieces
   where (ptype,allegiance) = ($1,$2);
 
 $$ language sql stable;

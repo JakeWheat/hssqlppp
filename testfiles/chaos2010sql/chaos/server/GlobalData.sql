@@ -23,7 +23,6 @@ create table board_size (
   unique (width, height)
 );
 --select add_key('board_size', array['width', 'height']);
---select constrain_to_zero_or_one_tuple('board_size');
 select restrict_cardinality('board_size', 1);
 --select set_relvar_type('board_size', 'data');
 

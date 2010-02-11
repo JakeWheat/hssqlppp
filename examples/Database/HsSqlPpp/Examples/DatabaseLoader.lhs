@@ -13,6 +13,7 @@ PostgreSQL.
 > import Control.Exception
 > import Control.Applicative
 > import Control.Monad.Error
+> import Debug.Trace
 >
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Ast as Ast
@@ -47,7 +48,8 @@ The main routine, which takes an AST and loads it into a database using HDBC.
 >        mapM_ (loadStatement conn) $ hackStatements ast
 >   where
 >     loadStatement conn (Regular st) =
->       runSqlCommand conn $ printSql [st]
+>       runSqlCommand conn $ let a = printSql [st]
+>                            in trace a $ a
 >     loadStatement conn (CopyHack (Copy a tb cl Stdin) (CopyData _ s)) =
 >       withTemporaryFile $ \tfn -> do
 >         writeFile tfn s
