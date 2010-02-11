@@ -14,7 +14,7 @@ asts and annotations which depend on the ast types.
 > import Data.Generics
 > import Data.Generics.Uniplate.Data
 >
-> import Database.HsSqlPpp.AstInternals.AstInternal
+> --import Database.HsSqlPpp.AstInternals.AstInternal
 > import Database.HsSqlPpp.AstInternals.AstAnnotation
 >
 > -- | Run through the ast and return all the annotations attached to

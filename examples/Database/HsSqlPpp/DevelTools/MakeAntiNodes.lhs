@@ -17,6 +17,12 @@ for preprocessors examples for typesafe database access.
 The code is quite fragile and depends on the exact style (or lack of)
 of coding used in AstInternal.ag.
 
+If you change AstInternal and HsSqlSystem doesn't compile, generate an
+updated copy of AntiAst.hs by loading this file into ghci and running:
+
+makeAntiNodes >>= writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs"
+
+The path might need tweaking.
 
 > module Database.HsSqlPpp.DevelTools.MakeAntiNodes
 >     (makeAntiNodes) where
@@ -284,7 +290,7 @@ messages in the conversion functions
 >   where
 >     antiAlt :: Alt
 >     antiAlt = Alt nsrc
->                  (PApp (UnQual (Ident $ "Anti" ++ upperFirst n)) [PVar (Ident "s")])
+>                  (PApp (UnQual (Ident $ "Anti" ++ upperFirst n)) [PWildCard])
 >                  (UnGuardedAlt
 >                     (App (Var (UnQual (Ident "error")))
 >                        (Lit (Exts.String $ "can't convert anti " ++ n))))

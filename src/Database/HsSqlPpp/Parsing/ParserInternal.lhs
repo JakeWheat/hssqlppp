@@ -570,7 +570,9 @@ rather than just a string.
 > createFunction :: SParser Statement
 > createFunction = do
 >   p <- pos
->   keyword "function"
+>   rep <- choice [NoReplace <$ keyword "function"
+>                 ,Replace <$ mapM_ keyword ["or", "replace", "function"]
+>                 ]
 >   fnName <- idString
 >   params <- parens $ commaSep param
 >   retType <- keyword "returns" *> typeName
@@ -580,7 +582,7 @@ rather than just a string.
 >                   <|?> (Volatile,pVol))
 >   case parseBody lang body bodypos of
 >        Left er -> fail er
->        Right b -> return $ CreateFunction p fnName params retType lang b vol
+>        Right b -> return $ CreateFunction p fnName params retType rep lang b vol
 >     where
 >         parseAs = do
 >                    keyword "as"

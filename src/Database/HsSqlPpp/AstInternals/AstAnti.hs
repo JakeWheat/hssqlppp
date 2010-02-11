@@ -8,10 +8,10 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         TypeAttributeDef(..), ParamDef(..), VarDef(..), RaiseType(..),
         CombineType(..), Volatility(..), Language(..), TypeName(..),
         DropType(..), Cascade(..), Direction(..), Distinct(..),
-        Natural(..), IfExists(..), RestartIdentity(..), Expression(..),
-        FrameClause(..), InList(..), LiftFlavour(..), TriggerWhen(..),
-        TriggerEvent(..), TriggerFire(..), SetValue(..), StatementList,
-        ExpressionListStatementListPairList,
+        Natural(..), IfExists(..), Replace(..), RestartIdentity(..),
+        Expression(..), FrameClause(..), InList(..), LiftFlavour(..),
+        TriggerWhen(..), TriggerEvent(..), TriggerFire(..), SetValue(..),
+        StatementList, ExpressionListStatementListPairList,
         ExpressionListStatementListPair, ExpressionList, ParamDefList,
         AttributeDefList, ConstraintList, TypeAttributeDefList,
         TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
@@ -113,6 +113,10 @@ data Natural = Natural
 data IfExists = Require
               | IfExists
               deriving (Show, Eq, Typeable, Data)
+ 
+data Replace = Replace
+             | NoReplace
+             deriving (Show, Eq, Typeable, Data)
  
 data RestartIdentity = RestartIdentity
                      | ContinueIdentity
@@ -224,7 +228,7 @@ data Statement = AlterSequence (Annotation) (String) (String)
                | CreateDomain (Annotation) (String) (TypeName) (String)
                               (MaybeBoolExpression)
                | CreateFunction (Annotation) (String) (ParamDefList) (TypeName)
-                                (Language) (FnBody) (Volatility)
+                                (Replace) (Language) (FnBody) (Volatility)
                | CreateLanguage (Annotation) (String)
                | CreateSequence (Annotation) (String) (Integer) (Integer)
                                 (Integer) (Integer) (Integer)
@@ -390,7 +394,7 @@ triggerEvent x
         TInsert -> A.TInsert
         TUpdate -> A.TUpdate
         TDelete -> A.TDelete
-        AntiTriggerEvent s -> error "can't convert anti triggerEvent"
+        AntiTriggerEvent _ -> error "can't convert anti triggerEvent"
  
 triggerFire :: TriggerFire -> A.TriggerFire
 triggerFire x
@@ -463,6 +467,12 @@ ifExists x
   = case x of
         Require -> A.Require
         IfExists -> A.IfExists
+ 
+replace :: Replace -> A.Replace
+replace x
+  = case x of
+        Replace -> A.Replace
+        NoReplace -> A.NoReplace
  
 restartIdentity :: RestartIdentity -> A.RestartIdentity
 restartIdentity x
@@ -542,7 +552,7 @@ expression x
                                         (expressionList a4)
                                         (direction a5)
                                         (frameClause a6)
-        AntiExpression s -> error "can't convert anti expression"
+        AntiExpression _ -> error "can't convert anti expression"
  
 fnBody :: FnBody -> A.FnBody
 fnBody x
@@ -631,12 +641,13 @@ statement x
         CreateDomain a1 a2 a3 a4 a5 -> A.CreateDomain a1 a2 (typeName a3)
                                          a4
                                          (maybeBoolExpression a5)
-        CreateFunction a1 a2 a3 a4 a5 a6 a7 -> A.CreateFunction a1 a2
-                                                 (paramDefList a3)
-                                                 (typeName a4)
-                                                 (language a5)
-                                                 (fnBody a6)
-                                                 (volatility a7)
+        CreateFunction a1 a2 a3 a4 a5 a6 a7 a8 -> A.CreateFunction a1 a2
+                                                    (paramDefList a3)
+                                                    (typeName a4)
+                                                    (replace a5)
+                                                    (language a6)
+                                                    (fnBody a7)
+                                                    (volatility a8)
         CreateLanguage a1 a2 -> A.CreateLanguage a1 a2
         CreateSequence a1 a2 a3 a4 a5 a6 a7 -> A.CreateSequence a1 a2 a3 a4
                                                  a5
@@ -695,7 +706,7 @@ statement x
                                    (maybeSelectList a5)
         WhileStatement a1 a2 a3 -> A.WhileStatement a1 (expression a2)
                                      (statementList a3)
-        AntiStatement s -> error "can't convert anti statement"
+        AntiStatement _ -> error "can't convert anti statement"
  
 tableRef :: TableRef -> A.TableRef
 tableRef x

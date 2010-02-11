@@ -45,6 +45,7 @@ Copyright 2009 Jake Wheat
 >     ,TypeName (..)
 >     ,DropType (..)
 >     ,IfExists (..)
+>     ,Replace(..)
 >     ,Cascade (..)
 >     ,TriggerWhen(..)
 >     ,TriggerEvent(..)

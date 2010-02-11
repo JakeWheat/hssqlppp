@@ -934,7 +934,7 @@ quick sanity check
 >         \select a from t1 where b = $1;\n\
 >         \$$ language sql stable;"
 >       [CreateFunction [] "t1" [ParamDefTp [] $ SimpleTypeName [] "text"]
->        (SimpleTypeName [] "text") Sql
+>        (SimpleTypeName [] "text") NoReplace Sql
 >        (SqlFnBody []
 >         [SelectStatement [] $ selectFromWhere [SelExp [] (Identifier [] "a")] (Tref [] "t1" NoAlias)
 >          (FunCall [] "="
@@ -948,7 +948,7 @@ quick sanity check
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql
+>       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") Nothing
 >                          ,VarDef [] "b" (SimpleTypeName [] "text") Nothing]
 >         [NullStatement []])
@@ -961,7 +961,7 @@ quick sanity check
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql
+>       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") Nothing
 >                          ,VarDef [] "b" (SimpleTypeName [] "text") Nothing]
 >         [NullStatement []])
@@ -975,7 +975,7 @@ quick sanity check
 >         \$$ language plpgsql immutable;"
 >       [CreateFunction [] "fn"
 >        [ParamDef [] "a" $ ArrayTypeName [] $ SimpleTypeName [] "text"]
->        (ArrayTypeName [] $ SimpleTypeName [] "int") Plpgsql
+>        (ArrayTypeName [] $ SimpleTypeName [] "int") NoReplace Plpgsql
 >        (PlpgsqlFnBody []
 >         [VarDef [] "b" (ArrayTypeName [] $ SimpleTypeName [] "xtype") (Just $ stringQ "{}")]
 >         [NullStatement []])
@@ -987,7 +987,7 @@ quick sanity check
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") Plpgsql
+>       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") (Just $ IntegerLit [] 3)]
 >         [NullStatement []])
 >        Stable]
@@ -997,7 +997,7 @@ quick sanity check
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >       [CreateFunction [] "fn" []
->        (SetOfTypeName [] $ SimpleTypeName [] "int") Plpgsql
+>        (SetOfTypeName [] $ SimpleTypeName [] "int") NoReplace Plpgsql
 >        (PlpgsqlFnBody [] [] [NullStatement []])
 >        Stable]
 >      ,s "create function fn() returns void as $$\n\
@@ -1006,7 +1006,16 @@ quick sanity check
 >         \end\n\
 >         \$$ language plpgsql stable;"
 >       [CreateFunction [] "fn" []
->        (SimpleTypeName [] "void") Plpgsql
+>        (SimpleTypeName [] "void") NoReplace Plpgsql
+>        (PlpgsqlFnBody [] [] [NullStatement []])
+>        Stable]
+>      ,s "create or replace function fn() returns void as $$\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end\n\
+>         \$$ language plpgsql stable;"
+>       [CreateFunction [] "fn" []
+>        (SimpleTypeName [] "void") Replace Plpgsql
 >        (PlpgsqlFnBody [] [] [NullStatement []])
 >        Stable]
 >      ,s "drop function test(text);"
