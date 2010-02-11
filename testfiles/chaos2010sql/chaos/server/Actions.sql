@@ -1912,7 +1912,7 @@ $$ language plpgsql volatile;
 -----------------------------------------------------
 create function get_next_tag(pptype text, pallegiance text) returns int as $$
 
-  select coalesce(greatest(tag) + 1, 0) from pieces
+  select coalesce(max(tag) + 1, 0) from pieces
   where (ptype,allegiance) = ($1,$2);
 
 $$ language sql stable;
