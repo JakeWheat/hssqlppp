@@ -419,7 +419,7 @@ a phase...?
 */
 
 select create_var('dont_nest_ai_next_phase', 'bool');
---select set_relvar_type('dont_nest_ai_next_phase_table', 'stack');
+select set_relvar_type('dont_nest_ai_next_phase_table', 'stack');
 
 create function action_next_phase() returns void as $$
 declare
@@ -647,27 +647,8 @@ $$ language plpgsql volatile;
 generate the individual spell choice actions
 
 */
-/*create function generate_spell_choice_actions() returns void as $$
-declare
-  sn text;
-  s text;
-begin
-  for sn in select spell_name from spells loop
-  s := $a$
-create function action_choose_$a$ || sn || $a$_spell() returns void as $b$
-begin
-  perform check_can_run_action('choose_$a$ || sn || $a$_spell');
-  perform action_choose_spell('$a$ || sn || $a$');
-end;
-$b$ language plpgsql volatile;
-$a$;
-  execute s;
-  end loop;
-end;
-$$ language plpgsql volatile;*/
 
 select generate_spell_choice_actions();
---drop function generate_spell_choice_actions();
 
 /*
 == cast spells
@@ -1110,7 +1091,7 @@ create table cast_magic_wood_squares (
   y int,
   unique (x,y)
 );
---select set_relvar_type('cast_magic_wood_squares', 'stack');
+select set_relvar_type('cast_magic_wood_squares', 'stack');
 
 create view adjacent_to_new_tree_squares as
   select tx as x, ty as y from
@@ -1762,7 +1743,7 @@ create view spreadable_squares as
 
 select create_var('disable_spreading', 'boolean');
 insert into disable_spreading_table values (false);
---select set_relvar_type('disable_spreading_table', 'data');
+select set_relvar_type('disable_spreading_table', 'data');
 
 create function do_spreading() returns void as $$
 declare
@@ -1848,9 +1829,7 @@ create table spell_indexes_no_dis_turm (
   row_number serial unique,
   spell_name text
 );
---select set_relvar_type('spell_indexes_no_dis_turm', 'readonly');
---select add_key('spell_indexes_no_dis_turm', 'row_number');
-
+select set_relvar_type('spell_indexes_no_dis_turm', 'stack');
 
 create type random_entry as (
   line int,
@@ -2046,5 +2025,3 @@ begin
   perform kill_piece(r);
 end;
 $$ language plpgsql volatile;
-
---select set_module_for_preceding_objects('actions');

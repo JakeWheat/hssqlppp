@@ -33,42 +33,25 @@ in_next_phase_hack_table in the relvar list for the constraint.
 */
 select create_var('in_next_phase_hack', 'boolean');
 insert into in_next_phase_hack_table values (false);
---select set_relvar_type('in_next_phase_hack_table', 'stack');
+select set_relvar_type('in_next_phase_hack_table', 'stack');
 
 select create_var('creating_new_game', 'boolean');
 insert into creating_new_game_table values (true);
---select set_relvar_type('creating_new_game_table', 'stack');
+select set_relvar_type('creating_new_game_table', 'stack');
 
 --Turn number, starts at 0 goes up 1 each full turn, just used to provide
 --info on how long the game has been going.
 select create_var('turn_number', 'int');
---select set_relvar_type('turn_number_table', 'data');
+select set_relvar_type('turn_number_table', 'data');
 
 --if not creating new game cardinality = 1
-/*
+
 select create_update_transition_tuple_constraint(
   'turn_number_table',
   'turn_number_change_valid',
   '(NEW.turn_number = OLD.turn_number + 1)');
-*/
-/*create function no_deletes_inserts_except_new_game(relvar_name text)
-  returns void as $$
-begin
-  perform create_delete_transition_tuple_constraint(
-    relvar_name,
-    relvar_name || '_no_delete',
-    'exists(select 1 from creating_new_game_table
-      where creating_new_game = true)');
-  perform create_insert_transition_tuple_constraint(
-    relvar_name,
-    relvar_name || '_no_insert',
-    'exists(select 1 from creating_new_game_table
-      where creating_new_game = true)');
 
-end;
-$$ language plpgsql volatile;
-*/
---select no_deletes_inserts_except_new_game('turn_number_table');
+select no_deletes_inserts_except_new_game('turn_number_table');
 
 /*
 turn phase
@@ -114,11 +97,11 @@ select next_wizard('Zarathushthra');
 
 --current wizard is the wizard who's turn it is to do stuff in current phase
 select create_var('current_wizard', 'text');
---select set_relvar_type('current_wizard_table', 'data');
+select set_relvar_type('current_wizard_table', 'data');
 
---alter table current_wizard_table add constraint 'x' foreign key (current_wizard) references wizards(wizard_name);
---select add_foreign_key('current_wizard_table', 'current_wizard',
---  'wizards', 'wizard_name');
+alter table current_wizard_table
+  add constraint current_wizard_fkey
+  foreign key (current_wizard) references wizards(wizard_name);
 
 select no_deletes_inserts_except_new_game('current_wizard_table');
 select create_assertion('current_wizard_must_be_alive',
@@ -151,7 +134,7 @@ create function next_turn_phase(text) returns text as $$
 $$ language sql immutable;
 
 select create_var('turn_phase', 'turn_phase_enum');
---select set_relvar_type('turn_phase_table', 'data');
+select set_relvar_type('turn_phase_table', 'data');
 select create_update_transition_tuple_constraint(
   'turn_phase_table',
   'turn_phase_change_valid',
@@ -199,7 +182,8 @@ create table wizard_spell_choices_mr (
   spell_name text not null,
   imaginary boolean null
 );
---select add_key('wizard_spell_choices_mr', 'wizard_name');
+select set_relvar_type('wizard_spell_choices_mr', 'data');
+
 select create_assertion('dead_wizard_no_spell',
   $$ not exists(select 1 from wizard_spell_choices_mr
     natural inner join wizards
@@ -256,7 +240,7 @@ writing out the fk by hand and adding the in next phase hack.
 */
 select create_var('spell_choice_hack', 'boolean');
 insert into spell_choice_hack_table values (false);
---select set_relvar_type('spell_choice_hack_table', 'stack');
+select set_relvar_type('spell_choice_hack_table', 'stack');
 
 select create_assertion('wizard_spell_choices_wizard_name_spell_name_fkey',
 $$((select spell_choice_hack from spell_choice_hack_table) or
@@ -305,7 +289,6 @@ select create_delete_transition_tuple_constraint(
   'delete_spell_choice_restricted',
   $$(select turn_phase in ('cast', 'choose') from turn_phase_table)$$);
 
---select set_relvar_type('wizard_spell_choices_mr', 'data');
 
 /*
 
@@ -322,7 +305,7 @@ spell or max number of casts otherwise
 */
 
 select create_var('spell_parts_to_cast', 'int');
---select set_relvar_type('spell_parts_to_cast_table', 'data');
+select set_relvar_type('spell_parts_to_cast_table', 'data');
 
 select create_assertion('parts_to_cast_only', $$
   ((select turn_phase = 'cast' from turn_phase_table)
@@ -335,7 +318,8 @@ make sure to reset it each next phase during cast phase
 */
 
 select create_var('cast_success_checked', 'boolean');
---select set_relvar_type('cast_success_checked_table', 'data');
+select set_relvar_type('cast_success_checked_table', 'data');
+
 select create_assertion('cast_checked_cast_only', $$
   ((select turn_phase = 'cast' from turn_phase_table)
   or not exists(select 1 from cast_success_checked_table))$$);
@@ -372,7 +356,7 @@ by two in the absence of any other spells.
 
 */
 select create_var('cast_alignment', 'integer');
---select set_relvar_type('cast_alignment_table', 'stack');
+select set_relvar_type('cast_alignment_table', 'stack');
 
 select create_assertion('cast_alignment_empty',
   $$((get_turn_phase() = 'cast') or
@@ -418,16 +402,11 @@ create table pieces_to_move (
     unique (ptype,allegiance,tag),
     foreign key (ptype,allegiance,tag) references pieces
 );
---select add_key('pieces_to_move', array['ptype', 'allegiance', 'tag']);
---cascade delete here:
-/*select add_foreign_key('pieces_to_move', array['ptype', 'allegiance', 'tag'],
-                       'pieces');
-select add_foreign_key('pieces_to_move', 'allegiance',
-                       'current_wizard_table', 'current_wizard');
-select set_relvar_type('pieces_to_move', 'data');*/
+select set_relvar_type('pieces_to_move', 'data');
+
 select create_assertion('pieces_to_move_empty',
-$$((select turn_phase = 'move' from turn_phase_table) or
-not exists (select 1 from pieces_to_move))$$);
+  $$((select turn_phase = 'move' from turn_phase_table)
+     or not exists (select 1 from pieces_to_move))$$);
 
 create domain move_phase as text
   check (value in ('motion', 'attack', 'ranged_attack'));
@@ -441,14 +420,9 @@ create table selected_piece (
   unique (ptype,allegiance,tag),
   foreign key (ptype,allegiance,tag) references pieces
 ); -- 0 to 1 tuple when in move phase,
+select set_relvar_type('selected_piece', 'data');
 -- piece key from current wizards army, empty otherwise
-/*select add_key('selected_piece', array['ptype', 'allegiance', 'tag']);
-select add_foreign_key('selected_piece', array['ptype', 'allegiance', 'tag'],
-                       'pieces');
-select add_foreign_key('selected_piece', 'allegiance',
-                       'current_wizard_table', 'current_wizard');*/
 select restrict_cardinality('selected_piece', 1);
---select set_relvar_type('selected_piece', 'data');
 
 
 /*
@@ -462,9 +436,9 @@ diagonal moves.
 
 */
 select create_var('remaining_walk', 'int');
---select set_relvar_type('remaining_walk_table', 'data');
+select set_relvar_type('remaining_walk_table', 'data');
 select create_var('remaining_walk_hack', 'boolean');
---select set_relvar_type('remaining_walk_hack_table', 'stack');
+select set_relvar_type('remaining_walk_hack_table', 'stack');
 insert into remaining_walk_hack_table values (false);
 
 select create_assertion('remaining_walk_only_motion',
@@ -506,7 +480,7 @@ remaining.)
 */
 
 select create_var('game_completed', 'boolean');
---select set_relvar_type('game_completed_table', 'data');
+select set_relvar_type('game_completed_table', 'data');
 select create_assertion('game_completed_wizards',
        $$(not exists(select 1 from game_completed_table)
            or (select count(1) <= 1 from live_wizards))$$);

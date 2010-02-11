@@ -19,10 +19,7 @@ create table spell_sprites (
   spell_name text unique references spells_mr,
   sprite text references sprites
 );
-/*select add_key('spell_sprites', 'spell_name');
-select add_foreign_key('spell_sprites', 'sprite', 'sprites');
-select add_foreign_key('spell_sprites', 'spell_name', 'spells_mr');
-select set_relvar_type('spell_sprites', 'readonly');*/
+select set_relvar_type('spell_sprites', 'readonly');
 
 copy spell_sprites(spell_name, sprite) from stdin;
 magic_wood	magic_tree
@@ -82,14 +79,11 @@ zombie	zombie
 shadow_form	chaos
 \.
 
-
---select new_module('spell_book_widget', 'client');
-
 /*
 == show all setting
 */
 select create_var('spell_book_show_all', 'boolean');
---select set_relvar_type('spell_book_show_all_table', 'data');
+select set_relvar_type('spell_book_show_all_table', 'data');
 
 create function action_spell_book_show_all_update(v boolean)
   returns void as $$
@@ -215,10 +209,7 @@ create table spell_keys (
   spell_name text unique references spells_mr,
   key text unique
 );
-/*select add_key('spell_keys', 'spell_name');
-select add_key('spell_keys', 'key');
-select add_foreign_key('spell_keys', 'spell_name', 'spells_mr');
-select set_relvar_type('spell_keys', 'readonly');*/
+ select set_relvar_type('spell_keys', 'readonly');
 
 copy spell_keys (spell_name, key) from stdin;
 magic_knife	1
@@ -313,4 +304,3 @@ create view current_wizard_selected_spell_details as
   from spell_details
   natural inner join wizard_spell_choices
   inner join current_wizard_table on (wizard_name = current_wizard);
---select set_module_for_preceding_objects('spell_book_widget');

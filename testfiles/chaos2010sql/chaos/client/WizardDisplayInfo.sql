@@ -21,27 +21,14 @@ create table wizard_display_info (
   default_sprite text unique references sprites, -- and matches /wizard.*/
   colour text unique
 );
-/*select add_key('wizard_display_info', 'wizard_name');
-select add_key('wizard_display_info', 'default_sprite');
-select add_key('wizard_display_info', 'colour');
-select add_foreign_key('wizard_display_info', 'wizard_name', 'wizards');
-select add_foreign_key('wizard_display_info', 'default_sprite',
-                        'sprites', 'sprite');
-select set_relvar_type('wizard_display_info','data');*/
+select set_relvar_type('wizard_display_info','data');
 
 create table init_wizard_display_info_argument (
   wizard_name text unique references wizards,
   sprite text unique references sprites, -- starts with wizard
   colour text unique --todo: make list of colours
 );
-/*select add_key('init_wizard_display_info_argument', 'wizard_name');
-select add_key('init_wizard_display_info_argument', 'sprite');
-select add_key('init_wizard_display_info_argument', 'colour');
-select add_foreign_key('init_wizard_display_info_argument',
-                       'wizard_name', 'wizards');
-select add_foreign_key('init_wizard_display_info_argument',
-                       'sprite', 'sprites');
-select set_relvar_type('init_wizard_display_info_argument', 'stack');*/
+select set_relvar_type('init_wizard_display_info_argument', 'stack');
 
 create function init_wizard_display_info() returns void as $$
 begin
@@ -51,8 +38,6 @@ begin
 end;
 $$ language plpgsql volatile;
 
-
---select set_module_for_preceding_objects('wizard_display_info');
 /*
 ================================================================================
 

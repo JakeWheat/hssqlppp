@@ -102,5 +102,3 @@ create view board_ranges as
     --exclude it here even though it's not quite mathematically correct
     (x,y) != (tx,ty) and
     distance(x,y,tx,ty) - 0.5 <= range; --round to closest int
-
---select set_module_for_preceding_objects('squares_valid');

@@ -32,7 +32,6 @@ Store window positions, size, maximised/minimised,
   open/close so this is restored when
   you restart the program or if it crashes
 */
---select new_module('window_management', 'client');
 /*
 windows relvar
 */
@@ -53,8 +52,7 @@ create table windows (
   sy integer,
   state window_state
 ); --assert there is a row for every widget type.
---select add_key('windows', 'window_name');
---select set_relvar_type('windows', 'data');
+select set_relvar_type('windows', 'data');
 
 /*
 
@@ -83,9 +81,6 @@ begin
   update windows set state='hidden' where window_name = vname;
 end;
 $$ language plpgsql volatile;
---select set_module_for_preceding_objects('window_management');
-
-
 
 /*
 
@@ -115,8 +110,7 @@ create table colours (
        green int,
        blue int
 );
---select add_key('colours', 'name');
---select set_relvar_type('colours', 'readonly');
+select set_relvar_type('colours', 'readonly');
 
 copy colours (name,red,green,blue) from stdin;
 grid	32767	32767	32767

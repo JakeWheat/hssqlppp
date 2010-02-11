@@ -72,10 +72,8 @@ create table pieces (
     y int,
     primary key (ptype,allegiance,tag)
 );
+select set_relvar_type('pieces', 'data');
 
-/*
-select add_key('pieces', array['ptype', 'allegiance', 'tag']);
-select add_foreign_key('pieces', 'ptype', 'piece_prototypes');*/
 --piece must be on the board, not outside it
 select create_assertion('piece_coordinates_valid',
   ' not exists(select 1 from pieces
@@ -88,7 +86,6 @@ select create_assertion('dead_wizard_army_empty',
     inner join wizards
     on (allegiance = wizard_name)
     where expired = true)$$);
---select set_relvar_type('pieces', 'data');
 
 create type piece_key as (
     ptype text,
@@ -140,14 +137,10 @@ create table imaginary_pieces (
     unique (ptype,allegiance,tag),
     foreign key (ptype,allegiance,tag) references pieces
 );
-
-/*
 select set_relvar_type('imaginary_pieces', 'data');
-select add_key('imaginary_pieces', array['ptype', 'allegiance', 'tag']);
-select add_foreign_key('imaginary_pieces',
-       array['ptype', 'allegiance', 'tag'], 'pieces');
+/*
 select add_foreign_key('imaginary_pieces', 'ptype',
-       'monster_prototypes');
+       'monster_prototypes'); -- fk to view
 */
 create table crimes_against_nature(
     ptype text,
@@ -156,13 +149,10 @@ create table crimes_against_nature(
     unique (ptype,allegiance,tag),
     foreign key (ptype,allegiance,tag) references pieces
 );
-/*
 select set_relvar_type('crimes_against_nature', 'data');
-select add_key('crimes_against_nature', array['ptype', 'allegiance', 'tag']);
-select add_foreign_key('crimes_against_nature',
-       array['ptype', 'allegiance', 'tag'], 'pieces');
+/*
 select add_foreign_key('crimes_against_nature', 'ptype',
-       'monster_prototypes');
+       'monster_prototypes'); -- fk to view
 */
 create view wizard_upgrade_stats as
 select pp.ptype,
@@ -320,5 +310,3 @@ wizard, stiff, mountable monster : mountable on top
 stiff, monster, blob : blob on top
 
 */
-
---select set_module_for_preceding_objects('pieces');

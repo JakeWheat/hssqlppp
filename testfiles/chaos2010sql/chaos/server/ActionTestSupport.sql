@@ -27,7 +27,7 @@ create table test_action_overrides (
   override random_test unique,
   setting bool
 );
---select set_relvar_type('test_action_overrides', 'data');
+select set_relvar_type('test_action_overrides', 'data');
 
 create function action_rig_action_success(poverride random_test,
        psetting boolean) returns void as $$
@@ -36,8 +36,6 @@ begin
     values (poverride, psetting);
 end;
 $$ language plpgsql volatile;
-
---select add_key('test_action_overrides', 'override');
 
 /*
 == random numbers

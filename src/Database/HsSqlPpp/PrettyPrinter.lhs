@@ -138,7 +138,7 @@ Conversion routines - convert Sql asts into Docs
 >       convAct (AlterColumnDefault _ nm def) =
 >           text "alter column" <+> text nm <+> text "set default" <+> convExp def
 >       convAct (AddConstraint _ con) =
->           text "add constraint" <+> convCon con
+>           text "add " <+> convCon con
 >
 > convStatement ca (CreateSequence ann nm incr _ _ start cache) =
 >     convPa ca ann <+>

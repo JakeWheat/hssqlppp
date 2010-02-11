@@ -40,8 +40,7 @@ create table piece_prototypes_mr (
   physical_defense int null,
   magic_defense int null
 );
---select add_key('piece_prototypes_mr', 'ptype');
---select set_relvar_type('piece_prototypes_mr', 'readonly');
+select set_relvar_type('piece_prototypes_mr', 'readonly');
 
 create view piece_prototypes as
   select ptype from piece_prototypes_mr;
@@ -124,5 +123,3 @@ wizard	f	1	3	\N	\N	\N	\N	\N	3	3	5
 wraith	f	2	5	t	f	\N	\N	\N	5	5	4
 zombie	f	1	3	t	f	\N	\N	\N	1	1	2
 \.
-
---select set_module_for_preceding_objects('piece_prototypes');

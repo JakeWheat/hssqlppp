@@ -15,13 +15,11 @@ create language plpgsql;
 select new_module('chaos', 'root');
 select new_module('server', 'chaos');
 select new_module('metadata', 'server');
-
+*/
 create table base_relvar_metadata (
-  relvar_name text,
+  relvar_name text unique, -- references base_relvars, fk to view
   type text check (type in('readonly', 'data', 'stack'))
 );
-select add_key('base_relvar_metadata', 'relvar_name');
-select add_foreign_key('base_relvar_metadata', 'relvar_name', 'base_relvars');
 
 create function set_relvar_type(vname text, vtype text) returns void as $$
 begin
@@ -31,7 +29,7 @@ end;
 $$ language plpgsql volatile;
 
 select set_relvar_type('base_relvar_metadata', 'readonly');
-*/
+
 /*
 This view is only used in the check_code_some_tags function.
 */

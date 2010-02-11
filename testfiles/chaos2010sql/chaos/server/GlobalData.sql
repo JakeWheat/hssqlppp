@@ -22,9 +22,8 @@ create table board_size (
   height int,
   unique (width, height)
 );
---select add_key('board_size', array['width', 'height']);
+select set_relvar_type('board_size', 'data');
 select restrict_cardinality('board_size', 1);
---select set_relvar_type('board_size', 'data');
 
 
 --update operator out param: board_size
@@ -51,11 +50,10 @@ create domain alignment as text check (value in ('law', 'neutral', 'chaos'));
 --if world alignment = 0, world is neutral, if -ve world is chaos by that amount
 --if +ve world is law by that amount
 select create_var('world_alignment', 'int');
---select set_relvar_type('world_alignment_table', 'data');
+select set_relvar_type('world_alignment_table', 'data');
 
 create function init_world_alignment() returns void as $$
 begin
   insert into world_alignment_table values (0);
 end;
 $$ language plpgsql volatile;
---select set_module_for_preceding_objects('global_data');

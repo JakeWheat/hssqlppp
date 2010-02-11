@@ -63,9 +63,7 @@ create table spells_mr (
   ptype text null,
   valid_square_category spell_square_category null
 );
-
---select add_key('spells_mr', 'spell_name');
---select set_relvar_type('spells_mr', 'readonly');
+select set_relvar_type('spells_mr', 'readonly');
 
 create view spells as
  select spell_name, base_chance, alignment,
@@ -175,5 +173,3 @@ wall	80	0	object	Allows four wall blocks to be built near the wizard, which bloc
 wraith	50	-1	monster	monster	\N	\N	1	1	wraith	empty_or_corpse_only
 zombie	90	-1	monster	monster	\N	\N	1	1	zombie	empty_or_corpse_only
 \.
-
---select set_module_for_preceding_objects('spells');

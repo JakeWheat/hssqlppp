@@ -31,16 +31,10 @@ create table new_game_widget_state (
   colour text unique,
   state new_wizard_state
 );
-/*
-select add_key('new_game_widget_state', 'line');
-select add_key('new_game_widget_state', 'wizard_name');
-select add_key('new_game_widget_state', 'sprite');
-select add_key('new_game_widget_state', 'colour');
-select add_foreign_key('new_game_widget_state', 'sprite', 'sprites');*/
+select set_relvar_type('new_game_widget_state', 'data');
 select create_assertion('new_game_widget_state_line_valid',
 ' not exists(select 1 from new_game_widget_state
   where line >= 8)');
---select set_relvar_type('new_game_widget_state', 'data');
 
 /*
 == helpers

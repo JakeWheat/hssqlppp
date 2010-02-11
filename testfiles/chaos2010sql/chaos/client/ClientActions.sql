@@ -48,8 +48,7 @@ create table key_control_settings (
   key_code text unique,
   action_name text
 );
---select add_key('key_control_settings', array['key_code','action_name']);
---select set_relvar_type('key_control_settings', 'readonly');
+select set_relvar_type('key_control_settings', 'readonly');
 
 copy key_control_settings(key_code, action_name) from stdin;
 Up	move_cursor_up

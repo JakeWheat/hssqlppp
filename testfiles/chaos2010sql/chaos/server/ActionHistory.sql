@@ -52,8 +52,7 @@ create table action_history_mr (
   tx int null,
   ty int null
 );
---select add_key('action_history_mr', 'id');
---select set_relvar_type('action_history_mr', 'data');
+select set_relvar_type('action_history_mr', 'data');
 
 --Turns
 
@@ -313,5 +312,3 @@ hide spell received in tree
 
 
 */
-
---select set_module_for_preceding_objects('action_history');

@@ -18,9 +18,7 @@ create table sprites (
   animation_speed int
 --todo: add sprite data here
 );
---select add_key('sprites', 'sprite');
---select set_relvar_type('sprites', 'readonly');
---select set_module_for_preceding_objects('sprites');
+select set_relvar_type('sprites', 'readonly');
 
 copy sprites (sprite,animation_speed) from stdin;
 bat	8

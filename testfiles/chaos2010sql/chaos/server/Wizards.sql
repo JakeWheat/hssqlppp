@@ -17,8 +17,7 @@ create table wizards (
   original_place int, -- 0 <= n < num wizards
   expired boolean default false
 );
---select add_key('wizards', 'wizard_name');
---select set_relvar_type('wizards', 'data');
+select set_relvar_type('wizards', 'data');
 
 create view live_wizards as
   select *,
@@ -35,12 +34,8 @@ create table spell_books (
   wizard_name text references wizards,
   spell_name text references spells_mr
 );
---select add_key('spell_books', 'id');
---select add_foreign_key('spell_books', 'wizard_name', 'wizards');
+select set_relvar_type('spell_books', 'data');
+
 select create_assertion('no_spells_for_stiffs',
   $$ not exists(select 1 from spell_books
   natural inner join wizards where expired = true)$$);
---select add_foreign_key('spell_books', 'spell_name', 'spells');
---select set_relvar_type('spell_books', 'data');
-
---select set_module_for_preceding_objects('wizards');
