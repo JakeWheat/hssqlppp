@@ -45,17 +45,16 @@ simple example with one 'subclass'
 >        ,ptype2 text not null
 >        ,speed int null
 >        ,agility int null
->        /*,constraint creatures_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
->                  or (speed is not null and agility is not null))*/
+>                  or (speed is not null and agility is not null))
 >       );
 >       create view pieces_base as
 >         select ptype, ptype2 from pieces;
 >       create view creatures as
 >         select ptype,ptype2,speed,agility from pieces
 >                where speed is not null
->                      and (agility is not null
->                      and true);
+>                      and agility is not null;
 >      |]
 
 two unconnected 'subclasses'
@@ -89,12 +88,12 @@ two unconnected 'subclasses'
 >        ,agility int null
 >        ,attack_strength int null
 >        ,attack_style text null
->        /*,constraint creatures_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
 >                  or (speed is not null and agility is not null))
 >        ,constraint attackers_fields
 >           check ((attack_strength is null and attack_style is null)
->                  or (attack_strength is not null and attack_style is not null))*/
+>                  or (attack_strength is not null and attack_style is not null))
 >        );
 >       create view pieces_base as
 >         select ptype
@@ -103,22 +102,19 @@ two unconnected 'subclasses'
 >         select ptype,speed,agility
 >           from pieces
 >           where speed is not null
->                 and (agility is not null
->                 and true);
+>                 and agility is not null;
 >       create view attackers as
 >         select ptype,attack_strength,attack_style
 >           from pieces
 >           where attack_strength is not null
->                 and (attack_style is not null
->                 and true);
+>                 and attack_style is not null;
 >       create view attacking_creatures as
 >         select ptype,speed,agility,attack_strength,attack_style
 >           from pieces
 >           where speed is not null
 >                 and (agility is not null
 >                 and (attack_strength is not null
->                 and (attack_style is not null
->                 and true)));
+>                 and attack_style is not null));
 >      |]
 
 one field only check
@@ -147,7 +143,7 @@ one field only check
 >         select ptype from pieces;
 >       create view creatures as
 >         select ptype,speed from pieces
->           where speed is not null and true;
+>           where speed is not null;
 >      |]
 
 no combo view check
@@ -179,12 +175,12 @@ no combo view check
 >        ,agility int null
 >        ,attack_strength int null
 >        ,attack_style text null
->        /*,constraint creatures_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
 >                  or (speed is not null and agility is not null))
 >        ,constraint attackers_fields
 >           check ((attack_strength is null and attack_style is null)
->                  or (attack_strength is not null and attack_style is not null))*/
+>                  or (attack_strength is not null and attack_style is not null))
 >        );
 >       create view pieces_base as
 >         select ptype
@@ -193,14 +189,12 @@ no combo view check
 >         select ptype,speed,agility
 >           from pieces
 >           where speed is not null
->                 and (agility is not null
->                 and true);
+>                 and agility is not null;
 >       create view attackers as
 >         select ptype,attack_strength,attack_style
 >           from pieces
 >           where attack_strength is not null
->                 and (attack_style is not null
->                 and true);
+>                 and attack_style is not null;
 >      |]
 
 two chained 'subclasses'
@@ -232,14 +226,14 @@ two chained 'subclasses'
 >        ,agility int null
 >        ,attack_strength int null
 >        ,attack_style text null
->        /*,constraint creatures_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
 >                  or (speed is not null and agility is not null))
 >        ,constraint attackers_fields
->           check ((speed is null and agility is null
->                   and attack_strength is null and attack_style is null)
->                  or (speed is not null and attack_strength is not null
->                      and attack_strength is not null and attack_style is not null))*/
+>           check ((speed is null and (agility is null
+>                   and (attack_strength is null and attack_style is null)))
+>                  or (speed is not null and (agility is not null
+>                      and (attack_strength is not null and (attack_style is not null)))))
 >        );
 >       create view pieces_base as
 >         select ptype
@@ -248,8 +242,7 @@ two chained 'subclasses'
 >         select ptype,speed,agility
 >           from pieces
 >           where speed is not null
->                 and (agility is not null
->                 and true);
+>                 and agility is not null;
 >       create view attackers as
 >         select ptype,speed,agility,
 >                attack_strength,attack_style
@@ -257,8 +250,7 @@ two chained 'subclasses'
 >           where speed is not null
 >                 and (agility is not null
 >                 and (attack_strength is not null
->                 and (attack_style is not null
->                 and true)));
+>                 and attack_style is not null));
 >      |]
 
 diamond inheritance
@@ -296,19 +288,19 @@ diamond inheritance
 >        ,attack_style text null
 >        ,resistance int null
 >        ,armour int null
->        /*,constraint creatures_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
 >               or (speed is not null and agility is not null))
 >        ,constraint attackers_fields
 >           check ((attack_strength is null and attack_style is null)
 >               or (attack_strength is not null and attack_style is not null))
 >        ,constraint monsters_fields
->           check ((speed is null and agility is null
->                   and attack_strength is null and attack_style is null
->                   and resistance is null and armour is null)
->               or (speed is not null and attack_strength is not null
->                   and attack_strength is not null and attack_style is not null
->                   and resistance is not null and armour is not null))*/
+>           check ((speed is null and (agility is null
+>                   and (attack_strength is null and (attack_style is null
+>                   and (resistance is null and armour is null)))))
+>               or (speed is not null and (agility is not null
+>                   and (attack_strength is not null and (attack_style is not null
+>                   and (resistance is not null and armour is not null))))))
 >        );
 >       create view pieces_base as
 >         select ptype
@@ -317,14 +309,12 @@ diamond inheritance
 >         select ptype,speed,agility
 >           from pieces
 >           where speed is not null
->                 and (agility is not null
->                 and true);
+>                 and agility is not null;
 >       create view attackers as
 >         select ptype,attack_strength,attack_style
 >           from pieces
 >           where attack_strength is not null
->                 and (attack_style is not null
->                 and true);
+>                 and attack_style is not null;
 >       create view monsters as
 >         select ptype,speed,agility,attack_strength,attack_style,
 >                resistance,armour
@@ -334,8 +324,7 @@ diamond inheritance
 >                 and (attack_strength is not null
 >                 and (attack_style is not null
 >                 and (resistance is not null
->                 and (armour is not null
->                 and true)))));
+>                 and armour is not null))));
 >      |]
 
 fdk
@@ -368,13 +357,13 @@ fdk
 >        ,agility int null
 >        ,attack_strength int null
 >        ,attack_style text null
->        /*,constraint creatures_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
 >                  or (speed is not null and agility is not null))
 >        ,constraint attackers_fields
 >           check ((attack_strength is null and attack_style is null)
 >                  or (attack_strength is not null and attack_style is not null))
->        ,constraint me_pieces_attackers
+>        /*,constraint me_pieces_attackers
 >           -- doesn't scale to three mutual exclusives
 >           check (speed is not null <> attack_strength is not null)*/
 >        );
@@ -385,14 +374,12 @@ fdk
 >         select ptype,speed,agility
 >           from pieces
 >           where speed is not null
->                 and (agility is not null
->                 and true);
+>                 and agility is not null;
 >       create view attackers as
 >         select ptype,attack_strength,attack_style
 >           from pieces
 >           where attack_strength is not null
->                 and (attack_style is not null
->                 and true);
+>                 and attack_style is not null;
 >      |]
 
 todo: no base class, distributed key

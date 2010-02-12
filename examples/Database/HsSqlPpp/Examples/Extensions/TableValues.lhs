@@ -26,7 +26,8 @@ about adding this to the type checking to verify statically.
 >   ExtensionTest
 >     "tableValueExample1"
 >     tableValues
->     [$sqlStmts| select create_var('varname', 'vartype'); |]
+>     [$sqlStmts|
+> select create_var('varname', 'vartype'); |]
 >     [$sqlStmts|
 >       create table varname_table (
 >         varname vartype

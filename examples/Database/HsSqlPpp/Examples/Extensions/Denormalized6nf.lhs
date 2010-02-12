@@ -85,13 +85,14 @@ see the examples file for more details
 >       createStatements s =
 >           case parseD6nf s of
 >             Left e -> error e
->             Right t -> makeTable t : makeViews t
+>             Right t -> let (cons, vs) = (makeViews t)
+>                        in makeTable cons t : vs
 >
-> makeTable :: [D6nfStatement] -> Statement
-> makeTable dss =
+> makeTable :: [Constraint] -> [D6nfStatement] -> Statement
+> makeTable cs dss =
 >     let (s2,f2) = head [(s1,f1) | DTable s1 [] f1 <- universeBi dss]
 >         f3 = [f1 | DTable s3 _ f1 <- universeBi dss, s3 /= s2]
->     in CreateTable [] s2 ((map notNullify f2) ++ map nullify (concat f3)) []
+>     in CreateTable [] s2 ((map notNullify f2) ++ map nullify (concat f3)) cs
 >
 >
 > notNullify :: AttributeDef -> AttributeDef
@@ -110,7 +111,7 @@ see the examples file for more details
 > attributeName :: AttributeDef -> String
 > attributeName (AttributeDef _ n _ _ _) = n
 
-> makeViews :: [D6nfStatement] -> [Statement]
+> makeViews :: [D6nfStatement] -> ([Constraint], [Statement])
 > makeViews dss =
 >     let (bottomTableName,f2) = head [(s1,f1) | DTable s1 [] f1 <- universeBi dss]
 >         subt = [(tn,sts,f1) | DTable tn sts f1 <- universeBi dss, tn /= bottomTableName]
@@ -121,18 +122,31 @@ see the examples file for more details
 >             case x of
 >               SelectList _ _ _ -> SelectList [] (map (SelExp []) attrs) []
 >               -- x1 -> x1
+>         makeConstraint :: (String,[(String,[Expression])]) -> Maybe Constraint
+>         makeConstraint (tn, flds) =
+>           let noNewFields = case reverse flds of
+>                               (_, []): _ -> True
+>                               _ -> False
+>               allFields = nub $ concatMap snd flds
+>               nots = andTogether $ map makeNotNull allFields
+>               nulls = andTogether $ map makeNull allFields
+>           in
+>              if noNewFields || null allFields || null (tail allFields)
+>              then Nothing
+>              else Just $ CheckConstraint [] (tn ++ "_fields")
+>                           [$sqlExpr| ($(nulls)) or ($(nots)) |]
 >         makeView :: (String,[(String,[Expression])]) -> Statement
 >         makeView (tn, flds) =
 >           let allFields = nub $ concatMap snd flds
->               expr = foldr (\a b -> [$sqlExpr| $(a) and $(b) |])
->                             [$sqlExpr| True |] $ map makeNotNull allFields
+>               expr = andTogether $ map makeNotNull allFields
 >           in fixSelectList (baseAttrIds ++ allFields)
 >                [$sqlStmt| create view $(tn) as
 >                           select selectList from $(bottomTableName)
 >                             where $(expr); |]
->     in fixSelectList baseAttrIds [$sqlStmt| create view $(baseName) as
+>     in (mapMaybe makeConstraint (getExtraFields subt)
+>        ,fixSelectList baseAttrIds [$sqlStmt| create view $(baseName) as
 >                                  select selectList from $(bottomTableName);|] :
->        map makeView (getExtraFields subt)
+>         map makeView (getExtraFields subt))
 >     where
 >       idFromAttr = (Identifier []) . attributeName
 >       getExtraFields :: [(String,[String],[AttributeDef])] -> [(String,[(String,[Expression])])] -- table name, sourcetable,fieldlist
@@ -147,6 +161,7 @@ see the examples file for more details
 >           lookupst :: String -> Maybe (String,[String],[AttributeDef])
 >           lookupst st = find (\(tn,_,_) -> tn == st) tinfo
 
+
 the two reverses seem to be what's needed to get the field lists for
 each view in the order a) they appear in the file, and b) base classes
 first.
@@ -154,3 +169,14 @@ first.
 >
 > makeNotNull :: Expression -> Expression
 > makeNotNull x = [$sqlExpr| $(x) is not null |]
+>
+> makeNull :: Expression -> Expression
+> makeNull x = [$sqlExpr| $(x) is null |]
+
+> andTogether :: [Expression] -> Expression
+> andTogether = let t = [$sqlExpr| True |]
+>               in foldr (\a b ->
+>                          if b == t
+>                          then a
+>                          else [$sqlExpr| $(a) and $(b) |]) t
+
