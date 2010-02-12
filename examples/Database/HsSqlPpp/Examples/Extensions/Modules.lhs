@@ -54,6 +54,7 @@ use some idea of interface files for modules?
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 >

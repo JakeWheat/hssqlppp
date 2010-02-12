@@ -43,7 +43,7 @@ select create6nf ($$
     history_name history_name_enum
   );
 
-  action_history_allegiance (
+  action_history_allegiance : action_history_mr(
     allegiance text
   );
 

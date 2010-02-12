@@ -11,6 +11,8 @@ The test/examples for create assertion
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
+> import Database.HsSqlPpp.Annotation
+
 >
 > createAssertionExamples :: [ExtensionTest]
 > createAssertionExamples = [cardinalityExample

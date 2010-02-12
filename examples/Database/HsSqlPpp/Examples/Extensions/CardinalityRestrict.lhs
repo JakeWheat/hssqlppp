@@ -15,6 +15,7 @@ constraint shorthand to restrict cardinality of table
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
+> import Database.HsSqlPpp.Annotation
 
 challenge: make a constraint that works like this:
 

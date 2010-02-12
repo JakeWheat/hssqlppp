@@ -60,13 +60,13 @@ select create6nf ($$
     description text
   );
 
-  target_spells (
+  target_spells : spells_mr (
     range int,
     num int,
     valid_square_category spell_square_category
   );
 
-  summon_spells (
+  summon_spells : target_spells (
     ptype text
   );
 

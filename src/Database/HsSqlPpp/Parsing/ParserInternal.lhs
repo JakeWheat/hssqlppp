@@ -1316,29 +1316,36 @@ identifier which happens to start with a complete keyword
 >                                     IntegerTok n -> Just n
 >                                     _ -> Nothing)
 >
+> liftPositionalArgTok :: SParser Integer
+> liftPositionalArgTok =
+>   mytoken (\tok -> case tok of
+>                    PositionalArgTok n -> Just n
+>                    _ -> Nothing)
+
 > positionalArg :: SParser Expression
-> positionalArg = PositionalArg [] <$> mytoken (\tok -> case tok of
->                                     PositionalArgTok n -> Just n
->                                     _ -> Nothing)
+> positionalArg = PositionalArg <$> pos <*> liftPositionalArgTok
 >
 > antiExpression :: SParser Expression
 > antiExpression = AntiExpression <$> splice
 >
 > placeholder :: SParser Expression
-> placeholder = Placeholder [] <$ symbol "?"
+> placeholder = (Placeholder <$> pos) <* symbol "?"
 >
 > float :: SParser Double
 > float = mytoken (\tok -> case tok of
 >                                     FloatTok n -> Just n
 >                                     _ -> Nothing)
 >
-> stringLit :: SParser Expression
-> stringLit = (mytoken (\tok ->
+> liftStringTok :: SParser String
+> liftStringTok = (mytoken (\tok ->
 >                   case tok of
->                            StringTok _ s -> Just $ StringLit [] s
+>                            StringTok _ s -> Just s
 >                            _ -> Nothing))
+
+> stringLit :: SParser Expression
+> stringLit = (StringLit <$> pos <*> liftStringTok)
 >             <|>
->             StringLit <$> pos <*> ssplice
+>             (StringLit <$> pos <*> ssplice)
 >              where
 >                ssplice = (\s -> "$s(" ++ s ++ ")") <$>
 >                            (symbol "$s(" *> idString <* symbol ")")
@@ -1349,18 +1356,9 @@ identifier which happens to start with a complete keyword
 >                            StringTok _ s -> Just s
 >                            _ -> Nothing)
 
-couple of helper functions which extract the actual string
-from a StringLD or StringL, and the delimiters which were used
-(either ' or a dollar tag)
-
 > extrStr :: Expression -> String
 > extrStr (StringLit _ s) = s
 > extrStr x = error $ "internal error: extrStr not supported for this type " ++ show x
->
-
- > quoteOfString :: Expression -> String
- > quoteOfString (StringLit _ tag _) = tag
- > quoteOfString x = error $ "internal error: quoteType not supported for this type " ++ show x
 
 == combinatory things
 

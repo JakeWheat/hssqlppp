@@ -153,6 +153,7 @@ Tests/examples in CreateAssertionTests.lhs
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.AstUtils
+> import Database.HsSqlPpp.Annotation
 
 implementation
 ==============

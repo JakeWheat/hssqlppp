@@ -1208,7 +1208,7 @@ of this exe, then this command will disappear
 >   ast <- mapM (\f -> (liftIO . readInput) f >>=
 >                  tsl . P.parseSql f) files >>=
 >      return . (concat |>
->                stripAnnotations |> -- figure out why some exts only work with this - need the sourceposes to stay
+>                --stripAnnotations |> -- figure out why some exts only work with this - need the sourceposes to stay
 >                chaosExtensions)
 >   {-mapM_ (liftIO . putStrLn) $
 >             (A.typeCheck defaultTemplate1Catalog |>

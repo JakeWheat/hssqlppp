@@ -17,6 +17,8 @@ with that name and type.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Annotation
+
 
 Example/ Test
 -------------

@@ -1,7 +1,5 @@
 Copyright 2010 Jake Wheat
 
-> {-# LANGUAGE TemplateHaskell #-}
->
 > {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent. The splice variable
 >    names must be all lower case because of a limitation in the parser.
 >
@@ -31,15 +29,16 @@ Copyright 2010 Jake Wheat
 > for more examples.
 >
 >      -}
+>
+> {-# LANGUAGE TemplateHaskell,ScopedTypeVariables #-}
+>
 > module Database.HsSqlPpp.SqlQuote
 >     (sqlStmts,sqlStmt,pgsqlStmts,pgsqlStmt,sqlExpr) where
->
+
 > import Language.Haskell.TH.Quote
 > import Language.Haskell.TH
 > import Data.Generics
 > import Data.List
-> --import Control.Monad as M
-> --import Debug.Trace
 >
 > import Database.HsSqlPpp.Parsing.ParserInternal
 > import Database.HsSqlPpp.Annotation
@@ -105,17 +104,23 @@ magically converts from one to the other ...
 > parseExprPat p s = (parseSql' p) s >>=  dataToPatQ (const Nothing
 >                        `extQ` antiExprP
 >                        `extQ` antiStrP
+>                        `extQ` annotToWildCard
 >                        --`extQ` antiTriggerEventE
 >                        --`extQ` antiStatementE
 >                                   )
 >
+
+hack: replace annotations with wildcards, if we don't do this then
+pattern matches generally don't work since the source position
+annotations from the parser don't match up.
+
+> annotToWildCard :: Annotation -> Maybe PatQ
+> annotToWildCard (_::Annotation) = Just $ return WildP
 >
 > parseSql' :: (Data a, Show e) => Parser e a -> String -> Q a
 > parseSql' p s = do
 >     Loc fn _ _ (l,c) _ <- location
->     -- strip the annotations -> strip the source positions
->     -- which we don't want particularly for pattern matching
->     either (fail . show) (return . stripAnnotations) (p fn l c s)
+>     either (fail . show) return (p fn l c s)
 >
 > antiExpE :: Expression -> Maybe ExpQ
 > antiExpE v = fmap varE (antiExp v)

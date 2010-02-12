@@ -73,17 +73,19 @@ see the examples file for more details
 > import Database.HsSqlPpp.Examples.Extensions.DenormSyntax
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Annotation
 >
 > denormalized6nf :: Data a => a -> a
 > denormalized6nf =
 >   transformBi $ \x ->
 >       case x of
->         [$sqlStmt| select create6nf($s(stuff)); |] : tl
->             -> createStatements stuff ++ tl
+>         [$sqlStmt| select create6nf($(stuff)); |] : tl
+>             -> let (StringLit [SourcePos f l c] s) = stuff
+>                in createStatements f l c s ++ tl
 >         x1 -> x1
 >   where
->       createStatements s =
->           case parseD6nf s of
+>       createStatements f l c s =
+>           case parseD6nf f l c s of
 >             Left e -> error e
 >             Right t -> let (cons, vs) = (makeViews t)
 >                        in makeTable cons t : vs
@@ -124,12 +126,17 @@ see the examples file for more details
 >               -- x1 -> x1
 >         makeConstraint :: (String,[(String,[Expression])]) -> Maybe Constraint
 >         makeConstraint (tn, flds) =
->           let noNewFields = case reverse flds of
->                               (_, []): _ -> True
->                               _ -> False
+>           let newFields = case reverse flds of
+>                               (_, f): _ -> f
+>                               _ -> []
+>               noNewFields = null newFields
 >               allFields = nub $ concatMap snd flds
+>               -- want to make sure if any of the new fields are not null
+>               -- than all the fields from parents as well must be not null
 >               nots = andTogether $ map makeNotNull allFields
->               nulls = andTogether $ map makeNull allFields
+>               -- only want to ensure the new fields have to all be null
+>               -- don't care about parent fields
+>               nulls = andTogether $ map makeNull newFields
 >           in
 >              if noNewFields || null allFields || null (tail allFields)
 >              then Nothing
@@ -138,7 +145,12 @@ see the examples file for more details
 >         makeView :: (String,[(String,[Expression])]) -> Statement
 >         makeView (tn, flds) =
 >           let allFields = nub $ concatMap snd flds
->               expr = andTogether $ map makeNotNull allFields
+>               allFirstFields = nub $ mapMaybe ((\f -> case f of
+>                                                              fh : _ -> Just fh
+>                                                              _ -> Nothing) . snd) flds
+>               expr = -- constraints mean we only need to check one field
+>                      andTogether $ map makeNotNull allFirstFields
+>                      --makeNotNull $ head allFields
 >           in fixSelectList (baseAttrIds ++ allFields)
 >                [$sqlStmt| create view $(tn) as
 >                           select selectList from $(bottomTableName)

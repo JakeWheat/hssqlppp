@@ -21,6 +21,7 @@ temporal relations.
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 

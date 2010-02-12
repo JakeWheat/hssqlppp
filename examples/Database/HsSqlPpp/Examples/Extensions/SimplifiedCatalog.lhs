@@ -11,7 +11,7 @@ from Chaos2010, it uses
 >     where
 >
 > import Database.HsSqlPpp.Ast
-> --import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.SqlQuote
 >
 > simplifiedCatalogSt :: [Statement]

@@ -85,7 +85,7 @@ tests
 > parseTestConv :: ParseTest -> Test.Framework.Test
 > parseTestConv (ParseTest s t) =
 >   testCase s $ do
->     let t1 = parseD6nf s
+>     let t1 = parseD6nf "" 1 1 s
 >     assertEqual "" t (stripAnnotations t1)
 
 --------------------------------
@@ -100,9 +100,9 @@ parsing code
 > startState :: ()
 > startState = ()
 >
-> parseD6nf :: String -> Either String [D6nfStatement]
-> parseD6nf s = do
->     toks <- tsl $ lexSqlText "" s
+> parseD6nf :: String -> Int -> Int -> String -> Either String [D6nfStatement]
+> parseD6nf f l c s = do
+>     toks <- tsl $ lexSqlTextWithPosition f l c s
 >     tsl $ runParser statements startState "" toks
 >
 > statements :: MyParser [D6nfStatement]

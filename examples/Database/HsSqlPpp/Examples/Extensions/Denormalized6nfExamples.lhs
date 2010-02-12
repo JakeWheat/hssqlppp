@@ -9,6 +9,7 @@ Copyright 2010 Jake Wheat
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.Denormalized6nf
+> import Database.HsSqlPpp.Annotation
 >
 > denormalized6nfExamples :: [ExtensionTest]
 > denormalized6nfExamples  = [denormalized6nfExample1
@@ -53,8 +54,7 @@ simple example with one 'subclass'
 >         select ptype, ptype2 from pieces;
 >       create view creatures as
 >         select ptype,ptype2,speed,agility from pieces
->                where speed is not null
->                      and agility is not null;
+>                where speed is not null;
 >      |]
 
 two unconnected 'subclasses'
@@ -101,20 +101,16 @@ two unconnected 'subclasses'
 >       create view creatures as
 >         select ptype,speed,agility
 >           from pieces
->           where speed is not null
->                 and agility is not null;
+>           where speed is not null;
 >       create view attackers as
 >         select ptype,attack_strength,attack_style
 >           from pieces
->           where attack_strength is not null
->                 and attack_style is not null;
+>           where attack_strength is not null;
 >       create view attacking_creatures as
 >         select ptype,speed,agility,attack_strength,attack_style
 >           from pieces
 >           where speed is not null
->                 and (agility is not null
->                 and (attack_strength is not null
->                 and attack_style is not null));
+>                 and attack_strength is not null;
 >      |]
 
 one field only check
@@ -188,13 +184,11 @@ no combo view check
 >       create view creatures as
 >         select ptype,speed,agility
 >           from pieces
->           where speed is not null
->                 and agility is not null;
+>           where speed is not null;
 >       create view attackers as
 >         select ptype,attack_strength,attack_style
 >           from pieces
->           where attack_strength is not null
->                 and attack_style is not null;
+>           where attack_strength is not null;
 >      |]
 
 two chained 'subclasses'
@@ -230,8 +224,7 @@ two chained 'subclasses'
 >           check ((speed is null and agility is null)
 >                  or (speed is not null and agility is not null))
 >        ,constraint attackers_fields
->           check ((speed is null and (agility is null
->                   and (attack_strength is null and attack_style is null)))
+>           check ((attack_strength is null and attack_style is null)
 >                  or (speed is not null and (agility is not null
 >                      and (attack_strength is not null and (attack_style is not null)))))
 >        );
@@ -241,16 +234,13 @@ two chained 'subclasses'
 >       create view creatures as
 >         select ptype,speed,agility
 >           from pieces
->           where speed is not null
->                 and agility is not null;
+>           where speed is not null;
 >       create view attackers as
 >         select ptype,speed,agility,
 >                attack_strength,attack_style
 >           from pieces
 >           where speed is not null
->                 and (agility is not null
->                 and (attack_strength is not null
->                 and attack_style is not null));
+>                 and attack_strength is not null;
 >      |]
 
 diamond inheritance
@@ -295,9 +285,7 @@ diamond inheritance
 >           check ((attack_strength is null and attack_style is null)
 >               or (attack_strength is not null and attack_style is not null))
 >        ,constraint monsters_fields
->           check ((speed is null and (agility is null
->                   and (attack_strength is null and (attack_style is null
->                   and (resistance is null and armour is null)))))
+>           check ((resistance is null and armour is null)
 >               or (speed is not null and (agility is not null
 >                   and (attack_strength is not null and (attack_style is not null
 >                   and (resistance is not null and armour is not null))))))
@@ -308,23 +296,18 @@ diamond inheritance
 >       create view creatures as
 >         select ptype,speed,agility
 >           from pieces
->           where speed is not null
->                 and agility is not null;
+>           where speed is not null;
 >       create view attackers as
 >         select ptype,attack_strength,attack_style
 >           from pieces
->           where attack_strength is not null
->                 and attack_style is not null;
+>           where attack_strength is not null;
 >       create view monsters as
 >         select ptype,speed,agility,attack_strength,attack_style,
 >                resistance,armour
 >           from pieces
 >           where speed is not null
->                 and (agility is not null
 >                 and (attack_strength is not null
->                 and (attack_style is not null
->                 and (resistance is not null
->                 and armour is not null))));
+>                 and resistance is not null);
 >      |]
 
 fdk
@@ -373,13 +356,11 @@ fdk
 >       create view creatures as
 >         select ptype,speed,agility
 >           from pieces
->           where speed is not null
->                 and agility is not null;
+>           where speed is not null;
 >       create view attackers as
 >         select ptype,attack_strength,attack_style
 >           from pieces
->           where attack_strength is not null
->                 and attack_style is not null;
+>           where attack_strength is not null;
 >      |]
 
 todo: no base class, distributed key

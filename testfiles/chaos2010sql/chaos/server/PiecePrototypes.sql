@@ -54,9 +54,13 @@ select create6nf ($$
   );
 
   attackable_prototypes : piece_prototypes (
-    physical_defense int,
+    physical_defense int
+  );
+
+  magic_attackable_prototypes : piece_prototypes (
     magic_defense int
   );
+
 
 $$);
 

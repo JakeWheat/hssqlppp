@@ -18,6 +18,7 @@ chaos working again then will review approach.
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Annotation
 >
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
