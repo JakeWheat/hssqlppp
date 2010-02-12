@@ -5,8 +5,13 @@ A parser, quasiquoter, pretty printer, and type checker for SQL
 written in Haskell. Supports PostgreSQL SQL and PL/pgSQL syntax. BSD
 licensed.
 
-This documentation is currently for the unreleased development
-version, to be 0.3.0, which isn't on HackageDB.
+*This documentation is currently for the unreleased development
+version, to be 0.3.0, which isn't on HackageDB. You can download it
+using:*
+
+~~~~~{.sh}
+bzr branch lp:~jakewheat/hssqlppp/trunk
+~~~~~
 
 Status
 ======

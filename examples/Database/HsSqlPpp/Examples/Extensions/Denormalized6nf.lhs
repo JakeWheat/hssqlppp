@@ -67,30 +67,117 @@ see the examples file for more details
 >
 > import Data.Generics
 > import Data.Generics.Uniplate.Data
+> import Data.List
+> import Data.Maybe
 >
+> import Database.HsSqlPpp.Examples.Extensions.DenormSyntax
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.SqlQuote
 >
 > denormalized6nf :: Data a => a -> a
 > denormalized6nf =
-
-approach: gather the relationships:
-subclass, superclass, mutually_exclusive
-find all the tables which are referred to
--> create the base tables and views
-replace the first create table from each group with the create tables and views
-wipe out the other create tables and fn calls
-
->     transformBi $ \x ->
+>   transformBi $ \x ->
 >       case x of
->         [$sqlStmt| select create_var($s(varname), $s(typename)); |]
->             -> let tablename = varname ++ "_table"
->                in [$sqlStmt|
->
->   create table $(tablename) (
->    $(varname) $(typename)
->   );
->
->                    |]
+>         [$sqlStmt| select create6nf($s(stuff)); |] : tl
+>             -> createStatements stuff ++ tl
 >         x1 -> x1
+>   where
+>       createStatements s =
+>           case parseD6nf s of
+>             Left e -> error e
+>             Right t -> makeTable t : makeViews t
 >
+> makeTable :: [D6nfStatement] -> Statement
+> makeTable dss =
+>     let (s2,f2) = head [(s1,f1) | DTable s1 [] f1 <- universeBi dss]
+>         f3 = [f1 | DTable s3 _ f1 <- universeBi dss, s3 /= s2]
+>     in CreateTable [] s2 ((map notNullify f2) ++ map nullify (concat f3)) []
+>
+>
+> notNullify :: AttributeDef -> AttributeDef
+> notNullify ad@(AttributeDef a n t d cs) =
+>   if hasPk
+>   then ad
+>   else AttributeDef a n t d ((NotNullConstraint [] ""):cs)
+>   where
+>     hasPk = maybe False (const True) $ find (\l -> case l of RowPrimaryKeyConstraint _ _ -> True
+>                                                              _ -> False) cs
+>
+> nullify :: AttributeDef -> AttributeDef
+> nullify (AttributeDef a n t d cs) =
+>     AttributeDef a n t d ((NullConstraint [] ""):cs)
+
+> attributeName :: AttributeDef -> String
+> attributeName (AttributeDef _ n _ _ _) = n
+
+> makeViews :: [D6nfStatement] -> [Statement]
+> makeViews dss =
+>     let (bottomTableName,f2) = head [(s1,f1) | DTable s1 [] f1 <- universeBi dss]
+>         subt = [(tn,sts,f1) | DTable tn sts f1 <- universeBi dss, tn /= bottomTableName]
+>         baseName = bottomTableName ++ "_base"
+>         baseAttrIds = map idFromAttr f2
+>         fixSelectList attrs st =
+>           flip transformBi st $ \x ->
+>             case x of
+>               SelectList _ _ _ -> SelectList [] (map (SelExp []) attrs) []
+>               x1 -> x1
+>         makeView :: (String,[(String,[Expression])]) -> Statement
+>         makeView (tn, flds) =
+>           let expr = let allFields = concatMap snd flds
+>                          nns = map makeNotNull allFields
+>                      in foldr (\a b -> [$sqlExpr| $(a) and $(b) |])
+>                             [$sqlExpr| True |] nns
+>           in [$sqlStmt| create view $(tn) as
+>                           select selectList from $(bottomTableName)
+>                             where $(expr); |]
+>     in fixSelectList baseAttrIds [$sqlStmt| create view $(baseName) as
+>                                  select selectList from $(bottomTableName);|] :
+>        map makeView (getExtraFields subt)
+>     where
+>       idFromAttr = (Identifier []) . attributeName
+>       getExtraFields :: [(String,[String],[AttributeDef])] -> [(String,[(String,[Expression])])] -- table name, sourcetable,fieldlist
+>       getExtraFields tinfo = let t1 = map gef tinfo
+>                              in map (\a@((tn,_):_) -> (tn, a)) t1
+>         where
+>           gef :: (String,[String],[AttributeDef]) -> [(String,[Expression])]
+>           gef (tn,subtns,attrs) =
+>             let subtnlist :: [(String,[String],[AttributeDef])]
+>                 subtnlist = mapMaybe lookupst subtns
+>             in (tn, map idFromAttr attrs) : concatMap gef subtnlist
+>           lookupst :: String -> Maybe (String,[String],[AttributeDef])
+>           lookupst st = find (\(tn,_,_) -> tn == st) tinfo
+>
+> makeNotNull :: Expression -> Expression
+> makeNotNull x = [$sqlExpr| $(x) is not null |]
+
+ > tr :: Data a => f -> a -> a
+
+SelectList | SelectList ann:Annotation items:SelectItemList into:{[String]}
+
+DATA SelectItem | SelExp ann:Annotation ex:Expression
+                | SelectItem ann:Annotation ex:Expression name:String
+
+
+    | CreateView ann:Annotation
+                 name : String
+                 expr : SelectExpression
+
+NullConstraint ann:Annotation name:String
+                   | NotNullConstraint ann:Annotation name:String
+
+DATA AttributeDef | AttributeDef ann:Annotation
+                                 name : String
+                                 typ : TypeName
+                                 def: MaybeExpression
+                                 cons : RowConstraintList
+
+
+
+    | CreateTable ann:Annotation
+                  name : String
+                  atts : AttributeDefList
+                  cons : ConstraintList
+
+ > data D6nfStatement = DTable String [String] [AttributeDef]
+ >                    | MutualExclusion String String
+ >                      deriving (Eq,Show,Typeable,Data)
