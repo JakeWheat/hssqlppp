@@ -5,14 +5,11 @@ Copyright 2010 Jake Wheat
 > module Database.HsSqlPpp.Examples.Extensions.Denormalized6nfExamples
 >     (denormalized6nfExamples) where
 >
-> --import Data.Generics
-> --import Data.Generics.Uniplate.Data
->
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.Denormalized6nf
-
+>
 > denormalized6nfExamples :: [ExtensionTest]
 > denormalized6nfExamples  = [denormalized6nfExample1
 >                            ,denormalized6nfExample2
@@ -21,7 +18,7 @@ Copyright 2010 Jake Wheat
 >                            ,denormalized6nfExample5
 >                            ,denormalized6nfExample6
 >                            ,denormalized6nfExample7
->                             ]
+>                            ]
 
 simple example with one 'subclass'
 
@@ -31,31 +28,31 @@ simple example with one 'subclass'
 >     "denormalized6nfExample1"
 >     denormalized6nf
 >     [$sqlStmts|
->         create table piece_prototypes (
+>       select create6nf($$
+>         pieces (
 >           ptype text primary key,
 >           ptype2 text
 >         );
->         create table creature_prototypes (
+>         creatures : piece (
 >           speed int,
 >           agility int
 >         );
->         select superclass(creature_prototypes
->                          ,array[piece_prototypes]);
+>       $$);
 >      |]
 >     [$sqlStmts|
->       create table piece_prototypes (
+>       create table piece (
 >         ptype text primary key,
 >         ptype2 text not null,
 >         speed int null,
 >         agility int null,
->         constraint creature_prototype_fields
+>         constraint creatures_fields
 >           check ((speed is null and agility is null)
 >                  or (speed is not null and agility is not null))
 >       );
->       create view piece_prototypes_base as
->         select ptype, ptype2 from piece_prototypes;
->       create view creature_prototypes_base as
->         select ptype,ptype2,speed,agility from piece_prototypes
+>       create view pieces_base as
+>         select ptype, ptype2 from pieces;
+>       create view creatures as
+>         select ptype,ptype2,speed,agility from pieces
 >                where speed is not null
 >                      and agility is not null;
 >      |]
@@ -68,55 +65,52 @@ two unconnected 'subclasses'
 >     "denormalized6nfExample2"
 >     denormalized6nf
 >     [$sqlStmts|
->         create table piece_prototypes (
+>       select create6nf ($$
+>         pieces (
 >           ptype text primary key
 >         );
->         create table creature_prototypes (
+>         creatures : pieces (
 >           speed int,
 >           agility int
 >         );
->         select superclass(creature_prototypes
->                          ,array[piece_prototypes]);
->         create table attacking_prototypes (
+>         attackers : pieces (
 >           attack_strength int,
 >           attack_style text
 >         );
->         select superclass(attacking_prototypes
->                          ,array[piece_prototypes]);
 >         -- this provides a name for the view, which we don't generate otherwise
->         select subclass(attacking_creature_prototypes
->                         ,array[piece_prototypes,attacking_prototypes]);
+>         attacking_creatures : pieces,attackers;
+>       $$);
 >      |]
 >     [$sqlStmts|
->       create table piece_prototypes
+>       create table pieces
 >        (ptype text primary key
 >        ,speed int null
 >        ,agility int null
 >        ,attack_strength int null
 >        ,attack_style text null
->        ,constraint creature_prototypes_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
 >                  or (speed is not null and agility is not null))
->        ,constraint attacking_prototypes_fields
+>        ,constraint attackers_fields
 >           check ((attack_strength is null and attack_style is null)
 >                  or (attack_strength is not null and attack_style is not null))
 >        );
->       create view piece_prototypes_base as
+>       create view pieces_base as
 >         select ptype
->           from piece_prototypes;
->       create view creature_prototypes_base as
+>           from pieces;
+>       create view creatures as
 >         select ptype,speed,agility
 >           from piece_prototypes
 >           where speed is not null
 >                 and agility is not null;
->       create view attacking_prototypes as
+>       create view attackers as
 >         select ptype,attack_strength,attack_style
->           from piece_prototypes
+>           from pieces
 >           where attack_strength is not null
 >                 and attack_style is not null;
->       create view attacking_creature_prototypes as
+>       create view attacking_creatures as
 >         select ptype,speed,agility,attack_strength,attack_style
->           from piece_prototypes
+>           from pieces
 >           where speed is not null
 >                 and agility is not null
 >                 and attack_strength is not null
@@ -131,25 +125,25 @@ one field only check
 >     "denormalized6nfExample3"
 >     denormalized6nf
 >     [$sqlStmts|
->         create table piece_prototypes (
+>       select create6nf ($$
+>         pieces (
 >           ptype text primary key
 >         );
->         create table creature_prototypes (
+>         creatures : pieces (
 >           speed int
 >         );
->         select superclass(creature_prototypes
->                          ,array[piece_prototypes]);
+>       $$);
 >      |]
 >     [$sqlStmts|
->       create table piece_prototypes
+>       create table pieces
 >        (ptype text primary key
 >        ,speed int null
 >        );
->       create view piece_prototypes_base as
->         select ptype from piece_prototypes;
->       create view creature_prototypes_base as
->         select ptype,speed from piece_prototypes
->                where speed is not null;
+>       create view pieces as
+>         select ptype from pieces;
+>       create view creatures as
+>         select ptype,speed from pieces
+>           where speed is not null;
 >      |]
 
 no combo view check
@@ -160,47 +154,45 @@ no combo view check
 >     "denormalized6nfExample4"
 >     denormalized6nf
 >     [$sqlStmts|
->         create table piece_prototypes (
+>       select create6nf ($$
+>         pieces (
 >           ptype text primary key
 >         );
->         create table creature_prototypes  (
+>         creatures : pieces  (
 >           speed int,
 >           agility int
 >         );
->         select superclass(creature_prototypes
->                          ,array[piece_prototypes]);
->         create table attacking_prototypes (
+>         attackers : pieces (
 >           attack_strength int,
 >           attack_style text
 >         );
->         select superclass(attacking_prototypes
->                          ,array[piece_prototypes]);
+>       $$);
 >      |]
 >     [$sqlStmts|
->       create table piece_prototypes
+>       create table pieces
 >        (ptype text primary key
 >        ,speed int null
 >        ,agility int null
 >        ,attack_strength int null
 >        ,attack_style text null
->        ,constraint creature_prototypes_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
 >                  or (speed is not null and agility is not null))
->        ,constraint attacking_prototypes_fields
+>        ,constraint attackers_fields
 >           check ((attack_strength is null and attack_style is null)
 >                  or (attack_strength is not null and attack_style is not null))
 >        );
->       create view piece_prototypes_base as
+>       create view pieces_base as
 >         select ptype
->           from piece_prototypes;
->       create view creature_prototypes_base as
+>           from pieces;
+>       create view creatures as
 >         select ptype,speed,agility
->           from piece_prototypes
+>           from pieces
 >           where speed is not null
 >                 and agility is not null;
->       create view attacking_prototypes as
+>       create view attackers as
 >         select ptype,attack_strength,attack_style
->           from piece_prototypes
+>           from pieces
 >           where attack_strength is not null
 >                 and attack_style is not null;
 >      |]
@@ -213,56 +205,53 @@ two chained 'subclasses'
 >     "denormalized6nfExample5"
 >     denormalized6nf
 >     [$sqlStmts|
->         create table piece_prototypes (
+>       select create6nf ($$
+>         pieces (
 >           ptype text primary key
 >         );
->         create table creature_prototypes (
+>         creatures : pieces (
 >           speed int,
 >           agility int
 >         );
->         select superclass(creature_prototypes
->                          ,array[piece_prototypes]);
->         create table attacking_prototypes (
+>         attackers : creatures (
 >           attack_strength int,
 >           attack_style text
 >         );
->         select superclass(attacking_prototypes
->                          ,array[creature_prototypes]);
+>       $$);
 >      |]
 >     [$sqlStmts|
->       create table piece_prototypes
+>       create table pieces
 >        (ptype text primary key
 >        ,speed int null
 >        ,agility int null
 >        ,attack_strength int null
 >        ,attack_style text null
->        ,constraint creature_prototypes_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
 >                  or (speed is not null and agility is not null))
->        ,constraint attacking_prototypes_fields
+>        ,constraint attackers_fields
 >           check ((speed is null and agility is null
 >                   and attack_strength is null and attack_style is null)
 >                  or (speed is not null and attack_strength is not null
 >                      and attack_strength is not null and attack_style is not null))
 >        );
->       create view piece_prototypes_base as
+>       create view pieces_base as
 >         select ptype
->           from piece_prototypes;
->       create view creature_prototypes_base as
+>           from pieces;
+>       create view creatures as
 >         select ptype,speed,agility
->           from piece_prototypes
+>           from pieces
 >           where speed is not null
 >                 and agility is not null;
->       create view attacking_prototypes as
+>       create view attackers as
 >         select ptype,speed,agility,
 >                attack_strength,attack_style
->           from piece_prototypes
+>           from pieces
 >           where speed is not null
 >                 and agility is not null
 >                 and attack_strength is not null
 >                 and attack_style is not null;
 >      |]
-
 
 diamond inheritance
 
@@ -272,30 +261,26 @@ diamond inheritance
 >     "denormalized6nfExample6"
 >     denormalized6nf
 >     [$sqlStmts|
->         create table piece_prototypes (
+>       select create6nf ($$
+>         pieces (
 >           ptype text primary key
 >         );
->         create table creature_prototypes (
+>         creatures : pieces (
 >           speed int,
 >           agility int
 >         );
->         select superclass(creature_prototypes
->                          ,array[piece_prototypes]);
->         create table attacking_prototypes (
+>         attackers : pieces (
 >           attack_strength int,
 >           attack_style text
 >         );
->         select superclass(piece_prototypes
->                          ,array[attacking_prototypes]);
->         create table monster_prototypes (
+>         monsters : creatures, attackers (
 >           resistance int,
 >           armour int
 >         );
->         select superclass(monster_prototypes
->                          ,array[creature_prototypes,attacking_prototypes]);
+>       $$);
 >      |]
 >     [$sqlStmts|
->       create table piece_prototypes
+>       create table pieces
 >        (ptype text primary key
 >        ,speed int null
 >        ,agility int null
@@ -303,13 +288,13 @@ diamond inheritance
 >        ,attack_style text null
 >        ,resistance int null
 >        ,armour int null
->        ,constraint creature_prototypes_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
 >               or (speed is not null and agility is not null))
->        ,constraint attacking_prototypes_fields
+>        ,constraint attackers_fields
 >           check ((attack_strength is null and attack_style is null)
 >               or (attack_strength is not null and attack_style is not null))
->        ,constraint monster_prototypes_fields
+>        ,constraint monsters_fields
 >           check ((speed is null and agility is null
 >                   and attack_strength is null and attack_style is null
 >                   and resistance is null and armour is null)
@@ -317,23 +302,23 @@ diamond inheritance
 >                   and attack_strength is not null and attack_style is not null
 >                   and resistance is not null and armour is not null))
 >        );
->       create view piece_prototypes_base as
+>       create view pieces_base as
 >         select ptype
->           from piece_prototypes;
->       create view creature_prototypes_base as
+>           from pieces;
+>       create view creatures as
 >         select ptype,speed,agility
->           from piece_prototypes
+>           from pieces
 >           where speed is not null
 >                 and agility is not null;
->       create view attacking_prototypes as
+>       create view attackers as
 >         select ptype,attack_strength,attack_style
->           from piece_prototypes
+>           from pieces
 >           where attack_strength is not null
 >                 and attack_style is not null;
->       create view monster_prototypes as
+>       create view monsters as
 >         select ptype,speed,agility,attack_strength,attack_style,
 >                resistance,armour
->           from piece_prototypes
+>           from pieces
 >           where speed is not null
 >                 and agility is not null
 >                 and attack_strength is not null
@@ -350,51 +335,51 @@ fdk
 >     "denormalized6nfExample7"
 >     denormalized6nf
 >     [$sqlStmts|
->         create table piece_prototypes (
+>       select create6nf ($$
+>         pieces (
 >           ptype text primary key
 >         );
->         create table creature_prototypes (
+>         creatures : pieces (
 >           speed int,
 >           agility int
 >         );
->         select superclass(piece_prototypes
->                          ,array[creature_prototypes]);
->         create table attacking_prototypes (
+>         attackers (
 >           attack_strength int,
 >           attack_style text
 >         );
->         select superclass(piece_prototypes
->                          ,array[attacking_prototypes]);
->         select mutually_exclusive(attacking_prototypes,creature_prototypes);
+>         mutually_exclusive(attackers,creatures);
+>       $$);
 >      |]
 >     [$sqlStmts|
->       create table piece_prototypes
+>       create table pieces
 >        (ptype text primary key
 >        ,speed int null
 >        ,agility int null
 >        ,attack_strength int null
 >        ,attack_style text null
->        ,constraint creature_prototypes_fields
+>        ,constraint creatures_fields
 >           check ((speed is null and agility is null)
 >                  or (speed is not null and agility is not null))
->        ,constraint attacking_prototypes_fields
+>        ,constraint attackers_fields
 >           check ((attack_strength is null and attack_style is null)
 >                  or (attack_strength is not null and attack_style is not null))
->        ,constraint me_piece_prototypes_attacking_prototypes
+>        ,constraint me_pieces_attackers
 >           -- doesn't scale to three mutual exclusives
 >           check (speed is not null <> attack_strength is not null)
 >        );
->       create view piece_prototypes_base as
+>       create view pieces_base as
 >         select ptype
->           from piece_prototypes;
->       create view creature_prototypes_base as
+>           from pieces;
+>       create view creatures as
 >         select ptype,speed,agility
->           from piece_prototypes
+>           from pieces
 >           where speed is not null
 >                 and agility is not null;
->       create view attacking_prototypes as
+>       create view attackers as
 >         select ptype,attack_strength,attack_style
->           from piece_prototypes
+>           from pieces
 >           where attack_strength is not null
 >                 and attack_style is not null;
 >      |]
+
+todo: no base class, distributed key

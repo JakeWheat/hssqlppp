@@ -15,7 +15,7 @@
   
 {-# LANGUAGE DeriveDataTypeable #-}
 module Database.HsSqlPpp.AstInternals.AstAnti
-       (convertStatements, convertExpression, Statement(..),
+       (convertStatements, convertExpression, attributeDef, Statement(..),
         SelectExpression(..), FnBody(..), SetClause(..), TableRef(..),
         TableAlias(..), JoinExpression(..), JoinType(..), SelectList(..),
         SelectItem(..), CopySource(..), AttributeDef(..),

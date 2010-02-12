@@ -25,6 +25,7 @@ Gather together the examples from the extension modules and convert to regular t
 > import Database.HsSqlPpp.Examples.Extensions.Modules
 > import Database.HsSqlPpp.Examples.Extensions.GeneralInclusion
 > import Database.HsSqlPpp.Examples.Extensions.Denormalized6nfExamples
+> import Database.HsSqlPpp.Examples.Extensions.DenormSyntax
 >
 > testData :: [ExtensionTest]
 > testData = transitionConstraintExamples ++
@@ -37,6 +38,9 @@ Gather together the examples from the extension modules and convert to regular t
 >            ,cardinalityRestrictExample
 >            ,modulesExample
 >            ]
+>
+> otherTests :: [Test.Framework.Test]
+> otherTests = [denormParseTests]
 
 ~~~~
 rough plan for extensions
@@ -72,6 +76,8 @@ create table readonly_table ...
 
 > extensionTests :: Test.Framework.Test
 > extensionTests = testGroup "extensionTests" $ map testExtension testData
+>                  ++ otherTests
+
 >
 > testExtension :: ExtensionTest -> Test.Framework.Test
 > testExtension (ExtensionTest nm tr sast ts) =

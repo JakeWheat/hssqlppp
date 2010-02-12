@@ -10,6 +10,7 @@ example idea:
 
 this is the basic table we want to produce
 
+~~~~{.sql}
 create table piece_prototypes (
   ptype text primary key,
   flying boolean null,
@@ -24,9 +25,11 @@ create table piece_prototypes (
   physical_defense int null,
   magic_defense int null
 );
+~~~~
 
 these fields are group as follows
 
+~~~~
 proto
   ptype
 creature
@@ -44,16 +47,19 @@ ranged
 monster
   undead
   ridable
+~~~~
 
 so if a row has a non null in one member of a group, they all must be non null (e.g. flying,speed, agility must all be null or all non null)
+
 we also have group dependencies,e.g. if a row is monster,(i.e.  undead and ridable are non null), it also has to be a creature, attacking and attackable (so all their fields have to be non null)
 
 want to describe the table in these terms and have:
-the full table created
-check constraints on combinations of null with nice error messages
-views which show restrict/projections without the nulls
 
+* the full table created
+* check constraints on combinations of null with nice error messages
+* views which show restrict/projections without the nulls
 
+see the examples file for more details
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Examples.Extensions.Denormalized6nf
@@ -64,9 +70,17 @@ views which show restrict/projections without the nulls
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.SqlQuote
-
+>
 > denormalized6nf :: Data a => a -> a
 > denormalized6nf =
+
+approach: gather the relationships:
+subclass, superclass, mutually_exclusive
+find all the tables which are referred to
+-> create the base tables and views
+replace the first create table from each group with the create tables and views
+wipe out the other create tables and fn calls
+
 >     transformBi $ \x ->
 >       case x of
 >         [$sqlStmt| select create_var($s(varname), $s(typename)); |]
@@ -80,7 +94,3 @@ views which show restrict/projections without the nulls
 >                    |]
 >         x1 -> x1
 >
-
-create function xor(bool,bool) returns bool as '
-select ($1 and not $2) or (not $1 and $2);
-' language sql;

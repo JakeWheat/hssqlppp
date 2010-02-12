@@ -345,8 +345,8 @@ get the exports from astinternal, and keep the ones for types, and add
 the publi conversion functions
 
 > exports :: (Data a) => a -> [ExportSpec]
-> exports ast = [EVar (UnQual (Ident "convertStatements")),
->                EVar (UnQual (Ident "convertExpression"))] ++
+> exports ast = map (\l -> EVar (UnQual (Ident l)))
+>                  ["convertStatements", "convertExpression", "attributeDef"] ++
 >               [ex| ex@(EThingAll _) <- universeBi ast] ++
 >               [ex| ex@(EAbs _) <- universeBi ast]
 

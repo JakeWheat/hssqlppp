@@ -11,7 +11,7 @@ The test/examples for create assertion
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
-
+>
 > createAssertionExamples :: [ExtensionTest]
 > createAssertionExamples = [cardinalityExample
 >                              ,doubleCardinalityExample
@@ -21,9 +21,8 @@ The test/examples for create assertion
 >                              ,threewayMultiConstraint]
 
 
-stage 1: some test cases for general constraints which aren't
-implementable as postgresql constraints, we don't check the
-constraints work, only that the apparently correct ddl is generated
+we don't check the constraints work yet, only that the apparently
+correct ddl is generated
 
 cardinality check
 -----------------

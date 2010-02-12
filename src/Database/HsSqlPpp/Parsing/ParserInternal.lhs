@@ -20,6 +20,14 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,parseAntiSql
 >     ,parseAntiPlpgsql
 >     ,parseAntiExpression
+>      -- other helpers for internal use
+>     ,tableAttribute
+>     ,keyword
+>     ,parens
+>     ,symbol
+>     ,idString
+>     ,commaSep1
+>     ,commaSep
 >     ) where
 >
 > import Text.Parsec hiding(many, optional, (<|>), string)
@@ -453,15 +461,18 @@ ddl
 >     --right order into createtable
 >     readAttsAndCons = parens (swap <$> multiPerm
 >                                          (try tableConstraint)
->                                          tableAtt
+>                                          tableAttribute
 >                                          (symbol ","))
 >                       where swap (a,b) = (b,a)
->     tableAtt = AttributeDef
+>
+> tableAttribute :: SParser AttributeDef
+> tableAttribute = AttributeDef
 >                <$> pos
 >                <*> idString
 >                <*> typeName
 >                <*> tryOptionMaybe (keyword "default" *> expr)
 >                <*> many rowConstraint
+>   where
 >     rowConstraint = do
 >        p <- pos
 >        cn <- option "" (keyword "constraint" *> idString)
@@ -477,6 +488,8 @@ ddl
 >          <*> onDelete
 >          <*> onUpdate
 >          ]
+
+
 >
 > onDelete,onUpdate :: SParser Cascade
 > onDelete = onSomething "delete"
