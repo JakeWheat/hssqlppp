@@ -293,8 +293,8 @@ declare
   w pos;
   k piece_key;
 begin
-  select into w x,y from pieces where (ptype,allegiance,tag) = k;
   select into k ptype,allegiance,tag from selected_piece;
+  select into w x,y from pieces where (ptype,allegiance,tag) = k;
   insert into action_history_mr (history_name, ptype, allegiance,tag,x, y, tx, ty)
     values ('walked', k.ptype, k.allegiance, k.tag, w.x,w.y, sx, sy);
 end;
@@ -305,8 +305,8 @@ declare
   w pos;
   k piece_key;
 begin
-  select into w x,y from pieces where (ptype,allegiance,tag) = k;
   select into k ptype,allegiance,tag from selected_piece;
+  select into w x,y from pieces where (ptype,allegiance,tag) = k;
   insert into action_history_mr (history_name, ptype, allegiance,tag,x, y, tx, ty)
     values ('fly', k.ptype, k.allegiance, k.tag, w.x,w.y, sx, sy);
 end;
