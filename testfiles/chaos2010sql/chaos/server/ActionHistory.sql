@@ -36,22 +36,58 @@ create domain history_name_enum as text
                        ,'attempt_target_spell'
                        ));
 
+select create6nf ($$
 
-create table action_history_mr (
-  id serial unique not null,
-  history_name history_name_enum not null,
-  ptype  text null,
-  allegiance text  null,
-  tag int null,
-  spell_name text null,
-  turn_number int null,
-  turn_phase  turn_phase_enum null,
-  num_wizards int null,
-  x int null,
-  y int null,
-  tx int null,
-  ty int null
-);
+  action_history_mr (
+    id serial unique,
+    history_name history_name_enum
+  );
+
+  action_history_allegiance (
+    allegiance text
+  );
+
+  action_history_source : action_history_allegiance (
+    x int,
+    y int
+  );
+
+  action_history_target : action_history_source (
+    tx int,
+    ty int
+  );
+
+  action_history_piece : action_history_allegiance (
+    ptype text,
+    tag int
+  );
+
+  action_history_piece_source : action_history_piece, action_history_source;
+
+  action_history_piece_target : action_history_piece, action_history_target;
+
+  action_history_spell : action_history_allegiance (
+    spell_name text
+  );
+
+  action_history_spell_source : action_history_spell, action_history_source;
+
+  action_history_spell_target : action_history_spell, action_history_target;
+
+  action_history_num_wiz : action_history_mr (
+    num_wizards int null
+  );
+
+  action_history_turn_num : action_history_mr (
+    turn_number int
+  );
+
+  action_history_turn_phase : action_history_source (
+    turn_phase turn_phase_enum
+  );
+
+$$);
+
 select set_relvar_type('action_history_mr', 'data');
 
 --Turns

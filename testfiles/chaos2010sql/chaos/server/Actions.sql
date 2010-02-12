@@ -84,7 +84,7 @@ create view spell_valid_squares as
 create view current_wizard_spell_type_squares as
   select x,y from wizard_spell_choices
        inner join current_wizard_table on (wizard_name = current_wizard)
-       natural inner join spell_valid_square_types
+       natural inner join target_spells
        natural inner join spell_valid_squares;
 
 --rewrote joining to board_ranges as a where for speed purposes
@@ -98,7 +98,7 @@ create view current_wizard_spell_range_squares as
             on (allegiance = current_wizard)
           inner join wizard_spell_choices
             on (wizard_name = current_wizard)
-          natural inner join spell_ranges
+          natural inner join target_spells
           where ptype = 'wizard');
 
 --this view contains all the squares which are valid targets
@@ -529,7 +529,7 @@ phase is run in this function, and all the setup runs after it is run.
   if (select turn_phase = 'cast' from turn_phase_table) then
     if exists(select 1 from current_wizard_spell) then
       insert into spell_parts_to_cast_table
-        select coalesce(num, 0) from spells_with_num_shots
+        select coalesce(num, 0) from target_spells
         natural inner join current_wizard_spell;
       insert into cast_success_checked_table values (false);
     else
@@ -719,11 +719,11 @@ begin
     return;
   end if;
   --call the appropiate function to handle the spell
-  if (select spell_category = 'wizard' from spells
+  if (select spell_category = 'wizard' from spells_mr
       natural inner join current_wizard_spell) then
     perform action_cast_wizard_spell(get_current_wizard(),
       get_current_wizard_spell());
-  elseif exists(select 1 from spells
+  elseif exists(select 1 from spells_mr
       natural inner join current_wizard_spell
       where spell_name in('law', 'chaos', 'large_law',
       'large_chaos')) then
@@ -780,18 +780,18 @@ create view spell_cast_chance as
     --all spells if world is neutral, neutral spells unirregardless
     -- of world alignment
     (select spell_name, sign(alignment) as salign, base_chance,
-      'neutral' as alignment from spells
+      'neutral' as alignment from spells_mr
     union
     --world alignment same as spell alignment
     --  proportionately more easy
     select spell_name, sign(alignment) as salign,
       limit_chance(base_chance + (@ get_world_alignment()) * 10),
-      'same' as alignment from spells
+      'same' as alignment from spells_mr
     union
     --world alignment opposite, spell slightly harder
     select spell_name, sign(alignment) as salign,
       limit_chance(base_chance - 10),
-      'opposite' as alignment from spells) as a
+      'opposite' as alignment from spells_mr) as a
   where (salign = 0 and alignment = 'neutral') --neutral spells always
                                                --same alignment
     or (sign(get_world_alignment()) = 0 and alignment = 'neutral')
@@ -1072,7 +1072,7 @@ create function update_alignment_from_cast() returns void as $$
 begin
   update cast_alignment_table
     set cast_alignment = cast_alignment +
-      (select alignment from spells
+      (select alignment from spells_mr
         natural inner join current_wizard_spell);
   perform adjust_world_alignment();
 end;
@@ -1676,7 +1676,7 @@ begin
       perform disintegrate(r1);
       insert into spell_books (wizard_name, spell_name)
       values (r.allegiance,
-       (select spell_name from spells
+       (select spell_name from spells_mr
          where spell_name <> 'disbelieve'
           order by random() limit 1));
     end if;

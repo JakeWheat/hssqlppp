@@ -115,13 +115,13 @@ create view spells_with_order as
               when alignment = 0 then 1
         when alignment < 0 then 2
       end as alignment_order
-  from spells natural inner join section_order;
+  from spells_mr_base natural inner join section_order;
 /*
 ==== spell counts
 */
 create view current_wizard_spell_counts as
   select spell_name, 0 as count from
-    (select spell_name from spells except
+    (select spell_name from spells_mr except
      select spell_name from spell_books
        inner join current_wizard_table
        on (wizard_name = current_wizard)) as a

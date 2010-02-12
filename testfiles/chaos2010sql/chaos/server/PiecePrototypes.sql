@@ -26,36 +26,39 @@ select module('Chaos.Server.PiecePrototypes');
 create domain ranged_weapon_type as text
   check (value in ('projectile', 'fire'));
 
-create table piece_prototypes_mr (
-  ptype text primary key,
-  flying boolean null,
-  speed int null,
-  agility int null,
-  undead boolean null,
-  ridable boolean null,
-  ranged_weapon_type ranged_weapon_type null,
-  range int null,
-  ranged_attack_strength int null,
-  attack_strength int null,
-  physical_defense int null,
-  magic_defense int null
-);
-select set_relvar_type('piece_prototypes_mr', 'readonly');
+select create6nf ($$
 
-create view piece_prototypes as
-  select ptype from piece_prototypes_mr;
+  piece_prototypes_mr (
+    ptype text primary key
+  );
 
-create view creature_prototypes as
-  select ptype, flying, speed, agility
-    from piece_prototypes_mr
-    where flying is not null
-    and speed is not null
-     and agility is not null;
+  creature_prototypes : piece_prototypes_mr (
+    flying boolean,
+    speed int,
+    agility int
+  );
 
-create view monster_prototypes as
-  select ptype, flying, speed, agility, undead, ridable
-    from piece_prototypes_mr
-    where undead is not null and ridable is not null;
+  monster_prototypes : creature_prototypes (
+    undead boolean,
+    ridable boolean
+  );
+
+  range_attacking_prototypes : creature_prototypes (
+    ranged_weapon_type ranged_weapon_type,
+    range int,
+    ranged_attack_strength int
+  );
+
+  attacking_prototypes : piece_prototypes (
+     attack_strength int
+  );
+
+  attackable_prototypes : piece_prototypes (
+    physical_defense int,
+    magic_defense int
+  );
+
+$$);
 
 create view object_piece_types as
   select ptype from piece_prototypes_mr where speed is null;

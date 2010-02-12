@@ -177,26 +177,29 @@ then read in the cast phase, so this lasts from the start of the
 choice phase to the end of the cast phase.
 
 */
-create table wizard_spell_choices_mr (
-  wizard_name text unique not null,
-  spell_name text not null,
-  imaginary boolean null
-);
+
+select create6nf ($$
+
+  wizard_spell_choices_mr (
+    wizard_name text unique,
+    spell_name text
+  );
+
+  wizard_spell_choices_imaginary (
+    imaginary boolean null
+  );
+
+$$);
+
 select set_relvar_type('wizard_spell_choices_mr', 'data');
+
+create view wizard_spell_choices as
+  select * from wizard_spell_choices_mr_base;
 
 select create_assertion('dead_wizard_no_spell',
   $$ not exists(select 1 from wizard_spell_choices_mr
     natural inner join wizards
     where expired = true)$$);
-
-create view wizard_spell_choices as
-  select wizard_name, spell_name
-    from wizard_spell_choices_mr;
-
-create view wizard_spell_choices_imaginary as
-  select wizard_name, imaginary
-    from wizard_spell_choices_mr
-    where imaginary is not null;
 
 /*
 

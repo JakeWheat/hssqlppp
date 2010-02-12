@@ -27,6 +27,7 @@ chaos working again then will review approach.
 > import Database.HsSqlPpp.Examples.Extensions.CreateVar
 > import Database.HsSqlPpp.Examples.Extensions.CardinalityRestrict
 > import Database.HsSqlPpp.Examples.Extensions.SimplifiedCatalog
+> import Database.HsSqlPpp.Examples.Extensions.Denormalized6nf
 >
 > -- | run all the extensions needed for chaos
 > chaosExtensions :: [Statement] -> [Statement] -- Data a => a -> a
@@ -39,6 +40,7 @@ chaos working again then will review approach.
 >                   . noDelIns
 >                   . generateSpellChoiceActions
 >                   . notNull
+>                   . denormalized6nf
 >                   . simplifiedCatalog
 >                   . makeFKsCascade
 

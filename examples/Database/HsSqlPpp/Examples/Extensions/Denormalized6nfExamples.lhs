@@ -396,3 +396,5 @@ fdk
 >      |]
 
 todo: no base class, distributed key
+
+todo: test diamond with overlapping fields

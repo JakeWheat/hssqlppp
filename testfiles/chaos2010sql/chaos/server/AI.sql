@@ -111,7 +111,7 @@ create view current_wizard_target_spells as
   select spell_name,range from spell_books
     inner join current_wizard_table
       on current_wizard = wizard_name
-    natural inner join spell_ranges;
+    natural inner join target_spells;
 
 create view current_wizard_square as
   select x,y from pieces
@@ -131,7 +131,7 @@ create view castable_target_spells as
   select spell_name,svs.x,svs.y
     from current_wizard_target_spells cwts
     natural inner join spell_valid_squares svs
-    natural inner join spell_valid_square_types svst
+    natural inner join target_spells svst
     inner join board_ranges br
       on (br.x,br.y) = (select x,y from current_wizard_square)
         and br.range = cwts.range

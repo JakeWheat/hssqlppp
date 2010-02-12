@@ -123,7 +123,7 @@ see the examples file for more details
 >               -- x1 -> x1
 >         makeView :: (String,[(String,[Expression])]) -> Statement
 >         makeView (tn, flds) =
->           let allFields = concatMap snd flds
+>           let allFields = nub $ concatMap snd flds
 >               expr = foldr (\a b -> [$sqlExpr| $(a) and $(b) |])
 >                             [$sqlExpr| True |] $ map makeNotNull allFields
 >           in fixSelectList (baseAttrIds ++ allFields)

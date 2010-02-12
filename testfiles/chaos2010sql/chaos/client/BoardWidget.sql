@@ -123,7 +123,7 @@ create view wizard_sprites as
     select id as o, allegiance as wizard_name,
       'wizard_' || spell_name
       from action_history_mr
-      natural inner join spells
+      natural inner join spells_mr
       where spell_name != 'shadow_form'
       and spell_category = 'wizard'
       and history_name = 'spell_succeeded'
