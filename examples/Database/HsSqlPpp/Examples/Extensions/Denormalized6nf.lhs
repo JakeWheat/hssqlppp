@@ -120,14 +120,14 @@ see the examples file for more details
 >           flip transformBi st $ \x ->
 >             case x of
 >               SelectList _ _ _ -> SelectList [] (map (SelExp []) attrs) []
->               x1 -> x1
+>               -- x1 -> x1
 >         makeView :: (String,[(String,[Expression])]) -> Statement
 >         makeView (tn, flds) =
->           let expr = let allFields = concatMap snd flds
->                          nns = map makeNotNull allFields
->                      in foldr (\a b -> [$sqlExpr| $(a) and $(b) |])
->                             [$sqlExpr| True |] nns
->           in [$sqlStmt| create view $(tn) as
+>           let allFields = concatMap snd flds
+>               expr = foldr (\a b -> [$sqlExpr| $(a) and $(b) |])
+>                             [$sqlExpr| True |] $ map makeNotNull allFields
+>           in fixSelectList (baseAttrIds ++ allFields)
+>                [$sqlStmt| create view $(tn) as
 >                           select selectList from $(bottomTableName)
 >                             where $(expr); |]
 >     in fixSelectList baseAttrIds [$sqlStmt| create view $(baseName) as
@@ -137,47 +137,20 @@ see the examples file for more details
 >       idFromAttr = (Identifier []) . attributeName
 >       getExtraFields :: [(String,[String],[AttributeDef])] -> [(String,[(String,[Expression])])] -- table name, sourcetable,fieldlist
 >       getExtraFields tinfo = let t1 = map gef tinfo
->                              in map (\a@((tn,_):_) -> (tn, a)) t1
+>                              in map (\a@((tn,_):_) -> (tn, reverse a)) t1 --first reverse here
 >         where
 >           gef :: (String,[String],[AttributeDef]) -> [(String,[Expression])]
 >           gef (tn,subtns,attrs) =
 >             let subtnlist :: [(String,[String],[AttributeDef])]
 >                 subtnlist = mapMaybe lookupst subtns
->             in (tn, map idFromAttr attrs) : concatMap gef subtnlist
+>             in (tn, map idFromAttr attrs) : concatMap gef (reverse subtnlist) -- second reverse here
 >           lookupst :: String -> Maybe (String,[String],[AttributeDef])
 >           lookupst st = find (\(tn,_,_) -> tn == st) tinfo
+
+the two reverses seem to be what's needed to get the field lists for
+each view in the order a) they appear in the file, and b) base classes
+first.
+
 >
 > makeNotNull :: Expression -> Expression
 > makeNotNull x = [$sqlExpr| $(x) is not null |]
-
- > tr :: Data a => f -> a -> a
-
-SelectList | SelectList ann:Annotation items:SelectItemList into:{[String]}
-
-DATA SelectItem | SelExp ann:Annotation ex:Expression
-                | SelectItem ann:Annotation ex:Expression name:String
-
-
-    | CreateView ann:Annotation
-                 name : String
-                 expr : SelectExpression
-
-NullConstraint ann:Annotation name:String
-                   | NotNullConstraint ann:Annotation name:String
-
-DATA AttributeDef | AttributeDef ann:Annotation
-                                 name : String
-                                 typ : TypeName
-                                 def: MaybeExpression
-                                 cons : RowConstraintList
-
-
-
-    | CreateTable ann:Annotation
-                  name : String
-                  atts : AttributeDefList
-                  cons : ConstraintList
-
- > data D6nfStatement = DTable String [String] [AttributeDef]
- >                    | MutualExclusion String String
- >                      deriving (Eq,Show,Typeable,Data)

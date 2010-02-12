@@ -84,6 +84,6 @@ create table readonly_table ...
 >   testCase nm $ do
 >     let ts' = stripAnnotations ts
 >         es' = stripAnnotations $ tr sast
->     when (ts' /= es') $ putStrLn $ printSql ts' ++ "\n----\n" ++ printSql es' ++ "\n====\n" ++
->                 ppExpr ts' ++ "\n----\n" ++ ppExpr es'
+>     when (ts' /= es') $ putStrLn $ printSql ts' ++ "\n----\n" ++ printSql es' ++ "\n====\n"
+>                         -- ++ ppExpr ts' ++ "\n----\n" ++ ppExpr es'
 >     assertEqual "" ts' es'
