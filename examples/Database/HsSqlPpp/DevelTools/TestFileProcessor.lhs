@@ -9,7 +9,6 @@ examples.
 >     (parserTestsTable
 >     ,typeCheckTestsTable
 >     ,quasiQuoteTestsTable) where
-> import Data.Char
 >
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
@@ -71,10 +70,6 @@ compile time.
 >     code t s = "\n\n~~~~~~{." ++ t ++ "}\n"
 >                ++ trim s
 >                ++ "\n~~~~~~\n\n"
->
-> trim :: String -> String
-> trim = f . f
->    where f = reverse . dropWhile isSpace
 
 -------------------------------------------------------------------------------
 

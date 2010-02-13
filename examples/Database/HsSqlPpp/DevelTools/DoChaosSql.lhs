@@ -20,7 +20,7 @@ hssqlppp to it and show the results.
 > import Database.HsSqlPpp.Ast hiding (Sql)
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.PrettyPrinter
-
+> import Database.HsSqlPpp.Examples.AnnotateSource2
 
 > doChaosSql :: (PandocType
 >                -> String
@@ -32,8 +32,11 @@ hssqlppp to it and show the results.
 >   -- create html versions of original source
 >   -- sourceFiles >>= mapM_ convFile
 >   -- do annotated source files
->   ast <- readSourceFiles
->   putStrLn $ printSql $ filter (not . hasSP) ast
+>   --ast <- readSourceFiles
+>   --putStrLn $ printSql $ filter (not . hasSP) ast
+>   new <- liftIO (annotateSource2 chaosSourceFiles)
+>   forM_ new (\(f,c) -> pf Sql "x" (Str c) ("testfiles/munged/" ++ f ++ ".html"))
+
 >   --writeFile "test" $ ppExpr ast
 >   return ()
 >   where
@@ -45,7 +48,7 @@ hssqlppp to it and show the results.
 >             ".txt" -> Txt
 >             ".sql" -> Sql
 >             _ -> error $ "unrecognised extension in dochaosql" ++ f)
->          (snd $splitFileName f)
+>          (snd $ splitFileName f)
 >          (File f)
 >          (f ++ ".html")
 

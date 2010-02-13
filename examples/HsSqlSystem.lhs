@@ -1227,21 +1227,26 @@ of this exe, then this command will disappear
 > resetChaos :: IO ()
 > resetChaos = wrapETs $ do
 >   let db = "chaos"
+>   --clear the db and get the transformed ast
 >   liftIO $ do
 >     hSetBuffering stdout NoBuffering
 >     cleardb db
 >   ast <- mapM (\f -> (liftIO . readInput) f >>=
 >                  tsl . P.parseSql f) files >>=
 >      return . (concat |>
->                --stripAnnotations |> -- figure out why some exts only work with this - need the sourceposes to stay
 >                chaosExtensions)
->   {-mapM_ (liftIO . putStrLn) $
+>   -- load straight into databae
+>   --liftIO $ loadAst db ast
+>   -- dump the generated ast to inspect or load using psql
+>   liftIO $ putStrLn $ printSql ast
+>   {-
+>   --type check the transformed ast
+>   mapM_ (liftIO . putStrLn) $
 >             (A.typeCheck defaultTemplate1Catalog |>
 >              snd |>
 >              A.getTypeErrors |>
 >              ppTypeErrors) ast-}
->   liftIO $ putStrLn $ printSql ast
->   --liftIO $ loadAst db ast
+>   return ()
 >   where
 >     files =
 >         ["testfiles/chaos2010sql/chaos/server/Metadata.sql"

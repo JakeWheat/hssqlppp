@@ -9,6 +9,7 @@ This file contains some generic utility stuff
 >
 > import Data.List
 > import Data.Either
+> import Data.Char
 > import Control.Arrow
 > import Control.Monad.Error
 > import Control.Applicative
@@ -126,7 +127,7 @@ order of application stays the same instead of going backwards when
 >     Exts.ParseOk ast -> Exts.prettyPrint ast
 >     x -> error $ show x
 >
-> npartition :: (Eq a, Eq b) => (a -> b) -> [a] -> [(b,[a])]
+> npartition :: Eq b => (a -> b) -> [a] -> [(b,[a])]
 > npartition keyf l =
 >   np [] l
 >   where
@@ -134,7 +135,7 @@ order of application stays the same instead of going backwards when
 >                     in np (insertWith (++) k [p] acc) ps
 >     np acc [] = acc
 >
-> insertWith :: (Eq k, Eq a) => (a -> a -> a) -> k -> a -> [(k,a)] -> [(k,a)]
+> insertWith :: Eq k => (a -> a -> a) -> k -> a -> [(k,a)] -> [(k,a)]
 > insertWith ac k v m =
 >     case lookup k m of
 >       Nothing -> m ++ [(k,v)]
@@ -142,3 +143,28 @@ order of application stays the same instead of going backwards when
 >                  in map (\p@(k1,_) -> if k1 == k
 >                                       then (k1,nv)
 >                                       else p) m
+
+
+This should preserve order, so in the result, the keys (k in
+[(k,[a],[b])]) are ordered by their first appearance in as, then bs,
+and the values are ordered the matches in the same order as they
+appear in the two lists ([a] and [b] in [(k,[a],[b])])
+
+> joinLists :: Eq k => (a -> k) -> (b -> k)
+>              -> [a] -> [b] -> [(k,[a],[b])]
+> joinLists ka kb as bs =
+>     let -- arrange the two lists by key
+>         kasps = npartition ka as
+>         kbsps = npartition kb bs
+>         -- get the list of keys
+>         ks = nub $ map fst kasps ++ map fst kbsps
+>         -- put together the two lists by key
+>     in flip map ks $ \k ->
+>         (k, getem k kasps, getem k kbsps)
+>     where
+>       getem :: Eq k => k -> [(k,[a])] -> [a]
+>       getem k = concatMap snd . filter ((==k) . fst)
+
+> trim :: String -> String
+> trim = f . f
+>    where f = reverse . dropWhile isSpace
