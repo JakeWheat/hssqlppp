@@ -10,14 +10,10 @@ to the website.
 >
 > import System.Directory
 > import Control.Monad
-> import Text.Pandoc hiding (Str)
 > import System.Cmd
 > import System.FilePath.Find
 > import System.IO
 > import System.FilePath
-> import Text.Highlighting.Kate
-> import Debug.Trace
-> import Text.XHtml.Strict hiding (title,src)
 > import Data.DateTime
 > --import Text.RegexPR
 > --import Debug.Trace
@@ -28,23 +24,23 @@ to the website.
 > --import Text.PrettyPrint (render)
 > --import Text.XML.HaXml.Pretty
 >
-> import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.DevelTools.TestFileProcessor
->
->
+> import Database.HsSqlPpp.DevelTools.PandocUtils
+> import Database.HsSqlPpp.DevelTools.DoChaosSql
+
 > makeWebsite :: IO ()
 > makeWebsite = do
 >   hSetBuffering stdout NoBuffering
->   doesDirectoryExist "website" >>=
+>   {-doesDirectoryExist "website" >>=
 >     \l -> when(l) $ removeDirectoryRecursive "website"
 >   createDirectory "website"
->   copyFile "docs/main.css" "website/main.css"
+>   copyFile "docs/main.css" "website/main.css"-}
 >   let v = "0.3.0-pre"  --- todo: read from cabal
 >   let hd = wheader v
 >   t <- getCurrentTime
 >   let ft = wfooter v (formatDateTime "%D %T" t)
->   let pd1 = htmlize hd ft
+>   let pd1 = htmlize cssLink hd ft
 >       pf = pd1 Txt
 >       plhs = pd1 Lhs
 >   pf "HsSqlPpp documentation"
@@ -53,7 +49,7 @@ to the website.
 >   pf "HsSqlPpp examples"
 >      (File "docs/examples.txt")
 >      "examples.html"
->   plhs "HsSqlPpp parser examples"
+>   {-plhs "HsSqlPpp parser examples"
 >        (Str parserTestsTable)
 >        "ParserTests.html"
 >   plhs "HsSqlPpp type checking examples"
@@ -64,7 +60,8 @@ to the website.
 >        (Str qq)
 >        "QuasiQuoteTests.html"
 >   doSourceFiles pd1
->   doHaddock
+>   doHaddock-}
+>   doChaosSql pd1
 >   return ()
 
 -------------------------------------------------------------------------------
@@ -97,105 +94,6 @@ to the website.
 todo: add filenames at top of these pages or// duplicate the title as
 the top header for each page
 
--------------------------------------------------------------------------------
-
-pandoc/highlight wrappers
-
-> data PandocType = Lhs
->                 | Highlight
->                 | Txt
->                   deriving Show
-> data Input = Str String
->            | File String
->
->
-> -- main utility funtion
-> htmlize :: String -> String -> PandocType -> String -> Input -> String -> IO ()
-> htmlize hdr ftr pt title src tgt = do
->   putStrLn tgt
->   let tgt1 = "website/" ++ tgt
->   createDirectoryIfMissing True $ dropFileName tgt1
->   src1 <- case src of
->             Str s -> return s
->             File f -> readFile f
->   let filterRelativeLinks = filterLinks (concat $
->                           replicate (length $
->                                      splitDirectories $
->                                      dropFileName tgt)
->                           "../")
->   let src2 = hdr ++ src1 ++ ftr
->   writeFile tgt1 $ filterRelativeLinks $
->                 case pt of
->                            Lhs -> pandocLhs title $ wrapSqlCode $ addAnchors src2
->                            Highlight -> highlight hdr ftr title $ addAnchors src1
->                            Txt -> pandoc title src2
->
->
-> addAnchors :: String -> String
-> addAnchors f = f
->
-> -- pure wrappers to do various rendering
-> pandoc :: String -> String -> String
-> pandoc hd = (writeHtmlString wopt) . (readMarkdown defaultParserState)
->   where
->     wopt = defaultWriterOptions {
->                writerStandalone = True
->               ,writerTitlePrefix = hd
->               ,writerTableOfContents = False
->               ,writerHeader = cssLink
->              }
->
-> pandocFrag :: String -> String
-> pandocFrag = (writeHtmlString wopt) . (readMarkdown defaultParserState)
->   where
->     wopt = defaultWriterOptions {
->                writerStandalone = False
->              }
->
->
-> pandocLhs :: String -> String -> String
-> pandocLhs hd = (writeHtmlString wopt) . (readMarkdown ropt)
->   where
->     wopt = defaultWriterOptions {
->                writerStandalone = True
->               ,writerTitlePrefix = hd
->               ,writerTableOfContents = False
->               ,writerHeader = cssLink
->               ,writerLiterateHaskell=True
->              }
->     ropt = defaultParserState {
->             stateLiterateHaskell = True
->            }
->
-> -- hack to render some quasiquoted sql using sql highlighting
-> wrapSqlCode :: String -> String
-> wrapSqlCode = replace
->               "\n\\begin{code}\n"
->               "\n~~~~~{.SqlPostgresql}\n"
->               . replace
->               "\n\\end{code}\n"
->               "\n~~~~~\n"
-
-> filterLinks :: String -> String -> String
-> filterLinks path = replace
->                    "\"website/"
->                    ("\"" ++ path)
-
-
-
-pandoc won't render haskell source which isn't literate nicely at all,
-so run it though highlighting-kate only
-
-> highlight :: String -> String -> String -> String -> String
-> highlight hdr ftr title s = do
->   case highlightAs "Haskell" s of
->     Right r -> "<html><head><title>" ++ title ++ "</title>" ++
->                cssLink ++ "</head><body>" ++
->                pandocFrag hdr ++
->                renderHtmlFragment (formatAsXHtml [OptTitleAttributes] "Haskell" r) ++
->                pandocFrag ftr ++
->                "</body></html>"
->     Left err -> trace ("highlight error: " ++ err) s
 
 ------------------------------------------------------------------------------
 

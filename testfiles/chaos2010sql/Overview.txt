@@ -1,11 +1,30 @@
-= Overview
+Chaos 2010
 
-metadata - the readonly,data,stack tags for relvars
-read only data - piece prototypes and spells revlars
-game data - mainly wizards, spellbooks and pieces relvars
-turn sequence - relvars for turn sequence progression
-actions - action valid, actions for turn sequence, casting, moving, etc.
-history - relar to record actions
-new game - functions to reset data relvars and set up new games
-test board support - functions to set up a few board layouts for testing
-ai - ai for computer controlled wizards
+Inspired by an old Spectrum game called
+[Chaos](http://en.wikipedia.org/wiki/Chaos_(video_game)).
+
+The idea is to keep all the data in the database, and use constraints,
+transactions and stored procedures to keep things consistent and
+enforce the rules.
+
+* [Metadata](chaos/server/Metadata.sql.html)
+* [PiecePrototypes](chaos/server/PiecePrototypes.sql.html)
+* [Spells](chaos/server/Spells.sql.html)
+* [GlobalData](chaos/server/GlobalData.sql.html)
+* [Wizards](chaos/server/Wizards.sql.html)
+* [Pieces](chaos/server/Pieces.sql.html)
+* [TurnSequence](chaos/server/TurnSequence.sql.html)
+* [ActionTestSupport](chaos/server/ActionTestSupport.sql.html)
+* [SquaresValid](chaos/server/SquaresValid.sql.html)
+* [Actions](chaos/server/Actions.sql.html)
+* [ActionHistory](chaos/server/ActionHistory.sql.html)
+* [NewGame](chaos/server/NewGame.sql.html)
+* [AI](chaos/server/AI.sql.html)
+* [WindowManagement](chaos/client/WindowManagement.sql.html)
+* [Sprites](chaos/client/Sprites.sql.html)
+* [WizardDisplayInfo](chaos/client/WizardDisplayInfo.sql.html)
+* [BoardWidget](chaos/client/BoardWidget.sql.html)
+* [SpellBookWidget](chaos/client/SpellBookWidget.sql.html)
+* [NewGameWidget](chaos/client/NewGameWidget.sql.html)
+* [ClientActions](chaos/client/ClientActions.sql.html)
+* [ClientNewGame](chaos/client/ClientNewGame.sql.html)

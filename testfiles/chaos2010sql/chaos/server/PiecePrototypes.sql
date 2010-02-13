@@ -32,7 +32,22 @@ select create6nf ($$
     ptype text primary key
   );
 
-  creature_prototypes : piece_prototypes_mr (
+  attacking_prototypes : piece_prototypes (
+     attack_strength int
+  );
+
+  attackable_prototypes : piece_prototypes (
+    physical_defense int
+  );
+
+  magic_attackable_prototypes : piece_prototypes (
+    magic_defense int
+  );
+
+  creature_prototypes : piece_prototypes_mr
+                       ,attacking_prototypes
+                       ,attackable_prototypes
+                       ,magic_attackable_prototypes (
     flying boolean,
     speed int,
     agility int
@@ -48,19 +63,6 @@ select create6nf ($$
     range int,
     ranged_attack_strength int
   );
-
-  attacking_prototypes : piece_prototypes (
-     attack_strength int
-  );
-
-  attackable_prototypes : piece_prototypes (
-    physical_defense int
-  );
-
-  magic_attackable_prototypes : piece_prototypes (
-    magic_defense int
-  );
-
 
 $$);
 

@@ -1,41 +1,72 @@
 Copyright 2010 Jake Wheat
 
-Currently, just some notes.
-
-read only tables, uses transition constraints to enforce. Also - see
-about adding this to the type checking to verify statically.
+just an insert syntax a bit like updates, so the fields are next to
+  the values
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
 >
-> module Database.HsSqlPpp.Examples.Extensions.TableValues
->     (tableValueExamples
->     ,tableValues) where
+> module Database.HsSqlPpp.Examples.Extensions.AlternateInsert
+>     (altInsExamples
+>     ,altIns) where
 >
 > import Data.Generics
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 >
-> tableValueExamples :: [ExtensionTest]
-> tableValueExamples = [tableValueExample1]
+> altInsExamples :: [ExtensionTest]
+> altInsExamples = [altInsExample1]
 >
-> tableValueExample1 :: ExtensionTest
-> tableValueExample1 =
+> altInsExample1 :: ExtensionTest
+> altInsExample1 =
 >   ExtensionTest
 >     "tableValueExample1"
->     tableValues
+>     altIns
 >     [$sqlStmts|
-> select create_var('varname', 'vartype'); |]
+>      select table_insert(spells_mr, $$
+>      (spell_name = 'dark_citadel'
+>      ,base_chance = 50
+>      ,alignment = -1
+>      ,spell_category = 'object'
+>      ,description = 'Gives wizard building to hide in.'
+>      ,range =8
+>      ,num = 1
+>      ,valid_square_category = empty
+>      ,ptype = dark_citadel)
+>     ,(spell_name= 'dark_power'
+>      ,base_chance = 50)
+>       $$);
+>      |]
 >     [$sqlStmts|
->       create table varname_table (
->         varname vartype
->       );
+>      insert into spells_mr(spell_name
+>                           ,base_chance
+>                           ,alignment
+>                           ,spell_category
+>                           ,description
+>                           ,range
+>                           ,num
+>                           ,valid_square_category
+>                           ,ptype)
+>                   values ('dark_citadel'
+>                          ,50
+>                          ,-1
+>                          ,'object'
+>                          ,'Gives wizard building to hide in.'
+>                          ,8
+>                          ,1
+>                          ,empty
+>                          ,dark_citadel);
+>      insert into spells_mr(spell_name
+>                           ,base_chance)
+>                   values ('dark_power'
+>                          ,50);
 >      |]
 
-> tableValues :: Data a => a -> a
-> tableValues =
+> altIns :: Data a => a -> a
+> altIns =
 >     transformBi $ \x ->
 >       case x of
 >         [$sqlStmt| select create_var($s(varname), $s(typename)); |]

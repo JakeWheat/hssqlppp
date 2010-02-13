@@ -13,7 +13,6 @@ Gather together the examples from the extension modules and convert to regular t
 >
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.PrettyPrinter
-> import Database.HsSqlPpp.Utils.Utils
 >
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.Examples.Extensions.CreateVarSimple

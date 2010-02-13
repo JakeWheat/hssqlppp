@@ -103,7 +103,9 @@ alter table current_wizard_table
   add constraint current_wizard_fkey
   foreign key (current_wizard) references wizards(wizard_name);
 
-select no_deletes_inserts_except_new_game('current_wizard_table');
+-- could be no deletes, inserts - unless - there is only one wizard left
+-- to allow draws
+--select no_deletes_inserts_except_new_game('current_wizard_table');
 select create_assertion('current_wizard_must_be_alive',
   $$(select not expired from current_wizard_table
      inner join wizards on current_wizard = wizard_name)$$);

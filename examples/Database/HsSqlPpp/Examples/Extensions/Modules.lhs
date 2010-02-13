@@ -4,21 +4,6 @@ Currently, just some notes.
 
 Extension to implement a module system:
 
-~~~~
-
-create table modules (
-  module_name text,
-  module_parent_name text,
-  module_order serial
-);
-
-create table all_module_objects (
-  object_name text,
-  object_type text,
-  module_name text
-);
-~~~~
-
 initial syntax is new_module - which adds the module and then adds
 everything following to that module until a new new_module is
 hit. Just use . separated names, no explicit heirarchy for now.
@@ -50,8 +35,8 @@ use some idea of interface files for modules?
 >     (modules
 >     ,modulesExample) where
 >
-> import Data.Generics
 > import Data.Generics.Uniplate.Data
+> import Control.Monad.State
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
@@ -63,14 +48,61 @@ use some idea of interface files for modules?
 >   ExtensionTest
 >     "modules"
 >     modules
->     [$sqlStmts| select module('Chaos.Server.Metadata'); |]
->     []
+>     [$sqlStmts| select module('Chaos.Server.Metadata');
+>      create table t1 (
+>        a text
+>      );
+>      select 2;
+>      |]
+>     [$sqlStmts|
+>      create table modules (
+>        module_name text,
+>        module_order serial
+>      );
+>      create table all_module_objects (
+>        object_name text,
+>        object_type text,
+>        module_name text
+>      );
+>      insert into modules (module_name) values ('Chaos.Server.Metadata');
+>      create table t1 (
+>        a text
+>      );
+>      insert into all_module_objects (object_name,object_type,module_name)
+>             values ('t1','table','Chaos.Server.Metadata');
+>      select 2;
+>      |]
 >
-> modules :: Data a => a -> a
-> modules =
->     transformBi $ \x ->
->       case x of
->         [$sqlStmt| select module($s(modname)); |] : tl
->             -> tl
->         x1 -> x1
->
+> modules :: [Statement] -> [Statement]
+> modules st =
+>     [$sqlStmts|
+>      create table modules (
+>       module_name text,
+>       module_order serial
+>     );
+>     create table all_module_objects (
+>       object_name text,
+>       object_type text,
+>       module_name text
+>     ); |]
+>     ++ reverse (((\f -> evalState (transformBiM f (reverse st)) "no_module") $ \x ->
+>             case x of
+>                [$sqlStmt| select module($s(modname)); |] : tl
+>                    -> do
+>                       put modname
+>                       return $ [$sqlStmt|
+>                                 insert into modules (module_name)
+>                                 values ($s(modname));|] : tl
+>                s@(CreateTable _ n _ _) : tl -> insertIt s tl n "table"
+>                s@(CreateView _ n _) : tl -> insertIt s tl n "view"
+>                s@(CreateType _ n _) : tl -> insertIt s tl n "type"
+>                s@(CreateFunction _ n _ _ _ _ _ _) : tl -> insertIt s tl n "function"
+>                s@(CreateTrigger _ n _ _ _ _ _ _) : tl -> insertIt s tl n "trigger"
+>                s@(CreateDomain _ n _ _ _ ) : tl -> insertIt s tl n "domain"
+>                x1 -> return x1))
+>     where
+>       insertIt s tl nm ty= do
+>          m <- get
+>          return $ [$sqlStmt|
+>                    insert into all_module_objects (object_name,object_type,module_name)
+>                    values ($s(nm),$s(ty), $s(m));|] : s : tl

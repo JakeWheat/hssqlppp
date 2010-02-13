@@ -216,6 +216,39 @@ work out which syntax to use in which spot.
 
 
 
-what needs to be done to support _ in pattern quasiquotes?
+what needs to be done to support _ in pattern quasiquotes? -> I think
+it's just adding a wildcard ctor to the appropriate ast types using
+makeantinodes, and adding in lexing and parsing support - actually
+using wildcards is now working with the annotation approach above
 
 ~~~~
+
+Some ideas about moving forward
+
+after working on a number of extensions, it seems clear that the quasi
+quotation is a bit limited, specifically the number of splice points
+is too limiting and a lot of ast transforms end up using a lot of ast
+types directly rather than via quotes which is crap.
+
+some possible resolutions:
+
+live with it
+
+add lots more splice points, will need lots of different splice
+syntaxes e.g. to cope with splicing a trigger event list or a single
+trigger event. Will also need to have a load more quote functions to
+parse sql fragments for different contexts.
+
+try and use e.g. a haskell or lisp like syntax for sql, to reduce the
+number of ast types drastically - this will allow much more regular
+use of splice points, quotes, etc.
+
+variant on this idea is instead to move to a tutorial d like syntax,
+which is vastly more regular than sql syntax and should allow for a
+much smaller range of quoters and splice syntaxes also.
+
+maybe might as well switch to haskelldb? the haskell or lisp like
+version of sql syntax keeps us writing the databases in sql, whereas
+tutorial d. haskelldb mean sql really disappears into the
+plumbing. These approaches might solve some problems with custom
+syntax also.

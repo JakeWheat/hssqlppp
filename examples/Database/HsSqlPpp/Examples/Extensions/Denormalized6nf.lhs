@@ -49,9 +49,12 @@ monster
   ridable
 ~~~~
 
-so if a row has a non null in one member of a group, they all must be non null (e.g. flying,speed, agility must all be null or all non null)
+so if a row has a non null in one member of a group, they all must be
+non null (e.g. flying,speed, agility must all be null or all non null)
 
-we also have group dependencies,e.g. if a row is monster,(i.e.  undead and ridable are non null), it also has to be a creature, attacking and attackable (so all their fields have to be non null)
+we also have group dependencies,e.g. if a row is monster,(i.e.  undead
+and ridable are non null), it also has to be a creature, attacking and
+attackable (so all their fields have to be non null)
 
 want to describe the table in these terms and have:
 
@@ -60,6 +63,9 @@ want to describe the table in these terms and have:
 * views which show restrict/projections without the nulls
 
 see the examples file for more details
+
+question: how can a client read a whole table like this and not have
+to deal with nulls/ maybe types?
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Examples.Extensions.Denormalized6nf

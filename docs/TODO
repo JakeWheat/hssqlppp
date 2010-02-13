@@ -1,5 +1,40 @@
 = TODOs
 
+
+New todo for next release:
+
+get chaos rewrite mostly done, a few more extensions, etc., to serve
+   as example code. rough plan on hssqlppp side is: module extension
+   work?, insert extension, actions? stack tables? custom syntax? more
+   quasiquoting?, inclusions, readonly triggers, botify, system
+   implementation objects and generate documentation from module info
+add docs to show chaos as example code
+   plus add rendering of type checking process, catalog, and things
+   like that
+write wrappers and sort out small example code
+tidy hssqlsystem, not sure about moving to the new exe style
+nav for website, get the copyright notices only appearing at the
+   bottom - it seems a bit loony at the moment
+extension usage tests - in client code?
+error handling work
+not going to start working much on missing syntax and type checks
+maybe typeinfo conversion
+database connection settings
+catalog extras for chaos
+roundtrip work
+lots of the little fixes below
+not going to work on markup and rendering of source much
+not planning on doing nullability, however, this is a major
+   feature. Not that much point until the hlist wrapper is working
+   again
+
+
+
+
+
+
+
+
 This file is a complete disorganised mess.
 ----------
 
@@ -12,9 +47,6 @@ fix data: make hssqlsystem nicer, work on wrapper examples and
 nav: create a 'sitemap' thing, and nav bar and breadcrumbs to each
    page
 work on rendering source - issues with markdown, embedded sql, etc.
-
-fix string parsing - get rid of the quote part in the ast node, and
-   use some skills to decide what quotes to use in the pretty printer
 
 getting a catalog from a database involves reading the updates then
    applying them, which is bizarre, sort it out
@@ -41,7 +73,6 @@ also:
 get returning * working, count *
 fix how implicit joins type check now that code has been refactored to
    make this easy
-fix parse error messages in hssqlsystem
 
 then:
 make list of loose ends, syntax and missing type checks - lots of

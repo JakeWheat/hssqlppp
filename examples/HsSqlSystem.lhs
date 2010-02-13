@@ -13,6 +13,7 @@ to get a list of commands and purpose and usage info
 > import System.Console.CmdArgs
 > import System.IO
 > import Control.Monad.Error
+
 > --import Debug.Trace
 > import Test.Framework (defaultMainWithArgs)
 >
