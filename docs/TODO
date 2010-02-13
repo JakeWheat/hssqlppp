@@ -30,8 +30,18 @@ not planning on doing nullability, however, this is a major
 
 
 
+some of the small fixes:
 
+web site: add links from the examples generate from the test files to
+   the pandoc'd version of the respective test file source
 
+idea for example code in haddock: put the example code in self
+   contained lhs files which can be compiled and run, then either link
+   or include this source into the haddock. otherwise this stuff goes
+   stale which is really bad to serve as an example.
+
+for the web site: for each file generated from source, txt, sql, lhs,
+   etc., link to the actual source code file.
 
 
 

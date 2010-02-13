@@ -1068,6 +1068,30 @@ sequence and create table), and then the statements are reordered, so
 write a routine to mirror this - will then have
 (anyast -> rearrange and reorder) == (anyast -> pg->pgdump)
 
+
+rough new plan:
+
+combine this with the planned report generator
+
+have new annotation routine used in website, in annotatesource2
+first part is to run this and produce html report of the source,
+then add the catalog summary page, and list of type errors as with the website generator
+
+then we do the round trip tests:
+load into database, then compare catalogs
+dump from database, reparse and compare catalogs
+then parse, typecheck the dumped code, list type errors and catalog differences
+when the code is up to it, compare the original ast to the dumped ast.
+
+make different stages optional:
+
+run as a check tool, just want the catalog differences and type errors
+on the command line. would be nice to try and link the catalog
+differences to source positions.
+
+do website generation, without the pg roundtrips
+
+
 > testBatteryA = mode $ TestBattery {database = def
 >                                   ,files = def &= typ "FILES" & args}
 >                &= text "runs a load of consistency tests on the sql passed"

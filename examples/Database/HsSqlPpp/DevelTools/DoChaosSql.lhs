@@ -5,32 +5,12 @@ hssqlppp to it and show the results.
 
 > module Database.HsSqlPpp.DevelTools.DoChaosSql
 >     (doChaosSql) where
-
-> --import System.Directory
-> --import Control.Monad
-> --import Text.Pandoc hiding (Str)
-> --import System.Cmd
+>
 > import System.FilePath.Find
-> --import System.IO
 > import System.FilePath
-> --import Text.Highlighting.Kate
-> --import Debug.Trace
-> --import Text.XHtml.Strict hiding (title,src)
-> --import Data.DateTime
-> --import Text.RegexPR
-> --import Debug.Trace
-> --import Control.Applicative
-> --import qualified Data.List as L
-> --import Data.Char
-> --import Text.XML.HaXml hiding (find,x)
-> --import Text.PrettyPrint (render)
-> --import Text.XML.HaXml.Pretty
 >
 > import Database.HsSqlPpp.DevelTools.PandocUtils
-> --import Database.HsSqlPpp.Utils.Utils
-> --import Database.HsSqlPpp.Utils.Here
-> --import Database.HsSqlPpp.DevelTools.TestFileProcessor
-
+>
 > doChaosSql :: (PandocType
 >                -> String
 >                -> Input
@@ -55,3 +35,14 @@ hssqlppp to it and show the results.
 >          (File f)
 >          (f ++ ".html")
 
+TODO:
+
+use the new annotate, then we can present the original pristine
+source, and the source that has been scribbled all over by hsssqlppp.
+
+add a separate page to summarize the resulant catalog, use the modules
+to split this into sections. When the export lists are done, use this
+to divide each section into public, private.
+
+add a separate page to list the type errors with links to the source
+where they occur (both the original and mangled source)

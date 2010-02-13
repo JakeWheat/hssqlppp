@@ -29,6 +29,16 @@ enforce directed graph of module dependencies
 
 use some idea of interface files for modules?
 
+rough idea from dylan: create multiple export lists for each module
+with names so you can import the appropriate export you want to use,
+have this optional so if you only use one export list you don't have
+to name it, and if you import without specifying the export list name,
+you get the first one in the file by default. This way, e.g., we can
+export stuff for the other sql modules to use, but not for clients
+connecting to the database, and simulate a friend-type relationship
+between modules. Maybe also add an implicit export which exports
+everything?
+
 > {-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
 >
 > module Database.HsSqlPpp.Examples.Extensions.Modules
