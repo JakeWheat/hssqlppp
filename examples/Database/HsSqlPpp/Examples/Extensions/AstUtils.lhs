@@ -18,7 +18,9 @@ it and quits.
 
 > module Database.HsSqlPpp.Examples.Extensions.AstUtils
 >     (getAstInfo
->     ,getReferencedTableList) where
+>     ,getReferencedTableList
+>     ,replaceSourcePos
+>     ,replaceSourcePos1) where
 >
 > import Data.Generics.Uniplate.Data
 > import Data.Generics
@@ -26,6 +28,7 @@ it and quits.
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Annotation
 >
 > data AstInfo = AstInfo {
 >      functions :: [(String,Statement)]
@@ -77,3 +80,21 @@ it and quits.
 > listTables :: Data a => a  -> [(String,Statement)]
 > listTables ast =
 >   [(tn,t) | t@(CreateTable  _ tn _ _ ) <- universeBi ast]
+
+> replaceSourcePos1 :: Statement -> Statement -> Statement
+> replaceSourcePos1 st st1 = head $ replaceSourcePos st [st1]
+
+> replaceSourcePos :: Statement -> [Statement] -> [Statement]
+> replaceSourcePos st sts =
+>     let sp = getSourcePos st
+>     in map (adjSp sp) sts
+>     where
+>       getSourcePos x = gsp $ getAnnotation x
+>       gsp :: Annotation -> AnnotationElement
+>       gsp (s@(SourcePos _ _ _) : _ ) = s
+>       gsp (_:xs) = gsp xs
+>       gsp [] = SourcePos "unknown" 1 1
+>       adjSp sp1 nd = updateAnnotation (asp sp1) nd
+>       asp sp1 (SourcePos _ _ _ : xs ) = sp1 : xs
+>       asp sp1 (x:xs) = x : asp sp1 xs
+>       asp sp1 [] = sp1 : []

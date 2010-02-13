@@ -18,6 +18,7 @@ database.
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
+> import Database.HsSqlPpp.Examples.Extensions.AstUtils
 >
 > createVarExample :: ExtensionTest
 > createVarExample = ExtensionTest
@@ -43,14 +44,14 @@ database.
 > createVar =
 >     transformBi $ \x ->
 >       case x of
->         [$sqlStmt| select "create_var"($s(varname)
+>         s@[$sqlStmt| select "create_var"($s(varname)
 >                                       ,$s(typename)); |] : tl
 >             -> let tablename = varname ++ "_table"
 >                    fnname = "get_" ++ varname
 >                    conname = varname ++ "_table_01_tuple"
 >                    expr = printExpression
 >                              [$sqlExpr| (select count(*) from $(tablename)) <= 1 |]
->                in [$sqlStmts|
+>                in replaceSourcePos s [$sqlStmts|
 >
 >   create table $(tablename) (
 >    $(varname) $(typename) primary key

@@ -29,6 +29,8 @@ chaos working again then will review approach.
 > import Database.HsSqlPpp.Examples.Extensions.CardinalityRestrict
 > import Database.HsSqlPpp.Examples.Extensions.SimplifiedCatalog
 > import Database.HsSqlPpp.Examples.Extensions.Denormalized6nf
+> import Database.HsSqlPpp.Examples.Extensions.AstUtils
+>
 >
 > -- | run all the extensions needed for chaos
 > chaosExtensions :: [Statement] -> [Statement] -- Data a => a -> a
@@ -87,14 +89,14 @@ lookup table. TODO: rewrite this paragraph in english.
 > clientActionWrapper =
 >     transformBi $ \x ->
 >       case x of
->         [$sqlStmt|
+>         s@[$sqlStmt|
 >            select create_client_action_wrapper($s(actname)
 >                                               ,$s(actcall)); |]
 >             -> let actionname = "action_" ++ actname
 >                    expr = case parseExpression "" ("action_" ++ actcall) of
 >                             Left e -> error $ show e
 >                             Right e1 -> e1
->                in [$sqlStmt|
+>                in replaceSourcePos1 s [$sqlStmt|
 >                    create function $(actionname)() returns void as $$
 >                    begin
 >                      perform $(expr);
@@ -134,12 +136,12 @@ when starting a new game
 > noDelIns =
 >     transformBi $ \x ->
 >       case x of
->         [$sqlStmt| select no_deletes_inserts_except_new_game($s(table));|] : tl ->
+>         s@[$sqlStmt| select no_deletes_inserts_except_new_game($s(table));|] : tl ->
 >           let icn = table ++ "_no_insert"
 >               dcn = table ++ "_no_delete"
 >               exprt = "exists(select 1 from creating_new_game_table\n\
 >                       \       where creating_new_game = true)"
->           in [$sqlStmts|
+>           in replaceSourcePos s [$sqlStmts|
 >               select create_insert_transition_tuple_constraint
 >                    ($s(table),$s(icn),$s(exprt));
 >               select create_delete_transition_tuple_constraint
@@ -250,11 +252,11 @@ readonly tables/ compile time constant relations stuff
 > generateSpellChoiceActionsRun spells =
 >     transformBi $ \x ->
 >       case x of
->         [$sqlStmt| select generate_spell_choice_actions(); |] : tl
+>         s@[$sqlStmt| select generate_spell_choice_actions(); |] : tl
 >             -> (flip map spells $ \spell ->
 >                let actionname = "choose_" ++ spell ++ "_spell"
 >                    wrappername = "action_" ++ actionname
->                in [$sqlStmt|
+>                in replaceSourcePos1 s [$sqlStmt|
 >
 > create function $(wrappername)() returns void as $$
 > begin

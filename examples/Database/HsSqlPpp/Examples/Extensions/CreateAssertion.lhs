@@ -167,12 +167,12 @@ to make it work right.
 > createAssertion ast = reverse $
 >  (\f -> evalState (transformBiM f (reverse ast)) ([] :: ConstraintRecord)) $ \x ->
 >       case x of
->         [$sqlStmt| select create_assertion($s(name)
+>         s@[$sqlStmt| select create_assertion($s(name)
 >                                           ,$s(exprtext));|] : tl -> do
 >             existing <- get
 >             let (new, rast) = makeConstraintDdl existing name exprtext
 >             put new
->             return $ rast ++ tl
+>             return $ replaceSourcePos s rast ++ tl
 >         x1 -> return x1
 >  where
 >    asti = getAstInfo ast

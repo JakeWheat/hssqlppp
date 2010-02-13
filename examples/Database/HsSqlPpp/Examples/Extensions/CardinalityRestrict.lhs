@@ -16,6 +16,7 @@ constraint shorthand to restrict cardinality of table
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
 > import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Examples.Extensions.AstUtils
 
 challenge: make a constraint that works like this:
 
@@ -52,16 +53,16 @@ select restrict_cardinality('tablename', '>=5 && <= 10');
 > cardinalityRestrict =
 >     transformBi $ \x ->
 >       case x of
->         [$sqlStmt|
+>         s@[$sqlStmt|
 >           select restrict_cardinality($s(tablename), $(num)); |]
 >             -> let --i = [$sqlExpr| $(num) |]
 >                    expr = printExpression
 >                             [$sqlExpr| (select count(*) from $(tablename))
 >                                         <= $(num) |]
 >                    conname = tablename ++ "_card"
->                in [$sqlStmt|
+>                in replaceSourcePos1 s [$sqlStmt|
 >
->   select create_assertion($s(conname), $s(expr));
+>                   select create_assertion($s(conname), $s(expr));
 >
 >                    |]
 >         x1 -> x1

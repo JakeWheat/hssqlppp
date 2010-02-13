@@ -3,14 +3,25 @@ Copyright 2010 Jake Wheat
 Convert the Chaos 2010 example sql to html, and do some stuff with
 hssqlppp to it and show the results.
 
+> {-# LANGUAGE ScopedTypeVariables #-}
 > module Database.HsSqlPpp.DevelTools.DoChaosSql
 >     (doChaosSql) where
 >
 > import System.FilePath.Find
 > import System.FilePath
+> import Control.Monad.Error
+> import Control.Monad as M
+> import Data.List hiding (find)
 >
 > import Database.HsSqlPpp.DevelTools.PandocUtils
->
+> import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Ast hiding (Sql)
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.PrettyPrinter
+
+
 > doChaosSql :: (PandocType
 >                -> String
 >                -> Input
@@ -18,9 +29,12 @@ hssqlppp to it and show the results.
 >                -> IO ())
 >            -> IO ()
 > doChaosSql pf = do
->   -- create html versions
->   sourceFiles >>= mapM_ convFile
->   -- create short index
+>   -- create html versions of original source
+>   -- sourceFiles >>= mapM_ convFile
+>   -- do annotated source files
+>   ast <- readSourceFiles
+>   putStrLn $ printSql $ filter (not . hasSP) ast
+>   --writeFile "test" $ ppExpr ast
 >   return ()
 >   where
 >     sourceFiles = do
@@ -34,6 +48,44 @@ hssqlppp to it and show the results.
 >          (snd $splitFileName f)
 >          (File f)
 >          (f ++ ".html")
+
+> hasSP :: Statement -> Bool
+> hasSP st =
+>   getSP (getAnnotation st)
+>   where
+>     getSP s@(SourcePos f _ _ : _ ) | (isSuffixOf ".sql" f)= True
+>     getSP (_ : xs) = getSP xs
+>     getSP [] = False
+
+> readSourceFiles :: IO [Statement]
+> readSourceFiles = wrapETs $
+>   mapM (\f -> liftIO (parseSqlFile f) >>= tsl) chaosSourceFiles >>=
+>   concat |> chaosExtensions |> return
+
+> chaosSourceFiles :: [String]
+> chaosSourceFiles =
+>         ["testfiles/chaos2010sql/chaos/server/Metadata.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/PiecePrototypes.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/Spells.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/GlobalData.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/Wizards.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/Pieces.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/TurnSequence.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/ActionTestSupport.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/SquaresValid.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/Actions.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/ActionHistory.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/NewGame.sql"
+>         ,"testfiles/chaos2010sql/chaos/server/AI.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/WindowManagement.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/Sprites.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/WizardDisplayInfo.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/BoardWidget.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/SpellBookWidget.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/NewGameWidget.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/ClientActions.sql"
+>         ,"testfiles/chaos2010sql/chaos/client/ClientNewGame.sql"]
+
 
 TODO:
 

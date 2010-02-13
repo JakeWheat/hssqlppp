@@ -80,14 +80,15 @@ to deal with nulls/ maybe types?
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Examples.Extensions.AstUtils
 >
 > denormalized6nf :: Data a => a -> a
 > denormalized6nf =
 >   transformBi $ \x ->
 >       case x of
->         [$sqlStmt| select create6nf($(stuff)); |] : tl
+>         st@[$sqlStmt| select create6nf($(stuff)); |] : tl
 >             -> let (StringLit [SourcePos f l c] s) = stuff
->                in createStatements f l c s ++ tl
+>                in replaceSourcePos st (createStatements f l c s) ++ tl
 >         x1 -> x1
 >   where
 >       createStatements f l c s =

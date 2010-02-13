@@ -52,6 +52,7 @@ everything?
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Examples.Extensions.AstUtils
 >
 > modulesExample :: ExtensionTest
 > modulesExample =
@@ -97,10 +98,10 @@ everything?
 >     ); |]
 >     ++ reverse (((\f -> evalState (transformBiM f (reverse st)) "no_module") $ \x ->
 >             case x of
->                [$sqlStmt| select module($s(modname)); |] : tl
+>                s@[$sqlStmt| select module($s(modname)); |] : tl
 >                    -> do
 >                       put modname
->                       return $ [$sqlStmt|
+>                       return $ replaceSourcePos1 s [$sqlStmt|
 >                                 insert into modules (module_name)
 >                                 values ($s(modname));|] : tl
 >                s@(CreateTable _ n _ _) : tl -> insertIt s tl n "table"
@@ -113,6 +114,6 @@ everything?
 >     where
 >       insertIt s tl nm ty= do
 >          m <- get
->          return $ [$sqlStmt|
+>          return $ replaceSourcePos1 s ([$sqlStmt|
 >                    insert into all_module_objects (object_name,object_type,module_name)
->                    values ($s(nm),$s(ty), $s(m));|] : s : tl
+>                    values ($s(nm),$s(ty), $s(m));|]) : s : tl

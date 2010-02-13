@@ -32,10 +32,6 @@ to the website.
 > makeWebsite :: IO ()
 > makeWebsite = do
 >   hSetBuffering stdout NoBuffering
->   doesDirectoryExist "website" >>=
->     \l -> when(l) $ removeDirectoryRecursive "website"
->   createDirectory "website"
->   copyFile "docs/main.css" "website/main.css"
 >   let v = "0.3.0-pre"  --- todo: read from cabal
 >   let hd = wheader v
 >   t <- getCurrentTime
@@ -43,6 +39,10 @@ to the website.
 >   let pd1 = htmlize cssLink hd ft
 >       pf = pd1 Txt
 >       plhs = pd1 Lhs
+>   {-doesDirectoryExist "website" >>=
+>     \l -> when(l) $ removeDirectoryRecursive "website"
+>   createDirectory "website"
+>   copyFile "docs/main.css" "website/main.css"
 >   pf "HsSqlPpp documentation"
 >      (File "docs/index.txt")
 >      "index.html"
@@ -60,7 +60,7 @@ to the website.
 >        (Str qq)
 >        "QuasiQuoteTests.html"
 >   doSourceFiles pd1
->   doHaddock
+>   doHaddock-}
 >   doChaosSql pd1
 >   return ()
 
