@@ -25,7 +25,7 @@ it and quits.
 > import Data.Generics.Uniplate.Data
 > import Data.Generics
 > import Data.List
-> --import Debug.Trace
+> import Debug.Trace
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
@@ -87,7 +87,11 @@ it and quits.
 > replaceSourcePos :: Statement -> [Statement] -> [Statement]
 > replaceSourcePos st sts =
 >     let sp = getSourcePos st
->     in map (adjSp sp) sts
+>     in if (let (SourcePos _ a b) = sp
+>            in a ==1 && b == 1)
+>        then {-trace (show st) $-} map (adjSp sp) sts
+>        else map (adjSp sp) sts
+>       --trace ("gotSourcePos: " ++ show sp) 
 >     where
 >       getSourcePos x = gsp $ getAnnotation x
 >       gsp :: Annotation -> AnnotationElement

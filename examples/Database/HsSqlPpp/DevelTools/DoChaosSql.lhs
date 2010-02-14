@@ -22,7 +22,7 @@ hssqlppp to it and show the results.
 >            -> IO ()
 > doChaosSql pf = do
 >   -- create html versions of original source
->   sourceFiles >>= mapM_ convFile
+>   -- sourceFiles >>= mapM_ convFile
 >   -- do annotated source files
 >   new <- liftIO (annotateSource2 chaosSourceFiles)
 >   forM_ new (\(f,c) -> pf Txt (snd (splitFileName f) ++ " transformed")

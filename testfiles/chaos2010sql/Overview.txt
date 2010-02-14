@@ -7,6 +7,8 @@ The idea is to keep all the data in the database, and use constraints,
 transactions and stored procedures to keep things consistent and
 enforce the rules.
 
+The transformed versions are an attempt to show the sql as it goes into the database after being processed with the extension system. It's supposed to show sql from the original file, greyed out if it has been changed during the transform, and the extra generated sql from the transform, and it almost works.
+
 * [Metadata](chaos/server/Metadata.sql.html) - [Transformed Metadata](chaos/server/Metadata.sql.tr.html)
 * [PiecePrototypes](chaos/server/PiecePrototypes.sql.html) -[Transformed PiecePrototypes](chaos/server/PiecePrototypes.sql.tr.html)
 * [Spells](chaos/server/Spells.sql.html) - [Transformed Spells](chaos/server/Spells.sql.tr.html)

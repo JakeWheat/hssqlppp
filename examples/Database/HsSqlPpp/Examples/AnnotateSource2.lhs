@@ -62,12 +62,14 @@ so we do (string,Statement,[Statement]) -> (string,string,string)
 
 then concat the lot together, and can then render with pandoc
 
-
+> {-# LANGUAGE ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Examples.AnnotateSource2
 >     (annotateSource2) where
 >
 > import Control.Monad.Error
 > import Data.List
+> import Data.Maybe
+> --import Debug.Trace
 >
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
@@ -84,75 +86,37 @@ then concat the lot together, and can then render with pandoc
 >   origAst <- readSourceFiles fs
 >   let transformedAst = chaosExtensions origAst
 >       (_,transformedAast) = typeCheck defaultTemplate1Catalog transformedAst
->       lump :: [(Maybe (FilePath,Int), [Statement], [Statement])]
->       lump = joinLists getSp getSp origAst transformedAast
 
-The idea is to take the list of files passed to this function ('source
-filenames'), then take the entries from the lump and match each entry
-with its file.
+partition transformed ast by source position filename
+then for each file we have the filename and the list of transformed statements
+we want to print each of these transformed statements in order to a new file
+interspersed we want chunks of the original source
 
-type Entry = (Maybe (FilePath,Int), [Statement], [Statement])
+>   let p = npartition (fromMaybe (head fs) . fmap fst . getSp) transformedAast
+>   (f1 :: [(String,[(String,[Statement])])]) <- forM p (\(f, sts) -> do
+>              src <- readFile f
+>              return (f, intersperseSource f src sts))
+>   let (f2 :: [(String,String)]) =
+>           flip map f1 $ \(f,e) -> (f, unlines $ map showEntry e)
 
-[Entry] -> [(FilePath, [Entry])]
-
-But, we want to keep the entries in order they're already in, and some
-of the entries may have missing source files or the files might not
-match one of the input files (this happens with some of the
-extensions), or they might be out of order (not sure if this happens
-with the current set of extensions, but it's definitely possible.
-
-Quick and dirty solution
-
-we keep adding the entries against the first source file until we hit
-a statement with its source position pointing to the second source
-file. This means all the prepended sql goes against the first file
-given. If there are no entries against the first source file, or if
-there isn't an entry against the second source file after one against
-the first source file, give up. (Deal with this if/when it starts
-happening).
-
-Once we hit an entry against the second source file, switch to that
-one, we keep adding entries against it until we find one against the
-third source file. Repeat until we get to the last source file, which
-gets all the remaining code. This way, both the first set of
-statements, and the second set of statements should be in the right
-orders still.
-
-I think it still has problem with orphan statements in the transformed
-list appearing in the wrong place
-
->   let lumpByFile :: [(String, [(Maybe (FilePath,Int), [Statement], [Statement])])]
->       lumpByFile = appendList (\(p, _,_) -> case p of
->                                               Just (f,_) -> f
->                                               Nothing -> head fs)
->                               fs
->                               lump
->                               []
->   let newFiles :: [(String,String)]
->       newFiles = map (\(f,es) -> (f, concatMap showEntry $ reverse es)) lumpByFile
->   return $ reverse newFiles
+>   return f2
 >   where
->     showEntry :: (Maybe (FilePath,Int), [Statement], [Statement]) -> String
->     showEntry (_, sts1, sts2) =
->         let s1 = stripAnnotations sts1
->             s2 = stripAnnotations sts2
+>     showEntry :: (String, [Statement]) -> String
+>     showEntry (s, sts) =
+>         let sto = either (const []) id $ parseSql "" s -- bit crap, we could reuse the already parsed statements
+>             s1 = stripAnnotations sto
+>             s2 = stripAnnotations sts
 >         in case () of
->              _ | s1 == s2 -> concatMap (printStatement "" "") s1
->                | isPrefixOf s1 s2 -> printBoth s1 (drop (length s1) s2)
->                | otherwise -> printReplace s1 s2
->            -- ++ "\n\n~~~~{.Haskell}\n"
->            -- ++ "-- Ast:\n"
->            -- ++ intercalate "\n--\n" (map ppExpr s2)
->            -- ++ "\n\n-- Annotated Ast:\n"
->            -- ++ intercalate "\n--\n" concatMap ppExpr sts2
->            -- ++ "\n~~~~\n\n"
->     printBoth s1 s2 =
->         concatMap (printStatement "" "") s1
->         ++ concatMap (printStatement "GeneratedSql" "generated sql") s2
->     printReplace s1 s2 =
->         concatMap (printStatement "UnusedSql" "replaced sql") s1
->         ++ concatMap (printStatement "GeneratedSql" "generated sql") s2
->     printStatement :: String -> String -> Statement -> String
+>              _ | trim s == "" && sts == [] -> ""
+>                | --hack 
+>                  trim s == "/*" && sts == [] -> ""
+>                | s1 == s2 -> printStatement "" "" s
+>                | isPrefixOf s1 s2 -> printStatement "" "" s
+>                                      ++ printStatement "GeneratedSql" "generated sql"
+>                                         (printSql $ drop (length s1) sts)
+>                | otherwise -> printStatement "UnusedSql" "replaced sql" s
+>                               ++ printStatement "GeneratedSql" "generated sql" (printSql sts)
+>     printStatement :: String -> String -> String -> String
 >     printStatement cssClass comment st =
 >        if cssClass == ""
 >        then p1
@@ -162,41 +126,30 @@ list appearing in the wrong place
 >               ++ (if comment /= ""
 >                   then "-- " ++ comment ++ " ------------------------\n"
 >                   else "")
->               ++ trim (printSql [st])
+>               ++ trim st
 >               ++ "\n~~~~\n\n"
 
-> {-addOriginalSource :: (String, [(Maybe (FilePath,Int), [Statement], [Statement])])
->                   -> IO (String, [(Maybe (FilePath,Int), [Statement], [Statement], String, String)])
-> addOriginalSource (f,s) = do
->  ls <- lines <$> readFile f
->  let sps = map (\(Just (_,sp),_,_) -> sp) s
->      
->      pairs = zip sps (0:sps)
-
->  (f, map add s)
+> intersperseSource :: FilePath -> String -> [Statement] -> [(String,[Statement])]
+> intersperseSource fileName src statements =
+>   let firstLine = fromJust $ msum $ map (\s -> case getSp s of
+>                                                  Just (f,l) | f == fileName -> {-trace ("sp: " ++ (ppExpr s)) $-} Just l
+>                                                  _ -> Nothing) statements
+>   in {-trace ("firstLine: " ++ show firstLine) $ -}
+>      (unlines $ take firstLine fl, []) :
+>      reverse (map (\(a,b) -> (a,reverse b)) $ addSource [] firstLine [] statements)
 >   where
->    add (sp@(Just (f,l)), st1, st2) = (sp, st1, st2, "pre", "post")
->    add (sp, st1, st2) = (sp, st1, st2, "xxx", "xxx")-}
-
-
-> appendList :: Eq k => (v -> k) -> [k] -> [v] -> [(k,[v])] -> [(k,[v])]
-> -- last key: shove the rest of the list against it
-> appendList _ (lastKey:[]) vs acc = (lastKey, vs) : acc
-> -- more keys, more values
-> appendList gk
->            kx@(k1 : ks)
->            (v : vs)
->            acc@((k,ms) : as) | gk v == k1 = -- found the next key, so move to the next entry
->                                             appendList gk ks vs ((k1,[v]):acc)
->                              | otherwise = -- not found next key, so keep appending to this entry
->                                            appendList gk kx vs ((k,v:ms):as)
-> appendList gk (k1 : ks) (v : vs) [] = appendList gk ks vs [(k1, [v])]
-> -- no more values - we're done, need to reverse the [v]s
-> appendList _ _ [] acc = acc -- map (\(a,b) -> (a, reverse b)) acc
-> appendList _ [] _ _ = error "no keys in annotatesource2.appendlist"
-
-
-
+>     addSource :: [(String,[Statement])] -> Int -> [Statement] -> [Statement] -> [(String,[Statement])]
+>     addSource acc lno sts1 (st:sts) =
+>       let sp = getSp st
+>       in case sp of
+>            Nothing -> addSource acc lno (st:sts1) sts
+>            Just (f,l) | f /= fileName || l == lno -> addSource acc lno (st:sts1) sts
+>                       | otherwise -> addSource ((fileLines lno l, sts1):acc)
+>                                                l [st] sts
+>     addSource acc lno sts1 [] = ((fileLines lno (length fl)), sts1):acc
+>     fileLines :: Int -> Int -> String
+>     fileLines s e = unlines $ take (e - s) (drop (s - 1) fl)
+>     fl = lines src
 
 > readSourceFiles :: [String] -> IO [Statement]
 > readSourceFiles fns = wrapETs $

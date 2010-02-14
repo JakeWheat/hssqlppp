@@ -3,47 +3,31 @@
 
 New todo for next release:
 
-get chaos rewrite mostly done, a few more extensions, etc., to serve
-   as example code. rough plan on hssqlppp side is: module extension
-   work?, insert extension, actions? stack tables? custom syntax? more
-   quasiquoting?, inclusions, readonly triggers, botify, system
-   implementation objects and generate documentation from module info
+chaos sql is good enough, get the rest of it redone so it isn't such a
+   mess
 add docs to show chaos as example code
    plus add rendering of type checking process, catalog, and things
    like that
-write wrappers and sort out small example code
-tidy hssqlsystem, not sure about moving to the new exe style
+finish wrappers and sort out small example code
 nav for website, get the copyright notices only appearing at the
    bottom - it seems a bit loony at the moment
-extension usage tests - in client code?
-error handling work
-not going to start working much on missing syntax and type checks
-maybe typeinfo conversion
+maybe typeinfo conversion, because this is really bad at the moment
 database connection settings
-catalog extras for chaos
-roundtrip work
-lots of the little fixes below
+some of the little fixes below?
+add a load of quasiquoting support, with tests -> quote fns, and splices
+add wildcards for quasiquoting?
+add switches for parsing quasiquotes
+not going to start working much on missing syntax and type checks
 not going to work on markup and rendering of source much
-not planning on doing nullability, however, this is a major
-   feature. Not that much point until the hlist wrapper is working
-   again
-
+not planning on doing nullability
 
 
 some of the small fixes:
 
 web site: add links from the examples generate from the test files to
    the pandoc'd version of the respective test file source
-
-idea for example code in haddock: put the example code in self
-   contained lhs files which can be compiled and run, then either link
-   or include this source into the haddock. otherwise this stuff goes
-   stale which is really bad to serve as an example.
-
-for the web site: for each file generated from source, txt, sql, lhs,
-   etc., link to the actual source code file.
-
-
+add abstract to 6nf - base class abstract, and intermediate class
+   abstract. what about disjoint base classes?
 
 This file is a complete disorganised mess.
 ----------
@@ -75,6 +59,15 @@ doc work todos:
 check pandoc & haddock slowness with defaulttemplate1catalog
 check pandoc hang with big ast in hssqlsystem example, other places
 tidy code, get rendering nicely with pandoc
+
+
+idea for example code in haddock: put the example code in self
+   contained lhs files which can be compiled and run, then either link
+   or include this source into the haddock. otherwise this stuff goes
+   stale which is really bad to serve as an example.
+
+for the web site: for each file generated from source, txt, sql, lhs,
+   etc., link to the actual source code file.
 
 also:
 get returning * working, count *
