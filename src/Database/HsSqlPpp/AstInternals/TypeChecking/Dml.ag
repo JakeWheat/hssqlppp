@@ -219,7 +219,7 @@ checkColumnConsistency cat tbl cols' insNameTypePairs = do
   let nonMatchingColumns = cols \\ map fst ttcols
   errorWhen (not $ null nonMatchingColumns) $
        map UnrecognisedIdentifier nonMatchingColumns
-  let targetNameTypePairs = map (\l -> (l,fromJust $ lookup l ttcols)) cols
+  let targetNameTypePairs = map (\l -> (l, fromMaybe (error "dml.ag.chekcolumnconsistency: fromMaybe") $ lookup l ttcols)) cols
         --check the types of the insdata match the column targets
         --name datatype columntype
       typeTriples = map (\((a,b),c) -> (a,b,c)) $

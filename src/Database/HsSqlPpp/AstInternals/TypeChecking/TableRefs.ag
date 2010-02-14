@@ -189,21 +189,21 @@ join - most of the hard work is done in local bindings
                    -- to be added here, instead of upstream
         loc.joinErrors = fromLeft [] (foldM (lbUpdate @lhs.cat) @lhs.lib @loc.libUpdates)
         loc.libUpdates =
-            let [u1] = @tbl.libUpdates
-                [u2] = @tbl1.libUpdates
-            in [LBJoinIds u1 u2 jids (case @alias of
-                                        NoAlias -> ""
-                                        TableAlias t -> t
-                                        FullAlias t _ -> t)]
+            case (@tbl.libUpdates, @tbl1.libUpdates) of
+              ([u1], [u2]) -> [LBJoinIds u1 u2 jids (case @alias of
+                                                       NoAlias -> ""
+                                                       TableAlias t -> t
+                                                       FullAlias t _ -> t)]
+              _ -> []
             where
               jids = case (@nat, @onExpr.originalTree) of
                           (Natural, _) -> Left ()
                           (_,Just (JoinUsing _ s)) -> Right s
                           _ -> Right []
         loc.newLib : {Either [TypeError] LocalBindings}
-        loc.newLib = let [u1] = @tbl.libUpdates
-                         [u2] = @tbl1.libUpdates
-                     in lbUpdate @lhs.cat @lhs.lib (LBParallel u1 u2)
+        loc.newLib = case (@tbl.libUpdates, @tbl1.libUpdates) of
+                       ([u1],[u2]) -> lbUpdate @lhs.cat @lhs.lib (LBParallel u1 u2)
+                       _ -> Right @lhs.lib
         onExpr.lib = fromRight @lhs.lib @loc.newLib
 
 {

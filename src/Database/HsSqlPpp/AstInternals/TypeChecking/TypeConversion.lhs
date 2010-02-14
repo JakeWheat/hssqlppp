@@ -464,8 +464,8 @@ code is not as much of a mess as findCallMatch
 >   --returnWhen allUnknown (UnknownType) $ do
 >   errorWhen (not allSameCat) [IncompatibleTypeSet inArgs]
 >   returnWhen (isJust targetType &&
->               allConvertibleToFrom (fromJust targetType) inArgs)
->               (fromJust targetType) $ do
+>               allConvertibleToFrom (fromMaybe (error "TypeConversion.resolveresultsettype 1: fromJust") targetType) inArgs)
+>               (fromMaybe (error "TypeConversion.resolveresultsettype 2: fromJust") targetType) $ do
 >   Left [IncompatibleTypeSet inArgs]
 >   where
 >      allSameType = all (== head inArgs) inArgs -- &&

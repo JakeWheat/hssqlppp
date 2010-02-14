@@ -318,7 +318,8 @@ This is where constructing the local bindings lookup stacks is done
 >                         aliased = map (\(c,i) -> (c, fmap replaceCName i)) trimmed
 >                     in aliased ++ map (\((_,n),i) -> ((a,n),i)) aliased
 >     aliasExps :: [StarLookup] -> [StarLookup]
->     aliasExps lkps = let is = fromJust $ lookup "" lkps
+>     aliasExps lkps = let is = fromMaybe (error "localbindingsinternal.makestack : fromJust") $
+>                               lookup "" lkps
 >                          aliased = fmap (map replaceCName) is
 >                      in [("",aliased), (a, aliased)]
 >     replaceCName (s,_,n,t) = (s,a,n,t)
@@ -326,8 +327,10 @@ This is where constructing the local bindings lookup stacks is done
 >     joinIDTypes i1 i2 = map (joinIDType i1 i2)
 >     joinIDType :: [IDLookup] -> [IDLookup] -> String -> E (String,Type)
 >     joinIDType i1 i2 s = do
->       (_,_,_,ty1) <- fromJust $ lookup ("",s) i1
->       (_,_,_,ty2) <- fromJust $ lookup ("",s) i2
+>       (_,_,_,ty1) <- fromMaybe (Left [MissingJoinAttribute]) $
+>                      lookup ("",s) i1
+>       (_,_,_,ty2) <- fromMaybe (Left [MissingJoinAttribute]) $
+>                      lookup ("",s) i2
 >       ty <- resolveResultSetType cat [ty1,ty2]
 >       return (s,ty)
 >

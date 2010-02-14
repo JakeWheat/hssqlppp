@@ -10,16 +10,8 @@ hssqlppp to it and show the results.
 > import System.FilePath.Find
 > import System.FilePath
 > import Control.Monad.Error
-> import Control.Monad as M
-> import Data.List hiding (find)
 >
 > import Database.HsSqlPpp.DevelTools.PandocUtils
-> import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.Ast hiding (Sql)
-> import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Examples.AnnotateSource2
 
 > doChaosSql :: (PandocType
@@ -30,14 +22,11 @@ hssqlppp to it and show the results.
 >            -> IO ()
 > doChaosSql pf = do
 >   -- create html versions of original source
->   -- sourceFiles >>= mapM_ convFile
+>   sourceFiles >>= mapM_ convFile
 >   -- do annotated source files
->   --ast <- readSourceFiles
->   --putStrLn $ printSql $ filter (not . hasSP) ast
 >   new <- liftIO (annotateSource2 chaosSourceFiles)
->   forM_ new (\(f,c) -> pf Sql "x" (Str c) ("testfiles/munged/" ++ f ++ ".html"))
-
->   --writeFile "test" $ ppExpr ast
+>   forM_ new (\(f,c) -> pf Txt (snd (splitFileName f) ++ " transformed")
+>                           (Str c) (f ++ ".tr.html"))
 >   return ()
 >   where
 >     sourceFiles = do
@@ -51,19 +40,6 @@ hssqlppp to it and show the results.
 >          (snd $ splitFileName f)
 >          (File f)
 >          (f ++ ".html")
-
-> hasSP :: Statement -> Bool
-> hasSP st =
->   getSP (getAnnotation st)
->   where
->     getSP s@(SourcePos f _ _ : _ ) | (isSuffixOf ".sql" f)= True
->     getSP (_ : xs) = getSP xs
->     getSP [] = False
-
-> readSourceFiles :: IO [Statement]
-> readSourceFiles = wrapETs $
->   mapM (\f -> liftIO (parseSqlFile f) >>= tsl) chaosSourceFiles >>=
->   concat |> chaosExtensions |> return
 
 > chaosSourceFiles :: [String]
 > chaosSourceFiles =

@@ -66,18 +66,7 @@ then concat the lot together, and can then render with pandoc
 > module Database.HsSqlPpp.Examples.AnnotateSource2
 >     (annotateSource2) where
 >
-> {-import Data.List
-> import Data.Char
 > import Control.Monad.Error
->
-> import Database.HsSqlPpp.Utils.Utils hiding (split)
-> import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.Parser -}
-> import Control.Monad.Error
-> --import System.FilePath
-> import Data.Maybe
 > import Data.List
 >
 > import Database.HsSqlPpp.Utils.Utils
@@ -86,15 +75,17 @@ then concat the lot together, and can then render with pandoc
 > import Database.HsSqlPpp.Ast hiding (Sql)
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.PrettyPrinter
-
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Catalog
 
 > annotateSource2 :: [FilePath] -> IO [(String,String)]
 >
 > annotateSource2 fs = do
 >   origAst <- readSourceFiles fs
 >   let transformedAst = chaosExtensions origAst
+>       (_,transformedAast) = typeCheck defaultTemplate1Catalog transformedAst
 >       lump :: [(Maybe (FilePath,Int), [Statement], [Statement])]
->       lump = joinLists getSp getSp origAst transformedAst
+>       lump = joinLists getSp getSp origAst transformedAast
 
 The idea is to take the list of files passed to this function ('source
 filenames'), then take the entries from the lump and match each entry
@@ -138,22 +129,55 @@ list appearing in the wrong place
 >                               lump
 >                               []
 >   let newFiles :: [(String,String)]
->       newFiles = flip map lumpByFile $ \(f,es)
->                    -> (f, concatMap showEntry $ reverse es)
->                  where
->                    showEntry (_, sts1, sts2) =
->                        let s1 = stripAnnotations sts1
->                            s2 = stripAnnotations sts2
->                        in case () of
->                             _ | s1 == s2 -> printSql sts1
->                               | isPrefixOf s1 s2 -> printBoth s1 (drop (length s1) s2)
->                               | otherwise -> printBoth s1 s2
->                    printBoth s1 s2 =
->                        printSql s1
->                        ++ "\n-- start generated code ------------------------\n"
->                        ++ trim (printSql s2)
->                        ++ "\n-- end generated code --------------------------\n"
+>       newFiles = map (\(f,es) -> (f, concatMap showEntry $ reverse es)) lumpByFile
 >   return $ reverse newFiles
+>   where
+>     showEntry :: (Maybe (FilePath,Int), [Statement], [Statement]) -> String
+>     showEntry (_, sts1, sts2) =
+>         let s1 = stripAnnotations sts1
+>             s2 = stripAnnotations sts2
+>         in case () of
+>              _ | s1 == s2 -> concatMap (printStatement "" "") s1
+>                | isPrefixOf s1 s2 -> printBoth s1 (drop (length s1) s2)
+>                | otherwise -> printReplace s1 s2
+>            -- ++ "\n\n~~~~{.Haskell}\n"
+>            -- ++ "-- Ast:\n"
+>            -- ++ intercalate "\n--\n" (map ppExpr s2)
+>            -- ++ "\n\n-- Annotated Ast:\n"
+>            -- ++ intercalate "\n--\n" concatMap ppExpr sts2
+>            -- ++ "\n~~~~\n\n"
+>     printBoth s1 s2 =
+>         concatMap (printStatement "" "") s1
+>         ++ concatMap (printStatement "GeneratedSql" "generated sql") s2
+>     printReplace s1 s2 =
+>         concatMap (printStatement "UnusedSql" "replaced sql") s1
+>         ++ concatMap (printStatement "GeneratedSql" "generated sql") s2
+>     printStatement :: String -> String -> Statement -> String
+>     printStatement cssClass comment st =
+>        if cssClass == ""
+>        then p1
+>        else "<div class='" ++ cssClass ++ "'>" ++ p1 ++ "</div>"
+>        where
+>          p1 = "\n\n~~~~{.SqlPostgresql}\n"
+>               ++ (if comment /= ""
+>                   then "-- " ++ comment ++ " ------------------------\n"
+>                   else "")
+>               ++ trim (printSql [st])
+>               ++ "\n~~~~\n\n"
+
+> {-addOriginalSource :: (String, [(Maybe (FilePath,Int), [Statement], [Statement])])
+>                   -> IO (String, [(Maybe (FilePath,Int), [Statement], [Statement], String, String)])
+> addOriginalSource (f,s) = do
+>  ls <- lines <$> readFile f
+>  let sps = map (\(Just (_,sp),_,_) -> sp) s
+>      
+>      pairs = zip sps (0:sps)
+
+>  (f, map add s)
+>   where
+>    add (sp@(Just (f,l)), st1, st2) = (sp, st1, st2, "pre", "post")
+>    add (sp, st1, st2) = (sp, st1, st2, "xxx", "xxx")-}
+
 
 > appendList :: Eq k => (v -> k) -> [k] -> [v] -> [(k,[v])] -> [(k,[v])]
 > -- last key: shove the rest of the list against it

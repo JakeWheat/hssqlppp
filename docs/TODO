@@ -58,9 +58,6 @@ nav: create a 'sitemap' thing, and nav bar and breadcrumbs to each
    page
 work on rendering source - issues with markdown, embedded sql, etc.
 
-getting a catalog from a database involves reading the updates then
-   applying them, which is bizarre, sort it out
-
 add tests for extensions actually working by using them in a database
 
 focus: website/documentation, examples

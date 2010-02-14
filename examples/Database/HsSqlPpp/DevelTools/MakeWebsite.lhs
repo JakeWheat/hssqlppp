@@ -39,7 +39,7 @@ to the website.
 >   let pd1 = htmlize cssLink hd ft
 >       pf = pd1 Txt
 >       plhs = pd1 Lhs
->   {-doesDirectoryExist "website" >>=
+>   doesDirectoryExist "website" >>=
 >     \l -> when(l) $ removeDirectoryRecursive "website"
 >   createDirectory "website"
 >   copyFile "docs/main.css" "website/main.css"
@@ -60,7 +60,7 @@ to the website.
 >        (Str qq)
 >        "QuasiQuoteTests.html"
 >   doSourceFiles pd1
->   doHaddock-}
+>   doHaddock
 >   doChaosSql pd1
 >   return ()
 
@@ -101,7 +101,7 @@ the top header for each page
 > wheader v = [$here|
 >
 > <div class='header'>[HsSqlPpp-|] ++ v ++
->             [$here|](website/index.html)</div>|] ++ "\n\n"
+>             [$here|](website/index.html)</div>|] ++ "<br />\n\n"
 
 todo: add the last modified time for each file individually
 

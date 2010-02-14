@@ -44,6 +44,14 @@ pre.SqlPostgresql {
   padding: 0.5em;
   background-color: #f0f6f6;
 }
+.GeneratedSql pre.SqlPostgresql {
+  padding: 0.5em;
+  background-color: #f0f6e0;
+}
+.UnusedSql pre.SqlPostgresql {
+  padding: 0.5em;
+  background-color: #e9e9e9;
+}
 pre.haskell,pre.Haskell {
   padding: 0.5em;
   background-color: #f5f5d9;

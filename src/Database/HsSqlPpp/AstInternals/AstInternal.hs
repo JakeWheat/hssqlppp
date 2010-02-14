@@ -600,7 +600,7 @@ checkColumnConsistency cat tbl cols' insNameTypePairs = do
   let nonMatchingColumns = cols \\ map fst ttcols
   errorWhen (not $ null nonMatchingColumns) $
        map UnrecognisedIdentifier nonMatchingColumns
-  let targetNameTypePairs = map (\l -> (l,fromJust $ lookup l ttcols)) cols
+  let targetNameTypePairs = map (\l -> (l, fromMaybe (error "dml.ag.chekcolumnconsistency: fromMaybe") $ lookup l ttcols)) cols
         --check the types of the insdata match the column targets
         --name datatype columntype
       typeTriples = map (\((a,b),c) -> (a,b,c)) $
@@ -11616,12 +11616,12 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               -- "./TypeChecking/TableRefs.ag"(line 191, column 9)
               _libUpdates =
                   {-# LINE 191 "./TypeChecking/TableRefs.ag" #-}
-                  let [u1] = _tblIlibUpdates
-                      [u2] = _tbl1IlibUpdates
-                  in [LBJoinIds u1 u2 jids (case alias_ of
-                                              NoAlias -> ""
-                                              TableAlias t -> t
-                                              FullAlias t _ -> t)]
+                  case (_tblIlibUpdates, _tbl1IlibUpdates) of
+                    ([u1], [u2]) -> [LBJoinIds u1 u2 jids (case alias_ of
+                                                             NoAlias -> ""
+                                                             TableAlias t -> t
+                                                             FullAlias t _ -> t)]
+                    _ -> []
                   where
                     jids = case (nat_, _onExprIoriginalTree) of
                                 (Natural, _) -> Left ()
@@ -11631,9 +11631,9 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               -- "./TypeChecking/TableRefs.ag"(line 204, column 9)
               _newLib =
                   {-# LINE 204 "./TypeChecking/TableRefs.ag" #-}
-                  let [u1] = _tblIlibUpdates
-                      [u2] = _tbl1IlibUpdates
-                  in lbUpdate _lhsIcat _lhsIlib (LBParallel u1 u2)
+                  case (_tblIlibUpdates, _tbl1IlibUpdates) of
+                    ([u1],[u2]) -> lbUpdate _lhsIcat _lhsIlib (LBParallel u1 u2)
+                    _ -> Right _lhsIlib
                   {-# LINE 11638 "AstInternal.hs" #-}
               -- "./TypeChecking/TableRefs.ag"(line 207, column 9)
               _onExprOlib =
