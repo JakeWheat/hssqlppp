@@ -1,10 +1,11 @@
 = TODOs
 
+This file is a complete disorganised mess.
 
 New todo for next release:
 
-chaos sql is good enough, get the rest of it redone so it isn't such a
-   mess
+chaos sql is good enough for now, get the rest of it redone so it
+   isn't such a mess
 add docs to show chaos as example code
    plus add rendering of type checking process, catalog, and things
    like that
@@ -14,13 +15,35 @@ nav for website, get the copyright notices only appearing at the
 maybe typeinfo conversion, because this is really bad at the moment
 database connection settings
 some of the little fixes below?
-add a load of quasiquoting support, with tests -> quote fns, and splices
-add wildcards for quasiquoting?
-add switches for parsing quasiquotes
 not going to start working much on missing syntax and type checks
 not going to work on markup and rendering of source much
 not planning on doing nullability
+move shortdefaultcat to examples tree
 
+use cases:
+parse some sql: expression, files, etc.
+ produce: ast, see parse errors, just check things parse ok
+type check:
+  -> view resultant catalog
+     compare catalog with pg
+     view annotated source
+     view annotated ast
+     see type errors
+typesafe database access
+use the parser in an embedded situation
+use quasiquoting
+write some extensions, then load sql using those extensions into a
+   database
+
+whet your appetite page: just some code snippets and short
+   description with some links, like a marketing page
+
+report:
+remove original annotate source
+integrate with testbattery
+provide output in valid sql text or pandoc->html
+ability to read database rather than sql
+integrate with ppcatalog, dbcatalog
 
 some of the small fixes:
 
@@ -29,8 +52,41 @@ web site: add links from the examples generate from the test files to
 add abstract to 6nf - base class abstract, and intermediate class
    abstract. what about disjoint base classes?
 
-This file is a complete disorganised mess.
+
+New plan to combine testbattery, annotate source, etc.
+input: database name, sql files, ast tranformer
+  - maybe make database reading optional
+  - maybe make option to read from database rather than sql source
+produces in a directory tree (bits are switch-offable with flags):
+each original source file unchanged
+transformed and annotated source of each file
+a page listing the type errors with links
+a page displaying the catalog that the type check has produced
+a page summarising the round trip process:
+  errors on trying to load into database
+  differences in catalog read from database to one from type checker
+  errors parsing the database dump
+  differences in catalog from typechecking the dump to the original
+   source catalog
+  list of type errors from checking the dump, with comparison with
+   type errors from original source
+
+
+
+
+
+
 ----------
+
+add a load of quasiquoting support, with tests -> 1quote fns, and splices
+add wildcards for quasiquoting?
+add switches for parsing quasiquotes
+
+issues for an announcement on freshment, postgresql:
+parsing - add parsing support for template1 operators, plus try to add
+   most of the syntax in the manual
+
+
 
 add flag to parser to switch between parsing splices or not
 convert error to either in conversion from anti to regular ast
@@ -278,6 +334,11 @@ work on making the tests more comprehensive, want a test for each
 add missing operators to parser
 see if @ as prefix and infix just works in parsec
 some a_expr and b_expr support properly by looking at pg grammar file
+
+is it possible to write a system that allows either writing syntax
+   extensions using plpgsql like syntax, or write processors/report
+   generators in extended plpgsql which use the ast or type
+   information?
 
 ---------
 some random notes

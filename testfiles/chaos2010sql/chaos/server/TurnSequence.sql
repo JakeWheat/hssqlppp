@@ -187,7 +187,7 @@ select create6nf ($$
     spell_name text
   );
 
-  wizard_spell_choices_imaginary (
+  wizard_spell_choices_imaginary : wizard_spell_choices_mr (
     imaginary boolean null
   );
 

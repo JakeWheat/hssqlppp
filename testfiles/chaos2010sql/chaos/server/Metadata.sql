@@ -11,11 +11,6 @@ select module('Chaos.Server.Metadata');
 
 create language plpgsql;
 
-/*
-select new_module('chaos', 'root');
-select new_module('server', 'chaos');
-select new_module('metadata', 'server');
-*/
 create table base_relvar_metadata (
   relvar_name text unique, -- references base_relvars, fk to view
   type text check (type in('readonly', 'data', 'stack'))
@@ -35,10 +30,10 @@ This view is only used in the check_code_some_tags function.
 */
 /*
 create view chaos_base_relvars as
-  select object_name,object_type from public_database_objects
+  select object_name,object_type from all_database_objects
   where object_type = 'base_relvar'
   except
-        select object_name,object_type from module_objects
+        select object_name,object_type from all_module_objects
         where module_name = 'catalog' and object_type='base_relvar';
 */
 /*
@@ -120,5 +115,4 @@ begin
 end;
 $$ language plpgsql volatile;
 
-select set_module_for_preceding_objects('metadata');
 */

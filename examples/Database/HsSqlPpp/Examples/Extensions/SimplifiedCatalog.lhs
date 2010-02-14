@@ -13,6 +13,7 @@ from Chaos2010, it uses
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Examples.Extensions.AstUtils
 >
 > simplifiedCatalogSt :: [Statement]
 > simplifiedCatalogSt =
@@ -195,4 +196,4 @@ create view object_orders as
 >     |]
 >
 > simplifiedCatalog :: [Statement] -> [Statement]
-> simplifiedCatalog xs = simplifiedCatalogSt ++ xs
+> simplifiedCatalog xs = replaceSourcePos (head xs) simplifiedCatalogSt ++ xs

@@ -6,7 +6,7 @@ Extension to implement a module system:
 
 initial syntax is new_module - which adds the module and then adds
 everything following to that module until a new new_module is
-hit. Just use . separated names, no explicit heirarchy for now.
+hit. Just use . separated names, no explicit hierarchy for now.
 
 then, add public export lists, get these in a catalog
 
@@ -38,6 +38,12 @@ export stuff for the other sql modules to use, but not for clients
 connecting to the database, and simulate a friend-type relationship
 between modules. Maybe also add an implicit export which exports
 everything?
+
+take a bit further, e.g. for the '6nf' thing, could create a namespace
+control which says, this table is accessible only by the following
+views, then create rules on the views, so we have physical
+implementation independence and the table with the nulls is completely
+hidden, without having to create a separate module.
 
 > {-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
 >
@@ -86,7 +92,7 @@ everything?
 >
 > modules :: [Statement] -> [Statement]
 > modules st =
->     [$sqlStmts|
+>     (replaceSourcePos (head st) [$sqlStmts|
 >      create table modules (
 >       module_name text,
 >       module_order serial
@@ -95,7 +101,7 @@ everything?
 >       object_name text,
 >       object_type text,
 >       module_name text
->     ); |]
+>     ); |])
 >     ++ reverse (((\f -> evalState (transformBiM f (reverse st)) "no_module") $ \x ->
 >             case x of
 >                s@[$sqlStmt| select module($s(modname)); |] : tl

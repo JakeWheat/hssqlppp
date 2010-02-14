@@ -7,7 +7,17 @@ The idea is to keep all the data in the database, and use constraints,
 transactions and stored procedures to keep things consistent and
 enforce the rules.
 
-The transformed versions are an attempt to show the sql as it goes into the database after being processed with the extension system. It's supposed to show sql from the original file, greyed out if it has been changed during the transform, and the extra generated sql from the transform, and it almost works.
+The transformed versions are an attempt to show the sql as it goes
+into the database after being processed with the extension system. The
+transformation system works fine - the original sources here are
+transformed into normal sql, loaded into a database which then passes
+all the tests for the project.
+
+The presentation here is slightly flakey in places. It attempts to
+take the final sql post transform, and merge in the original sql
+source statement by statement so you can see what's happening in the
+transform process, and it also shows some limited annotations from
+type checking.
 
 * [Metadata](chaos/server/Metadata.sql.html) - [Transformed Metadata](chaos/server/Metadata.sql.tr.html)
 * [PiecePrototypes](chaos/server/PiecePrototypes.sql.html) -[Transformed PiecePrototypes](chaos/server/PiecePrototypes.sql.tr.html)

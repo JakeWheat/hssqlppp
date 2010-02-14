@@ -13,7 +13,8 @@ hssqlppp to it and show the results.
 >
 > import Database.HsSqlPpp.DevelTools.PandocUtils
 > import Database.HsSqlPpp.Examples.AnnotateSource2
-
+> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
+>
 > doChaosSql :: (PandocType
 >                -> String
 >                -> Input
@@ -22,9 +23,9 @@ hssqlppp to it and show the results.
 >            -> IO ()
 > doChaosSql pf = do
 >   -- create html versions of original source
->   -- sourceFiles >>= mapM_ convFile
+>   sourceFiles >>= mapM_ convFile
 >   -- do annotated source files
->   new <- liftIO (annotateSource2 chaosSourceFiles)
+>   new <- liftIO (annotateSource2 (Just chaosExtensions) Nothing "template1" chaosSourceFiles)
 >   forM_ new (\(f,c) -> pf Txt (snd (splitFileName f) ++ " transformed")
 >                           (Str c) (f ++ ".tr.html"))
 >   return ()

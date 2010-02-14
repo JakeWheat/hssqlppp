@@ -69,23 +69,36 @@ then concat the lot together, and can then render with pandoc
 > import Control.Monad.Error
 > import Data.List
 > import Data.Maybe
+> import Control.Applicative
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Ast hiding (Sql)
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Examples.DBUtils
 
-> annotateSource2 :: [FilePath] -> IO [(String,String)]
+> annotateSource2 :: (Maybe ([Statement] -> [Statement]))
+>                 -> (Maybe (Annotation -> String))
+>                 -> String
+>                 -> [FilePath] -> IO [(String,String)]
 >
-> annotateSource2 fs = do
+> annotateSource2 astTransform annotPrinter dbName fs = do
 >   origAst <- readSourceFiles fs
->   let transformedAst = chaosExtensions origAst
->       (_,transformedAast) = typeCheck defaultTemplate1Catalog transformedAst
+>   cat <- either (\l -> error $ show l) id <$> readCatalog dbName
+>   let transformedAst = maybe origAst (\t -> t origAst) astTransform
+>       (_,transformedAast) = typeCheck cat transformedAst
+>   let sps = map getSp transformedAst
+>   when (any (==Nothing) sps)
+>        $ error "statements without source positions"
+>   let afns = map (\(f,_) -> f) $ catMaybes sps
+>   when (any (`notElem` fs) afns)
+>        $ error "statements with unrecognised source file"
+
+TODO:
+check order of statements
 
 partition transformed ast by source position filename
 then for each file we have the filename and the list of transformed statements
@@ -96,28 +109,36 @@ interspersed we want chunks of the original source
 >   (f1 :: [(String,[(String,[Statement])])]) <- forM p (\(f, sts) -> do
 >              src <- readFile f
 >              return (f, intersperseSource f src sts))
+>   let annPr = maybe defaultAnnotationPrinter id annotPrinter
 >   let (f2 :: [(String,String)]) =
->           flip map f1 $ \(f,e) -> (f, unlines $ map showEntry e)
+>           flip map f1 $ \(f,e) -> (f, unlines $ map (showEntry annPr) e)
 
 >   return f2
 >   where
->     showEntry :: (String, [Statement]) -> String
->     showEntry (s, sts) =
+>     showEntry :: (Annotation -> String) -> (String, [Statement]) -> String
+>     showEntry a (s, sts) =
 >         let sto = either (const []) id $ parseSql "" s -- bit crap, we could reuse the already parsed statements
 >             s1 = stripAnnotations sto
 >             s2 = stripAnnotations sts
 >         in case () of
 >              _ | trim s == "" && sts == [] -> ""
->                | --hack 
+>                | --hack
 >                  trim s == "/*" && sts == [] -> ""
->                | s1 == s2 -> printStatement "" "" s
->                | isPrefixOf s1 s2 -> printStatement "" "" s
->                                      ++ printStatement "GeneratedSql" "generated sql"
->                                         (printSql $ drop (length s1) sts)
->                | otherwise -> printStatement "UnusedSql" "replaced sql" s
->                               ++ printStatement "GeneratedSql" "generated sql" (printSql sts)
->     printStatement :: String -> String -> String -> String
->     printStatement cssClass comment st =
+>                | s1 == s2 -> concatMap (annStr a) s2
+>                              ++ printStatement "" "" "" s
+>                | isPrefixOf s1 s2 -> printStatement "" "" (concatMap (annStr a) (take (length s1) sts)) s
+>                                      ++ printStatement "GeneratedSql" "generated sql" ""
+>                                         (prSql a $ drop (length s1) sts)
+>                | otherwise -> printStatement "UnusedSql" "replaced sql" "" s
+>                               ++ printStatement "GeneratedSql" "generated sql" "" (prSql a sts)
+>     prSql :: (Annotation -> String) -> [Statement] -> String
+>     prSql a sts = concatMap (\st -> annStr a st ++ printSql [st]) sts
+>     annStr :: (Annotation -> String) -> Statement -> String
+>     annStr a st = case a (getAnnotation st) of
+>                      y | trim y == "" -> ""
+>                      x -> "/*" ++ x ++ "*/\n"
+>     printStatement :: String -> String -> String -> String -> String
+>     printStatement cssClass comment pre st =
 >        if cssClass == ""
 >        then p1
 >        else "<div class='" ++ cssClass ++ "'>" ++ p1 ++ "</div>"
@@ -126,7 +147,7 @@ interspersed we want chunks of the original source
 >               ++ (if comment /= ""
 >                   then "-- " ++ comment ++ " ------------------------\n"
 >                   else "")
->               ++ trim st
+>               ++ pre ++ trim st
 >               ++ "\n~~~~\n\n"
 
 > intersperseSource :: FilePath -> String -> [Statement] -> [(String,[Statement])]
@@ -163,3 +184,13 @@ interspersed we want chunks of the original source
 >     getSP (SourcePos f l _ : _ ) = Just (f,l)
 >     getSP (_ : xs) = getSP xs
 >     getSP [] = Nothing
+
+> defaultAnnotationPrinter :: Annotation -> String
+> defaultAnnotationPrinter a =
+>   intercalate "\n" $ map ppA a
+>   where
+>     ppA x = case x of
+>               StatementTypeA st@(StatementType i o) | not (null i) && not (null o) -> ppExpr st
+>               CatUpdates u | not (null u) -> ppExpr u
+>               TypeErrorA t -> ppExpr t
+>               _ -> ""

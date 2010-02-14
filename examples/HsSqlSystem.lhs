@@ -80,9 +80,6 @@ command defs
 >
 >                  | Test {extra :: [String]}
 >
->                  | GenWrap {database :: String
->                            ,file :: String}
->
 >                  | MakeWebsite
 >                  | MakeAntiNodes
 >                  | ResetChaos
@@ -255,7 +252,7 @@ ERROR HERE
 >                (liftIO . readInput) f >>=
 >                tsl . P.parseSql f >>=
 >                return . (astTransformer |>
->                          stripAnnotations |>
+>                          --stripAnnotations |>
 >                          ppExpr) >>=
 >                liftIO . putStrLn)
 
@@ -1161,22 +1158,6 @@ run the test suite
 
 -------------------------------------------------------------------------------
 
-genWrap
-=======
-
-> genWrapA = mode $ GenWrap {database = def
->                           ,file = def &= typ "FILE"}
->            &= text "experimental code to generate typesafe haskell wrapper \
->                    \for db access"
-> genWrap :: String -> String -> IO ()
-> genWrap db f = undefined
->   {-wrapETs doit
->     where
->       doit :: (MonadIO m) => ErrorT String m ()
->       doit = liftIO (wrapperGen db f >>= putStrLn)-}
-
--------------------------------------------------------------------------------
-
 > -- | Pretty print list of type errors with optional source position
 > --   in emacs readable format.
 > ppTypeErrors :: [(Maybe AnnotationElement, [TypeError])] -> [String]
@@ -1342,7 +1323,7 @@ main
 >                        annotateSourceA, ppCatalogA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
->                        testA, genWrapA, makeWebsiteA, makeAntiNodesA
+>                        testA, makeWebsiteA, makeAntiNodesA
 >                       ,resetChaosA]
 >
 >        case cmd of
@@ -1364,7 +1345,6 @@ main
 >          PgDump db -> pgDump1 db
 >          TestBattery db fns -> runTestBattery db fns
 >          Test as -> runTests as
->          GenWrap db f -> genWrap db f
 >          MakeWebsite -> makeWebsite
 >          MakeAntiNodes -> makeAntiNodesF
 >          ResetChaos -> resetChaos
@@ -1372,7 +1352,7 @@ main
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
 >   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
->   allAnnotationsA, ppCatalogA, genWrapA, makeWebsiteA,
+>   allAnnotationsA, ppCatalogA, makeWebsiteA,
 >   makeAntiNodesA, resetChaosA :: Mode HsSqlSystem
 
 -------------------------------------------------------------------------------

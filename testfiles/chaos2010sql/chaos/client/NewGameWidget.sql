@@ -91,8 +91,6 @@ begin
 end
 $$ language plpgsql volatile;
 
---select set_module_for_preceding_objects('new_game_widget');
-
 /*
 
 ================================================================================
