@@ -16,31 +16,46 @@ bzr branch lp:~jakewheat/hssqlppp/trunk
 Status
 ======
 
-Pre-alpha. Support for parsing SQL is patchy, but not too bad.
-
-Support for type-checking is also patchy. A rough idea of how far
-along it is: can get catalog information by parsing and type checking
-ddl source, or by reading a database, and can then type check
-parameterized crud statements and generate type-safe haskell
-wrappers. This already works well on a smallish database project with
-maybe 40 tables and a lot of views and functions.
-
-See these extracts from the test files for examples of the kind of SQL
-which parses and type checks:
+Pre-alpha. Support for parsing SQL is patchy, but not too bad. Here is
+an extract from the parsing tests which gives load of examples of what
+kind of SQL can currently be parsed:
 
 * [Parsing examples](ParserTests.html)
+
+Support for type-checking is also patchy. Most of the effort so far
+has been put into producing catalog information out, and type checking
+parameterised crud statements. These two aspects work quite well,
+although there is a fair bit missing from the catalog information
+currently. The type checker skips over type check failures and as yet
+unsupported sql quite well.
+
+I find it pretty useful when I change or remove a function, table or
+view, the type checker will recheck the function bodies much better
+than loading into postgres does.
+
+Extract from the type checking tests:
+
 * [Type-checking examples](TypeCheckTests.html)
+
+Currently limited support for quasiquoting, here are the examples:
+
 * [Quasiquotation examples](QuasiQuoteTests.html)
+
+The [example database for a game, Chaos
+2010](testfiles/chaos2010sql/Overview.txt.html) is an example of a not
+really small database which is parsed, transformed, then loaded into
+the database successfully. The extensions which it uses to transform
+the tree use quite a lot of quasiquoting. It mostly type checks, the
+main incorrect errors it flags are in the trigger functions (type
+checking triggers isn't too well supported at the moment).
 
 Some other limitations are that the design of the AST node types is
 pretty basic, not much work has been done on correctly rejecting
 invalid SQL (although it does pretty well despite this), and not much
-thought has been put into error messages and error reporting yet
+thought has been put into the error messages/ error reporting yet
 (although you can definitely use it to catch lots of type checking
-issues).
-
-Only limited parts of the ast have antiquotation support for the
-quasiquoter, if you need some that aren't there, let me know.
+issues, it mostly gives you something you can understand with accurate
+source positions).
 
 Installation
 ============
@@ -92,8 +107,6 @@ to compile and run without installing it.
 Documentation
 =============
 
-The documentation you're reading is a work in progress.
-
 [Haddock](haddock/index.html)
 
 [Example code](examples.html)
@@ -118,7 +131,7 @@ Get latest development version:
 bzr branch lp:~jakewheat/hssqlppp/trunk
 ~~~~~
 
-(This version is often a mess and sometimes broken).
+(This version is sometimes a mess and it's broken on rare occasions).
 
 Uses Parsec for parsing, HDBC for database access, and UUAGC to assist
 the type checking (UUAGC is needed if you edit the .ag files).
@@ -129,6 +142,33 @@ executable (see above), and then:
 ~~~~~{.sh}
 HsSqlSystem test
 ~~~~~
+
+Current work
+============
+
+The major milestones before the release of 0.3.0 are:
+
+* a couple of introductory documentation pages;
+* work on the command which produces the documentation for the example
+  database, integrate with round trip tests, so it can be used to
+  evaluate how well the library can cope with your database code;
+* add simple support for parsing custom syntax, and use in the example
+  extensions;
+* add lots of splices for quasi quoting, plus examples;
+* sort out the example chaos code, the client side stuff is pretty
+  ropey.
+
+Probably for the next release, 0.4.0, the main focus will be extending
+the parsing support to cover the majority of Postgres SQL and PL/pgSQL
+syntax.
+
+Other immediate nice to haves are:
+
+* nullability inference
+* finishing off the main missing bits from the catalog side of type
+  checking
+* full modules extension providing namespacing, export, import lists
+  enforcing, which will really help with large sql codebases.
 
 Useful links
 ============

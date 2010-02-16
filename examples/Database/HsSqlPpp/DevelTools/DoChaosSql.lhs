@@ -14,6 +14,7 @@ hssqlppp to it and show the results.
 > import Database.HsSqlPpp.DevelTools.PandocUtils
 > import Database.HsSqlPpp.Examples.AnnotateSource2
 > import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
+> import Database.HsSqlPpp.Examples.Chaos2010
 >
 > doChaosSql :: (PandocType
 >                -> String
@@ -25,7 +26,7 @@ hssqlppp to it and show the results.
 >   -- create html versions of original source
 >   sourceFiles >>= mapM_ convFile
 >   -- do annotated source files
->   new <- liftIO (annotateSource2 (Just chaosExtensions) Nothing "template1" chaosSourceFiles)
+>   new <- liftIO (annotateSource2 (Just chaosExtensions) Nothing "template1" chaosFiles)
 >   forM_ new (\(f,c) -> pf Txt (snd (splitFileName f) ++ " transformed")
 >                           (Str c) (f ++ ".tr.html"))
 >   return ()
@@ -41,30 +42,6 @@ hssqlppp to it and show the results.
 >          (snd $ splitFileName f)
 >          (File f)
 >          (f ++ ".html")
-
-> chaosSourceFiles :: [String]
-> chaosSourceFiles =
->         ["testfiles/chaos2010sql/chaos/server/Metadata.sql"
->         ,"testfiles/chaos2010sql/chaos/server/PiecePrototypes.sql"
->         ,"testfiles/chaos2010sql/chaos/server/Spells.sql"
->         ,"testfiles/chaos2010sql/chaos/server/GlobalData.sql"
->         ,"testfiles/chaos2010sql/chaos/server/Wizards.sql"
->         ,"testfiles/chaos2010sql/chaos/server/Pieces.sql"
->         ,"testfiles/chaos2010sql/chaos/server/TurnSequence.sql"
->         ,"testfiles/chaos2010sql/chaos/server/ActionTestSupport.sql"
->         ,"testfiles/chaos2010sql/chaos/server/SquaresValid.sql"
->         ,"testfiles/chaos2010sql/chaos/server/Actions.sql"
->         ,"testfiles/chaos2010sql/chaos/server/ActionHistory.sql"
->         ,"testfiles/chaos2010sql/chaos/server/NewGame.sql"
->         ,"testfiles/chaos2010sql/chaos/server/AI.sql"
->         ,"testfiles/chaos2010sql/chaos/client/WindowManagement.sql"
->         ,"testfiles/chaos2010sql/chaos/client/Sprites.sql"
->         ,"testfiles/chaos2010sql/chaos/client/WizardDisplayInfo.sql"
->         ,"testfiles/chaos2010sql/chaos/client/BoardWidget.sql"
->         ,"testfiles/chaos2010sql/chaos/client/SpellBookWidget.sql"
->         ,"testfiles/chaos2010sql/chaos/client/NewGameWidget.sql"
->         ,"testfiles/chaos2010sql/chaos/client/ClientActions.sql"
->         ,"testfiles/chaos2010sql/chaos/client/ClientNewGame.sql"]
 
 
 TODO:

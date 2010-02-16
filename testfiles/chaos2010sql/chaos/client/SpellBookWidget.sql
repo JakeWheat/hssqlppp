@@ -98,7 +98,7 @@ $$ language plpgsql volatile;
 ==== ordering
 order the spells by spell category
 */
-create view section_order as
+create view section_orderv as
   select 1 as section_order, 'wizard' as spell_category
     union
   select 2 as section_order, 'attacking' as spell_category
@@ -115,7 +115,7 @@ create view spells_with_order as
               when alignment = 0 then 1
         when alignment < 0 then 2
       end as alignment_order
-  from spells_mr_base natural inner join section_order;
+  from spells_mr_base natural inner join section_orderv;
 /*
 ==== spell counts
 */
@@ -300,7 +300,7 @@ create view spell_details as
 
 create view current_wizard_selected_spell_details as
   select spell_name, spell_category, sprite, base_chance, description,
-    num, range, count, chance, alignment_string
+    numb, range, count, chance, alignment_string
   from spell_details
   natural inner join wizard_spell_choices
   inner join current_wizard_table on (wizard_name = current_wizard);

@@ -52,3 +52,19 @@ casting, etc.:
 what operator is being used when comparing two composite types for
 equality: used to have to create this manually but now works without
 this (briefly caused an error but now works either way)
+
+
+haskelldb-bugs:
+create view section_order as
+  select 1 as section_order, 'wizard' as spell_category
+    union
+  select 2 as section_order, 'attacking' as spell_category
+    union
+  select 3 as section_order, 'object' as spell_category
+    union
+  select 4 as section_order, 'miscellaneous' as spell_category
+    union
+  select 5 as section_order, 'monster' as spell_category;
+breaks with view same name as column
+column called num, conflicts with prelude
+same named column in two different views creates two definitions

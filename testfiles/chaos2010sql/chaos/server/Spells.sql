@@ -1,6 +1,7 @@
 /*
 
-== spells
+spells
+======
 
 Spells come in a number of flavours, the user interface breaks them
 down into the same groups that the original chaos instructions did:
@@ -10,7 +11,9 @@ wizard spells: upgrade your wizard in some way, most add weaponry
 attacking spells: are cast directly on enemy wizards and their
           monsters to kill them or destroy all of a wizards creations.
 
-object spells: create object pieces
+object spells: create object pieces, which are pieces which aren't
+  moved by the wizard, all the other spells which create pieces are
+  monster spells
 
 miscellaneous spells: various spells not in the other categories
 
@@ -26,12 +29,14 @@ create new pieces on the board, and all the other target spells.
 casting chance notes:
 
 Each time you cast a spell it can affect the world alignment, which in
-turn affects the spell casting chances.
+turn affects the spell casting chances in the future, this is critical
+to most playing strategies.
 
 === ddl
 */
 select module('Chaos.Server.Spells');
 
+-- this is the presentation catagories
 create domain spell_category as text
        check (value in ('object', 'attacking',
        'wizard', 'miscellaneous', 'monster'));
@@ -62,7 +67,7 @@ select create6nf ($$
 
   target_spells : spells_mr (
     range int,
-    num int,
+    numb int,
     valid_square_category spell_square_category
   );
 
@@ -85,11 +90,12 @@ create view activate_spells as
   where range is null;
 
 /*
-=== data
+data
+----
 
 */
 copy spells_mr (spell_name, base_chance, alignment, spell_category, description,
- range, num, valid_square_category, ptype) from stdin;
+ range, numb, valid_square_category, ptype) from stdin;
 dark_citadel	50	-1	object	Gives wizard building to hide in.	8	1	empty	dark_citadel
 dark_power	50	-2	attacking	When cast on a wizard it kills all that wizards creations if successful. Allows 3 attacks on enemy creatures	20	3	creature_on_top	\N
 decree	90	1	attacking	When cast on a wizard it kills all that wizards creations if successful. Allows 1 attack on an enemy creature.	20	1	creature_on_top	\N

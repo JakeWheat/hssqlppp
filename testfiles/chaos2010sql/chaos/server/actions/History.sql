@@ -9,7 +9,7 @@ then create a view to show the player visible log with some events
 removed and some combined.
 */
 
-select module('Chaos.Server.ActionHistory');
+select module('Chaos.Server.Actions.History');
 
 create domain history_name_enum as text
        check (value in (

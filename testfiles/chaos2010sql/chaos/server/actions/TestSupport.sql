@@ -1,5 +1,6 @@
 /*
-== Testing
+Action test support
+===================
 
 for testing purposes sometimes want to make a given nondeterministic
 action always fail or always succeed.
@@ -16,7 +17,7 @@ you have to set the override each time you want to override something
 
 */
 
-select module('Chaos.Server.ActionTestSupport');
+select module('Chaos.Server.Actions.TestSupport');
 
 create domain random_test text check (value in
        ('disappear', 'spread', 'attack',
@@ -38,9 +39,11 @@ end;
 $$ language plpgsql volatile;
 
 /*
-== random numbers
+random numbers
+
 run all random tests through this, so that we can hook into them
 during testing.
+
 */
 create function check_random_success(t random_test, successPercentage int)
   returns boolean as $$

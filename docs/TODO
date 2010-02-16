@@ -12,12 +12,12 @@ add docs to show chaos as example code
 finish wrappers and sort out small example code
 nav for website, get the copyright notices only appearing at the
    bottom - it seems a bit loony at the moment
-maybe typeinfo conversion, because this is really bad at the moment
 database connection settings
 some of the little fixes below?
 not going to start working much on missing syntax and type checks
 not going to work on markup and rendering of source much
 not planning on doing nullability
+not going to work on the types and code for type checking at all
 move shortdefaultcat to examples tree
 
 use cases:
@@ -47,8 +47,6 @@ integrate with ppcatalog, dbcatalog
 
 some of the small fixes:
 
-web site: add links from the examples generate from the test files to
-   the pandoc'd version of the respective test file source
 add abstract to 6nf - base class abstract, and intermediate class
    abstract. what about disjoint base classes?
 
@@ -70,20 +68,28 @@ a page summarising the round trip process:
    source catalog
   list of type errors from checking the dump, with comparison with
    type errors from original source
-
-
-
+output targets:
+html
+txt - valid sql for the transformed files
+also want to run from the command line and just highlight the catalog
+   differences and type errors like an emacs compile
+would be really nice if the catalog page served as an index, so we can
+   jump to the definitions from there.
 
 
 
 ----------
 
-add a load of quasiquoting support, with tests -> 1quote fns, and splices
+add a load of quasiquoting support, with tests ->1quote fns, and
+   splices
+ - make this usable by providing good tests for examples, so you can
+   search by ast element, or sql code, for the splice spelling/example
+   code.
 add wildcards for quasiquoting?
 add switches for parsing quasiquotes
 
-issues for an announcement on freshment, postgresql:
-parsing - add parsing support for template1 operators, plus try to add
+issues for an announcement on freshment, postgresql: - next plus one release
+parsing - add parsing support for all template1 operators, plus try to add
    most of the syntax in the manual
 
 
@@ -328,7 +334,8 @@ think about where can use quickcheck
 work on making the tests more comprehensive, want a test for each
    branch/option where feasible - get some coverage testing on, don't
    know how well this will work with uuagc generated code - maybe add
-   a cull unused uuagc generated code utility
+   a cull unused uuagc generated code utility -> think this isn't too
+   difficult, parse the output of ghc -Wall, then use haskell-src-exts.
 
 === precedence and operator parsing
 add missing operators to parser

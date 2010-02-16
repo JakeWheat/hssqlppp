@@ -1,6 +1,32 @@
-/*
-================================================================================
 
+select module('Chaos.Client.WizardDisplayInfo');
+
+
+create table colours (
+       name text primary key,
+       red int,
+       green int,
+       blue int
+);
+select set_relvar_type('colours', 'readonly');
+
+copy colours (name,red,green,blue) from stdin;
+grid	32767	32767	32767
+background	0	0	32767
+black	0	0	0
+blue	0	0	65535
+green	0	65535	0
+red	65535	0	0
+pink	65535	49407	49407
+purple	65535	0	65535
+cyan	0	65535	65535
+yellow	65535	65535	0
+orange	65535	41215	0
+grey	32767	32767	32767
+white	65535	65535	65535
+\.
+
+/*
 == wizard display info
 
 This table associates a wizards name (= the allegiance) from the
@@ -12,9 +38,7 @@ any upgrades.
 
 Wizard named 'name' started with sprite default_sprite, his army is
 coloured 'colour'.
-
 */
-select module('Chaos.Client.WizardDisplayInfo');
 
 create table wizard_display_info (
   wizard_name text unique references wizards,

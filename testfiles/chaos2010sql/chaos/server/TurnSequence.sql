@@ -1,21 +1,26 @@
 /*
-================================================================================
 
-= turn sequence
+turn sequence
+=============
 
-see readme for overview of turn sequence
+For the player, there are three phases: choose spell, cast spell, move
+pieces; but for the computer there are four phases, the extra one is
+the autonomous phase in between casting and moving. In this phase
+magic fire and gooey blob spread, castles may disappear, and wizards
+may receive a new spell from a magic tree.
 
-For the player, there are three phases, but for the computer there are
-four phases, the extra one is the autonomous phase in between casting
-and moving. In this phase magic fire and gooey blob spread, castles
-may disappear, and wizards may receive a new spell from a magic tree.
+There are lots of constraints in this section. They're probably more
+useful as documentation.
 
-There are lots of constraints in this section. For an app like this
-where all the updates are through stored procs which carefully check
-their preconditions, and there are never any multiple updates, this is
-a bit excessive. The main takeaway is that you need deferred
-constraints or multiple updates for most constraints that involve more
-that one table.
+One big takeaway from working with all this constraints is that you
+really need deferred constraints or multiple updates for anything more
+than basic constraints.
+
+Some of this stuff makes more sense when looking at the actions.
+
+Everything here seems to be obscured under all the boilerplate,
+looking for a better way. Maybe some annotations and the ability to
+create a diagram (maybe even an interactive one?)
 
 == ddl
 */
@@ -44,8 +49,6 @@ select set_relvar_type('creating_new_game_table', 'stack');
 select create_var('turn_number', 'int');
 select set_relvar_type('turn_number_table', 'data');
 
---if not creating new game cardinality = 1
-
 select create_update_transition_tuple_constraint(
   'turn_number_table',
   'turn_number_change_valid',
@@ -69,6 +72,8 @@ squares left to walk
 
 */
 
+-- todo: use lag or lead window fn or something - make it a lot
+-- clearer?
 create view next_wizard as
 select wizard_name, new_wizard_name from
   (select wizard_name as new_wizard_name, place
@@ -103,9 +108,10 @@ alter table current_wizard_table
   add constraint current_wizard_fkey
   foreign key (current_wizard) references wizards(wizard_name);
 
--- could be no deletes, inserts - unless - there is only one wizard left
--- to allow draws
+-- could be no deletes, inserts - unless there is only one wizard left
+-- (to allow draws)
 --select no_deletes_inserts_except_new_game('current_wizard_table');
+
 select create_assertion('current_wizard_must_be_alive',
   $$(select not expired from current_wizard_table
      inner join wizards on current_wizard = wizard_name)$$);
@@ -122,7 +128,12 @@ join current_wizard . Not that much less tedious though.
 create view current_wizard as
   select current_wizard as wizard_name from current_wizard_table;
 
---turn phase enum: choose spell, cast spell, autonomous, move
+-- could this be used for allegiance as well? To go more tutorial d,
+-- we want to try to only use natural joins in combination with
+-- renaming attributes
+
+-- turn phases
+
 create domain turn_phase_enum as text
        check (value in ('choose', 'cast', 'autonomous', 'move'));
 
@@ -143,24 +154,12 @@ select create_update_transition_tuple_constraint(
   'NEW.turn_phase = next_turn_phase(OLD.turn_phase)');
 select no_deletes_inserts_except_new_game('turn_phase_table');
 
+-- not used anywhere atm??
 create type turn_pos as (
     turn_number int,
     turn_phase turn_phase_enum,
     current_wizard text
 );
-
--- create function turn_pos_equals(turn_pos, turn_pos) returns boolean as $$
---   select $1.turn_number = $2.turn_number and
---          $1.turn_phase = $2.turn_phase and
---          $1.current_wizard = $2.current_wizard;
--- $$ language sql stable;
-
--- create operator = (
---     leftarg = turn_pos,
---     rightarg = turn_pos,
---     procedure = turn_pos_equals,
---     commutator = =
--- );
 
 create function get_current_turn_pos() returns turn_pos as $$
   select (turn_number, turn_phase, current_wizard)::turn_pos
@@ -175,7 +174,7 @@ $$ language sql stable;
 Both spell casting and moving have a bunch of state local to each
 wizards turn in the that phase. Wizard spell choices is a piece of
 turn phase state which is constructed bit by bit in the choice phase
-then read in the cast phase, so this lasts from the start of the
+then read in the cast phase, so this data lasts from the start of the
 choice phase to the end of the cast phase.
 
 */
@@ -206,8 +205,7 @@ select create_assertion('dead_wizard_no_spell',
 /*
 
 todo: add constraint to say imaginary must be set for monsters and
-must not be set for non-monsters (will need a multiple update hack to
-go with this)
+must not be set for non-monsters
 
 */
 
@@ -257,6 +255,7 @@ select wizard_name, spell_name from spell_books))$$);
 if choose phase: only current and previous wizards may have a row
 if cast phase: only current and subsequent wizards may have a row
 this constraint really needs multiple updates.
+maybe using ctes or window fns would make this clearer?
 */
 
 select create_assertion('chosen_spell_phase_valid',
@@ -359,6 +358,11 @@ maximum change is 2
 this means that law increases alignment by one and large law does it
 by two in the absence of any other spells.
 
+I'm pretty sure this is way out. Need to investigate the original
+chaos (shocking that I have no real idea), because this is pretty
+critical to the gameplay - the alignment changing too slowly or
+quickly will change the balance of things totally.
+
 */
 select create_var('cast_alignment', 'integer');
 select set_relvar_type('cast_alignment_table', 'stack');
@@ -386,8 +390,6 @@ begin
 end;
 $$ language plpgsql volatile;
 
-
-
 /*
 
 pieces to move and selected piece are local to move phase for each
@@ -397,7 +399,7 @@ Piece in this table from current wizard's army hasn't yet moved
 in this turn.
 
 TODO: i think switching this from pieces to move to pieces_moved will
-be a bit more straightforward
+be less convoluted
 
 */
 create table pieces_to_move (
@@ -496,5 +498,3 @@ begin
     select true where not exists (select 1 from game_completed_table);
 end;
 $$ language plpgsql volatile;
-
--- 1 tuple iff current moving piece walks, empty otherwise

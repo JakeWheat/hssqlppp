@@ -1,5 +1,11 @@
 /*
-== wizards
+wizards
+=======
+
+the wizards have a bunch of possible upgrades from spells, and each
+has a spell book. In a way, they also form part of a larger entity -
+the army, which is the wizard and all his pieces, there is a strictly
+1-1 relationship between the wizards and the armies.
 
 */
 select module('Chaos.Server.Wizards');
@@ -18,6 +24,14 @@ create table wizards (
   expired boolean default false
 );
 select set_relvar_type('wizards', 'data');
+
+/*
+
+not sure this is the best way to implement wizards dying, rather than
+deleting their entries. wouldn't need to make a decision like this
+with temporal database support.
+
+*/
 
 create view live_wizards as
   select *,

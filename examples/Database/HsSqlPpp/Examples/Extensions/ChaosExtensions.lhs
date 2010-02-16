@@ -111,6 +111,10 @@ lookup table. TODO: rewrite this paragraph in english.
 restrict table to have no deletes or inserts (only updates) except
 when starting a new game
 
+which is better - doing something like this, or dropping the
+constraints temporarily during new_game? trick question: we should use
+multiple updates.
+
 > noDelInsExample :: ExtensionTest
 > noDelInsExample =
 >   ExtensionTest
@@ -383,12 +387,10 @@ nulls and ignore them when checking for nullable attributes.
 >         Restrict -> Cascade
 >         x1 -> x1
 
---------------------------
+todo - fix these up to new style and get working.
 
-catalog extras
---------------
-
-add some extras to the catalog
+also want to figure out how to support notifies on views and on
+arbitrary selects in the client to support the ui code.
 
 > -- | looks for calls to function set_relvar_type and adds triggers to prevent the
 > -- referenced table from being updated

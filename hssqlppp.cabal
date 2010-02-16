@@ -30,8 +30,8 @@ Description:
     .
     'Parser' - converting strings to asts;
     .
-    'PrettyPrinter' - converting asts to strings such that prettyPrint
-    . parse == id;
+    'PrettyPrinter' - converting asts to strings such that
+    prettyPrint . parse == id;
     .
     'SqlTypes' - the data types which represent SQL types, the data
     type for type errors, and some support functions;

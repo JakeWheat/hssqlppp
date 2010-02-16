@@ -1,10 +1,14 @@
 /*
 
-= metadata
-== base relvar tags
+Metadata
+========
 
-This stuff is mainly used to produce some half-baked documentation/
-diagrams of the database.
+base relvar tags
+---------------
+
+This stuff was mainly used to produce some half-baked documentation/
+diagrams of the database. Needs overhauling, but is waiting for the
+module system to develop a bit.
 
 */
 select module('Chaos.Server.Metadata');
@@ -26,9 +30,18 @@ $$ language plpgsql volatile;
 select set_relvar_type('base_relvar_metadata', 'readonly');
 
 /*
+
+checking
+--------
+
 This view is only used in the check_code_some_tags function.
 */
 /*
+disabled
+
+used to be used to make sure nothing got missed, which was much harder
+using pure plpgsql hackery than using the ast queries and transforms.
+
 create view chaos_base_relvars as
   select object_name,object_type from all_database_objects
   where object_type = 'base_relvar'
@@ -66,6 +79,9 @@ how they are implemented). This might catch some programming errors.
 
  */
 /*
+
+This is going to be replaced with an extension
+
 create function protect_readonly_relvars() returns void as $$
 declare
   r record;
@@ -96,10 +112,18 @@ some sort of partial tests on this
 */
 
 /*
-== callback notes
+
+callback notes
+--------------
 
 add a notify on each table when it is changed. Haven't worked out how
 to listen from haskell yet so is unused at the moment.
+
+needs some thought. the motivation is that the ui display is made up
+of chunks, each chunk depends on a different query. We can analyze
+that query, then try to update just that chunk when the relevant data
+is changed in the database, which used to work roughly in the old
+ruby gui code.
 
 */
 /*

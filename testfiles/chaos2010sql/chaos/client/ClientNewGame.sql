@@ -56,12 +56,6 @@ begin
     from action_client_new_game_argument;
   perform init_wizard_display_info();
 
-  --populate window data,
-  -- preserve settings from previous game if there are some
-  if not exists(select 1 from windows) then
-    perform action_reset_windows();
-  end if;
-
   if not exists(select 1 from spell_book_show_all_table) then
     insert into spell_book_show_all_table values (false);
   end if;

@@ -1,39 +1,27 @@
 /*
-== pieces
-=== piece natural keys
-Keys consist of three parts:
-type
-allegiance
-number
+Pieces
+======
 
-- if piece is a wizard -> type is "wizard", allegiance is wizard name,
-  number is 0 for all wizards?
+piece natural keys
+------------------
 
-- else if dead -> dead aren't owned, allegiance is "dead". (use
-  dead-[monster type]-[n] where n is integer, incremented for each
-  corpse type. e.g. you can have dead-giant-0, dead-giant-1 and
-  dead-eagle-0. Corpses which existed in current game but no longer do
-  leave a gap in the numbering.)
+We use a three part natural key for pieces, consisting of the ptype
+from the piece prototypes table, the allegiance i.e. which wizard they
+belong to, and a number to distinguish between pieces with the same
+first two values, e.g. if a wizard casts two goblins. All pieces are
+owned by a wizard, with the exception of corpses, so we create an
+allegiance view which is all the wizard names plus dead.
 
-- else -> [owning wizard's name]-[type]-[m] where wizard[n] is the
-  owning wizard, m is integer incremented per wizard[n]-type, e.g. you
-  can have wizard1-goblin-0, wizard2-goblin-0, wizard1-ogre-0,
-  etc. (Assuming wizard names are wizard1, etc.). Pieces which existed
-  in current game but no longer do leave a gap in the numbering.
+The numbers, called tags in the code, start at 0, and a piece is
+assigned the next number to make their key unique. We don't renumber,
+so there can be gaps when creatures die. The spell subversion can
+cause a piece to change allegiance, they are always be assigned a new
+tag when this happens. When a corpse is created, it is assigned a
+fresh tag - its allegiance is changed to dead and its ptype stays the
+same.
 
-To do this will need to roll own sequence type because there will be
-many many sequences? Like to create one table to hold all the
-sequences: pieces_sequences (prefix text, current_number integer),
-where prefix text is the prefix given above. This might be better as
-(allegiance text, type text, current_number integer). Locking: intend
-to use a server schema database wide lock every update. fastest
-solution may be to use row level locking, probably write a function
-like sequences to lock row, increment, get number, unlock and return
-number.
-
-For simplicity, just use same serial for all pieces for now.
-
-=== relvars
+relvars
+-------
 
 */
 select module('Chaos.Server.Pieces');
@@ -48,12 +36,6 @@ create view allegiances as
 
 /*
 
-TODO: maybe make pieces_mr a table called pieces with just the piece
-key and position, and then use a view for an analog to pieces with
-the stats. Create this view from the prototype stats, the pieces
-table, and have table(s) containing things that can affect the stats
-and the view selects from the the piece_prototypes and these tables.
-
 I think all the ways stats can change from the prototypes are listed
 here:
 monster raised from the dead
@@ -65,7 +47,8 @@ err... that's it.
 
 create table pieces (
     ptype text references piece_prototypes_mr,
-    allegiance text, -- references allegiances, needs constraint support
+    allegiance text, -- references allegiances where wizard is not dead
+                     -- needs extended constraint support to 'fk' to view
     tag int,
 --Piece is on the board at grid position 'x', 'y'.
     x int,
@@ -74,85 +57,68 @@ create table pieces (
 );
 select set_relvar_type('pieces', 'data');
 
---piece must be on the board, not outside it
+-- piece must be on the board
 select create_assertion('piece_coordinates_valid',
   ' not exists(select 1 from pieces
   cross join board_size
   where x >= width or y >= height)');
---select add_foreign_key('pieces', 'allegiance', 'allegiances');
+
 --temporary constraint while 'fks' to non base relvars are buggy
+-- this won't be needed once the extension is done and the reference is
+-- added to the pieces table above
 select create_assertion('dead_wizard_army_empty',
   $$ not exists(select 1 from pieces
     inner join wizards
     on (allegiance = wizard_name)
     where expired = true)$$);
 
+-- these is used in functions for
+-- parameters and local variables.
 create type piece_key as (
     ptype text,
     allegiance text,
     tag int
 );
 
---create function piece_key_equals(piece_key, piece_key) returns boolean as $$
---  select $1.ptype = $2.ptype and
---         $1.allegiance = $2.allegiance and
---         $1.tag = $2.tag;
---$$ language sql stable;
-
--- create operator = (
---     leftarg = piece_key,
---     rightarg = piece_key,
---     procedure = piece_key_equals,
---     commutator = =
--- );
-
 create type pos as (
   x int,
   y int
 );
 
--- create function pos_equals(pos, pos) returns boolean as $$
---   select $1.x = $2.x and
---          $1.y = $2.y;
--- $$ language sql stable;
-
--- create operator = (
---     leftarg = pos,
---     rightarg = pos,
---     procedure = pos_equals,
---     commutator = =
--- );
-
-
 /*
 
 add two auxiliary tables to track imaginary monsters and raised
 monsters who are now undead
+(only monster pieces can be imaginary or raised).
 
 */
 create table imaginary_pieces (
-    ptype text,
+    ptype text, -- reference monster_prototypes (fk to view)
     allegiance text,
     tag int,
     unique (ptype,allegiance,tag),
     foreign key (ptype,allegiance,tag) references pieces
 );
 select set_relvar_type('imaginary_pieces', 'data');
-/*
-select add_foreign_key('imaginary_pieces', 'ptype',
-       'monster_prototypes'); -- fk to view
-*/
+
 create table crimes_against_nature(
-    ptype text,
+    ptype text,  -- reference monster_prototypes (fk to view)
     allegiance text,
     tag int,
     unique (ptype,allegiance,tag),
     foreign key (ptype,allegiance,tag) references pieces
 );
 select set_relvar_type('crimes_against_nature', 'data');
+
 /*
-select add_foreign_key('crimes_against_nature', 'ptype',
-       'monster_prototypes'); -- fk to view
+
+This is the auxiliary view which takes the base wizard stats, and
+adjusts them according to the upgrade spells that the wizard has
+active.
+
+We should try to apply the same null combo constraints that the
+piece_prototypes table has.
+
 */
 create view wizard_upgrade_stats as
 select pp.ptype,
@@ -199,20 +165,32 @@ select pp.ptype,
     on pp.ptype='wizard'
   where p.ptype = 'wizard';
 
--- create view imaginary_or_not_pieces as
--- select ptype,allegiance,tag,x,y,coalesce(imaginary,false) as imaginary
---   from pieces
---   natural left outer join (select *,true as imaginary
---                            from imaginary_pieces) as a;
+/*
 
+This is the main piece information table, which mirrors the
+information in the piece_prototypes table for each actual piece, with
+modifications where needed.
+
+*/
 create view pieces_mr as
+
+-- first we do all the non wizard pieces, we only need to adjust the
+-- piece_prototype data by adding an imaginary attribute, and setting
+-- the undead attribute also for raised monsters.
+
 select ptype,
        allegiance,
        tag,
        x,
        y,
-       coalesce(imaginary,case when not ridable is null then false
-                               else null end) as imaginary,
+       coalesce(imaginary
+                -- this makes sure all the monster pieces have their
+                -- imaginary set to false if they aren't imaginary
+                -- and all non monster pieces have null for imaginary
+               ,case when not ridable is null
+                     then false
+                     else null
+                end) as imaginary,
        flying,
        speed,
        agility,
@@ -232,6 +210,8 @@ select ptype,
                            from crimes_against_nature) as b
   where ptype <> 'wizard'
 union
+-- then we add in the wizards, which need the more involved
+-- calculations in the wizard_upgrade_stats table.
 select * from wizard_upgrade_stats;
 
 create view creature_pieces as
@@ -285,10 +265,7 @@ create view magic_attackable_pieces as
 
 /*
 
-Rules for multiple pieces on one square: only one piece of each
-type may occupy a square in particular you can't have two dead bodies
-on one square. These are the traditional chaos rules which may change
-for other rulesets.
+Rules for multiple pieces on one square
 
 When multiple pieces occupy one square, one is considered to be 'on
 top'. This piece
@@ -296,6 +273,8 @@ top'. This piece
 * the piece upon which any spell cast on that square hits
 * the piece which is attacked when another piece attacks or range
   attacks that square
+
+The options are:
 
 1 item
 any
@@ -308,5 +287,11 @@ monster, gooey blob : blob on top
 3 items
 wizard, stiff, mountable monster : mountable on top
 stiff, monster, blob : blob on top
+
+Can these be made into actual constraints - doesn't seem to difficult
+now the extension system gives us some help with the triggers and
+stuff. could use some ctes and it might come out alright? or use a
+function to procedurally do part of it? want something that can be
+understood.
 
 */

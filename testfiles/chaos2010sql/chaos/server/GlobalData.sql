@@ -1,8 +1,6 @@
 /*
-================================================================================
 
-= game data
-
+Visibility notes - find somewhere to put these
 Players should not be able to see each others spells before the cast
 phase. This is difficult when they are all on the same computer, but
 should be easy when they are not.
@@ -10,12 +8,18 @@ should be easy when they are not.
 Imaginary attribute should only be visible to owning player, same
 notes as previous.
 
-== global data
+global data
+===========
+
 */
 select module('Chaos.Server.GlobalData');
 /*
-=== board size
-The playing area is 'width' by 'height' squares.
+
+board size
+----------
+
+changing the board size from the default has never been tested...
+
 */
 create table board_size (
   width int,
@@ -35,7 +39,9 @@ end;
 $$ language plpgsql volatile;
 
 /*
-=== law/ chaos rating
+
+law/ chaos rating
+-----------------
 
 The world has a law/ chaos rating which can be chaos-N, neutral or
 law-N. It starts neutral. When the world is chaos, then chaos spells

@@ -101,7 +101,7 @@ the top header for each page
 > wheader v = [$here|
 >
 > <div class='header'>[HsSqlPpp-|] ++ v ++
->             [$here|](website/index.html)</div>|] ++ "<br />\n\n"
+>             [$here|](website/index.html)</div>|] ++ "<br /><br /><br />\n\n"
 
 todo: add the last modified time for each file individually
 
@@ -212,7 +212,7 @@ of the target file names to find a match in
 > moveDTCOut = do
 >   renameFile "src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
 >              "src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs.moved"
->   copyFile "src/Database/HsSqlPpp/AstInternals/Catalog/ShortDefaultTemplate1Catalog.lhs"
+>   copyFile "examples/Database/HsSqlPpp/DevelTools/ShortDefaultTemplate1Catalog.lhs"
 >            "src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"
 >
 > moveDTCBack :: IO ()

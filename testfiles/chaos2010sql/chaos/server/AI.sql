@@ -4,11 +4,19 @@
 
 = ai
 
-For each stage we compile a list of possible actions using the valid_action views. These are then filtered to remove actions we don't want to run. At some places, the possible action list is reduced by keeping only the actions which are deemed vital (e.g. the wizard needs to run away, or a monster has a chance to attact a wizard). The remaining actions are possibly weighted and one is chosen at random.
+For each stage we compile a list of possible actions using the
+valid_action views. These are then filtered to remove actions we don't
+want to run. At some places, the possible action list is reduced by
+keeping only the actions which are deemed vital (e.g. the wizard needs
+to run away, or a monster has a chance to attact a wizard). The
+remaining actions are possibly weighted and one is chosen at random.
 
-Choose spells by weighting them according to casting chance, some spells are never cast, and some will be further weighted by the board layout.
+Choose spells by weighting them according to casting chance, some
+spells are never cast, and some will be further weighted by the board
+layout.
 
-When moving army, the general plan is to move the monsters closest to an enemy first.
+When moving army, the general plan is to move the monsters closest to
+an enemy first.
 
 choose spell
 cast spell
@@ -24,7 +32,8 @@ shadow - wings
 decree et al: use: wizard with lots of bad guys, being threatened
 magic wood: if range of spells is a bit shit
 castle, wall, blob, fire, shadowwood - random
-disbelieve: cast when threatened by a hard creature, small chance otherwise
+disbelieve: cast when threatened by a hard creature, small chance
+otherwise
 subversion - hard creature nearby, when threatened
 raise dead - when can
 monsters: weight by chances, decide on imag weighted by chances

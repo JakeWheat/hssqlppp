@@ -1,23 +1,15 @@
 /*
-================================================================================
 
-= read only data
+piece prototypes
+================
 
-This section defines all the constant data which doesn't change either
-during a game or from one game to the next. These are the piece
-prototypes, and the spells.
-
-== piece prototypes
-
-=== ddl
+ddl
+---
 
 Each type of piece starts with the same stats. Once a piece is on the
-board, some of these stats can be changed.
+board, some of these stats can be changed - see the pieces module.
 
-So - use a kind of prototype system.  The template for each creature
-is held in a read only table, and when a new creature is created on
-the board, its stats are copied from this table, and then they can
-change if needed.
+This table holds these starting stats.
 
 */
 select module('Chaos.Server.PiecePrototypes');
@@ -25,6 +17,16 @@ select module('Chaos.Server.PiecePrototypes');
 --creature ranged weapons can be either projectiles or fireballs
 create domain ranged_weapon_type as text
   check (value in ('projectile', 'fire'));
+
+/*
+
+the inheritance here reflects the possible kinds of pieces. The main
+thing missing is that the create6nf extension doesn't yet support
+abstract components.
+
+TODO: find or rewrite the lost notes on the different kinds of pieces.
+
+*/
 
 select create6nf ($$
 
@@ -80,10 +82,13 @@ create view enterable_piece_types as
   union
   select 'dark_citadel';
 /*
-=== data
+data
+----
 
 TODO: find a way to represent data like this in the source in a much
-more readable format.
+more readable format - the alternative insert syntax (an unfinished
+extension) seems good enough, just makes inserts look like updates so
+each field name is next to its value.
 
 */
 

@@ -42,6 +42,7 @@ to get a list of commands and purpose and usage info
 > import Database.HsSqlPpp.DevelTools.MakeAntiNodes
 > import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 > import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
+> import Database.HsSqlPpp.Examples.Chaos2010
 
 -------------------------------------------------------------------------------
 
@@ -1205,6 +1206,9 @@ of this exe, then this command will disappear
 > resetChaosA = mode $ ResetChaos
 >              &= text "reset the chaos database"
 >
+> data Ca = LoadStraightIntoDatabase
+>         | DumpTransformedSql
+>         | TypecheckTransformedSql
 > resetChaos :: IO ()
 > resetChaos = wrapETs $ do
 >   let db = "chaos"
@@ -1213,45 +1217,20 @@ of this exe, then this command will disappear
 >     hSetBuffering stdout NoBuffering
 >     cleardb db
 >   ast <- mapM (\f -> (liftIO . readInput) f >>=
->                  tsl . P.parseSql f) files >>=
+>                  tsl . P.parseSql f) chaosFiles >>=
 >      return . (concat |>
 >                chaosExtensions)
->   -- load straight into databae
->   --liftIO $ loadAst db ast
->   -- dump the generated ast to inspect or load using psql
->   liftIO $ putStrLn $ printSql ast
->   {-
->   --type check the transformed ast
->   mapM_ (liftIO . putStrLn) $
+>   let a = DumpTransformedSql
+>   case a of
+>     LoadStraightIntoDatabase -> liftIO $ loadAst db ast
+>     DumpTransformedSql -> liftIO $ putStrLn $ printSql ast
+>     TypecheckTransformedSql ->
+>         mapM_ (liftIO . putStrLn) $
 >             (A.typeCheck defaultTemplate1Catalog |>
 >              snd |>
 >              A.getTypeErrors |>
->              ppTypeErrors) ast-}
+>              ppTypeErrors) ast
 >   return ()
->   where
->     files =
->         ["testfiles/chaos2010sql/chaos/server/Metadata.sql"
->         ,"testfiles/chaos2010sql/chaos/server/PiecePrototypes.sql"
->         ,"testfiles/chaos2010sql/chaos/server/Spells.sql"
->         ,"testfiles/chaos2010sql/chaos/server/GlobalData.sql"
->         ,"testfiles/chaos2010sql/chaos/server/Wizards.sql"
->         ,"testfiles/chaos2010sql/chaos/server/Pieces.sql"
->         ,"testfiles/chaos2010sql/chaos/server/TurnSequence.sql"
->         ,"testfiles/chaos2010sql/chaos/server/ActionTestSupport.sql"
->         ,"testfiles/chaos2010sql/chaos/server/SquaresValid.sql"
->         ,"testfiles/chaos2010sql/chaos/server/Actions.sql"
->         ,"testfiles/chaos2010sql/chaos/server/ActionHistory.sql"
->         ,"testfiles/chaos2010sql/chaos/server/NewGame.sql"
->         ,"testfiles/chaos2010sql/chaos/server/AI.sql"
->         ,"testfiles/chaos2010sql/chaos/client/WindowManagement.sql"
->         ,"testfiles/chaos2010sql/chaos/client/Sprites.sql"
->         ,"testfiles/chaos2010sql/chaos/client/WizardDisplayInfo.sql"
->         ,"testfiles/chaos2010sql/chaos/client/BoardWidget.sql"
->         ,"testfiles/chaos2010sql/chaos/client/SpellBookWidget.sql"
->         ,"testfiles/chaos2010sql/chaos/client/NewGameWidget.sql"
->         ,"testfiles/chaos2010sql/chaos/client/ClientActions.sql"
->         ,"testfiles/chaos2010sql/chaos/client/ClientNewGame.sql"
->         ]
 
 -------------------------------------------------------------------------------
 
