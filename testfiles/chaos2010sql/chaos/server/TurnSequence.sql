@@ -392,28 +392,25 @@ $$ language plpgsql volatile;
 
 /*
 
-pieces to move and selected piece are local to move phase for each
+pieces moved and selected piece are local to move phase for each
 wizard
 
-Piece in this table from current wizard's army hasn't yet moved
+Piece in this table from current wizard's army have moved
 in this turn.
 
-TODO: i think switching this from pieces to move to pieces_moved will
-be less convoluted
-
 */
-create table pieces_to_move (
+create table pieces_moved (
     ptype text,
     allegiance text references current_wizard_table(current_wizard),
     tag int,
     unique (ptype,allegiance,tag),
     foreign key (ptype,allegiance,tag) references pieces
 );
-select set_relvar_type('pieces_to_move', 'data');
+select set_relvar_type('pieces_moved', 'data');
 
-select create_assertion('pieces_to_move_empty',
+select create_assertion('pieces_moved_empty',
   $$((select turn_phase = 'move' from turn_phase_table)
-     or not exists (select 1 from pieces_to_move))$$);
+     or not exists (select 1 from pieces_moved))$$);
 
 create domain move_phase as text
   check (value in ('motion', 'attack', 'ranged_attack'));

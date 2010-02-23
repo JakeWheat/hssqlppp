@@ -111,7 +111,7 @@ begin
   delete from cast_alignment_table;
   delete from remaining_walk_table;
   delete from selected_piece;
-  delete from pieces_to_move;
+  delete from pieces_moved;
   delete from spell_parts_to_cast_table;
   delete from wizard_spell_choices_mr;
   delete from current_wizard_table;

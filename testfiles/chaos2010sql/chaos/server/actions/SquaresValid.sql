@@ -346,8 +346,9 @@ create view selectable_pieces as
   select * from
     (select row_number() over (partition by (x,y) order by sp) as rn, *
        from selectable_pieces_with_priorities
-       natural inner join pieces_to_move
+       --natural inner join pieces_to_move
        where not exists(select 1 from selected_piece)
+             and (ptype,allegiance,tag) not in (select * from pieces_moved)
     ) as s where rn = 1;
 /*
 valid actions

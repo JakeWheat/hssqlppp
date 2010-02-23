@@ -28,11 +28,11 @@ begin
   nextp:= piece_next_subphase('start', false, 'none', pk);
   if nextp = 'end' then
     --nothing to do
-    delete from pieces_to_move
-      where (ptype, allegiance, tag)::piece_key = pk;
-    if not exists(select 1 from pieces_to_move) then
+    insert into pieces_moved (ptype,allegiance,tag)
+     values (pk.ptype, pk.allegiance,pk.tag);
+    /*if not exists(select 1 from pieces_to_move) then
       perform action_next_phase();
-    end if;
+    end if;*/
     return;
   end if;
   insert into selected_piece (ptype, allegiance, tag, move_phase, engaged) values
@@ -74,8 +74,10 @@ create function action_unselect_piece() returns void as $$
 begin
   perform check_can_run_action('unselect_piece');
   --remove piece from pieces to move
-  delete from pieces_to_move where (ptype, allegiance, tag) =
+  insert into pieces_moved (ptype, allegiance, tag)
     (select ptype, allegiance, tag from selected_piece);
+  /*delete from pieces_to_move where (ptype, allegiance, tag) =
+    (select ptype, allegiance, tag from selected_piece);*/
   --empty selected piece, squares left_to_walk
   update remaining_walk_hack_table
     set remaining_walk_hack = true;
@@ -85,9 +87,9 @@ begin
     set remaining_walk_hack = false;
   --if there are no more pieces that can be selected then move to next
   --phase automatically, todo: take into account monsters in blob
-  if not exists(select 1 from pieces_to_move) then
+  /*if not exists(select 1 from pieces_to_move) then
     perform action_next_phase();
-  end if;
+  end if;*/
 
   --insert history
 end;

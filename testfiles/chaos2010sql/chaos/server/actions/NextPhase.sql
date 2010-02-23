@@ -69,7 +69,7 @@ implicitly skipping
 
   --complete current phase:
   if (select turn_phase = 'move' from turn_phase_table) then
-    delete from pieces_to_move;
+    delete from pieces_moved;
   end if;
 
 /*
@@ -131,12 +131,12 @@ phase is run in this function, and all the setup runs after it is run.
       --skip to the next phase automatically
       next_phase_again := true;
     end if;
-  elseif (select turn_phase = 'move' from turn_phase_table) then
+  /*elseif (select turn_phase = 'move' from turn_phase_table) then
     insert into pieces_to_move
       select ptype, allegiance, tag
         from moving_pieces
         inner join current_wizard_table
-        on allegiance = current_wizard;
+        on allegiance = current_wizard;*/
   end if;
 
   --finished our updates for this next phase
