@@ -142,43 +142,37 @@ unmatched keypress, need to be faster.
     return;
   end if;*/
 
-  if exists(select 1 from valid_activate_actions
-            where action='ai_continue')
-     and pkeycode = 'space' then
-    perform action_client_ai_continue();
-  else
-    select into a action_name from key_control_settings k
-      inner join client_valid_activate_actions v
-        on k.action_name = v.action
-        where key_code = pkeycode;
-    if not a is null then
-        if substr(a,0,11) =  'move_cursor' then
-          cursor_move := true;
-        end if;
-        execute 'select action_' || a || '();';
-    else
-      select into a action_name from key_control_settings k
-        inner join client_valid_target_actions v
-          on k.action_name = v.action
-        natural inner join cursor_position
-          where key_code = pkeycode;
+  select into a action_name from key_control_settings k
+    inner join client_valid_activate_actions v
+      on k.action_name = v.action
+      where key_code = pkeycode;
+  if not a is null then
       if substr(a,0,11) =  'move_cursor' then
         cursor_move := true;
       end if;
-      if not a is null then
-        execute 'select action_' || a ||
-                '(' || (select x from cursor_position) ||
-                ', ' || (select y from cursor_position) || ');';
-      else
-        null;
-      end if;
+      execute 'select action_' || a || '();';
+  else
+    select into a action_name from key_control_settings k
+      inner join client_valid_target_actions v
+        on k.action_name = v.action
+      natural inner join cursor_position
+        where key_code = pkeycode;
+    if substr(a,0,11) =  'move_cursor' then
+      cursor_move := true;
+    end if;
+    if not a is null then
+      execute 'select action_' || a ||
+              '(' || (select x from cursor_position) ||
+              ', ' || (select y from cursor_position) || ');';
+    else
+      null;
     end if;
   end if;
-  perform update_missing_startticks();
-  perform check_for_effects();
-  if not cursor_move then
-    perform update_board_sprites_cache();
-  end if;
+  --perform update_missing_startticks();
+  --perform check_for_effects();
+  --if not cursor_move then
+  --  perform update_board_sprites_cache();
+  --end if;
 end;
 $$ language plpgsql volatile;
 
@@ -201,11 +195,16 @@ $$ language plpgsql volatile;
 
 create function action_client_next_phase() returns void as $$
 begin
-  perform action_next_phase();
-  if not (select computer_controlled from wizards
-          inner join current_wizard_table
-          on wizard_name=current_wizard) then
-    perform action_move_cursor_to_current_wizard();
+  if exists(select 1 from valid_activate_actions
+            where action='ai_continue') then
+    perform action_client_ai_continue();
+  else
+    perform action_next_phase();
+    if not (select computer_controlled from wizards
+            inner join current_wizard_table
+            on wizard_name=current_wizard) then
+      perform action_move_cursor_to_current_wizard();
+    end if;
   end if;
 end;
 $$ language plpgsql volatile;

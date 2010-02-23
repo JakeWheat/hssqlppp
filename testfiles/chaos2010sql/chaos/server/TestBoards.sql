@@ -30,14 +30,14 @@ begin
     i:= 0;
     for rec in select ptype from monster_prototypes loop
       perform create_monster(rec.ptype, 'Buddha',
-                             i % vwidth, 1 + i / vwidth, false);
+                             i % vwidth, 1 + i / vwidth, false, false);
       i := i + 1;
     end loop;
     --create one of each corpse
     i := 0;
     for rec in select ptype from monster_prototypes where undead = false loop
       perform create_monster(rec.ptype, 'Buddha',
-                             i % vwidth, 5 + i / vwidth, false);
+                             i % vwidth, 5 + i / vwidth, false, false);
       perform kill_top_piece_at(i % vwidth, 5 + i / vwidth);
       i := i + 1;
     end loop;
@@ -105,17 +105,17 @@ begin
       inner join wizards
         on allegiance = wizard_name
       where ptype = 'wizard' and original_place = 0;
-    perform create_monster('goblin', 'Buddha', 1, 0, false);
+    perform create_monster('goblin', 'Buddha', 1, 0, false, false);
     perform kill_top_piece_at(1, 0);
     --drop in an extra dead gobbo for testing raise dead
-    perform create_monster('goblin', 'Yeshua', vx, vy, false);
+    perform create_monster('goblin', 'Yeshua', vx, vy, false, false);
     perform kill_top_piece_at(vx, vy);
 --wizard, mountable
     select into vx,vy,vallegiance x,y,allegiance
       from pieces inner join wizards
       on allegiance = wizard_name
       where ptype = 'wizard' and original_place = 1;
-    perform create_monster('horse', vallegiance, vx, vy, false);
+    perform create_monster('horse', vallegiance, vx, vy, false, false);
 --wizard in magic tree, castle, citadel
     select into vx,vy,vallegiance x,y,allegiance
       from pieces inner join wizards
@@ -133,20 +133,20 @@ begin
       where ptype = 'wizard' and original_place = 4;
     perform create_object('dark_citadel', vallegiance, vx, vy);
 --monster, stiff
-    perform create_monster('goblin', 'Buddha', 3, 3, false);
+    perform create_monster('goblin', 'Buddha', 3, 3, false, false);
     perform kill_top_piece_at(3, 3);
-    perform create_monster('giant', 'Buddha', 3, 3, false);
+    perform create_monster('giant', 'Buddha', 3, 3, false, false);
 --stiff, blob
-    perform create_monster('goblin', 'Buddha', 4, 3, false);
+    perform create_monster('goblin', 'Buddha', 4, 3, false, false);
     perform kill_top_piece_at(4, 3);
     perform create_object('gooey_blob', 'Buddha', 4, 3);
 --monster, blob
-    perform create_monster('goblin', 'Laozi', 5, 3, false);
+    perform create_monster('goblin', 'Laozi', 5, 3, false, false);
     perform create_object('gooey_blob', 'Buddha', 5, 3);
 --stiff, monster, blob
-    perform create_monster('elf', 'Buddha', 6, 3, false);
+    perform create_monster('elf', 'Buddha', 6, 3, false, false);
     perform kill_top_piece_at(6, 3);
-    perform create_monster('goblin', 'Laozi', 6, 3, false);
+    perform create_monster('goblin', 'Laozi', 6, 3, false, false);
     perform create_object('gooey_blob', 'Buddha', 6, 3);
   else
     raise exception

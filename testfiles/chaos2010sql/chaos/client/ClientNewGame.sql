@@ -31,12 +31,12 @@ begin
   delete from cursor_position;
   delete from wizard_display_info;
 
-  delete from last_history_effect_id_table;
-  insert into last_history_effect_id_table values (-1);
-  delete from board_square_effects;
-  delete from board_beam_effects;
-  delete from board_sound_effects;
-  delete from current_effects;
+  --delete from last_history_effect_id_table;
+  --insert into last_history_effect_id_table values (-1);
+  --delete from board_square_effects;
+  --delete from board_beam_effects;
+  --delete from board_sound_effects;
+  --delete from current_effects;
 
   -- don't reset windows, see below
   --call server new_game
@@ -61,7 +61,7 @@ begin
   end if;
 
   perform update_board_sprites_cache();
-  perform check_for_effects();
+  --perform check_for_effects();
   perform init_cursor_position();
 end
 $$ language plpgsql volatile;

@@ -384,7 +384,7 @@ begin
     get_current_wizard(), x, y, coalesce((
       select imaginary
       from wizard_spell_choices_imaginary
-      where wizard_name = get_current_wizard()),false));
+      where wizard_name = get_current_wizard()),false), false);
   perform add_history_spell_succeeded();
 end;
 $$ language plpgsql volatile;

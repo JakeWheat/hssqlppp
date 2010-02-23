@@ -231,9 +231,9 @@ select set_relvar_type('board_sprites1_cache', 'data');
 
 create function update_board_sprites_cache() returns void as $$
 begin
-  if get_running_effects() then
+  /*if get_running_effects() then
     return;
-  end if;
+  end if;*/
   --raise notice 'update bpc';
   delete from board_sprites1_cache;
   insert into board_sprites1_cache
@@ -257,6 +257,7 @@ select x,y, '', '', -1,'cursor', 'white', 6,0, animation_speed, false
 two sorts of effects: beam and square
 
 */
+/*
 create table board_square_effects (
   id serial unique,
   subtype text,
@@ -367,7 +368,7 @@ begin
     last_history_effect_id = (select max(id) from action_history_mr);
 end;
 $$ language plpgsql volatile;
-
+*/
 /*
 
 call this function before reading the current effects table and it
@@ -381,15 +382,15 @@ once and thus will only be played once.
 
 */
 
-create table current_effects (
+/*create table current_effects (
   ticks int,
   queuePos int
 );
 select set_relvar_type('current_effects', 'data');
 
-select restrict_cardinality('current_effects', 1);
+select restrict_cardinality('current_effects', 1);*/
 
-create view current_board_sound_effects as
+/*create view current_board_sound_effects as
   select * from board_sound_effects
   natural inner join current_effects;
 
@@ -400,16 +401,16 @@ create view current_board_beam_effects as
 create view current_board_square_effects as
   select * from board_square_effects
   natural inner join current_effects;
-
-create function action_reset_current_effects() returns void as $$
+*/
+/*create function action_reset_current_effects() returns void as $$
 begin
     delete from board_sound_effects;
     delete from board_beam_effects;
     delete from board_square_effects;
     delete from current_effects;
 end;
-$$ language plpgsql volatile;
-
+$$ language plpgsql volatile;*/
+/*
 create function action_update_effects_ticks(pticks int) returns void as $$
 declare
   wasEffects boolean := false;
@@ -450,12 +451,12 @@ begin
   end if;
 end;
 $$ language plpgsql volatile;
-
+*/
 create function action_client_ai_continue() returns void as $$
 begin
-  if get_running_effects() then
+  /*if get_running_effects() then
     return;
-  end if;
+  end if;*/
 
   perform action_ai_continue();
   perform update_missing_startticks();
@@ -464,7 +465,7 @@ begin
      and get_turn_phase() = 'choose' then
     perform action_client_ai_continue();
   else
-    perform check_for_effects();
+    --perform check_for_effects();
     perform update_board_sprites_cache();
   end if;
   if not (select computer_controlled from wizards

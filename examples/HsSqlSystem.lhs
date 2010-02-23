@@ -84,6 +84,7 @@ command defs
 >                  | MakeWebsite
 >                  | MakeAntiNodes
 >                  | ResetChaos
+>                  | CheckChaos
 >
 >                    deriving (Show, Data, Typeable)
 
@@ -1195,20 +1196,11 @@ reset chaos
 routine to reset the chaos2010 database from the sql files, for
 testing the extensions used for chaos.
 
-clearLoad
-=========
-
-like load above, but runs the clear command first
-
-might try to work out a way of running multiple commands in one invoc
-of this exe, then this command will disappear
-
 > resetChaosA = mode $ ResetChaos
 >              &= text "reset the chaos database"
 >
 > data Ca = LoadStraightIntoDatabase
 >         | DumpTransformedSql
->         | TypecheckTransformedSql
 > resetChaos :: IO ()
 > resetChaos = wrapETs $ do
 >   let db = "chaos"
@@ -1224,13 +1216,25 @@ of this exe, then this command will disappear
 >   case a of
 >     LoadStraightIntoDatabase -> liftIO $ loadAst db ast
 >     DumpTransformedSql -> liftIO $ putStrLn $ printSql ast
->     TypecheckTransformedSql ->
->         mapM_ (liftIO . putStrLn) $
+>   return ()
+
+> checkChaosA = mode $ CheckChaos
+>              &= text "typecheck the chaos sql"
+>
+> checkChaos :: IO ()
+> checkChaos = wrapETs $ do
+>   --clear the db and get the transformed ast
+>   ast <- mapM (\f -> (liftIO . readInput) f >>=
+>                  tsl . P.parseSql f) chaosFiles >>=
+>      return . (concat |>
+>                chaosExtensions)
+>   mapM_ (liftIO . putStrLn) $
 >             (A.typeCheck defaultTemplate1Catalog |>
 >              snd |>
 >              A.getTypeErrors |>
 >              ppTypeErrors) ast
 >   return ()
+
 
 -------------------------------------------------------------------------------
 
@@ -1303,7 +1307,7 @@ main
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
 >                        testA, makeWebsiteA, makeAntiNodesA
->                       ,resetChaosA]
+>                       ,resetChaosA, checkChaosA]
 >
 >        case cmd of
 >          Lex fns -> lexFiles fns
@@ -1327,12 +1331,13 @@ main
 >          MakeWebsite -> makeWebsite
 >          MakeAntiNodes -> makeAntiNodesF
 >          ResetChaos -> resetChaos
+>          CheckChaos -> checkChaos
 >
 > lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
 >   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
 >   allAnnotationsA, ppCatalogA, makeWebsiteA,
->   makeAntiNodesA, resetChaosA :: Mode HsSqlSystem
+>   makeAntiNodesA, resetChaosA,checkChaosA :: Mode HsSqlSystem
 
 -------------------------------------------------------------------------------
 

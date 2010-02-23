@@ -24,7 +24,8 @@ hssqlppp to it and show the results.
 >            -> IO ()
 > doChaosSql pf = do
 >   -- create html versions of original source
->   sourceFiles >>= mapM_ convFile
+>   sf <- sourceFiles
+>   mapM_ convFile sf
 >   -- do annotated source files
 >   new <- liftIO (annotateSource2 (Just chaosExtensions) Nothing "template1" chaosFiles)
 >   forM_ new (\(f,c) -> pf Txt (snd (splitFileName f) ++ " transformed")

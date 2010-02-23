@@ -40,18 +40,18 @@ begin
   if not exists(select 1 from object_piece_types where ptype = vptype) then
     raise exception 'called create object on % which is not an object', vptype;
   end if;
-  return create_piece_internal(vptype, vallegiance, x, y, false);
+  return create_piece_internal(vptype, vallegiance, x, y, false, false);
 end
 $$ language plpgsql volatile;
 
 
 create function create_monster(vptype text, allegiance text, x int, y int,
-                               imaginary boolean) returns void as $$
+                               imaginary boolean, undead boolean) returns void as $$
 begin
   if not exists(select 1 from monster_prototypes where ptype = vptype) then
     raise exception 'called create monster on % which is not a monster', vptype;
   end if;
-  perform create_piece_internal(vptype, allegiance, x, y, imaginary);
+  perform create_piece_internal(vptype, allegiance, x, y, imaginary, undead);
 end
 $$ language plpgsql volatile;
 
@@ -67,7 +67,7 @@ begin
   end if;
   vtag := create_piece_internal(vptype,
                                 'Buddha',
-                                px, py, imaginary);
+                                px, py, imaginary, false);
   perform kill_monster((vptype, 'Buddha', vtag));
 end
 $$ language plpgsql volatile;
@@ -81,7 +81,7 @@ create function get_next_tag(pptype text, pallegiance text) returns int as $$
 $$ language sql stable;
 
 create function create_piece_internal(vptype text, vallegiance text,
-                                      vx int, vy int, vimaginary boolean)
+                                      vx int, vy int, vimaginary boolean, vundead boolean)
                                       returns int as $$
 declare
   vtag int;
@@ -93,6 +93,9 @@ begin
 
   insert into imaginary_pieces (ptype,allegiance,tag)
     select vptype,vallegiance,vtag where coalesce(vimaginary,false);
+  if vundead then
+    perform make_piece_undead(vptype, vallegiance, vtag);
+  end if;
   return vtag;
 end
 $$ language plpgsql volatile;

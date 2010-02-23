@@ -60,8 +60,8 @@ to the website.
 >        (Str qq)
 >        "QuasiQuoteTests.html"
 >   doSourceFiles pd1
->   doHaddock
 >   doChaosSql pd1
+>   doHaddock
 >   return ()
 
 -------------------------------------------------------------------------------

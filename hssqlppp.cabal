@@ -19,27 +19,25 @@ Description:
     Documentation, examples on the homepage:
     <http://community.haskell.org/~JakeWheat/hssqlppp/index.html>.
     .
-    Quick module guide:
+    * 'Annotation' - the annotation data types and utilities;
     .
-    'Annotation' - the annotation data types and utilities;
+    * 'Ast' - ast types;
     .
-    'Ast' - ast types;
+    * 'Catalog' - read a catalog from a database to type check against,
+      or to generate catalog information;
     .
-    'Catalog' - read a catalog from a database to type check against,
-    or to generate catalog information;
+    * 'Parser' - converting strings to asts;
     .
-    'Parser' - converting strings to asts;
+    * 'PrettyPrinter' - converting asts to strings such that
+      prettyPrint . parse == id;
     .
-    'PrettyPrinter' - converting asts to strings such that
-    prettyPrint . parse == id;
+    * 'SqlTypes' - the data types which represent SQL types, the data
+      type for type errors, and some support functions;
     .
-    'SqlTypes' - the data types which represent SQL types, the data
-    type for type errors, and some support functions;
+    * 'SqlQuote' - quasiquote support for SQL;
     .
-    'SqlQuote' - quasiquote support for SQL;
-    .
-    'TypeChecker' - type checking and annotating asts and working
-    with annotated trees.
+    * 'TypeChecker' - type checking and annotating asts and working
+      with annotated trees.
 
 extra-source-files:  README
                      LICENSE
