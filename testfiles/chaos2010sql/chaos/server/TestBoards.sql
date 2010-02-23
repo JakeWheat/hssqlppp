@@ -155,3 +155,33 @@ begin
   end if;
 end
 $$ language plpgsql volatile;
+
+
+create function disable_all_constraints() returns void as $$
+declare
+  tn text;
+begin
+  for tn in select object_name from all_module_objects
+              where object_type = 'table' loop
+    execute 'alter table ' || tn || ' disable trigger user';
+  end loop;
+end;
+$$ language plpgsql volatile;
+
+
+create function enable_all_constraints() returns void as $$
+declare
+  t text;
+  b bool;
+begin
+  /*for t in select object_name from all_module_objects
+             where object_name like 'check_con_%'
+               and object_type = 'function' loop
+    execute
+  end loop;*/
+  for t in select object_name from all_module_objects
+              where object_type = 'table' loop
+    execute 'alter table ' || t || ' enable trigger user';
+  end loop;
+end;
+$$ language plpgsql volatile;
