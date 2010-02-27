@@ -9,3 +9,6 @@ website
 junk
 examples/HsSqlSystem
 examples/RunWrappers
+testfiles/chaos2010sql/chaos/client/
+testfiles/chaos2010sql/chaos/server/
+testfiles/chaos2010sql/chaos/server
