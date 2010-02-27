@@ -16,9 +16,9 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Database.HsSqlPpp.AstInternals.AstAnti
        (convertStatements, convertExpression, attributeDef, Statement(..),
-        SelectExpression(..), FnBody(..), SetClause(..), TableRef(..),
-        TableAlias(..), JoinExpression(..), JoinType(..), SelectList(..),
-        SelectItem(..), CopySource(..), AttributeDef(..),
+        SelectExpression(..), WithQuery(..), FnBody(..), SetClause(..),
+        TableRef(..), TableAlias(..), JoinExpression(..), JoinType(..),
+        SelectList(..), SelectItem(..), CopySource(..), AttributeDef(..),
         RowConstraint(..), AlterTableAction(..), Constraint(..),
         TypeAttributeDef(..), ParamDef(..), VarDef(..), RaiseType(..),
         CombineType(..), Volatility(..), Language(..), TypeName(..),
@@ -26,7 +26,7 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         Natural(..), IfExists(..), Replace(..), RestartIdentity(..),
         Expression(..), FrameClause(..), InList(..), LiftFlavour(..),
         TriggerWhen(..), TriggerEvent(..), TriggerFire(..), SetValue(..),
-        StatementList, ExpressionListStatementListPairList,
+        WithQueryList, StatementList, ExpressionListStatementListPairList,
         ExpressionListStatementListPair, ExpressionList, ParamDefList,
         AttributeDefList, ConstraintList, TypeAttributeDefList,
         TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
@@ -217,6 +217,7 @@ data SelectExpression = CombineSelect (Annotation) (CombineType)
                                (MaybeBoolExpression) (ExpressionList) (MaybeBoolExpression)
                                (ExpressionDirectionPairList) (MaybeExpression) (MaybeExpression)
                       | Values (Annotation) (ExpressionListList)
+                      | WithSelect (Annotation) (WithQueryList) (SelectExpression)
                       deriving (Data, Eq, Show, Typeable)
  
 data SelectItem = SelExp (Annotation) (Expression)
@@ -307,6 +308,9 @@ data VarDef = VarDef (Annotation) (String) (TypeName)
                      (Maybe Expression)
             deriving (Data, Eq, Show, Typeable)
  
+data WithQuery = WithQuery (Annotation) (String) (SelectExpression)
+               deriving (Data, Eq, Show, Typeable)
+ 
 type AlterTableActionList = [(AlterTableAction)]
  
 type AttributeDefList = [(AttributeDef)]
@@ -369,6 +373,8 @@ type TypeAttributeDefList = [(TypeAttributeDef)]
 type TypeNameList = [(TypeName)]
  
 type VarDefList = [(VarDef)]
+ 
+type WithQueryList = [(WithQuery)]
  
 tableAlias :: TableAlias -> A.TableAlias
 tableAlias x
@@ -625,6 +631,8 @@ selectExpression x
                                                    (maybeExpression a9)
                                                    (maybeExpression a10)
         Values a1 a2 -> A.Values a1 (expressionListList a2)
+        WithSelect a1 a2 a3 -> A.WithSelect a1 (withQueryList a2)
+                                 (selectExpression a3)
  
 selectItem :: SelectItem -> A.SelectItem
 selectItem x
@@ -760,6 +768,11 @@ varDef x
         VarDef a1 a2 a3 a4 -> A.VarDef a1 a2 (typeName a3)
                                 (maybeExpression a4)
  
+withQuery :: WithQuery -> A.WithQuery
+withQuery x
+  = case x of
+        WithQuery a1 a2 a3 -> A.WithQuery a1 a2 (selectExpression a3)
+ 
 alterTableActionList ::
                      AlterTableActionList -> A.AlterTableActionList
 alterTableActionList = fmap alterTableAction
@@ -868,3 +881,6 @@ typeNameList = fmap typeName
  
 varDefList :: VarDefList -> A.VarDefList
 varDefList = fmap varDef
+ 
+withQueryList :: WithQueryList -> A.WithQueryList
+withQueryList = fmap withQuery

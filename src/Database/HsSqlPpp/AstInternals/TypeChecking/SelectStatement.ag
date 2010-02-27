@@ -19,7 +19,7 @@ SEM Statement
         loc.catUpdates = []
 
 SEM SelectExpression
-    | Values Select CombineSelect
+    | Values Select CombineSelect WithSelect
         lhs.annotatedTree = annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
@@ -134,6 +134,9 @@ SEM SelectExpression
         loc.backTree = CombineSelect @ann @ctype
                                      @sel1.annotatedTree
                                      @sel2.annotatedTree
+    | WithSelect
+        loc.tpe = Right $ getTypeAnnotation @ex.annotatedTree
+        loc.backTree = WithSelect @ann @withs.annotatedTree @ex.annotatedTree
 
 {
 

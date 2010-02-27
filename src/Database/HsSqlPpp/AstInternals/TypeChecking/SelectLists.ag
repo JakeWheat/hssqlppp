@@ -85,7 +85,7 @@ SEM SelectExpression
     | Select
         lhs.libUpdates = @selSelectList.libUpdates
     | CombineSelect Values
-          lhs.libUpdates = []
+        lhs.libUpdates = []
 
 -- utils to handle a star, bit hacky, maybe should use a separate pass
 -- or something?

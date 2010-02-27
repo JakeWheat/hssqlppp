@@ -41,6 +41,8 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
     --ast nodes
     Statement (..)
    ,SelectExpression (..)
+   ,WithQueryList
+   ,WithQuery(..)
    ,FnBody (..)
    ,SetClause (..)
    ,TableRef (..)
@@ -322,6 +324,14 @@ DATA SelectExpression
                     sel2 : SelectExpression
     | Values ann:Annotation
              vll:ExpressionListList
+    | WithSelect ann : Annotation
+                 withs : WithQueryList
+                 ex : SelectExpression
+
+TYPE WithQueryList = [WithQuery]
+DATA WithQuery | WithQuery ann : Annotation
+                           name : String
+                           ex : SelectExpression
 
 DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation vars:VarDefList sts : StatementList
@@ -687,6 +697,7 @@ SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
                AlterTableAction
                ExpressionDirectionPair
                ExpressionDirectionPairList AlterTableActionList
+               WithQueryList WithQuery
 
 
 DERIVING AllNodes: Show,Eq,Typeable,Data

@@ -32,6 +32,8 @@ Copyright 2009 Jake Wheat
 >     ,InList (..)
 >     ,LiftFlavour (..)
 >     ,FrameClause(..)
+>     ,WithQueryList
+>     ,WithQuery(..)
 >      -- ** dml
 >     ,SetClause (..)
 >     ,CopySource (..)

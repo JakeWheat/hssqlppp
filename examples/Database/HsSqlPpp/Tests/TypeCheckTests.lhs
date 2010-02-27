@@ -3,6 +3,7 @@ Copyright 2009 Jake Wheat
 Set of tests to check the type checking code. Includes tests for the
 errors for sql which doesn't type check.
 
+> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.TypeCheckTests
 >     (typeCheckTests
 >     ,typeCheckTestData
@@ -14,6 +15,7 @@ errors for sql which doesn't type check.
 > import Data.List
 > --import Debug.Trace
 >
+> import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Annotation
@@ -297,6 +299,12 @@ rows don't match types
 >      ,s "select '3' as a, '4' as b except select 1,2;" $ Right [Just $ StatementType []
 >                                      [("a", typeInt)
 >                                      ,("b", typeInt)]]
+>      ,s [$here|
+>          with a as (select 1 as a1),
+>               b as (select * from a)
+>               select * from b; |]
+>          $ Right [Just $ StatementType []
+>                            [("a1", typeInt)]]
 >      ]
 >   ,Group "simple selects from" [
 >       s "select a from (select 1 as a, 2 as b) x;"

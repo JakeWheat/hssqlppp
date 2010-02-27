@@ -230,7 +230,13 @@ this recursion needs refactoring cos it's a mess
 > selectExpression =
 >   buildExpressionParser combTable selFactor
 >   where
->         selFactor = try (parens selectExpression) <|> selQuerySpec <|> values
+>         selFactor = try (parens selectExpression) <|> selQuerySpec <|> values <|> with
+>         with = WithSelect <$> (pos <* keyword "with")
+>                           <*> commaSep1 withQuery
+>                           <*> selFactor
+>         withQuery = WithQuery <$> pos
+>                               <*> (idString <* keyword "as")
+>                               <*> parens selectExpression
 >         combTable = [map (\(c,p) -> Infix (CombineSelect <$> pos <*> (c <$ p)) AssocLeft)
 >                         [(Except, keyword "except")
 >                         ,(Intersect, keyword "intersect")

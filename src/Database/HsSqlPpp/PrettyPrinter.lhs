@@ -455,7 +455,14 @@ Statement components
 >   in if topLev then p else parens p
 > convSelectExpression _ _ (Values _ expss) =
 >   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
->
+> convSelectExpression _ _ (WithSelect _ wqs ex) =
+>   text "with" $$ nest 2 (vcat $ csv $ map pwq wqs)
+>        $+$ convSelectExpression True False ex
+>   where
+>     pwq (WithQuery _ nm ex1) =
+>       text nm <+> text "as"
+>       <+> parens (convSelectExpression True False ex1)
+
 > convDir :: Direction -> Doc
 > convDir d = text $ case d of
 >                           Asc -> "asc"
