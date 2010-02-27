@@ -265,6 +265,7 @@ Conversion routines - convert Sql asts into Docs
 > -- plpgsql
 >
 > convStatement ca (NullStatement ann) = convPa ca ann <+> text "null" <> statementEnd
+> convStatement ca (ExitStatement ann) = convPa ca ann <+> text "exit" <> statementEnd
 >
 > convStatement ca (Assignment ann name val) =
 >     convPa ca ann <+>
@@ -311,6 +312,11 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (WhileStatement ann ex stmts) =
 >     convPa ca ann <+>
 >     text "while" <+> convExp ex <+> text "loop"
+>     $+$ convNestedStatements ca stmts
+>     $+$ text "end loop" <> statementEnd
+> convStatement ca (LoopStatement ann stmts) =
+>     convPa ca ann <+>
+>     text "loop"
 >     $+$ convNestedStatements ca stmts
 >     $+$ text "end loop" <> statementEnd
 >

@@ -40,7 +40,7 @@ to get a list of commands and purpose and usage info
 >
 > import Database.HsSqlPpp.DevelTools.MakeWebsite
 > import Database.HsSqlPpp.DevelTools.MakeAntiNodes
-> import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
+> --import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 > import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
 > import Database.HsSqlPpp.Examples.Chaos2010
 

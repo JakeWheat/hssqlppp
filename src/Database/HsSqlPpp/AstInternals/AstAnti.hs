@@ -262,6 +262,7 @@ data Statement = AlterSequence (Annotation) (String) (String)
                                (Cascade)
                | Execute (Annotation) (Expression)
                | ExecuteInto (Annotation) (Expression) ([String])
+               | ExitStatement (Annotation)
                | ForIntegerStatement (Annotation) (String) (Expression)
                                      (Expression) (StatementList)
                | ForSelectStatement (Annotation) (String) (SelectExpression)
@@ -269,6 +270,7 @@ data Statement = AlterSequence (Annotation) (String) (String)
                | If (Annotation) (ExpressionStatementListPairList) (StatementList)
                | Insert (Annotation) (String) ([String]) (SelectExpression)
                         (MaybeSelectList)
+               | LoopStatement (Annotation) (StatementList)
                | Notify (Annotation) (String)
                | NullStatement (Annotation)
                | Perform (Annotation) (Expression)
@@ -693,6 +695,7 @@ statement x
                                           (cascade a5)
         Execute a1 a2 -> A.Execute a1 (expression a2)
         ExecuteInto a1 a2 a3 -> A.ExecuteInto a1 (expression a2) a3
+        ExitStatement a1 -> A.ExitStatement a1
         ForIntegerStatement a1 a2 a3 a4 a5 -> A.ForIntegerStatement a1 a2
                                                 (expression a3)
                                                 (expression a4)
@@ -704,6 +707,7 @@ statement x
                          (statementList a3)
         Insert a1 a2 a3 a4 a5 -> A.Insert a1 a2 a3 (selectExpression a4)
                                    (maybeSelectList a5)
+        LoopStatement a1 a2 -> A.LoopStatement a1 (statementList a2)
         Notify a1 a2 -> A.Notify a1 a2
         NullStatement a1 -> A.NullStatement a1
         Perform a1 a2 -> A.Perform a1 (expression a2)

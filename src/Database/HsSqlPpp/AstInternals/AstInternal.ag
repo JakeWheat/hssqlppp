@@ -260,6 +260,7 @@ DATA Statement
             message : String
             args : ExpressionList
     | NullStatement ann:Annotation
+    | ExitStatement ann:Annotation
     | Perform ann:Annotation
               expr : Expression
     | Execute ann:Annotation
@@ -276,6 +277,8 @@ DATA Statement
                           from : Expression
                           to : Expression
                           sts : StatementList
+    | LoopStatement ann:Annotation
+                    sts : StatementList
     | WhileStatement ann:Annotation
                      expr : Expression
                      sts : StatementList

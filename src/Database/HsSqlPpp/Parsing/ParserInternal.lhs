@@ -814,12 +814,18 @@ plpgsql statements
 >          ,raise
 >          ,forStatement
 >          ,whileStatement
+>          ,loopStatement
 >          ,perform
->          ,nullStatement]
+>          ,nullStatement
+>          ,exitStatement]
 >          <* symbol ";")
 >
 > nullStatement :: SParser Statement
 > nullStatement = NullStatement <$> (pos <* keyword "null")
+>
+> exitStatement :: SParser Statement
+> exitStatement = ExitStatement <$> (pos <* keyword "exit")
+>
 >
 > continue :: SParser Statement
 > continue = ContinueStatement <$> (pos <* keyword "continue")
@@ -882,6 +888,12 @@ plpgsql statements
 >                  <$> (pos <* keyword "while")
 >                  <*> (expr <* keyword "loop")
 >                  <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
+> loopStatement :: SParser Statement
+> loopStatement = LoopStatement
+>                  <$> (pos <* keyword "loop")
+>                  <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
+>
+
 >
 > ifStatement :: SParser Statement
 > ifStatement = If

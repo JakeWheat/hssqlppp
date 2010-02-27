@@ -83,8 +83,8 @@ SEM Root
 SEM Statement
     | CaseStatement ContinueStatement Copy CopyData
       DropSomething Execute ExecuteInto
-      If NullStatement Perform Raise ReturnNext ReturnQuery Truncate
-      WhileStatement Set Notify CreateSequence
+      If NullStatement ExitStatement Perform Raise ReturnNext ReturnQuery Truncate
+      WhileStatement Set Notify CreateSequence LoopStatement
       AlterSequence AlterTable CreateTrigger
         lhs.catUpdates = []
         lhs.libUpdates = []
@@ -106,7 +106,7 @@ SEM Statement
         els.catUpdates = []
         els.libUpdates = []
 SEM Statement
-    | ForIntegerStatement ForSelectStatement WhileStatement
+    | ForIntegerStatement ForSelectStatement WhileStatement LoopStatement
         sts.catUpdates = []
         sts.libUpdates = []
 
