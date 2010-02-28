@@ -230,8 +230,7 @@ SEM WithQuery
         loc.attrs = case getTypeAnnotation @ex.annotatedTree of
                       SetOfType (CompositeType c) -> c
                       _ -> [] --TODO: error ignored
-        loc.catUpdates = [let u = CatCreateView @name @loc.attrs
-                          in trace (show u) u]
+        loc.catUpdates = [CatCreateView @name @loc.attrs]
         loc.statementType = []
 
 
