@@ -7,6 +7,7 @@ Test sql by typechecking it, then running it through Postgres and comparing:
 * (NOT STARTED ON YET) create views and check the type from type
   checking to the one from pg
 
+> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.RoundtripTests (roundtripTests) where
 >
 > import Test.HUnit
@@ -19,6 +20,7 @@ Test sql by typechecking it, then running it through Postgres and comparing:
 > import Data.Char
 >
 > import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.TypeChecker
@@ -77,6 +79,14 @@ data in a database with this name
 >        \$$ language plpgsql;")
 >      ,("join associativity"
 >       ,"select * from pg_enum full outer join pg_largeobject on true full outer join pg_listener on true;")
+>      ,("with and union associativity"
+>       ,[$here|
+>         create view v1 as
+>         with
+>           a as (select 1)
+>          ,b as (select 2)
+>          select * from a
+>          union select * from b;|])
 >     ]]
 
 ~~~~

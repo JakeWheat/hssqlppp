@@ -228,12 +228,13 @@ this recursion needs refactoring cos it's a mess
 >
 > selectExpression :: SParser SelectExpression
 > selectExpression =
+>   with <|>
 >   buildExpressionParser combTable selFactor
 >   where
->         selFactor = try (parens selectExpression) <|> selQuerySpec <|> values <|> with
+>         selFactor = try (parens selectExpression) <|> selQuerySpec <|> values
 >         with = WithSelect <$> (pos <* keyword "with")
 >                           <*> commaSep1 withQuery
->                           <*> selFactor
+>                           <*> selectExpression
 >         withQuery = WithQuery <$> pos
 >                               <*> (idString <* keyword "as")
 >                               <*> parens selectExpression

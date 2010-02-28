@@ -137,6 +137,8 @@ SEM SelectExpression
     | WithSelect
         loc.tpe = Right $ getTypeAnnotation @ex.annotatedTree
         loc.backTree = WithSelect @ann @withs.annotatedTree @ex.annotatedTree
+        ex.cat = @withs.producedCat
+        withs.catUpdates = []
 
 {
 
@@ -171,6 +173,67 @@ unionRelTypes cat rowsTs colNames =
                      (return . SetOfType . CompositeType . zip colNames)
 
 }
+{-
+with queries:
+
+reuse the catalog to store the individual with queries as views, so it
+works as if we're transforming
+
+with  a as select_a
+     ,b as select_b
+     ...
+select_final
+
+to
+
+create view a as select_a
+create view b as select_b
+...
+select_final
+
+this is slightly hacky - the temporary view definitions should really
+live in the local identifier bindings rather than the catalog, but
+does the job without having to alter the local identifier bindings
+types and functions.
+
+-}
+
+ATTR WithQuery [||catUpdates : {[CatalogUpdate]}]
+ATTR WithQueryList [catUpdates : {[CatalogUpdate]}||]
+
+--producedcat is used to pass the final updated cat out
+ATTR WithQueryList [|| producedCat : Catalog]
+
+SEM WithQueryList
+    | Cons Nil
+        --newcat is the catalog passed into the head statement
+        --updated with any catalog changes that that statement has made
+        loc.newCat = fromRight @lhs.cat $ updateCatalog @lhs.cat @lhs.catUpdates
+    | Cons
+        hd.cat = @loc.newCat
+        tl.cat = @loc.newCat
+        --produced cat is used to chain the final updated catalog from the last
+        --element of the list and pass it back up the list so in can be pushed up
+        -- to the root element and sent out from there
+        lhs.producedCat = @tl.producedCat
+        --this is probably a bit inefficient: it creates a new catalog from scratch
+        --on each statement instead of chaining on the last updated cat
+        tl.catUpdates = @hd.catUpdates
+    | Nil
+        lhs.producedCat = @loc.newCat
+
+SEM WithQuery
+    | WithQuery
+        loc.tpe = dependsOnRTpe [getTypeAnnotation @ex.annotatedTree] $
+                    Right $ Pseudo Void
+        loc.backTree = WithQuery @ann @name @ex.annotatedTree
+        loc.attrs = case getTypeAnnotation @ex.annotatedTree of
+                      SetOfType (CompositeType c) -> c
+                      _ -> [] --TODO: error ignored
+        loc.catUpdates = [let u = CatCreateView @name @loc.attrs
+                          in trace (show u) u]
+        loc.statementType = []
+
 
 INCLUDE "TypeChecking/TableRefs.ag"
 

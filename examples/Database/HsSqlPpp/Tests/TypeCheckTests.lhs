@@ -302,7 +302,8 @@ rows don't match types
 >      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
->               select * from b; |]
+>               select * from a
+>               union select * from b; |]
 >          $ Right [Just $ StatementType []
 >                            [("a1", typeInt)]]
 >      ]

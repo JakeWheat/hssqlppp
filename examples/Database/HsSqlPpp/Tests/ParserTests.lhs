@@ -269,6 +269,29 @@ select statements
 >         (CombineSelect [] Union
 >          (selectE (SelectList [] [SelExp [] (IntegerLit [] 2)] []))
 >          (selectE (SelectList [] [SelExp [] (IntegerLit [] 3)] []))))]
+>      ,s [$here|
+>          with a as (select 1 as a1),
+>               b as (select * from a)
+>               select * from b; |]
+>          [SelectStatement []
+>           (WithSelect []
+>            [WithQuery [] "a" (selectE $ SelectList []
+>                                [SelectItem [] (IntegerLit [] 1) "a1"] [])
+>            ,WithQuery [] "b" (selectFrom (selIL ["*"]) (Tref [] "a" NoAlias))]
+>            (selectFrom (selIL ["*"]) (Tref [] "b" NoAlias)))]
+>      ,s [$here|
+>          with a as (select 1 as a1),
+>               b as (select * from a)
+>               select * from a
+>               union select * from b; |]
+>          [SelectStatement []
+>           (WithSelect []
+>            [WithQuery [] "a" (selectE $ SelectList []
+>                                [SelectItem [] (IntegerLit [] 1) "a1"] [])
+>            ,WithQuery [] "b" (selectFrom (selIL ["*"]) (Tref [] "a" NoAlias))]
+>            (CombineSelect [] Union
+>              (selectFrom (selIL ["*"]) (Tref [] "a" NoAlias))
+>              (selectFrom (selIL ["*"]) (Tref [] "b" NoAlias))))]
 >      ,s "select a as b from tbl;"
 >       [SelectStatement [] $ selectFrom [SelectItem [] (Identifier [] "a") "b"] (Tref [] "tbl" NoAlias)]
 >      ,s "select a + b as b from tbl;"
