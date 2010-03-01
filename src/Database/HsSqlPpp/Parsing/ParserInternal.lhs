@@ -919,12 +919,18 @@ plpgsql statements
 >     (<.>) a b = (,) <$> a <*> b
 >
 > caseStatement :: SParser Statement
-> caseStatement =
->     CaseStatement <$> (pos <* keyword "case")
->                   <*> expr
->                   <*> many whenSt
->                   <*> option [] (keyword "else" *> many plPgsqlStatement)
->                           <* keyword "end" <* keyword "case"
+> caseStatement = do
+>     p <- pos
+>     keyword "case"
+>     choice [try (CaseStatementSimple p
+>                  <$> expr
+>                  <*> many whenSt
+>                  <*> option [] (keyword "else" *> many plPgsqlStatement)
+>                         <* keyword "end" <* keyword "case")
+>            ,CaseStatement p
+>                  <$> many whenSt
+>                  <*> option [] (keyword "else" *> many plPgsqlStatement)
+>                         <* keyword "end" <* keyword "case"]
 >     where
 >       whenSt = keyword "when" >>
 >                (,) <$> commaSep1 expr

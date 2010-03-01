@@ -360,7 +360,7 @@ Conversion routines - convert Sql asts into Docs
 >     <+> text "into" <+> hcatCsvMap text is
 >     <> statementEnd
 >
-> convStatement ca (CaseStatement ann c conds els) =
+> convStatement ca (CaseStatementSimple ann c conds els) =
 >     convPa ca ann <+>
 >     text "case" <+> convExp c
 >     $+$ nest 2 (
@@ -371,6 +371,18 @@ Conversion routines - convert Sql asts into Docs
 >       convWhenSt ex sts = text "when" <+> hcatCsvMap convExp ex
 >                           <+> text "then" $+$ convNestedStatements ca sts
 >       convElseSt = ifNotEmpty (\s -> text "else" $+$ convNestedStatements ca s)
+> convStatement ca (CaseStatement ann conds els) =
+>     convPa ca ann <+>
+>     text "case"
+>     $+$ nest 2 (
+>                 vcat (map (uncurry convWhenSt) conds)
+>                 $+$ convElseSt els
+>                 ) $+$ text "end case" <> statementEnd
+>     where
+>       convWhenSt ex sts = text "when" <+> hcatCsvMap convExp ex
+>                           <+> text "then" $+$ convNestedStatements ca sts
+>       convElseSt = ifNotEmpty (\s -> text "else" $+$ convNestedStatements ca s)
+
 >
 > -- misc
 >

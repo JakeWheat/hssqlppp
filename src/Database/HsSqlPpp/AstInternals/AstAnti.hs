@@ -236,8 +236,10 @@ data SetClause = RowSetClause (Annotation) ([String])
 data Statement = AlterSequence (Annotation) (String) (String)
                | AlterTable (Annotation) (String) (AlterTableActionList)
                | Assignment (Annotation) (String) (Expression)
-               | CaseStatement (Annotation) (Expression)
-                               (ExpressionListStatementListPairList) (StatementList)
+               | CaseStatement (Annotation) (ExpressionListStatementListPairList)
+                               (StatementList)
+               | CaseStatementSimple (Annotation) (Expression)
+                                     (ExpressionListStatementListPairList) (StatementList)
                | ContinueStatement (Annotation)
                | Copy (Annotation) (String) ([String]) (CopySource)
                | CopyData (Annotation) (String)
@@ -657,9 +659,13 @@ statement x
         AlterSequence a1 a2 a3 -> A.AlterSequence a1 a2 a3
         AlterTable a1 a2 a3 -> A.AlterTable a1 a2 (alterTableActionList a3)
         Assignment a1 a2 a3 -> A.Assignment a1 a2 (expression a3)
-        CaseStatement a1 a2 a3 a4 -> A.CaseStatement a1 (expression a2)
-                                       (expressionListStatementListPairList a3)
-                                       (statementList a4)
+        CaseStatement a1 a2 a3 -> A.CaseStatement a1
+                                    (expressionListStatementListPairList a2)
+                                    (statementList a3)
+        CaseStatementSimple a1 a2 a3 a4 -> A.CaseStatementSimple a1
+                                             (expression a2)
+                                             (expressionListStatementListPairList a3)
+                                             (statementList a4)
         ContinueStatement a1 -> A.ContinueStatement a1
         Copy a1 a2 a3 a4 -> A.Copy a1 a2 a3 (copySource a4)
         CopyData a1 a2 -> A.CopyData a1 a2

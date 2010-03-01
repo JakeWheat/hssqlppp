@@ -81,7 +81,7 @@ SEM Root
            statements.libUpdates = []
 
 SEM Statement
-    | CaseStatement ContinueStatement Copy CopyData
+    | CaseStatement CaseStatementSimple ContinueStatement Copy CopyData
       DropSomething Execute ExecuteInto
       If NullStatement ExitStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement Set Notify CreateSequence LoopStatement
@@ -102,7 +102,7 @@ SEM FnBody
         sts.catUpdates = []
         sts.libUpdates = []
 SEM Statement
-    | CaseStatement If
+    | CaseStatement CaseStatementSimple If
         els.catUpdates = []
         els.libUpdates = []
 SEM Statement

@@ -101,15 +101,10 @@ create view base_relvar_keys as
 create view base_relvar_key_attributes as
   select constraint_name, attribute_name from
     (select conname as constraint_name, conrelid,
-      conkey[generate_series] as attnum
+      unnest(conkey) as attnum
       from pg_constraint
-      cross join generate_series(1,
-        (select max(array_upper(conkey, 1)) from pg_constraint))
       where contype in('p', 'u') and connamespace =
-        (select oid from pg_namespace where nspname='public')
-      and generate_series between
-      array_lower(conkey, 1) and
-      array_upper(conkey, 1)) as a
+        (select oid from pg_namespace where nspname='public')) as a
   natural inner join
     (select oid as conrelid, relname as relvar_name from pg_class) as b
   natural inner join

@@ -1144,7 +1144,7 @@ quick sanity check
 >         \  when c,d then null;\n\
 >         \  else null;\n\
 >         \end case;"
->      [CaseStatement [] (Identifier [] "a")
+>      [CaseStatementSimple [] (Identifier [] "a")
 >       [([Identifier [] "b"], [NullStatement []])
 >       ,([Identifier [] "c", Identifier [] "d"], [NullStatement []])]
 >       [NullStatement []]]

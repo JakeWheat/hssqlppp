@@ -286,8 +286,11 @@ DATA Statement
                      sts : StatementList
     | ContinueStatement ann:Annotation
     --variable, list of when parts, else part
-    | CaseStatement ann:Annotation
+    | CaseStatementSimple ann:Annotation
                     val : Expression
+                    cases : ExpressionListStatementListPairList
+                    els : StatementList
+    | CaseStatement ann:Annotation
                     cases : ExpressionListStatementListPairList
                     els : StatementList
     --list is
