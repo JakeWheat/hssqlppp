@@ -89,6 +89,7 @@ out. If not, will have to add another type.
 >                 | AnyNonArray
 >                 | Cstring
 >                 | Record
+>                 | TriggerRecord
 >                 | Trigger
 >                 | Void
 >                 | Internal

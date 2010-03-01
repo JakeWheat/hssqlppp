@@ -163,8 +163,15 @@ compatibility with the old lookup code
 > lbLookupID1 (LocalBindings _ lkps) cor' i' =
 >   --trace ("lookup: " ++ showID cor' i'
 >   --       ++ "in " ++ concatMap ppLbls lkps) $
->   lkId lkps
+>   -- hack for triggers
+>   case cor of
+>     "new" | isTrigRec -> Right ("", "new", i, UnknownType)
+>     "old" | isTrigRec -> Right ("", "old", i, UnknownType)
+>     _ -> lkId lkps
 >   where
+>     isTrigRec = case lbLookupID1 (LocalBindings undefined lkps) "" cor of
+>                   Right (_,_,_,Pseudo TriggerRecord) -> True
+>                   _ -> False
 >     cor = mtl cor'
 >     i = mtl i'
 >     lkId ((LocalBindingsLookup idmap _):ls) =

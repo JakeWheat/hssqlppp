@@ -26,8 +26,10 @@ Copyright 2010 Jake Wheat
 > >
 >
 > See <http://community.haskell.org/~JakeWheat/hssqlppp/QuasiQuoteTests.html>
-> for more examples.
->
+> for more simple examples, and
+> <http://community.haskell.org/~JakeWheat/hssqlppp/pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/
+> for some example files which use quasiquotation to do ast
+> transformations which implement syntax extensions to sql
 >      -}
 >
 > {-# LANGUAGE TemplateHaskell,ScopedTypeVariables #-}
@@ -78,18 +80,19 @@ Copyright 2010 Jake Wheat
 > sqlExpr :: QuasiQuoter
 > sqlExpr = QuasiQuoter (parseExprExp parseAntiExpression) (parseExprPat parseAntiExpression)
 
-~~~~
-these badboys return asts of from the module
-Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result
-of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
-magically converts from one to the other ...
-~~~~
-
 > type Parser e a = (String
 >                    -> Int
 >                    -> Int
 >                    -> String
 >                    -> Either e a)
+
+~~~~
+these return asts of from the module
+Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result
+of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
+magically converts from one to the other ...
+~~~~
+
 >
 > parseExprExp :: (Show e, Data a) =>
 >                 (Parser e a) -> String -> Q Exp

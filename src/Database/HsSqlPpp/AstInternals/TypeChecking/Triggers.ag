@@ -12,8 +12,9 @@ returning trigger to type check sort of correctly (it won't fail
 things which should pass).
 
 [Could do slightly better whilst checking these functions (e.g. detect
-inconsistencies in the way old and new are used), but don't need to to
-catch errors.
+inconsistencies in the way old and new are used), but don't need to do
+this here to catch errors, since we catch them when they are attached
+to a table.
 
 also: returns trigger means that the function should return old, new
 or null, could catch this in the function, but using it will catch

@@ -4,22 +4,18 @@ This file is a complete disorganised mess.
 
 New todo for next release:
 
-chaos sql is good enough for now, get the rest of it redone so it
-   isn't such a mess
-add docs to show chaos as example code
-   plus add rendering of type checking process, catalog, and things
-   like that
-finish wrappers and sort out small example code
-nav for website, get the copyright notices only appearing at the
-   bottom - it seems a bit loony at the moment
-database connection settings
-some of the little fixes below?
-not going to start working much on missing syntax and type checks
-not going to work on markup and rendering of source much
-not planning on doing nullability
-not going to work on the types and code for type checking at all
-move shortdefaultcat to examples tree
+chaos:
+valid square tests
+fix ui so works
+effects, animation
+ai working
 
+fix documentation generator + copyright notices
+finish wrappers and examples
+database connetion
+nav for website
+
+???
 use cases:
 parse some sql: expression, files, etc.
  produce: ast, see parse errors, just check things parse ok
@@ -37,6 +33,8 @@ write some extensions, then load sql using those extensions into a
 
 whet your appetite page: just some code snippets and short
    description with some links, like a marketing page
+
+--
 
 report:
 remove original annotate source

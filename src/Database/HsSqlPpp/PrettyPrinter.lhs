@@ -1,17 +1,12 @@
 Copyright 2009 Jake Wheat
 
-The pretty printer which prints ast nodes from Ast.hs
-It uses the hughes pj pretty printer
-
-Produces sort of readable code, but mainly just written to produce
-reparsable text. Could do with some work to make the outputted text
-layout better.
-
-Not much other comments, since it all should be pretty self evident.
-
 > {- | Functions to convert sql asts to valid SQL source code. Includes
 >    a function - 'printSqlAnn' - to output the annotations from a tree
 >    in comments in the outputted SQL source.
+>
+>    Produces sort of readable code, but mainly just written to produce
+>    reparsable text. Could do with some work to make the outputted text
+>    layout better.
 > -}
 > module Database.HsSqlPpp.PrettyPrinter (
 >                       --convert a sql ast to text

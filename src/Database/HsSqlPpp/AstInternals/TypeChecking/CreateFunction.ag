@@ -98,6 +98,10 @@ SEM Statement
         --add the parameters to the catalog for the contained statements
         body.lib = let p = @params.params
                            ++ (zip posNames $ map snd @params.params)
+                           ++ case @rettype.namedType of
+                                Pseudo Trigger -> [("OLD", Pseudo TriggerRecord)
+                                                  ,("NEW", Pseudo TriggerRecord)]
+                                _ -> []
                    in fromRight @lhs.lib $ do
                       a <- lbUpdate @lhs.cat @lhs.lib (LBIds (@name ++ " parameters") "" p [])
                       lbUpdate @lhs.cat a (LBIds (@name ++ " parameters") @name @params.params [])
