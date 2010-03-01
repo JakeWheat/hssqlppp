@@ -32,7 +32,11 @@ SEM SelectItemList
 
 SEM SelectItem
     | SelExp SelectItem
-        lhs.itemType = getTypeAnnotation @ex.annotatedTree
+        lhs.itemType = -- hack for setof handling
+                       let t = getTypeAnnotation @ex.annotatedTree
+                       in case t of
+                            SetOfType u -> u
+                            v -> v
 
 
 

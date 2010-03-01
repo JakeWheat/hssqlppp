@@ -471,6 +471,12 @@ rows don't match types
 >      ,s "select typname from pg_type where what = 'b';"
 >         $ Left [UnrecognisedIdentifier "what"]
 >      ]
+>
+>   ,Group "unnest" [
+>       s "select conname,unnest(conkey) as attnum from pg_constraint;"
+>         $ Right [Just (StatementType [] [("conname",ScalarType "name")
+>                                          ,("attnum",typeSmallInt)])]
+>      ]
 
 TODO: check identifier stacking working, then remove the pg_namespace
 qualifier before oid and this should still work

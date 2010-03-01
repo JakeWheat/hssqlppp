@@ -269,6 +269,7 @@ against.
 >           where
 >             polys :: [ProtArgCast]
 >             polys = filter (\((_,a,_,_),_) -> any (`elem`
+>                                               -- bit hacky
 >                                              [Pseudo Any
 >                                              ,Pseudo AnyArray
 >                                              ,Pseudo AnyElement
@@ -301,12 +302,12 @@ against.
 >                     typeList = catMaybes $ flip map argPairs
 >                                  (\(ia,fa) -> case fa of
 >                                                   Pseudo Any -> if isArrayType ia
->                                                                          then eitherToMaybe $ unwrapArray ia
->                                                                          else Just ia
+>                                                                 then eitherToMaybe $ unwrapArray ia
+>                                                                 else Just ia
 >                                                   Pseudo AnyArray -> eitherToMaybe $ unwrapArray ia
 >                                                   Pseudo AnyElement -> if isArrayType ia
->                                                                          then eitherToMaybe $ unwrapArray ia
->                                                                          else Just ia
+>                                                                        then eitherToMaybe $ unwrapArray ia
+>                                                                        else Just ia
 >                                                   Pseudo AnyEnum -> Nothing
 >                                                   Pseudo AnyNonArray -> Just ia
 >                                                   _ -> Nothing)
@@ -336,6 +337,9 @@ against.
 >                                            else pit
 >                     Pseudo AnyEnum -> pit
 >                     Pseudo AnyNonArray -> pit
+>                     SetOfType (Pseudo AnyElement) -> if isArrayType at
+>                                                      then SetOfType (ArrayType pit)
+>                                                      else SetOfType pit
 >                     _ -> at
 >       --merge in the instantiated poly functions, with a twist:
 >       -- if we already have the exact same set of args in the non poly list
