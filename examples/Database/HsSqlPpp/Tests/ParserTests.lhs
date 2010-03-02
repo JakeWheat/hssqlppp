@@ -632,40 +632,43 @@ insert from select
 >         \  set x = 1, y = 2;"
 >       [Update [] "tb" [SetClause [] "x" (IntegerLit [] 1)
 >                    ,SetClause [] "y" (IntegerLit [] 2)]
->        Nothing Nothing]
+>        [] Nothing Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
 >       [Update [] "tb" [SetClause [] "x" (IntegerLit [] 1)
->                    ,SetClause [] "y" (IntegerLit [] 2)]
+>                       ,SetClause [] "y" (IntegerLit [] 2)]
+>        []
 >        (Just $ FunCall [] "="
 >         [Identifier [] "z", BooleanLit [] True])
 >        Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 returning id;"
 >       [Update [] "tb" [SetClause [] "x" (IntegerLit [] 1)
->                    ,SetClause [] "y" (IntegerLit [] 2)]
->        Nothing (Just $ sl [selI "id"])]
+>                       ,SetClause [] "y" (IntegerLit [] 2)]
+>        [] Nothing (Just $ sl [selI "id"])]
 >      ,s "update pieces\n\
 >         \set a=b returning tag into r.tag;"
 >       [Update [] "pieces" [SetClause [] "a" (Identifier [] "b")]
+>        []
 >        Nothing (Just (SelectList []
 >                       [SelExp [] (Identifier [] "tag")]
 >                       ["r.tag"]))]
 >      ,s "update tb\n\
 >         \  set (x,y) = (1,2);"
 >       [Update [] "tb" [RowSetClause []
->                     ["x","y"]
->                     [IntegerLit [] 1,IntegerLit [] 2]]
+>                        ["x","y"]
+>                        [IntegerLit [] 1,IntegerLit [] 2]]
+>        []
 >        Nothing Nothing]
 >      ]
 >
 >     ,Group "delete" [
 >       s "delete from tbl1 where x = true;"
->       [Delete [] "tbl1" (Just $ FunCall [] "="
+>       [Delete [] "tbl1" [] (Just $ FunCall [] "="
 >                                [Identifier [] "x", BooleanLit [] True])
 >        Nothing]
 >      ,s "delete from tbl1 where x = true returning id;"
->       [Delete [] "tbl1" (Just $ FunCall [] "="
+>       [Delete [] "tbl1" [] (Just $ FunCall [] "="
 >                                [Identifier [] "x", BooleanLit [] True])
 >        (Just $ sl [selI "id"])]
 >      ]
@@ -1109,7 +1112,7 @@ quick sanity check
 >         \  update c set d = e;\n\
 >         \end if;"
 >       [If [] [((FunCall [] "=" [Identifier [] "a", Identifier [] "b"])
->           ,[Update [] "c" [SetClause [] "d" (Identifier [] "e")] Nothing Nothing])]
+>           ,[Update [] "c" [SetClause [] "d" (Identifier [] "e")] [] Nothing Nothing])]
 >        []]
 >      ,f "if true then\n\
 >         \  null;\n\

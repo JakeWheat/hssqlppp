@@ -224,8 +224,8 @@ brackets which we can use to check these things
 >     stripDml = filter (\s -> case s of
 >                                SelectStatement _ _ -> False
 >                                Insert _ _ _ _ _ -> False
->                                Update _ _ _ _ _ -> False
->                                Delete _ _ _ _ -> False
+>                                Update _ _ _ _ _ _ -> False
+>                                Delete _ _ _ _ _ -> False
 >                                Copy _ _ _ _ -> False
 >                                CopyData _ _ -> False
 >                                Truncate _ _ _ _ -> False

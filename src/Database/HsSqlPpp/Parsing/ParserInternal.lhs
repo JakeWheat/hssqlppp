@@ -278,7 +278,7 @@ this recursion needs refactoring cos it's a mess
 >                    <*> option [] orderBy
 >                    <*> optionMaybe limit
 >                    <*> optionMaybe offset
->         from = keyword "from" *> commaSep1 tref
+>         from = keyword "from" *> commaSep1 tableRef
 >         groupBy = keyword "group" *> keyword "by"
 >                   *> commaSep1 expr
 >         having = keyword "having" *> expr
@@ -290,14 +290,21 @@ this recursion needs refactoring cos it's a mess
 >                                        ,Desc <$ keyword "desc"])
 >         limit = keyword "limit" *> expr
 >         offset = keyword "offset" *> expr
->         -- table refs
->         -- have to cope with:
->         -- a simple tableref i.e just a name
->         -- an aliased table ref e.g. select a.b from tbl as a
->         -- a sub select e.g. select a from (select b from c)
->         --  - these are handled in nonJoinTref
->         -- then we combine by seeing if there is a join looking prefix
->         tref = trefTerm >>= maybeParseAnotherJoin
+>         values = Values <$> (pos <* keyword "values")
+>                         <*> commaSep1 (parens $ commaSep1 expr)
+
+table refs
+have to cope with:
+a simple tableref i.e just a name
+an aliased table ref e.g. select a.b from tbl as a
+a sub select e.g. select a from (select b from c)
+ - these are handled in nonJoinTref
+then we combine by seeing if there is a join looking prefix
+
+> tableRef :: SParser TableRef
+> tableRef =
+>   trefTerm >>= maybeParseAnotherJoin
+>   where
 >         maybeParseAnotherJoin tr1 =
 >           choice [
 >                 do
@@ -310,7 +317,7 @@ this recursion needs refactoring cos it's a mess
 >                     >>= maybeParseAnotherJoin
 >                ,return tr1]
 >         trefTerm = nonJoinTref
->                    <|> try (parens tref)
+>                    <|> try (parens tableRef)
 >         nonJoinTref = try $ optParens $ do
 >                   p2 <- pos
 >                   choice [
@@ -379,8 +386,6 @@ this recursion needs refactoring cos it's a mess
 >                              ,"from"]
 >                    then fail "not keyword"
 >                    else return x
->         values = Values <$> (pos <* keyword "values")
->                         <*> commaSep1 (parens $ commaSep1 expr)
 >
 > optParens :: SParser a
 >           -> SParser a
@@ -405,6 +410,7 @@ multiple rows to insert and insert from select statements
 >          <$> pos <* keyword "update"
 >          <*> idString
 >          <*> (keyword "set" *> commaSep1 setClause)
+>          <*> option [] (keyword "from" *> commaSep1 tableRef)
 >          <*> tryOptionMaybe whereClause
 >          <*> tryOptionMaybe returning
 >     where
@@ -420,6 +426,7 @@ multiple rows to insert and insert from select statements
 > delete = Delete
 >          <$> pos <* keyword "delete" <* keyword "from"
 >          <*> idString
+>          <*> option [] (keyword "using" *> commaSep1 tableRef)
 >          <*> tryOptionMaybe whereClause
 >          <*> tryOptionMaybe returning
 >
@@ -1161,7 +1168,8 @@ factor parsers
 I think the lookahead is used in an attempt to help the error messages.
 
 > scalarSubQuery :: SParser Expression
-> scalarSubQuery = try (symbol "(" *> lookAhead (keyword "select")) >>
+> scalarSubQuery = try (symbol "(" *> lookAhead (keyword "select"
+>                                                <|> keyword "with")) >>
 >                  ScalarSubQuery
 >                  <$> pos
 >                  <*> selectExpression <* symbol ")"

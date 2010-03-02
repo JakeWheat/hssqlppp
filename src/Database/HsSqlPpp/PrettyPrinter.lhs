@@ -68,10 +68,11 @@ Conversion routines - convert Sql asts into Docs
 >   $+$ convReturning rt
 >   <> statementEnd
 >
-> convStatement ca (Update ann tb scs wh rt) =
+> convStatement ca (Update ann tb scs fr wh rt) =
 >    convPa ca ann <+>
 >    text "update" <+> text tb <+> text "set"
 >    <+> hcatCsvMap convSetClause scs
+>    <+> ifNotEmpty (\_ -> text "from" <+> hcatCsvMap convTref fr) fr
 >    <+> convWhere wh
 >    $+$ convReturning rt <> statementEnd
 >    where
@@ -81,9 +82,10 @@ Conversion routines - convert Sql asts into Docs
 >        <+> text "="
 >        <+> parens (hcatCsvMap convExp exs)
 >
-> convStatement ca (Delete ann tbl wh rt) =
+> convStatement ca (Delete ann tbl us wh rt) =
 >    convPa ca ann <+>
 >    text "delete from" <+> text tbl
+>    <+> ifNotEmpty (\_ -> text "using" <+> hcatCsvMap convTref us) us
 >    <+> convWhere wh
 >    $+$ convReturning rt
 >    <> statementEnd
@@ -432,38 +434,6 @@ Statement components
 >                   <+> convDir od) o) order
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 >   <+> maybeConv (\offs -> text "offset" <+> convExp offs) off
->   where
->     convTref (Tref _ f a) = text f <+> convTrefAlias a
->     convTref (JoinedTref _ t1 nat jt t2 ex a) =
->         parens (convTref t1
->         $+$ (case nat of
->                       Natural -> text "natural"
->                       Unnatural -> empty)
->         <+> text (case jt of
->                           Inner -> "inner"
->                           Cross -> "cross"
->                           LeftOuter -> "left outer"
->                           RightOuter -> "right outer"
->                           FullOuter -> "full outer")
->         <+> text "join"
->         <+> convTref t2
->         <+> maybeConv (nest 2 . convJoinExpression) ex
->         <+> convTrefAlias a)
->         where
->           convJoinExpression (JoinOn _ e) = text "on" <+> convExp e
->           convJoinExpression (JoinUsing _ ids) =
->               text "using" <+> parens (hcatCsvMap text ids)
->
->     convTref (SubTref _ sub alias) =
->         parens (convSelectExpression True True sub)
->         <+> text "as" <+> convTrefAlias alias
->     convTref (TrefFun _ f@(FunCall _ _ _) a) = convExp f <+> convTrefAlias a
->     convTref (TrefFun _ x _) =
->       error $ "internal error: node not supported in function tref: "
->             ++ show x
->     convTrefAlias NoAlias = empty
->     convTrefAlias (TableAlias t) = text t
->     convTrefAlias (FullAlias t s) = text t <+> parens (hcatCsvMap text s)
 >
 > convSelectExpression writeSelect topLev (CombineSelect _ tp s1 s2) =
 >   let p = convSelectExpression writeSelect False s1
@@ -483,6 +453,41 @@ Statement components
 >     pwq (WithQuery _ nm ex1) =
 >       text nm <+> text "as"
 >       <+> parens (convSelectExpression True False ex1)
+>
+> convTref :: TableRef -> Doc
+> convTref (Tref _ f a) = text f <+> convTrefAlias a
+> convTref (JoinedTref _ t1 nat jt t2 ex a) =
+>         parens (convTref t1
+>         $+$ (case nat of
+>                       Natural -> text "natural"
+>                       Unnatural -> empty)
+>         <+> text (case jt of
+>                           Inner -> "inner"
+>                           Cross -> "cross"
+>                           LeftOuter -> "left outer"
+>                           RightOuter -> "right outer"
+>                           FullOuter -> "full outer")
+>         <+> text "join"
+>         <+> convTref t2
+>         <+> maybeConv (nest 2 . convJoinExpression) ex
+>         <+> convTrefAlias a)
+>         where
+>           convJoinExpression (JoinOn _ e) = text "on" <+> convExp e
+>           convJoinExpression (JoinUsing _ ids) =
+>               text "using" <+> parens (hcatCsvMap text ids)
+>
+> convTref (SubTref _ sub alias) =
+>         parens (convSelectExpression True True sub)
+>         <+> text "as" <+> convTrefAlias alias
+> convTref (TrefFun _ f@(FunCall _ _ _) a) = convExp f <+> convTrefAlias a
+> convTref (TrefFun _ x _) =
+>       error $ "internal error: node not supported in function tref: "
+>             ++ show x
+>
+> convTrefAlias :: TableAlias -> Doc
+> convTrefAlias NoAlias = empty
+> convTrefAlias (TableAlias t) = text t
+> convTrefAlias (FullAlias t s) = text t <+> parens (hcatCsvMap text s)
 
 > convDir :: Direction -> Doc
 > convDir d = text $ case d of

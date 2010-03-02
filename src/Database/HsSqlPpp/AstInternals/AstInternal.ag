@@ -165,11 +165,13 @@ DATA Statement
     | Update ann:Annotation
              table : String
              assigns : SetClauseList
+             fromList : TableRefList
              whr : MaybeBoolExpression
              returning : MaybeSelectList
     --tablename, where, returning
     | Delete ann:Annotation
              table : String
+             using : TableRefList
              whr : MaybeBoolExpression
              returning : MaybeSelectList
     --tablename column names, from
@@ -768,8 +770,8 @@ typeCheckPS cat st =
     case st of
       SelectStatement _ _ -> tc
       Insert _ _ _ _ _ -> tc
-      Update _ _ _ _ _ -> tc
-      Delete _ _ _ _ -> tc
+      Update _ _ _ _ _ _ -> tc
+      Delete _ _ _ _ _ -> tc
       _ -> Left "requires select, update, insert or delete statement"
     where
       tc = let t = sem_Root (Root (fixupImplicitJoins [st]))

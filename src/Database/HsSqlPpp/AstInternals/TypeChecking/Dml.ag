@@ -89,6 +89,7 @@ SEM Statement
         loc.backTree = Update @ann
                               @table
                               @loc.assignWInferredTypes
+                              @fromList.annotatedTree
                               @whr.annotatedTree
                               @returning.annotatedTree
         loc.catUpdates = []
@@ -183,7 +184,7 @@ SEM Statement
         loc.statementType = [StatementType (getPlaceholderTypes @whr.annotatedTree)
                                            (fromMaybe [] @returning.listType)]
 
-        loc.backTree = Delete @ann @table @whr.annotatedTree @returning.annotatedTree
+        loc.backTree = Delete @ann @table @using.annotatedTree @whr.annotatedTree @returning.annotatedTree
         loc.catUpdates = []
 
 
