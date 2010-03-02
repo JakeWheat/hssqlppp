@@ -35,8 +35,8 @@ Public functions
 > printSql = printSqlAnn (const "")
 >
 > -- | convert the ast back to valid source, and convert any annotations to
-> -- text using the function provided and interpolate the output of this function
-> -- (inside comments) with the SQL source.
+> -- text using the function provided and interpolate the output of
+> -- this function(inside comments) with the SQL source.
 > printSqlAnn :: (Annotation -> String) -> StatementList -> String
 > printSqlAnn f ast = render $ vcat (map (convStatement f) ast) <> text "\n"
 >
@@ -110,20 +110,22 @@ Conversion routines - convert Sql asts into Docs
 >       convAttDef (AttributeDef _ n t def cons) =
 >         text n <+> convTypeName t
 >         <+> maybeConv (\e -> text "default" <+> convExp e) def
->         <+> hsep (map (\e -> (case e of
->                                 NullConstraint _ cn -> mname cn <+> text "null"
->                                 NotNullConstraint _ cn -> mname cn <+> text "not null"
->                                 RowCheckConstraint _ cn ew ->
->                                     mname cn <+> text "check" <+> parens (convExp ew)
->                                 RowUniqueConstraint _ cn -> mname cn <+> text "unique"
->                                 RowPrimaryKeyConstraint _ cn -> mname cn <+> text "primary key"
->                                 RowReferenceConstraint _ cn tb att ondel onupd ->
->                                     mname cn <+>
->                                     text "references" <+> text tb
->                                     <+> maybeConv (parens . text) att
->                                     <+> text "on delete" <+> convCasc ondel
->                                     <+> text "on update" <+> convCasc onupd
->                         )) cons)
+>         <+> hsep (map cCons cons)
+>       cCons (NullConstraint _ cn) =
+>         mname cn <+> text "null"
+>       cCons (NotNullConstraint _ cn) =
+>         mname cn <+> text "not null"
+>       cCons (RowCheckConstraint _ cn ew) =
+>         mname cn <+> text "check" <+> parens (convExp ew)
+>       cCons (RowUniqueConstraint _ cn) =
+>         mname cn <+> text "unique"
+>       cCons (RowPrimaryKeyConstraint _ cn) =
+>         mname cn <+> text "primary key"
+>       cCons (RowReferenceConstraint _ cn tb att ondel onupd) =
+>         mname cn <+> text "references" <+> text tb
+>         <+> maybeConv (parens . text) att
+>         <+> text "on delete" <+> convCasc ondel
+>         <+> text "on update" <+> convCasc onupd
 >
 > convStatement ca (AlterTable ann name act) =
 >     convPa ca ann <+>
@@ -131,7 +133,8 @@ Conversion routines - convert Sql asts into Docs
 >     <+> hcatCsvMap convAct act <> statementEnd
 >     where
 >       convAct (AlterColumnDefault _ nm def) =
->           text "alter column" <+> text nm <+> text "set default" <+> convExp def
+>           text "alter column" <+> text nm
+>           <+> text "set default" <+> convExp def
 >       convAct (AddConstraint _ con) =
 >           text "add " <+> convCon con
 >
@@ -214,7 +217,8 @@ Conversion routines - convert Sql asts into Docs
 >   <+> convCasc casc
 >   <> statementEnd
 >   where
->     doFunction (name,types) = text name <> parens (hcatCsvMap convTypeName types)
+>     doFunction (name,types) =
+>       text name <> parens (hcatCsvMap convTypeName types)
 >
 > convStatement ca (DropSomething ann dropType ifExists names casc) =
 >     convPa ca ann <+>
@@ -246,21 +250,26 @@ Conversion routines - convert Sql asts into Docs
 >     <+> text (case wh of
 >                       TriggerBefore -> "before"
 >                       TriggerAfter -> "after")
->     <+> hcat (map text $ intersperse " or " $ map (\e -> case e of
->                                                    TInsert -> "insert"
->                                                    TUpdate -> "update"
->                                                    TDelete -> "delete") events)
+>     <+> evs
 >     <+> text "on" <+> text tbl
 >     <+> text "for" <+> text (case firing of
 >                                         EachRow -> "row"
 >                                         EachStatement -> "statement")
 >     <+> text "execute procedure" <+> text fnName
 >     <> parens (hcatCsvMap convExp fnArgs) <> statementEnd
+>     where
+>       evs = hcat $ map text $ intersperse " or "
+>             $ map (\e -> case e of
+>                                 TInsert -> "insert"
+>                                 TUpdate -> "update"
+>                                 TDelete -> "delete") events
 >
 > -- plpgsql
 >
-> convStatement ca (NullStatement ann) = convPa ca ann <+> text "null" <> statementEnd
-> convStatement ca (ExitStatement ann) = convPa ca ann <+> text "exit" <> statementEnd
+> convStatement ca (NullStatement ann) =
+>   convPa ca ann <+> text "null" <> statementEnd
+> convStatement ca (ExitStatement ann) =
+>   convPa ca ann <+> text "exit" <> statementEnd
 >
 > convStatement ca (Assignment ann name val) =
 >     convPa ca ann <+>
@@ -328,9 +337,10 @@ Conversion routines - convert Sql asts into Docs
 >     convPa ca ann <+>
 >     text "copy" <+> text tb
 >     <+> ifNotEmpty (parens . hcatCsvMap text) cols
->     <+> text "from" <+> case src of
->                                  CopyFilename s -> quotes $ text s <> statementEnd
->                                  Stdin -> text "stdin" <> text ";"
+>     <+> text "from"
+>     <+> case src of
+>                  CopyFilename s -> quotes $ text s <> statementEnd
+>                  Stdin -> text "stdin" <> text ";"
 >
 > convStatement ca (CopyData ann s) =
 >     convPa ca ann <+>
@@ -365,7 +375,8 @@ Conversion routines - convert Sql asts into Docs
 >     where
 >       convWhenSt ex sts = text "when" <+> hcatCsvMap convExp ex
 >                           <+> text "then" $+$ convNestedStatements ca sts
->       convElseSt = ifNotEmpty (\s -> text "else" $+$ convNestedStatements ca s)
+>       convElseSt = ifNotEmpty (\s -> text "else"
+>                                      $+$ convNestedStatements ca s)
 > convStatement ca (CaseStatement ann conds els) =
 >     convPa ca ann <+>
 >     text "case"
@@ -376,13 +387,15 @@ Conversion routines - convert Sql asts into Docs
 >     where
 >       convWhenSt ex sts = text "when" <+> hcatCsvMap convExp ex
 >                           <+> text "then" $+$ convNestedStatements ca sts
->       convElseSt = ifNotEmpty (\s -> text "else" $+$ convNestedStatements ca s)
+>       convElseSt = ifNotEmpty (\s -> text "else"
+>                                      $+$ convNestedStatements ca s)
 
 >
 > -- misc
 >
 > convStatement _ (Set _ n vs) =
->   text "set" <+> text n <+> text "=" <+> hcatCsvMap (text . dv) vs <> statementEnd
+>   text "set" <+> text n <+> text "="
+>   <+> hcatCsvMap (text . dv) vs <> statementEnd
 >   where
 >     dv (SetStr _ s) = "'" ++ s ++ "'"
 >     dv (SetId _ i) = i
@@ -446,7 +459,8 @@ Statement components
 >         <+> text "as" <+> convTrefAlias alias
 >     convTref (TrefFun _ f@(FunCall _ _ _) a) = convExp f <+> convTrefAlias a
 >     convTref (TrefFun _ x _) =
->         error $ "internal error: node not supported in function tref: " ++ show x
+>       error $ "internal error: node not supported in function tref: "
+>             ++ show x
 >     convTrefAlias NoAlias = empty
 >     convTrefAlias (TableAlias t) = text t
 >     convTrefAlias (FullAlias t s) = text t <+> parens (hcatCsvMap text s)
@@ -475,7 +489,7 @@ Statement components
 >                           Asc -> "asc"
 >                           Desc -> "desc"
 >
-> convWhere :: (Maybe Expression) -> Doc
+> convWhere :: Maybe Expression -> Doc
 > convWhere (Just ex) = text "where" <+> convExp ex
 > convWhere Nothing = empty
 >
@@ -502,7 +516,8 @@ Statement components
 >         mname n <+>
 >         text "primary key"
 >         <+> parens (hcatCsvMap text p)
-> convCon (CheckConstraint _ n c) = mname n <+> text "check" <+> parens (convExp c)
+> convCon (CheckConstraint _ n c) =
+>         mname n <+> text "check" <+> parens (convExp c)
 > convCon (ReferenceConstraint _ n at tb rat ondel onupd) =
 >         mname n <+>
 >         text "foreign key" <+> parens (hcatCsvMap text at)
@@ -575,8 +590,10 @@ Statement components
 >                                 <+> text "from" <+> convExp (es !! 1)
 >                                 <+> text "for" <+> convExp (es !! 2))
 >      "!arraysub" -> case es of
->                        ((Identifier _ i):es1) -> text i <> brackets (csvExp es1)
->                        _ -> parens (convExp (head es)) <> brackets (csvExp (tail es))
+>                        (Identifier _ i : es1) -> text i
+>                                                  <> brackets (csvExp es1)
+>                        _ -> parens (convExp (head es))
+>                             <> brackets (csvExp (tail es))
 >      "!rowctor" -> text "row" <> parens (hcatCsvMap convExp es)
 >      _ | isOperatorName n ->
 >         case forceRight (getOperatorType defaultTemplate1Catalog n) of
@@ -588,7 +605,8 @@ Statement components
 >                                                        then "-"
 >                                                        else filterKeyword n)
 >                                                <+> parens (convExp (head es)))
->                           PostfixOp -> parens (convExp (head es) <+> text (filterKeyword n))
+>                           PostfixOp -> parens (convExp (head es)
+>                                        <+> text (filterKeyword n))
 >        | otherwise -> text n <> parens (csvExp es)
 >    where
 >      filterKeyword t = case t of
@@ -632,7 +650,8 @@ Statement components
 >     ho = not (null order)
 >     convFrm = case frm of
 >                 FrameUnboundedPreceding -> text "range unbounded preceding"
->                 FrameUnboundedFull -> text "range between unbounded preceding and unbounded following"
+>                 FrameUnboundedFull -> text "range between unbounded \
+>                                            \preceding and unbounded following"
 >                 FrameRowsUnboundedPreceding -> text "rows unbounded preceding"
 >
 > convExp (Case _ whens els) =
@@ -657,7 +676,8 @@ Statement components
 >
 > convExp (PositionalArg _ a) = text "$" <> integer a
 > convExp (Placeholder _) = text "?"
-> convExp (Exists _ s) = text "exists" <+> parens (convSelectExpression True True s)
+> convExp (Exists _ s) =
+>   text "exists" <+> parens (convSelectExpression True True s)
 > convExp (Cast _ ex t) = text "cast" <> parens (convExp ex
 >                                              <+> text "as"
 >                                              <+> convTypeName t)

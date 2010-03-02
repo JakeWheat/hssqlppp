@@ -2,7 +2,8 @@ Copyright 2009 Jake Wheat
 
 Forward the public part of CatalogInternal.
 
-> {- | This module contains the database catalog data types and helper functions.
+> {- | This module contains the database catalog data types and helper
+>  functions.
 >
 >  The catalog data type serves the following purposes:
 >

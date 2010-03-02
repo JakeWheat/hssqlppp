@@ -114,7 +114,7 @@ This is the local bindings update that users of this module use.
 >                             ,jtref2 :: LocalBindingsUpdate
 >                             ,joinIds :: Either () [String] -- left () represents natural join
 >                                                            -- right [] represents no join ids
->                             ,alias :: String
+>                             ,jalias :: String
 >                            }
 >                          | LBParallel { -- for having two or more sets of ids on the same
 >                                         -- level, used to catch some ambiguous id errors

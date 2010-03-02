@@ -5,14 +5,13 @@ This file is a complete disorganised mess.
 New todo for next release:
 
 chaos:
-valid square tests
 fix ui so works
 effects, animation
 ai working
 
 fix documentation generator + copyright notices
 finish wrappers and examples
-database connetion
+database connection
 nav for website
 
 ???

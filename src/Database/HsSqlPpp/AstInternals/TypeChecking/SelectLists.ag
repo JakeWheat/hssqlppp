@@ -102,9 +102,9 @@ expandStar :: LocalBindings
            -> [(String,Type)]
 expandStar lb colName colType types =
     fromRight types $ do
-    let (correlationName,iden) = splitIdentifier colName
+    let (cn,iden) = splitIdentifier colName
     newCols <- if iden == "*"
-                 then lbExpandStar lb correlationName
+                 then lbExpandStar lb cn
                  else return [(iden, colType)]
     return $ newCols ++ types
 

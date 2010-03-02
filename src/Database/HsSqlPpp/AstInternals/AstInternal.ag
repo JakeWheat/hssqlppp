@@ -776,7 +776,7 @@ typeCheckPS cat st =
                ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                          ,lib_Inh_Root = emptyBindings}
                tl = annotatedTree_Syn_Root ta
-               cat1 = producedCat_Syn_Root ta
+               --cat1 = producedCat_Syn_Root ta
            in case tl of
                 Root [st1] -> Right st1
                 _ -> error "impossible happened in typeCheckPS!"
@@ -804,8 +804,8 @@ fixupImplicitJoins =
     transformBi $ \x ->
             case x of
               -- alter asts to change implicit joins into explicit joins
-              Select an dis sl trs@(_:_:_) whr grp hav ord lim off
-                  -> Select an dis sl [convTrefs trs] whr grp hav ord lim off
+              Select an dis sl trs@(_:_:_) whr grp hav od lim off
+                  -> Select an dis sl [convTrefs trs] whr grp hav od lim off
               x1 -> x1
     where
       convTrefs (tr:tr1:trs) = JoinedTref [] tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias

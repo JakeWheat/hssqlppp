@@ -250,7 +250,7 @@ typeCheckPS cat st =
                ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                          ,lib_Inh_Root = emptyBindings}
                tl = annotatedTree_Syn_Root ta
-               cat1 = producedCat_Syn_Root ta
+               --cat1 = producedCat_Syn_Root ta
            in case tl of
                 Root [st1] -> Right st1
                 _ -> error "impossible happened in typeCheckPS!"
@@ -278,8 +278,8 @@ fixupImplicitJoins =
     transformBi $ \x ->
             case x of
               -- alter asts to change implicit joins into explicit joins
-              Select an dis sl trs@(_:_:_) whr grp hav ord lim off
-                  -> Select an dis sl [convTrefs trs] whr grp hav ord lim off
+              Select an dis sl trs@(_:_:_) whr grp hav od lim off
+                  -> Select an dis sl [convTrefs trs] whr grp hav od lim off
               x1 -> x1
     where
       convTrefs (tr:tr1:trs) = JoinedTref [] tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias
@@ -506,15 +506,15 @@ funIdens cat alias fnVal = do
                 _ -> True)
              [ContextError "FunCall"]
    let (FunCall _ fnName _) = fnVal
-       correlationName = if alias /= ""
+       cn = if alias /= ""
                            then alias
                            else fnName
    attrs <- do
      case getTypeAnnotation fnVal of
        SetOfType (NamedCompositeType t) -> catCompositePublicAttrs cat [] t
-       SetOfType x -> return [(correlationName,x)]
-       y -> return [(correlationName,y)]
-   return (correlationName, attrs)
+       SetOfType x -> return [(cn,x)]
+       y -> return [(cn,y)]
+   return (cn, attrs)
 
 getAlias :: String -> TableAlias -> String
 getAlias def alias =
@@ -534,9 +534,9 @@ expandStar :: LocalBindings
            -> [(String,Type)]
 expandStar lb colName colType types =
     fromRight types $ do
-    let (correlationName,iden) = splitIdentifier colName
+    let (cn,iden) = splitIdentifier colName
     newCols <- if iden == "*"
-                 then lbExpandStar lb correlationName
+                 then lbExpandStar lb cn
                  else return [(iden, colType)]
     return $ newCols ++ types
 

@@ -233,15 +233,15 @@ funIdens cat alias fnVal = do
                 _ -> True)
              [ContextError "FunCall"]
    let (FunCall _ fnName _) = fnVal
-       correlationName = if alias /= ""
+       cn = if alias /= ""
                            then alias
                            else fnName
    attrs <- do
      case getTypeAnnotation fnVal of
        SetOfType (NamedCompositeType t) -> catCompositePublicAttrs cat [] t
-       SetOfType x -> return [(correlationName,x)]
-       y -> return [(correlationName,y)]
-   return (correlationName, attrs)
+       SetOfType x -> return [(cn,x)]
+       y -> return [(cn,y)]
+   return (cn, attrs)
 
 getAlias :: String -> TableAlias -> String
 getAlias def alias =

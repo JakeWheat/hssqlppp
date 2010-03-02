@@ -1,7 +1,8 @@
 Copyright 2010 Jake Wheat
 
-> {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent. The splice variable
->    names must be all lower case because of a limitation in the parser.
+> {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent. The
+> splice variable names must be all lower case because of a limitation
+> in the parser.
 >
 > Example:
 >
@@ -32,7 +33,7 @@ Copyright 2010 Jake Wheat
 > transformations which implement syntax extensions to sql
 >      -}
 >
-> {-# LANGUAGE TemplateHaskell,ScopedTypeVariables #-}
+> {-# LANGUAGE ScopedTypeVariables #-}
 >
 > module Database.HsSqlPpp.SqlQuote
 >     (sqlStmts,sqlStmt,pgsqlStmts,pgsqlStmt,sqlExpr) where
@@ -46,29 +47,80 @@ Copyright 2010 Jake Wheat
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.AstInternals.AstAnti
 >
+
+public api: the quasiquote functions
+
 > -- | parses Statements
 > sqlStmts :: QuasiQuoter
-> sqlStmts = QuasiQuoter (parseExprExp parseAntiSql) (parseExprPat parseAntiSql)
->
-> parseOneAntiSql :: Parser String Statement
-> parseOneAntiSql f l c s =
->     case parseAntiSql f l c s of
->       Right [st] -> Right st
->       Right _ -> Left "got multiple statements"
->       Left e -> Left $ show e
+> sqlStmts = makeQQ parseAntiSql
 >
 > -- | parses a single Statement
 > sqlStmt :: QuasiQuoter
-> sqlStmt = QuasiQuoter (parseExprExp parseOneAntiSql) (parseExprPat parseOneAntiSql)
+> sqlStmt = makeQQ parseOneAntiSql
 >
 > -- | parses plpgsql Statements
 > pgsqlStmts :: QuasiQuoter
-> pgsqlStmts = QuasiQuoter (parseExprExp parseAntiPlpgsql) (parseExprPat parseAntiPlpgsql)
+> pgsqlStmts = makeQQ parseAntiPlpgsql
 >
 > -- | parses a plpgsql Statement
 > pgsqlStmt :: QuasiQuoter
-> pgsqlStmt = QuasiQuoter (parseExprExp parseOneAntiPlpgsql) (parseExprPat parseOneAntiPlpgsql)
+> pgsqlStmt = makeQQ parseOneAntiPlpgsql
+
+> -- | parse an Expression
+> sqlExpr :: QuasiQuoter
+> sqlExpr = makeQQ parseAntiExpression
+
+boilerplate utils to hook everything together
+
+> type Parser e a = (String
+>                    -> Int
+>                    -> Int
+>                    -> String
+>                    -> Either e a)
 >
+> makeQQ :: (Show e, Data a) =>
+>           Parser e a -> QuasiQuoter
+> makeQQ p = QuasiQuoter (parseExprExp p)
+>                        (parseExprPat p)
+>
+
+these return asts of from the module
+Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result
+of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
+magically converts from one to the other ...
+
+> parseExprExp :: (Show e, Data a) =>
+>                 Parser e a -> String -> Q Exp
+> parseExprExp p s = parseSql' p s
+>                    >>=  dataToExpQ (const Nothing
+>                                     `extQ` antiExpE
+>                                     `extQ` antiStrE
+>                                     `extQ` antiTriggerEventE
+>                                     `extQ` antiStatementE)
+>
+> parseExprPat :: (Show e, Data a) =>
+>                 Parser e a ->  String -> Q Pat
+> parseExprPat p s = parseSql' p s
+>                    >>=  dataToPatQ (const Nothing
+>                                     `extQ` antiExprP
+>                                     `extQ` antiStrP
+>                                     `extQ` annotToWildCard
+>                                     --`extQ` antiTriggerEventE
+>                                     --`extQ` antiStatementE
+>                                    )
+>
+
+wrapper for all the different parsers which sets the source location
+and converts left to fail
+
+> parseSql' :: (Data a, Show e) => Parser e a -> String -> Q a
+> parseSql' p s = do
+>     Loc fn _ _ (l,c) _ <- location
+>     either (fail . show) return (p fn l c s)
+
+wrappers - the Parser module doesn't expose methods which parse
+exactly one statement
+
 > parseOneAntiPlpgsql :: Parser String Statement
 > parseOneAntiPlpgsql f l c s =
 >     case parseAntiPlpgsql f l c s of
@@ -76,61 +128,31 @@ Copyright 2010 Jake Wheat
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e
 >
-> -- | parse an Expression
-> sqlExpr :: QuasiQuoter
-> sqlExpr = QuasiQuoter (parseExprExp parseAntiExpression) (parseExprPat parseAntiExpression)
+> parseOneAntiSql :: Parser String Statement
+> parseOneAntiSql f l c s =
+>     case parseAntiSql f l c s of
+>       Right [st] -> Right st
+>       Right _ -> Left "got multiple statements"
+>       Left e -> Left $ show e
 
-> type Parser e a = (String
->                    -> Int
->                    -> Int
->                    -> String
->                    -> Either e a)
-
-~~~~
-these return asts of from the module
-Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result
-of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
-magically converts from one to the other ...
-~~~~
-
->
-> parseExprExp :: (Show e, Data a) =>
->                 (Parser e a) -> String -> Q Exp
-> parseExprExp p s = (parseSql' p) s >>=  dataToExpQ (const Nothing
->                        `extQ` antiExpE
->                        `extQ` antiStrE
->                        `extQ` antiTriggerEventE
->                        `extQ` antiStatementE)
->
-> parseExprPat ::(Show e, Data a) =>
->                (Parser e a) ->  String -> Q Pat
-> parseExprPat p s = (parseSql' p) s >>=  dataToPatQ (const Nothing
->                        `extQ` antiExprP
->                        `extQ` antiStrP
->                        `extQ` annotToWildCard
->                        --`extQ` antiTriggerEventE
->                        --`extQ` antiStatementE
->                                   )
->
-
-hack: replace annotations with wildcards, if we don't do this then
-pattern matches generally don't work since the source position
-annotations from the parser don't match up.
+hack: replace the annotations in asts produced by parsing with
+wildcards, if we don't do this then pattern matches generally don't
+work since the source position annotations from the parser don't match
+up. The source position annotations are still available so that e.g. a
+function can pattern match against a statement then get the source
+position from the matched statements.
 
 > annotToWildCard :: Annotation -> Maybe PatQ
-> annotToWildCard (_::Annotation) = Just $ return WildP
->
-> parseSql' :: (Data a, Show e) => Parser e a -> String -> Q a
-> parseSql' p s = do
->     Loc fn _ _ (l,c) _ <- location
->     either (fail . show) return (p fn l c s)
->
+> annotToWildCard _ = Just $ return WildP
+
+= individual antinode lookup functions
+
 > antiExpE :: Expression -> Maybe ExpQ
 > antiExpE v = fmap varE (antiExp v)
-
+>
 > antiExprP :: Expression -> Maybe PatQ
 > antiExprP v = fmap varP $ antiExp v
-
+>
 > antiExp :: Expression -> Maybe Name
 > antiExp (AntiExpression v) = Just $ mkName v
 > antiExp _ = Nothing
@@ -152,15 +174,13 @@ nodes and my generics skills aren't up to the task.
 >      vref = varE $ mkName v
 > antiStatementE _ = Nothing
 
-
-
 > antiStrE :: String -> Maybe ExpQ
 > antiStrE v = fmap varE $ antiStr v
 
 > antiStrP :: String -> Maybe PatQ
 > antiStrP v = fmap varP $ antiStr v
 
-> antiStr :: [Char] -> Maybe Name
+> antiStr :: String -> Maybe Name
 > antiStr v =
 >   fmap mkName $ getSpliceName v
 >   where
@@ -195,7 +215,7 @@ than one splice syntax:
 should be
 
 where x= "str" gives
-Identifer [] "str" <- need $(x) to parse as an antiidentifier
+Identifier [] "str" <- need $(x) to parse as an antiidentifier
 
 and sometimes
 
