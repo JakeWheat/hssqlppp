@@ -81,12 +81,12 @@ modules.
 > -- PostgreSQL catalog, such as greatest, coalesce, keyword operators
 > -- like \'and\', etc..
 > defaultCatalog :: Catalog
-> defaultCatalog = emptyCatalog {
->                       catTypeNames = pseudoTypes
->                      ,catBinaryOperators = ("=",[Pseudo AnyElement
->                                                 ,Pseudo AnyElement],
->                                             typeBool, False):keywordOperatorTypes
->                      ,catFunctions = specialFunctionTypes}
+> defaultCatalog =
+>   emptyCatalog {catTypeNames = pseudoTypes
+>                ,catBinaryOperators = pe : keywordOperatorTypes
+>                ,catFunctions = specialFunctionTypes}
+>   where
+>     pe = ("=", [Pseudo AnyElement, Pseudo AnyElement], typeBool, False)
 >
 > -- | Use to note what the flavour of a cast is, i.e. if/when it can
 > -- be used implicitly.
@@ -133,21 +133,31 @@ modules.
 >     deriving (Eq,Ord,Typeable,Data,Show)
 >
 > ppCatUpdate :: CatalogUpdate -> String
-> ppCatUpdate (CatCreateScalar t c p) = "CatCreateScalar " ++ show t ++ "(" ++ c ++ "," ++ show p ++ ")"
-> ppCatUpdate (CatCreateDomain t b) = "CatCreateDomain " ++ show t ++ " as " ++ show b
-> ppCatUpdate (CatCreateComposite nm flds) = "CatCreateComposite " ++ nm ++ showFlds flds
-> ppCatUpdate (CatCreateCast s t ctx) = "CatCreateCast " ++ show s ++ "->" ++ show t ++ " " ++ show ctx
-> ppCatUpdate (CatCreateTable nm flds1 flds2) = "CatCreateTable " ++ nm ++ showFlds flds1 ++ showFlds flds2
-> ppCatUpdate (CatCreateView nm flds) = "CatCreateView " ++ nm ++ showFlds flds
+> ppCatUpdate (CatCreateScalar t c p) =
+>   "CatCreateScalar " ++ show t ++ "(" ++ c ++ "," ++ show p ++ ")"
+> ppCatUpdate (CatCreateDomain t b) =
+>   "CatCreateDomain " ++ show t ++ " as " ++ show b
+> ppCatUpdate (CatCreateComposite nm flds) =
+>   "CatCreateComposite " ++ nm ++ showFlds flds
+> ppCatUpdate (CatCreateCast s t ctx) =
+>   "CatCreateCast " ++ show s ++ "->" ++ show t ++ " " ++ show ctx
+> ppCatUpdate (CatCreateTable nm flds1 flds2) =
+>   "CatCreateTable " ++ nm ++ showFlds flds1 ++ showFlds flds2
+> ppCatUpdate (CatCreateView nm flds) =
+>   "CatCreateView " ++ nm ++ showFlds flds
 > ppCatUpdate (CatCreateFunction flav nm args ret vdc) =
->     "CatCreateFunction " ++ show flav ++ " " ++ nm ++ " returns " ++ show ret ++
->     "(" ++ intercalate "," (map show args) ++ ")" ++ if vdc then " variadic" else ""
-> ppCatUpdate (CatDropFunction _ nm args) = "CatDropFunction " ++ nm ++ "(" ++ show args ++ ")"
+>   "CatCreateFunction " ++ show flav ++ " " ++ nm
+>   ++ " returns " ++ show ret
+>   ++ "(" ++ intercalate "," (map show args) ++ ")"
+>   ++ if vdc then " variadic" else ""
+> ppCatUpdate (CatDropFunction _ nm args) =
+>   "CatDropFunction " ++ nm ++ "(" ++ show args ++ ")"
 >
 > showFlds :: [(String,Type)] -> String
 > showFlds flds = "(\n" ++ sfs flds ++ ")"
 >                 where
->                   sfs ((nm,t):fs) = "    " ++ show nm ++ " " ++ show t ++ "\n" ++ sfs fs
+>                   sfs ((nm,t):fs) = "    " ++ show nm
+>                                     ++ " " ++ show t ++ "\n" ++ sfs fs
 >                   sfs [] = ""
 >
 > data FunFlav = FunPrefix | FunPostfix | FunBinary
@@ -162,85 +172,106 @@ modules.
 > updateCatalog cat' eus =
 >   foldM updateCat' (cat' {catUpdates = catUpdates cat' ++ eus}) eus
 >   where
->     updateCat' cat eu =
->       case eu of
->         CatCreateScalar ty catl pref -> do
->                 errorWhen (not allowed)
->                   [BadCatalogUpdate $ "can only add scalar types\
->                                       \this way, got " ++ show ty]
->                 let ScalarType nm = ty
->                 return $ addTypeWithArray cat nm ty catl pref
->                 where
->                   allowed = case ty of
->                                     ScalarType _ -> True
->                                     _ -> False
->         CatCreateDomain ty baseTy -> do
->                 errorWhen (not allowed)
->                   [BadCatalogUpdate $ "can only add domain types\
->                                       \this way, got " ++ show ty]
->                 errorWhen (not baseAllowed)
->                   [BadCatalogUpdate $ "can only add domain types\
->                                           \based on scalars, got "
->                                           ++ show baseTy]
->                 let DomainType nm = ty
->                 catl <- catTypeCategory cat baseTy
->                 return (addTypeWithArray cat nm ty catl False) {
->                                        catDomainDefs =
->                                          (ty,baseTy):catDomainDefs cat
->                                        ,catCasts =
->                                          (ty,baseTy,ImplicitCastContext):catCasts cat}
->                 where
->                   allowed = case ty of
->                                             DomainType _ -> True
->                                             _ -> False
->                   baseAllowed = case baseTy of
->                                                     ScalarType _ -> True
->                                                     _ -> False
->         CatCreateComposite nm flds ->
->                 return $ (addTypeWithArray cat nm (NamedCompositeType nm) "C" False) {
->                             catAttrDefs =
->                               (nm,Composite,CompositeType flds, CompositeType [])
->                               : catAttrDefs cat}
->         CatCreateCast src tgt ctx -> return $ cat {catCasts = (src,tgt,ctx):catCasts cat}
->         CatCreateTable nm attrs sysAttrs -> do
->                 checkTypeDoesntExist cat nm (NamedCompositeType nm)
->                 return $ (addTypeWithArray cat nm
->                             (NamedCompositeType nm) "C" False) {
->                             catAttrDefs =
->                               (nm,TableComposite,CompositeType attrs, CompositeType sysAttrs)
->                               : catAttrDefs cat}
->         CatCreateView nm attrs -> {-trace ("create view:" ++ show nm) $-} do
->                 checkTypeDoesntExist cat nm (NamedCompositeType nm)
->                 return $ (addTypeWithArray cat nm
->                             (NamedCompositeType nm) "C" False) {
->                             catAttrDefs =
->                               (nm,ViewComposite,CompositeType attrs, CompositeType [])
->                               : catAttrDefs cat}
->         CatCreateFunction f nm args ret vdc ->
->             return $ case f of
->               FunPrefix -> cat {catPrefixOperators=(nm,args,ret,vdc):catPrefixOperators cat}
->               FunPostfix -> cat {catPostfixOperators=(nm,args,ret,vdc):catPostfixOperators cat}
->               FunBinary -> cat {catBinaryOperators=(nm,args,ret,vdc):catBinaryOperators cat}
->               FunAgg -> cat {catAggregates=(nm,args,ret,vdc):catAggregates cat}
->               FunWindow -> cat {catWindowFunctions=(nm,args,ret,vdc):catWindowFunctions cat}
->               FunName -> cat {catFunctions=(nm,args,ret,vdc):catFunctions cat}
->         CatDropFunction _ {-ifexists-} nm args -> do
->             let matches =  filter matchingFn (catFunctions cat)
->             errorWhen (null matches) [BadCatalogUpdate $
->                                         "couldn't find function to drop " ++
->                                         show nm ++ "(" ++ show args++")"]
->             errorWhen (length matches > 1) [BadCatalogUpdate $
->                                               "multiple matching functions to drop " ++
->                                               show nm ++ "(" ++ show args++")"]
->             return cat {catFunctions = filter (not . matchingFn) (catFunctions cat)
->                        ,catUpdates = filter (not.matchingUpdate) (catUpdates cat)}
->             where
->               matchingFn (nm1,a1,_,_) = map toLower nm == map toLower nm1 && args == a1
->               matchingUpdate (CatDropFunction _ nm2 a2) | map toLower nm2 == map toLower nm
->                                                           && a2 == args = True
->               matchingUpdate (CatCreateFunction _ nm2 a2 _ _) | map toLower nm2 == map toLower nm
->                                                           && a2 == args = True
->               matchingUpdate _ = False
+>     updateCat' cat (CatCreateScalar ty catl pref) = do
+>       errorWhen (not allowed)
+>         [BadCatalogUpdate $ "can only add scalar types\
+>                             \this way, got " ++ show ty]
+>       let ScalarType nm = ty
+>       return $ addTypeWithArray cat nm ty catl pref
+>       where
+>         allowed = case ty of
+>                           ScalarType _ -> True
+>                           _ -> False
+>
+>     updateCat' cat (CatCreateDomain ty baseTy) = do
+>       errorWhen (not allowed)
+>         [BadCatalogUpdate $ "can only add domain types\
+>                             \this way, got " ++ show ty]
+>       errorWhen (not baseAllowed)
+>         [BadCatalogUpdate $ "can only add domain types\
+>                                 \based on scalars, got "
+>                                 ++ show baseTy]
+>       let DomainType nm = ty
+>       catl <- catTypeCategory cat baseTy
+>       return (addTypeWithArray cat nm ty catl False) {
+>                              catDomainDefs =
+>                                (ty,baseTy):catDomainDefs cat
+>                              ,catCasts =
+>                                (ty,baseTy,ImplicitCastContext):catCasts cat}
+>       where
+>         allowed = case ty of
+>                           DomainType _ -> True
+>                           _ -> False
+>         baseAllowed = case baseTy of
+>                                   ScalarType _ -> True
+>                                   _ -> False
+>     updateCat' cat (CatCreateComposite nm flds) =
+>       return $ (addTypeWithArray cat nm (NamedCompositeType nm) "C" False) {
+>                   catAttrDefs =
+>                     (nm,Composite,CompositeType flds, CompositeType [])
+>                     : catAttrDefs cat}
+>
+>     updateCat' cat (CatCreateCast src tgt ctx) =
+>       return $ cat {catCasts = (src,tgt,ctx):catCasts cat}
+>
+>     updateCat' cat (CatCreateTable nm attrs sysAttrs) = do
+>       checkTypeDoesntExist cat nm (NamedCompositeType nm)
+>       return $ (addTypeWithArray cat nm
+>                   (NamedCompositeType nm) "C" False) {
+>                   catAttrDefs =
+>                     (nm,TableComposite
+>                     ,CompositeType attrs
+>                     , CompositeType sysAttrs)
+>                     : catAttrDefs cat}
+>
+>     updateCat' cat (CatCreateView nm attrs) = do
+>       checkTypeDoesntExist cat nm (NamedCompositeType nm)
+>       return $ (addTypeWithArray cat nm
+>                   (NamedCompositeType nm) "C" False) {
+>                   catAttrDefs =
+>                     (nm,ViewComposite,CompositeType attrs, CompositeType [])
+>                     : catAttrDefs cat}
+>
+>     updateCat' cat (CatCreateFunction f nm args ret vdc) =
+>         return $ case f of
+>           FunPrefix -> cat {catPrefixOperators =
+>                               fp : catPrefixOperators cat}
+>           FunPostfix -> cat {catPostfixOperators =
+>                                fp : catPostfixOperators cat}
+>           FunBinary -> cat {catBinaryOperators =
+>                               fp : catBinaryOperators cat}
+>           FunAgg -> cat {catAggregates =
+>                            fp : catAggregates cat}
+>           FunWindow -> cat {catWindowFunctions =
+>                               fp : catWindowFunctions cat}
+>           FunName -> cat {catFunctions =
+>                             fp : catFunctions cat}
+>         where fp = (nm,args,ret,vdc)
+>
+>     updateCat' cat (CatDropFunction _ifexists nm args) = do
+>         let matches =  filter matchingFn (catFunctions cat)
+>         errorWhen (null matches)
+>                   [BadCatalogUpdate
+>                    $ "couldn't find function to drop "
+>                      ++ show nm ++ "(" ++ show args++")"]
+>         errorWhen (length matches > 1)
+>                   [BadCatalogUpdate
+>                    $ "multiple matching functions to drop "
+>                      ++ show nm ++ "(" ++ show args++")"]
+>         return cat {catFunctions = filter (not . matchingFn)
+>                                           (catFunctions cat)
+>                    ,catUpdates = filter (not.matchingUpdate)
+>                                         (catUpdates cat)}
+>         where
+>           matchingFn (nm1,a1,_,_) =
+>             map toLower nm == map toLower nm1 && args == a1
+>           matchingUpdate (CatDropFunction _ nm2 a2)
+>                          | map toLower nm2 == map toLower nm
+>                            && a2 == args = True
+>           matchingUpdate (CatCreateFunction _ nm2 a2 _ _)
+>                          | map toLower nm2 == map toLower nm
+>                            && a2 == args = True
+>           matchingUpdate _ = False
 
 todo:
 look for matching function in list, if not found then error
@@ -275,14 +306,18 @@ remove from list, and remove from update list
 
 = type checking stuff
 
-> catCompositeDef :: Catalog -> [CompositeFlavour] -> String -> Either [TypeError] (CompositeDef)
+> catCompositeDef :: Catalog -> [CompositeFlavour] -> String
+>                 -> Either [TypeError] CompositeDef
 > catCompositeDef cat flvs nm = do
->   let c = filter (\(n,t,_,_) -> n == nm && (null flvs || t `elem` flvs)) $ catAttrDefs cat
+>   let c = filter m $ catAttrDefs cat
 >   errorWhen (null c)
 >             [UnrecognisedRelation nm]
 >   case c of
 >     (_,fl1,r,s):[] -> return (nm,fl1,r,s)
->     _ -> Left [InternalError $ "problem getting attributes for: " ++ show nm ++ ", " ++ show c]
+>     _ -> Left [InternalError $ "problem getting attributes for: "
+>                                ++ show nm ++ ", " ++ show c]
+>   where
+>     m (n,t,_,_) = n == nm && (null flvs || t `elem` flvs)
 >
 > catCompositeAttrsPair :: Catalog -> [CompositeFlavour] -> String
 >                       -> Either [TypeError] ([(String,Type)],[(String,Type)])
@@ -388,7 +423,10 @@ This is wrong, these need to be separated into prefix, postfix, binary
 >  ,("!between", [Pseudo AnyElement
 >                ,Pseudo AnyElement
 >                ,Pseudo AnyElement], Pseudo AnyElement, False)
->  ,("!substring", [ScalarType "text",typeInt,typeInt], ScalarType "text", False)
+>  ,("!substring"
+>   ,[ScalarType "text",typeInt,typeInt]
+>   ,ScalarType "text"
+>   ,False)
 >  ,("!arraysub", [Pseudo AnyArray,typeInt], Pseudo AnyElement, False)
 >  ]
 >
@@ -439,20 +477,20 @@ this is why binary @ operator isn't currently supported
 >                   deriving (Eq,Show)
 >
 > getOperatorType :: Catalog -> String -> Either [TypeError] OperatorType
-> getOperatorType cat s = case () of
->                       _ | s `elem` ["!and", "!or","!like"] -> Right BinaryOp
->                         | s `elem` ["!not"] -> Right PrefixOp
->                         | s `elem` ["!isnull", "!isnotnull"] -> Right PostfixOp
->                         | any (\(x,_,_,_) -> x == s) (catBinaryOperators cat) ->
->                             Right BinaryOp
->                         | any (\(x,_,_,_) -> x == s ||
->                                            (x=="-" && s=="u-"))
->                               (catPrefixOperators cat) ->
->                             Right PrefixOp
->                         | any (\(x,_,_,_) -> x == s) (catPostfixOperators cat) ->
->                             Right PostfixOp
->                         | otherwise ->
->                             Left [InternalError $ "don't know flavour of operator " ++ s]
+> getOperatorType cat s =
+>   case () of
+>           _ | s `elem` ["!and", "!or","!like"] -> Right BinaryOp
+>             | s `elem` ["!not"] -> Right PrefixOp
+>             | s `elem` ["!isnull", "!isnotnull"] -> Right PostfixOp
+>             | any (\(x,_,_,_) -> x == s) (catBinaryOperators cat) ->
+>                       Right BinaryOp
+>             | any (\(x,_,_,_) -> x == s || (x=="-" && s=="u-"))
+>                   (catPrefixOperators cat) ->
+>                       Right PrefixOp
+>             | any (\(x,_,_,_) -> x == s) (catPostfixOperators cat) ->
+>                       Right PostfixOp
+>             | otherwise ->
+>                 Left [InternalError $ "don't know flavour of operator " ++ s]
 >
 > isOperatorName :: String -> Bool
 > isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?")

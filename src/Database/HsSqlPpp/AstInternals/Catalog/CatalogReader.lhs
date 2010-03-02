@@ -6,7 +6,7 @@ from a database.
 The code here hasn't been tidied up since the Catalog data type
 was heavily changed so it's a bit messy.
 
-> {-# OPTIONS_HADDOCK hide  #-}
+> {-# LANGUAGE QuasiQuotes #-}
 >
 > module Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
 >     (readCatalogFromDatabase) where
@@ -18,6 +18,7 @@ was heavily changed so it's a bit messy.
 >
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.DbmsCommon
 >
@@ -31,112 +32,168 @@ was heavily changed so it's a bit messy.
 > readCatalogFromDatabase :: String -- ^ name of the database to read
 >                             -> IO [CatalogUpdate]
 > readCatalogFromDatabase dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
->    typeInfo <- selectRelation conn
->                  "select t.oid as oid,\n\
->                  \       t.typtype,\n\
->                  \       case nspname\n\
->                  \         when 'public' then t.typname\n\
->                  \         when 'pg_catalog' then t.typname\n\
->                  \         else nspname || '.' || t.typname\n\
->                  \       end as typname,\n\
->                  \       t.typarray,\n\
->                  \       coalesce(e.typtype,'0') as atyptype,\n\
->                  \       e.oid as aoid,\n\
->                  \       e.typname as atypname\n\
->                  \  from pg_catalog.pg_type t\n\
->                  \  left outer join pg_type e\n\
->                  \    on t.typarray = e.oid\n\
->                  \   inner join pg_namespace ns\n\
->                  \      on t.typnamespace = ns.oid\n\
->                   \         and ns.nspname in ('pg_catalog', 'public', 'information_schema')\n\
->                  \  where /*pg_catalog.pg_type_is_visible(t.oid)\n\
->                  \   and */not exists(select 1 from pg_catalog.pg_type el\n\
->                  \                       where el.typarray = t.oid)\n\
->                  \  order by t.typname;" []
+>    typeInfo <- selectRelation conn [$here|
+
+\begin{code}
+
+select t.oid as oid,
+       t.typtype,
+       case nspname
+         when 'public' then t.typname
+         when 'pg_catalog' then t.typname
+         else nspname || '.' || t.typname
+       end as typname,
+       t.typarray,
+       coalesce(e.typtype,'0') as atyptype,
+       e.oid as aoid,
+       e.typname as atypname
+  from pg_catalog.pg_type t
+  left outer join pg_type e
+    on t.typarray = e.oid
+   inner join pg_namespace ns
+      on t.typnamespace = ns.oid
+         and ns.nspname in ('pg_catalog'
+                           ,'public'
+                           ,'information_schema')
+  where /*pg_catalog.pg_type_is_visible(t.oid)
+   and */not exists(select 1 from pg_catalog.pg_type el
+                       where el.typarray = t.oid)
+  order by t.typname;
+
+\end{code}
+
+>                |] []
 >    let typeStuff = concatMap convTypeInfoRow typeInfo
 >        typeAssoc = map (\(a,b,_) -> (a,b)) typeStuff
 >        typeMap = M.fromList typeAssoc
 >    cts <- map (\(nm:cat:pref:[]) ->
 >                CatCreateScalar (ScalarType nm) cat ( read pref :: Bool)) <$>
->           selectRelation conn
->                        "select t.typname,typcategory,typispreferred\n\
->                        \from pg_type t\n\
->                        \   inner join pg_namespace ns\n\
->                        \      on t.typnamespace = ns.oid\n\
->                        \         and ns.nspname in ('pg_catalog', 'public', 'information_schema')\n\
->                        \where t.typarray<>0 and\n\
->                        \    typtype='b' /*and\n\
->                        \    pg_catalog.pg_type_is_visible(t.oid)*/;" []
->    domainDefInfo <- selectRelation conn
->                       "select pg_type.oid, typbasetype\n\
->                       \  from pg_type\n\
->                       \  inner join pg_namespace ns\n\
->                       \      on pg_type.typnamespace = ns.oid\n\
->                       \         and ns.nspname in ('pg_catalog', 'public', 'information_schema')\n\
->                       \ where typtype = 'd'\n\
->                       \     /*and  pg_catalog.pg_type_is_visible(oid)*/;" []
+>           selectRelation conn [$here|
+
+\begin{code}
+
+select t.typname,typcategory,typispreferred
+from pg_type t
+   inner join pg_namespace ns
+      on t.typnamespace = ns.oid
+         and ns.nspname in ('pg_catalog', 'public', 'information_schema')
+where t.typarray<>0 and
+    typtype='b' /*and
+    pg_catalog.pg_type_is_visible(t.oid)*/;
+
+\end{code}
+
+>                |] []
+>    domainDefInfo <- selectRelation conn [$here|
+
+\begin{code}
+
+select pg_type.oid, typbasetype
+  from pg_type
+  inner join pg_namespace ns
+      on pg_type.typnamespace = ns.oid
+         and ns.nspname in ('pg_catalog', 'public', 'information_schema')
+ where typtype = 'd'
+     /*and  pg_catalog.pg_type_is_visible(oid)*/;
+
+\end{code}
+
+>                |] []
 >    let jlt k = fromJust $ M.lookup k typeMap
 >    let domainDefs = map (\l -> (jlt (l!!0),  jlt (l!!1))) domainDefInfo
 >    --let domainCasts = map (\(t,b) ->(t,b,ImplicitCastContext)) domainDefs
 >    castInfo <- selectRelation conn
 >                  "select castsource,casttarget,castcontext from pg_cast;" []
->    let casts = {- domainCasts ++ -}  flip map castInfo
->                  (\l -> (jlt (l!!0), jlt (l!!1),
->                          case (l!!2) of
->                                      "a" -> AssignmentCastContext
->                                      "i" -> ImplicitCastContext
->                                      "e" -> ExplicitCastContext
->                                      _ -> error $ "internal error: unknown cast context " ++ (l!!2)))
->    operatorInfo <- selectRelation conn
->                        "select oprname,\n\
->                        \       oprleft,\n\
->                        \       oprright,\n\
->                        \       oprresult\n\
->                        \from pg_operator\n\
->                        \      where not (oprleft <> 0 and oprright <> 0\n\
->                        \         and oprname = '@') --hack for now\n\
->                        \      order by oprname;" []
+>    let casts =
+>      {- domainCasts ++ -}
+>          flip map castInfo
+>               (\l -> (jlt (l!!0)
+>                      ,jlt (l!!1)
+>                      ,case (l!!2) of
+>                                   "a" -> AssignmentCastContext
+>                                   "i" -> ImplicitCastContext
+>                                   "e" -> ExplicitCastContext
+>                                   _ -> error $ "internal error: unknown \
+>                                                \cast context " ++ (l!!2)))
+>    operatorInfo <- selectRelation conn [$here|
+
+\begin{code}
+
+select oprname,
+       oprleft,
+       oprright,
+       oprresult
+from pg_operator
+      where not (oprleft <> 0 and oprright <> 0
+         and oprname = '@') --hack for now
+      order by oprname;
+
+\end{code}
+
+>                |] []
 >    let getOps a b c [] = (a,b,c)
 >        getOps pref post bin (l:ls) =
 >          let bit = (\a -> (l!!0, a, jlt(l!!3)))
 >          in case () of
->                   _ | l!!1 == "0" -> getOps (bit [jlt (l!!2)]:pref) post bin ls
->                     | l!!2 == "0" -> getOps pref (bit [jlt (l!!1)]:post) bin ls
->                     | otherwise -> getOps pref post (bit [jlt (l!!1), jlt (l!!2)]:bin) ls
+>                   _ | l!!1 == "0"
+>                         -> getOps (bit [jlt (l!!2)]:pref) post bin ls
+>                     | l!!2 == "0"
+>                         -> getOps pref (bit [jlt (l!!1)]:post) bin ls
+>                     | otherwise -> getOps pref post (bit [jlt (l!!1)
+>                                                          ,jlt (l!!2)]:bin) ls
 >    let (prefixOps, postfixOps, binaryOps) = getOps [] [] [] operatorInfo
->    functionInfo <- selectRelation conn
->                       "select proname,\n\
->                       \       array_to_string(proargtypes,','),\n\
->                       \       proretset,\n\
->                       \       prorettype\n\
->                       \from pg_proc\n\
->                       \where pg_catalog.pg_function_is_visible(pg_proc.oid)\n\
->                       \      and provariadic = 0\n\
->                       \      and not proisagg\n\
->                       \      and not proiswindow\n\
->                       \order by proname,proargtypes;" []
+>    functionInfo <- selectRelation conn [$here|
+
+\begin{code}
+
+select proname,
+       array_to_string(proargtypes,','),
+       proretset,
+       prorettype
+from pg_proc
+where pg_catalog.pg_function_is_visible(pg_proc.oid)
+      and provariadic = 0
+      and not proisagg
+      and not proiswindow
+order by proname,proargtypes;
+\end{code}
+
+>                |] []
 >    let fnProts = map (convFnRow jlt) functionInfo
->    aggregateInfo <- selectRelation conn
->                       "select proname,\n\
->                       \       array_to_string(proargtypes,','),\n\
->                       \       proretset,\n\
->                       \       prorettype\n\
->                       \from pg_proc\n\
->                       \where pg_catalog.pg_function_is_visible(pg_proc.oid)\n\
->                       \      and provariadic = 0\n\
->                       \      and proisagg\n\
->                       \order by proname,proargtypes;" []
+>    aggregateInfo <- selectRelation conn [$here|
+
+\begin{code}
+
+select proname,
+       array_to_string(proargtypes,','),
+       proretset,
+       prorettype
+from pg_proc
+where pg_catalog.pg_function_is_visible(pg_proc.oid)
+      and provariadic = 0
+      and proisagg
+order by proname,proargtypes;
+\end{code}
+
+>                |] []
 >    let aggProts = map (convFnRow jlt) aggregateInfo
->    windowInfo <- selectRelation conn
->                       "select proname,\n\
->                       \       array_to_string(proargtypes,','),\n\
->                       \       proretset,\n\
->                       \       prorettype\n\
->                       \from pg_proc\n\
->                       \where pg_catalog.pg_function_is_visible(pg_proc.oid)\n\
->                       \      and provariadic = 0\n\
->                       \      and proiswindow\n\
->                       \order by proname,proargtypes;" []
+>    windowInfo <- selectRelation conn [$here|
+
+\begin{code}
+
+select proname,
+       array_to_string(proargtypes,','),
+       proretset,
+       prorettype
+from pg_proc
+where pg_catalog.pg_function_is_visible(pg_proc.oid)
+      and provariadic = 0
+      and proiswindow
+order by proname,proargtypes;
+
+\end{code}
+
+>                |] []
 >    let winProts = map (convFnRow jlt) windowInfo
 >    comps <- map (\(kind:nm:atts:sysatts:nsp:[]) ->
 >              let nm1 = case nsp of
@@ -145,67 +202,81 @@ was heavily changed so it's a bit messy.
 >                                 n -> n ++ "." ++ nm
 >              in case kind of
 >                     "c" -> CatCreateComposite nm1 (convertAttString jlt atts)
->                     "r" -> CatCreateTable nm1 (convertAttString jlt atts) (convertAttString jlt sysatts)
+>                     "r" -> CatCreateTable nm1 (convertAttString jlt atts)
+>                                               (convertAttString jlt sysatts)
 >                     "v" -> CatCreateView nm1 (convertAttString jlt atts)
 >                     _ -> error $ "unrecognised relkind: " ++ kind) <$>
->                 selectRelation conn
->                   "with att1 as (\n\
->                   \ select\n\
->                   \     attrelid,\n\
->                   \     attname,\n\
->                   \     attnum,\n\
->                   \     atttypid\n\
->                   \   from pg_attribute\n\
->                   \   inner join pg_class cls\n\
->                   \      on cls.oid = attrelid\n\
->                   \   inner join pg_namespace ns\n\
->                   \      on cls.relnamespace = ns.oid\n\
->                   \         and ns.nspname in ('pg_catalog', 'public', 'information_schema')\n\
->                   \   where /*pg_catalog.pg_table_is_visible(cls.oid)\n\
->                   \      and*/ cls.relkind in ('r','v','c')\n\
->                   \      and not attisdropped),\n\
->                   \ sysAtt as (\n\
->                   \ select attrelid,\n\
->                   \     array_to_string(\n\
->                   \       array_agg(attname || ';' || atttypid)\n\
->                   \         over (partition by attrelid order by attnum\n\
->                   \               range between unbounded preceding\n\
->                   \               and unbounded following)\n\
->                   \       ,',') as sysAtts\n\
->                   \   from att1\n\
->                   \   where attnum < 0),\n\
->                   \ att as (\n\
->                   \ select attrelid,\n\
->                   \     array_to_string(\n\
->                   \       array_agg(attname || ';' || atttypid)\n\
->                   \          over (partition by attrelid order by attnum\n\
->                   \                range between unbounded preceding\n\
->                   \                and unbounded following)\n\
->                   \       ,',') as atts\n\
->                   \   from att1\n\
->                   \   where attnum > 0)\n\
->                   \ select distinct\n\
->                   \     cls.relkind,\n\
->                   \     cls.relname,\n\
->                   \     atts,\n\
->                   \     coalesce(sysAtts,''),\n\
->                   \     nspname\n\
->                   \   from att left outer join sysAtt using (attrelid)\n\
->                   \   inner join pg_class cls\n\
->                   \     on cls.oid = attrelid\n\
->                   \   inner join pg_namespace ns\n\
->                   \      on cls.relnamespace = ns.oid\n\
->                   \   order by relkind,relname;" []
->    return $ concat [
->                cts
+>                 selectRelation conn [$here|
+
+\begin{code}
+
+with att1 as (
+ select
+     attrelid,
+     attname,
+     attnum,
+     atttypid
+   from pg_attribute
+   inner join pg_class cls
+      on cls.oid = attrelid
+   inner join pg_namespace ns
+      on cls.relnamespace = ns.oid
+         and ns.nspname in ('pg_catalog', 'public', 'information_schema')
+   where /*pg_catalog.pg_table_is_visible(cls.oid)
+      and*/ cls.relkind in ('r','v','c')
+      and not attisdropped),
+ sysAtt as (
+ select attrelid,
+     array_to_string(
+       array_agg(attname || ';' || atttypid)
+         over (partition by attrelid order by attnum
+               range between unbounded preceding
+               and unbounded following)
+       ,',') as sysAtts
+   from att1
+   where attnum < 0),
+ att as (
+ select attrelid,
+     array_to_string(
+       array_agg(attname || ';' || atttypid)
+          over (partition by attrelid order by attnum
+                range between unbounded preceding
+                and unbounded following)
+       ,',') as atts
+   from att1
+   where attnum > 0)
+ select distinct
+     cls.relkind,
+     cls.relname,
+     atts,
+     coalesce(sysAtts,''),
+     nspname
+   from att left outer join sysAtt using (attrelid)
+   inner join pg_class cls
+     on cls.oid = attrelid
+   inner join pg_namespace ns
+      on cls.relnamespace = ns.oid
+   order by relkind,relname;
+
+\end{code}
+
+>                |] []
+>    return
+>      $ concat [cts
 >               ,map (uncurry CatCreateDomain) domainDefs
 >               ,map (\(a,b,c) -> CatCreateCast a b c) casts
->               ,map (\(a,b,c) -> CatCreateFunction FunPrefix a b c False) prefixOps
->               ,map (\(a,b,c) -> CatCreateFunction FunPostfix a b c False) postfixOps
->               ,map (\(a,b,c) -> CatCreateFunction FunBinary a b c False) binaryOps
->               ,map (\(a,b,c) -> CatCreateFunction FunName a b c False) fnProts
->               ,map (\(a,b,c) -> CatCreateFunction FunAgg a b c False) aggProts
->               ,map (\(a,b,c) -> CatCreateFunction FunWindow a b c False) winProts
+>               ,map (\(a,b,c) ->
+>                     CatCreateFunction FunPrefix a b c False) prefixOps
+>               ,map (\(a,b,c) ->
+>                     CatCreateFunction FunPostfix a b c False) postfixOps
+>               ,map (\(a,b,c) ->
+>                     CatCreateFunction FunBinary a b c False) binaryOps
+>               ,map (\(a,b,c) ->
+>                     CatCreateFunction FunName a b c False) fnProts
+>               ,map (\(a,b,c) ->
+>                     CatCreateFunction FunAgg a b c False) aggProts
+>               ,map (\(a,b,c) ->
+>                     CatCreateFunction FunWindow a b c False) winProts
 >               ,comps]
 >    where
 >      convertAttString jlt s =
@@ -230,22 +301,24 @@ was heavily changed so it's a bit messy.
 >                     "c" -> NamedCompositeType
 >                     "d" -> DomainType
 >                     "e" -> EnumType
->                     "p" -> (\t -> Pseudo (case t of
->                                                  "any" -> Any
->                                                  "anyarray" -> AnyArray
->                                                  "anyelement" -> AnyElement
->                                                  "anyenum" -> AnyEnum
->                                                  "anynonarray" -> AnyNonArray
->                                                  "cstring" -> Cstring
->                                                  "internal" -> Internal
->                                                  "language_handler" -> LanguageHandler
->                                                  "opaque" -> Opaque
->                                                  "record" -> Record
->                                                  "trigger" -> Trigger
->                                                  "void" -> Void
->                                                  _ -> error $ "internal error: unknown pseudo " ++ t))
->                     _ -> error $ "internal error: unknown type type: " ++ (l !! 1)
+>                     "p" -> \t -> Pseudo $ pn t
+>                     _ -> error $ "internal error: unknown type type: "
+>                          ++ (l !! 1)
 >            scType = (head l, ctor name, name)
 >        in if (l!!4) /= "0"
 >           then [(l!!5,ArrayType $ ctor name, '_':name), scType]
 >           else [scType]
+>      pn t = case t of
+>                    "any" -> Any
+>                    "anyarray" -> AnyArray
+>                    "anyelement" -> AnyElement
+>                    "anyenum" -> AnyEnum
+>                    "anynonarray" -> AnyNonArray
+>                    "cstring" -> Cstring
+>                    "internal" -> Internal
+>                    "language_handler" -> LanguageHandler
+>                    "opaque" -> Opaque
+>                    "record" -> Record
+>                    "trigger" -> Trigger
+>                    "void" -> Void
+>                    _ -> error $ "internal error: unknown pseudo " ++ t
