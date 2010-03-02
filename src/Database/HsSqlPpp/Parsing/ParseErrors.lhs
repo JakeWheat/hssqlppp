@@ -13,7 +13,8 @@ plus output error location in emacs friendly format.
 > import Control.Monad.Error
 >
 > showPE :: ParseError -> Maybe (Int,Int) -> String -> String
-> showPE pe sp src = show pe ++ "\n" ++ pePosToEmacs pe ++ "\n" ++ peToContext pe sp src
+> showPE pe sp src = show pe ++ "\n" ++ pePosToEmacs pe
+>                    ++ "\n" ++ peToContext pe sp src
 >
 > pePosToEmacs :: ParseError -> String
 > pePosToEmacs pe = let p = errorPos pe
@@ -48,19 +49,20 @@ plus output error location in emacs friendly format.
 >                         Nothing -> 0
 >
 > -- | Simple wrapper to allow showing the source context of a ParseError
-> data ParseErrorExtra = ParseErrorExtra {
->                                        -- | wrapped error
->                                        parseErrorError :: ParseError
->                                        -- | source position
->                                        -- adjustment to get the
->                                        -- context bit in error
->                                        -- messages right - this is
->                                        -- the same as what is passed
->                                        -- into parseSqlWithPosition
->                                       ,parseErrorPosition :: (Maybe (Int, Int))
->                                        -- | sql source
->                                       ,parseErrorSqlSource :: String
->     }
+> data ParseErrorExtra =
+>        ParseErrorExtra {
+>                        -- | wrapped error
+>                        parseErrorError :: ParseError
+>                        -- | source position
+>                        -- adjustment to get the
+>                        -- context bit in error
+>                        -- messages right - this is
+>                        -- the same as what is passed
+>                        -- into parseSqlWithPosition
+>                        ,parseErrorPosition :: (Maybe (Int, Int))
+>                        -- | sql source
+>                        ,parseErrorSqlSource :: String
+>                        }
 >
 > instance Show ParseErrorExtra where
 >     show (ParseErrorExtra pe sp src) = showPE pe sp src
@@ -69,7 +71,8 @@ plus output error location in emacs friendly format.
 >   noMsg = ParseErrorExtra undefined Nothing "unknown"
 >   strMsg = ParseErrorExtra undefined Nothing
 >
-> toParseErrorExtra :: Either ParseError b -> Maybe (Int,Int) -> String -> Either ParseErrorExtra b
+> toParseErrorExtra :: Either ParseError b -> Maybe (Int,Int) -> String
+>                   -> Either ParseErrorExtra b
 > toParseErrorExtra a sp src = case a of
 >                                Left pe -> Left $ ParseErrorExtra pe sp src
 >                                Right x -> Right x

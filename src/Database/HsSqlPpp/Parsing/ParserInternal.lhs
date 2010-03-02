@@ -76,7 +76,9 @@ To support antiquotation, the following approach is used:
 > parseSql :: String -- ^ filename to use in errors
 >          -> String -- ^ a string containing the sql to parse
 >          -> Either ParseErrorExtra A.StatementList
-> parseSql f s = deAS $ parseIt (lexSqlText f s) sqlStatements f Nothing s startState
+> parseSql f s =
+>   deAS $ parseIt l sqlStatements f Nothing s startState
+>   where l = lexSqlText f s
 >
 > parseSqlWithPosition :: FilePath -- ^ filename to use in errors
 >                      -> Int -- ^ adjust line number in errors by adding this
@@ -94,10 +96,12 @@ To support antiquotation, the following approach is used:
 >
 > -- | Parse expression fragment, used for testing purposes
 > parseExpression :: String -- ^ filename for error messages
->                 -> String -- ^ sql string containing a single expression, with no
->                           -- trailing ';'
+>                 -> String -- ^ sql string containing a single expression,
+>                           -- with no trailing ';'
 >                 -> Either ParseErrorExtra A.Expression
-> parseExpression f s = deAE $ parseIt (lexSqlText f s) (expr <* eof) f Nothing s startState
+> parseExpression f s =
+>   deAE $ parseIt l (expr <* eof) f Nothing s startState
+>   where l = lexSqlText f s
 >
 > -- | Parse plpgsql statements, used for testing purposes -
 > -- this can be used to parse a list of plpgsql statements which
@@ -106,29 +110,46 @@ To support antiquotation, the following approach is used:
 > parsePlpgsql :: String
 >              -> String
 >              -> Either ParseErrorExtra A.StatementList
-> parsePlpgsql f s = deAS $ parseIt (lexSqlText f s) (many plPgsqlStatement <* eof) f Nothing s startState
->
+> parsePlpgsql f s =
+>   deAS $ parseIt l p f Nothing s startState
+>   where
+>     l = lexSqlText f s
+>     p = many plPgsqlStatement <* eof
 >
 > parseAntiSql :: FilePath
 >              -> Int
 >              -> Int
 >              -> String
 >              -> Either ParseErrorExtra StatementList
-> parseAntiSql f l c s = parseIt (lexSqlTextWithPosition f l c s) sqlStatements f (Just (l,c)) s startState
+> parseAntiSql f l c s =
+>   parseIt lx sqlStatements f ps s startState
+>   where
+>     lx = lexSqlTextWithPosition f l c s
+>     ps = Just (l,c)
 >
 > parseAntiPlpgsql :: String
 >                  -> Int
 >                  -> Int
 >                  -> String
 >                  -> Either ParseErrorExtra [Statement]
-> parseAntiPlpgsql f l c s = parseIt (lexSqlText f s) (many plPgsqlStatement <* eof) f (Just (l,c)) s startState
+> parseAntiPlpgsql f l c s =
+>   parseIt lx p f ps s startState
+>   where
+>     lx = lexSqlText f s
+>     p = many plPgsqlStatement <* eof
+>     ps = Just (l,c)
 >
 > parseAntiExpression :: String
 >                     -> Int
 >                     -> Int
 >                     -> String
 >                     -> Either ParseErrorExtra Expression
-> parseAntiExpression f l c s = parseIt (lexSqlText f s) (expr <* eof) f (Just (l,c)) s startState
+> parseAntiExpression f l c s =
+>   parseIt lx p f ps s startState
+>   where
+>     lx = lexSqlText f s
+>     p = expr <* eof
+>     ps = Just (l,c)
 >
 > --utility function to do error handling in one place
 > parseIt :: forall t s u b.(Stream s Identity t, Data b) =>
@@ -147,11 +168,13 @@ To support antiquotation, the following approach is used:
 >                                   Left er -> Left er
 >                                   Right t -> Right $ fixupTree t
 >
-> deAE :: Either ParseErrorExtra Expression -> Either ParseErrorExtra A.Expression
+> deAE :: Either ParseErrorExtra Expression
+>      -> Either ParseErrorExtra A.Expression
 > deAE x = case x of
 >                 Left e -> Left e
 >                 Right ex -> Right $ convertExpression ex
-> deAS :: Either ParseErrorExtra [Statement] -> Either ParseErrorExtra [A.Statement]
+> deAS :: Either ParseErrorExtra [Statement]
+>      -> Either ParseErrorExtra [A.Statement]
 > deAS x = case x of
 >                 Left e -> Left e
 >                 Right ex -> Right $ convertStatements ex
@@ -238,7 +261,9 @@ this recursion needs refactoring cos it's a mess
 >         withQuery = WithQuery <$> pos
 >                               <*> (idString <* keyword "as")
 >                               <*> parens selectExpression
->         combTable = [map (\(c,p) -> Infix (CombineSelect <$> pos <*> (c <$ p)) AssocLeft)
+>         combTable = [map (\(c,p) -> Infix (CombineSelect
+>                                            <$> pos
+>                                            <*> (c <$ p)) AssocLeft)
 >                         [(Except, keyword "except")
 >                         ,(Intersect, keyword "intersect")
 >                         ,(UnionAll, try (keyword "union" *> keyword "all"))
@@ -303,17 +328,21 @@ this recursion needs refactoring cos it's a mess
 >              --look for the join flavour first
 >              n <- option Unnatural (Natural <$ keyword "natural")
 >              jt <- choice [
->                 LeftOuter <$ try (keyword "left" *> optional (keyword "outer"))
->                ,RightOuter <$ try (keyword "right" *> optional (keyword "outer"))
->                ,FullOuter <$ try (keyword "full" >> optional (keyword "outer"))
->                ,Cross <$ keyword "cross"
->                ,Inner <$ optional (keyword "inner")]
+>                     LeftOuter <$ try (keyword "left"
+>                                       *> optional (keyword "outer"))
+>                    ,RightOuter <$ try (keyword "right"
+>                                        *> optional (keyword "outer"))
+>                    ,FullOuter <$ try (keyword "full"
+>                                       *> optional (keyword "outer"))
+>                    ,Cross <$ keyword "cross"
+>                    ,Inner <$ optional (keyword "inner")]
 >              --recurse back to tref to read the table
 >              keyword "join"
 >              return (n,jt)
 >         onExpr = choice [
 >                  Just <$> (JoinOn <$> pos <*> (keyword "on" *> expr))
->                 ,Just <$> (JoinUsing <$> pos <*> (keyword "using" *> columnNameList))
+>                 ,Just <$> (JoinUsing <$> pos
+>                            <*> (keyword "using" *> columnNameList))
 >                 ,return Nothing]
 >         palias = option NoAlias
 >                    (optionalSuffix
@@ -350,7 +379,8 @@ this recursion needs refactoring cos it's a mess
 >                              ,"from"]
 >                    then fail "not keyword"
 >                    else return x
->         values = Values <$> (pos <* keyword "values") <*> commaSep1 (parens $ commaSep1 expr)
+>         values = Values <$> (pos <* keyword "values")
+>                         <*> commaSep1 (parens $ commaSep1 expr)
 >
 > optParens :: SParser a
 >           -> SParser a
@@ -540,7 +570,8 @@ ddl
 >                               else return x
 >
 > alterTable :: SParser Statement
-> alterTable = AlterTable <$> (pos <* keyword "table" <* optional (keyword "only"))
+> alterTable = AlterTable <$> (pos <* keyword "table"
+>                              <* optional (keyword "only"))
 >                         <*> idString
 >                         <*> many1 action
 >              where action = choice [
@@ -565,23 +596,27 @@ ddl
 >   p <- pos
 >   keyword "sequence"
 >   nm <- idString
->   (stw, incr, mx, mn, c) <- permute ((,,,,) <$?> (1,startWith)
->                                             <|?> (1,increment)
->                                             <|?> ((2::Integer) ^ (63::Integer) - 1, maxi)
->                                             <|?> (1, mini)
->                                             <|?> (1, cache))
+>   (stw, incr, mx, mn, c) <-
+>      permute ((,,,,) <$?> (1,startWith)
+>                      <|?> (1,increment)
+>                      <|?> ((2::Integer) ^ (63::Integer) - 1, maxi)
+>                      <|?> (1, mini)
+>                      <|?> (1, cache))
 >   return $ CreateSequence p nm incr mn mx stw c
 >   where
 >     startWith = keyword "start" *> optional (keyword "with") *> integer
 >     increment = keyword "increment" *> optional (keyword "by") *> integer
->     maxi = (2::Integer) ^ (63::Integer) - 1 <$ try (keyword "no" <* keyword "maxvalue")
+>     maxi = (2::Integer) ^ (63::Integer) - 1
+>            <$ try (keyword "no" <* keyword "maxvalue")
 >     mini = 1 <$ try (keyword "no" <* keyword "minvalue")
 >     cache = keyword "cache" *> integer
 >
 > alterSequence :: SParser Statement
 > alterSequence = AlterSequence <$> pos
 >                               <*> (keyword "sequence" *> idString)
->                               <*> (keyword "owned" *> keyword "by" *> idString)
+>                               <*> (keyword "owned"
+>                                    *> keyword "by"
+>                                    *> idString)
 
 create function, support sql functions and plpgsql functions. Parses
 the body in both cases and provides a statement list for the body
@@ -602,7 +637,8 @@ rather than just a string.
 >                   <|?> (Volatile,pVol))
 >   case parseBody lang body bodypos of
 >        Left er -> fail er
->        Right b -> return $ CreateFunction p fnName params retType rep lang b vol
+>        Right b ->
+>          return $ CreateFunction p fnName params retType rep lang b vol
 >     where
 >         parseAs = do
 >                    keyword "as"
@@ -614,7 +650,8 @@ rather than just a string.
 >                              ,("immutable", Immutable)]
 >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
 >                                                        ,("sql",Sql)]
->         parseBody :: Language -> Expression -> MySourcePos -> Either String FnBody
+>         parseBody :: Language -> Expression -> MySourcePos
+>                   -> Either String FnBody
 >         parseBody lang body (fileName,line,col) =
 >             case (parseIt
 >                   (lexSqlTextWithPosition fileName line col (extrStr body))
@@ -662,7 +699,8 @@ variable declarations in a plpgsql function
 >          <$> pos
 >          <*> idString
 >          <*> typeName
->          <*> tryOptionMaybe ((symbol ":=" <|> symbol "=")*> expr) <* symbol ";"
+>          <*> tryOptionMaybe ((symbol ":=" <|> symbol "=")*> expr)
+>              <* symbol ";"
 >
 > createView :: SParser Statement
 > createView = CreateView
@@ -783,20 +821,23 @@ or after the whole list
 > columnNameList = parens $ commaSep1 idString
 >
 > typeName :: SParser TypeName
-> typeName = choice [
->             SetOfTypeName <$> pos <*> (keyword "setof" *> typeName)
->            ,do
->              p <- pos
->              s <- map toLower <$> pTypeNameString
->              choice [
->                PrecTypeName p s <$> parens integer
->               ,ArrayTypeName p (SimpleTypeName p s) <$ symbol "[" <* symbol "]"
->               ,return $ SimpleTypeName p s]]
->            where
->              --todo: add special cases for the other type names with spaces in them
->              pTypeNameString = ("double precision" <$ try (keyword "double"
->                                                            <* keyword "precision"))
->                              <|> idString
+> typeName =
+>   choice [
+>      SetOfTypeName <$> pos <*> (keyword "setof" *> typeName)
+>     ,otherTypeName]
+>   where
+>     otherTypeName = do
+>        p <- pos
+>        s <- map toLower <$> pTypeNameString
+>        choice [PrecTypeName p s <$> parens integer
+>               ,arrayTypeName p s
+>               ,return $ SimpleTypeName p s]
+>     arrayTypeName p s = ArrayTypeName p (SimpleTypeName p s)
+>                         <$ symbol "[" <* symbol "]"
+>     --todo: add special cases for the other type names with spaces in them
+>     pTypeNameString = ("double precision" <$ try (keyword "double"
+>                                                   <* keyword "precision"))
+>                       <|> idString
 >
 > cascade :: SParser Cascade
 > cascade = option Restrict (choice [
@@ -881,11 +922,12 @@ plpgsql statements
 >                keyword "for"
 >                start <- idString
 >                keyword "in"
->                choice [(ForSelectStatement p start <$> try selectExpression <*> theRest)
->                       ,(ForIntegerStatement p start
+>                choice [ForSelectStatement p start
+>                        <$> try selectExpression <*> theRest
+>                       ,ForIntegerStatement p start
 >                               <$> expr
 >                               <*> (symbol ".." *> expr)
->                               <*> theRest)]
+>                               <*> theRest]
 >   where
 >     theRest = keyword "loop" *> many plPgsqlStatement
 >               <* keyword "end" <* keyword "loop"
@@ -956,11 +998,11 @@ work
 First job is to take care of forms which start like a vanilla
 expression, and then add a suffix on
 
->          threadOptionalSuffixes fct [castSuffix
->                                     ,betweenSuffix
->                                     ,arraySubSuffix]
->          where
->            fct = choice [
+>   threadOptionalSuffixes fct [castSuffix
+>                              ,betweenSuffix
+>                              ,arraySubSuffix]
+>   where
+>     fct = choice [
 
 order these so the ones which can be valid prefixes of others appear
 further down the list (used to be a lot more important when there
@@ -973,36 +1015,35 @@ This little addition speeds up ./ParseFile.lhs sqltestfiles/system.sql
 on my system from ~4 minutes to ~4 seconds (most of the 4s is probably
 compilation overhead).
 
->                try (lookAhead (symbol "(" >> symbol "(")) >> parens expr
+>        try (lookAhead (symbol "(" >> symbol "(")) >> parens expr
 
 start with the factors which start with parens - eliminate scalar
 subqueries since they're easy to distinguish from the others then do in
 predicate before row constructor, since an in predicate can start with
 a row constructor looking thing, then finally vanilla parens
 
->               ,scalarSubQuery
->               ,try $ threadOptionalSuffix rowCtor inPredicateSuffix
->               ,parens expr
+>       ,scalarSubQuery
+>       ,try $ threadOptionalSuffix rowCtor inPredicateSuffix
+>       ,parens expr
 
 try a few random things which can't start a different expression
 
->               ,positionalArg
->               ,placeholder
->               ,stringLit
-
->               ,floatLit
->               ,integerLit
+>       ,positionalArg
+>       ,placeholder
+>       ,stringLit
+>       ,floatLit
+>       ,integerLit
 
 put the factors which start with keywords before the ones which start
 with a function, so we don't try an parse a keyword as a function name
 
->               ,caseExpression
->               ,exists
->               ,booleanLit
->               ,nullLit
->               ,arrayLit
->               ,castKeyword
->               ,substring
+>       ,caseExpression
+>       ,exists
+>       ,booleanLit
+>       ,nullLit
+>       ,arrayLit
+>       ,castKeyword
+>       ,substring
 
 now do identifiers, functions, and window functions (each is a prefix
 to the next one)
@@ -1012,18 +1053,19 @@ don't want to parse anti expression above, but need to parse these
 following suffixes starting with a splice, but if there is no suffix,
 want to parse as an antiexpression rather than an antiidentifier
 
->               ,try $ do
->                 i <- antiIdentifier
->                 choice
->                   [inPredicateSuffix i
->                   ,threadOptionalSuffix (functionCallSuffix i) windowFnSuffix]
+>       ,try $ do
+>              i <- antiIdentifier
+>              choice [inPredicateSuffix i
+>                     ,threadOptionalSuffix (functionCallSuffix i)
+>                                           windowFnSuffix]
 
->               ,antiExpression
->               ,antiIdentifier1
->               ,threadOptionalSuffixes
->                 identifier
->                 [inPredicateSuffix
->                 ,\l -> threadOptionalSuffix (functionCallSuffix l) windowFnSuffix]]
+>       ,antiExpression
+>       ,antiIdentifier1
+>       ,threadOptionalSuffixes identifier
+>                               [inPredicateSuffix
+>                               ,\l -> threadOptionalSuffix
+>                                        (functionCallSuffix l)
+>                                        windowFnSuffix]]
 
 
 
@@ -1097,19 +1139,21 @@ be used here.
 >       binarycust opParse t =
 >         Infix $ try $ do
 >              f <- FunCall <$> pos <*> (t <$ opParse)
->              return (\l -> \m -> f [l,m])
+>              return (\l m -> f [l,m])
 >       unaryCust ctor opParse t =
 >         ctor $ try $ do
 >           f <- FunCall <$> pos <*> (t <$ opParse)
 >           return (\l -> f [l])
->       --hack - haven't worked out why parsec buildexpression parser won't parse
->       -- something like "not not EXPR" without parens so hack here
->       notNot = Prefix (try $ do
->                          p1 <- pos
->                          keyword "not"
->                          p2 <- pos
->                          keyword "not"
->                          return (\l -> FunCall p1 "!not" [FunCall p2 "!not" [l]]))
+>       -- hack - haven't worked out why parsec buildexpression parser won't
+>       -- parse something like "not not EXPR" without parens so hack here
+>       notNot =
+>         Prefix (try $ do
+>                       p1 <- pos
+>                       keyword "not"
+>                       p2 <- pos
+>                       keyword "not"
+>                       return (\l -> FunCall p1 "!not"
+>                                       [FunCall p2 "!not" [l]]))
 
 factor parsers
 --------------
@@ -1193,14 +1237,16 @@ row ctor: one of
 >
 > arraySubSuffix :: Expression -> SParser Expression
 > arraySubSuffix e = case e of
->                      Identifier _ "array" -> fail "can't use array as identifier name"
+>                      Identifier _ "array" -> fail "can't use array as \
+>                                                   \identifier name"
 >                      _ -> FunCall <$> pos
 >                                   <*> return "!arraysub"
 >                                   <*> ((e:) <$> squares (commaSep1 expr))
 >
 > windowFnSuffix :: Expression -> SParser Expression
 > windowFnSuffix e = WindowFn <$> pos <*> return e
->                    <*> (keyword "over" *> (symbol "(" *> option [] partitionBy))
+>                    <*> (keyword "over"
+>                         *> (symbol "(" *> option [] partitionBy))
 >                    <*> option [] orderBy1
 >                    <*> option Asc (try $ choice [
 >                                             Asc <$ keyword "asc"
@@ -1210,13 +1256,38 @@ row ctor: one of
 >   where
 >     orderBy1 = keyword "order" *> keyword "by" *> commaSep1 expr
 >     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
->     frm = option FrameUnboundedPreceding $ choice $ map (\(a,b) -> a <$ try (ks b)) [
+>     frm = option FrameUnboundedPreceding $ choice
+>                                          $ map (\(a,b) -> a <$ try (ks b)) [
 >            (FrameUnboundedPreceding, ["range","unbounded","preceding"])
->           ,(FrameUnboundedPreceding, ["range","between","unbounded","preceding","and","current","row"])
->           ,(FrameUnboundedFull, ["range","between","unbounded","preceding","and","unbounded","following"])
->           ,(FrameUnboundedFull, ["rows","between","unbounded","preceding","and","unbounded","following"])
+>           ,(FrameUnboundedPreceding, ["range"
+>                                      ,"between"
+>                                      ,"unbounded"
+>                                      ,"preceding"
+>                                      ,"and"
+>                                      ,"current"
+>                                      ,"row"])
+>           ,(FrameUnboundedFull, ["range"
+>                                 ,"between"
+>                                 ,"unbounded"
+>                                 ,"preceding"
+>                                 ,"and"
+>                                 ,"unbounded"
+>                                 ,"following"])
+>           ,(FrameUnboundedFull, ["rows"
+>                                 ,"between"
+>                                 ,"unbounded"
+>                                 ,"preceding"
+>                                 ,"and"
+>                                 ,"unbounded"
+>                                 ,"following"])
 >           ,(FrameRowsUnboundedPreceding, ["rows","unbounded","preceding"])
->           ,(FrameRowsUnboundedPreceding, ["rows","between","unbounded","preceding","and","current","row"])]
+>           ,(FrameRowsUnboundedPreceding, ["rows"
+>                                          ,"between"
+>                                          ,"unbounded"
+>                                          ,"preceding"
+>                                          ,"and"
+>                                          ,"current"
+>                                          ,"row"])]
 >     ks = mapM keyword
 >
 > betweenSuffix :: Expression -> SParser Expression
@@ -1254,8 +1325,11 @@ TODO: copy this approach here.
 > functionCallSuffix :: Expression -> SParser Expression
 > functionCallSuffix (Identifier _ fnName) =
 >   pos >>= \p -> FunCall p fnName
->                 <$> parens (optional (keyword "all" <|> keyword "distinct") *> commaSep expr)
-> functionCallSuffix s = error $ "internal error: cannot make functioncall from " ++ show s
+>                 <$> parens (optional (keyword "all"
+>                                       <|> keyword "distinct")
+>                             *> commaSep expr)
+> functionCallSuffix s =
+>   error $ "internal error: cannot make functioncall from " ++ show s
 >
 > castKeyword :: SParser Expression
 > castKeyword = Cast
@@ -1362,10 +1436,10 @@ identifier which happens to start with a complete keyword
 >                                     _ -> Nothing)
 >
 > liftStringTok :: SParser String
-> liftStringTok = (mytoken (\tok ->
+> liftStringTok = mytoken (\tok ->
 >                   case tok of
 >                            StringTok _ s -> Just s
->                            _ -> Nothing))
+>                            _ -> Nothing)
 
 > stringLit :: SParser Expression
 > stringLit = (StringLit <$> pos <*> liftStringTok)
@@ -1383,7 +1457,8 @@ identifier which happens to start with a complete keyword
 
 > extrStr :: Expression -> String
 > extrStr (StringLit _ s) = s
-> extrStr x = error $ "internal error: extrStr not supported for this type " ++ show x
+> extrStr x =
+>   error $ "internal error: extrStr not supported for this type " ++ show x
 
 == combinatory things
 
@@ -1539,7 +1614,7 @@ simple wrapper for parsec source positions, probably not really useful
 > type MySourcePos = (String,Int,Int)
 >
 > toMySp :: SourcePos -> MySourcePos
-> toMySp sp = ((sourceName sp),(sourceLine sp),(sourceColumn sp))
+> toMySp sp = (sourceName sp,sourceLine sp,sourceColumn sp)
 
 parser combinator to return the current position as an ast annotation
 
@@ -1584,13 +1659,15 @@ be an array or subselect, etc)
 >     transformBi $ \x ->
 >       case x of
 >              FunCall an op (expr1:FunCall _ nm expr2s:expr3s)
->                | isOperatorName op && map toLower nm `elem` ["any", "some", "all"]
+>                | isOperatorName op
+>                  && map toLower nm `elem` ["any", "some", "all"]
 >                -> LiftOperator an op flav (expr1:expr2s ++ expr3s)
 >                   where flav = case (map toLower nm) of
 >                                  "any" -> LiftAny
 >                                  "some" -> LiftAny
 >                                  "all" -> LiftAll
->                                  z -> error $ "internal error in parsing lift transform: " ++ z
+>                                  z -> error $ "internal error in parsing \
+>                                               \lift transform: " ++ z
 >              x1 -> x1
 
 --------------------------------------------------------------------------------

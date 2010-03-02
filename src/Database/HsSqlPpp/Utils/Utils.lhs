@@ -119,7 +119,8 @@ order of application stays the same instead of going backwards when
 > forceRight (Left x) = error $ show x
 > forceRight (Right x) = x
 >
-> -- dodgy code to pretty print a value using haskell-src-exts to try and format it nicely
+> -- dodgy code to pretty print a value using haskell-src-exts to try
+> -- and format it nicely
 >
 > ppExpr :: Show s => s -> String
 > ppExpr s =

@@ -65,7 +65,8 @@ copy payload (used to lex copy from stdin data)
 > lexSqlText :: String -> String -> Either ParseErrorExtra [Token]
 > lexSqlText f s = toParseErrorExtra (runParser sqlTokens [] f s) Nothing s
 >
-> lexSqlTextWithPosition :: String -> Int -> Int -> String -> Either ParseErrorExtra [Token]
+> lexSqlTextWithPosition :: String -> Int -> Int -> String
+>                        -> Either ParseErrorExtra [Token]
 > lexSqlTextWithPosition f l c s =
 >   toParseErrorExtra (runParser (do
 >                                 setPosition (newPos f l c)
