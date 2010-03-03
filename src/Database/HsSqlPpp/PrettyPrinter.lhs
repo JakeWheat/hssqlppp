@@ -639,17 +639,16 @@ Statement components
 > convExp (NullLit _) = text "null"
 > convExp (WindowFn _ fn part order asc frm) =
 >   convExp fn <+> text "over"
->   <+> (if hp || ho
->        then
->           parens ((if hp
->                      then text "partition by" <+> csvExp part
->                      else empty)
->                   <+> (if ho
+>   <+> parens (if hp || ho
+>               then (if hp
+>                     then text "partition by" <+> csvExp part
+>                     else empty)
+>                     <+> (if ho
 >                          then text "order by" <+> csvExp order
 >                               <+> convDir asc
 >                          else empty)
->                   <+> convFrm)
->        else empty)
+>                     <+> convFrm
+>               else empty)
 >   where
 >     hp = not (null part)
 >     ho = not (null order)
