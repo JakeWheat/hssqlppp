@@ -31,7 +31,6 @@ This is the public module for the type checking functionality.
 >      ,typeCheckPS
 >      ,typeCheckExpression
 >      -- * Annotated tree utils
->     ,getTopLevelTypes
 >     ,getTopLevelInfos
 >     ,getTopLevelCatUpdates
 >     ,getTypeErrors

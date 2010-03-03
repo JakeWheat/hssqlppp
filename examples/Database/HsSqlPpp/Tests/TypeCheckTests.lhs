@@ -47,7 +47,7 @@ errors for sql which doesn't type check.
 >      ,e "array[1,'b']" $ Right (ArrayType typeInt)
 >      ,e "array[1,true]" $ Left [NoMatchingOperator "!arrayctor" [ScalarType "int4",ScalarType "bool"]]
 >      ]
->
+
 >   ,Group "some expressions" [
 >       e "1=1" $ Right typeBool
 >      ,e "1=true" $ Left [NoMatchingOperator "=" [typeInt,typeBool]]
@@ -107,6 +107,7 @@ errors for sql which doesn't type check.
 >      ,e "lower('TEST')" $ Right (ScalarType "text")
 >      ,e "lower(1)" $ Left [NoMatchingOperator "lower" [typeInt]]
 >      ]
+
 >   ,Group "special functions" [
 >       e "coalesce(null,1,2,null)" $ Right typeInt
 >      ,e "coalesce('3',1,2,null)" $ Right typeInt
@@ -225,6 +226,7 @@ rows don't match types
 >             $ Left [IncompatibleTypeSet [ScalarType "int4"
 >                                          ,ScalarType "bool"]]
 >      ]
+
 >   ,Group "polymorphic functions" [
 >       e "array_append(ARRAY[1,2], 3)"
 >         $ Right (ArrayType typeInt)
@@ -237,6 +239,7 @@ rows don't match types
 >      ,e "array_append(ARRAY['a'::int,'b'], 'c')"
 >         $ Right (ArrayType typeInt)
 >      ]
+
 >   ,Group "cast expressions" [
 >       e "cast ('1' as integer)"
 >         $ Right typeInt
@@ -249,6 +252,7 @@ rows don't match types
 >      ,e "array[] :: text[]"
 >         $ Right (ArrayType (ScalarType "text"))
 >      ]
+
 >   ,Group "simple selects" [
 >       s "select 1;" $ Right [Just $ StatementType [] [("?column?", typeInt)]]
 >      ,s "select 1 as a;" $
@@ -280,6 +284,7 @@ rows don't match types
 >                                      ,("column2", typeSmallInt)]]
 >      ,s "values (1,2,3),(1,2);" $ Left [ValuesListsMustBeSameLength]
 >      ]
+
 >   ,Group "simple combine selects" [
 >      s "select 1,2  union select '3', '4';" $ Right [Just $ StatementType []
 >                                      [("?column?", typeInt)
@@ -307,6 +312,7 @@ rows don't match types
 >          $ Right [Just $ StatementType []
 >                            [("a1", typeInt)]]
 >      ]
+
 >   ,Group "simple selects from" [
 >       s "select a from (select 1 as a, 2 as b) x;"
 >         $ Right [Just $ StatementType [] [("a", typeInt)]]
@@ -350,7 +356,7 @@ rows don't match types
 >         --  select generate_series(1,7);
 >         -- select 3 + generate_series(1,7);
 >      ]
->
+
 >   ,Group "simple selects from 2" [
 >       c "select a,b from testfunc();"
 >         [CatCreateComposite "testType" [("a", ScalarType "text")
@@ -365,7 +371,7 @@ rows don't match types
 >         [CatCreateFunction FunName "testfunc" [] (Pseudo Void) False]
 >         $ Right [Just $ StatementType [] []]
 >      ]
->
+
 >   ,Group "simple join selects" [
 >       s "select * from (select 1 as a, 2 as b) a\n\
 >         \  cross join (select true as c, 4.5 as d) b;"
@@ -415,7 +421,7 @@ rows don't match types
 >      ,s "select a1 from (select 1 as a1) a,  (select 2 as a1) b;"
 >         $ Left [AmbiguousIdentifier "a1"]
 >      ]
->
+
 >   ,Group "simple scalar identifier qualification" [
 >       s "select a.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
@@ -453,12 +459,12 @@ rows don't match types
 > -- select g.fn from fn() g
 >
 >      ]
->
+
 >   ,Group "aggregates" [
 >        s "select max(prorettype::int) from pg_proc;"
 >         $ Right [Just $ StatementType [] [("max", typeInt)]]
 >      ]
->
+
 >   ,Group "simple wheres" [
 >       s "select 1 from pg_type where true;"
 >         $ Right [Just $ StatementType [] [("?column?", typeInt)]]
@@ -471,7 +477,7 @@ rows don't match types
 >      ,s "select typname from pg_type where what = 'b';"
 >         $ Left [UnrecognisedIdentifier "what"]
 >      ]
->
+
 >   ,Group "unnest" [
 >       s "select conname,unnest(conkey) as attnum from pg_constraint;"
 >         $ Right [Just (StatementType [] [("conname",ScalarType "name")
@@ -507,7 +513,7 @@ qualifier before oid and this should still work
 >         \on pg_attribute.attrelid = pg_class.oid;"
 >         $ Right [Just $ StatementType [] [("relvar_name",ScalarType "name")]]
 >      ])-}
->
+
 >   ,Group "insert" [
 >       s "insert into nope (a,b) values (c,d);"
 >         $ Left [UnrecognisedRelation "nope",UnrecognisedIdentifier "c",UnrecognisedIdentifier "d"]
@@ -535,7 +541,7 @@ qualifier before oid and this should still work
 >         \values (1,true, 'a', 'b','c');"
 >         $ Left [WrongNumberOfColumns]
 >      ]
->
+
 >   ,Group "update" [
 >       s "update nope set a = 1;"
 >         $ Left [UnrecognisedRelation "nope"]
@@ -560,7 +566,7 @@ qualifier before oid and this should still work
 >      ,s "update pg_attrdef set adnum = adnum + 1;"
 >         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")]-}]
 >      ]
->
+
 >   ,Group "delete" [
 >       s "delete from nope;"
 >         $ Left [UnrecognisedRelation "nope"]
@@ -804,7 +810,7 @@ check type of initial values
 >         \end;\n\
 >         \$$ language plpgsql stable;\n\
 >         \select t1();"
->         (Right [Nothing])
+>         (Right [Nothing,Just (StatementType [] [])])
 >      ,s "select t1();\n\
 >         \create function t1() returns void as $$\n\
 >         \begin\n\
@@ -968,6 +974,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \$$ language plpgsql stable;"
 >         $ Right [Nothing]
 >      ]
+
 >   ,Group "composite elements" [
 >       s "create function t1() returns void as $$\n\
 >         \declare\n\
@@ -982,6 +989,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \$$ language plpgsql stable;"
 >         $ Right [Nothing]
 >      ]
+
 >   ,Group "positional args" [
 >       s "create function distance(int, int, int, int) returns float(24) as $$\n\
 >         \  select (point($1, $2) <-> point($3, $4))::float(24) as result;\n\
@@ -992,6 +1000,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \$$ language sql immutable;"
 >         $ Left [UnrecognisedIdentifier "$5"]
 >      ]
+
 >   ,Group "window fns" [
 >       s "select *, row_number() over () from pg_attrdef;"
 >         $ Right [Just $ StatementType []
@@ -1001,6 +1010,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >                   ,("adsrc",ScalarType "text")
 >                   ,("row_number",ScalarType "int8")]]
 >      ]
+
 >   ,Group "drop stuff" [
 >       d "create function test(a int) returns void as $$\n\
 >         \begin\n\
@@ -1020,6 +1030,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >      ,d "drop function if exists test(int);"
 >         []
 >      ]
+
 >   ,Group "triggers" [
 >       d [$here|
 >          create table t1 (
@@ -1104,13 +1115,11 @@ check errors: select into wrong number of vars, wrong types, and into
 >                                      Left e -> error $ show e
 >                                      Right l -> l
 >       aast = typeCheckExpression defaultTemplate1Catalog ast
->       ty = getTopLevelTypes [aast]
+>       ty = getTypeAnnotation aast
 >       er = concatMap snd $ getTypeErrors aast
->   in case (length er, length ty) of
->        (0,0) -> assertFailure "didn't get any types?"
->        (0,1) -> assertEqual ("typecheck " ++ src) typ $ Right $ head ty
->        (0,_) -> assertFailure "got too many types"
->        _ -> assertEqual ("typecheck " ++ src) typ $ Left er
+>   in if null er
+>      then assertEqual ("typecheck " ++ src) typ $ Right ty
+>      else assertEqual ("typecheck " ++ src) typ $ Left er
 >
 > testStatementType :: String -> Either [TypeError] [Maybe StatementType] -> Test.Framework.Test
 > testStatementType src sis = testCase ("typecheck " ++ src) $

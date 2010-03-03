@@ -577,6 +577,12 @@ select statements
 >      ]
 >      ]
 
+TODO:
+select (p).x, (p).x from pos; (+ type check)
+select ($1).x, ($1).y from pos; (+ type check)
+select row_number() over(), x from tb;
+from in update, using in delete (+ type check these)
+
 -------------------------------------------------------------------------------
 
 dml statements

@@ -60,7 +60,8 @@ Copyright 2009 Jake Wheat
 >     ,Volatility (..)
 >     ,Language (..)
 >      -- ** misc
->      ,SetValue(..)
+>     ,SetValue(..)
+>     ,Name(..)
 >      -- ** typedefs
 >     ,ExpressionListStatementListPairList
 >     ,ExpressionListStatementListPair
@@ -94,4 +95,4 @@ Copyright 2009 Jake Wheat
 >     ) where
 >
 > import Database.HsSqlPpp.AstInternals.AstInternal
-
+> import Database.HsSqlPpp.AstInternals.Name

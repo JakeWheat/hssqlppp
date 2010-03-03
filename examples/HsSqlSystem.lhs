@@ -596,8 +596,8 @@ TypeCheckFailed
 >   tes <- mapM (return . A.getTypeErrors) aasts
 >   mapM_ (\x -> (mapM_ (liftIO . putStrLn) (ppTypeErrors x))) $
 >         filter (not . null) tes
->   mapM_ (\a -> liftM (show . head)
->                (return $ A.getTopLevelTypes [a]) >>=
+>   mapM_ (\a -> liftM show
+>                (return $ getTypeAnnotation a) >>=
 >                liftIO . putStrLn) aasts
 
 -------------------------------------------------------------------------------

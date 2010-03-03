@@ -16,8 +16,7 @@ grammar code and aren't exposed.
 >     (
 >      Annotation
 >     ,AnnotationElement(..)
->     --,stripAnnotations
->     ,getTopLevelTypes
+>     ,StatementType(..)
 >     ,getTopLevelInfos
 >     ,getTopLevelCatUpdates
 >     ,getTypeAnnotation
@@ -27,17 +26,17 @@ grammar code and aren't exposed.
 >     ,updateAnnotation
 >     ,getAnnotation
 >     ,getAnnotations
->     --,getTypeErrors
->     --,pack
->     ,StatementType(..)
 >     ,getSIAnnotation
 >     ) where
 >
 > import Data.Generics
 > import Control.Arrow
+> import Data.Generics.Uniplate.Data
+> import Debug.Trace
 >
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Utils.Utils
 >
 > -- | Annotation type - one of these is attached to most of the
 > -- data types used in the ast.
@@ -53,6 +52,9 @@ grammar code and aren't exposed.
 >                        | FunctionPrototypeA FunctionPrototype
 >                        | InferredType Type
 >                          deriving (Eq, Show,Typeable,Data)
+>
+> data StatementType = StatementType [Type] [(String,Type)]
+>                      deriving (Eq,Show,Typeable,Data)
 
 Use syb to pull annotation values from an ast.
 
@@ -61,72 +63,42 @@ understand, then keep changing it till it compiles and passes the tests.
 
 > -- | run through the ast, and pull the type annotation from each
 > -- of the top level items.
-> getTopLevelTypes :: Data a => [a] -> [Type]
-> getTopLevelTypes st =
->     getTopLevelXs typeAnnot st
->     where
->       typeAnnot :: Annotation -> [Type]
->       typeAnnot (x:xs) = case x of
->                                 TypeAnnotation t -> [t]
->                                 _ -> typeAnnot xs
->       typeAnnot [] = [TypeCheckFailed] -- error "couldn't find type annotation"
->
-> getTopLevelXs :: forall a b a1.
->                  (Data a1, Typeable b) =>
->                 (b -> [a]) -> a1 -> [a]
-> getTopLevelXs st = everythingOne (++) $ mkQ [] st
->
-> getTypeAnnotation :: Data a => a -> Type
+> getTypeAnnotation :: (Show a, Data a) => a -> Type
 > getTypeAnnotation st =
->     case getTopLevelX typeAnnot st of
->       x:_ -> x
->       [] -> TypeCheckFailed
+>     typeAnnot $ getTopLevelAnnotation st
 >     where
->       typeAnnot :: Annotation -> [Type]
+>       typeAnnot :: Annotation -> Type
 >       typeAnnot (x:xs) = case x of
->                                 TypeAnnotation t -> [t]
+>                                 TypeAnnotation t -> t
 >                                 _ -> typeAnnot xs
->       typeAnnot [] = [TypeCheckFailed]
->
-> getTopLevelX :: forall a b a1.
->                 (Data a1, Typeable b) =>
->                (b -> [a]) -> a1 -> [a]
-> getTopLevelX p = everythingOne (++) (mkQ [] p)
->
-> -- everythingTwo :: (r -> r -> r) -> GenericQ r -> GenericQ r
-> -- everythingTwo k f x
-> --  = foldl k (f x) (gmapQ (everythingOne k f) x)
->
-> everythingZero :: (r -> r -> r) -> GenericQ r -> GenericQ r
-> everythingZero k f x
->  = foldl k (f x) (gmapQ f x)
->
-> everythingOne :: (r -> r -> r) -> GenericQ r -> GenericQ r
-> everythingOne k f x
->  = foldl k (f x) (gmapQ (everythingZero k f) x)
->
-> getSIAnnotation :: Annotation -> [Maybe StatementType]
-> getSIAnnotation (x:xs) = case x of
->                                 StatementTypeA t -> [Just t]
->                                 _ -> getSIAnnotation xs
-> getSIAnnotation []  = [Nothing]
->
-> getEuAnnotation :: Annotation -> [[CatalogUpdate]]
-> getEuAnnotation (x:xs) = case x of
->                                 CatUpdates t -> t:getEuAnnotation xs
->                                 _ -> getEuAnnotation xs
-> getEuAnnotation [] = []
+>       typeAnnot [] = TypeCheckFailed -- error "couldn't find type annotation"
 >
 > -- | Run through the ast given and return a list of statementtypes
 > -- from the top level items.
 > getTopLevelInfos :: Data a => [a] -> [Maybe StatementType]
-> getTopLevelInfos = getTopLevelXs getSIAnnotation
+> getTopLevelInfos = map (getSIAnnotation . getTopLevelAnnotation)
 >
 > getTopLevelCatUpdates ::  Data a => [a] -> [[CatalogUpdate]]
-> getTopLevelCatUpdates = getTopLevelXs getEuAnnotation
+> getTopLevelCatUpdates = map (getEuAnnotation . getTopLevelAnnotation)
 >
-> data StatementType = StatementType [Type] [(String,Type)]
->                      deriving (Eq,Show,Typeable,Data)
+
+> -- | runs through the ast given and returns a list of all the type errors
+> -- in the ast. Recurses into all ast nodes to find type errors.
+> -- This is the function to use to see if an ast has passed the type checking process.
+> -- Returns a Maybe SourcePos and the list of type errors for each node which has one or
+> -- more type errors.
+> getTypeErrors :: (Data a) => a -> [(Maybe AnnotationElement,[TypeError])]
+> getTypeErrors sts =
+>     filter (\(_,te) -> not $ null te) $ map (gtsp &&& gte) $ getAnnotations sts
+>     where
+>       gte (a:as) = case a of
+>                     TypeErrorA e -> e:gte as
+>                     _ -> gte as
+>       gte _ = []
+>       gtsp (a:as) = case a of
+>                     s@(SourcePos _ _ _) -> Just s
+>                     _ -> gtsp as
+>       gtsp _ = Nothing
 
 ~~~~
 question:
@@ -146,59 +118,51 @@ without having to get the positions correct.
 
 > -- | strip all the annotations from a tree. E.g. can be used to compare
 > -- two asts are the same, ignoring any source position annotation differences.
-> stripAnnotations :: (Data a) => a -> a
+> stripAnnotations :: Data a => a -> a
 > stripAnnotations = filterAnnotations (const False)
 >
-> filterAnnotations :: (Data a) => (AnnotationElement -> Bool) -> a -> a
-> filterAnnotations f =
->     everywhere (mkT filterAnn)
->     where
->       filterAnn :: [AnnotationElement] -> [AnnotationElement]
->       filterAnn = filter f
->
-> -- | runs through the ast given and returns a list of all the type errors
-> -- in the ast. Recurses into all ast nodes to find type errors.
-> -- This is the function to use to see if an ast has passed the type checking process.
-> -- Returns a Maybe SourcePos and the list of type errors for each node which has one or
-> -- more type errors.
-> getTypeErrors :: (Data a) => a -> [(Maybe AnnotationElement,[TypeError])]
-> getTypeErrors sts =
->     filter (\(_,te) -> not $ null te) $ map (gtsp &&& gte) $ getAnnotations sts
->     where
->       gte (a:as) = case a of
->                     TypeErrorA e -> e:gte as
->                     _ -> gte as
->       gte _ = []
->       gtsp (a:as) = case a of
->                     s@(SourcePos _ _ _) -> Just s
->                     _ -> gtsp as
->       gtsp _ = Nothing
+> filterAnnotations :: Data a => (AnnotationElement -> Bool) -> a -> a
+> filterAnnotations f = transformBi (filter f)
 >
 > -- | Update all the annotations in a tree using the function supplied
-> updateAnnotation :: forall a.(Data a) =>
->                   (Annotation -> Annotation) -> a -> a
-> updateAnnotation f = oneLevel (mkT f)
->
-> oneLevel :: (forall a.Data a => a -> a)
->          -> (forall a.Data a => a -> a)
-> oneLevel f = gmapT f
+> updateAnnotation :: Data a => (Annotation -> Annotation) -> a -> a
+> updateAnnotation f = gmapT (mkT f)
 >
 > -- | get the annotation for the root of the tree passed
-> getAnnotation :: forall a.(Data a) => a -> Annotation
+> getAnnotation :: Data a => a -> Annotation
 > getAnnotation a =
->   case oneLevelQ (mkQ [] f) a of
+>   case gmapQ (mkQ [] f) a of
 >     an:_ -> an
 >     [] -> []
 >   where
 >     f :: Annotation -> Annotation
 >     f = id
 >
-> oneLevelQ :: forall a.Data a => forall u. (forall d. (Data d) => d -> u) -> a -> [u]
-> oneLevelQ = gmapQ
 >
-> getAnnotations :: forall a.(Data a) =>
->                   a -> [Annotation]
+> getAnnotations :: Data a => a -> [Annotation]
 > getAnnotations = listifyWholeLists (\(_::Annotation) -> True)
 >
+
+> getSIAnnotation :: Annotation -> Maybe StatementType
+> getSIAnnotation (x:xs) = case x of
+>                                 StatementTypeA t -> Just t
+>                                 _ -> getSIAnnotation xs
+> getSIAnnotation []  = Nothing
+>
+> getEuAnnotation :: Annotation -> [CatalogUpdate]
+> getEuAnnotation (x:xs) = case x of
+>                                 CatUpdates t -> t
+>                                 _ -> getEuAnnotation xs
+> getEuAnnotation [] = []
+
+-------------------------------------------------------------------------------
+
+utils
+
 > listifyWholeLists :: Typeable b => ([b] -> Bool) -> GenericQ [[b]]
 > listifyWholeLists blp = flip (synthesize id (.) (mkQ id (\bl _ -> if blp bl then (bl:) else id))) []
+
+this might need to be maybe and change head?
+
+> getTopLevelAnnotation :: Data a => a -> Annotation
+> getTopLevelAnnotation st = head $ childrenBi st

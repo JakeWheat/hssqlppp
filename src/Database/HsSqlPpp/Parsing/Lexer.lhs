@@ -34,6 +34,7 @@ copy payload (used to lex copy from stdin data)
 >
 > import Database.HsSqlPpp.Parsing.ParseErrors
 > import Database.HsSqlPpp.Utils.Utils
+> -- import Database.HsSqlPpp.Ast.Name
 
 ================================================================================
 
@@ -43,12 +44,16 @@ copy payload (used to lex copy from stdin data)
 >
 > data Tok = StringTok String String --delim, value (delim will one of
 >                                    --', $$, $[stuff]$
+
 >          | IdStringTok String --includes . and x.y.* type stuff
+
 >          | SymbolTok String -- operators, and ()[],;:
 >                             -- '*' is currently always lexed as an id
 >                             --   rather than an operator
 >                             -- this gets fixed in the parsing stage
+
 >          | PositionalArgTok Integer -- used for $1, etc.
+
 >          | FloatTok Double
 >          | IntegerTok Integer
 >          | CopyPayloadTok String -- support copy from stdin; with inline data

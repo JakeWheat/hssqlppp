@@ -387,4 +387,26 @@ what can the type of an Expression node be?
 problem: can't get types using gettypeannotation function and support
 different valid combinations of types
 
+
+new notes
+type contexts - these all have different possible types
+function return type
+function parameter type
+OLD & NEW
+declared variable
+attribute in create table
+attribute create type
+column in select expression
+column in view
+column in insert
+item in set in update: includes row type with contained types restricted
+placeholder
+id lookups in local bindings
+typenames??
+
+create list of each type for each context
+create wrapper types which convert from other types to either
+  typeerror type for bad type for context
+
 ~~~~
+
