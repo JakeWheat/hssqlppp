@@ -22,11 +22,11 @@ check ok, any errors in the constraints aren't leaked.
 
 SEM Statement
     | CreateTable
-        loc.tpe = dependsOnRTpe @loc.attrTypes $ Right $ Pseudo Void
-        loc.catUpdates = dependsOn @loc.attrTypes []
-                           [CatCreateTable @name @atts.attrs defaultSystemColumns]
-        loc.attrTypes : {[Type]}
-        loc.attrTypes = map snd @atts.attrs
+        loc.tpe = Right $ Pseudo Void
+        loc.catUpdates =
+            either (const []) id $ do
+            _ <- mapM lmt $ map snd @atts.attrs
+            return [CatCreateTable @name @atts.attrs defaultSystemColumns]
 
         loc.statementType = []
         loc.backTree = CreateTable @ann
@@ -50,15 +50,11 @@ defaultSystemColumns = [("tableoid", ScalarType "oid")
 
 SEM Statement
     | CreateTableAs
-        loc.tpe =
-            dependsOnRTpe [@loc.selType] $ do
-              _ <- @loc.attrs
-              Right @loc.selType
+        loc.tpe = lmt @loc.selType
         loc.catUpdates =
-           leftToEmpty (\as -> [CatCreateTable @name as defaultSystemColumns]) $ do
-              ats <- @loc.attrs
-              return $ dependsOn (tpeToT @loc.tpe :
-                                  (map snd ats)) [] ats
+           either (const []) id $ do
+           ats <- @loc.attrs
+           return [CatCreateTable @name ats defaultSystemColumns]
 
         loc.selType = getTypeAnnotation @expr.annotatedTree
         -- type of the columns in the select expression

@@ -2,7 +2,6 @@ Copyright 2009 Jake Wheat
 
 This file contains some generic utility stuff
 
-> {-# OPTIONS_HADDOCK hide #-}
 > {-# LANGUAGE FlexibleContexts #-}
 >
 > module Database.HsSqlPpp.Utils.Utils where

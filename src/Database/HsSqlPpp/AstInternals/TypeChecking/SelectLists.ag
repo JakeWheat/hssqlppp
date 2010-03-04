@@ -69,9 +69,9 @@ SEM SelectList
                   [t] | isCompositeType t -> checkAssignmentValid @lhs.cat (AnonymousRecordType (map snd @items.listType)) t
                   _ -> Left []
 
-        lhs.annotatedTree = SelectList (@ann ++ map TypeErrorA @loc.errs)
+        lhs.annotatedTree = undefined {-0SelectList (@ann ++ map TypeErrorA @loc.errs)
                                        @items.annotatedTree
-                                       @into
+                                       @into-}
         lhs.libUpdates =
             case @loc.stuff of
               (_,Just r) -> [LBIds "set record actual fields from select into" ""
@@ -114,6 +114,7 @@ fixStar =
     where
       fixStar' :: Annotation -> Annotation
       fixStar' a =
+          undefined {-
           if TypeAnnotation TypeCheckFailed `elem` a
               && any (\an ->
                        case an of
@@ -125,7 +126,7 @@ fixStar =
                                    TypeAnnotation TypeCheckFailed -> False
                                    TypeErrorA (UnrecognisedIdentifier _) -> False
                                    _ -> True) a
-             else a
+             else a-}
 }
 
 

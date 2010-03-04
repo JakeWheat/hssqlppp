@@ -17,8 +17,6 @@ checkAssignmentValid - pass in source type and target type, returns
                 typelist[] if ok, otherwise error, pg manual 10.4
                 Value Storage
 
-> {-# OPTIONS_HADDOCK hide #-}
->
 > module Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
@@ -31,7 +29,6 @@ checkAssignmentValid - pass in source type and target type, returns
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.Utils
 
@@ -460,8 +457,7 @@ code is not as much of a mess as findCallMatch
 ~~~~
 
 > resolveResultSetType :: Catalog -> [Type] -> Either [TypeError] Type
-> resolveResultSetType cat inArgs =
->   dependsOnRTpe inArgs $ do
+> resolveResultSetType cat inArgs = do
 >   errorWhen (null inArgs) [TypelessEmptyArray]
 >   returnWhen allSameType (head inArgs) $ do
 >   returnWhen allSameBaseType (head inArgsBase) $ do

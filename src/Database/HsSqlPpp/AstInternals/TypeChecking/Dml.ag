@@ -15,13 +15,10 @@ with default values at the moment.
 
 SEM Statement
     | Insert
-        loc.tpe =
-            dependsOnRTpe [getTypeAnnotation @insData.annotatedTree] $ do
-              _ <- @loc.columnTypes
-              Right $ Pseudo Void
-        loc.statementType =
-            leftToEmpty (\_ -> [StatementType (getPlaceholderTypes @loc.insDataAddedInferredTypes) (fromMaybe [] @returning.listType)]) @loc.columnTypes
-
+        loc.tpe = Right $ Pseudo Void
+        loc.statementType : {Maybe StatementType}
+        loc.statementType = Just ((getPlaceholderTypes @loc.insDataAddedInferredTypes) (fromMaybe [] @returning.listType))
+        loc.columnTypes : {Either [TypeError] [(String,Type)]}
         loc.columnTypes =
             do
             tys <- unwrapSetOfComposite $
@@ -32,11 +29,14 @@ SEM Statement
                                    tys
         loc.insDataAddedInferredTypes =
             case @insData.annotatedTree of
-              Values ann [exl] ->
-                  let fargs = map snd (fromRight [] @loc.columnTypes) ++ repeat TypeCheckFailed
-                      newExl = map (\(ex,ty) -> updateAnnotation (++ [InferredType ty]) ex) $ zip exl fargs
-                  in Values ann [newExl]
+              Values ann [exl] -> do
+                  fargs <- map snd <$> @loc.columnTypes
+                  let newExl = map setInfType $ zip (fargs ++ repeat Nothing) exl
+                  return $ Values ann [newExl]
               x -> x
+            where
+              setInfType :: (Maybe Type,Expression) -> Expression
+              setInfType (t,a) = updateAnnotation (\i -> i {infType = t}) a
 
         loc.backTree = Insert @ann @table @targetCols
                               @loc.insDataAddedInferredTypes @returning.annotatedTree
@@ -64,16 +64,20 @@ SEM Statement
     | Update
         loc.tpe =
             do
+            undefined {-
             checkRelationExists @lhs.cat @table
+            --return $ Pseudo Void
+            
             dependsOnRTpe (map snd @assigns.pairs) $ do
               _ <- @loc.columnTypes
-              liftErrors @assigns.rowSetErrors
-              return $ Pseudo Void
+              -- liftErrors @assigns.rowSetErrors
+              return $ Pseudo Void-}
         loc.statementType =
+            undefined {-
             leftToEmpty (\_ -> [StatementType (getPlaceholderTypes @loc.assignWInferredTypes
                                                 ++ getPlaceholderTypes @whr.annotatedTree)
                                                (fromMaybe [] @returning.listType)])
-               @loc.columnTypes
+               @loc.columnTypes-}
 
         loc.columnTypes =
             checkColumnConsistency @lhs.cat
@@ -103,7 +107,7 @@ setInferredTypesG tys x =
     f (p@(Placeholder _)) = do
          y:ys <- get
          put ys
-         return $ updateAnnotation (++ [InferredType y]) p
+         undefined -- return $ updateAnnotation (++ [InferredType y]) p
     f z = return z
 }
 
@@ -125,25 +129,16 @@ SEM Statement
 {-
 == set clauses
 
-small complication is slightly hacky code to deal with row set
-assignments, where we assign from a multiple attribute subselect into
-multiple columns - todo: check if we need so much special casing for
-this: should be able to reuse the funcall typing of row set equality
-(trade one hack for another, squinting so that assignment looks like
-an equality check - since it type checks the same we might be ok). If
-we do this, we only need to expand the row sets out to produce a
-single string,type list at the end.
-
+for each regular set clause, we check the assignment type
 -}
 
-ATTR SetClauseList [||pairs : {[(String,Type)]}
-                      rowSetErrors : {[TypeError]}]
+ATTR SetClauseList [||pairs : {[(String,Type)]}]
 
 SEM SetClauseList
   | Cons lhs.pairs = @hd.pairs ++ @tl.pairs
-         lhs.rowSetErrors = maybeToList @hd.rowSetError ++ @tl.rowSetErrors
+         --lhs.rowSetErrors = maybeToList @hd.rowSetError ++ @tl.rowSetErrors
   | Nil lhs.pairs = []
-        lhs.rowSetErrors = []
+        --lhs.rowSetErrors = []
 
 ATTR SetClause [||pairs : {[(String,Type)]}
                   rowSetError : {Maybe TypeError}]
@@ -181,8 +176,8 @@ SEM Statement
         loc.tpe =
             checkRelationExists @lhs.cat @table >>
             Right (Pseudo Void)
-        loc.statementType = [StatementType (getPlaceholderTypes @whr.annotatedTree)
-                                           (fromMaybe [] @returning.listType)]
+        loc.statementType = undefined {-[StatementType (getPlaceholderTypes @whr.annotatedTree)
+                                           (fromMaybe [] @returning.listType)]-}
 
         loc.backTree = Delete @ann @table @using.annotatedTree @whr.annotatedTree @returning.annotatedTree
         loc.catUpdates = []
@@ -229,7 +224,7 @@ checkColumnConsistency cat tbl cols' insNameTypePairs = do
       errs :: [TypeError]
       errs = concat $ lefts $
              map (\(_,b,c) -> checkAssignmentValid cat c b) typeTriples
-  liftErrors errs
+  undefined -- liftErrors errs
   return targetNameTypePairs
   where
     lowerize = map (\(a,b) -> (map toLower a,b))

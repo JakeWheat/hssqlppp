@@ -5,7 +5,6 @@ and functions, and provides the api for the other type checking
 modules.
 
 > {-# LANGUAGE DeriveDataTypeable #-}
-> {-# OPTIONS_HADDOCK hide  #-}
 >
 > module Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 >     (

@@ -1,5 +1,3 @@
-> {-# OPTIONS_HADDOCK hide  #-}
->
 > module Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
 >     (defaultTemplate1Catalog
 >      ) where

@@ -11,21 +11,16 @@ SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn
-        lhs.annotatedTree = annTypesAndErrors @loc.backTree
-                              (tpeToT @loc.tpe)
-                              (getErrors @loc.tpe)
-                              $ fmap ((:[]) . FunctionPrototypeA) @loc.prototype
-
-SEM Expression
-    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
-      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn
-        loc.prototype : {Maybe FunctionPrototype}
+        lhs.annotatedTree = updateAnnotation
+                              (setTypeAddErrorsA @loc.tpe
+                               . \a -> a {fnProt = @loc.prototype}) @loc.backTree
+        loc.tpe : Et
 
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit Identifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn
+        loc.prototype : {Maybe FunctionPrototype}
         loc.prototype = Nothing
 
 {-
@@ -63,7 +58,7 @@ all the work is done in the typename node
 -}
 
 SEM Expression
-    | Cast loc.tpe = Right $ @tn.namedType
+    | Cast loc.tpe = lmt @tn.namedType
            loc.backTree = Cast @ann @expr.annotatedTree @tn.annotatedTree
 
 {-
@@ -71,20 +66,21 @@ SEM Expression
 -}
 SEM Expression
     | FunCall
-        (loc.tpe, loc.prototype) = if any (==TypeCheckFailed) @args.typeList
-                                   then (Right TypeCheckFailed, Nothing)
-                                   else
-                                     let fe = typeCheckFunCall
-                                              @lhs.cat
-                                              @funName
-                                              @args.typeList
-                                     in (dependsOnRTpe @args.typeList $ fmap (\(_,_,r,_) -> r) fe
-                                        ,eitherToMaybe fe)
+        (loc.tpe
+        ,loc.prototype) = either (\e -> (Left e, Nothing)) id $ do
+                          args <- mapM lmt @args.typeList
+                          efp <- typeCheckFunCall @lhs.cat
+                                                  @funName
+                                                  args
+                          let (_,_,r,_) = efp
+                          return (Right r, Just efp)
+
+
         loc.backTree = FunCall @ann @funName @args.annotatedTree
 
 
    | WindowFn
-        loc.tpe = Right (getTypeAnnotation @fn.annotatedTree)
+        loc.tpe = lmt $ getTypeAnnotation @fn.annotatedTree
         loc.backTree = WindowFn @ann
                                 @fn.annotatedTree
                                 @partitionBy.annotatedTree
@@ -164,21 +160,20 @@ pg allows the rhss to also be a subselect, this is a todo
 
 SEM Expression
     | LiftOperator
-        loc.tpe = dependsOnRTpe @args.typeList $ do
+        loc.tpe = do
+                  args <- mapM lmt @args.typeList
                   let args = @args.annotatedTree
                   errorWhen (length args /= 2)
                             [AnyAllError $ "must have two args, got " ++ show args]
                   let [a,b] = args
-                      aType = getTypeAnnotation a
-                      bType = getTypeAnnotation b
-                  dependsOnRTpe [aType,bType] $ do
+                  aType <- lmt $ getTypeAnnotation a
+                  bType <- lmt $ getTypeAnnotation b
                   errorWhen (not $ isArrayType bType)
                             [AnyAllError $ "second arg must be array, got " ++ show args]
                   elemType <- unwrapArray $ bType
-                  resType <- fmap (\(_,_,r,_) -> r) $ typeCheckFunCall
-                                     @lhs.cat
-                                     @oper
-                                     [aType,elemType]
+                  resType <- fmap (\(_,_,r,_) -> r) $ typeCheckFunCall @lhs.cat
+                                                                       @oper
+                                                                       [aType,elemType]
                   errorWhen (resType /= typeBool)
                             [AnyAllError $ "operator must have bool return, got " ++ show resType]
                   return resType
@@ -207,23 +202,26 @@ SEM Expression
 
 SEM Expression
     | Case
-        loc.tpe =
-            dependsOnRTpe @loc.whenTypes $ do
-            errorWhen (any (/= typeBool) @loc.whenTypes) $
-                      [WrongTypes typeBool @loc.whenTypes]
-            dependsOnRTpe @loc.thenTypes $
-              resolveResultSetType @lhs.cat @loc.thenTypes
+        loc.tpe = do
+                  wt <- mapM lmt @loc.whenTypes
+                  -- probably the when types shoule be checked inside each when node
+                  -- and type errors attach there, and ignored here
+                  errorWhen (any (/= typeBool) wt)
+                      [WrongTypes typeBool wt]
+                  tt <- mapM lmt @loc.thenTypes
+                  resolveResultSetType @lhs.cat tt
         loc.backTree = Case @ann @cases.annotatedTree @els.annotatedTree
 
 
 SEM Expression
     | CaseSimple
         loc.tpe =
-          dependsOnRTpe @loc.whenTypes $ do
-          let valueType = getTypeAnnotation @value.annotatedTree
-          _ <- resolveResultSetType @lhs.cat (valueType : @loc.whenTypes)
-          dependsOnRTpe @loc.thenTypes $
-            resolveResultSetType @lhs.cat @loc.thenTypes
+          do
+          wt <- mapM lmt @loc.whenTypes
+          vt <- lmt $ getTypeAnnotation @value.annotatedTree
+          _ <- resolveResultSetType @lhs.cat (vt : wt)
+          tt <- mapM lmt @loc.thenTypes
+          resolveResultSetType @lhs.cat tt
         loc.backTree = CaseSimple @ann
                                   @value.annotatedTree
                                   @cases.annotatedTree
@@ -269,8 +267,7 @@ SEM Expression
     | ScalarSubQuery
         loc.tpe =
             do
-            let selType = getTypeAnnotation @sel.annotatedTree
-            dependsOnRTpe [selType] $ do
+            selType <- lmt $ getTypeAnnotation @sel.annotatedTree
             f <- map snd <$> unwrapSetOfComposite selType
             case length f of
               0 -> Left [InternalError "no columns in scalar subquery?"]
@@ -287,9 +284,8 @@ SEM Expression
     | InPredicate
         loc.tpe = do
                   lt <- @list.listType
-                  _ <- resolveResultSetType
-                            @lhs.cat
-                            [getTypeAnnotation @expr.annotatedTree, lt]
+                  expt <- lmt $ getTypeAnnotation @expr.annotatedTree
+                  _ <- resolveResultSetType @lhs.cat [expt, lt]
                   return typeBool
         loc.backTree = InPredicate @ann
                                    @expr.annotatedTree
@@ -301,18 +297,17 @@ ATTR InList [||listType : {Either [TypeError] Type}]
 
 SEM InList
     | InList
-        lhs.listType = resolveResultSetType @lhs.cat @exprs.typeList
+        lhs.listType = mapM lmt @exprs.typeList >>= resolveResultSetType @lhs.cat
     | InSelect
         lhs.listType =
             do
-            attrs <- map snd <$> (unwrapSetOfComposite $
-                                  getTypeAnnotation @sel.annotatedTree)
-            typ <- case length attrs of
+            st <- lmt $ getTypeAnnotation @sel.annotatedTree
+            attrs <- map snd <$> unwrapSetOfComposite st
+            case length attrs of
                       0 -> Left [InternalError
                                  "got subquery with no columns? in inselect"]
                       1 -> Right $ head attrs
                       _ -> Right $ AnonymousRecordType attrs
-            dependsOnRTpe attrs $ Right typ
 {-
 ================================================================================
 

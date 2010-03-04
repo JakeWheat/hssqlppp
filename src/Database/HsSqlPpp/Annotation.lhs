@@ -9,14 +9,13 @@ functions (not including those that depend on the ast data types).
 > module Database.HsSqlPpp.Annotation
 >     (
 >      -- * Annotation data types
->      Annotation
->     ,AnnotationElement(..)
->     ,StatementType(..)
->     ,stripAnnotations
->     ,updateAnnotation
+>      Annotation(..)
+>     ,SourcePosition
+>     ,StatementType
 >     ,getAnnotation
+>     ,updateAnnotations
 >     ,getAnnotations
->     ,getTypeAnnotation
+>     ,emptyAnnotation
 >     ) where
 >
 > import Database.HsSqlPpp.AstInternals.AstAnnotation

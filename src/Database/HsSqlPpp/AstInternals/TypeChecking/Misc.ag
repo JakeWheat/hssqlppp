@@ -12,25 +12,22 @@ are not supported at the moment.
 
 -}
 
-ATTR TypeName [||namedType : Type]
+ATTR TypeName [||namedType : {Maybe Type}]
 
 SEM TypeName
      | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName
-         lhs.namedType = tpeToT @loc.tpe
-         lhs.annotatedTree = updateAnnotation
-                               ((map TypeErrorA $ getErrors @loc.tpe) ++)
-                               @loc.backTree
-
+         lhs.namedType = etmt @loc.tpe
+         lhs.annotatedTree = addTypeErrors (tes @loc.tpe) @loc.backTree
 
 SEM TypeName
      | SimpleTypeName
         loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
         loc.backTree = SimpleTypeName @ann @tn
      | ArrayTypeName
-        loc.tpe = dependsOnRTpe [@typ.namedType] $ Right $ ArrayType @typ.namedType
+        loc.tpe = lmt @typ.namedType >>=  Right . ArrayType
         loc.backTree = ArrayTypeName @ann @typ.annotatedTree
      | SetOfTypeName
-        loc.tpe = dependsOnRTpe [@typ.namedType] $ Right $ SetOfType @typ.namedType
+        loc.tpe = lmt @typ.namedType >>=  Right . SetOfType
         loc.backTree = SetOfTypeName @ann @typ.annotatedTree
      | PrecTypeName
         loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
@@ -46,14 +43,14 @@ SEM TypeName
 
 --expression list and list list - just collect up the types
 
-ATTR ExpressionList [||typeList : {[Type]}]
+ATTR ExpressionList [||typeList : {[Maybe Type]}]
 
 SEM ExpressionList
     | Cons lhs.typeList = getTypeAnnotation @hd.annotatedTree : @tl.typeList
     | Nil lhs.typeList = []
 
 
-ATTR ExpressionListList  [||typeListList : {[[Type]]}]
+ATTR ExpressionListList  [||typeListList : {[[Maybe Type]]}]
 
 SEM ExpressionListList
     | Cons lhs.typeListList = @hd.typeList : @tl.typeListList
@@ -71,18 +68,16 @@ SEM ExpressionListList
 
 SEM MaybeBoolExpression
     | Just
-        lhs.annotatedTree =
-          if getTypeAnnotation @just.annotatedTree `notElem` [typeBool, TypeCheckFailed]
-            then Just $ updateAnnotation ((TypeErrorA ExpressionMustBeBool) :)
-                          @just.annotatedTree
-            else Just $ @just.annotatedTree
-
+        lhs.annotatedTree = let t = getTypeAnnotation @just.annotatedTree
+                            in if t `elem` [Nothing,Just typeBool]
+                               then Just @just.annotatedTree
+                               else Just $ addTypeErrors [ExpressionMustBeBool] @just.annotatedTree
 
 {
 {-
 ================================================================================
 
-= couple of small utils
+= some small utils
 
 I think this should be alright, an identifier referenced in an
 expression can only have zero or one dot in it.
@@ -94,17 +89,21 @@ splitIdentifier s = let (a,b) = span (/= '.') s
                          then ("", a)
                          else (a,tail b)
 
-{-
-helper to make adding annotations a bit easier
--}
+addTypeErrors :: Data a => [TypeError] -> a -> a
+addTypeErrors es el = updateAnnotation u el
+                      where
+                        u a = a {errs = errs a ++ es}
 
-annTypesAndErrors :: Data a => a -> Type -> [TypeError]
-                  -> Maybe [AnnotationElement] -> a
-annTypesAndErrors item nt errs add =
-    updateAnnotation modifier item
-    where
-      modifier = (([TypeAnnotation nt] ++ fromMaybe [] add ++
-       map TypeErrorA errs) ++)
+setTypeAddErrors :: Data a => Et -> a -> a
+setTypeAddErrors et el = updateAnnotation (setTypeAddErrorsA et) el
+
+setTypeAddErrorsA :: Et -> Annotation -> Annotation
+setTypeAddErrorsA et a =
+    let a1 = a {errs = errs a ++ tes et}
+    in case typ a1 of
+         Just _ -> a {errs = errs a
+                             ++ [InternalError $ "tried to set type a second time - " ++ show (etmt et)]}
+         Nothing -> a {typ = etmt et}
 
 {-
 ================================================================================
@@ -132,40 +131,24 @@ getPlaceholders st =
                           Placeholder _ -> True
                           _ -> False
 
-getPlaceholderTypes :: Data a => a -> [Type]
-getPlaceholderTypes ex =
-    map (getInferredType . getAnnotation) $ getPlaceholders ex
-    where
-      getInferredType (InferredType t:_) = t
-      getInferredType (_:as) = getInferredType as
-      getInferredType [] = TypeCheckFailed
+getPlaceholderTypes :: Data a => a -> [Maybe Type]
+getPlaceholderTypes ex = map (infType . getAnnotation) $ getPlaceholders ex
 
 
 setInferredTypes :: Data a => a -> a
 setInferredTypes =
-      doExprs {-. doSts-}
-     where
-       doExprs =
-         transformBi (\x ->
-           case x of
-             FunCall an op exprs
-                 -> FunCall an op (addInferredTypes an exprs)
-             x1 -> x1)
-       {-doSts =
-         transformBi (\x ->
-           case x of
-             Insert ann table targetCols insData returning
-                 -> Insert ann table targetCols insData returning
-             x1 -> x1)-}
-       addInferredTypes an exprs =
-           let args1 = fmap (\(_,a,_,_) -> a) $ fp an
-               args = fromMaybe [] args1
-               fargs = args ++ repeat TypeCheckFailed
-           in flip map (zip exprs fargs)
-                  (\(ex, ty) -> updateAnnotation (++ [InferredType ty]) ex)
+  transformBi $ \x ->
+    case x of
+      FunCall an op exprs -> FunCall an op (addInferredTypes an exprs)
+      x1 -> x1
+  where
+    addInferredTypes :: Annotation -> [Expression] -> [Expression]
+    addInferredTypes an exprs =
+           let args :: [Maybe Type]
+               args = map Just $ maybe [] (\(_,a,_,_) -> a) $ fnProt an
+           in map setInfType $ zip (args ++ repeat Nothing) exprs
            where
-             fp (FunctionPrototypeA f:_) = Just f
-             fp (_:ls) = fp ls
-             fp [] = Nothing
+             setInfType :: (Maybe Type,Expression) -> Expression
+             setInfType (t,a) = updateAnnotation (\i -> i {infType = t}) a
 
 }

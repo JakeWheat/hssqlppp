@@ -47,8 +47,6 @@ use SetOfType combined with composite type for now, see if it works
 out. If not, will have to add another type.
 ~~~~
 
-> {-# OPTIONS_HADDOCK hide #-}
->
 > {-# LANGUAGE FlexibleInstances,DeriveDataTypeable #-}
 >
 > module Database.HsSqlPpp.AstInternals.TypeType where
@@ -74,9 +72,6 @@ out. If not, will have to add another type.
 >           | DomainType String
 >           | EnumType String
 >           | Pseudo PseudoType
->           | TypeCheckFailed -- represents something which the type checker
->                             -- doesn't know how to type check
->                             -- or it cannot work the type out because of errors
 >           | UnknownType -- represents a string literal
 >                              -- token whose type isn't yet
 >                              -- determined

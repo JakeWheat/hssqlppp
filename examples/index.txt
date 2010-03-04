@@ -1,0 +1,91 @@
+overview of example files
+
+RunWrappers.lhs
+demonstration of typesafe database access from haskell
+
+HsSqlSystem
+command line access to a load of functionality, see the source for a list
+
+
+
+these files are use to generate some of the source files, and to help
+with generating the documentation
+examples/Database/HsSqlPpp/DevelTools/TestFileProcessor.lhs
+examples/Database/HsSqlPpp/DevelTools/ShortDefaultTemplate1Catalog.lhs
+examples/Database/HsSqlPpp/DevelTools/MakeAntiNodes.lhs
+examples/Database/HsSqlPpp/DevelTools/DoChaosSql.lhs
+examples/Database/HsSqlPpp/DevelTools/PandocUtils.lhs
+examples/Database/HsSqlPpp/DevelTools/MakeWebsite.lhs
+
+
+list of the sql files used in the chaos2010 examples
+examples/Database/HsSqlPpp/Examples/Chaos2010.lhs
+
+demonstration code to support reading in sql files, running the ast
+through a transform, and then loading the result into a database
+examples/Database/HsSqlPpp/Examples/DatabaseLoader.lhs
+
+slightly half baked code to generate a report for a bunch of sql: see
+the sql generated from an ast transform, and some of the information
+gathered by the type checker, etc. Used to generate the documentation
+for the chaos2010 example
+examples/Database/HsSqlPpp/Examples/AnnotateSource.lhs
+examples/Database/HsSqlPpp/Examples/AnnotateSource2.lhs
+
+extensions: mainly ast transform code, most module contain one
+transform intended to implement one feature. Some are incomplete or
+just notes. There are a few utility modules as well.
+
+examples/Database/HsSqlPpp/Examples/Extensions/TemporalData.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/GeneralInclusion.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/ExtensionTests.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/TransitionConstraints.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/Modules.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/SyntaxExtensions.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/CardinalityRestrict.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/CreateAssertion.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/Denormalized6nf.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/AlternateInsert.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/Denormalized6nfExamples.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/CreateVar.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/CreateVarSimple.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/CreateAssertionTests.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/FreeDefinitionOrder.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/ChaosExtensions.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/ExtensionsUtils.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/SimplifiedCatalog.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/DenormSyntax.lhs
+examples/Database/HsSqlPpp/Examples/Extensions/AstUtils.lhs
+
+simple helper stuff:
+
+examples/Database/HsSqlPpp/Utils/Here.lhs
+examples/Database/HsSqlPpp/Examples/DBUtils.lhs
+
+Code to implement the type safe database access from haskell demo:
+
+examples/Database/HsSqlPpp/Examples/Wrappers/GenerateTupleSourceExample.lhs
+examples/Database/HsSqlPpp/Examples/Wrappers/MakeLabels.hs
+examples/Database/HsSqlPpp/Examples/Wrappers/ConnectionString.hs
+examples/Database/HsSqlPpp/Examples/Wrappers/WrapLib.lhs
+examples/Database/HsSqlPpp/Examples/Wrappers/ThHListWrapper.lhs
+examples/Database/HsSqlPpp/Examples/Wrappers/GenerateTupleWrapper.lhs
+examples/Database/HsSqlPpp/Examples/Wrappers/ThHListExample.lhs
+examples/Database/HsSqlPpp/Examples/Wrappers/ThTupleWrapper.lhs
+examples/Database/HsSqlPpp/Examples/Wrappers/ThTupleExample.lhs
+examples/Database/HsSqlPpp/Examples/Wrappers/SelectRelation.lhs
+examples/Database/HsSqlPpp/Examples/Wrappers/GenerateHListSourceExample.lhs
+examples/Database/HsSqlPpp/Examples/Wrappers/GenerateHListWrapper.lhs
+
+
+The automated test suite for the code:
+
+examples/Database/HsSqlPpp/Tests/ExtensionTests.lhs
+examples/Database/HsSqlPpp/Tests/LocalBindingsTests.lhs
+examples/Database/HsSqlPpp/Tests/ParserTests.lhs
+examples/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs
+examples/Database/HsSqlPpp/Tests/RoundtripTests.lhs
+examples/Database/HsSqlPpp/Tests/TypeCheckTests.lhs
+examples/Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs
+examples/Database/HsSqlPpp/Tests/Tests.lhs
+

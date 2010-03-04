@@ -36,7 +36,6 @@ cabal install uuagc
 MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
 {
     -- {-# LANGUAGE DeriveDataTypeable,RankNTypes,ScopedTypeVariables #-}
-    -- {-# OPTIONS_HADDOCK hide  #-}
     --from the ag files:
     --ast nodes
     Statement (..)
@@ -119,22 +118,20 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
 import Data.Maybe
 import Data.List
 import Debug.Trace
---import Control.Monad.Error
 import Data.Either
 import Control.Applicative
 import Data.Generics
 import Data.Char
 import Control.Monad.State
+import Data.Generics.PlateData
 
 import Database.HsSqlPpp.AstInternals.TypeType
 import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
-import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 import Database.HsSqlPpp.AstInternals.AstAnnotation
 import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
---import Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
 import Database.HsSqlPpp.Utils.Utils
-import Data.Generics.PlateData
+import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 
 }
 
@@ -756,7 +753,7 @@ typeCheck cat sts =
                                   ,lib_Inh_Root = emptyBindings}
         tl = annotatedTree_Syn_Root ta
         cat1 = producedCat_Syn_Root ta
-   in case tl of
+    in case tl of
          Root r -> (cat1,r)
 
 -- | Unfinished version of type check which can type check an
@@ -810,7 +807,7 @@ fixupImplicitJoins =
                   -> Select an dis sl [convTrefs trs] whr grp hav od lim off
               x1 -> x1
     where
-      convTrefs (tr:tr1:trs) = JoinedTref [] tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias
+      convTrefs (tr:tr1:trs) = JoinedTref emptyAnnotation tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias
       convTrefs (tr:[]) = tr
       convTrefs _ = error "failed doing implicit join fixup hack"
 

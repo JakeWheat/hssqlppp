@@ -1,9 +1,159 @@
 {-
 Copyright 2009 Jake Wheat
 
-This file contains the ag code for create function statements. This
-includes producing the function prototype, and passing the parameter
-and variable declaration bindings into the statement body.
+This file contains the ag code for create function statements.
+
+    | CreateFunction ann:Annotation
+                     name : String
+                     params : ParamDefList
+                     rettype : TypeName
+                     rep : Replace
+                     lang : Language
+                     body : FnBody
+                     vol : Volatility
+
+DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
+            | PlpgsqlFnBody ann:Annotation vars:VarDefList sts : StatementList
+
+DATA ParamDef | ParamDef ann:Annotation name:String typ:TypeName
+              | ParamDefTp ann:Annotation typ:TypeName
+
+DATA VarDef | VarDef ann:Annotation
+                     name : String
+                     typ : TypeName
+                     value : (Maybe Expression)
+
+paramdeflist: need cat, produces lb
+vardef needs cat, produces lb
+function body: gets cat and new lb
+
+-}
+{
+data ParamName = NamedParam Int String
+               | UnnamedParam Int
+}
+
+ATTR ParamDef [pos : Int||paramName : ParamName
+                          namedType : {Maybe Type}]
+
+ATTR ParamDefList [pos : Int||params : {[(ParamName, Maybe Type)]}]
+
+ATTR VarDef [||def : {(String,Maybe Type)}]
+
+ATTR VarDefList [||defs : {[(String,Maybe Type)]}]
+
+-- collect the information to update the local bindings from the parameters
+SEM ParamDef
+    | ParamDef ParamDefTp
+        lhs.namedType = @typ.namedType
+    | ParamDef
+        lhs.paramName = NamedParam @lhs.pos @name
+    | ParamDefTp
+        lhs.paramName = UnnamedParam @lhs.pos
+
+SEM ParamDefList
+     | Nil lhs.params = []
+     | Cons lhs.params = ((@hd.paramName, @hd.namedType) : @tl.params)
+            hd.pos = @lhs.pos
+            tl.pos = @lhs.pos + 1
+
+-- create the new local bindings and pass into the function body
+-- just
+
+SEM Statement
+    | CreateFunction
+        --add the parameters to the catalog for the contained statements
+        body.lib = either (const @lhs.lib) id $ do
+                   rt <- lmt @rettype.namedType
+                   let p = params
+                           -- hack for trigger functions
+                           ++ case rt of
+                                Pseudo Trigger -> [("OLD", Pseudo TriggerRecord)
+                                                  ,("NEW", Pseudo TriggerRecord)]
+                                _ -> []
+                   lbUpdate @lhs.cat (LBIds (@name ++ " parameters") "" p []) @lhs.lib
+                     >>= lbUpdate @lhs.cat (LBIds (@name ++ " parameters") @name paramsNoPos [])
+                   where
+                     params :: [(String,Type)]
+                     params = concat $ mapMaybe prm @params.params
+                     paramsNoPos :: [(String,Type)]
+                     paramsNoPos = mapMaybe pnp @params.params
+                     prm :: (ParamName,Maybe Type) -> Maybe [(String,Type)]
+                     prm (NamedParam p n,Just t) = Just [(n,t),("$" ++ show p, t)]
+                     prm (UnnamedParam p,Just t) = Just [("$" ++ show p, t)]
+                     prm _ = Nothing
+                     pnp :: (ParamName,Maybe Type) -> Maybe (String,Type)
+                     pnp (NamedParam _ n,Just t) = Just (n,t)
+                     pnp _ = Nothing
+        params.pos = 1
+
+-- collect the information to update the local bindings from the declarations
+--slightly hacky, should fix this better
+-- this is going to change when plpgsql blocks are supported properly
+SEM VarDef
+    | VarDef lhs.def = (@name, if @typ.namedType == Just (Pseudo Record)
+                               then Just (PgRecord Nothing)
+                               else @typ.namedType)
+
+SEM VarDefList
+    | Cons lhs.defs = @hd.def : @tl.defs
+    | Nil lhs.defs = []
+
+
+SEM FnBody
+    | PlpgsqlFnBody
+        --make the variable names available in the body of the
+        --function this needs to be generalised to begin/end blocks
+        --which can nest inside plpgsql functions (they aren't even
+        --supported by the parser at the moment)
+        sts.lib = fromRight @lhs.lib $
+                  lbUpdate @lhs.cat
+                           (LBIds "declarations" "" (mapMaybe lv @vars.defs) [])
+                           @lhs.lib
+                  where
+                    lv (s,Nothing) = Nothing
+                    lv (s,Just t) = Just (s,t)
+
+
+
+
+
+{-
+boilerplate
+
+-}
+
+SEM Statement
+    | CreateFunction
+        loc.tpe = Right $ Pseudo Void
+        loc.catUpdates = either (const []) id $ do
+                         let ps = mapMaybe lpt @params.params
+                         rt <- lmt @rettype.namedType
+                         return [CatCreateFunction FunName
+                                                   (map toLower @name)
+                                                   ps
+                                                   rt
+                                                   False]
+                         where
+                           lpt (_,Just t) = Just t
+                           lpt _ = Nothing
+
+        loc.backTree = CreateFunction @ann
+                                      @name
+                                      @params.annotatedTree
+                                      @rettype.annotatedTree
+                                      @rep
+                                      @lang
+                                      @body.annotatedTree
+                                      @vol
+        loc.statementType = []
+        body.cat = @lhs.inProducedCat
+
+
+
+
+{-
+
 
 == function prototype
 
@@ -18,50 +168,7 @@ don't affect the prototype, and hence callers of the function).
 
 -}
 
-SEM Statement
-    | CreateFunction
-        loc.tpe = dependsOnRTpe
-                    (@rettype.namedType : @loc.parameterTypes) $
-                    Right $ Pseudo Void
-        loc.catUpdates = dependsOn [tpeToT @loc.tpe] []
-                                   [CatCreateFunction FunName
-                                                      (map toLower @name)
-                                                      @loc.parameterTypes
-                                                      @rettype.namedType
-                                                      False]
-        loc.parameterTypes = (map snd @params.params)
 
-        loc.backTree = CreateFunction @ann
-                                      @name
-                                      @params.annotatedTree
-                                      @rettype.annotatedTree
-                                      @rep
-                                      @lang
-                                      @body.annotatedTree
-                                      @vol
-        loc.statementType = []
-        body.cat = @lhs.inProducedCat
-
-{-
-== parameters
--}
-
-ATTR ParamDef [||paramName : String
-                 namedType : Type]
-
-ATTR ParamDefList [||params : {[(String, Type)]}]
-
-SEM ParamDef
-    | ParamDef ParamDefTp
-        lhs.namedType = @typ.namedType
-    | ParamDef
-        lhs.paramName = @name
-    | ParamDefTp
-        lhs.paramName = ""
-
-SEM ParamDefList
-     | Nil lhs.params = []
-     | Cons lhs.params = ((@hd.paramName, @hd.namedType) : @tl.params)
 
 
 {-
@@ -93,21 +200,6 @@ value which gets returned from the annotation functions in AstInternal.ag
 
 -}
 
-SEM Statement
-    | CreateFunction
-        --add the parameters to the catalog for the contained statements
-        body.lib = let p = @params.params
-                           ++ (zip posNames $ map snd @params.params)
-                           ++ case @rettype.namedType of
-                                Pseudo Trigger -> [("OLD", Pseudo TriggerRecord)
-                                                  ,("NEW", Pseudo TriggerRecord)]
-                                _ -> []
-                   in fromRight @lhs.lib $ do
-                      a <- lbUpdate @lhs.cat @lhs.lib (LBIds (@name ++ " parameters") "" p [])
-                      lbUpdate @lhs.cat a (LBIds (@name ++ " parameters") @name @params.params [])
-                   where
-                     posNames :: [String]
-                     posNames = map (\l -> '$':show l) [(1::Int)..]
 {-
 TODO: using fromRight on it's own for identifier bindings or cat
 updates is wrong, if an error is produced then this needs to be added
@@ -115,24 +207,5 @@ to an annotation somewhere. Some of the code uses error instead of fromRight
 which is even worse.
 -}
 
-SEM FnBody
-    | PlpgsqlFnBody
-        --make the variable names available in the body of the
-        --function this needs to be generalised to begin/end blocks
-        --which can nest inside plpgsql functions (they aren't even
-        --supported by the parser at the moment)
-        sts.lib = fromRight @lhs.lib $
-                  lbUpdate @lhs.cat @lhs.lib $
-                    LBIds "declarations" "" @vars.defs []
 
-ATTR VarDef [||def : {(String,Type)}]
 
-ATTR VarDefList [||defs : {[(String,Type)]}]
-
---slightly hacky, should fix this better
-SEM VarDef
-    | VarDef lhs.def = (@name, if @typ.namedType == Pseudo Record then PgRecord Nothing else @typ.namedType)
-
-SEM VarDefList
-    | Cons lhs.defs = @hd.def : @tl.defs
-    | Nil lhs.defs = []

@@ -9,10 +9,10 @@ This file contains the checking code for a few plpgsql statements.
 --todo: check return type consistent with function return type
 SEM Statement
     | Return
-        loc.tpe =
-            dependsOnRTpe [maybe typeBool
+        loc.tpe = undefined
+            {-dependsOnRTpe [maybe typeBool
                                 getTypeAnnotation
-                                @value.annotatedTree] $ Right $ Pseudo Void
+                                @value.annotatedTree] $ Right $ Pseudo Void-}
         loc.backTree = Return @ann @value.annotatedTree
         loc.catUpdates = []
         loc.statementType = []
@@ -22,11 +22,12 @@ SEM Statement
     | Assignment
         loc.tpe =
             do
+            undefined {-
             let fromType = getTypeAnnotation @value.annotatedTree
             toType <- lbLookupID @lhs.lib @target
             dependsOnRTpe [getTypeAnnotation @value.annotatedTree, toType] $ do
             checkAssignmentValid @lhs.cat fromType toType
-            return $ Pseudo Void
+            return $ Pseudo Void-}
         loc.backTree = Assignment @ann @target @value.annotatedTree
         loc.catUpdates = []
         loc.statementType = []
@@ -36,6 +37,7 @@ SEM Statement
         loc.varTypeE = lbLookupID @lhs.lib @var
         loc.tpe =
           do
+          undefined {-
           let fromType = getTypeAnnotation @from.annotatedTree
               toType = getTypeAnnotation @to.annotatedTree
           dependsOnRTpe [fromType,toType] $ do
@@ -44,7 +46,7 @@ SEM Statement
           case @loc.varTypeE of
             Right t -> checkAssignmentValid @lhs.cat fromType t
             Left _ -> return ()
-          return $ Pseudo Void
+          return $ Pseudo Void-}
         sts.lib =
             case @loc.varTypeE of
               Left [UnrecognisedIdentifier @var] ->
@@ -64,11 +66,12 @@ SEM Statement
         loc.selType = getTypeAnnotation @sel.annotatedTree
         loc.tpe =
           do
+          undefined {-
           dependsOnRTpe [@loc.selType] $ do
           toType <- lbLookupID @lhs.lib @var
           dependsOnRTpe [toType] $ do
           checkAssignmentValid @lhs.cat @loc.selType toType
-          return $ Pseudo Void
+          return $ Pseudo Void-}
         --just handles assigning to a record type for now
         --one thing that isn't quite right is that the record variable
         --holds the last row in it after the for statement, which isn't
@@ -82,7 +85,7 @@ SEM Statement
                    -- todo:ignoring error
               else @lhs.lib
             where
-              okToUpdate = isRight @loc.tpe && @loc.selType /= TypeCheckFailed
+              okToUpdate = undefined -- isRight @loc.tpe && @loc.selType /= TypeCheckFailed
 
         loc.backTree = ForSelectStatement @ann @var @sel.annotatedTree @sts.annotatedTree
         loc.catUpdates = []

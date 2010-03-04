@@ -1,0 +1,26 @@
+Introduction
+============
+
+HsSqlPpp is abstract syntax types, a parser, pretty printer,
+quasiquoter and type checker for SQL. If this doesn't mean anything to
+you then this is the page that attempts to explain what it all means,
+and hopefully what the uses are.
+
+abstract syntax/ concrete syntax
+some examples
+
+parsing, examples
+
+pretty printing, examples
+
+quasi quotes: embedded sql, sql generation with splices, pattern
+matching (locations of a particular function call?), tree
+transformation
+
+custom syntax
+
+type checker:
+check for type errors, e.g. change the name of a view
+get the catalog
+annotate: get information e.g. types of views
+typesafe database access

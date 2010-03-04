@@ -11,19 +11,19 @@ make it much more readable.
 
 SEM Statement
     | SelectStatement
-        loc.tpe = dependsOnRTpe [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
-        loc.statementType = [StatementType (getPlaceholderTypes @ex.annotatedTree) $ leftToEmpty id  $
+        loc.tpe = undefined -- dependsOnRTpe [getTypeAnnotation @ex.annotatedTree] $ Right $ Pseudo Void
+        loc.statementType = undefined {-[StatementType (getPlaceholderTypes @ex.annotatedTree) $ leftToEmpty id  $
                                                 unwrapSetOfComposite $
-                                                getTypeAnnotation @ex.annotatedTree]
+                                                getTypeAnnotation @ex.annotatedTree]-}
         loc.backTree = SelectStatement @ann @ex.annotatedTree
         loc.catUpdates = []
 
 SEM SelectExpression
     | Values Select CombineSelect WithSelect
-        lhs.annotatedTree = annTypesAndErrors @loc.backTree
+        lhs.annotatedTree = undefined {-annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
-                              Nothing
+                              Nothing-}
 {-
 
 ================================================================================
@@ -129,8 +129,8 @@ SEM SelectExpression
         loc.tpe =
           let sel1t = getTypeAnnotation @sel1.annotatedTree
               sel2t = getTypeAnnotation @sel2.annotatedTree
-          in dependsOnRTpe [sel1t, sel2t] $
-                typeCheckCombineSelect @lhs.cat sel1t sel2t
+          in undefined {-dependsOnRTpe [sel1t, sel2t] $
+                typeCheckCombineSelect @lhs.cat sel1t sel2t-}
         loc.backTree = CombineSelect @ann @ctype
                                      @sel1.annotatedTree
                                      @sel2.annotatedTree
@@ -224,8 +224,8 @@ SEM WithQueryList
 
 SEM WithQuery
     | WithQuery
-        loc.tpe = dependsOnRTpe [getTypeAnnotation @ex.annotatedTree] $
-                    Right $ Pseudo Void
+        loc.tpe = undefined {-dependsOnRTpe [getTypeAnnotation @ex.annotatedTree] $
+                    Right $ Pseudo Void-}
         loc.backTree = WithQuery @ann @name @ex.annotatedTree
         loc.attrs = case getTypeAnnotation @ex.annotatedTree of
                       SetOfType (CompositeType c) -> c

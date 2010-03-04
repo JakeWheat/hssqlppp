@@ -74,11 +74,11 @@ SEM Statement
       CreateFunction CreateType CreateTable CreateTableAs Return Assignment
       ForSelectStatement ForIntegerStatement DropFunction
         loc.tpe : {Either [TypeError] Type}
-        lhs.annotatedTree = annTypesAndErrors @loc.backTree
+        lhs.annotatedTree = undefined {-annTypesAndErrors @loc.backTree
                               (tpeToT @loc.tpe)
                               (getErrors @loc.tpe)
                               $ Just (map StatementTypeA @loc.statementType ++
-                                      [CatUpdates @loc.catUpdates])
+                                      [CatUpdates @loc.catUpdates])-}
         loc.catUpdates : {[CatalogUpdate]}
         lhs.catUpdates = @loc.catUpdates
         lhs.libUpdates = @loc.libUpdates

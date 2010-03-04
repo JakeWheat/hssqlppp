@@ -89,7 +89,8 @@ ATTR TableRef TableRefList [|| libUpdates: {[LocalBindingsUpdate]}]
 SEM TableRef
     | SubTref Tref TrefFun JoinedTref
         lhs.annotatedTree =
-            updateAnnotation (map TypeErrorA @loc.errs ++) @loc.backTree
+            undefined {-
+            updateAnnotation (map TypeErrorA @loc.errs ++) @loc.backTree-}
 
 SEM TableRefList
     | Nil

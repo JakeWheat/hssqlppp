@@ -12,8 +12,8 @@ pretty simple, just forwards the select expression type
 
 SEM Statement
     | CreateView
-        loc.tpe = dependsOnRTpe [getTypeAnnotation @expr.annotatedTree] $
-                    Right $ Pseudo Void
+        loc.tpe = undefined {- dependsOnRTpe [getTypeAnnotation @expr.annotatedTree] $
+                    Right $ Pseudo Void-}
         loc.backTree = CreateView @ann @name @expr.annotatedTree
         loc.attrs = case getTypeAnnotation @expr.annotatedTree of
                       SetOfType (CompositeType c) -> c

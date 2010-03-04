@@ -28,7 +28,6 @@ each level is a list of star expansions, one for each correlation name
 in scope, and one for an unqualified star.
 
 > {-# LANGUAGE ScopedTypeVariables #-}
-> {-# OPTIONS_HADDOCK hide  #-}
 >
 > module Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
 >     (
@@ -211,8 +210,8 @@ old implementation of local bindings
 
 This is where constructing the local bindings lookup stacks is done
 
-> lbUpdate :: Catalog -> LocalBindings -> LocalBindingsUpdate -> E LocalBindings
-> lbUpdate cat (LocalBindings lbus lkps) lbu' = do
+> lbUpdate :: Catalog -> LocalBindingsUpdate -> LocalBindings -> E LocalBindings
+> lbUpdate cat lbu' (LocalBindings lbus lkps) = do
 >    lbl <- makeStack cat lbu
 >    lbl1 <- expandComposites cat lbl
 >    --trace ("update: " ++ ppLbls lbl1) $ return ()
