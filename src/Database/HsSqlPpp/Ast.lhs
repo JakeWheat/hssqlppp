@@ -35,7 +35,6 @@ Copyright 2009 Jake Wheat
 >     ,WithQueryList
 >     ,WithQuery(..)
 >      -- ** dml
->     ,SetClause (..)
 >     ,CopySource (..)
 >     ,RestartIdentity (..)
 >      -- ** ddl
@@ -61,7 +60,7 @@ Copyright 2009 Jake Wheat
 >     ,Language (..)
 >      -- ** misc
 >     ,SetValue(..)
->     ,Name(..)
+>     -- ,Name(..)
 >      -- ** typedefs
 >     ,ExpressionListStatementListPairList
 >     ,ExpressionListStatementListPair
@@ -76,7 +75,6 @@ Copyright 2009 Jake Wheat
 >     ,StringTypeNameListPair
 >     ,StringTypeNameListPairList
 >     ,ExpressionStatementListPairList
->     ,SetClauseList
 >     ,CaseExpressionListExpressionPairList
 >     ,MaybeExpression
 >     ,MaybeBoolExpression
@@ -95,4 +93,4 @@ Copyright 2009 Jake Wheat
 >     ) where
 >
 > import Database.HsSqlPpp.AstInternals.AstInternal
-> import Database.HsSqlPpp.AstInternals.Name
+> --import Database.HsSqlPpp.AstInternals.Name

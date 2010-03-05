@@ -81,8 +81,8 @@ create table readonly_table ...
 > testExtension :: ExtensionTest -> Test.Framework.Test
 > testExtension (ExtensionTest nm tr sast ts) =
 >   testCase nm $ do
->     let ts' = stripAnnotations ts
->         es' = stripAnnotations $ tr sast
+>     let ts' = resetAnnotations ts
+>         es' = resetAnnotations $ tr sast
 >     when (ts' /= es') $ putStrLn $ printSql ts' ++ "\n----\n" ++ printSql es' ++ "\n====\n"
 >                         -- ++ ppExpr ts' ++ "\n----\n" ++ ppExpr es'
 >     assertEqual "" ts' es'

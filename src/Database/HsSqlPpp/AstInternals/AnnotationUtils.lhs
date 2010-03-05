@@ -8,6 +8,7 @@ asts and annotations which depend on the ast types.
 > module Database.HsSqlPpp.AstInternals.AnnotationUtils
 >     (
 >      getStatementAnnotations
+>     ,resetAnnotations
 >     ) where
 >
 > import Data.Generics
@@ -21,3 +22,7 @@ asts and annotations which depend on the ast types.
 > getStatementAnnotations :: Data a => a -> [Annotation]
 > getStatementAnnotations st =
 >     [getAnnotation s | (s::Statement) <- universeBi st]
+
+> resetAnnotations :: Data a => a -> a
+> resetAnnotations =
+>     updateAnnotations (const emptyAnnotation)

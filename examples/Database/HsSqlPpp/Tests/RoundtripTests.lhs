@@ -148,9 +148,10 @@ use create view to run through select variations
 >     -- adjust tree is the normalization that we run on the original ast as
 >     -- well as the dumped ast
 >     adjTree :: [Statement] -> [Statement]
->     adjTree = canonicalizeTypeNames . stripAnnotations
+>     adjTree = canonicalizeTypeNames . resetAnnotations
 >     failIfTypeErrors xast = do
->       let te = getTypeErrors xast
+>       let te :: [TypeError]
+>           te = [x | x <- universeBi xast]
 >       when (not $ null te) $ throwError $ show te
 
 take the parse tree and change the type names to the canonical versions
@@ -203,23 +204,23 @@ brackets which we can use to check these things
 >           case x of
 >             s@(Set _ "search_path" _):s1@(CreateLanguage _ _):s2 -> s1:s:s2
 >             z -> z
->     presets = [Set [] "statement_timeout" [SetNum [] 0.0]
->               ,Set [] "client_encoding" [SetStr [] "UTF8"]
->               ,Set [] "standard_conforming_strings" [SetId [] "off"]
->               ,Set [] "check_function_bodies" [SetId [] "false"]
->               ,Set [] "client_min_messages" [SetId [] "warning"]
->               ,Set [] "escape_string_warning" [SetId [] "off"]]
+>     presets = [Set ea "statement_timeout" [SetNum ea 0.0]
+>               ,Set ea "client_encoding" [SetStr ea "UTF8"]
+>               ,Set ea "standard_conforming_strings" [SetId ea "off"]
+>               ,Set ea "check_function_bodies" [SetId ea "false"]
+>               ,Set ea "client_min_messages" [SetId ea "warning"]
+>               ,Set ea "escape_string_warning" [SetId ea "off"]]
 >               -- if there are no statements, pg_dump doesn't spit out the search path
 >               ++ if null noDml then [] else
->                      [Set [] "search_path" [SetId [] "public", SetId [] "pg_catalog"]]
+>                      [Set ea "search_path" [SetId ea "public", SetId ea "pg_catalog"]]
 >               -- these two sets get added if there are create tables
 >               ++ case flip find ast (\s ->
 >                                   case s of
 >                                     CreateTable _ _ _ _ -> True
 >                                     _ -> False) of
 >                    Nothing -> []
->                    Just _ -> [Set [] "default_tablespace" [SetStr [] ""]
->                              ,Set [] "default_with_oids" [SetId [] "false"]]
+>                    Just _ -> [Set ea "default_tablespace" [SetStr ea ""]
+>                              ,Set ea "default_with_oids" [SetId ea "false"]]
 >     -- dml statements don't appear in the dump
 >     stripDml = filter (\s -> case s of
 >                                SelectStatement _ _ -> False
@@ -257,3 +258,6 @@ generation here, also any 'value' identifiers will be in uppercase
 >          case x of
 >            Left er -> assertFailure $ show er
 >            Right l -> return l
+
+> ea :: Annotation
+> ea = emptyAnnotation

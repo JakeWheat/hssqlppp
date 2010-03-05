@@ -45,21 +45,21 @@ tests
 >           ptype text primary key
 >         );
 >         |] $ Right [ DTable "pieces" []
->                        [AttributeDef []
+>                        [AttributeDef ea
 >                         "ptype"
->                         (SimpleTypeName [] "text")
+>                         (SimpleTypeName ea "text")
 >                         Nothing
->                         [RowPrimaryKeyConstraint [] ""]]]
+>                         [RowPrimaryKeyConstraint ea ""]]]
 >          ,ParseTest [$here|
 >         creatures : pieces (
 >           speed int,
 >           agility int
 >         );
 >         |] $ Right [ DTable "creatures" ["pieces"]
->                        [AttributeDef [] "speed"
->                         (SimpleTypeName [] "int") Nothing []
->                        ,AttributeDef [] "agility"
->                         (SimpleTypeName [] "int") Nothing []]]
+>                        [AttributeDef ea "speed"
+>                         (SimpleTypeName ea "int") Nothing []
+>                        ,AttributeDef ea "agility"
+>                         (SimpleTypeName ea "int") Nothing []]]
 >          ,ParseTest [$here|
 >         mutually_exclusive(attackers,creatures);
 >         |] $ Right [ MutualExclusion "attackers" "creatures"]
@@ -70,10 +70,10 @@ tests
 >           armour int
 >         );
 >         |] $ Right [ DTable "monsters" ["creatures", "attackers"]
->                        [AttributeDef [] "resistance"
->                         (SimpleTypeName [] "int") Nothing []
->                        ,AttributeDef [] "armour"
->                         (SimpleTypeName [] "int") Nothing []]]
+>                        [AttributeDef ea "resistance"
+>                         (SimpleTypeName ea "int") Nothing []
+>                        ,AttributeDef ea "armour"
+>                         (SimpleTypeName ea "int") Nothing []]]
 >          ,ParseTest [$here|
 >         attacking_creatures : pieces,attackers;
 >         |] $ Right [ DTable "attacking_creatures" ["pieces","attackers"] []]
@@ -86,7 +86,7 @@ tests
 > parseTestConv (ParseTest s t) =
 >   testCase s $ do
 >     let t1 = parseD6nf "" 1 1 s
->     assertEqual "" t (stripAnnotations t1)
+>     assertEqual "" t (resetAnnotations t1)
 
 --------------------------------
 
@@ -126,3 +126,6 @@ parsing code
 >   parens (MutualExclusion
 >           <$> idString
 >           <*> (symbol "," *> idString)) <* symbol ";"
+
+> ea :: Annotation
+> ea = emptyAnnotation

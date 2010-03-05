@@ -38,8 +38,8 @@ grammar code and aren't exposed.
 
 > -- | Annotation type - one of these is attached to most of the
 > -- data types used in the ast.
-> data Annotation = Annotation {src :: Maybe SourcePosition
->                              ,typ :: Maybe Type
+> data Annotation = Annotation {asrc :: Maybe SourcePosition
+>                              ,atype :: Maybe Type
 >                              ,errs :: [TypeError]
 >                              ,stType :: Maybe StatementType
 >                              ,catUpd :: [CatalogUpdate]
@@ -61,7 +61,7 @@ grammar code and aren't exposed.
 > updateAnnotations = transformBi
 
 > getTypeAnnotation :: Data a => a -> Maybe Type
-> getTypeAnnotation = typ . getAnnotation
+> getTypeAnnotation = atype . getAnnotation
 
 
 

@@ -71,16 +71,10 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (Update ann tb scs fr wh rt) =
 >    convPa ca ann <+>
 >    text "update" <+> text tb <+> text "set"
->    <+> hcatCsvMap convSetClause scs
+>    <+> hcatCsvMap convExp scs
 >    <+> ifNotEmpty (\_ -> text "from" <+> hcatCsvMap convTref fr) fr
 >    <+> convWhere wh
 >    $+$ convReturning rt <> statementEnd
->    where
->      convSetClause (SetClause _ att ex) = text att <+> text "=" <+> convExp ex
->      convSetClause (RowSetClause _ atts exs) =
->        parens (hcatCsvMap text atts)
->        <+> text "="
->        <+> parens (hcatCsvMap convExp exs)
 >
 > convStatement ca (Delete ann tbl us wh rt) =
 >    convPa ca ann <+>
@@ -297,7 +291,7 @@ Conversion routines - convert Sql asts into Docs
 >                 RNotice -> text "notice"
 >                 RException -> text "exception"
 >                 RError -> text "error"
->     <+> convExp (StringLit [] st)
+>     <+> convExp (StringLit emptyAnnotation st)
 >     <> ifNotEmpty (\e -> comma <+> csvExp e) exps
 >     <> statementEnd
 >

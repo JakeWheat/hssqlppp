@@ -414,14 +414,9 @@ multiple rows to insert and insert from select statements
 >          <*> tryOptionMaybe whereClause
 >          <*> tryOptionMaybe returning
 >     where
->       setClause = choice
->             [RowSetClause <$> pos
->                           <*> parens (commaSep1 idString)
->                           <*> (symbol "=" *> parens (commaSep1 expr))
->             ,SetClause <$> pos
->                        <*> idString
->                        <*> (symbol "=" *> expr)]
->
+>       setClause = expr
+>       -- todo: restrict this to a = expr or (a,b...) = expr forms only
+
 > delete :: SParser Statement
 > delete = Delete
 >          <$> pos <* keyword "delete" <* keyword "from"
@@ -1628,10 +1623,7 @@ parser combinator to return the current position as an ast annotation
 
 > pos :: SParser Annotation
 > pos = do
->   p <- toSpA <$> getPosition
->   return [p]
->   where
->     toSpA sp = (\(a,b,c) -> A.SourcePos a b c) $ toMySp sp
+>   (\a -> emptyAnnotation {asrc=Just a}) <$> toMySp <$> getPosition
 
 == lexer stuff
 

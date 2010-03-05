@@ -281,7 +281,7 @@ chaos=# select b.* from (select 1 as a, 2 as a) b;
 >             -> Test.Framework.Test
 > testLookups n lbus lkps = testCase n $ do
 >     let lkps1 = do
->                 (LocalBindings _ lkpsx) <- foldM (lbUpdate defaultTemplate1Catalog) emptyBindings lbus
+>                 (LocalBindings _ lkpsx) <- foldM (flip $ lbUpdate defaultTemplate1Catalog) emptyBindings lbus
 >                 return lkpsx
 >     when (lkps /= lkps1) $ liftIO $ putStrLn $ "expected " ++ showRes lkps
 >                                         ++ "\ngot: " ++ showRes lkps1

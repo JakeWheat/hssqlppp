@@ -38,26 +38,26 @@ There are no tests for invalid sql at the moment.
 
 >    Group "parse expressions" [
 >     Group "basic expressions" [
->       e "1" (IntegerLit [] 1)
->      ,e "-1" (FunCall [] "u-" [IntegerLit [] 1])
->      ,e "1.1" (FloatLit [] 1.1)
->      ,e "-1.1" (FunCall [] "u-" [FloatLit [] 1.1])
->      ,e " 1 + 1 " (FunCall [] "+" [IntegerLit [] 1
->                                   ,IntegerLit [] 1])
->      ,e "1+1+1" (FunCall [] "+" [FunCall [] "+" [IntegerLit [] 1
->                                                 ,IntegerLit [] 1]
->                                 ,IntegerLit [] 1])
+>       e "1" (IntegerLit ea 1)
+>      ,e "-1" (FunCall ea "u-" [IntegerLit ea 1])
+>      ,e "1.1" (FloatLit ea 1.1)
+>      ,e "-1.1" (FunCall ea "u-" [FloatLit ea 1.1])
+>      ,e " 1 + 1 " (FunCall ea "+" [IntegerLit ea 1
+>                                   ,IntegerLit ea 1])
+>      ,e "1+1+1" (FunCall ea "+" [FunCall ea "+" [IntegerLit ea 1
+>                                                 ,IntegerLit ea 1]
+>                                 ,IntegerLit ea 1])
 >      ]
 >    ,Group "parens" [
 
 check some basic parens use wrt naked values and row constructors
 these tests reflect how pg seems to interpret the variants.
 
->       e "(1)" (IntegerLit [] 1)
->      ,e "row ()" (FunCall [] "!rowctor" [])
->      ,e "row (1)" (FunCall [] "!rowctor" [IntegerLit [] 1])
->      ,e "row (1,2)" (FunCall [] "!rowctor" [IntegerLit [] 1,IntegerLit [] 2])
->      ,e "(1,2)" (FunCall [] "!rowctor" [IntegerLit [] 1,IntegerLit [] 2])
+>       e "(1)" (IntegerLit ea 1)
+>      ,e "row ()" (FunCall ea "!rowctor" [])
+>      ,e "row (1)" (FunCall ea "!rowctor" [IntegerLit ea 1])
+>      ,e "row (1,2)" (FunCall ea "!rowctor" [IntegerLit ea 1,IntegerLit ea 2])
+>      ,e "(1,2)" (FunCall ea "!rowctor" [IntegerLit ea 1,IntegerLit ea 2])
 >      ]
 >    ,Group "more basic expressions" [
 
@@ -65,65 +65,65 @@ test some more really basic expressions
 
 >       e "'test'" (stringQ "test")
 >      ,e "''" (stringQ "")
->      ,e "hello" (Identifier [] "hello")
->      ,e "helloTest" (Identifier [] "helloTest")
->      ,e "hello_test" (Identifier [] "hello_test")
->      ,e "\"this is an identifier\"" (Identifier [] "this is an identifier")
->      ,e "hello1234" (Identifier [] "hello1234")
->      ,e "true" (BooleanLit [] True)
->      ,e "false" (BooleanLit [] False)
->      ,e "null" (NullLit [])
+>      ,e "hello" (Identifier ea "hello")
+>      ,e "helloTest" (Identifier ea "helloTest")
+>      ,e "hello_test" (Identifier ea "hello_test")
+>      ,e "\"this is an identifier\"" (Identifier ea "this is an identifier")
+>      ,e "hello1234" (Identifier ea "hello1234")
+>      ,e "true" (BooleanLit ea True)
+>      ,e "false" (BooleanLit ea False)
+>      ,e "null" (NullLit ea)
 >      ]
 >    ,Group "array ctor and selector" [
->       e "array[1,2]" (FunCall [] "!arrayctor" [IntegerLit [] 1, IntegerLit [] 2])
->      ,e "a[1]" (FunCall [] "!arraysub" [Identifier [] "a", IntegerLit [] 1])
+>       e "array[1,2]" (FunCall ea "!arrayctor" [IntegerLit ea 1, IntegerLit ea 2])
+>      ,e "a[1]" (FunCall ea "!arraysub" [Identifier ea "a", IntegerLit ea 1])
 >      ]
 >    ,Group "simple operators" [
->       e "1 + tst1" (FunCall [] "+" [IntegerLit [] 1
->                                ,Identifier [] "tst1"])
->      ,e "tst1 + 1" (FunCall [] "+" [Identifier [] "tst1"
->                                ,IntegerLit [] 1])
->      ,e "tst + tst1" (FunCall [] "+" [Identifier [] "tst"
->                                  ,Identifier [] "tst1"])
->      ,e "'a' || 'b'" (FunCall [] "||" [stringQ "a"
+>       e "1 + tst1" (FunCall ea "+" [IntegerLit ea 1
+>                                ,Identifier ea "tst1"])
+>      ,e "tst1 + 1" (FunCall ea "+" [Identifier ea "tst1"
+>                                ,IntegerLit ea 1])
+>      ,e "tst + tst1" (FunCall ea "+" [Identifier ea "tst"
+>                                  ,Identifier ea "tst1"])
+>      ,e "'a' || 'b'" (FunCall ea "||" [stringQ "a"
 >                                   ,stringQ "b"])
->      ,e "'stuff'::text" (Cast [] (stringQ "stuff") (SimpleTypeName [] "text"))
->      ,e "245::float(24)" (Cast [] (IntegerLit [] 245) (PrecTypeName [] "float" 24))
->      ,e "245::double precision" (Cast [] (IntegerLit [] 245) (SimpleTypeName [] "double precision"))
+>      ,e "'stuff'::text" (Cast ea (stringQ "stuff") (SimpleTypeName ea "text"))
+>      ,e "245::float(24)" (Cast ea (IntegerLit ea 245) (PrecTypeName ea "float" 24))
+>      ,e "245::double precision" (Cast ea (IntegerLit ea 245) (SimpleTypeName ea "double precision"))
 >      ,e "a between 1 and 3"
->         (FunCall [] "!between" [Identifier [] "a", IntegerLit [] 1, IntegerLit [] 3])
+>         (FunCall ea "!between" [Identifier ea "a", IntegerLit ea 1, IntegerLit ea 3])
 >      ,e "cast(a as text)"
->         (Cast [] (Identifier [] "a") (SimpleTypeName [] "text"))
+>         (Cast ea (Identifier ea "a") (SimpleTypeName ea "text"))
 >      ,e "@ a"
->         (FunCall [] "@" [Identifier [] "a"])
+>         (FunCall ea "@" [Identifier ea "a"])
 >      ,e "substring(a from 0 for 3)"
->         (FunCall [] "!substring" [Identifier [] "a", IntegerLit [] 0, IntegerLit [] 3])
+>         (FunCall ea "!substring" [Identifier ea "a", IntegerLit ea 0, IntegerLit ea 3])
 >      ,e "substring(a from 0 for (5 - 3))"
->         (FunCall [] "!substring" [Identifier [] "a",IntegerLit [] 0,
->          FunCall [] "-" [IntegerLit [] 5,IntegerLit [] 3]])
+>         (FunCall ea "!substring" [Identifier ea "a",IntegerLit ea 0,
+>          FunCall ea "-" [IntegerLit ea 5,IntegerLit ea 3]])
 >      ,e "a like b"
->         (FunCall [] "!like" [Identifier [] "a", Identifier [] "b"])
+>         (FunCall ea "!like" [Identifier ea "a", Identifier ea "b"])
 >      ]
 >    ,Group "function calls" [
->       e "fn()" (FunCall [] "fn" [])
->      ,e "fn(1)" (FunCall [] "fn" [IntegerLit [] 1])
->      ,e "fn('test')" (FunCall [] "fn" [stringQ "test"])
->      ,e "fn(1,'test')" (FunCall [] "fn" [IntegerLit [] 1, stringQ "test"])
->      ,e "fn('test')" (FunCall [] "fn" [stringQ "test"])
+>       e "fn()" (FunCall ea "fn" [])
+>      ,e "fn(1)" (FunCall ea "fn" [IntegerLit ea 1])
+>      ,e "fn('test')" (FunCall ea "fn" [stringQ "test"])
+>      ,e "fn(1,'test')" (FunCall ea "fn" [IntegerLit ea 1, stringQ "test"])
+>      ,e "fn('test')" (FunCall ea "fn" [stringQ "test"])
 >      ]
 >    ,Group "simple whitespace sanity checks" [
->       e "fn (1)" (FunCall [] "fn" [IntegerLit [] 1])
->      ,e "fn( 1)" (FunCall [] "fn" [IntegerLit [] 1])
->      ,e "fn(1 )" (FunCall [] "fn" [IntegerLit [] 1])
->      ,e "fn(1) " (FunCall [] "fn" [IntegerLit [] 1])
+>       e "fn (1)" (FunCall ea "fn" [IntegerLit ea 1])
+>      ,e "fn( 1)" (FunCall ea "fn" [IntegerLit ea 1])
+>      ,e "fn(1 )" (FunCall ea "fn" [IntegerLit ea 1])
+>      ,e "fn(1) " (FunCall ea "fn" [IntegerLit ea 1])
 >      ]
 >    ,Group "null stuff" [
->       e "not null" (FunCall [] "!not" [NullLit []])
->      ,e "a is null" (FunCall [] "!isnull" [Identifier [] "a"])
->      ,e "a is not null" (FunCall [] "!isnotnull" [Identifier [] "a"])
->      ,e "not not true" (FunCall [] "!not"
->                          [FunCall [] "!not"
->                           [BooleanLit [] True]])
+>       e "not null" (FunCall ea "!not" [NullLit ea])
+>      ,e "a is null" (FunCall ea "!isnull" [Identifier ea "a"])
+>      ,e "a is not null" (FunCall ea "!isnotnull" [Identifier ea "a"])
+>      ,e "not not true" (FunCall ea "!not"
+>                          [FunCall ea "!not"
+>                           [BooleanLit ea True]])
 >      ]
 >    ,Group "case expressions" [
 >       e {-"case when a,b then 3\n\
@@ -136,48 +136,48 @@ test some more really basic expressions
 >               else 5
 >          end
 >          |]
->         (Case [] [([Identifier [] "a", Identifier [] "b"], IntegerLit [] 3)
->               ,([Identifier [] "c"], IntegerLit [] 4)]
->          (Just $ IntegerLit [] 5))
+>         (Case ea [([Identifier ea "a", Identifier ea "b"], IntegerLit ea 3)
+>               ,([Identifier ea "c"], IntegerLit ea 4)]
+>          (Just $ IntegerLit ea 5))
 >      ,e  "case 1 when 2 then 3 else 4 end"
->         (CaseSimple [] (IntegerLit [] 1)
->            [([IntegerLit [] 2], IntegerLit [] 3)]
->          (Just $ IntegerLit [] 4))
+>         (CaseSimple ea (IntegerLit ea 1)
+>            [([IntegerLit ea 2], IntegerLit ea 3)]
+>          (Just $ IntegerLit ea 4))
 >      ]
 >    ,Group "positional args" [
->       e "$1" (PositionalArg [] 1)
->      ,e "?" (Placeholder [])
->      ,e "a = ?" (FunCall [] "=" [Identifier [] "a",Placeholder []])
+>       e "$1" (PositionalArg ea 1)
+>      ,e "?" (Placeholder ea)
+>      ,e "a = ?" (FunCall ea "=" [Identifier ea "a",Placeholder ea])
 >      ]
 >    ,Group "exists" [
 >       e "exists (select 1 from a)"
->       (Exists [] (selectFrom [SelExp [] (IntegerLit [] 1)] (Tref [] "a" NoAlias)))
+>       (Exists ea (selectFrom [SelExp ea (IntegerLit ea 1)] (Tref ea "a" NoAlias)))
 >      ]
 >    ,Group "in variants" [
 >       e "t in (1,2)"
->       (InPredicate [] (Identifier [] "t") True (InList [] [IntegerLit [] 1,IntegerLit [] 2]))
+>       (InPredicate ea (Identifier ea "t") True (InList ea [IntegerLit ea 1,IntegerLit ea 2]))
 >      ,e "t not in (1,2)"
->       (InPredicate [] (Identifier [] "t") False (InList [] [IntegerLit [] 1,IntegerLit [] 2]))
+>       (InPredicate ea (Identifier ea "t") False (InList ea [IntegerLit ea 1,IntegerLit ea 2]))
 >      ,e "(t,u) in (1,2)"
->       (InPredicate [] (FunCall [] "!rowctor" [Identifier [] "t",Identifier [] "u"]) True
->        (InList [] [IntegerLit [] 1,IntegerLit [] 2]))
+>       (InPredicate ea (FunCall ea "!rowctor" [Identifier ea "t",Identifier ea "u"]) True
+>        (InList ea [IntegerLit ea 1,IntegerLit ea 2]))
 >      ,e "3 = any (array[1,2])"
->       (LiftOperator [] "=" LiftAny [IntegerLit [] 3
->                                     ,FunCall [] "!arrayctor" [IntegerLit [] 1
->                                                              ,IntegerLit [] 2]])
+>       (LiftOperator ea "=" LiftAny [IntegerLit ea 3
+>                                     ,FunCall ea "!arrayctor" [IntegerLit ea 1
+>                                                              ,IntegerLit ea 2]])
 >      ,e "3 = all (array[1,2,4])"
->       (LiftOperator [] "=" LiftAll [IntegerLit [] 3
->                                     ,FunCall [] "!arrayctor" [IntegerLit [] 1
->                                                              ,IntegerLit [] 2
->                                                              ,IntegerLit [] 4]])
+>       (LiftOperator ea "=" LiftAll [IntegerLit ea 3
+>                                     ,FunCall ea "!arrayctor" [IntegerLit ea 1
+>                                                              ,IntegerLit ea 2
+>                                                              ,IntegerLit ea 4]])
 >      ]
 >    ,Group "comparison operators" [
 >       e "a < b"
->       (FunCall [] "<" [Identifier [] "a", Identifier [] "b"])
+>       (FunCall ea "<" [Identifier ea "a", Identifier ea "b"])
 >      ,e "a <> b"
->       (FunCall [] "<>" [Identifier [] "a", Identifier [] "b"])
+>       (FunCall ea "<>" [Identifier ea "a", Identifier ea "b"])
 >      ,e "a != b"
->       (FunCall [] "<>" [Identifier [] "a", Identifier [] "b"])
+>       (FunCall ea "<>" [Identifier ea "a", Identifier ea "b"])
 >      ]
 
 test some string parsing, want to check single quote behaviour,
@@ -189,10 +189,10 @@ and dollar quoting, including nesting.
 >      ,e "'test'''" (stringQ "test'")
 >      ,e "'''test'" (stringQ "'test")
 >      ,e "'te''st'" (stringQ "te'st")
->      ,e "$$test$$" (StringLit [] "test")
->      ,e "$$te'st$$" (StringLit [] "te'st")
->      ,e "$st$test$st$" (StringLit [] "test")
->      ,e "$outer$te$$yup$$st$outer$" (StringLit [] "te$$yup$$st")
+>      ,e "$$test$$" (StringLit ea "test")
+>      ,e "$$te'st$$" (StringLit ea "te'st")
+>      ,e "$st$test$st$" (StringLit ea "test")
+>      ,e "$outer$te$$yup$$st$outer$" (StringLit ea "te$$yup$$st")
 >      ,e "'spl$$it'" (stringQ "spl$$it")
 >      ]
 >      ]
@@ -203,358 +203,358 @@ select statements
 
 >   ,Group "simple select statements" [
 >     Group "select no table" [
->       s "select 1;" [SelectStatement [] $ selectE (SelectList [] [SelExp [] (IntegerLit [] 1)] [])]
+>       s "select 1;" [SelectStatement ea $ selectE (SelectList ea [SelExp ea (IntegerLit ea 1)] [])]
 >      ]
 >    ,Group "select from table" [
 >       s "select * from tbl;"
->       [SelectStatement [] $ selectFrom (selIL ["*"]) (Tref [] "tbl" NoAlias)]
+>       [SelectStatement ea $ selectFrom (selIL ["*"]) (Tref ea "tbl" NoAlias)]
 >      ,s "select a,b from tbl;"
->       [SelectStatement [] $ selectFrom (selIL ["a", "b"]) (Tref [] "tbl" NoAlias)]
+>       [SelectStatement ea $ selectFrom (selIL ["a", "b"]) (Tref ea "tbl" NoAlias)]
 >      ,s "select a,b from inf.tbl;"
->       [SelectStatement [] $ selectFrom (selIL ["a", "b"]) (Tref [] "inf.tbl" NoAlias)]
+>       [SelectStatement ea $ selectFrom (selIL ["a", "b"]) (Tref ea "inf.tbl" NoAlias)]
 >      ,s "select distinct * from tbl;"
->       [SelectStatement [] $ Select [] Distinct (SelectList [] (selIL ["*"]) []) [Tref [] "tbl" NoAlias]
+>       [SelectStatement ea $ Select ea Distinct (SelectList ea (selIL ["*"]) []) [Tref ea "tbl" NoAlias]
 >        Nothing [] Nothing [] Nothing Nothing]
 >      ,s "select a from tbl where b=2;"
->       [SelectStatement [] $ selectFromWhere
+>       [SelectStatement ea $ selectFromWhere
 >         (selIL ["a"])
->         (Tref [] "tbl" NoAlias)
->         (FunCall [] "="
->          [Identifier [] "b", IntegerLit [] 2])]
+>         (Tref ea "tbl" NoAlias)
+>         (FunCall ea "="
+>          [Identifier ea "b", IntegerLit ea 2])]
 >      ,s "select a from tbl where b=2 and c=3;"
->       [SelectStatement [] $ selectFromWhere
+>       [SelectStatement ea $ selectFromWhere
 >         (selIL ["a"])
->         (Tref [] "tbl" NoAlias)
->         (FunCall [] "!and"
->          [FunCall [] "="  [Identifier [] "b", IntegerLit [] 2]
->          ,FunCall [] "=" [Identifier [] "c", IntegerLit [] 3]])]
+>         (Tref ea "tbl" NoAlias)
+>         (FunCall ea "!and"
+>          [FunCall ea "="  [Identifier ea "b", IntegerLit ea 2]
+>          ,FunCall ea "=" [Identifier ea "c", IntegerLit ea 3]])]
 >      ]
 >
 >    ,Group "more select statements" [
 >       s "select a from tbl\n\
 >         \except\n\
 >         \select a from tbl1;"
->       [SelectStatement [] $ CombineSelect [] Except
->        (selectFrom (selIL ["a"]) (Tref [] "tbl" NoAlias))
->        (selectFrom (selIL ["a"]) (Tref [] "tbl1" NoAlias))]
+>       [SelectStatement ea $ CombineSelect ea Except
+>        (selectFrom (selIL ["a"]) (Tref ea "tbl" NoAlias))
+>        (selectFrom (selIL ["a"]) (Tref ea "tbl1" NoAlias))]
 >      ,s "select a from tbl where true\n\
 >         \except\n\
 >         \select a from tbl1 where true;"
->       [SelectStatement [] $ CombineSelect [] Except
->        (selectFromWhere (selIL ["a"]) (Tref [] "tbl" NoAlias) (BooleanLit [] True))
->        (selectFromWhere (selIL ["a"]) (Tref [] "tbl1" NoAlias) (BooleanLit [] True))]
+>       [SelectStatement ea $ CombineSelect ea Except
+>        (selectFromWhere (selIL ["a"]) (Tref ea "tbl" NoAlias) (BooleanLit ea True))
+>        (selectFromWhere (selIL ["a"]) (Tref ea "tbl1" NoAlias) (BooleanLit ea True))]
 >      ,s "select a from tbl\n\
 >         \union\n\
 >         \select a from tbl1;"
->       [SelectStatement [] $ CombineSelect [] Union
->        (selectFrom (selIL ["a"]) (Tref [] "tbl" NoAlias))
->        (selectFrom (selIL ["a"]) (Tref [] "tbl1" NoAlias))]
+>       [SelectStatement ea $ CombineSelect ea Union
+>        (selectFrom (selIL ["a"]) (Tref ea "tbl" NoAlias))
+>        (selectFrom (selIL ["a"]) (Tref ea "tbl1" NoAlias))]
 >      ,s "select a from tbl\n\
 >         \union all\n\
 >         \select a from tbl1;"
->       [SelectStatement [] $ CombineSelect [] UnionAll
->        (selectFrom (selIL ["a"]) (Tref [] "tbl" NoAlias))
->        (selectFrom (selIL ["a"]) (Tref [] "tbl1" NoAlias))]
+>       [SelectStatement ea $ CombineSelect ea UnionAll
+>        (selectFrom (selIL ["a"]) (Tref ea "tbl" NoAlias))
+>        (selectFrom (selIL ["a"]) (Tref ea "tbl1" NoAlias))]
 >      ,s "(select 1 union select 2) union select 3;"
->       [SelectStatement []
->        (CombineSelect [] Union
->         (CombineSelect [] Union
->          (selectE (SelectList [] [SelExp [] (IntegerLit [] 1)] []))
->          (selectE (SelectList [] [SelExp [] (IntegerLit [] 2)] [])))
->         (selectE (SelectList [] [SelExp [] (IntegerLit [] 3)] [])))]
+>       [SelectStatement ea
+>        (CombineSelect ea Union
+>         (CombineSelect ea Union
+>          (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)] []))
+>          (selectE (SelectList ea [SelExp ea (IntegerLit ea 2)] [])))
+>         (selectE (SelectList ea [SelExp ea (IntegerLit ea 3)] [])))]
 >      ,s "select 1 union (select 2 union select 3);"
->       [SelectStatement []
->        (CombineSelect [] Union
->         (selectE (SelectList [] [SelExp [] (IntegerLit [] 1)] []))
->         (CombineSelect [] Union
->          (selectE (SelectList [] [SelExp [] (IntegerLit [] 2)] []))
->          (selectE (SelectList [] [SelExp [] (IntegerLit [] 3)] []))))]
+>       [SelectStatement ea
+>        (CombineSelect ea Union
+>         (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)] []))
+>         (CombineSelect ea Union
+>          (selectE (SelectList ea [SelExp ea (IntegerLit ea 2)] []))
+>          (selectE (SelectList ea [SelExp ea (IntegerLit ea 3)] []))))]
 >      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
 >               select * from b; |]
->          [SelectStatement []
->           (WithSelect []
->            [WithQuery [] "a" (selectE $ SelectList []
->                                [SelectItem [] (IntegerLit [] 1) "a1"] [])
->            ,WithQuery [] "b" (selectFrom (selIL ["*"]) (Tref [] "a" NoAlias))]
->            (selectFrom (selIL ["*"]) (Tref [] "b" NoAlias)))]
+>          [SelectStatement ea
+>           (WithSelect ea
+>            [WithQuery ea "a" (selectE $ SelectList ea
+>                                [SelectItem ea (IntegerLit ea 1) "a1"] [])
+>            ,WithQuery ea "b" (selectFrom (selIL ["*"]) (Tref ea "a" NoAlias))]
+>            (selectFrom (selIL ["*"]) (Tref ea "b" NoAlias)))]
 >      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
 >               select * from a
 >               union select * from b; |]
->          [SelectStatement []
->           (WithSelect []
->            [WithQuery [] "a" (selectE $ SelectList []
->                                [SelectItem [] (IntegerLit [] 1) "a1"] [])
->            ,WithQuery [] "b" (selectFrom (selIL ["*"]) (Tref [] "a" NoAlias))]
->            (CombineSelect [] Union
->              (selectFrom (selIL ["*"]) (Tref [] "a" NoAlias))
->              (selectFrom (selIL ["*"]) (Tref [] "b" NoAlias))))]
+>          [SelectStatement ea
+>           (WithSelect ea
+>            [WithQuery ea "a" (selectE $ SelectList ea
+>                                [SelectItem ea (IntegerLit ea 1) "a1"] [])
+>            ,WithQuery ea "b" (selectFrom (selIL ["*"]) (Tref ea "a" NoAlias))]
+>            (CombineSelect ea Union
+>              (selectFrom (selIL ["*"]) (Tref ea "a" NoAlias))
+>              (selectFrom (selIL ["*"]) (Tref ea "b" NoAlias))))]
 >      ,s "select a as b from tbl;"
->       [SelectStatement [] $ selectFrom [SelectItem [] (Identifier [] "a") "b"] (Tref [] "tbl" NoAlias)]
+>       [SelectStatement ea $ selectFrom [SelectItem ea (Identifier ea "a") "b"] (Tref ea "tbl" NoAlias)]
 >      ,s "select a + b as b from tbl;"
->       [SelectStatement [] $ selectFrom
->        [SelectItem []
->         (FunCall [] "+"
->          [Identifier [] "a", Identifier [] "b"]) "b"]
->        (Tref [] "tbl" NoAlias)]
+>       [SelectStatement ea $ selectFrom
+>        [SelectItem ea
+>         (FunCall ea "+"
+>          [Identifier ea "a", Identifier ea "b"]) "b"]
+>        (Tref ea "tbl" NoAlias)]
 >      ,s "select a.* from tbl a;"
->       [SelectStatement [] $ selectFrom (selIL ["a.*"]) (Tref [] "tbl" (TableAlias "a"))]
+>       [SelectStatement ea $ selectFrom (selIL ["a.*"]) (Tref ea "tbl" (TableAlias "a"))]
 >      ,s "select a.* from tbl a(b,c);"
->       [SelectStatement [] $ selectFrom (selIL ["a.*"]) (Tref [] "tbl" (FullAlias "a" ["b","c"]))]
+>       [SelectStatement ea $ selectFrom (selIL ["a.*"]) (Tref ea "tbl" (FullAlias "a" ["b","c"]))]
 
 >      ,s "select * from t1 a, t2 b;"
->             [SelectStatement []
->              (Select [] Dupes
->               (SelectList []
->                [SelExp [] (Identifier [] "*")] [])
->               [Tref [] "t1" (TableAlias "a"),Tref [] "t2" (TableAlias "b")]
+>             [SelectStatement ea
+>              (Select ea Dupes
+>               (SelectList ea
+>                [SelExp ea (Identifier ea "*")] [])
+>               [Tref ea "t1" (TableAlias "a"),Tref ea "t2" (TableAlias "b")]
 >               Nothing [] Nothing [] Nothing Nothing)]
 >      ,s "select a from b inner join c on b.a=c.a;"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref [] (Tref [] "b" NoAlias) Unnatural Inner (Tref [] "c" NoAlias)
->           (Just (JoinOn []
->            (FunCall [] "=" [Identifier [] "b.a", Identifier [] "c.a"]))) NoAlias)]
+>        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural Inner (Tref ea "c" NoAlias)
+>           (Just (JoinOn ea
+>            (FunCall ea "=" [Identifier ea "b.a", Identifier ea "c.a"]))) NoAlias)]
 >      ,s "select a from b inner join c as d on b.a=d.a;"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref [] (Tref [] "b" NoAlias) Unnatural Inner (Tref [] "c" (TableAlias "d"))
->           (Just (JoinOn []
->            (FunCall [] "=" [Identifier [] "b.a", Identifier [] "d.a"]))) NoAlias)]
+>        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural Inner (Tref ea "c" (TableAlias "d"))
+>           (Just (JoinOn ea
+>            (FunCall ea "=" [Identifier ea "b.a", Identifier ea "d.a"]))) NoAlias)]
 >      ,s "select a from b inner join c using(d,e);"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref [] (Tref [] "b" NoAlias) Unnatural Inner (Tref [] "c" NoAlias)
->           (Just (JoinUsing [] ["d","e"])) NoAlias)]
+>        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural Inner (Tref ea "c" NoAlias)
+>           (Just (JoinUsing ea ["d","e"])) NoAlias)]
 >      ,s "select a from b natural inner join c;"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref [] (Tref [] "b" NoAlias) Natural Inner (Tref [] "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea "b" NoAlias) Natural Inner (Tref ea "c" NoAlias) Nothing NoAlias)]
 >      ,s "select a from b left outer join c;"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref [] (Tref [] "b" NoAlias) Unnatural LeftOuter (Tref [] "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural LeftOuter (Tref ea "c" NoAlias) Nothing NoAlias)]
 >      ,s "select a from b full outer join c;"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref [] (Tref [] "b" NoAlias) Unnatural FullOuter (Tref [] "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural FullOuter (Tref ea "c" NoAlias) Nothing NoAlias)]
 >      ,s "select a from b right outer join c;"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref [] (Tref [] "b" NoAlias) Unnatural RightOuter (Tref [] "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural RightOuter (Tref ea "c" NoAlias) Nothing NoAlias)]
 >      ,s "select a from b cross join c;"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref [] (Tref [] "b" NoAlias) Unnatural Cross (Tref [] "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural Cross (Tref ea "c" NoAlias) Nothing NoAlias)]
 >      ,s "select a from (b natural join c);"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref [] (Tref [] "b" NoAlias) Natural Inner (Tref [] "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea "b" NoAlias) Natural Inner (Tref ea "c" NoAlias) Nothing NoAlias)]
 >      ,s "select x from a cross join b cross join c;"
->        [SelectStatement []
+>        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
->          (JoinedTref []
->          (JoinedTref []
->           (Tref [] "a" NoAlias)
+>          (JoinedTref ea
+>          (JoinedTref ea
+>           (Tref ea "a" NoAlias)
 >            Unnatural Cross
->           (Tref [] "b" NoAlias)
+>           (Tref ea "b" NoAlias)
 >           Nothing NoAlias)
 >          Unnatural Cross
->          (Tref [] "c" NoAlias)
+>          (Tref ea "c" NoAlias)
 >          Nothing NoAlias))]
 >      ,s "select x from ((a cross join b) cross join c);"
->        [SelectStatement []
+>        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
->          (JoinedTref []
->          (JoinedTref []
->           (Tref [] "a" NoAlias)
+>          (JoinedTref ea
+>          (JoinedTref ea
+>           (Tref ea "a" NoAlias)
 >            Unnatural Cross
->           (Tref [] "b" NoAlias)
+>           (Tref ea "b" NoAlias)
 >           Nothing NoAlias)
 >          Unnatural Cross
->          (Tref [] "c" NoAlias)
+>          (Tref ea "c" NoAlias)
 >          Nothing NoAlias))]
 >      ,s "select x from (a cross join (b cross join c));"
->        [SelectStatement []
+>        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
->          (JoinedTref []
->           (Tref [] "a" NoAlias)
+>          (JoinedTref ea
+>           (Tref ea "a" NoAlias)
 >           Unnatural Cross
->           (JoinedTref []
->            (Tref [] "b" NoAlias)
+>           (JoinedTref ea
+>            (Tref ea "b" NoAlias)
 >            Unnatural Cross
->            (Tref [] "c" NoAlias)
+>            (Tref ea "c" NoAlias)
 >            Nothing NoAlias)
 >           Nothing NoAlias))]
 >      ,s "select x from ((a cross join b) cross join c);"
->        [SelectStatement []
+>        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
->          (JoinedTref []
->          (JoinedTref []
->           (Tref [] "a" NoAlias)
+>          (JoinedTref ea
+>          (JoinedTref ea
+>           (Tref ea "a" NoAlias)
 >            Unnatural Cross
->           (Tref [] "b" NoAlias)
+>           (Tref ea "b" NoAlias)
 >           Nothing NoAlias)
 >          Unnatural Cross
->          (Tref [] "c" NoAlias)
+>          (Tref ea "c" NoAlias)
 >          Nothing NoAlias))]
 >      ,s "select x from (a cross join b) cross join c;"
->        [SelectStatement []
+>        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
->          (JoinedTref []
->          (JoinedTref []
->           (Tref [] "a" NoAlias)
+>          (JoinedTref ea
+>          (JoinedTref ea
+>           (Tref ea "a" NoAlias)
 >            Unnatural Cross
->           (Tref [] "b" NoAlias)
+>           (Tref ea "b" NoAlias)
 >           Nothing NoAlias)
 >          Unnatural Cross
->          (Tref [] "c" NoAlias)
+>          (Tref ea "c" NoAlias)
 >          Nothing NoAlias))]
 >      ,s "select x from ((a cross join b) cross join c) cross join d;"
->        [SelectStatement []
+>        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
->          (JoinedTref []
->           (JoinedTref []
->            (JoinedTref []
->             (Tref [] "a" NoAlias)
+>          (JoinedTref ea
+>           (JoinedTref ea
+>            (JoinedTref ea
+>             (Tref ea "a" NoAlias)
 >             Unnatural Cross
->             (Tref [] "b" NoAlias)
+>             (Tref ea "b" NoAlias)
 >             Nothing NoAlias)
 >            Unnatural Cross
->            (Tref [] "c" NoAlias)
+>            (Tref ea "c" NoAlias)
 >            Nothing NoAlias)
 >           Unnatural Cross
->           (Tref [] "d" NoAlias)
+>           (Tref ea "d" NoAlias)
 >           Nothing NoAlias))]
 >      ,s "select a from b\n\
 >         \    inner join c\n\
 >         \      on true\n\
 >         \    inner join d\n\
 >         \      on 1=1;"
->       [SelectStatement [] $ selectFrom
->        [SelExp [] (Identifier [] "a")]
->        (JoinedTref []
->         (JoinedTref [] (Tref [] "b" NoAlias) Unnatural Inner (Tref [] "c" NoAlias)
->          (Just $ JoinOn [] (BooleanLit [] True)) NoAlias)
->         Unnatural Inner (Tref [] "d" NoAlias)
->         (Just  $ JoinOn [] (FunCall [] "="
->                [IntegerLit [] 1, IntegerLit [] 1])) NoAlias)]
+>       [SelectStatement ea $ selectFrom
+>        [SelExp ea (Identifier ea "a")]
+>        (JoinedTref ea
+>         (JoinedTref ea (Tref ea "b" NoAlias) Unnatural Inner (Tref ea "c" NoAlias)
+>          (Just $ JoinOn ea (BooleanLit ea True)) NoAlias)
+>         Unnatural Inner (Tref ea "d" NoAlias)
+>         (Just $ JoinOn ea (FunCall ea "="
+>                [IntegerLit ea 1, IntegerLit ea 1])) NoAlias)]
 
 >      ,s "select row_number() over(order by a) as place from tbl;"
->       [SelectStatement [] $ selectFrom [SelectItem []
->                    (WindowFn []
->                     (FunCall [] "row_number" [])
+>       [SelectStatement ea $ selectFrom [SelectItem ea
+>                    (WindowFn ea
+>                     (FunCall ea "row_number" [])
 >                     []
->                     [Identifier [] "a"] Asc FrameUnboundedPreceding)
+>                     [Identifier ea "a"] Asc FrameUnboundedPreceding)
 >                    "place"]
->        (Tref [] "tbl" NoAlias)]
+>        (Tref ea "tbl" NoAlias)]
 >      ,s "select row_number() over(order by a asc) as place from tbl;"
->       [SelectStatement [] $ selectFrom [SelectItem []
->                    (WindowFn []
->                     (FunCall [] "row_number" [])
+>       [SelectStatement ea $ selectFrom [SelectItem ea
+>                    (WindowFn ea
+>                     (FunCall ea "row_number" [])
 >                     []
->                     [Identifier [] "a"] Asc FrameUnboundedPreceding)
+>                     [Identifier ea "a"] Asc FrameUnboundedPreceding)
 >                    "place"]
->        (Tref [] "tbl" NoAlias)]
+>        (Tref ea "tbl" NoAlias)]
 >      ,s "select row_number() over(order by a desc) as place from tbl;"
->       [SelectStatement [] $ selectFrom [SelectItem []
->                    (WindowFn []
->                     (FunCall [] "row_number" [])
+>       [SelectStatement ea $ selectFrom [SelectItem ea
+>                    (WindowFn ea
+>                     (FunCall ea "row_number" [])
 >                     []
->                     [Identifier [] "a"] Desc FrameUnboundedPreceding)
+>                     [Identifier ea "a"] Desc FrameUnboundedPreceding)
 >                    "place"]
->        (Tref [] "tbl" NoAlias)]
+>        (Tref ea "tbl" NoAlias)]
 >      ,s "select row_number()\n\
 >         \over(partition by (a,b) order by c) as place\n\
 >         \from tbl;"
->       [SelectStatement [] $ selectFrom [SelectItem []
->                    (WindowFn []
->                     (FunCall [] "row_number" [])
->                     [FunCall [] "!rowctor" [Identifier [] "a",Identifier [] "b"]]
->                     [Identifier [] "c"] Asc FrameUnboundedPreceding)
+>       [SelectStatement ea $ selectFrom [SelectItem ea
+>                    (WindowFn ea
+>                     (FunCall ea "row_number" [])
+>                     [FunCall ea "!rowctor" [Identifier ea "a",Identifier ea "b"]]
+>                     [Identifier ea "c"] Asc FrameUnboundedPreceding)
 >                    "place"]
->        (Tref [] "tbl" NoAlias)]
+>        (Tref ea "tbl" NoAlias)]
 >      ,s "select * from a natural inner join (select * from b) as a;"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["*"])
->        (JoinedTref [] (Tref [] "a" NoAlias) Natural
->         Inner (SubTref [] (selectFrom
+>        (JoinedTref ea (Tref ea "a" NoAlias) Natural
+>         Inner (SubTref ea (selectFrom
 >                         (selIL ["*"])
->                         (Tref [] "b" NoAlias)) (TableAlias "a"))
+>                         (Tref ea "b" NoAlias)) (TableAlias "a"))
 >         Nothing NoAlias)]
 >      ,s "select * from a order by c;"
->       [SelectStatement [] $ Select []  Dupes
+>       [SelectStatement ea $ Select ea  Dupes
 >        (sl (selIL ["*"]))
->        [Tref [] "a" NoAlias]
->        Nothing [] Nothing [(Identifier [] "c",Asc)] Nothing Nothing]
+>        [Tref ea "a" NoAlias]
+>        Nothing [] Nothing [(Identifier ea "c",Asc)] Nothing Nothing]
 >      ,s "select *\n\
 >            \from Adventure\n\
 >            \order by Clicks desc, AdventureID;"
->       [SelectStatement [] $ Select [] Dupes
+>       [SelectStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
->        [Tref [] "Adventure" NoAlias]
->        Nothing [] Nothing [(Identifier [] "Clicks",Desc)
->                           ,(Identifier [] "AdventureID",Asc)] Nothing Nothing]
+>        [Tref ea "Adventure" NoAlias]
+>        Nothing [] Nothing [(Identifier ea "Clicks",Desc)
+>                           ,(Identifier ea "AdventureID",Asc)] Nothing Nothing]
 >      ,s "select * from a order by c,d asc;"
->       [SelectStatement [] $ Select [] Dupes
+>       [SelectStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
->        [Tref [] "a" NoAlias]
->        Nothing [] Nothing [(Identifier [] "c", Asc)
->                           ,(Identifier [] "d", Asc)] Nothing Nothing]
+>        [Tref ea "a" NoAlias]
+>        Nothing [] Nothing [(Identifier ea "c", Asc)
+>                           ,(Identifier ea "d", Asc)] Nothing Nothing]
 >      ,s "select * from a order by c,d desc;"
->       [SelectStatement [] $ Select [] Dupes
+>       [SelectStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
->        [Tref [] "a" NoAlias]
->        Nothing [] Nothing [(Identifier [] "c", Asc)
->                           ,(Identifier [] "d", Desc)] Nothing Nothing]
+>        [Tref ea "a" NoAlias]
+>        Nothing [] Nothing [(Identifier ea "c", Asc)
+>                           ,(Identifier ea "d", Desc)] Nothing Nothing]
 >      ,s "select * from a order by c limit 1;"
->       [SelectStatement [] $ Select [] Dupes
+>       [SelectStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
->        [Tref [] "a" NoAlias]
->        Nothing [] Nothing [(Identifier [] "c",Asc)] (Just (IntegerLit [] 1)) Nothing]
+>        [Tref ea "a" NoAlias]
+>        Nothing [] Nothing [(Identifier ea "c",Asc)] (Just (IntegerLit ea 1)) Nothing]
 >      ,s "select * from a order by c offset 3;"
->       [SelectStatement [] $ Select [] Dupes
+>       [SelectStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
->        [Tref [] "a" NoAlias]
->        Nothing [] Nothing [(Identifier [] "c",Asc)] Nothing (Just $ IntegerLit [] 3)]
+>        [Tref ea "a" NoAlias]
+>        Nothing [] Nothing [(Identifier ea "c",Asc)] Nothing (Just $ IntegerLit ea 3)]
 >      ,s "select a from (select b from c) as d;"
->         [SelectStatement [] $ selectFrom
+>         [SelectStatement ea $ selectFrom
 >          (selIL ["a"])
->          (SubTref [] (selectFrom
+>          (SubTref ea (selectFrom
 >                    (selIL ["b"])
->                    (Tref [] "c" NoAlias))
+>                    (Tref ea "c" NoAlias))
 >           (TableAlias "d"))]
 >      ,s "select * from gen();"
->         [SelectStatement [] $ selectFrom (selIL ["*"]) (TrefFun [] (FunCall [] "gen" []) NoAlias)]
+>         [SelectStatement ea $ selectFrom (selIL ["*"]) (TrefFun ea (FunCall ea "gen" []) NoAlias)]
 >      ,s "select * from gen() as t;"
->       [SelectStatement [] $ selectFrom
+>       [SelectStatement ea $ selectFrom
 >        (selIL ["*"])
->        (TrefFun [] (FunCall [] "gen" [])(TableAlias  "t"))]
+>        (TrefFun ea (FunCall ea "gen" [])(TableAlias  "t"))]
 >      ,s "select a, count(b) from c group by a;"
->         [SelectStatement [] $ Select [] Dupes
->          (sl [selI "a", SelExp [] (FunCall [] "count" [Identifier [] "b"])])
->          [Tref [] "c" NoAlias] Nothing [Identifier [] "a"]
+>         [SelectStatement ea $ Select ea Dupes
+>          (sl [selI "a", SelExp ea (FunCall ea "count" [Identifier ea "b"])])
+>          [Tref ea "c" NoAlias] Nothing [Identifier ea "a"]
 >          Nothing [] Nothing Nothing]
 >      ,s "select a, count(b) as cnt from c group by a having cnt > 4;"
->         [SelectStatement [] $ Select [] Dupes
->          (sl [selI "a", SelectItem [] (FunCall [] "count" [Identifier [] "b"]) "cnt"])
->          [Tref [] "c" NoAlias] Nothing [Identifier [] "a"]
->          (Just $ FunCall [] ">" [Identifier [] "cnt", IntegerLit [] 4])
+>         [SelectStatement ea $ Select ea Dupes
+>          (sl [selI "a", SelectItem ea (FunCall ea "count" [Identifier ea "b"]) "cnt"])
+>          [Tref ea "c" NoAlias] Nothing [Identifier ea "a"]
+>          (Just $ FunCall ea ">" [Identifier ea "cnt", IntegerLit ea 4])
 >          [] Nothing Nothing]
 >      ,s "select a from (select 1 as a, 2 as b) x;"
->         [SelectStatement [] $ selectFrom
+>         [SelectStatement ea $ selectFrom
 >          [selI "a"]
->          (SubTref [] (selectE $ SelectList []
->                                [SelectItem [] (IntegerLit [] 1) "a"
->                                ,SelectItem [] (IntegerLit [] 2) "b"] [])
+>          (SubTref ea (selectE $ SelectList ea
+>                                [SelectItem ea (IntegerLit ea 1) "a"
+>                                ,SelectItem ea (IntegerLit ea 2) "b"] [])
 >                   (TableAlias "x"))]
 >      ]
 >    ,Group "multiple statements" [
->       s "select 1;\nselect 2;" [SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 1)]
->                                ,SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 2)]]
+>       s "select 1;\nselect 2;" [SelectStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 1)]
+>                                ,SelectStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 2)]]
 >      ]
 >    ,Group "comments" [
 >       s "" []
@@ -564,15 +564,15 @@ select statements
 >      ,s "select 1;\n\
 >         \-- this is a test\n\
 >         \select -- this is a test\n\
->         \2;" [SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 1)]
->              ,SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 2)]
+>         \2;" [SelectStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 1)]
+>              ,SelectStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 2)]
 >              ]
 >      ,s "select 1;\n\
 >         \/* this is\n\
 >         \a test*/\n\
 >         \select /* this is a test*/2;"
->                     [SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 1)]
->                     ,SelectStatement [] $ selectE $ sl [SelExp [] (IntegerLit [] 2)]
+>                     [SelectStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 1)]
+>                     ,SelectStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 2)]
 >                     ]
 >      ]
 >      ]
@@ -592,99 +592,106 @@ dml statements
 >       s "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2);\n"
->        [Insert []
+>        [Insert ea
 >         "testtable"
 >         ["columna", "columnb"]
->         (Values [] [[IntegerLit [] 1, IntegerLit [] 2]])
+>         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]])
 >         Nothing]
 
 multi row insert, test the stand alone values statement first, maybe
 that should be in the select section?
 
 >      ,s "values (1,2), (3,4);"
->      [SelectStatement [] $ Values [] [[IntegerLit [] 1, IntegerLit [] 2]
->              ,[IntegerLit [] 3, IntegerLit [] 4]]]
+>      [SelectStatement ea $ Values ea [[IntegerLit ea 1, IntegerLit ea 2]
+>              ,[IntegerLit ea 3, IntegerLit ea 4]]]
 >
 >      ,s "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2), (3,4);\n"
->       [Insert []
+>       [Insert ea
 >         "testtable"
 >         ["columna", "columnb"]
->         (Values [] [[IntegerLit [] 1, IntegerLit [] 2]
->                 ,[IntegerLit [] 3, IntegerLit [] 4]])
+>         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]
+>                 ,[IntegerLit ea 3, IntegerLit ea 4]])
 >         Nothing]
 
 insert from select
 
 >      ,s "insert into a\n\
 >          \    select b from c;"
->       [Insert [] "a" []
->        (selectFrom [selI "b"] (Tref [] "c" NoAlias))
+>       [Insert ea "a" []
+>        (selectFrom [selI "b"] (Tref ea "c" NoAlias))
 >        Nothing]
 >
 >      ,s "insert into testtable\n\
 >         \(columna,columnb)\n\
 >         \values (1,2) returning id;\n"
->       [Insert []
+>       [Insert ea
 >         "testtable"
 >         ["columna", "columnb"]
->         (Values [] [[IntegerLit [] 1, IntegerLit [] 2]])
+>         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]])
 >         (Just $ sl [selI "id"])]
 >      ]
 >
 >     ,Group "update" [
 >       s "update tb\n\
 >         \  set x = 1, y = 2;"
->       [Update [] "tb" [SetClause [] "x" (IntegerLit [] 1)
->                    ,SetClause [] "y" (IntegerLit [] 2)]
+>       [Update ea "tb" [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
+>                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
 >        [] Nothing Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
->       [Update [] "tb" [SetClause [] "x" (IntegerLit [] 1)
->                       ,SetClause [] "y" (IntegerLit [] 2)]
+>       [Update ea "tb" [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
+>                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
 >        []
->        (Just $ FunCall [] "="
->         [Identifier [] "z", BooleanLit [] True])
+>        (Just $ FunCall ea "="
+>         [Identifier ea "z", BooleanLit ea True])
 >        Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 returning id;"
->       [Update [] "tb" [SetClause [] "x" (IntegerLit [] 1)
->                       ,SetClause [] "y" (IntegerLit [] 2)]
+>       [Update ea "tb" [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
+>                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
 >        [] Nothing (Just $ sl [selI "id"])]
 >      ,s "update pieces\n\
 >         \set a=b returning tag into r.tag;"
->       [Update [] "pieces" [SetClause [] "a" (Identifier [] "b")]
+>       [Update ea "pieces" [FunCall ea "=" [Identifier ea "a"
+>                                           ,Identifier ea "b"]]
 >        []
->        Nothing (Just (SelectList []
->                       [SelExp [] (Identifier [] "tag")]
+>        Nothing (Just (SelectList ea
+>                       [SelExp ea (Identifier ea "tag")]
 >                       ["r.tag"]))]
 >      ,s "update tb\n\
 >         \  set (x,y) = (1,2);"
->       [Update [] "tb" [RowSetClause []
->                        ["x","y"]
->                        [IntegerLit [] 1,IntegerLit [] 2]]
+>       [Update ea "tb" [FunCall ea "="
+>                        [FunCall ea "!rowctor" [Identifier ea "x"
+>                                               ,Identifier ea "y"]
+>                        ,FunCall ea "!rowctor" [IntegerLit ea 1
+>                                               ,IntegerLit ea 2]]]
 >        []
 >        Nothing Nothing]
 >      ]
+
+FunCall ea "=" [FunCall ea "!rowctor" [Identifier ea "x",Identifier ea "y"],FunCall ea "!rowctor" [IntegerLit ea 1,IntegerLit ea 2]])
+
+
 >
 >     ,Group "delete" [
 >       s "delete from tbl1 where x = true;"
->       [Delete [] "tbl1" [] (Just $ FunCall [] "="
->                                [Identifier [] "x", BooleanLit [] True])
+>       [Delete ea "tbl1" [] (Just $ FunCall ea "="
+>                                [Identifier ea "x", BooleanLit ea True])
 >        Nothing]
 >      ,s "delete from tbl1 where x = true returning id;"
->       [Delete [] "tbl1" [] (Just $ FunCall [] "="
->                                [Identifier [] "x", BooleanLit [] True])
+>       [Delete ea "tbl1" [] (Just $ FunCall ea "="
+>                                [Identifier ea "x", BooleanLit ea True])
 >        (Just $ sl [selI "id"])]
 >      ]
 >
 >     ,Group "truncate" [
 >       s "truncate test;"
->        [Truncate [] ["test"] ContinueIdentity Restrict]
+>        [Truncate ea ["test"] ContinueIdentity Restrict]
 >
 >      ,s "truncate table test, test2 restart identity cascade;"
->        [Truncate [] ["test","test2"] RestartIdentity Cascade]
+>        [Truncate ea ["test","test2"] RestartIdentity Cascade]
 >      ]
 
 copy, bit crap at the moment
@@ -694,8 +701,8 @@ copy, bit crap at the moment
 >         \bat\tt\n\
 >         \bear\tf\n\
 >         \\\.\n"
->       [Copy [] "tbl" ["a", "b"] Stdin
->        ,CopyData [] "\
+>       [Copy ea "tbl" ["a", "b"] Stdin
+>        ,CopyData ea "\
 >         \bat\tt\n\
 >         \bear\tf\n"]
 >      ]
@@ -710,7 +717,7 @@ ddl statements
 >         \  fielda text,\n\
 >         \  fieldb int\n\
 >         \);"
->       [CreateTable []
+>       [CreateTable ea
 >        "test"
 >        [att "fielda" "text"
 >        ,att "fieldb" "int"
@@ -718,65 +725,65 @@ ddl statements
 >        []]
 >      ,s "create table tbl (\n\
 >         \  fld boolean default false);"
->       [CreateTable [] "tbl" [AttributeDef [] "fld" (SimpleTypeName [] "boolean")
->                           (Just $ BooleanLit [] False) []][]]
+>       [CreateTable ea "tbl" [AttributeDef ea "fld" (SimpleTypeName ea "boolean")
+>                           (Just $ BooleanLit ea False) []][]]
 >
 >      ,s "create table tbl as select 1;"
->       [CreateTableAs [] "tbl"
->        (selectE (SelectList [] [SelExp [] (IntegerLit [] 1)] []))]
+>       [CreateTableAs ea "tbl"
+>        (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)] []))]
 >
 >      ,s "alter table a alter column b set default 1;"
->       [AlterTable [] "a" [AlterColumnDefault [] "b" (IntegerLit [] 1)]]
+>       [AlterTable ea "a" [AlterColumnDefault ea "b" (IntegerLit ea 1)]]
 >
 >      ,s "alter table a add constraint unique(b);"
->       [AlterTable [] "a" [AddConstraint [] (UniqueConstraint [] "" ["b"])]]
+>       [AlterTable ea "a" [AddConstraint ea (UniqueConstraint ea "" ["b"])]]
 >      ]]
 
 >
 >     ,Group "others" [
 >       s "create view v1 as\n\
 >         \select a,b from t;"
->       [CreateView []
+>       [CreateView ea
 >        "v1"
->        (selectFrom [selI "a", selI "b"] (Tref [] "t" NoAlias))]
+>        (selectFrom [selI "a", selI "b"] (Tref ea "t" NoAlias))]
 >      ,s "create domain td as text check (value in ('t1', 't2'));"
->       [CreateDomain [] "td" (SimpleTypeName [] "text") ""
->        (Just (InPredicate [] (Identifier [] "value") True
->               (InList [] [stringQ "t1" ,stringQ "t2"])))]
+>       [CreateDomain ea "td" (SimpleTypeName ea "text") ""
+>        (Just (InPredicate ea (Identifier ea "value") True
+>               (InList ea [stringQ "t1" ,stringQ "t2"])))]
 >      ,s "create type tp1 as (\n\
 >         \  f1 text,\n\
 >         \  f2 text\n\
 >         \);"
->       [CreateType [] "tp1" [TypeAttDef [] "f1" (SimpleTypeName [] "text")
->                         ,TypeAttDef [] "f2" (SimpleTypeName [] "text")]]
+>       [CreateType ea "tp1" [TypeAttDef ea "f1" (SimpleTypeName ea "text")
+>                         ,TypeAttDef ea "f2" (SimpleTypeName ea "text")]]
 >
 >      ,s "create sequence s start with 5 increment by 4 no maxvalue no minvalue cache 1;"
->         [CreateSequence [] "s" 4 1 ((2::Integer) ^ (63::Integer) - 1) 5 1]
+>         [CreateSequence ea "s" 4 1 ((2::Integer) ^ (63::Integer) - 1) 5 1]
 >
 >      ,s "alter sequence s owned by a.b;"
->         [AlterSequence [] "s" "a.b"]
+>         [AlterSequence ea "s" "a.b"]
 >
 >      ,s "create trigger tr\n\
 >          \after insert or delete on tb\n\
 >          \for each statement\n\
 >          \execute procedure fb();"
->         [CreateTrigger [] "tr" TriggerAfter [TInsert,TDelete] "tb" EachStatement "fb" []]
+>         [CreateTrigger ea "tr" TriggerAfter [TInsert,TDelete] "tb" EachStatement "fb" []]
 >      ]
 >
 >     ,Group "drops" [
 >       s "drop domain t;"
->       [DropSomething [] Domain Require ["t"] Restrict]
+>       [DropSomething ea Domain Require ["t"] Restrict]
 >      ,s "drop domain if exists t,u cascade;"
->       [DropSomething [] Domain IfExists ["t", "u"] Cascade]
+>       [DropSomething ea Domain IfExists ["t", "u"] Cascade]
 >      ,s "drop domain t restrict;"
->       [DropSomething [] Domain Require ["t"] Restrict]
+>       [DropSomething ea Domain Require ["t"] Restrict]
 >
 >      ,s "drop type t;"
->       [DropSomething [] Type Require ["t"] Restrict]
+>       [DropSomething ea Type Require ["t"] Restrict]
 >      ,s "drop table t;"
->       [DropSomething [] Table Require ["t"] Restrict]
+>       [DropSomething ea Table Require ["t"] Restrict]
 >      ,s "drop view t;"
->       [DropSomething [] View Require ["t"] Restrict]
+>       [DropSomething ea View Require ["t"] Restrict]
 >      ]
 >
 >     ,Group "constraints" [
@@ -784,14 +791,14 @@ ddl statements
 >       s "create table t1 (\n\
 >         \ a text null\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "a" (SimpleTypeName [] "text")
->                            Nothing [NullConstraint [] ""]]
+>         [CreateTable ea "t1" [AttributeDef ea "a" (SimpleTypeName ea "text")
+>                            Nothing [NullConstraint ea ""]]
 >          []]
 >      ,s "create table t1 (\n\
 >         \ a text not null\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "a" (SimpleTypeName [] "text")
->                            Nothing [NotNullConstraint [] ""]]
+>         [CreateTable ea "t1" [AttributeDef ea "a" (SimpleTypeName ea "text")
+>                            Nothing [NotNullConstraint ea ""]]
 >          []]
 >      ]
 >
@@ -801,9 +808,9 @@ ddl statements
 >         \ y int,\n\
 >         \ unique (x,y)\n\
 >         \);"
->         [CreateTable [] "t1" [att "x" "int"
+>         [CreateTable ea "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [UniqueConstraint [] "" ["x","y"]]]
+>          [UniqueConstraint ea "" ["x","y"]]]
 
 test arbitrary ordering
 
@@ -812,83 +819,83 @@ test arbitrary ordering
 >         \ unique (x),\n\
 >         \ y int\n\
 >         \);"
->         [CreateTable [] "t1" [att "x" "int"
+>         [CreateTable ea "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [UniqueConstraint [] "" ["x"]]]
+>          [UniqueConstraint ea "" ["x"]]]
 
 unique row
 
 >      ,s "create table t1 (\n\
 >         \ x int unique\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowUniqueConstraint [] ""]][]]
+>         [CreateTable ea "t1" [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>                            [RowUniqueConstraint ea ""]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int unique not null\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowUniqueConstraint [] ""
->                            ,NotNullConstraint [] ""]][]]
+>         [CreateTable ea "t1" [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>                            [RowUniqueConstraint ea ""
+>                            ,NotNullConstraint ea ""]][]]
 
 quick sanity check
 
 >      ,s "create table t1 (\n\
 >         \ x int not null unique\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [NotNullConstraint [] ""
->                            ,RowUniqueConstraint [] ""]][]]
+>         [CreateTable ea "t1" [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>                            [NotNullConstraint ea ""
+>                            ,RowUniqueConstraint ea ""]][]]
 >      ]
 >
 >      ,Group "primary key" [
 >       s "create table t1 (\n\
 >         \ x int primary key\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowPrimaryKeyConstraint [] ""]][]]
+>         [CreateTable ea "t1" [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>                            [RowPrimaryKeyConstraint ea ""]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
 >         \ primary key (x,y)\n\
 >         \);"
->         [CreateTable [] "t1" [att "x" "int"
+>         [CreateTable ea "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [PrimaryKeyConstraint [] "" ["x", "y"]]]
+>          [PrimaryKeyConstraint ea "" ["x", "y"]]]
 >      ]
 >
 >      ,Group "check" [
 >       s "create table t (\n\
 >         \f text check (f in('a', 'b'))\n\
 >         \);"
->         [CreateTable [] "t"
->          [AttributeDef [] "f" (SimpleTypeName [] "text") Nothing
->           [RowCheckConstraint [] "" (InPredicate []
->                                   (Identifier [] "f") True
->                                   (InList [] [stringQ "a", stringQ "b"]))]] []]
+>         [CreateTable ea "t"
+>          [AttributeDef ea "f" (SimpleTypeName ea "text") Nothing
+>           [RowCheckConstraint ea "" (InPredicate ea
+>                                   (Identifier ea "f") True
+>                                   (InList ea [stringQ "a", stringQ "b"]))]] []]
 >
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
 >         \ check (x>y)\n\
 >         \);"
->         [CreateTable [] "t1" [att "x" "int"
+>         [CreateTable ea "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [CheckConstraint [] "" (FunCall [] ">" [Identifier [] "x", Identifier [] "y"])]]
+>          [CheckConstraint ea "" (FunCall ea ">" [Identifier ea "x", Identifier ea "y"])]]
 >      ]
 >
 >      ,Group "misc" [
 >       s "create table t (\n\
 >         \f text not null unique check (f in('a', 'b'))\n\
 >         \);"
->         [CreateTable [] "t"
->          [AttributeDef [] "f" (SimpleTypeName [] "text") Nothing
->           [NotNullConstraint [] ""
->            ,RowUniqueConstraint [] ""
->            ,RowCheckConstraint [] "" (InPredicate []
->                                    (Identifier [] "f") True
->                                    (InList [] [stringQ "a"
+>         [CreateTable ea "t"
+>          [AttributeDef ea "f" (SimpleTypeName ea "text") Nothing
+>           [NotNullConstraint ea ""
+>            ,RowUniqueConstraint ea ""
+>            ,RowCheckConstraint ea "" (InPredicate ea
+>                                    (Identifier ea "f") True
+>                                    (InList ea [stringQ "a"
 >                                            ,stringQ "b"]))]] []]
 >      ]
 
@@ -896,24 +903,24 @@ quick sanity check
 >       s "create table t1 (\n\
 >         \ x int references t2\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowReferenceConstraint [] "" "t2" Nothing
+>         [CreateTable ea "t1" [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>                            [RowReferenceConstraint ea "" "t2" Nothing
 >                             Restrict Restrict]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2(y)\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowReferenceConstraint [] "" "t2" (Just "y")
+>         [CreateTable ea "t1" [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>                            [RowReferenceConstraint ea "" "t2" (Just "y")
 >                             Restrict Restrict]][]]
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
 >         \ foreign key (x,y) references t2\n\
 >         \);"
->         [CreateTable [] "t1" [att "x" "int"
+>         [CreateTable ea "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [ReferenceConstraint [] "" ["x", "y"] "t2" []
+>          [ReferenceConstraint ea "" ["x", "y"] "t2" []
 >           Restrict Restrict]]
 >
 >      ,s "create table t1 (\n\
@@ -921,30 +928,30 @@ quick sanity check
 >         \ y int,\n\
 >         \ foreign key (x,y) references t2(z,w)\n\
 >         \);"
->         [CreateTable [] "t1" [att "x" "int"
+>         [CreateTable ea "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [ReferenceConstraint [] "" ["x", "y"] "t2" ["z", "w"]
+>          [ReferenceConstraint ea "" ["x", "y"] "t2" ["z", "w"]
 >           Restrict Restrict]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on delete cascade\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowReferenceConstraint [] "" "t2" Nothing
+>         [CreateTable ea "t1" [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>                            [RowReferenceConstraint ea "" "t2" Nothing
 >                             Cascade Restrict]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on update cascade\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowReferenceConstraint [] "" "t2" Nothing
+>         [CreateTable ea "t1" [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>                            [RowReferenceConstraint ea "" "t2" Nothing
 >                             Restrict Cascade]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on delete cascade on update cascade\n\
 >         \);"
->         [CreateTable [] "t1" [AttributeDef [] "x" (SimpleTypeName [] "int") Nothing
->                            [RowReferenceConstraint [] "" "t2" Nothing
+>         [CreateTable ea "t1" [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>                            [RowReferenceConstraint ea "" "t2" Nothing
 >                             Cascade Cascade]][]]
 >
 >      ,s "create table t1 (\n\
@@ -952,9 +959,9 @@ quick sanity check
 >         \ y int,\n\
 >         \ foreign key (x,y) references t2 on update cascade on delete cascade\n\
 >         \);"
->         [CreateTable [] "t1" [att "x" "int"
+>         [CreateTable ea "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [ReferenceConstraint [] "" ["x", "y"] "t2" []
+>          [ReferenceConstraint ea "" ["x", "y"] "t2" []
 >           Cascade Cascade]]
 >
 >      ]
@@ -965,12 +972,12 @@ quick sanity check
 >       s "create function t1(text) returns text as $$\n\
 >         \select a from t1 where b = $1;\n\
 >         \$$ language sql stable;"
->       [CreateFunction [] "t1" [ParamDefTp [] $ SimpleTypeName [] "text"]
->        (SimpleTypeName [] "text") NoReplace Sql
->        (SqlFnBody []
->         [SelectStatement [] $ selectFromWhere [SelExp [] (Identifier [] "a")] (Tref [] "t1" NoAlias)
->          (FunCall [] "="
->           [Identifier [] "b", PositionalArg [] 1])])
+>       [CreateFunction ea "t1" [ParamDefTp ea $ SimpleTypeName ea "text"]
+>        (SimpleTypeName ea "text") NoReplace Sql
+>        (SqlFnBody ea
+>         [SelectStatement ea $ selectFromWhere [SelExp ea (Identifier ea "a")] (Tref ea "t1" NoAlias)
+>          (FunCall ea "="
+>           [Identifier ea "b", PositionalArg ea 1])])
 >        Stable]
 >      ,s "create function fn() returns void as $$\n\
 >         \declare\n\
@@ -980,10 +987,10 @@ quick sanity check
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") NoReplace Plpgsql
->        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") Nothing
->                          ,VarDef [] "b" (SimpleTypeName [] "text") Nothing]
->         [NullStatement []])
+>       [CreateFunction ea "fn" [] (SimpleTypeName ea "void") NoReplace Plpgsql
+>        (PlpgsqlFnBody ea [VarDef ea "a" (SimpleTypeName ea "int") Nothing
+>                          ,VarDef ea "b" (SimpleTypeName ea "text") Nothing]
+>         [NullStatement ea])
 >        Volatile]
 >      ,s "create function fn() returns void as $$\n\
 >         \declare\n\
@@ -993,10 +1000,10 @@ quick sanity check
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") NoReplace Plpgsql
->        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") Nothing
->                          ,VarDef [] "b" (SimpleTypeName [] "text") Nothing]
->         [NullStatement []])
+>       [CreateFunction ea "fn" [] (SimpleTypeName ea "void") NoReplace Plpgsql
+>        (PlpgsqlFnBody ea [VarDef ea "a" (SimpleTypeName ea "int") Nothing
+>                          ,VarDef ea "b" (SimpleTypeName ea "text") Nothing]
+>         [NullStatement ea])
 >        Volatile]
 >      ,s "create function fn(a text[]) returns int[] as $$\n\
 >         \declare\n\
@@ -1005,12 +1012,12 @@ quick sanity check
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql immutable;"
->       [CreateFunction [] "fn"
->        [ParamDef [] "a" $ ArrayTypeName [] $ SimpleTypeName [] "text"]
->        (ArrayTypeName [] $ SimpleTypeName [] "int") NoReplace Plpgsql
->        (PlpgsqlFnBody []
->         [VarDef [] "b" (ArrayTypeName [] $ SimpleTypeName [] "xtype") (Just $ stringQ "{}")]
->         [NullStatement []])
+>       [CreateFunction ea "fn"
+>        [ParamDef ea "a" $ ArrayTypeName ea $ SimpleTypeName ea "text"]
+>        (ArrayTypeName ea $ SimpleTypeName ea "int") NoReplace Plpgsql
+>        (PlpgsqlFnBody ea
+>         [VarDef ea "b" (ArrayTypeName ea $ SimpleTypeName ea "xtype") (Just $ stringQ "{}")]
+>         [NullStatement ea])
 >        Immutable]
 >      ,s "create function fn() returns void as '\n\
 >         \declare\n\
@@ -1019,121 +1026,121 @@ quick sanity check
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction [] "fn" [] (SimpleTypeName [] "void") NoReplace Plpgsql
->        (PlpgsqlFnBody [] [VarDef [] "a" (SimpleTypeName [] "int") (Just $ IntegerLit [] 3)]
->         [NullStatement []])
+>       [CreateFunction ea "fn" [] (SimpleTypeName ea "void") NoReplace Plpgsql
+>        (PlpgsqlFnBody ea [VarDef ea "a" (SimpleTypeName ea "int") (Just $ IntegerLit ea 3)]
+>         [NullStatement ea])
 >        Stable]
 >      ,s "create function fn() returns setof int as $$\n\
 >         \begin\n\
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction [] "fn" []
->        (SetOfTypeName [] $ SimpleTypeName [] "int") NoReplace Plpgsql
->        (PlpgsqlFnBody [] [] [NullStatement []])
+>       [CreateFunction ea "fn" []
+>        (SetOfTypeName ea $ SimpleTypeName ea "int") NoReplace Plpgsql
+>        (PlpgsqlFnBody ea [] [NullStatement ea])
 >        Stable]
 >      ,s "create function fn() returns void as $$\n\
 >         \begin\n\
 >         \  null;\n\
 >         \end\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction [] "fn" []
->        (SimpleTypeName [] "void") NoReplace Plpgsql
->        (PlpgsqlFnBody [] [] [NullStatement []])
+>       [CreateFunction ea "fn" []
+>        (SimpleTypeName ea "void") NoReplace Plpgsql
+>        (PlpgsqlFnBody ea [] [NullStatement ea])
 >        Stable]
 >      ,s "create or replace function fn() returns void as $$\n\
 >         \begin\n\
 >         \  null;\n\
 >         \end\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction [] "fn" []
->        (SimpleTypeName [] "void") Replace Plpgsql
->        (PlpgsqlFnBody [] [] [NullStatement []])
+>       [CreateFunction ea "fn" []
+>        (SimpleTypeName ea "void") Replace Plpgsql
+>        (PlpgsqlFnBody ea [] [NullStatement ea])
 >        Stable]
 >      ,s "drop function test(text);"
->       [DropFunction [] Require [("test",[SimpleTypeName [] "text"])] Restrict]
+>       [DropFunction ea Require [("test",[SimpleTypeName ea "text"])] Restrict]
 >      ,s "drop function if exists a(),test(text) cascade;"
->       [DropFunction [] IfExists [("a",[])
->                           ,("test",[SimpleTypeName [] "text"])] Cascade]
+>       [DropFunction ea IfExists [("a",[])
+>                           ,("test",[SimpleTypeName ea "text"])] Cascade]
 >     ]
 
 >     ,Group "simple plpgsql statements" [
 >       f "success := true;"
->       [Assignment [] "success" (BooleanLit [] True)]
+>       [Assignment ea "success" (BooleanLit ea True)]
 >      ,f "success = true;"
->       [Assignment [] "success" (BooleanLit [] True)]
+>       [Assignment ea "success" (BooleanLit ea True)]
 >      ,f "return true;"
->       [Return [] $ Just (BooleanLit [] True)]
+>       [Return ea $ Just (BooleanLit ea True)]
 >      ,f "return;"
->       [Return [] Nothing]
+>       [Return ea Nothing]
 >      ,f "return next 1;"
->       [ReturnNext [] $ IntegerLit [] 1]
+>       [ReturnNext ea $ IntegerLit ea 1]
 >      ,f "return query select a from b;"
->       [ReturnQuery [] $ selectFrom [selI "a"] (Tref [] "b" NoAlias)]
+>       [ReturnQuery ea $ selectFrom [selI "a"] (Tref ea "b" NoAlias)]
 >      ,f "raise notice 'stuff %', 1;"
->       [Raise [] RNotice "stuff %" [IntegerLit [] 1]]
+>       [Raise ea RNotice "stuff %" [IntegerLit ea 1]]
 >      ,f "perform test();"
->       [Perform [] $ FunCall [] "test" []]
+>       [Perform ea $ FunCall ea "test" []]
 >      ,f "perform test(a,b);"
->       [Perform [] $ FunCall [] "test" [Identifier [] "a", Identifier [] "b"]]
+>       [Perform ea $ FunCall ea "test" [Identifier ea "a", Identifier ea "b"]]
 >      ,f "perform test(r.relvar_name || '_and_stuff');"
->       [Perform [] $ FunCall [] "test" [
->                     FunCall [] "||" [Identifier [] "r.relvar_name"
+>       [Perform ea $ FunCall ea "test" [
+>                     FunCall ea "||" [Identifier ea "r.relvar_name"
 >                                 ,stringQ "_and_stuff"]]]
 >      ,f "select into a,b c,d from e;"
->       [SelectStatement [] $ Select [] Dupes (SelectList [] [selI "c", selI "d"] ["a", "b"])
->                   [Tref [] "e" NoAlias] Nothing [] Nothing [] Nothing Nothing]
+>       [SelectStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] ["a", "b"])
+>                   [Tref ea "e" NoAlias] Nothing [] Nothing [] Nothing Nothing]
 >      ,f "select c,d into a,b from e;"
->       [SelectStatement [] $ Select [] Dupes (SelectList [] [selI "c", selI "d"] ["a", "b"])
->                   [Tref [] "e" NoAlias] Nothing [] Nothing [] Nothing Nothing]
+>       [SelectStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] ["a", "b"])
+>                   [Tref ea "e" NoAlias] Nothing [] Nothing [] Nothing Nothing]
 >
 >      ,f "execute s;"
->       [Execute [] (Identifier [] "s")]
+>       [Execute ea (Identifier ea "s")]
 >      ,f "execute s into r;"
->       [ExecuteInto [] (Identifier [] "s") ["r"]]
+>       [ExecuteInto ea (Identifier ea "s") ["r"]]
 >
->      ,f "continue;" [ContinueStatement []]
+>      ,f "continue;" [ContinueStatement ea]
 >     ]
 >
 >     ,Group "other plpgsql statements" [
 >       f "for r in select a from tbl loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForSelectStatement [] "r" (selectFrom  [selI "a"] (Tref [] "tbl" NoAlias))
->        [NullStatement []]]
+>       [ForSelectStatement ea "r" (selectFrom  [selI "a"] (Tref ea "tbl" NoAlias))
+>        [NullStatement ea]]
 >      ,f "for r in select a from tbl where true loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForSelectStatement [] "r"
->        (selectFromWhere [selI "a"] (Tref [] "tbl" NoAlias) (BooleanLit [] True))
->        [NullStatement []]]
+>       [ForSelectStatement ea "r"
+>        (selectFromWhere [selI "a"] (Tref ea "tbl" NoAlias) (BooleanLit ea True))
+>        [NullStatement ea]]
 >      ,f "for r in 1 .. 10 loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForIntegerStatement [] "r"
->        (IntegerLit [] 1) (IntegerLit [] 10)
->        [NullStatement []]]
+>       [ForIntegerStatement ea "r"
+>        (IntegerLit ea 1) (IntegerLit ea 10)
+>        [NullStatement ea]]
 >
 >      ,f "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
->       [If [] [((FunCall [] "=" [Identifier [] "a", Identifier [] "b"])
->           ,[Update [] "c" [SetClause [] "d" (Identifier [] "e")] [] Nothing Nothing])]
+>       [If ea [((FunCall ea "=" [Identifier ea "a", Identifier ea "b"])
+>           ,[Update ea "c" [FunCall ea "=" [Identifier ea "e", Identifier ea "e"]] [] Nothing Nothing])]
 >        []]
 >      ,f "if true then\n\
 >         \  null;\n\
 >         \else\n\
 >         \  null;\n\
 >         \end if;"
->       [If [] [((BooleanLit [] True),[NullStatement []])]
->        [NullStatement []]]
+>       [If ea [((BooleanLit ea True),[NullStatement ea])]
+>        [NullStatement ea]]
 >      ,f "if true then\n\
 >         \  null;\n\
 >         \elseif false then\n\
 >         \  return;\n\
 >         \end if;"
->       [If [] [((BooleanLit [] True), [NullStatement []])
->           ,((BooleanLit [] False), [Return [] Nothing])]
+>       [If ea [((BooleanLit ea True), [NullStatement ea])
+>           ,((BooleanLit ea False), [Return ea Nothing])]
 >        []]
 >      ,f "if true then\n\
 >         \  null;\n\
@@ -1144,32 +1151,32 @@ quick sanity check
 >         \else\n\
 >         \  return;\n\
 >         \end if;"
->       [If [] [((BooleanLit [] True), [NullStatement []])
->           ,((BooleanLit [] False), [Return [] Nothing])
->           ,((BooleanLit [] False), [Return [] Nothing])]
->        [Return [] Nothing]]
+>       [If ea [((BooleanLit ea True), [NullStatement ea])
+>           ,((BooleanLit ea False), [Return ea Nothing])
+>           ,((BooleanLit ea False), [Return ea Nothing])]
+>        [Return ea Nothing]]
 >      ,f "case a\n\
 >         \  when b then null;\n\
 >         \  when c,d then null;\n\
 >         \  else null;\n\
 >         \end case;"
->      [CaseStatementSimple [] (Identifier [] "a")
->       [([Identifier [] "b"], [NullStatement []])
->       ,([Identifier [] "c", Identifier [] "d"], [NullStatement []])]
->       [NullStatement []]]
+>      [CaseStatementSimple ea (Identifier ea "a")
+>       [([Identifier ea "b"], [NullStatement ea])
+>       ,([Identifier ea "c", Identifier ea "d"], [NullStatement ea])]
+>       [NullStatement ea]]
 >
 >     ]
 >
 >    ,Group "misc" [
 >       s "SET search_path TO my_schema, public;"
->         [Set [] "search_path" [SetId [] "my_schema"
->                               ,SetId [] "public"]]
+>         [Set ea "search_path" [SetId ea "my_schema"
+>                               ,SetId ea "public"]]
 >      ,s "SET t1 = 3;"
->         [Set [] "t1" [SetNum [] 3]]
+>         [Set ea "t1" [SetNum ea 3]]
 >      ,s "SET t1 = 'stuff';"
->         [Set [] "t1" [SetStr [] "stuff"]]
+>         [Set ea "t1" [SetStr ea "stuff"]]
 >      ,s "create language plpgsql;"
->         [CreateLanguage [] "plpgsql"]
+>         [CreateLanguage ea "plpgsql"]
 >
 >     ]
 >
@@ -1184,37 +1191,40 @@ quick sanity check
 shortcuts for constructing test data and asts
 
 > stringQ :: String -> Expression
-> stringQ = StringLit []
+> stringQ = StringLit ea
 >
 > selectFrom :: SelectItemList
 >            -> TableRef
 >            -> SelectExpression
-> selectFrom selList frm = Select [] Dupes (SelectList [] selList [])
+> selectFrom selList frm = Select ea Dupes (SelectList ea selList [])
 >                            [frm] Nothing [] Nothing [] Nothing Nothing
 >
 > selectE :: SelectList -> SelectExpression
-> selectE selList = Select [] Dupes selList
+> selectE selList = Select ea Dupes selList
 >                     [] Nothing [] Nothing [] Nothing Nothing
 >
 > selIL :: [String] -> [SelectItem]
 > selIL = map selI
 >
 > selI :: String -> SelectItem
-> selI = SelExp [] . Identifier []
+> selI = SelExp ea . Identifier ea
 >
 > sl :: SelectItemList -> SelectList
-> sl a = SelectList [] a []
+> sl a = SelectList ea a []
 >
 > selectFromWhere :: SelectItemList
 >                 -> TableRef
 >                 -> Expression
 >                 -> SelectExpression
 > selectFromWhere selList frm whr =
->     Select [] Dupes (SelectList [] selList [])
+>     Select ea Dupes (SelectList ea selList [])
 >                [frm] (Just whr) [] Nothing [] Nothing Nothing
 >
 > att :: String -> String -> AttributeDef
-> att n t = AttributeDef [] n (SimpleTypeName [] t) Nothing []
+> att n t = AttributeDef ea n (SimpleTypeName ea t) Nothing []
+
+> ea :: Annotation
+> ea = emptyAnnotation
 
 --------------------------------------------------------------------------------
 
@@ -1246,10 +1256,10 @@ Unit test helpers
 >   case parser src of
 >     Left er -> assertFailure $ show er
 >     Right ast' -> do
->       assertEqual ("parse " ++ src) ast $ stripAnnotations ast'
+>       assertEqual ("parse " ++ src) ast $ resetAnnotations ast'
 >       case parser (printer ast) of
 >         Left er -> assertFailure $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
->         Right ast'' -> assertEqual ("reparse " ++ printer ast) ast $ stripAnnotations ast''
+>         Right ast'' -> assertEqual ("reparse " ++ printer ast) ast $ resetAnnotations ast''
 
 ~~~~
 TODO

@@ -70,11 +70,11 @@ expressions
 >      in Stmt [$sqlStmt| drop function $(fnname)();|]
 >              [$sqlStmt| drop function my_function();|]
 >
->     ,let expr = Identifier [] "testing"
+>     ,let expr = Identifier ea "testing"
 >      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
 >                   [$pgsqlStmt| return "testing"; |]
 >
->     ,let expr = (FunCall [] "+" [IntegerLit [] 3,IntegerLit [] 4])
+>     ,let expr = (FunCall ea "+" [IntegerLit ea 3,IntegerLit ea 4])
 >      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
 >                   [$pgsqlStmt| return 3 + 4; |]
 >
@@ -127,10 +127,10 @@ expressions
 >              [$sqlExpr| fnname('a') |]
 >     ,let x = "splicedstring"
 >      in Expr [$sqlExpr| $s(x) |]
->              (StringLit [] "splicedstring")
+>              (StringLit ea "splicedstring")
 >     ,let x = "splicedIdentifier"
 >      in Expr [$sqlExpr| $i(x) |]
->              (Identifier [] "splicedIdentifier")
+>              (Identifier ea "splicedIdentifier")
 >     ,let errMsg = "this splice isn't too dodgy"
 >      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
 >                   [$pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]
@@ -174,4 +174,7 @@ Unit test helpers
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 > stripEqual :: (Data a, Eq a, Show a) =>
 >               a -> a -> Assertion
-> stripEqual a b = assertEqual "" (stripAnnotations a) (stripAnnotations b)
+> stripEqual a b = assertEqual "" (resetAnnotations a) (resetAnnotations b)
+
+> ea :: Annotation
+> ea = emptyAnnotation

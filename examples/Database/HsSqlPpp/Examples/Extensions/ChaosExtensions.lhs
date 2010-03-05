@@ -329,7 +329,9 @@ nulls and ignore them when checking for nullable attributes.
 >       -- this works because there are no null or not null
 >       -- constraints in the source sql except in the tables
 >       -- that are skipped (*_mr)
->       fixAtt (AttributeDef a n t d c) =  (AttributeDef a n t d (NotNullConstraint [] "" : c))
+>       fixAtt (AttributeDef a n t d c) =
+>          (AttributeDef a n t d
+>           (NotNullConstraint emptyAnnotation "" : c))
 
 -------------------------------------------------------------------------------
 

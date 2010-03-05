@@ -16,6 +16,8 @@ to get a list of commands and purpose and usage info
 
 > --import Debug.Trace
 > import Test.Framework (defaultMainWithArgs)
+> import Data.Maybe
+> import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Tests.Tests
 > import Database.HsSqlPpp.Utils.Utils
@@ -32,13 +34,13 @@ to get a list of commands and purpose and usage info
 >
 > import Database.HsSqlPpp.PrettyPrinter
 >
-> import Database.HsSqlPpp.Examples.AnnotateSource
+> --import Database.HsSqlPpp.Examples.AnnotateSource
 >
 > import Database.HsSqlPpp.Examples.DatabaseLoader
 > --import Database.HsSqlPpp.Examples.WrapperGen
 > import Database.HsSqlPpp.Examples.DBUtils
 >
-> import Database.HsSqlPpp.DevelTools.MakeWebsite
+> --import Database.HsSqlPpp.DevelTools.MakeWebsite
 > import Database.HsSqlPpp.DevelTools.MakeAntiNodes
 > --import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 > import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
@@ -61,8 +63,6 @@ command defs
 >                                        ,files :: [String]}
 >                  | AllAnnotations {database :: String
 >                                   ,files :: [String]}
->                  | AnnotateSource {database :: String
->                                   ,file :: String}
 >                  | PPCatalog {database :: String
 >                              ,files :: [String]}
 >
@@ -308,7 +308,7 @@ LiftOperator [] "=" LiftAny
 >                (liftIO . readInput) f >>=
 >                tsl . P.parseExpression f >>=
 >                return . (astTransformer |>
->                          stripAnnotations |>
+>                          resetAnnotations |>
 >                          ppExpr) >>=
 >                liftIO . putStrLn)
 
@@ -424,10 +424,10 @@ success
 > testPppp = wrapETs . mapM_ (\f -> do
 >             ast1 <- (liftIO . readInput) f >>=
 >                     tsl . P.parseSql f >>=
->                     return . stripAnnotations
+>                     return . resetAnnotations
 >             ast2 <- (return . printSql) ast1 >>=
 >                     tsl . P.parseSql "" >>=
->                     return . stripAnnotations
+>                     return . resetAnnotations
 >             if ast1 /= ast2
 >                then liftIO $ do
 >                       putStrLn "asts are different\n-- original"
@@ -534,7 +534,7 @@ test5.sql:25:1:
 >               astTransformer |>
 >               A.typeCheck cat |>
 >               snd |>
->               A.getTypeErrors |>
+>               getTypeErrors |>
 >               ppTypeErrors) >>=
 >     mapM_ (liftIO . putStrLn)
 
@@ -593,11 +593,11 @@ TypeCheckFailed
 >                            tsl . P.parseExpression f >>=
 >                            return . (astTransformer |>
 >                                      A.typeCheckExpression cat))
->   tes <- mapM (return . A.getTypeErrors) aasts
+>   tes <- mapM (return . getTypeErrors) aasts
 >   mapM_ (\x -> (mapM_ (liftIO . putStrLn) (ppTypeErrors x))) $
 >         filter (not . null) tes
 >   mapM_ (\a -> liftM show
->                (return $ getTypeAnnotation a) >>=
+>                (return $ atype $ getAnnotation a) >>=
 >                liftIO . putStrLn) aasts
 
 -------------------------------------------------------------------------------
@@ -782,7 +782,7 @@ select * from s;
 insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-> annotateSourceA = mode $ AnnotateSource {database = def
+> {-annotateSourceA = mode $ AnnotateSource {database = def
 >                                         ,file = def &= typ "FILE"}
 >                   &= text "reads a file, parses, type checks, then \
 >                           \outputs info on each statement \
@@ -794,7 +794,7 @@ insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
 >   putStrLn $ "--annotated source of " ++ f
 >   s <- readInput f
 >   s1 <- annotateSource (Just astTransformer) Nothing db f s
->   putStrLn s1
+>   putStrLn s1-}
 
 -------------------------------------------------------------------------------
 
@@ -1109,7 +1109,7 @@ do website generation, without the pg roundtrips
 >                  A.typeCheck startingCat)
 >
 >     headerMessage "type errors from initial parse:\n"
->     (return . A.getTypeErrors) originalAast >>=
+>     (return . getTypeErrors) originalAast >>=
 >        return . ppTypeErrors >>=
 >        mapM_ (liftIO . putStrLn)
 >
@@ -1129,7 +1129,7 @@ do website generation, without the pg roundtrips
 >       return . A.typeCheck startingCat
 >
 >     headerMessage "type errors from dump:\n"
->     (return . A.getTypeErrors) dumpAast >>=
+>     (return . getTypeErrors) dumpAast >>=
 >        return . ppTypeErrors >>=
 >        mapM_ (liftIO . putStrLn)
 >
@@ -1162,13 +1162,23 @@ run the test suite
 
 > -- | Pretty print list of type errors with optional source position
 > --   in emacs readable format.
-> ppTypeErrors :: [(Maybe AnnotationElement, [TypeError])] -> [String]
+> ppTypeErrors :: [(Maybe (String,Int,Int), [TypeError])] -> [String]
 > ppTypeErrors tes =
 >   map showSpTe tes
 >   where
->     showSpTe (Just (SourcePos fn l c), e) =
+>     showSpTe (Just (fn,l,c), e) =
 >         fn ++ ":" ++ show l ++ ":" ++ show c ++ ":\n" ++ show e
 >     showSpTe (_,e) = "unknown:0:0:\n" ++ show e
+
+> getTypeErrors :: Data a => a -> [(Maybe (String,Int,Int), [TypeError])]
+> getTypeErrors es =
+>   let as = [(a::Annotation) | a <- universeBi es]
+>   in mapMaybe getTes as
+>   where
+>     getTes as = let tes = errs as
+>                 in if null tes
+>                    then Nothing
+>                    else Just (asrc as, tes)
 
 -------------------------------------------------------------------------------
 
@@ -1231,7 +1241,7 @@ testing the extensions used for chaos.
 >   mapM_ (liftIO . putStrLn) $
 >             (A.typeCheck defaultTemplate1Catalog |>
 >              snd |>
->              A.getTypeErrors |>
+>              getTypeErrors |>
 >              ppTypeErrors) ast
 >   return ()
 
@@ -1303,7 +1313,7 @@ main
 >                       [lexA, parseA, ppppA, pppA,
 >                        parseExpressionA, typeCheckExpressionA,
 >                        typeCheckA,allAnnotationsA,
->                        annotateSourceA, ppCatalogA,
+>                        ppCatalogA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
 >                        testA, makeWebsiteA, makeAntiNodesA
@@ -1318,7 +1328,6 @@ main
 >          TypeCheck db fns -> typeCheck2 db fns
 >          TypeCheckExpression db fns -> typeCheckExpression db fns
 >          AllAnnotations db fns -> allAnnotations db fns
->          AnnotateSource db fn -> annotateSourceF db fn
 >          PPCatalog db fns -> ppCatalog db fns
 >          Clear db -> cleardb db
 >          Load db fns -> loadSql db fns
@@ -1328,12 +1337,12 @@ main
 >          PgDump db -> pgDump1 db
 >          TestBattery db fns -> runTestBattery db fns
 >          Test as -> runTests as
->          MakeWebsite -> makeWebsite
+>          MakeWebsite -> undefined --makeWebsite
 >          MakeAntiNodes -> makeAntiNodesF
 >          ResetChaos -> resetChaos
 >          CheckChaos -> checkChaos
 >
-> lexA, parseA, ppppA, pppA, annotateSourceA, clearA, loadA,
+> lexA, parseA, ppppA, pppA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
 >   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
 >   allAnnotationsA, ppCatalogA, makeWebsiteA,

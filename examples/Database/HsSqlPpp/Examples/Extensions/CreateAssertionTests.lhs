@@ -446,7 +446,7 @@ that bad?
 >                            |]
 >       fn :: String -> String -> Statement
 >       fn t c = let nm = "table_" ++ t ++ "_constraint_trigger_operator"
->                    cn = FunCall [] ("check_con_valid_" ++ c) []
+>                    cn = FunCall ea ("check_con_valid_" ++ c) []
 >                         --"check_con_valid_" ++ c
 >                    errMsg = "update violates database constraint valid_" ++ c
 >                in [$sqlStmt|
@@ -460,8 +460,8 @@ that bad?
 >                         $xxx$ language plpgsql stable;
 >                    |]
 >       fn1 t c1 c2 = let nm = "table_" ++ t ++ "_constraint_trigger_operator"
->                         c1n = FunCall [] ("check_con_valid_" ++ c1) []
->                         c2n = FunCall [] ("check_con_valid_" ++ c2) []
+>                         c1n = FunCall ea ("check_con_valid_" ++ c1) []
+>                         c2n = FunCall ea ("check_con_valid_" ++ c2) []
 >                         errMsg1 = "update violates database constraint valid_" ++ c1
 >                         errMsg2 = "update violates database constraint valid_" ++ c2
 >                     in [$sqlStmt|
@@ -487,3 +487,6 @@ that bad?
 >                      for each statement
 >                      execute procedure $(cfn)();
 >                    |]
+
+> ea :: Annotation
+> ea = emptyAnnotation

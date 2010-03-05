@@ -16,9 +16,9 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Database.HsSqlPpp.AstInternals.AstAnti
        (convertStatements, convertExpression, attributeDef, Statement(..),
-        SelectExpression(..), WithQuery(..), FnBody(..), SetClause(..),
-        TableRef(..), TableAlias(..), JoinExpression(..), JoinType(..),
-        SelectList(..), SelectItem(..), CopySource(..), AttributeDef(..),
+        SelectExpression(..), WithQuery(..), FnBody(..), TableRef(..),
+        TableAlias(..), JoinExpression(..), JoinType(..), SelectList(..),
+        SelectItem(..), CopySource(..), AttributeDef(..),
         RowConstraint(..), AlterTableAction(..), Constraint(..),
         TypeAttributeDef(..), ParamDef(..), VarDef(..), RaiseType(..),
         CombineType(..), Volatility(..), Language(..), TypeName(..),
@@ -30,7 +30,7 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         ExpressionListStatementListPair, ExpressionList, ParamDefList,
         AttributeDefList, ConstraintList, TypeAttributeDefList,
         TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
-        ExpressionStatementListPairList, SetClauseList,
+        ExpressionStatementListPairList,
         CaseExpressionListExpressionPairList, MaybeExpression,
         TableRefList, ExpressionListList, SelectItemList, OnExpr,
         RowConstraintList, VarDefList, ExpressionStatementListPair,
@@ -228,11 +228,6 @@ data SelectList = SelectList (Annotation) (SelectItemList)
                              ([String])
                 deriving (Data, Eq, Show, Typeable)
  
-data SetClause = RowSetClause (Annotation) ([String])
-                              (ExpressionList)
-               | SetClause (Annotation) (String) (Expression)
-               deriving (Data, Eq, Show, Typeable)
- 
 data Statement = AlterSequence (Annotation) (String) (String)
                | AlterTable (Annotation) (String) (AlterTableActionList)
                | Assignment (Annotation) (String) (Expression)
@@ -284,7 +279,7 @@ data Statement = AlterSequence (Annotation) (String) (String)
                | SelectStatement (Annotation) (SelectExpression)
                | Set (Annotation) (String) ([SetValue])
                | Truncate (Annotation) ([String]) (RestartIdentity) (Cascade)
-               | Update (Annotation) (String) (SetClauseList) (TableRefList)
+               | Update (Annotation) (String) (ExpressionList) (TableRefList)
                         (MaybeBoolExpression) (MaybeSelectList)
                | WhileStatement (Annotation) (Expression) (StatementList)
                | AntiStatement String
@@ -359,8 +354,6 @@ type ParamDefList = [(ParamDef)]
 type RowConstraintList = [(RowConstraint)]
  
 type SelectItemList = [(SelectItem)]
- 
-type SetClauseList = [(SetClause)]
  
 type StatementList = [(Statement)]
  
@@ -647,12 +640,6 @@ selectList x
   = case x of
         SelectList a1 a2 a3 -> A.SelectList a1 (selectItemList a2) a3
  
-setClause :: SetClause -> A.SetClause
-setClause x
-  = case x of
-        RowSetClause a1 a2 a3 -> A.RowSetClause a1 a2 (expressionList a3)
-        SetClause a1 a2 a3 -> A.SetClause a1 a2 (expression a3)
- 
 statement :: Statement -> A.Statement
 statement x
   = case x of
@@ -735,7 +722,7 @@ statement x
         Set a1 a2 a3 -> A.Set a1 a2 (fmap setValue a3)
         Truncate a1 a2 a3 a4 -> A.Truncate a1 a2 (restartIdentity a3)
                                   (cascade a4)
-        Update a1 a2 a3 a4 a5 a6 -> A.Update a1 a2 (setClauseList a3)
+        Update a1 a2 a3 a4 a5 a6 -> A.Update a1 a2 (expressionList a3)
                                       (tableRefList a4)
                                       (maybeBoolExpression a5)
                                       (maybeSelectList a6)
@@ -862,9 +849,6 @@ rowConstraintList = fmap rowConstraint
  
 selectItemList :: SelectItemList -> A.SelectItemList
 selectItemList = fmap selectItem
- 
-setClauseList :: SetClauseList -> A.SetClauseList
-setClauseList = fmap setClause
  
 statementList :: StatementList -> A.StatementList
 statementList = fmap statement

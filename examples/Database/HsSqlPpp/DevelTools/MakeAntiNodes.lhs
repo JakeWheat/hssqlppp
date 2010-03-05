@@ -76,7 +76,7 @@ of coding used in AstInternal.ag.
 >                         ++ (addAntis convs)))
 >   where
 >     -- todo: match the exact uuagc generated names here
->     isGeneratedName n = '_' `elem` n || n `elem` ["Root", "ExpressionRoot"]
+>     isGeneratedName n = '_' `elem` n || n `elem` ["Root", "ExpressionRoot", "ParamName"]
 >
 > pf :: String -> IO Module
 > pf f = do

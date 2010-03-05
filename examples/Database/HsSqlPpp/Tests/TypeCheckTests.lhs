@@ -13,6 +13,8 @@ errors for sql which doesn't type check.
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.List
+> import Data.Generics.Uniplate.Data
+
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.Utils.Here
@@ -254,103 +256,103 @@ rows don't match types
 >      ]
 
 >   ,Group "simple selects" [
->       s "select 1;" $ Right [Just $ StatementType [] [("?column?", typeInt)]]
+>       s "select 1;" $ Right [Just $ ([], [("?column?", typeInt)])]
 >      ,s "select 1 as a;" $
->         Right [Just $ StatementType [] [("a", typeInt)]]
+>         Right [Just $ ([], [("a", typeInt)])]
 >      ,s "select 1,2;" $
->         Right [Just $ StatementType [] [("?column?", typeInt)
->                                                 ,("?column?", typeInt)]]
+>         Right [Just $ ([], [("?column?", typeInt)
+>                                                 ,("?column?", typeInt)])]
 >      ,s "select 1 as a, 2 as b;" $
->         Right [Just $ StatementType [] [("a", typeInt)
->                                                 ,("b", typeInt)]]
+>         Right [Just $ ([], [("a", typeInt)
+>                                                 ,("b", typeInt)])]
 >      ,s "select 1+2 as a, 'a' || 'b';" $
->         Right [Just $ StatementType [] [("a", typeInt)
->                                        ,("?column?", ScalarType "text")]]
->      ,s "values (1,2);" $ Right [Just $ StatementType []
+>         Right [Just $ ([], [("a", typeInt)
+>                                        ,("?column?", ScalarType "text")])]
+>      ,s "values (1,2);" $ Right [Just $ ([],
 >                                           [("column1", typeInt)
->                                           ,("column2", typeInt)]]
->      ,s "values (1,2),('3', '4');" $ Right [Just $ StatementType []
+>                                           ,("column2", typeInt)])]
+>      ,s "values (1,2),('3', '4');" $ Right [Just $ ([],
 >                                                      [("column1", typeInt)
->                                                      ,("column2", typeInt)]]
+>                                                      ,("column2", typeInt)])]
 >      ,s "values (1,2),('a', true);" $ Left [IncompatibleTypeSet [typeInt
 >                                                                 ,typeBool]]
->      ,s "values ('3', '4'),(1,2);" $ Right [Just $ StatementType []
+>      ,s "values ('3', '4'),(1,2);" $ Right [Just $ ([],
 >                                                      [("column1", typeInt)
->                                                      ,("column2", typeInt)]]
+>                                                      ,("column2", typeInt)])]
 >      ,s "values ('a', true),(1,2);" $ Left [IncompatibleTypeSet [typeBool
 >                                                                 ,typeInt]]
->      ,s "values ('a'::text, '2'::int2),('1','2');" $ Right [Just $ StatementType []
+>      ,s "values ('a'::text, '2'::int2),('1','2');" $ Right [Just $ ([],
 >                                      [("column1", ScalarType "text")
->                                      ,("column2", typeSmallInt)]]
+>                                      ,("column2", typeSmallInt)])]
 >      ,s "values (1,2,3),(1,2);" $ Left [ValuesListsMustBeSameLength]
 >      ]
 
 >   ,Group "simple combine selects" [
->      s "select 1,2  union select '3', '4';" $ Right [Just $ StatementType []
+>      s "select 1,2  union select '3', '4';" $ Right [Just $ ([],
 >                                      [("?column?", typeInt)
->                                      ,("?column?", typeInt)]]
+>                                      ,("?column?", typeInt)])]
 >      ,s "select 1,2 intersect select 'a', true;" $ Left [IncompatibleTypeSet [typeInt
 >                                                         ,typeBool]]
->      ,s "select '3', '4' except select 1,2;" $ Right [Just $ StatementType []
+>      ,s "select '3', '4' except select 1,2;" $ Right [Just $ ([],
 >                                      [("?column?", typeInt)
->                                      ,("?column?", typeInt)]]
+>                                      ,("?column?", typeInt)])]
 >      ,s "select 'a', true union select 1,2;"
 >                                      $ Left [IncompatibleTypeSet [typeBool
 >                                                         ,typeInt]]
->      ,s "select 'a'::text, '2'::int2 intersect select '1','2';" $ Right [Just $ StatementType []
+>      ,s "select 'a'::text, '2'::int2 intersect select '1','2';" $ Right [Just $ ([],
 >                                      [("text", ScalarType "text")
->                                      ,("int2", typeSmallInt)]]
+>                                      ,("int2", typeSmallInt)])]
 >      ,s "select 1,2,3 except select 1,2;" $ Left [ValuesListsMustBeSameLength]
->      ,s "select '3' as a, '4' as b except select 1,2;" $ Right [Just $ StatementType []
+>      ,s "select '3' as a, '4' as b except select 1,2;" $ Right [Just $ ([],
 >                                      [("a", typeInt)
->                                      ,("b", typeInt)]]
+>                                      ,("b", typeInt)])]
 >      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
 >               select * from a
 >               union select * from b; |]
->          $ Right [Just $ StatementType []
->                            [("a1", typeInt)]]
+>          $ Right [Just $ ([],
+>                            [("a1", typeInt)])]
 >      ]
 
 >   ,Group "simple selects from" [
 >       s "select a from (select 1 as a, 2 as b) x;"
->         $ Right [Just $ StatementType [] [("a", typeInt)]]
+>         $ Right [Just $ ([], [("a", typeInt)])]
 >      ,s "select b from (select 1 as a, 2 as b) x;"
->         $ Right [Just $ StatementType [] [("b", typeInt)]]
+>         $ Right [Just $ ([], [("b", typeInt)])]
 >      ,s "select c from (select 1 as a, 2 as b) x;"
 >         $ Left [UnrecognisedIdentifier "c"]
 >      ,s "select typlen from pg_type;"
->         $ Right [Just $ StatementType [] [("typlen", typeSmallInt)]]
+>         $ Right [Just $ ([], [("typlen", typeSmallInt)])]
 >      ,s "select oid from pg_type;"
->         $ Right [Just $ StatementType [] [("oid", ScalarType "oid")]]
+>         $ Right [Just $ ([], [("oid", ScalarType "oid")])]
 >      ,s "select p.oid from pg_type p;"
->         $ Right [Just $ StatementType [] [("oid", ScalarType "oid")]]
+>         $ Right [Just $ ([], [("oid", ScalarType "oid")])]
 >      ,s "select typlen from nope;"
 >         $ Left [UnrecognisedIdentifier "typlen",UnrecognisedRelation "nope"]
 >      ,s "select generate_series from generate_series(1,7);"
->         $ Right [Just $ StatementType [] [("generate_series", typeInt)]]
+>         $ Right [Just $ ([], [("generate_series", typeInt)])]
 >
 >      -- check aliasing
 >      ,s "select generate_series.generate_series from generate_series(1,7);"
->         $ Right [Just $ StatementType [] [("generate_series", typeInt)]]
+>         $ Right [Just $ ([], [("generate_series", typeInt)])]
 >      ,s "select g from generate_series(1,7) g;"
->         $ Right [Just $ StatementType [] [("g", typeInt)]]
+>         $ Right [Just $ ([], [("g", typeInt)])]
 >      ,s "select g.g from generate_series(1,7) g;"
->         $ Right [Just $ StatementType [] [("g", typeInt)]]
+>         $ Right [Just $ ([], [("g", typeInt)])]
 >      ,s "select generate_series.g from generate_series(1,7) g;"
 >         $ Left [UnrecognisedCorrelationName "generate_series"]
 >      ,s "select g.generate_series from generate_series(1,7) g;"
 >         $ Left [UnrecognisedIdentifier "g.generate_series"]
 >
 >      ,s "select * from pg_attrdef;"
->         $ Right [Just $ StatementType []
+>         $ Right [Just $ ([],
 >          [("adrelid",ScalarType "oid")
 >          ,("adnum",ScalarType "int2")
 >          ,("adbin",ScalarType "text")
->          ,("adsrc",ScalarType "text")]]
+>          ,("adsrc",ScalarType "text")])]
 >      ,s "select abs from abs(3);"
->         $ Right [Just $ StatementType [] [("abs", typeInt)]]
+>         $ Right [Just $ ([], [("abs", typeInt)])]
 >         --todo: these are both valid,
 >         --the second one means select 3+generate_series from generate_series(1,7)
 >         --  select generate_series(1,7);
@@ -364,43 +366,43 @@ rows don't match types
 >                                        ,("c", typeInt)]
 >         ,CatCreateFunction FunName "testfunc" []
 >          (SetOfType $ NamedCompositeType "testType") False]
->         $ Right [Just $ StatementType []
->                  [("a",ScalarType "text"),("b",ScalarType "int4")]]
+>         $ Right [Just $ ([],
+>                  [("a",ScalarType "text"),("b",ScalarType "int4")])]
 >
 >      ,c "select testfunc();"
 >         [CatCreateFunction FunName "testfunc" [] (Pseudo Void) False]
->         $ Right [Just $ StatementType [] []]
+>         $ Right [Just $ ([], [])]
 >      ]
 
 >   ,Group "simple join selects" [
 >       s "select * from (select 1 as a, 2 as b) a\n\
 >         \  cross join (select true as c, 4.5 as d) b;"
->         $ Right [Just $ StatementType [] [("a", typeInt)
+>         $ Right [Just $ ([], [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("c", typeBool)
->                                           ,("d", typeNumeric)]]
+>                                           ,("d", typeNumeric)])]
 >      ,s "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select true as c, 4.5 as d) b on true;"
->         $ Right [Just $ StatementType [] [("a", typeInt)
+>         $ Right [Just $ ([], [("a", typeInt)
 >                                           ,("b", typeInt)
 >                                           ,("c", typeBool)
->                                           ,("d", typeNumeric)]]
+>                                           ,("d", typeNumeric)])]
 >      ,s "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select 1 as a, 4.5 as d) b using(a);"
->         $ Right [Just $ StatementType [] [("a", typeInt)
+>         $ Right [Just $ ([], [("a", typeInt)
 >                                           ,("b", typeInt)
->                                           ,("d", typeNumeric)]]
+>                                           ,("d", typeNumeric)])]
 >      ,s "select * from (select 1 as a, 2 as b) a\n\
 >         \ natural inner join (select 1 as a, 4.5 as d) b;"
->         $ Right [Just $ StatementType [] [("a", typeInt)
+>         $ Right [Just $ ([], [("a", typeInt)
 >                                           ,("b", typeInt)
->                                           ,("d", typeNumeric)]]
+>                                           ,("d", typeNumeric)])]
 >         --check the attribute order
 >      ,s "select * from (select 2 as b, 1 as a) a\n\
 >         \ natural inner join (select 4.5 as d, 1 as a) b;"
->         $ Right [Just $ StatementType [] [("a", typeInt)
+>         $ Right [Just $ ([], [("a", typeInt)
 >                                           ,("b", typeInt)
->                                           ,("d", typeNumeric)]]
+>                                           ,("d", typeNumeric)])]
 >      ,s "select * from (select 1 as a1, 2 as b) a\n\
 >         \ natural inner join (select true as a1, 4.5 as d) b;"
 >         $ Left [IncompatibleTypeSet [ScalarType "int4"
@@ -411,12 +413,12 @@ rows don't match types
 >                                      ,ScalarType "bool"]]
 >
 >      ,s "select * from (select 1 as a1) a, (select 2 as a2) b;"
->         $ Right [Just $ StatementType [] [("a1", typeInt)
->                                                                ,("a2", typeInt)]]
+>         $ Right [Just $ ([], [("a1", typeInt)
+>                                            ,("a2", typeInt)])]
 >
 >      ,s "select * from (select 1 as a1) a, (select 2 as a1) b;"
->         $ Right [Just $ StatementType [] [("a1", typeInt)
->                                                                ,("a1", typeInt)]]
+>         $ Right [Just $ ([], [("a1", typeInt)
+>                                            ,("a1", typeInt)])]
 >
 >      ,s "select a1 from (select 1 as a1) a,  (select 2 as a1) b;"
 >         $ Left [AmbiguousIdentifier "a1"]
@@ -426,8 +428,8 @@ rows don't match types
 >       s "select a.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \cross join (select 3 as c, 4 as d) b;"
->         $ Right [Just $ StatementType [] [("a", typeInt)
->                                           ,("b", typeInt)]]
+>         $ Right [Just $ ([], [("a", typeInt)
+>                                           ,("b", typeInt)])]
 >      ,s "select nothere.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \cross join (select 3 as c, 4 as d) b;"
@@ -435,26 +437,26 @@ rows don't match types
 >      ,s "select a.b,b.c from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \natural inner join (select 3 as a, 4 as c) b;"
->         $ Right [Just $ StatementType [] [("b", typeInt)
->                                           ,("c", typeInt)]]
+>         $ Right [Just $ ([], [("b", typeInt)
+>                                           ,("c", typeInt)])]
 >      ,s "select a.a,b.a from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \natural inner join (select 3 as a, 4 as c) b;"
->         $ Right [Just $ StatementType [] [("a", typeInt)
->                                           ,("a", typeInt)]]
+>         $ Right [Just $ ([], [("a", typeInt)
+>                                           ,("a", typeInt)])]
 >
 >      ,s "select pg_attrdef.adsrc from pg_attrdef;"
->         $ Right [Just $ StatementType [] [("adsrc", ScalarType "text")]]
+>         $ Right [Just $ ([], [("adsrc", ScalarType "text")])]
 >
 >      ,s "select a.adsrc from pg_attrdef a;"
->         $ Right [Just $ StatementType [] [("adsrc", ScalarType "text")]]
+>         $ Right [Just $ ([], [("adsrc", ScalarType "text")])]
 >
 >      ,s "select pg_attrdef.adsrc from pg_attrdef a;"
 >         $ Left [UnrecognisedCorrelationName "pg_attrdef"]
 >
 >      ,s "select a from (select 2 as b, 1 as a) a\n\
 >         \natural inner join (select 4.5 as d, 1 as a) b;"
->         $ Right [Just $ StatementType [] [("a", typeInt)]]
+>         $ Right [Just $ ([], [("a", typeInt)])]
 >
 > -- select g.fn from fn() g
 >
@@ -462,26 +464,26 @@ rows don't match types
 
 >   ,Group "aggregates" [
 >        s "select max(prorettype::int) from pg_proc;"
->         $ Right [Just $ StatementType [] [("max", typeInt)]]
+>         $ Right [Just $ ([], [("max", typeInt)])]
 >      ]
 
 >   ,Group "simple wheres" [
 >       s "select 1 from pg_type where true;"
->         $ Right [Just $ StatementType [] [("?column?", typeInt)]]
+>         $ Right [Just $ ([], [("?column?", typeInt)])]
 >      ,s "select 1 from pg_type where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ,s "select typname from pg_type where typbyval;"
->         $ Right [Just $ StatementType [] [("typname", ScalarType "name")]]
+>         $ Right [Just $ ([], [("typname", ScalarType "name")])]
 >      ,s "select typname from pg_type where typtype = 'b';"
->         $ Right [Just $ StatementType [] [("typname", ScalarType "name")]]
+>         $ Right [Just $ ([], [("typname", ScalarType "name")])]
 >      ,s "select typname from pg_type where what = 'b';"
 >         $ Left [UnrecognisedIdentifier "what"]
 >      ]
 
 >   ,Group "unnest" [
 >       s "select conname,unnest(conkey) as attnum from pg_constraint;"
->         $ Right [Just (StatementType [] [("conname",ScalarType "name")
->                                          ,("attnum",typeSmallInt)])]
+>         $ Right [Just (([], [("conname",ScalarType "name")
+>                                          ,("attnum",typeSmallInt)]))]
 >      ]
 
 TODO: check identifier stacking working, then remove the pg_namespace
@@ -494,14 +496,14 @@ qualifier before oid and this should still work
 >         \           (select oid\n\
 >         \              from pg_namespace\n\
 >         \              where (nspname = 'public'))) and (relkind = 'r'));"
->         $ Right [Just $ StatementType [] [("relvar_name",ScalarType "name")]]
+>         $ Right [Just $ ([], [("relvar_name",ScalarType "name")])]
 >      ,s "select relname from pg_class where relkind in ('r', 'v');"
->         $ Right [Just $ StatementType [] [("relname",ScalarType "name")]]
+>         $ Right [Just $ ([], [("relname",ScalarType "name")])]
 >      ,s "select * from generate_series(1,7) g\n\
 >         \where g not in (select * from generate_series(3,5));"
->         $ Right [Just $ StatementType [] [("g",typeInt)]]
+>         $ Right [Just $ ([], [("g",typeInt)])]
 >      ,s "select 3 = any(array[1,2,3]);"
->         $ Right [Just $ StatementType [] [("?column?",typeBool)]]
+>         $ Right [Just $ ([], [("?column?",typeBool)])]
 >      ]
 >
 >  -- identifiers in select parts
@@ -511,7 +513,7 @@ qualifier before oid and this should still work
 >       p "select relname,attname from pg_class\n\
 >         \inner join pg_attribute\n\
 >         \on pg_attribute.attrelid = pg_class.oid;"
->         $ Right [Just $ StatementType [] [("relvar_name",ScalarType "name")]]
+>         $ Right [Just $ ([], [("relvar_name",ScalarType "name")]]
 >      ])-}
 
 >   ,Group "insert" [
@@ -519,18 +521,18 @@ qualifier before oid and this should still work
 >         $ Left [UnrecognisedRelation "nope",UnrecognisedIdentifier "c",UnrecognisedIdentifier "d"]
 >      ,s "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
->         $ Right [Just $ StatementType [] [] {-InsertInfo "pg_attrdef"
+>         $ Right [Just $ ([], [] {-InsertInfo "pg_attrdef"
 >                           [("adrelid",ScalarType "oid")
 >                           ,("adnum",ScalarType "int2")
 >                           ,("adbin",ScalarType "text")
->                           ,("adsrc",ScalarType "text")]-}]
+>                           ,("adsrc",ScalarType "text")]-})]
 >      ,s "insert into pg_attrdef\n\
 >         \values (1,2, 'a', 'b');"
->         $ Right [Just $ StatementType [] [] {-InsertInfo "pg_attrdef"
+>         $ Right [Just $ ([], [] {-InsertInfo "pg_attrdef"
 >                           [("adrelid",ScalarType "oid")
 >                           ,("adnum",ScalarType "int2")
 >                           ,("adbin",ScalarType "text")
->                           ,("adsrc",ScalarType "text")]-}]
+>                           ,("adsrc",ScalarType "text")]-})]
 >      ,s "insert into pg_attrdef (hello,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
 >         $ Left [UnrecognisedIdentifier "hello"]
@@ -554,28 +556,28 @@ qualifier before oid and this should still work
 >      ,s "update pg_attrdef set (shmadrelid,adsrc) = ('a','b');"
 >         $ Left [UnrecognisedIdentifier "shmadrelid"]
 >      ,s "update pg_attrdef set adsrc='';"
->         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-}]
+>         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
 >      ,s "update pg_attrdef set adsrc='' where 1=2;"
->         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-}]
+>         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
 >       -- TODO: actually, pg doesn't support this so need to generate error instead
 >      ,s "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
->         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")]-}]
+>         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")]-})]
 >      --check where ids
 >      ,s "update pg_attrdef set adsrc='' where adsrc='';"
->         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-}]
+>         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
 >      ,s "update pg_attrdef set adnum = adnum + 1;"
->         $ Right [Just $ StatementType [] [] {-UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")]-}]
+>         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")]-})]
 >      ]
 
 >   ,Group "delete" [
 >       s "delete from nope;"
 >         $ Left [UnrecognisedRelation "nope"]
 >      ,s "delete from pg_attrdef where 1=2;"
->         $ Right [Just $ StatementType [] []]
+>         $ Right [Just $ ([], [])]
 >      ,s "delete from pg_attrdef where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ,s "delete from pg_attrdef where adsrc='';"
->         $ Right [Just $ StatementType [] []]
+>         $ Right [Just $ ([], [])]
 >      ]
 
 --------------------------------------------------------------------------------
@@ -810,7 +812,7 @@ check type of initial values
 >         \end;\n\
 >         \$$ language plpgsql stable;\n\
 >         \select t1();"
->         (Right [Nothing,Just (StatementType [] [])])
+>         (Right [Nothing,Just (([], []))])
 >      ,s "select t1();\n\
 >         \create function t1() returns void as $$\n\
 >         \begin\n\
@@ -880,13 +882,13 @@ check errors: select into wrong number of vars, wrong types, and into
 >   ,Group "select into" [
 >       s "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b') returning adnum,adbin;"
->         $ Right [Just $ StatementType [] [("adnum", ScalarType "int2")
->                                          ,("adbin", ScalarType "text")]]
+>         $ Right [Just $ ([], [("adnum", ScalarType "int2")
+>                                          ,("adbin", ScalarType "text")])]
 >      ,s "update pg_attrdef set adnum = adnum + 1 returning adnum;"
->         $ Right [Just $ StatementType [] [("adnum", ScalarType "int2")]]
+>         $ Right [Just $ ([], [("adnum", ScalarType "int2")])]
 >      ,s "delete from pg_attrdef returning adnum,adbin;"
->         $ Right [Just $ StatementType [] [("adnum", ScalarType "int2")
->                                          ,("adbin", ScalarType "text")]]
+>         $ Right [Just $ ([], [("adnum", ScalarType "int2")
+>                                          ,("adbin", ScalarType "text")])]
 >      ,s "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  a int;\n\
@@ -1003,12 +1005,12 @@ check errors: select into wrong number of vars, wrong types, and into
 
 >   ,Group "window fns" [
 >       s "select *, row_number() over () from pg_attrdef;"
->         $ Right [Just $ StatementType []
+>         $ Right [Just $ ([],
 >                   [("adrelid",ScalarType "oid")
 >                   ,("adnum",ScalarType "int2")
 >                   ,("adbin",ScalarType "text")
 >                   ,("adsrc",ScalarType "text")
->                   ,("row_number",ScalarType "int8")]]
+>                   ,("row_number",ScalarType "int8")])]
 >      ]
 
 >   ,Group "drop stuff" [
@@ -1110,16 +1112,17 @@ check errors: select into wrong number of vars, wrong types, and into
 --------------------------------------------------------------------------------
 
 > testExpressionType :: String -> Either [TypeError] Type -> Test.Framework.Test
-> testExpressionType src typ = testCase ("typecheck " ++ src) $
+> testExpressionType src et = testCase ("typecheck " ++ src) $
 >   let ast = case parseExpression "" src of
 >                                      Left e -> error $ show e
 >                                      Right l -> l
 >       aast = typeCheckExpression defaultTemplate1Catalog ast
->       ty = getTypeAnnotation aast
->       er = concatMap snd $ getTypeErrors aast
+>       ty = atype $ getAnnotation aast
+>       er :: [TypeError]
+>       er = [x | x <- universeBi aast]
 >   in if null er
->      then assertEqual ("typecheck " ++ src) typ $ Right ty
->      else assertEqual ("typecheck " ++ src) typ $ Left er
+>      then assertEqual ("typecheck " ++ src) (Just et) $ fmap Right ty
+>      else assertEqual ("typecheck " ++ src) et $ Left er
 >
 > testStatementType :: String -> Either [TypeError] [Maybe StatementType] -> Test.Framework.Test
 > testStatementType src sis = testCase ("typecheck " ++ src) $
@@ -1127,8 +1130,9 @@ check errors: select into wrong number of vars, wrong types, and into
 >                               Left e -> error $ show e
 >                               Right l -> l
 >       aast = snd $ typeCheck defaultTemplate1Catalog ast
->       is = getTopLevelInfos aast
->       er = concatMap snd $ getTypeErrors aast
+>       is = map (stType . getAnnotation) aast
+>       er :: [TypeError]
+>       er = [x | x <- universeBi aast]
 >   in {-trace (show aast) $ -} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
@@ -1143,8 +1147,9 @@ check errors: select into wrong number of vars, wrong types, and into
 >                               Left e -> error $ show e
 >                               Right l -> l
 >       aast = snd $ typeCheck makeCat ast
->       is = getTopLevelInfos aast
->       er = concatMap snd $ getTypeErrors aast
+>       is = map (stType . getAnnotation) aast
+>       er :: [TypeError]
+>       er = [x | x <- universeBi aast]
 >   in {-trace (show aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
@@ -1160,7 +1165,8 @@ check errors: select into wrong number of vars, wrong types, and into
 >                               Left e -> error $ show e
 >                               Right l -> l
 >       (ncat,aast) = typeCheck defaultTemplate1Catalog ast
->       er = concatMap snd $ getTypeErrors aast
+>       er :: [TypeError]
+>       er = [x | x <- universeBi aast]
 >       neu = deconstructCatalog ncat \\ deconstructCatalog defaultTemplate1Catalog
 >   in if not (null er)
 >        then assertFailure $ show er
