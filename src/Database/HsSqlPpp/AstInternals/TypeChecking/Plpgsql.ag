@@ -9,56 +9,49 @@ This file contains the checking code for a few plpgsql statements.
 --todo: check return type consistent with function return type
 SEM Statement
     | Return
-        loc.tpe = undefined
-            {-dependsOnRTpe [maybe typeBool
-                                getTypeAnnotation
-                                @value.annotatedTree] $ Right $ Pseudo Void-}
+        loc.tpe = maybe (Right $ Pseudo Void) Right $ getTypeAnnotation @value.annotatedTree
         loc.backTree = Return @ann @value.annotatedTree
         loc.catUpdates = []
-        loc.statementType = []
+        loc.statementType = Nothing
 
 
 SEM Statement
     | Assignment
         loc.tpe =
             do
-            undefined {-
-            let fromType = getTypeAnnotation @value.annotatedTree
+            fromType <- lmt $ getTypeAnnotation @value.annotatedTree
             toType <- lbLookupID @lhs.lib @target
-            dependsOnRTpe [getTypeAnnotation @value.annotatedTree, toType] $ do
             checkAssignmentValid @lhs.cat fromType toType
-            return $ Pseudo Void-}
+            return $ Pseudo Void
         loc.backTree = Assignment @ann @target @value.annotatedTree
         loc.catUpdates = []
-        loc.statementType = []
+        loc.statementType = Nothing
 
 SEM Statement
     | ForIntegerStatement
         loc.varTypeE = lbLookupID @lhs.lib @var
         loc.tpe =
           do
-          undefined {-
-          let fromType = getTypeAnnotation @from.annotatedTree
-              toType = getTypeAnnotation @to.annotatedTree
-          dependsOnRTpe [fromType,toType] $ do
-          --probably a bit too strict:
+          fromType <- lmt $ getTypeAnnotation @from.annotatedTree
+          toType <- lmt $ getTypeAnnotation @to.annotatedTree
           errorWhen (fromType /= toType) [FromToTypesNotSame fromType toType]
           case @loc.varTypeE of
             Right t -> checkAssignmentValid @lhs.cat fromType t
             Left _ -> return ()
-          return $ Pseudo Void-}
+          return $ Pseudo Void
         sts.lib =
             case @loc.varTypeE of
               Left [UnrecognisedIdentifier @var] ->
-                  fromRight @lhs.lib $
-                  lbUpdate @lhs.cat @lhs.lib $
-                    LBIds "local for loop variable" ""
-                       [(@var,getTypeAnnotation @from.annotatedTree)] []
+                  -- create implicitly declared variable
+                  either (const @lhs.lib) id $ do
+                  ft <- lmt $ getTypeAnnotation @from.annotatedTree
+                  lbUpdate @lhs.cat
+                    (LBIds "local for loop variable" "" [(@var,ft)] []) @lhs.lib
               _ -> @lhs.lib
 
         loc.backTree = ForIntegerStatement @ann @var @from.annotatedTree @to.annotatedTree @sts.annotatedTree
         loc.catUpdates = []
-        loc.statementType = []
+        loc.statementType = Nothing
 
 
 SEM Statement
@@ -66,28 +59,21 @@ SEM Statement
         loc.selType = getTypeAnnotation @sel.annotatedTree
         loc.tpe =
           do
-          undefined {-
-          dependsOnRTpe [@loc.selType] $ do
+          st <- lmt @loc.selType
           toType <- lbLookupID @lhs.lib @var
-          dependsOnRTpe [toType] $ do
-          checkAssignmentValid @lhs.cat @loc.selType toType
-          return $ Pseudo Void-}
+          checkAssignmentValid @lhs.cat st toType
+          return $ Pseudo Void
         --just handles assigning to a record type for now
         --one thing that isn't quite right is that the record variable
         --holds the last row in it after the for statement, which isn't
         --supported here
         sts.lib =
-            if okToUpdate
-              then fromRight @lhs.lib $
-                   lbUpdate @lhs.cat @lhs.lib $
-                     LBIds "for loop record type" ""
-                                      [(@var,@loc.selType)] []
-                   -- todo:ignoring error
-              else @lhs.lib
-            where
-              okToUpdate = undefined -- isRight @loc.tpe && @loc.selType /= TypeCheckFailed
+            either (const @lhs.lib) id $ do
+            _ <- @loc.tpe
+            st <- lmt @loc.selType
+            lbUpdate @lhs.cat (LBIds "for loop record type" "" [(@var,st)] []) @lhs.lib
 
         loc.backTree = ForSelectStatement @ann @var @sel.annotatedTree @sts.annotatedTree
         loc.catUpdates = []
-        loc.statementType = []
+        loc.statementType = Nothing
 

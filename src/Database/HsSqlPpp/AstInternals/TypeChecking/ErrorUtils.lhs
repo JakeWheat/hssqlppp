@@ -11,12 +11,12 @@ type checking.
 > type E a = Either [TypeError] a
 > type Et = E Type
 >
-> lmt :: Maybe Type -> Et
+> lmt :: Maybe a -> E a
 > lmt = maybe (Left []) Right
 >
-> tes :: Et -> [TypeError]
+> tes :: E a -> [TypeError]
 > tes = either id (const [])
 >
-> etmt :: Et -> Maybe Type
+> etmt :: E a -> Maybe a
 > etmt = either (const Nothing) Just
 >

@@ -20,23 +20,34 @@ check ok, any errors in the constraints aren't leaked.
 -}
 
 
+ATTR AttributeDef [||attrName : String
+                     namedType : {Maybe Type}]
+
+ATTR AttributeDefList [||attrs : {[(String, Maybe Type)]}]
+
+
 SEM Statement
     | CreateTable
         loc.tpe = Right $ Pseudo Void
         loc.catUpdates =
-            either (const []) id $ do
-            _ <- mapM lmt $ map snd @atts.attrs
-            return [CatCreateTable @name @atts.attrs defaultSystemColumns]
+            [CatCreateTable @name @loc.attrs defaultSystemColumns]
+        loc.attrs : {[(String,Type)]}
+        loc.attrs = mapMaybe okAt @atts.attrs
+                    where
+                      okAt (s, Just t) = Just (s,t)
+                      okAt (_,Nothing) = Nothing
 
-        loc.statementType = []
+        loc.statementType = Nothing
         loc.backTree = CreateTable @ann
                                    @name
                                    @atts.annotatedTree
                                    @cons.annotatedTree
-        cons.lib = case lbUpdate @lhs.cat @lhs.lib $
-                          LBIds "attributedefs" "" @atts.attrs [] of
+        cons.lib = case lbUpdate @lhs.cat
+                          (LBIds "attributedefs" "" @loc.attrs [])
+                          @lhs.lib of
                       Left x -> error $ "statement-createtable-cons.lib " ++ show x
                       Right e -> e
+
 {
 defaultSystemColumns :: [(String,Type)]
 defaultSystemColumns = [("tableoid", ScalarType "oid")
@@ -56,26 +67,25 @@ SEM Statement
            ats <- @loc.attrs
            return [CatCreateTable @name ats defaultSystemColumns]
 
+        loc.selType : {Maybe Type}
         loc.selType = getTypeAnnotation @expr.annotatedTree
         -- type of the columns in the select expression
-        loc.attrs = unwrapSetOfComposite @loc.selType
+        loc.attrs : {Either [TypeError] [(String,Type)]}
+        loc.attrs = lmt @loc.selType >>= unwrapSetOfComposite
 
         loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
-        loc.statementType = []
+        loc.statementType = Nothing
 
 {-
 attribute name and type gathering
 -}
 
-ATTR AttributeDef [||attrName : String
-                     namedType : Type]
 
 SEM AttributeDef
     | AttributeDef
         lhs.attrName = map toLower @name
         lhs.namedType = @typ.namedType
 
-ATTR AttributeDefList [||attrs : {[(String, Type)]}]
 
 SEM AttributeDefList
     | Cons lhs.attrs = (@hd.attrName, @hd.namedType) : @tl.attrs
@@ -88,11 +98,10 @@ inject the column name and type into the column constraints
 
 SEM AttributeDef
     | AttributeDef
-        cons.lib =
-            case lbUpdate @lhs.cat @lhs.lib $
-                   LBIds "attribute def" ""
-                                    [(@name, @typ.namedType)] [] of
-              Left x -> error $ "attributedef-cons.lib " ++ show x
-              Right e -> e
+        cons.lib = either (const @lhs.lib) id $ do
+                   t <- lmt @typ.namedType
+                   lbUpdate @lhs.cat
+                            (LBIds "attribute def" ""
+                                   [(@name, t)] []) @lhs.lib
 
 

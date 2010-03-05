@@ -50,7 +50,7 @@ SEM StatementList
         --newcat is the catalog passed into the head statement
         --updated with any catalog changes that that statement has made
         loc.newCat = fromRight @lhs.cat $ updateCatalog @lhs.cat @lhs.catUpdates
-        loc.newLib = fromRight @lhs.lib $ foldM (lbUpdate @lhs.cat) @lhs.lib @lhs.libUpdates
+        loc.newLib = fromRight @lhs.lib $ foldM (flip $ lbUpdate @lhs.cat) @lhs.lib @lhs.libUpdates
     | Cons
         hd.cat = @loc.newCat
         tl.cat = @loc.newCat
@@ -74,11 +74,12 @@ SEM Statement
       CreateFunction CreateType CreateTable CreateTableAs Return Assignment
       ForSelectStatement ForIntegerStatement DropFunction
         loc.tpe : {Either [TypeError] Type}
-        lhs.annotatedTree = undefined {-annTypesAndErrors @loc.backTree
-                              (tpeToT @loc.tpe)
-                              (getErrors @loc.tpe)
-                              $ Just (map StatementTypeA @loc.statementType ++
-                                      [CatUpdates @loc.catUpdates])-}
+        loc.statementType : {Maybe StatementType}
+        lhs.annotatedTree =
+            updateAnnotation
+                (\a -> a {stType = @loc.statementType
+                         ,catUpd = @loc.catUpdates}) $
+            setTypeAddErrors @loc.tpe @loc.backTree
         loc.catUpdates : {[CatalogUpdate]}
         lhs.catUpdates = @loc.catUpdates
         lhs.libUpdates = @loc.libUpdates
@@ -129,7 +130,9 @@ SEM Statement
 
 
 INCLUDE "TypeChecking/SelectStatement.ag"
-INCLUDE "TypeChecking/Dml.ag"
+INCLUDE "TypeChecking/Insert.ag"
+INCLUDE "TypeChecking/Update.ag"
+INCLUDE "TypeChecking/Delete.ag"
 INCLUDE "TypeChecking/CreateTable.ag"
 INCLUDE "TypeChecking/MiscCreates.ag"
 INCLUDE "TypeChecking/CreateFunction.ag"

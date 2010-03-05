@@ -43,7 +43,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,WithQueryList
    ,WithQuery(..)
    ,FnBody (..)
-   ,SetClause (..)
+   --,SetClause (..)
    ,TableRef (..)
    ,TableAlias(..)
    ,JoinExpression (..)
@@ -90,7 +90,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,StringTypeNameListPair
    ,StringTypeNameListPairList
    ,ExpressionStatementListPairList
-   ,SetClauseList
+   --,SetClauseList
    ,CaseExpressionListExpressionPairList
    ,MaybeExpression
    ,TableRefList
@@ -161,7 +161,7 @@ DATA Statement
     --tablename setitems where returning
     | Update ann:Annotation
              table : String
-             assigns : SetClauseList
+             assigns : ExpressionList --SetClauseList
              fromList : TableRefList
              whr : MaybeBoolExpression
              returning : MaybeSelectList
@@ -338,8 +338,9 @@ DATA WithQuery | WithQuery ann : Annotation
 DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation vars:VarDefList sts : StatementList
 
-DATA SetClause | SetClause ann:Annotation att:String val:Expression
+{-DATA SetClause | SetClause ann:Annotation att:String val:Expression
                | RowSetClause ann:Annotation atts:{[String]} vals:ExpressionList
+-}
 
 DATA TableRef | Tref ann:Annotation
                      tbl:String
@@ -637,7 +638,7 @@ TYPE MaybeBoolExpression = MAYBE Expression
 TYPE ExpressionList = [Expression]
 TYPE ExpressionListList = [ExpressionList]
 
-TYPE SetClauseList = [SetClause]
+-- TYPE SetClauseList = [SetClause]
 TYPE AttributeDefList = [AttributeDef]
 TYPE ConstraintList = [Constraint]
 TYPE TypeAttributeDefList = [TypeAttributeDef]
@@ -680,13 +681,13 @@ DERIVING ExpressionRoot: Show
 attributes which every node has
 -}
 
-SET AllNodes = Statement SelectExpression FnBody SetClause TableRef
+SET AllNodes = Statement SelectExpression FnBody TableRef
                JoinExpression
                SelectList SelectItem AttributeDef RowConstraint
                TypeAttributeDef ParamDef VarDef Constraint
                TypeName
                Expression InList MaybeExpression MaybeBoolExpression
-               ExpressionList ExpressionListList SetClauseList
+               ExpressionList ExpressionListList
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList TypeNameList StringTypeNameListPair
                StringTypeNameListPairList

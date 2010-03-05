@@ -146,7 +146,7 @@ SEM Statement
                                       @lang
                                       @body.annotatedTree
                                       @vol
-        loc.statementType = []
+        loc.statementType = Nothing
         body.cat = @lhs.inProducedCat
 
 

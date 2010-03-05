@@ -12,14 +12,14 @@ pretty simple, just forwards the select expression type
 
 SEM Statement
     | CreateView
-        loc.tpe = undefined {- dependsOnRTpe [getTypeAnnotation @expr.annotatedTree] $
-                    Right $ Pseudo Void-}
+        loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
         loc.attrs = case getTypeAnnotation @expr.annotatedTree of
-                      SetOfType (CompositeType c) -> c
-                      _ -> [] --TODO: error ignored
-        loc.catUpdates = [CatCreateView @name @loc.attrs]
-        loc.statementType = []
+                      Just(SetOfType (CompositeType c)) -> Just c
+                      _ -> Nothing --TODO: error ignored?
+        loc.catUpdates =
+            maybe [] (\a -> [CatCreateView @name a]) @loc.attrs
+        loc.statementType = Nothing
 
 {-
 ================================================================================
@@ -33,14 +33,14 @@ main shortcomings are the names and types aren't checked
 -}
 
 ATTR TypeAttributeDef [||attrName : String
-                         namedType : Type]
+                         namedType : {Maybe Type}]
 
 SEM TypeAttributeDef
     | TypeAttDef
         lhs.attrName = @name
         lhs.namedType = @typ.namedType
 
-ATTR TypeAttributeDefList [||attrs : {[(String, Type)]}]
+ATTR TypeAttributeDefList [||attrs : {[(String, Maybe Type)]}]
 
 SEM TypeAttributeDefList
     | Cons lhs.attrs = (@hd.attrName, @hd.namedType) : @tl.attrs
@@ -49,9 +49,13 @@ SEM TypeAttributeDefList
 SEM Statement
     | CreateType
         loc.tpe = Right $ Pseudo Void
+        loc.attrs = mapMaybe okAt @atts.attrs
+                    where
+                      okAt (s, Just t) = Just (s,t)
+                      okAt (_,Nothing) = Nothing
         loc.backTree = CreateType @ann @name @atts.annotatedTree
-        loc.statementType = []
-        loc.catUpdates = [CatCreateComposite @name @atts.attrs]
+        loc.statementType = Nothing
+        loc.catUpdates = [CatCreateComposite @name @loc.attrs]
 
 {-
 
@@ -63,17 +67,19 @@ SEM Statement
     | CreateDomain
         loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateDomain @ann @name @typ.annotatedTree @checkName @check.annotatedTree
-        loc.statementType = []
-        loc.catUpdates = [CatCreateDomain (DomainType @name) @typ.namedType]
+        loc.statementType = Nothing
+        loc.catUpdates = maybe [] (\t -> [CatCreateDomain (DomainType @name) t]) @typ.namedType
         --allow refering to value as 'value' in check expression
-        check.lib = fromRight @lhs.lib $
-                    lbUpdate @lhs.cat @lhs.lib $
-                    LBIds "domain check value" "" [("value", @typ.namedType)] []
+        check.lib = either (const @lhs.lib) id $ do
+                    nt <- lmt @typ.namedType
+                    lbUpdate @lhs.cat
+                      (LBIds "domain check value" "" [("value", nt)] [])
+                      @lhs.lib 
 
 SEM Statement
     | CreateLanguage
         loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateLanguage @ann @name
-        loc.statementType = []
+        loc.statementType = Nothing
         loc.catUpdates = [CatCreateFunction FunName "plpgsql_call_handler" [] (Pseudo LanguageHandler) False
                          ,CatCreateFunction FunName "plpgsql_validator" [ScalarType "oid"] (Pseudo Void) False]

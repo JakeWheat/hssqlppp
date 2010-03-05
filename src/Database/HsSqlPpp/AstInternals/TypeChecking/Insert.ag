@@ -1,0 +1,54 @@
+{-
+================================================================================
+
+= insert
+
+check the insert data is the correct type. Doesn't cope with columns
+with default values at the moment.
+
+-}
+
+SEM Statement
+    | Insert
+        loc.tpe = either Left (const $ Right $ Pseudo Void) @loc.columnTypes
+        loc.statementType : {Maybe StatementType}
+        loc.statementType = Just (catMaybes $ getPlaceholderTypes @loc.insDataAddedInferredTypes
+                                 ,keepValid $ maybe [] id @returning.listType)
+        -- column types is the name,type list for the columns
+        -- mentioned in the select expression being inserted
+        loc.columnTypes : {Either [TypeError] [(String,Type)]}
+        loc.columnTypes =
+          do
+          atts <- catCompositeAttrs @lhs.cat relationComposites @table
+          expAtts <- lmt (getTypeAnnotation @insData.annotatedTree)
+                     >>= unwrapSetOfComposite
+          let eNames = map fst expAtts
+              tAtts = filter (\(s,_) -> s `elem` eNames) atts
+          checkAssignmentValid @lhs.cat (CompositeType expAtts) (CompositeType tAtts)
+          return tAtts
+        loc.insDataAddedInferredTypes =
+            either (const @insData.annotatedTree) id $
+            case @insData.annotatedTree of
+              Values ann [exl] -> do
+                  fargs <- map (Just . snd) <$> @loc.columnTypes
+                  let newExl = map setInfType $ zip (fargs ++ repeat Nothing) exl
+                  return $ Values ann [newExl]
+              x -> return x
+            where
+              setInfType :: (Maybe Type,Expression) -> Expression
+              setInfType (t,a) = updateAnnotation (\i -> i {infType = t}) a
+
+        loc.backTree = Insert @ann @table @targetCols
+                              @loc.insDataAddedInferredTypes
+                              @returning.annotatedTree
+        loc.catUpdates = []
+
+-- inject the ids into the returning part
+
+SEM Statement
+    | Insert
+        returning.lib =
+            either (const @lhs.lib) id $ do
+              atts <- catCompositeAttrs @lhs.cat relationComposites @table
+              lbUpdate @lhs.cat (LBIds "insert target table" "" atts []) @lhs.lib
+

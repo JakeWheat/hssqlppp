@@ -1,0 +1,32 @@
+{-
+Copyright 2009 Jake Wheat
+
+-}
+{-
+================================================================================
+
+= delete
+
+pretty simple, mainly just need to inject ids into the where part
+
+-}
+
+SEM Statement
+    | Delete
+        loc.tpe = either Left (const $ Right $ Pseudo Void) @loc.attrs
+        loc.statementType =
+            do
+            pt <- sequence $ getPlaceholderTypes @whr.annotatedTree
+            rt <- fmap keepValid @returning.listType
+            return (pt,rt)
+        loc.backTree = Delete @ann @table @using.annotatedTree @whr.annotatedTree @returning.annotatedTree
+        loc.catUpdates = []
+        loc.attrs : {E [(String,Type)]}
+        loc.attrs = catCompositeAttrs @lhs.cat relationComposites @table
+
+        loc.lib =
+            either (const @lhs.lib) id $ do
+            a <- @loc.attrs
+            lbUpdate @lhs.cat (LBIds "delete table attrs" "" a []) @lhs.lib
+        whr.lib = @loc.lib
+        returning.lib = @loc.lib

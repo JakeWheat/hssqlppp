@@ -11,7 +11,7 @@ code for the pretty printer
 src/Database/HsSqlPpp/PrettyPrinter.lhs
 
 code for the sql types
-src/Database/HsSqlPpp/SqlTypes.lhs
+src/Database/HsSqlPpp/AstInternals/TypeType.lhs
 
 code for the quasiquoting:
 src/Database/HsSqlPpp/SqlQuote.lhs

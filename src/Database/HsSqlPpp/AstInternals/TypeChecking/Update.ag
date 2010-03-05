@@ -1,0 +1,45 @@
+{-
+================================================================================
+
+= update
+
+check the set clause assignments are ok, and inject ids into the where part
+
+-}
+
+SEM Statement
+    | Update
+        loc.tpe = either Left (const $ Right $ Pseudo Void) @loc.attrs
+        loc.attrs : {E [(String,Type)]}
+        loc.attrs = catCompositeAttrs @lhs.cat
+                                      relationComposites
+                                      @table
+        -- todo: add tests and code to check the assign targets are columns
+        -- or rows of columns
+        --assigns.attrs = @loc.attrs
+
+        loc.statementType =
+              do
+              pt <- sequence $ getPlaceholderTypes @assigns.annotatedTree
+                               ++ getPlaceholderTypes @whr.annotatedTree
+              st <- fmap keepValid @returning.listType
+              return (pt ,st)
+
+        loc.backTree = Update @ann
+                              @table
+                              @assigns.annotatedTree
+                              @fromList.annotatedTree
+                              @whr.annotatedTree
+                              @returning.annotatedTree
+        loc.catUpdates = []
+
+-- local identifier bindings: pass the table attribute names and types
+-- into the where expression, and the set clause expressions
+
+        loc.lib =
+             either (const @lhs.lib) id $ do
+             a <- @loc.attrs
+             lbUpdate @lhs.cat (LBIds "updated table attrs" "" a []) @lhs.lib
+        whr.lib = @loc.lib
+        assigns.lib = @loc.lib
+        returning.lib = @loc.lib

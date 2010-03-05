@@ -8,92 +8,107 @@ TODO: stop wrapping string,type lists in unnamedcompositetypes, pointless
 
 -}
 
+-- this is in the wrong file
+--ATTR SelectExpression [||libUpdates : {[LocalBindingsUpdate]}]
+
+ATTR MaybeSelectList [||listType : {Maybe [(String,Maybe Type)]}]
+
+ATTR SelectItemList SelectList [||listType : {[(String,Maybe Type)]}]
+
+{
+{-data SiType = SiType (String,Maybe Type)
+            | SiStarType [(String,Maybe Type)]-}
+}
+
+ATTR SelectItem [||itemType : {Maybe Type}]
+
+-- ATTR SelectList [||libUpdates : {[LocalBindingsUpdate]}]
+
+ATTR SelectItem [||columnName : String]
+ATTR Expression [||liftedColumnName : String]
+
+
 SEM SelectItem
     | SelExp
-        loc.annotatedTree = SelExp @ann $ fixStar @ex.annotatedTree
+        loc.annotatedTree = SelExp @ann {- $ fixStar-} @ex.annotatedTree
     | SelectItem
-        loc.annotatedTree = SelectItem @ann (fixStar @ex.annotatedTree) @name
+        loc.annotatedTree = SelectItem @ann {-(fixStar-} @ex.annotatedTree {-)-} @name
 
-ATTR MaybeSelectList [||listType : {Maybe [(String,Type)]}]
-
-ATTR SelectItemList SelectList [||listType : {[(String,Type)]}]
-ATTR SelectItem [||itemType : Type]
-
-ATTR SelectList [||libUpdates : {[LocalBindingsUpdate]}]
 
 SEM MaybeSelectList
     | Just lhs.listType = Just @just.listType
     | Nothing lhs.listType = Nothing
 
 SEM SelectItemList
-    | Cons lhs.listType = expandStar @lhs.lib @hd.columnName @hd.itemType @tl.listType
+    | Cons lhs.listType = (@hd.columnName, @hd.itemType) : @tl.listType
+                {-case @hd.itemType of
+                  Just (SiType (a,t)) -> (a,Just t) : @tl.listType
+                  Just (SiStarType ps) -> ps ++ @tl.listType
+                  Nothing -> @tl.listType-}
     | Nil lhs.listType = []
 
 
+{-
+
+a function returning setof can only be used in a select item list (i
+think?), where it creates a kind of join so
+(a,b,setof c,d) where c returns (c1,c2,...)
+expands to
+(a,b,c1,d)
+(a,b,c2,d)
+(a,b,...,d)
+so the type of that column is the type wrapped with setof
+
+-}
 SEM SelectItem
     | SelExp SelectItem
-        lhs.itemType = -- hack for setof handling
-                       let t = getTypeAnnotation @ex.annotatedTree
-                       in case t of
-                            SetOfType u -> u
-                            v -> v
+        lhs.itemType = do
+                       t <- getTypeAnnotation @ex.annotatedTree
+                       case t of
+                            SetOfType u -> return u
+                            v -> return v
 
 
 
 SEM SelectList
     | SelectList
         lhs.listType = @items.listType
--- check the into types
-        loc.errs = case @loc.stuff of
-                     (er,_) -> er
-        loc.stuff =
-          case () of
-            _ | null sl -> ([],Nothing)
-              | not (null targetTypeErrs) -> (targetTypeErrs,Nothing)
-              | (case targetTypes of
-                   [PgRecord _] -> True
-                   _ -> False) -> ([],Just (head sl, PgRecord $ Just $ CompositeType @items.listType))
-              | matchingComposite /= Left [] -> (fromLeft [] matchingComposite,Nothing)
-              | length sl /= length @items.listType -> ([WrongNumberOfColumns],Nothing)
-              | not (null assignErrs) -> (assignErrs,Nothing)
-              | otherwise -> ([],Nothing)
-          where
-            targetTypeEithers = map (lbLookupID @lhs.lib) sl
-            targetTypeErrs = concat $ lefts $ targetTypeEithers
-            targetTypes = rights $ targetTypeEithers
-            typePairs = zip (map snd @items.listType) targetTypes
-            assignErrs = concat $ lefts $ map (uncurry $ checkAssignmentValid @lhs.cat) typePairs
-            sl = @into
-            matchingComposite =
-                case targetTypes of
-                  [t] | isCompositeType t -> checkAssignmentValid @lhs.cat (AnonymousRecordType (map snd @items.listType)) t
-                  _ -> Left []
+        loc.tpe =
+            do
+            -- let intoType = map (lbLookupID @lhs.lib) @into
+            intoTypes <- either (Left . concat) Right $ listEither $ map (lbLookupID @lhs.lib) @into
+            fromTypes <- mapM (lmt . (\(a,b) -> case b of
+                                                 Nothing -> Nothing
+                                                 Just b1 -> Just b1)) @items.listType
+            checkAssignmentValid @lhs.cat
+                                 (AnonymousRecordType fromTypes)
+                                 (AnonymousRecordType intoTypes)
 
-        lhs.annotatedTree = undefined {-0SelectList (@ann ++ map TypeErrorA @loc.errs)
+        lhs.annotatedTree = addTypeErrors (tes @loc.tpe) $
+                            SelectList @ann
                                        @items.annotatedTree
-                                       @into-}
-        lhs.libUpdates =
+                                       @into
+        {-lhs.libUpdates =
             case @loc.stuff of
               (_,Just r) -> [LBIds "set record actual fields from select into" ""
                               [r] []]
-              _ -> []
+              _ -> []-}
 --[(@var,@loc.selType)]
 
 SEM Statement
     | SelectStatement
-        loc.libUpdates = @ex.libUpdates
+        loc.libUpdates = undefined -- @ex.libUpdates
 
-ATTR SelectExpression [||libUpdates : {[LocalBindingsUpdate]}]
 
-SEM SelectExpression
+{-SEM SelectExpression
     | Select
         lhs.libUpdates = @selSelectList.libUpdates
     | CombineSelect Values
-        lhs.libUpdates = []
+        lhs.libUpdates = []-}
 
 -- utils to handle a star, bit hacky, maybe should use a separate pass
 -- or something?
-
+{-
 {
 expandStar :: LocalBindings
            -> String
@@ -128,7 +143,7 @@ fixStar =
                                    _ -> True) a
              else a-}
 }
-
+-}
 
 {-
 
@@ -142,7 +157,6 @@ selectitemlist, which is also where star expansion happens.
 
 -}
 
-ATTR SelectItem [||columnName : String]
 
 {-
 if the select item is just an identifier, then that column is named
@@ -164,7 +178,6 @@ override for identifier nodes, this only makes it out to the selectitem
 node if the identifier is not wrapped in parens, function calls, etc.
 -}
 
-ATTR Expression [||liftedColumnName : String]
 
 SEM Expression
   | Identifier lhs.liftedColumnName = @i

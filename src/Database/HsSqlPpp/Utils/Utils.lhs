@@ -40,6 +40,7 @@ order of application stays the same instead of going backwards when
 >          f a -> f [a] -> f [a]
 > (<:>) a b = (:) <$> a <*> b
 >
+
 > eitherToMaybe :: Either a b -> Maybe b
 > eitherToMaybe (Left _) = Nothing
 > eitherToMaybe (Right b) = Just b

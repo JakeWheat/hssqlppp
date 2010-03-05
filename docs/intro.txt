@@ -6,21 +6,271 @@ quasiquoter and type checker for SQL. If this doesn't mean anything to
 you then this is the page that attempts to explain what it all means,
 and hopefully what the uses are.
 
-abstract syntax/ concrete syntax
+abstract syntax/ concrete syntax, parsing, pretty printing
+--------------------------------
+
+Abstract syntax is a tree representation of source code, in this case
+SQL. This can be contrasted with concrete syntax, which is the actual
+source code.
+
 some examples
+concrete syntax   abstract syntax
 
-parsing, examples
+Parsing is the process of converting concrete syntax into abstract
+syntax trees (asts).
 
-pretty printing, examples
+example
+parse "..." -> ast
+parse "..." -> error
 
-quasi quotes: embedded sql, sql generation with splices, pattern
-matching (locations of a particular function call?), tree
-transformation
+In this case, pretty printing is the process of converting asts back
+into valid source code. This hopefully makes pretty printing the
+parsing asts produce the original asts.
 
-custom syntax
+couple of examples
 
-type checker:
-check for type errors, e.g. change the name of a view
-get the catalog
-annotate: get information e.g. types of views
+Quasiquoting
+------------
+
+There are a few things we can do with a set of ast types, and a parser
+and pretty printer.
+
+* parse source code sql to check the syntax is valid
+* take an ast and perform some queries on it, e.g. count how many
+  times a function is called
+* take an ast and modify it to produce a new ast
+
+All of this can be made much more powerful and easy to use using quasiquoting.
+
+It is a well known issue that writing out and working with ast types
+in code can be verbose, unreadable, and error prone. Consider the
+following code:
+
+~~~~~{.haskell}
+ast :: [Statement]
+ast = [CreateTable [SourcePos "test.sql" 1 8] "pieces"
+         [AttributeDef [SourcePos "test.sql" 2 5] "ptype"
+            (SimpleTypeName [SourcePos "test.sql" 2 11] "text")
+            Nothing
+            [RowReferenceConstraint [SourcePos "test.sql" 2 16] ""
+               "piece_prototypes_mr"
+               Nothing
+               Restrict
+               Restrict],
+          AttributeDef [SourcePos "test.sql" 3 5] "allegiance"
+            (SimpleTypeName [SourcePos "test.sql" 3 16] "text")
+            Nothing
+            [],
+          AttributeDef [SourcePos "test.sql" 4 5] "tag"
+            (SimpleTypeName [SourcePos "test.sql" 4 9] "int")
+            Nothing
+            [],
+          AttributeDef [SourcePos "test.sql" 5 5] "x"
+      (SimpleTypeName [SourcePos "test.sql" 5 7] "int")
+            Nothing
+            [],
+          AttributeDef [SourcePos "test.sql" 6 5] "y"
+            (SimpleTypeName [SourcePos "test.sql" 6 7] "int")
+            Nothing
+            []]
+         [PrimaryKeyConstraint [SourcePos "test.sql" 7 5] ""
+            ["ptype", "allegiance", "tag"]]]
+~~~~~
+
+It's pretty difficult to read and modify. We can use a parsing
+function to convert this to:
+
+~~~~~{.haskell}
+ast :: [Statement]
+ast = case parseSql [$here|
+
+create table pieces (
+    ptype text references piece_prototypes_mr,
+    allegiance text,
+    tag int,
+    x int,
+    y int,
+    primary key (ptype,allegiance,tag)
+);
+                          |] of
+        Right a -> a
+        Left e -> error $ show e
+~~~~~
+
+Which is much more pleasant to read and modify. One of the problems
+that has been introduced is that if the SQL code has a parsing error,
+we get an error at runtime, which couldn't happen before - if the ast
+was incorrect, we got a compile error.
+
+The first thing quasiquoting can do is move this parsing and error
+checking to compile time, we write:
+
+~~~~~{.haskell}
+ast :: [Statement]
+ast = [$sqlStmt|
+
+create table pieces (
+    ptype text references piece_prototypes_mr,
+    allegiance text,
+    tag int,
+    x int,
+    y int,
+    primary key (ptype,allegiance,tag)
+);
+                          |]
+~~~~~
+
+Then, the SQL is converted into the ast above ( [CreateTable [ ... )
+when the Haskell code is being compiled, so if there are any parse
+errors, we get them at compile time instead of runtime. This gives us
+the best of both worlds.
+
+example of loading haskell with an error
+
+We can also use quasiquotation in pattern matching. Say we want to
+transform some parsed sql to change all calls to a function called
+calculate_it('stuff') with a call to calculate_it_safe('stuff'). Using
+asts directy gives us something like:
+
+~~~~~{.haskell}
+
+replace :: [Statement] -> [Statement]
+replace =
+     transformBi $ \x ->
+       case x of
+         FunCall a "calculate_it" [StringLit a1 "stuff"]) ->
+           FunCall a "calculate_it_safe" [StringLit a1 "stuff"]
+         x1 -> x1
+
+~~~~~
+
+Using quasiquotes, we can instead write
+
+~~~~~{.haskell}
+
+replace :: [Statement] -> [Statement]
+replace =
+     transformBi $ \x ->
+       case x of
+         [$sqlExpr| calculate_it('stuff')|]
+           -> [$sqlExpr| calculate_it_safe('stuff')|]
+         x1 -> x1
+
+~~~~~
+
+Which is a bit clearer in this case, but becomes much clearer when
+doing more complicated transformations.
+
+Antiquotes are the interesting bit in quasiquotation.
+
+We can generate code according to a template, a silly example is create a function with the given name which returns the given string.
+
+~~~~~{.haskell}
+silly :: String -> String -> Statement
+silly fn v =
+  [$sqlStmt|
+  create function $(fn)() returns text as $$
+    select $s(v);
+  $$ language sql;
+~~~~~
+
+example of calling and what it produces:
+
+The $() syntax is antiquotation, (chosen to look a bit like the
+antiquotation syntax from template haskell), you need different
+variations depending on what you are splicing in, e.g. the $s() means
+a string.
+
+We can use antiquotation in pattern matching too, e.g. scan an ast for calls to a
+create_var function and replace them with a create table statement:
+
+~~~~~{.haskell}
+createVarSimple :: Data a => a -> a
+createVarSimple =
+     transformBi $ \x ->
+       case x of
+         [$sqlStmt| select create_var($s(varname), $s(typename)); |]
+             -> let tablename = varname ++ "_table"
+                in [$sqlStmt|
+
+   create table $(tablename) (
+    $(varname) $(typename)
+   );
+
+                    |]
+         x1 -> x1
+~~~~~
+
+[example use]
+
+This is the makings of a custom syntax system for sql/plpgsql. link to chaos2010 extensions
+
+Type checker
+============
+
+The type checker takes asts, and runs over them checking that the
+types are consistent and adding type and other annotaions to the ast.
+
+Some possible uses:
+
+check for type errors, e.g. change the name of a table
+
+create table t1 (
+  a int
+);
+
+create view v1 as
+  select a from t1 where a > 10;
+
+
+change the source to
+
+create table t2 (
+  a int
+);
+
+create view v1 as
+  select a from t1 where a > 10;
+
+run the type checker, and we get:
+test.sql:6:10:
+[UnrecognisedIdentifier "a"]
+test.sql:6:17:
+[UnrecognisedRelation "t1"]
+test.sql:6:26:
+[UnrecognisedIdentifier "a"]
+
+which hopefully helps us to update the view to reflect the new table
+name easily. This is obviously much more useful when the view
+definition is many lines away from the table definition, or in a
+different file.
+
+
+get the catalog produced by some sql:
+
+create table t2 (
+  a int
+);
+
+gives us
+
+CatCreateTable t1(
+    "a" ScalarType "int4"
+)(
+    "tableoid" ScalarType "oid"
+    "cmax" ScalarType "cid"
+    "xmax" ScalarType "xid"
+    "cmin" ScalarType "cid"
+    "xmin" ScalarType "xid"
+    "ctid" ScalarType "tid"
+)
+CatCreateView v1(
+    "a" ScalarType "int4"
+)
+
+We could possibly then run some checks over this catalog, for
+instance. This can also be used to create an annotated form of the
+source sql which includes e.g. the names and types of all the columns
+of a view in a comment before the view.
+
 typesafe database access

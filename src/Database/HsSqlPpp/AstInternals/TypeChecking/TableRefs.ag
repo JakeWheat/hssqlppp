@@ -88,9 +88,7 @@ ATTR TableRef TableRefList [|| libUpdates: {[LocalBindingsUpdate]}]
 -- calculating the new bindings
 SEM TableRef
     | SubTref Tref TrefFun JoinedTref
-        lhs.annotatedTree =
-            undefined {-
-            updateAnnotation (map TypeErrorA @loc.errs ++) @loc.backTree-}
+        lhs.annotatedTree = addTypeErrors @loc.errs @loc.backTree
 
 SEM TableRefList
     | Nil
@@ -137,7 +135,8 @@ subtref - pull the type of the select expression out (which will be a
                            Left e -> e
                            Right _ -> []
         loc.selectAttrs : {Either [TypeError] [(String,Type)]}
-        loc.selectAttrs = unwrapSetOfComposite (getTypeAnnotation @sel.annotatedTree)
+        loc.selectAttrs = lmt (getTypeAnnotation @sel.annotatedTree)
+                          >>= unwrapSetOfComposite
         lhs.libUpdates = [LBIds "sub query" (getAlias "" @alias) --"" should be error
                                          (fromRight [] @loc.selectAttrs) []]
 
@@ -188,7 +187,7 @@ join - most of the hard work is done in local bindings
                          else []
                    --bit hacky, we want any errors from the join
                    -- to be added here, instead of upstream
-        loc.joinErrors = fromLeft [] (foldM (lbUpdate @lhs.cat) @lhs.lib @loc.libUpdates)
+        loc.joinErrors = fromLeft [] (foldM (flip $ lbUpdate @lhs.cat) @lhs.lib @loc.libUpdates)
         loc.libUpdates =
             case (@tbl.libUpdates, @tbl1.libUpdates) of
               ([u1], [u2]) -> [LBJoinIds u1 u2 jids (case @alias of
@@ -203,7 +202,7 @@ join - most of the hard work is done in local bindings
                           _ -> Right []
         loc.newLib : {Either [TypeError] LocalBindings}
         loc.newLib = case (@tbl.libUpdates, @tbl1.libUpdates) of
-                       ([u1],[u2]) -> lbUpdate @lhs.cat @lhs.lib (LBParallel u1 u2)
+                       ([u1],[u2]) -> lbUpdate @lhs.cat (LBParallel u1 u2) @lhs.lib
                        _ -> Right @lhs.lib
         onExpr.lib = fromRight @lhs.lib @loc.newLib
 
@@ -238,7 +237,8 @@ funIdens cat alias fnVal = do
                            then alias
                            else fnName
    attrs <- do
-     case getTypeAnnotation fnVal of
+     fnt <- lmt $ getTypeAnnotation fnVal
+     case fnt of
        SetOfType (NamedCompositeType t) -> catCompositePublicAttrs cat [] t
        SetOfType x -> return [(cn,x)]
        y -> return [(cn,y)]

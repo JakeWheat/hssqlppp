@@ -105,6 +105,15 @@ setTypeAddErrorsA et a =
                              ++ [InternalError $ "tried to set type a second time - " ++ show (etmt et)]}
          Nothing -> a {typ = etmt et}
 
+keepValid :: [(String,Maybe Type)] -> [(String,Type)]
+keepValid = mapMaybe f
+            where
+              f (a,Just b) = Just (a,b)
+              f (_,Nothing) = Nothing
+
+allJust :: [Maybe a] -> Maybe [a]
+allJust ts = sequence ts
+
 {-
 ================================================================================
 
