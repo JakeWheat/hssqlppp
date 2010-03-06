@@ -18,7 +18,7 @@ SEM Statement
         loc.columnTypes : {Either [TypeError] [(String,Type)]}
         loc.columnTypes =
           do
-          atts <- catCompositeAttrs @lhs.cat relationComposites @table
+          atts <- catCompositePublicAttrs @lhs.cat relationComposites @table
           expAtts <- lmt (getTypeAnnotation @insData.annotatedTree)
                      >>= unwrapSetOfComposite
           let eNames = map fst expAtts

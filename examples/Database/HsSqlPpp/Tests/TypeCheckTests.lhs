@@ -527,7 +527,7 @@ qualifier before oid and this should still work
 >                           ,("adbin",ScalarType "text")
 >                           ,("adsrc",ScalarType "text")]-})]
 >      ,s "insert into pg_attrdef\n\
->         \values (1,2, 'a', 'b');"
+>         \values (1,2, 'a', 'c');"
 >         $ Right [Just $ ([], [] {-InsertInfo "pg_attrdef"
 >                           [("adrelid",ScalarType "oid")
 >                           ,("adnum",ScalarType "int2")
@@ -550,9 +550,18 @@ qualifier before oid and this should still work
 >      ,s "update pg_attrdef set adsrc = '' where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ,s "update pg_attrdef set (adbin,adsrc) = ('a','b','c');"
->         $ Left [WrongNumberOfColumns]
+>         $ Left [NoMatchingOperator "="
+>                 [AnonymousRecordType [ScalarType "text"
+>                                      ,ScalarType "text"]
+>                 ,AnonymousRecordType [UnknownType
+>                                      ,UnknownType
+>                                      ,UnknownType]]]
 >      ,s "update pg_attrdef set (adrelid,adsrc) = (true,'b');"
->         $ Left [IncompatibleTypes (ScalarType "oid") typeBool]
+>         $ Left [NoMatchingOperator "="
+>                 [AnonymousRecordType [ScalarType "oid"
+>                                      ,ScalarType "text"]
+>                 ,AnonymousRecordType [ScalarType "bool"
+>                                      ,UnknownType]]]
 >      ,s "update pg_attrdef set (shmadrelid,adsrc) = ('a','b');"
 >         $ Left [UnrecognisedIdentifier "shmadrelid"]
 >      ,s "update pg_attrdef set adsrc='';"

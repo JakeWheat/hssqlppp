@@ -33,7 +33,7 @@ type checking tests.
 >     Group "simple selects" [ Statements [
 >        ("select test();"
 >        ,[CatCreateFunction FunName "test" [] (Pseudo Void) False]
->        ,Nothing)
+>        ,Just ([],[]))
 >       ,("select adnum,adbin from pg_attrdef;"
 >        ,[]
 >        ,Just ([],[("adnum", ScalarType "int2")

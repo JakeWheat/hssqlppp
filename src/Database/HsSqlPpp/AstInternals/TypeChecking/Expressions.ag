@@ -290,10 +290,14 @@ SEM Expression
       loc.liftedColumnName = case @tn.annotatedTree of
                                SimpleTypeName _ tn -> tn
                                _ -> ""
+  | WindowFn
+      loc.liftedColumnName = let (FunCall _ fn _) = @fn.annotatedTree
+                             in fn
+
 SEM Expression
   | BooleanLit Case Exists FloatLit IntegerLit LiftOperator
     NullLit PositionalArg Placeholder ScalarSubQuery StringLit
-    CaseSimple InPredicate WindowFn
+    CaseSimple InPredicate
       loc.liftedColumnName = ""
 
 SEM Expression
