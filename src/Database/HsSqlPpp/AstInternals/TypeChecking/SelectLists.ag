@@ -24,8 +24,7 @@ ATTR SelectItem [||itemType : {Maybe Type}]
 
 -- ATTR SelectList [||libUpdates : {[LocalBindingsUpdate]}]
 
-ATTR SelectItem [||columnName : String]
-ATTR Expression [||liftedColumnName : String]
+-- ATTR SelectItem [||columnName : String]
 
 
 SEM SelectItem
@@ -74,7 +73,7 @@ SEM SelectList
     | SelectList
         lhs.listType = @items.listType
         loc.tpe =
-            do
+            returnWhen (@into == []) (()) $ do
             -- let intoType = map (lbLookupID @lhs.lib) @into
             intoTypes <- either (Left . concat) Right $ listEither $ map (lbLookupID @lhs.lib) @into
             fromTypes <- mapM (lmt . (\(a,b) -> case b of
@@ -178,26 +177,9 @@ override for identifier nodes, this only makes it out to the selectitem
 node if the identifier is not wrapped in parens, function calls, etc.
 -}
 
-
-SEM Expression
-  | Identifier lhs.liftedColumnName = @i
-  | FunCall lhs.liftedColumnName =
-      if isOperatorName @funName
-         then ""
-         else @funName
-  | Cast lhs.liftedColumnName = case @tn.annotatedTree of
-                                  SimpleTypeName _ tn -> tn
-                                  _ -> ""
-
-
-SEM Expression
-  | BooleanLit Case Exists FloatLit IntegerLit LiftOperator
-    NullLit PositionalArg Placeholder ScalarSubQuery StringLit
-      lhs.liftedColumnName = ""
-
 -- collect the aliases and column names for use by the selectitemlist nodes
-SEM SelectItem
+{-SEM SelectItem
     | SelExp lhs.columnName = case @ex.liftedColumnName of
                                 "" -> "?column?"
                                 s -> s
-    | SelectItem lhs.columnName = @name
+    | SelectItem lhs.columnName = @name-}

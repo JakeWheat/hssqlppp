@@ -23,6 +23,20 @@ SEM Expression
         loc.prototype : {Maybe FunctionPrototype}
         loc.prototype = Nothing
 
+SEM Expression
+    | IntegerLit StringLit FloatLit BooleanLit NullLit
+      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
+      PositionalArg Placeholder WindowFn FunCall
+      Identifier FunCall
+        lhs.ntAnnotatedTree = updateAnnotation
+                                 (setTypeAddErrorsA (either Left CompositeType @loc.ntType)
+                                 . \a -> a {fnProt = @loc.prototype}) @loc.backTree
+        lhs.ntType = etmt @loc.ntType
+
+ATTR Expression [||ntAnnotatedTree : Expression
+                   ntType : {Maybe [(String,Type)]}]
+
+
 {-
 == literals
 
@@ -233,10 +247,67 @@ pull id types out of cat for identifiers
 
 -}
 
+
+{-
+
+Star expansion handling.
+
+In a few places - mainly the top level of a select list - if the
+identifier is a star or qualified star we want to expand the star. The
+cleanest way of doing this is to expand the stars in the ast to the
+expansions, but we need to do this at the last minute during the ag
+process since e.g. we might need the view information from the
+immediately previous statement. I don't know how to alter the ag
+process so that we can update a subtree and collect attributes from
+that which would be a clean way of doing it.
+
+So - use a bodge. When we want to get the identifier type, and star
+expansion is possible, use a different pair of tpe and backtree
+attributes to get the node information to the regular ones.
+
+-}
+
 SEM Expression
     | Identifier
         loc.tpe = lbLookupID @lhs.lib @i
         loc.backTree = Identifier @ann @i
+        loc.ntType : {E [(String,Type)]}
+        loc.ntType =
+            do
+            let (cor,iden) = splitIdentifier @i
+            in if iden == "*"
+               then lbExpandStar @lhs.lib cor
+               else do
+                 t <- lbLookupID @lhs.lib @i
+                 return [(@i, t)]
+
+
+SEM Expression
+  | FunCall
+      loc.liftedColumnName = if isOperatorName @funName
+                             then ""
+                             else @funName
+  | Cast
+      loc.liftedColumnName = case @tn.annotatedTree of
+                               SimpleTypeName _ tn -> tn
+                               _ -> ""
+SEM Expression
+  | BooleanLit Case Exists FloatLit IntegerLit LiftOperator
+    NullLit PositionalArg Placeholder ScalarSubQuery StringLit
+    CaseSimple InPredicate WindowFn
+      loc.liftedColumnName = ""
+
+SEM Expression
+  | FunCall Cast CaseSimple InPredicate WindowFn
+    BooleanLit Case Exists FloatLit IntegerLit LiftOperator
+    NullLit PositionalArg Placeholder ScalarSubQuery StringLit
+      loc.ntType = do
+                   t <- @loc.tpe
+                   return [(case @loc.liftedColumnName of
+                             "" -> "?column?"
+                             n -> n
+                          ,t)]
+
 
 
 SEM Expression

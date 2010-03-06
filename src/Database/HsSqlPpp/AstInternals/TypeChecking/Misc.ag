@@ -101,9 +101,9 @@ setTypeAddErrorsA :: Et -> Annotation -> Annotation
 setTypeAddErrorsA et a =
     let a1 = a {errs = errs a ++ tes et}
     in case atype a1 of
-         Just _ -> a {errs = errs a
+         Just _ -> a1 {errs = errs a
                              ++ [InternalError $ "tried to set type a second time - " ++ show (etmt et)]}
-         Nothing -> a {atype = etmt et}
+         Nothing -> a1 {atype = etmt et}
 
 keepValid :: [(String,Maybe Type)] -> [(String,Type)]
 keepValid = mapMaybe f

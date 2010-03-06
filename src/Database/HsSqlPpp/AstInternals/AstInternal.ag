@@ -120,9 +120,11 @@ import Data.List
 import Debug.Trace
 import Data.Either
 import Control.Applicative
+import Control.Arrow
 import Data.Generics
 import Data.Char
 import Control.Monad.State
+
 import Data.Generics.PlateData
 
 import Database.HsSqlPpp.AstInternals.TypeType

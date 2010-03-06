@@ -1125,7 +1125,7 @@ quick sanity check
 >         \  update c set d = e;\n\
 >         \end if;"
 >       [If ea [((FunCall ea "=" [Identifier ea "a", Identifier ea "b"])
->           ,[Update ea "c" [FunCall ea "=" [Identifier ea "e", Identifier ea "e"]] [] Nothing Nothing])]
+>           ,[Update ea "c" [FunCall ea "=" [Identifier ea "d", Identifier ea "e"]] [] Nothing Nothing])]
 >        []]
 >      ,f "if true then\n\
 >         \  null;\n\
