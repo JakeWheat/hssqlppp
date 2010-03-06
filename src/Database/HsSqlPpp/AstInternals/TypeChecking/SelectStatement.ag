@@ -104,6 +104,19 @@ SEM SelectExpression
          selGroupBy.lib = @loc.newLib
          selOrderBy.lib = @loc.newLib
 
+ATTR SelectExpression [||libUpdates : {[LocalBindingsUpdate]}]
+
+SEM Statement
+    | SelectStatement
+        loc.libUpdates = @ex.libUpdates
+
+SEM SelectExpression
+    | Values CombineSelect
+        lhs.libUpdates = []
+    | Select
+        lhs.libUpdates = @selSelectList.libUpdates
+    | WithSelect
+        lhs.libUpdates = @ex.libUpdates
 
 
 SEM SelectExpression
@@ -233,6 +246,7 @@ SEM WithQuery
                       _ -> [] --TODO: error ignored
         loc.catUpdates = [CatCreateView @name @loc.attrs]
         loc.statementType = Nothing
+
 
 
 INCLUDE "TypeChecking/TableRefs.ag"

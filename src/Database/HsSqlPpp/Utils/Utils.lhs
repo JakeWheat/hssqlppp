@@ -169,3 +169,9 @@ appear in the two lists ([a] and [b] in [(k,[a],[b])])
 > trim :: String -> String
 > trim = f . f
 >    where f = reverse . dropWhile isSpace
+
+> concatLefts :: [Either [a] b] -> Either [a] ()
+> concatLefts s = let l = concat $ lefts s
+>                 in if null l
+>                    then Right ()
+>                    else Left l

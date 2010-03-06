@@ -22,9 +22,16 @@ SEM Statement
           expAtts <- lmt (getTypeAnnotation @insData.annotatedTree)
                      >>= unwrapSetOfComposite
           let eNames = map fst expAtts
-              tAtts = filter (\(s,_) -> s `elem` eNames) atts
-          checkAssignmentValid @lhs.cat (CompositeType expAtts) (CompositeType tAtts)
+          tAtts <- case @targetCols of
+                        [] -> return atts
+                        _ -> mapM (lkpA atts) @targetCols
+          checkAssignmentsValid @lhs.cat (map snd expAtts) (map snd tAtts)
           return tAtts
+          where
+            lkpA :: [(String,Type)] -> String -> E (String,Type)
+            lkpA m n = maybe (Left [UnrecognisedIdentifier n])
+                             (\t -> Right (n,t))
+                             $ lookup n m
         loc.insDataAddedInferredTypes =
             either (const @insData.annotatedTree) id $
             case @insData.annotatedTree of

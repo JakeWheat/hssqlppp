@@ -22,10 +22,12 @@ checkAssignmentValid - pass in source type and target type, returns
 >                       ,resolveResultSetType
 >                       ,checkAssignmentValid
 >                       ,compositesCompatible
+>                       ,checkAssignmentsValid
 >                       ) where
 >
 > import Data.Maybe
 > import Data.List
+> import Data.Either
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.AstInternals.TypeType
@@ -499,12 +501,24 @@ cast empty array, where else can an empty array work?
 > checkAssignmentValid :: Catalog -> Type -> Type -> Either [TypeError] ()
 > checkAssignmentValid cat from to =
 >     if castableFromTo cat AssignmentCastContext from to
->        then Right ()
->        else Left [IncompatibleTypes to from]
+>     then Right ()
+>     else Left [IncompatibleTypes to from]
 >
 > compositesCompatible :: Catalog -> Type -> Type -> Bool
 > compositesCompatible cat =
 >     castableFromTo cat ImplicitCastContext
+
+> checkAssignmentsValid :: Catalog -> [Type] -> [Type] -> Either [TypeError] ()
+> checkAssignmentsValid cat from to = do
+>     -- special case for assigning to composite
+>     let f = case to of
+>                    [t] | isCompositeType t -> [AnonymousRecordType from]
+>                    _ -> from
+>     errorWhen (length f /= length to)
+>               [WrongNumberOfColumns]
+>     let ls = concat $ lefts $ map (uncurry (checkAssignmentValid cat)) $ zip f to
+>     errorWhen (not (null ls)) ls
+
 
 ================================================================================
 
@@ -514,7 +528,7 @@ wrapper around the catalog to add a bunch of extra valid casts
 
 > castableFromTo :: Catalog -> CastContext -> Type -> Type -> Bool
 > castableFromTo cat cc from to =
->   {-trace ("check cast " ++ show from ++ "->" ++ show to) $-}
+>   --trace ("check cast " ++ show from ++ "->" ++ show to) $
 >   -- put this here to avoid having to write it everywhere else
 >   from == to
 >   -- unknown can be implicitly cast to anything (is this completely true?)
