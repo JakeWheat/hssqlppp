@@ -2880,7 +2880,7 @@ sem_Expression_Identifier ann_ i_  =
                      then lbExpandStar _lhsIlib cor
                      else do
                        t <- lbLookupID _lhsIlib i_
-                       return [(i_, t)]
+                       return [(iden, t)]
                   {-# LINE 2885 "AstInternal.hs" #-}
               -- self rule
               _annotatedTree =
@@ -7466,9 +7466,9 @@ sem_SelectList_SelectList ann_ items_ into_  =
                                        (AnonymousRecordType fromTypes)
                                        (AnonymousRecordType intoTypes)
                   {-# LINE 7469 "AstInternal.hs" #-}
-              -- "./TypeChecking/SelectLists.ag"(line 86, column 9)
+              -- "./TypeChecking/SelectLists.ag"(line 106, column 9)
               _lhsOannotatedTree =
-                  {-# LINE 86 "./TypeChecking/SelectLists.ag" #-}
+                  {-# LINE 106 "./TypeChecking/SelectLists.ag" #-}
                   addTypeErrors (tes _tpe    ) $
                   SelectList ann_
                              _itemsIannotatedTree
@@ -10996,9 +10996,9 @@ sem_Statement_SelectStatement ann_ ex_  =
                   {-# LINE 22 "./TypeChecking/SelectStatement.ag" #-}
                   []
                   {-# LINE 10999 "AstInternal.hs" #-}
-              -- "./TypeChecking/SelectLists.ag"(line 99, column 9)
+              -- "./TypeChecking/SelectLists.ag"(line 119, column 9)
               _libUpdates =
-                  {-# LINE 99 "./TypeChecking/SelectLists.ag" #-}
+                  {-# LINE 119 "./TypeChecking/SelectLists.ag" #-}
                   undefined
                   {-# LINE 11004 "AstInternal.hs" #-}
               -- self rule

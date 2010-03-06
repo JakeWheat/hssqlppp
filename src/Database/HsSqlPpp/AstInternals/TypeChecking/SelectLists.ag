@@ -78,6 +78,10 @@ SEM SelectList
             returnWhen (@into == []) (()) $ do
             -- let intoType = map (lbLookupID @lhs.lib) @into
             intoTypes <- either (Left . concat) Right $ listEither $ map (lbLookupID @lhs.lib) @into
+            let fromTypes = map snd @items.listType
+            checkAssignmentValid @lhs.cat
+                                 (AnonymousRecordType fromTypes)
+                                 (AnonymousRecordType intoTypes)
 {-
 somewhere this has gone wrong.
 we need @items.listType to be maybe [(String,Maybe Type)]
@@ -97,10 +101,7 @@ we don't get weird type errors as it tries to assign to the wrong
 vars,
 
 -}
-            let fromTypes = map snd @items.listType
-            checkAssignmentValid @lhs.cat
-                                 (AnonymousRecordType fromTypes)
-                                 (AnonymousRecordType intoTypes)
+
 
         lhs.annotatedTree = addTypeErrors (tes @loc.tpe) $
                             SelectList @ann

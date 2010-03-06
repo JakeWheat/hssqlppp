@@ -278,7 +278,7 @@ SEM Expression
                then lbExpandStar @lhs.lib cor
                else do
                  t <- lbLookupID @lhs.lib @i
-                 return [(@i, t)]
+                 return [(iden, t)]
 
 
 SEM Expression
