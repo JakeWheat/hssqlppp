@@ -22,8 +22,7 @@ SEM Statement
               do
               pt <- sequence $ getPlaceholderTypes @assigns.annotatedTree
                                ++ getPlaceholderTypes @whr.annotatedTree
-              st <- fmap keepValid @returning.listType
-              return (pt ,st)
+              return (pt,@returning.listType)
 
         loc.backTree = Update @ann
                               @table

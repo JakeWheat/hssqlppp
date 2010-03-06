@@ -12,7 +12,7 @@ SEM Statement
     | Insert
         loc.tpe = either Left (const $ Right $ Pseudo Void) @loc.columnTypes
         loc.statementType = Just (catMaybes $ getPlaceholderTypes @loc.insDataAddedInferredTypes
-                                 ,keepValid $ maybe [] id @returning.listType)
+                                 ,@returning.listType)
         -- column types is the name,type list for the columns
         -- mentioned in the select expression being inserted
         loc.columnTypes : {Either [TypeError] [(String,Type)]}

@@ -17,8 +17,7 @@ SEM Statement
         loc.statementType =
             do
             pt <- sequence $ getPlaceholderTypes @whr.annotatedTree
-            rt <- fmap keepValid @returning.listType
-            return (pt,rt)
+            return (pt,@returning.listType)
         loc.backTree = Delete @ann @table @using.annotatedTree @whr.annotatedTree @returning.annotatedTree
         loc.catUpdates = []
         loc.attrs : {E [(String,Type)]}

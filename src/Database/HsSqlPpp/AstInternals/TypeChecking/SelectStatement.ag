@@ -111,12 +111,10 @@ SEM SelectExpression
         loc.backTree = Values @ann @vll.annotatedTree
     | Select
         loc.tpe =
-           do
+           --do
            --let trefType = fromMaybe typeBool $ fmap getTypeAnnotation
            --                                         @selTref.annotatedTree
-           Right $ case @selSelectList.listType of
-                     [(_,Just (Pseudo Void))] -> Pseudo Void
-                     _ -> SetOfType $ CompositeType $ keepValid @selSelectList.listType
+           Right $ SetOfType $ CompositeType $ @selSelectList.listType
         loc.backTree = Select @ann
                               @selDistinct
                               @selSelectList.annotatedTree

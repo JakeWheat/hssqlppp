@@ -29,12 +29,12 @@ SEM Expression
       PositionalArg Placeholder WindowFn FunCall
       Identifier FunCall
         lhs.ntAnnotatedTree = updateAnnotation
-                                 (setTypeAddErrorsA (either Left CompositeType @loc.ntType)
+                                 (setTypeAddErrorsA (either Left (Right . CompositeType) @loc.ntType)
                                  . \a -> a {fnProt = @loc.prototype}) @loc.backTree
-        lhs.ntType = etmt @loc.ntType
+        lhs.ntType = either (const []) id @loc.ntType
 
 ATTR Expression [||ntAnnotatedTree : Expression
-                   ntType : {Maybe [(String,Type)]}]
+                   ntType : {[(String,Type)]}]
 
 
 {-
@@ -273,7 +273,6 @@ SEM Expression
         loc.backTree = Identifier @ann @i
         loc.ntType : {E [(String,Type)]}
         loc.ntType =
-            do
             let (cor,iden) = splitIdentifier @i
             in if iden == "*"
                then lbExpandStar @lhs.lib cor

@@ -11,16 +11,16 @@ TODO: stop wrapping string,type lists in unnamedcompositetypes, pointless
 -- this is in the wrong file
 --ATTR SelectExpression [||libUpdates : {[LocalBindingsUpdate]}]
 
-ATTR MaybeSelectList [||listType : {Maybe [(String,Maybe Type)]}]
+ATTR MaybeSelectList [||listType : {[(String,Type)]}]
 
-ATTR SelectItemList SelectList [||listType : {[(String,Maybe Type)]}]
+ATTR SelectItemList SelectList [||listType : {[(String,Type)]}]
 
 {
 {-data SiType = SiType (String,Maybe Type)
             | SiStarType [(String,Maybe Type)]-}
 }
 
-ATTR SelectItem [||itemType : {Maybe Type}]
+ATTR SelectItem [||itemType : {[(String,Type)]}]
 
 -- ATTR SelectList [||libUpdates : {[LocalBindingsUpdate]}]
 
@@ -29,21 +29,18 @@ ATTR SelectItem [||itemType : {Maybe Type}]
 
 SEM SelectItem
     | SelExp
-        loc.annotatedTree = SelExp @ann {- $ fixStar-} @ex.annotatedTree
+        -- allow star expansions for unaliased elements
+        loc.annotatedTree = SelExp @ann @ex.ntAnnotatedTree
     | SelectItem
-        loc.annotatedTree = SelectItem @ann {-(fixStar-} @ex.annotatedTree {-)-} @name
+        loc.annotatedTree = SelectItem @ann @ex.annotatedTree @name
 
 
 SEM MaybeSelectList
-    | Just lhs.listType = Just @just.listType
-    | Nothing lhs.listType = Nothing
+    | Just lhs.listType = @just.listType
+    | Nothing lhs.listType = []
 
 SEM SelectItemList
-    | Cons lhs.listType = (@hd.columnName, @hd.itemType) : @tl.listType
-                {-case @hd.itemType of
-                  Just (SiType (a,t)) -> (a,Just t) : @tl.listType
-                  Just (SiStarType ps) -> ps ++ @tl.listType
-                  Nothing -> @tl.listType-}
+    | Cons lhs.listType = @hd.itemType ++ @tl.listType
     | Nil lhs.listType = []
 
 
@@ -60,12 +57,17 @@ so the type of that column is the type wrapped with setof
 
 -}
 SEM SelectItem
-    | SelExp SelectItem
-        lhs.itemType = do
-                       t <- getTypeAnnotation @ex.annotatedTree
+    | SelExp
+        lhs.itemType = @ex.ntType
+                       {-do
+                       t <- getTypeAnnotation @ex.ntAnnotatedTree
                        case t of
                             SetOfType u -> return u
-                            v -> return v
+                            v -> return v-}
+    | SelectItem
+        lhs.itemType = maybe [] id $ do
+                       t <- getTypeAnnotation @ex.annotatedTree
+                       return [(@name,t)]
 
 
 
@@ -76,9 +78,26 @@ SEM SelectList
             returnWhen (@into == []) (()) $ do
             -- let intoType = map (lbLookupID @lhs.lib) @into
             intoTypes <- either (Left . concat) Right $ listEither $ map (lbLookupID @lhs.lib) @into
-            fromTypes <- mapM (lmt . (\(a,b) -> case b of
-                                                 Nothing -> Nothing
-                                                 Just b1 -> Just b1)) @items.listType
+{-
+somewhere this has gone wrong.
+we need @items.listType to be maybe [(String,Maybe Type)]
+not [(String,Type)]
+this is only so we can give better error messages
+it doesn't make any difference when it type checks
+
+we need the outer maybe to say the types feeding in have gone
+completely wrong, so don't add any more errors
+
+we need the maybes on the types to keep the columns lined up, so that
+e.g. if we have
+
+select t1,typerror,t3 into a,b,c ...
+
+we don't get weird type errors as it tries to assign to the wrong
+vars,
+
+-}
+            let fromTypes = map snd @items.listType
             checkAssignmentValid @lhs.cat
                                  (AnonymousRecordType fromTypes)
                                  (AnonymousRecordType intoTypes)
@@ -98,88 +117,3 @@ SEM Statement
     | SelectStatement
         loc.libUpdates = undefined -- @ex.libUpdates
 
-
-{-SEM SelectExpression
-    | Select
-        lhs.libUpdates = @selSelectList.libUpdates
-    | CombineSelect Values
-        lhs.libUpdates = []-}
-
--- utils to handle a star, bit hacky, maybe should use a separate pass
--- or something?
-{-
-{
-expandStar :: LocalBindings
-           -> String
-           -> Type
-           -> [(String,Type)]
-           -> [(String,Type)]
-expandStar lb colName colType types =
-    fromRight types $ do
-    let (cn,iden) = splitIdentifier colName
-    newCols <- if iden == "*"
-                 then lbExpandStar lb cn
-                 else return [(iden, colType)]
-    return $ newCols ++ types
-
-fixStar :: Expression -> Expression
-fixStar =
-    everywhere (mkT fixStar')
-    where
-      fixStar' :: Annotation -> Annotation
-      fixStar' a =
-          undefined {-
-          if TypeAnnotation TypeCheckFailed `elem` a
-              && any (\an ->
-                       case an of
-                         TypeErrorA (UnrecognisedIdentifier x) |
-                           let (_,iden) = splitIdentifier x
-                           in iden == "*" -> True
-                         _ -> False) a
-             then filter (\an -> case an of
-                                   TypeAnnotation TypeCheckFailed -> False
-                                   TypeErrorA (UnrecognisedIdentifier _) -> False
-                                   _ -> True) a
-             else a-}
-}
--}
-
-{-
-
-================================================================================
-
-= attribute names
-
-columnName is used to collect the column names that the select list
-produces, it is combined into an unnamedcompositetype in
-selectitemlist, which is also where star expansion happens.
-
--}
-
-
-{-
-if the select item is just an identifier, then that column is named
-after the identifier
-e.g. select a, b as c, b + c from d, gives three columns one named
-a, one named c, and one unnamed, even though only one has an alias
-if the select item is a function or aggregate call at the top level,
-then it is named after that function or aggregate
-
-if it is a cast, the column is named after the target data type name
-iff it is a simple type name
-
--}
-
---default value for non identifier nodes
-
-{-
-override for identifier nodes, this only makes it out to the selectitem
-node if the identifier is not wrapped in parens, function calls, etc.
--}
-
--- collect the aliases and column names for use by the selectitemlist nodes
-{-SEM SelectItem
-    | SelExp lhs.columnName = case @ex.liftedColumnName of
-                                "" -> "?column?"
-                                s -> s
-    | SelectItem lhs.columnName = @name-}
