@@ -367,7 +367,7 @@ data TableAlias = NoAlias
                   deriving (Show,Eq,Typeable,Data)
 }
 
-DATA JoinExpression | JoinOn ann:Annotation Expression
+DATA JoinExpression | JoinOn ann:Annotation expr:Expression
                     | JoinUsing ann:Annotation x:{[String]}
 
 {
@@ -399,7 +399,7 @@ DATA AttributeDef | AttributeDef ann:Annotation
 
 DATA RowConstraint | NullConstraint ann:Annotation name:String
                    | NotNullConstraint ann:Annotation name:String
-                   | RowCheckConstraint ann:Annotation name:String Expression
+                   | RowCheckConstraint ann:Annotation name:String expr:Expression
                    | RowUniqueConstraint ann:Annotation name:String
                    | RowPrimaryKeyConstraint ann:Annotation name:String
                    | RowReferenceConstraint ann:Annotation name:String
@@ -412,7 +412,7 @@ DATA RowConstraint | NullConstraint ann:Annotation name:String
 
 DATA Constraint | UniqueConstraint ann:Annotation name:String x:{[String]}
                 | PrimaryKeyConstraint ann:Annotation name:String x:{[String]}
-                | CheckConstraint ann:Annotation name:String Expression
+                | CheckConstraint ann:Annotation name:String expr:Expression
                   -- sourcecols targettable targetcols ondelete onupdate
                 | ReferenceConstraint ann:Annotation
                                       name:String

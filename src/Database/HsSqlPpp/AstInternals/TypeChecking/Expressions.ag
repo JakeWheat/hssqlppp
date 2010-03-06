@@ -13,7 +13,10 @@ SEM Expression
       PositionalArg Placeholder WindowFn
         lhs.annotatedTree = updateAnnotation
                               (setTypeAddErrorsA @loc.tpe
-                               . \a -> a {fnProt = @loc.prototype}) @loc.backTree
+                               . \a -> a {fnProt = @loc.prototype
+                                         ,infType = msum [@lhs.inferredType
+                                                         ,etmt @loc.tpe
+                                                         ,Nothing]}) @loc.backTree
         loc.tpe : Et
 
 SEM Expression
@@ -36,6 +39,9 @@ SEM Expression
 ATTR Expression [||ntAnnotatedTree : Expression
                    ntType : {[(String,Type)]}]
 
+ATTR Expression [inferredType : {Maybe Type}||]
+
+ATTR ExpressionList [inferredTypes : {[Maybe Type]}||]
 
 {-
 == literals
@@ -385,26 +391,103 @@ SEM InList
 {-
 ================================================================================
 
-dodgy type inference for parameterized statements
+slightly dodgy type inference
 
-start with ? in function calls only
+target is just to support parameterized statements at the moment, so
+lots missing and no unification or anything like that, although this
+wouldn't be too hard to add
 
-the idea is to assume the type is unknown, save the matched function prototype,
-then set an inferred type attribute back down into the ? node,
-then convert this to an annotation
+some more of the code is in insert.ag
 
-the matched function prototype gets saved in Expression.loc.protoType
-above when resolving the matching function
+basically we just pass inferred types from function calls to the
+individual arguments using the matched function prototype, and we pass
+inferred types from the table's attribute types in an insert
+statement. No other inferrence is done, and the inferred types aren't
+checked for consistency with any type already in a node.
 
-won't work: the function prototype lookup uses the annotation on the
-argument nodes, and this will make the annotation dependent on already
-having the function prototype.
+Then we use this info only to get the types of any placeholders in a
+parameterized statement.
 
 -}
 
--- ATTR Expression [inferredType:Type||]
--- ATTR ExpressionList [inferredTypes:{[Type]}||]
 
--- SEM Expression
---    | FunCall
---        args.inferredTypes = let t = 
+-- some of this could be filled in quite easily
+
+SEM AlterTableAction
+    | AlterColumnDefault def.inferredType = Nothing
+
+SEM CaseExpressionList
+    | Cons hd.inferredType = Nothing
+
+SEM CaseExpressionListExpressionPair
+    | Tuple x2.inferredType = Nothing
+
+SEM Constraint
+    | CheckConstraint expr.inferredType = Nothing
+
+SEM ExpressionDirectionPair
+    | Tuple x1.inferredType = Nothing
+
+SEM ExpressionList
+    | Cons hd.inferredType = case @lhs.inferredTypes of
+                               (t:_) -> t
+                               _ -> Nothing
+           tl.inferredTypes  = case @lhs.inferredTypes of
+                               (_:ts) -> ts
+                               _ -> []
+
+SEM JoinExpression
+    | JoinOn expr.inferredType = Just typeBool
+
+SEM MaybeBoolExpression
+    | Just just.inferredType = Just typeBool
+
+SEM MaybeExpression
+    | Just just.inferredType = Nothing
+
+SEM RowConstraint
+    | RowCheckConstraint expr.inferredType = Nothing
+
+SEM SelectItem
+    | SelExp SelectItem ex.inferredType = Nothing
+
+SEM Statement
+    | Assignment value.inferredType = Nothing
+    | CaseStatementSimple val.inferredType = Nothing
+    | Execute ExecuteInto Perform ReturnNext WhileStatement
+        expr.inferredType = Nothing
+    | ForIntegerStatement from.inferredType = Nothing
+                          to.inferredType = Nothing
+SEM TableRef
+    | TrefFun fn.inferredType = Nothing
+
+SEM ExpressionRoot
+    | ExpressionRoot expr.inferredType = Nothing
+
+SEM ExpressionStatementListPair
+    | Tuple x1.inferredType = Nothing
+
+SEM Expression
+    | FunCall
+        args.inferredTypes = maybe [] id $ do
+                             (_,t,_,_) <- @loc.prototype
+                             return $ map Just t
+    | LiftOperator
+        args.inferredTypes = []
+    | WindowFn
+        partitionBy.inferredTypes = []
+        orderBy.inferredTypes = []
+
+SEM ExpressionListStatementListPair
+    | Tuple x1.inferredTypes = []
+
+SEM InList
+    | InList exprs.inferredTypes = []
+
+SEM SelectExpression
+    | Select selGroupBy.inferredTypes = []
+
+SEM Statement
+    | CreateTrigger fnArgs.inferredTypes = []
+    | Raise args.inferredTypes = []
+    | Update assigns.inferredTypes = []

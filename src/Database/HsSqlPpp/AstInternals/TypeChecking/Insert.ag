@@ -11,7 +11,7 @@ with default values at the moment.
 SEM Statement
     | Insert
         loc.tpe = either Left (const $ Right $ Pseudo Void) @loc.columnTypes
-        loc.statementType = Just (catMaybes $ getPlaceholderTypes @loc.insDataAddedInferredTypes
+        loc.statementType = Just (catMaybes $ getPlaceholderTypes @insData.annotatedTree
                                  ,@returning.listType)
         -- column types is the name,type list for the columns
         -- mentioned in the select expression being inserted
@@ -32,22 +32,14 @@ SEM Statement
             lkpA m n = maybe (Left [UnrecognisedIdentifier n])
                              (\t -> Right (n,t))
                              $ lookup n m
-        loc.insDataAddedInferredTypes =
-            either (const @insData.annotatedTree) id $
-            case @insData.annotatedTree of
-              Values ann [exl] -> do
-                  fargs <- map (Just . snd) <$> @loc.columnTypes
-                  let newExl = map setInfType $ zip (fargs ++ repeat Nothing) exl
-                  return $ Values ann [newExl]
-              x -> return x
-            where
-              setInfType :: (Maybe Type,Expression) -> Expression
-              setInfType (t,a) = updateAnnotation (\i -> i {infType = t}) a
 
         loc.backTree = Insert @ann @table @targetCols
-                              @loc.insDataAddedInferredTypes
+                              @insData.annotatedTree
                               @returning.annotatedTree
         loc.catUpdates = []
+        insData.inferredTypes = maybe [] id $ do
+                                ts <- etmt $ @loc.columnTypes
+                                return $ map (Just . snd) ts
 
 -- inject the ids into the returning part
 
@@ -58,3 +50,29 @@ SEM Statement
               atts <- catCompositeAttrs @lhs.cat relationComposites @table
               lbUpdate @lhs.cat (LBIds "insert target table" "" atts []) @lhs.lib
 
+-- inferred types in the select expresssion
+
+ATTR SelectExpression [inferredTypes: {[Maybe Type]}||]
+
+ATTR ExpressionListList [inferredTypes: {[Maybe Type]}||]
+
+SEM SelectExpression
+    | Values vll.inferredTypes = @lhs.inferredTypes
+
+SEM ExpressionListList
+    | Cons hd.inferredTypes = @lhs.inferredTypes
+           tl.inferredTypes = @lhs.inferredTypes
+
+SEM Expression
+    | Exists ScalarSubQuery sel.inferredTypes = []
+SEM InList
+    | InSelect sel.inferredTypes = []
+SEM Statement
+    | CreateTableAs CreateView expr.inferredTypes = []
+    | ForSelectStatement ReturnQuery
+        sel.inferredTypes = []
+    | SelectStatement ex.inferredTypes = []
+SEM TableRef
+    | SubTref sel.inferredTypes = []
+SEM WithQuery
+    | WithQuery ex.inferredTypes = []

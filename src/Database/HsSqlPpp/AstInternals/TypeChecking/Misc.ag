@@ -129,35 +129,15 @@ but probably needs a proper type inferencing algorithm to be used, is
 done like this for development expediency.
 
 -}
-getPlaceholders :: Data a => a -> [Expression]
-getPlaceholders st =
-    filter isPlaceholder $ everything (++) (mkQ [] ga) (setInferredTypes st)
+
+getPlaceholderTypes :: Data a => a -> [Maybe Type]
+getPlaceholderTypes ex =
+    [infType (getAnnotation x) | x <- universeBi ex
+                                 ,isPlaceholder x]
     where
-      ga :: Expression -> [Expression]
-      ga s = [s]
       isPlaceholder e = case e of
                           PositionalArg _ _ -> True
                           Placeholder _ -> True
                           _ -> False
-
-getPlaceholderTypes :: Data a => a -> [Maybe Type]
-getPlaceholderTypes ex = map (infType . getAnnotation) $ getPlaceholders ex
-
-
-setInferredTypes :: Data a => a -> a
-setInferredTypes =
-  transformBi $ \x ->
-    case x of
-      FunCall an op exprs -> FunCall an op (addInferredTypes an exprs)
-      x1 -> x1
-  where
-    addInferredTypes :: Annotation -> [Expression] -> [Expression]
-    addInferredTypes an exprs =
-           let args :: [Maybe Type]
-               args = map Just $ maybe [] (\(_,a,_,_) -> a) $ fnProt an
-           in map setInfType $ zip (args ++ repeat Nothing) exprs
-           where
-             setInfType :: (Maybe Type,Expression) -> Expression
-             setInfType (t,a) = updateAnnotation (\i -> i {infType = t}) a
 
 }
