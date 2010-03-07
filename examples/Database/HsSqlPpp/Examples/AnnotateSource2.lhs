@@ -90,10 +90,11 @@ then concat the lot together, and can then render with pandoc
 >   cat <- either (\l -> error $ show l) id <$> readCatalog dbName
 >   let transformedAst = maybe origAst (\t -> t origAst) astTransform
 >       (_,transformedAast) = typeCheck cat transformedAst
->   let sps = map getSp transformedAst
+>   let sps :: [Maybe (String,Int,Int)]
+>       sps = map (asrc . getAnnotation) transformedAst
 >   when (any (==Nothing) sps)
 >        $ error "statements without source positions"
->   let afns = map (\(f,_) -> f) $ catMaybes sps
+>   let afns = map (\(f,_,_) -> f) $ catMaybes sps
 >   when (any (`notElem` fs) afns)
 >        $ error "statements with unrecognised source file"
 
@@ -105,7 +106,7 @@ then for each file we have the filename and the list of transformed statements
 we want to print each of these transformed statements in order to a new file
 interspersed we want chunks of the original source
 
->   let p = npartition (fromMaybe (head fs) . fmap fst . getSp) transformedAast
+>   let p = npartition (fromMaybe (head fs) . fmap (\(a,_,_) -> a) . asrc . getAnnotation) transformedAast
 >   (f1 :: [(String,[(String,[Statement])])]) <- forM p (\(f, sts) -> do
 >              src <- readFile f
 >              return (f, intersperseSource f src sts))
@@ -118,8 +119,8 @@ interspersed we want chunks of the original source
 >     showEntry :: (Annotation -> String) -> (String, [Statement]) -> String
 >     showEntry a (s, sts) =
 >         let sto = either (const []) id $ parseSql "" s -- bit crap, we could reuse the already parsed statements
->             s1 = stripAnnotations sto
->             s2 = stripAnnotations sts
+>             s1 = resetAnnotations sto
+>             s2 = resetAnnotations sts
 >         in case () of
 >              _ | trim s == "" && sts == [] -> ""
 >                | --hack
@@ -152,8 +153,8 @@ interspersed we want chunks of the original source
 
 > intersperseSource :: FilePath -> String -> [Statement] -> [(String,[Statement])]
 > intersperseSource fileName src statements =
->   let firstLine = fromJust $ msum $ map (\s -> case getSp s of
->                                                  Just (f,l) | f == fileName -> {-trace ("sp: " ++ (ppExpr s)) $-} Just l
+>   let firstLine = fromJust $ msum $ map (\s -> case (asrc . getAnnotation) s of
+>                                                  Just (f,l,_) | f == fileName -> {-trace ("sp: " ++ (ppExpr s)) $-} Just l
 >                                                  _ -> Nothing) statements
 >   in {-trace ("firstLine: " ++ show firstLine) $ -}
 >      (unlines $ take firstLine fl, []) :
@@ -161,11 +162,10 @@ interspersed we want chunks of the original source
 >   where
 >     addSource :: [(String,[Statement])] -> Int -> [Statement] -> [Statement] -> [(String,[Statement])]
 >     addSource acc lno sts1 (st:sts) =
->       let sp = getSp st
->       in case sp of
+>       case (asrc . getAnnotation) st of
 >            Nothing -> addSource acc lno (st:sts1) sts
->            Just (f,l) | f /= fileName || l == lno -> addSource acc lno (st:sts1) sts
->                       | otherwise -> addSource ((fileLines lno l, sts1):acc)
+>            Just (f,l,_) | f /= fileName || l == lno -> addSource acc lno (st:sts1) sts
+>                         | otherwise -> addSource ((fileLines lno l, sts1):acc)
 >                                                l [st] sts
 >     addSource acc lno sts1 [] = ((fileLines lno (length fl)), sts1):acc
 >     fileLines :: Int -> Int -> String
@@ -177,20 +177,20 @@ interspersed we want chunks of the original source
 >   mapM (\f -> liftIO (parseSqlFile f) >>= tsl) fns >>=
 >   concat |> return
 
-> getSp :: Statement -> Maybe (String,Int)
+> {-getSp :: Statement -> Maybe (String,Int)
 > getSp st =
 >   getSP (getAnnotation st)
 >   where
 >     getSP (SourcePos f l _ : _ ) = Just (f,l)
 >     getSP (_ : xs) = getSP xs
->     getSP [] = Nothing
+>     getSP [] = Nothing-}
 
 > defaultAnnotationPrinter :: Annotation -> String
 > defaultAnnotationPrinter a =
->   intercalate "\n" $ map ppA a
+>   intercalate "\n" $ catMaybes [fmap show $ stType a
+>                                ,fmap show $ nl $ catUpd a
+>                                ,fmap show $ nl $ errs a]
 >   where
->     ppA x = case x of
->               StatementTypeA st@(StatementType i o) | not (null i) && not (null o) -> ppExpr st
->               CatUpdates u | not (null u) -> ppExpr u
->               TypeErrorA t -> ppExpr t
->               _ -> ""
+>     nl l = if null l
+>            then Nothing
+>            else Just l

@@ -125,6 +125,7 @@ test some more really basic expressions
 >                          [FunCall ea "!not"
 >                           [BooleanLit ea True]])
 >      ]
+
 >    ,Group "case expressions" [
 >       e {-"case when a,b then 3\n\
 >         \     when c then 4\n\
@@ -230,6 +231,7 @@ select statements
 >          ,FunCall ea "=" [Identifier ea "c", IntegerLit ea 3]])]
 >      ]
 >
+
 >    ,Group "more select statements" [
 >       s "select a from tbl\n\
 >         \except\n\
@@ -389,6 +391,7 @@ select statements
 >            (Tref ea "c" NoAlias)
 >            Nothing NoAlias)
 >           Nothing NoAlias))]
+
 >      ,s "select x from ((a cross join b) cross join c);"
 >        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
@@ -552,6 +555,7 @@ select statements
 >                                ,SelectItem ea (IntegerLit ea 2) "b"] [])
 >                   (TableAlias "x"))]
 >      ]
+
 >    ,Group "multiple statements" [
 >       s "select 1;\nselect 2;" [SelectStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 1)]
 >                                ,SelectStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 2)]]
@@ -1166,7 +1170,7 @@ quick sanity check
 >       [NullStatement ea]]
 >
 >     ]
->
+
 >    ,Group "misc" [
 >       s "SET search_path TO my_schema, public;"
 >         [Set ea "search_path" [SetId ea "my_schema"

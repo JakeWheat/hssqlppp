@@ -44,30 +44,33 @@ extra-source-files:  README
                      testfiles/suppliers_and_parts.sql
                      --find src/ -iname '*ag'
                      src/Database/HsSqlPpp/AstInternals/AstInternal.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Update.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/Triggers.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/SelectStatement.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/TableRefs.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Delete.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/TypeChecking.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/CreateTable.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/CreateFunction.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/SelectLists.ag
+                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Insert.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/Expressions.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/Drops.ag
                      src/Database/HsSqlPpp/AstInternals/TypeChecking/MiscCreates.ag
                      --find examples/ -iname '*hs'
                      examples/RunWrappers.lhs
                      examples/Database/HsSqlPpp/DevelTools/TestFileProcessor.lhs
+                     examples/Database/HsSqlPpp/DevelTools/ShortDefaultTemplate1Catalog.lhs
                      examples/Database/HsSqlPpp/DevelTools/MakeAntiNodes.lhs
                      examples/Database/HsSqlPpp/DevelTools/DoChaosSql.lhs
                      examples/Database/HsSqlPpp/DevelTools/PandocUtils.lhs
                      examples/Database/HsSqlPpp/DevelTools/MakeWebsite.lhs
-                     examples/Database/HsSqlPpp/Utils/Here.lhs
+                     examples/Database/HsSqlPpp/Examples/Chaos2010.lhs
                      examples/Database/HsSqlPpp/Examples/DatabaseLoader.lhs
-                     examples/Database/HsSqlPpp/Examples/AnnotateSource.lhs
+                     examples/Database/HsSqlPpp/Examples/Extensions/TemporalData.lhs
                      examples/Database/HsSqlPpp/Examples/Extensions/GeneralInclusion.lhs
                      examples/Database/HsSqlPpp/Examples/Extensions/ExtensionTests.lhs
                      examples/Database/HsSqlPpp/Examples/Extensions/TransitionConstraints.lhs
@@ -104,6 +107,7 @@ extra-source-files:  README
                      examples/Database/HsSqlPpp/Tests/ExtensionTests.lhs
                      examples/Database/HsSqlPpp/Tests/LocalBindingsTests.lhs
                      examples/Database/HsSqlPpp/Tests/ParserTests.lhs
+                     examples/Database/HsSqlPpp/Tests/TypeInferenceTests.lhs
                      examples/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs
                      examples/Database/HsSqlPpp/Tests/RoundtripTests.lhs
                      examples/Database/HsSqlPpp/Tests/TypeCheckTests.lhs
@@ -144,10 +148,12 @@ Library
                      Database.HsSqlPpp.TypeChecker
 
   Other-Modules:     Database.HsSqlPpp.Utils.Utils
+                     Database.HsSqlPpp.Utils.Here
+                     Database.HsSqlPpp.Utils.DbmsCommon
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
+                     Database.HsSqlPpp.AstInternals.AstAnti
                      Database.HsSqlPpp.AstInternals.AstAnnotation
                      Database.HsSqlPpp.AstInternals.AstInternal
-                     Database.HsSqlPpp.AstInternals.AstAnti
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
                      Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
@@ -156,7 +162,6 @@ Library
                      Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
                      Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
                      Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
-                     Database.HsSqlPpp.Utils.DbmsCommon
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParseErrors
                      Database.HsSqlPpp.Parsing.ParserInternal
@@ -189,7 +194,7 @@ Executable HsSqlSystem
                      filepath,
                      FileManip,
                      process,
-                     pandoc,
+                     pandoc == 1.3,
                      directory,
                      Pipe,
                      haskell98,

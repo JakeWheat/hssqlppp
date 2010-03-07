@@ -40,7 +40,7 @@ to get a list of commands and purpose and usage info
 > --import Database.HsSqlPpp.Examples.WrapperGen
 > import Database.HsSqlPpp.Examples.DBUtils
 >
-> --import Database.HsSqlPpp.DevelTools.MakeWebsite
+> import Database.HsSqlPpp.DevelTools.MakeWebsite
 > import Database.HsSqlPpp.DevelTools.MakeAntiNodes
 > --import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 > import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
@@ -1337,7 +1337,7 @@ main
 >          PgDump db -> pgDump1 db
 >          TestBattery db fns -> runTestBattery db fns
 >          Test as -> runTests as
->          MakeWebsite -> undefined --makeWebsite
+>          MakeWebsite -> makeWebsite
 >          MakeAntiNodes -> makeAntiNodesF
 >          ResetChaos -> resetChaos
 >          CheckChaos -> checkChaos
