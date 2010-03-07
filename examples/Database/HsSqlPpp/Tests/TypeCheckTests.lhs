@@ -378,39 +378,41 @@ rows don't match types
 >       s "select * from (select 1 as a, 2 as b) a\n\
 >         \  cross join (select true as c, 4.5 as d) b;"
 >         $ Right [Just $ ([], [("a", typeInt)
->                                           ,("b", typeInt)
->                                           ,("c", typeBool)
->                                           ,("d", typeNumeric)])]
+>                              ,("b", typeInt)
+>                              ,("c", typeBool)
+>                              ,("d", typeNumeric)])]
 >      ,s "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select true as c, 4.5 as d) b on true;"
 >         $ Right [Just $ ([], [("a", typeInt)
->                                           ,("b", typeInt)
->                                           ,("c", typeBool)
->                                           ,("d", typeNumeric)])]
+>                              ,("b", typeInt)
+>                              ,("c", typeBool)
+>                              ,("d", typeNumeric)])]
 >      ,s "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select 1 as a, 4.5 as d) b using(a);"
 >         $ Right [Just $ ([], [("a", typeInt)
->                                           ,("b", typeInt)
->                                           ,("d", typeNumeric)])]
+>                              ,("b", typeInt)
+>                              ,("d", typeNumeric)])]
 >      ,s "select * from (select 1 as a, 2 as b) a\n\
 >         \ natural inner join (select 1 as a, 4.5 as d) b;"
 >         $ Right [Just $ ([], [("a", typeInt)
->                                           ,("b", typeInt)
->                                           ,("d", typeNumeric)])]
+>                              ,("b", typeInt)
+>                              ,("d", typeNumeric)])]
 >         --check the attribute order
 >      ,s "select * from (select 2 as b, 1 as a) a\n\
 >         \ natural inner join (select 4.5 as d, 1 as a) b;"
 >         $ Right [Just $ ([], [("a", typeInt)
->                                           ,("b", typeInt)
->                                           ,("d", typeNumeric)])]
+>                              ,("b", typeInt)
+>                              ,("d", typeNumeric)])]
 >      ,s "select * from (select 1 as a1, 2 as b) a\n\
 >         \ natural inner join (select true as a1, 4.5 as d) b;"
->         $ Left [IncompatibleTypeSet [ScalarType "int4"
->                                      ,ScalarType "bool"]]
+>         $ Left [UnrecognisedCorrelationName ""
+>                ,IncompatibleTypeSet [ScalarType "int4"
+>                                     ,ScalarType "bool"]]
 >      ,s "select * from (select 1 as a1, 2 as b) a\n\
 >         \ natural inner join (select true as a1, 4.5 as d) b;"
->         $ Left [IncompatibleTypeSet [ScalarType "int4"
->                                      ,ScalarType "bool"]]
+>         $ Left [UnrecognisedCorrelationName ""
+>                ,IncompatibleTypeSet [ScalarType "int4"
+>                                     ,ScalarType "bool"]]
 >
 >      ,s "select * from (select 1 as a1) a, (select 2 as a2) b;"
 >         $ Right [Just $ ([], [("a1", typeInt)
@@ -518,7 +520,9 @@ qualifier before oid and this should still work
 
 >   ,Group "insert" [
 >       s "insert into nope (a,b) values (c,d);"
->         $ Left [UnrecognisedRelation "nope",UnrecognisedIdentifier "c",UnrecognisedIdentifier "d"]
+>         $ Left [UnrecognisedRelation "nope"
+>                ,UnrecognisedIdentifier "c"
+>                ,UnrecognisedIdentifier "d"]
 >      ,s "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b');"
 >         $ Right [Just $ ([], [] {-InsertInfo "pg_attrdef"
@@ -546,7 +550,8 @@ qualifier before oid and this should still work
 
 >   ,Group "update" [
 >       s "update nope set a = 1;"
->         $ Left [UnrecognisedRelation "nope"]
+>         $ Left [UnrecognisedRelation "nope"
+>                ,UnrecognisedIdentifier "a"]
 >      ,s "update pg_attrdef set adsrc = '' where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ,s "update pg_attrdef set (adbin,adsrc) = ('a','b','c');"
