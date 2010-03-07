@@ -11,6 +11,7 @@ Copyright 2010 Jake Wheat
 > import Database.HsSqlPpp.Tests.RoundtripTests
 > import Database.HsSqlPpp.Tests.LocalBindingsTests
 > import Database.HsSqlPpp.Tests.QuasiQuoteTests
+> import Database.HsSqlPpp.Tests.TypeInferenceTests
 >
 > allTests :: [Test]
 > allTests =
@@ -18,6 +19,7 @@ Copyright 2010 Jake Wheat
 >     typeCheckTests :
 >     extensionTests :
 >     quasiQuoteTests :
+>     typeInferenceTests :
 >     parameterizedStatementTests ++
 >     --roundtripTests ++
 >     localBindingsTests

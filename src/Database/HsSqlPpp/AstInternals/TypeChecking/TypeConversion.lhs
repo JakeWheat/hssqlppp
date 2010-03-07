@@ -17,18 +17,19 @@ checkAssignmentValid - pass in source type and target type, returns
                 typelist[] if ok, otherwise error, pg manual 10.4
                 Value Storage
 
+> {-# LANGUAGE PatternGuards #-}
 > module Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
 >                       ,checkAssignmentValid
->                       ,compositesCompatible
 >                       ,checkAssignmentsValid
 >                       ) where
 >
 > import Data.Maybe
 > import Data.List
 > import Data.Either
-> --import Debug.Trace
+> import Debug.Trace
+> import Data.Char
 >
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
@@ -129,9 +130,79 @@ against.
 ~~~~
 
 > type ProtArgCast = (FunctionPrototype, [ArgCastFlavour])
->
+
+>       {-
+>         between, greatest and least are treated as syntactic sugar so we
+>         delegate the function lookups to the <=/>= operators.
+>         the row comparison should be more general than this, since it supports
+>         any operator satisfying some properties
+> -}
 > findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] FunctionPrototype
-> findCallMatch cat f inArgs =
+> findCallMatch cat fnName' argsType =
+>     --trace ("typecheckfncall " ++ fnName' ++ show argsType) $
+>     --dependsOnRTpe argsType $
+>       case fnName of
+>               "count" -> -- not quite sure how this is suppose to work,
+>                          -- the counts in the pg catalog accept either
+>                          -- no args, or one arg of type any, but you can call
+>                          -- count with multiple arguments?
+>                          return ("count", argsType, typeBigInt, False)
+>               "!between" -> do
+>                     f1 <- lookupReturnType ">=" [argsType !! 0, argsType !! 1]
+>                     f2 <- lookupReturnType "<=" [argsType !! 0, argsType !! 2]
+>                     _ <- lookupFn "!and" [f1,f2]
+>                     return ("!between", [f1,f1,f1], typeBool, False)
+>               "greatest" -> do
+>                     (_,a,t,x) <- lookupFn fnName argsType
+>                     _ <- lookupFn ">=" [t,t]
+>                     return ("greatest",a,t,x)
+>               "least" -> do
+>                     (_,a,t,x) <- lookupFn fnName argsType
+>                     _ <- lookupFn "<=" [t,t]
+>                     return ("greatest",a,t,x)
+>               "!rowctor" -> return $ ("!rowCtor", argsType, AnonymousRecordType argsType, False)
+>                     -- special case the row comparison ops
+>                     -- this needs to be fixed: we want to match
+>                     -- any implicit casts to functions on composite types
+>                     -- first, then we can use the anonymous record type on
+>                     -- any composite
+>               _ | fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
+>                          && length argsType == 2
+>                          && all isCompositeOrSetOfCompositeType argsType,
+>                          Just a1 <- matchCompTypes argsType ->
+>                          -- && compositesCompatible cat (head argsType) (head $ tail argsType) ->
+>                              return (fnName, a1, typeBool, False)
+>               --checked for all special cases, so run general case now
+>               s -> lookupFn s argsType
+>     where
+>       lookupReturnType :: String -> [Type] -> Either [TypeError] Type
+>       lookupReturnType s1 args = fmap (\(_,_,r,_) -> r) $ lookupFn s1 args
+>       lookupFn :: String -> [Type] -> Either [TypeError] FunctionPrototype
+>       lookupFn s1 args = findCallMatch1 cat
+>                              (if s1 == "u-" then "-" else s1) args
+>       fnName = map toLower fnName'
+>       -- help the type inference for rowCtors. pretty unfinished. If we compare
+>       -- two compatible row constructors, then replace any unknown types with the
+>       -- pair type
+>       matchCompTypes :: [Type] -> Maybe [Type]
+>       matchCompTypes [a@(AnonymousRecordType as),b@(AnonymousRecordType bs)] =
+>         if not (compositesCompatible cat a b)
+>         then Nothing
+>         else let (nt1,nt2) = unzip $ map (\(t,t1) -> case (t,t1) of
+>                                          (UnknownType, u) -> (u,u)
+>                                          (u, UnknownType) -> (u,u)
+>                                          _ -> (t,t1)) $ zip as bs
+>              in Just [AnonymousRecordType nt1,AnonymousRecordType nt2]
+>       matchCompTypes [a,b] =
+>         if not (compositesCompatible cat a b)
+>         then Nothing
+>         else Just [a,b]
+>       matchCompTypes _ = Nothing
+
+
+>
+> findCallMatch1 :: Catalog -> String -> [Type] ->  Either [TypeError] FunctionPrototype
+> findCallMatch1 cat f inArgs =
 >     returnIfOnne [
 >        exactMatch
 >       ,binOp1UnknownMatch

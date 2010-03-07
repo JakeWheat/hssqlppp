@@ -89,9 +89,9 @@ SEM Expression
         (loc.tpe
         ,loc.prototype) = either (\e -> (Left e, Nothing)) id $ do
                           args <- mapM lmt @args.typeList
-                          efp <- typeCheckFunCall @lhs.cat
-                                                  @funName
-                                                  args
+                          efp <- findCallMatch @lhs.cat
+                                               @funName
+                                               args
                           let (_,_,r,_) = efp
                           return (Right r, Just efp)
 
@@ -107,67 +107,6 @@ SEM Expression
                                 @orderBy.annotatedTree
                                 @dir
                                 @frm
-{
-{-
-
-small shim in front of findCallMatch in the type conversion code, to
-handle some special cases.
-
-Some of the special cases will no longer be needed when variadic
-support is added.
-
-between, greatest and least are treated as syntactic sugar so we
-delegate the function lookups to the <=/>= operators.
-
-the row comparison should be more general than this, since it supports
-any operator satisfying some properties
-
-
-TODO: move all of this into find call match. Don't know why it's separate
--}
-typeCheckFunCall :: Catalog -> String -> [Type] -> Either [TypeError] FunctionPrototype
-typeCheckFunCall cat fnName' argsType =
-    {-trace ("typecheckfncall " ++ fnName' ++ show argsType) $-}
-    --dependsOnRTpe argsType $
-      case fnName of
-              "count" -> -- not quite sure how this is suppose to work,
-                         -- the counts in the pg catalog accept either
-                         -- no args, or one arg of type any, but you can call
-                         -- count with multiple arguments?
-                         return ("count", argsType, typeBigInt, False)
-              "!between" -> do
-                    f1 <- lookupReturnType ">=" [argsType !! 0, argsType !! 1]
-                    f2 <- lookupReturnType "<=" [argsType !! 0, argsType !! 2]
-                    lookupFn "!and" [f1,f2]
-              "greatest" -> do
-                    fp@(_,_,t,_) <- lookupFn fnName argsType
-                    _ <- lookupFn ">=" [t,t]
-                    return fp
-              "least" -> do
-                    fp@(_,_,t,_) <- lookupFn fnName argsType
-                    _ <- lookupFn "<=" [t,t]
-                    return fp
-              "!rowctor" -> return $ ("!rowCtor", argsType, AnonymousRecordType argsType, False)
-                    -- special case the row comparison ops
-                    -- this needs to be fixed: we want to match
-                    -- any implicit casts to functions on composite types
-                    -- first, then we can use the anonymous record type on
-                    -- any composite
-              _ | fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
-                         && length argsType == 2
-                         && all isCompositeOrSetOfCompositeType argsType
-                         && compositesCompatible cat (head argsType) (head $ tail argsType) -> return (fnName, argsType, typeBool, False)
-              --checked for all special cases, so run general case now
-              s -> lookupFn s argsType
-    where
-      lookupReturnType :: String -> [Type] -> Either [TypeError] Type
-      lookupReturnType s1 args = fmap (\(_,_,r,_) -> r) $ lookupFn s1 args
-      lookupFn :: String -> [Type] -> Either [TypeError] FunctionPrototype
-      lookupFn s1 args = findCallMatch cat
-                             (if s1 == "u-" then "-" else s1) args
-      fnName = map toLower fnName'
-}
-
 {-
 lifted operator:
 pretty much the same as haskell 'any (lhs [op]) rhss' (or all instead of any)
@@ -191,9 +130,9 @@ SEM Expression
                   errorWhen (not $ isArrayType bType)
                             [AnyAllError $ "second arg must be array, got " ++ show args]
                   elemType <- unwrapArray $ bType
-                  resType <- fmap (\(_,_,r,_) -> r) $ typeCheckFunCall @lhs.cat
-                                                                       @oper
-                                                                       [aType,elemType]
+                  resType <- fmap (\(_,_,r,_) -> r) $ findCallMatch @lhs.cat
+                                                                    @oper
+                                                                    [aType,elemType]
                   errorWhen (resType /= typeBool)
                             [AnyAllError $ "operator must have bool return, got " ++ show resType]
                   return resType
@@ -469,9 +408,13 @@ SEM ExpressionStatementListPair
 
 SEM Expression
     | FunCall
-        args.inferredTypes = maybe [] id $ do
-                             (_,t,_,_) <- @loc.prototype
-                             return $ map Just t
+        args.inferredTypes = maybe [] id $
+                             -- hack for anonymousrecordtypes
+                             case (@funName,@lhs.inferredType) of
+                               ("!rowctor", Just (AnonymousRecordType ts)) -> return $ map Just ts
+                               _ -> do
+                                    (_,t,_,_) <- @loc.prototype
+                                    return $ map Just t
     | LiftOperator
         args.inferredTypes = []
     | WindowFn
