@@ -148,13 +148,15 @@ tref - just a name of a table or view, just need to retrieve the fields from the
         loc.errs = case @loc.relType of
                      Left e -> e
                      Right _ -> []
-        lhs.libUpdates = [LBIds ("tref: " ++ @tbl)
-                                         (getAlias @tbl @alias)
-                                         (fst @loc.relType1)
-                                         (snd @loc.relType1)]
+        lhs.libUpdates = let n = getName @tbl.annotatedTree
+                         in trace ("got name: " ++ n) $
+                            [LBIds ("tref: " ++ n)
+                                   (getAlias n @alias)
+                                   (fst @loc.relType1)
+                                   (snd @loc.relType1)]
 
         loc.relType : {Either [TypeError] ([(String, Type)], [(String, Type)])}
-        loc.relType = catCompositeAttrsPair @lhs.cat [] @tbl
+        loc.relType = catCompositeAttrsPair @lhs.cat [] (getName @tbl.annotatedTree)
         loc.relType1 = fromRight ([],[]) @loc.relType
 
     | TrefFun
@@ -259,7 +261,7 @@ SEM TableRef
     | SubTref
         loc.backTree = SubTref @ann @sel.annotatedTree @alias
     | Tref
-        loc.backTree = Tref @ann @tbl @alias
+        loc.backTree = Tref @ann @tbl.annotatedTree @alias
     | TrefFun
         loc.backTree = TrefFun @ann @fn.annotatedTree @alias
     | JoinedTref

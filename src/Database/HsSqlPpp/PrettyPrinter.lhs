@@ -8,6 +8,7 @@ Copyright 2009 Jake Wheat
 >    reparsable text. Could do with some work to make the outputted text
 >    layout better.
 > -}
+> {-# LANGUAGE PatternGuards #-}
 > module Database.HsSqlPpp.PrettyPrinter (
 >                       --convert a sql ast to text
 >                       printSql
@@ -71,7 +72,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (Update ann tb scs fr wh rt) =
 >    convPa ca ann <+>
 >    text "update" <+> text tb <+> text "set"
->    <+> hcatCsvMap convExp scs
+>    <+> hcatCsvMap convSet scs
 >    <+> ifNotEmpty (\_ -> text "from" <+> hcatCsvMap convTref fr) fr
 >    <+> convWhere wh
 >    $+$ convReturning rt <> statementEnd
@@ -146,7 +147,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (AlterSequence ann nm o) =
 >     convPa ca ann <+>
 >     text "alter sequence" <+> text nm
->     <+> text "owned by" <+> text o <> statementEnd
+>     <+> text "owned by" <+> convExp o <> statementEnd
 >
 > convStatement ca (CreateTableAs ann t sel) =
 >     convPa ca ann <+>
@@ -270,7 +271,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement ca (Assignment ann name val) =
 >     convPa ca ann <+>
->     text name <+> text ":=" <+> convExp val <> statementEnd
+>     convExp name <+> text ":=" <+> convExp val <> statementEnd
 >
 > convStatement ca (Return ann ex) =
 >     convPa ca ann <+>
@@ -298,14 +299,14 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement ca (ForSelectStatement ann i sel stmts) =
 >     convPa ca ann <+>
->     text "for" <+> text i <+> text "in"
+>     text "for" <+> convExp i <+> text "in"
 >     <+> convSelectExpression True True sel <+> text "loop"
 >     $+$ convNestedStatements ca stmts
 >     $+$ text "end loop" <> statementEnd
 >
 > convStatement ca (ForIntegerStatement ann var st en stmts) =
 >     convPa ca ann <+>
->     text "for" <+> text var <+> text "in"
+>     text "for" <+> convExp var <+> text "in"
 >     <+> convExp st <+> text ".." <+> convExp en <+> text "loop"
 >     $+$ convNestedStatements ca stmts
 >     $+$ text "end loop" <> statementEnd
@@ -453,7 +454,7 @@ Statement components
 >       <+> parens (convSelectExpression True False ex1)
 >
 > convTref :: TableRef -> Doc
-> convTref (Tref _ f a) = text f <+> convTrefAlias a
+> convTref (Tref _ f a) = convExp f <+> convTrefAlias a
 > convTref (JoinedTref _ t1 nat jt t2 ex a) =
 >         parens (convTref t1
 >         $+$ (case nat of
@@ -499,7 +500,7 @@ Statement components
 > convSelList :: SelectList -> Doc
 > convSelList (SelectList _ ex into) =
 >   hcatCsvMap convSelItem ex
->   <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap text i) into
+>   <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap convExp i) into
 >   where
 >     convSelItem (SelectItem _ ex1 nm) = convExp ex1 <+> text "as" <+> text nm
 >     convSelItem (SelExp _ e) = convExp e
@@ -571,6 +572,7 @@ Statement components
 >                        | otherwise -> True
 >                    where
 >                      okChar x =isAlphaNum x || x `elem` "*_."
+> convExp (PIdentifier _ i) = parens $ convExp i
 > convExp (IntegerLit _ n) = integer n
 > convExp (FloatLit _ n) = double n
 > convExp (StringLit _ s) = -- needs some thought about using $$?
@@ -598,6 +600,7 @@ Statement components
 >                        _ -> parens (convExp (head es))
 >                             <> brackets (csvExp (tail es))
 >      "!rowctor" -> text "row" <> parens (hcatCsvMap convExp es)
+>      "." | [a,b] <- es -> convExp a <> text "." <> convExp b
 >      _ | isOperatorName n ->
 >         case forceRight (getOperatorType defaultTemplate1Catalog n) of
 >                           BinaryOp ->
@@ -683,6 +686,13 @@ Statement components
 > convExp (Cast _ ex t) = text "cast" <> parens (convExp ex
 >                                              <+> text "as"
 >                                              <+> convTypeName t)
+>
+> convSet :: Expression -> Doc
+> convSet (FunCall _ "=" [Identifier _ a, e]) =
+>   text a <+> text "=" <+> convExp e
+> convSet (FunCall _ "=" [is@(FunCall _ "!rowctor" _), e]) =
+>   convExp is <+> text "=" <+> convExp e
+> convSet a = error $ "bad expression in set in update: " ++ show a
 >
 > --utils
 >

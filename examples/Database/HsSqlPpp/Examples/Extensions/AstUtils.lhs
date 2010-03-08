@@ -62,8 +62,13 @@ it and quits.
 >       funrefs = getFunctionRefs a
 >
 > getTrefs :: Data a => a -> [String]
-> getTrefs ast = [tbl| Tref _ tbl _ <- universeBi ast]
+> getTrefs ast = [getName tbl| Tref _ tbl _ <- universeBi ast]
 >
+> getName :: Expression -> String
+> getName (Identifier _ i) = i
+> getName (FunCall _ "." [_,Identifier _ i]) = i
+> getName (FunCall _ "." [_,a]) = getName a
+> getName x = error $ "internal error getName called on: " ++ show x
 >
 > -- this is wrong because we don't take into account function overloading
 > getFunctionRefs :: Data a => a -> [String]

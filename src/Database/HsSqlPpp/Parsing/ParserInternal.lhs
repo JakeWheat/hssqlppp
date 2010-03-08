@@ -328,7 +328,7 @@ then we combine by seeing if there is a join looking prefix
 >                          <$> try (identifier >>= functionCallSuffix)
 >                          <*> palias
 >                         ,Tref p2
->                          <$> nkwid
+>                          <$> nkwidn
 >                          <*> palias]
 >         joinKw :: SParser (Natural, JoinType)
 >         joinKw = do
@@ -355,6 +355,31 @@ then we combine by seeing if there is a join looking prefix
 >                    (optionalSuffix
 >                       TableAlias (optional (keyword "as") *> nkwid)
 >                       FullAlias () (parens $ commaSep1 idString))
+>         badNames = ["as"
+>                    ,"where"
+>                    ,"except"
+>                    ,"union"
+>                    ,"intersect"
+>                    ,"loop"
+>                    ,"inner"
+>                    ,"on"
+>                    ,"left"
+>                    ,"right"
+>                    ,"full"
+>                    ,"cross"
+>                    ,"join"
+>                    ,"natural"
+>                    ,"order"
+>                    ,"group"
+>                    ,"limit"
+>                    ,"using"
+>                    ,"from"]
+>         nkwidn = do
+>                  i <- qName
+>                  case i of
+>                    Identifier _ n | n `elem` badNames
+>                        -> fail "not keyword"
+>                    _ -> return i
 >         nkwid = try $ do
 >                  x <- idString
 >                  --avoid all these keywords as aliases since they can
@@ -365,25 +390,7 @@ then we combine by seeing if there is a join looking prefix
 >                  --if these should be allowed as aliases without "" or
 >                  --[]
 >                  -- TODO find out what the correct behaviour here is.
->                  if map toLower x `elem` ["as"
->                              ,"where"
->                              ,"except"
->                              ,"union"
->                              ,"intersect"
->                              ,"loop"
->                              ,"inner"
->                              ,"on"
->                              ,"left"
->                              ,"right"
->                              ,"full"
->                              ,"cross"
->                              ,"join"
->                              ,"natural"
->                              ,"order"
->                              ,"group"
->                              ,"limit"
->                              ,"using"
->                              ,"from"]
+>                  if map toLower x `elem` badNames
 >                    then fail "not keyword"
 >                    else return x
 >
@@ -618,7 +625,7 @@ ddl
 >                               <*> (keyword "sequence" *> idString)
 >                               <*> (keyword "owned"
 >                                    *> keyword "by"
->                                    *> idString)
+>                                    *> qName)
 
 create function, support sql functions and plpgsql functions. Parses
 the body in both cases and provides a statement list for the body
@@ -809,7 +816,7 @@ or after the whole list
 >         flip (SelectList p) <$> readInto <*> itemList
 >        ,SelectList p  <$> itemList <*> option [] readInto]
 >   where
->     readInto = keyword "into" *> commaSep1 idString
+>     readInto = keyword "into" *> commaSep1 qName
 >     itemList = commaSep1 selectItem
 >     selectItem = pos >>= \p ->
 >                  optionalSuffix
@@ -903,7 +910,7 @@ plpgsql statements
 >              -- put the := in the first try to attempt to get a
 >              -- better error if the code looks like malformed
 >              -- assignment statement
->              <*> try (idString <* (symbol ":=" <|> symbol "="))
+>              <*> try (qName <* (symbol ":=" <|> symbol "="))
 >              <*> expr
 >
 > returnSt :: SParser Statement
@@ -928,7 +935,7 @@ plpgsql statements
 > forStatement = do
 >                p <- pos
 >                keyword "for"
->                start <- idString
+>                start <- qName
 >                keyword "in"
 >                choice [ForSelectStatement p start
 >                        <$> try selectExpression <*> theRest
@@ -1100,9 +1107,10 @@ The full list of operators from a standard template1 database should
 be used here.
 
 > table :: [[Operator [Token] ParseState Identity Expression]]
-> table = [--[binary "::" (BinOpCall Cast) AssocLeft]
+> table = [[binary "." AssocLeft]
+>          --[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
->          [prefix "-" "u-"]
+>         ,[prefix "-" "u-"]
 >         ,[binary "^" AssocLeft]
 >         ,[binary "*" AssocLeft
 >          ,idHackBinary "*" AssocLeft
@@ -1374,6 +1382,21 @@ TODO: copy this approach here.
 >                   where
 >                     ssplice = (\s -> "$i(" ++ s ++ ")") <$>
 >                               (symbol "$i(" *> idString <* symbol ")")
+
+qualified names are parsed using "." as an operator so they become
+FunCall nodes. But we don't want to parse any expression when we are
+expecting a qualified name only, so create a specialized parser just
+for that
+
+> qName :: SParser Expression
+> qName = do
+>   i <- identifier
+>   choice [do
+>            p <- pos
+>            symbol "."
+>            i1 <- qName
+>            return $ FunCall p "." [i,i1]
+>          ,return i]
 
 
 --------------------------------------------------------------------------------

@@ -478,7 +478,7 @@ this is why binary @ operator isn't currently supported
 > getOperatorType :: Catalog -> String -> Either [TypeError] OperatorType
 > getOperatorType cat s =
 >   case () of
->           _ | s `elem` ["!and", "!or","!like"] -> Right BinaryOp
+>           _ | s `elem` ["!and", "!or","!like","."] -> Right BinaryOp
 >             | s `elem` ["!not"] -> Right PrefixOp
 >             | s `elem` ["!isnull", "!isnotnull"] -> Right PostfixOp
 >             | any (\(x,_,_,_) -> x == s) (catBinaryOperators cat) ->
@@ -492,7 +492,7 @@ this is why binary @ operator isn't currently supported
 >                 Left [InternalError $ "don't know flavour of operator " ++ s]
 >
 > isOperatorName :: String -> Bool
-> isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?")
+> isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?.")
 
 ================================================================================
 

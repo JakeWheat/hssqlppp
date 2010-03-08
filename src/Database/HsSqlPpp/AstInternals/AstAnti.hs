@@ -176,6 +176,7 @@ data Expression = BooleanLit (Annotation) (Bool)
                 | IntegerLit (Annotation) (Integer)
                 | LiftOperator (Annotation) (String) (LiftFlavour) (ExpressionList)
                 | NullLit (Annotation)
+                | PIdentifier (Annotation) (Expression)
                 | Placeholder (Annotation)
                 | PositionalArg (Annotation) (Integer)
                 | ScalarSubQuery (Annotation) (SelectExpression)
@@ -225,12 +226,12 @@ data SelectItem = SelExp (Annotation) (Expression)
                 deriving (Data, Eq, Show, Typeable)
  
 data SelectList = SelectList (Annotation) (SelectItemList)
-                             ([String])
+                             ([Expression])
                 deriving (Data, Eq, Show, Typeable)
  
-data Statement = AlterSequence (Annotation) (String) (String)
+data Statement = AlterSequence (Annotation) (String) (Expression)
                | AlterTable (Annotation) (String) (AlterTableActionList)
-               | Assignment (Annotation) (String) (Expression)
+               | Assignment (Annotation) (Expression) (Expression)
                | CaseStatement (Annotation) (ExpressionListStatementListPairList)
                                (StatementList)
                | CaseStatementSimple (Annotation) (Expression)
@@ -261,9 +262,9 @@ data Statement = AlterSequence (Annotation) (String) (String)
                | Execute (Annotation) (Expression)
                | ExecuteInto (Annotation) (Expression) ([String])
                | ExitStatement (Annotation) (Maybe String)
-               | ForIntegerStatement (Annotation) (String) (Expression)
+               | ForIntegerStatement (Annotation) (Expression) (Expression)
                                      (Expression) (StatementList)
-               | ForSelectStatement (Annotation) (String) (SelectExpression)
+               | ForSelectStatement (Annotation) (Expression) (SelectExpression)
                                     (StatementList)
                | If (Annotation) (ExpressionStatementListPairList) (StatementList)
                | Insert (Annotation) (String) ([String]) (SelectExpression)
@@ -289,7 +290,7 @@ data Statement = AlterSequence (Annotation) (String) (String)
 data TableRef = JoinedTref (Annotation) (TableRef) (Natural)
                            (JoinType) (TableRef) (OnExpr) (TableAlias)
               | SubTref (Annotation) (SelectExpression) (TableAlias)
-              | Tref (Annotation) (String) (TableAlias)
+              | Tref (Annotation) (Expression) (TableAlias)
               | TrefFun (Annotation) (Expression) (TableAlias)
               deriving (Data, Eq, Show, Typeable)
  
@@ -562,6 +563,7 @@ expression x
         LiftOperator a1 a2 a3 a4 -> A.LiftOperator a1 a2 (liftFlavour a3)
                                       (expressionList a4)
         NullLit a1 -> A.NullLit a1
+        PIdentifier a1 a2 -> A.PIdentifier a1 (expression a2)
         Placeholder a1 -> A.Placeholder a1
         PositionalArg a1 a2 -> A.PositionalArg a1 a2
         ScalarSubQuery a1 a2 -> A.ScalarSubQuery a1 (selectExpression a2)
@@ -639,14 +641,16 @@ selectItem x
 selectList :: SelectList -> A.SelectList
 selectList x
   = case x of
-        SelectList a1 a2 a3 -> A.SelectList a1 (selectItemList a2) a3
+        SelectList a1 a2 a3 -> A.SelectList a1 (selectItemList a2)
+                                 (expressionList a3)
  
 statement :: Statement -> A.Statement
 statement x
   = case x of
-        AlterSequence a1 a2 a3 -> A.AlterSequence a1 a2 a3
+        AlterSequence a1 a2 a3 -> A.AlterSequence a1 a2 (expression a3)
         AlterTable a1 a2 a3 -> A.AlterTable a1 a2 (alterTableActionList a3)
-        Assignment a1 a2 a3 -> A.Assignment a1 a2 (expression a3)
+        Assignment a1 a2 a3 -> A.Assignment a1 (expression a2)
+                                 (expression a3)
         CaseStatement a1 a2 a3 -> A.CaseStatement a1
                                     (expressionListStatementListPairList a2)
                                     (statementList a3)
@@ -699,11 +703,13 @@ statement x
         Execute a1 a2 -> A.Execute a1 (expression a2)
         ExecuteInto a1 a2 a3 -> A.ExecuteInto a1 (expression a2) a3
         ExitStatement a1 a2 -> A.ExitStatement a1 a2
-        ForIntegerStatement a1 a2 a3 a4 a5 -> A.ForIntegerStatement a1 a2
+        ForIntegerStatement a1 a2 a3 a4 a5 -> A.ForIntegerStatement a1
+                                                (expression a2)
                                                 (expression a3)
                                                 (expression a4)
                                                 (statementList a5)
-        ForSelectStatement a1 a2 a3 a4 -> A.ForSelectStatement a1 a2
+        ForSelectStatement a1 a2 a3 a4 -> A.ForSelectStatement a1
+                                            (expression a2)
                                             (selectExpression a3)
                                             (statementList a4)
         If a1 a2 a3 -> A.If a1 (expressionStatementListPairList a2)
@@ -743,7 +749,7 @@ tableRef x
                                              (tableAlias a7)
         SubTref a1 a2 a3 -> A.SubTref a1 (selectExpression a2)
                               (tableAlias a3)
-        Tref a1 a2 a3 -> A.Tref a1 a2 (tableAlias a3)
+        Tref a1 a2 a3 -> A.Tref a1 (expression a2) (tableAlias a3)
         TrefFun a1 a2 a3 -> A.TrefFun a1 (expression a2) (tableAlias a3)
  
 typeAttributeDef :: TypeAttributeDef -> A.TypeAttributeDef

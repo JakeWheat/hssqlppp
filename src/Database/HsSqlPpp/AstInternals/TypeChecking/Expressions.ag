@@ -355,6 +355,7 @@ parameterized statement.
 SEM AlterTableAction
     | AlterColumnDefault def.inferredType = Nothing
 
+
 SEM CaseExpressionList
     | Cons hd.inferredType = Nothing
 
@@ -397,8 +398,12 @@ SEM Statement
         expr.inferredType = Nothing
     | ForIntegerStatement from.inferredType = Nothing
                           to.inferredType = Nothing
+    | AlterSequence ownedBy.inferredType = Nothing
+    | Assignment target.inferredType = Nothing
+    | ForIntegerStatement ForSelectStatement var.inferredType = Nothing
 SEM TableRef
     | TrefFun fn.inferredType = Nothing
+    | Tref tbl.inferredType = Nothing
 
 SEM ExpressionRoot
     | ExpressionRoot expr.inferredType = Nothing

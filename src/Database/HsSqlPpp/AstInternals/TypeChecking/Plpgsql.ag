@@ -20,16 +20,16 @@ SEM Statement
         loc.tpe =
             do
             fromType <- lmt $ getTypeAnnotation @value.annotatedTree
-            toType <- lbLookupID @lhs.lib @target
+            toType <- lbLookupID @lhs.lib (getName @target.annotatedTree)
             checkAssignmentValid @lhs.cat fromType toType
             return $ Pseudo Void
-        loc.backTree = Assignment @ann @target @value.annotatedTree
+        loc.backTree = Assignment @ann @target.annotatedTree @value.annotatedTree
         loc.catUpdates = []
         loc.statementType = Nothing
 
 SEM Statement
     | ForIntegerStatement
-        loc.varTypeE = lbLookupID @lhs.lib @var
+        loc.varTypeE = lbLookupID @lhs.lib (getName @var.annotatedTree)
         loc.tpe =
           do
           fromType <- lmt $ getTypeAnnotation @from.annotatedTree
@@ -41,15 +41,15 @@ SEM Statement
           return $ Pseudo Void
         sts.lib =
             case @loc.varTypeE of
-              Left [UnrecognisedIdentifier @var] ->
+              Left [UnrecognisedIdentifier _] ->
                   -- create implicitly declared variable
                   either (const @lhs.lib) id $ do
                   ft <- lmt $ getTypeAnnotation @from.annotatedTree
                   lbUpdate @lhs.cat
-                    (LBIds "local for loop variable" "" [(@var,ft)] []) @lhs.lib
+                    (LBIds "local for loop variable" "" [((getName @var.annotatedTree),ft)] []) @lhs.lib
               _ -> @lhs.lib
 
-        loc.backTree = ForIntegerStatement @ann @var @from.annotatedTree @to.annotatedTree @sts.annotatedTree
+        loc.backTree = ForIntegerStatement @ann @var.annotatedTree @from.annotatedTree @to.annotatedTree @sts.annotatedTree
         loc.catUpdates = []
         loc.statementType = Nothing
 
@@ -60,7 +60,7 @@ SEM Statement
         loc.tpe =
           do
           st <- lmt @loc.selType
-          toType <- lbLookupID @lhs.lib @var
+          toType <- lbLookupID @lhs.lib (getName @var.annotatedTree)
           checkAssignmentValid @lhs.cat st toType
           return $ Pseudo Void
         --just handles assigning to a record type for now
@@ -71,9 +71,9 @@ SEM Statement
             either (const @lhs.lib) id $ do
             _ <- @loc.tpe
             st <- lmt @loc.selType
-            lbUpdate @lhs.cat (LBIds "for loop record type" "" [(@var,st)] []) @lhs.lib
+            lbUpdate @lhs.cat (LBIds "for loop record type" "" [(getName @var.annotatedTree,st)] []) @lhs.lib
 
-        loc.backTree = ForSelectStatement @ann @var @sel.annotatedTree @sts.annotatedTree
+        loc.backTree = ForSelectStatement @ann @var.annotatedTree @sel.annotatedTree @sts.annotatedTree
         loc.catUpdates = []
         loc.statementType = Nothing
 

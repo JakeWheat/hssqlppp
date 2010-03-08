@@ -203,7 +203,7 @@ DATA Statement
                      cache:Integer
     | AlterSequence ann:Annotation
                     name:String
-                    ownedBy: String
+                    ownedBy: Expression
     | CreateTableAs ann:Annotation
                     name : String
                     expr : SelectExpression
@@ -250,7 +250,7 @@ DATA Statement
                     names : {[String]}
                     cascade : Cascade
     | Assignment ann:Annotation
-                 target : String
+                 target : Expression
                  value : Expression
     | Return ann:Annotation
              value : MaybeExpression
@@ -271,11 +271,11 @@ DATA Statement
                   expr : Expression
                   targets : {[String]}
     | ForSelectStatement ann:Annotation
-                         var : String
+                         var : Expression
                          sel : SelectExpression
                          sts : StatementList
     | ForIntegerStatement ann:Annotation
-                          var : String
+                          var : Expression
                           from : Expression
                           to : Expression
                           sts : StatementList
@@ -347,7 +347,7 @@ DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
 -}
 
 DATA TableRef | Tref ann:Annotation
-                     tbl:String
+                     tbl:Expression
                      alias : TableAlias
               | JoinedTref ann:Annotation
                            tbl : TableRef
@@ -379,7 +379,7 @@ data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 
 -- select columns, into columns
 
-DATA SelectList | SelectList ann:Annotation items:SelectItemList into:{[String]}
+DATA SelectList | SelectList ann:Annotation items:SelectItemList into:{[Expression]}
 
 DATA SelectItem | SelExp ann:Annotation ex:Expression
                 | SelectItem ann:Annotation ex:Expression name:String
@@ -526,6 +526,11 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                        tn:TypeName
                 | Identifier ann:Annotation
                              i:String
+                -- bit hacky, preserve parens when they contain just an identifier
+                -- or positional arg, so we can pretty print this since it is needed
+                -- in some places for the pg parser
+                | PIdentifier ann:Annotation
+                              ex:Expression
                 | Case ann:Annotation
                        cases : CaseExpressionListExpressionPairList
                        els : MaybeExpression

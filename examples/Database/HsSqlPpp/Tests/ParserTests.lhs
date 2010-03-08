@@ -152,7 +152,7 @@ test some more really basic expressions
 >      ]
 >    ,Group "exists" [
 >       e "exists (select 1 from a)"
->       (Exists ea (selectFrom [SelExp ea (IntegerLit ea 1)] (Tref ea "a" NoAlias)))
+>       (Exists ea (selectFrom [SelExp ea (IntegerLit ea 1)] (Tref ea (i "a") NoAlias)))
 >      ]
 >    ,Group "in variants" [
 >       e "t in (1,2)"
@@ -208,24 +208,24 @@ select statements
 >      ]
 >    ,Group "select from table" [
 >       s "select * from tbl;"
->       [SelectStatement ea $ selectFrom (selIL ["*"]) (Tref ea "tbl" NoAlias)]
+>       [SelectStatement ea $ selectFrom (selIL ["*"]) (Tref ea (i "tbl") NoAlias)]
 >      ,s "select a,b from tbl;"
->       [SelectStatement ea $ selectFrom (selIL ["a", "b"]) (Tref ea "tbl" NoAlias)]
+>       [SelectStatement ea $ selectFrom (selIL ["a", "b"]) (Tref ea (i "tbl") NoAlias)]
 >      ,s "select a,b from inf.tbl;"
->       [SelectStatement ea $ selectFrom (selIL ["a", "b"]) (Tref ea "inf.tbl" NoAlias)]
+>       [SelectStatement ea $ selectFrom (selIL ["a", "b"]) (Tref ea (qi "inf" "tbl") NoAlias)]
 >      ,s "select distinct * from tbl;"
->       [SelectStatement ea $ Select ea Distinct (SelectList ea (selIL ["*"]) []) [Tref ea "tbl" NoAlias]
+>       [SelectStatement ea $ Select ea Distinct (SelectList ea (selIL ["*"]) []) [Tref ea (i "tbl") NoAlias]
 >        Nothing [] Nothing [] Nothing Nothing]
 >      ,s "select a from tbl where b=2;"
 >       [SelectStatement ea $ selectFromWhere
 >         (selIL ["a"])
->         (Tref ea "tbl" NoAlias)
+>         (Tref ea (i "tbl") NoAlias)
 >         (FunCall ea "="
 >          [Identifier ea "b", IntegerLit ea 2])]
 >      ,s "select a from tbl where b=2 and c=3;"
 >       [SelectStatement ea $ selectFromWhere
 >         (selIL ["a"])
->         (Tref ea "tbl" NoAlias)
+>         (Tref ea (i "tbl") NoAlias)
 >         (FunCall ea "!and"
 >          [FunCall ea "="  [Identifier ea "b", IntegerLit ea 2]
 >          ,FunCall ea "=" [Identifier ea "c", IntegerLit ea 3]])]
@@ -237,26 +237,26 @@ select statements
 >         \except\n\
 >         \select a from tbl1;"
 >       [SelectStatement ea $ CombineSelect ea Except
->        (selectFrom (selIL ["a"]) (Tref ea "tbl" NoAlias))
->        (selectFrom (selIL ["a"]) (Tref ea "tbl1" NoAlias))]
+>        (selectFrom (selIL ["a"]) (Tref ea (i "tbl") NoAlias))
+>        (selectFrom (selIL ["a"]) (Tref ea (i "tbl1") NoAlias))]
 >      ,s "select a from tbl where true\n\
 >         \except\n\
 >         \select a from tbl1 where true;"
 >       [SelectStatement ea $ CombineSelect ea Except
->        (selectFromWhere (selIL ["a"]) (Tref ea "tbl" NoAlias) (BooleanLit ea True))
->        (selectFromWhere (selIL ["a"]) (Tref ea "tbl1" NoAlias) (BooleanLit ea True))]
+>        (selectFromWhere (selIL ["a"]) (Tref ea (i "tbl") NoAlias) (BooleanLit ea True))
+>        (selectFromWhere (selIL ["a"]) (Tref ea (i "tbl1") NoAlias) (BooleanLit ea True))]
 >      ,s "select a from tbl\n\
 >         \union\n\
 >         \select a from tbl1;"
 >       [SelectStatement ea $ CombineSelect ea Union
->        (selectFrom (selIL ["a"]) (Tref ea "tbl" NoAlias))
->        (selectFrom (selIL ["a"]) (Tref ea "tbl1" NoAlias))]
+>        (selectFrom (selIL ["a"]) (Tref ea (i "tbl") NoAlias))
+>        (selectFrom (selIL ["a"]) (Tref ea (i "tbl1") NoAlias))]
 >      ,s "select a from tbl\n\
 >         \union all\n\
 >         \select a from tbl1;"
 >       [SelectStatement ea $ CombineSelect ea UnionAll
->        (selectFrom (selIL ["a"]) (Tref ea "tbl" NoAlias))
->        (selectFrom (selIL ["a"]) (Tref ea "tbl1" NoAlias))]
+>        (selectFrom (selIL ["a"]) (Tref ea (i "tbl") NoAlias))
+>        (selectFrom (selIL ["a"]) (Tref ea (i "tbl1") NoAlias))]
 >      ,s "(select 1 union select 2) union select 3;"
 >       [SelectStatement ea
 >        (CombineSelect ea Union
@@ -279,8 +279,8 @@ select statements
 >           (WithSelect ea
 >            [WithQuery ea "a" (selectE $ SelectList ea
 >                                [SelectItem ea (IntegerLit ea 1) "a1"] [])
->            ,WithQuery ea "b" (selectFrom (selIL ["*"]) (Tref ea "a" NoAlias))]
->            (selectFrom (selIL ["*"]) (Tref ea "b" NoAlias)))]
+>            ,WithQuery ea "b" (selectFrom (selIL ["*"]) (Tref ea (i "a") NoAlias))]
+>            (selectFrom (selIL ["*"]) (Tref ea (i "b") NoAlias)))]
 >      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
@@ -290,105 +290,105 @@ select statements
 >           (WithSelect ea
 >            [WithQuery ea "a" (selectE $ SelectList ea
 >                                [SelectItem ea (IntegerLit ea 1) "a1"] [])
->            ,WithQuery ea "b" (selectFrom (selIL ["*"]) (Tref ea "a" NoAlias))]
+>            ,WithQuery ea "b" (selectFrom (selIL ["*"]) (Tref ea (i "a") NoAlias))]
 >            (CombineSelect ea Union
->              (selectFrom (selIL ["*"]) (Tref ea "a" NoAlias))
->              (selectFrom (selIL ["*"]) (Tref ea "b" NoAlias))))]
+>              (selectFrom (selIL ["*"]) (Tref ea (i "a") NoAlias))
+>              (selectFrom (selIL ["*"]) (Tref ea (i "b") NoAlias))))]
 >      ,s "select a as b from tbl;"
->       [SelectStatement ea $ selectFrom [SelectItem ea (Identifier ea "a") "b"] (Tref ea "tbl" NoAlias)]
+>       [SelectStatement ea $ selectFrom [SelectItem ea (Identifier ea "a") "b"] (Tref ea (i "tbl") NoAlias)]
 >      ,s "select a + b as b from tbl;"
 >       [SelectStatement ea $ selectFrom
 >        [SelectItem ea
 >         (FunCall ea "+"
 >          [Identifier ea "a", Identifier ea "b"]) "b"]
->        (Tref ea "tbl" NoAlias)]
+>        (Tref ea (i "tbl") NoAlias)]
 >      ,s "select a.* from tbl a;"
->       [SelectStatement ea $ selectFrom (selIL ["a.*"]) (Tref ea "tbl" (TableAlias "a"))]
+>       [SelectStatement ea $ selectFrom (selEL [qi "a" "*"]) (Tref ea (i "tbl") (TableAlias "a"))]
 >      ,s "select a.* from tbl a(b,c);"
->       [SelectStatement ea $ selectFrom (selIL ["a.*"]) (Tref ea "tbl" (FullAlias "a" ["b","c"]))]
+>       [SelectStatement ea $ selectFrom (selEL [qi "a" "*"]) (Tref ea (i "tbl") (FullAlias "a" ["b","c"]))]
 
 >      ,s "select * from t1 a, t2 b;"
 >             [SelectStatement ea
 >              (Select ea Dupes
 >               (SelectList ea
 >                [SelExp ea (Identifier ea "*")] [])
->               [Tref ea "t1" (TableAlias "a"),Tref ea "t2" (TableAlias "b")]
+>               [Tref ea (i "t1") (TableAlias "a"),Tref ea (i "t2") (TableAlias "b")]
 >               Nothing [] Nothing [] Nothing Nothing)]
 >      ,s "select a from b inner join c on b.a=c.a;"
 >       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural Inner (Tref ea "c" NoAlias)
+>        (JoinedTref ea (Tref ea (i "b") NoAlias) Unnatural Inner (Tref ea (i "c") NoAlias)
 >           (Just (JoinOn ea
->            (FunCall ea "=" [Identifier ea "b.a", Identifier ea "c.a"]))) NoAlias)]
+>            (FunCall ea "=" [qi "b" "a", qi "c" "a"]))) NoAlias)]
 >      ,s "select a from b inner join c as d on b.a=d.a;"
 >       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural Inner (Tref ea "c" (TableAlias "d"))
+>        (JoinedTref ea (Tref ea (i "b") NoAlias) Unnatural Inner (Tref ea (i "c") (TableAlias "d"))
 >           (Just (JoinOn ea
->            (FunCall ea "=" [Identifier ea "b.a", Identifier ea "d.a"]))) NoAlias)]
+>            (FunCall ea "=" [qi "b" "a", qi "d" "a"]))) NoAlias)]
 >      ,s "select a from b inner join c using(d,e);"
 >       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural Inner (Tref ea "c" NoAlias)
+>        (JoinedTref ea (Tref ea (i "b") NoAlias) Unnatural Inner (Tref ea (i "c") NoAlias)
 >           (Just (JoinUsing ea ["d","e"])) NoAlias)]
 >      ,s "select a from b natural inner join c;"
 >       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref ea (Tref ea "b" NoAlias) Natural Inner (Tref ea "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea (i "b") NoAlias) Natural Inner (Tref ea (i "c") NoAlias) Nothing NoAlias)]
 >      ,s "select a from b left outer join c;"
 >       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural LeftOuter (Tref ea "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea (i "b") NoAlias) Unnatural LeftOuter (Tref ea (i "c") NoAlias) Nothing NoAlias)]
 >      ,s "select a from b full outer join c;"
 >       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural FullOuter (Tref ea "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea (i "b") NoAlias) Unnatural FullOuter (Tref ea (i "c") NoAlias) Nothing NoAlias)]
 >      ,s "select a from b right outer join c;"
 >       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural RightOuter (Tref ea "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea (i "b") NoAlias) Unnatural RightOuter (Tref ea (i "c") NoAlias) Nothing NoAlias)]
 >      ,s "select a from b cross join c;"
 >       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref ea (Tref ea "b" NoAlias) Unnatural Cross (Tref ea "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea (i "b") NoAlias) Unnatural Cross (Tref ea (i "c") NoAlias) Nothing NoAlias)]
 >      ,s "select a from (b natural join c);"
 >       [SelectStatement ea $ selectFrom
 >        (selIL ["a"])
->        (JoinedTref ea (Tref ea "b" NoAlias) Natural Inner (Tref ea "c" NoAlias) Nothing NoAlias)]
+>        (JoinedTref ea (Tref ea (i "b") NoAlias) Natural Inner (Tref ea (i "c") NoAlias) Nothing NoAlias)]
 >      ,s "select x from a cross join b cross join c;"
 >        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
 >          (JoinedTref ea
 >          (JoinedTref ea
->           (Tref ea "a" NoAlias)
+>           (Tref ea (i "a") NoAlias)
 >            Unnatural Cross
->           (Tref ea "b" NoAlias)
+>           (Tref ea (i "b") NoAlias)
 >           Nothing NoAlias)
 >          Unnatural Cross
->          (Tref ea "c" NoAlias)
+>          (Tref ea (i "c") NoAlias)
 >          Nothing NoAlias))]
 >      ,s "select x from ((a cross join b) cross join c);"
 >        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
 >          (JoinedTref ea
 >          (JoinedTref ea
->           (Tref ea "a" NoAlias)
+>           (Tref ea (i "a") NoAlias)
 >            Unnatural Cross
->           (Tref ea "b" NoAlias)
+>           (Tref ea (i "b") NoAlias)
 >           Nothing NoAlias)
 >          Unnatural Cross
->          (Tref ea "c" NoAlias)
+>          (Tref ea (i "c") NoAlias)
 >          Nothing NoAlias))]
 >      ,s "select x from (a cross join (b cross join c));"
 >        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
 >          (JoinedTref ea
->           (Tref ea "a" NoAlias)
+>           (Tref ea (i "a") NoAlias)
 >           Unnatural Cross
 >           (JoinedTref ea
->            (Tref ea "b" NoAlias)
+>            (Tref ea (i "b") NoAlias)
 >            Unnatural Cross
->            (Tref ea "c" NoAlias)
+>            (Tref ea (i "c") NoAlias)
 >            Nothing NoAlias)
 >           Nothing NoAlias))]
 
@@ -397,24 +397,24 @@ select statements
 >         (selectFrom (selIL ["x"])
 >          (JoinedTref ea
 >          (JoinedTref ea
->           (Tref ea "a" NoAlias)
+>           (Tref ea (i "a") NoAlias)
 >            Unnatural Cross
->           (Tref ea "b" NoAlias)
+>           (Tref ea (i "b") NoAlias)
 >           Nothing NoAlias)
 >          Unnatural Cross
->          (Tref ea "c" NoAlias)
+>          (Tref ea (i "c") NoAlias)
 >          Nothing NoAlias))]
 >      ,s "select x from (a cross join b) cross join c;"
 >        [SelectStatement ea
 >         (selectFrom (selIL ["x"])
 >          (JoinedTref ea
 >          (JoinedTref ea
->           (Tref ea "a" NoAlias)
+>           (Tref ea (i "a") NoAlias)
 >            Unnatural Cross
->           (Tref ea "b" NoAlias)
+>           (Tref ea (i "b") NoAlias)
 >           Nothing NoAlias)
 >          Unnatural Cross
->          (Tref ea "c" NoAlias)
+>          (Tref ea (i "c") NoAlias)
 >          Nothing NoAlias))]
 >      ,s "select x from ((a cross join b) cross join c) cross join d;"
 >        [SelectStatement ea
@@ -422,15 +422,15 @@ select statements
 >          (JoinedTref ea
 >           (JoinedTref ea
 >            (JoinedTref ea
->             (Tref ea "a" NoAlias)
+>             (Tref ea (i "a") NoAlias)
 >             Unnatural Cross
->             (Tref ea "b" NoAlias)
+>             (Tref ea (i "b") NoAlias)
 >             Nothing NoAlias)
 >            Unnatural Cross
->            (Tref ea "c" NoAlias)
+>            (Tref ea (i "c") NoAlias)
 >            Nothing NoAlias)
 >           Unnatural Cross
->           (Tref ea "d" NoAlias)
+>           (Tref ea (i "d") NoAlias)
 >           Nothing NoAlias))]
 >      ,s "select a from b\n\
 >         \    inner join c\n\
@@ -440,9 +440,9 @@ select statements
 >       [SelectStatement ea $ selectFrom
 >        [SelExp ea (Identifier ea "a")]
 >        (JoinedTref ea
->         (JoinedTref ea (Tref ea "b" NoAlias) Unnatural Inner (Tref ea "c" NoAlias)
+>         (JoinedTref ea (Tref ea (i "b") NoAlias) Unnatural Inner (Tref ea (i "c") NoAlias)
 >          (Just $ JoinOn ea (BooleanLit ea True)) NoAlias)
->         Unnatural Inner (Tref ea "d" NoAlias)
+>         Unnatural Inner (Tref ea (i "d") NoAlias)
 >         (Just $ JoinOn ea (FunCall ea "="
 >                [IntegerLit ea 1, IntegerLit ea 1])) NoAlias)]
 
@@ -453,7 +453,7 @@ select statements
 >                     []
 >                     [Identifier ea "a"] Asc FrameUnboundedPreceding)
 >                    "place"]
->        (Tref ea "tbl" NoAlias)]
+>        (Tref ea (i "tbl") NoAlias)]
 >      ,s "select row_number() over(order by a asc) as place from tbl;"
 >       [SelectStatement ea $ selectFrom [SelectItem ea
 >                    (WindowFn ea
@@ -461,7 +461,7 @@ select statements
 >                     []
 >                     [Identifier ea "a"] Asc FrameUnboundedPreceding)
 >                    "place"]
->        (Tref ea "tbl" NoAlias)]
+>        (Tref ea (i "tbl") NoAlias)]
 >      ,s "select row_number() over(order by a desc) as place from tbl;"
 >       [SelectStatement ea $ selectFrom [SelectItem ea
 >                    (WindowFn ea
@@ -469,7 +469,7 @@ select statements
 >                     []
 >                     [Identifier ea "a"] Desc FrameUnboundedPreceding)
 >                    "place"]
->        (Tref ea "tbl" NoAlias)]
+>        (Tref ea (i "tbl") NoAlias)]
 >      ,s "select row_number()\n\
 >         \over(partition by (a,b) order by c) as place\n\
 >         \from tbl;"
@@ -479,56 +479,56 @@ select statements
 >                     [FunCall ea "!rowctor" [Identifier ea "a",Identifier ea "b"]]
 >                     [Identifier ea "c"] Asc FrameUnboundedPreceding)
 >                    "place"]
->        (Tref ea "tbl" NoAlias)]
+>        (Tref ea (i "tbl") NoAlias)]
 >      ,s "select * from a natural inner join (select * from b) as a;"
 >       [SelectStatement ea $ selectFrom
 >        (selIL ["*"])
->        (JoinedTref ea (Tref ea "a" NoAlias) Natural
+>        (JoinedTref ea (Tref ea (i "a") NoAlias) Natural
 >         Inner (SubTref ea (selectFrom
 >                         (selIL ["*"])
->                         (Tref ea "b" NoAlias)) (TableAlias "a"))
+>                         (Tref ea (i "b") NoAlias)) (TableAlias "a"))
 >         Nothing NoAlias)]
 >      ,s "select * from a order by c;"
 >       [SelectStatement ea $ Select ea  Dupes
 >        (sl (selIL ["*"]))
->        [Tref ea "a" NoAlias]
+>        [Tref ea (i "a") NoAlias]
 >        Nothing [] Nothing [(Identifier ea "c",Asc)] Nothing Nothing]
 >      ,s "select *\n\
 >            \from Adventure\n\
 >            \order by Clicks desc, AdventureID;"
 >       [SelectStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
->        [Tref ea "Adventure" NoAlias]
+>        [Tref ea (i "Adventure") NoAlias]
 >        Nothing [] Nothing [(Identifier ea "Clicks",Desc)
 >                           ,(Identifier ea "AdventureID",Asc)] Nothing Nothing]
 >      ,s "select * from a order by c,d asc;"
 >       [SelectStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
->        [Tref ea "a" NoAlias]
+>        [Tref ea (i "a") NoAlias]
 >        Nothing [] Nothing [(Identifier ea "c", Asc)
 >                           ,(Identifier ea "d", Asc)] Nothing Nothing]
 >      ,s "select * from a order by c,d desc;"
 >       [SelectStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
->        [Tref ea "a" NoAlias]
+>        [Tref ea (i "a") NoAlias]
 >        Nothing [] Nothing [(Identifier ea "c", Asc)
 >                           ,(Identifier ea "d", Desc)] Nothing Nothing]
 >      ,s "select * from a order by c limit 1;"
 >       [SelectStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
->        [Tref ea "a" NoAlias]
+>        [Tref ea (i "a") NoAlias]
 >        Nothing [] Nothing [(Identifier ea "c",Asc)] (Just (IntegerLit ea 1)) Nothing]
 >      ,s "select * from a order by c offset 3;"
 >       [SelectStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
->        [Tref ea "a" NoAlias]
+>        [Tref ea (i "a") NoAlias]
 >        Nothing [] Nothing [(Identifier ea "c",Asc)] Nothing (Just $ IntegerLit ea 3)]
 >      ,s "select a from (select b from c) as d;"
 >         [SelectStatement ea $ selectFrom
 >          (selIL ["a"])
 >          (SubTref ea (selectFrom
 >                    (selIL ["b"])
->                    (Tref ea "c" NoAlias))
+>                    (Tref ea (i "c") NoAlias))
 >           (TableAlias "d"))]
 >      ,s "select * from gen();"
 >         [SelectStatement ea $ selectFrom (selIL ["*"]) (TrefFun ea (FunCall ea "gen" []) NoAlias)]
@@ -539,12 +539,12 @@ select statements
 >      ,s "select a, count(b) from c group by a;"
 >         [SelectStatement ea $ Select ea Dupes
 >          (sl [selI "a", SelExp ea (FunCall ea "count" [Identifier ea "b"])])
->          [Tref ea "c" NoAlias] Nothing [Identifier ea "a"]
+>          [Tref ea (i "c") NoAlias] Nothing [Identifier ea "a"]
 >          Nothing [] Nothing Nothing]
 >      ,s "select a, count(b) as cnt from c group by a having cnt > 4;"
 >         [SelectStatement ea $ Select ea Dupes
 >          (sl [selI "a", SelectItem ea (FunCall ea "count" [Identifier ea "b"]) "cnt"])
->          [Tref ea "c" NoAlias] Nothing [Identifier ea "a"]
+>          [Tref ea (i "c") NoAlias] Nothing [Identifier ea "a"]
 >          (Just $ FunCall ea ">" [Identifier ea "cnt", IntegerLit ea 4])
 >          [] Nothing Nothing]
 >      ,s "select a from (select 1 as a, 2 as b) x;"
@@ -624,7 +624,7 @@ insert from select
 >      ,s "insert into a\n\
 >          \    select b from c;"
 >       [Insert ea "a" []
->        (selectFrom [selI "b"] (Tref ea "c" NoAlias))
+>        (selectFrom [selI "b"] (Tref ea (i "c") NoAlias))
 >        Nothing]
 >
 >      ,s "insert into testtable\n\
@@ -663,7 +663,7 @@ insert from select
 >        []
 >        Nothing (Just (SelectList ea
 >                       [SelExp ea (Identifier ea "tag")]
->                       ["r.tag"]))]
+>                       [qi "r" "tag"]))]
 >      ,s "update tb\n\
 >         \  set (x,y) = (1,2);"
 >       [Update ea "tb" [FunCall ea "="
@@ -749,7 +749,7 @@ ddl statements
 >         \select a,b from t;"
 >       [CreateView ea
 >        "v1"
->        (selectFrom [selI "a", selI "b"] (Tref ea "t" NoAlias))]
+>        (selectFrom [selI "a", selI "b"] (Tref ea (i "t") NoAlias))]
 >      ,s "create domain td as text check (value in ('t1', 't2'));"
 >       [CreateDomain ea "td" (SimpleTypeName ea "text") ""
 >        (Just (InPredicate ea (Identifier ea "value") True
@@ -765,7 +765,7 @@ ddl statements
 >         [CreateSequence ea "s" 4 1 ((2::Integer) ^ (63::Integer) - 1) 5 1]
 >
 >      ,s "alter sequence s owned by a.b;"
->         [AlterSequence ea "s" "a.b"]
+>         [AlterSequence ea "s" $ qi "a" "b"]
 >
 >      ,s "create trigger tr\n\
 >          \after insert or delete on tb\n\
@@ -979,7 +979,7 @@ quick sanity check
 >       [CreateFunction ea "t1" [ParamDefTp ea $ SimpleTypeName ea "text"]
 >        (SimpleTypeName ea "text") NoReplace Sql
 >        (SqlFnBody ea
->         [SelectStatement ea $ selectFromWhere [SelExp ea (Identifier ea "a")] (Tref ea "t1" NoAlias)
+>         [SelectStatement ea $ selectFromWhere [SelExp ea (Identifier ea "a")] (Tref ea (i "t1") NoAlias)
 >          (FunCall ea "="
 >           [Identifier ea "b", PositionalArg ea 1])])
 >        Stable]
@@ -1070,9 +1070,9 @@ quick sanity check
 
 >     ,Group "simple plpgsql statements" [
 >       f "success := true;"
->       [Assignment ea "success" (BooleanLit ea True)]
+>       [Assignment ea (i "success") (BooleanLit ea True)]
 >      ,f "success = true;"
->       [Assignment ea "success" (BooleanLit ea True)]
+>       [Assignment ea (i "success") (BooleanLit ea True)]
 >      ,f "return true;"
 >       [Return ea $ Just (BooleanLit ea True)]
 >      ,f "return;"
@@ -1080,7 +1080,7 @@ quick sanity check
 >      ,f "return next 1;"
 >       [ReturnNext ea $ IntegerLit ea 1]
 >      ,f "return query select a from b;"
->       [ReturnQuery ea $ selectFrom [selI "a"] (Tref ea "b" NoAlias)]
+>       [ReturnQuery ea $ selectFrom [selI "a"] (Tref ea (i "b") NoAlias)]
 >      ,f "raise notice 'stuff %', 1;"
 >       [Raise ea RNotice "stuff %" [IntegerLit ea 1]]
 >      ,f "perform test();"
@@ -1089,14 +1089,14 @@ quick sanity check
 >       [Perform ea $ FunCall ea "test" [Identifier ea "a", Identifier ea "b"]]
 >      ,f "perform test(r.relvar_name || '_and_stuff');"
 >       [Perform ea $ FunCall ea "test" [
->                     FunCall ea "||" [Identifier ea "r.relvar_name"
->                                 ,stringQ "_and_stuff"]]]
+>                     FunCall ea "||" [qi "r" "relvar_name"
+>                                     ,stringQ "_and_stuff"]]]
 >      ,f "select into a,b c,d from e;"
->       [SelectStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] ["a", "b"])
->                   [Tref ea "e" NoAlias] Nothing [] Nothing [] Nothing Nothing]
+>       [SelectStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] [i "a", i "b"])
+>                   [Tref ea (i "e") NoAlias] Nothing [] Nothing [] Nothing Nothing]
 >      ,f "select c,d into a,b from e;"
->       [SelectStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] ["a", "b"])
->                   [Tref ea "e" NoAlias] Nothing [] Nothing [] Nothing Nothing]
+>       [SelectStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] [i "a", i "b"])
+>                   [Tref ea (i "e") NoAlias] Nothing [] Nothing [] Nothing Nothing]
 >
 >      ,f "execute s;"
 >       [Execute ea (Identifier ea "s")]
@@ -1110,18 +1110,18 @@ quick sanity check
 >       f "for r in select a from tbl loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForSelectStatement ea "r" (selectFrom  [selI "a"] (Tref ea "tbl" NoAlias))
+>       [ForSelectStatement ea (i "r") (selectFrom  [selI "a"] (Tref ea (i "tbl") NoAlias))
 >        [NullStatement ea]]
 >      ,f "for r in select a from tbl where true loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForSelectStatement ea "r"
->        (selectFromWhere [selI "a"] (Tref ea "tbl" NoAlias) (BooleanLit ea True))
+>       [ForSelectStatement ea (i "r")
+>        (selectFromWhere [selI "a"] (Tref ea (i "tbl") NoAlias) (BooleanLit ea True))
 >        [NullStatement ea]]
 >      ,f "for r in 1 .. 10 loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForIntegerStatement ea "r"
+>       [ForIntegerStatement ea (i "r")
 >        (IntegerLit ea 1) (IntegerLit ea 10)
 >        [NullStatement ea]]
 >
@@ -1209,6 +1209,14 @@ shortcuts for constructing test data and asts
 >
 > selIL :: [String] -> [SelectItem]
 > selIL = map selI
+> selEL :: [Expression] -> [SelectItem]
+> selEL = map (SelExp ea)
+>
+> i :: String -> Expression
+> i = Identifier ea
+>
+> qi :: String -> String -> Expression
+> qi c n = FunCall ea "." [i c, i n]
 >
 > selI :: String -> SelectItem
 > selI = SelExp ea . Identifier ea

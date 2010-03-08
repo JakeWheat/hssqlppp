@@ -88,10 +88,11 @@ SEM SelectList
           let ft = @items.listType
           return (intoTypes,ft)
           where
-            getIntoType :: String -> E (String,Type)
+            getIntoType :: Expression -> E (String,Type)
             getIntoType n = do
-                            t <- lbLookupID @lhs.lib n
-                            return (n,t)
+                            let n1 = getName n
+                            t <- lbLookupID @lhs.lib n1
+                            return (n1,t)
         loc.tpe =
             returnWhen (@into == []) () $ do
             (it,ft) <- @loc.intoFroms

@@ -26,7 +26,7 @@ copy payload (used to lex copy from stdin data)
 > import Text.Parsec hiding(many, optional, (<|>))
 > import qualified Text.Parsec.Token as P
 > import Text.Parsec.Language
-> import Text.Parsec.String
+> --import Text.Parsec.String
 > import Text.Parsec.Pos
 >
 > import Control.Applicative
@@ -45,9 +45,9 @@ copy payload (used to lex copy from stdin data)
 > data Tok = StringTok String String --delim, value (delim will one of
 >                                    --', $$, $[stuff]$
 
->          | IdStringTok String --includes . and x.y.* type stuff
+>          | IdStringTok String -- either a identifier component (without .) or a *
 
->          | SymbolTok String -- operators, and ()[],;:
+>          | SymbolTok String -- operators, and ()[],;: and also .
 >                             -- '*' is currently always lexed as an id
 >                             --   rather than an operator
 >                             -- this gets fixed in the parsing stage
@@ -210,7 +210,8 @@ deals with this.
 > sqlSymbol =
 >   SymbolTok <$> lexeme (choice [
 >                          replicate 1 <$> oneOf "()[],;"
->                         ,string ".."
+>                         ,try $ string ".."
+>                         ,string "."
 >                         ,try $ string "::"
 >                         ,try $ string ":="
 >                         ,string ":"
@@ -238,11 +239,7 @@ really examined until type checking
 > identifierString :: ParsecT String LexState Identity String
 > identifierString = lexeme $ choice [
 >                     "*" <$ symbol "*"
->                    ,do
->                      a <- nonStarPart
->                      b <- tryMaybeP ((++) <$> symbol "." <*> identifierString)
->                      case b of Nothing -> return a
->                                Just c -> return $ a ++ c]
+>                    ,nonStarPart]
 >   where
 >     nonStarPart = idpart <|> (char '"' *> many (noneOf "\"") <* char '"')
 >                   where idpart = (letter <|> char '_') <:> secondOnwards
@@ -261,9 +258,9 @@ its own on a line
 >                               else (x++) <$> getLinesTillMatches s
 >     getALine = (++"\n") <$> manyTill anyChar (try newline)
 >
-> tryMaybeP :: GenParser tok st a
+> {-tryMaybeP :: GenParser tok st a
 >           -> ParsecT [tok] st Identity (Maybe a)
-> tryMaybeP p = try (optionMaybe p) <|> return Nothing
+> tryMaybeP p = try (optionMaybe p) <|> return Nothing-}
 
 ================================================================================
 
