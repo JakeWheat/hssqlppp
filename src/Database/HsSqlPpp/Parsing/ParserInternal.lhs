@@ -30,7 +30,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,commaSep
 >     ) where
 >
-> import Text.Parsec hiding(many, optional, (<|>), string)
+> import Text.Parsec hiding(many, optional, (<|>), string, label)
 > import Text.Parsec.Expr
 > import Text.Parsec.String
 > import Text.Parsec.Perm
@@ -869,16 +869,22 @@ plpgsql statements
 >          ,nullStatement
 >          ,exitStatement]
 >          <* symbol ";")
+>     <|> label
+>
+> label :: SParser Statement
+> label = Label <$> pos <*> (symbol "<<" *> idString <* symbol ">>")
 >
 > nullStatement :: SParser Statement
 > nullStatement = NullStatement <$> (pos <* keyword "null")
 >
 > exitStatement :: SParser Statement
 > exitStatement = ExitStatement <$> (pos <* keyword "exit")
+>                               <*> optional idString
 >
 >
 > continue :: SParser Statement
 > continue = ContinueStatement <$> (pos <* keyword "continue")
+>                              <*> optional idString
 >
 > perform :: SParser Statement
 > perform = Perform <$> (pos <* keyword "perform") <*> expr

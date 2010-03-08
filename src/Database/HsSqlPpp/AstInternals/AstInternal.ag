@@ -263,7 +263,6 @@ DATA Statement
             message : String
             args : ExpressionList
     | NullStatement ann:Annotation
-    | ExitStatement ann:Annotation
     | Perform ann:Annotation
               expr : Expression
     | Execute ann:Annotation
@@ -285,7 +284,8 @@ DATA Statement
     | WhileStatement ann:Annotation
                      expr : Expression
                      sts : StatementList
-    | ContinueStatement ann:Annotation
+    | ContinueStatement ann:Annotation lb:{Maybe String}
+    | ExitStatement ann:Annotation lb:{Maybe String}
     --variable, list of when parts, else part
     | CaseStatementSimple ann:Annotation
                     val : Expression
@@ -300,6 +300,8 @@ DATA Statement
     | If ann:Annotation
          cases : ExpressionStatementListPairList
          els : StatementList
+    | Label ann:Annotation
+            lb:String
 
 --misc
 

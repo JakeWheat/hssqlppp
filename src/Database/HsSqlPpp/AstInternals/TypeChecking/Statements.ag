@@ -102,7 +102,7 @@ SEM Statement
       DropSomething Execute ExecuteInto
       If NullStatement ExitStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement Set Notify CreateSequence LoopStatement
-      AlterSequence AlterTable CreateTrigger
+      AlterSequence AlterTable CreateTrigger Label
         lhs.catUpdates = []
         lhs.libUpdates = []
 

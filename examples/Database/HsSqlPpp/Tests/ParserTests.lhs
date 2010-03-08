@@ -1103,7 +1103,7 @@ quick sanity check
 >      ,f "execute s into r;"
 >       [ExecuteInto ea (Identifier ea "s") ["r"]]
 >
->      ,f "continue;" [ContinueStatement ea]
+>      ,f "continue;" [ContinueStatement ea Nothing]
 >     ]
 >
 >     ,Group "other plpgsql statements" [

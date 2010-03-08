@@ -264,8 +264,9 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement ca (NullStatement ann) =
 >   convPa ca ann <+> text "null" <> statementEnd
-> convStatement ca (ExitStatement ann) =
->   convPa ca ann <+> text "exit" <> statementEnd
+> convStatement ca (ExitStatement ann lb) =
+>   convPa ca ann <+> text "exit"
+>     <+> maybe empty text lb <> statementEnd
 >
 > convStatement ca (Assignment ann name val) =
 >     convPa ca ann <+>
@@ -320,9 +321,12 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ convNestedStatements ca stmts
 >     $+$ text "end loop" <> statementEnd
 >
-> convStatement ca (ContinueStatement ann) =
->     convPa ca ann <+> text "continue" <> statementEnd
->
+> convStatement ca (ContinueStatement ann lb) =
+>     convPa ca ann <+> text "continue"
+>       <+> maybe empty text lb <> statementEnd
+> convStatement ca (Label ann lb) =
+>     convPa ca ann <+> text "<<"
+>       <+> text lb <+> text ">>" <> text "\n"
 > convStatement ca (Perform ann f@(FunCall _ _ _)) =
 >     convPa ca ann <+>
 >     text "perform" <+> convExp f <> statementEnd
