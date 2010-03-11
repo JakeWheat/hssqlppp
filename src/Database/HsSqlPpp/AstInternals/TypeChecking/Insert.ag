@@ -37,7 +37,7 @@ SEM Statement
                               @insData.annotatedTree
                               @returning.annotatedTree
         loc.catUpdates = []
-        insData.inferredTypes = maybe [] id $ do
+        insData.expectedTypes = maybe [] id $ do
                                 ts <- etmt $ @loc.columnTypes
                                 return $ map (Just . snd) ts
 

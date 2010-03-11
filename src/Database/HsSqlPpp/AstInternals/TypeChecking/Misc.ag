@@ -153,6 +153,17 @@ This should probably be done during the typechecking phase instead,
 but probably needs a proper type inferencing algorithm to be used, is
 done like this for development expediency.
 
+Trying to follow haskell naming convention (?) - the type that the
+node is expected to have as determined by it's parent node is the
+expectedType, and the type it claims to have by its own logic and the
+types of its child nodes is the inferred type. Confusingly, this means
+the inferredType is often the declared type, and not the type that has
+been inferred here...
+
+The plan is to have three attributes: inferredType, expectedType and
+type, where the type is Just iff the inferredType and expectedType are
+the same, or onne of them is Nothing.
+
 -}
 
 getPlaceholderTypes :: Data a => a -> [Maybe Type]
