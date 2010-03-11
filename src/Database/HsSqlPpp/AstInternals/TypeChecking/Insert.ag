@@ -18,7 +18,7 @@ SEM Statement
         loc.columnTypes : {Either [TypeError] [(String,Type)]}
         loc.columnTypes =
           do
-          atts <- catCompositePublicAttrs @lhs.cat relationComposites @table
+          atts <- lmt (allAtts <$> @table.tbUType)
           expAtts <- lmt @insData.uType
           let eNames = map fst expAtts
           tAtts <- case @targetCols of
@@ -32,7 +32,8 @@ SEM Statement
                              (\t -> Right (n,t))
                              $ lookup n m
 
-        loc.backTree = Insert @ann @table @targetCols
+        loc.backTree = Insert @ann @table.annotatedTree
+                              @targetCols
                               @insData.annotatedTree
                               @returning.annotatedTree
         loc.catUpdates = []
@@ -42,5 +43,5 @@ SEM Statement
 
         returning.lib =
             either (const @lhs.lib) id $ do
-              atts <- catCompositeAttrs @lhs.cat relationComposites @table
-              lbUpdate @lhs.cat (LBIds "insert target table" (Just @table) atts) @lhs.lib
+              atts <- lmt (allAtts <$> @table.tbUType)
+              lbUpdate @lhs.cat (LBIds "insert target table" (Just $ getName @table.annotatedTree) atts) @lhs.lib

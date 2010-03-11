@@ -9,11 +9,7 @@ check the set clause assignments are ok, and inject ids into the where part
 
 SEM Statement
     | Update
-        loc.tpe = either Left (const $ Right $ Pseudo Void) @loc.attrs
-        loc.attrs : {E [(String,Type)]}
-        loc.attrs = catCompositeAttrs @lhs.cat
-                                      relationComposites
-                                      @table
+        loc.tpe = Right $ Pseudo Void
         -- todo: add tests and code to check the assign targets are columns
         -- or rows of columns
         --assigns.attrs = @loc.attrs
@@ -25,7 +21,7 @@ SEM Statement
               return (pt,@returning.listType)
 
         loc.backTree = Update @ann
-                              @table
+                              @table.annotatedTree
                               @assigns.annotatedTree
                               @fromList.annotatedTree
                               @whr.annotatedTree
@@ -37,8 +33,8 @@ SEM Statement
 
         loc.lib =
              either (const @lhs.lib) id $ do
-             a <- @loc.attrs
-             lbUpdate @lhs.cat (LBIds "updated table attrs" (Just @table) a) @lhs.lib
+             a <- lmt (allAtts <$> @table.tbUType)
+             lbUpdate @lhs.cat (LBIds "updated table attrs" (Just $ getName @table.annotatedTree) a) @lhs.lib
         whr.lib = @loc.lib
         assigns.lib = @loc.lib
         returning.lib = @loc.lib

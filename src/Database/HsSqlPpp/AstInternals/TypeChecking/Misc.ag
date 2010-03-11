@@ -107,6 +107,12 @@ unwrapStar = map uw
              where
                uw (_,n,t) = (last n, t)
 
+allAtts :: ([(String,Type)],[(String,Type)]) -> [(String,Type)]
+allAtts (a,b) = a ++ b
+
+pubAtts :: ([(String,Type)],[(String,Type)]) -> [(String,Type)]
+pubAtts = fst
+
 {-
 ================================================================================
 

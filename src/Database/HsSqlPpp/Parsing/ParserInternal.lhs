@@ -407,7 +407,7 @@ multiple rows to insert and insert from select statements
 > insert :: SParser Statement
 > insert = Insert
 >          <$> pos <* keyword "insert" <* keyword "into"
->          <*> idString
+>          <*> qName
 >          <*> option [] (try columnNameList)
 >          <*> selectExpression
 >          <*> tryOptionMaybe returning
@@ -415,7 +415,7 @@ multiple rows to insert and insert from select statements
 > update :: SParser Statement
 > update = Update
 >          <$> pos <* keyword "update"
->          <*> idString
+>          <*> qName
 >          <*> (keyword "set" *> commaSep1 setClause)
 >          <*> option [] (keyword "from" *> commaSep1 tableRef)
 >          <*> tryOptionMaybe whereClause
@@ -427,7 +427,7 @@ multiple rows to insert and insert from select statements
 > delete :: SParser Statement
 > delete = Delete
 >          <$> pos <* keyword "delete" <* keyword "from"
->          <*> idString
+>          <*> qName
 >          <*> option [] (keyword "using" *> commaSep1 tableRef)
 >          <*> tryOptionMaybe whereClause
 >          <*> tryOptionMaybe returning

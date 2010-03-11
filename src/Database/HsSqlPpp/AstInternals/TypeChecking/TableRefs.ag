@@ -144,19 +144,15 @@ subtref - pull the type of the select expression out (which will be a
 tref - just a name of a table or view, just need to retrieve the fields from the catalog
 
 -}
-        loc.errs = case @loc.relType of
-                     Left e -> e
-                     Right _ -> []
-        lhs.libUpdates = let n = getName @tbl.annotatedTree
-                         in trace ("got name: " ++ n) $
-                            [LBTref ("tref: " ++ n)
+        loc.errs = []
+        lhs.libUpdates = maybe [] id $ do
+                         let n = getName @tbl.annotatedTree
+                         (pu,pr) <- @tbl.tbUType
+                         return [LBTref ("tref: " ++ n)
                                    (getAlias n @alias)
-                                   (fst @loc.relType1)
-                                   (snd @loc.relType1)]
+                                   pu
+                                   pr]
 
-        loc.relType : {Either [TypeError] ([(String, Type)], [(String, Type)])}
-        loc.relType = catCompositeAttrsPair @lhs.cat [] (getName @tbl.annotatedTree)
-        loc.relType1 = fromRight ([],[]) @loc.relType
 
     | TrefFun
 {-

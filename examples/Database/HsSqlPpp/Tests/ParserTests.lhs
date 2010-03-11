@@ -597,7 +597,7 @@ dml statements
 >         \(columna,columnb)\n\
 >         \values (1,2);\n"
 >        [Insert ea
->         "testtable"
+>         (i "testtable")
 >         ["columna", "columnb"]
 >         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]])
 >         Nothing]
@@ -613,7 +613,7 @@ that should be in the select section?
 >         \(columna,columnb)\n\
 >         \values (1,2), (3,4);\n"
 >       [Insert ea
->         "testtable"
+>         (i "testtable")
 >         ["columna", "columnb"]
 >         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]
 >                 ,[IntegerLit ea 3, IntegerLit ea 4]])
@@ -623,7 +623,7 @@ insert from select
 
 >      ,s "insert into a\n\
 >          \    select b from c;"
->       [Insert ea "a" []
+>       [Insert ea (i "a") []
 >        (selectFrom [selI "b"] (Tref ea (i "c") NoAlias))
 >        Nothing]
 >
@@ -631,7 +631,7 @@ insert from select
 >         \(columna,columnb)\n\
 >         \values (1,2) returning id;\n"
 >       [Insert ea
->         "testtable"
+>         (i "testtable")
 >         ["columna", "columnb"]
 >         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]])
 >         (Just $ sl [selI "id"])]
@@ -640,12 +640,12 @@ insert from select
 >     ,Group "update" [
 >       s "update tb\n\
 >         \  set x = 1, y = 2;"
->       [Update ea "tb" [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
+>       [Update ea (i "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
 >                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
 >        [] Nothing Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
->       [Update ea "tb" [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
+>       [Update ea (i "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
 >                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
 >        []
 >        (Just $ FunCall ea "="
@@ -653,12 +653,12 @@ insert from select
 >        Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 returning id;"
->       [Update ea "tb" [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
+>       [Update ea (i "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
 >                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
 >        [] Nothing (Just $ sl [selI "id"])]
 >      ,s "update pieces\n\
 >         \set a=b returning tag into r.tag;"
->       [Update ea "pieces" [FunCall ea "=" [Identifier ea "a"
+>       [Update ea (i "pieces") [FunCall ea "=" [Identifier ea "a"
 >                                           ,Identifier ea "b"]]
 >        []
 >        Nothing (Just (SelectList ea
@@ -666,7 +666,7 @@ insert from select
 >                       [qi "r" "tag"]))]
 >      ,s "update tb\n\
 >         \  set (x,y) = (1,2);"
->       [Update ea "tb" [FunCall ea "="
+>       [Update ea (i "tb") [FunCall ea "="
 >                        [FunCall ea "!rowctor" [Identifier ea "x"
 >                                               ,Identifier ea "y"]
 >                        ,FunCall ea "!rowctor" [IntegerLit ea 1
@@ -681,11 +681,11 @@ FunCall ea "=" [FunCall ea "!rowctor" [Identifier ea "x",Identifier ea "y"],FunC
 >
 >     ,Group "delete" [
 >       s "delete from tbl1 where x = true;"
->       [Delete ea "tbl1" [] (Just $ FunCall ea "="
+>       [Delete ea (i "tbl1") [] (Just $ FunCall ea "="
 >                                [Identifier ea "x", BooleanLit ea True])
 >        Nothing]
 >      ,s "delete from tbl1 where x = true returning id;"
->       [Delete ea "tbl1" [] (Just $ FunCall ea "="
+>       [Delete ea (i "tbl1") [] (Just $ FunCall ea "="
 >                                [Identifier ea "x", BooleanLit ea True])
 >        (Just $ sl [selI "id"])]
 >      ]
@@ -1129,7 +1129,7 @@ quick sanity check
 >         \  update c set d = e;\n\
 >         \end if;"
 >       [If ea [((FunCall ea "=" [Identifier ea "a", Identifier ea "b"])
->           ,[Update ea "c" [FunCall ea "=" [Identifier ea "d", Identifier ea "e"]] [] Nothing Nothing])]
+>           ,[Update ea (i "c") [FunCall ea "=" [Identifier ea "d", Identifier ea "e"]] [] Nothing Nothing])]
 >        []]
 >      ,f "if true then\n\
 >         \  null;\n\

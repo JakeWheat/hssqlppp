@@ -63,7 +63,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement pa (Insert ann tb atts idata rt) =
 >   convPa pa ann <+>
->   text "insert into" <+> text tb
+>   text "insert into" <+> convExp tb
 >   <+> ifNotEmpty (parens . hcatCsvMap text) atts
 >   $+$ convSelectExpression True True idata
 >   $+$ convReturning rt
@@ -71,7 +71,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement ca (Update ann tb scs fr wh rt) =
 >    convPa ca ann <+>
->    text "update" <+> text tb <+> text "set"
+>    text "update" <+> convExp tb <+> text "set"
 >    <+> hcatCsvMap convSet scs
 >    <+> ifNotEmpty (\_ -> text "from" <+> hcatCsvMap convTref fr) fr
 >    <+> convWhere wh
@@ -79,7 +79,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement ca (Delete ann tbl us wh rt) =
 >    convPa ca ann <+>
->    text "delete from" <+> text tbl
+>    text "delete from" <+> convExp tbl
 >    <+> ifNotEmpty (\_ -> text "using" <+> hcatCsvMap convTref us) us
 >    <+> convWhere wh
 >    $+$ convReturning rt
@@ -180,21 +180,23 @@ Conversion routines - convert Sql asts into Docs
 >         convNestedStatements ca sts
 >       convFnBody (PlpgsqlFnBody ann1 blk) =
 >           convPa ca ann1 <+>
->           convBlock blk
+>           convStatement ca blk
 >       convParamDef (ParamDef _ n t) = text n <+> convTypeName t
 >       convParamDef  (ParamDefTp _ t) = convTypeName t
+>
+> convStatement ca (Block ann lb decls sts) =
+>   convPa ca ann <+>
+>   convLabel lb <>
+>   ifNotEmpty (\l -> text "declare"
+>                   $+$ nest 2 (vcat $ map convVarDef l)) decls
+>   $+$ text "begin"
+>   $+$ convNestedStatements ca sts
+>   $+$ text "end;"
+>   where
 >       convVarDef (VarDef _ n t v) =
 >         text n <+> convTypeName t
 >         <+> maybeConv (\x -> text ":=" <+> convExp x) v <> semi
->       convBlock (Block ann1 lb decls sts) =
->           convPa ca ann1 <+>
->           convLabel lb <>
->           ifNotEmpty (\l -> text "declare"
->                   $+$ nest 2 (vcat $ map convVarDef l)) decls
->           $+$ text "begin"
->           $+$ convNestedStatements ca sts
->           $+$ text "end;"
-
+>
 >
 > convStatement ca (CreateView ann name sel) =
 >     convPa ca ann <+>

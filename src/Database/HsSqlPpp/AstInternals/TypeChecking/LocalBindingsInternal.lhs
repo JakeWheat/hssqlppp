@@ -47,6 +47,7 @@ in scope, and one for an unqualified star.
 >     ,lbUpdate
 >     ,lbExpandStar
 >     ,lbLookupID
+>     ,lbUpdateDot
 >     ,ppLocalBindings
 >     ,ppLbls
 >     ) where
@@ -64,8 +65,8 @@ in scope, and one for an unqualified star.
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
+> import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 >
-> type E a = Either [TypeError] a
 
 The data type to represent a set of local bindings in scope. The list
 of updates used to create the local bindings is saved for debugging/
@@ -170,6 +171,21 @@ This is the local bindings update that users of this module use.
 >                          Just x -> x
 >       lkp1 [] _ = Left [UnrecognisedIdentifier i]
 >       getLbIdl (LocalBindingsLookup x _) = x
+
+================================================================================
+
+> lbUpdateDot :: Catalog -> String -> LocalBindings -> E LocalBindings
+> lbUpdateDot cat i lb = do
+>     (_,_,c) <- lbLookupID lb i
+>     f <- lmt $ expandComposite cat c
+>     lbUpdate cat (LBIds "dot qual" Nothing f) emptyBindings
+
+> expandComposite :: Catalog -> Type -> Maybe [(String,Type)]
+> expandComposite cat (SetOfType t) = expandComposite cat t
+> expandComposite cat (PgRecord (Just t)) = expandComposite cat t
+> expandComposite _ (CompositeType fs) = Just fs
+> expandComposite cat (NamedCompositeType n) = etmt $ catCompositeAttrs cat [] n
+
 
 ================================================================================
 

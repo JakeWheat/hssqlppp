@@ -29,25 +29,24 @@ SEM Statement
 
 SEM Statement
     | ForIntegerStatement
-        loc.varTypeE = unwrapLookup <$> lbLookupID @lhs.lib (getName @var.annotatedTree)
         loc.tpe =
           do
           fromType <- lmt @from.uType
           toType <- lmt @to.uType
           errorWhen (fromType /= toType) [FromToTypesNotSame fromType toType]
-          case @loc.varTypeE of
-            Right t -> checkAssignmentValid @lhs.cat fromType t
-            Left _ -> return ()
+          case @var.uType of
+            Just t -> checkAssignmentValid @lhs.cat fromType t
+            Nothing -> return ()
           return $ Pseudo Void
-        sts.lib =
-            case @loc.varTypeE of
+        {-sts.lib =
+            case @var.uType of
               Left [UnrecognisedIdentifier _] ->
                   -- create implicitly declared variable
                   either (const @lhs.lib) id $ do
                   ft <- lmt @from.uType
                   lbUpdate @lhs.cat
                     (LBIds "local for loop variable" Nothing [((getName @var.annotatedTree),ft)]) @lhs.lib
-              _ -> @lhs.lib
+              _ -> @lhs.lib-}
 
         loc.backTree = ForIntegerStatement @ann @lb @var.annotatedTree @from.annotatedTree @to.annotatedTree @sts.annotatedTree
         loc.catUpdates = []
@@ -56,11 +55,10 @@ SEM Statement
 
 SEM Statement
     | ForSelectStatement
-        --loc.selType = getTypeAnnotation @sel.annotatedTree
         loc.tpe =
           do
-          st <- CompositeType <$> lmt @sel.uType
-          toType <- unwrapLookup <$> lbLookupID @lhs.lib (getName @var.annotatedTree)
+          st <- lmt (CompositeType <$> @sel.uType)
+          toType <- lmt @var.uType
           checkAssignmentValid @lhs.cat st toType
           return $ Pseudo Void
         --just handles assigning to a record type for now
@@ -70,7 +68,7 @@ SEM Statement
         sts.lib =
             either (const @lhs.lib) id $ do
             _ <- @loc.tpe
-            st <- CompositeType <$> lmt @sel.uType
+            st <- lmt (CompositeType <$> @sel.uType)
             lbUpdate @lhs.cat (LBIds "for loop record type" Nothing [(getName @var.annotatedTree,st)]) @lhs.lib
 
         loc.backTree = ForSelectStatement @ann @lb @var.annotatedTree @sel.annotatedTree @sts.annotatedTree

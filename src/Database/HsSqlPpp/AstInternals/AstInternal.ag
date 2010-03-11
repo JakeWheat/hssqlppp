@@ -155,20 +155,20 @@ DATA Statement
 
     --table targetcolumns insertdata(values or select statement) returning
     | Insert ann:Annotation
-             table : String
+             table : Expression
              targetCols : {[String]}
              insData : SelectExpression
              returning : MaybeSelectList
     --tablename setitems where returning
     | Update ann:Annotation
-             table : String
+             table : Expression
              assigns : ExpressionList --SetClauseList
              fromList : TableRefList
              whr : MaybeBoolExpression
              returning : MaybeSelectList
     --tablename, where, returning
     | Delete ann:Annotation
-             table : String
+             table : Expression
              using : TableRefList
              whr : MaybeBoolExpression
              returning : MaybeSelectList

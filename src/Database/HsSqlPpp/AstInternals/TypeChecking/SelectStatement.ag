@@ -141,15 +141,15 @@ SEM SelectExpression
     | CombineSelect
         loc.tpe =
           do
-          sel1t <- lmt $ SetOfType . CompositeType <$> @sel1.uType
-          sel2t <- lmt $ SetOfType . CompositeType <$> @sel2.uType
+          sel1t <- lmt ((SetOfType . CompositeType) <$> @sel1.uType)
+          sel2t <- lmt ((SetOfType . CompositeType) <$> @sel2.uType)
           typeCheckCombineSelect @lhs.cat sel1t sel2t
 
         loc.backTree = CombineSelect @ann @ctype
                                      @sel1.annotatedTree
                                      @sel2.annotatedTree
     | WithSelect
-        loc.tpe = lmt $ SetOfType . CompositeType <$> @ex.uType
+        loc.tpe = lmt ((SetOfType . CompositeType) <$> @ex.uType)
         loc.backTree = WithSelect @ann @withs.annotatedTree @ex.annotatedTree
         ex.cat = @withs.producedCat
         withs.catUpdates = []

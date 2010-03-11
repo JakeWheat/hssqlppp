@@ -38,8 +38,36 @@ SEM Expression
 
 ATTR Expression [||ntAnnotatedTree : Expression
                    ntType : {[(String,Type)]}
-                   uType : {Maybe Type}]
+                   uType : {Maybe Type}
+                   tbAnnotatedTree : Expression
+                   tbUType : {Maybe ([(String,Type)],[(String,Type)])}]
 
+ATTR ExpressionList [||tbUTypes : {[Maybe ([(String,Type)],[(String,Type)])]}]
+
+SEM Expression
+    | IntegerLit StringLit FloatLit BooleanLit NullLit
+      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
+      PositionalArg Placeholder WindowFn FunCall
+      Identifier FunCall
+        lhs.tbAnnotatedTree = updateAnnotation
+                                 (addTypeErrors (tes @loc.tbUType)
+                                 . \a -> a {fnProt = @loc.prototype}) @loc.backTree
+        lhs.tbUType = either (const Nothing) Just @loc.tbUType
+
+    | IntegerLit StringLit FloatLit BooleanLit NullLit
+      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
+      PositionalArg Placeholder WindowFn
+        loc.tbUType = Left [InternalError "bad context for tbUType"]
+    | FunCall
+        loc.tbUType = case (@funName,@args.tbUTypes) of
+                       (".", [_,Just t]) -> Right t
+                       _ -> Left [InternalError "bad context for tbUType"]
+    | Identifier
+        loc.tbUType = catCompositeAttrsPair @lhs.cat relationComposites @i
+
+SEM ExpressionList
+    | Cons lhs.tbUTypes = @hd.tbUType : @tl.tbUTypes
+    | Nil lhs.tbUTypes = []
 
 ATTR Expression [expectedType : {Maybe Type}||]
 
@@ -137,7 +165,7 @@ SEM Expression
 
 
    | WindowFn
-        loc.tpe = lmt $ @fn.uType
+        loc.tpe = lmt @fn.uType
         loc.backTree = WindowFn @ann
                                 @fn.annotatedTree
                                 @partitionBy.annotatedTree
@@ -224,7 +252,7 @@ SEM Expression
         loc.tpe =
           do
           wt <- mapM lmt $ concat @loc.whenTypes
-          vt <- lmt $ @value.uType
+          vt <- lmt @value.uType
           _ <- resolveResultSetType @lhs.cat (vt : wt)
           tt <- mapM lmt @loc.thenTypes
           resolveResultSetType @lhs.cat tt
@@ -306,10 +334,9 @@ SEM Expression
   | FunCall
       args.lib =
           case @funName of
-            "." | Just t <- head @args.uType
-                  -> maybe emptyBindings id $ do
-                          is <- expandComposite @lhs.cat t
-                          etmt $ lbUpdate @lhs.cat (LBIds "dot" Nothing is) @lhs.lib
+            "." -> maybe emptyBindings id $ do
+                   let [Identifier _ n,_] = @args.annotatedTree
+                   etmt $ lbUpdateDot @lhs.cat n @lhs.lib
             _ -> @lhs.lib
 
 
@@ -341,7 +368,7 @@ SEM Expression
     | ScalarSubQuery
         loc.tpe =
             do
-            selType <- lmt $ map snd <$> @sel.uType
+            selType <- lmt (map snd <$> @sel.uType)
             case length selType of
               0 -> Left [InternalError "no columns in scalar subquery?"]
               1 -> Right $ head selType
@@ -374,7 +401,7 @@ SEM InList
     | InSelect
         lhs.listType =
             do
-            st <- lmt $ map snd <$> @sel.uType
+            st <- lmt (map snd <$> @sel.uType)
             case length st of
                       0 -> Left [InternalError
                                  "got subquery with no columns? in inselect"]
@@ -518,3 +545,6 @@ SEM TableRef
 SEM WithQuery
     | WithQuery ex.expectedTypes = []
 
+
+SEM Statement
+    | Insert Update Delete table.expectedType = Nothing
