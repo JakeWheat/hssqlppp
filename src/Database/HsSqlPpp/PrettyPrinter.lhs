@@ -510,8 +510,8 @@ Statement components
 >   hcatCsvMap convSelItem ex
 >   <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap convExp i) into
 >   where
->     convSelItem (SelectItem _ ex1 nm) = convExp ex1 <+> text "as" <+> text nm
->     convSelItem (SelExp _ e) = convExp e
+>     convSelItem (SelectItem _ ex1 nm) = convExpSl ex1 <+> text "as" <+> text nm
+>     convSelItem (SelExp _ e) = convExpSl e
 >
 > convCasc :: Cascade -> Doc
 > convCasc casc = text $ case casc of
@@ -608,7 +608,9 @@ Statement components
 >                        _ -> parens (convExp (head es))
 >                             <> brackets (csvExp (tail es))
 >      "!rowctor" -> text "row" <> parens (hcatCsvMap convExp es)
->      "." | [a,b] <- es -> convExp a <> text "." <> convExp b
+>      "."   -- special case to avoid ws around '.'. Don't know if this is important
+>            -- or just cosmetic
+>          | [a,b] <- es -> convExp a <> text "." <> convExp b
 >      _ | isOperatorName n ->
 >         case forceRight (getOperatorType defaultTemplate1Catalog n) of
 >                           BinaryOp ->
@@ -694,13 +696,27 @@ Statement components
 > convExp (Cast _ ex t) = text "cast" <> parens (convExp ex
 >                                              <+> text "as"
 >                                              <+> convTypeName t)
+
+hack for selecting from composites in select list, the pg parser
+needs p.x to look like (p).x when p is a composite in a select list
+fortunately, we can output everything which is identifier . something
+with the brackets and it works.
+
+> convExpSl :: Expression -> Doc
+> convExpSl (FunCall _ "." es) | [a@(Identifier _ _), b] <- es =
+>   parens (convExpSl a) <> text "." <> convExpSl b
+> convExpSl x = convExp x
+
 >
 > convSet :: Expression -> Doc
 > convSet (FunCall _ "=" [Identifier _ a, e]) =
 >   text a <+> text "=" <+> convExp e
-> convSet (FunCall _ "=" [is@(FunCall _ "!rowctor" _), e]) =
->   convExp is <+> text "=" <+> convExp e
-> convSet a = error $ "bad expression in set in update: " ++ show a
+> convSet (FunCall _ "=" [a, b]) | (FunCall _ "!rowctor" is1) <- a
+>                                 ,(FunCall _ "!rowctor" is2) <- b =
+>   rsNoRow is1 <+> text "=" <+> rsNoRow is2
+>   where
+>     rsNoRow is = parens (hcatCsvMap convExp is)
+> convSet a = error $ "bad expression in set in update: " ++ ppExpr a
 >
 > --utils
 >

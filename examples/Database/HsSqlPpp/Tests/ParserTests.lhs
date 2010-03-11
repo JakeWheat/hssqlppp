@@ -196,6 +196,19 @@ and dollar quoting, including nesting.
 >      ,e "$outer$te$$yup$$st$outer$" (StringLit ea "te$$yup$$st")
 >      ,e "'spl$$it'" (stringQ "spl$$it")
 >      ]
+>    ,Group "bracketed things" [
+>       e "(p).x" (qi "p" "x")
+>      ,e "(select f(((a).x, y)::z))"
+>         (ScalarSubQuery ea
+>          (selectE (sl
+>                    [SelExp ea
+>                     (FunCall ea "f" [Cast ea
+>                                      (FunCall ea "!rowctor"
+>                                       [FunCall ea "." [Identifier ea "a"
+>                                                       ,Identifier ea "x"]
+>                                       ,Identifier ea "y"])
+>                                      (SimpleTypeName ea "z")])])))
+>      ]
 >      ]
 
 --------------------------------------------------------------------------------
@@ -579,12 +592,29 @@ select statements
 >                     ,SelectStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 2)]
 >                     ]
 >      ]
+>    ,Group "some mis stuff" [
+>       s "select (p).x, (p).y from pos;"
+>         [SelectStatement ea $ selectFrom (selEL [qi "p" "x"
+>                                                 ,qi "p" "y"])
+>                                          (Tref ea (i "pos") NoAlias)]
+>      ,s "select ($1).x, ($1).y from pos;"
+>         [SelectStatement ea $ selectFrom (selEL [FunCall ea "." [(PositionalArg ea 1), i "x"]
+>                                                 ,FunCall ea "." [(PositionalArg ea 1), i "y"]])
+>                                          (Tref ea (i "pos") NoAlias)]
+>      ,s "select row_number() over(), x from tb;"
+>       [SelectStatement ea $ selectFrom
+>        [SelExp ea
+>                     (WindowFn ea
+>                     (FunCall ea "row_number" [])
+>                     []
+>                     [] Asc FrameUnboundedPreceding)
+>        , selI "x"]
+>        (Tref ea (i "tb") NoAlias)]
+>      ]
 >      ]
 
 TODO:
-select (p).x, (p).x from pos; (+ type check)
-select ($1).x, ($1).y from pos; (+ type check)
-select row_number() over(), x from tb;
+
 from in update, using in delete (+ type check these)
 
 -------------------------------------------------------------------------------

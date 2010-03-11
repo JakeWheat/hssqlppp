@@ -329,6 +329,16 @@ SEM Expression
                              n -> n
                           ,t)]
 
+{-
+This is wrong.
+
+What happens is the funcall "." looks up the identifier which is
+ok. It then sets the lb for the args, but this is wrong. We only want
+to set the lb for the second arg, not the first. The type in the
+funcall "." uses to update should come from the first identifier also,
+not from the funcall "." node.
+
+-}
 
 SEM Expression
   | FunCall

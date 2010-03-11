@@ -421,8 +421,20 @@ multiple rows to insert and insert from select statements
 >          <*> tryOptionMaybe whereClause
 >          <*> tryOptionMaybe returning
 >     where
->       setClause = expr
->       -- todo: restrict this to a = expr or (a,b...) = expr forms only
+>       setClause =
+>         choice [do
+>           p <- pos
+>           l <- parens (commaSep1 idString)
+>           symbol "="
+>           r <- parens (commaSep1 expr)
+>           return $ FunCall p "=" [FunCall p "!rowctor" $ map (Identifier p) l
+>                                  ,FunCall p "!rowctor" r]
+>         ,do
+>           p <- pos
+>           l <- idString
+>           symbol "="
+>           r <- expr
+>           return $ FunCall p "=" [Identifier p l,r]]
 
 > delete :: SParser Statement
 > delete = Delete
@@ -1038,14 +1050,15 @@ This little addition speeds up ./ParseFile.lhs sqltestfiles/system.sql
 on my system from ~4 minutes to ~4 seconds (most of the 4s is probably
 compilation overhead).
 
->        try (lookAhead (symbol "(" >> symbol "(")) >> parens expr
+>        --try (lookAhead (symbol "(" >> symbol "(")) >> parens expr
 
 start with the factors which start with parens - eliminate scalar
 subqueries since they're easy to distinguish from the others then do in
 predicate before row constructor, since an in predicate can start with
 a row constructor looking thing, then finally vanilla parens
 
->       ,scalarSubQuery
+>       --,
+>        scalarSubQuery
 >       ,try $ threadOptionalSuffix rowCtor inPredicateSuffix
 >       ,parens expr
 
