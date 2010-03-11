@@ -15,8 +15,7 @@ SEM Statement
         loc.statementType =
             do
             pt <- sequence $ getPlaceholderTypes @ex.annotatedTree
-            ext <- getTypeAnnotation @ex.annotatedTree
-            st <- etmt $ unwrapSetOfComposite ext
+            st <- @ex.uType
             return (pt
                    ,case st of
                       [(_,(Pseudo Void))] -> []
@@ -104,7 +103,8 @@ SEM SelectExpression
          selGroupBy.lib = @loc.newLib
          selOrderBy.lib = @loc.newLib
 
-ATTR SelectExpression [||libUpdates : {[LocalBindingsUpdate]}]
+ATTR SelectExpression [||libUpdates : {[LocalBindingsUpdate]}
+                         uType : {Maybe [(String,Type)]}]
 
 SEM Statement
     | SelectStatement
@@ -123,7 +123,7 @@ SEM SelectExpression
     | Values
         loc.tpe = typeCheckValuesExpr
                               @lhs.cat
-                              @vll.typeListList
+                              @vll.uType
         loc.backTree = Values @ann @vll.annotatedTree
     | Select
         loc.tpe =
@@ -141,18 +141,22 @@ SEM SelectExpression
     | CombineSelect
         loc.tpe =
           do
-          sel1t <- lmt $ getTypeAnnotation @sel1.annotatedTree
-          sel2t <- lmt $ getTypeAnnotation @sel2.annotatedTree
+          sel1t <- lmt $ SetOfType . CompositeType <$> @sel1.uType
+          sel2t <- lmt $ SetOfType . CompositeType <$> @sel2.uType
           typeCheckCombineSelect @lhs.cat sel1t sel2t
 
         loc.backTree = CombineSelect @ann @ctype
                                      @sel1.annotatedTree
                                      @sel2.annotatedTree
     | WithSelect
-        loc.tpe = lmt $ getTypeAnnotation @ex.annotatedTree
+        loc.tpe = lmt $ SetOfType . CompositeType <$> @ex.uType
         loc.backTree = WithSelect @ann @withs.annotatedTree @ex.annotatedTree
         ex.cat = @withs.producedCat
         withs.catUpdates = []
+
+SEM SelectExpression
+    | Values CombineSelect WithSelect Select
+        lhs.uType = etmt (@loc.tpe >>= unwrapSetOfComposite)
 
 {
 
@@ -241,9 +245,7 @@ SEM WithQuery
     | WithQuery
         loc.tpe = Right $ Pseudo Void
         loc.backTree = WithQuery @ann @name @ex.annotatedTree
-        loc.attrs = case getTypeAnnotation @ex.annotatedTree of
-                      Just(SetOfType (CompositeType c)) -> c
-                      _ -> [] --TODO: error ignored
+        loc.attrs = maybe [] id $ @ex.uType --TODO: error ignored
         loc.catUpdates = [CatCreateView @name @loc.attrs]
         loc.statementType = Nothing
 

@@ -19,8 +19,7 @@ SEM Statement
         loc.columnTypes =
           do
           atts <- catCompositePublicAttrs @lhs.cat relationComposites @table
-          expAtts <- lmt (getTypeAnnotation @insData.annotatedTree)
-                     >>= unwrapSetOfComposite
+          expAtts <- lmt @insData.uType
           let eNames = map fst expAtts
           tAtts <- case @targetCols of
                         [] -> return atts

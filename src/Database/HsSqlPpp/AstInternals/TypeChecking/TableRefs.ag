@@ -135,8 +135,7 @@ subtref - pull the type of the select expression out (which will be a
                            Left e -> e
                            Right _ -> []
         loc.selectAttrs : {Either [TypeError] [(String,Type)]}
-        loc.selectAttrs = lmt (getTypeAnnotation @sel.annotatedTree)
-                          >>= unwrapSetOfComposite
+        loc.selectAttrs = lmt @sel.uType
         lhs.libUpdates = [LBTref "sub query" (getAlias "" @alias) --"" should be error
                                          (fromRight [] @loc.selectAttrs) []]
 
@@ -172,7 +171,7 @@ column names and types - see that function for how this works
 
 
         loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
-        loc.eqfunIdens = funIdens @lhs.cat (getAlias "" @alias) @fn.annotatedTree
+        loc.eqfunIdens = funIdens @lhs.cat (getAlias "" @alias) @fn.annotatedTree @fn.uType
         lhs.libUpdates = [LBTref "fn"
                                          (fst @loc.qfunIdens)
                                          (snd @loc.qfunIdens)
@@ -230,8 +229,8 @@ then relation, using the function name for the attribute name
 need to check to see what should happen with arrayof
 
 -}
-funIdens :: Catalog -> String -> Expression -> Either [TypeError] (String,[(String,Type)])
-funIdens cat alias fnVal = do
+funIdens :: Catalog -> String -> Expression -> Maybe Type -> Either [TypeError] (String,[(String,Type)])
+funIdens cat alias fnVal ft = do
    errorWhen (case fnVal of
                 FunCall _ _ _ -> False
                 _ -> True)
@@ -241,7 +240,7 @@ funIdens cat alias fnVal = do
                            then alias
                            else fnName
    attrs <- do
-     fnt <- lmt $ getTypeAnnotation fnVal
+     fnt <- lmt ft
      case fnt of
        SetOfType (NamedCompositeType t) -> catCompositePublicAttrs cat [] t
        SetOfType x -> return [(cn,x)]

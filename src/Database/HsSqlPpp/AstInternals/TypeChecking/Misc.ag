@@ -41,38 +41,6 @@ SEM TypeName
 
 -}
 
---expression list and list list - just collect up the types
-
-ATTR ExpressionList [||typeList : {[Maybe Type]}]
-
-SEM ExpressionList
-    | Cons lhs.typeList = getTypeAnnotation @hd.annotatedTree : @tl.typeList
-    | Nil lhs.typeList = []
-
-
-ATTR ExpressionListList  [||typeListList : {[[Maybe Type]]}]
-
-SEM ExpressionListList
-    | Cons lhs.typeListList = @hd.typeList : @tl.typeListList
-    | Nil lhs.typeListList = []
-
-
--- stringlist: collect the strings
---ATTR StringList [||strings : {[String]}]
-
---SEM StringList
---  | Cons lhs.strings = @hd : @tl.strings
---  | Nil lhs.strings = []
-
--- maybe bool expression: if present, then check its type is bool
-
-SEM MaybeBoolExpression
-    | Just
-        lhs.annotatedTree = let t = getTypeAnnotation @just.annotatedTree
-                            in if t `elem` [Nothing,Just typeBool]
-                               then Just @just.annotatedTree
-                               else Just $ addTypeErrors [ExpressionMustBeBool] @just.annotatedTree
-
 {
 {-
 ================================================================================

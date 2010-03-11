@@ -9,7 +9,7 @@ This file contains the checking code for a few plpgsql statements.
 --todo: check return type consistent with function return type
 SEM Statement
     | Return
-        loc.tpe = maybe (Right $ Pseudo Void) Right $ getTypeAnnotation @value.annotatedTree
+        loc.tpe = maybe (Right $ Pseudo Void) Right @value.uType
         loc.backTree = Return @ann @value.annotatedTree
         loc.catUpdates = []
         loc.statementType = Nothing
@@ -19,7 +19,7 @@ SEM Statement
     | Assignment
         loc.tpe =
             do
-            fromType <- lmt $ getTypeAnnotation @value.annotatedTree
+            fromType <- lmt @value.uType
             toType <- unwrapLookup <$> lbLookupID @lhs.lib (getName @target.annotatedTree)
             checkAssignmentValid @lhs.cat fromType toType
             return $ Pseudo Void
@@ -32,8 +32,8 @@ SEM Statement
         loc.varTypeE = unwrapLookup <$> lbLookupID @lhs.lib (getName @var.annotatedTree)
         loc.tpe =
           do
-          fromType <- lmt $ getTypeAnnotation @from.annotatedTree
-          toType <- lmt $ getTypeAnnotation @to.annotatedTree
+          fromType <- lmt @from.uType
+          toType <- lmt @to.uType
           errorWhen (fromType /= toType) [FromToTypesNotSame fromType toType]
           case @loc.varTypeE of
             Right t -> checkAssignmentValid @lhs.cat fromType t
@@ -44,7 +44,7 @@ SEM Statement
               Left [UnrecognisedIdentifier _] ->
                   -- create implicitly declared variable
                   either (const @lhs.lib) id $ do
-                  ft <- lmt $ getTypeAnnotation @from.annotatedTree
+                  ft <- lmt @from.uType
                   lbUpdate @lhs.cat
                     (LBIds "local for loop variable" Nothing [((getName @var.annotatedTree),ft)]) @lhs.lib
               _ -> @lhs.lib
@@ -56,10 +56,10 @@ SEM Statement
 
 SEM Statement
     | ForSelectStatement
-        loc.selType = getTypeAnnotation @sel.annotatedTree
+        --loc.selType = getTypeAnnotation @sel.annotatedTree
         loc.tpe =
           do
-          st <- lmt @loc.selType
+          st <- CompositeType <$> lmt @sel.uType
           toType <- unwrapLookup <$> lbLookupID @lhs.lib (getName @var.annotatedTree)
           checkAssignmentValid @lhs.cat st toType
           return $ Pseudo Void
@@ -70,7 +70,7 @@ SEM Statement
         sts.lib =
             either (const @lhs.lib) id $ do
             _ <- @loc.tpe
-            st <- lmt @loc.selType
+            st <- CompositeType <$> lmt @sel.uType
             lbUpdate @lhs.cat (LBIds "for loop record type" Nothing [(getName @var.annotatedTree,st)]) @lhs.lib
 
         loc.backTree = ForSelectStatement @ann @lb @var.annotatedTree @sel.annotatedTree @sts.annotatedTree

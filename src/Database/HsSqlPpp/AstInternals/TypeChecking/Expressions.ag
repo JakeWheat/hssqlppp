@@ -37,11 +37,48 @@ SEM Expression
         lhs.ntType = either (const []) id @loc.ntType
 
 ATTR Expression [||ntAnnotatedTree : Expression
-                   ntType : {[(String,Type)]}]
+                   ntType : {[(String,Type)]}
+                   uType : {Maybe Type}]
+
 
 ATTR Expression [expectedType : {Maybe Type}||]
 
-ATTR ExpressionList [expectedTypes : {[Maybe Type]}||]
+ATTR ExpressionList [expectedTypes : {[Maybe Type]}||uType : {[Maybe Type]}]
+
+
+SEM Expression
+    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
+      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
+      PositionalArg Placeholder WindowFn
+        lhs.uType = etmt @loc.tpe
+
+SEM ExpressionList
+    | Cons lhs.uType = @hd.uType : @tl.uType
+    | Nil lhs.uType = []
+
+
+ATTR ExpressionListList [||uType : {[[Maybe Type]]}]
+
+SEM ExpressionListList
+    | Cons lhs.uType = @hd.uType : @tl.uType
+    | Nil lhs.uType = []
+
+
+ATTR MaybeExpression  [||uType : {Maybe Type}]
+
+SEM MaybeExpression
+    | Just lhs.uType = @just.uType
+    | Nothing lhs.uType = Nothing
+
+-- maybe bool expression: if present, then check its type is bool
+
+SEM MaybeBoolExpression
+    | Just
+        lhs.annotatedTree = let t = @just.uType
+                            in if t `elem` [Nothing,Just typeBool]
+                               then Just @just.annotatedTree
+                               else Just $ addTypeErrors [ExpressionMustBeBool] @just.annotatedTree
+
 
 {-
 == literals
@@ -88,7 +125,7 @@ SEM Expression
     | FunCall
         (loc.tpe
         ,loc.prototype) = either (\e -> (Left e, Nothing)) id $ do
-                          args <- mapM lmt @args.typeList
+                          args <- mapM lmt @args.uType
                           efp <- findCallMatch @lhs.cat
                                                @funName
                                                args
@@ -100,7 +137,7 @@ SEM Expression
 
 
    | WindowFn
-        loc.tpe = lmt $ getTypeAnnotation @fn.annotatedTree
+        loc.tpe = lmt $ @fn.uType
         loc.backTree = WindowFn @ann
                                 @fn.annotatedTree
                                 @partitionBy.annotatedTree
@@ -120,15 +157,12 @@ pg allows the rhss to also be a subselect, this is a todo
 SEM Expression
     | LiftOperator
         loc.tpe = do
-                  args <- mapM lmt @args.typeList
-                  let args = @args.annotatedTree
-                  errorWhen (length args /= 2)
-                            [AnyAllError $ "must have two args, got " ++ show args]
-                  let [a,b] = args
-                  aType <- lmt $ getTypeAnnotation a
-                  bType <- lmt $ getTypeAnnotation b
+                  at <- mapM lmt @args.uType
+                  errorWhen (length at /= 2)
+                            [AnyAllError $ "must have two args, got " ++ show at]
+                  let [aType,bType] = at
                   errorWhen (not $ isArrayType bType)
-                            [AnyAllError $ "second arg must be array, got " ++ show args]
+                            [AnyAllError $ "second arg must be array, got " ++ show at]
                   elemType <- unwrapArray $ bType
                   resType <- fmap (\(_,_,r,_) -> r) $ findCallMatch @lhs.cat
                                                                     @oper
@@ -151,18 +185,31 @@ as the value to check against, then we collect the then parts as above.
 
 -}
 
+ATTR CaseExpressionListExpressionPairList [||whenTypes : {[[Maybe Type]]}
+                                             thenTypes : {[Maybe Type]}]
+SEM CaseExpressionListExpressionPairList
+  | Cons lhs.whenTypes = @hd.whenTypes : @tl.whenTypes
+         lhs.thenTypes = @hd.thenType : @tl.thenTypes
+  | Nil lhs.whenTypes = []
+        lhs.thenTypes = []
+
+ATTR CaseExpressionListExpressionPair [||whenTypes : {[Maybe Type]}
+                                         thenType : {Maybe Type}]
+
+SEM CaseExpressionListExpressionPair
+    | Tuple lhs.whenTypes = @x1.uType
+            lhs.thenType = @x2.uType
+
+
 SEM Expression
     | Case CaseSimple
-        loc.whenTypes = map getTypeAnnotation $ concatMap fst $
-                        @cases.annotatedTree
-        loc.thenTypes = map getTypeAnnotation $
-                            (map snd $ @cases.annotatedTree) ++
-                              maybeToList @els.annotatedTree
+        loc.whenTypes = @cases.whenTypes
+        loc.thenTypes = @cases.thenTypes ++ maybe [] ((:[]) . Just) @els.uType
 
 SEM Expression
     | Case
         loc.tpe = do
-                  wt <- mapM lmt @loc.whenTypes
+                  wt <- mapM lmt $ concat @loc.whenTypes
                   -- probably the when types shoule be checked inside each when node
                   -- and type errors attach there, and ignored here
                   errorWhen (any (/= typeBool) wt)
@@ -176,8 +223,8 @@ SEM Expression
     | CaseSimple
         loc.tpe =
           do
-          wt <- mapM lmt @loc.whenTypes
-          vt <- lmt $ getTypeAnnotation @value.annotatedTree
+          wt <- mapM lmt $ concat @loc.whenTypes
+          vt <- lmt $ @value.uType
           _ <- resolveResultSetType @lhs.cat (vt : wt)
           tt <- mapM lmt @loc.thenTypes
           resolveResultSetType @lhs.cat tt
@@ -259,7 +306,7 @@ SEM Expression
   | FunCall
       args.lib =
           case @funName of
-            "." | Just t <- getTypeAnnotation $ head @args.annotatedTree
+            "." | Just t <- head @args.uType
                   -> maybe emptyBindings id $ do
                           is <- expandComposite @lhs.cat t
                           etmt $ lbUpdate @lhs.cat (LBIds "dot" Nothing is) @lhs.lib
@@ -294,12 +341,11 @@ SEM Expression
     | ScalarSubQuery
         loc.tpe =
             do
-            selType <- lmt $ getTypeAnnotation @sel.annotatedTree
-            f <- map snd <$> unwrapSetOfComposite selType
-            case length f of
+            selType <- lmt $ map snd <$> @sel.uType
+            case length selType of
               0 -> Left [InternalError "no columns in scalar subquery?"]
-              1 -> Right $ head f
-              _ -> Right $ AnonymousRecordType f
+              1 -> Right $ head selType
+              _ -> Right $ AnonymousRecordType selType
 
         loc.backTree = ScalarSubQuery @ann @sel.annotatedTree
 {-
@@ -311,7 +357,7 @@ SEM Expression
     | InPredicate
         loc.tpe = do
                   lt <- @list.listType
-                  expt <- lmt $ getTypeAnnotation @expr.annotatedTree
+                  expt <- lmt @expr.uType
                   _ <- resolveResultSetType @lhs.cat [expt, lt]
                   return typeBool
         loc.backTree = InPredicate @ann
@@ -324,17 +370,16 @@ ATTR InList [||listType : {Either [TypeError] Type}]
 
 SEM InList
     | InList
-        lhs.listType = mapM lmt @exprs.typeList >>= resolveResultSetType @lhs.cat
+        lhs.listType = mapM lmt @exprs.uType >>= resolveResultSetType @lhs.cat
     | InSelect
         lhs.listType =
             do
-            st <- lmt $ getTypeAnnotation @sel.annotatedTree
-            attrs <- map snd <$> unwrapSetOfComposite st
-            case length attrs of
+            st <- lmt $ map snd <$> @sel.uType
+            case length st of
                       0 -> Left [InternalError
                                  "got subquery with no columns? in inselect"]
-                      1 -> Right $ head attrs
-                      _ -> Right $ AnonymousRecordType attrs
+                      1 -> Right $ head st
+                      _ -> Right $ AnonymousRecordType st
 {-
 ================================================================================
 
@@ -364,11 +409,9 @@ SEM AlterTableAction
     | AlterColumnDefault def.expectedType = Nothing
 
 
-SEM CaseExpressionList
-    | Cons hd.expectedType = Nothing
-
 SEM CaseExpressionListExpressionPair
-    | Tuple x2.expectedType = Nothing
+    | Tuple x1.expectedTypes = []
+            x2.expectedType = Nothing
 
 SEM Constraint
     | CheckConstraint expr.expectedType = Nothing
@@ -474,3 +517,4 @@ SEM TableRef
     | SubTref sel.expectedTypes = []
 SEM WithQuery
     | WithQuery ex.expectedTypes = []
+

@@ -61,17 +61,14 @@ defaultSystemColumns = [("tableoid", ScalarType "oid")
 
 SEM Statement
     | CreateTableAs
-        loc.tpe = lmt @loc.selType
+        loc.tpe = CompositeType <$> lmt @expr.uType
         loc.catUpdates =
            either (const []) id $ do
            ats <- @loc.attrs
            return [CatCreateTable @name ats defaultSystemColumns]
 
-        loc.selType : {Maybe Type}
-        loc.selType = getTypeAnnotation @expr.annotatedTree
-        -- type of the columns in the select expression
         loc.attrs : {Either [TypeError] [(String,Type)]}
-        loc.attrs = lmt @loc.selType >>= unwrapSetOfComposite
+        loc.attrs = lmt @expr.uType
 
         loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
         loc.statementType = Nothing

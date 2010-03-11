@@ -34,9 +34,9 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         CaseExpressionListExpressionPairList, MaybeExpression,
         TableRefList, ExpressionListList, SelectItemList, OnExpr,
         RowConstraintList, VarDefList, ExpressionStatementListPair,
-        CaseExpressionListExpressionPair, CaseExpressionList,
-        ExpressionDirectionPair, ExpressionDirectionPairList,
-        MaybeBoolExpression, MaybeSelectList, AlterTableActionList)
+        CaseExpressionListExpressionPair, ExpressionDirectionPair,
+        ExpressionDirectionPairList, MaybeBoolExpression, MaybeSelectList,
+        AlterTableActionList)
        where
 import Data.Generics
 import Database.HsSqlPpp.AstInternals.AstAnnotation
@@ -314,10 +314,8 @@ type AlterTableActionList = [(AlterTableAction)]
  
 type AttributeDefList = [(AttributeDef)]
  
-type CaseExpressionList = [(Expression)]
- 
 type CaseExpressionListExpressionPair =
-     ((CaseExpressionList), (Expression))
+     ((ExpressionList), (Expression))
  
 type CaseExpressionListExpressionPairList =
      [(CaseExpressionListExpressionPair)]
@@ -785,14 +783,11 @@ alterTableActionList = fmap alterTableAction
 attributeDefList :: AttributeDefList -> A.AttributeDefList
 attributeDefList = fmap attributeDef
  
-caseExpressionList :: CaseExpressionList -> A.CaseExpressionList
-caseExpressionList = fmap expression
- 
 caseExpressionListExpressionPair ::
                                  CaseExpressionListExpressionPair ->
                                    A.CaseExpressionListExpressionPair
 caseExpressionListExpressionPair (a, b)
-  = (caseExpressionList a, expression b)
+  = (expressionList a, expression b)
  
 caseExpressionListExpressionPairList ::
                                      CaseExpressionListExpressionPairList ->

@@ -101,7 +101,6 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,VarDefList
    ,ExpressionStatementListPair
    ,CaseExpressionListExpressionPair
-   ,CaseExpressionList
    ,ExpressionDirectionPair
    ,ExpressionDirectionPairList
    ,MaybeBoolExpression
@@ -665,8 +664,7 @@ TYPE ExpressionStatementListPairList = [ExpressionStatementListPair]
 TYPE VarDefList = [VarDef]
 TYPE SelectItemList = [SelectItem]
 TYPE RowConstraintList = [RowConstraint]
-TYPE CaseExpressionListExpressionPair = (CaseExpressionList,Expression)
-TYPE CaseExpressionList = [Expression]
+TYPE CaseExpressionListExpressionPair = (ExpressionList,Expression)
 TYPE CaseExpressionListExpressionPairList = [CaseExpressionListExpressionPair]
 TYPE StatementList = [Statement]
 TYPE ExpressionDirectionPair = (Expression,Direction)
@@ -707,7 +705,7 @@ SET AllNodes = Statement SelectExpression FnBody TableRef
                ExpressionListStatementListPairList ExpressionStatementListPair
                ExpressionStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseExpressionListExpressionPair
-               CaseExpressionListExpressionPairList CaseExpressionList
+               CaseExpressionListExpressionPairList
                TableRefList TableRef OnExpr MaybeSelectList
                AlterTableAction
                ExpressionDirectionPair

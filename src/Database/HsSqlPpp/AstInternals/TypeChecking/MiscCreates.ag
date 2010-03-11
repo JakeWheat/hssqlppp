@@ -14,11 +14,8 @@ SEM Statement
     | CreateView
         loc.tpe = Right $ Pseudo Void
         loc.backTree = CreateView @ann @name @expr.annotatedTree
-        loc.attrs = case getTypeAnnotation @expr.annotatedTree of
-                      Just(SetOfType (CompositeType c)) -> Just c
-                      _ -> Nothing --TODO: error ignored?
         loc.catUpdates =
-            maybe [] (\a -> [CatCreateView @name a]) @loc.attrs
+            maybe [] (\a -> [CatCreateView @name a]) @expr.uType
         loc.statementType = Nothing
 
 {-

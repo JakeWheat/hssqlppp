@@ -86,7 +86,6 @@ Copyright 2009 Jake Wheat
 >     ,VarDefList
 >     ,ExpressionStatementListPair
 >     ,CaseExpressionListExpressionPair
->     ,CaseExpressionList
 >     ,ExpressionDirectionPair
 >     ,ExpressionDirectionPairList
 >     ,AlterTableActionList
