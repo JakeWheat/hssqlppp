@@ -178,18 +178,23 @@ Conversion routines - convert Sql asts into Docs
 >       convFnBody (SqlFnBody ann1 sts) =
 >         convPa ca ann1 <+>
 >         convNestedStatements ca sts
->       convFnBody (PlpgsqlFnBody ann1 decls sts) =
+>       convFnBody (PlpgsqlFnBody ann1 blk) =
 >           convPa ca ann1 <+>
->           ifNotEmpty (\l -> text "declare"
->                   $+$ nest 2 (vcat $ map convVarDef l)) decls
->           $+$ text "begin"
->           $+$ convNestedStatements ca sts
->           $+$ text "end;"
+>           convBlock blk
 >       convParamDef (ParamDef _ n t) = text n <+> convTypeName t
 >       convParamDef  (ParamDefTp _ t) = convTypeName t
 >       convVarDef (VarDef _ n t v) =
 >         text n <+> convTypeName t
 >         <+> maybeConv (\x -> text ":=" <+> convExp x) v <> semi
+>       convBlock (Block ann1 lb decls sts) =
+>           convPa ca ann1 <+>
+>           convLabel lb <>
+>           ifNotEmpty (\l -> text "declare"
+>                   $+$ nest 2 (vcat $ map convVarDef l)) decls
+>           $+$ text "begin"
+>           $+$ convNestedStatements ca sts
+>           $+$ text "end;"
+
 >
 > convStatement ca (CreateView ann name sel) =
 >     convPa ca ann <+>
@@ -297,27 +302,31 @@ Conversion routines - convert Sql asts into Docs
 >     <> ifNotEmpty (\e -> comma <+> csvExp e) exps
 >     <> statementEnd
 >
-> convStatement ca (ForSelectStatement ann i sel stmts) =
+> convStatement ca (ForSelectStatement ann lb i sel stmts) =
 >     convPa ca ann <+>
+>     convLabel lb <>
 >     text "for" <+> convExp i <+> text "in"
 >     <+> convSelectExpression True True sel <+> text "loop"
 >     $+$ convNestedStatements ca stmts
 >     $+$ text "end loop" <> statementEnd
 >
-> convStatement ca (ForIntegerStatement ann var st en stmts) =
+> convStatement ca (ForIntegerStatement ann lb var st en stmts) =
 >     convPa ca ann <+>
+>     convLabel lb <>
 >     text "for" <+> convExp var <+> text "in"
 >     <+> convExp st <+> text ".." <+> convExp en <+> text "loop"
 >     $+$ convNestedStatements ca stmts
 >     $+$ text "end loop" <> statementEnd
 >
-> convStatement ca (WhileStatement ann ex stmts) =
+> convStatement ca (WhileStatement ann lb ex stmts) =
 >     convPa ca ann <+>
+>     convLabel lb <>
 >     text "while" <+> convExp ex <+> text "loop"
 >     $+$ convNestedStatements ca stmts
 >     $+$ text "end loop" <> statementEnd
-> convStatement ca (LoopStatement ann stmts) =
+> convStatement ca (LoopStatement ann lb stmts) =
 >     convPa ca ann <+>
+>     convLabel lb <>
 >     text "loop"
 >     $+$ convNestedStatements ca stmts
 >     $+$ text "end loop" <> statementEnd
@@ -325,9 +334,6 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (ContinueStatement ann lb) =
 >     convPa ca ann <+> text "continue"
 >       <+> maybe empty text lb <> statementEnd
-> convStatement ca (Label ann lb) =
->     convPa ca ann <+> text "<<"
->       <+> text lb <+> text ">>" <> text "\n"
 > convStatement ca (Perform ann f@(FunCall _ _ _)) =
 >     convPa ca ann <+>
 >     text "perform" <+> convExp f <> statementEnd
@@ -731,3 +737,9 @@ Statement components
 >                    then empty
 >                    else text "/*\n" <+> text s
 >                         <+> text "*/\n"
+
+> convLabel :: Maybe String -> Doc
+> convLabel =
+>   maybe empty (\l -> text "<<"
+>                      <+> text l
+>                      <+> text ">>" <> text "\n")

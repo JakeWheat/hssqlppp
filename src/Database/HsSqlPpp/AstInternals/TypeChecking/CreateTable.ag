@@ -43,7 +43,7 @@ SEM Statement
                                    @atts.annotatedTree
                                    @cons.annotatedTree
         cons.lib = case lbUpdate @lhs.cat
-                          (LBIds "attributedefs" "" @loc.attrs [])
+                          (LBIds "attributedefs" Nothing @loc.attrs)
                           @lhs.lib of
                       Left x -> error $ "statement-createtable-cons.lib " ++ show x
                       Right e -> e
@@ -101,7 +101,7 @@ SEM AttributeDef
         cons.lib = either (const @lhs.lib) id $ do
                    t <- lmt @typ.namedType
                    lbUpdate @lhs.cat
-                            (LBIds "attribute def" ""
-                                   [(@name, t)] []) @lhs.lib
+                            (LBIds "attribute def" Nothing
+                                   [(@name, t)]) @lhs.lib
 
 

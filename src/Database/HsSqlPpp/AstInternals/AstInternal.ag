@@ -271,17 +271,21 @@ DATA Statement
                   expr : Expression
                   targets : {[String]}
     | ForSelectStatement ann:Annotation
+                         lb : {Maybe String}
                          var : Expression
                          sel : SelectExpression
                          sts : StatementList
     | ForIntegerStatement ann:Annotation
+                          lb : {Maybe String}
                           var : Expression
                           from : Expression
                           to : Expression
                           sts : StatementList
     | LoopStatement ann:Annotation
+                    lb : {Maybe String}
                     sts : StatementList
     | WhileStatement ann:Annotation
+                     lb : {Maybe String}
                      expr : Expression
                      sts : StatementList
     | ContinueStatement ann:Annotation lb:{Maybe String}
@@ -300,8 +304,7 @@ DATA Statement
     | If ann:Annotation
          cases : ExpressionStatementListPairList
          els : StatementList
-    | Label ann:Annotation
-            lb:String
+    | Block ann:Annotation lb:{Maybe String} vars:VarDefList sts : StatementList
 
 --misc
 
@@ -340,7 +343,7 @@ DATA WithQuery | WithQuery ann : Annotation
                            ex : SelectExpression
 
 DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
-            | PlpgsqlFnBody ann:Annotation vars:VarDefList sts : StatementList
+            | PlpgsqlFnBody ann:Annotation blk : Statement
 
 {-DATA SetClause | SetClause ann:Annotation att:String val:Expression
                | RowSetClause ann:Annotation atts:{[String]} vals:ExpressionList

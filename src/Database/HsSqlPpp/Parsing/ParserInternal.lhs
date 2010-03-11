@@ -683,16 +683,10 @@ rather than just a string.
 >         -- the statements are enclosed in begin ... end; (semi colon
 >         -- after end is optional)
 >         functionBody Plpgsql =
->             PlpgsqlFnBody
->             <$> pos
->             <*> option [] declarePart
->             <*> statementPart
->             where
->               statementPart = keyword "begin"
->                     *> many plPgsqlStatement
->                     <* keyword "end" <* optional (symbol ";") <* eof
->               declarePart = keyword "declare"
->                   *> manyTill (try varDef) (lookAhead $ keyword "begin")
+>             PlpgsqlFnBody <$> pos <*> do
+>                    p <- pos
+>                    l <- label
+>                    block p l <* optional (symbol ";") <* eof
 
 params to a function
 
@@ -869,17 +863,34 @@ plpgsql statements
 >          ,ifStatement
 >          ,returnSt
 >          ,raise
->          ,forStatement
->          ,whileStatement
->          ,loopStatement
 >          ,perform
+>          ,labelPrefixed
 >          ,nullStatement
 >          ,exitStatement]
 >          <* symbol ";")
->     <|> label
+>    where
+>      labelPrefixed = do
+>        p <- pos
+>        l <- label
+>        choice [block p l
+>               ,forStatement p l
+>               ,whileStatement p l
+>               ,loopStatement p l]
+
+> label :: SParser (Maybe String)
+> label = optional (symbol "<<" *> idString <* symbol ">>")
 >
-> label :: SParser Statement
-> label = Label <$> pos <*> (symbol "<<" *> idString <* symbol ">>")
+> block :: Annotation -> (Maybe String) -> SParser Statement
+> block p l = Block p l
+>             <$> option [] declarePart
+>             <*> statementPart
+>         where
+>           statementPart = keyword "begin"
+>                     *> many plPgsqlStatement
+>                     <* keyword "end"
+>           declarePart = keyword "declare"
+>                         *> manyTill (try varDef) (lookAhead $ keyword "begin")
+>
 >
 > nullStatement :: SParser Statement
 > nullStatement = NullStatement <$> (pos <* keyword "null")
@@ -931,15 +942,14 @@ plpgsql statements
 >                                      ,("exception", RException)
 >                                      ,("error", RError)]
 >
-> forStatement :: SParser Statement
-> forStatement = do
->                p <- pos
+> forStatement :: Annotation -> (Maybe String) -> SParser Statement
+> forStatement p l = do
 >                keyword "for"
 >                start <- qName
 >                keyword "in"
->                choice [ForSelectStatement p start
+>                choice [ForSelectStatement p l start
 >                        <$> try selectExpression <*> theRest
->                       ,ForIntegerStatement p start
+>                       ,ForIntegerStatement p l start
 >                               <$> expr
 >                               <*> (symbol ".." *> expr)
 >                               <*> theRest]
@@ -947,15 +957,13 @@ plpgsql statements
 >     theRest = keyword "loop" *> many plPgsqlStatement
 >               <* keyword "end" <* keyword "loop"
 >
-> whileStatement :: SParser Statement
-> whileStatement = WhileStatement
->                  <$> (pos <* keyword "while")
->                  <*> (expr <* keyword "loop")
->                  <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
-> loopStatement :: SParser Statement
-> loopStatement = LoopStatement
->                  <$> (pos <* keyword "loop")
->                  <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
+> whileStatement :: Annotation -> (Maybe String) -> SParser Statement
+> whileStatement p l = WhileStatement p l
+>                      <$> (keyword "while" *> expr <* keyword "loop")
+>                      <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
+> loopStatement :: Annotation -> (Maybe String) -> SParser Statement
+> loopStatement p l = LoopStatement p l
+>                     <$> (keyword "loop" *> many plPgsqlStatement <* keyword "end" <* keyword "loop")
 >
 
 >

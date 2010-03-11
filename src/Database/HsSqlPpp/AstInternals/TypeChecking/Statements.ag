@@ -86,12 +86,18 @@ SEM Statement
     | Insert Update Delete CreateView CreateDomain
       CreateFunction CreateType CreateTable CreateTableAs Return
       Assignment ForSelectStatement ForIntegerStatement Set CreateLanguage
-      Notify CreateSequence AlterSequence DropFunction
+      Notify CreateSequence AlterSequence DropFunction Block
         loc.libUpdates = []
 
 SEM StatementList
     | Cons hd.inProducedCat = @tl.producedCat
 
+SEM Statement
+    | Block lhs.catUpdates = []
+            sts.catUpdates = []
+SEM FnBody
+    | PlpgsqlFnBody
+        blk.inProducedCat = emptyCatalog
 
 SEM Root
     | Root statements.catUpdates = []
@@ -102,7 +108,7 @@ SEM Statement
       DropSomething Execute ExecuteInto
       If NullStatement ExitStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement Set Notify CreateSequence LoopStatement
-      AlterSequence AlterTable CreateTrigger Label
+      AlterSequence AlterTable CreateTrigger
         lhs.catUpdates = []
         lhs.libUpdates = []
 
@@ -115,9 +121,10 @@ SEM ExpressionStatementListPair
         x2.catUpdates = []
         x2.libUpdates = []
 SEM FnBody
-    | PlpgsqlFnBody SqlFnBody
+    | SqlFnBody
         sts.catUpdates = []
         sts.libUpdates = []
+
 SEM Statement
     | CaseStatement CaseStatementSimple If
         els.catUpdates = []
@@ -136,6 +143,7 @@ INCLUDE "TypeChecking/Delete.ag"
 INCLUDE "TypeChecking/CreateTable.ag"
 INCLUDE "TypeChecking/MiscCreates.ag"
 INCLUDE "TypeChecking/CreateFunction.ag"
+INCLUDE "TypeChecking/Block.ag"
 INCLUDE "TypeChecking/Triggers.ag"
 INCLUDE "TypeChecking/Drops.ag"
 INCLUDE "TypeChecking/Plpgsql.ag"

@@ -91,7 +91,7 @@ SEM SelectList
             getIntoType :: Expression -> E (String,Type)
             getIntoType n = do
                             let n1 = getName n
-                            t <- lbLookupID @lhs.lib n1
+                            t <- unwrapLookup <$> lbLookupID @lhs.lib n1
                             return (n1,t)
         loc.tpe =
             returnWhen (@into == []) () $ do
@@ -105,8 +105,9 @@ SEM SelectList
             -- not complete, we only cope with situation when
             -- assigning to a single record type on its own
             return $ case it of
-              [(n,PgRecord _)] -> [LBIds "set record actual fields from select into" ""
-                                         [(n,PgRecord $ Just $ CompositeType ft)] []]
+              [(n,PgRecord _)] -> [LBIds "set record actual fields from select into"
+                                         Nothing
+                                         [(n,PgRecord $ Just $ CompositeType ft)]]
               _ -> []
 
 {-

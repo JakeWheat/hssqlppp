@@ -983,7 +983,7 @@ quick sanity check
 >          (FunCall ea "="
 >           [Identifier ea "b", PositionalArg ea 1])])
 >        Stable]
->      ,s "create function fn() returns void as $$\n\
+>      {-,s "create function fn() returns void as $$\n\
 >         \declare\n\
 >         \  a int;\n\
 >         \  b text;\n\
@@ -992,9 +992,9 @@ quick sanity check
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
 >       [CreateFunction ea "fn" [] (SimpleTypeName ea "void") NoReplace Plpgsql
->        (PlpgsqlFnBody ea [VarDef ea "a" (SimpleTypeName ea "int") Nothing
->                          ,VarDef ea "b" (SimpleTypeName ea "text") Nothing]
->         [NullStatement ea])
+>        (PlpgsqlFnBody ea (Block ea Nothing [VarDef ea "a" (SimpleTypeName ea "int") Nothing
+>                                            ,VarDef ea "b" (SimpleTypeName ea "text") Nothing]
+>                           [NullStatement ea]))
 >        Volatile]
 >      ,s "create function fn() returns void as $$\n\
 >         \declare\n\
@@ -1060,7 +1060,7 @@ quick sanity check
 >       [CreateFunction ea "fn" []
 >        (SimpleTypeName ea "void") Replace Plpgsql
 >        (PlpgsqlFnBody ea [] [NullStatement ea])
->        Stable]
+>        Stable]-}
 >      ,s "drop function test(text);"
 >       [DropFunction ea Require [("test",[SimpleTypeName ea "text"])] Restrict]
 >      ,s "drop function if exists a(),test(text) cascade;"
@@ -1110,18 +1110,18 @@ quick sanity check
 >       f "for r in select a from tbl loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForSelectStatement ea (i "r") (selectFrom  [selI "a"] (Tref ea (i "tbl") NoAlias))
+>       [ForSelectStatement ea Nothing (i "r") (selectFrom  [selI "a"] (Tref ea (i "tbl") NoAlias))
 >        [NullStatement ea]]
 >      ,f "for r in select a from tbl where true loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForSelectStatement ea (i "r")
+>       [ForSelectStatement ea Nothing (i "r")
 >        (selectFromWhere [selI "a"] (Tref ea (i "tbl") NoAlias) (BooleanLit ea True))
 >        [NullStatement ea]]
 >      ,f "for r in 1 .. 10 loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForIntegerStatement ea (i "r")
+>       [ForIntegerStatement ea Nothing (i "r")
 >        (IntegerLit ea 1) (IntegerLit ea 10)
 >        [NullStatement ea]]
 >

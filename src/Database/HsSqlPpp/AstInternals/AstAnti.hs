@@ -186,8 +186,7 @@ data Expression = BooleanLit (Annotation) (Bool)
                 | AntiExpression String
                 deriving (Data, Eq, Show, Typeable)
  
-data FnBody = PlpgsqlFnBody (Annotation) (VarDefList)
-                            (StatementList)
+data FnBody = PlpgsqlFnBody (Annotation) (Statement)
             | SqlFnBody (Annotation) (StatementList)
             deriving (Data, Eq, Show, Typeable)
  
@@ -232,6 +231,7 @@ data SelectList = SelectList (Annotation) (SelectItemList)
 data Statement = AlterSequence (Annotation) (String) (Expression)
                | AlterTable (Annotation) (String) (AlterTableActionList)
                | Assignment (Annotation) (Expression) (Expression)
+               | Block (Annotation) (Maybe String) (VarDefList) (StatementList)
                | CaseStatement (Annotation) (ExpressionListStatementListPairList)
                                (StatementList)
                | CaseStatementSimple (Annotation) (Expression)
@@ -262,15 +262,14 @@ data Statement = AlterSequence (Annotation) (String) (Expression)
                | Execute (Annotation) (Expression)
                | ExecuteInto (Annotation) (Expression) ([String])
                | ExitStatement (Annotation) (Maybe String)
-               | ForIntegerStatement (Annotation) (Expression) (Expression)
-                                     (Expression) (StatementList)
-               | ForSelectStatement (Annotation) (Expression) (SelectExpression)
-                                    (StatementList)
+               | ForIntegerStatement (Annotation) (Maybe String) (Expression)
+                                     (Expression) (Expression) (StatementList)
+               | ForSelectStatement (Annotation) (Maybe String) (Expression)
+                                    (SelectExpression) (StatementList)
                | If (Annotation) (ExpressionStatementListPairList) (StatementList)
                | Insert (Annotation) (String) ([String]) (SelectExpression)
                         (MaybeSelectList)
-               | Label (Annotation) (String)
-               | LoopStatement (Annotation) (StatementList)
+               | LoopStatement (Annotation) (Maybe String) (StatementList)
                | Notify (Annotation) (String)
                | NullStatement (Annotation)
                | Perform (Annotation) (Expression)
@@ -283,7 +282,8 @@ data Statement = AlterSequence (Annotation) (String) (Expression)
                | Truncate (Annotation) ([String]) (RestartIdentity) (Cascade)
                | Update (Annotation) (String) (ExpressionList) (TableRefList)
                         (MaybeBoolExpression) (MaybeSelectList)
-               | WhileStatement (Annotation) (Expression) (StatementList)
+               | WhileStatement (Annotation) (Maybe String) (Expression)
+                                (StatementList)
                | AntiStatement String
                deriving (Data, Eq, Show, Typeable)
  
@@ -578,8 +578,7 @@ expression x
 fnBody :: FnBody -> A.FnBody
 fnBody x
   = case x of
-        PlpgsqlFnBody a1 a2 a3 -> A.PlpgsqlFnBody a1 (varDefList a2)
-                                    (statementList a3)
+        PlpgsqlFnBody a1 a2 -> A.PlpgsqlFnBody a1 (statement a2)
         SqlFnBody a1 a2 -> A.SqlFnBody a1 (statementList a2)
  
 inList :: InList -> A.InList
@@ -651,6 +650,8 @@ statement x
         AlterTable a1 a2 a3 -> A.AlterTable a1 a2 (alterTableActionList a3)
         Assignment a1 a2 a3 -> A.Assignment a1 (expression a2)
                                  (expression a3)
+        Block a1 a2 a3 a4 -> A.Block a1 a2 (varDefList a3)
+                               (statementList a4)
         CaseStatement a1 a2 a3 -> A.CaseStatement a1
                                     (expressionListStatementListPairList a2)
                                     (statementList a3)
@@ -703,21 +704,21 @@ statement x
         Execute a1 a2 -> A.Execute a1 (expression a2)
         ExecuteInto a1 a2 a3 -> A.ExecuteInto a1 (expression a2) a3
         ExitStatement a1 a2 -> A.ExitStatement a1 a2
-        ForIntegerStatement a1 a2 a3 a4 a5 -> A.ForIntegerStatement a1
-                                                (expression a2)
-                                                (expression a3)
-                                                (expression a4)
-                                                (statementList a5)
-        ForSelectStatement a1 a2 a3 a4 -> A.ForSelectStatement a1
-                                            (expression a2)
-                                            (selectExpression a3)
-                                            (statementList a4)
+        ForIntegerStatement a1 a2 a3 a4 a5 a6 -> A.ForIntegerStatement a1
+                                                   a2
+                                                   (expression a3)
+                                                   (expression a4)
+                                                   (expression a5)
+                                                   (statementList a6)
+        ForSelectStatement a1 a2 a3 a4 a5 -> A.ForSelectStatement a1 a2
+                                               (expression a3)
+                                               (selectExpression a4)
+                                               (statementList a5)
         If a1 a2 a3 -> A.If a1 (expressionStatementListPairList a2)
                          (statementList a3)
         Insert a1 a2 a3 a4 a5 -> A.Insert a1 a2 a3 (selectExpression a4)
                                    (maybeSelectList a5)
-        Label a1 a2 -> A.Label a1 a2
-        LoopStatement a1 a2 -> A.LoopStatement a1 (statementList a2)
+        LoopStatement a1 a2 a3 -> A.LoopStatement a1 a2 (statementList a3)
         Notify a1 a2 -> A.Notify a1 a2
         NullStatement a1 -> A.NullStatement a1
         Perform a1 a2 -> A.Perform a1 (expression a2)
@@ -734,8 +735,9 @@ statement x
                                       (tableRefList a4)
                                       (maybeBoolExpression a5)
                                       (maybeSelectList a6)
-        WhileStatement a1 a2 a3 -> A.WhileStatement a1 (expression a2)
-                                     (statementList a3)
+        WhileStatement a1 a2 a3 a4 -> A.WhileStatement a1 a2
+                                        (expression a3)
+                                        (statementList a4)
         AntiStatement _ -> error "can't convert anti statement"
  
 tableRef :: TableRef -> A.TableRef

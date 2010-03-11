@@ -41,38 +41,7 @@ SEM Statement
                                 ts <- etmt $ @loc.columnTypes
                                 return $ map (Just . snd) ts
 
--- inject the ids into the returning part
-
-SEM Statement
-    | Insert
         returning.lib =
             either (const @lhs.lib) id $ do
               atts <- catCompositeAttrs @lhs.cat relationComposites @table
-              lbUpdate @lhs.cat (LBIds "insert target table" "" atts []) @lhs.lib
-
--- inferred types in the select expresssion
-
-ATTR SelectExpression [inferredTypes: {[Maybe Type]}||]
-
-ATTR ExpressionListList [inferredTypes: {[Maybe Type]}||]
-
-SEM SelectExpression
-    | Values vll.inferredTypes = @lhs.inferredTypes
-
-SEM ExpressionListList
-    | Cons hd.inferredTypes = @lhs.inferredTypes
-           tl.inferredTypes = @lhs.inferredTypes
-
-SEM Expression
-    | Exists ScalarSubQuery sel.inferredTypes = []
-SEM InList
-    | InSelect sel.inferredTypes = []
-SEM Statement
-    | CreateTableAs CreateView expr.inferredTypes = []
-    | ForSelectStatement ReturnQuery
-        sel.inferredTypes = []
-    | SelectStatement ex.inferredTypes = []
-SEM TableRef
-    | SubTref sel.inferredTypes = []
-SEM WithQuery
-    | WithQuery ex.inferredTypes = []
+              lbUpdate @lhs.cat (LBIds "insert target table" (Just @table) atts) @lhs.lib

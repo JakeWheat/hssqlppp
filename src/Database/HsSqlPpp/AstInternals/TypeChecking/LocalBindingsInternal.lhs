@@ -8,6 +8,10 @@ for looking up the types of identifiers in select expressions.
 This module exposes the internals of the localbindings datatype for
 testing.
 
+The lookups to support are a single identifier, or to give a star
+expansion.
+
+
 Some notes on lookups
 all lookups are case insensitive
 start by searching the head of the lookup update list and working down
@@ -42,9 +46,7 @@ in scope, and one for an unqualified star.
 >     ,emptyBindings
 >     ,lbUpdate
 >     ,lbExpandStar
->     ,lbExpandStar1
 >     ,lbLookupID
->     ,lbLookupID1
 >     ,ppLocalBindings
 >     ,ppLbls
 >     ) where
@@ -85,14 +87,9 @@ correlation name.
 
 > type Source = String
 >
-> type FullId = (Source,String,String,Type) -- source,correlationname,name,type
->                                           -- correlation name is
->                                           -- there so we can recover
->                                           -- it when the id is
->                                           -- accessed without a
->                                           -- correlation name
+> type FullId = (Source,[String],Type) -- source,fully qualified name components,type
 > type SimpleId = (String,Type)
-> type IDLookup = ((String,String), E FullId)
+> type IDLookup = (String, E FullId)
 > type StarLookup = (String, E [FullId]) --the order of the [FullId] part is important
 >
 > data LocalBindingsLookup = LocalBindingsLookup
@@ -102,24 +99,19 @@ correlation name.
 
 This is the local bindings update that users of this module use.
 
-> data LocalBindingsUpdate = LBIds {
->                              source :: Source
->                             ,correlationName :: String
->                             ,lbids :: [SimpleId]
->                             ,internalIds :: [SimpleId]
->                             }
->                          | LBJoinIds {
->                              jtref1 :: LocalBindingsUpdate
->                             ,jtref2 :: LocalBindingsUpdate
->                             ,joinIds :: Either () [String] -- left () represents natural join
+> data LocalBindingsUpdate = LBIds {source :: Source
+>                                  ,correlationName :: Maybe String
+>                                  ,lbids :: [SimpleId]}
+>                          | LBTref {source :: Source
+>                                   ,talias :: String
+>                                   ,lbids :: [SimpleId]
+>                                   ,lbsysids :: [SimpleId]}
+>                          | LBJoinTref {source :: Source
+>                                       ,jtref1 :: LocalBindingsUpdate
+>                                       ,jtref2 :: LocalBindingsUpdate
+>                                       ,joinIds :: Either () [String] -- left () represents natural join
 >                                                            -- right [] represents no join ids
->                             ,jalias :: String
->                            }
->                          | LBParallel { -- for having two or more sets of ids on the same
->                                         -- level, used to catch some ambiguous id errors
->                              plbu1 :: LocalBindingsUpdate
->                             ,plbu2 :: LocalBindingsUpdate
->                            }
+>                                       ,jalias :: String}
 >                            deriving Show
 >
 > emptyBindings :: LocalBindings
@@ -140,10 +132,61 @@ This is the local bindings update that users of this module use.
 
 ================================================================================
 
+> lbUpdate :: Catalog -> LocalBindingsUpdate -> LocalBindings -> E LocalBindings
+> lbUpdate = undefined
+
+================================================================================
+
+> lbExpandStar :: LocalBindings -> E [FullId]
+> lbExpandStar = undefined
+
+================================================================================
+
+> lbLookupID :: LocalBindings -> String -> E FullId
+> lbLookupID = undefined
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 wrapper for the proper lookupid function, this is for backwards
 compatibility with the old lookup code
 
-> lbLookupID :: LocalBindings
+> {-lbLookupID :: LocalBindings
 >            -> String -- identifier name
 >            -> E Type
 > lbLookupID lb ci = let (cor,i) = splitIdentifier ci
@@ -220,8 +263,8 @@ This is where constructing the local bindings lookup stacks is done
 >      lbu = lowerise lbu'
 >      -- make correlation names and id names case insensitive
 >      -- by making them all lowercase
->      lowerise (LBIds src cor ids iids) =
->        LBIds src (mtl cor) (mtll ids) (mtll iids)
+>      lowerise (LBIds src ids) =
+>        LBIds src (mtll ids)
 >      lowerise (LBJoinIds t1 t2 ji a) =
 >        LBJoinIds (lowerise t1) (lowerise t2) (fmap mtll1 ji) (mtl a)
 >      lowerise (LBParallel lbu1 lbu2) =
@@ -230,7 +273,7 @@ This is where constructing the local bindings lookup stacks is done
 >      mtll1 = map (\l -> mtl l)
 >
 > makeStack :: Catalog -> LocalBindingsUpdate -> E LocalBindingsLookup
-> makeStack _ (LBIds src cor ids iids) =
+> makeStack _ (LBIds src ids) =
 >   Right $ LocalBindingsLookup doIds doStar
 >   where
 >     doIds :: [((String,String)
@@ -409,4 +452,4 @@ name and id name as a three part id isn't possible
 >       let fids::[FullId]
 >           fids = rights $ map snd ids
 >           (_,c,_,_) = if null fids then (undefined,"ERROR",undefined,undefined) else head fids
->       in (c,Right fids)
+>       in (c,Right fids)-}

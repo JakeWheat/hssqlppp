@@ -137,7 +137,7 @@ subtref - pull the type of the select expression out (which will be a
         loc.selectAttrs : {Either [TypeError] [(String,Type)]}
         loc.selectAttrs = lmt (getTypeAnnotation @sel.annotatedTree)
                           >>= unwrapSetOfComposite
-        lhs.libUpdates = [LBIds "sub query" (getAlias "" @alias) --"" should be error
+        lhs.libUpdates = [LBTref "sub query" (getAlias "" @alias) --"" should be error
                                          (fromRight [] @loc.selectAttrs) []]
 
     | Tref
@@ -150,7 +150,7 @@ tref - just a name of a table or view, just need to retrieve the fields from the
                      Right _ -> []
         lhs.libUpdates = let n = getName @tbl.annotatedTree
                          in trace ("got name: " ++ n) $
-                            [LBIds ("tref: " ++ n)
+                            [LBTref ("tref: " ++ n)
                                    (getAlias n @alias)
                                    (fst @loc.relType1)
                                    (snd @loc.relType1)]
@@ -173,7 +173,7 @@ column names and types - see that function for how this works
 
         loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
         loc.eqfunIdens = funIdens @lhs.cat (getAlias "" @alias) @fn.annotatedTree
-        lhs.libUpdates = [LBIds ("fn")
+        lhs.libUpdates = [LBTref "fn"
                                          (fst @loc.qfunIdens)
                                          (snd @loc.qfunIdens)
                                          []]
@@ -192,7 +192,8 @@ join - most of the hard work is done in local bindings
         loc.joinErrors = fromLeft [] (foldM (flip $ lbUpdate @lhs.cat) @lhs.lib @loc.libUpdates)
         loc.libUpdates =
             case (@tbl.libUpdates, @tbl1.libUpdates) of
-              ([u1], [u2]) -> [LBJoinIds u1 u2 jids (case @alias of
+              ([u1], [u2]) -> [LBJoinTref "join" u1 u2 jids
+                                              (case @alias of
                                                        NoAlias -> ""
                                                        TableAlias t -> t
                                                        FullAlias t _ -> t)]
@@ -204,7 +205,8 @@ join - most of the hard work is done in local bindings
                           _ -> Right []
         loc.newLib : {Either [TypeError] LocalBindings}
         loc.newLib = case (@tbl.libUpdates, @tbl1.libUpdates) of
-                       ([u1],[u2]) -> lbUpdate @lhs.cat (LBParallel u1 u2) @lhs.lib
+                       ([u1],[u2]) -> lbUpdate @lhs.cat
+                                        (LBJoinTref "join" u1 u2 (Right []) "") @lhs.lib
                        _ -> Right @lhs.lib
         onExpr.lib = fromRight @lhs.lib @loc.newLib
 

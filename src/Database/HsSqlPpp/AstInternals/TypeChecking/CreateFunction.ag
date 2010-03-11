@@ -38,9 +38,6 @@ ATTR ParamDef [pos : Int||paramName : ParamName
 
 ATTR ParamDefList [pos : Int||params : {[(ParamName, Maybe Type)]}]
 
-ATTR VarDef [||def : {(String,Maybe Type)}]
-
-ATTR VarDefList [||defs : {[(String,Maybe Type)]}]
 
 -- collect the information to update the local bindings from the parameters
 SEM ParamDef
@@ -65,58 +62,21 @@ SEM Statement
         --add the parameters to the catalog for the contained statements
         body.lib = either (const @lhs.lib) id $ do
                    rt <- lmt @rettype.namedType
-                   let p = params
-                           -- hack for trigger functions
-                           ++ case rt of
-                                Pseudo Trigger -> [("OLD", Pseudo TriggerRecord)
-                                                  ,("NEW", Pseudo TriggerRecord)]
-                                _ -> []
-                   lbUpdate @lhs.cat (LBIds (@name ++ " parameters") "" p []) @lhs.lib
-                     >>= lbUpdate @lhs.cat (LBIds (@name ++ " parameters") @name paramsNoPos [])
+                   lbUpdate @lhs.cat (LBIds (@name ++ " parameters") (Just @name) paramsNoPos) @lhs.lib
+                   >>= lbUpdate @lhs.cat (LBIds (@name ++ " parameters") Nothing paramsPosOnly)
                    where
-                     params :: [(String,Type)]
-                     params = concat $ mapMaybe prm @params.params
+                     paramsPosOnly :: [(String,Type)]
+                     paramsPosOnly = mapMaybe prm @params.params
+                     prm :: (ParamName,Maybe Type) -> Maybe (String,Type)
+                     prm (NamedParam p _,Just t) = Just ("$" ++ show p, t)
+                     prm (UnnamedParam p,Just t) = Just ("$" ++ show p, t)
+                     prm _ = Nothing
                      paramsNoPos :: [(String,Type)]
                      paramsNoPos = mapMaybe pnp @params.params
-                     prm :: (ParamName,Maybe Type) -> Maybe [(String,Type)]
-                     prm (NamedParam p n,Just t) = Just [(n,t),("$" ++ show p, t)]
-                     prm (UnnamedParam p,Just t) = Just [("$" ++ show p, t)]
-                     prm _ = Nothing
                      pnp :: (ParamName,Maybe Type) -> Maybe (String,Type)
                      pnp (NamedParam _ n,Just t) = Just (n,t)
                      pnp _ = Nothing
         params.pos = 1
-
--- collect the information to update the local bindings from the declarations
---slightly hacky, should fix this better
--- this is going to change when plpgsql blocks are supported properly
-SEM VarDef
-    | VarDef lhs.def = (@name, if @typ.namedType == Just (Pseudo Record)
-                               then Just (PgRecord Nothing)
-                               else @typ.namedType)
-
-SEM VarDefList
-    | Cons lhs.defs = @hd.def : @tl.defs
-    | Nil lhs.defs = []
-
-
-SEM FnBody
-    | PlpgsqlFnBody
-        --make the variable names available in the body of the
-        --function this needs to be generalised to begin/end blocks
-        --which can nest inside plpgsql functions (they aren't even
-        --supported by the parser at the moment)
-        sts.lib = fromRight @lhs.lib $
-                  lbUpdate @lhs.cat
-                           (LBIds "declarations" "" (mapMaybe lv @vars.defs) [])
-                           @lhs.lib
-                  where
-                    lv (s,Nothing) = Nothing
-                    lv (s,Just t) = Just (s,t)
-
-
-
-
 
 {-
 boilerplate

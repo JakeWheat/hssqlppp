@@ -26,6 +26,6 @@ SEM Statement
         loc.lib =
             either (const @lhs.lib) id $ do
             a <- @loc.attrs
-            lbUpdate @lhs.cat (LBIds "delete table attrs" "" a []) @lhs.lib
+            lbUpdate @lhs.cat (LBIds "delete table attrs" (Just @table) a) @lhs.lib
         whr.lib = @loc.lib
         returning.lib = @loc.lib

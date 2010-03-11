@@ -124,6 +124,21 @@ getName (FunCall _ "." [Identifier _ c,Identifier _ i]) = c ++ "." ++ i
 getName (FunCall _ "." [_,a]) = getName a
 getName x = error $ "internal error getName called on: " ++ show x
 
+
+expandComposite :: Catalog -> Type -> Maybe [(String,Type)]
+expandComposite cat (SetOfType t) = expandComposite cat t
+expandComposite cat (PgRecord (Just t)) = expandComposite cat t
+expandComposite _ (CompositeType fs) = Just fs
+expandComposite cat (NamedCompositeType n) = etmt $ catCompositeAttrs cat [] n
+
+unwrapLookup :: (String,[String],Type) -> Type
+unwrapLookup (_,_,t) = t
+
+unwrapStar :: [(String,[String],Type)] -> [(String,Type)]
+unwrapStar = map uw
+             where
+               uw (_,n,t) = (last n, t)
+
 {-
 ================================================================================
 

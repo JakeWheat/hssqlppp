@@ -73,8 +73,8 @@ SEM Statement
         check.lib = either (const @lhs.lib) id $ do
                     nt <- lmt @typ.namedType
                     lbUpdate @lhs.cat
-                      (LBIds "domain check value" "" [("value", nt)] [])
-                      @lhs.lib 
+                      (LBIds "domain check value" Nothing [("value", nt)])
+                      @lhs.lib
 
 SEM Statement
     | CreateLanguage
