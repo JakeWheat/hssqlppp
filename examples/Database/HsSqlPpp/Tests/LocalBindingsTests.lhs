@@ -35,22 +35,58 @@ looking individual items up and checking the results.
 > testData :: Item
 > testData = Group "local bindings tests" [ Item [
 >   ("test empty", [LBIds "source1" Nothing []]
->   ,Right [LocalBindingsLookup [] [("", Right [])]])
->  {-,("test ids no cor", [LBIds "source1" "" [("a", typeInt)
->                                           ,("b", typeBool)]
->                                           [("ia", typeInt)
->                                           ,("ib", typeBool)]]
+>   ,Right [LocalBindingsLookup [] (Left [BadStarExpand])])
+>  ,("test lbids no cor", [LBIds "source1" Nothing [("a", typeInt)
+>                                                  ,("b", typeBool)]]
 >   ,Right [LocalBindingsLookup [
->            (("", "a"), Right ("source1", "", "a", typeInt))
->           ,(("", "b"), Right ("source1", "", "b", typeBool))
->           ,(("", "ia"), Right ("source1", "", "ia", typeInt))
->           ,(("", "ib"), Right ("source1", "", "ib", typeBool))
+>            (("a"), Right ("source1", ["a"], typeInt))
+>           ,(("b"), Right ("source1", ["b"], typeBool))
 >           ]
->           [("", Right [
->                    ("source1", "", "a", typeInt)
->                   ,("source1", "", "b", typeBool)
->                   ])]])
->  ,("test ids cor", [LBIds "source1" "c" [("a", typeInt)
+>           (Left [BadStarExpand])])
+>  ,("test lbids cor", [LBIds "source1" (Just "c") [("a", typeInt)
+>                                                  ,("b", typeBool)]]
+>   ,Right [LocalBindingsLookup [
+>            (("c"), Right ("source1", ["c"], CompositeType [("a", typeInt)
+>                                                           ,("b", typeBool)]))
+>           ,(("a"), Right ("source1", ["c","a"], typeInt))
+>           ,(("b"), Right ("source1", ["c","b"], typeBool))]
+>           (Left [BadStarExpand])])
+>  ,("test tref", [LBTref "source2" "t1"
+>                         [("a", typeInt)
+>                         ,("b", typeBool)]
+>                         [("c", ScalarType "text")
+>                         ,("d", typeSmallInt)]
+>                  ]
+>   ,Right [LocalBindingsLookup [
+>            (("t1"), Right ("source2", ["t1"], CompositeType [("a", typeInt)
+>                                                             ,("b", typeBool)]))
+>           ,(("a"), Right ("source2", ["t1","a"], typeInt))
+>           ,(("b"), Right ("source2", ["t1","b"], typeBool))
+>           ,(("c"), Right ("source2", ["t1","c"], ScalarType "text"))
+>           ,(("d"), Right ("source2", ["t1","d"], typeSmallInt))]
+>           (Right [("source2", ["t1","a"], typeInt)
+>                  ,("source2", ["t1","b"], typeBool)])])
+
+TODO: test lbjointrefs
+cross join
+natural join
+using join
+ - public and system attrs, ambiguous lookups
+join columns incompatible: natural and using variants
+three way join test
+
+sys columns are accessible qualified only in joins
+
+put . lookup logic into localbindings and test:
+id not found
+lbids using correlation name
+lbids using record type
+tref using correlation name
+jointref using t1 name, t2 name, alias
+
+
+
+>  {-,("test ids cor", [LBIds "source1" "c" [("a", typeInt)
 >                                           ,("b", typeBool)]
 >                                           [("ia", typeInt)
 >                                           ,("ib", typeBool)]]

@@ -41,7 +41,7 @@ in scope, and one for an unqualified star.
 >     ,FullId
 >     ,SimpleId
 >     ,IDLookup
->     ,StarLookup
+>     ,StarExpand
 >     ,LocalBindingsLookup(..)
 >     ,emptyBindings
 >     ,lbUpdate
@@ -90,11 +90,11 @@ correlation name.
 > type FullId = (Source,[String],Type) -- source,fully qualified name components,type
 > type SimpleId = (String,Type)
 > type IDLookup = (String, E FullId)
-> type StarLookup = (String, E [FullId]) --the order of the [FullId] part is important
+> type StarExpand = E [FullId] --the order of the [FullId] part is important
 >
 > data LocalBindingsLookup = LocalBindingsLookup
 >                                [IDLookup]
->                                [StarLookup] --stars
+>                                StarExpand
 >                            deriving (Eq,Show)
 
 This is the local bindings update that users of this module use.
@@ -125,7 +125,7 @@ This is the local bindings update that users of this module use.
 >
 > ppLbls :: LocalBindingsLookup -> String
 > ppLbls (LocalBindingsLookup is ss) =
->       "LocalBindingsLookup\n" ++ doList show is ++ doList show ss
+>       "LocalBindingsLookup\n" ++ show is ++ show ss
 >
 > doList :: (a -> String) -> [a] -> String
 > doList m l = "[\n" ++ intercalate "\n," (map m l) ++ "\n]\n"
@@ -133,18 +133,48 @@ This is the local bindings update that users of this module use.
 ================================================================================
 
 > lbUpdate :: Catalog -> LocalBindingsUpdate -> LocalBindings -> E LocalBindings
-> lbUpdate = undefined
+> lbUpdate _cat u1@(LBIds src cn ids) (LocalBindings us s) =
+>     Right $ LocalBindings (u1 : us) (news : s)
+>     where
+>       news = LocalBindingsLookup fids (Left [BadStarExpand])
+>       fids = maybe fids1 (: fids1) $ mc <$> cn
+>       fids1 = map (\(n,t) -> (n, Right (src,maybe [n] (: [n]) cn, t))) ids
+>       mc c = (c, Right (src, [c], CompositeType ids))
+>
+> lbUpdate _cat u1@(LBTref src al ids sids) (LocalBindings us s) =
+>     Right $ LocalBindings (u1 : us) (news : s)
+>     where
+>       news = LocalBindingsLookup fids (Right pids)
+>       fids = mc : fids1
+>       fids1 = map (\(n,t) -> (n, Right (src,[al,n],t))) $ ids ++ sids
+>       mc = (al, Right (src, [al], CompositeType ids))
+>       pids = map (\(n,t) -> (src,[al,n],t)) ids
+
 
 ================================================================================
 
 > lbExpandStar :: LocalBindings -> E [FullId]
-> lbExpandStar = undefined
+> lbExpandStar (LocalBindings _ ((LocalBindingsLookup _ x) : _)) = x
+> lbExpandStar _ = Left [BadStarExpand]
 
 ================================================================================
 
 > lbLookupID :: LocalBindings -> String -> E FullId
-> lbLookupID = undefined
+> lbLookupID (LocalBindings _ lbl) i =
+>     let ls = map getLbIdl lbl
+>     in lkp1 ls $ mtl i
+>     where
+>       lkp1 :: [[IDLookup]] -> String -> E FullId
+>       lkp1 (l:ls) i1 = case lookup i1 l of
+>                          Nothing -> lkp1 ls i1
+>                          Just x -> x
+>       lkp1 [] _ = Left [UnrecognisedIdentifier i]
+>       getLbIdl (LocalBindingsLookup x _) = x
 
+================================================================================
+
+> mtl :: String -> String
+> mtl = map toLower
 
 
 

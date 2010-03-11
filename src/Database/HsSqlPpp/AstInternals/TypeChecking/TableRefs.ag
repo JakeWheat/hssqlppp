@@ -263,7 +263,16 @@ SEM TableRef
     | SubTref
         loc.backTree = SubTref @ann @sel.annotatedTree @alias
     | Tref
-        loc.backTree = Tref @ann @tbl.annotatedTree @alias
+        loc.backTree = Tref @ann t1 @alias
+                       where
+                         -- hack to hide the identifier not found error
+                         -- todo: convert to do something similar to ntAnnotatedTree
+                         t1 = case @tbl.annotatedTree of
+                                Identifier a i -> Identifier (a {errs = ste i $ errs a}) i
+                                x -> x
+                         ste i (UnrecognisedIdentifier j : es) | i == j = es
+                         ste i (e:es) = e : ste i es
+                         ste _ [] = []
     | TrefFun
         loc.backTree = TrefFun @ann @fn.annotatedTree @alias
     | JoinedTref

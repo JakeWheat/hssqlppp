@@ -111,6 +111,7 @@ later on down the line.
 >                | UnrecognisedIdentifier String
 >                | UnrecognisedRelation String
 >                | UnrecognisedCorrelationName String
+>                | BadStarExpand
 >                | AmbiguousIdentifier String
 >                | ContextError String
 >                | MissingJoinAttribute
