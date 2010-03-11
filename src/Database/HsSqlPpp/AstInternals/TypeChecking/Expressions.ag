@@ -49,9 +49,11 @@ SEM Expression
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn FunCall
       Identifier FunCall
-        lhs.tbAnnotatedTree = updateAnnotation
-                                 (addTypeErrors (tes @loc.tbUType)
-                                 . \a -> a {fnProt = @loc.prototype}) @loc.backTree
+        loc.tbUType : {E ([(String,Type)], [(String,Type)])}
+        lhs.tbAnnotatedTree =
+            updateAnnotation
+                                 (\a -> a {fnProt = @loc.prototype
+                                          ,errs = errs a ++ tes @loc.tbUType}) @loc.backTree
         lhs.tbUType = either (const Nothing) Just @loc.tbUType
 
     | IntegerLit StringLit FloatLit BooleanLit NullLit
@@ -107,6 +109,35 @@ SEM MaybeBoolExpression
                                then Just @just.annotatedTree
                                else Just $ addTypeErrors [ExpressionMustBeBool] @just.annotatedTree
 
+-- life is too short
+
+ATTR AllNodes [overrideLib : {Maybe LocalBindings}||]
+ATTR AllNodes [overrideLibs : {[Maybe LocalBindings]}||]
+
+SEM ExpressionRoot
+    | ExpressionRoot expr.overrideLib = Nothing
+                     expr.overrideLibs = []
+
+SEM Root
+    | Root statements.overrideLib = Nothing
+           statements.overrideLibs = []
+
+SEM Expression
+    | FunCall args.overrideLibs =
+        case @funName of
+          "." | [Identifier _ i,_] <- @args.annotatedTree
+                  -> [Nothing
+                     ,either (const Nothing) Just $
+                              lbUpdateDot @lhs.cat i @lhs.lib]
+          _ -> []
+
+SEM ExpressionList
+    | Cons hd.overrideLib = case @lhs.overrideLibs of
+                               h : t -> h
+                               _ -> Nothing
+           tl.overrideLibs = case @lhs.overrideLibs of
+                               _ : t -> t
+                               _ -> []
 
 {-
 == literals
@@ -289,21 +320,24 @@ attributes to get the node information to the regular ones.
 
 SEM Expression
     | Identifier
-        loc.tpe = unwrapLookup <$> lbLookupID @lhs.lib @i
+        loc.useLib = maybe @lhs.lib id @lhs.overrideLib
+        loc.tpe = unwrapLookup <$> lbLookupID @loc.useLib @i
         loc.backTree = Identifier @ann @i
 
         loc.ntType : {E [(String,Type)]}
         loc.ntType =
             if @i == "*"
-            then unwrapStar <$> lbExpandStar @lhs.lib
-            else (\t -> [(@i, t)]) <$> unwrapLookup <$> lbLookupID @lhs.lib @i
+            then unwrapStar <$> lbExpandStar @loc.useLib
+            else (\t -> [(@i, t)]) <$> unwrapLookup <$> lbLookupID @loc.useLib @i
 
 
 SEM Expression
   | FunCall
-      loc.liftedColumnName = if isOperatorName @funName
-                             then ""
-                             else @funName
+      loc.liftedColumnName =
+          case @funName of
+            "." -> getName @loc.backTree
+            x | isOperatorName x -> "?column?"
+            _ -> @funName
   | Cast
       loc.liftedColumnName = case @tn.annotatedTree of
                                SimpleTypeName _ tn -> tn
@@ -328,27 +362,6 @@ SEM Expression
                              "" -> "?column?"
                              n -> n
                           ,t)]
-
-{-
-This is wrong.
-
-What happens is the funcall "." looks up the identifier which is
-ok. It then sets the lb for the args, but this is wrong. We only want
-to set the lb for the second arg, not the first. The type in the
-funcall "." uses to update should come from the first identifier also,
-not from the funcall "." node.
-
--}
-
-SEM Expression
-  | FunCall
-      args.lib =
-          case @funName of
-            "." -> maybe emptyBindings id $ do
-                   let [Identifier _ n,_] = @args.annotatedTree
-                   etmt $ lbUpdateDot @lhs.cat n @lhs.lib
-            _ -> @lhs.lib
-
 
 SEM Expression
     | PositionalArg

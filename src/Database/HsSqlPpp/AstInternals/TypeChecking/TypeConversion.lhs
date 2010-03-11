@@ -166,6 +166,7 @@ against.
 >                     -- any implicit casts to functions on composite types
 >                     -- first, then we can use the anonymous record type on
 >                     -- any composite
+>               "." | [_,b] <- argsType -> Right (".", argsType, b, False)
 >               _ | fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
 >                          && length argsType == 2
 >                          && all isCompositeOrSetOfCompositeType argsType,

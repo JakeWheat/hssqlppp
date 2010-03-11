@@ -151,7 +151,7 @@ This is the local bindings update that users of this module use.
 >     where
 >       fids = mc : fids1
 >       fids1 = map (\(n,t) -> (n, Right (src,[al,n],t))) $ ids ++ sids
->       mc = (al, Right (src, [al], CompositeType ids))
+>       mc = (al, Right (src, [al], CompositeType $ ids ++ sids))
 >       pids = map (\(n,t) -> (src,[al,n],t)) ids
 > updateStuff cat (LBJoinTref src u1 u2 jids al) = do
 >   (ids1,se1') <- updateStuff cat u1

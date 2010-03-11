@@ -6,7 +6,7 @@ License-file:        LICENSE
 Author:              Jake Wheat
 Maintainer:          jakewheatmail@gmail.com
 Build-Type:          Simple
-Cabal-Version:       >=1.2.3
+Cabal-Version:       >=1.6
 copyright:           Copyright 2009, 2010 Jake Wheat
 stability:           pre-alpha
 homepage:            http://community.haskell.org/~JakeWheat/hssqlppp/index.html
