@@ -344,10 +344,6 @@ DATA WithQuery | WithQuery ann : Annotation
 DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation blk : Statement
 
-{-DATA SetClause | SetClause ann:Annotation att:String val:Expression
-               | RowSetClause ann:Annotation atts:{[String]} vals:ExpressionList
--}
-
 DATA TableRef | Tref ann:Annotation
                      tbl:Expression
                      alias : TableAlias

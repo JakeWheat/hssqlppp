@@ -21,7 +21,7 @@ SEM Statement
               return (pt,@returning.listType)
 
         loc.backTree = Update @ann
-                              @table.annotatedTree
+                              @table.tbAnnotatedTree
                               @assigns.annotatedTree
                               @fromList.annotatedTree
                               @whr.annotatedTree

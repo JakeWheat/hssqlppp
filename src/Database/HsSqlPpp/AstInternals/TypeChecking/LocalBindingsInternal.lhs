@@ -52,19 +52,19 @@ in scope, and one for an unqualified star.
 >     ,ppLbls
 >     ) where
 >
-> import Control.Monad as M
+> --import Control.Monad as M
 > import Control.Applicative
 > --import Debug.Trace
 > import Data.List
 > import Data.Maybe
 > import Data.Char
-> import Data.Either
+> --import Data.Either
 > --import qualified Data.Map as M
 >
 > import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.Utils.Utils
+> --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
+> --import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
 > import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 >
 
@@ -112,7 +112,7 @@ This is the local bindings update that users of this module use.
 >                                       ,jtref2 :: LocalBindingsUpdate
 >                                       ,joinIds :: Either () [String] -- left () represents natural join
 >                                                            -- right [] represents no join ids
->                                       ,jalias :: String}
+>                                       ,jalias :: Maybe String}
 >                            deriving Show
 >
 > emptyBindings :: LocalBindings
@@ -126,7 +126,7 @@ This is the local bindings update that users of this module use.
 >
 > ppLbls :: LocalBindingsLookup -> String
 > ppLbls (LocalBindingsLookup is ss) =
->       "LocalBindingsLookup\n" ++ show is ++ show ss
+>       "LocalBindingsLookup\n" ++ doList show is ++ show ss
 >
 > doList :: (a -> String) -> [a] -> String
 > doList m l = "[\n" ++ intercalate "\n," (map m l) ++ "\n]\n"
@@ -134,22 +134,45 @@ This is the local bindings update that users of this module use.
 ================================================================================
 
 > lbUpdate :: Catalog -> LocalBindingsUpdate -> LocalBindings -> E LocalBindings
-> lbUpdate _cat u1@(LBIds src cn ids) (LocalBindings us s) =
->     Right $ LocalBindings (u1 : us) (news : s)
+> lbUpdate cat u1 (LocalBindings us s) = do
+>   (ids,se) <- updateStuff cat u1
+>   return $ LocalBindings (u1 : us) (LocalBindingsLookup ids se : s)
+>
+
+> updateStuff :: Catalog -> LocalBindingsUpdate -> E ([IDLookup],StarExpand)
+> updateStuff _ (LBIds src cn ids) =
+>     return (fids, Left [BadStarExpand])
 >     where
->       news = LocalBindingsLookup fids (Left [BadStarExpand])
 >       fids = maybe fids1 (: fids1) $ mc <$> cn
 >       fids1 = map (\(n,t) -> (n, Right (src,maybe [n] (: [n]) cn, t))) ids
 >       mc c = (c, Right (src, [c], CompositeType ids))
->
-> lbUpdate _cat u1@(LBTref src al ids sids) (LocalBindings us s) =
->     Right $ LocalBindings (u1 : us) (news : s)
+> updateStuff _ (LBTref src al ids sids) =
+>     return (fids,(Right pids))
 >     where
->       news = LocalBindingsLookup fids (Right pids)
 >       fids = mc : fids1
 >       fids1 = map (\(n,t) -> (n, Right (src,[al,n],t))) $ ids ++ sids
 >       mc = (al, Right (src, [al], CompositeType ids))
 >       pids = map (\(n,t) -> (src,[al,n],t)) ids
+> updateStuff cat (LBJoinTref src u1 u2 jids al) = do
+>   (ids1,se1') <- updateStuff cat u1
+>   (ids2,se2') <- updateStuff cat u2
+>   se1 <- se1'
+>   se2 <- se2'
+>   let jnames = case jids of
+>                          Right ns -> ns
+>                          Left () -> intersect (map fst ids1) (map fst ids2)
+>   -- make the lookups
+>   let jids1 :: [(String,E FullId)]
+>       jids1 = flip map jnames $ \i -> (i,fromJust $ lookup i ids1)
+>       rj :: [(String,E FullId)] -> [(String,E FullId)]
+>       rj = filter $ \e -> fst e `notElem` jnames
+>       ids :: [(String,E FullId)]
+>       ids = jids1 ++ rj ids1 ++ rj ids2
+>   --make the star expansion
+>       rj1 :: [FullId] -> [FullId]
+>       rj1 = filter $ (\(_,n,_t) -> last n `notElem` jnames)
+>       se = map snd jids1 ++ map return (rj1 se1) ++ map return (rj1 se2)
+>   return (ids, sequence se)
 
 
 ================================================================================
@@ -185,6 +208,7 @@ This is the local bindings update that users of this module use.
 > expandComposite cat (PgRecord (Just t)) = expandComposite cat t
 > expandComposite _ (CompositeType fs) = Just fs
 > expandComposite cat (NamedCompositeType n) = etmt $ catCompositeAttrs cat [] n
+> expandComposite _ _ = Nothing
 
 
 ================================================================================

@@ -189,9 +189,9 @@ join - most of the hard work is done in local bindings
             case (@tbl.libUpdates, @tbl1.libUpdates) of
               ([u1], [u2]) -> [LBJoinTref "join" u1 u2 jids
                                               (case @alias of
-                                                       NoAlias -> ""
-                                                       TableAlias t -> t
-                                                       FullAlias t _ -> t)]
+                                                       NoAlias -> Nothing
+                                                       TableAlias t -> Just t
+                                                       FullAlias t _ -> Just t)]
               _ -> []
             where
               jids = case (@nat, @onExpr.originalTree) of
@@ -201,7 +201,7 @@ join - most of the hard work is done in local bindings
         loc.newLib : {Either [TypeError] LocalBindings}
         loc.newLib = case (@tbl.libUpdates, @tbl1.libUpdates) of
                        ([u1],[u2]) -> lbUpdate @lhs.cat
-                                        (LBJoinTref "join" u1 u2 (Right []) "") @lhs.lib
+                                        (LBJoinTref "join" u1 u2 (Right []) Nothing) @lhs.lib
                        _ -> Right @lhs.lib
         onExpr.lib = fromRight @lhs.lib @loc.newLib
 

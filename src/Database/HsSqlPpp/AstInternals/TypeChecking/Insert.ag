@@ -32,7 +32,7 @@ SEM Statement
                              (\t -> Right (n,t))
                              $ lookup n m
 
-        loc.backTree = Insert @ann @table.annotatedTree
+        loc.backTree = Insert @ann @table.tbAnnotatedTree
                               @targetCols
                               @insData.annotatedTree
                               @returning.annotatedTree
