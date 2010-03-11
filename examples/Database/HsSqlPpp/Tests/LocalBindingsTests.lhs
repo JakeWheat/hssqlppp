@@ -34,8 +34,9 @@ looking individual items up and checking the results.
 >
 > testData :: Item
 > testData = Group "local bindings tests" [ Item [
->   ("test empty", [LBIds "source1" "" [] []], Right [LocalBindingsLookup [] [("", Right [])]])
->  ,("test ids no cor", [LBIds "source1" "" [("a", typeInt)
+>   ("test empty", [LBIds "source1" Nothing []]
+>   ,Right [LocalBindingsLookup [] [("", Right [])]])
+>  {-,("test ids no cor", [LBIds "source1" "" [("a", typeInt)
 >                                           ,("b", typeBool)]
 >                                           [("ia", typeInt)
 >                                           ,("ib", typeBool)]]
@@ -216,7 +217,7 @@ looking individual items up and checking the results.
 >      ,ctExpand t)
 >  ,let t = PgRecord $ Just $ CompositeType ctFields
 >   in ("test composite type expansion rec", [LBIds "s1" "c1" [("r", t)] []]
->      ,ctExpand t)
+>      ,ctExpand t)-}
 
 ~~~~
 
@@ -253,7 +254,7 @@ chaos=# select b.* from (select 1 as a, 2 as a) b;
 
 >   ]]
 >   where
->     ctFields = [("adrelid",ScalarType "oid")
+>     {-ctFields = [("adrelid",ScalarType "oid")
 >                ,("adnum",ScalarType "int2")
 >                ,("adbin",ScalarType "text")
 >                ,("adsrc",ScalarType "text")]
@@ -271,7 +272,7 @@ chaos=# select b.* from (select 1 as a, 2 as a) b;
 >                        ,("s1","r","adnum",ScalarType "int2")
 >                        ,("s1","r","adbin",ScalarType "text")
 >                        ,("s1","r","adsrc",ScalarType "text")])
->            ]]
+>            ]]-}
 
 --------------------------------------------------------------------------------
 
