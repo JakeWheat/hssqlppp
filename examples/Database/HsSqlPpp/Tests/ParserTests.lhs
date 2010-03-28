@@ -1013,7 +1013,7 @@ quick sanity check
 >          (FunCall ea "="
 >           [Identifier ea "b", PositionalArg ea 1])])
 >        Stable]
->      {-,s "create function fn() returns void as $$\n\
+>      ,s "create function fn() returns void as $$\n\
 >         \declare\n\
 >         \  a int;\n\
 >         \  b text;\n\
@@ -1035,9 +1035,10 @@ quick sanity check
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
 >       [CreateFunction ea "fn" [] (SimpleTypeName ea "void") NoReplace Plpgsql
->        (PlpgsqlFnBody ea [VarDef ea "a" (SimpleTypeName ea "int") Nothing
->                          ,VarDef ea "b" (SimpleTypeName ea "text") Nothing]
->         [NullStatement ea])
+>        (PlpgsqlFnBody ea
+>         (Block ea Nothing [VarDef ea "a" (SimpleTypeName ea "int") Nothing
+>                           ,VarDef ea "b" (SimpleTypeName ea "text") Nothing]
+>         [NullStatement ea]))
 >        Volatile]
 >      ,s "create function fn(a text[]) returns int[] as $$\n\
 >         \declare\n\
@@ -1050,8 +1051,9 @@ quick sanity check
 >        [ParamDef ea "a" $ ArrayTypeName ea $ SimpleTypeName ea "text"]
 >        (ArrayTypeName ea $ SimpleTypeName ea "int") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
->         [VarDef ea "b" (ArrayTypeName ea $ SimpleTypeName ea "xtype") (Just $ stringQ "{}")]
->         [NullStatement ea])
+>         (Block ea Nothing
+>          [VarDef ea "b" (ArrayTypeName ea $ SimpleTypeName ea "xtype") (Just $ stringQ "{}")]
+>          [NullStatement ea]))
 >        Immutable]
 >      ,s "create function fn() returns void as '\n\
 >         \declare\n\
@@ -1061,8 +1063,10 @@ quick sanity check
 >         \end;\n\
 >         \' language plpgsql stable;"
 >       [CreateFunction ea "fn" [] (SimpleTypeName ea "void") NoReplace Plpgsql
->        (PlpgsqlFnBody ea [VarDef ea "a" (SimpleTypeName ea "int") (Just $ IntegerLit ea 3)]
->         [NullStatement ea])
+>        (PlpgsqlFnBody ea
+>         (Block ea Nothing
+>          [VarDef ea "a" (SimpleTypeName ea "int") (Just $ IntegerLit ea 3)]
+>          [NullStatement ea]))
 >        Stable]
 >      ,s "create function fn() returns setof int as $$\n\
 >         \begin\n\
@@ -1071,7 +1075,7 @@ quick sanity check
 >         \$$ language plpgsql stable;"
 >       [CreateFunction ea "fn" []
 >        (SetOfTypeName ea $ SimpleTypeName ea "int") NoReplace Plpgsql
->        (PlpgsqlFnBody ea [] [NullStatement ea])
+>        (PlpgsqlFnBody ea (Block ea Nothing [] [NullStatement ea]))
 >        Stable]
 >      ,s "create function fn() returns void as $$\n\
 >         \begin\n\
@@ -1080,7 +1084,7 @@ quick sanity check
 >         \$$ language plpgsql stable;"
 >       [CreateFunction ea "fn" []
 >        (SimpleTypeName ea "void") NoReplace Plpgsql
->        (PlpgsqlFnBody ea [] [NullStatement ea])
+>        (PlpgsqlFnBody ea (Block ea Nothing [] [NullStatement ea]))
 >        Stable]
 >      ,s "create or replace function fn() returns void as $$\n\
 >         \begin\n\
@@ -1089,8 +1093,8 @@ quick sanity check
 >         \$$ language plpgsql stable;"
 >       [CreateFunction ea "fn" []
 >        (SimpleTypeName ea "void") Replace Plpgsql
->        (PlpgsqlFnBody ea [] [NullStatement ea])
->        Stable]-}
+>        (PlpgsqlFnBody ea (Block ea Nothing [] [NullStatement ea]))
+>        Stable]
 >      ,s "drop function test(text);"
 >       [DropFunction ea Require [("test",[SimpleTypeName ea "text"])] Restrict]
 >      ,s "drop function if exists a(),test(text) cascade;"

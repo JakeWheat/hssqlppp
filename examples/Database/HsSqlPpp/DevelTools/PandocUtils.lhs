@@ -60,7 +60,7 @@ pandoc/highlight wrappers
 >     wopt = defaultWriterOptions {
 >                writerStandalone = True
 >               ,writerTitlePrefix = hd
->               ,writerTableOfContents = False
+>               ,writerTableOfContents = True
 >               ,writerHeader = cssLink
 >              }
 >
@@ -68,7 +68,7 @@ pandoc/highlight wrappers
 > pandocFrag = (writeHtmlString wopt) . (readMarkdown defaultParserState)
 >   where
 >     wopt = defaultWriterOptions {
->                writerStandalone = False
+>                writerStandalone = True
 >              }
 >
 >
@@ -78,7 +78,7 @@ pandoc/highlight wrappers
 >     wopt = defaultWriterOptions {
 >                writerStandalone = True
 >               ,writerTitlePrefix = hd
->               ,writerTableOfContents = False
+>               ,writerTableOfContents = True
 >               ,writerHeader = cssLink
 >               ,writerLiterateHaskell=True
 >              }

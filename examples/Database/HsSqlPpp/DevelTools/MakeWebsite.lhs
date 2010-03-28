@@ -40,15 +40,22 @@ to the website.
 >       pf = pd1 Txt
 >       plhs = pd1 Lhs
 >   doesDirectoryExist "website" >>=
->     \l -> when(l) $ removeDirectoryRecursive "website"
+>     \l -> when l $ removeDirectoryRecursive "website"
 >   createDirectory "website"
->   copyFile "docs/main.css" "website/main.css"
+>   copyFile "docs/website/main.css" "website/main.css"
 >   pf "HsSqlPpp documentation"
->      (File "docs/index.txt")
+>      (File "docs/website/index.txt")
 >      "index.html"
 >   pf "HsSqlPpp examples"
->      (File "docs/examples.txt")
+>      (File "docs/website/examples.txt")
 >      "examples.html"
+>   pf "HsSqlPpp sitemap"
+>      (File "docs/website/sitemap.txt")
+>      "sitemap.html"
+>   pf "HsSqlPpp source"
+>      (File "docs/website/source.txt")
+>      "source.html"
+>
 >   plhs "HsSqlPpp parser examples"
 >        (Str parserTestsTable)
 >        "ParserTests.html"
@@ -89,6 +96,7 @@ to the website.
 >     sourceFileP = extension ==? ".hs" ||? extension ==? ".lhs"
 >                     ||? extension ==? ".ag"
 >                     ||? extension ==? ".lag"
+>                     ||? extension ==? ".txt"
 >
 
 todo: add filenames at top of these pages or// duplicate the title as
@@ -101,7 +109,11 @@ the top header for each page
 > wheader v = [$here|
 >
 > <div class='header'>[HsSqlPpp-|] ++ v ++
->             [$here|](website/index.html)</div>|] ++ "<br /><br /><br />\n\n"
+>             [$here|](website/index.html)</div>
+>     <br /><br /><br />
+>
+>
+>         |]
 
 todo: add the last modified time for each file individually
 

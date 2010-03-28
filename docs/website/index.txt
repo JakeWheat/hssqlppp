@@ -42,12 +42,10 @@ Currently limited support for quasiquoting, here are the examples:
 * [Quasiquotation examples](QuasiQuoteTests.html)
 
 The [example database for a game, Chaos
-2010](testfiles/chaos2010sql/Overview.txt.html) is an example of a not
-really small database which is parsed, transformed, then loaded into
-the database successfully. The extensions which it uses to transform
-the tree use quite a lot of quasiquoting. It mostly type checks, the
-main incorrect errors it flags are in the trigger functions (type
-checking triggers isn't too well supported at the moment).
+2010](testfiles/chaos2010sql/Overview.txt.html) is an example of a
+smallish database which is parsed, transformed, then loaded into the
+database successfully. The extensions which it uses to transform the
+tree use quite a lot of quasiquoting.
 
 Some other limitations are that the design of the AST node types is
 pretty basic, not much work has been done on correctly rejecting
