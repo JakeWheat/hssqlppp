@@ -15,11 +15,10 @@ to get a list of commands and purpose and usage info
 > import Control.Monad.Error
 
 > --import Debug.Trace
-> import Test.Framework (defaultMainWithArgs)
 > import Data.Maybe
 > import Data.Generics.Uniplate.Data
 >
-> import Database.HsSqlPpp.Tests.Tests
+> --import Database.HsSqlPpp.Tests.Tests
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
 >
@@ -40,8 +39,8 @@ to get a list of commands and purpose and usage info
 > --import Database.HsSqlPpp.Examples.WrapperGen
 > import Database.HsSqlPpp.Examples.DBUtils
 >
-> import Database.HsSqlPpp.DevelTools.MakeWebsite
-> import Database.HsSqlPpp.DevelTools.MakeAntiNodes
+> --import Database.HsSqlPpp.DevelTools.MakeWebsite
+> --import Database.HsSqlPpp.DevelTools.MakeAntiNodes
 > --import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
 > import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
 > import Database.HsSqlPpp.Examples.Chaos2010
@@ -79,10 +78,6 @@ command defs
 >                  | TestBattery {database :: String
 >                                ,files :: [String]}
 >
->                  | Test {extra :: [String]}
->
->                  | MakeWebsite
->                  | MakeAntiNodes
 >                  | ResetChaos
 >                  | CheckChaos
 >
@@ -1146,20 +1141,6 @@ do website generation, without the pg roundtrips
 
 -------------------------------------------------------------------------------
 
-test
-====
-
-run the test suite
-
-> testA = mode $ Test {extra = def &= typ "ANY" & args & unknownFlags}
->         &= text "run automated tests, uses test.framework can pass arguments \
->                 \to this e.g. HsSqlSystem test -t parserTests"
->
-> runTests :: [String] -> IO ()
-> runTests = defaultMainWithArgs allTests
-
--------------------------------------------------------------------------------
-
 > -- | Pretty print list of type errors with optional source position
 > --   in emacs readable format.
 > ppTypeErrors :: [(Maybe (String,Int,Int), [TypeError])] -> [String]
@@ -1253,8 +1234,8 @@ MakeWebsite
 
 code to build the website for hssqlppp
 
-> makeWebsiteA = mode $ MakeWebsite
->                &= text "build the website"
+> {-makeWebsiteA = mode $ MakeWebsite
+>                &= text "build the website"-}
 
 -------------------------------------------------------------------------------
 
@@ -1264,12 +1245,12 @@ MakeAntinodes
 code to generate the anti ast source, for supporting anti quoting in
 sql quasiquotes
 
-> makeAntiNodesA = mode $ MakeAntiNodes
+> {-makeAntiNodesA = mode $ MakeAntiNodes
 >                &= text "development tool"
 > makeAntiNodesF :: IO ()
 > makeAntiNodesF = do
 >   s <- makeAntiNodes
->   writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs" s
+>   writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs" s-}
 
 -------------------------------------------------------------------------------
 
@@ -1316,8 +1297,7 @@ main
 >                        ppCatalogA,
 >                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
 >                        pgDumpA, testBatteryA,
->                        testA, makeWebsiteA, makeAntiNodesA
->                       ,resetChaosA, checkChaosA]
+>                        resetChaosA, checkChaosA]
 >
 >        case cmd of
 >          Lex fns -> lexFiles fns
@@ -1336,17 +1316,17 @@ main
 >          LoadPsql db fns -> loadSqlPsql db fns
 >          PgDump db -> pgDump1 db
 >          TestBattery db fns -> runTestBattery db fns
->          Test as -> runTests as
->          MakeWebsite -> makeWebsite
->          MakeAntiNodes -> makeAntiNodesF
+>          --Test as -> runTests as
+>          --MakeWebsite -> makeWebsite
+>          --MakeAntiNodes -> makeAntiNodesF
 >          ResetChaos -> resetChaos
 >          CheckChaos -> checkChaos
 >
 > lexA, parseA, ppppA, pppA, clearA, loadA,
 >   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
->   typeCheckA, testA, parseExpressionA, typeCheckExpressionA,
->   allAnnotationsA, ppCatalogA, makeWebsiteA,
->   makeAntiNodesA, resetChaosA,checkChaosA :: Mode HsSqlSystem
+>   typeCheckA, parseExpressionA, typeCheckExpressionA,
+>   allAnnotationsA, ppCatalogA,
+>   resetChaosA,checkChaosA :: Mode HsSqlSystem
 
 -------------------------------------------------------------------------------
 

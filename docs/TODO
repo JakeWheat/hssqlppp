@@ -2,6 +2,49 @@
 
 This file is a complete disorganised mess.
 
+Parsing: most of the pg manual, note what isn't yet supported
+typechecking: enough to get chaos working? - want to at least support
+   simple typesafe access
+quasi quoting: add loads of splices, add switch for parsing
+catalog: review what is missing, add a bunch of it
+local bindings: needs another complete rethink, a design and better
+   tests
+documentation work: literate comments, txt files, doctool work
+custom syntax support
+report function: roundtrip, documentation generator, type checking
+examples
+
+
+
+
+
+rewrite docs, add nav, fix copyrights
+sort out typechecking basics, bit of a mess atm
+add parsing support for most pg stuff
+add a bunch of quasi quote support
+bunch of simple example programs, add automated tests for these
+work on doc tool, make it less flakey
+work on the transformed sql renderer, try to make it a bit less buggy
+   and less spaghetti
+work on the literate docs, especially in the typechecking code
+add chaos sql as test(s)
+finish round trip tests/doc with catalog, typecheck failures, etc.
+catalog extras, review what is missing
+extension work: module extension with doc tool support
+extensions: materialized view, temporal data?, inclusion thing
+get simple haskell wrapper generator, plus hlist version
+restart with tests, organise and make systematic as examples/reference
+  as well as tests
+command line construction tool?
+database connection, bunch of other little things
+simple custom syntax support
+
+
+
+
+
+-----------------------
+
 New todo for next release:
 
 chaos:

@@ -1,4 +1,3 @@
-        
 Copyright 2010 Jake Wheat
 
 Code to read some of the test files and convert to html to serve as
@@ -8,6 +7,7 @@ examples.
 > module Database.HsSqlPpp.DevelTools.TestFileProcessor
 >     (parserTestsTable
 >     ,typeCheckTestsTable
+>     ,parserTestsPandoc
 >     ,quasiQuoteTestsTable) where
 >
 > import Database.HsSqlPpp.Utils.Utils
@@ -32,6 +32,9 @@ examples.
 > typeCheckTestsTable :: String
 > typeCheckTestsTable = typeCheckIntro ++ rowsToHtml (mapTypeCheckTests TT.typeCheckTestData)
 >
+
+> parserTestsPandoc :: Pandoc
+> parserTestsPandoc = undefined
 >
 > mapParserTests :: PT.Item -> [Row]
 > mapParserTests (PT.Expr s e) = [Row [[Sql s],[Haskell (ppExpr e)]]]

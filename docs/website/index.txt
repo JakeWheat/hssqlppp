@@ -13,6 +13,18 @@ using:*
 bzr branch lp:~jakewheat/hssqlppp/trunk
 ~~~~~
 
+Possible uses include:
+
+* lint checking sql code
+* type-checker can help with development: e.g. change the name of a
+  view, type-check, and you can see which functions you need to update
+  with the new name
+* generating sql code from scratch
+* transforming sql code using quasiquoting
+* viewing the catalog produced by some sql code
+* helping with typesafe database access from haskell
+* generating documentation for sql
+
 Status
 ======
 
@@ -112,61 +124,6 @@ Documentation
 The [htmlized source for the library and
 examples](pandoc_source/index.html) has lots of comments, but is very
 unpolished.
-
-You can build a local copy of this documentation using by getting the
-executable mentioned above, and running
-
-~~~~~{.sh}
-HsSqlSystem makewebsite
-~~~~~
-
-Development info
-================
-
-Get latest development version:
-
-~~~~~{.sh}
-bzr branch lp:~jakewheat/hssqlppp/trunk
-~~~~~
-
-(This version is sometimes a mess and it's broken on rare occasions).
-
-Uses Parsec for parsing, HDBC for database access, and UUAGC to assist
-the type checking (UUAGC is needed if you edit the .ag files).
-
-Comes with a small test suite, which you can run by installing the
-executable (see above), and then:
-
-~~~~~{.sh}
-HsSqlSystem test
-~~~~~
-
-Current work
-============
-
-The major milestones before the release of 0.3.0 are:
-
-* a couple of introductory documentation pages;
-* work on the command which produces the documentation for the example
-  database, integrate with round trip tests, so it can be used to
-  evaluate how well the library can cope with your database code;
-* add simple support for parsing custom syntax, and use in the example
-  extensions;
-* add lots of splices for quasi quoting, plus examples;
-* sort out the example chaos code, the client side stuff is pretty
-  ropey.
-
-Probably for the next release, 0.4.0, the main focus will be extending
-the parsing support to cover the majority of Postgres SQL and PL/pgSQL
-syntax.
-
-Other immediate nice to haves are:
-
-* nullability inference
-* finishing off the main missing bits from the catalog side of type
-  checking
-* full modules extension providing namespacing, export, import lists
-  enforcing, which will really help with large sql codebases.
 
 Useful links
 ============
