@@ -7,12 +7,14 @@
 
 > import Text.DocTool.DocTool
 > import TestFileProcessor
+> import DoChaosSql
 
 > main :: IO ()
 > main = do
 >   doesDirectoryExist "website" >>=
 >     \l -> when l $ removeDirectoryRecursive "website"
 >   f <- fileList
+>   --mapM_ (\(OutputFile _ _ t _) -> putStrLn t) f
 >   docify "website/" f
 
 
@@ -34,7 +36,10 @@
 >             ,OutputFile (Text qq)
 >                         Txt "website/QuasiQuoteTests.html"
 >                         "HsSqlPpp quasiquotation examples"]
->   return $ concat [wso,src,ex,tsts,dv,tfp]
+>   trch1 <- getTransformedChaosSql
+>   let trch = flip map trch1 $ \(t,f,s) ->
+>                       OutputFile (Text s) Txt ("website/source" </> f) t
+>   return $ concat [wso,src,ex,tsts,dv,tfp,trch]
 >   where
 >     doF fl c = find always supportedFileP fl
 >                >>= return . map (toOf c)

@@ -12,3 +12,7 @@ examples/RunWrappers
 testfiles/chaos2010sql/chaos/client/
 testfiles/chaos2010sql/chaos/server/
 testfiles/chaos2010sql/chaos/server
+devel/MakeAntiNodes
+devel/MakeWebsite
+examples/chaos/Chaos2010
+tests/Tests

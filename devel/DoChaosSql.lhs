@@ -4,26 +4,26 @@ Convert the Chaos 2010 example sql to html, and do some stuff with
 hssqlppp to it and show the results.
 
 > {-# LANGUAGE ScopedTypeVariables #-}
-> module Database.HsSqlPpp.DevelTools.DoChaosSql
->     (doChaosSql) where
+> module DoChaosSql
+>     (getTransformedChaosSql) where
 >
-> import System.FilePath.Find
+> --import System.FilePath.Find
 > import System.FilePath
-> import Control.Monad.Error
+> --import Control.Monad.Error
 >
-> import Database.HsSqlPpp.DevelTools.PandocUtils
-> import Database.HsSqlPpp.Examples.AnnotateSource2
-> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
-> import Database.HsSqlPpp.Examples.Chaos2010
+> import AnnotateSource2
+> import Database.HsSqlPpp.Chaos.ChaosExtensions
+> import Database.HsSqlPpp.Chaos.ChaosFiles
 >
-> doChaosSql :: (PandocType
->                -> String
->                -> Input
->                -> String
->                -> IO ())
->            -> IO ()
-> doChaosSql pf = do
->   -- create html versions of original source
+> getTransformedChaosSql :: IO [(String,String,String)]
+> getTransformedChaosSql = do
+>   fs <- annotateSource2 (Just chaosExtensions) Nothing "template1" chaosFiles
+>   return $ flip map fs $ \(f,s) -> ((snd (splitFileName f) ++ " transformed")
+>                                   ,(f ++ ".tr.html")
+>                                   ,s)
+
+
+>  {- -- create html versions of original source
 >   sf <- sourceFiles
 >   mapM_ convFile sf
 >   -- do annotated source files
@@ -42,7 +42,7 @@ hssqlppp to it and show the results.
 >             _ -> error $ "unrecognised extension in dochaosql" ++ f)
 >          (snd $ splitFileName f)
 >          (File f)
->          (f ++ ".html")
+>          (f ++ ".html")-}
 
 
 TODO:
