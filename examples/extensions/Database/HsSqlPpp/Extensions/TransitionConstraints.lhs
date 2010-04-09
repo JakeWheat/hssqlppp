@@ -13,7 +13,7 @@ temporal relations.
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables, TemplateHaskell #-}
 >
-> module Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
+> module Database.HsSqlPpp.Extensions.TransitionConstraints
 >     where
 >
 > import Data.Generics
@@ -22,9 +22,9 @@ temporal relations.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Examples.Extensions.AstUtils
+> import Database.HsSqlPpp.Extensions.AstUtils
 
 
 examples

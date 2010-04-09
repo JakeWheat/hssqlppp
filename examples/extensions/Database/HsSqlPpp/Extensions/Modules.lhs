@@ -47,7 +47,7 @@ hidden, without having to create a separate module.
 
 > {-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
 >
-> module Database.HsSqlPpp.Examples.Extensions.Modules
+> module Database.HsSqlPpp.Extensions.Modules
 >     (modules
 >     ,modulesExample) where
 >
@@ -57,8 +57,8 @@ hidden, without having to create a separate module.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.Examples.Extensions.AstUtils
+> import Database.HsSqlPpp.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Extensions.AstUtils
 >
 > modulesExample :: ExtensionTest
 > modulesExample =

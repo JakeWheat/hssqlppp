@@ -10,13 +10,13 @@ it's going to be called
 the create_fk call into a create_assertion call
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
-> module Database.HsSqlPpp.Examples.Extensions.GeneralInclusion
+> module Database.HsSqlPpp.Extensions.GeneralInclusion
 >     (generalInclusionsExamples) where
 >
 > --import Database.HsSqlPpp.Ast
 > --import Database.HsSqlPpp.Annotation
 > --import Database.HsSqlPpp.PrettyPrinter
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > --import Database.HsSqlPpp.SqlQuote
 > --import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
 

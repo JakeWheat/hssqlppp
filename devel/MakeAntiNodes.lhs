@@ -18,8 +18,6 @@ The code is quite fragile and depends on the exact style (or lack of)
 of coding used in AstInternal.ag.
 
 > {-# LANGUAGE QuasiQuotes #-}
-> module Database.HsSqlPpp.DevelTools.MakeAntiNodes
->     (makeAntiNodes) where
 >
 > import Language.Haskell.Exts hiding (String)
 > import qualified Language.Haskell.Exts as Exts
@@ -32,6 +30,10 @@ of coding used in AstInternal.ag.
 
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
+
+> main :: IO()
+> main = makeAntiNodes >>= writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs"
+
 >
 > preamble :: String
 > preamble = [$here|
@@ -80,10 +82,14 @@ of coding used in AstInternal.ag.
 >
 > pf :: String -> IO Module
 > pf f = do
->   x <- parseFile f
+>   x <- parseFileWithMode pm f
 >   case x of
 >         ParseOk ast -> return ast
 >         e -> error $ show e
+>   where
+>     pm = defaultParseMode {
+>            parseFilename = f
+>          ,extensions = [PatternGuards]}
 
 node conversions
 ----------------

@@ -2,13 +2,13 @@ Copyright 2010 Jake Wheat
 
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
-> module Database.HsSqlPpp.Examples.Extensions.Denormalized6nfExamples
+> module Database.HsSqlPpp.Extensions.Denormalized6nfExamples
 >     (denormalized6nfExamples) where
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Examples.Extensions.Denormalized6nf
+> import Database.HsSqlPpp.Extensions.Denormalized6nf
 > import Database.HsSqlPpp.Annotation
 >
 > denormalized6nfExamples :: [ExtensionTest]

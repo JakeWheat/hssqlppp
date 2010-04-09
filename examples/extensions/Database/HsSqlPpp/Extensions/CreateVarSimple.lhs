@@ -8,14 +8,14 @@ with that name and type.
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
 >
-> module Database.HsSqlPpp.Examples.Extensions.CreateVarSimple
+> module Database.HsSqlPpp.Extensions.CreateVarSimple
 >     where
 >
 > import Data.Generics
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Annotation
 > import Debug.Trace

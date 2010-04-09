@@ -139,7 +139,7 @@ Tests/examples in CreateAssertionTests.lhs
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables, TupleSections #-}
 >
-> module Database.HsSqlPpp.Examples.Extensions.CreateAssertion
+> module Database.HsSqlPpp.Extensions.CreateAssertion
 >     (createAssertion) where
 >
 > --import Data.Generics
@@ -152,7 +152,7 @@ Tests/examples in CreateAssertionTests.lhs
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Examples.Extensions.AstUtils
+> import Database.HsSqlPpp.Extensions.AstUtils
 > import Database.HsSqlPpp.Annotation
 
 implementation

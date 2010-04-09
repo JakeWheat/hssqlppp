@@ -6,6 +6,7 @@
 > import Control.Monad
 
 > import Text.DocTool.DocTool
+> import TestFileProcessor
 
 > main :: IO ()
 > main = do
@@ -22,8 +23,18 @@
 >   ex <- doF "examples/" ("source" </>)
 >   tsts <- doF "tests/" ("source" </>)
 >   dv <- doF "devel/" ("source" </>)
->   ch <- doF "examplesql/" id
->   return $ wso ++ src ++ ex ++ tsts ++ dv ++ ch
+>   qq <- quasiQuoteTestsTable
+
+>   let tfp = [OutputFile (Text parserTestsTable)
+>                         Txt "website/ParserTests.html"
+>                         "HsSqlPpp parser examples"
+>             ,OutputFile (Text typeCheckTestsTable)
+>                         Txt "website/TypeCheckTests.html"
+>                         "HsSqlPpp type checking examples"
+>             ,OutputFile (Text qq)
+>                         Txt "website/QuasiQuoteTests.html"
+>                         "HsSqlPpp quasiquotation examples"]
+>   return $ concat [wso,src,ex,tsts,dv,tfp]
 >   where
 >     doF fl c = find always supportedFileP fl
 >                >>= return . map (toOf c)

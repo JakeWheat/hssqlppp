@@ -16,7 +16,7 @@ added.
 TODO: add test for recursive function, to make sure this code catches
 it and quits.
 
-> module Database.HsSqlPpp.Examples.Extensions.AstUtils
+> module Database.HsSqlPpp.Extensions.AstUtils
 >     (getAstInfo
 >     ,getReferencedTableList
 >     ,replaceSourcePos

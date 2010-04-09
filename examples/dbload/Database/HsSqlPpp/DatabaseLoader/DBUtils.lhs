@@ -3,9 +3,8 @@ Copyright 2010 Jake Wheat
 This file contains a few hacked together utility functions for working
 with postgres.
 
-> module Database.HsSqlPpp.Examples.DBUtils
->     (readCatalog
->     ,loadSqlUsingPsql
+> module Database.HsSqlPpp.DatabaseLoader.DBUtils
+>     (loadSqlUsingPsql
 >     ,loadSqlUsingPsqlFromFile
 >     ,clearDB
 >     ,pgDump) where
@@ -13,15 +12,8 @@ with postgres.
 > import System
 > import System.Process.Pipe
 >
-> import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.SqlTypes
 > import Database.HsSqlPpp.Utils.DbmsCommon
 >
-> -- | get the catalog from the database, and return an Catalog value
-> readCatalog :: String -> IO (Either [TypeError] Catalog)
-> readCatalog dbName =
->   (readCatalogFromDatabase dbName) >>=
->     return . updateCatalog defaultCatalog
 >
 > -- | run psql to load the sql text into a database.
 > loadSqlUsingPsql :: String -> String -> IO String

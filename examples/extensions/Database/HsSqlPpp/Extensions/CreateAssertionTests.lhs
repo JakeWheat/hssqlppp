@@ -3,14 +3,14 @@ Copyright 2010 Jake Wheat
 The test/examples for create assertion
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
-> module Database.HsSqlPpp.Examples.Extensions.CreateAssertionTests
+> module Database.HsSqlPpp.Extensions.CreateAssertionTests
 >     (createAssertionExamples) where
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.PrettyPrinter
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
+> import Database.HsSqlPpp.Extensions.CreateAssertion
 > import Database.HsSqlPpp.Annotation
 
 >

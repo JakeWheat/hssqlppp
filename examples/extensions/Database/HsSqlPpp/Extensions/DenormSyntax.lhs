@@ -3,7 +3,7 @@ Copyright 2010 Jake Wheat
 File to parse the denormalized6nf syntax
 
 > {-# LANGUAGE QuasiQuotes, DeriveDataTypeable #-}
-> module Database.HsSqlPpp.Examples.Extensions.DenormSyntax
+> module Database.HsSqlPpp.Extensions.DenormSyntax
 >     (D6nfStatement(..)
 >     ,parseD6nf
 >     ,denormParseTests

@@ -68,7 +68,7 @@ question: how can a client read a whole table like this and not have
 to deal with nulls/ maybe types?
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
-> module Database.HsSqlPpp.Examples.Extensions.Denormalized6nf
+> module Database.HsSqlPpp.Extensions.Denormalized6nf
 >     (denormalized6nf) where
 >
 > import Data.Generics
@@ -76,11 +76,11 @@ to deal with nulls/ maybe types?
 > import Data.List
 > import Data.Maybe
 >
-> import Database.HsSqlPpp.Examples.Extensions.DenormSyntax
+> import Database.HsSqlPpp.Extensions.DenormSyntax
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Examples.Extensions.AstUtils
+> import Database.HsSqlPpp.Extensions.AstUtils
 >
 > denormalized6nf :: Data a => a -> a
 > denormalized6nf =

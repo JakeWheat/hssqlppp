@@ -4,10 +4,9 @@ Code to read some of the test files and convert to html to serve as
 examples.
 
 > {-# LANGUAGE QuasiQuotes #-}
-> module Database.HsSqlPpp.DevelTools.TestFileProcessor
+> module TestFileProcessor
 >     (parserTestsTable
 >     ,typeCheckTestsTable
->     ,parserTestsPandoc
 >     ,quasiQuoteTestsTable) where
 >
 > import Database.HsSqlPpp.Utils.Utils
@@ -33,8 +32,6 @@ examples.
 > typeCheckTestsTable = typeCheckIntro ++ rowsToHtml (mapTypeCheckTests TT.typeCheckTestData)
 >
 
-> parserTestsPandoc :: Pandoc
-> parserTestsPandoc = undefined
 >
 > mapParserTests :: PT.Item -> [Row]
 > mapParserTests (PT.Expr s e) = [Row [[Sql s],[Haskell (ppExpr e)]]]
@@ -79,7 +76,7 @@ compile time.
 > quasiQuoteTestsTable :: IO String
 > quasiQuoteTestsTable = do
 >
->   ast <- pf "examples/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs"
+>   ast <- pf "tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs"
 >   let lets = [l | l@(Let _ _) <- universeBi ast]
 >   --mapM_ (putStrLn . prettyPrint) lets
 >   return $ qqIntro ++ rowsToHtml (map ((\s -> Row [[Haskell s]]) . prettyPrint) lets)
@@ -92,38 +89,6 @@ compile time.
 >         ParseOk ast -> return ast
 >         e -> error $ show e
 
- >                     [Let
- >                        (BDecls
- >                           [PatBind
- >                              (SrcLoc{srcFilename =
- >                                        "examples/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs",
- >                                      srcLine = 37, srcColumn = 21})
- >                              (PVar (Ident "tablename"))
- >                              Nothing
- >                              (UnGuardedRhs (Lit (String "my_table")))
- >                              (BDecls []),
- >                            PatBind
- >                              (SrcLoc{srcFilename =
- >                                        "examples/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs",
- >                                      srcLine = 38, srcColumn = 21})
- >                              (PVar (Ident "varname"))
- >                              Nothing
- >                              (UnGuardedRhs (Lit (String "my_field")))
- >                              (BDecls []),
- >                            PatBind
- >                              (SrcLoc{srcFilename =
- >                                        "examples/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs",
- >                                      srcLine = 39, srcColumn = 21})
- >                              (PVar (Ident "typename"))
- >                              Nothing
- >                              (UnGuardedRhs (Lit (String "text")))
- >                              (BDecls [])])
- >                        (App
- >                           (App (Con (UnQual (Ident "Stmt")))
- >                              (QuasiQuote "sqlStmt"
-  >                                 "\n \n                      create table $(tablename) (\n                        $(varnam e) $(typename)\n                      );\n \n                         "))
- >                           (QuasiQuote "sqlStmt"
- >                              "\n                      create table my_table (\n                        my_field text\n >                        );\n                         "))])])))
 
 > parserIntro :: String
 > parserIntro = [$here|

@@ -35,15 +35,15 @@ to get a list of commands and purpose and usage info
 >
 > --import Database.HsSqlPpp.Examples.AnnotateSource
 >
-> import Database.HsSqlPpp.Examples.DatabaseLoader
+> --import Database.HsSqlPpp.Examples.DatabaseLoader
 > --import Database.HsSqlPpp.Examples.WrapperGen
-> import Database.HsSqlPpp.Examples.DBUtils
+> --import Database.HsSqlPpp.Examples.DBUtils
 >
 > --import Database.HsSqlPpp.DevelTools.MakeWebsite
 > --import Database.HsSqlPpp.DevelTools.MakeAntiNodes
 > --import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
-> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
-> import Database.HsSqlPpp.Examples.Chaos2010
+> --import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
+> --import Database.HsSqlPpp.Examples.Chaos2010
 
 -------------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ command defs
 >                                        ,files :: [String]}
 >                  | AllAnnotations {database :: String
 >                                   ,files :: [String]}
->                  | PPCatalog {database :: String
+>               {-   | PPCatalog {database :: String
 >                              ,files :: [String]}
 >
 >                  | Load {database :: String
@@ -79,7 +79,7 @@ command defs
 >                                ,files :: [String]}
 >
 >                  | ResetChaos
->                  | CheckChaos
+>                  | CheckChaos -}
 >
 >                    deriving (Show, Data, Typeable)
 
@@ -793,354 +793,6 @@ insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
 
 -------------------------------------------------------------------------------
 
-ppCatalog
-=========
-
-examples
---------
-
-test4.sql:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.SqlPostgresql}
-create table s (
-       s_no int primary key,
-       sname text not null,
-       status int not null,
-       city text not null
-);
-
-create table p (
-       p_po int primary key,
-       pname text not null,
-       color text not null,
-       weight int not null,
-       city text not null
-);
-
-create table sp (
-       s_no int not null references s,
-       p_no int not null references p,
-       qty int not null,
-       primary key (s_no,p_no)
-);
-
-select * from s inner join p inner join sp;
-
-insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ ./HsSqlSystem ppcatalog test4.sql
-
-missing:
-CatCreateTable p(
-    "p_po" ScalarType "int4"
-    "pname" ScalarType "text"
-    "color" ScalarType "text"
-    "weight" ScalarType "int4"
-    "city" ScalarType "text"
-)(
-    "tableoid" ScalarType "oid"
-    "cmax" ScalarType "cid"
-    "xmax" ScalarType "xid"
-    "cmin" ScalarType "cid"
-    "xmin" ScalarType "xid"
-    "ctid" ScalarType "tid"
-)
-CatCreateTable s(
-    "s_no" ScalarType "int4"
-    "sname" ScalarType "text"
-    "status" ScalarType "int4"
-    "city" ScalarType "text"
-)(
-    "tableoid" ScalarType "oid"
-    "cmax" ScalarType "cid"
-    "xmax" ScalarType "xid"
-    "cmin" ScalarType "cid"
-    "xmin" ScalarType "xid"
-    "ctid" ScalarType "tid"
-)
-CatCreateTable sp(
-    "s_no" ScalarType "int4"
-    "p_no" ScalarType "int4"
-    "qty" ScalarType "int4"
-)(
-    "tableoid" ScalarType "oid"
-    "cmax" ScalarType "cid"
-    "xmax" ScalarType "xid"
-    "cmin" ScalarType "cid"
-    "xmin" ScalarType "xid"
-    "ctid" ScalarType "tid"
-)
-extra:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-> ppCatalogA = mode $ PPCatalog {database = def
->                               ,files = def &= typ "FILES" & args}
->              &= text "reads each file, parses, type checks, then outputs the \
->                      \changes to the catalog that the sql makes"
->
-> ppCatalog :: String -> [FilePath] -> IO ()
-> ppCatalog db fns = wrapETs $ do
->   scat <- liftIO (readCatalog db) >>= tsl
->   (ncat, _) <- mapM (\f -> (liftIO . readInput) f >>=
->                            tsl . P.parseSql f) fns >>=
->                  return . (concat |>
->                            astTransformer |>
->                            A.typeCheck scat)
->   liftIO $ putStrLn $ ppCatDiff $ compareCatalogs scat emptyCatalog ncat
-
--------------------------------------------------------------------------------
-
-load
-====
-
-load sql files into a database via parsing and pretty printing them
-
-> loadA = mode $ Load {database = def
->                     ,files = def &= typ "FILES" & args}
->         &= text "This takes one or more files with sql source text, \
->            \parses them then loads them into the database given."
->
-> loadSql :: String -> [String] -> IO ()
-> loadSql db fns = wrapETs $
->      liftIO (hSetBuffering stdout NoBuffering) >>
->      mapM (\f -> (liftIO . readInput) f >>=
->                  tsl . P.parseSql f) fns >>=
->      return . (concat |>
->                astTransformer) >>=
->      liftIO . loadAst db
-
--------------------------------------------------------------------------------
-
-loadPsql
-========
-
-load sql files into a database via psql
-
-> loadPsqlA = mode $ LoadPsql {database = def
->                             ,files = def &= typ "FILES" & args}
->             &= text "loads sql into a database using psql."
->
-> loadSqlPsql :: String -> [String] -> IO ()
-> loadSqlPsql db = wrapETs .
->   mapM_ (\s -> liftIO (loadSqlUsingPsqlFromFile db s) >>=
->                tsl >>=
->                liftIO . putStrLn)
-
--------------------------------------------------------------------------------
-
-pgDump
-======
-
-run pg dump
-
-> pgDumpA = mode $ PgDump {database = def}
->           &= text "run pg dump, used for testing."
->
-> pgDump1 :: String -> IO ()
-> pgDump1 db = pgDump db >>= putStrLn
-
--------------------------------------------------------------------------------
-
-clear
-=====
-
-small hack utility to help with testing, clears the database given (as
-long as your user name is jake!)
-
-TODO: use the correct username in this command
-TODO: do something more correct
-
-> clearA = mode $ Clear {database = def}
->          &= text "hacky util to clear a database"
->
-> cleardb :: String -> IO ()
-> cleardb = clearDB
-
--------------------------------------------------------------------------------
-
-clearLoad
-=========
-
-like load above, but runs the clear command first
-
-might try to work out a way of running multiple commands in one invoc
-of this exe, then this command will disappear
-
-> clearLoadA = mode $ ClearLoad {database = def
->                               ,files = def &= typ "FILES" & args}
->              &= text "cleardb then loadsql"
->
-> clearAndLoadSql :: String -> [String] -> IO ()
-> clearAndLoadSql db fns = cleardb db >> loadSql db fns
-
--------------------------------------------------------------------------------
-
-dbCatalog
-=========
-
-This reads an catalog from a database and writes it out using
-show. Warning: these things are big since they contain all the default
-PostgreSQL catalog contents.
-
-> catalogA = mode $ DBCatalog {database = def}
->            &= text "read the catalog for the given db and dumps it in source \
->                    \format, used to create the catalog value for template1"
->
-> readCat :: String -> IO ()
-> readCat dbName = do
->   cat <- readCatalogFromDatabase dbName
->   putStrLn preamble
->   putStrLn $ prefixLines $ ppExpr cat
->   where
->     preamble = [$here|
-
-\begin{code}
-
-This file is auto generated, to regenerate run
-example/HsSqlSystem dbcatalog --database=template1 > src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs
-
-from the project root (i.e. where the cabal file is located).
-
-> module Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
->      (defaultTemplate1Catalog) where
->
-> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.AstInternals.TypeType
->
-> defaultTemplate1Catalog :: Catalog
-> defaultTemplate1Catalog =
->     (\l -> case l of
->              Left x -> error $ show x
->              Right e -> e) $
->      updateCatalog defaultCatalog
-\end{code}
->|]
->     prefixLines = unlines . map (">        " ++) . lines
-
--------------------------------------------------------------------------------
-
-testBattery
-===========
-
-run test battery: run a bunch of tests including consistency on the
-database and sql files given
-
-The idea is to typecheck the sql, load it into pg and dump it via psql
-and via database loader, can then compare asts, catalogs, etc. in a
-lot of different ways
-
-currently:
-parse and type check sql, save the catalog
-load the sql into the db using psql, compare the catalog read from pg
-with the catalog from typechecking
-dump the sql and typecheck the dump, compare the catalog from this
-check with the catalog from the original typecheck
-
-todo: compare asts from initial parse with parsed dump - this is going
-to be a lot of work to get passing since the statements are
-re-ordered, and sometimes changed/ split up by pg
-
-also: load the sql using the extension system and database loader,
-then compare pg catalog with initial catalog, and dump and compare ast
-with original ast
-
-want to run a similar set of tests starting with the dump sql:
-get ast,cat from dump sql, load using psql and using databaseloader
-and check cats and subsequent dump asts.
-
-getting the dump ast comparing with the original ast:
-
-step one: convert tests in parser test to also roundtrip through
-database, see parsertests for details
-
-step two: write an ast conversion routine: assume that the pgdump ast
-is like the ast fed into pg but with a few statements split into
-components (e.g. create table with serial is split into create
-sequence and create table), and then the statements are reordered, so
-write a routine to mirror this - will then have
-(anyast -> rearrange and reorder) == (anyast -> pg->pgdump)
-
-
-rough new plan:
-
-combine this with the planned report generator
-
-have new annotation routine used in website, in annotatesource2
-first part is to run this and produce html report of the source,
-then add the catalog summary page, and list of type errors as with the website generator
-
-then we do the round trip tests:
-load into database, then compare catalogs
-dump from database, reparse and compare catalogs
-then parse, typecheck the dumped code, list type errors and catalog differences
-when the code is up to it, compare the original ast to the dumped ast.
-
-make different stages optional:
-
-run as a check tool, just want the catalog differences and type errors
-on the command line. would be nice to try and link the catalog
-differences to source positions.
-
-do website generation, without the pg roundtrips
-
-
-> testBatteryA = mode $ TestBattery {database = def
->                                   ,files = def &= typ "FILES" & args}
->                &= text "runs a load of consistency tests on the sql passed"
->
-> runTestBattery :: String -> [FilePath] -> IO ()
-> runTestBattery dbName fns = wrapETs $ do
->     liftIO $ hSetBuffering stdout NoBuffering
->     liftIO $ hSetBuffering stderr NoBuffering
->     liftIO $ clearDB dbName
->     startingCat <- liftIO (readCatalog dbName) >>= tsl
->     (originalCat :: Catalog,
->      originalAast :: StatementList) <-
->        mapM (\f -> (liftIO . readInput) f >>= tsl . P.parseSql f) fns >>=
->        return . (concat |>
->                  astTransformer |>
->                  A.typeCheck startingCat)
->
->     headerMessage "type errors from initial parse:\n"
->     (return . getTypeErrors) originalAast >>=
->        return . ppTypeErrors >>=
->        mapM_ (liftIO . putStrLn)
->
->     mapM_ (\s -> liftIO (loadSqlUsingPsqlFromFile dbName s) >>= tsl >>=
->                  liftIO . putStrLn) fns
->     properCat <- liftIO (readCatalog dbName) >>= tsl
->
->     headerMessage "catalog differences from initial parse and vanilla load:\n"
->     liftIO $ putStrLn $ ppCatDiff (compareCatalogs startingCat
->                                                    originalCat
->                                                    properCat)
->
->     headerMessage "dump and check\n"
->     (dumpCat,dumpAast) <-
->       liftIO (pgDump dbName) >>=
->       tsl . P.parseSql "dump" >>=
->       return . A.typeCheck startingCat
->
->     headerMessage "type errors from dump:\n"
->     (return . getTypeErrors) dumpAast >>=
->        return . ppTypeErrors >>=
->        mapM_ (liftIO . putStrLn)
->
->     headerMessage "catalog differences from initial parse and rechecked \
->                   \pg dump:\n"
->     liftIO $ putStrLn $ ppCatDiff $ compareCatalogs startingCat
->                                                     originalCat
->                                                     dumpCat
->
->     (liftIO . putStrLn) "complete!"
->     where
->       headerMessage = liftIO . putStrLn .
->                       ("-----------------------------\n" ++)
-
--------------------------------------------------------------------------------
-
 > -- | Pretty print list of type errors with optional source position
 > --   in emacs readable format.
 > ppTypeErrors :: [(Maybe (String,Int,Int), [TypeError])] -> [String]
@@ -1179,78 +831,14 @@ as an argument to the exe
 >                | otherwise -> readFile f
 
 
--------------------------------------------------------------------------------
-
-reset chaos
-===========
-
-routine to reset the chaos2010 database from the sql files, for
-testing the extensions used for chaos.
-
-> resetChaosA = mode $ ResetChaos
->              &= text "reset the chaos database"
->
-> data Ca = LoadStraightIntoDatabase
->         | DumpTransformedSql
-> resetChaos :: IO ()
-> resetChaos = wrapETs $ do
->   let db = "chaos"
->   --clear the db and get the transformed ast
->   liftIO $ do
->     hSetBuffering stdout NoBuffering
->     cleardb db
->   ast <- mapM (\f -> (liftIO . readInput) f >>=
->                  tsl . P.parseSql f) chaosFiles >>=
->      return . (concat |>
->                chaosExtensions)
->   let a = DumpTransformedSql
->   case a of
->     LoadStraightIntoDatabase -> liftIO $ loadAst db ast
->     DumpTransformedSql -> liftIO $ putStrLn $ printSql ast
->   return ()
-
-> checkChaosA = mode $ CheckChaos
->              &= text "typecheck the chaos sql"
->
-> checkChaos :: IO ()
-> checkChaos = wrapETs $ do
->   --clear the db and get the transformed ast
->   ast <- mapM (\f -> (liftIO . readInput) f >>=
->                  tsl . P.parseSql f) chaosFiles >>=
->      return . (concat |>
->                chaosExtensions)
->   mapM_ (liftIO . putStrLn) $
->             (A.typeCheck defaultTemplate1Catalog |>
->              snd |>
->              getTypeErrors |>
->              ppTypeErrors) ast
->   return ()
 
 
--------------------------------------------------------------------------------
+> -- | get the catalog from the database, and return an Catalog value
+> readCatalog :: String -> IO (Either [TypeError] Catalog)
+> readCatalog dbName =
+>   (readCatalogFromDatabase dbName) >>=
+>     return . updateCatalog defaultCatalog
 
-MakeWebsite
-===========
-
-code to build the website for hssqlppp
-
-> {-makeWebsiteA = mode $ MakeWebsite
->                &= text "build the website"-}
-
--------------------------------------------------------------------------------
-
-MakeAntinodes
-=============
-
-code to generate the anti ast source, for supporting anti quoting in
-sql quasiquotes
-
-> {-makeAntiNodesA = mode $ MakeAntiNodes
->                &= text "development tool"
-> makeAntiNodesF :: IO ()
-> makeAntiNodesF = do
->   s <- makeAntiNodes
->   writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs" s-}
 
 -------------------------------------------------------------------------------
 
@@ -1293,11 +881,7 @@ main
 >        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2010"
 >                       [lexA, parseA, ppppA, pppA,
 >                        parseExpressionA, typeCheckExpressionA,
->                        typeCheckA,allAnnotationsA,
->                        ppCatalogA,
->                        clearA, loadA, clearLoadA, catalogA, loadPsqlA,
->                        pgDumpA, testBatteryA,
->                        resetChaosA, checkChaosA]
+>                        typeCheckA,allAnnotationsA]
 >
 >        case cmd of
 >          Lex fns -> lexFiles fns
@@ -1308,25 +892,10 @@ main
 >          TypeCheck db fns -> typeCheck2 db fns
 >          TypeCheckExpression db fns -> typeCheckExpression db fns
 >          AllAnnotations db fns -> allAnnotations db fns
->          PPCatalog db fns -> ppCatalog db fns
->          Clear db -> cleardb db
->          Load db fns -> loadSql db fns
->          ClearLoad db fns -> clearAndLoadSql db fns
->          DBCatalog db -> readCat db
->          LoadPsql db fns -> loadSqlPsql db fns
->          PgDump db -> pgDump1 db
->          TestBattery db fns -> runTestBattery db fns
->          --Test as -> runTests as
->          --MakeWebsite -> makeWebsite
->          --MakeAntiNodes -> makeAntiNodesF
->          ResetChaos -> resetChaos
->          CheckChaos -> checkChaos
 >
-> lexA, parseA, ppppA, pppA, clearA, loadA,
->   clearLoadA, catalogA, loadPsqlA, pgDumpA, testBatteryA,
+> lexA, parseA, ppppA, pppA,
 >   typeCheckA, parseExpressionA, typeCheckExpressionA,
->   allAnnotationsA, ppCatalogA,
->   resetChaosA,checkChaosA :: Mode HsSqlSystem
+>   allAnnotationsA :: Mode HsSqlSystem
 
 -------------------------------------------------------------------------------
 

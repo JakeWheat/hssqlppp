@@ -2,18 +2,17 @@ Copyright 2010 Jake Wheat
 
 Currently a mess and not usable.
 
-Prepend view definitions for a simplified catalog. This is the code
-from Chaos2010, it uses
+Prepend view definitions for a simplified catalog.
 
 > {-# LANGUAGE QuasiQuotes #-}
 >
-> module Database.HsSqlPpp.Examples.Extensions.SimplifiedCatalog
+> module Database.HsSqlPpp.Extensions.SimplifiedCatalog
 >     where
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Examples.Extensions.AstUtils
+> import Database.HsSqlPpp.Extensions.AstUtils
 >
 > simplifiedCatalogSt :: [Statement]
 > simplifiedCatalogSt =

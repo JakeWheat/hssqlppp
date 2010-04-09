@@ -2,6 +2,28 @@
 
 This file is a complete disorganised mess.
 
+release plan:
+
+0.3.0
+
+goal is to get release as soon as possible
+mainly this involves sorting out the additional source trees and some
+   of the documentation
+annotatesource/dochaossql
+hssqlsystem
+check extension tests are being run
+docs: new index, move examples?, intro page with snippets
+      minimal guide for each source tree
+chaos: add exe to load, check, dump
+dbload: remove exe work, just have as lib for chaos
+extensions: get working as lib, move chaos specific to chaos tree
+wrappers: see how easy to fix up...
+review dependencies: try to get as many out of library build
+   e.g. template haskell, haskell-src-exts as possible
+   see if can remove mtl dependency?
+
+0.4.0
+
 Parsing: most of the pg manual, note what isn't yet supported
 typechecking: enough to get chaos working? - want to at least support
    simple typesafe access
@@ -13,6 +35,28 @@ documentation work: literate comments, txt files, doctool work
 custom syntax support
 report function: roundtrip, documentation generator, type checking
 examples
+lots of small fixes
+
+-----
+
+future
+
+serious profiling: optimise speed and memory use
+split parse tree and ast?
+ - maybe can parse operators properly here?
+integrate with haskelldb so can mix sql and haskelldb together?
+nullability inference: might be a bit difficult, maybe use a haskelldb inspired approach?
+more annotations
+ability to produce heavily cross linked docs + diagrams
+
+
+
+-----
+
+
+
+
+
 
 
 

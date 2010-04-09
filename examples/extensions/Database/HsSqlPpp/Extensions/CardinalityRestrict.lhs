@@ -4,19 +4,19 @@ constraint shorthand to restrict cardinality of table
 
 > {-# LANGUAGE QuasiQuotes #-}
 >
-> module Database.HsSqlPpp.Examples.Extensions.CardinalityRestrict
+> module Database.HsSqlPpp.Extensions.CardinalityRestrict
 >     where
 >
 > import Data.Generics
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.PrettyPrinter
-> import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
+> import Database.HsSqlPpp.Extensions.CreateAssertion
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Examples.Extensions.AstUtils
+> import Database.HsSqlPpp.Extensions.AstUtils
 
 challenge: make a constraint that works like this:
 

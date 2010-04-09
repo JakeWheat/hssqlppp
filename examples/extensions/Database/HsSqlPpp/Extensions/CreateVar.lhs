@@ -6,7 +6,7 @@ database.
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes #-}
 >
-> module Database.HsSqlPpp.Examples.Extensions.CreateVar
+> module Database.HsSqlPpp.Extensions.CreateVar
 >     where
 >
 > import Data.Generics
@@ -14,11 +14,11 @@ database.
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.PrettyPrinter
-> import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
-> import Database.HsSqlPpp.Examples.Extensions.AstUtils
+> import Database.HsSqlPpp.Extensions.CreateAssertion
+> import Database.HsSqlPpp.Extensions.AstUtils
 >
 > createVarExample :: ExtensionTest
 > createVarExample = ExtensionTest

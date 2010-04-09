@@ -30,7 +30,7 @@
 >   let tm = formatDateTime "%D %T" t
 >   mapM_ (\f -> putStrLn (showOf f) >> process "0.3.0" tm b f) ofs
 >          where
->            showOf (OutputFile s _ _ _) = show s
+>            showOf (OutputFile _ _ s _) = show s
 
 ====================================================================
 

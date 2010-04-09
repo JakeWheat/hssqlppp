@@ -4,7 +4,7 @@ Here are a few Chaos2000 specific extensions, written just to get
 chaos working again then will review approach.
 
 > {-# LANGUAGE QuasiQuotes #-}
-> module Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
+> module Database.HsSqlPpp.Chaos.ChaosExtensions
 >     (
 >      chaosExtensions
 >     ,chaosExtensionsExamples
@@ -20,16 +20,16 @@ chaos working again then will review approach.
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Annotation
 >
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
-> import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
-> import Database.HsSqlPpp.Examples.Extensions.Modules
-> import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
-> import Database.HsSqlPpp.Examples.Extensions.CreateVar
-> import Database.HsSqlPpp.Examples.Extensions.CardinalityRestrict
-> import Database.HsSqlPpp.Examples.Extensions.SimplifiedCatalog
-> import Database.HsSqlPpp.Examples.Extensions.Denormalized6nf
-> import Database.HsSqlPpp.Examples.Extensions.AstUtils
+> import Database.HsSqlPpp.Extensions.TransitionConstraints
+> import Database.HsSqlPpp.Extensions.Modules
+> import Database.HsSqlPpp.Extensions.CreateAssertion
+> import Database.HsSqlPpp.Extensions.CreateVar
+> import Database.HsSqlPpp.Extensions.CardinalityRestrict
+> import Database.HsSqlPpp.Extensions.SimplifiedCatalog
+> import Database.HsSqlPpp.Extensions.Denormalized6nf
+> import Database.HsSqlPpp.Extensions.AstUtils
 >
 >
 > -- | run all the extensions needed for chaos

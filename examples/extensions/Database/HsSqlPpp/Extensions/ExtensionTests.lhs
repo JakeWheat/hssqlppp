@@ -2,7 +2,7 @@ Copyright 2010 Jake Wheat
 
 Gather together the examples from the extension modules and convert to regular test code
 
-> module Database.HsSqlPpp.Examples.Extensions.ExtensionTests
+> module Database.HsSqlPpp.Extensions.ExtensionTests
 >     (extensionTests) where
 >
 > import Test.HUnit
@@ -14,22 +14,22 @@ Gather together the examples from the extension modules and convert to regular t
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.PrettyPrinter
 >
-> import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.Examples.Extensions.CreateVarSimple
-> import Database.HsSqlPpp.Examples.Extensions.CreateVar
-> import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
-> import Database.HsSqlPpp.Examples.Extensions.CreateAssertionTests
-> import Database.HsSqlPpp.Examples.Extensions.CardinalityRestrict
-> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
-> import Database.HsSqlPpp.Examples.Extensions.Modules
-> import Database.HsSqlPpp.Examples.Extensions.GeneralInclusion
-> import Database.HsSqlPpp.Examples.Extensions.Denormalized6nfExamples
-> import Database.HsSqlPpp.Examples.Extensions.DenormSyntax
+> import Database.HsSqlPpp.Extensions.ExtensionsUtils
+> import Database.HsSqlPpp.Extensions.CreateVarSimple
+> import Database.HsSqlPpp.Extensions.CreateVar
+> import Database.HsSqlPpp.Extensions.TransitionConstraints
+> import Database.HsSqlPpp.Extensions.CreateAssertionTests
+> import Database.HsSqlPpp.Extensions.CardinalityRestrict
+> --import Database.HsSqlPpp.Extensions.ChaosExtensions
+> import Database.HsSqlPpp.Extensions.Modules
+> import Database.HsSqlPpp.Extensions.GeneralInclusion
+> import Database.HsSqlPpp.Extensions.Denormalized6nfExamples
+> import Database.HsSqlPpp.Extensions.DenormSyntax
 >
 > testData :: [ExtensionTest]
 > testData = transitionConstraintExamples ++
 >            createAssertionExamples ++
->            chaosExtensionsExamples ++
+>            --chaosExtensionsExamples ++
 >            generalInclusionsExamples ++
 >            denormalized6nfExamples ++
 >            [createVarSimpleExample

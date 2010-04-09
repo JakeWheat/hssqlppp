@@ -4,24 +4,17 @@ This code is an example to demonstrate loading a sql file, parsing it,
 running a transform on the ast, then loading the result straight into
 PostgreSQL.
 
-> module Database.HsSqlPpp.Examples.DatabaseLoader
+> module Database.HsSqlPpp.DatabaseLoader.DatabaseLoader
 >     (loadAst
->     ,loadWithChaosExtensions
 >     ) where
 >
 > import System.Directory
 > import Control.Exception
-> import Control.Applicative
-> import Control.Monad.Error
 > import Debug.Trace
 >
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Ast as Ast
 > import Database.HsSqlPpp.Utils.DbmsCommon
-> import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.Parser
->
-> import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
 
 One small complication: haven't worked out how to send copy data from
 haskell via HDBC or the pg lib, so use a dodgy hack to write inline
@@ -57,22 +50,6 @@ The main routine, which takes an AST and loads it into a database using HDBC.
 >         loadStatement conn $ Regular $ Copy a tb cl $ CopyFilename tfn1
 >     loadStatement _ x = error $ "got bad copy hack: " ++ show x
 
-Wrapper to take a list of filenames, load, run an AST transform on
-them, then pass to loadAst above.
-
-> loadWithChaosExtensions :: String -> [String] -> IO ()
-> loadWithChaosExtensions dbName fns =
->   wrap $ (concat <$> mapM loadSql fns) >>=
->            liftIO . loadAst dbName . chaosExtensions
->   where
->     loadSql :: String -> ErrorT String IO [Statement]
->     loadSql fn = liftIO (parseSqlFile fn) >>= tsl
->     wrap :: Monad m => ErrorT String m a -> m a
->     wrap c = runErrorT c >>= \x ->
->              case x of
->                     Left er -> error er
->                     Right l -> return l
->
 
 withtemporaryfile, part of the copy from stdin hack
 

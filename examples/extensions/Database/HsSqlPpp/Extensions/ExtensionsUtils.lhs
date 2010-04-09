@@ -2,7 +2,7 @@ Copyright 2010 Jake Wheat
 
 Some auxiliary code for use in writing extensions.
 
-> module Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
+> module Database.HsSqlPpp.Extensions.ExtensionsUtils
 >     where
 >
 > import Database.HsSqlPpp.Ast
