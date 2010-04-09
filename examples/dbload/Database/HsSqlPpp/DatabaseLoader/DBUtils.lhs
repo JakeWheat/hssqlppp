@@ -7,12 +7,15 @@ with postgres.
 >     (loadSqlUsingPsql
 >     ,loadSqlUsingPsqlFromFile
 >     ,clearDB
->     ,pgDump) where
+>     ,pgDump
+>     ,readCatalog) where
 >
 > import System
 > import System.Process.Pipe
 >
 > import Database.HsSqlPpp.Utils.DbmsCommon
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.SqlTypes
 >
 >
 > -- | run psql to load the sql text into a database.
@@ -46,3 +49,9 @@ with postgres.
 >                                              ,"--schema-only"
 >                                              ,"--no-owner"
 >                                              ,"--no-privileges"])] ""
+
+> -- | get the catalog from the database, and return an Catalog value
+> readCatalog :: String -> IO (Either [TypeError] Catalog)
+> readCatalog dbName =
+>   (readCatalogFromDatabase dbName) >>=
+>     return . updateCatalog defaultCatalog

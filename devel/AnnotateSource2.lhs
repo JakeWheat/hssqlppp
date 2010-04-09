@@ -78,8 +78,7 @@ then concat the lot together, and can then render with pandoc
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.SqlTypes
+> import Database.HsSqlPpp.DatabaseLoader.DBUtils
 
 > annotateSource2 :: (Maybe ([Statement] -> [Statement]))
 >                 -> (Maybe (Annotation -> String))
@@ -196,8 +195,3 @@ interspersed we want chunks of the original source
 >            then Nothing
 >            else Just l
 
-> -- | get the catalog from the database, and return an Catalog value
-> readCatalog :: String -> IO (Either [TypeError] Catalog)
-> readCatalog dbName =
->   (readCatalogFromDatabase dbName) >>=
->     return . updateCatalog defaultCatalog

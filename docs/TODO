@@ -9,14 +9,13 @@ release plan:
 goal is to get release as soon as possible
 mainly this involves sorting out the additional source trees and some
    of the documentation
-annotatesource/dochaossql
+fix website css issues: syntax highlighting and classes of code divs
+   not working right
 hssqlsystem
 check extension tests are being run
 docs: new index, move examples?, intro page with snippets
       minimal guide for each source tree
-chaos: add exe to load, check, dump
-dbload: remove exe work, just have as lib for chaos
-extensions: get working as lib, move chaos specific to chaos tree
+chaos: look at reset issue?
 wrappers: see how easy to fix up...
 review dependencies: try to get as many out of library build
    e.g. template haskell, haskell-src-exts as possible

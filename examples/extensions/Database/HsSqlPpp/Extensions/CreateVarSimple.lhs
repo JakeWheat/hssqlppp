@@ -18,7 +18,7 @@ with that name and type.
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.SqlQuote
 > import Database.HsSqlPpp.Annotation
-> import Debug.Trace
+> --import Debug.Trace
 
 
 Example/ Test

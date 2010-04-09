@@ -66,7 +66,6 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 
 > sql :: IO ()
 > sql = wrapETs $ do
->   let db = "chaos"
 >   ast <- mapM (\f -> (liftIO . readInput) f >>=
 >                  tsl . P.parseSql f) chaosFiles >>=
 >      return . (concat |>

@@ -28,7 +28,7 @@ checkAssignmentValid - pass in source type and target type, returns
 > import Data.Maybe
 > import Data.List
 > import Data.Either
-> import Debug.Trace
+> --import Debug.Trace
 > import Data.Char
 >
 > import Database.HsSqlPpp.AstInternals.TypeType

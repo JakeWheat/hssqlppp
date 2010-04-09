@@ -11,7 +11,7 @@ to get a list of commands and purpose and usage info
 > {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables,FlexibleContexts,QuasiQuotes #-}
 >
 > import System.Console.CmdArgs
-> import System.IO
+> --import System.IO
 > import Control.Monad.Error
 
 > --import Debug.Trace
@@ -20,10 +20,10 @@ to get a list of commands and purpose and usage info
 >
 > --import Database.HsSqlPpp.Tests.Tests
 > import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.Utils.Here
+> --import Database.HsSqlPpp.Utils.Here
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Catalog
+> --import Database.HsSqlPpp.Catalog
 > import qualified Database.HsSqlPpp.TypeChecker as A
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.SqlTypes
@@ -37,7 +37,7 @@ to get a list of commands and purpose and usage info
 >
 > --import Database.HsSqlPpp.Examples.DatabaseLoader
 > --import Database.HsSqlPpp.Examples.WrapperGen
-> --import Database.HsSqlPpp.Examples.DBUtils
+> import Database.HsSqlPpp.DatabaseLoader.DBUtils
 >
 > --import Database.HsSqlPpp.DevelTools.MakeWebsite
 > --import Database.HsSqlPpp.DevelTools.MakeAntiNodes
@@ -830,26 +830,16 @@ as an argument to the exe
 >                    -> return $ drop 1 $ take (length f - 1) f
 >                | otherwise -> readFile f
 
-
-
-
-> -- | get the catalog from the database, and return an Catalog value
-> readCatalog :: String -> IO (Either [TypeError] Catalog)
-> readCatalog dbName =
->   (readCatalogFromDatabase dbName) >>=
->     return . updateCatalog defaultCatalog
-
-
 -------------------------------------------------------------------------------
 
  > readParseTransform :: (MonadIO m, MonadError String m) =>
  >                       [FilePath] -> m [Statement]
 
-> readParseTransform fns =
+> {-readParseTransform fns =
 >      mapM (\f -> (liftIO . readInput) f >>=
 >                  tsl . P.parseSql f) fns >>=
 >      return . (concat |>
->                astTransformer)
+>                astTransformer)-}
 
 -------------------------------------------------------------------------------
 
@@ -862,10 +852,10 @@ as an argument to the exe
 
 -------------------------------------------------------------------------------
 
-> readInto act fns =
+> {-readInto act fns =
 >                forM_ fns $ \f ->
 >                  (liftIO . readInput) f >>=
->                  act
+>                  act-}
 
  >                  tsl . lexSqlText f >>=
  >                  mapM_ (liftIO . print)
