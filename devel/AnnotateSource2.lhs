@@ -78,7 +78,7 @@ then concat the lot together, and can then render with pandoc
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.DatabaseLoader.DBUtils
+> import Database.HsSqlPpp.Utils.DBUtils
 
 > annotateSource2 :: (Maybe ([Statement] -> [Statement]))
 >                 -> (Maybe (Annotation -> String))

@@ -11,6 +11,7 @@ examples.
 >
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
+> import Database.HsSqlPpp.Utils.PPExpr
 > import Database.HsSqlPpp.Tests.ParserTests as PT
 > import Database.HsSqlPpp.Tests.TypeCheckTests as TT
 > import Language.Haskell.Exts hiding (String)

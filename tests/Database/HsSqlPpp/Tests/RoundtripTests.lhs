@@ -24,8 +24,8 @@ Test sql by typechecking it, then running it through Postgres and comparing:
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.DatabaseLoader.DBUtils
-> import Database.HsSqlPpp.DatabaseLoader.DatabaseLoader
+> import Database.HsSqlPpp.Utils.DBUtils
+> import Database.HsSqlPpp.Utils.DatabaseLoader
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.SqlTypes

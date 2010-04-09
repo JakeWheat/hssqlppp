@@ -26,9 +26,9 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 >
 > import Database.HsSqlPpp.PrettyPrinter
 >
-> import Database.HsSqlPpp.DatabaseLoader.DatabaseLoader
+> import Database.HsSqlPpp.Utils.DatabaseLoader
 > --import Database.HsSqlPpp.WrapperGen
-> import Database.HsSqlPpp.DatabaseLoader.DBUtils
+> import Database.HsSqlPpp.Utils.DBUtils
 >
 > import Database.HsSqlPpp.Chaos.ChaosExtensions
 > import Database.HsSqlPpp.Chaos.ChaosFiles

@@ -12,7 +12,6 @@ This file contains some generic utility stuff
 > import Control.Arrow
 > import Control.Monad.Error
 > import Control.Applicative
-> import qualified Language.Haskell.Exts as Exts
 
 used to mix regular function composition and >>= in monads, so the
 order of application stays the same instead of going backwards when
@@ -119,14 +118,6 @@ order of application stays the same instead of going backwards when
 > forceRight (Left x) = error $ show x
 > forceRight (Right x) = x
 >
-> -- dodgy code to pretty print a value using haskell-src-exts to try
-> -- and format it nicely
->
-> ppExpr :: Show s => s -> String
-> ppExpr s =
->   case Exts.parseExp (show s) of
->     Exts.ParseOk ast -> Exts.prettyPrint ast
->     x -> error $ show x
 >
 > npartition :: Eq b => (a -> b) -> [a] -> [(b,[a])]
 > npartition keyf l =

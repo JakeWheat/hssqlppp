@@ -1,4 +1,6 @@
 
+ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:examples/chaos:examples/hssqlppputil -hide-package monads-fd --make devel/MakeWebsite.lhs && devel/MakeWebsite
+
 > import System.FilePath.Find
 > import System.FilePath
 > import Data.Char

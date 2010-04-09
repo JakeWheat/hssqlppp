@@ -4,7 +4,7 @@ This code is an example to demonstrate loading a sql file, parsing it,
 running a transform on the ast, then loading the result straight into
 PostgreSQL.
 
-> module Database.HsSqlPpp.DatabaseLoader.DatabaseLoader
+> module Database.HsSqlPpp.Utils.DatabaseLoader
 >     (loadAst
 >     ) where
 >

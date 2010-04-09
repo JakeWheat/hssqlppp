@@ -11,15 +11,15 @@ mainly this involves sorting out the additional source trees and some
    of the documentation
 fix website css issues: syntax highlighting and classes of code divs
    not working right
-hssqlsystem
+write simple tests for exes?
 check extension tests are being run
 docs: new index, move examples?, intro page with snippets
       minimal guide for each source tree
 chaos: look at reset issue?
 wrappers: see how easy to fix up...
-review dependencies: try to get as many out of library build
-   e.g. template haskell, haskell-src-exts as possible
-   see if can remove mtl dependency?
+add other exes to cabal
+disable failing tests
+review and write todo list for tidying up the crappest bits
 
 0.4.0
 

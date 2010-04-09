@@ -37,7 +37,9 @@ to get a list of commands and purpose and usage info
 >
 > --import Database.HsSqlPpp.Examples.DatabaseLoader
 > --import Database.HsSqlPpp.Examples.WrapperGen
-> import Database.HsSqlPpp.DatabaseLoader.DBUtils
+> import Database.HsSqlPpp.Utils.DBUtils
+> import Database.HsSqlPpp.Utils.PPExpr
+
 >
 > --import Database.HsSqlPpp.DevelTools.MakeWebsite
 > --import Database.HsSqlPpp.DevelTools.MakeAntiNodes

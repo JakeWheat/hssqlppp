@@ -17,3 +17,4 @@ devel/MakeWebsite
 examples/chaos/Chaos2010
 tests/Tests
 examples/hssqlppputil/HsSqlPppUtil
+examples/util/HsSqlPppUtil

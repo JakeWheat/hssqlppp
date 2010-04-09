@@ -28,8 +28,8 @@ of coding used in AstInternal.ag.
 > import Control.Monad
 > import Data.List
 
-> import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
+> import Database.HsSqlPpp.Utils.PPExpr
 
 > main :: IO()
 > main = makeAntiNodes >>= writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs"

@@ -716,7 +716,7 @@ with the brackets and it works.
 >   rsNoRow is1 <+> text "=" <+> rsNoRow is2
 >   where
 >     rsNoRow is = parens (hcatCsvMap convExp is)
-> convSet a = error $ "bad expression in set in update: " ++ ppExpr a
+> convSet a = error $ "bad expression in set in update: " ++ show a
 >
 > --utils
 >

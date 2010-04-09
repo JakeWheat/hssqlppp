@@ -3,7 +3,7 @@ Copyright 2010 Jake Wheat
 This file contains a few hacked together utility functions for working
 with postgres.
 
-> module Database.HsSqlPpp.DatabaseLoader.DBUtils
+> module Database.HsSqlPpp.Utils.DBUtils
 >     (loadSqlUsingPsql
 >     ,loadSqlUsingPsqlFromFile
 >     ,clearDB
