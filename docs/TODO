@@ -13,13 +13,21 @@ fix website css issues: syntax highlighting and classes of code divs
    not working right
 write simple tests for exes?
 check extension tests are being run
-docs: new index, move examples?, intro page with snippets
-      minimal guide for each source tree
-chaos: look at reset issue?
+chaos2010 exe: look at reset issue?
 wrappers: see how easy to fix up...
 add other exes to cabal
 disable failing tests
-review and write todo list for tidying up the crappest bits
+review and write todo list for tidying up the crappest bits of mess
+figure out haddock issue
+
+website content:
+index: mainly review links
+no other files in root
+src, links to devel
+examples/ -> index for examples: utils, extension, wrappers, chaos
+tests
+move generated test files to examples
+add whirlwind tour page
 
 0.4.0
 
