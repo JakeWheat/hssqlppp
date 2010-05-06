@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 This code is an example to demonstrate loading a sql file, parsing it,
 running a transform on the ast, then loading the result straight into

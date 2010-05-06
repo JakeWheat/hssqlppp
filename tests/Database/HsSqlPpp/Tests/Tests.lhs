@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 > module Database.HsSqlPpp.Tests.Tests (allTests) where
 >

@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Tests for the local bindings lookup code, which is a bit convoluted in
 places, particularly for joins.

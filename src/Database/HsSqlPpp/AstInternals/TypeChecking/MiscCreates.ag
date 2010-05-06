@@ -1,5 +1,4 @@
 {-
-Copyright 2009 Jake Wheat
 
 This file contains the ddl checking, apart from create function and
 create table which have their own files.

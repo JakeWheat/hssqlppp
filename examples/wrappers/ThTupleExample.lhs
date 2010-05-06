@@ -1,5 +1,3 @@
-Copyright 2010 Jake Wheat
-
 Example of using the template haskell tuple wrapper.
 
 > {-# LANGUAGE TemplateHaskell, RelaxedPolyRec #-}

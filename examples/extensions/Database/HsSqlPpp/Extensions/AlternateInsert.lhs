@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 just an insert syntax a bit like updates, so the fields are next to
   the values

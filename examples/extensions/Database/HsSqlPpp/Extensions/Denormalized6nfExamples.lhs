@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 
 > {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}

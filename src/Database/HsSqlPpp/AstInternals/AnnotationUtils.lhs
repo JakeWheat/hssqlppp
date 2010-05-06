@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 This module contains some utilities and generic code for working with
 asts and annotations which depend on the ast types.

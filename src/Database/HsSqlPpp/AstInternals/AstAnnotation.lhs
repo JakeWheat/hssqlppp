@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 The annotation data types and utilities for working with them.
 

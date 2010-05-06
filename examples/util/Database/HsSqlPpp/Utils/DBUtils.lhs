@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 This file contains a few hacked together utility functions for working
 with postgres.

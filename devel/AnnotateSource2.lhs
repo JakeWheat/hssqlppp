@@ -1,5 +1,3 @@
-Copyright 2010 Jake Wheat
-
 Idea is to add a load of information to the source code for some sort
 of presentation.
 
@@ -140,16 +138,16 @@ interspersed we want chunks of the original source
 >                      x -> "/*" ++ x ++ "*/\n"
 >     printStatement :: String -> String -> String -> String -> String
 >     printStatement cssClass comment pre st =
->        if cssClass == ""
->        then p1
->        else "<div class='" ++ cssClass ++ "'>" ++ p1 ++ "</div>"
->        where
->          p1 = "\n\n~~~~{.SqlPostgresql}\n"
+>        {-let cc = if cssClass == ""
+>                 then ".SqlPostgresql"
+>                 else ".SqlPostgresql,." ++ cssClass
+>        in "\n\n~~~~{" ++ cc ++ "}\n"
 >               ++ (if comment /= ""
 >                   then "-- " ++ comment ++ " ------------------------\n"
 >                   else "")
->               ++ pre ++ trim st
->               ++ "\n~~~~\n\n"
+>               ++ -}
+>               pre ++ trim st
+>               -- ++ "\n~~~~\n\n"
 
 > intersperseSource :: FilePath -> String -> [Statement] -> [(String,[Statement])]
 > intersperseSource fileName src statements =

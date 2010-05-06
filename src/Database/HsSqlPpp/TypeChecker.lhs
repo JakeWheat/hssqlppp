@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 This is the public module for the type checking functionality.
 

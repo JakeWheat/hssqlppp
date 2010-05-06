@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Some simple wrappers around HDBC for the code to use.
 

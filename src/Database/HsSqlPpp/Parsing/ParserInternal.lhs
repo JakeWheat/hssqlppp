@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 The main file for parsing sql, uses parsec. Not sure if parsec is the
 right choice, but it seems to do the job pretty well at the moment.

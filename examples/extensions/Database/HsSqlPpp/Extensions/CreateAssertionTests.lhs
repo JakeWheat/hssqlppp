@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 The test/examples for create assertion
 

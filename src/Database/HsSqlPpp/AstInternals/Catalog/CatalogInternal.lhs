@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 This module contains the implementation of the Catalog data types
 and functions, and provides the api for the other type checking

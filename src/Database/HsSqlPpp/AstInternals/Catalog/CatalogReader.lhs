@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 This module contains the code to read a set of catalog updates
 from a database.

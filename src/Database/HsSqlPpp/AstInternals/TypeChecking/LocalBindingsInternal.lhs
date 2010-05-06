@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 This module contains the code to manage local identifier bindings
 during the type checking process. This is used for e.g. looking up the

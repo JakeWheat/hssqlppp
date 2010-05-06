@@ -1,5 +1,3 @@
-Copyright 2010 Jake Wheat
-
 The purpose of this code is to automatically generate a copy of the
 ast data structures from AstInternal.ag, and produce a new set of data
 types with some support for anti quotation nodes stuck in.

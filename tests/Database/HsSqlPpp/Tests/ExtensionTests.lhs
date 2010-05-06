@@ -1,4 +1,4 @@
-Copyright 2009 Jake Wheat
+
 
 Set of tests for the old chaosextensions, in the process of being
 replaced

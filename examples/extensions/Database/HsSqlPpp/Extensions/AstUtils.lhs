@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 This is the start of some code to support ast transforms where we need
 some information that might come from the type checker, only we want

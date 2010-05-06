@@ -1,5 +1,4 @@
 {-
-Copyright 2009 Jake Wheat
 
 This file contains the code that handles the select list part of a
 select expression.

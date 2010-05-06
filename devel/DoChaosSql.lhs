@@ -1,5 +1,3 @@
-Copyright 2010 Jake Wheat
-
 Convert the Chaos 2010 example sql to html, and do some stuff with
 hssqlppp to it and show the results.
 

@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 Set of tests to check the type checking code. Includes tests for the
 errors for sql which doesn't type check.

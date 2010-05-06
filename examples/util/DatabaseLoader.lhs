@@ -326,7 +326,7 @@ do website generation, without the pg roundtrips
 
 > main :: IO ()
 > main = do
->        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2010"
+>        cmd <- cmdArgs "HsSqlSystem"
 >                       [lexA, parseA, ppppA, pppA,
 >                        parseExpressionA, typeCheckExpressionA,
 >                        typeCheckA,allAnnotationsA]

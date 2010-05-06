@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 This file contains some generic utility stuff
 

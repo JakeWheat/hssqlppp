@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Currently a mess and not usable.
 

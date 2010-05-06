@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 constraint shorthand to restrict cardinality of table
 

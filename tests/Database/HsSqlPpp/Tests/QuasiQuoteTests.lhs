@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Tests mainly for antiquotation, plus examples of where antiquotes work.
 

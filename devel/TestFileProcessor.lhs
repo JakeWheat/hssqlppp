@@ -1,5 +1,3 @@
-Copyright 2010 Jake Wheat
-
 Code to read some of the test files and convert to html to serve as
 examples.
 

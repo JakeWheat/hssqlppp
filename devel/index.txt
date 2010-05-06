@@ -1,0 +1,17 @@
+= Development tools
+
+[SQL source annotator](AnnotateSource2): really rough processor which
+takes sql source with custom syntax, and attempts to output the target
+sql which has been transformed rendered in html, while preserving as
+much of the original source as possible.
+
+[MakeAntiNodes.lhs](MakeAntiNodes.lhs): some code to take the ast with
+antiquote support, and create an alternative tree without the antinode
+bits, and create a conversion function to take an antiquote ast and
+convert it into a normal one.
+
+[MakeWebsite.lhs](MakeWebsite.lhs): some code to generate a website
+from literate source and a few extra markdown files, mainly uses
+pandoc.
+
+[files](.)

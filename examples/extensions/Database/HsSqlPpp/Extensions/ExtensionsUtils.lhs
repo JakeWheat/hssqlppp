@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Some auxiliary code for use in writing extensions.
 

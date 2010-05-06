@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Two aspects to general inclusions
 

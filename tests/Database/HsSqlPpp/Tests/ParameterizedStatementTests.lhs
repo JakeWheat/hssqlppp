@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Tests for the infrastructure to create type safe access to databases -
 the information needed is gathered during typechecking and exposed in

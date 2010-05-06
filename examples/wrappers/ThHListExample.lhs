@@ -1,5 +1,3 @@
-Copyright 2010 Jake Wheat
-
 Example of using the template haskell hlist wrapper. Can't get it to
 compile, some sort of type class issue related to hlists.
 

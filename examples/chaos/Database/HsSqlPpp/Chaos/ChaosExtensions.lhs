@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 Here are a few Chaos2000 specific extensions, written just to get
 chaos working again then will review approach.

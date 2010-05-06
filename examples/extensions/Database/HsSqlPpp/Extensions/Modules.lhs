@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Currently, just some notes.
 

@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 This file contains the data type Type. It is kept separate so we can
 compile the types and function information from the database

@@ -1,5 +1,4 @@
 {-
-Copyright 2009 Jake Wheat
 
 This file contains the code for typechecking create table statements
 (and also create table as statements). It's pretty limited at the

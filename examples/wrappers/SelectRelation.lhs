@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 > module Database.HsSqlPpp.Examples.Wrappers.SelectRelation where
 >

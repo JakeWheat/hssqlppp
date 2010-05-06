@@ -1,5 +1,3 @@
-Copyright 2010 Jake Wheat
-
 Code isn't finished, shouldn't be too difficult to sort it out, but
 seems a bit pointless when the th version works nice.
 

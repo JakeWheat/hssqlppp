@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 The automated tests, uses hunit to check a bunch of text expressions
 and sql statements parse to the correct tree, and then checks pretty

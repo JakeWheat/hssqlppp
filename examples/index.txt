@@ -1,7 +1,11 @@
 overview of example files
 
-RunWrappers.lhs
-demonstration of typesafe database access from haskell
+[HsSqlPppUtil](util): utility program to provide command line access
+to a few functions
+
+
+[wrappers](wrappers) demonstration of typesafe database access from haskell
+- broken at the moment
 
 HsSqlSystem
 command line access to a load of functionality, see the source for a list
@@ -89,3 +93,106 @@ examples/Database/HsSqlPpp/Tests/TypeCheckTests.lhs
 examples/Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs
 examples/Database/HsSqlPpp/Tests/Tests.lhs
 
+
+
+
+Examples
+========
+
+All this code is currently available in the cabal source package, to get use
+
+~~~~~{.sh}
+cabal update
+cabal unpack hssqlppp
+~~~~~
+
+Code fragments
+--------------
+ 
+Here are some extracts from the test files which show what sql can be
+parsed, what can be type checked, and what kind of antiquotation the
+quasiquotation supports.
+
+* [Parsing examples](ParserTests.html)
+* [Type-checking examples](TypeCheckTests.html)
+* [Quasiquotation examples](QuasiQuoteTests.html)
+
+HsSqlSystem
+-----------
+
+[HsSqlSystem](pandoc_source/examples/HsSqlSystem.lhs.html) - an executable that
+has a bunch of functions, source contains documentation and examples
+for the commands. E.g.:
+
+* [Parse command](pandoc_source/examples/HsSqlSystem.lhs.html#parse) -
+  parse some SQL, display AST.
+* [TypeCheck command](pandoc_source/examples/HsSqlSystem.lhs.html#typecheck) -
+  parse some SQL, type check, and display type errors in Emacs format.
+* [PPCatalog command](pandoc_source/examples/HsSqlSystem.lhs.html#ppcatalog) -
+  parse some SQL, type check, display catalog.
+
+Two of the libraries used by HsSqlSystem:
+
+* [DatabaseLoader](pandoc_source/examples/Database/HsSqlPpp/Examples/DatabaseLoader.lhs.html),
+  code to parse some SQL, optionally run a transform function on the
+  AST, then load the result into the database.
+* [AnnotateSource](pandoc_source/examples/Database/HsSqlPpp/Examples/AnnotateSource.lhs.html),
+  load some SQL, type check, and interpolate some type information in
+  comments back into the source code.
+
+Typesafe database access
+------------------------
+
+Simple sketch for doing type safe access, not great yet. Uses template
+haskell to get the type of statements and make this available at
+compile time, relations are represented by lists of tuples, so the
+columns have the right types but no names. Lack of nullability
+inference means all the types are currently Maybes.
+
+[template haskell, use tuples](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/ThTupleWrapper.lhs.html)
+
+There is example code which uses this wrapper to read and update a
+database - you must set up the sample database to compile or run it,
+then use
+[examples/RunWrappers.lhs](pandoc_source/examples/RunWrappers.lhs.html). The
+source contains a copy of the output so you can see this without
+setting up the database.
+
+Sample database setup:
+
+Unpack the cabal source, then load testfiles/suppliers_and_parts.sql
+into a new database. Edit
+[examples/Database/HsSqlPpp/Examples/Wrappers/ConnectionString.hs](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/ConnectionString.hs.html)
+to set the database connection information to this database.
+
+[example source](pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/ThTupleExample.lhs.html)
+
+There is also some code to use hlists instead of tuples but it isn't
+currently working.
+
+SQL Extensions
+--------------
+
+Some examples to write extensions to plpgsql using ast
+transforms. (Being able to do this was the original motivation for
+writing HsSqlPpp.) These give plenty of examples of using
+quasiquotation.
+
+[CreateVarSimple](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/CreateVarSimple.lhs.html).
+Demonstration extension.
+
+See the other files in this folder for more:
+[Extensions](pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/). (The
+references to Chaos/Chaos 2010 are for a game written mainly in
+plpgsql.)
+
+Example Database
+----------------
+
+An [example database for a game, Chaos
+2010](testfiles/chaos2010sql/Overview.txt.html) which uses the sql
+extension system quite a lot.
+
+
+
+ghc -XDeriveDataTypeable -DPOSTGRES -hide-package hssqlppp -cpp -pgmPcpphs -optP--cpp -idevel:src:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/MakeWebsite.lhs && time devel/MakeWebsite

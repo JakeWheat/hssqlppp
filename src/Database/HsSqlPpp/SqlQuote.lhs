@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 > {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent. The
 > splice variable names must be all lower case because of a limitation
@@ -28,7 +27,7 @@ Copyright 2010 Jake Wheat
 >
 > See <http://community.haskell.org/~JakeWheat/hssqlppp/QuasiQuoteTests.html>
 > for more simple examples, and
-> <http://community.haskell.org/~JakeWheat/hssqlppp/pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/
+> <http://community.haskell.org/~JakeWheat/hssqlppp/source/examples/Database/HsSqlPpp/Examples/Extensions/>
 > for some example files which use quasiquotation to do ast
 > transformations which implement syntax extensions to sql
 >      -}

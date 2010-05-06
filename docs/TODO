@@ -9,25 +9,20 @@ release plan:
 goal is to get release as soon as possible
 mainly this involves sorting out the additional source trees and some
    of the documentation
-fix website css issues: syntax highlighting and classes of code divs
-   not working right
-write simple tests for exes?
-check extension tests are being run
+
+docs -> get them displaying ok
+        fix the div rendering issue
+        get translated sql not looking crap
+        heading hack?
+        maybe fix syntax highlighting
+fix main index page
+
 chaos2010 exe: look at reset issue?
 wrappers: see how easy to fix up...
 add other exes to cabal
 disable failing tests
-review and write todo list for tidying up the crappest bits of mess
 figure out haddock issue
-
-website content:
-index: mainly review links
-no other files in root
-src, links to devel
-examples/ -> index for examples: utils, extension, wrappers, chaos
-tests
-move generated test files to examples
-add whirlwind tour page
+see how easy to get chaos mostly typechecking again
 
 0.4.0
 
@@ -69,7 +64,7 @@ ability to produce heavily cross linked docs + diagrams
 
 
 
-rewrite docs, add nav, fix copyrights
+rewrite docs, add nav
 sort out typechecking basics, bit of a mess atm
 add parsing support for most pg stuff
 add a bunch of quasi quote support
@@ -103,7 +98,7 @@ fix ui so works
 effects, animation
 ai working
 
-fix documentation generator + copyright notices
+fix documentation generator
 finish wrappers and examples
 database connection
 nav for website

@@ -1,5 +1,3 @@
-Copyright 2010 Jake Wheat
-
 Template Haskell code to return database queries as lists of tuples.
 
 > {-# LANGUAGE TemplateHaskell #-}

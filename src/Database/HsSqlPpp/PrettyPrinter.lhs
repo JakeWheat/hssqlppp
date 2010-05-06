@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 > {- | Functions to convert sql asts to valid SQL source code. Includes
 >    a function - 'printSqlAnn' - to output the annotations from a tree

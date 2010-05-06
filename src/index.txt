@@ -14,7 +14,7 @@ sql types:
 [Database/HsSqlPpp/AstInternals/TypeType.lhs](Database/HsSqlPpp/AstInternals/TypeType.lhs.html)
 
 quasiquoting:
-[Database/HsSqlPpp/SqlQuote.lhs](Database/HsSqlPpp/SqlQuote.lhs.html)
+[Database/HsSqlPpp/SqlQuote.lhs](Database/HsSqlPpp/SQlquote.lhs.html)
 
 main sql parsing:
 [Database/HsSqlPpp/Parsing/ParserInternal.lhs](Database/HsSqlPpp/Parsing/ParserInternal.lhs.html)
@@ -48,4 +48,7 @@ includes the complicated overloaded function matching and implicit
 cast and conversion logic:
 [Database/HsSqlPpp/AstInternals/TypeChecking/TypeConversion.lhs](Database/HsSqlPpp/AstInternals/TypeChecking/TypeConversion.lhs.html)
 
+Development tools:
 
+notes on some tools for development written in haskell: [Development
+tools](../devel/index.txt.html)

@@ -1,4 +1,4 @@
-Copyright 2009 Jake Wheat
+
 
 This file contains the functions for resolving types and
 function/operator resolution. See the pg manual chapter 10:

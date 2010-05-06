@@ -1,6 +1,4 @@
 
-ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:examples/chaos:examples/hssqlppputil -hide-package monads-fd --make devel/MakeWebsite.lhs && devel/MakeWebsite
-
 > import System.FilePath.Find
 > import System.FilePath
 > import Data.Char
@@ -13,35 +11,35 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 
 > main :: IO ()
 > main = do
->   doesDirectoryExist "website" >>=
->     \l -> when l $ removeDirectoryRecursive "website"
 >   f <- fileList
->   --mapM_ (\(OutputFile _ _ t _) -> putStrLn t) f
->   docify "website/" f
+>   docify "hssqlppp/" f
 
 
 > fileList :: IO [OutputFile]
 > fileList = do
+>   doesDirectoryExist "hssqlppp" >>=
+>     \l -> when l $ removeDirectoryRecursive "hssqlppp"
 >   wso <- doF "docs/website/" (makeRelative "docs/website/")
 >   src <- doF "src/" ("source" </>)
 >   ex <- doF "examples/" ("source" </>)
->   tsts <- doF "tests/" ("source" </>)
->   dv <- doF "devel/" ("source" </>)
+>   devel <- doF "devel/" ("source" </>)
+>   tests <- doF "tests/" ("source" </>)
+
 >   qq <- quasiQuoteTestsTable
 
 >   let tfp = [OutputFile (Text parserTestsTable)
->                         Txt "website/ParserTests.html"
+>                         Txt "hssqlppp/ParserTests.html"
 >                         "HsSqlPpp parser examples"
 >             ,OutputFile (Text typeCheckTestsTable)
->                         Txt "website/TypeCheckTests.html"
+>                         Txt "hssqlppp/TypeCheckTests.html"
 >                         "HsSqlPpp type checking examples"
 >             ,OutputFile (Text qq)
->                         Txt "website/QuasiQuoteTests.html"
+>                         Txt "hssqlppp/QuasiQuoteTests.html"
 >                         "HsSqlPpp quasiquotation examples"]
 >   trch1 <- getTransformedChaosSql
->   let trch = flip map trch1 $ \(t,f,s) ->
->                       OutputFile (Text s) Txt ("website/source" </> f) t
->   return $ concat [wso,src,ex,tsts,dv,tfp,trch]
+>            >>= return . map (\(title,fn,txt) ->
+>                                  OutputFile (Text txt) Sql ("hssqlppp/source" </> fn) title)
+>   return $ trch1 ++ wso ++ tfp ++ src ++ ex ++ devel ++ tests
 >   where
 >     doF fl c = find always supportedFileP fl
 >                >>= return . map (toOf c)
@@ -55,11 +53,12 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 >              _ -> error $ "don't know extension " ++ f
 >     toOf c fn = OutputFile (File fn)
 >                          (ft fn)
->                          ("website" </> c fn
+>                          ("hssqlppp" </> c fn
 >                           ++ case ft fn of
 >                                Css -> ""
 >                                _ -> ".html")
 >                          (takeBaseName fn)
+
 
 > supportedFileP :: FindClause Bool
 > supportedFileP = extension ==? ".hs"

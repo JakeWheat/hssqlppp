@@ -1,5 +1,3 @@
-Copyright 2010 Jake Wheat
-
 Do type safe database access using template haskell and
 hlists. Limitation is that you have to edit this file to add the field
 definitions and possibly exports. Suggested use is to copy this file

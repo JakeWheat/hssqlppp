@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Small hack transform and load the chaos sql into the database.
 

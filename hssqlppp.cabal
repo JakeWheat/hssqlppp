@@ -6,7 +6,7 @@ License-file:        LICENSE
 Author:              Jake Wheat
 Maintainer:          jakewheatmail@gmail.com
 Build-Type:          Simple
-Cabal-Version:       >=1.6
+Cabal-Version:       >=1.8
 copyright:           Copyright 2009, 2010 Jake Wheat
 stability:           pre-alpha
 homepage:            http://community.haskell.org/~JakeWheat/hssqlppp/index.html
@@ -38,6 +38,18 @@ Description:
     .
     * 'TypeChecker' - type checking and annotating asts and working
       with annotated trees.
+    .
+    Build flags:
+    .
+    * quasiquotes: compile with the quasi quoting support. The main
+      purpose is to be able to not depend on template-haskell if you
+      don't need the quasi quotes, default is true
+    .
+    * postgres: compile with HDBC-postgresql - allows typechecking
+      against a database amongst other things. This is mainly so that
+      you can compile without HDBC-postgresql, e.g. if you just want a
+      simple sql parser, default is true. You currently need to have
+      quasiquotes flag on if you want to use this.
 
 extra-source-files:  README
                      LICENSE
@@ -149,9 +161,14 @@ extra-source-files:  README
                      examples/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.lhs
                      examples/extensions/Database/HsSqlPpp/Extensions/AstUtils.lhs
 
-Flag binaries
-  Description:       Build the binaries
-  Default:           False
+Flag postgres
+  Description:       Use HDBC-postgresql (disable to remove postgresql dependency)
+  Default:           True
+
+Flag quasiquotes
+  Description:       Compile quasi quote support (disable to remove template-haskell dependency)
+  Default:           True
+
 
 source-repository head
   type:     bzr
@@ -159,16 +176,24 @@ source-repository head
 
 Library
   Build-Depends:     base >= 4 && < 5,
-                     mtl,
+                     mtl >= 1.1 && < 1.2,
                      containers,
-                     parsec >= 3,
-                     pretty,
-                     syb,
-                     uniplate,
-                     HDBC,
-                     HDBC-postgresql,
-                     template-haskell
+                     parsec >= 3 && < 4,
+                     pretty >= 1 && < 2,
+                     syb >= 0.1 && < 1,
+                     uniplate >= 1.5 && < 2
 
+  if flag(postgres)
+     Build-Depends:  HDBC >= 2.2 && < 3,
+                     HDBC-postgresql >= 2.2 && < 3
+     cpp-options:    -DPOSTGRES
+
+  if flag(quasiquotes)
+     Build-Depends:  template-haskell >= 2.4 && < 2.5
+     --cpp-options:    -DSQLQUASIQUOTES
+
+
+  ghc-options:       -pgmPcpphs -optP--cpp
   hs-source-dirs:    src
 
   Exposed-modules:   Database.HsSqlPpp.Ast
@@ -177,18 +202,17 @@ Library
                      Database.HsSqlPpp.Parser
                      Database.HsSqlPpp.PrettyPrinter
                      Database.HsSqlPpp.SqlTypes
-                     Database.HsSqlPpp.SqlQuote
                      Database.HsSqlPpp.TypeChecker
+  if flag(quasiquotes)
+    Exposed-modules: Database.HsSqlPpp.SqlQuote
+
                      -- find src -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
   Other-Modules:     Database.HsSqlPpp.Utils.Utils
-                     Database.HsSqlPpp.Utils.Here
-                     Database.HsSqlPpp.Utils.DbmsCommon
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstAnti
                      Database.HsSqlPpp.AstInternals.AstAnnotation
                      Database.HsSqlPpp.AstInternals.AstInternal
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-                     Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
                      Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
                      Database.HsSqlPpp.AstInternals.TypeType
                      Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
@@ -198,6 +222,9 @@ Library
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParserInternal
                      Database.HsSqlPpp.Parsing.ParseErrors
+  if flag(postgres)
+     Other-Modules:  Database.HsSqlPpp.Utils.DbmsCommon
+                     Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
 
 
 
@@ -205,46 +232,6 @@ Library
                      RankNTypes,
                      ScopedTypeVariables,
                      FlexibleContexts,
-                     ExistentialQuantification
-
--- this needs fixing, the binaries are: makeantinodes, makewebsite,chaos2010,util and tests
-
-Executable HsSqlSystem
-  Main-Is:           HsSqlSystem.lhs
-  hs-source-dirs:    src,examples
-  Build-Depends:     base >= 4 && < 5,
-                     mtl,
-                     containers,
-                     parsec >= 3,
-                     pretty,
-                     syb,
-                     uniplate,
-                     HDBC,
-                     HDBC-postgresql,
-                     haskell-src-exts,
-                     template-haskell,
-                     test-framework-hunit,
-                     test-framework,
-                     HUnit,
-                     xhtml,
-                     highlighting-kate,
-                     filepath,
-                     FileManip,
-                     process,
-                     pandoc == 1.3,
-                     directory,
-                     Pipe,
-                     haskell98,
-                     cmdargs,
-                     datetime
-
-  if flag(binaries)
-    Buildable:       True
-  else
-    Buildable:       False
-
-  extensions:        DeriveDataTypeable,
-                     RankNTypes,
-                     ScopedTypeVariables,
-                     FlexibleContexts,
-                     ExistentialQuantification
+                     ExistentialQuantification,
+                     CPP,
+                     PatternGuards

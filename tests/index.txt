@@ -1,0 +1,6 @@
+= Tests
+
+The tests use hunit, a command line runner is available:
+[Tests.lhs](Tests.lhs.html)
+
+[files](Datatabase/HsSqlPpp/Tests/)

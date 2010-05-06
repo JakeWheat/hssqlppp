@@ -1,5 +1,4 @@
 {-
-Copyright 2009 Jake Wheat
 
 This file contains the type checking code for the expression ast data
 type.

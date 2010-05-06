@@ -1,5 +1,4 @@
 /*
-Copyright 2010 Jake Wheat
 
 Temporary code to create the test boards to check the board display
 and such.

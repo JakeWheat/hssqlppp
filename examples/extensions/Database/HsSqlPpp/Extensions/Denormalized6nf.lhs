@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 silly name, idea is to match some sort of oo inheritance approach to
 create a set of 6nf relvars, and then implement using a single table

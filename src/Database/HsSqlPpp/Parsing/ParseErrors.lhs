@@ -1,4 +1,3 @@
-Copyright 2009 Jake Wheat
 
 convert error messages to show source text fragment with little hat,
 plus output error location in emacs friendly format.

@@ -30,11 +30,16 @@
 >   let tm = formatDateTime "%D %T" t
 >   mapM_ (\f -> putStrLn (showOf f) >> process "0.3.0" tm b f) ofs
 >          where
->            showOf (OutputFile _ _ s _) = show s
+>            showOf (OutputFile (Text _) _ fp _) = fp
+>            showOf (OutputFile s _ _ _) = show s
 
 ====================================================================
 
 > data OutputFile = OutputFile Source Type FilePath Title
+
+> instance Show OutputFile where
+>     show (OutputFile (Text _) a b c) = "OutputFile (Text \"...\") " ++ show a ++ " " ++ show b ++ " " ++ show c
+>     show (OutputFile a b c d) = "OutputFile " ++ show a ++ " " ++ show b ++ " " ++ show c ++ " " ++ show d
 
 > data Type = Sql | Lhs | Hs | Txt | Ag | Css
 >             deriving Show
@@ -141,8 +146,7 @@ todo: add the last modified time for each file individually
 > wfooter v d =
 >     [br,br,br] +++ di
 >   where
->     s = "Copyright 2010 Jake Wheat, generated on "
->          ++ d ++ ", hssqlppp-" ++ v
+>     s = "generated on " ++ d ++ ", hssqlppp-" ++ v
 >     di = thediv ! [theclass "footer"] << s
 
 

@@ -11,31 +11,8 @@ bzr branch lp:~jakewheat/hssqlppp/trunk
 Uses Parsec for parsing, HDBC for database access, and UUAGC to assist
 the type checking (UUAGC is needed if you edit the .ag files).
 
-Comes with a small test suite, which you can run by installing the
-executable then running:
+Comes with a small test suite.
 
-~~~~~{.sh}
-HsSqlSystem test
-~~~~~
-
-TODO:
-new plan for source:
-
-src/ for library code
-examples/ for example code
-test/ for the testing code (which doubles as example code and documentation)
-devel/ for development utilities: doctool + extras (testfile gen,
-  chaossql, etc.), make antinodes
-  annotatesource2
-chaos2010/ put the sql and chaos extensions under here to separate out
-  from the generic example code
-
-----------
-
-The source is broken up into multiple folders.
-
-Files under src/ are the source files for the library. See [src index](pandoc_source/src/index.txt.html).
-
-Files under examples/ are the source files for the example code. See [example index](pandoc_source/examples/index.txt.html).
-
-Files under devel/ are the source files for some development utilities. TODO: move the doctool folder to this, move the develtools from examples to this hierarchy, then add an index page for these.
+* [Source code](source/src/index.txt.html)
+* [Test source code](source/tests/index.txt.html)
+* [Example code](source/examples/index.txt.html)

@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Test sql by typechecking it, then running it through Postgres and comparing:
 

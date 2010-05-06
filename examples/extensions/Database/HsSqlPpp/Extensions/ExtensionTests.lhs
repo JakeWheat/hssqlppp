@@ -1,4 +1,3 @@
-Copyright 2010 Jake Wheat
 
 Gather together the examples from the extension modules and convert to regular test code
 

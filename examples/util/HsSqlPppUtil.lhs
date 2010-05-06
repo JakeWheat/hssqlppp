@@ -1,6 +1,3 @@
-! /usr/bin/env runghc
-
-Copyright 2009 Jake Wheat
 
 Command line access to a bunch of utility functions.
 
@@ -11,19 +8,15 @@ to get a list of commands and purpose and usage info
 > {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables,FlexibleContexts,QuasiQuotes #-}
 >
 > import System.Console.CmdArgs
-> --import System.IO
 > import Control.Monad.Error
 
 > --import Debug.Trace
 > import Data.Maybe
 > import Data.Generics.Uniplate.Data
 >
-> --import Database.HsSqlPpp.Tests.Tests
 > import Database.HsSqlPpp.Utils.Utils
-> --import Database.HsSqlPpp.Utils.Here
 >
 > import Database.HsSqlPpp.Ast
-> --import Database.HsSqlPpp.Catalog
 > import qualified Database.HsSqlPpp.TypeChecker as A
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.SqlTypes
@@ -33,19 +26,8 @@ to get a list of commands and purpose and usage info
 >
 > import Database.HsSqlPpp.PrettyPrinter
 >
-> --import Database.HsSqlPpp.Examples.AnnotateSource
->
-> --import Database.HsSqlPpp.Examples.DatabaseLoader
-> --import Database.HsSqlPpp.Examples.WrapperGen
 > import Database.HsSqlPpp.Utils.DBUtils
 > import Database.HsSqlPpp.Utils.PPExpr
-
->
-> --import Database.HsSqlPpp.DevelTools.MakeWebsite
-> --import Database.HsSqlPpp.DevelTools.MakeAntiNodes
-> --import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints
-> --import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions
-> --import Database.HsSqlPpp.Examples.Chaos2010
 
 -------------------------------------------------------------------------------
 
@@ -64,25 +46,6 @@ command defs
 >                                        ,files :: [String]}
 >                  | AllAnnotations {database :: String
 >                                   ,files :: [String]}
->               {-   | PPCatalog {database :: String
->                              ,files :: [String]}
->
->                  | Load {database :: String
->                         ,files :: [String]}
->                  | LoadPsql {database :: String
->                             ,files :: [String]}
->                  | PgDump {database :: String}
->                  | Clear {database :: String}
->                  | ClearLoad {database :: String
->                              ,files :: [String]}
->                  | DBCatalog {database :: String}
->
->                  | TestBattery {database :: String
->                                ,files :: [String]}
->
->                  | ResetChaos
->                  | CheckChaos -}
->
 >                    deriving (Show, Data, Typeable)
 
 -------------------------------------------------------------------------------
@@ -725,73 +688,6 @@ $ ./HsSqlSystem allannotations test6.sql
 >               snd |>
 >               ppExpr) >>=
 >     liftIO . putStrLn
-
--------------------------------------------------------------------------------
-
-annotateSource
-==============
-
-example
--------
-
-test6.sql:
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.SqlPostgresql}
-create table s (
-       s_no int primary key,
-       sname text not null,
-       status int not null,
-       city text not null
-);
-
-select * from s;
-
-insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.SqlPostgresql}
-$ ./HsSqlSystem annotatesource --file=test6.sql
---annotated source of test6.sql
-
-/*[CatUpdates
-   [CatCreateTable "s"
-      [("s_no", ScalarType "int4"), ("sname", ScalarType "text"),
-       ("status", ScalarType "int4"), ("city", ScalarType "text")]
-      [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
-       ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
-       ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")]]]*/
-create table s (
-       s_no int primary key,
-       sname text not null,
-       status int not null,
-       city text not null
-);
-
-
-/*[StatementTypeA
-   (StatementType []
-      [("s_no", ScalarType "int4"), ("sname", ScalarType "text"),
-       ("status", ScalarType "int4"), ("city", ScalarType "text")])]*/
-select * from s;
-
-
-/*[StatementTypeA (StatementType [] [])]*/
-insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-> {-annotateSourceA = mode $ AnnotateSource {database = def
->                                         ,file = def &= typ "FILE"}
->                   &= text "reads a file, parses, type checks, then \
->                           \outputs info on each statement \
->                           \interspersed with the original source \
->                           \code"
->
-> annotateSourceF :: String -> FilePath -> IO ()
-> annotateSourceF db f = do
->   putStrLn $ "--annotated source of " ++ f
->   s <- readInput f
->   s1 <- annotateSource (Just astTransformer) Nothing db f s
->   putStrLn s1-}
 
 -------------------------------------------------------------------------------
 
