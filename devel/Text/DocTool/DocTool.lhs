@@ -41,7 +41,7 @@
 >     show (OutputFile (Text _) a b c) = "OutputFile (Text \"...\") " ++ show a ++ " " ++ show b ++ " " ++ show c
 >     show (OutputFile a b c d) = "OutputFile " ++ show a ++ " " ++ show b ++ " " ++ show c ++ " " ++ show d
 
-> data Type = Sql | Lhs | Hs | Txt | Ag | Css
+> data Type = Sql | Lhs | Hs | Txt | Ag | Css | C | H
 >             deriving Show
 
 > data Source = File FilePath
@@ -73,6 +73,8 @@
 >                  Ag -> readSource "{-" "-}" "haskell" s
 >                  Txt -> readMd s
 >                  Css -> readSource "/*" "*/" "css" s
+>                  C -> readSource "/*" "*/" "c" s
+>                  H -> readSource "/*" "*/" "c" s
 
 > setTitle :: String -> Pandoc -> Pandoc
 > setTitle t (Pandoc m bs) = Pandoc m' bs

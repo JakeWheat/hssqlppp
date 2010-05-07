@@ -190,3 +190,24 @@ up the client supporting data, e.g. the wizard display info:
 
 * [ClientNewGame](chaos/client/ClientNewGame.sql.html) - [Transformed
   ClientNewGame](chaos/client/ClientNewGame.sql.tr.html)
+
+= usage
+
+To load the sql straight into postgresql, create a database called
+chaos. You might need to add plpgsql manually.
+
+Then, to load the sql in, use something like:
+
+~~~~~{.sh}
+time ghc -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src:examples/chaos:examples/extensions/:examples/util/:tests/ --make examples/chaos/Chaos2010.lhs && time examples/chaos/Chaos2010 reset
+~~~~~
+
+Using -Odph on my machine changes the runtime for the reset from ~7.5
+seconds to ~5 seconds.
+
+To output the transformed sql to a file and load using psql, sometimes
+easier to work out sql errors:
+
+~~~~~{.sh}
+time ghc -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src:examples/chaos:examples/extensions/:examples/util/:tests/ --make examples/chaos/Chaos2010.lhs && time examples/chaos/Chaos2010 reset && time examples/chaos/Chaos2010 sql > chaos1.sql && time examples/chaos/Chaos2010 clear && time psql chaos -q --set ON_ERROR_STOP=on --file=chaos1.sql
+~~~~~

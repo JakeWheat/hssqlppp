@@ -49,6 +49,8 @@
 >              ".hs" -> Hs
 >              ".ag" -> Ag
 >              ".txt" -> Txt
+>              ".c" -> C
+>              ".h" -> H
 >              ".css" -> Css
 >              _ -> error $ "don't know extension " ++ f
 >     toOf c fn = OutputFile (File fn)
@@ -67,3 +69,5 @@
 >                     ||? extension ==? ".txt"
 >                     ||? extension ==? ".sql"
 >                     ||? extension ==? ".css"
+>                     ||? extension ==? ".c"
+>                     ||? extension ==? ".h"

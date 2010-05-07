@@ -1,5 +1,14 @@
 
-TODO: fix this up to be command line access to the functions below
+This file is a confused mess. The plan is to completely start again,
+to produce a big multi function routine which analyzes sql:
+* check it parses
+* lists type errors
+* produces documentation
+* catalog reference docs - so we can search an index, then click to go
+  to definition in the rendered docs
+* check the roundtripping, etc.
+
+This will be mostly based on the runtestbattery function below.
 
 > {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables,FlexibleContexts,QuasiQuotes #-}
 >

@@ -6,7 +6,7 @@ License-file:        LICENSE
 Author:              Jake Wheat
 Maintainer:          jakewheatmail@gmail.com
 Build-Type:          Simple
-Cabal-Version:       >=1.8
+Cabal-Version:       >=1.6
 copyright:           Copyright 2009, 2010 Jake Wheat
 stability:           pre-alpha
 homepage:            http://community.haskell.org/~JakeWheat/hssqlppp/index.html
@@ -19,26 +19,6 @@ Description:
     Documentation, examples on the homepage:
     <http://community.haskell.org/~JakeWheat/hssqlppp/index.html>.
     .
-    * 'Annotation' - the annotation data types and utilities;
-    .
-    * 'Ast' - ast types;
-    .
-    * 'Catalog' - read a catalog from a database to type check against,
-      or to generate catalog information;
-    .
-    * 'Parser' - converting strings to asts;
-    .
-    * 'PrettyPrinter' - converting asts to strings such that
-      prettyPrint . parse == id;
-    .
-    * 'SqlTypes' - the data types which represent SQL types, the data
-      type for type errors, and some support functions;
-    .
-    * 'SqlQuote' - quasiquote support for SQL;
-    .
-    * 'TypeChecker' - type checking and annotating asts and working
-      with annotated trees.
-    .
     Build flags:
     .
     * quasiquotes: compile with the quasi quoting support. The main
@@ -50,6 +30,13 @@ Description:
       you can compile without HDBC-postgresql, e.g. if you just want a
       simple sql parser, default is true. You currently need to have
       quasiquotes flag on if you want to use this.
+    .
+    * binaries: compile the test, development, and example binaries:
+      this brings in a whole load of dependencies. Default is false.
+    .
+    Building the binaries using cabal is _very_ slow. They are
+    included here mainly to document all the extra package
+    dependencies they have
 
 extra-source-files:  README
                      LICENSE
@@ -161,6 +148,9 @@ extra-source-files:  README
                      examples/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.lhs
                      examples/extensions/Database/HsSqlPpp/Extensions/AstUtils.lhs
 
+Flag binaries
+  Description:       Build the binaries
+  Default:           False
 Flag postgres
   Description:       Use HDBC-postgresql (disable to remove postgresql dependency)
   Default:           True
@@ -227,6 +217,231 @@ Library
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
 
 
+
+  extensions:        DeriveDataTypeable,
+                     RankNTypes,
+                     ScopedTypeVariables,
+                     FlexibleContexts,
+                     ExistentialQuantification,
+                     CPP,
+                     PatternGuards
+
+Executable MakeWebsite
+  Main-Is:           MakeWebsite.lhs
+  hs-source-dirs:    src,devel,tests,examples/chaos,examples/extensions,examples/util,examples/wrappers
+  Build-Depends:     base >= 4 && < 5,
+                     mtl,
+                     containers,
+                     parsec >= 3,
+                     pretty,
+                     syb,
+                     uniplate,
+                     HDBC,
+                     HDBC-postgresql,
+                     haskell-src-exts,
+                     template-haskell,
+                     test-framework-hunit,
+                     test-framework,
+                     HUnit,
+                     xhtml,
+                     filepath,
+                     FileManip,
+                     process,
+                     pandoc,
+                     directory,
+                     Pipe,
+                     haskell98,
+                     cmdargs,
+                     datetime,
+                     illuminate
+
+  ghc-options:       -pgmPcpphs -optP--cpp
+  cpp-options:       -DPOSTGRES
+
+  if flag(binaries)
+    Buildable:       True
+  else
+    Buildable:       False
+
+  extensions:        DeriveDataTypeable,
+                     RankNTypes,
+                     ScopedTypeVariables,
+                     FlexibleContexts,
+                     ExistentialQuantification,
+                     CPP,
+                     PatternGuards
+
+Executable MakeAntiNodes
+  Main-Is:           MakeAntiNodes.lhs
+  hs-source-dirs:    src,devel,tests,examples/chaos,examples/extensions,examples/util,examples/wrappers
+  Build-Depends:     base >= 4 && < 5,
+                     mtl,
+                     containers,
+                     parsec >= 3,
+                     pretty,
+                     syb,
+                     uniplate,
+                     HDBC,
+                     HDBC-postgresql,
+                     haskell-src-exts,
+                     template-haskell,
+                     test-framework-hunit,
+                     test-framework,
+                     HUnit,
+                     xhtml,
+                     filepath,
+                     FileManip,
+                     process,
+                     pandoc,
+                     directory,
+                     Pipe,
+                     haskell98,
+                     cmdargs,
+                     datetime,
+                     illuminate
+
+  ghc-options:       -pgmPcpphs -optP--cpp
+  cpp-options:       -DPOSTGRES
+
+  if flag(binaries)
+    Buildable:       True
+  else
+    Buildable:       False
+
+  extensions:        DeriveDataTypeable,
+                     RankNTypes,
+                     ScopedTypeVariables,
+                     FlexibleContexts,
+                     ExistentialQuantification,
+                     CPP,
+                     PatternGuards
+
+Executable Chaos2010
+  Main-Is:           Chaos2010.lhs
+  hs-source-dirs:    src,devel,tests,examples/chaos,examples/extensions,examples/util,examples/wrappers
+  Build-Depends:     base >= 4 && < 5,
+                     mtl,
+                     containers,
+                     parsec >= 3,
+                     pretty,
+                     syb,
+                     uniplate,
+                     HDBC,
+                     HDBC-postgresql,
+                     haskell-src-exts,
+                     template-haskell,
+                     test-framework-hunit,
+                     test-framework,
+                     HUnit,
+                     xhtml,
+                     filepath,
+                     FileManip,
+                     process,
+                     pandoc,
+                     directory,
+                     Pipe,
+                     haskell98,
+                     cmdargs,
+                     datetime,
+                     illuminate
+
+  ghc-options:       -pgmPcpphs -optP--cpp
+  cpp-options:       -DPOSTGRES
+
+  if flag(binaries)
+    Buildable:       True
+  else
+    Buildable:       False
+
+  extensions:        DeriveDataTypeable,
+                     RankNTypes,
+                     ScopedTypeVariables,
+                     FlexibleContexts,
+                     ExistentialQuantification,
+                     CPP,
+                     PatternGuards
+
+Executable HsSqlPppUtil
+  Main-Is:           HsSqlPppUtil.lhs
+  hs-source-dirs:    src,devel,tests,examples/chaos,examples/extensions,examples/util,examples/wrappers
+  Build-Depends:     base >= 4 && < 5,
+                     mtl,
+                     containers,
+                     parsec >= 3,
+                     pretty,
+                     syb,
+                     uniplate,
+                     HDBC,
+                     HDBC-postgresql,
+                     haskell-src-exts,
+                     template-haskell,
+                     test-framework-hunit,
+                     test-framework,
+                     HUnit,
+                     xhtml,
+                     filepath,
+                     FileManip,
+                     process,
+                     pandoc,
+                     directory,
+                     Pipe,
+                     haskell98,
+                     cmdargs,
+                     datetime,
+                     illuminate
+
+  ghc-options:       -pgmPcpphs -optP--cpp
+  cpp-options:       -DPOSTGRES
+
+  if flag(binaries)
+    Buildable:       True
+  else
+    Buildable:       False
+
+  extensions:        DeriveDataTypeable,
+                     RankNTypes,
+                     ScopedTypeVariables,
+                     FlexibleContexts,
+                     ExistentialQuantification,
+                     CPP,
+                     PatternGuards
+
+Executable Tests
+  Main-Is:           Tests.lhs
+  hs-source-dirs:    src,devel,tests,examples/chaos,examples/extensions,examples/util,examples/wrappers
+  Build-Depends:     base >= 4 && < 5,
+                     mtl,
+                     containers,
+                     parsec >= 3,
+                     pretty,
+                     syb,
+                     uniplate,
+                     HDBC,
+                     HDBC-postgresql,
+                     haskell-src-exts,
+                     template-haskell,
+                     test-framework-hunit,
+                     test-framework,
+                     HUnit,
+                     xhtml,
+                     filepath,
+                     FileManip,
+                     process,
+                     pandoc,
+                     directory,
+                     Pipe,
+                     haskell98,
+                     cmdargs,
+                     datetime,
+                     illuminate
+
+  ghc-options:       -pgmPcpphs -optP--cpp
+  cpp-options:       -DPOSTGRES
+
+  if flag(binaries)
+    Buildable:       True
+  else
+    Buildable:       False
 
   extensions:        DeriveDataTypeable,
                      RankNTypes,
