@@ -1,5 +1,5 @@
 
-
+> {-# LANGUAGE PatternGuards #-}
 > module Text.DocTool.DocTool
 >     (OutputFile(..)
 >     ,Type(..)
@@ -16,7 +16,6 @@
 > import Debug.Trace
 > --import Text.Highlighting.Kate
 > import Text.Highlighting.Illuminate
-> --import Debug.Trace
 > import Data.DateTime
 
 > import Data.List
@@ -82,17 +81,29 @@
 >       m' = m {docTitle = [Str t]}
 
 > toHtml :: Pandoc -> Html
-> toHtml pa = writeHtml defaultWriterOptions highlightCode
+> toHtml pa = writeHtml defaultWriterOptions {writerLiterateHaskell = True} highlightCode
 >     where
 >       highlightCode = case pa of
 >                           Pandoc m bs -> Pandoc m (map hi bs)
->       hi (CodeBlock a b) =
->          case illuminate (getType a) b of
->            Right result -> RawHtml $ result {-renderHtmlFragment $
->                            formatAsXHtml [] "Haskell" result-}
+>       hi (CodeBlock a b) | Just t <- getType a b =
+>          case illuminate t b of
+>            Right result -> RawHtml $ getPres a ++ result ++ getClosePres a
 >            Left  err    -> error $ "Could not parse input: " ++ err
 >       hi x = x
->       getType _ = "Haskell"
+>       getClasses (_,x,_) = x
+>       getPres a = concatMap (\x -> "<div class='" ++ x ++ "'>")  $ getClasses a
+>       getClosePres a = concatMap (const "</div>") $ getClasses a
+>       getType (_,x,_) b =
+>          case x of
+>            [] -> Nothing
+>            _ | "sql" `elem` x
+>                || "SqlPostgresql" `elem` x -> Just "sql"
+>              | "haskell" `elem` x -> Just "haskell"
+>              | "sh" `elem` x -> Just "sh"
+>              | "c" `elem` x -> Just "c"
+>              | "chs" `elem` x -> Just "haskell"
+>              | otherwise -> trace ("unknown:" ++ show x
+>                                    ++ "\n" ++ show b) Nothing
 
 > wrapHtmlFragment :: String -> Html -> Html
 > wrapHtmlFragment ti h =

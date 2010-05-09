@@ -77,7 +77,7 @@ create table s (
 );
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.sh}
 $ HsSqlSystem lex test2.sql
 lexing test2.sql
 ("test2.sql" (line 1, column 1),IdStringTok "create")
@@ -370,7 +370,7 @@ Parse, pretty print and parse, then check two parse trees are same
 example
 -------
 
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~{.sh}
 $ HsSqlSystem pppp test4.sql
 success
 ~~~~~~~~~~~~~~~~
@@ -436,7 +436,7 @@ insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
 
 (no output for success)
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 $ HsSqlSystem typecheck test4.sql
 $
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -511,14 +511,14 @@ $ echo "3 = any (array[1,2])" | ./HsSqlSystem typecheckexpression -
 ScalarType "bool"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 $ echo "test(3,'stuff'::what)" | ./HsSqlSystem typecheckexpression -
 -:1:17:
 [UnknownTypeName "what"]
 TypeCheckFailed
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 $ echo "test(3,'stuff')" | ./HsSqlSystem typecheckexpression -
 -:1:5:
 [NoMatchingOperator "test" [ScalarType "int4",UnknownType]]
@@ -529,12 +529,12 @@ type checks strings as unknown types, doesn't parse the contents of
 these yet, works just like postgresql which catches this error only at
 runtime.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 $ echo "array[3,'stuff']" | ./HsSqlSystem typecheckexpression -
 ArrayType (ScalarType "int4")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 $ echo "array[3,'stuff'::text]" | ./HsSqlSystem typecheckexpression -
 -:1:1:
 [NoMatchingOperator "!arrayctor" [ScalarType "int4",ScalarType "text"]]
@@ -583,7 +583,7 @@ select * from s;
 insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
 $ ./HsSqlSystem allannotations test6.sql
 [CreateTable
    [TypeAnnotation (Pseudo Void),

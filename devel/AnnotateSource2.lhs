@@ -138,16 +138,16 @@ interspersed we want chunks of the original source
 >                      x -> "/*" ++ x ++ "*/\n"
 >     printStatement :: String -> String -> String -> String -> String
 >     printStatement cssClass comment pre st =
->        {-let cc = if cssClass == ""
+>        let cc = if cssClass == ""
 >                 then ".SqlPostgresql"
->                 else ".SqlPostgresql,." ++ cssClass
+>                 else ".SqlPostgresql ." ++ cssClass
 >        in "\n\n~~~~{" ++ cc ++ "}\n"
 >               ++ (if comment /= ""
 >                   then "-- " ++ comment ++ " ------------------------\n"
 >                   else "")
->               ++ -}
+>               ++
 >               pre ++ trim st
->               -- ++ "\n~~~~\n\n"
+>               ++ "\n~~~~\n\n"
 
 > intersperseSource :: FilePath -> String -> [Statement] -> [(String,[Statement])]
 > intersperseSource fileName src statements =

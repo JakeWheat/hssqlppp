@@ -43,26 +43,27 @@ body {
 pre {
   padding: 0;
 }
-pre.SqlPostgresql {
+.SqlPostgresql pre.sourceCode {
   padding: 0.5em;
   background-color: #f0f6f6;
 }
-.GeneratedSql pre.SqlPostgresql {
+.GeneratedSql .SqlPostgresql pre.sourceCode, .SqlPostgresql .GeneratedSql pre.sourceCode {
   padding: 0.5em;
   background-color: #f0f6e0;
 }
-.UnusedSql pre.SqlPostgresql {
+.UnusedSql .SqlPostgresql pre.sourceCode, .SqlPostgresql .UnusedSql pre.sourceCode {
   padding: 0.5em;
   background-color: #e9e9e9;
 }
-pre.haskell,pre.Haskell {
+.haskell,.Haskell pre.sourceCode {
   padding: 0.5em;
   background-color: #f5f5d9;
 }
-pre.sh {
+.sh pre.sourceCode {
   padding: 0.5em;
   background-color: #f0f0f0;
 }
+
 table, tr, td {
   border-collapse:collapse;
   cell-padding:0px;

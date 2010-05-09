@@ -134,7 +134,7 @@ expressions
 >      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
 >                   [$pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]
 
-> {-    ,let s1 = [$sqlStmt| select * from tbl; |]
+>     {-,let s1 = [$sqlStmts| select * from tbl; |]
 >      in Stmts [$sqlStmts|
 >      select 1;
 >      $(s1);
@@ -154,7 +154,7 @@ expressions
 >      select 1;
 >      select * from tbl;
 >      select * from tbl;
->      select 2;|] -}
+>      select 2;|]-}
 
 
 >   ]]

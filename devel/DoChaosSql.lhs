@@ -16,6 +16,7 @@ hssqlppp to it and show the results.
 > getTransformedChaosSql :: IO [(String,String,String)]
 > getTransformedChaosSql = do
 >   fs <- annotateSource2 (Just chaosExtensions) Nothing "template1" chaosFiles
+>   --flip mapM_ fs $ \(f,s) -> putStrLn ("\n\n\n----------------------\n" ++ f) >> putStrLn s
 >   return $ flip map fs $ \(f,s) -> ((snd (splitFileName f) ++ " transformed")
 >                                   ,(f ++ ".tr.html")
 >                                   ,s)

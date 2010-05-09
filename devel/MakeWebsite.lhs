@@ -46,8 +46,8 @@
 >                         "HsSqlPpp quasiquotation examples"]
 >   trch1 <- getTransformedChaosSql
 >            >>= return . map (\(title,fn,txt) ->
->                                  OutputFile (Text txt) Sql ("hssqlppp/source" </> fn) title)
->   return $ trch1 ++ wso ++ tfp ++ src ++ ex ++ devel ++ tests
+>                                  OutputFile (Text txt) Txt ("hssqlppp/source" </> fn) title)
+>   return $ trch1  ++ wso ++ tfp ++ src ++ ex ++ devel ++ tests
 >   where
 >     doF fl c = find always supportedFileP fl
 >                >>= return . map (toOf c)
@@ -55,6 +55,7 @@
 >              ".sql" -> Sql
 >              ".lhs" -> Lhs
 >              ".hs" -> Hs
+>              ".chs" -> Hs
 >              ".ag" -> Ag
 >              ".txt" -> Txt
 >              ".c" -> C
@@ -79,6 +80,7 @@
 >                  ||? extension ==? ".css"
 >                  ||? extension ==? ".c"
 >                  ||? extension ==? ".h"
+>                  ||? extension ==? ".chs"
 
 
 > sourceLinks :: IO ()
