@@ -3,4 +3,14 @@
 The tests use hunit, a command line runner is available:
 [Tests.lhs](Tests.lhs.html)
 
-[files](Datatabase/HsSqlPpp/Tests/)
+* [Tests.lhs](Tests.lhs.html)
+* [Database/HsSqlPpp/Tests/ExtensionTests.lhs](Database/HsSqlPpp/Tests/ExtensionTests.lhs.html)
+* [Database/HsSqlPpp/Tests/LexicalSyntaxTests.lhs](Database/HsSqlPpp/Tests/LexicalSyntaxTests.lhs.html)
+* [Database/HsSqlPpp/Tests/LocalBindingsTests.lhs](Database/HsSqlPpp/Tests/LocalBindingsTests.lhs.html)
+* [Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs](Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs.html)
+* [Database/HsSqlPpp/Tests/ParserTests.lhs](Database/HsSqlPpp/Tests/ParserTests.lhs.html)
+* [Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs](Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs.html)
+* [Database/HsSqlPpp/Tests/RoundtripTests.lhs](Database/HsSqlPpp/Tests/RoundtripTests.lhs.html)
+* [Database/HsSqlPpp/Tests/Tests.lhs](Database/HsSqlPpp/Tests/Tests.lhs.html)
+* [Database/HsSqlPpp/Tests/TypeCheckTests.lhs](Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html)
+* [Database/HsSqlPpp/Tests/TypeInferenceTests.lhs](Database/HsSqlPpp/Tests/TypeInferenceTests.lhs.html)

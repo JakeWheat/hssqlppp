@@ -4,6 +4,9 @@
 > import Data.Char
 > import System.Directory
 > import Control.Monad
+> import System.Environment
+> import Data.List hiding (find)
+> import Data.Ord
 
 > import Text.DocTool.DocTool
 > import TestFileProcessor
@@ -11,8 +14,13 @@
 
 > main :: IO ()
 > main = do
->   f <- fileList
->   docify "hssqlppp/" f
+>   args <- getArgs
+>   case args of
+>     ["sourcelinks"] -> sourceLinks
+>     [] -> do
+>           f <- fileList
+>           docify "hssqlppp/" f
+>     x -> error $ "don't know" ++ show x
 
 
 > fileList :: IO [OutputFile]
@@ -65,9 +73,37 @@
 > supportedFileP :: FindClause Bool
 > supportedFileP = extension ==? ".hs"
 >                  ||? extension ==? ".lhs"
->                     ||? extension ==? ".ag"
->                     ||? extension ==? ".txt"
->                     ||? extension ==? ".sql"
->                     ||? extension ==? ".css"
->                     ||? extension ==? ".c"
->                     ||? extension ==? ".h"
+>                  ||? extension ==? ".ag"
+>                  ||? extension ==? ".txt"
+>                  ||? extension ==? ".sql"
+>                  ||? extension ==? ".css"
+>                  ||? extension ==? ".c"
+>                  ||? extension ==? ".h"
+
+
+> sourceLinks :: IO ()
+> sourceLinks = do
+>   fns <- find always supportedFileP "."
+>   mapM_ putStrLn $ sortBy sf fns
+
+> sf :: FilePath -> FilePath -> Ordering
+> sf a b = let a1 = splitDirectories a
+>              b1 = splitDirectories b
+>          in compareLists a1 b1
+>          where
+>            compareLists [] _ = error "error"
+>            compareLists _ [] = error "error"
+>            compareLists [c] [d] = compare c d
+>            compareLists [c] (d:d1:_) = LT
+>            compareLists (c:c1:_) [d] = GT
+>            compareLists (c:cs) (d:ds) = case compare c d of
+>                                           LT -> LT
+>                                           GT -> GT
+>                                           EQ -> compareLists cs ds
+
+
+comparing splitDirectories a b
+
+find -type f | grep -iP  "\.(ag|sql|txt|hs|lhs|c|h|chs)$" | sed -e "s@^./@@" | sed -e "s/.*/[\0](\0.html)/"
+
+find . -type d -exec find {} -type f -maxdepth 1 \;

@@ -196,3 +196,14 @@ extension system quite a lot.
 
 
 ghc -XDeriveDataTypeable -DPOSTGRES -hide-package hssqlppp -cpp -pgmPcpphs -optP--cpp -idevel:src:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/MakeWebsite.lhs && time devel/MakeWebsite
+
+
+* [util/DatabaseLoader.lhs](util/DatabaseLoader.lhs.html)
+* [util/HsSqlPppUtil.lhs](util/HsSqlPppUtil.lhs.html)
+* [util/Database/HsSqlPpp/Utils/C2HS.hs](util/Database/HsSqlPpp/Utils/C2HS.hs.html)
+* [util/Database/HsSqlPpp/Utils/DBUtils.lhs](util/Database/HsSqlPpp/Utils/DBUtils.lhs.html)
+* [util/Database/HsSqlPpp/Utils/DatabaseLoader.lhs](util/Database/HsSqlPpp/Utils/DatabaseLoader.lhs.html)
+* [util/Database/HsSqlPpp/Utils/PPExpr.lhs](util/Database/HsSqlPpp/Utils/PPExpr.lhs.html)
+* [util/Database/HsSqlPpp/Utils/PQ.chs.h](util/Database/HsSqlPpp/Utils/PQ.chs.h.html)
+* [util/Database/HsSqlPpp/Utils/PQ.hs](util/Database/HsSqlPpp/Utils/PQ.hs.html)
+* [util/Database/HsSqlPpp/Utils/PQH.lhs](util/Database/HsSqlPpp/Utils/PQH.lhs.html)

@@ -1,0 +1,17 @@
+Example code to show creation of typesafe wrappers for crud statements
+in haskell.
+
+* [ConnectionString.hs](ConnectionString.hs.html)
+* [GenerateHListSourceExample.lhs](GenerateHListSourceExample.lhs.html)
+* [GenerateHListWrapper.lhs](GenerateHListWrapper.lhs.html)
+* [GenerateTupleSourceExample.lhs](GenerateTupleSourceExample.lhs.html)
+* [GenerateTupleWrapper.lhs](GenerateTupleWrapper.lhs.html)
+* [MakeLabels.hs](MakeLabels.hs.html)
+* [RunWrappers.lhs](RunWrappers.lhs.html)
+* [SelectRelation.lhs](SelectRelation.lhs.html)
+* [ThHListExample.lhs](ThHListExample.lhs.html)
+* [ThHListWrapper.lhs](ThHListWrapper.lhs.html)
+* [ThTupleExample.lhs](ThTupleExample.lhs.html)
+* [ThTupleWrapper.lhs](ThTupleWrapper.lhs.html)
+* [WrapLib.lhs](WrapLib.lhs.html)
+* [suppliers_and_parts.sql](suppliers_and_parts.sql.html)

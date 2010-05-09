@@ -133,7 +133,7 @@ Documentation
 
 * [Haddock](haddock/index.html)
 
-See the phtmlized source for the library, tests, and examples](source.txt.html); has lots of
+See the [htmlized source for the library, tests, and examples](source.txt.html); has lots of
 comments, but is unpolished.
 
 Useful links
