@@ -40,9 +40,10 @@ The main routine, which takes an AST and loads it into a database using HDBC.
 > loadAst :: String -> [Statement] -> IO ()
 > loadAst dbName ast =
 >   withConn ("dbname=" ++ dbName) $ \conn ->
+>     --withTransaction conn $ \c1 -> do
 >        mapM_ (loadStatement conn) $ hackStatements ast
 >   where
->     loadStatement conn (Regular st) =
+>     loadStatement conn (Regular st) = do
 >       runSqlCommand conn $ let a = printSql [st]
 >                            in trace a $ a
 >     loadStatement conn (CopyHack cpSt (CopyData _ s)) = do

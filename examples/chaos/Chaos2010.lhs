@@ -34,6 +34,8 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 
  > import Database.HsSqlPpp.Examples.Chaos2010
 
+> databaseName :: String
+> databaseName = "chaos"
 
 
 > main :: IO()
@@ -43,14 +45,14 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 >     ["reset"] -> reset
 >     ["sql"] -> sql
 >     ["check"] -> check
->     ["clear"] -> clearDB "chaos"
+>     ["clear"] -> clearDB databaseName
 >     x -> putStrLn $ "don't understand " ++ show x
 
 -------------------------------------------------------------------------------
 
 > reset :: IO ()
 > reset = wrapETs $ do
->   let db = "chaos"
+>   let db = databaseName
 >   --clear the db and get the transformed ast
 >   liftIO $ do
 >     hSetBuffering stdout NoBuffering

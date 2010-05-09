@@ -1,4 +1,47 @@
 
+Local bindings tests: test updating the local bindings
+
+This code contains most of the join lookup code.
+
+New plan:
+
+Write tests against the local bindings module for the full variety of
+behaviour
+
+local bindings are updated by
+* tref (or table reference in an update/insert/delete)
+* parameter in function
+* declaration in function block
+* implicit integer loop var in for loop
+* set explicit record type in for loop/ assignment to record type
+* for constraints in create table, create domain
+* funcall "."
+
+Write tests to quickly check each bit of code which uses these using
+the full typechecking:
+update: sets, where, returning
+select: tref -> select list, where, group by, order by
+join: out to tref, into on expression
+implicit variable in for loop
+record type in for loop
+record type in assignment
+record type in select into
+delete where and returning
+block declarations
+constraints in create table, create domain
+parameters in function body
+statementlist: pass on record updates?
+insert: columns?, returning
+
+
+
+
+
+
+
+
+-------------------------------
+
 Tests for the local bindings lookup code, which is a bit convoluted in
 places, particularly for joins.
 

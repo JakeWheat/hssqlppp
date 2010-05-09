@@ -2,6 +2,7 @@
 This file contains a few hacked together utility functions for working
 with postgres.
 
+> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Utils.DBUtils
 >     (loadSqlUsingPsql
 >     ,loadSqlUsingPsqlFromFile
@@ -13,6 +14,7 @@ with postgres.
 > import System.Process.Pipe
 >
 > import Database.HsSqlPpp.Utils.DbmsCommon
+> import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
 >
@@ -39,8 +41,21 @@ with postgres.
 > -- | use a dodgy hack to clear the database given
 > clearDB :: String -> IO ()
 > clearDB db =
->   withConn ("dbname=" ++ db) $ \conn ->
->     runSqlCommand conn "drop owned by jake cascade;"
+>   withConn ("dbname=" ++ db) $ \conn -> do
+>     --runSqlCommand conn "create language plpgsql;"
+>     runSqlCommand conn [$here|
+\begin{code}
+create function drop_all_user() returns void as $$
+declare
+  s text;
+begin
+  s := 'drop owned by ' || current_user || ' cascade;';
+  execute s;
+end;
+$$ language plpgsql;
+\end{code}
+>                        |]
+>     runSqlCommand conn "select drop_all_user();"
 >
 > -- | dump the given database to sql source using pg_dump
 > pgDump :: String -> IO String

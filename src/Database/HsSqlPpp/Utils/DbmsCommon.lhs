@@ -4,7 +4,8 @@ Some simple wrappers around HDBC for the code to use.
 > module Database.HsSqlPpp.Utils.DbmsCommon
 >     (withConn
 >     ,selectRelation
->     ,runSqlCommand) where
+>     ,runSqlCommand
+>     ,withTransaction) where
 >
 > import qualified Database.HDBC.PostgreSQL as Pg
 > import Database.HDBC

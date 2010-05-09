@@ -139,8 +139,8 @@ run pg dump
 clear
 =====
 
-small hack utility to help with testing, clears the database given (as
-long as your user name is jake!)
+small hack utility to help with testing, clears the database given
+using your username as the database user name
 
 TODO: use the correct username in this command
 TODO: do something more correct
