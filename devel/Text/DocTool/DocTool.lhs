@@ -19,6 +19,9 @@
 > import Data.DateTime
 > import Control.Concurrent
 > import Data.List
+> import Control.Concurrent
+> import Control.Exception
+> import System.IO.Unsafe
 
 
 > import Text.DocTool.Parser as Parser
@@ -27,7 +30,9 @@
 > docify b ofs = do
 >   t <- getCurrentTime
 >   let tm = formatDateTime "%D %T" t
->   mapM_ (\f -> forkIO (process "0.3.0" tm b f >> putStrLn (showOf f))) ofs
+>   children <- (newMVar [])
+>   mapM_ (\f -> forkChild children (process "0.3.0" tm b f >> putStrLn (showOf f))) ofs
+>   waitForChildren children
 >          where
 >            showOf (OutputFile (Text _) _ fp _) = fp
 >            showOf (OutputFile s _ _ _) = show s
@@ -244,3 +249,21 @@ navigation, sitemap, breadcrumbs
 >   case stripPrefix old xs of
 >     Nothing -> y : replace old new ys
 >     Just ys' -> new ++ replace old new ys'
+
+
+> waitForChildren :: MVar [MVar ()] -> IO ()
+> waitForChildren children = do
+>   cs <- takeMVar children
+>   case cs of
+>        []   -> return ()
+>        m:ms -> do
+>           putMVar children ms
+>           takeMVar m
+>           waitForChildren children
+
+> forkChild :: MVar [MVar ()] -> IO () -> IO ThreadId
+> forkChild children io = do
+>        mvar <- newEmptyMVar
+>        childs <- takeMVar children
+>        putMVar children (mvar:childs)
+>        forkIO (io `finally` putMVar mvar ())

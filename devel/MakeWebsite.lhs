@@ -18,6 +18,7 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 > import TestFileProcessor
 > import DoChaosSql
 
+
 > main :: IO ()
 > main = do
 >   args <- getArgs
@@ -34,11 +35,11 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 >   doesDirectoryExist "hssqlppp" >>=
 >     \l -> when l $ removeDirectoryRecursive "hssqlppp"
 >   wso <- doF "docs/website/" (makeRelative "docs/website/")
->   src <- doF "src/" ("source" </>)
+>   src' <- doF "src/" ("source" </>)
+>   let src = removeMatches ["src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"] src'
 >   ex' <- doF "examples/" ("source" </>)
->   let ex = filter (\(OutputFile (File fn) _ _ _) -> fn `notElem`
->                    ["util/Database/HsSqlPpp/Utils/PQ.chs.h"
->                    ,"util/Database/HsSqlPpp/Utils/PQ.hs"]) ex'
+>   let ex = removeMatches ["util/Database/HsSqlPpp/Utils/PQ.chs.h"
+>                          ,"util/Database/HsSqlPpp/Utils/PQ.hs"] ex'
 
 >   devel <- doF "devel/" ("source" </>)
 >   tests <- doF "tests/" ("source" </>)
@@ -57,8 +58,11 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 >   trch1 <- getTransformedChaosSql
 >            >>= return . map (\(title,fn,txt) ->
 >                                  OutputFile (Text txt) Txt ("hssqlppp/source" </> fn) title)
->   return $ trch1  ++ wso ++ tfp ++ src ++ ex ++ devel ++ tests
+>   return $ tfp ++ src ++ trch1 ++ wso ++  ex ++ devel ++ tests
 >   where
+>     removeMatches :: [String] -> [OutputFile] -> [OutputFile]
+>     removeMatches bads =
+>       filter (\(OutputFile (File fn) _ _ _) -> fn `notElem` bads)
 >     doF fl c = find always supportedFileP fl
 >                >>= return . map (toOf c)
 >     ft f = case map toLower (takeExtension f) of

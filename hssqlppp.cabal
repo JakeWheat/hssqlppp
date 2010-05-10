@@ -18,25 +18,6 @@ Description:
     .
     Documentation, examples on the homepage:
     <http://community.haskell.org/~JakeWheat/hssqlppp/index.html>.
-    .
-    Build flags:
-    .
-    * quasiquotes: compile with the quasi quoting support. The main
-      purpose is to be able to not depend on template-haskell if you
-      don't need the quasi quotes, default is true
-    .
-    * postgres: compile with HDBC-postgresql - allows typechecking
-      against a database amongst other things. This is mainly so that
-      you can compile without HDBC-postgresql, e.g. if you just want a
-      simple sql parser, default is true. You currently need to have
-      quasiquotes flag on if you want to use this.
-    .
-    * binaries: compile the test, development, and example binaries:
-      this brings in a whole load of dependencies. Default is false.
-    .
-    Building the binaries using cabal is _very_ slow. They are
-    included here mainly to document all the extra package
-    dependencies they have.
 
 extra-source-files:  README
                      LICENSE

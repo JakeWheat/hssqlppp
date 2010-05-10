@@ -149,9 +149,6 @@ Documentation
 See the [htmlized source for the library, tests, and examples](source.txt.html); has lots of
 comments but is quite rough at the moment.
 
-Useful links
-============
-
 Homepage: [http://community.haskell.org/%7EJakeWheat/hssqlppp/index.html](http://community.haskell.org/%7EJakeWheat/hssqlppp/index.html)
 
 Hackage: [http://hackage.haskell.org/package/hssqlppp](http://hackage.haskell.org/package/hssqlppp)
