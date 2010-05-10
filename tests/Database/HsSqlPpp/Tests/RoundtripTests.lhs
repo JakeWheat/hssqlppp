@@ -126,7 +126,7 @@ use create view to run through select variations
 >       dumpSql <- liftIO $ pgDump testDatabaseName
 >       astDumped <- tsl $ parseSql "" dumpSql
 >       let (catDumped, astDumpedTC) = typeCheck defaultTemplate1Catalog astDumped
->       failIfTypeErrors $ astDumpedTC
+>       failIfTypeErrors astDumpedTC
 >       -- check the original catalog from the catalog gotten from
 >       -- dumping then typechecking the dump, maybe a little excessive
 >       compareCats "dump" catOrig catDumped
@@ -151,7 +151,7 @@ use create view to run through select variations
 >     failIfTypeErrors xast = do
 >       let te :: [TypeError]
 >           te = [x | x <- universeBi xast]
->       when (not $ null te) $ throwError $ show te
+>       unless (null te) $ throwError $ show te
 
 take the parse tree and change the type names to the canonical versions
 

@@ -5,7 +5,7 @@ Demonstration extension: createVarSimple
 Takes a name and a type and creates a table with a single attribute
 with that name and type.
 
-> {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
+> {-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
 >
 > module Database.HsSqlPpp.Extensions.CreateVarSimple
 >     where

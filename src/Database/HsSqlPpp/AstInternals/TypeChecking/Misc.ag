@@ -47,15 +47,8 @@ SEM TypeName
 
 = some small utils
 
-I think this should be alright, an identifier referenced in an
-expression can only have zero or one dot in it.
 -}
 
-splitIdentifier :: String -> (String,String)
-splitIdentifier s = let (a,b) = span (/= '.') s
-                    in if b == ""
-                         then ("", a)
-                         else (a,tail b)
 
 addTypeErrors :: Data a => [TypeError] -> a -> a
 addTypeErrors es el = updateAnnotation u el
@@ -73,12 +66,6 @@ setTypeAddErrorsA et a =
                              ++ [InternalError $ "tried to set type a second time - " ++ show (etmt et)]}
          Nothing -> a1 {atype = etmt et}
 
-keepValid :: [(String,Maybe Type)] -> [(String,Type)]
-keepValid = mapMaybe f
-            where
-              f (a,Just b) = Just (a,b)
-              f (_,Nothing) = Nothing
-
 allJust :: [Maybe a] -> Maybe [a]
 allJust ts = sequence ts
 
@@ -92,13 +79,6 @@ getName (FunCall _ "." [Identifier _ _,Identifier _ i]) = i
 getName (FunCall _ "." [_,a]) = getName a
 getName x = error $ "internal error getName called on: " ++ show x
 
-
-expandComposite :: Catalog -> Type -> Maybe [(String,Type)]
-expandComposite cat (SetOfType t) = expandComposite cat t
-expandComposite cat (PgRecord (Just t)) = expandComposite cat t
-expandComposite _ (CompositeType fs) = Just fs
-expandComposite cat (NamedCompositeType n) = etmt $ catCompositeAttrs cat [] n
-
 unwrapLookup :: (String,[String],Type) -> Type
 unwrapLookup (_,_,t) = t
 
@@ -109,9 +89,6 @@ unwrapStar = map uw
 
 allAtts :: ([(String,Type)],[(String,Type)]) -> [(String,Type)]
 allAtts (a,b) = a ++ b
-
-pubAtts :: ([(String,Type)],[(String,Type)]) -> [(String,Type)]
-pubAtts = fst
 
 {-
 ================================================================================

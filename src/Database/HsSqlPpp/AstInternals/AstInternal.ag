@@ -32,6 +32,9 @@ Depending on the alignment of the planets, you might need to use
 
 uuagc  -dcfwsp AstInternal.ag
 
+At the moment, genlinepragmas seems to break when you use where with
+uuagc > 0.9.19.
+
 (install uuagc with
 cabal install uuagc
 )
@@ -120,10 +123,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
 {
 import Data.Maybe
 import Data.List
-import Debug.Trace
-import Data.Either
 import Control.Applicative
-import Control.Arrow
 import Data.Generics
 import Data.Char
 import Control.Monad.State

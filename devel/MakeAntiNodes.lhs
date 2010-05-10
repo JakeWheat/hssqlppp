@@ -65,11 +65,11 @@ of coding used in AstInternal.ag.
 >   let convs = concatMap (makeConvertor $ map fst ndecls) decls
 >   -- add the anti parts and return
 >   return $ preamble ++
->            (prettyPrint $
->             makeModule (exports ast)
+>            prettyPrint
+>             (makeModule (exports ast)
 >                        (publicConversions
->                         ++ (addAntis decls)
->                         ++ (addAntis convs)))
+>                         ++ addAntis decls
+>                         ++ addAntis convs))
 >   where
 >     -- todo: match the exact uuagc generated names here
 >     isGeneratedName n = '_' `elem` n || n `elem` ["Root", "ExpressionRoot", "ParamName"]
@@ -193,8 +193,8 @@ conversions
 >                   (mkCtor c ant)
 >                   (BDecls [])
 >     mkCtor c ant =
->         let elems = flip map ant (\(a,t) -> convName ts t a)
->         in UnGuardedAlt $ foldl App (Con (Qual (ModuleName "A") (Ident c))) $ elems
+>         let elems = flip map ant $ \(a,t) -> convName ts t a
+>         in UnGuardedAlt $ foldl App (Con (Qual (ModuleName "A") (Ident c))) elems
 >
 
 utils for conv generators
@@ -246,8 +246,8 @@ apply the conversion function otherwise just use the value unchanged
 >       | otherwise -> Var (UnQual (Ident l))
 >   where
 >     unlistl = lowerFirst $ take (length tn - 4) tn
->     unlist = isSuffixOf "List" tn
->     unmaybe = isPrefixOf "Maybe" tn
+>     unlist = "List" `isSuffixOf` tn
+>     unmaybe = "Maybe" `isPrefixOf` tn
 >     unmaybel = lowerFirst $ drop 5 tn
 
 
@@ -281,7 +281,7 @@ messages in the conversion functions
 >
 > addAntiCtor :: Decl -> Decl
 > addAntiCtor (DataDecl sl dn ct nm@(Ident n) tyv qcd d) =
->   (DataDecl sl dn ct nm tyv (qcd ++ [antiCtor]) d)
+>   DataDecl sl dn ct nm tyv (qcd ++ [antiCtor]) d
 >   where
 >     antiCtor =
 >       QualConDecl nsrc [] []
@@ -296,11 +296,11 @@ messages in the conversion functions
 >                (UnGuardedRhs
 >                 (Case (Var (UnQual (Ident "x"))) alts))
 >                   bnd]) =
->   (FunBind
+>   FunBind
 >    [Match sl nm pt ty
 >     (UnGuardedRhs
 >      (Case (Var (UnQual (Ident "x"))) (alts ++ [antiAlt])))
->     bnd])
+>     bnd]
 >   where
 >     antiAlt :: Alt
 >     antiAlt = Alt nsrc
@@ -354,7 +354,7 @@ take all the pieces and make a complete module to be pretty printed
 ready for compilation
 
 > makeModule :: [ExportSpec] -> [Decl] -> Module
-> makeModule es ds =
+> makeModule es =
 >     Module nsrc
 >         (ModuleName "Database.HsSqlPpp.AstInternals.AstAnti")
 >         [LanguagePragma nsrc
@@ -374,7 +374,6 @@ ready for compilation
 >                     importModule = ModuleName "Database.HsSqlPpp.AstInternals.AstInternal",
 >                     importQualified = True, importSrc = False, importPkg = Nothing,
 >                     importAs = Just (ModuleName "A"), importSpecs = Nothing}]
->         ds
 
 boring little functions
 -----------------------

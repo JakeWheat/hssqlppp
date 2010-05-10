@@ -53,37 +53,37 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 
 > reset :: IO ()
 > reset =
->   withConn ("dbname=" ++ databaseName) $ \c ->
->   withTransaction c $ \conn -> wrapETs $ do
+>   withConn ("dbname=" ++ databaseName) $
+>   flip withTransaction $ \conn -> wrapETs $ do
 >   --clear the db and get the transformed ast
 
 >   liftIO $ do
 >     hSetBuffering stdout NoBuffering
 >     clearDB conn
->   ast <- mapM (\f -> (liftIO . readInput) f >>=
->                  tsl . P.parseSql f) chaosFiles >>=
->      return . (concat |>
->                chaosExtensions)
+>   ast <- fmap (concat |> chaosExtensions)
+>            $ mapM (\ f -> (liftIO . readInput) f
+>                           >>= tsl . P.parseSql f)
+>                   chaosFiles
 >   liftIO $ loadAst conn ast
 >   return ()
 
 
 > sql :: IO ()
 > sql = wrapETs $ do
->   ast <- mapM (\f -> (liftIO . readInput) f >>=
->                  tsl . P.parseSql f) chaosFiles >>=
->      return . (concat |>
->                chaosExtensions)
+>   ast <- fmap (concat |> chaosExtensions)
+>            $ mapM (\ f -> (liftIO . readInput) f
+>                           >>= tsl . P.parseSql f)
+>                   chaosFiles
 >   liftIO $ putStrLn $ printSql ast
 >   return ()
 
 > check :: IO ()
 > check = wrapETs $ do
 >   --clear the db and get the transformed ast
->   ast <- mapM (\f -> (liftIO . readInput) f >>=
->                  tsl . P.parseSql f) chaosFiles >>=
->      return . (concat |>
->                chaosExtensions)
+>   ast <- fmap (concat |> chaosExtensions)
+>            $ mapM (\ f -> (liftIO . readInput) f
+>                           >>= tsl . P.parseSql f)
+>                   chaosFiles
 >   mapM_ (liftIO . putStrLn) $
 >             (A.typeCheck defaultTemplate1Catalog |>
 >              snd |>
@@ -115,7 +115,7 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 
 > getTypeErrors :: Data a => a -> [(Maybe (String,Int,Int), [TypeError])]
 > getTypeErrors es =
->   let as = [(a::Annotation) | a <- universeBi es]
+>   let as = [a::Annotation | a <- universeBi es]
 >   in mapMaybe getTes as
 >   where
 >     getTes as = let tes = errs as

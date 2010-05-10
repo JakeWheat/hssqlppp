@@ -2,7 +2,7 @@
 just an insert syntax a bit like updates, so the fields are next to
   the values
 
-> {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
+> {-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
 >
 > module Database.HsSqlPpp.Examples.Extensions.AlternateInsert
 >     (altInsExamples

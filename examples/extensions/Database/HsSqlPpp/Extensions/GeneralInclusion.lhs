@@ -8,7 +8,6 @@ it's going to be called
 2) not going to try to do the reverse for now, so just need to convert
 the create_fk call into a create_assertion call
 
-> {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Extensions.GeneralInclusion
 >     (generalInclusionsExamples) where
 >

@@ -136,7 +136,7 @@ have been added ok.
 
 Tests/examples in CreateAssertionTests.lhs
 
-> {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables, TupleSections #-}
+> {-# LANGUAGE QuasiQuotes, ScopedTypeVariables, TupleSections #-}
 >
 > module Database.HsSqlPpp.Extensions.CreateAssertion
 >     (createAssertion) where
@@ -145,7 +145,7 @@ Tests/examples in CreateAssertionTests.lhs
 > import Data.Generics.Uniplate.Data
 > --import Debug.Trace
 > import Control.Monad.State
->
+> import Data.Maybe
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Parser
@@ -191,7 +191,7 @@ to make it work right.
 >    tableNames expr = let y = getReferencedTableList asti expr
 >                      in y
 >    newcons cons tns nm = foldr (uncurry (insertWith (++))) cons (map (,[nm]) tns)
->    existingConstraints tn cons = maybe [] id $ lookup tn cons
+>    existingConstraints tn cons = fromMaybe [] $ lookup tn cons
 >
 > type ConstraintRecord = [(String,[String])] -- tablename, list of constraint names
 >

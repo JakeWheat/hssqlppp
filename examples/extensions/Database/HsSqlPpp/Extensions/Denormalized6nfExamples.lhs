@@ -1,6 +1,6 @@
 
 
-> {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
+> {-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Extensions.Denormalized6nfExamples
 >     (denormalized6nfExamples) where
 >

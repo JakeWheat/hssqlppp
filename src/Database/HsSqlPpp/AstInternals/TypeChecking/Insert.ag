@@ -21,7 +21,6 @@ SEM Statement
           do
           atts <- lmt (allAtts <$> @table.tbUType)
           expAtts <- lmt @insData.uType
-          let eNames = map fst expAtts
           tAtts <- case @targetCols of
                         [] -> return atts
                         _ -> mapM (lkpA atts) @targetCols

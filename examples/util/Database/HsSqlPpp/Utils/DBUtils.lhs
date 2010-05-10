@@ -59,7 +59,7 @@ $$ language plpgsql;
 >     runSqlCommand conn "select drop_all_user();"
 
 > clearDBN :: String -> IO ()
-> clearDBN db = do
+> clearDBN db =
 >   withConn ("dbname=" ++ db) clearDB
 
 >
@@ -73,5 +73,5 @@ $$ language plpgsql;
 > -- | get the catalog from the database, and return an Catalog value
 > readCatalog :: String -> IO (Either [TypeError] Catalog)
 > readCatalog dbName =
->   (readCatalogFromDatabase dbName) >>=
->     return . updateCatalog defaultCatalog
+>   fmap (updateCatalog defaultCatalog)
+>        (readCatalogFromDatabase dbName)

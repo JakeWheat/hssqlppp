@@ -24,6 +24,7 @@ it and quits.
 > import Data.Generics.Uniplate.Data
 > import Data.Generics
 > import Data.List
+> import Data.Maybe
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.Ast
@@ -52,7 +53,7 @@ it and quits.
 >         ++ doViews
 >         ++ doFunctions
 >     where
->       doTables = intersect trefs (map fst $ tables asti)
+>       doTables = trefs `intersect` map fst (tables asti)
 >       doViews = let vdefs = filter ((`elem` trefs) . fst) $ views asti
 >                 in concatMap (getReferencedTableList asti . snd) vdefs
 >       doFunctions = let fdefs = filter ((`elem` funrefs) . fst) $ functions asti
@@ -93,5 +94,5 @@ it and quits.
 >     map (adjSp gsp)
 >     where
 >       gsp :: SourcePosition
->       gsp = maybe ("unknown",1,1) id $ asrc $ getAnnotation st
+>       gsp = fromMaybe ("unknown",1,1) $ asrc $ getAnnotation st
 >       adjSp sp1 = updateAnnotation (\a -> a {asrc = Just sp1})

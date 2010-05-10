@@ -9,19 +9,14 @@
 
 > import Text.Pandoc
 > import Text.XHtml.Transitional hiding (toHtml)
-> --import Control.Monad
-> --import qualified Language.Haskell.Exts as Exts
 > import System.FilePath
 > import System.Directory
 > import Debug.Trace
-> --import Text.Highlighting.Kate
 > import Text.Highlighting.Illuminate
 > import Data.DateTime
 > import Control.Concurrent
 > import Data.List
-> import Control.Concurrent
 > import Control.Exception
-> import System.IO.Unsafe
 
 
 > import Text.DocTool.Parser as Parser
@@ -125,11 +120,11 @@ bit dodgy
 > filterLinks :: String -> String -> String
 > filterLinks path = replace
 >                           "\"/website/"
->                           ("\"" ++ path)
+>                           ('"': path)
 
 
 > toText :: Html -> String
-> toText h = renderHtml h
+> toText = renderHtml
 
 > process :: String -> String -> FilePath -> OutputFile -> IO ()
 > process _ _ _ (OutputFile (File f) Css fp _) =
@@ -137,10 +132,14 @@ bit dodgy
 > process v tm b (OutputFile s t fp ti) = do
 >   let hd = wheader v
 >       ft = wfooter v tm
->   asText s
->     >>= return . (toPandoc t |> setTitle ti |> toHtml
->                   |> (\h -> hd +++ h +++ ft)
->                   |> wrapHtmlFragment ti |> toText |> filterLinks back)
+>   flip fmap (asText s)
+>     (toPandoc t
+>       |> setTitle ti
+>       |> toHtml
+>       |> (\ h -> hd +++ h +++ ft)
+>       |> wrapHtmlFragment ti
+>       |> toText
+>       |> filterLinks back)
 >     >>= writeFolderFile fp
 >   where
 >     relpath = makeRelative b fp
@@ -219,7 +218,7 @@ try illuminate, need to write sql highlighter?
 >       conv (Comments m) = case readMarkdown defaultParserState m of
 >                            Pandoc _ b -> b
 >       cb s = [CodeBlock ("", ["sourceCode", "literate", ty], []) s]
->       w b = Pandoc (Meta{docTitle = [], docAuthors = [], docDate = []}) b
+>       w = Pandoc Meta {docTitle = [], docAuthors = [], docDate = []}
 
 todo:
 do hack for =,==,etc. headers

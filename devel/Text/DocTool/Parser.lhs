@@ -121,7 +121,7 @@ Lexing
 >              deriving (Eq,Show)
 
 > lexS :: String -> String -> String -> Either ParseError [Token]
-> lexS cs ce s = runParser (many $ tk cs ce) () "" s
+> lexS cs ce = runParser (many $ tk cs ce) () ""
 
 > type TParser =  GenParser Char ()
 
@@ -135,7 +135,7 @@ Lexing
 >   --trace ("got " ++ show x) $ return ()
 >   return (sp,x)
 >     where
->       cse = lookAhead ((cs <|> ce)) >> return ()
+>       cse = lookAhead (cs <|> ce) >> return ()
 >       cs = try (string cst)
 >       ce = try (string cet)
 

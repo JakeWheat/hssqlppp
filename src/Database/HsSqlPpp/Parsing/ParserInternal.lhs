@@ -689,7 +689,7 @@ rather than just a string.
 >            a <- many (try $ sqlStatement True)
 >            -- this makes my head hurt, should probably write out
 >            -- more longhand
->            SqlFnBody p <$> option a ((\b -> (a++[b])) <$> sqlStatement False)
+>            SqlFnBody p <$> option a ((\b -> a++[b]) <$> sqlStatement False)
 >         -- plpgsql function has an optional declare section, plus
 >         -- the statements are enclosed in begin ... end; (semi colon
 >         -- after end is optional)
@@ -891,7 +891,7 @@ plpgsql statements
 > label :: SParser (Maybe String)
 > label = optional (symbol "<<" *> idString <* symbol ">>")
 >
-> block :: Annotation -> (Maybe String) -> SParser Statement
+> block :: Annotation -> Maybe String -> SParser Statement
 > block p l = Block p l
 >             <$> option [] declarePart
 >             <*> statementPart
@@ -953,7 +953,7 @@ plpgsql statements
 >                                      ,("exception", RException)
 >                                      ,("error", RError)]
 >
-> forStatement :: Annotation -> (Maybe String) -> SParser Statement
+> forStatement :: Annotation -> Maybe String -> SParser Statement
 > forStatement p l = do
 >                keyword "for"
 >                start <- qName
@@ -968,11 +968,11 @@ plpgsql statements
 >     theRest = keyword "loop" *> many plPgsqlStatement
 >               <* keyword "end" <* keyword "loop"
 >
-> whileStatement :: Annotation -> (Maybe String) -> SParser Statement
+> whileStatement :: Annotation -> Maybe String -> SParser Statement
 > whileStatement p l = WhileStatement p l
 >                      <$> (keyword "while" *> expr <* keyword "loop")
 >                      <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
-> loopStatement :: Annotation -> (Maybe String) -> SParser Statement
+> loopStatement :: Annotation -> Maybe String -> SParser Statement
 > loopStatement p l = LoopStatement p l
 >                     <$> (keyword "loop" *> many plPgsqlStatement <* keyword "end" <* keyword "loop")
 >
@@ -1671,7 +1671,7 @@ simple wrapper for parsec source positions, probably not really useful
 parser combinator to return the current position as an ast annotation
 
 > pos :: SParser Annotation
-> pos = do
+> pos =
 >   (\a -> emptyAnnotation {asrc=Just a}) <$> toMySp <$> getPosition
 
 == lexer stuff

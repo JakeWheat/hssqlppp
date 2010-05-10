@@ -97,8 +97,8 @@ There are cabal flags:
   amount of dependencies
 
 The defaults are postgres and quasiquotes on, and binaries off. The
-binaries take a long time to build, and are just for developing
-hssqlppp, and examples.
+binaries take a long time to build, and are only a mixture of example
+code and utils for developing hssqlppp itself.
 
 Use
 
@@ -163,9 +163,10 @@ Provisional for 0.4.0:
 * add support for parsing most postgresql syntax
 * add comprehensive set of splices for quasi-quoting
 * add a fair bit to the catalog
-* fix the local bindings code, and get the type checking into decent
-  shape
-* add slightly more integrated support for custom syntax
+* fix the local bindings code
+* get the type checking into decent shape with new catalog stuff and
+  new local bindings code
+* add slightly better support for custom syntax
 * report function which can be run on a big bit of sql - so you can
   easily find out how well your sql is supported by hssqlppp
 

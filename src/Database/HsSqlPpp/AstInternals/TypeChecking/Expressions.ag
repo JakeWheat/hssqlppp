@@ -133,7 +133,7 @@ SEM Expression
 
 SEM ExpressionList
     | Cons hd.overrideLib = case @lhs.overrideLibs of
-                               h : t -> h
+                               h : _ -> h
                                _ -> Nothing
            tl.overrideLibs = case @lhs.overrideLibs of
                                _ : t -> t

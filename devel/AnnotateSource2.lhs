@@ -68,6 +68,7 @@ then concat the lot together, and can then render with pandoc
 > import Data.List
 > import Data.Maybe
 > import Control.Applicative
+> import Control.Arrow
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.Utils.Utils
@@ -78,8 +79,8 @@ then concat the lot together, and can then render with pandoc
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Utils.DBUtils
 
-> annotateSource2 :: (Maybe ([Statement] -> [Statement]))
->                 -> (Maybe (Annotation -> String))
+> annotateSource2 :: Maybe ([Statement] -> [Statement])
+>                 -> Maybe (Annotation -> String)
 >                 -> String
 >                 -> [FilePath] -> IO [(String,String)]
 >
@@ -108,7 +109,7 @@ interspersed we want chunks of the original source
 >   (f1 :: [(String,[(String,[Statement])])]) <- forM p (\(f, sts) -> do
 >              src <- readFile f
 >              return (f, intersperseSource f src sts))
->   let annPr = maybe defaultAnnotationPrinter id annotPrinter
+>   let annPr = fromMaybe defaultAnnotationPrinter annotPrinter
 >   let (f2 :: [(String,String)]) =
 >           flip map f1 $ \(f,e) -> (f, unlines $ map (showEntry annPr) e)
 
@@ -131,7 +132,7 @@ interspersed we want chunks of the original source
 >                | otherwise -> printStatement "UnusedSql" "replaced sql" "" s
 >                               ++ printStatement "GeneratedSql" "generated sql" "" (prSql a sts)
 >     prSql :: (Annotation -> String) -> [Statement] -> String
->     prSql a sts = concatMap (\st -> annStr a st ++ printSql [st]) sts
+>     prSql a = concatMap (\st -> annStr a st ++ printSql [st])
 >     annStr :: (Annotation -> String) -> Statement -> String
 >     annStr a st = case a (getAnnotation st) of
 >                      y | trim y == "" -> ""
@@ -156,7 +157,7 @@ interspersed we want chunks of the original source
 >                                                  _ -> Nothing) statements
 >   in {-trace ("firstLine: " ++ show firstLine) $ -}
 >      (unlines $ take firstLine fl, []) :
->      reverse (map (\(a,b) -> (a,reverse b)) $ addSource [] firstLine [] statements)
+>      reverse (map (second reverse) $ addSource [] firstLine [] statements)
 >   where
 >     addSource :: [(String,[Statement])] -> Int -> [Statement] -> [Statement] -> [(String,[Statement])]
 >     addSource acc lno sts1 (st:sts) =
@@ -165,7 +166,7 @@ interspersed we want chunks of the original source
 >            Just (f,l,_) | f /= fileName || l == lno -> addSource acc lno (st:sts1) sts
 >                         | otherwise -> addSource ((fileLines lno l, sts1):acc)
 >                                                l [st] sts
->     addSource acc lno sts1 [] = ((fileLines lno (length fl)), sts1):acc
+>     addSource acc lno sts1 [] = (fileLines lno (length fl), sts1):acc
 >     fileLines :: Int -> Int -> String
 >     fileLines s e = unlines $ take (e - s) (drop (s - 1) fl)
 >     fl = lines src

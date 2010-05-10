@@ -5,7 +5,7 @@ run
 HsSqlUtil.lhs -?
 to get a list of commands and purpose and usage info
 
-> {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables,FlexibleContexts,QuasiQuotes #-}
+> {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables,FlexibleContexts #-}
 >
 > import System.Console.CmdArgs
 > import Control.Monad.Error
@@ -16,7 +16,6 @@ to get a list of commands and purpose and usage info
 >
 > import Database.HsSqlPpp.Utils.Utils
 >
-> import Database.HsSqlPpp.Ast
 > import qualified Database.HsSqlPpp.TypeChecker as A
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.SqlTypes
@@ -728,35 +727,6 @@ as an argument to the exe
 >                    -> return $ drop 1 $ take (length f - 1) f
 >                | otherwise -> readFile f
 
--------------------------------------------------------------------------------
-
- > readParseTransform :: (MonadIO m, MonadError String m) =>
- >                       [FilePath] -> m [Statement]
-
-> {-readParseTransform fns =
->      mapM (\f -> (liftIO . readInput) f >>=
->                  tsl . P.parseSql f) fns >>=
->      return . (concat |>
->                astTransformer)-}
-
--------------------------------------------------------------------------------
-
-> readParseTransformList :: (MonadIO m, MonadError String m) =>
->                       [FilePath] -> m [[Statement]]
-> readParseTransformList =
->      mapM (\f -> (liftIO . readInput) f >>=
->                  tsl . P.parseSql f >>=
->                  return . astTransformer)
-
--------------------------------------------------------------------------------
-
-> {-readInto act fns =
->                forM_ fns $ \f ->
->                  (liftIO . readInput) f >>=
->                  act-}
-
- >                  tsl . lexSqlText f >>=
- >                  mapM_ (liftIO . print)
 
 -------------------------------------------------------------------------------
 

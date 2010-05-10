@@ -66,7 +66,7 @@ see the examples file for more details
 question: how can a client read a whole table like this and not have
 to deal with nulls/ maybe types?
 
-> {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
+> {-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Extensions.Denormalized6nf
 >     (denormalized6nf) where
 >
@@ -86,7 +86,7 @@ to deal with nulls/ maybe types?
 >   transformBi $ \x ->
 >       case x of
 >         st@[$sqlStmt| select create6nf($(stuff)); |] : tl
->             -> let (f,l,c) = maybe ("",1,1) id $ asrc $ getAnnotation stuff
+>             -> let (f,l,c) = fromMaybe ("",1,1) $ asrc $ getAnnotation stuff
 >                    (StringLit _ s) = stuff
 >                in replaceSourcePos st (createStatements f l c s) ++ tl
 >         x1 -> x1
@@ -101,21 +101,23 @@ to deal with nulls/ maybe types?
 > makeTable cs dss =
 >     let (s2,f2) = head [(s1,f1) | DTable s1 [] f1 <- universeBi dss]
 >         f3 = [f1 | DTable s3 _ f1 <- universeBi dss, s3 /= s2]
->     in CreateTable ea s2 ((map notNullify f2) ++ map nullify (concat f3)) cs
+>     in CreateTable ea s2 (map notNullify f2 ++ map nullify (concat f3)) cs
 >
 >
 > notNullify :: AttributeDef -> AttributeDef
 > notNullify ad@(AttributeDef a n t d cs) =
 >   if hasPk
 >   then ad
->   else AttributeDef a n t d ((NotNullConstraint ea ""):cs)
+>   else AttributeDef a n t d (NotNullConstraint ea "" : cs)
 >   where
->     hasPk = maybe False (const True) $ find (\l -> case l of RowPrimaryKeyConstraint _ _ -> True
->                                                              _ -> False) cs
+>     hasPk = isJust $ flip find cs
+>                        $ \l -> case l of
+>                                       RowPrimaryKeyConstraint _ _ -> True
+>                                       _ -> False
 >
 > nullify :: AttributeDef -> AttributeDef
 > nullify (AttributeDef a n t d cs) =
->     AttributeDef a n t d ((NullConstraint ea ""):cs)
+>     AttributeDef a n t d (NullConstraint ea "" : cs)
 
 > attributeName :: AttributeDef -> String
 > attributeName (AttributeDef _ n _ _ _) = n
@@ -167,7 +169,7 @@ to deal with nulls/ maybe types?
 >                                  select selectList from $(bottomTableName);|] :
 >         map makeView (getExtraFields subt))
 >     where
->       idFromAttr = (Identifier ea) . attributeName
+>       idFromAttr = Identifier ea . attributeName
 >       getExtraFields :: [(String,[String],[AttributeDef])] -> [(String,[(String,[Expression])])] -- table name, sourcetable,fieldlist
 >       getExtraFields tinfo = let t1 = map gef tinfo
 >                              in map (\a@((tn,_):_) -> (tn, reverse a)) t1 --first reverse here

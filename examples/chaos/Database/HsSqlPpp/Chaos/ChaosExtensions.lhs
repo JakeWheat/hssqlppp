@@ -256,7 +256,7 @@ readonly tables/ compile time constant relations stuff
 >     transformBi $ \x ->
 >       case x of
 >         s@[$sqlStmt| select generate_spell_choice_actions(); |] : tl
->             -> (flip map spells $ \spell ->
+>             -> flip map spells (\spell ->
 >                let actionname = "choose_" ++ spell ++ "_spell"
 >                    wrappername = "action_" ++ actionname
 >                in replaceSourcePos1 s [$sqlStmt|
@@ -321,7 +321,7 @@ nulls and ignore them when checking for nullable attributes.
 > notNull =
 >     transformBi $ \x ->
 >       case x of
->         CreateTable a nm atts c | not (isSuffixOf "_mr" nm) ->
+>         CreateTable a nm atts c | not ("_mr" `isSuffixOf` nm) ->
 >           CreateTable a nm (map fixAtt atts) c
 >         x1 -> x1
 >     where
@@ -329,8 +329,8 @@ nulls and ignore them when checking for nullable attributes.
 >       -- constraints in the source sql except in the tables
 >       -- that are skipped (*_mr)
 >       fixAtt (AttributeDef a n t d c) =
->          (AttributeDef a n t d
->           (NotNullConstraint emptyAnnotation "" : c))
+>          AttributeDef a n t d
+>            (NotNullConstraint emptyAnnotation "" : c)
 
 -------------------------------------------------------------------------------
 

@@ -46,7 +46,7 @@ slow except for very small payloads.
 
 
 > disconnect :: PGconn -> IO ()
-> disconnect conn = pqFinish conn
+> disconnect = pqFinish
 
 > withConnection :: String -> (PGconn -> IO c) -> IO (Either String c)
 > withConnection s f =
@@ -55,7 +55,7 @@ slow except for very small payloads.
 >                                     Right c -> disconnect c)
 >           (\c -> case c of
 >                    Left e -> return $ Left e
->                    Right cn -> f cn >>= return . Right)
+>                    Right cn -> fmap Right $ f cn)
 
 > putCopyStringData :: PGconn -> ExecStatusType -> String -> IO (Either String ())
 > putCopyStringData conn cst cd =

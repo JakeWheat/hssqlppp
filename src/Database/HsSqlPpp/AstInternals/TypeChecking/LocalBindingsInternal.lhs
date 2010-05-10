@@ -146,7 +146,7 @@ This is the local bindings update that users of this module use.
 >       fids1 = map (\(n,t) -> (n, Right (src,maybe [n] (: [n]) cn, t))) ids
 >       mc c = (c, Right (src, [c], CompositeType ids))
 > updateStuff _ (LBTref src al ids sids) =
->     return (fids,(Right pids))
+>     return (fids,Right pids)
 >     where
 >       fids = mc : fids1
 >       fids1 = map (\(n,t) -> (n, Right (src,[al,n],t))) $ ids ++ sids
@@ -169,7 +169,7 @@ This is the local bindings update that users of this module use.
 >       ids = jids1 ++ rj ids1 ++ rj ids2
 >   --make the star expansion
 >       rj1 :: [FullId] -> [FullId]
->       rj1 = filter $ (\(_,n,_t) -> last n `notElem` jnames)
+>       rj1 = filter $ \(_,n,_t) -> last n `notElem` jnames
 >       se = map snd jids1 ++ map return (rj1 se1) ++ map return (rj1 se2)
 >   return (ids, sequence se)
 
@@ -177,7 +177,7 @@ This is the local bindings update that users of this module use.
 ================================================================================
 
 > lbExpandStar :: LocalBindings -> E [FullId]
-> lbExpandStar (LocalBindings _ ((LocalBindingsLookup _ x) : _)) = x
+> lbExpandStar (LocalBindings _ (LocalBindingsLookup _ x : _)) = x
 > lbExpandStar _ = Left [BadStarExpand]
 
 ================================================================================
@@ -188,9 +188,7 @@ This is the local bindings update that users of this module use.
 >     in lkp1 ls $ mtl i
 >     where
 >       lkp1 :: [[IDLookup]] -> String -> E FullId
->       lkp1 (l:ls) i1 = case lookup i1 l of
->                          Nothing -> lkp1 ls i1
->                          Just x -> x
+>       lkp1 (l:ls) i1 = fromMaybe (lkp1 ls i1) (lookup i1 l)
 >       lkp1 [] _ = Left [UnrecognisedIdentifier i]
 >       getLbIdl (LocalBindingsLookup x _) = x
 

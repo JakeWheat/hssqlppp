@@ -12,7 +12,6 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 > import Control.Monad
 > import System.Environment
 > import Data.List hiding (find)
-> import Data.Ord
 
 > import Text.DocTool.DocTool
 > import TestFileProcessor
@@ -33,7 +32,7 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 > fileList :: IO [OutputFile]
 > fileList = do
 >   doesDirectoryExist "hssqlppp" >>=
->     \l -> when l $ removeDirectoryRecursive "hssqlppp"
+>     flip when (removeDirectoryRecursive "hssqlppp")
 >   wso <- doF "docs/website/" (makeRelative "docs/website/")
 >   src' <- doF "src/" ("source" </>)
 >   let src = removeMatches ["src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"] src'
@@ -55,16 +54,18 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 >             ,OutputFile (Text qq)
 >                         Txt "hssqlppp/QuasiQuoteTests.html"
 >                         "HsSqlPpp quasiquotation examples"]
->   trch1 <- getTransformedChaosSql
->            >>= return . map (\(title,fn,txt) ->
->                                  OutputFile (Text txt) Txt ("hssqlppp/source" </> fn) title)
+>   trch1 <- flip fmap getTransformedChaosSql
+>                 $ map $ \(title, fn, txt) ->
+>                           OutputFile (Text txt)
+>                                      Txt
+>                                      ("hssqlppp/source" </> fn)
+>                                      title
 >   return $ tfp ++ src ++ trch1 ++ wso ++  ex ++ devel ++ tests
 >   where
 >     removeMatches :: [String] -> [OutputFile] -> [OutputFile]
 >     removeMatches bads =
 >       filter (\(OutputFile (File fn) _ _ _) -> fn `notElem` bads)
->     doF fl c = find always supportedFileP fl
->                >>= return . map (toOf c)
+>     doF fl c = fmap (map $ toOf c) $ find always supportedFileP fl
 >     ft f = case map toLower (takeExtension f) of
 >              ".sql" -> Sql
 >              ".lhs" -> Lhs
@@ -110,8 +111,8 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 >            compareLists [] _ = error "error"
 >            compareLists _ [] = error "error"
 >            compareLists [c] [d] = compare c d
->            compareLists [c] (d:d1:_) = LT
->            compareLists (c:c1:_) [d] = GT
+>            compareLists [_] (_:_:_) = LT
+>            compareLists (_:_:_) [_] = GT
 >            compareLists (c:cs) (d:ds) = case compare c d of
 >                                           LT -> LT
 >                                           GT -> GT

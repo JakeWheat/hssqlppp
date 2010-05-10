@@ -22,6 +22,6 @@ SEM Statement
                            (LBIds "declarations" @lb $ mapMaybe lv @vars.defs)
                            @lhs.lib
                   where
-                    lv (s,Nothing) = Nothing
+                    lv (_,Nothing) = Nothing
                     lv (s,Just t) = Just (s,t)
 

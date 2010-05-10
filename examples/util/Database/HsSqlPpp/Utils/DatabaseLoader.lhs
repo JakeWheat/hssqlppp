@@ -8,8 +8,6 @@ PostgreSQL.
 >     ,loadAstN
 >     ) where
 >
-> import System.Directory
-> import Control.Exception
 > import Debug.Trace
 > import qualified Database.HDBC.PostgreSQL as Pg
 >
@@ -41,9 +39,10 @@ The main routine, which takes an AST and loads it into a database using HDBC.
 >     withTransaction conn $ \c1 -> do-}
 >        mapM_ (loadStatement c) $ hackStatements ast
 >   where
->     loadStatement conn (Regular st) = do
->       runSqlCommand conn $ let a = printSql [st]
->                            in trace a $ a
+>     loadStatement conn (Regular st) =
+>       runSqlCommand conn $ printSql [st]
+>                            {-let a = printSql [st]
+>                            in trace a $ a -}
 >     loadStatement conn (CopyHack cpSt (CopyData _ s)) = do
 >       let c1 = connToPqConn conn
 >       r <- exec c1 $ printSql [cpSt]
@@ -53,9 +52,9 @@ The main routine, which takes an AST and loads it into a database using HDBC.
 
 > loadAstN :: String -> [Statement] -> IO ()
 > loadAstN dbName ast =
->   withConn ("dbname=" ++ dbName) $ \conn ->
->     withTransaction conn $ \c1 ->
->       loadAst c1 ast
+>   withConn ("dbname=" ++ dbName)
+>     $ flip withTransaction
+>       $ flip loadAst ast
 
 todo: change the hack so that we can create a hdbc-postgresql
 connection out of a PGconn, this will be much less invasive to

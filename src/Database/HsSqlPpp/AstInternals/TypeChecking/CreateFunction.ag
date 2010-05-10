@@ -61,7 +61,7 @@ SEM Statement
     | CreateFunction
         --add the parameters to the catalog for the contained statements
         body.lib = either (const @lhs.lib) id $ do
-                   rt <- lmt @rettype.namedType
+                   _ <- lmt @rettype.namedType
                    lbUpdate @lhs.cat (LBIds (@name ++ " parameters") (Just @name) paramsNoPos) @lhs.lib
                    >>= lbUpdate @lhs.cat (LBIds (@name ++ " parameters") Nothing paramsPosOnly)
                    where

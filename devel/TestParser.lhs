@@ -10,12 +10,12 @@
 
 > main :: IO()
 > main = do
->   flip mapM_ [t1,t2,t3,t4,t5,t6] $ \t -> do
+>   forM_ [t1,t2,t3,t4,t5,t6] $ \t -> do
 >     putStrLn "-------------"
 >     putStrLn t
 >     let p = parseSource "{-" "-}" t
 >     putStrLn $ either show (intercalate "\n" . map show) p
->   flip mapM_ [s1] $ \t -> do
+>   forM_ [s1] $ \t -> do
 >     putStrLn "-------------"
 >     putStrLn t
 >     let p = parseSource "/*" "*/" t

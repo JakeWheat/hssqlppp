@@ -114,9 +114,9 @@ parsing code
 > dTable = DTable
 >          <$> idString
 >          <*> option [] (symbol ":" *> commaSep1 idString)
->          <*> (option []
+>          <*> option []
 >                      (parens (commaSep
->                              (attributeDef <$> tableAttribute))))
+>                              (attributeDef <$> tableAttribute)))
 >              <* symbol ";"
 >
 > mutualExclusion :: MyParser D6nfStatement

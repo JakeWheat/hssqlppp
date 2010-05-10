@@ -56,7 +56,7 @@ compile time.
 >   "</table>"
 >   where
 >     rowToHtml (Row rws) =
->         let w = 100 `div` (length rws)
+>         let w = 100 `div` length rws
 >             md r = "<td style='width:" ++
 >                      show w ++ "%'>" ++ concatMap tToH r ++
 >                      "</td>"

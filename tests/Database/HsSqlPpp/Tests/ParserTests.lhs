@@ -598,8 +598,8 @@ select statements
 >                                                 ,qi "p" "y"])
 >                                          (Tref ea (i "pos") NoAlias)]
 >      ,s "select ($1).x, ($1).y from pos;"
->         [SelectStatement ea $ selectFrom (selEL [FunCall ea "." [(PositionalArg ea 1), i "x"]
->                                                 ,FunCall ea "." [(PositionalArg ea 1), i "y"]])
+>         [SelectStatement ea $ selectFrom (selEL [FunCall ea "." [PositionalArg ea 1, i "x"]
+>                                                 ,FunCall ea "." [PositionalArg ea 1, i "y"]])
 >                                          (Tref ea (i "pos") NoAlias)]
 >      ,s "select row_number() over(), x from tb;"
 >       [SelectStatement ea $ selectFrom
@@ -1162,8 +1162,9 @@ quick sanity check
 >      ,f "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
->       [If ea [((FunCall ea "=" [Identifier ea "a", Identifier ea "b"])
->           ,[Update ea (i "c") [FunCall ea "=" [Identifier ea "d", Identifier ea "e"]] [] Nothing Nothing])]
+>       [If ea [(FunCall ea "=" [Identifier ea "a", Identifier ea "b"]
+>               ,[Update ea (i "c") [FunCall ea "=" [Identifier ea "d"
+>                                                   ,Identifier ea "e"]] [] Nothing Nothing])]
 >        []]
 >      ,f "if true then\n\
 >         \  null;\n\

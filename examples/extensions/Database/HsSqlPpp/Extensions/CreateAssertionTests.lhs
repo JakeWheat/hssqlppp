@@ -1,7 +1,7 @@
 
 The test/examples for create assertion
 
-> {-# LANGUAGE ViewPatterns, QuasiQuotes, ScopedTypeVariables #-}
+> {-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Extensions.CreateAssertionTests
 >     (createAssertionExamples) where
 >
@@ -15,11 +15,11 @@ The test/examples for create assertion
 >
 > createAssertionExamples :: [ExtensionTest]
 > createAssertionExamples = [cardinalityExample
->                              ,doubleCardinalityExample
->                              ,simpleViewExample
->                              ,simpleFunctionExample
->                              ,simpleMultiConstraint
->                              ,threewayMultiConstraint]
+>                           ,doubleCardinalityExample
+>                           ,simpleViewExample
+>                           ,simpleFunctionExample
+>                           ,simpleMultiConstraint
+>                           ,threewayMultiConstraint]
 
 
 we don't check the constraints work yet, only that the apparently

@@ -7,7 +7,7 @@
 > import Database.HsSqlPpp.Tests.TypeCheckTests
 > import Database.HsSqlPpp.Extensions.ExtensionTests
 > import Database.HsSqlPpp.Tests.ParameterizedStatementTests
-> import Database.HsSqlPpp.Tests.RoundtripTests
+> --import Database.HsSqlPpp.Tests.RoundtripTests
 > import Database.HsSqlPpp.Tests.LocalBindingsTests
 > import Database.HsSqlPpp.Tests.QuasiQuoteTests
 > import Database.HsSqlPpp.Tests.TypeInferenceTests

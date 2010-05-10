@@ -160,7 +160,7 @@ against.
 >                     (_,a,t,x) <- lookupFn fnName argsType
 >                     _ <- lookupFn "<=" [t,t]
 >                     return ("greatest",a,t,x)
->               "!rowctor" -> return $ ("!rowCtor", argsType, AnonymousRecordType argsType, False)
+>               "!rowctor" -> return ("!rowCtor", argsType, AnonymousRecordType argsType, False)
 >                     -- special case the row comparison ops
 >                     -- this needs to be fixed: we want to match
 >                     -- any implicit casts to functions on composite types
@@ -179,8 +179,8 @@ against.
 >       lookupReturnType :: String -> [Type] -> Either [TypeError] Type
 >       lookupReturnType s1 args = fmap (\(_,_,r,_) -> r) $ lookupFn s1 args
 >       lookupFn :: String -> [Type] -> Either [TypeError] FunctionPrototype
->       lookupFn s1 args = findCallMatch1 cat
->                              (if s1 == "u-" then "-" else s1) args
+>       lookupFn s1 = findCallMatch1 cat
+>                              (if s1 == "u-" then "-" else s1)
 >       fnName = map toLower fnName'
 >       -- help the type inference for rowCtors. pretty unfinished. If we compare
 >       -- two compatible row constructors, then replace any unknown types with the
@@ -371,7 +371,7 @@ against.
 >                 let argPairs = zip inArgs fnArgs
 >                     typeList :: [Type]
 >                     typeList = catMaybes $ flip map argPairs
->                                  (\(ia,fa) -> case fa of
+>                                  $ \(ia,fa) -> case fa of
 >                                                   Pseudo Any -> if isArrayType ia
 >                                                                 then eitherToMaybe $ unwrapArray ia
 >                                                                 else Just ia
@@ -381,7 +381,7 @@ against.
 >                                                                        else Just ia
 >                                                   Pseudo AnyEnum -> Nothing
 >                                                   Pseudo AnyNonArray -> Just ia
->                                                   _ -> Nothing)
+>                                                   _ -> Nothing
 >                 in {-trace ("\nresolve types: " ++ show typeList ++ "\n") $-}
 >                    case resolveResultSetType cat typeList of
 >                      Left _ -> Nothing
@@ -588,7 +588,7 @@ cast empty array, where else can an empty array work?
 >                    _ -> from
 >     errorWhen (length f /= length to)
 >               [WrongNumberOfColumns]
->     let ls = concat $ lefts $ map (uncurry (checkAssignmentValid cat)) $ zip f to
+>     let ls = concat $ lefts $ zipWith (checkAssignmentValid cat) f to
 >     errorWhen (not (null ls)) ls
 
 
