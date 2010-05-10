@@ -5,7 +5,9 @@ Some simple wrappers around HDBC for the code to use.
 >     (withConn
 >     ,selectRelation
 >     ,runSqlCommand
->     ,withTransaction) where
+>     ,withTransaction
+>     ,Pg.Connection
+>     ,IConnection) where
 >
 > import qualified Database.HDBC.PostgreSQL as Pg
 > import Database.HDBC

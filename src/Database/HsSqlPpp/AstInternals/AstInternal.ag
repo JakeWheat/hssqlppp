@@ -1,12 +1,13 @@
 {-
 
+
 This file contains the ast nodes, and the api functions to pass an ast
 and get back type information.
 
 It uses the Utrecht University Attribute Grammar system:
 
-http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem
-http://www.haskell.org/haskellwiki/The_Monad.Reader/Issue4/Why_Attribute_Grammars_Matter
+* http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem
+* http://www.haskell.org/haskellwiki/The_Monad.Reader/Issue4/Why_Attribute_Grammars_Matter
 
 The attr and sem definitions are in TypeChecking.ag, which is included
 into this file.
@@ -26,6 +27,10 @@ cycles - it's bad if you get any of these, and genlinepragmas mean
 that you'll be able to view the original source ag positions when
 there are errors or warnings compiling the generated hs file, which
 you want much more often than not).
+
+Depending on the alignment of the planets, you might need to use
+
+uuagc  -dcfwsp AstInternal.ag
 
 (install uuagc with
 cabal install uuagc

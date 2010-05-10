@@ -36,7 +36,7 @@ Description:
     .
     Building the binaries using cabal is _very_ slow. They are
     included here mainly to document all the extra package
-    dependencies they have
+    dependencies they have.
 
 extra-source-files:  README
                      LICENSE

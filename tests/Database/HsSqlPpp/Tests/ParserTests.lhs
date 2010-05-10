@@ -2,9 +2,10 @@
 The automated tests, uses hunit to check a bunch of text expressions
 and sql statements parse to the correct tree, and then checks pretty
 printing and then reparsing gives the same tree. The code was mostly
-written in a tdd style, which the coverage of the tests reflects.
+written almost in tdd style, which the order/ coverage of these tests
+reflects.
 
-There are no tests for invalid sql at the moment.
+There are no tests for invalid syntax at the moment.
 
 > {-# LANGUAGE QuasiQuotes #-}
 >

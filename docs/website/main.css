@@ -47,6 +47,10 @@ pre {
   padding: 0.5em;
   background-color: #f0f6f6;
 }
+.sql pre.sourceCode {
+  padding: 0.5em;
+  background-color: #f0f6f6;
+}
 .GeneratedSql .SqlPostgresql pre.sourceCode, .SqlPostgresql .GeneratedSql pre.sourceCode {
   padding: 0.5em;
   background-color: #f0f6e0;

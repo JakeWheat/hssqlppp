@@ -1,5 +1,6 @@
 {-
 
+
 This file contains the checking for tablerefs (the from part of a
 select expression).
 

@@ -5,6 +5,7 @@ PostgreSQL.
 
 > module Database.HsSqlPpp.Utils.DatabaseLoader
 >     (loadAst
+>     ,loadAstN
 >     ) where
 >
 > import System.Directory
@@ -34,14 +35,11 @@ Small hack to use pg lib to do copy from stdin
 
 The main routine, which takes an AST and loads it into a database using HDBC.
 
-> connToPqConn :: Pg.Connection -> PGconn
-> connToPqConn = makePGConn . Pg.pgConn
-
-> loadAst :: String -> [Statement] -> IO ()
-> loadAst dbName ast =
->   withConn ("dbname=" ++ dbName) $ \conn ->
->     withTransaction conn $ \c1 -> do
->        mapM_ (loadStatement conn) $ hackStatements ast
+> loadAst :: Pg.Connection -> [Statement] -> IO ()
+> loadAst c ast =
+>   {-withConn ("dbname=" ++ dbName) $ \conn ->
+>     withTransaction conn $ \c1 -> do-}
+>        mapM_ (loadStatement c) $ hackStatements ast
 >   where
 >     loadStatement conn (Regular st) = do
 >       runSqlCommand conn $ let a = printSql [st]
@@ -53,9 +51,18 @@ The main routine, which takes an AST and loads it into a database using HDBC.
 >       either (error . show) (const $ return ()) r2
 >     loadStatement _ x = error $ "got bad copy hack: " ++ show x
 
+> loadAstN :: String -> [Statement] -> IO ()
+> loadAstN dbName ast =
+>   withConn ("dbname=" ++ dbName) $ \conn ->
+>     withTransaction conn $ \c1 ->
+>       loadAst c1 ast
+
 todo: change the hack so that we can create a hdbc-postgresql
 connection out of a PGconn, this will be much less invasive to
 hdbc-postgresql
+
+> connToPqConn :: Pg.Connection -> PGconn
+> connToPqConn = makePGConn . Pg.pgConn
 
 diff for hdbc-postgresql-2.2.3.1 to add the ability to get the
 PGconn ptr out of a hdbc-postgresql connection

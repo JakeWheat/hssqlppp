@@ -3,7 +3,7 @@
 
 
 This file is auto generated, to regenerate run
-example/HsSqlSystem dbcatalog --database=template1 > src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs
+MUMBLE MUMBLE SOMETHING
 
 from the project root (i.e. where the cabal file is located).
 

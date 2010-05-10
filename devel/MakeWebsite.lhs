@@ -1,3 +1,9 @@
+Make the website,
+
+To compile and run, use something like:
+
+time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/MakeWebsite.lhs && time devel/MakeWebsite +RTS -N
+
 
 > import System.FilePath.Find
 > import System.FilePath
@@ -29,7 +35,11 @@
 >     \l -> when l $ removeDirectoryRecursive "hssqlppp"
 >   wso <- doF "docs/website/" (makeRelative "docs/website/")
 >   src <- doF "src/" ("source" </>)
->   ex <- doF "examples/" ("source" </>)
+>   ex' <- doF "examples/" ("source" </>)
+>   let ex = filter (\(OutputFile (File fn) _ _ _) -> fn `notElem`
+>                    ["util/Database/HsSqlPpp/Utils/PQ.chs.h"
+>                    ,"util/Database/HsSqlPpp/Utils/PQ.hs"]) ex'
+
 >   devel <- doF "devel/" ("source" </>)
 >   tests <- doF "tests/" ("source" </>)
 

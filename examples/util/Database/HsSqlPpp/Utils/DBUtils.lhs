@@ -7,6 +7,7 @@ with postgres.
 >     (loadSqlUsingPsql
 >     ,loadSqlUsingPsqlFromFile
 >     ,clearDB
+>     ,clearDBN
 >     ,pgDump
 >     ,readCatalog) where
 >
@@ -39,9 +40,9 @@ with postgres.
 >     ExitSuccess -> return $ Right ""
 >
 > -- | use a dodgy hack to clear the database given
-> clearDB :: String -> IO ()
-> clearDB db =
->   withConn ("dbname=" ++ db) $ \conn -> do
+> clearDB :: IConnection conn => conn -> IO ()
+> clearDB conn = do
+>   --withConn ("dbname=" ++ db) $ \conn -> do
 >     --runSqlCommand conn "create language plpgsql;"
 >     runSqlCommand conn [$here|
 \begin{code}
@@ -56,6 +57,11 @@ $$ language plpgsql;
 \end{code}
 >                        |]
 >     runSqlCommand conn "select drop_all_user();"
+
+> clearDBN :: String -> IO ()
+> clearDBN db = do
+>   withConn ("dbname=" ++ db) clearDB
+
 >
 > -- | dump the given database to sql source using pg_dump
 > pgDump :: String -> IO String

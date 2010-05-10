@@ -46,12 +46,20 @@ cast and conversion logic:
 
 = Example description
 
-TODO:
+This code snippet loads sql from a file, parses and type checks it:
 
-add source code snippet for parsing and typechecking, give commentary
-on what code is used when it is run
+~~~~{.haskell}
 
+TODO
 
+~~~~
+
+process:
+
+* call parse in file ...
+* this uses the lexer in file ...
+* produces an ast, types in this file
+* then the type checker uses this ag file, and these files to do the typechecking
 
 = Development tools:
 

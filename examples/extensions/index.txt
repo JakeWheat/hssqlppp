@@ -1,4 +1,15 @@
-Some sample extensions
+SQL Extensions
+--------------
+
+Some examples to write extensions to plpgsql using ast
+transforms. (Being able to do this was the original motivation for
+writing HsSqlPpp.) These give plenty of examples of using
+quasiquotation.
+
+[CreateVarSimple](Database/HsSqlPpp/Extensions/CreateVarSimple.lhs.html).
+Demonstration extension.
+
+Files:
 
 * [Database/HsSqlPpp/Extensions/AlternateInsert.lhs](Database/HsSqlPpp/Extensions/AlternateInsert.lhs.html)
 * [Database/HsSqlPpp/Extensions/AstUtils.lhs](Database/HsSqlPpp/Extensions/AstUtils.lhs.html)

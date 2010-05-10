@@ -28,6 +28,7 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 > import Database.HsSqlPpp.Utils.DatabaseLoader
 > --import Database.HsSqlPpp.WrapperGen
 > import Database.HsSqlPpp.Utils.DBUtils
+> import Database.HsSqlPpp.Utils.DbmsCommon
 >
 > import Database.HsSqlPpp.Chaos.ChaosExtensions
 > import Database.HsSqlPpp.Chaos.ChaosFiles
@@ -45,23 +46,25 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 >     ["reset"] -> reset
 >     ["sql"] -> sql
 >     ["check"] -> check
->     ["clear"] -> clearDB databaseName
+>     ["clear"] -> withConn ("dbname=" ++ databaseName) clearDB
 >     x -> putStrLn $ "don't understand " ++ show x
 
 -------------------------------------------------------------------------------
 
 > reset :: IO ()
-> reset = wrapETs $ do
->   let db = databaseName
+> reset =
+>   withConn ("dbname=" ++ databaseName) $ \c ->
+>   withTransaction c $ \conn -> wrapETs $ do
 >   --clear the db and get the transformed ast
+
 >   liftIO $ do
 >     hSetBuffering stdout NoBuffering
->     clearDB db
+>     clearDB conn
 >   ast <- mapM (\f -> (liftIO . readInput) f >>=
 >                  tsl . P.parseSql f) chaosFiles >>=
 >      return . (concat |>
 >                chaosExtensions)
->   liftIO $ loadAst db ast
+>   liftIO $ loadAst conn ast
 >   return ()
 
 

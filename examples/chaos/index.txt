@@ -16,9 +16,9 @@ transformed into normal sql, loaded into a database which then passes
 all the tests for the project.
 
 The transformations are effected by the function in this file:
-[ChaosExtensions](website/pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/ChaosExtensions.lhs.html)
+[ChaosExtensions](Database/HsSqlPpp/Chaos/ChaosExtensions.lhs.html)
 which in turn also uses most of the other extensions in this folder:
-[Extensions](website/pandoc_source/examples/Database/HsSqlPpp/Examples/Extensions/)
+[Extensions](website/source/examples/extensions/Database/HsSqlPpp/Extensions/)
 
 The presentation here is slightly flakey in places. It attempts to
 take the final sql post transform, and merge in the original sql
@@ -31,8 +31,8 @@ The files are listed in order.
 some boilerplate
 ----------------
 
-* [Metadata](chaos/server/Metadata.sql.html) - [Transformed
-  Metadata](chaos/server/Metadata.sql.tr.html)
+* [Metadata](sql/chaos/server/Metadata.sql.html) - [Transformed
+  Metadata](sql/chaos/server/Metadata.sql.tr.html)
 
 read only data
 --------------
@@ -41,10 +41,10 @@ These define all the constant data which doesn't change either during
 a game or from one game to the next. These are the piece prototypes,
 and the spells.
 
-* [PiecePrototypes](chaos/server/PiecePrototypes.sql.html) -
+* [PiecePrototypes](sql/chaos/server/PiecePrototypes.sql.html) -
   [Transformed
-  PiecePrototypes](chaos/server/PiecePrototypes.sql.tr.html)
-* [Spells](chaos/server/Spells.sql.html) - [Transformed Spells](chaos/server/Spells.sql.tr.html)
+  PiecePrototypes](sql/chaos/server/PiecePrototypes.sql.tr.html)
+* [Spells](sql/chaos/server/Spells.sql.html) - [Transformed Spells](sql/chaos/server/Spells.sql.tr.html)
 
 Game data
 ---------
@@ -52,12 +52,12 @@ Game data
 This is the data which describes a individual game. The game data
 includes the turn sequence stuff also.
 
-* [GlobalData](chaos/server/GlobalData.sql.html) - [Transformed
-  GlobalData](chaos/server/GlobalData.sql.tr.html)
-* [Wizards](chaos/server/Wizards.sql.html) - [Transformed
-  Wizards](chaos/server/Wizards.sql.tr.html)
-* [Pieces](chaos/server/Pieces.sql.html) - [Transformed
-  Pieces](chaos/server/Pieces.sql.tr.html)
+* [GlobalData](sql/chaos/server/GlobalData.sql.html) - [Transformed
+  GlobalData](sql/chaos/server/GlobalData.sql.tr.html)
+* [Wizards](sql/chaos/server/Wizards.sql.html) - [Transformed
+  Wizards](sql/chaos/server/Wizards.sql.tr.html)
+* [Pieces](sql/chaos/server/Pieces.sql.html) - [Transformed
+  Pieces](sql/chaos/server/Pieces.sql.tr.html)
 
 turn sequence
 -------------
@@ -67,8 +67,8 @@ slightly involved. Roughly. each wizard chooses a spell in turn, then
 each casts the spell in turn, then each wizard moves all his pieces in
 turn.
 
-* [TurnSequence](chaos/server/TurnSequence.sql.html) - [Transformed
-  TurnSequence](chaos/server/TurnSequence.sql.tr.html)
+* [TurnSequence](sql/chaos/server/TurnSequence.sql.html) - [Transformed
+  TurnSequence](sql/chaos/server/TurnSequence.sql.tr.html)
 
 actions
 -------
@@ -78,53 +78,53 @@ in the code). Some are the turn sequence module, the rest are here.
 
 Code to help with testing actions:
 
-* [TestSupport](chaos/server/actions/TestSupport.sql.html) -
+* [TestSupport](sql/chaos/server/actions/TestSupport.sql.html) -
   [Transformed
-  TestSupport](chaos/server/actions/TestSupport.sql.tr.html)
+  TestSupport](sql/chaos/server/actions/TestSupport.sql.tr.html)
 
 In addition to all the constraints, all the actions have precondition
 checks, which also double as guidance to the ui to what actions are
 possible to call at a given time.
 
-* [SquaresValid](chaos/server/actions/SquaresValid.sql.html) - [Transformed
-  SquaresValid](chaos/server/actions/SquaresValid.sql.tr.html)
+* [SquaresValid](sql/chaos/server/actions/SquaresValid.sql.html) - [Transformed
+  SquaresValid](sql/chaos/server/actions/SquaresValid.sql.tr.html)
 
 Next phase:
 
-* [NextPhase](chaos/server/actions/NextPhase.sql.html) - [Transformed
-  NextPhase](chaos/server/actions/NextPhase.sql.tr.html)
+* [NextPhase](sql/chaos/server/actions/NextPhase.sql.html) - [Transformed
+  NextPhase](sql/chaos/server/actions/NextPhase.sql.tr.html)
 
 Actions for each phase:
 
-* [SpellChoice](chaos/server/actions/SpellChoice.sql.html) - [Transformed
-  SpellChoice](chaos/server/actions/SpellChoice.sql.tr.html)
-* [SpellCast](chaos/server/actions/SpellCast.sql.html) - [Transformed
-  SpellCast](chaos/server/actions/SpellCast.sql.tr.html)
-* [MovePhase](chaos/server/actions/MovePhase.sql.html) - [Transformed
-  MovePhase](chaos/server/actions/MovePhase.sql.tr.html)
-* [Autonomous](chaos/server/actions/Autonomous.sql.html) - [Transformed
-  Autonomous](chaos/server/actions/Autonomous.sql.tr.html)
+* [SpellChoice](sql/chaos/server/actions/SpellChoice.sql.html) - [Transformed
+  SpellChoice](sql/chaos/server/actions/SpellChoice.sql.tr.html)
+* [SpellCast](sql/chaos/server/actions/SpellCast.sql.html) - [Transformed
+  SpellCast](sql/chaos/server/actions/SpellCast.sql.tr.html)
+* [MovePhase](sql/chaos/server/actions/MovePhase.sql.html) - [Transformed
+  MovePhase](sql/chaos/server/actions/MovePhase.sql.tr.html)
+* [Autonomous](sql/chaos/server/actions/Autonomous.sql.html) - [Transformed
+  Autonomous](sql/chaos/server/actions/Autonomous.sql.tr.html)
 
 Some helpers for adding, changing and removing pieces:
 
-* [PieceChanges](chaos/server/actions/PieceChanges.sql.html) - [Transformed
-  PieceChanges](chaos/server/actions/PieceChanges.sql.tr.html)
+* [PieceChanges](sql/chaos/server/actions/PieceChanges.sql.html) - [Transformed
+  PieceChanges](sql/chaos/server/actions/PieceChanges.sql.tr.html)
 
 A (partial) log of what actions have been run. Bit of a poor man's
 temporal data.
 
-* [History](chaos/server/actions/History.sql.html) - [Transformed
-  History](chaos/server/actions/History.sql.tr.html)
+* [History](sql/chaos/server/actions/History.sql.html) - [Transformed
+  History](sql/chaos/server/actions/History.sql.tr.html)
 
 new game
 --------
 
 The code to setup/reset the database for a new game:
 
-* [NewGame](chaos/server/NewGame.sql.html) - [Transformed
-  NewGame](chaos/server/NewGame.sql.tr.html)
-* [TestBoards](chaos/server/TestBoards.sql.html) - [Transformed
-  TestBoards](chaos/server/TestBoards.sql.tr.html)
+* [NewGame](sql/chaos/server/NewGame.sql.html) - [Transformed
+  NewGame](sql/chaos/server/NewGame.sql.tr.html)
+* [TestBoards](sql/chaos/server/TestBoards.sql.html) - [Transformed
+  TestBoards](sql/chaos/server/TestBoards.sql.tr.html)
 
 ai
 --
@@ -132,8 +132,8 @@ ai
 The code to implement the ai for the computer controlled wizards (in
 sql? Call the men in white coats).
 
-* [AI](chaos/server/AI.sql.html) - [Transformed
-  AI](chaos/server/AI.sql.tr.html)
+* [AI](sql/chaos/server/AI.sql.html) - [Transformed
+  AI](sql/chaos/server/AI.sql.tr.html)
 
 
 
@@ -149,47 +149,47 @@ removal. There is quite a lot of important ui logic in here still.
 lists the sprites, this is the stuff that works quite well since we
 use foreign keys to tighten things up:
 
-* [Sprites](chaos/client/Sprites.sql.html) - [Transformed
-  Sprites](chaos/client/Sprites.sql.tr.html)
+* [Sprites](sql/chaos/client/Sprites.sql.html) - [Transformed
+  Sprites](sql/chaos/client/Sprites.sql.tr.html)
 
 additional ui only information for each wizard, e.g. sprite, colour
 
-* [WizardDisplayInfo](chaos/client/WizardDisplayInfo.sql.html) -
+* [WizardDisplayInfo](sql/chaos/client/WizardDisplayInfo.sql.html) -
   [Transformed
-  WizardDisplayInfo](chaos/client/WizardDisplayInfo.sql.tr.html)
+  WizardDisplayInfo](sql/chaos/client/WizardDisplayInfo.sql.tr.html)
 
 A load of really half baked views and table to support a dodgy effects
 system, this is the most bizarre bit and will definitely mostly be
 going soon:
 
-* [BoardWidget](chaos/client/BoardWidget.sql.html) - [Transformed
-  BoardWidget](chaos/client/BoardWidget.sql.tr.html)
+* [BoardWidget](sql/chaos/client/BoardWidget.sql.html) - [Transformed
+  BoardWidget](sql/chaos/client/BoardWidget.sql.tr.html)
 
 Actually, this is pretty half baked too, an attempt to pack a load of
 information about the spells available to a wizard on screen:
 
-* [SpellBookWidget](chaos/client/SpellBookWidget.sql.html) -
+* [SpellBookWidget](sql/chaos/client/SpellBookWidget.sql.html) -
   [Transformed
-  SpellBookWidget](chaos/client/SpellBookWidget.sql.tr.html)
+  SpellBookWidget](sql/chaos/client/SpellBookWidget.sql.tr.html)
 
 Save the state of the new game widget in the database, this is prime
 candidate material for auto generated database structure:
 
-* [NewGameWidget](chaos/client/NewGameWidget.sql.html) - [Transformed
-  NewGameWidget](chaos/client/NewGameWidget.sql.tr.html)
+* [NewGameWidget](sql/chaos/client/NewGameWidget.sql.html) - [Transformed
+  NewGameWidget](sql/chaos/client/NewGameWidget.sql.tr.html)
 
 supplement the server actions with a few ui specific bits and
 pieces. In particular, all the mapping from keys to actions is handled
 in this code. Probably this is all or mostly going to move to Haskell
 
-* [ClientActions](chaos/client/ClientActions.sql.html) - [Transformed
-  ClientActions](chaos/client/ClientActions.sql.tr.html)
+* [ClientActions](sql/chaos/client/ClientActions.sql.html) - [Transformed
+  ClientActions](sql/chaos/client/ClientActions.sql.tr.html)
 
 wrapper around the new game action in the server code which also sets
 up the client supporting data, e.g. the wizard display info:
 
-* [ClientNewGame](chaos/client/ClientNewGame.sql.html) - [Transformed
-  ClientNewGame](chaos/client/ClientNewGame.sql.tr.html)
+* [ClientNewGame](sql/chaos/client/ClientNewGame.sql.html) - [Transformed
+  ClientNewGame](sql/chaos/client/ClientNewGame.sql.tr.html)
 
 = usage
 

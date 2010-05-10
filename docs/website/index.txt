@@ -9,13 +9,19 @@ licensed.
 version, to be 0.3.0, which isn't on HackageDB. You can download it
 using:*
 
-This documentation is a work in progress.
-
 ~~~~~{.sh}
 bzr branch lp:~jakewheat/hssqlppp/trunk
 ~~~~~
 
-Possible uses include:
+*None of the cabal commands anywhere in this documentation will be
+ correct until 0.3.0 is uploaded to hackage.*
+
+This documentation is a work in progress.
+
+Use
+===
+
+Possible uses of this library include:
 
 * parsing sql as part of another library
 * lint checking sql code
@@ -60,10 +66,10 @@ Currently limited support for quasiquoting, here are the examples:
 * [Quasiquotation examples](QuasiQuoteTests.html)
 
 The [example database for a game, Chaos
-2010](testfiles/chaos2010sql/Overview.txt.html) is an example of a
+2010](source/examples/chaos/index.txt.html) is an example of a
 smallish database which is parsed, transformed, then loaded into the
 database successfully. The extensions which it uses to transform the
-tree use quite a lot of quasiquoting.
+SQL use quite a lot of quasiquoting.
 
 Some other limitations are that the design of the AST node types is
 pretty basic, not much work has been done on correctly rejecting
@@ -78,10 +84,6 @@ Installation
 
 This project is currently developed on GHC 6.12.1.
 
-A bit of adventure for non Haskell programmers: if you don't already
-have Haskell installed, you can get it here:
-[http://hackage.haskell.org/platform/](http://hackage.haskell.org/platform/)
-
 There are cabal flags:
 
 * postgres: for omitting HDBC-postgresql - this allows you to
@@ -89,17 +91,18 @@ There are cabal flags:
   want an SQL parser
 * quasiquotes: for omitting SQL quasi quoting support - this removes
   the dependency on template-haskell (you cannot currently have hdbc
-  without quasiquotes although this would be easy to fix)
+  without quasiquotes although this would be easy to fix if useful)
 * binaries: to compile the test, development and example binaries -
   these require the two other flags plus they bring in a massive
   amount of dependencies
 
-The defaults are postgres and quasiquotes on, and binaries off.
+The defaults are postgres and quasiquotes on, and binaries off. The
+binaries take a long time to build, and are just for developing
+hssqlppp, and examples.
 
-Then use
+Use
 
 ~~~~~{.sh}
-cabal update
 cabal install hssqlppp
 ~~~~~
 
@@ -115,7 +118,19 @@ for minimal dependency version, or
 cabal install hssqlppp -fbinaries
 ~~~~~
 
-for the binaries. See XXXX for docs on the binaries.
+for the binaries. The binaries are:
+
+* [HsSqlPppUtil](source/examples/util/HsSqlPppUtil.lhs.html) - command line access to some of the parsing and
+  typechecking routines (use to check how well some sql is supported?)
+* [Tests](source/tests/Tests.lhs.html) - the automated test suite
+* [Chaos2010](source/examples/chaos/Chaos2010.lhs.html) - loader for
+  the example database, which reads a bunch of sql files, transforms
+  them, then loads them into PostgreSQL
+
+And two not very interesting ones:
+
+* [MakeWebsite](source/devel/MakeWebsite.lhs.html) - build the website from source
+* [MakeAntiNodes](source/devel/MakeAntiNodes.lhs.html) - generate a helper ast
 
 You can compile and run the binaries without installing in your path using something like:
 
@@ -126,15 +141,13 @@ cabal configure -fbinaries
 cabal build
 ~~~~~
 
-to compile and run without installing it.
-
 Documentation
 =============
 
 * [Haddock](haddock/index.html)
 
 See the [htmlized source for the library, tests, and examples](source.txt.html); has lots of
-comments, but is unpolished.
+comments but is quite rough at the moment.
 
 Useful links
 ============
@@ -144,6 +157,20 @@ Homepage: [http://community.haskell.org/%7EJakeWheat/hssqlppp/index.html](http:/
 Hackage: [http://hackage.haskell.org/package/hssqlppp](http://hackage.haskell.org/package/hssqlppp)
 
 Repository: [http://launchpad.net/hssqlppp](http://launchpad.net/hssqlppp)
+
+Future Plans
+============
+
+Provisional for 0.4.0:
+
+* add support for parsing most postgresql syntax
+* add comprehensive set of splices for quasi-quoting
+* add a fair bit to the catalog
+* fix the local bindings code, and get the type checking into decent
+  shape
+* add slightly more integrated support for custom syntax
+* report function which can be run on a big bit of sql - so you can
+  easily find out how well your sql is supported by hssqlppp
 
 Contact
 =======

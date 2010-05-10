@@ -17,7 +17,7 @@
 > --import Text.Highlighting.Kate
 > import Text.Highlighting.Illuminate
 > import Data.DateTime
-
+> import Control.Concurrent
 > import Data.List
 
 
@@ -27,7 +27,7 @@
 > docify b ofs = do
 >   t <- getCurrentTime
 >   let tm = formatDateTime "%D %T" t
->   mapM_ (\f -> putStrLn (showOf f) >> process "0.3.0" tm b f) ofs
+>   mapM_ (\f -> forkIO (process "0.3.0" tm b f >> putStrLn (showOf f))) ofs
 >          where
 >            showOf (OutputFile (Text _) _ fp _) = fp
 >            showOf (OutputFile s _ _ _) = show s
@@ -97,7 +97,7 @@
 >          case x of
 >            [] -> Nothing
 >            _ | "sql" `elem` x
->                || "SqlPostgresql" `elem` x -> Just "sql"
+>                || "SqlPostgresql" `elem` x -> Just ""
 >              | "haskell" `elem` x -> Just "haskell"
 >              | "sh" `elem` x -> Just "sh"
 >              | "c" `elem` x -> Just "c"

@@ -1,7 +1,7 @@
 
 Tests for the infrastructure to create type safe access to databases -
 the information needed is gathered during typechecking and exposed in
-the StatementType annotation, so these are really jus a subset of the
+the StatementType annotation, so these are really just a subset of the
 type checking tests.
 
 > module Database.HsSqlPpp.Tests.ParameterizedStatementTests (parameterizedStatementTests) where

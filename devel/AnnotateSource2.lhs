@@ -1,4 +1,4 @@
-Idea is to add a load of information to the source code for some sort
+Idea is to add a load of information to SQL source code for some sort
 of presentation.
 
 1) fix extensions to copy the source positions on each transformed

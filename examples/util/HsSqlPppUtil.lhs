@@ -2,7 +2,7 @@
 Command line access to a bunch of utility functions.
 
 run
-HsSqlSystem.lhs -?
+HsSqlUtil.lhs -?
 to get a list of commands and purpose and usage info
 
 > {-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables,FlexibleContexts,QuasiQuotes #-}
@@ -34,7 +34,7 @@ to get a list of commands and purpose and usage info
 command defs
 ============
 
-> data HsSqlSystem = Lex {files :: [String]}
+> data HsSqlUtil = Lex {files :: [String]}
 >                  | Parse {files :: [String]}
 >                  | ParseExpression {files :: [String]}
 >                  | Ppp {files :: [String]}
@@ -78,7 +78,7 @@ create table s (
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.sh}
-$ HsSqlSystem lex test2.sql
+$ HsSqlUtil lex test2.sql
 lexing test2.sql
 ("test2.sql" (line 1, column 1),IdStringTok "create")
 ("test2.sql" (line 1, column 8),IdStringTok "table")
@@ -140,7 +140,7 @@ create table s (
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ HsSqlSystem parse test2.sql
+$ HsSqlUtil parse test2.sql
 -- ast of test2.sql
 [CreateTable [] "s"
    [AttributeDef [] "s_no" (SimpleTypeName [] "int") Nothing
@@ -162,7 +162,7 @@ select * from s natural inner join p natural inner join sp;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ HsSqlSystem parse test3.sql
+$ HsSqlUtil parse test3.sql
 -- ast of test3.sql
 [SelectStatement []
    (Select [] Dupes (SelectList [] [SelExp [] (Identifier [] "*")] [])
@@ -191,9 +191,9 @@ select * from s natural inner join p natural inners join sp;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~ {.haskell}
-$ ./HsSqlSystem parse test3a.sql
+$ ./HsSqlUtil parse test3a.sql
 -- ast of test3a.sql
-HsSqlSystem: "test3a.sql" (line 1, column 46):
+HsSqlUtil: "test3a.sql" (line 1, column 46):
 unexpected IdStringTok "inners"
 test3a.sql:1:46:
 
@@ -229,13 +229,13 @@ examples
 --------
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ echo "test(a,v)" | HsSqlSystem parseexpression -
+$ echo "test(a,v)" | HsSqlUtil parseexpression -
 -- ast of -
 FunCall [] "test" [Identifier [] "a", Identifier [] "v"]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ echo "1+1+1" | HsSqlSystem parseexpression -
+$ echo "1+1+1" | HsSqlUtil parseexpression -
 -- ast of -
 FunCall [] "+"
   [FunCall [] "+" [IntegerLit [] 1, IntegerLit [] 1],
@@ -243,7 +243,7 @@ FunCall [] "+"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ echo "case 1 when 2 then 3 else 4 end" | HsSqlSystem parseexpression -
+$ echo "case 1 when 2 then 3 else 4 end" | HsSqlUtil parseexpression -
 -- ast of -
 CaseSimple [] (IntegerLit [] 1)
   [([IntegerLit [] 2], IntegerLit [] 3)]
@@ -251,7 +251,7 @@ CaseSimple [] (IntegerLit [] 1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ echo "3 = any (array[1,2])" | HsSqlSystem parseexpression -
+$ echo "3 = any (array[1,2])" | HsSqlUtil parseexpression -
 -- ast of -
 LiftOperator [] "=" LiftAny
   [IntegerLit [] 3,
@@ -312,7 +312,7 @@ insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ HsSqlSystem ppp test4.sql
+$ HsSqlUtil ppp test4.sql
 --ppp test4.sql
 create table s (
   s_no int primary key,
@@ -371,7 +371,7 @@ example
 -------
 
 ~~~~~~~~~~~~~~~~{.sh}
-$ HsSqlSystem pppp test4.sql
+$ HsSqlUtil pppp test4.sql
 success
 ~~~~~~~~~~~~~~~~
 
@@ -437,7 +437,7 @@ insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
 (no output for success)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-$ HsSqlSystem typecheck test4.sql
+$ HsSqlUtil typecheck test4.sql
 $
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -472,7 +472,7 @@ insert into s (s_no, sname, status, cityc) values (1, 'name', 'good', 'london');
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ HsSqlSystem typecheck test5.sql
+$ HsSqlUtil typecheck test5.sql
 test5.sql:23:15:
 [UnrecognisedRelation "s1"]
 test5.sql:25:1:
@@ -507,19 +507,19 @@ examples
 --------
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ echo "3 = any (array[1,2])" | ./HsSqlSystem typecheckexpression -
+$ echo "3 = any (array[1,2])" | ./HsSqlUtil typecheckexpression -
 ScalarType "bool"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-$ echo "test(3,'stuff'::what)" | ./HsSqlSystem typecheckexpression -
+$ echo "test(3,'stuff'::what)" | ./HsSqlUtil typecheckexpression -
 -:1:17:
 [UnknownTypeName "what"]
 TypeCheckFailed
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-$ echo "test(3,'stuff')" | ./HsSqlSystem typecheckexpression -
+$ echo "test(3,'stuff')" | ./HsSqlUtil typecheckexpression -
 -:1:5:
 [NoMatchingOperator "test" [ScalarType "int4",UnknownType]]
 TypeCheckFailed
@@ -530,12 +530,12 @@ these yet, works just like postgresql which catches this error only at
 runtime.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-$ echo "array[3,'stuff']" | ./HsSqlSystem typecheckexpression -
+$ echo "array[3,'stuff']" | ./HsSqlUtil typecheckexpression -
 ArrayType (ScalarType "int4")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-$ echo "array[3,'stuff'::text]" | ./HsSqlSystem typecheckexpression -
+$ echo "array[3,'stuff'::text]" | ./HsSqlUtil typecheckexpression -
 -:1:1:
 [NoMatchingOperator "!arrayctor" [ScalarType "int4",ScalarType "text"]]
 TypeCheckFailed
@@ -584,7 +584,7 @@ insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.haskell}
-$ ./HsSqlSystem allannotations test6.sql
+$ ./HsSqlUtil allannotations test6.sql
 [CreateTable
    [TypeAnnotation (Pseudo Void),
     CatUpdates
@@ -766,7 +766,7 @@ main
 >
 > main :: IO ()
 > main = do
->        cmd <- cmdArgs "HsSqlSystem, Copyright Jake Wheat 2010"
+>        cmd <- cmdArgs "HsSqlUtil, Copyright Jake Wheat 2010"
 >                       [lexA, parseA, ppppA, pppA,
 >                        parseExpressionA, typeCheckExpressionA,
 >                        typeCheckA,allAnnotationsA]
@@ -783,7 +783,7 @@ main
 >
 > lexA, parseA, ppppA, pppA,
 >   typeCheckA, parseExpressionA, typeCheckExpressionA,
->   allAnnotationsA :: Mode HsSqlSystem
+>   allAnnotationsA :: Mode HsSqlUtil
 
 -------------------------------------------------------------------------------
 
@@ -806,19 +806,17 @@ output: ast, sql, annotations + options
 
 
 
-think of a better name for this command than hssqlsystem
-
 want better options system:
 first set of options get passed around in reader? monad:
   database name, username, password for pg
   useextensions
   annotation control? - when showing values, which annotations to also output?
-these have defaults, can change defaults in ~/.config/hssqlsystem or something,
+these have defaults, can change defaults in ~/.config/hssqlutil or something,
 and can be overridden using --dbname=...,etc. command line args (make
 these work like psql? then have environment variables also)
 second set of options is for input and output:
 read from file(s), stdin, or from string literal command line arg, e.g.
-HsSqlSystem expressionType --src="3 + 5"
+HsSqlUtil expressionType --src="3 + 5"
 output to file(s) or stdout
 
 review command names and arguments:

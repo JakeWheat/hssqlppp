@@ -1,5 +1,6 @@
 {-
 
+
 This file contains the code that handles the select list part of a
 select expression.
 
@@ -86,9 +87,9 @@ SEM SelectList
           -- special case when the intoTypes is a single composite type
           let ft = @items.listType
           return (intoTypes,ft)
-          where
-            getIntoType :: Expression -> E (String,Type)
-            getIntoType n = do
+            where
+              getIntoType :: Expression -> E (String,Type)
+              getIntoType n = do
                             let n1 = getName n
                             t <- unwrapLookup <$> lbLookupID @lhs.lib n1
                             return (n1,t)

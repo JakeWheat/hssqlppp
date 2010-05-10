@@ -3,6 +3,13 @@
 The tests use hunit, a command line runner is available:
 [Tests.lhs](Tests.lhs.html)
 
+The main meat of the tests is in these two files:
+
+* [Database/HsSqlPpp/Tests/ParserTests.lhs](Database/HsSqlPpp/Tests/ParserTests.lhs.html)
+* [Database/HsSqlPpp/Tests/TypeCheckTests.lhs](Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html)
+
+Full file list:
+
 * [Tests.lhs](Tests.lhs.html)
 * [Database/HsSqlPpp/Tests/ExtensionTests.lhs](Database/HsSqlPpp/Tests/ExtensionTests.lhs.html)
 * [Database/HsSqlPpp/Tests/LexicalSyntaxTests.lhs](Database/HsSqlPpp/Tests/LexicalSyntaxTests.lhs.html)

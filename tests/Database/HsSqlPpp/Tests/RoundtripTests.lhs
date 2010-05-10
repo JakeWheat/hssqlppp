@@ -110,13 +110,13 @@ use create view to run through select variations
 >   -- and then using hssqlppp's database loader to load the sql into
 >   -- the database
 >   doPgTests astOrig catOrig (liftIO (loadSqlUsingPsql testDatabaseName sql >> return ()))
->   doPgTests astOrig catOrig (liftIO $ loadAst testDatabaseName astOrig)
+>   doPgTests astOrig catOrig (liftIO $ loadAstN testDatabaseName astOrig)
 >   where
 >     doPgTests :: [Statement] -> Catalog -> ErrorT String IO () -> ErrorT String IO () -- a -> a
 >     doPgTests astOrig catOrig loadIntoDb = do
 >       -- parse and type check the test sql
 >       -- load this sql into pg
->       liftIO $ clearDB testDatabaseName
+>       liftIO $ clearDBN testDatabaseName
 >       loadIntoDb
 >       -- check the catalog in pg is the same as the one from type checking
 >       catPsql <- liftIO (readCatalog testDatabaseName) >>= tsl

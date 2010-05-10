@@ -1,5 +1,6 @@
 {-
 
+
 This file contains the code for typechecking create table statements
 (and also create table as statements). It's pretty limited at the
 moment, the bits that work are:

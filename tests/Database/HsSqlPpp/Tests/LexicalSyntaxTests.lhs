@@ -1,3 +1,7 @@
+This is a stub for the combined tests/reference for what syntax is
+supported. To mainly follow the contents of the postgresql manual in
+the same order. TODO for 0.4.0
+
 
 identifiers
 

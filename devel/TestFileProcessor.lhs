@@ -96,7 +96,7 @@ compile time.
 > the right, stripped of the source position annotations.
 >
 > The source this file is generated from is here:
-> [ParserTests.lhs](website/pandoc_source/examples/Database/HsSqlPpp/Tests/ParserTests.lhs.html)
+> [ParserTests.lhs](source/tests/Database/HsSqlPpp/Tests/ParserTests.lhs.html)
 > |]
 
 > typeCheckIntro :: String
@@ -113,7 +113,7 @@ compile time.
 > It's a bit rough at the moment, the clarity will be improved.
 >
 > The source this file is generated from is here:
-> [TypeCheckTests.lhs](website/pandoc_source/examples/Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html)
+> [TypeCheckTests.lhs](source/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html)
 > |]
 
 > qqIntro :: String
@@ -123,6 +123,6 @@ compile time.
 > quasiquotes: one with antiquotes, and one with the resultant sql without antiquotes.
 >
 > The source this file is generated from is here:
-> [QuasiQuoteTests.lhs](website/pandoc_source/examples/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs.html)
+> [QuasiQuoteTests.lhs](source/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs.html)
 > |]
 

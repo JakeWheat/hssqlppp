@@ -1,6 +1,7 @@
 
 This file is a confused mess. The plan is to completely start again,
 to produce a big multi function routine which analyzes sql:
+
 * check it parses
 * lists type errors
 * produces documentation
