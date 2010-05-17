@@ -6,22 +6,17 @@ release plan:
 
 0.3.0
 
-goal is to get release as soon as possible
-mainly this involves sorting out the additional source trees and some
-   of the documentation
-
-docs -> get them displaying ok
-        fix the div rendering issue
-        get translated sql not looking crap
-        heading hack?
-        maybe fix syntax highlighting
-fix main index page
-
-wrappers: see how easy to fix up...
-add other exes to cabal
+try to get some sort of wrapper working
+check over documentation & write todo
+heading hack?
+sql syntax highlighting for illuminate?
+do new develtool exe -> runs makeantinodes, makewebsite, and generate
+  defaulttemplate1catalog lhs
+write roundtriptest exe, run with chaos and check out issues
 disable failing tests
 figure out haddock issue
 see how easy to get chaos mostly typechecking again
+hssqlppputil code is crap - fix it
 
 0.4.0
 

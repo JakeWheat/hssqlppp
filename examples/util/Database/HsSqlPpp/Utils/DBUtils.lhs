@@ -44,6 +44,8 @@ with postgres.
 > clearDB conn = do
 >   --withConn ("dbname=" ++ db) $ \conn -> do
 >     --runSqlCommand conn "create language plpgsql;"
+>     runSqlCommand conn "drop language if exists plpgsql cascade;"
+>     runSqlCommand conn "create language plpgsql;"
 >     runSqlCommand conn [$here|
 \begin{code}
 create function drop_all_user() returns void as $$
@@ -57,6 +59,7 @@ $$ language plpgsql;
 \end{code}
 >                        |]
 >     runSqlCommand conn "select drop_all_user();"
+>     runSqlCommand conn "drop language if exists plpgsql cascade;"
 
 > clearDBN :: String -> IO ()
 > clearDBN db =
@@ -66,9 +69,9 @@ $$ language plpgsql;
 > -- | dump the given database to sql source using pg_dump
 > pgDump :: String -> IO String
 > pgDump db = pipeString [("pg_dump", [db
->                                              ,"--schema-only"
->                                              ,"--no-owner"
->                                              ,"--no-privileges"])] ""
+>                                     ,"--schema-only"
+>                                     ,"--no-owner"
+>                                     ,"--no-privileges"])] ""
 
 > -- | get the catalog from the database, and return an Catalog value
 > readCatalog :: String -> IO (Either [TypeError] Catalog)

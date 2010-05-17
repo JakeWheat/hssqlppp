@@ -11,3 +11,8 @@
 >     Exts.ParseOk ast -> Exts.prettyPrint ast
 >     x -> error $ show x
 
+> ppExprT :: Show a => (Exts.Exp -> Exts.Exp) -> a -> String
+> ppExprT t s =
+>   case Exts.parseExp (show s) of
+>     Exts.ParseOk ast -> Exts.prettyPrint $ t ast
+>     x -> error $ show x

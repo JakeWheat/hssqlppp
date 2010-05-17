@@ -207,53 +207,8 @@ Library
                      CPP,
                      PatternGuards
 
-Executable MakeWebsite
-  Main-Is:           MakeWebsite.lhs
-  hs-source-dirs:    src,devel,tests,examples/chaos,examples/extensions,examples/util,examples/wrappers
-  Build-Depends:     base >= 4 && < 5,
-                     mtl,
-                     containers,
-                     parsec >= 3,
-                     pretty,
-                     syb,
-                     uniplate,
-                     HDBC,
-                     HDBC-postgresql,
-                     haskell-src-exts,
-                     template-haskell,
-                     test-framework-hunit,
-                     test-framework,
-                     HUnit,
-                     xhtml,
-                     filepath,
-                     FileManip,
-                     process,
-                     pandoc,
-                     directory,
-                     Pipe,
-                     haskell98,
-                     cmdargs,
-                     datetime,
-                     illuminate
-
-  ghc-options:       -pgmPcpphs -optP--cpp
-  cpp-options:       -DPOSTGRES
-
-  if flag(binaries)
-    Buildable:       True
-  else
-    Buildable:       False
-
-  extensions:        DeriveDataTypeable,
-                     RankNTypes,
-                     ScopedTypeVariables,
-                     FlexibleContexts,
-                     ExistentialQuantification,
-                     CPP,
-                     PatternGuards
-
-Executable MakeAntiNodes
-  Main-Is:           MakeAntiNodes.lhs
+Executable DevelTool
+  Main-Is:           DevelTool.lhs
   hs-source-dirs:    src,devel,tests,examples/chaos,examples/extensions,examples/util,examples/wrappers
   Build-Depends:     base >= 4 && < 5,
                      mtl,

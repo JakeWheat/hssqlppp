@@ -4,6 +4,7 @@ To compile and run, use something like:
 
 time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/MakeWebsite.lhs && time devel/MakeWebsite +RTS -N
 
+> module MakeWebsite (makeWebsite, sourceLinks) where
 
 > import System.FilePath.Find
 > import System.FilePath
@@ -17,16 +18,10 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 > import TestFileProcessor
 > import DoChaosSql
 
-
-> main :: IO ()
-> main = do
->   args <- getArgs
->   case args of
->     ["sourcelinks"] -> sourceLinks
->     [] -> do
+> makeWebsite :: IO ()
+> makeWebsite = do
 >           f <- fileList
 >           docify "hssqlppp/" f
->     x -> error $ "don't know" ++ show x
 
 
 > fileList :: IO [OutputFile]

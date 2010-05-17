@@ -15,7 +15,10 @@ for preprocessors examples for typesafe database access.
 The code is quite fragile and depends on the exact style (or lack of)
 of coding used in AstInternal.ag.
 
+Run this from ghci.
+
 > {-# LANGUAGE QuasiQuotes #-}
+> module MakeAntiNodes (writeAntiNodes) where
 >
 > import Language.Haskell.Exts hiding (String)
 > import qualified Language.Haskell.Exts as Exts
@@ -29,8 +32,8 @@ of coding used in AstInternal.ag.
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Utils.PPExpr
 
-> main :: IO()
-> main = makeAntiNodes >>= writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs"
+> writeAntiNodes :: IO()
+> writeAntiNodes = makeAntiNodes >>= writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs"
 
 >
 > preamble :: String

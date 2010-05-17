@@ -9,11 +9,9 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 > import System.IO
 > import Control.Monad.Error
 
-> --import Debug.Trace
 > import Data.Maybe
 > import Data.Generics.Uniplate.Data
 >
-> --import Database.HsSqlPpp.Tests.Tests
 > import Database.HsSqlPpp.Utils.Utils
 >
 > import Database.HsSqlPpp.Catalog
@@ -26,14 +24,12 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 > import Database.HsSqlPpp.PrettyPrinter
 >
 > import Database.HsSqlPpp.Utils.DatabaseLoader
-> --import Database.HsSqlPpp.WrapperGen
 > import Database.HsSqlPpp.Utils.DBUtils
 > import Database.HsSqlPpp.Utils.DbmsCommon
 >
 > import Database.HsSqlPpp.Chaos.ChaosExtensions
 > import Database.HsSqlPpp.Chaos.ChaosFiles
-
- > import Database.HsSqlPpp.Examples.Chaos2010
+> import Database.HsSqlPpp.Utils.RoundTripTester
 
 > databaseName :: String
 > databaseName = "chaos"
@@ -47,6 +43,7 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 >     ["sql"] -> sql
 >     ["check"] -> check
 >     ["clear"] -> withConn ("dbname=" ++ databaseName) clearDB
+>     ["test"] -> rtt
 >     x -> putStrLn $ "don't understand " ++ show x
 
 -------------------------------------------------------------------------------
@@ -122,3 +119,8 @@ ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:e
 >                 in if null tes
 >                    then Nothing
 >                    else Just (asrc as, tes)
+
+> rtt :: IO()
+> rtt = do
+>   rt <- roundTripTest chaosExtensions databaseName chaosFiles
+>   putStrLn $ rtShowBrief rt
