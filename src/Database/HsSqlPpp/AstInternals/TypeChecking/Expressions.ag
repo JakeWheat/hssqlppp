@@ -29,12 +29,33 @@ SEM Expression
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn FunCall
+      PositionalArg Placeholder WindowFn
       Identifier FunCall
         lhs.ntAnnotatedTree = updateAnnotation
                                  (setTypeAddErrorsA (either Left (Right . CompositeType) @loc.ntType)
                                  . \a -> a {fnProt = @loc.prototype}) @loc.backTree
         lhs.ntType = either (const []) id @loc.ntType
+
+{-SEM Expression
+    | FunCall
+        lhs.ntAnnotatedTree =
+            let bt = trace ("check " ++ show @loc.backTree)
+                     $ case @loc.backTree of
+                       FunCall a "." args@[Identifier _ _, Identifier _ _] -> let x = FunCall a "." @args.ntAnnotatedTree
+                                                              in trace ("use: " ++ show x) x
+                       _ -> trace "same same" @loc.backTree
+            in updateAnnotation
+                   (setTypeAddErrorsA (either Left (Right . CompositeType) @loc.ntType)
+                    . \a -> a {fnProt = @loc.prototype}) bt
+        lhs.ntType = either (const []) id @loc.ntType
+
+ATTR ExpressionList [||ntAnnotatedTree : ExpressionList]
+
+SEM ExpressionList
+    | Cons lhs.ntAnnotatedTree = @hd.ntAnnotatedTree : @tl.ntAnnotatedTree
+           lhs.ntTypes = @hd.ntType : @tl.ntTypes
+    | Nil lhs.ntAnnotatedTree = []
+          lhs.ntTypes = [] -}
 
 ATTR Expression [||ntAnnotatedTree : Expression
                    ntType : {[(String,Type)]}
@@ -362,6 +383,22 @@ SEM Expression
                              "" -> "?column?"
                              n -> n
                           ,t)]
+
+{-
+SEM Expression
+  | FunCall
+      loc.ntType : {E [(String,Type)]}
+      loc.ntType =
+          let t1 = do
+                   t <- @loc.tpe
+                   return [(case @loc.liftedColumnName of
+                             "" -> "?column?"
+                             n -> n
+                           ,t)]
+          in case (@loc.backTree, @args.ntTypes) of
+               (FunCall a "." [Identifier _ _, Identifier _ "*"],[_,t]) -> Right t
+               _ -> t1
+-}
 
 SEM Expression
     | PositionalArg

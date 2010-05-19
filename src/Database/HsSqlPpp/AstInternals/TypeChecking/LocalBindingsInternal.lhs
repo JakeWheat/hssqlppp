@@ -53,7 +53,7 @@ in scope, and one for an unqualified star.
 >
 > --import Control.Monad as M
 > import Control.Applicative
-> --import Debug.Trace
+> import Debug.Trace
 > import Data.List
 > import Data.Maybe
 > import Data.Char
@@ -136,7 +136,8 @@ This is the local bindings update that users of this module use.
 > lbUpdate cat u1 (LocalBindings us s) = do
 >   (ids,se) <- updateStuff cat u1
 >   return $ LocalBindings (u1 : us) (LocalBindingsLookup ids se : s)
->
+
+
 
 > updateStuff :: Catalog -> LocalBindingsUpdate -> E ([IDLookup],StarExpand)
 > updateStuff _ (LBIds src cn ids) =
@@ -178,7 +179,7 @@ This is the local bindings update that users of this module use.
 
 > lbExpandStar :: LocalBindings -> E [FullId]
 > lbExpandStar (LocalBindings _ (LocalBindingsLookup _ x : _)) = x
-> lbExpandStar _ = Left [BadStarExpand]
+> lbExpandStar x = Left [BadStarExpand]
 
 ================================================================================
 
@@ -197,15 +198,27 @@ This is the local bindings update that users of this module use.
 > lbUpdateDot :: Catalog -> String -> LocalBindings -> E LocalBindings
 > lbUpdateDot cat i lb = do
 >     (_,_,c) <- lbLookupID lb i
->     f <- lmt $ expandComposite cat c
+>     f <- lmt $ expandComposite cat True c
 >     lbUpdate cat (LBIds "dot qual" Nothing f) emptyBindings
 
-> expandComposite :: Catalog -> Type -> Maybe [(String,Type)]
-> expandComposite cat (SetOfType t) = expandComposite cat t
-> expandComposite cat (PgRecord (Just t)) = expandComposite cat t
-> expandComposite _ (CompositeType fs) = Just fs
-> expandComposite cat (NamedCompositeType n) = etmt $ catCompositeAttrs cat [] n
-> expandComposite _ _ = Nothing
+>     {-f <- lmt $ expandComposite cat True c
+>     let u1 = (LBIds "dot qual" Nothing f)
+>     (ids,_) <- updateStuff cat u1
+>     pf <- lmt $ expandComposite cat False c
+>     let se = Right $ map (\(n,t) -> ("dot qual", [i,n], t)) pf
+>     return $ LocalBindings [u1] [LocalBindingsLookup ids se]-}
+
+(Source, [String], Type)'
+           against inferred type `(String, Type)'
+
+> expandComposite :: Catalog -> Bool -> Type -> Maybe [(String,Type)]
+> expandComposite cat b (SetOfType t) = expandComposite cat b t
+> expandComposite cat b (PgRecord (Just t)) = expandComposite cat b t
+> expandComposite _ _ (CompositeType fs) = Just fs
+> expandComposite cat b (NamedCompositeType n) = etmt $ (if b
+>                                                        then catCompositeAttrs
+>                                                        else catCompositePublicAttrs) cat [] n
+> expandComposite _ _ _ = Nothing
 
 
 ================================================================================

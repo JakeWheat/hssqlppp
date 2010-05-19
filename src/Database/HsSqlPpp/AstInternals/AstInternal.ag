@@ -40,6 +40,9 @@ cabal install uuagc
 )
 
 -}
+
+{- | test
+-}
 MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
 {
     -- {-# LANGUAGE DeriveDataTypeable,RankNTypes,ScopedTypeVariables #-}
@@ -129,6 +132,7 @@ import Data.Char
 import Control.Monad.State
 
 import Data.Generics.PlateData
+import Debug.Trace
 
 import Database.HsSqlPpp.AstInternals.TypeType
 import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion

@@ -20,10 +20,11 @@ SEM Statement
         loc.columnTypes =
           do
           atts <- lmt (allAtts <$> @table.tbUType)
-          expAtts <- lmt @insData.uType
+          pAtts <- lmt (fst <$> @table.tbUType)
           tAtts <- case @targetCols of
-                        [] -> return atts
+                        [] -> return pAtts
                         _ -> mapM (lkpA atts) @targetCols
+          expAtts <- lmt @insData.uType
           checkAssignmentsValid @lhs.cat (map snd expAtts) (map snd tAtts)
           return tAtts
           where

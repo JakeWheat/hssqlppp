@@ -81,7 +81,7 @@ implicit int in for loop
 > import Data.List
 > import Data.Generics.Uniplate.Data
 
-> --import Debug.Trace
+> import Debug.Trace
 >
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Parser
@@ -89,6 +89,8 @@ implicit int in for loop
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
+> import Database.HsSqlPpp.Utils.PPExpr
+
 >
 > data Item = Group String [Item]
 >           | StmtType [CatalogUpdate] String (Either [TypeError] [Maybe StatementType])
@@ -119,6 +121,99 @@ single columns, including system columns
 >      $ Right [Just $ ([], [("b", ScalarType "text")])]
 >     ,StmtType ct "select oid from t;"
 >      $ Right [Just $ ([], [("oid", typeInt)])]
+
+multiple columns
+
+>     ,StmtType ct "select a,b from t;"
+>      $ Right [Just $ ([], cols)]
+>     ,StmtType ct "select a,b,oid from t;"
+>      $ Right [Just $ ([], cols ++ [("oid", typeInt)])]
+
+aliased columns
+
+>     ,StmtType ct "select a as c, b as d from t;"
+>      $ Right [Just $ ([], [("c",typeInt)
+>                           ,("d", ScalarType "text")])]
+>     ,StmtType ct "select a as x,b as y,oid as z from t;"
+>      $ Right [Just $ ([], [("x",typeInt)
+>                           ,("y", ScalarType "text")
+>                           ,("z", typeInt)])]
+
+qualified column references
+
+>     ,StmtType ct "select t.a from t;"
+>      $ Right [Just $ ([], [("a",typeInt)])]
+>     ,StmtType ct "select t.b from t;"
+>      $ Right [Just $ ([], [("b", ScalarType "text")])]
+>     ,StmtType ct "select t.oid from t;"
+>      $ Right [Just $ ([], [("oid", typeInt)])]
+
+star variations
+
+>     ,StmtType ct "/*cunt*/select * from t;"
+>      $ Right [Just $ ([], cols)]
+>     ,StmtType ct "/*cunt*/select t.* from t;"
+>      $ Right [Just $ ([], cols)]
+>     ,StmtType ct "select *, a as c from t;"
+>      $ Right [Just $ ([], [("a",typeInt)
+>                           ,("b", ScalarType "text")
+>                           ,("c",typeInt)])]
+
+errors: unrecognised column, unrecognised correlation name, unrecognised table
+
+>     ,StmtType ct "select c from t;"
+>      $ Left [UnrecognisedIdentifier "c"]
+>     ,StmtType ct "select c.* from t;"
+>      $ Left [UnrecognisedIdentifier "c"]
+>     ,StmtType ct "select * from u;"
+>      $ Left [UnrecognisedRelation "u"]
+
+>     ]
+
+>    where cols = [("a",typeInt)
+>                 ,("b", ScalarType "text")]
+>          ct = [CatCreateTable "t" cols [("oid", typeInt)]]
+
+= simple selects with a single aliased table:
+
+> simpleSingleAliasedTrefs :: Item
+> simpleSingleAliasedTrefs = Group "simpleSingleAliasedTrefs"
+
+qualified column references
+
+>     [StmtType ct "select u.a from t u;"
+>      $ Right [Just $ ([], [("a",typeInt)])]
+>     ,StmtType ct "select t.a from t u;"
+>      $ Left []
+>     ,StmtType ct "select u.oid from t u;"
+>      $ Right [Just $ ([], [("oid", typeInt)])]
+>     ,StmtType ct "select t.oid from t u;"
+>      $ Left []
+
+star variations
+
+>     ,StmtType ct "select t.* from t;"
+>      $ Left []
+>     ,StmtType ct "select u.* from t;"
+>      $ Right [Just $ ([], cols)]
+>     ]
+
+>    where cols = [("a",typeInt)
+>                 ,("b", ScalarType "text")]
+>          ct = [CatCreateTable "t" cols [("oid", typeInt)]]
+
+
+= simple selects with a single function:
+
+> {-simpleSingleFunTrefs :: Item
+> simpleSingleFunTrefs = Group "simpleSingleFunTrefs"
+
+single columns, including system columns
+
+>     [StmtType ct "select a from t;"
+>      $ Right [Just $ ([], [("a",typeInt)])]
+>     ,StmtType ct "select b from t;"
+>      $ Right [Just $ ([], [("b", ScalarType "text")])]
 
 multiple columns
 
@@ -198,7 +293,8 @@ star variations
 
 >    where cols = [("a",typeInt)
 >                 ,("b", ScalarType "text")]
->          ct = [CatCreateTable "t" cols [("oid", typeInt)]]
+>          ct = [CatCreateTable "t" cols [("oid", typeInt)]] -}
+
 
 
 plain references
@@ -273,7 +369,7 @@ trigger old and new hack
 >       is = map (stType . getAnnotation) aast
 >       er :: [TypeError]
 >       er = [x | x <- universeBi aast]
->   in {-trace (show aast) $ -} case (length er, length is) of
+>   in trace (ppExpr aast) $ case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er

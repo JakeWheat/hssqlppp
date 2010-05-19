@@ -14,7 +14,8 @@ errors for sql which doesn't type check.
 > import Data.List
 > import Data.Generics.Uniplate.Data
 
-> --import Debug.Trace
+> import Debug.Trace
+> import Control.Monad
 >
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Parser
@@ -22,6 +23,7 @@ errors for sql which doesn't type check.
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
+> import Database.HsSqlPpp.Utils.PPExpr
 >
 > data Item = Group String [Item]
 >           | Expr String (Either [TypeError] Type)
@@ -573,8 +575,8 @@ qualifier before oid and this should still work
 >      ,s "update pg_attrdef set adsrc='' where 1=2;"
 >         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
 >       -- TODO: actually, pg doesn't support this so need to generate error instead
->      ,s "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
->         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")]-})]
+>      {-,s "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
+>         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")]-})]-}
 >      --check where ids
 >      ,s "update pg_attrdef set adsrc='' where adsrc='';"
 >         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
@@ -1146,11 +1148,16 @@ check errors: select into wrong number of vars, wrong types, and into
 >       is = map (stType . getAnnotation) aast
 >       er :: [TypeError]
 >       er = [x | x <- universeBi aast]
->   in {-trace (show aast) $ -} case (length er, length is) of
+>   in case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
->        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
->        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
->
+>        (0,_) -> assertTrace (ppExpr aast) ("typecheck " ++ src) sis $ Right is
+>        _ -> assertTrace (ppExpr aast) ("typecheck " ++ src) sis $ Left er
+
+> assertTrace :: (Show a,Eq a) => String -> String -> a -> a -> IO ()
+> assertTrace nem s a1 a2 = do
+>     when (a1 /= a2) $ trace nem $ return ()
+>     assertEqual s a1 a2
+
 > testCatUpStatementType :: String
 >                        -> [CatalogUpdate]
 >                        -> Either [TypeError] [Maybe StatementType]

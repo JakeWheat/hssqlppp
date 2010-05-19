@@ -38,17 +38,23 @@ SEM Statement
             Just t -> checkAssignmentValid @lhs.cat fromType t
             Nothing -> return ()
           return $ Pseudo Void
-        {-sts.lib =
-            case @var.uType of
-              Left [UnrecognisedIdentifier _] ->
-                  -- create implicitly declared variable
-                  either (const @lhs.lib) id $ do
-                  ft <- lmt @from.uType
-                  lbUpdate @lhs.cat
+        loc.implicitVar = case @var.annotatedTree of -- pretty hacky
+                              Identifier a i | errs a == [UnrecognisedIdentifier i] -> True
+                              _ -> False
+        sts.lib =
+            if @loc.implicitVar
+            then either (const @lhs.lib) id $ do
+                 ft <- lmt @from.uType
+                 lbUpdate @lhs.cat
                     (LBIds "local for loop variable" Nothing [((getName @var.annotatedTree),ft)]) @lhs.lib
-              _ -> @lhs.lib-}
+            else @lhs.lib
 
-        loc.backTree = ForIntegerStatement @ann @lb @var.annotatedTree @from.annotatedTree @to.annotatedTree @sts.annotatedTree
+        loc.backTree =
+            let i = if @loc.implicitVar
+                    then let (Identifier a i) = @var.annotatedTree
+                         in Identifier a { errs = []} i
+                    else @var.annotatedTree
+            in ForIntegerStatement @ann @lb i @from.annotatedTree @to.annotatedTree @sts.annotatedTree
         loc.catUpdates = []
         loc.statementType = Nothing
 

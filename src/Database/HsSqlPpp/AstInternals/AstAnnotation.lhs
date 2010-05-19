@@ -38,12 +38,12 @@ grammar code and aren't exposed.
 > -- | Annotation type - one of these is attached to most of the
 > -- data types used in the ast.
 > data Annotation = Annotation {asrc :: Maybe SourcePosition
->                              ,atype :: Maybe Type
->                              ,errs :: [TypeError]
->                              ,stType :: Maybe StatementType
->                              ,catUpd :: [CatalogUpdate]
->                              ,fnProt :: Maybe FunctionPrototype
->                              ,infType :: Maybe Type}
+>                              ,atype :: Maybe Type -- type of the node, nothing if type error prevents determining type
+>                              ,errs :: [TypeError] -- any type errors
+>                              ,stType :: Maybe StatementType -- 'statement type' - used for getting the in and out types of a parameterized statement
+>                              ,catUpd :: [CatalogUpdate] -- any catalog updates that a ddl statement produces
+>                              ,fnProt :: Maybe FunctionPrototype -- the matched function prototype for a funcall
+>                              ,infType :: Maybe Type} -- 'inferred' type - fake type inference used for getting the type of ? placeholders in parameterized statements
 >                   deriving (Eq, Show,Typeable,Data)
 >
 > emptyAnnotation :: Annotation
