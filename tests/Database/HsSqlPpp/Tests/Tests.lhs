@@ -11,6 +11,7 @@
 > import Database.HsSqlPpp.Tests.LocalBindingsTests
 > import Database.HsSqlPpp.Tests.QuasiQuoteTests
 > import Database.HsSqlPpp.Tests.TypeInferenceTests
+> import Database.HsSqlPpp.Tests.BindingsTests
 >
 > allTests :: [Test]
 > allTests =
@@ -19,6 +20,8 @@
 >     extensionTests :
 >     quasiQuoteTests :
 >     typeInferenceTests :
+>     bindingsTests :
 >     parameterizedStatementTests ++
 >     --roundtripTests ++
 >     localBindingsTests
+

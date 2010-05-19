@@ -19,7 +19,7 @@ are not the same, and the update routine returns error if the join columns are n
 the code here handles expanding record types so that the components can be looked up
 
 The local bindings is arranged as a stack. To append to this stack,
-you use the LocalBindingsUpdate type. This is designed to be as easyas
+you use the LocalBindingsUpdate type. This is designed to be as easy as
 possible for clients to use, so as much logic as possible is pushed
 into the innards of this module, in particular most of the logic for
 working with joins is in here.

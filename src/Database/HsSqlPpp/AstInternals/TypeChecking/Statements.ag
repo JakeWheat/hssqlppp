@@ -44,6 +44,10 @@ tail. This tail is another list of statements so we just repeat until
 we get to the end. Then we pass the catalog that made it to the end
 back up the statement list
 
+localbindings are also updated here - I think the only thing this is
+used for is to track the actual composite type of a variable declared
+with record type
+
 -}
 SEM StatementList
     | Cons Nil
