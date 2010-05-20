@@ -526,6 +526,10 @@ SEM MaybeExpression
 SEM RowConstraint
     | RowCheckConstraint expr.expectedType = Nothing
 
+SEM SelectList
+    | SelectList into.expectedTypes = []
+
+
 SEM SelectItem
     | SelExp SelectItem ex.expectedType = Nothing
 

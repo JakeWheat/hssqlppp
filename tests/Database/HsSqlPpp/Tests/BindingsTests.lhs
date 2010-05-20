@@ -78,18 +78,15 @@ implicit int in for loop
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
-> import Data.List
 > import Data.Generics.Uniplate.Data
 
-> import Debug.Trace
->
-> import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
 > import Database.HsSqlPpp.Utils.PPExpr
+> import Database.HsSqlPpp.Tests.TestUtils
 
 >
 > data Item = Group String [Item]
@@ -369,9 +366,9 @@ trigger old and new hack
 >       is = map (stType . getAnnotation) aast
 >       er :: [TypeError]
 >       er = [x | x <- universeBi aast]
->   in trace (ppExpr aast) $ case (length er, length is) of
+>   in case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
->        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
+>        (0,_) -> assertTrace (ppExpr is) ("typecheck " ++ src) sis $ Right is
 >        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
 >   where
 >     makeCat = case updateCatalog defaultTemplate1Catalog eu of

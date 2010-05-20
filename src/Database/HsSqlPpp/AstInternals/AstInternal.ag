@@ -385,7 +385,7 @@ data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 
 -- select columns, into columns
 
-DATA SelectList | SelectList ann:Annotation items:SelectItemList into:{[Expression]}
+DATA SelectList | SelectList ann:Annotation items:SelectItemList into:ExpressionList
 
 DATA SelectItem | SelExp ann:Annotation ex:Expression
                 | SelectItem ann:Annotation ex:Expression name:String

@@ -13,9 +13,6 @@ errors for sql which doesn't type check.
 > import Test.Framework.Providers.HUnit
 > import Data.List
 > import Data.Generics.Uniplate.Data
-
-> import Debug.Trace
-> import Control.Monad
 >
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Parser
@@ -24,6 +21,7 @@ errors for sql which doesn't type check.
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
 > import Database.HsSqlPpp.Utils.PPExpr
+> import Database.HsSqlPpp.Tests.TestUtils
 >
 > data Item = Group String [Item]
 >           | Expr String (Either [TypeError] Type)
@@ -747,7 +745,7 @@ check type of initial values
 >         (Right [Nothing])
 >
 >
->      ,s "create function t1() returns void as $$\n\
+>      {-,s "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  r record;\n\
 >         \  t int;\n\
@@ -757,7 +755,7 @@ check type of initial values
 >         \  end loop;\n\
 >         \end;\n\
 >         \$$ language plpgsql stable;"
->         (Right [Nothing])
+>         (Right [Nothing])-}
 >
 >       -- loop var already declared
 >
@@ -1049,7 +1047,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >      ]
 
 >   ,Group "triggers" [
->       d [$here|
+>       {-d [$here|
 >          create table t1 (
 >            a int,
 >            b int,
@@ -1095,7 +1093,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >                            ,("cmin",ScalarType "cid")
 >                            ,("xmin",ScalarType "xid")
 >                            ,("ctid",ScalarType "tid")]
->       ,CatCreateFunction FunName "trig_fn" [] (Pseudo Trigger) False]
+>       ,CatCreateFunction FunName "trig_fn" [] (Pseudo Trigger) False]-}
 >      {-,s [$here|
 >          create table t1 (
 >            a int,
@@ -1152,11 +1150,6 @@ check errors: select into wrong number of vars, wrong types, and into
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertTrace (ppExpr aast) ("typecheck " ++ src) sis $ Right is
 >        _ -> assertTrace (ppExpr aast) ("typecheck " ++ src) sis $ Left er
-
-> assertTrace :: (Show a,Eq a) => String -> String -> a -> a -> IO ()
-> assertTrace nem s a1 a2 = do
->     when (a1 /= a2) $ trace nem $ return ()
->     assertEqual s a1 a2
 
 > testCatUpStatementType :: String
 >                        -> [CatalogUpdate]

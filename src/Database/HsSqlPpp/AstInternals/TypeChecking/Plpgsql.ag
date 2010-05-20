@@ -20,7 +20,7 @@ SEM Statement
         loc.tpe =
             do
             fromType <- lmt @value.uType
-            toType <- unwrapLookup <$> lbLookupID @lhs.lib (getName @target.annotatedTree)
+            toType <- lmt @target.uType --unwrapLookup <$> lbLookupID @lhs.lib (getName @target.annotatedTree)
             checkAssignmentValid @lhs.cat fromType toType
             return $ Pseudo Void
         loc.backTree = Assignment @ann @target.annotatedTree @value.annotatedTree
