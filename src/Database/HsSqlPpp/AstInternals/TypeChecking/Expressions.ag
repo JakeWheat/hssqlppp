@@ -9,6 +9,7 @@ type.
 --gather the backtree, type errors and types together and add annotations
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
+      QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn
         lhs.annotatedTree = updateAnnotation
@@ -21,6 +22,7 @@ SEM Expression
 
 SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit Identifier
+      QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn
         loc.prototype : {Maybe FunctionPrototype}
@@ -30,7 +32,8 @@ SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn
-      Identifier FunCall
+      Identifier QIdentifier
+      FunCall
         lhs.ntAnnotatedTree = updateAnnotation
                                  (setTypeAddErrorsA (either Left (Right . CompositeType) @loc.ntType)
                                  . \a -> a {fnProt = @loc.prototype}) @loc.backTree
@@ -69,7 +72,7 @@ SEM Expression
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn FunCall
-      Identifier FunCall
+      FunCall Identifier QIdentifier
         loc.tbUType : {E ([(String,Type)], [(String,Type)])}
         lhs.tbAnnotatedTree =
             updateAnnotation
@@ -85,7 +88,7 @@ SEM Expression
         loc.tbUType = case (@funName,@args.tbUTypes) of
                        (".", [_,Just t]) -> Right t
                        _ -> Left [InternalError "bad context for tbUType"]
-    | Identifier
+    | Identifier QIdentifier
         loc.tbUType = catCompositeAttrsPair @lhs.cat relationComposites @i
 
 SEM ExpressionList
@@ -98,7 +101,7 @@ ATTR ExpressionList [expectedTypes : {[Maybe Type]}||uType : {[Maybe Type]}]
 
 
 SEM Expression
-    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
+    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn
         lhs.uType = etmt @loc.tpe
@@ -131,7 +134,7 @@ SEM MaybeBoolExpression
                                else Just $ addTypeErrors [ExpressionMustBeBool] @just.annotatedTree
 
 -- life is too short
-
+{-
 ATTR AllNodes [overrideLib : {Maybe LocalBindings}||]
 ATTR AllNodes [overrideLibs : {[Maybe LocalBindings]}||]
 
@@ -158,7 +161,7 @@ SEM ExpressionList
                                _ -> Nothing
            tl.overrideLibs = case @lhs.overrideLibs of
                                _ : t -> t
-                               _ -> []
+                               _ -> [] -}
 
 {-
 == literals
@@ -341,15 +344,35 @@ attributes to get the node information to the regular ones.
 
 SEM Expression
     | Identifier
-        loc.useLib = maybe @lhs.lib id @lhs.overrideLib
-        loc.tpe = unwrapLookup <$> lbLookupID @loc.useLib @i
+        loc.tpe = unwrapLookup <$> lbLookupID @lhs.lib [@i]
         loc.backTree = Identifier @ann @i
 
         loc.ntType : {E [(String,Type)]}
         loc.ntType =
             if @i == "*"
-            then unwrapStar <$> lbExpandStar @loc.useLib
-            else (\t -> [(@i, t)]) <$> unwrapLookup <$> lbLookupID @loc.useLib @i
+            then unwrapStar <$> lbExpandStar @lhs.lib ""
+            else (\t -> [(@i, t)]) <$> unwrapLookup <$> lbLookupID @lhs.lib [@i]
+   | QIdentifier
+        loc.tpe =
+            case @loc.qid of
+              Nothing -> undefined
+              Just q ->unwrapLookup <$> lbLookupID @lhs.lib [q,@i]
+        loc.qid : {Maybe String}
+        loc.qid = case @loc.backTree of
+                     QIdentifier _ (Identifier _ q) _ -> Just q
+                     _ -> Nothing
+        loc.backTree = QIdentifier @ann @loc.qAnnTreeNoUnrec @i
+
+        loc.qAnnTreeNoUnrec = updateAnnotation (\a -> a {errs = []}) @qual.annotatedTree
+
+        loc.ntType : {E [(String,Type)]}
+        loc.ntType =
+            case @loc.qid of
+              Nothing -> undefined
+              Just q ->
+                  if @i == "*"
+                  then unwrapStar <$> lbExpandStar @lhs.lib q
+                  else (\t -> [(@i, t)]) <$> unwrapLookup <$> lbLookupID @lhs.lib [q,@i]
 
 
 SEM Expression
@@ -402,7 +425,7 @@ SEM Expression
 
 SEM Expression
     | PositionalArg
-        loc.tpe = unwrapLookup <$> lbLookupID @lhs.lib ('$':show @p)
+        loc.tpe = unwrapLookup <$> lbLookupID @lhs.lib ['$':show @p]
         loc.backTree = PositionalArg @ann @p
 
 

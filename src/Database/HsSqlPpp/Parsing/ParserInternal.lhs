@@ -1034,7 +1034,8 @@ expression, and then add a suffix on
 
 >   threadOptionalSuffixes fct [castSuffix
 >                              ,betweenSuffix
->                              ,arraySubSuffix]
+>                              ,arraySubSuffix
+>                              ,qualIdSuffix]
 >   where
 >     fct = choice [
 
@@ -1127,7 +1128,7 @@ The full list of operators from a standard template1 database should
 be used here.
 
 > table :: [[Operator [Token] ParseState Identity Expression]]
-> table = [[binary "." AssocLeft]
+> table = [[{-binary "." AssocLeft-}]
 >          --[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
 >         ,[prefix "-" "u-"]
@@ -1376,6 +1377,7 @@ TODO: copy this approach here.
 >
 > castSuffix :: Expression -> SParser Expression
 > castSuffix ex = pos >>= \p -> Cast p ex <$> (symbol "::" *> typeName)
+
 >
 > substring :: SParser Expression
 > substring = do
@@ -1393,6 +1395,8 @@ TODO: copy this approach here.
 > identifier :: SParser Expression
 > identifier = Identifier <$> pos <*> (idString <|> splice)
 >
+> qualIdSuffix :: Expression -> SParser Expression
+> qualIdSuffix ex = pos >>= \p -> QIdentifier p ex <$> (symbol "." *> idString)
 
 > antiIdentifier :: SParser Expression
 > antiIdentifier = Identifier <$> pos <*> spliceD
@@ -1414,8 +1418,8 @@ for that
 >   choice [do
 >            p <- pos
 >            symbol "."
->            i1 <- qName
->            return $ FunCall p "." [i,i1]
+>            i1 <- idString
+>            return $ QIdentifier p i i1 --FunCall p "." [i,i1]
 >          ,return i]
 
 

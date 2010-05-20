@@ -10,7 +10,6 @@ of the system.
 >     ,lbUpdate
 >     ,lbExpandStar
 >     ,lbLookupID
->     ,lbUpdateDot
 >     ,ppLocalBindings
 >     ) where
 >

@@ -75,16 +75,16 @@ looking individual items up and checking the results.
 > localBindingsTests = itemToTft testData
 >
 > testData :: Item
-> testData = Group "local bindings tests" [ Item [
+> testData = Group "local bindings tests" [ {-Item [
 >   ("test empty", [LBIds "source1" Nothing []]
->   ,Right [LocalBindingsLookup [] (Left [BadStarExpand])])
+>   ,Right [LocalBindingsLookup [] []])
 >  ,("test lbids no cor", [LBIds "source1" Nothing [("a", typeInt)
 >                                                  ,("b", typeBool)]]
 >   ,Right [LocalBindingsLookup [
 >            (("a"), Right ("source1", ["a"], typeInt))
 >           ,(("b"), Right ("source1", ["b"], typeBool))
 >           ]
->           (Left [BadStarExpand])])
+>           []])
 >  ,("test lbids cor", [LBIds "source1" (Just "c") [("a", typeInt)
 >                                                  ,("b", typeBool)]]
 >   ,Right [LocalBindingsLookup [
@@ -92,7 +92,7 @@ looking individual items up and checking the results.
 >                                                           ,("b", typeBool)]))
 >           ,(("a"), Right ("source1", ["c","a"], typeInt))
 >           ,(("b"), Right ("source1", ["c","b"], typeBool))]
->           (Left [BadStarExpand])])
+>           []])
 >  ,("test tref", [LBTref "source2" "t1"
 >                         [("a", typeInt)
 >                         ,("b", typeBool)]
@@ -330,7 +330,7 @@ chaos=# select b.* from (select 1 as a, 2 as a) b;
 
 ~~~~
 
->   ]]
+>   ] -} ]
 >   where
 >     {-ctFields = [("adrelid",ScalarType "oid")
 >                ,("adnum",ScalarType "int2")

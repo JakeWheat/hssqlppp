@@ -46,7 +46,7 @@ in scope, and one for an unqualified star.
 >     ,lbUpdate
 >     ,lbExpandStar
 >     ,lbLookupID
->     ,lbUpdateDot
+>     --,lbUpdateDot
 >     ,ppLocalBindings
 >     ,ppLbls
 >     ) where
@@ -89,12 +89,12 @@ correlation name.
 >
 > type FullId = (Source,[String],Type) -- source,fully qualified name components,type
 > type SimpleId = (String,Type)
-> type IDLookup = (String, E FullId)
+> type IDLookup = ([String], E FullId)
 > type StarExpand = E [FullId] --the order of the [FullId] part is important
 >
 > data LocalBindingsLookup = LocalBindingsLookup
 >                                [IDLookup]
->                                StarExpand
+>                                [(String,StarExpand)]
 >                            deriving (Eq,Show)
 
 This is the local bindings update that users of this module use.
@@ -125,7 +125,7 @@ This is the local bindings update that users of this module use.
 >
 > ppLbls :: LocalBindingsLookup -> String
 > ppLbls (LocalBindingsLookup is ss) =
->       "LocalBindingsLookup\n" ++ doList show is ++ show ss
+>       "LocalBindingsLookup\n" ++ doList show is ++ doList show ss
 >
 > doList :: (a -> String) -> [a] -> String
 > doList m l = "[\n" ++ intercalate "\n," (map m l) ++ "\n]\n"
@@ -139,21 +139,46 @@ This is the local bindings update that users of this module use.
 
 
 
-> updateStuff :: Catalog -> LocalBindingsUpdate -> E ([IDLookup],StarExpand)
+> updateStuff :: Catalog -> LocalBindingsUpdate -> E ([IDLookup],[(String,StarExpand)])
+
+LBIds doesn't support any star expansion, and doesn't support
+accessing the whole set of ids as a composite via cn
+
 > updateStuff _ (LBIds src cn ids) =
->     return (fids, Left [BadStarExpand])
+>     return (unQuals ++ quals, [])
 >     where
->       fids = maybe fids1 (: fids1) $ mc <$> cn
->       fids1 = map (\(n,t) -> (n, Right (src,maybe [n] (: [n]) cn, t))) ids
->       mc c = (c, Right (src, [c], CompositeType ids))
+>       unQuals = map (\(n,t) -> ([n], Right (src,maybe [n] (: [n]) cn, t))) ids
+>       quals = maybe [] (\cn' -> map (\(n,t) -> ([cn',n], Right (src,[cn',n], t))) ids) cn
+
+tref - used for a non join table reference, supports accessing public
+fields under the alias name as a composite, and also supports system
+id lookups. The star expansions are all the non system ids qualified and unqualified
+
 > updateStuff _ (LBTref src al ids sids) =
->     return (fids,Right pids)
+>     -- comp has to come after unquals because an unqualified reference which could refer
+>     -- to a column or the composite resolves as the column
+>     return (unQuals ++ quals ++ [comp]
+>            ,[("",Right pids),(al,Right pids)])
 >     where
->       fids = mc : fids1
->       fids1 = map (\(n,t) -> (n, Right (src,[al,n],t))) $ ids ++ sids
->       mc = (al, Right (src, [al], CompositeType $ ids ++ sids))
+>       allIds = ids ++ sids
+>       unQuals = map (\(n,t) -> ([n], Right (src,[al,n], t))) allIds
+>       quals = map (\(n,t) -> ([al,n], Right (src,[al,n], t))) allIds
+>       comp = ([al], Right (src, [al], CompositeType ids))
 >       pids = map (\(n,t) -> (src,[al,n],t)) ids
-> updateStuff cat (LBJoinTref _src u1 u2 jids _al) = do
+
+
+LBJoinTref {source :: Source
+            ,jtref1 :: LocalBindingsUpdate
+          ,jtref2 :: LocalBindingsUpdate
+            ,joinIds :: Either () [String] -- left () represents natural join
+                  -- right [] represents no join ids
+            ,jalias :: Maybe String}
+
+join tref:
+first split public ids: start with two lists, one from each tref
+take all the join columns
+
+> updateStuff cat (LBJoinTref _src u1 u2 jids _al) = undefined {-do
 >   (ids1,se1') <- updateStuff cat u1
 >   (ids2,se2') <- updateStuff cat u2
 >   se1 <- se1'
@@ -172,34 +197,51 @@ This is the local bindings update that users of this module use.
 >       rj1 :: [FullId] -> [FullId]
 >       rj1 = filter $ \(_,n,_t) -> last n `notElem` jnames
 >       se = map snd jids1 ++ map return (rj1 se1) ++ map return (rj1 se2)
->   return (ids, sequence se)
+>   return (ids, sequence se)-}
 
 
 ================================================================================
 
-> lbExpandStar :: LocalBindings -> E [FullId]
-> lbExpandStar (LocalBindings _ (LocalBindingsLookup _ x : _)) = x
-> lbExpandStar x = Left [BadStarExpand]
+> lbExpandStar :: LocalBindings -> String -> E [FullId]
+> lbExpandStar (LocalBindings _ (LocalBindingsLookup _ x : _)) c =
+>   maybe (case c of
+>            "" -> Left [BadStarExpand]
+>            y -> Left [UnrecognisedCorrelationName y])
+>            id $ lookup c x
+> lbExpandStar _ _ = Left [BadStarExpand]
 
 ================================================================================
 
-> lbLookupID :: LocalBindings -> String -> E FullId
+> lbLookupID :: LocalBindings -> [String] -> E FullId
 > lbLookupID (LocalBindings _ lbl) i =
->     let ls = map getLbIdl lbl
->     in lkp1 ls $ mtl i
+>     let ls :: [[([String],E FullId)]]
+>         ls = map getLbIdl lbl
+>     in lkp1 ls $ map mtl i
 >     where
->       lkp1 :: [[IDLookup]] -> String -> E FullId
+>       lkp1 :: [[IDLookup]] -> [String] -> E FullId
 >       lkp1 (l:ls) i1 = fromMaybe (lkp1 ls i1) (lookup i1 l)
->       lkp1 [] _ = Left [UnrecognisedIdentifier i]
+>       lkp1 [] _ = if corMatch
+>                   then Left [UnrecognisedIdentifier (intercalate "." i)]
+>                   else Left [UnrecognisedCorrelationName (head i)]
 >       getLbIdl (LocalBindingsLookup x _) = x
+>       corMatch = case i of
+>                    [q,_] -> q `elem` cors
+>                    _ -> True
+>       cors :: [String]
+>       cors = let ls = map getLbIdl lbl
+>              in catMaybes $ concatMap (map getQ) ls
+>       getQ :: ([String], E FullId) -> Maybe String
+>       getQ ([q,_], _) = Just q
+>       getQ _ = Nothing
+
 
 ================================================================================
 
-> lbUpdateDot :: Catalog -> String -> LocalBindings -> E LocalBindings
-> lbUpdateDot cat i lb = do
->     (_,_,c) <- lbLookupID lb i
->     f <- lmt $ expandComposite cat True c
->     lbUpdate cat (LBIds "dot qual" Nothing f) emptyBindings
+ > lbUpdateDot :: Catalog -> String -> LocalBindings -> E LocalBindings
+ > lbUpdateDot cat i lb = do
+ >     (_,_,c) <- lbLookupID lb i
+ >     f <- lmt $ expandComposite cat True c
+ >     lbUpdate cat (LBIds "dot qual" Nothing f) emptyBindings
 
 >     {-f <- lmt $ expandComposite cat True c
 >     let u1 = (LBIds "dot qual" Nothing f)
@@ -211,14 +253,14 @@ This is the local bindings update that users of this module use.
 (Source, [String], Type)'
            against inferred type `(String, Type)'
 
-> expandComposite :: Catalog -> Bool -> Type -> Maybe [(String,Type)]
-> expandComposite cat b (SetOfType t) = expandComposite cat b t
-> expandComposite cat b (PgRecord (Just t)) = expandComposite cat b t
-> expandComposite _ _ (CompositeType fs) = Just fs
-> expandComposite cat b (NamedCompositeType n) = etmt $ (if b
->                                                        then catCompositeAttrs
->                                                        else catCompositePublicAttrs) cat [] n
-> expandComposite _ _ _ = Nothing
+ > expandComposite :: Catalog -> Bool -> Type -> Maybe [(String,Type)]
+ > expandComposite cat b (SetOfType t) = expandComposite cat b t
+ > expandComposite cat b (PgRecord (Just t)) = expandComposite cat b t
+ > expandComposite _ _ (CompositeType fs) = Just fs
+ > expandComposite cat b (NamedCompositeType n) = etmt $ (if b
+ >                                                        then catCompositeAttrs
+ >                                                        else catCompositePublicAttrs) cat [] n
+ > expandComposite _ _ _ = Nothing
 
 
 ================================================================================

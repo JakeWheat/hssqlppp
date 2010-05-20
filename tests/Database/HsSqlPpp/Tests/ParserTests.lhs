@@ -204,8 +204,7 @@ and dollar quoting, including nesting.
 >                    [SelExp ea
 >                     (FunCall ea "f" [Cast ea
 >                                      (FunCall ea "!rowctor"
->                                       [FunCall ea "." [Identifier ea "a"
->                                                       ,Identifier ea "x"]
+>                                       [qi "a" "x"
 >                                       ,Identifier ea "y"])
 >                                      (SimpleTypeName ea "z")])])))
 >      ]
@@ -598,8 +597,8 @@ select statements
 >                                                 ,qi "p" "y"])
 >                                          (Tref ea (i "pos") NoAlias)]
 >      ,s "select ($1).x, ($1).y from pos;"
->         [SelectStatement ea $ selectFrom (selEL [FunCall ea "." [PositionalArg ea 1, i "x"]
->                                                 ,FunCall ea "." [PositionalArg ea 1, i "y"]])
+>         [SelectStatement ea $ selectFrom (selEL [QIdentifier ea (PositionalArg ea 1) "x"
+>                                                 ,QIdentifier ea (PositionalArg ea 1) "y"])
 >                                          (Tref ea (i "pos") NoAlias)]
 >      ,s "select row_number() over(), x from tb;"
 >       [SelectStatement ea $ selectFrom
@@ -1251,7 +1250,7 @@ shortcuts for constructing test data and asts
 > i = Identifier ea
 >
 > qi :: String -> String -> Expression
-> qi c n = FunCall ea "." [i c, i n]
+> qi c n = QIdentifier ea (i c) n
 >
 > selI :: String -> SelectItem
 > selI = SelExp ea . Identifier ea

@@ -161,9 +161,9 @@ errors: unrecognised column, unrecognised correlation name, unrecognised table
 >     ,StmtType ct "select c from t;"
 >      $ Left [UnrecognisedIdentifier "c"]
 >     ,StmtType ct "select c.* from t;"
->      $ Left [UnrecognisedIdentifier "c"]
+>      $ Left [UnrecognisedCorrelationName "c"]
 >     ,StmtType ct "select * from u;"
->      $ Left [UnrecognisedRelation "u"]
+>      $ Left [BadStarExpand,UnrecognisedRelation "u"]
 
 >     ]
 
@@ -181,18 +181,18 @@ qualified column references
 >     [StmtType ct "select u.a from t u;"
 >      $ Right [Just $ ([], [("a",typeInt)])]
 >     ,StmtType ct "select t.a from t u;"
->      $ Left []
+>      $ Left [UnrecognisedCorrelationName "t"]
 >     ,StmtType ct "select u.oid from t u;"
 >      $ Right [Just $ ([], [("oid", typeInt)])]
 >     ,StmtType ct "select t.oid from t u;"
->      $ Left []
+>      $ Left [UnrecognisedCorrelationName "t"]
 
 star variations
 
 >     ,StmtType ct "select t.* from t;"
->      $ Left []
->     ,StmtType ct "select u.* from t;"
 >      $ Right [Just $ ([], cols)]
+>     ,StmtType ct "select u.* from t;"
+>      $ Left [UnrecognisedCorrelationName "u"]
 >     ]
 
 >    where cols = [("a",typeInt)

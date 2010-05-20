@@ -579,7 +579,10 @@ Statement components
 >                        | otherwise -> True
 >                    where
 >                      okChar x =isAlphaNum x || x `elem` "*_."
-> convExp (PIdentifier _ i) = parens $ convExp i
+> convExp (QIdentifier a i1@(Identifier _ _) i) = convExp i1 <> text "." <> convExp (Identifier a i)
+> convExp (QIdentifier a e i) = parens (convExp e) <> text "." <> convExp (Identifier a i)
+
+> --convExp (PIdentifier _ i) = parens $ convExp i
 > convExp (IntegerLit _ n) = integer n
 > convExp (FloatLit _ n) = double n
 > convExp (StringLit _ s) = -- needs some thought about using $$?

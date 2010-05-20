@@ -532,11 +532,14 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                        tn:TypeName
                 | Identifier ann:Annotation
                              i:String
+                | QIdentifier ann:Annotation
+                              qual:Expression
+                              i:String
                 -- bit hacky, preserve parens when they contain just an identifier
                 -- or positional arg, so we can pretty print this since it is needed
                 -- in some places for the pg parser
-                | PIdentifier ann:Annotation
-                              ex:Expression
+                {- | PIdentifier ann:Annotation
+                              ex:Expression-}
                 | Case ann:Annotation
                        cases : CaseExpressionListExpressionPairList
                        els : MaybeExpression
