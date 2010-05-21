@@ -46,6 +46,7 @@ in scope, and one for an unqualified star.
 >     ,lbUpdate
 >     ,lbExpandStar
 >     ,lbLookupID
+>     ,lbLookupIDInType
 >     --,lbUpdateDot
 >     ,ppLocalBindings
 >     ,ppLbls
@@ -57,7 +58,7 @@ in scope, and one for an unqualified star.
 > import Data.List
 > import Data.Maybe
 > import Data.Char
-> --import Data.Either
+> import Data.Either
 > --import qualified Data.Map as M
 >
 > import Database.HsSqlPpp.AstInternals.TypeType
@@ -169,36 +170,102 @@ id lookups. The star expansions are all the non system ids qualified and unquali
 
 LBJoinTref {source :: Source
             ,jtref1 :: LocalBindingsUpdate
-          ,jtref2 :: LocalBindingsUpdate
+            ,jtref2 :: LocalBindingsUpdate
             ,joinIds :: Either () [String] -- left () represents natural join
                   -- right [] represents no join ids
             ,jalias :: Maybe String}
 
-join tref:
-first split public ids: start with two lists, one from each tref
-take all the join columns
+How to get the lbs for a join:
 
-> updateStuff cat (LBJoinTref _src u1 u2 jids _al) = undefined {-do
->   (ids1,se1') <- updateStuff cat u1
->   (ids2,se2') <- updateStuff cat u2
->   se1 <- se1'
->   se2 <- se2'
->   let jnames = case jids of
+First: get the names of the join ids: this is the explicit list in the
+case of a using join, or the commonly named fields in a natural
+join. We get the commonly named fields from the unqualified star
+expansions so we don't include system attributes in a natural join.
+
+Then check: make sure explicit join id list is in both trefs, and
+resolve the types of the join ids.
+
+If there is no alias:
+
+work out the lookups: the qualified lookups stay the same (doesn't
+properly deal with the same correlation names coming from 2 trefs at
+the moment).
+
+get the list of duplicate ids: uses the same code as getting the
+natural join id list, - there will be none if this is a natural
+join. Otherwise, get the list of common ids and remove any using ids
+from this list. TODO?: system attributes can't be referenced through a
+join unqualified?
+
+The unqualified lookups: start with the join ids and types, then add
+all the ids from each subtref except the ones which match the
+duplicate ids. Add these dups which now lookup to left ambiguous
+reference.
+
+work out the star expansion: the qualified star expansions stay the
+same
+
+for the unqualified star expansion: similar to lookups. Start with the
+join ids, but then add all the non join ids from each table - so we
+might have more than one column with the same name.
+
+If there is an alias:
+
+do the same as above for the unqualified ids/starexpand, add these
+again under the given alias, and don't pass through qualified lookups
+or star expands.
+
+
+> updateStuff cat (LBJoinTref _src u1 u2 jids _al) = do
+>   (ids1,se1) <- updateStuff cat u1
+>   (ids2,se2) <- updateStuff cat u2
+>   {-let plainIds1 = pl ids1
+>       plainIds2 = pl ids2
+>   let jnames :: [String]
+>       jnames = case jids of
 >                          Right ns -> ns
->                          Left () -> intersect (map fst ids1) (map fst ids2)
+>                          Left () -> intersect (map fst plainIds1) (map fst plainIds2)
 >   -- make the lookups
->   let jids1 :: [(String,E FullId)]
+>       isJ :: IDLookup -> Bool
+>       isJ (ii,_) = case ii of
+>                        [i] | i `elem` jnames -> True
+>                        _ -> False
+>       nj :: [IDLookup] -> [IDLookup]
+>       nj = filter (not . isJ)
+>       joinLkps = filter isJ ids1
+>       nonJoinLkps1 = nj ids1
+>       nonJoinLkps2 = nj ids2-}
+>   {-let jids1 :: [(String,E FullId)]
 >       jids1 = flip map jnames $ \i -> (i,fromJust $ lookup i ids1)
 >       rj :: [(String,E FullId)] -> [(String,E FullId)]
 >       rj = filter $ \e -> fst e `notElem` jnames
 >       ids :: [(String,E FullId)]
->       ids = jids1 ++ rj ids1 ++ rj ids2
+>       ids = jids1 ++ rj ids1 ++ rj ids2-}
 >   --make the star expansion
->       rj1 :: [FullId] -> [FullId]
+>   --se1' <- se1
+>   --se2' <- se2
+>   {-let (us1',qs1) = splitSe se1'
+>       (us2',qs2) = splitSe se2'
+>   us1 <- us1'
+>   us2 <- us2'-}
+>   {-    rj1 :: [FullId] -> [FullId]
 >       rj1 = filter $ \(_,n,_t) -> last n `notElem` jnames
 >       se = map snd jids1 ++ map return (rj1 se1) ++ map return (rj1 se2)
 >   return (ids, sequence se)-}
-
+>   --let x = joinLkps ++ nonJoinLkps1 ++ nonJoinLkps2
+>   --trace ("join stuff: " ++ doList show x) $ return ()
+>   return (ids1 ++ ids1, se1 ++ se2) --(joinLkps ++ nonJoinLkps1 ++ nonJoinLkps2, ("", Right (us1 ++ us2)) : qs1 ++ qs2)
+>   {-where
+>     splitSe :: [(String,StarExpand)] -> (StarExpand,[(String,StarExpand)])
+>     splitSe se = (uq, nuq)
+>                  where
+>                    uq = maybe [] snd $ find isUq se
+>                    nuq = filter (not . isUq) se
+>                    isUq (a,_) = a == ""
+>     pl :: [([String], E FullId)] -> [(String, E FullId)]
+>     pl = mapMaybe $ \x -> case x of
+>                             ([n],t) -> Just (n,t)
+>                             _ -> Nothing-}
 
 ================================================================================
 
@@ -234,6 +301,18 @@ take all the join columns
 >       getQ ([q,_], _) = Just q
 >       getQ _ = Nothing
 
+
+> lbLookupIDInType :: Catalog -> LocalBindings -> Type -> String -> E FullId
+> lbLookupIDInType cat _ t i = do
+>   t <- lmt $ getNamedCompositeTypes t
+>   maybe (Left [UnrecognisedIdentifier i]) (fmap Right ("",[i],)) $ lookup i t
+>  where
+>    getNamedCompositeTypes :: Type -> Maybe [(String,Type)]
+>    getNamedCompositeTypes (NamedCompositeType n) =
+>         Just $ either (const []) id $ catCompositePublicAttrs cat [] n
+>    getNamedCompositeTypes (CompositeType t) = Just t
+>    getNamedCompositeTypes (PgRecord (Just t)) = getNamedCompositeTypes t
+>    getNamedCompositeTypes _ = Nothing
 
 ================================================================================
 

@@ -353,10 +353,14 @@ SEM Expression
             then unwrapStar <$> lbExpandStar @lhs.lib ""
             else (\t -> [(@i, t)]) <$> unwrapLookup <$> lbLookupID @lhs.lib [@i]
    | QIdentifier
-        loc.tpe =
-            case @loc.qid of
-              Nothing -> undefined
-              Just q ->unwrapLookup <$> lbLookupID @lhs.lib [q,@i]
+        loc.tpe = let x = case @loc.qid of
+                            Nothing -> byT
+                            Just q -> either (const byT) Right $ unwrapLookup <$> lbLookupID @lhs.lib [q,@i]
+                  in trace ("tpe: " ++ show x) x
+                  where
+                    byT = do
+                      (t::Type) <- lmt @qual.uType --unwrapLookup <$> lbLookupID @lhs.lib [q]
+                      unwrapLookup <$> lbLookupIDInType @lhs.cat @lhs.lib t @i
         loc.qid : {Maybe String}
         loc.qid = case @loc.backTree of
                      QIdentifier _ (Identifier _ q) _ -> Just q

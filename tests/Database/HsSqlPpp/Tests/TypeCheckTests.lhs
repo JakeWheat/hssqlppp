@@ -962,7 +962,7 @@ check errors: select into wrong number of vars, wrong types, and into
 >         \  b := r.adsrc;\n\
 >         \end;\n\
 >         \$$ language plpgsql stable;"
->         $ Left [UnrecognisedIdentifier "r.adsrc"]
+>         $ Left [UnrecognisedIdentifier "adsrc"]
 >      ,s "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  r pg_attrdef;\n\
