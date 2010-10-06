@@ -175,7 +175,32 @@ LBJoinTref {source :: Source
                   -- right [] represents no join ids
             ,jalias :: Maybe String}
 
+> updateStuff cat (LBJoinTref _src u1 u2 jnames' _al) = do
+
 How to get the lbs for a join:
+
+First get the info for the two sub trefs:
+
+>   (ids1,se1) <- updateStuff cat u1
+>   (ids2,se2) <- updateStuff cat u2
+
+split these apart so we have the unqualified lookups and star expands
+separately
+
+>   let (uids1,qids1) = splitLkps ids1
+>       (uids2,qids2) = splitLkps ids2
+
+We need some information: the names and types of the join ids, and the
+names of any remaining ambiguous identifiers:
+
+>   let jnames :: [String]
+>       jnames = case jnames' of
+>                          Right ns -> ns
+>                          Left () -> intersect (map fst uids1)
+>                                               (map fst uids2)
+>   --todo: resolve these properly
+>   let jids = flip map jnames $ \i -> (i,fromJust $ lookup [i] ids1)
+
 
 First: get the names of the join ids: this is the explicit list in the
 case of a using join, or the commonly named fields in a natural
@@ -216,9 +241,6 @@ again under the given alias, and don't pass through qualified lookups
 or star expands.
 
 
-> updateStuff cat (LBJoinTref _src u1 u2 jids _al) = do
->   (ids1,se1) <- updateStuff cat u1
->   (ids2,se2) <- updateStuff cat u2
 >   {-let plainIds1 = pl ids1
 >       plainIds2 = pl ids2
 >   let jnames :: [String]
@@ -255,17 +277,18 @@ or star expands.
 >   --let x = joinLkps ++ nonJoinLkps1 ++ nonJoinLkps2
 >   --trace ("join stuff: " ++ doList show x) $ return ()
 >   return (ids1 ++ ids1, se1 ++ se2) --(joinLkps ++ nonJoinLkps1 ++ nonJoinLkps2, ("", Right (us1 ++ us2)) : qs1 ++ qs2)
->   {-where
->     splitSe :: [(String,StarExpand)] -> (StarExpand,[(String,StarExpand)])
+>   where
+>     {-splitSe :: [(String,StarExpand)] -> (StarExpand,[(String,StarExpand)])
 >     splitSe se = (uq, nuq)
 >                  where
 >                    uq = maybe [] snd $ find isUq se
 >                    nuq = filter (not . isUq) se
->                    isUq (a,_) = a == ""
->     pl :: [([String], E FullId)] -> [(String, E FullId)]
->     pl = mapMaybe $ \x -> case x of
->                             ([n],t) -> Just (n,t)
->                             _ -> Nothing-}
+>                    isUq (Right (a,_)) = a == ""-}
+>     splitLkps :: [([String], E FullId)]
+>               -> ([(String, E FullId)],[([String], E FullId)])
+>     splitLkps = partitionEithers . (map $ \x -> case x of
+>                                                       ([n],t) -> Left (n,t)
+>                                                       z -> Right z)
 
 ================================================================================
 
@@ -303,8 +326,8 @@ or star expands.
 
 
 > lbLookupIDInType :: Catalog -> LocalBindings -> Type -> String -> E FullId
-> lbLookupIDInType cat _ t i = do
->   t <- lmt $ getNamedCompositeTypes t
+> lbLookupIDInType cat _ ty i = do
+>   t <- lmt $ getNamedCompositeTypes ty
 >   maybe (Left [UnrecognisedIdentifier i]) (fmap Right ("",[i],)) $ lookup i t
 >  where
 >    getNamedCompositeTypes :: Type -> Maybe [(String,Type)]

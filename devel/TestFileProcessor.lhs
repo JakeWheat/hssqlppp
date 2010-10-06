@@ -33,10 +33,21 @@ examples.
 
 >
 > mapParserTests :: PT.Item -> [Row]
-> mapParserTests (PT.Expr s e) = [Row [[Sql s],[Haskell (ppExpr e)]]]
-> mapParserTests (PT.Stmt s e) = [Row [[Sql s],[Haskell (ppExpr e)]]]
-> mapParserTests (PT.PgSqlStmt s e) = [Row [[Sql s],[Haskell (ppExpr e)]]]
+> mapParserTests (PT.Expr s e) = [Row [[Sql s],[Haskell (ppExprNoAnns e)]]]
+> mapParserTests (PT.Stmt s e) = [Row [[Sql s],[Haskell (ppExprNoAnns e)]]]
+> mapParserTests (PT.PgSqlStmt s e) = [Row [[Sql s],[Haskell (ppExprNoAnns e)]]]
 > mapParserTests (PT.Group n is) = HHeader n : concatMap mapParserTests is
+
+> ppExprNoAnns :: Show a => a -> String
+> ppExprNoAnns = ppExprT stripA
+>   where
+>     stripA :: Exp -> Exp
+>     stripA = transformBi $ \x ->
+>                case x of
+>                  (Paren (RecConstr (UnQual (Ident "Annotation")) _)) ->
+>                           Con $ UnQual $ Ident "Ann"
+>                  x1 -> x1
+
 
 need to use haskell-src-exts for the quasi quote tests since we want
 to get the quasi quote source syntax, not the asts it produces at
@@ -93,7 +104,7 @@ compile time.
 > parserIntro = [$here|
 >
 > The parser examples have the sql source on the left, and the ast that the parser produces
-> the right, stripped of the source position annotations.
+> the right, the annotations have been replaced with a placeholder 'Ann' to avoid clutter.
 >
 > The source this file is generated from is here:
 > [ParserTests.lhs](source/tests/Database/HsSqlPpp/Tests/ParserTests.lhs.html)

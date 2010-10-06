@@ -1,6 +1,26 @@
 {-
 
 
+New plan: need typechecking to work, to work better on more complex
+queries.
+
+Initial targets:
+
+only interested in select expressions
+
+* want all the function prototypes in there so can insert explicit
+casts, and make use of the prototype annotation to find aggregates,
+etc.
+* add in all range qualifiers so can tell which table an id comes from
+* support a renaming process so can eliminate duplicate column names
+and unnamed columns whilst giving the same results except column name
+differences only where needed to avoid the above (renaming is for the
+entire tree, not just the results
+
+this is all to support 
+
+----
+
 This file contains the attr and sem definitions, which do the type
 checking, etc..
 

@@ -1,3 +1,21 @@
+new medium term goal
+packages:
+sqlppp: sql ast + parsetree?, parser, pretty printer, quasi quotes, syntax
+       extension support, typechecking
+relationalalgebra: ra ast? or really non ra specific ast?
+   parser, pretty printer, quasi quotes, + for relational calculus too
+   type checking
+sql-ra: convert sql to ra and vice versa, transforms to try to produce
+   idiomatic sql or ra, make the round trips be id
+relational algebra implementation uaing dph
+sql implementation using dph via ra
+relational algebra implementation via conversion to sql
+
+
+type checking sql is too much of a mess, so take a break:
+relational algebra + calculus work
+
+
 = TODOs
 
 This file is a complete disorganised mess.
