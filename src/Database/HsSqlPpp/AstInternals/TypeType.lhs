@@ -50,6 +50,7 @@ out. If not, will have to add another type.
 >
 > module Database.HsSqlPpp.AstInternals.TypeType where
 >
+> import Control.Monad.Trans.Error
 > import Control.Monad.Error
 >
 > import Data.Generics
@@ -127,9 +128,14 @@ later on down the line.
 >                | MiscError String
 >                  deriving (Eq,Show,Ord,Typeable,Data)
 >
-> instance Error ([TypeError]) where
->   noMsg = [MiscError "Unknown error"]
->   strMsg str = [MiscError str]
+
+ > instance Error ([TypeError]) where
+ >   noMsg = [MiscError "Unknown error"]
+ >   strMsg str = [MiscError str]
+
+> instance ErrorList TypeError where
+>    listMsg s = [MiscError s]
+
 
 === canonical type name support
 

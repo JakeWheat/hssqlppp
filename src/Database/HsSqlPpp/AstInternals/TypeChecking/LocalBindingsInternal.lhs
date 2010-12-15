@@ -30,7 +30,7 @@ ids. Some of the lookups map to ambiguous identifier errors. Also at
 each level is a list of star expansions, one for each correlation name
 in scope, and one for an unqualified star.
 
-> {-# LANGUAGE ScopedTypeVariables #-}
+> {-# LANGUAGE ScopedTypeVariables,TupleSections #-}
 >
 > module Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
 >     (

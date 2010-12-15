@@ -134,6 +134,7 @@ import Control.Monad.State
 import Data.Generics.PlateData
 import Debug.Trace
 
+
 import Database.HsSqlPpp.AstInternals.TypeType
 import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
 import Database.HsSqlPpp.AstInternals.AstAnnotation

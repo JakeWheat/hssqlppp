@@ -26,3 +26,6 @@ type inference tests
 
 > main :: IO()
 > main = defaultMain allTests
+
+
+PATH=$PATH:/home/jake/.cabal/bin/ ghc -cpp -pgmPcpphs -optP--cpp --make -i/home/jake/wd/hssqlppp/trunk/src:/home/jake/wd/hssqlppp/trunk/tests:/home/jake/wd/hssqlppp/trunk/devel:/home/jake/wd/hssqlppp/trunk/examples/chaos/:/home/jake/wd/hssqlppp/trunk/examples/extensions/:/home/jake/wd/hssqlppp/trunk/examples/util/:/home/jake/wd/hssqlppp/trunk/examples/wrappers/ /home/jake/wd/hssqlppp/trunk/tests/Tests.lhs

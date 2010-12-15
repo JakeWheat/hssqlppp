@@ -699,10 +699,6 @@ Statement components
 >                                              <+> text "as"
 >                                              <+> convTypeName t)
 
-hack for selecting from composites in select list, the pg parser
-needs p.x to look like (p).x when p is a composite in a select list
-fortunately, we can output everything which is identifier . something
-with the brackets and it works.
 
 > convExpSl :: Expression -> Doc
 > convExpSl (FunCall _ "." es) | [a@(Identifier _ _), b] <- es =
