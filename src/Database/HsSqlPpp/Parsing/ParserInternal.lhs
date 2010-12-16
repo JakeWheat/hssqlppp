@@ -709,12 +709,20 @@ params to a function
 variable declarations in a plpgsql function
 
 > varDef :: SParser VarDef
-> varDef = VarDef
->          <$> pos
->          <*> idString
->          <*> typeName
->          <*> tryOptionMaybe ((symbol ":=" <|> symbol "=")*> expr)
->              <* symbol ";"
+> varDef = do
+>   p <- pos
+>   a <- idString
+>   choice [do
+>           keyword "alias"
+>           keyword "for"
+>           choice [
+>             VarAlias p a <$> idString
+>            ,ParamAlias p a <$> liftPositionalArgTok]
+>          ,VarDef p a
+>           <$> typeName
+>           <*> tryOptionMaybe ((symbol ":=" <|> symbol "=")*> expr)
+>           ]
+>     <* symbol ";"
 >
 > createView :: SParser Statement
 > createView = CreateView
@@ -750,7 +758,7 @@ variable declarations in a plpgsql function
 >                return $ DropFunction p i e r
 >                where
 >                  pFun = (,) <$> idString
->                             <*> parens (many typeName)
+>                             <*> parens (commaSep typeName)
 >
 > parseDrop :: SParser a
 >           -> SParser (IfExists, [a], Cascade)
@@ -989,7 +997,7 @@ plpgsql statements
 >     elsePart = option [] (keyword "else" *> many plPgsqlStatement)
 >     endIf = keyword "end" <* keyword "if"
 >     thn = keyword "then"
->     elseif = keyword "elseif"
+>     elseif = keyword "elseif" <|> keyword "elsif"
 >     --might as well throw this in as well after all that
 >     -- can't do <,> unfortunately, so use <.> instead
 >     (<.>) a b = (,) <$> a <*> b

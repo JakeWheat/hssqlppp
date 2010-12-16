@@ -1067,6 +1067,36 @@ quick sanity check
 >          [VarDef ea "a" (SimpleTypeName ea "int") (Just $ IntegerLit ea 3)]
 >          [NullStatement ea]))
 >        Stable]
+>      ,s "create function fn(int) returns void as '\n\
+>         \declare\n\
+>         \  a alias for $1;\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end;\n\
+>         \' language plpgsql stable;"
+>       [CreateFunction ea "fn"
+>        [ParamDefTp ea $ SimpleTypeName ea "int"]
+>        (SimpleTypeName ea "void") NoReplace Plpgsql
+>        (PlpgsqlFnBody ea
+>         (Block ea Nothing
+>          [ParamAlias ea "a" 1]
+>          [NullStatement ea]))
+>        Stable]
+>      ,s "create function fn(b int) returns void as '\n\
+>         \declare\n\
+>         \  a alias for b;\n\
+>         \begin\n\
+>         \  null;\n\
+>         \end;\n\
+>         \' language plpgsql stable;"
+>       [CreateFunction ea "fn"
+>        [ParamDef ea "b" $ SimpleTypeName ea "int"]
+>        (SimpleTypeName ea "void") NoReplace Plpgsql
+>        (PlpgsqlFnBody ea
+>         (Block ea Nothing
+>          [VarAlias ea "a" "b"]
+>          [NullStatement ea]))
+>        Stable]
 >      ,s "create function fn() returns setof int as $$\n\
 >         \begin\n\
 >         \  null;\n\
@@ -1096,6 +1126,9 @@ quick sanity check
 >        Stable]
 >      ,s "drop function test(text);"
 >       [DropFunction ea Require [("test",[SimpleTypeName ea "text"])] Restrict]
+>      ,s "drop function test(int,int);"
+>       [DropFunction ea Require [("test",[SimpleTypeName ea "int"
+>                                         ,SimpleTypeName ea "int"])] Restrict]
 >      ,s "drop function if exists a(),test(text) cascade;"
 >       [DropFunction ea IfExists [("a",[])
 >                           ,("test",[SimpleTypeName ea "text"])] Cascade]
@@ -1184,7 +1217,7 @@ quick sanity check
 >         \  null;\n\
 >         \elseif false then\n\
 >         \  return;\n\
->         \elseif false then\n\
+>         \elsif false then\n\
 >         \  return;\n\
 >         \else\n\
 >         \  return;\n\

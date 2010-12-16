@@ -195,6 +195,10 @@ Conversion routines - convert Sql asts into Docs
 >       convVarDef (VarDef _ n t v) =
 >         text n <+> convTypeName t
 >         <+> maybeConv (\x -> text ":=" <+> convExp x) v <> semi
+>       convVarDef (VarAlias _ n n1) =
+>         text n <+> text "alias for" <+> text n1 <> semi
+>       convVarDef (ParamAlias _ n p) =
+>         text n <+> text "alias for $" <> text (show p) <> semi
 >
 >
 > convStatement ca (CreateView ann name sel) =

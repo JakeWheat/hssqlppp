@@ -86,7 +86,7 @@ Run this from ghci.
 >   where
 >     pm = defaultParseMode {
 >            parseFilename = f
->          ,extensions = [PatternGuards]}
+>          ,extensions = [PatternGuards,ScopedTypeVariables]}
 
 node conversions
 ----------------

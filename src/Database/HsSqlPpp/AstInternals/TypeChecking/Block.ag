@@ -10,6 +10,8 @@ SEM VarDef
     | VarDef lhs.def = (@name, if @typ.namedType == Just (Pseudo Record)
                                then Just (PgRecord Nothing)
                                else @typ.namedType)
+    | VarAlias lhs.def = (@name, Nothing)
+    | ParamAlias lhs.def = (@name, Nothing)
 
 SEM VarDefList
     | Cons lhs.defs = @hd.def : @tl.defs

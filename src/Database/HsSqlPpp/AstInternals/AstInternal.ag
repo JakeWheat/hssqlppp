@@ -463,6 +463,12 @@ DATA VarDef | VarDef ann:Annotation
                      name : String
                      typ : TypeName
                      value : (Maybe Expression)
+            | ParamAlias ann:Annotation
+                         name : String
+                         i : Integer
+            | VarAlias ann:Annotation
+                       name : String
+                       aliased : String
 {
 data RaiseType = RNotice | RException | RError
                  deriving (Show,Eq,Typeable,Data)
