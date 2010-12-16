@@ -153,11 +153,6 @@ Flag quasiquotes
   Description:       Compile quasi quote support (disable to remove template-haskell dependency)
   Default:           True
 
-
-source-repository head
-  type:     bzr
-  location: https://launchpad.net/+branch/~jakewheat/hssqlppp/trunk
-
 Library
   Build-Depends:     base >= 4 && < 5,
                      mtl >= 2.0.1.0 && < 2.1,
