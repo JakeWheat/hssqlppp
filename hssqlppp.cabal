@@ -153,6 +153,7 @@ Flag quasiquotes
   Description:       Compile quasi quote support (disable to remove template-haskell dependency)
   Default:           True
 
+
 Library
   Build-Depends:     base >= 4 && < 5,
                      mtl >= 2.0.1.0 && < 2.1,

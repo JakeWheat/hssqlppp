@@ -15,7 +15,14 @@ for preprocessors examples for typesafe database access.
 The code is quite fragile and depends on the exact style (or lack of)
 of coding used in AstInternal.ag.
 
-Run this from ghci.
+Run this from ghci:
+
+change to the folder with the cabal file in
+run ghci
+enter:
+:set -isrc:examples/util
+:l "devel/MakeAntiNodes.lhs"
+writeAntiNodes
 
 > {-# LANGUAGE QuasiQuotes #-}
 > module MakeAntiNodes (writeAntiNodes) where
