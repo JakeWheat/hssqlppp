@@ -326,32 +326,30 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
      /></code
   ></pre
 ><p
->The values are passed to the constructor in the reverse order to the order in which they are parsed. There are quite a few ways to write this keeping the applicative style but I think the monadic style here is nice and straightforward.</p
+>The values are passed to the constructor in the reverse order to the order in which they are parsed. Here is a way to make this work:</p
 ><pre class="sourceCode haskell"
 ><code
   >parser <span class="fu"
     >=</span
-    > <span class="kw"
-    >do</span
+    > revAstNode2 <span class="fu"
+    >&lt;$&gt;</span
+    > a <span class="fu"
+    >&lt;*&gt;</span
+    > b<br
+     />  <span class="kw"
+    >where</span
     ><br
-     />   (a,b) <span class="ot"
-    >&lt;-</span
-    > subParser1<br
-     />   <span class="fu"
-    >return</span
-    > <span class="fu"
-    >$</span
+     />    revAstNode2 a b <span class="fu"
+    >=</span
     > <span class="dt"
     >AstNode2</span
-    > a b<br
+    > b a <span class="co"
+    >-- can use flip here as well</span
+    ><br
      /></code
   ></pre
 ><p
->In this case, the code is deconstructing a value returned from a sub parser (here it is using the tuple constructor <code
-  >(,)</code
-  >) before passing the components to the AstNode2 constructor. Once again there are ways around this but I think this pretty clear.</p
-><p
->There may also be performance implications when using applicative compared to monadic (applicative might be faster or use less memory in some circumstances) but I don't know much about this. If you needed to stay exclusively in Applicative without using Monad then you could rewrite these functions relatively easily with a single helper function.</p
+>There may also be performance implications when using applicative compared to monadic (applicative might be faster or use less memory in some circumstances) but I don't know much about this.</p
 ><h2 id="ignoring-the-results-of-parsers"
 >Ignoring the results of parsers</h2
 ><p
@@ -384,6 +382,8 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
     > selectExpression<br
      />  <span class="fu"
     >return</span
+    > <span class="fu"
+    >$</span
     > <span class="dt"
     >CreateView</span
     > p i e<br

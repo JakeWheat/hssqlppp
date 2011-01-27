@@ -26,3 +26,5 @@ plpgsql before type checking.
 [Compiling and running tests](compiling_and_running_tests.html)
 
 [Adding new syntax](adding_syntax.html)
+
+Email me at jakewheatmail@gmail.com if I haven't made anything clear.

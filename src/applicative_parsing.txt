@@ -132,27 +132,17 @@ parser = do
 ~~~
 
 The values are passed to the constructor in the reverse order to the
-order in which they are parsed. There are quite a few ways to write
-this keeping the applicative style but I think the monadic style here
-is nice and straightforward.
+order in which they are parsed. Here is a way to make this work:
 
 ~~~ {.haskell}
-parser = do
-   (a,b) <- subParser1
-   return $ AstNode2 a b
+parser = revAstNode2 <$> a <*> b
+  where
+    revAstNode2 a b = AstNode2 b a -- can use flip here as well
 ~~~
-
-In this case, the code is deconstructing a value returned from a sub
-parser (here it is using the tuple constructor `(,)`) before passing the
-components to the AstNode2 constructor. Once again there are ways
-around this but I think this pretty clear.
 
 There may also be performance implications when using applicative
 compared to monadic (applicative might be faster or use less memory in
-some circumstances) but I don't know much about this. If you needed to
-stay exclusively in Applicative without using Monad then you could
-rewrite these functions relatively easily with a single helper
-function.
+some circumstances) but I don't know much about this.
 
 ## Ignoring the results of parsers
 
@@ -165,7 +155,7 @@ createView = do
   i <- idString
   _ <- keyword "as"
   e <- selectExpression
-  return CreateView p i e
+  return $ CreateView p i e
 ~~~
 
 (If this parser for a sql create view statement doesn't look quite
