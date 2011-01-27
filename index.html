@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>HsSqlPpp developer notes - </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+  <link rel="stylesheet" href="main.css" type="text/css" />
+</head>
+<body>
+<h1 id="hssqlppp"
+>HsSqlPpp</h1
+><p
+>Here are a few pages that might help you get started with working with the HsSqlPpp source code:</p
+><p
+>The code is in a bit of a transition period at the moment. I fixed the parser to handle a lot more sql, but the typecheck regressed quite a lot and hasn't been fixed yet. My next job for hssqlppp is implementing a production quality typechecker for queries, but no ETA yet.</p
+><p
+>Parsing sql expressions is still a horrible broken mess and needs a rethink from scratch.</p
+><p
+>The quasi-quotation is at a very early stage.</p
+><p
+>I have plans to implement very simple syntax extension support, with some sort of extensible syntax and parsing. The idea would be to be able to read extended syntax and then convert to normal sql and plpgsql before type checking.</p
+><p
+><a href="background_reading.html"
+  >Background reading</a
+  ></p
+><p
+><a href="applicative_parsing.html"
+  >Applicative parsing</a
+  ></p
+><p
+><a href="compiling_and_running_tests.html"
+  >Compiling and running tests</a
+  ></p
+><p
+><a href="adding_syntax.html"
+  >Adding new syntax</a
+  ></p
+>
+</body>
+</html>

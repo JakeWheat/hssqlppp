@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Adding new syntax - </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+  <link rel="stylesheet" href="main.css" type="text/css" />
+</head>
+<body>
+<h1 id="adding-new-syntax"
+>Adding new syntax</h1
+><p
+>This is an example of how to add new syntax to the library. The basic steps are:</p
+><p
+>add tests to the appropriate file under tests/</p
+><p
+>compile and run the tests to check the new test fails</p
+><p
+>add new datatypes to AstInternals.ag</p
+><p
+>fix any default uuagc rules if needed (the typechecker supports untypeable syntax reasonably gracefully at the moment so it can partially type check asts)</p
+><p
+>run devel/MakeAntiNodes.lhs which is a crazy-baroque system to support the quasi-quotation system. Not sure how to make this non-crazy</p
+><p
+>compile and run the tests to check that the new test now passes</p
+><p
+>TODO: write the actual example</p
+>
+</body>
+</html>

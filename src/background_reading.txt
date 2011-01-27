@@ -1,0 +1,75 @@
+# Background reading for the source
+
+Here are some things which might be useful to get you up to speed with
+developing on or using hssqlppp.
+
+For general Haskell, I recommend starting with
+http://learnyouahaskell.com/ if you haven't already seen it. I found
+real world haskell (which is also popular and there is a free version
+online) a bit difficult to follow when I was getting started, and I
+haven't looked at it much since.
+
+As far as I can tell, there are no clear tutorials for all the
+interesting intermediate haskell techniques which are really useful
+for things like parsing, type checking and other ast analysis.
+
+The ast types are created using uuagc. This is an attribute grammar
+library (more accurately a preprocessor) which accepts a modified
+haskell syntax to define the ast nodes, producing regular haskell code
+and data types (the attribute grammar part is used mainly for type
+checking in hssqlppp itself). There is only one set of ast types,
+which is used both as a parse tree and for type checking, generating
+sql, etc.. This is probably a design flaw which could be revisited
+(there are many design flaws like this in the code - I have taken a
+very pragmatic approach! For savvy readers, subsitute ignorant for
+pragmatic).
+
+http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem
+
+A tutorial, not that easy to follow:
+http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarManual
+
+Pretty printing:
+
+The pretty printer converts asts into valid sql text source using the
+'HughesPJ' pretty printing library. I never really spent time to work
+out how to use it properly so the layout of the produced source has
+many redundant parentheses and the whitespace is a bit crazy...
+
+http://hackage.haskell.org/packages/archive/pretty/1.0.1.2/doc/html/Text-PrettyPrint-HughesPJ.html
+
+Parsing is done with the well known Parsec library (version 3.x). The
+parsing code makes lots of use of something called Applicative style.
+Parsec may or may not be a good choice, but it does the job at the
+moment.
+
+The parsing is split into separate lexing and parsing stages, which
+isn't that conventional for parsec.
+
+Here is a outdated tutorial for parsec which isn't too bad for getting
+started: http://legacy.cs.uu.nl/daan/parsec.html
+
+And the chapter from real world haskell which introduces the
+applicative approach (the main use is that it allows you to write
+more concise and natural parsing code):
+
+http://book.realworldhaskell.org/read/using-parsec.html
+
+Another neat thing is something called 'Generics' in the haskell
+world (not the same as oo generics). hssqlppp mainly uses the uniplate
+library for this.
+
+http://community.haskell.org/~ndm/uniplate/
+
+This library allows very concise queries and transformations over
+complicated asts.
+
+The code also supports some limited quasi-quotation, which allows
+writing flexible sql source embedded in haskell source, which is then
+converted to sql asts during haskell compile time. This is useful in
+combination with uniplate to write very concise and clear to
+understand code (since reading and writing source code directly is
+much easier than reading and writing the ast representations). I don't
+think there are any clear tutorials on quasi quotation
+available. Quasi-quotation works a lot like Template Haskell, so you
+can look around for that to get some ideas.

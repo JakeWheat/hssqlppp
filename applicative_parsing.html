@@ -1,0 +1,784 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Applicative Parsing intro - </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode, table.sourceCode pre 
+   { margin: 0; padding: 0; border: 0; vertical-align: baseline; border: none; }
+td.lineNumbers { border-right: 1px solid #AAAAAA; text-align: right; color: #AAAAAA; padding-right: 5px; padding-left: 5px; }
+td.sourceCode { padding-left: 5px; }
+pre.sourceCode span.kw { color: #007020; font-weight: bold; } 
+pre.sourceCode span.dt { color: #902000; }
+pre.sourceCode span.dv { color: #40a070; }
+pre.sourceCode span.bn { color: #40a070; }
+pre.sourceCode span.fl { color: #40a070; }
+pre.sourceCode span.ch { color: #4070a0; }
+pre.sourceCode span.st { color: #4070a0; }
+pre.sourceCode span.co { color: #60a0b0; font-style: italic; }
+pre.sourceCode span.ot { color: #007020; }
+pre.sourceCode span.al { color: red; font-weight: bold; }
+pre.sourceCode span.fu { color: #06287e; }
+pre.sourceCode span.re { }
+pre.sourceCode span.er { color: red; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="main.css" type="text/css" />
+</head>
+<body>
+<h1 id="applicative-parsing"
+>Applicative Parsing</h1
+><p
+>Most of the parser is written in something called applicative style. This is sort of a variant on monadic style parsing which is what most of the examples for parsec you find are written in. (Applicative style was developed for parsing, but has many more applications.)</p
+><p
+>This is a short pragmatic example based guide.</p
+><p
+>The way I originally got applicative parsing (yes, it seems simple but it took me ages to work it out) was by writing parsers like this:</p
+><pre class="sourceCode haskell"
+><code
+  >integerLit <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />    p <span class="ot"
+    >&lt;-</span
+    > pos<br
+     />    i <span class="ot"
+    >&lt;-</span
+    > integer<br
+     />    <span class="fu"
+    >return</span
+    > <span class="fu"
+    >$</span
+    > <span class="dt"
+    >IntegerLit</span
+    > p i<br
+     /></code
+  ></pre
+><p
+>and thinking, there must be a way to write it in one step, without the temporary names.</p
+><p
+>Applicative parsing comes to the rescue:</p
+><pre class="sourceCode haskell"
+><code
+  >integerLit <span class="fu"
+    >=</span
+    > <span class="dt"
+    >IntegerLit</span
+    > <span class="fu"
+    >&lt;$&gt;</span
+    > pos <span class="fu"
+    >&lt;*&gt;</span
+    > integer<br
+     /></code
+  ></pre
+><p
+>It reduces the amount of boilerplate for simple parsing functions.</p
+><p
+>To get started, I would write out the first version using the conventional monad style, then convert piecemeal to applicative style:</p
+><pre class="sourceCode haskell"
+><code
+  >integerLit <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />    p <span class="ot"
+    >&lt;-</span
+    > pos<br
+     />    i <span class="ot"
+    >&lt;-</span
+    > integer<br
+     />    <span class="fu"
+    >return</span
+    > <span class="fu"
+    >$</span
+    > <span class="dt"
+    >IntegerLit</span
+    > p i<br
+     /></code
+  ></pre
+><pre class="sourceCode haskell"
+><code
+  >integerLit <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />    p <span class="ot"
+    >&lt;-</span
+    > pos<br
+     />    (<span class="dt"
+    >IntegerLit</span
+    > p) <span class="fu"
+    >&lt;$&gt;</span
+    > integer<br
+     /></code
+  ></pre
+><pre class="sourceCode haskell"
+><code
+  >integerLit <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />    <span class="dt"
+    >IntegerLit</span
+    > <span class="fu"
+    >&lt;$&gt;</span
+    > pos <span class="fu"
+    >&lt;*&gt;</span
+    > integer<br
+     /></code
+  ></pre
+><pre class="sourceCode haskell"
+><code
+  >integerLit <span class="fu"
+    >=</span
+    > <span class="dt"
+    >IntegerLit</span
+    > <span class="fu"
+    >&lt;$&gt;</span
+    > pos <span class="fu"
+    >&lt;*&gt;</span
+    > integer<br
+     /></code
+  ></pre
+><p
+>After getting comfortable with this, it becomes much easier to write the parsers in applicative style directly compared to monad style, and easier to read as well. When I got stuck editing applicative style parsers before I was fluent in them, I would revert any changes, convert the applicative style parser to monadic style, apply my changes in the monadic style, test it works, then convert it back to applicative in stages until I was happy with it.</p
+><h2 id="some-rules"
+>Some rules:</h2
+><pre class="sourceCode haskell"
+><code
+  >parser <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />   a <span class="ot"
+    >&lt;-</span
+    > subParser1<br
+     />   b <span class="ot"
+    >&lt;-</span
+    > subParser2<br
+     />   c <span class="ot"
+    >&lt;-</span
+    > subParser3<br
+     />   d <span class="ot"
+    >&lt;-</span
+    > subParser4<br
+     />   <span class="fu"
+    >return</span
+    > <span class="fu"
+    >$</span
+    > <span class="dt"
+    >AstNode</span
+    > a b c d<br
+     /></code
+  ></pre
+><p
+>is converted like this:</p
+><pre class="sourceCode haskell"
+><code
+  >parser <span class="fu"
+    >=</span
+    > <span class="dt"
+    >AstNode</span
+    > <span class="fu"
+    >&lt;$&gt;</span
+    > subParser1 <span class="fu"
+    >&lt;*&gt;</span
+    > subParser2 <span class="fu"
+    >&lt;*&gt;</span
+    > subParser3 <span class="fu"
+    >&lt;*&gt;</span
+    > subParser4<br
+     /></code
+  ></pre
+><pre class="sourceCode haskell"
+><code
+  >parser <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />   a <span class="ot"
+    >&lt;-</span
+    > subParser1<br
+     />   <span class="fu"
+    >return</span
+    > <span class="fu"
+    >$</span
+    > <span class="dt"
+    >AstNode1</span
+    > a<br
+     /></code
+  ></pre
+><p
+>would be</p
+><pre class="sourceCode haskell"
+><code
+  >parser <span class="fu"
+    >=</span
+    > <span class="dt"
+    >AstNode1</span
+    > <span class="fu"
+    >&lt;$&gt;</span
+    > subParser1<br
+     /></code
+  ></pre
+><p
+>and</p
+><pre class="sourceCode haskell"
+><code
+  >parser <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />   a <span class="ot"
+    >&lt;-</span
+    > subParser1<br
+     />   b <span class="ot"
+    >&lt;-</span
+    > subParser2<br
+     />   <span class="fu"
+    >return</span
+    > <span class="fu"
+    >$</span
+    > <span class="dt"
+    >AstNode2</span
+    > a b<br
+     /></code
+  ></pre
+><p
+>would be</p
+><pre class="sourceCode haskell"
+><code
+  >parser <span class="fu"
+    >=</span
+    > <span class="dt"
+    >AstNode2</span
+    > <span class="fu"
+    >&lt;$&gt;</span
+    > subParser1 <span class="fu"
+    >&lt;*&gt;</span
+    > subParser2<br
+     /></code
+  ></pre
+><p
+>The main thing to notice is that you follow the pure constructor AstNodeX with <code
+  >&lt;$&gt;</code
+  > and the first argument, then to add additional arguments you use <code
+  >&lt;*&gt;</code
+  >.</p
+><p
+>What's nice about this is that the parser looks similar to creating a pure value:</p
+><pre class="sourceCode haskell"
+><code
+  >parser <span class="fu"
+    >=</span
+    > <span class="dt"
+    >AstNode</span
+    > <span class="fu"
+    >&lt;$&gt;</span
+    > subParser1 <span class="fu"
+    >&lt;*&gt;</span
+    > subParser2 <span class="fu"
+    >&lt;*&gt;</span
+    > subParser3 <span class="fu"
+    >&lt;*&gt;</span
+    > subParser4<br
+     /></code
+  ></pre
+><pre class="sourceCode haskell"
+><code
+  >value <span class="fu"
+    >=</span
+    > <span class="dt"
+    >AstNode</span
+    > subValue1 subValue2 subValue4 subValue4<br
+     /></code
+  ></pre
+><p
+>The limitations are that it is difficult to convert the following monadic parsers into applicative syntax.</p
+><pre class="sourceCode haskell"
+><code
+  >parser <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />   a <span class="ot"
+    >&lt;-</span
+    > subParser1<br
+     />   b <span class="ot"
+    >&lt;-</span
+    > subParser2<br
+     />   <span class="fu"
+    >return</span
+    > <span class="fu"
+    >$</span
+    > <span class="dt"
+    >AstNode2</span
+    > b a<br
+     /></code
+  ></pre
+><p
+>The values are passed to the constructor in the reverse order to the order in which they are parsed. There are quite a few ways to write this keeping the applicative style but I think the monadic style here is nice and straightforward.</p
+><pre class="sourceCode haskell"
+><code
+  >parser <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />   (a,b) <span class="ot"
+    >&lt;-</span
+    > subParser1<br
+     />   <span class="fu"
+    >return</span
+    > <span class="fu"
+    >$</span
+    > <span class="dt"
+    >AstNode2</span
+    > a b<br
+     /></code
+  ></pre
+><p
+>In this case, the code is deconstructing a value returned from a sub parser (here it is using the tuple constructor <code
+  >(,)</code
+  >) before passing the components to the AstNode2 constructor. Once again there are ways around this but I think this pretty clear.</p
+><p
+>There may also be performance implications when using applicative compared to monadic (applicative might be faster or use less memory in some circumstances) but I don't know much about this. If you needed to stay exclusively in Applicative without using Monad then you could rewrite these functions relatively easily with a single helper function.</p
+><h2 id="ignoring-the-results-of-parsers"
+>Ignoring the results of parsers</h2
+><p
+>What about this:</p
+><pre class="sourceCode haskell"
+><code
+  >createView <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />  p <span class="ot"
+    >&lt;-</span
+    > pos<br
+     />  _ <span class="ot"
+    >&lt;-</span
+    > keyword <span class="st"
+    >&quot;view&quot;</span
+    ><br
+     />  i <span class="ot"
+    >&lt;-</span
+    > idString<br
+     />  _ <span class="ot"
+    >&lt;-</span
+    > keyword <span class="st"
+    >&quot;as&quot;</span
+    ><br
+     />  e <span class="ot"
+    >&lt;-</span
+    > selectExpression<br
+     />  <span class="fu"
+    >return</span
+    > <span class="dt"
+    >CreateView</span
+    > p i e<br
+     /></code
+  ></pre
+><p
+>(If this parser for a sql create view statement doesn't look quite right it may be because it is only called when the initial 'create' keyword has already been parsed.)</p
+><p
+>Can this be rewritten even though it ignores the results of some of the parsers (e.g. '<code
+  >_ &lt;- keyword &quot;view&quot;</code
+  >')?</p
+><p
+>This is how it is done:</p
+><pre class="sourceCode haskell"
+><code
+  >createView <span class="fu"
+    >=</span
+    > <span class="dt"
+    >CreateView</span
+    ><br
+     />             <span class="fu"
+    >&lt;$&gt;</span
+    > (pos <span class="fu"
+    >&lt;*</span
+    > keyword <span class="st"
+    >&quot;view&quot;</span
+    >)<br
+     />             <span class="fu"
+    >&lt;*&gt;</span
+    > idString<br
+     />             <span class="fu"
+    >&lt;*&gt;</span
+    > (keyword <span class="st"
+    >&quot;as&quot;</span
+    > <span class="fu"
+    >*&gt;</span
+    > selectExpression)<br
+     /></code
+  ></pre
+><p
+>If this is broken down, you can see how it works:</p
+><pre class="sourceCode haskell"
+><code
+  >createView <span class="fu"
+    >=</span
+    > <span class="dt"
+    >CreateView</span
+    ><br
+     />             <span class="fu"
+    >&lt;$&gt;</span
+    > posThenIgnoreView<br
+     />             <span class="fu"
+    >&lt;*&gt;</span
+    > idString<br
+     />             <span class="fu"
+    >&lt;*&gt;</span
+    > ignoreAsThenSelectExpression<br
+     />             <span class="kw"
+    >where</span
+    ><br
+     />               posThenIgnoreView <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />                 p <span class="ot"
+    >&lt;-</span
+    > pos<br
+     />                 _ <span class="ot"
+    >&lt;-</span
+    > keyword <span class="st"
+    >&quot;view&quot;</span
+    ><br
+     />                 <span class="fu"
+    >return</span
+    > p<br
+     />               ignoreAsThenSelectExpression <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />                 _ <span class="ot"
+    >&lt;-</span
+    > keyword <span class="st"
+    >&quot;as&quot;</span
+    ><br
+     />                 e <span class="ot"
+    >&lt;-</span
+    > selectExpression<br
+     />                 <span class="fu"
+    >return</span
+    > e<br
+     />                 <span class="co"
+    >-- or just</span
+    ><br
+     />                 <span class="co"
+    >-- _ &lt;- keyword &quot;as&quot;</span
+    ><br
+     />                 <span class="co"
+    >-- selectExpression</span
+    ><br
+     /></code
+  ></pre
+><p
+>This shows the code using the applicative style without any tricks. The operators <code
+  >&lt;*</code
+  > and <code
+  >*&gt;</code
+  > are used to run subparsers, and ignore the results:</p
+><pre class="sourceCode haskell"
+><code
+  >createView <span class="fu"
+    >=</span
+    > <span class="dt"
+    >CreateView</span
+    ><br
+     />             <span class="fu"
+    >&lt;$&gt;</span
+    > posAndIgnoreView<br
+     />             <span class="fu"
+    >&lt;*&gt;</span
+    > idString<br
+     />             <span class="fu"
+    >&lt;*&gt;</span
+    > ignoreAsAndSelectExpression<br
+     />             <span class="kw"
+    >where</span
+    ><br
+     />               posAndIgnoreView <span class="fu"
+    >=</span
+    ><br
+     />                 pos <span class="fu"
+    >&lt;*</span
+    > keyword <span class="st"
+    >&quot;view&quot;</span
+    ><br
+     />               ignoreAsAndSelectExpression <span class="fu"
+    >=</span
+    ><br
+     />                 keyword <span class="st"
+    >&quot;as&quot;</span
+    > <span class="fu"
+    >*&gt;</span
+    > selectExpression<br
+     /></code
+  ></pre
+><p
+>Basically, <code
+  >&lt;*</code
+  > runs the parser to the left, then the one to the right, and returns the result of the left parser and ignores the result of the right parser:</p
+><pre class="sourceCode haskell"
+><code
+  >a <span class="fu"
+    >&lt;*</span
+    > b <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />  a' <span class="ot"
+    >&lt;-</span
+    > a<br
+     />  _ <span class="ot"
+    >&lt;-</span
+    > b<br
+     />  <span class="fu"
+    >return</span
+    > a<br
+     /></code
+  ></pre
+><p
+>(This is equivalent to what happens, but not the actual implementation.)</p
+><p
+>This leads to the final implementation:</p
+><pre class="sourceCode haskell"
+><code
+  >createView <span class="fu"
+    >=</span
+    > <span class="dt"
+    >CreateView</span
+    ><br
+     />             <span class="fu"
+    >&lt;$&gt;</span
+    > (pos <span class="fu"
+    >&lt;*</span
+    > keyword <span class="st"
+    >&quot;view&quot;</span
+    >)<br
+     />             <span class="fu"
+    >&lt;*&gt;</span
+    > idString<br
+     />             <span class="fu"
+    >&lt;*&gt;</span
+    > (keyword <span class="st"
+    >&quot;as&quot;</span
+    > <span class="fu"
+    >*&gt;</span
+    > selectExpression)<br
+     /></code
+  ></pre
+><p
+><code
+  >*&gt;</code
+  > is a lot like <code
+  >&gt;&gt;</code
+  > which is used with monads.</p
+><h2 id="ignoring-the-results-of-parsers-2"
+>Ignoring the results of parsers 2</h2
+><pre class="sourceCode haskell"
+><code
+  >booleanLit <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />  p <span class="ot"
+    >&lt;-</span
+    > pos<br
+     />  v <span class="ot"
+    >&lt;-</span
+    > ((<span class="kw"
+    >do</span
+    ><br
+     />         _ <span class="ot"
+    >&lt;-</span
+    > keyword <span class="st"
+    >&quot;true&quot;</span
+    ><br
+     />         <span class="fu"
+    >return</span
+    > <span class="kw"
+    >True</span
+    >)<br
+     />        <span class="fu"
+    >&lt;|&gt;</span
+    ><br
+     />        (<span class="kw"
+    >do</span
+    ><br
+     />         _ <span class="ot"
+    >&lt;-</span
+    > keyword <span class="st"
+    >&quot;false&quot;</span
+    ><br
+     />         <span class="fu"
+    >return</span
+    > <span class="kw"
+    >False</span
+    >))<br
+     />  <span class="fu"
+    >return</span
+    > <span class="fu"
+    >$</span
+    > <span class="dt"
+    >BooleanLit</span
+    > p v<br
+     /></code
+  ></pre
+><p
+>In this case, we are ignoring the parser result completely, and returning a pure value. You can rewrite this using <code
+  >*&gt;</code
+  > and returns, but there is a shorter way:</p
+><pre class="sourceCode haskell"
+><code
+  >booleanLit <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />  p <span class="ot"
+    >&lt;-</span
+    > pos<br
+     />  v <span class="ot"
+    >&lt;-</span
+    > ((<span class="kw"
+    >True</span
+    > <span class="fu"
+    >&lt;$</span
+    > keyword <span class="st"
+    >&quot;true&quot;</span
+    >)<br
+     />        <span class="fu"
+    >&lt;|&gt;</span
+    ><br
+     />        (<span class="kw"
+    >do</span
+    ><br
+     />         _ <span class="ot"
+    >&lt;-</span
+    > keyword <span class="st"
+    >&quot;false&quot;</span
+    ><br
+     />         <span class="fu"
+    >return</span
+    > <span class="kw"
+    >False</span
+    >))<br
+     />  <span class="fu"
+    >return</span
+    > <span class="fu"
+    >$</span
+    > <span class="dt"
+    >BooleanLit</span
+    > p v<br
+     /></code
+  ></pre
+><p
+>The <code
+  >&lt;$</code
+  > operator returns the first argument which is pure, if the second argument succeeds (and ignores the result of the second argument). I think it is mainly used in this way to parse to parameterless constructors. Finishing off rewriting <code
+  >booleanLit</code
+  >:</p
+><pre class="sourceCode haskell"
+><code
+  >booleanLit <span class="fu"
+    >=</span
+    > <span class="kw"
+    >do</span
+    ><br
+     />  p <span class="ot"
+    >&lt;-</span
+    > pos<br
+     />  v <span class="ot"
+    >&lt;-</span
+    > ((<span class="kw"
+    >True</span
+    > <span class="fu"
+    >&lt;$</span
+    > keyword <span class="st"
+    >&quot;true&quot;</span
+    >)<br
+     />        <span class="fu"
+    >&lt;|&gt;</span
+    ><br
+     />        (<span class="kw"
+    >False</span
+    > <span class="fu"
+    >&lt;$</span
+    > keyword <span class="st"
+    >&quot;false&quot;</span
+    >))<br
+     />  <span class="fu"
+    >return</span
+    > <span class="fu"
+    >$</span
+    > <span class="dt"
+    >BooleanLit</span
+    > p v<br
+     /></code
+  ></pre
+><pre class="sourceCode haskell"
+><code
+  >booleanLit <span class="fu"
+    >=</span
+    > <span class="dt"
+    >BooleanLit</span
+    > <span class="fu"
+    >&lt;$&gt;</span
+    > pos <span class="fu"
+    >&lt;*&gt;</span
+    > ((<span class="kw"
+    >True</span
+    > <span class="fu"
+    >&lt;$</span
+    > keyword <span class="st"
+    >&quot;true&quot;</span
+    >)<br
+     />                                     <span class="fu"
+    >&lt;|&gt;</span
+    ><br
+     />                                     (<span class="kw"
+    >False</span
+    > <span class="fu"
+    >&lt;$</span
+    > keyword <span class="st"
+    >&quot;false&quot;</span
+    >))<br
+     /></code
+  ></pre
+><p
+>There is some information in Real World Haskell:</p
+><p
+><a href="http://book.realworldhaskell.org/read/using-parsec.html"
+  >http://book.realworldhaskell.org/read/using-parsec.html</a
+  ></p
+><p
+>The section is called 'Applicative functors for parsing' (Applicative is type class which sits inbetween functors and monads).</p
+><p
+>Here is another page:</p
+><p
+><a href="http://www.serpentine.com/blog/2008/02/06/the-basics-of-applicative-functors-put-to-practical-work/"
+  >http://www.serpentine.com/blog/2008/02/06/the-basics-of-applicative-functors-put-to-practical-work/</a
+  ></p
+><p
+>Make sure you check out Brent Yorgey's (2nd) comment at the bottom.</p
+>
+</body>
+</html>
