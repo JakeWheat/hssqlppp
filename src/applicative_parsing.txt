@@ -6,10 +6,11 @@ what most of the examples for parsec you find are written
 in. (Applicative style was developed for parsing, but has many more
 applications.)
 
-This is a short pragmatic example based guide.
+This is a short, pragmatic, example based intro.
 
-The way I originally got applicative parsing (yes, it seems simple but
-it took me ages to work it out) was by writing parsers like this:
+The way I originally got applicative parsing (after looking at lots of
+information on Applicative and parsing and none of it sinking in) was
+by writing parsers like this:
 
 ~~~ {.haskell}
 integerLit = do
@@ -18,8 +19,9 @@ integerLit = do
     return $ IntegerLit p i
 ~~~
 
-and thinking, there must be a way to write it in one step, without the
-temporary names.
+and thinking, 'there must be a way to write it in one step - without
+the all the temporary names'. (`pos` is not a parser, but is used to
+attach source positions to the ast nodes).
 
 Applicative parsing comes to the rescue:
 
@@ -27,7 +29,8 @@ Applicative parsing comes to the rescue:
 integerLit = IntegerLit <$> pos <*> integer
 ~~~
 
-It reduces the amount of boilerplate for simple parsing functions.
+It reduces the amount of boilerplate for simple parsing
+functions. Once you get use to it, it is very quick to read and write.
 
 To get started, I would write out the first version using the
 conventional monad style, then convert piecemeal to applicative style:
@@ -54,15 +57,16 @@ integerLit = do
 integerLit = IntegerLit <$> pos <*> integer
 ~~~
 
-After getting comfortable with this, it becomes much easier to write
-the parsers in applicative style directly compared to monad style, and
-easier to read as well. When I got stuck editing applicative style
-parsers before I was fluent in them, I would revert any changes,
-convert the applicative style parser to monadic style, apply my
-changes in the monadic style, test it works, then convert it back to
-applicative in stages until I was happy with it.
+When I got stuck writing applicative style parsers before getting used
+to them (and the errors you get from ghc when you make a mistake), I
+would write the parser in monadic style first, check it compiles and
+test it, then convert it in stages to applicative style. For editing
+applicative parsers, if I got into a mess, I would revert back to the
+unedited parser, rewrite it in monadic style, make the changes, and
+again check in compiles, test it, then convert back to applicative in
+stages.
 
-## Some rules:
+## Some guidelines:
 
 ~~~ {.haskell}
 parser = do
@@ -73,7 +77,7 @@ parser = do
    return $ AstNode a b c d
 ~~~
 
-is converted like this:
+is rewritten like this:
 
 ~~~ {.haskell}
 parser = AstNode <$> subParser1 <*> subParser2 <*> subParser3 <*> subParser4
@@ -160,7 +164,8 @@ createView = do
 
 (If this parser for a sql create view statement doesn't look quite
 right it may be because it is only called when the initial 'create'
-keyword has already been parsed.)
+keyword has already been parsed - this means the position won't be
+quite correct.)
 
 Can this be rewritten even though it ignores the results of some of
 the parsers (e.g. '`_ <- keyword "view"`')?
@@ -216,10 +221,10 @@ right, and returns the result of the left parser and ignores the
 result of the right parser:
 
 ~~~ {.haskell}
-a <* b = do
-  a' <- a
-  _ <- b
-  return a
+meat <* veg = do
+  meat' <- meat
+  _ <- veg
+  return meat'
 ~~~
 
 (This is equivalent to what happens, but not the actual implementation.)
@@ -251,9 +256,9 @@ booleanLit = do
   return $ BooleanLit p v
 ~~~
 
-In this case, we are ignoring the parser result completely, and
-returning a pure value. You can rewrite this using `*>` and returns, but
-there is a shorter way:
+In this case, it is ignoring the parser result completely, and
+returning a pure value. You can rewrite this using `*>` and returns,
+but there is a shorter way:
 
 ~~~ {.haskell}
 booleanLit = do
@@ -286,15 +291,21 @@ booleanLit = BooleanLit <$> pos <*> ((True <$ keyword "true")
                                      (False <$ keyword "false"))
 ~~~
 
-There is some information in Real World Haskell:
-
-[http://book.realworldhaskell.org/read/using-parsec.html](http://book.realworldhaskell.org/read/using-parsec.html)
-
-The section is called 'Applicative functors for parsing' (Applicative
-is type class which sits inbetween functors and monads).
-
-Here is another page:
+Here is a page with info about applicative parsing:
 
 [http://www.serpentine.com/blog/2008/02/06/the-basics-of-applicative-functors-put-to-practical-work/](http://www.serpentine.com/blog/2008/02/06/the-basics-of-applicative-functors-put-to-practical-work/)
 
 Make sure you check out Brent Yorgey's (2nd) comment at the bottom.
+
+There is some information in Real World Haskell:
+
+[http://book.realworldhaskell.org/read/using-parsec.html](http://book.realworldhaskell.org/read/using-parsec.html)
+
+The section is called 'Applicative functors for parsing'.
+
+This is a more academic approach, pretty hard work:
+
+Grammars and Parsing by Johan Jeuring and Doaitse Swierstra [http://www.cs.uu.nl/docs/vakken/gont/diktaat.pdf](http://www.cs.uu.nl/docs/vakken/gont/diktaat.pdf)
+
+If you get through it, you can probably fix all the problems with the
+hssqlppp parser that I am unable to.

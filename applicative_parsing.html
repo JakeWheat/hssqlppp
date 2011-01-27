@@ -31,9 +31,9 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
 ><p
 >Most of the parser is written in something called applicative style. This is sort of a variant on monadic style parsing which is what most of the examples for parsec you find are written in. (Applicative style was developed for parsing, but has many more applications.)</p
 ><p
->This is a short pragmatic example based guide.</p
+>This is a short, pragmatic, example based intro.</p
 ><p
->The way I originally got applicative parsing (yes, it seems simple but it took me ages to work it out) was by writing parsers like this:</p
+>The way I originally got applicative parsing (after looking at lots of information on Applicative and parsing and none of it sinking in) was by writing parsers like this:</p
 ><pre class="sourceCode haskell"
 ><code
   >integerLit <span class="fu"
@@ -57,7 +57,9 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
      /></code
   ></pre
 ><p
->and thinking, there must be a way to write it in one step, without the temporary names.</p
+>and thinking, 'there must be a way to write it in one step - without the all the temporary names'. (<code
+  >pos</code
+  > is not a parser, but is used to attach source positions to the ast nodes).</p
 ><p
 >Applicative parsing comes to the rescue:</p
 ><pre class="sourceCode haskell"
@@ -74,7 +76,7 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
      /></code
   ></pre
 ><p
->It reduces the amount of boilerplate for simple parsing functions.</p
+>It reduces the amount of boilerplate for simple parsing functions. Once you get use to it, it is very quick to read and write.</p
 ><p
 >To get started, I would write out the first version using the conventional monad style, then convert piecemeal to applicative style:</p
 ><pre class="sourceCode haskell"
@@ -146,9 +148,9 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
      /></code
   ></pre
 ><p
->After getting comfortable with this, it becomes much easier to write the parsers in applicative style directly compared to monad style, and easier to read as well. When I got stuck editing applicative style parsers before I was fluent in them, I would revert any changes, convert the applicative style parser to monadic style, apply my changes in the monadic style, test it works, then convert it back to applicative in stages until I was happy with it.</p
-><h2 id="some-rules"
->Some rules:</h2
+>When I got stuck writing applicative style parsers before getting used to them (and the errors you get from ghc when you make a mistake), I would write the parser in monadic style first, check it compiles and test it, then convert it in stages to applicative style. For editing applicative parsers, if I got into a mess, I would revert back to the unedited parser, rewrite it in monadic style, make the changes, and again check in compiles, test it, then convert back to applicative in stages.</p
+><h2 id="some-guidelines"
+>Some guidelines:</h2
 ><pre class="sourceCode haskell"
 ><code
   >parser <span class="fu"
@@ -178,7 +180,7 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
      /></code
   ></pre
 ><p
->is converted like this:</p
+>is rewritten like this:</p
 ><pre class="sourceCode haskell"
 ><code
   >parser <span class="fu"
@@ -390,7 +392,7 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
      /></code
   ></pre
 ><p
->(If this parser for a sql create view statement doesn't look quite right it may be because it is only called when the initial 'create' keyword has already been parsed.)</p
+>(If this parser for a sql create view statement doesn't look quite right it may be because it is only called when the initial 'create' keyword has already been parsed - this means the position won't be quite correct.)</p
 ><p
 >Can this be rewritten even though it ignores the results of some of the parsers (e.g. '<code
   >_ &lt;- keyword &quot;view&quot;</code
@@ -536,22 +538,22 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
   > runs the parser to the left, then the one to the right, and returns the result of the left parser and ignores the result of the right parser:</p
 ><pre class="sourceCode haskell"
 ><code
-  >a <span class="fu"
+  >meat <span class="fu"
     >&lt;*</span
-    > b <span class="fu"
+    > veg <span class="fu"
     >=</span
     > <span class="kw"
     >do</span
     ><br
-     />  a' <span class="ot"
+     />  meat' <span class="ot"
     >&lt;-</span
-    > a<br
+    > meat<br
      />  _ <span class="ot"
     >&lt;-</span
-    > b<br
+    > veg<br
      />  <span class="fu"
     >return</span
-    > a<br
+    > meat'<br
      /></code
   ></pre
 ><p
@@ -643,7 +645,7 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
      /></code
   ></pre
 ><p
->In this case, we are ignoring the parser result completely, and returning a pure value. You can rewrite this using <code
+>In this case, it is ignoring the parser result completely, and returning a pure value. You can rewrite this using <code
   >*&gt;</code
   > and returns, but there is a shorter way:</p
 ><pre class="sourceCode haskell"
@@ -764,21 +766,29 @@ pre.sourceCode span.er { color: red; font-weight: bold; }
      /></code
   ></pre
 ><p
->There is some information in Real World Haskell:</p
-><p
-><a href="http://book.realworldhaskell.org/read/using-parsec.html"
-  >http://book.realworldhaskell.org/read/using-parsec.html</a
-  ></p
-><p
->The section is called 'Applicative functors for parsing' (Applicative is type class which sits inbetween functors and monads).</p
-><p
->Here is another page:</p
+>Here is a page with info about applicative parsing:</p
 ><p
 ><a href="http://www.serpentine.com/blog/2008/02/06/the-basics-of-applicative-functors-put-to-practical-work/"
   >http://www.serpentine.com/blog/2008/02/06/the-basics-of-applicative-functors-put-to-practical-work/</a
   ></p
 ><p
 >Make sure you check out Brent Yorgey's (2nd) comment at the bottom.</p
+><p
+>There is some information in Real World Haskell:</p
+><p
+><a href="http://book.realworldhaskell.org/read/using-parsec.html"
+  >http://book.realworldhaskell.org/read/using-parsec.html</a
+  ></p
+><p
+>The section is called 'Applicative functors for parsing'.</p
+><p
+>This is a more academic approach, pretty hard work:</p
+><p
+>Grammars and Parsing by Johan Jeuring and Doaitse Swierstra <a href="http://www.cs.uu.nl/docs/vakken/gont/diktaat.pdf"
+  >http://www.cs.uu.nl/docs/vakken/gont/diktaat.pdf</a
+  ></p
+><p
+>If you get through it, you can probably fix all the problems with the hssqlppp parser that I am unable to.</p
 >
 </body>
 </html>
