@@ -15,7 +15,7 @@ are not supported at the moment.
 ATTR TypeName [||namedType : {Maybe Type}]
 
 SEM TypeName
-     | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName
+     | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName Prec2TypeName
          lhs.namedType = etmt @loc.tpe
          lhs.annotatedTree = addTypeErrors (tes @loc.tpe) @loc.backTree
 
@@ -32,6 +32,9 @@ SEM TypeName
      | PrecTypeName
         loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
         loc.backTree = PrecTypeName @ann @tn @prec
+     | Prec2TypeName
+        loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
+        loc.backTree = Prec2TypeName @ann @tn @prec @prec1
 
 
 {-

@@ -1,4 +1,5 @@
 
+
 > {- | Functions to convert sql asts to valid SQL source code. Includes
 >    a function - 'printSqlAnn' - to output the annotations from a tree
 >    in comments in the outputted SQL source.
@@ -564,6 +565,7 @@ Statement components
 > convTypeName :: TypeName -> Doc
 > convTypeName (SimpleTypeName _ s) = text s
 > convTypeName (PrecTypeName _ s i) = text s <> parens(integer i)
+> convTypeName (Prec2TypeName _ s i i1) = text s <> parens (hcatCsv [integer i, integer i1])
 > convTypeName (ArrayTypeName _ t) = convTypeName t <> text "[]"
 > convTypeName (SetOfTypeName _ t) = text "setof" <+> convTypeName t
 >

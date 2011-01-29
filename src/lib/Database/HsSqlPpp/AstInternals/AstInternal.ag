@@ -485,6 +485,7 @@ data Language = Sql | Plpgsql
 
 DATA TypeName | SimpleTypeName ann:Annotation tn:String
               | PrecTypeName ann:Annotation tn:String prec:Integer
+              | Prec2TypeName ann:Annotation tn:String prec:Integer prec1:Integer
               | ArrayTypeName ann:Annotation typ:TypeName
               | SetOfTypeName ann:Annotation typ:TypeName
 {

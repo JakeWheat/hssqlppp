@@ -294,6 +294,7 @@ data TypeAttributeDef = TypeAttDef (Annotation) (String) (TypeName)
                       deriving (Data, Eq, Show, Typeable)
  
 data TypeName = ArrayTypeName (Annotation) (TypeName)
+              | Prec2TypeName (Annotation) (String) (Integer) (Integer)
               | PrecTypeName (Annotation) (String) (Integer)
               | SetOfTypeName (Annotation) (TypeName)
               | SimpleTypeName (Annotation) (String)
@@ -761,6 +762,7 @@ typeName :: TypeName -> A.TypeName
 typeName x
   = case x of
         ArrayTypeName a1 a2 -> A.ArrayTypeName a1 (typeName a2)
+        Prec2TypeName a1 a2 a3 a4 -> A.Prec2TypeName a1 a2 a3 a4
         PrecTypeName a1 a2 a3 -> A.PrecTypeName a1 a2 a3
         SetOfTypeName a1 a2 -> A.SetOfTypeName a1 (typeName a2)
         SimpleTypeName a1 a2 -> A.SimpleTypeName a1 a2

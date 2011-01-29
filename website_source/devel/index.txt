@@ -9,8 +9,8 @@ lot and hasn't been fixed yet. My next job for hssqlppp is
 implementing a production quality typechecker for queries, but no ETA
 yet.
 
-Parsing sql expressions is still a horrible broken mess and needs a
-rethink from scratch.
+Parsing sql scalar expressions is still a horrible broken mess and
+needs a rethink from scratch.
 
 The quasi-quotation is at a very early stage.
 
@@ -27,4 +27,5 @@ plpgsql before type checking.
 
 [Adding new syntax](adding_syntax.txt.html)
 
-Email me at jakewheatmail@gmail.com if I haven't made anything clear.
+I don't think the documentation is very good at the moment, please
+email me if you have any questions (jakewheatmail@gmail.com).

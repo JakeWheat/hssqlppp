@@ -21,5 +21,5 @@ The run the tests using:
 dist/build/Tests/Tests
 ~~~~
 
-expect 12 failures at the moment, which are in the broken typechecker,
-and not likely to be fixed for a while.
+All the tests should pass. There are some commented out ones for the
+typechecker which need fixing at some point.

@@ -17,4 +17,301 @@ the quasi-quotation system. Not sure how to make this non-crazy
 
 compile and run the tests to check that the new test now passes
 
-TODO: write the actual example
+# Example
+
+The parser currently the precision of types, e.g.
+
+~~~~{.sql}
+create table t {
+   col float(24);
+}
+~~~~
+
+We want it to also support two components, for numeric types:
+
+~~~~{.sql}
+create table t {
+   col numeric(5,3);
+}
+~~~~
+
+## Add a test
+
+The first step: add a test. Looking in the tests folder, this seems
+like the best file to add it to:
+tests/Database/HsSqlPpp/Tests/ParserTest.lhs. At the moment, all the
+parsing tests go in this file.
+
+A quick look through shows a good place to add the test, right after
+the test for the float(24) example, which looks like this:
+
+~~~~{.haskell}
+e "245::float(24)" (Cast ea (IntegerLit ea 245) (PrecTypeName ea "float" 24))
+~~~~
+
+To add the new test, we have to figure out how the new abstract syntax
+will look. We can defer this while we add the test, until we actually
+edit the abstract syntax types. The added code:
+
+~~~~{.haskell}
+e "245.1::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (PrecTypeName ea "numeric" 5))
+~~~~
+
+Now check the test fails, not really that useful at this time, but
+good sanity check if you are getting used to things. (Adding
+--ghc-options "-Wall" gives us all the warnings when compiling with
+cabal which is very useful).
+
+~~~~
+$ cabal configure -ftests --ghc-options "-Wall"
+$ cabal build
+$ dist/build/Tests/Tests -t "numeric"
+parserTests:
+  parse expressions:
+    simple operators:
+      parse 245.34::numeric(5,3): [Failed]
+Failed: (line 1, column 7):
+unexpected ((line 1, column 7),SymbolTok "::")
+expecting operator or end of input
+:1:7:
+
+Context:
+245.34::numeric(5,3)
+      ^
+ERROR HERE
+
+
+
+         Test Cases  Total      
+ Passed  0           0          
+ Failed  1           1          
+ Total   1           1          
+~/wd/hssqlppp/trunk$ 
+
+~~~~
+
+Well, the error message isn't very good, but it fails as expected. You
+can use -t [string] argument to the tests executable to only run the
+tests which match the string.
+
+## Syntax
+
+It's not straightforward to work out what variations postgresql
+supports for these precision parameters to types. In particular, I
+can't immediately see if if is only for float and numeric types, and
+also if custom datatypes can potentially have an arbitrary number of
+parameters, and whether they can be types other than integers. If it's
+simple, then just add another variation on the float(24) support which
+allows two arguments instead of one.
+
+Editing syntax is pretty hairy in hssqlppp (advice on how to improve
+the system is welcome). The first place to go is the AstInternals.ag
+file, which is not written in haskell syntax, but in uuagc syntax
+which isn't too different.
+
+Searching for PrecTypeName in this file should give a good place to
+alter the syntax.
+
+You get a block like this:
+
+~~~~{.haskell}
+DATA TypeName | SimpleTypeName ann:Annotation tn:String
+              | PrecTypeName ann:Annotation tn:String prec:Integer
+              | ArrayTypeName ann:Annotation typ:TypeName
+              | SetOfTypeName ann:Annotation typ:TypeName
+~~~~
+
+Add a new Prec2TypeName constructor with two integer args:
+
+~~~~{.haskell}
+DATA TypeName | SimpleTypeName ann:Annotation tn:String
+              | PrecTypeName ann:Annotation tn:String prec:Integer
+              | Prec2TypeName ann:Annotation tn:String prec:Integer prec1:Integer
+              | ArrayTypeName ann:Annotation typ:TypeName
+              | SetOfTypeName ann:Annotation typ:TypeName
+~~~~
+
+Now we have made changes to an ag file, we need to run uuagc to
+produce AstInternal.hs (see this file for the compilation
+instructions):
+
+~~~~
+$ cd src/lib/Database/HsSqlPpp/AstInternals
+$ uuagc  -dcfwsp AstInternal.ag
+./TypeChecking/Misc.ag:15:18: warning: Missing rule for synthesized attribute namedType in alternative Prec2TypeName of nonterminal TypeName.
+~~~~
+
+OK, so this is a bit weird if you don't know uuagc. Looking at the
+file, the simplest fix seems to be to copy the style of the
+PrecTypeName part. The previous code:
+
+~~~~{.haskell}
+SEM TypeName
+     | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName
+         lhs.namedType = etmt @loc.tpe
+         lhs.annotatedTree = addTypeErrors (tes @loc.tpe) @loc.backTree
+
+SEM TypeName
+     | SimpleTypeName
+        loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
+        loc.backTree = SimpleTypeName @ann @tn
+     | ArrayTypeName
+        loc.tpe = lmt @typ.namedType >>=  Right . ArrayType
+        loc.backTree = ArrayTypeName @ann @typ.annotatedTree
+     | SetOfTypeName
+        loc.tpe = lmt @typ.namedType >>=  Right . SetOfType
+        loc.backTree = SetOfTypeName @ann @typ.annotatedTree
+     | PrecTypeName
+        loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
+        loc.backTree = PrecTypeName @ann @tn @prec
+~~~~
+
+And the updated code:
+
+~~~~{.haskell}
+SEM TypeName
+     | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName Prec2TypeName
+         lhs.namedType = etmt @loc.tpe
+         lhs.annotatedTree = addTypeErrors (tes @loc.tpe) @loc.backTree
+
+SEM TypeName
+     | SimpleTypeName
+        loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
+        loc.backTree = SimpleTypeName @ann @tn
+     | ArrayTypeName
+        loc.tpe = lmt @typ.namedType >>=  Right . ArrayType
+        loc.backTree = ArrayTypeName @ann @typ.annotatedTree
+     | SetOfTypeName
+        loc.tpe = lmt @typ.namedType >>=  Right . SetOfType
+        loc.backTree = SetOfTypeName @ann @typ.annotatedTree
+     | PrecTypeName
+        loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
+        loc.backTree = PrecTypeName @ann @tn @prec
+     | Prec2TypeName
+        loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
+        loc.backTree = Prec2TypeName @ann @tn @prec @prec1
+~~~~
+
+Now uuagc runs without warnings.
+
+The next step is to generate the antinodes. You probably don't want to
+know what this is all about. See the file devel/MakeAntiNodes.lhs for
+simple instructions on how to do this.
+
+So each time you change the syntax types and want to recompile, you
+need to first run uuagc, and then run MakeAntiNodes.
+
+Now use 'cabal build' to see if the tests still compile. Fortunately,
+they do in this case. The next step is to fix the test to match the
+newly created syntax, and check it still fails.
+
+The line in ParserTests.lhs is now
+
+~~~~{.haskell}
+e "(245.1)::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (Prec2TypeName ea "numeric" 5 3))
+~~~~
+
+Recompiling works, and running the test fails.
+
+The next job is to add to the parser. The parsing code is mostly in
+src/lib/Database/HsSqlPpp/Parsing/ParserInternal.lhs.
+
+Loading this file and searching for PrecTypeName gives the typeName
+parser function:
+
+~~~~{.haskell}
+> typeName :: SParser TypeName
+> typeName =
+>   choice [
+>      SetOfTypeName <$> pos <*> (keyword "setof" *> typeName)
+>     ,otherTypeName]
+>   where
+>     otherTypeName = do
+>        p <- pos
+>        s <- map toLower <$> pTypeNameString
+>        choice [PrecTypeName p s <$> parens integer
+>               ,arrayTypeName p s
+>               ,return $ SimpleTypeName p s]
+>     arrayTypeName p s = ArrayTypeName p (SimpleTypeName p s)
+>                         <$ symbol "[" <* symbol "]"
+>     --todo: add special cases for the other type names with spaces in them
+>     pTypeNameString = ("double precision" <$ try (keyword "double"
+>                                                   <* keyword "precision"))
+>                       <|> idString
+~~~~
+
+Here is the updated version. It could probably be a bit better
+designed but getting a crappily written version working and passing
+tests is usually a good first step before trying to make it clean and
+elegant.
+
+~~~~{.haskell}
+> typeName :: SParser TypeName
+> typeName =
+>   choice [
+>      SetOfTypeName <$> pos <*> (keyword "setof" *> typeName)
+>     ,otherTypeName]
+>   where
+>     otherTypeName = do
+>        p <- pos
+>        s <- map toLower <$> pTypeNameString
+>        choice [try (Prec2TypeName p s
+>                     <$> (symbol "(" *> integer)
+>                     <*> (symbol "," *> integer <* symbol ")"))
+>               ,PrecTypeName p s <$> parens integer
+>               ,arrayTypeName p s
+>               ,return $ SimpleTypeName p s]
+>     arrayTypeName p s = ArrayTypeName p (SimpleTypeName p s)
+>                         <$ symbol "[" <* symbol "]"
+>     --todo: add special cases for the other type names with spaces in them
+>     pTypeNameString = ("double precision" <$ try (keyword "double"
+>                                                   <* keyword "precision"))
+>                       <|> idString
+~~~~
+
+We have to use try with this approach since it Prec2TypeName starts
+out the same as PrecTypeName.
+
+== Pretty printing
+
+Compiling and running the tests gives:
+
+~~~~
+parserTests:
+  parse expressions:
+    simple operators:
+      parse 245.1::numeric(5,3): [Failed]
+ERROR: src/lib/Database/HsSqlPpp/PrettyPrinter.lhs:(565,2)-(568,67): Non-exhaustive patterns in function convTypeName
+
+
+         Test Cases  Total      
+ Passed  0           0          
+ Failed  1           1          
+ Total   1           1          
+~~~~
+
+The issue here is that the pretty printer hasn't also been
+updated. The parsing tests all first parse the string given, check it
+is the same as the ast given, then pretty print and reparse the pretty
+printed string to check it still gives the same result. This is a
+reasonably good way of checking the pretty printing routines, and that
+parse then pretty print gives the same sql (and pretty print then
+parse gives the same ast).
+
+The pretty printing routines are in
+'src/lib/Database/HsSqlPpp.PrettyPrinter'. Here is the line I added
+after the PrecTypeName pretty printer:
+
+~~~~{.haskell}
+> convTypeName (PrecTypeName _ s i) = text s <> parens(integer i)
+> convTypeName (Prec2TypeName _ s i i1) = text s <> parens (hcatCsv [integer i, integer i1])
+~~~~
+
+## Finished
+
+Now the test passes and the only thing left is to run all the tests to
+check nothing else has been broken.
+
+This is just a sketch guide, there are lots of missing details so if
+you give it a go and get stuck, please don't hesitate to email me with
+any questions.

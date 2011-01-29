@@ -1,6 +1,6 @@
 
 
--- UUAGC 0.9.15 (AstInternal.ag)
+-- UUAGC 0.9.19 (AstInternal.ag)
 module Database.HsSqlPpp.AstInternals.AstInternal(
     -- {-# LANGUAGE DeriveDataTypeable,RankNTypes,ScopedTypeVariables #-}
     --from the ag files:
@@ -11190,6 +11190,16 @@ sem_TypeAttributeDefList_Nil  =
             local backTree    : _
             local annotatedTree : _
             local originalTree : _
+      alternative Prec2TypeName:
+         child ann            : {Annotation}
+         child tn             : {String}
+         child prec           : {Integer}
+         child prec1          : {Integer}
+         visit 0:
+            local tpe         : _
+            local backTree    : _
+            local annotatedTree : _
+            local originalTree : _
       alternative PrecTypeName:
          child ann            : {Annotation}
          child tn             : {String}
@@ -11217,6 +11227,7 @@ sem_TypeAttributeDefList_Nil  =
             local originalTree : _
 -}
 data TypeName  = ArrayTypeName (Annotation) (TypeName) 
+               | Prec2TypeName (Annotation) (String) (Integer) (Integer) 
                | PrecTypeName (Annotation) (String) (Integer) 
                | SetOfTypeName (Annotation) (TypeName) 
                | SimpleTypeName (Annotation) (String) 
@@ -11226,6 +11237,8 @@ sem_TypeName :: TypeName  ->
                 T_TypeName 
 sem_TypeName (ArrayTypeName _ann _typ )  =
     (sem_TypeName_ArrayTypeName _ann (sem_TypeName _typ ) )
+sem_TypeName (Prec2TypeName _ann _tn _prec _prec1 )  =
+    (sem_TypeName_Prec2TypeName _ann _tn _prec _prec1 )
 sem_TypeName (PrecTypeName _ann _tn _prec )  =
     (sem_TypeName_PrecTypeName _ann _tn _prec )
 sem_TypeName (SetOfTypeName _ann _typ )  =
@@ -11288,6 +11301,39 @@ sem_TypeName_ArrayTypeName ann_ typ_  =
                   _lhsIlib
               ( _typIannotatedTree,_typInamedType,_typIoriginalTree) =
                   (typ_ _typOcat _typOlib )
+          in  ( _lhsOannotatedTree,_lhsOnamedType,_lhsOoriginalTree)))
+sem_TypeName_Prec2TypeName :: Annotation ->
+                              String ->
+                              Integer ->
+                              Integer ->
+                              T_TypeName 
+sem_TypeName_Prec2TypeName ann_ tn_ prec_ prec1_  =
+    (\ _lhsIcat
+       _lhsIlib ->
+         (let _lhsOnamedType :: (Maybe Type)
+              _lhsOannotatedTree :: TypeName
+              _lhsOoriginalTree :: TypeName
+              -- "./TypeChecking/Misc.ag"(line 19, column 10)
+              _lhsOnamedType =
+                  etmt _tpe
+              -- "./TypeChecking/Misc.ag"(line 20, column 10)
+              _lhsOannotatedTree =
+                  addTypeErrors (tes _tpe    ) _backTree
+              -- "./TypeChecking/Misc.ag"(line 36, column 9)
+              _tpe =
+                  catLookupType _lhsIcat $ canonicalizeTypeName tn_
+              -- "./TypeChecking/Misc.ag"(line 37, column 9)
+              _backTree =
+                  Prec2TypeName ann_ tn_ prec_ prec1_
+              -- self rule
+              _annotatedTree =
+                  Prec2TypeName ann_ tn_ prec_ prec1_
+              -- self rule
+              _originalTree =
+                  Prec2TypeName ann_ tn_ prec_ prec1_
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
           in  ( _lhsOannotatedTree,_lhsOnamedType,_lhsOoriginalTree)))
 sem_TypeName_PrecTypeName :: Annotation ->
                              String ->

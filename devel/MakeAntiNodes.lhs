@@ -20,7 +20,7 @@ Run this from ghci:
 change to the folder with the cabal file in
 run ghci
 enter:
-:set -isrc:examples/util
+:set -isrc/lib:src/postgresql:examples/util
 :l "devel/MakeAntiNodes.lhs"
 writeAntiNodes
 
@@ -61,7 +61,7 @@ writeAntiNodes
 >
 > makeAntiNodes :: IO String
 > makeAntiNodes = do
->   ast <- pf "src/Database/HsSqlPpp/AstInternals/AstInternal.hs"
+>   ast <- pf "src/lib/Database/HsSqlPpp/AstInternals/AstInternal.hs"
 >   --ast1 <- pf "Database/HsSqlPpp/AstInternals/AstAnti.hs"
 >   --trace (ppExpr ast) $ return ()
 >   -- get the interesting declarations out

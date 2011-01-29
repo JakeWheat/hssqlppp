@@ -862,7 +862,10 @@ or after the whole list
 >     otherTypeName = do
 >        p <- pos
 >        s <- map toLower <$> pTypeNameString
->        choice [PrecTypeName p s <$> parens integer
+>        choice [try (Prec2TypeName p s
+>                     <$> (symbol "(" *> integer)
+>                     <*> (symbol "," *> integer <* symbol ")"))
+>               ,PrecTypeName p s <$> parens integer
 >               ,arrayTypeName p s
 >               ,return $ SimpleTypeName p s]
 >     arrayTypeName p s = ArrayTypeName p (SimpleTypeName p s)
