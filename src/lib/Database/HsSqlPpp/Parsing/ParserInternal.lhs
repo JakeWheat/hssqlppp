@@ -725,10 +725,21 @@ variable declarations in a plpgsql function
 >     <* symbol ";"
 >
 > createView :: SParser Statement
-> createView = CreateView
+> {-createView = CreateView
 >              <$> pos <* keyword "view"
 >              <*> idString
->              <*> (keyword "as" *> selectExpression)
+>              <*> (keyword "as" *> selectExpression)-}
+> createView = CreateView
+>              <$> posAndIgnoreView
+>              <*> idString
+>              <*> ignoreAsAndSelectExpression
+>              where
+>                posAndIgnoreView =
+>                  pos <* keyword "view"
+>                ignoreAsAndSelectExpression =
+>                  keyword "as" *> selectExpression
+
+
 >
 > createDomain :: SParser Statement
 > createDomain = CreateDomain
@@ -1042,6 +1053,7 @@ expression, and then add a suffix on
 
 >   threadOptionalSuffixes fct [castSuffix
 >                              ,betweenSuffix
+>                              ,inPredicateSuffix
 >                              ,arraySubSuffix
 >                              ,qualIdSuffix]
 >   where
@@ -1105,6 +1117,7 @@ want to parse as an antiexpression rather than an antiidentifier
 
 >       ,antiExpression
 >       ,antiIdentifier1
+>       --,qName
 >       ,threadOptionalSuffixes identifier
 >                               [inPredicateSuffix
 >                               ,\l -> threadOptionalSuffix
@@ -1248,7 +1261,12 @@ row ctor: one of
 > floatLit = FloatLit <$> pos <*> float
 >
 > integerLit :: SParser Expression
-> integerLit = IntegerLit <$> pos <*> integer
+> integerLit = do
+>   p <- pos
+>   (IntegerLit p) <$> integer
+
+ IntegerLit <$> pos <*> integer
+
 >
 > caseExpression :: SParser Expression
 > caseExpression = do
@@ -1269,9 +1287,11 @@ row ctor: one of
 > exists :: SParser Expression
 > exists = Exists <$> pos <* keyword "exists" <*> parens selectExpression
 >
+
 > booleanLit :: SParser Expression
 > booleanLit = BooleanLit <$> pos <*> (True <$ keyword "true"
 >                                      <|> False <$ keyword "false")
+
 >
 > nullLit :: SParser Expression
 > nullLit = NullLit <$> pos <* keyword "null"

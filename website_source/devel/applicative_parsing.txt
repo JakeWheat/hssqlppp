@@ -1,0 +1,311 @@
+# Applicative Parsing
+
+Most of the parser is written in something called applicative
+style. This is sort of a variant on monadic style parsing which is
+what most of the examples for parsec you find are written
+in. (Applicative style was developed for parsing, but has many more
+applications.)
+
+This is a short, pragmatic, example based intro.
+
+The way I originally got applicative parsing (after looking at lots of
+information on Applicative and parsing and none of it sinking in) was
+by writing parsers like this:
+
+~~~ {.haskell}
+integerLit = do
+    p <- pos
+    i <- integer
+    return $ IntegerLit p i
+~~~
+
+and thinking, 'there must be a way to write it in one step - without
+the all the temporary names'. (`pos` is not a parser, but is used to
+attach source positions to the ast nodes).
+
+Applicative parsing comes to the rescue:
+
+~~~ {.haskell}
+integerLit = IntegerLit <$> pos <*> integer
+~~~
+
+It reduces the amount of boilerplate for simple parsing
+functions. Once you get use to it, it is very quick to read and write.
+
+To get started, I would write out the first version using the
+conventional monad style, then convert piecemeal to applicative style:
+
+~~~ {.haskell}
+integerLit = do
+    p <- pos
+    i <- integer
+    return $ IntegerLit p i
+~~~
+
+~~~ {.haskell}
+integerLit = do
+    p <- pos
+    (IntegerLit p) <$> integer
+~~~
+
+~~~ {.haskell}
+integerLit = do
+    IntegerLit <$> pos <*> integer
+~~~
+
+~~~ {.haskell}
+integerLit = IntegerLit <$> pos <*> integer
+~~~
+
+When I got stuck writing applicative style parsers before getting used
+to them (and the errors you get from ghc when you make a mistake), I
+would write the parser in monadic style first, check it compiles and
+test it, then convert it in stages to applicative style. For editing
+applicative parsers, if I got into a mess, I would revert back to the
+unedited parser, rewrite it in monadic style, make the changes, and
+again check in compiles, test it, then convert back to applicative in
+stages.
+
+## Some guidelines:
+
+~~~ {.haskell}
+parser = do
+   a <- subParser1
+   b <- subParser2
+   c <- subParser3
+   d <- subParser4
+   return $ AstNode a b c d
+~~~
+
+is rewritten like this:
+
+~~~ {.haskell}
+parser = AstNode <$> subParser1 <*> subParser2 <*> subParser3 <*> subParser4
+~~~
+
+~~~ {.haskell}
+parser = do
+   a <- subParser1
+   return $ AstNode1 a
+~~~
+
+would be
+
+~~~ {.haskell}
+parser = AstNode1 <$> subParser1
+~~~
+
+and
+
+~~~ {.haskell}
+parser = do
+   a <- subParser1
+   b <- subParser2
+   return $ AstNode2 a b
+~~~
+
+would be
+
+~~~ {.haskell}
+parser = AstNode2 <$> subParser1 <*> subParser2
+~~~
+
+The main thing to notice is that you follow the pure constructor
+AstNodeX with `<$>` and the first argument, then to add additional
+arguments you use `<*>`.
+
+What's nice about this is that the parser looks similar to creating a
+pure value:
+
+~~~ {.haskell}
+parser = AstNode <$> subParser1 <*> subParser2 <*> subParser3 <*> subParser4
+~~~
+
+~~~ {.haskell}
+value = AstNode subValue1 subValue2 subValue4 subValue4
+~~~
+
+The limitations are that it is difficult to convert the following
+monadic parsers into applicative syntax.
+
+~~~ {.haskell}
+parser = do
+   a <- subParser1
+   b <- subParser2
+   return $ AstNode2 b a
+~~~
+
+The values are passed to the constructor in the reverse order to the
+order in which they are parsed. Here is a way to make this work:
+
+~~~ {.haskell}
+parser = revAstNode2 <$> a <*> b
+  where
+    revAstNode2 a b = AstNode2 b a -- can use flip here as well
+~~~
+
+There may also be performance implications when using applicative
+compared to monadic (applicative might be faster or use less memory in
+some circumstances) but I don't know much about this.
+
+## Ignoring the results of parsers
+
+What about this:
+
+~~~ {.haskell}
+createView = do
+  p <- pos
+  _ <- keyword "view"
+  i <- idString
+  _ <- keyword "as"
+  e <- selectExpression
+  return $ CreateView p i e
+~~~
+
+(If this parser for a sql create view statement doesn't look quite
+right it may be because it is only called when the initial 'create'
+keyword has already been parsed - this means the position won't be
+quite correct.)
+
+Can this be rewritten even though it ignores the results of some of
+the parsers (e.g. '`_ <- keyword "view"`')?
+
+This is how it is done:
+
+~~~ {.haskell}
+createView = CreateView
+             <$> (pos <* keyword "view")
+             <*> idString
+             <*> (keyword "as" *> selectExpression)
+~~~
+
+If this is broken down, you can see how it works:
+
+~~~ {.haskell}
+createView = CreateView
+             <$> posThenIgnoreView
+             <*> idString
+             <*> ignoreAsThenSelectExpression
+             where
+               posThenIgnoreView = do
+                 p <- pos
+                 _ <- keyword "view"
+                 return p
+               ignoreAsThenSelectExpression = do
+                 _ <- keyword "as"
+                 e <- selectExpression
+                 return e
+                 -- or just
+                 -- _ <- keyword "as"
+                 -- selectExpression
+~~~
+
+This shows the code using the applicative style without any
+tricks. The operators `<*` and `*>` are used to run subparsers, and
+ignore the results:
+
+~~~ {.haskell}
+createView = CreateView
+             <$> posAndIgnoreView
+             <*> idString
+             <*> ignoreAsAndSelectExpression
+             where
+               posAndIgnoreView =
+                 pos <* keyword "view"
+               ignoreAsAndSelectExpression =
+                 keyword "as" *> selectExpression
+~~~
+
+Basically, `<*` runs the parser to the left, then the one to the
+right, and returns the result of the left parser and ignores the
+result of the right parser:
+
+~~~ {.haskell}
+meat <* veg = do
+  meat' <- meat
+  _ <- veg
+  return meat'
+~~~
+
+(This is equivalent to what happens, but not the actual implementation.)
+
+This leads to the final implementation:
+
+~~~ {.haskell}
+createView = CreateView
+             <$> (pos <* keyword "view")
+             <*> idString
+             <*> (keyword "as" *> selectExpression)
+~~~
+
+`*>` is a lot like `>>` which is used with monads.
+
+
+## Ignoring the results of parsers 2
+
+~~~ {.haskell}
+booleanLit = do
+  p <- pos
+  v <- ((do
+         _ <- keyword "true"
+         return True)
+        <|>
+        (do
+         _ <- keyword "false"
+         return False))
+  return $ BooleanLit p v
+~~~
+
+In this case, it is ignoring the parser result completely, and
+returning a pure value. You can rewrite this using `*>` and returns,
+but there is a shorter way:
+
+~~~ {.haskell}
+booleanLit = do
+  p <- pos
+  v <- ((True <$ keyword "true")
+        <|>
+        (do
+         _ <- keyword "false"
+         return False))
+  return $ BooleanLit p v
+~~~
+
+The `<$` operator returns the first argument which is pure, if the
+second argument succeeds (and ignores the result of the second
+argument). I think it is mainly used in this way to parse to
+parameterless constructors. Finishing off rewriting `booleanLit`:
+
+~~~ {.haskell}
+booleanLit = do
+  p <- pos
+  v <- ((True <$ keyword "true")
+        <|>
+        (False <$ keyword "false"))
+  return $ BooleanLit p v
+~~~
+
+~~~ {.haskell}
+booleanLit = BooleanLit <$> pos <*> ((True <$ keyword "true")
+                                     <|>
+                                     (False <$ keyword "false"))
+~~~
+
+Here is a page with info about applicative parsing:
+
+[http://www.serpentine.com/blog/2008/02/06/the-basics-of-applicative-functors-put-to-practical-work/](http://www.serpentine.com/blog/2008/02/06/the-basics-of-applicative-functors-put-to-practical-work/)
+
+Make sure you check out Brent Yorgey's (2nd) comment at the bottom.
+
+There is some information in Real World Haskell:
+
+[http://book.realworldhaskell.org/read/using-parsec.html](http://book.realworldhaskell.org/read/using-parsec.html)
+
+The section is called 'Applicative functors for parsing'.
+
+This is a more academic approach, pretty hard work:
+
+Grammars and Parsing by Johan Jeuring and Doaitse Swierstra [http://www.cs.uu.nl/docs/vakken/gont/diktaat.pdf](http://www.cs.uu.nl/docs/vakken/gont/diktaat.pdf)
+
+If you get through it, you can probably fix all the problems with the
+hssqlppp parser that I am unable to.

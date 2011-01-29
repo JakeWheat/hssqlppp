@@ -9,7 +9,7 @@ Build-Type:          Simple
 Cabal-Version:       >=1.6
 copyright:           Copyright 2009, 2010 Jake Wheat
 stability:           pre-alpha
-homepage:            http://community.haskell.org/~JakeWheat/hssqlppp/index.html
+homepage:            http://jakewheat.github.com/hssqlppp/
 bug-reports:         mailto:jakewheatmail@gmail.com
 category:            Database
 Description:
@@ -17,141 +17,25 @@ Description:
     and PL/pgSQL.
     .
     Documentation, examples on the homepage:
-    <http://community.haskell.org/~JakeWheat/hssqlppp/index.html>.
+    < http://jakewheat.github.com/hssqlppp/http://community.haskell.org/~JakeWheat/hssqlppp/index.html>.
+
+-- to run haddock use 'cabal configure --ghc-options "-pgmPcpphs -optP--cpp"' first
 
 extra-source-files:  README
                      LICENSE
                      -- todo: add website stuff
                      --find src/ devel/ tests/ examples/ -iname '*.ag' -o -iname '.sql' -o -iname '*.txt' -o -iname '*.hs' -o -iname '*.lhs'
-                     src/index.txt
-                     src/Database/HsSqlPpp/Ast.lhs
-                     src/Database/HsSqlPpp/PrettyPrinter.lhs
-                     src/Database/HsSqlPpp/TypeChecker.lhs
-                     src/Database/HsSqlPpp/.#PrettyPrinter.lhs
-                     src/Database/HsSqlPpp/Annotation.lhs
-                     src/Database/HsSqlPpp/Utils/DbmsCommon.lhs
-                     src/Database/HsSqlPpp/Utils/Utils.lhs
-                     src/Database/HsSqlPpp/Utils/Here.lhs
-                     src/Database/HsSqlPpp/SqlTypes.lhs
-                     src/Database/HsSqlPpp/SqlQuote.lhs
-                     src/Database/HsSqlPpp/Parser.lhs
-                     src/Database/HsSqlPpp/Parsing/ParseErrors.lhs
-                     src/Database/HsSqlPpp/Parsing/Lexer.lhs
-                     src/Database/HsSqlPpp/Parsing/ParserInternal.lhs
-                     src/Database/HsSqlPpp/Catalog.lhs
-                     src/Database/HsSqlPpp/AstInternals/Catalog/CatalogReaderY.lhs
-                     src/Database/HsSqlPpp/AstInternals/Catalog/CatalogInternal.lhs
-                     src/Database/HsSqlPpp/AstInternals/Catalog/CatalogReader.lhs
-                     src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs
-                     src/Database/HsSqlPpp/AstInternals/Catalog/CatalogReaderX.lhs
-                     src/Database/HsSqlPpp/AstInternals/AstAnti.hs
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Drops.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Expressions.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/CreateFunction.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Update.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/TypeConversion.lhs
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/ErrorUtils.lhs
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/TableRefs.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Block.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Insert.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Triggers.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/SelectLists.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/LocalBindings.lhs
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/Delete.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/MiscCreates.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/CreateTable.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/LocalBindingsInternal.lhs
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/TypeChecking.ag
-                     src/Database/HsSqlPpp/AstInternals/TypeChecking/SelectStatement.ag
-                     src/Database/HsSqlPpp/AstInternals/AstAnnotation.lhs
-                     src/Database/HsSqlPpp/AstInternals/AnnotationUtils.lhs
-                     src/Database/HsSqlPpp/AstInternals/AstInternal.hs
-                     src/Database/HsSqlPpp/AstInternals/TypeType.lhs
-                     src/Database/HsSqlPpp/AstInternals/AstInternal.ag
-                     devel/AnnotateSource2.lhs
-                     devel/MakeAntiNodes.lhs
-                     devel/Text/DocTool/DocTool.lhs
-                     devel/Text/DocTool/Parser.lhs
-                     devel/MakeWebsite.lhs
-                     devel/DevelTool.lhs
-                     devel/index.txt
-                     devel/DoChaosSql.lhs
-                     devel/TestParser.lhs
-                     devel/TestFileProcessor.lhs
-                     tests/Tests.lhs
-                     tests/index.txt
-                     tests/Database/HsSqlPpp/Tests/Tests.lhs
-                     tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs
-                     tests/Database/HsSqlPpp/Tests/LexicalSyntaxTests.lhs
-                     tests/Database/HsSqlPpp/Tests/LocalBindingsTests.lhs
-                     tests/Database/HsSqlPpp/Tests/BindingsTests.lhs
-                     tests/Database/HsSqlPpp/Tests/ExtensionTests.lhs
-                     tests/Database/HsSqlPpp/Tests/ParserTests.lhs
-                     tests/Database/HsSqlPpp/Tests/ParameterizedStatementTests.lhs
-                     tests/Database/HsSqlPpp/Tests/TestUtils.lhs
-                     tests/Database/HsSqlPpp/Tests/TypeInferenceTests.lhs
-                     tests/Database/HsSqlPpp/Tests/RoundtripTests.lhs
-                     tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs
-                     examples/chaos/index.txt
-                     examples/chaos/Chaos2010.lhs
-                     examples/chaos/Database/HsSqlPpp/Chaos/ChaosFiles.lhs
-                     examples/chaos/Database/HsSqlPpp/Chaos/ChaosExtensions.lhs
-                     examples/wrappers/WrapLib.lhs
-                     examples/wrappers/GenerateHListWrapper.lhs
-                     examples/wrappers/ThTupleExample.lhs
-                     examples/wrappers/GenerateHListSourceExample.lhs
-                     examples/wrappers/GenerateTupleSourceExample.lhs
-                     examples/wrappers/index.txt
-                     examples/wrappers/SelectRelation.lhs
-                     examples/wrappers/RunWrappers.lhs
-                     examples/wrappers/ThHListWrapper.lhs
-                     examples/wrappers/ThHListExample.lhs
-                     examples/wrappers/MakeLabels.hs
-                     examples/wrappers/ThTupleWrapper.lhs
-                     examples/wrappers/ConnectionString.hs
-                     examples/wrappers/GenerateTupleWrapper.lhs
-                     examples/index.txt
-                     examples/util/HsSqlPppUtil.lhs
-                     examples/util/Database/HsSqlPpp/Utils/C2HS.hs
-                     examples/util/Database/HsSqlPpp/Utils/RoundTripTester.lhs
-                     examples/util/Database/HsSqlPpp/Utils/DatabaseLoader.lhs
-                     examples/util/Database/HsSqlPpp/Utils/PPExpr.lhs
-                     examples/util/Database/HsSqlPpp/Utils/DBUtils.lhs
-                     examples/util/Database/HsSqlPpp/Utils/PQH.lhs
-                     examples/extensions/index.txt
-                     examples/extensions/Database/HsSqlPpp/Extensions/SimplifiedCatalog.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/GeneralInclusion.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/FreeDefinitionOrder.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/AstUtils.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/SyntaxExtensions.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/CreateAssertionTests.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/AlternateInsert.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/CardinalityRestrict.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/Modules.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/ExtensionsUtils.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/CreateVar.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/TemporalData.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/ExtensionTests.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/Denormalized6nf.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/Denormalized6nfExamples.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/CreateAssertion.lhs
-                     examples/extensions/Database/HsSqlPpp/Extensions/CreateVarSimple.lhs
 
 Flag tests
   Description:       Build the tests
   Default:           False
 Flag postgres
-  Description:       Use HDBC-postgresql (disable to remove postgresql dependency)
-  Default:           True
+  Description:       Use HDBC-postgresql
+  Default:           False
 
 Flag quasiquotes
-  Description:       Compile quasi quote support (disable to remove template-haskell dependency)
-  Default:           True
+  Description:       Compile quasiquote support
+  Default:           False
 
 
 Library
@@ -164,18 +48,19 @@ Library
                      uniplate >= 1.6 && < 1.7,
                      transformers >= 0.2.2.0 && < 0.3
 
-  if flag(postgres)
+  if flag(postgres) || flag(tests)
      Build-Depends:  HDBC >= 2.2.6.1 && < 2.3,
-                     HDBC-postgresql >= 2.2.3.1 && < 3
-     cpp-options:    -DPOSTGRES
+                     HDBC-postgresql >= 2.2.3.1 && < 3,
+                     template-haskell >= 2.4.0.0 && < 2.5
 
-  if flag(quasiquotes)
+  if flag(quasiquotes) || flag(tests)
      Build-Depends:  template-haskell >= 2.4.0.0 && < 2.5
-     --cpp-options:    -DSQLQUASIQUOTES
 
-
-  ghc-options:       -pgmPcpphs -optP--cpp
-  hs-source-dirs:    src
+  hs-source-dirs:    src/lib
+  if flag(quasiquotes) || flag(tests)
+    hs-source-dirs:    src/qq
+  if flag(postgres) || flag(tests)
+    hs-source-dirs:    src/postgresql
 
   Exposed-modules:   Database.HsSqlPpp.Ast
                      Database.HsSqlPpp.Annotation
@@ -184,17 +69,19 @@ Library
                      Database.HsSqlPpp.PrettyPrinter
                      Database.HsSqlPpp.SqlTypes
                      Database.HsSqlPpp.TypeChecker
-  if flag(quasiquotes)
+  if flag(quasiquotes) || flag(tests)
     Exposed-modules: Database.HsSqlPpp.SqlQuote
+  if flag(postgres) || flag(tests)
+    Exposed-modules: Database.HsSqlPpp.CatalogReader
 
                      -- find src -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
   Other-Modules:     Database.HsSqlPpp.Utils.Utils
-                     Database.HsSqlPpp.Utils.Here
+                     --Database.HsSqlPpp.Utils.Here
                      Database.HsSqlPpp.Parsing.ParseErrors
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParserInternal
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-                     Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
+                     --Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
                      Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
                      Database.HsSqlPpp.AstInternals.AstAnti
                      Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
@@ -205,13 +92,10 @@ Library
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstInternal
                      Database.HsSqlPpp.AstInternals.TypeType
-  if flag(postgres)
+  if flag(postgres) || flag(tests)
      Other-Modules:  Database.HsSqlPpp.Utils.DbmsCommon
-                     Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
-  if flag(quasiquotes)
-     Other-Modules:  Database.HsSqlPpp.Utils.DbmsCommon
-                     Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
 
+  ghc-options:       -pgmPcpphs -optP--cpp
 
 
   extensions:        DeriveDataTypeable,
@@ -224,7 +108,7 @@ Library
 
 Executable Tests
   Main-Is:           Tests.lhs
-  hs-source-dirs:    src,devel,tests,examples/chaos,examples/extensions,examples/util,examples/wrappers
+  hs-source-dirs:    src/lib,src/qq,src/postgresql,devel,tests,examples/chaos,examples/extensions,examples/util,examples/wrappers
   if flag(tests)
     Build-Depends:   base >= 4 && < 5,
                      mtl >= 2.0.1.0 && < 2.1,
@@ -235,14 +119,13 @@ Executable Tests
                      uniplate >= 1.6 && < 1.7,
                      transformers >= 0.2.2.0 && < 0.3,
                      test-framework >= 0.3.3 && < 0.4,
-                     haskell-src-exts >= 1.9.6 && < 1.10,
+                     haskell-src-exts >= 1.10 && < 1.11,
                      test-framework-hunit >= 0.2.6 && < 0.3,
                      HUnit >= 1.2.2.3 && < 1.3
   else
     Build-Depends:   base >= 4 && < 5
 
   ghc-options:       -pgmPcpphs -optP--cpp
-  cpp-options:       -DPOSTGRES
 
   if flag(tests)
     Buildable:       True

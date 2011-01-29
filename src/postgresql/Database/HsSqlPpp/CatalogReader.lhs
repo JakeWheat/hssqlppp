@@ -7,7 +7,7 @@ was heavily changed so it's a bit messy.
 
 > {-# LANGUAGE QuasiQuotes #-}
 >
-> module Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
+> module Database.HsSqlPpp.CatalogReader
 >     (readCatalogFromDatabase) where
 >
 > import qualified Data.Map as M

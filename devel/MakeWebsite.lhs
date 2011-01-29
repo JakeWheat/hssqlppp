@@ -55,7 +55,7 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 >                                      Txt
 >                                      ("hssqlppp/source" </> fn)
 >                                      title-}
->   return $ tfp {- ++ src ++ trch1 ++ wso ++  ex ++ devel ++ tests-}
+>   return $ tfp ++ src ++ {-trch1 ++ -} wso ++  ex ++ devel ++ tests
 >   where
 >     removeMatches :: [String] -> [OutputFile] -> [OutputFile]
 >     removeMatches bads =

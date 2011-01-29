@@ -1,0 +1,134 @@
+HsSqlPpp
+========
+
+A parser, quasiquoter, pretty printer, and type checker for SQL
+written in Haskell. Supports PostgreSQL SQL and PL/pgSQL syntax. BSD
+licensed.
+
+This documentation is for the HEAD of the master branch in github:
+
+https://github.com/JakeWheat/hssqlppp
+
+This documentation is a work in progress.
+
+Use
+===
+
+Possible uses of this library include:
+
+* parsing sql as part of another library
+* lint checking sql code
+* type-checker can help with sql development: e.g. change the name of
+  a view, type-check, and you can see which functions you need to
+  update with the new name
+* generating sql code programmatically/ generating sql from some other
+  source
+* transforming sql code using quasiquoting
+* viewing the catalog produced by some sql code
+* helping with typesafe database access from haskell
+* generating documentation for sql
+
+Some of these are partially written already - this isn't a finished
+product.
+
+Status
+======
+
+Pre-alpha. Support for parsing SQL is patchy, but not too bad. Here is
+an extract from the parsing tests which gives load of examples of what
+kind of SQL can currently be parsed:
+
+* [Parsing examples](ParserTests.html)
+
+The type checker is currently in a mess.
+
+Extract from the type checking tests:
+
+* [Type-checking examples](TypeCheckTests.html)
+
+Currently limited support for quasiquoting, here are the examples:
+
+* [Quasiquotation examples](QuasiQuoteTests.html)
+
+The [example database for a game, Chaos
+2010](source/examples/chaos/index.txt.html) is an example of a
+smallish database which is parsed, transformed, then loaded into the
+database successfully. The extensions which it uses to transform the
+SQL use quite a lot of quasiquoting.
+
+Installation
+============
+
+This project is currently developed on GHC 6.12.1.
+
+There are cabal flags:
+
+* postgres: for omitting HDBC-postgresql - this allows you to
+  install the library without having postgresql, useful is you just
+  want an SQL parser
+* quasiquotes: for omitting SQL quasi quoting support - this removes
+  the dependency on template-haskell (you cannot currently have hdbc
+  without quasiquotes although this would be easy to fix if useful)
+* tests: to compile the tests
+
+The defaults are all off.
+
+Use
+
+~~~~~{.sh}
+cabal install hssqlppp
+~~~~~
+
+to install the library with the defaults, or e.g.
+
+~~~~~{.sh}
+cabal install hssqlppp -f-postgres -f-quasiquotes
+~~~~~
+
+for minimal dependency version, or
+
+~~~~~{.sh}
+cabal install hssqlppp -ftests
+~~~~~
+
+for the tests.
+
+Documentation
+=============
+
+Some simple examples coming soon.
+
+* [Haddock](haddock/index.html)
+
+See the [htmlized source for the library, tests, and examples](source.txt.html); has lots of
+comments but is quite rough at the moment.
+
+Homepage: [http://jakewheat.github.com/hssqlppp/](http://jakewheat.github.com/hssqlppp/)
+
+Hackage: [http://hackage.haskell.org/package/hssqlppp](http://hackage.haskell.org/package/hssqlppp)
+
+Repository: [https://github.com/JakeWheat/hssqlppp](https://github.com/JakeWheat/hssqlppp)
+
+Future Plans
+============
+
+Currently working on fixing the typechecker for queries to be
+production quality.
+
+Provisional for 0.4.0:
+
+* add support for parsing most postgresql syntax
+* add comprehensive set of splices for quasi-quoting
+* add a fair bit to the catalog
+* add slightly better support for custom syntax
+* report function which can be run on a big bit of sql - so you can
+  easily find out how well your sql is supported by hssqlppp
+
+Contact
+=======
+
+Let me know if you're using/ interested in using the library, if you
+have any problems, bug reports, or suggestions, etc.. All
+contributions, comments and criticism welcome:
+
+jakewheatmail@gmail.com
